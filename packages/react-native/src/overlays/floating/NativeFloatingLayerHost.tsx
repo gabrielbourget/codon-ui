@@ -227,6 +227,7 @@ export const NativeFloatingLayerHost = forwardRef<TNativeFloatingLayerHostRef, T
             {...rest}
             ref={root}
             captureEnabled={windowActive?.() !== false}
+            nativeTypographyWindow={name}
             testID={testID}
             collapsable={false}
             pointerEvents="box-none"

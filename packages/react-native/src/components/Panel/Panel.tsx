@@ -27,6 +27,7 @@ import { useNativeTheme } from "../../theme"
 import { getNativeButtonContent } from "../Button/content"
 import { NativeContentContext } from "../NativeContentContext"
 import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
+import { serializeNativeTypographyStyle } from "../nativeTypographyStyle"
 
 import { useNativePanelAppearance } from "./appearance"
 import { useNativePanelReturnFocus } from "./focus"
@@ -224,6 +225,7 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
                         appearanceScope={appearanceScope}
                         nativeMotionDrawingOwner
                         nativeForegroundComposition
+                        nativeTypographyStyle={serializeNativeTypographyStyle(appearance.text)}
                         nativeMotionProjectionRadii={appearance.radii}
                         initialFocusRef={props.initialFocusRef}
                         testID={identity}

@@ -342,7 +342,8 @@ it("transitions authored spacing, borders, opacity and scalar typography on the 
   expect(processColor(current.borderColor)).not.toBe(processColor("blue"))
   expect(text.fontSize).toBeGreaterThan(12)
   expect(text.fontSize).toBeLessThan(32)
-  expect(text.fontWeight).toBe("800")
+  expect(text.fontWeight).toBeGreaterThan(400)
+  expect(text.fontWeight).toBeLessThan(800)
   expect(text.letterSpacing).toBeGreaterThan(0)
   expect(text.letterSpacing).toBeLessThan(4)
   expect(text.lineHeight).toBeGreaterThan(18)
@@ -527,16 +528,51 @@ it("resolves omitted border, outline and shadow colors from the same Panel foreg
   expect(style().boxShadow[0].color).toBe("blue")
 })
 
-it("keeps the pinned renderer's supported font weights while metric transitions run", async () => {
+it("interpolates font weight continuously with metrics and restores the authored final value", async () => {
   const f = await setup()
   await f.rerender(f.node({ customStyles: { fontWeight: "400", fontSize: 12 } }))
   await advance(375)
   await f.rerender(f.node({ customStyles: { fontWeight: "800", fontSize: 32 } }))
   await advance(175)
   const text = StyleSheet.flatten(screen.getByText("Raw styled phrase", hidden).props.style)
-  expect(text.fontWeight).toBe("800")
+  expect(text.fontWeight).toBeGreaterThan(400)
+  expect(text.fontWeight).toBeLessThan(800)
   expect(text.fontSize).toBeGreaterThan(12)
   expect(text.fontSize).toBeLessThan(32)
+  expect((text.fontWeight - 400) / 400).toBeCloseTo((text.fontSize - 12) / 20, 6)
+  expect(JSON.parse(row("panel").props.nativeTypographyStyle).fontWeight).toBe(text.fontWeight)
+  await advance(200)
+  expect(StyleSheet.flatten(screen.getByText("Raw styled phrase", hidden).props.style).fontWeight).toBe("800")
+})
+
+it("retargets fractional and named font weights from the current style and clears back to the original default", async () => {
+  const f = await setup()
+  const weight = () => StyleSheet.flatten(screen.getByText("Raw styled phrase", hidden).props.style).fontWeight
+  await f.rerender(f.node({ customStyles: { fontWeight: "normal" } }))
+  await advance(375)
+  const root = f.root.current,
+    editor = f.editor.current
+  await f.rerender(f.node({ customStyles: { fontWeight: 750.5 } }))
+  await advance(175)
+  const current = weight()
+  expect(current).toBeGreaterThan(400)
+  expect(current).toBeLessThan(750.5)
+  expect(current % 100).not.toBe(0)
+  await f.rerender(f.node({ customStyles: { fontWeight: "bold" } }))
+  expect(weight()).toBe(current)
+  await advance(375)
+  expect(weight()).toBe("bold")
+  await f.rerender(f.node({ customStyles: { fontWeight: 750.123456789 } }))
+  await advance(375)
+  expect(weight()).toBe(750.123456789)
+  expect(JSON.parse(row("panel").props.nativeTypographyStyle).fontWeight).toBe(750.123456789)
+  await f.rerender(f.node({ customStyles: { fontWeight: undefined } }))
+  await advance(375)
+  expect(weight()).toBe("400")
+  expect(f.root.current).toBe(root)
+  expect(f.editor.current).toBe(editor)
+  expect(row("held").props.value).toBe("held")
+  expect(f.change).not.toHaveBeenCalled()
 })
 
 it("retires the appearance clock and its listeners when the original Panel unmounts", async () => {

@@ -61,7 +61,9 @@ folly::dynamic textValue(const TextAttributes &attributes, const BaseParagraphPr
     if (attributes.fontFamily.empty()) unavailable(name, "native-font-family-unavailable");
     return attributes.fontFamily;
   }
-  if (name == "fontWeight") return toString(attributes.fontWeight.value_or(FontWeight::Regular));
+  if (name == "fontWeight") return std::isfinite(attributes.fontWeightScalar)
+      ? folly::to<std::string>(attributes.fontWeightScalar)
+      : toString(attributes.fontWeight.value_or(FontWeight::Regular));
   if (name == "fontStyle") return toString(attributes.fontStyle.value_or(FontStyle::Normal));
   if (name == "letterSpacing") return finite(attributes.letterSpacing, name);
   if (name == "lineHeight") return finite(attributes.lineHeight, name);

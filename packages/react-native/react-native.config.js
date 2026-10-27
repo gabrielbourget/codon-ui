@@ -8,7 +8,7 @@ export default {
         libraryName: "CodonNativeOverlay",
         cmakeListsPath: "src/main/jni/overlay/CMakeLists.txt",
         componentDescriptors: [
-          "CUIFocusViewComponentDescriptor",
+          "CUIOwnedTypographyFocusComponentDescriptor",
           "CUIKeyboardScopeComponentDescriptor",
           "CUICollectionRootComponentDescriptor",
           "CUICollectionNodeComponentDescriptor",

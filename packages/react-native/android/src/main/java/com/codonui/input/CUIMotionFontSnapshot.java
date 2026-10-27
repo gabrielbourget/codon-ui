@@ -101,15 +101,17 @@ final class CUIMotionFontSnapshot {
     private final String family;
     private final int style;
     private final int weight;
+    private final double scalarWeight;
     private final String features;
-    OwnedStyle(ReactFontManager manager, AssetManager assets, String family, int style, int weight, String features) {
+    OwnedStyle(ReactFontManager manager, AssetManager assets, String family, int style, int weight, double scalarWeight, String features) {
       this.manager = manager; this.assets = assets; this.family = family;
-      this.style = style; this.weight = weight; this.features = features;
+      this.style = style; this.weight = weight; this.scalarWeight = scalarWeight; this.features = features;
     }
     private void apply(TextPaint paint) {
       paint.setFontFeatureSettings(features);
       // Preserve the original layout engine's lookup order, including cache misses across spans.
       paint.setTypeface(manager.getTypeface(family, style, weight, assets));
+      com.facebook.react.views.text.ReactFontWeightScalar.apply(paint, scalarWeight);
       paint.setSubpixelText(true);
       paint.setLinearText(true);
     }
@@ -150,7 +152,7 @@ final class CUIMotionFontSnapshot {
       if (assets == null) throw new IllegalStateException("Native motion: original font assets required");
       int style = (Integer)read(PinnedFonts.style, span);
       int weight = (Integer)read(PinnedFonts.weight, span);
-      replacements.put(span, new OwnedStyle(owned, assets, name, style, weight, span.getFontFeatureSettings()));
+      replacements.put(span, new OwnedStyle(owned, assets, name, style, weight, span.getWeightScalar(), span.getFontFeatureSettings()));
     }
     return replacements;
   }

@@ -1,3 +1,27 @@
+diff --git a/Libraries/StyleSheet/StyleSheetTypes.d.ts b/Libraries/StyleSheet/StyleSheetTypes.d.ts
+index c951a773d0ec00ef8edc10875852255634f84af6..9a6e46d53111c981a303028ffc7e91cc97ba27cf 100644
+--- a/Libraries/StyleSheet/StyleSheetTypes.d.ts
++++ b/Libraries/StyleSheet/StyleSheetTypes.d.ts
+@@ -614,6 +614,7 @@ export interface TextStyle extends TextStyleIOS, TextStyleAndroid, ViewStyle {
+     | 700
+     | 800
+     | 900
++    | number
+     | 'ultralight'
+     | 'thin'
+     | 'light'
+diff --git a/Libraries/StyleSheet/StyleSheetTypes.js b/Libraries/StyleSheet/StyleSheetTypes.js
+index 1bf46c32b078c62f03f692e8f52e96945ffa0bf9..bdd1e6d6c4d14ba22eaaa4f80a9fd9809506c904 100644
+--- a/Libraries/StyleSheet/StyleSheetTypes.js
++++ b/Libraries/StyleSheet/StyleSheetTypes.js
+@@ -946,6 +946,7 @@ export type ____FontWeight_Internal =
+   | 700
+   | 800
+   | 900
++  | number
+   | 'ultralight'
+   | 'thin'
+   | 'light'
 diff --git a/Libraries/Text/TextInput/Multiline/RCTUITextView.h b/Libraries/Text/TextInput/Multiline/RCTUITextView.h
 index be946f87bbe3112dbeb7619b3f93e19d86eb6ec2..3038784f13890da03449535e00b8daacda186a3d 100644
 --- a/Libraries/Text/TextInput/Multiline/RCTUITextView.h
@@ -123,7 +147,7 @@ index 9c29ee6213deaa7293fb64dfc0d614af1f937cdf..0c11beb3e572ac4ef36b5db3c865e862
 @@ -1266,6 +1266,17 @@ public class FabricUIManager
              + " Fabric JSI API");
    }
- 
+
 +  @UiThread
 +  public void checkNativeEventCommandBoundary(int surfaceId) {
 +    mMountItemDispatcher.checkNativeEventCommandBoundary(surfaceId);
@@ -154,14 +178,14 @@ index 984ff9e75074e74dc8b06b96e924160df9e34352..dab0dd223dd677d4f9c55bdb2a079931
 @@ -34,6 +36,7 @@ internal class MountItemDispatcher(
    private val mountItems: Queue<MountItem> = ConcurrentLinkedQueue()
    private val preMountItems: Queue<MountItem> = ConcurrentLinkedQueue()
- 
+
 +  private var nativeEventCapture: NativeEventCommandScope? = null
    private var inDispatch: Boolean = false
    var batchedExecutionTime: Long = 0L
      private set
 @@ -44,13 +47,50 @@ internal class MountItemDispatcher(
    private var lastFrameTimeNanos: Long = 0L
- 
+
    fun addViewCommandMountItem(mountItem: DispatchCommandMountItem) {
 +    val original = if (UiThreadUtil.isOnUiThread()) nativeEventCapture?.capture(mountItem) ?: mountItem else mountItem
      if (!ReactNativeFeatureFlags.disableEarlyViewCommandExecution()) {
@@ -172,7 +196,7 @@ index 984ff9e75074e74dc8b06b96e924160df9e34352..dab0dd223dd677d4f9c55bdb2a079931
 +      mountItems.add(original)
      }
    }
- 
+
 +  fun checkNativeEventCommandBoundary(surfaceId: Int) {
 +    UiThreadUtil.assertOnUiThread()
 +    check(!inDispatch && nativeEventCapture == null) { "native-event-command-dispatch-reentrant" }
@@ -309,6 +333,597 @@ index 0000000000000000000000000000000000000000..c6c2bcc40f92410ff613d3fc88ebc963
 +    dispatcher.endNativeEventCapture(this)
 +  }
 +}
+diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactFontWeightScalar.kt b/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactFontWeightScalar.kt
+new file mode 100644
+index 0000000000000000000000000000000000000000..a282cce3626f087da5d3eeb125eb4204be628d5d
+--- /dev/null
++++ b/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactFontWeightScalar.kt
+@@ -0,0 +1,56 @@
++/*
++ * Copyright (c) Meta Platforms, Inc. and affiliates.
++ *
++ * This source code is licensed under the MIT license found in the
++ * LICENSE file in the root directory of this source tree.
++ */
++
++package com.facebook.react.views.text
++
++import android.graphics.Paint
++import android.graphics.fonts.FontVariationAxis
++import android.os.Build
++import java.util.WeakHashMap
++
++/** Scalar transport remains exact; native face matching remains the original peer policy. */
++public object ReactFontWeightScalar {
++  private data class Applied(val baseline: String?, val settings: String)
++  private val applied = WeakHashMap<Paint, Applied>()
++
++  @JvmStatic
++  public fun parse(value: String?): Double {
++    val scalar = when (value) {
++      "normal", "regular" -> 400.0
++      "bold" -> 700.0
++      else -> value?.toDoubleOrNull() ?: Double.NaN
++    }
++    return if (scalar.isFinite() && scalar >= 1 && scalar <= 1000) scalar else Double.NaN
++  }
++
++  /** Replaces only the owned wght entry; removal restores the prior original Paint settings. */
++  @JvmStatic
++  public fun apply(paint: Paint, scalar: Double): Boolean {
++    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return false
++    synchronized(applied) {
++      val old = applied[paint]
++      val current = paint.fontVariationSettings
++      val baseline = if (old != null && current == old.settings) old.baseline else current
++      if (!scalar.isFinite()) {
++        if (old != null && current == old.settings) paint.setFontVariationSettings(baseline)
++        applied.remove(paint)
++        return false
++      }
++      val axes = FontVariationAxis.fromFontVariationSettings(baseline)?.toMutableList() ?: mutableListOf()
++      axes.removeAll { it.tag == "wght" }
++      axes.add(FontVariationAxis("wght", scalar.toFloat()))
++      val settings = FontVariationAxis.toFontVariationSettings(axes.toTypedArray())
++      val accepted = paint.setFontVariationSettings(settings)
++      if (accepted) applied[paint] = Applied(baseline, settings)
++      else {
++        if (old != null && current == old.settings) paint.setFontVariationSettings(baseline)
++        applied.remove(paint)
++      }
++      return accepted
++    }
++  }
++}
+diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTypefaceUtils.kt b/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTypefaceUtils.kt
+index e33daa691f3174e611ccb93ad511582365d3b51f..e87c7b0b05f4c845d50a1c370ff982b769b4f807 100644
+--- a/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTypefaceUtils.kt
++++ b/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTypefaceUtils.kt
+@@ -16,21 +16,10 @@ import com.facebook.react.common.assets.ReactFontManager
+ public object ReactTypefaceUtils {
+
+   @JvmStatic
+-  public fun parseFontWeight(fontWeightString: String?): Int =
+-      when (fontWeightString) {
+-        "100" -> 100
+-        "200" -> 200
+-        "300" -> 300
+-        "normal",
+-        "400" -> 400
+-        "500" -> 500
+-        "600" -> 600
+-        "bold",
+-        "700" -> 700
+-        "800" -> 800
+-        "900" -> 900
+-        else -> ReactConstants.UNSET
+-      }
++  public fun parseFontWeight(fontWeightString: String?): Int {
++    val scalar = ReactFontWeightScalar.parse(fontWeightString)
++    return if (scalar.isFinite()) scalar.toInt() else ReactConstants.UNSET
++  }
+
+   @JvmStatic
+   public fun parseFontStyle(fontStyleString: String?): Int =
+diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt b/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt
+index 45c8bec4c2b8adf3004edfaa20e52c98e577351b..5371721f9178da273a42243eaba371070aae9a7c 100644
+--- a/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt
++++ b/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt
+@@ -106,6 +106,9 @@ public class TextAttributeProps private constructor() {
+   public var fontWeight: Int = ReactConstants.UNSET
+     private set
+
++  public var fontWeightScalar: Double = Double.NaN
++    private set
++
+   /**
+    * NB: If a font family is used that does not have a style in a certain Android version (ie.
+    * monospace bold pre Android 5.0), that style (ie. bold) will not be inherited by nested Text
+@@ -242,6 +245,7 @@ public class TextAttributeProps private constructor() {
+
+   private fun setFontWeight(fontWeightString: String?) {
+     fontWeight = parseFontWeight(fontWeightString)
++    fontWeightScalar = ReactFontWeightScalar.parse(fontWeightString)
+   }
+
+   private fun setFontStyle(fontStyleString: String?) {
+diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt b/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
+index eacec697670d254229a59813220b594847f1d828..e1b84c1bbfd9aff42c81c589e181e0bbd653b834 100644
+--- a/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
++++ b/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
+@@ -310,6 +310,7 @@ internal object TextLayoutManager {
+                       textAttributes.fontFeatureSettings,
+                       textAttributes.fontFamily,
+                       assets,
++                      textAttributes.fontWeightScalar,
+                   ),
+               )
+           )
+@@ -486,6 +487,7 @@ internal object TextLayoutManager {
+                   fragment.props.fontFeatureSettings,
+                   fragment.props.fontFamily,
+                   assets,
++                  fragment.props.fontWeightScalar,
+               ),
+               start,
+               end,
+@@ -731,6 +733,7 @@ internal object TextLayoutManager {
+         paint.textSkewX = if ((missingStyle and Typeface.ITALIC) != 0) -0.25f else 0f
+       }
+     }
++    ReactFontWeightScalar.apply(paint, baseTextAttributes.fontWeightScalar)
+   }
+
+   /**
+diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/CustomStyleSpan.kt b/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/CustomStyleSpan.kt
+index dec85221456093ba1462641cb6843c2a9e146dd5..622574aa231db222690aebe0470a9b47bb409a0d 100644
+--- a/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/CustomStyleSpan.kt
++++ b/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/CustomStyleSpan.kt
+@@ -15,6 +15,7 @@ import android.text.style.MetricAffectingSpan
+ import com.facebook.react.common.ReactConstants
+ import com.facebook.react.common.assets.ReactFontManager
+ import com.facebook.react.views.text.ReactTypefaceUtils
++import com.facebook.react.views.text.ReactFontWeightScalar
+
+ /**
+  * A [MetricAffectingSpan] that allows to change the style of the displayed font. CustomStyleSpan
+@@ -27,19 +28,20 @@ import com.facebook.react.views.text.ReactTypefaceUtils
+  * appropriate default typeface depending on the style. Fonts are retrieved and cached using the
+  * [ReactFontManager]
+  */
+-internal class CustomStyleSpan(
++internal class CustomStyleSpan @JvmOverloads constructor(
+     private val privateStyle: Int,
+     private val privateWeight: Int,
+     val fontFeatureSettings: String?,
+     val fontFamily: String?,
+     private val assetManager: AssetManager,
++    val weightScalar: Double = Double.NaN,
+ ) : MetricAffectingSpan(), ReactSpan {
+   override fun updateDrawState(ds: TextPaint) {
+-    apply(ds, privateStyle, privateWeight, fontFeatureSettings, fontFamily, assetManager)
++    apply(ds, privateStyle, privateWeight, fontFeatureSettings, fontFamily, assetManager, weightScalar)
+   }
+
+   override fun updateMeasureState(paint: TextPaint) {
+-    apply(paint, privateStyle, privateWeight, fontFeatureSettings, fontFamily, assetManager)
++    apply(paint, privateStyle, privateWeight, fontFeatureSettings, fontFamily, assetManager, weightScalar)
+   }
+
+   val style: Int
+@@ -66,6 +68,7 @@ internal class CustomStyleSpan(
+         fontFeatureSettingsParam: String?,
+         family: String?,
+         assetManager: AssetManager,
++        weightScalar: Double,
+     ) {
+       val typeface =
+           ReactTypefaceUtils.applyStyles(paint.typeface, style, weight, family, assetManager)
+@@ -74,6 +77,7 @@ internal class CustomStyleSpan(
+         setTypeface(typeface)
+         isSubpixelText = true
+         isLinearText = true
++        ReactFontWeightScalar.apply(this, weightScalar)
+       }
+     }
+   }
+diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt b/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt
+index b8c3b7e1b740af8ea8abffb4a30b56281c02790c..144f2ea6aeece456f91c1f26706099a5047feb11 100644
+--- a/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt
++++ b/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt
+@@ -10,6 +10,7 @@ package com.facebook.react.views.textinput
+ import android.annotation.SuppressLint
+ import android.content.Context
+ import android.content.res.Configuration
++import com.facebook.react.views.text.ReactFontWeightScalar
+ import android.graphics.Canvas
+ import android.graphics.Color
+ import android.graphics.Paint
+@@ -130,6 +131,7 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
+   private var typefaceDirty = false
+   private var fontFamily: String? = null
+   private var fontWeight = ReactConstants.UNSET
++  private var fontWeightScalar = Double.NaN
+   private var fontStyle = ReactConstants.UNSET
+   private var autoFocus = false
+   private var contextMenuHidden = false
+@@ -574,8 +576,10 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
+
+   public fun setFontWeight(fontWeightString: String?) {
+     val fontWeight = parseFontWeight(fontWeightString)
+-    if (fontWeight != this.fontWeight) {
++    val scalar = ReactFontWeightScalar.parse(fontWeightString)
++    if (fontWeight != this.fontWeight || !(scalar == fontWeightScalar || (scalar.isNaN() && fontWeightScalar.isNaN()))) {
+       this.fontWeight = fontWeight
++      fontWeightScalar = scalar
+       typefaceDirty = true
+     }
+   }
+@@ -604,6 +608,9 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
+
+     val newTypeface = applyStyles(typeface, fontStyle, fontWeight, fontFamily, context.assets)
+     typeface = newTypeface
++    ReactFontWeightScalar.apply(paint, fontWeightScalar)
++    requestLayout()
++    invalidate()
+
+     // Match behavior of CustomStyleSpan and enable SUBPIXEL_TEXT_FLAG when setting anything
+     // nonstandard
+@@ -768,6 +775,7 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
+       span.style == fontStyle &&
+           span.fontFamily == fontFamily &&
+           span.weight == fontWeight &&
++          (span.weightScalar == fontWeightScalar || (span.weightScalar.isNaN() && fontWeightScalar.isNaN())) &&
+           span.fontFeatureSettings == fontFeatureSettings
+     }
+   }
+@@ -846,7 +854,7 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
+             fontFeatureSettings != null
+     ) {
+       workingText.setSpan(
+-          CustomStyleSpan(fontStyle, fontWeight, fontFeatureSettings, fontFamily, context.assets),
++          CustomStyleSpan(fontStyle, fontWeight, fontFeatureSettings, fontFamily, context.assets, fontWeightScalar),
+           0,
+           workingText.length,
+           spanFlags,
+diff --git a/ReactCommon/react/renderer/attributedstring/FontWeightScalar.h b/ReactCommon/react/renderer/attributedstring/FontWeightScalar.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..77ebe387c80984230850511f7bedd55fb236afbe
+--- /dev/null
++++ b/ReactCommon/react/renderer/attributedstring/FontWeightScalar.h
+@@ -0,0 +1,31 @@
++#pragma once
++#include <algorithm>
++#include <array>
++#include <cmath>
++#include <limits>
++#include <locale>
++#include <sstream>
++#include <string>
++
++namespace facebook::react {
++inline double parseFontWeightScalar(const std::string &value) {
++  if (value == "normal" || value == "regular") return 400;
++  if (value == "bold") return 700;
++  std::istringstream parser(value);
++  parser.imbue(std::locale::classic());
++  double scalar = std::numeric_limits<double>::quiet_NaN();
++  parser >> std::noskipws >> scalar;
++  return parser && parser.eof() && std::isfinite(scalar) && scalar >= 1 && scalar <= 1000
++      ? scalar : std::numeric_limits<double>::quiet_NaN();
++}
++inline bool fontWeightScalarEqual(double first, double second) {
++  return first == second || (std::isnan(first) && std::isnan(second));
++}
++template <typename TWeight>
++inline TWeight interpolateFontWeight(double scalar, const std::array<TWeight, 9> &weights) {
++  const double position = std::clamp((scalar-100)/100,0.0,8.0);
++  const auto first = static_cast<size_t>(std::floor(position));
++  const auto last = std::min(first+1,weights.size()-1);
++  return weights[first]+(weights[last]-weights[first])*(position-first);
++}
++}
+diff --git a/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp b/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp
+index 69ea8c82fc3f514cc3121c08231194b1515b7bbe..72609600368cbfb44cf9c65df8330be7318ee3be 100644
+--- a/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp
++++ b/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp
+@@ -6,6 +6,7 @@
+  */
+
+ #include "TextAttributes.h"
++#include "FontWeightScalar.h"
+
+ #include <react/renderer/attributedstring/conversions.h>
+ #include <react/renderer/core/conversions.h>
+@@ -36,8 +37,10 @@ void TextAttributes::apply(TextAttributes textAttributes) {
+   fontSizeMultiplier = !std::isnan(textAttributes.fontSizeMultiplier)
+       ? textAttributes.fontSizeMultiplier
+       : fontSizeMultiplier;
+-  fontWeight = textAttributes.fontWeight.has_value() ? textAttributes.fontWeight
+-                                                     : fontWeight;
++  if (textAttributes.fontWeight.has_value() || !std::isnan(textAttributes.fontWeightScalar)) {
++    fontWeight = textAttributes.fontWeight;
++    fontWeightScalar = textAttributes.fontWeightScalar;
++  }
+   fontStyle = textAttributes.fontStyle.has_value() ? textAttributes.fontStyle
+                                                    : fontStyle;
+   fontVariant = textAttributes.fontVariant.has_value()
+@@ -167,6 +170,7 @@ bool TextAttributes::operator==(const TextAttributes& rhs) const {
+              rhs.textTransform) &&
+       floatEquality(maxFontSizeMultiplier, rhs.maxFontSizeMultiplier) &&
+       floatEquality(opacity, rhs.opacity) &&
++      fontWeightScalarEqual(fontWeightScalar, rhs.fontWeightScalar) &&
+       floatEquality(fontSize, rhs.fontSize) &&
+       floatEquality(fontSizeMultiplier, rhs.fontSizeMultiplier) &&
+       floatEquality(letterSpacing, rhs.letterSpacing) &&
+diff --git a/ReactCommon/react/renderer/attributedstring/TextAttributes.h b/ReactCommon/react/renderer/attributedstring/TextAttributes.h
+index b66452408b75220b3acca0f463eae213317b0a5e..8e87d1c43ae33816db6015c090c572d4da672851 100644
+--- a/ReactCommon/react/renderer/attributedstring/TextAttributes.h
++++ b/ReactCommon/react/renderer/attributedstring/TextAttributes.h
+@@ -8,6 +8,7 @@
+ #pragma once
+
+ #include <functional>
++#include <cmath>
+ #include <limits>
+ #include <optional>
+
+@@ -48,6 +49,7 @@ class TextAttributes : public DebugStringConvertible {
+   Float fontSize{std::numeric_limits<Float>::quiet_NaN()};
+   Float fontSizeMultiplier{std::numeric_limits<Float>::quiet_NaN()};
+   std::optional<FontWeight> fontWeight{};
++  double fontWeightScalar{std::numeric_limits<double>::quiet_NaN()};
+   std::optional<FontStyle> fontStyle{};
+   std::optional<FontVariant> fontVariant{};
+   std::optional<bool> allowFontScaling{};
+@@ -118,6 +120,7 @@ struct hash<facebook::react::TextAttributes> {
+         textAttributes.maxFontSizeMultiplier,
+         textAttributes.fontSizeMultiplier,
+         textAttributes.fontWeight,
++        std::isnan(textAttributes.fontWeightScalar) ? 0.0 : textAttributes.fontWeightScalar,
+         textAttributes.fontStyle,
+         textAttributes.fontVariant,
+         textAttributes.allowFontScaling,
+diff --git a/ReactCommon/react/renderer/attributedstring/TextStyleFields.h b/ReactCommon/react/renderer/attributedstring/TextStyleFields.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..f3dd2de9cab0a7877c50eed1c1795d2e53202c82
+--- /dev/null
++++ b/ReactCommon/react/renderer/attributedstring/TextStyleFields.h
+@@ -0,0 +1,18 @@
++#pragma once
++#include <array>
++#include <cstdint>
++#include <string_view>
++
++namespace facebook::react {
++inline constexpr std::array<std::string_view,23> TextStyleFieldNames = {
++  "color", "fontFamily", "fontSize", "fontWeight", "fontStyle", "fontVariant", "letterSpacing", "lineHeight",
++  "textAlign", "textAlignVertical", "includeFontPadding", "textDecorationLine", "textDecorationStyle",
++  "textDecorationColor", "textShadowColor", "textShadowOffset", "textShadowRadius", "textTransform", "writingDirection",
++  "selectable", "fontSizeMultiplier", "allowFontScaling", "maxFontSizeMultiplier"
++};
++inline uint64_t textStyleFieldBit(std::string_view name) {
++  for (size_t index=0;index<TextStyleFieldNames.size();index++)
++    if (TextStyleFieldNames[index]==name) return uint64_t{1}<<index;
++  return 0;
++}
++}
+diff --git a/ReactCommon/react/renderer/attributedstring/conversions.h b/ReactCommon/react/renderer/attributedstring/conversions.h
+index 331e2019338aa2eaf4539ba8194cd77020117fff..1ff5e176ccdb072d00961306850ea209ddde22ab 100644
+--- a/ReactCommon/react/renderer/attributedstring/conversions.h
++++ b/ReactCommon/react/renderer/attributedstring/conversions.h
+@@ -12,6 +12,7 @@
+ #include <react/renderer/attributedstring/AttributedString.h>
+ #include <react/renderer/attributedstring/ParagraphAttributes.h>
+ #include <react/renderer/attributedstring/TextAttributes.h>
++#include <react/renderer/attributedstring/FontWeightScalar.h>
+ #include <react/renderer/attributedstring/conversions.h>
+ #include <react/renderer/attributedstring/primitives.h>
+ #include <react/renderer/components/view/accessibilityPropsConversions.h>
+@@ -24,6 +25,8 @@
+ #include <react/renderer/css/CSSFontVariant.h>
+ #include <react/renderer/css/CSSValueParser.h>
+ #include <unordered_map>
++#include <cstdlib>
++#include <cmath>
+
+ #ifdef RN_SERIALIZABLE_STATE
+ #include <react/renderer/mapbuffer/MapBuffer.h>
+@@ -201,73 +204,26 @@ inline void fromRawValue(const PropsParserContext &context, const RawValue &valu
+   result = TextBreakStrategy::HighQuality;
+ }
+
+-inline void fromRawValue(const PropsParserContext &context, const RawValue &value, FontWeight &result)
++// Keep the CSS scalar distinct from the legacy integral face-selection enum.
++inline double fontWeightScalarFromRawValue(const RawValue &value)
+ {
+-  react_native_expect(value.hasType<std::string>() || value.hasType<int>());
++  double scalar = std::numeric_limits<double>::quiet_NaN();
+   if (value.hasType<std::string>()) {
+-    auto string = (std::string)value;
+-    if (string == "normal") {
+-      result = FontWeight::Regular;
+-    } else if (string == "regular") {
+-      result = FontWeight::Regular;
+-    } else if (string == "bold") {
+-      result = FontWeight::Bold;
+-    } else if (string == "100") {
+-      result = FontWeight::Weight100;
+-    } else if (string == "200") {
+-      result = FontWeight::Weight200;
+-    } else if (string == "300") {
+-      result = FontWeight::Weight300;
+-    } else if (string == "400") {
+-      result = FontWeight::Weight400;
+-    } else if (string == "500") {
+-      result = FontWeight::Weight500;
+-    } else if (string == "600") {
+-      result = FontWeight::Weight600;
+-    } else if (string == "700") {
+-      result = FontWeight::Weight700;
+-    } else if (string == "800") {
+-      result = FontWeight::Weight800;
+-    } else if (string == "900") {
+-      result = FontWeight::Weight900;
+-    } else {
+-      LOG(ERROR) << "Unsupported FontWeight value: " << string;
+-      // sane default for prod
+-      result = FontWeight::Regular;
+-    }
+-    return;
++    return parseFontWeightScalar(static_cast<std::string>(value));
++  } else if (value.hasType<double>() || value.hasType<int>()) {
++    scalar = static_cast<double>(value);
+   }
++  return std::isfinite(scalar) && scalar >= 1 && scalar <= 1000 ? scalar : std::numeric_limits<double>::quiet_NaN();
++}
+
+-  if (value.hasType<int>()) {
+-    auto numeric = (int)value;
+-    if (numeric == 100) {
+-      result = FontWeight::Weight100;
+-    } else if (numeric == 200) {
+-      result = FontWeight::Weight200;
+-    } else if (numeric == 300) {
+-      result = FontWeight::Weight300;
+-    } else if (numeric == 400) {
+-      result = FontWeight::Weight400;
+-    } else if (numeric == 500) {
+-      result = FontWeight::Weight500;
+-    } else if (numeric == 600) {
+-      result = FontWeight::Weight600;
+-    } else if (numeric == 700) {
+-      result = FontWeight::Weight700;
+-    } else if (numeric == 800) {
+-      result = FontWeight::Weight800;
+-    } else if (numeric == 900) {
+-      result = FontWeight::Weight900;
+-    } else {
+-      LOG(ERROR) << "Unsupported FontWeight value: " << numeric;
+-      // sane default for prod
+-      result = FontWeight::Regular;
+-    }
++inline void fromRawValue(const PropsParserContext &context, const RawValue &value, FontWeight &result)
++{
++  const auto scalar = fontWeightScalarFromRawValue(value);
++  if (std::isfinite(scalar)) {
++    result = static_cast<FontWeight>(static_cast<int>(scalar));
+     return;
+   }
+-
+-  LOG(ERROR) << "Unsupported FontWeight type";
+-  react_native_expect(false);
++  LOG(ERROR) << "Unsupported FontWeight value";
+   result = FontWeight::Regular;
+ }
+
+@@ -1262,7 +1218,9 @@ inline MapBuffer toMapBuffer(const TextAttributes &textAttributes)
+   if (!std::isnan(textAttributes.fontSizeMultiplier)) {
+     builder.putDouble(TA_KEY_FONT_SIZE_MULTIPLIER, textAttributes.fontSizeMultiplier);
+   }
+-  if (textAttributes.fontWeight.has_value()) {
++  if (std::isfinite(textAttributes.fontWeightScalar)) {
++    builder.putString(TA_KEY_FONT_WEIGHT, folly::to<std::string>(textAttributes.fontWeightScalar));
++  } else if (textAttributes.fontWeight.has_value()) {
+     builder.putString(TA_KEY_FONT_WEIGHT, toString(*textAttributes.fontWeight));
+   }
+   if (textAttributes.fontStyle.has_value()) {
+diff --git a/ReactCommon/react/renderer/components/text/BaseTextProps.cpp b/ReactCommon/react/renderer/components/text/BaseTextProps.cpp
+index e2ab6780f96d05b96f3ca26fd560dd2308fd9621..297d98688e2e06054d6e4fb8c5d4ea70c2b01787 100644
+--- a/ReactCommon/react/renderer/components/text/BaseTextProps.cpp
++++ b/ReactCommon/react/renderer/components/text/BaseTextProps.cpp
+@@ -56,6 +56,11 @@ static TextAttributes convertRawProp(
+       "fontWeight",
+       sourceTextAttributes.fontWeight,
+       defaultTextAttributes.fontWeight);
++  if (const auto *weight = rawProps.at("fontWeight", nullptr, nullptr)) {
++    textAttributes.fontWeightScalar = weight->hasValue() ? fontWeightScalarFromRawValue(*weight) : defaultTextAttributes.fontWeightScalar;
++  } else {
++    textAttributes.fontWeightScalar = sourceTextAttributes.fontWeightScalar;
++  }
+   textAttributes.fontStyle = convertRawProp(
+       context,
+       rawProps,
+@@ -237,13 +242,28 @@ BaseTextProps::BaseTextProps(
+                     context,
+                     rawProps,
+                     sourceProps.textAttributes,
+-                    TextAttributes{})) {};
++                    TextAttributes{})),
++      textStyleDeclaredFields(sourceProps.textStyleDeclaredFields) {
++  if (!ReactNativeFeatureFlags::enableCppPropsIteratorSetter()) {
++    for (const auto field : TextStyleFieldNames) {
++      const auto *value = rawProps.at(field.data(), nullptr, nullptr);
++      if (!value) continue;
++      const auto bit = textStyleFieldBit(field);
++      if (value->hasValue()) textStyleDeclaredFields |= bit;
++      else textStyleDeclaredFields &= ~bit;
++    }
++  }
++};
+
+ void BaseTextProps::setProp(
+     const PropsParserContext& context,
+     RawPropsPropNameHash hash,
+-    const char* /*propName*/,
++    const char* propName,
+     const RawValue& value) {
++  if (const auto bit = propName ? textStyleFieldBit(propName) : 0) {
++    if (value.hasValue()) textStyleDeclaredFields |= bit;
++    else textStyleDeclaredFields &= ~bit;
++  }
+   static auto defaults = TextAttributes{};
+
+   switch (hash) {
+@@ -259,8 +279,12 @@ void BaseTextProps::setProp(
+         textAttributes,
+         fontSizeMultiplier,
+         "fontSizeMultiplier");
+-    REBUILD_FIELD_SWITCH_CASE(
+-        defaults, value, textAttributes, fontWeight, "fontWeight");
++    case CONSTEXPR_RAW_PROPS_KEY_HASH("fontWeight"): {
++      textAttributes.fontWeight = value.hasValue() ? std::optional<FontWeight>{} : defaults.fontWeight;
++      textAttributes.fontWeightScalar = value.hasValue() ? fontWeightScalarFromRawValue(value) : defaults.fontWeightScalar;
++      if (value.hasValue()) { FontWeight weight; fromRawValue(context, value, weight); textAttributes.fontWeight = weight; }
++      return;
++    }
+     REBUILD_FIELD_SWITCH_CASE(
+         defaults, value, textAttributes, fontStyle, "fontStyle");
+     REBUILD_FIELD_SWITCH_CASE(
+@@ -377,8 +401,11 @@ void BaseTextProps::appendTextAttributesProps(
+     result["fontSizeMultiplier"] = textAttributes.fontSizeMultiplier;
+   }
+
+-  if (textAttributes.fontWeight != oldProps->textAttributes.fontWeight) {
+-    result["fontWeight"] = textAttributes.fontWeight.has_value()
++  if (textAttributes.fontWeight != oldProps->textAttributes.fontWeight ||
++      !fontWeightScalarEqual(textAttributes.fontWeightScalar, oldProps->textAttributes.fontWeightScalar)) {
++    result["fontWeight"] = std::isfinite(textAttributes.fontWeightScalar)
++        ? folly::dynamic(folly::to<std::string>(textAttributes.fontWeightScalar))
++        : textAttributes.fontWeight.has_value()
+         ? toString(textAttributes.fontWeight.value())
+         : folly::dynamic(nullptr);
+   }
+diff --git a/ReactCommon/react/renderer/components/text/BaseTextProps.h b/ReactCommon/react/renderer/components/text/BaseTextProps.h
+index 732288d87c4494269848c27d132d564068414cf5..fbf923cdb702d7ba14022485231783074f4b3fd4 100644
+--- a/ReactCommon/react/renderer/components/text/BaseTextProps.h
++++ b/ReactCommon/react/renderer/components/text/BaseTextProps.h
+@@ -6,6 +6,7 @@
+  */
+
+ #pragma once
++#include <react/renderer/attributedstring/TextStyleFields.h>
+
+ #include <react/renderer/attributedstring/TextAttributes.h>
+ #include <react/renderer/core/Props.h>
+@@ -29,6 +30,7 @@ class BaseTextProps {
+ #pragma mark - Props
+
+   TextAttributes textAttributes{};
++  uint64_t textStyleDeclaredFields{0};
+
+ #pragma mark - DebugStringConvertible (partially)
+
 diff --git a/ReactCommon/react/renderer/components/view/YogaStylableProps.cpp b/ReactCommon/react/renderer/components/view/YogaStylableProps.cpp
 index ae2da15fc0a4b265f48bfb6b6aff80800bbe2e79..b50266748e9fce2bc6516cc5fc26acd1b214e1cf 100644
 --- a/ReactCommon/react/renderer/components/view/YogaStylableProps.cpp
@@ -366,7 +981,7 @@ index 5fa5e6821a514c60b8aa7155362c1c2849d8b2fd..78eacc28e044a4651ff46b0faf296d9b
 --- a/ReactCommon/react/renderer/core/EventDispatcher.cpp
 +++ b/ReactCommon/react/renderer/core/EventDispatcher.cpp
 @@ -25,7 +25,10 @@ EventDispatcher::EventDispatcher(
- 
+
  void EventDispatcher::dispatchEvent(RawEvent&& rawEvent) const {
    // Allows the event listener to interrupt default event dispatch
 -  if (eventListeners_.willDispatchEvent(rawEvent)) {
@@ -376,11 +991,11 @@ index 5fa5e6821a514c60b8aa7155362c1c2849d8b2fd..78eacc28e044a4651ff46b0faf296d9b
 +  if (rawEvent.continueAfterListeners(handled)) {
      return;
    }
- 
+
 @@ -37,6 +40,15 @@ void EventDispatcher::dispatchEvent(RawEvent&& rawEvent) const {
    eventQueue_.enqueueEvent(std::move(rawEvent));
  }
- 
+
 +void EventDispatcher::dispatchOriginalNativeEvents(
 +    jsi::Runtime& runtime, std::vector<RawEvent>&& events) const {
 +  if (auto logger = eventLogger_.lock()) {
@@ -394,7 +1009,7 @@ index 5fa5e6821a514c60b8aa7155362c1c2849d8b2fd..78eacc28e044a4651ff46b0faf296d9b
    eventQueue_.experimental_flushSync();
  }
 @@ -49,7 +61,10 @@ void EventDispatcher::dispatchStateUpdate(
- 
+
  void EventDispatcher::dispatchUniqueEvent(RawEvent&& rawEvent) const {
    // Allows the event listener to interrupt default event dispatch
 -  if (eventListeners_.willDispatchEvent(rawEvent)) {
@@ -404,7 +1019,7 @@ index 5fa5e6821a514c60b8aa7155362c1c2849d8b2fd..78eacc28e044a4651ff46b0faf296d9b
 +  if (rawEvent.continueAfterListeners(handled)) {
      return;
    }
- 
+
 diff --git a/ReactCommon/react/renderer/core/EventDispatcher.h b/ReactCommon/react/renderer/core/EventDispatcher.h
 index 88a9a953e4234088d567e5c9f040016f95fe9a08..dd1896505c16ea23ee439d8d419275708be3a821 100644
 --- a/ReactCommon/react/renderer/core/EventDispatcher.h
@@ -414,7 +1029,7 @@ index 88a9a953e4234088d567e5c9f040016f95fe9a08..dd1896505c16ea23ee439d8d41927570
     */
    void experimental_flushSync() const;
 +  void dispatchOriginalNativeEvents(jsi::Runtime &runtime, std::vector<RawEvent> &&events) const;
- 
+
    /*
     * Dispatches a raw event with asynchronous batched priority. Before the
 diff --git a/ReactCommon/react/renderer/core/EventListener.cpp b/ReactCommon/react/renderer/core/EventListener.cpp
@@ -423,7 +1038,7 @@ index a64e24fdff706a9d47e5a98b7b51435de2823d58..4172ea78c0a843a05ac444a03c9f6225
 +++ b/ReactCommon/react/renderer/core/EventListener.cpp
 @@ -10,8 +10,17 @@
  #include <mutex>
- 
+
  namespace facebook::react {
 +namespace {
 +thread_local unsigned int nativeEventListenerDepth = 0;
@@ -432,12 +1047,12 @@ index a64e24fdff706a9d47e5a98b7b51435de2823d58..4172ea78c0a843a05ac444a03c9f6225
 +NativeEventListenerScope::~NativeEventListenerScope() { nativeEventListenerDepth--; }
 +bool NativeEventListenerScope::active() { return nativeEventListenerDepth != 0; }
 +
- 
+
  bool EventListenerContainer::willDispatchEvent(const RawEvent& event) {
 +  // Construct before the lock so destruction records its release first.
 +  NativeEventListenerScope scope;
    std::shared_lock lock(mutex_);
- 
+
    bool handled = false;
 diff --git a/ReactCommon/react/renderer/core/EventQueue.cpp b/ReactCommon/react/renderer/core/EventQueue.cpp
 index 6e99fd71bb7aa4f16da1be6828028e10fb4252fc..c659063bc8c3aa8c1b43a8b7c2fbc430fba1479b 100644
@@ -446,7 +1061,7 @@ index 6e99fd71bb7aa4f16da1be6828028e10fb4252fc..c659063bc8c3aa8c1b43a8b7c2fbc430
 @@ -82,6 +82,11 @@ void EventQueue::enqueueStateUpdate(
    }
  }
- 
+
 +void EventQueue::dispatchOriginalNativeEvents(
 +    jsi::Runtime& runtime, std::vector<RawEvent>&& events) const {
 +  eventProcessor_.flushEvents(runtime, std::move(events));
@@ -462,7 +1077,7 @@ index f525767478aa700f3b1978a0b4f2dc8c7d3b7730..930f66425c2cb0dbe7b446d5354b4122
 @@ -63,6 +63,10 @@ class EventQueue {
     */
    void experimental_flushSync() const;
- 
+
 +  // First processing of original records already consumed by an admitted
 +  // listener. Preserve this queue's existing processor/priority state.
 +  void dispatchOriginalNativeEvents(jsi::Runtime &runtime, std::vector<RawEvent> &&events) const;
@@ -544,7 +1159,7 @@ index bced302982b13fb1e140c34173d7609b060974d5..7cea30ec80abe43885083290bcab0a5b
 @@ -25,4 +25,25 @@ RawEvent::RawEvent(
        isUnique(isUnique),
        eventStartTimeStamp(eventStartTimeStamp) {}
- 
+
 +bool RawEvent::deferAfterListeners(std::function<void()> callback) const {
 +  if (nativeContinuation_) return false;
 +  nativeContinuation_ = std::make_shared<NativeEventContinuation>(std::move(callback));
@@ -573,12 +1188,12 @@ index 3111ee7cddfe9f8ed92093413e4ff928bf17215a..a2694682a3187434f87dfe92cd0ecbe3
 +++ b/ReactCommon/react/renderer/core/RawEvent.h
 @@ -8,6 +8,8 @@
  #pragma once
- 
+
  #include <memory>
 +#include <functional>
 +#include <react/renderer/core/NativeEventContinuation.h>
  #include <string>
- 
+
  #include <react/renderer/core/EventLogger.h>
 @@ -88,6 +90,19 @@ struct RawEvent {
    // time if not specified by the client (e.g., when MotionEvent was triggered
@@ -598,7 +1213,7 @@ index 3111ee7cddfe9f8ed92093413e4ff928bf17215a..a2694682a3187434f87dfe92cd0ecbe3
 + private:
 +  mutable std::shared_ptr<NativeEventContinuation> nativeContinuation_;
  };
- 
+
  } // namespace facebook::react
 diff --git a/ReactCommon/react/renderer/runtimescheduler/NativeEventTaskScope.h b/ReactCommon/react/renderer/runtimescheduler/NativeEventTaskScope.h
 new file mode 100644
@@ -659,7 +1274,7 @@ index f7393dbdd520a9b955dba39debeb09366130d6db..df8d16bd7aa337f54347959a4f2fc7f6
 @@ -53,6 +53,11 @@ void RuntimeScheduler::scheduleWork(RawCallback&& callback) noexcept {
    return runtimeSchedulerImpl_->scheduleWork(std::move(callback));
  }
- 
+
 +bool RuntimeScheduler::scheduleNativeEventWork(
 +    RawCallback&& callback, NativeEventTaskScopeFactory factory) {
 +  return runtimeSchedulerImpl_->scheduleNativeEventWork(std::move(callback), std::move(factory));
@@ -683,10 +1298,10 @@ index ded6174907f16358234cfb40a0cb2941737ba1a9..7cb1f9f668c8ee1dad9023bfbb2095f8
    virtual std::shared_ptr<Task> scheduleTask(SchedulerPriority priority, RawCallback &&callback) noexcept = 0;
 @@ -75,6 +77,7 @@ class RuntimeScheduler final : RuntimeSchedulerBase {
    RuntimeScheduler &operator=(RuntimeScheduler &&) = delete;
- 
+
    void scheduleWork(RawCallback &&callback) noexcept override;
 +  bool scheduleNativeEventWork(RawCallback &&callback, NativeEventTaskScopeFactory factory) override;
- 
+
    /*
     * Grants access to the runtime synchronously on the caller's thread.
 diff --git a/ReactCommon/react/renderer/runtimescheduler/RuntimeScheduler_Modern.cpp b/ReactCommon/react/renderer/runtimescheduler/RuntimeScheduler_Modern.cpp
@@ -695,16 +1310,16 @@ index b786399ff5560cf9617d1294f4e9a8d47fab31c1..d5ad02e2720353c936d8a6d6c6c32078
 +++ b/ReactCommon/react/renderer/runtimescheduler/RuntimeScheduler_Modern.cpp
 @@ -6,6 +6,7 @@
   */
- 
+
  #include "RuntimeScheduler_Modern.h"
 +#include <exception>
- 
+
  #include <ReactCommon/RuntimeExecutorSyncUIThreadUtils.h>
  #include <cxxreact/TraceSection.h>
 @@ -47,6 +48,18 @@ void RuntimeScheduler_Modern::scheduleWork(RawCallback&& callback) noexcept {
    scheduleTask(SchedulerPriority::ImmediatePriority, std::move(callback));
  }
- 
+
 +bool RuntimeScheduler_Modern::scheduleNativeEventWork(
 +    RawCallback&& callback, NativeEventTaskScopeFactory factory) {
 +  if (!callback || !factory) return false;
@@ -722,7 +1337,7 @@ index b786399ff5560cf9617d1294f4e9a8d47fab31c1..d5ad02e2720353c936d8a6d6c6c32078
      jsi::Function&& callback) noexcept {
 @@ -190,7 +203,12 @@ void RuntimeScheduler_Modern::scheduleRenderingUpdate(
    TraceSection s("RuntimeScheduler::scheduleRenderingUpdate");
- 
+
    surfaceIdsWithPendingRenderingUpdates_.insert(surfaceId);
 -  pendingRenderingUpdates_.push(renderingUpdate);
 +  if (currentTask_ && currentTask_->nativeEventScope && renderingUpdate) {
@@ -732,12 +1347,12 @@ index b786399ff5560cf9617d1294f4e9a8d47fab31c1..d5ad02e2720353c936d8a6d6c6c32078
 +    pendingRenderingUpdates_.push(renderingUpdate);
 +  }
  }
- 
+
  void RuntimeScheduler_Modern::setShadowTreeRevisionConsistencyManager(
 @@ -301,6 +319,38 @@ void RuntimeScheduler_Modern::runEventLoopTick(
    ScopedShadowTreeRevisionLock revisionLock(
        shadowTreeRevisionConsistencyManager_);
- 
+
 +  if (task.nativeEventScopeFactory) {
 +    auto factory = std::exchange(task.nativeEventScopeFactory, {});
 +    try {
@@ -772,7 +1387,7 @@ index b786399ff5560cf9617d1294f4e9a8d47fab31c1..d5ad02e2720353c936d8a6d6c6c32078
 +
    currentTask_ = &task;
    currentPriority_ = task.priority;
- 
+
 @@ -380,8 +430,10 @@ void RuntimeScheduler_Modern::executeTask(
        task.callback = result.getObject(runtime).getFunction(runtime);
      }
@@ -804,7 +1419,7 @@ index 05ba08896f19d720665dc463ff9dc70a87ec806e..64798d513808215e66a74e3e7298ef4c
     */
    void scheduleWork(RawCallback &&callback) noexcept override;
 +  bool scheduleNativeEventWork(RawCallback &&callback, NativeEventTaskScopeFactory factory) override;
- 
+
    /*
     * Grants access to the runtime synchronously on the caller's thread.
 diff --git a/ReactCommon/react/renderer/runtimescheduler/Task.h b/ReactCommon/react/renderer/runtimescheduler/Task.h
@@ -814,7 +1429,7 @@ index e1a91f57303d0496b0ae20a2b5fa4bb61bb268e9..76cb2c9be309b21a781576533041965d
 @@ -11,6 +11,7 @@
  #include <jsi/jsi.h>
  #include <react/timing/primitives.h>
- 
+
 +#include <react/renderer/runtimescheduler/NativeEventTaskScope.h>
  #include <cstdint>
  #include <optional>
@@ -822,7 +1437,7 @@ index e1a91f57303d0496b0ae20a2b5fa4bb61bb268e9..76cb2c9be309b21a781576533041965d
 @@ -33,6 +34,8 @@ struct Task final : public jsi::NativeState {
    friend RuntimeScheduler_Modern;
    friend TaskPriorityComparer;
- 
+
 +  NativeEventTaskScopeFactory nativeEventScopeFactory;
 +  std::shared_ptr<NativeEventTaskScope> nativeEventScope;
    SchedulerPriority priority;
@@ -871,11 +1486,11 @@ index 7ea5fc3c782fe911bba2d566031a7ef7d11825c6..3b0140ab690cbdc0e6d1afb458e6eb06
 +    runtimeScheduler_->scheduleRenderingUpdate(shadowNode->getSurfaceId(), std::move(original));
    }
  }
- 
+
 @@ -474,6 +481,13 @@ std::shared_ptr<UIManager> Scheduler::getUIManager() const {
    return uiManager_;
  }
- 
+
 +bool Scheduler::dispatchOriginalNativeEvents(
 +    jsi::Runtime& runtime, std::vector<RawEvent>&& events) const {
 +  if (!eventDispatcher_->has_value()) return false;
@@ -892,12 +1507,131 @@ index bd6de832e04d16844fdff28d71d9e05b764e06a2..868f5512dc3b90cc5600c4a060b007a0
 +++ b/ReactCommon/react/renderer/scheduler/Scheduler.h
 @@ -113,6 +113,7 @@ class Scheduler final : public UIManagerDelegate {
    void reportMount(SurfaceId surfaceId) const;
- 
+
  #pragma mark - Event listeners
 +  bool dispatchOriginalNativeEvents(jsi::Runtime &runtime, std::vector<RawEvent> &&events) const;
    void addEventListener(std::shared_ptr<const EventListener> listener);
    void removeEventListener(const std::shared_ptr<const EventListener> &listener);
- 
+
+diff --git a/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm b/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
+index f96a0494000b37ab4d1fcdad5615613aef30b077..435ffbc3eb5237764de9367cdda9bd00d27caaa8 100644
+--- a/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
++++ b/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
+@@ -14,14 +14,16 @@
+ #include <react/renderer/textlayoutmanager/RCTFontUtils.h>
+ #include <react/renderer/textlayoutmanager/RCTTextPrimitivesConversions.h>
+ #include <react/utils/ManagedObjectWrapper.h>
++#include <react/renderer/attributedstring/FontWeightScalar.h>
+ #include <array>
++#include <algorithm>
++#include <cmath>
+
+ using namespace facebook::react;
+
+-inline static UIFontWeight RCTUIFontWeightFromInteger(NSInteger fontWeight)
++inline static UIFontWeight RCTUIFontWeightFromScalar(double fontWeight)
+ {
+-  assert(fontWeight > 50);
+-  assert(fontWeight < 950);
++  assert(std::isfinite(fontWeight) && fontWeight >= 1 && fontWeight <= 1000);
+
+   static auto weights = std::to_array<UIFontWeight>({/* ~100 */ UIFontWeightUltraLight,
+                                                      /* ~200 */ UIFontWeightThin,
+@@ -32,8 +34,7 @@ inline static UIFontWeight RCTUIFontWeightFromInteger(NSInteger fontWeight)
+                                                      /* ~700 */ UIFontWeightBold,
+                                                      /* ~800 */ UIFontWeightHeavy,
+                                                      /* ~900 */ UIFontWeightBlack});
+-  // The expression is designed to convert something like 760 or 830 to 7.
+-  return weights[(fontWeight + 50) / 100 - 1];
++  return interpolateFontWeight(fontWeight, weights);
+ }
+
+ inline static UIFontTextStyle RCTUIFontTextStyleForDynamicTypeRamp(const DynamicTypeRamp &dynamicTypeRamp)
+@@ -133,9 +134,11 @@ inline static UIFont *RCTEffectiveFontFromTextAttributes(const TextAttributes &t
+   fontProperties.variant = textAttributes.fontVariant.has_value()
+       ? RCTFontVariantFromFontVariant(textAttributes.fontVariant.value())
+       : RCTFontVariantUndefined;
+-  fontProperties.weight = textAttributes.fontWeight.has_value()
+-      ? RCTUIFontWeightFromInteger((NSInteger)textAttributes.fontWeight.value())
+-      : NAN;
++  fontProperties.cssWeight = std::isfinite(textAttributes.fontWeightScalar)
++      ? textAttributes.fontWeightScalar
++      : textAttributes.fontWeight.has_value() ? static_cast<double>(*textAttributes.fontWeight) : NAN;
++  fontProperties.weight = std::isfinite(fontProperties.cssWeight)
++      ? RCTUIFontWeightFromScalar(fontProperties.cssWeight) : NAN;
+   fontProperties.sizeMultiplier = RCTEffectiveFontSizeMultiplierFromTextAttributes(textAttributes);
+
+   return RCTFontWithFontProperties(fontProperties);
+diff --git a/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTFontProperties.h b/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTFontProperties.h
+index efbfdf0d894e03ec61f63b857c7f5d413da660e6..1eae2c95863d4c707d9cfc767b1908563b9c31ac 100644
+--- a/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTFontProperties.h
++++ b/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTFontProperties.h
+@@ -50,6 +50,7 @@ struct RCTFontProperties {
+   NSString *family = nil;
+   CGFloat size = NAN;
+   UIFontWeight weight = NAN;
++  double cssWeight = NAN;
+   RCTFontStyle style = RCTFontStyleUndefined;
+   RCTFontVariant variant = RCTFontVariantUndefined;
+   CGFloat sizeMultiplier = NAN;
+diff --git a/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTFontUtils.mm b/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTFontUtils.mm
+index b2b27626edc46625ac2372a13977d700948835b6..5a28fa1a46d60d9f077f8f09e693307eaeb3b2f2 100644
+--- a/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTFontUtils.mm
++++ b/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTFontUtils.mm
+@@ -10,6 +10,7 @@
+ #import <CoreText/CoreText.h>
+ #import <React/RCTFont+Private.h>
+ #import <React/RCTFont.h>
++#import <CoreText/CoreText.h>
+
+ #import <algorithm>
+ #import <cmath>
+@@ -41,6 +42,7 @@ static RCTFontProperties RCTResolveFontProperties(
+   fontProperties.family = (fontProperties.family.length != 0u) ? fontProperties.family : baseFontProperties.family;
+   fontProperties.size = !isnan(fontProperties.size) ? fontProperties.size : baseFontProperties.size;
+   fontProperties.weight = !isnan(fontProperties.weight) ? fontProperties.weight : baseFontProperties.weight;
++  fontProperties.cssWeight = !isnan(fontProperties.cssWeight) ? fontProperties.cssWeight : baseFontProperties.cssWeight;
+   fontProperties.style =
+       fontProperties.style != RCTFontStyleUndefined ? fontProperties.style : baseFontProperties.style;
+   fontProperties.variant =
+@@ -261,10 +263,11 @@ static UIFont *RCTDefaultFontWithFontProperties(const RCTFontProperties &fontPro
+   static std::mutex fontCacheMutex;
+
+   CGFloat effectiveFontSize = fontProperties.sizeMultiplier * fontProperties.size;
+-  NSString *cacheKey = [NSString stringWithFormat:@"%@/%.1f/%.2f/%ld",
++  NSString *cacheKey = [NSString stringWithFormat:@"%@/%a/%a/%a/%ld",
+                                                   fontProperties.family,
+                                                   effectiveFontSize,
+                                                   fontProperties.weight,
++                                                  fontProperties.cssWeight,
+                                                   (long)fontProperties.style];
+   UIFont *font;
+
+@@ -394,6 +397,24 @@ UIFont *RCTFontWithFontProperties(RCTFontProperties fontProperties)
+     }
+   }
+
++  // Retain the actual peer-selected face and all existing variation axes; replace only wght.
++  if (std::isfinite(fontProperties.cssWeight)) {
++    NSArray *axes = CFBridgingRelease(CTFontCopyVariationAxes((__bridge CTFontRef)font));
++    for (NSDictionary *axis in axes) {
++      NSNumber *identifier = axis[(__bridge NSString *)kCTFontVariationAxisIdentifierKey];
++      if (identifier.unsignedIntValue != 0x77676874) continue;
++      const double minimum = [axis[(__bridge NSString *)kCTFontVariationAxisMinimumValueKey] doubleValue];
++      const double maximum = [axis[(__bridge NSString *)kCTFontVariationAxisMaximumValueKey] doubleValue];
++      NSMutableDictionary *variation = [CFBridgingRelease(CTFontCopyVariation((__bridge CTFontRef)font)) mutableCopy] ?: [NSMutableDictionary new];
++      variation[identifier] = @(std::clamp(fontProperties.cssWeight, minimum, maximum));
++      UIFontDescriptor *descriptor = [font.fontDescriptor fontDescriptorByAddingAttributes:@{(__bridge NSString *)kCTFontVariationAttribute: variation}];
++      UIFont *weighted = [UIFont fontWithDescriptor:descriptor size:effectiveFontSize];
++      if (!weighted) @throw [NSException exceptionWithName:@"RCT.FontWeight" reason:@"Original variable font weight authority unavailable" userInfo:nil];
++      font = weighted;
++      break;
++    }
++  }
++
+   // Apply font variants to font object.
+   if (fontProperties.variant != RCTFontVariantDefault) {
+     NSArray *fontFeatures = RCTFontFeatures(fontProperties.variant);
 diff --git a/ReactCommon/react/renderer/uimanager/NativeEventCommands.h b/ReactCommon/react/renderer/uimanager/NativeEventCommands.h
 new file mode 100644
 index 0000000000000000000000000000000000000000..ca613b3392d37e892682337ffea41b60ec5f6579
@@ -1172,7 +1906,7 @@ index 4d640400dc129724b1a46e429fc90da2fb1919cc..3bde3e14a4b85bc44ea07253c383204a
 @@ -58,6 +58,10 @@ UIManager::~UIManager() {
                 << ").";
  }
- 
+
 +NativeEventCommands& UIManager::getNativeEventCommands() {
 +  return nativeEventCommands_;
 +}
@@ -1195,7 +1929,7 @@ index 28b8729e3e01ebe37d3e082ea24e7642e9568ead..93e467a5d54e78b0dab47df6f8d27013
 @@ -55,6 +56,8 @@ class UIManager final : public ShadowTreeDelegate {
    void setDelegate(UIManagerDelegate *delegate);
    UIManagerDelegate *getDelegate();
- 
+
 +  NativeEventCommands &getNativeEventCommands();
 +
    /**
@@ -1204,7 +1938,7 @@ index 28b8729e3e01ebe37d3e082ea24e7642e9568ead..93e467a5d54e78b0dab47df6f8d27013
 @@ -245,6 +248,7 @@ class UIManager final : public ShadowTreeDelegate {
        const ShadowNode &shadowNode,
        const std::shared_ptr<const ShadowNode> &ancestorShadowNode) const;
- 
+
 +  NativeEventCommands nativeEventCommands_;
    SharedComponentDescriptorRegistry componentDescriptorRegistry_;
    UIManagerDelegate *delegate_{};
@@ -1215,7 +1949,7 @@ index c79fc75df5b44609b066cdda67b446ac778bbee0..7a3ee18b24874d7b003f504157c5447f
 +++ b/ReactCommon/react/renderer/uimanager/UIManagerBinding.cpp
 @@ -154,13 +154,22 @@ void UIManagerBinding::dispatchEventToJS(
    }
- 
+
    currentEventPriority_ = priority;
 +  auto completion = !instanceHandle.isNull() && payload.isObject()
 +      ? nativeEventPayloads_.before(runtime, eventTarget, type, payload)
@@ -1241,11 +1975,11 @@ index c79fc75df5b44609b066cdda67b446ac778bbee0..7a3ee18b24874d7b003f504157c5447f
 +  } else if (completion) completion(false);
    currentEventPriority_ = ReactEventPriority::Default;
  }
- 
+
 @@ -1225,6 +1234,10 @@ UIManager& UIManagerBinding::getUIManager() {
    return *uiManager_;
  }
- 
+
 +NativeEventPayloads& UIManagerBinding::getNativeEventPayloads() {
 +  return nativeEventPayloads_;
 +}
@@ -1268,15 +2002,15 @@ index 0d1910b442b67da7453506410363d7fad28c22e9..6514ae38758379bd7d39c97424ce8cc4
 @@ -64,6 +65,7 @@ class UIManagerBinding : public jsi::HostObject {
     */
    jsi::Value get(jsi::Runtime &runtime, const jsi::PropNameID &name) override;
- 
+
 +  NativeEventPayloads &getNativeEventPayloads();
    UIManager &getUIManager();
    PointerEventsProcessor &getPointerEventsProcessor();
- 
+
 @@ -80,6 +82,7 @@ class UIManagerBinding : public jsi::HostObject {
        const EventPayload &payload,
        HighResTimeStamp eventTimestamp) const;
- 
+
 +  mutable NativeEventPayloads nativeEventPayloads_;
    std::shared_ptr<UIManager> uiManager_;
    std::unique_ptr<jsi::Function> eventHandler_;

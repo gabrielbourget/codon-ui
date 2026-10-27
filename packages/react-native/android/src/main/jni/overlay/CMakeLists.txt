@@ -10,6 +10,8 @@ file(GLOB CUI_OVERLAY_GENERATED_SOURCES CONFIGURE_DEPENDS
 add_library(${CUI_OVERLAY_TARGET} SHARED
   CodonNativeOverlay.cpp
   "${CUI_OVERLAY_CPP_DIR}/NativeOverlayLayout.cpp"
+  "${CUI_OVERLAY_CPP_DIR}/NativeTypographyScope.cpp"
+  "${CUI_OVERLAY_CPP_DIR}/NativeTypographySource.cpp"
   "${CUI_OVERLAY_CPP_DIR}/OwnedYogaLayout.cpp"
   ${CUI_OVERLAY_GENERATED_SOURCES})
 target_include_directories(${CUI_OVERLAY_TARGET} PUBLIC

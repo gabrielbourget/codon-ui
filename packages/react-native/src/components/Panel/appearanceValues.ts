@@ -260,8 +260,23 @@ export const createPanelAppearanceMixer = (
     const height = numberMixer(first.height, last.height)
     return (progress) => ({ width: width(progress), height: height(progress) })
   }
-  // Fabric's FontWeight decoder accepts only100-step weights; arbitrary CSS weight interpolation remains required.
-  if (field === "fontWeight") return undefined
+  if (field === "fontWeight") {
+    const weight = (value: unknown) =>
+      value === "normal"
+        ? 400
+        : value === "bold"
+          ? 700
+          : typeof value === "number"
+            ? value
+            : typeof value === "string"
+              ? Number(value)
+              : NaN
+    const first = weight(from),
+      last = weight(to)
+    if (!Number.isFinite(first) || !Number.isFinite(last) || first < 1 || first > 1000 || last < 1 || last > 1000)
+      return undefined
+    return numberMixer(first, last)
+  }
   if (field === "aspectRatio") {
     const first = aspectRatioNumber(from),
       last = aspectRatioNumber(to)

@@ -115,8 +115,10 @@ export const useNativeKeyPolicy = (policy: TNativeKeyPolicy) => {
   })
 }
 
-export const NativeKeyboardScope = forwardRef<View, ViewProps & { captureEnabled: boolean }>(
-  ({ captureEnabled, ...props }, forwardedRef) => {
+type TNativeKeyboardScopeProps = ViewProps & { captureEnabled: boolean; nativeTypographyWindow?: string }
+
+export const NativeKeyboardScope = forwardRef<View, TNativeKeyboardScopeProps>(
+  ({ captureEnabled, nativeTypographyWindow, ...props }, forwardedRef) => {
     const ownerId = useId()
     const [scope] = useState(() => createNativeKeyScope(ownerId))
     const [dialogs] = useState(() => createNativeDialogFocusRegistry(scope))
@@ -220,6 +222,7 @@ export const NativeKeyboardScope = forwardRef<View, ViewProps & { captureEnabled
                         if (attached.current) dialogs.acceptAction(event.nativeEvent)
                       }}
                       enabled={captureEnabled}
+                      nativeTypographyWindow={nativeTypographyWindow}
                       policies={scope.policies()}
                       acceptedWindowId={session.windowId}
                       acceptedEpoch={session.epoch}

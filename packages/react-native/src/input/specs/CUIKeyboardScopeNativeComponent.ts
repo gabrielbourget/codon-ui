@@ -252,6 +252,7 @@ export type NativeEditorKeyboardDecision = Readonly<{
 }>
 
 export interface NativeProps extends ViewProps {
+  nativeTypographyWindow?: string
   ownerId: string
   dialogScopes?: ReadonlyArray<NativeDialogBinding>
   dialogRevision?: Double
