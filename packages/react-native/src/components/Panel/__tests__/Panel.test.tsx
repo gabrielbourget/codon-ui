@@ -381,3 +381,37 @@ it("SCENE.panel.002 routes configured blur to the root source without supplying 
   await fireEvent.press(screen.getByRole("button", { name: "Toggle configured blur" }))
   expect(probe.mock.calls.at(-1)?.[0].targetRef.current?.props.testID).toBe("panel-scene-root")
 })
+
+it("preserves canonical box sizing defaults, explicit overrides and the original Panel/editor", async () => {
+  const panel = createRef<View>(),
+    editor = createRef<TextInput>(),
+    changed = jest.fn()
+  const node = (boxSizing?: "border-box" | "content-box") => (
+    <NativeOverlayProvider>
+      <Panel
+        ref={panel}
+        isOpen
+        aria-label="Sizing"
+        customStyles={{ width: 80, height: 60, padding: 10, borderWidth: 4, boxSizing }}
+        customOverlayStyles={{ width: 240, height: 180, padding: 10, borderWidth: 4, boxSizing }}
+      >
+        <TextInput ref={editor} testID="box-held" value="" onChangeText={changed} />
+      </Panel>
+    </NativeOverlayProvider>
+  )
+  const result = await render(node())
+  const original = panel.current,
+    held = editor.current
+  expect(row()).toHaveStyle({ boxSizing: "content-box", width: 80, height: 60, padding: 10, borderWidth: 4 })
+  expect(row("panel-overlay-composite")).toHaveStyle({ boxSizing: "content-box", width: 240, height: 180 })
+  await result.rerender(node("border-box"))
+  expect(row()).toHaveStyle({ boxSizing: "border-box" })
+  expect(row("panel-overlay-composite")).toHaveStyle({ boxSizing: "border-box" })
+  await result.rerender(node())
+  expect(row()).toHaveStyle({ boxSizing: "content-box" })
+  expect(row("panel-overlay-composite")).toHaveStyle({ boxSizing: "content-box" })
+  expect(panel.current).toBe(original)
+  expect(editor.current).toBe(held)
+  expect(row("box-held").props.value).toBe("")
+  expect(changed).not.toHaveBeenCalled()
+})

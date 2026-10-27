@@ -22,8 +22,15 @@ const workspace = realpathSync(mkdtempSync(join(tmpdir(), "codon-panel-overlay-l
 const source = {
   canonicalRef: "ddc9f066f67af4742e05e04bd870726141c44129",
   files: Object.fromEntries(
-    ["Panel.tsx", "helpers.ts", "PanelStyles.module.css"].map((file) => {
-      const path = `packages/react/src/components/Panel/${file}`
+    [
+      "src/components/Panel/Panel.tsx",
+      "src/components/Panel/helpers.ts",
+      "src/components/Panel/PanelStyles.module.css",
+      "src/components/SortAndFilterPanel/SortAndFilterPanel.tsx",
+      "src/components/SortAndFilterPanel/SortAndFilterPanelStyles.module.css",
+      "theme.css",
+    ].map((file) => {
+      const path = `packages/react/${file}`
       return [
         path,
         createHash("sha256")

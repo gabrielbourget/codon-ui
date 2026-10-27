@@ -16,6 +16,8 @@ export const resolveQueryDialogStyle = (style: StyleProp<TextStyle>, theme: TNat
     resolveNativeStyle(
       [
         {
+          boxSizing: "content-box",
+          flexShrink: 1,
           height: "100%",
           width: "100%",
           flexDirection: "column",

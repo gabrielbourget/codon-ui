@@ -192,6 +192,71 @@ int main() {
     check(contents.getChild(0) == &originalBody && originalBody.getOwner() == &contents,
         "normal flow must preserve the original body node and parent");
     checks += 3;
+    yoga::Node decoratedOverlay(&config), decoratedBody(&config), retainedInput(&config);
+    auto &decoratedOverlayStyle=decoratedOverlay.style();
+    decoratedOverlayStyle.setPositionType(yoga::PositionType::Absolute);
+    decoratedOverlayStyle.setPosition(yoga::Edge::Left, yoga::StyleLength::points(40));
+    decoratedOverlayStyle.setPosition(yoga::Edge::Top, yoga::StyleLength::points(30));
+    decoratedOverlayStyle.setDimension(yoga::Dimension::Width, yoga::StyleSizeLength::points(240));
+    decoratedOverlayStyle.setDimension(yoga::Dimension::Height, yoga::StyleSizeLength::points(180));
+    decoratedOverlayStyle.setPadding(yoga::Edge::All, yoga::StyleLength::points(10));
+    decoratedOverlayStyle.setBorder(yoga::Edge::All, yoga::StyleLength::points(4));
+    auto &decoratedBodyStyle=decoratedBody.style();
+    decoratedBodyStyle.setPositionType(yoga::PositionType::Relative);
+    decoratedBodyStyle.setDimension(yoga::Dimension::Width, yoga::StyleSizeLength::points(80));
+    decoratedBodyStyle.setDimension(yoga::Dimension::Height, yoga::StyleSizeLength::points(60));
+    decoratedBodyStyle.setPadding(yoga::Edge::All, yoga::StyleLength::points(10));
+    decoratedBodyStyle.setBorder(yoga::Edge::All, yoga::StyleLength::points(4));
+    retainedInput.style().setDimension(yoga::Dimension::Width, yoga::StyleSizeLength::points(80));
+    retainedInput.style().setDimension(yoga::Dimension::Height, yoga::StyleSizeLength::points(40));
+    decoratedOverlay.insertChild(&decoratedBody, 0); decoratedBody.setOwner(&decoratedOverlay);
+    decoratedBody.insertChild(&retainedInput, 0); retainedInput.setOwner(&decoratedBody);
+    codon::overlay::applyPanelBlockFlow(decoratedBodyStyle);
+    for (const auto bodyBox : {yoga::BoxSizing::ContentBox, yoga::BoxSizing::BorderBox, yoga::BoxSizing::ContentBox}) {
+      decoratedOverlayStyle.setBoxSizing(yoga::BoxSizing::BorderBox);
+      decoratedBodyStyle.setBoxSizing(bodyBox);
+      decoratedBody.markDirtyAndPropagate();
+      codon::overlay::layoutOwnedOverlayRoot(decoratedOverlay, config, 1280, 720, direction);
+      near(YGNodeLayoutGetWidth(&decoratedBody), bodyBox == yoga::BoxSizing::ContentBox ? 108 : 80, "canonical original body must preserve default content sizing and explicit border sizing");
+      near(YGNodeLayoutGetHeight(&decoratedBody), bodyBox == yoga::BoxSizing::ContentBox ? 88 : 60, "body padding and border must follow authored box sizing through removal");
+      check(decoratedBody.getChild(0) == &retainedInput, "box sizing must not substitute the original held input");
+      checks += 3;
+    }
+    decoratedOverlayStyle.setBoxSizing(yoga::BoxSizing::ContentBox);
+    decoratedBodyStyle.setDimension(yoga::Dimension::Width, yoga::StyleSizeLength::percent(50));
+    decoratedBody.markDirtyAndPropagate();
+    codon::overlay::layoutOwnedOverlayRoot(decoratedOverlay, config, 1280, 720, direction);
+    near(YGNodeLayoutGetWidth(&decoratedOverlay), 268, "canonical overlay content width must retain real padding and border");
+    near(YGNodeLayoutGetHeight(&decoratedOverlay), 208, "canonical overlay content height must retain real padding and border");
+    near(YGNodeLayoutGetWidth(&decoratedBody), 148, "canonical percentage body content must use the actual parent content box");
+    checks += 3;
+    decoratedBody.removeChild(&retainedInput); retainedInput.setOwner(nullptr);
+    decoratedOverlay.removeChild(&decoratedBody); decoratedBody.setOwner(nullptr);
+
+    yoga::Node sortPanel(&config), sortDialog(&config), originalSortControl(&config);
+    sortPanel.style().setPositionType(yoga::PositionType::Absolute);
+    sortPanel.style().setPosition(yoga::Edge::Right, yoga::StyleLength::points(0));
+    sortPanel.style().setDimension(yoga::Dimension::Width, yoga::StyleSizeLength::points(350));
+    sortPanel.style().setDimension(yoga::Dimension::Height, yoga::StyleSizeLength::points(720));
+    auto &dialogStyle=sortDialog.style();
+    dialogStyle.setDimension(yoga::Dimension::Width, yoga::StyleSizeLength::percent(100));
+    dialogStyle.setDimension(yoga::Dimension::Height, yoga::StyleSizeLength::percent(100));
+    dialogStyle.setFlexShrink(yoga::FloatOptional{1});
+    dialogStyle.setPadding(yoga::Edge::All, yoga::StyleLength::points(10));
+    originalSortControl.style().setDimension(yoga::Dimension::Height, yoga::StyleSizeLength::points(40));
+    sortPanel.insertChild(&sortDialog, 0); sortDialog.setOwner(&sortPanel);
+    sortDialog.insertChild(&originalSortControl, 0); originalSortControl.setOwner(&sortDialog);
+    for (const auto box : {yoga::BoxSizing::ContentBox, yoga::BoxSizing::BorderBox, yoga::BoxSizing::ContentBox}) {
+      dialogStyle.setBoxSizing(box); sortDialog.markDirtyAndPropagate();
+      codon::overlay::layoutOwnedOverlayRoot(sortPanel, config, 1280, 720, direction);
+      near(YGNodeLayoutGetLeft(&sortPanel), 930, "box sizing must retain canonical physical right placement");
+      near(YGNodeLayoutGetWidth(&sortDialog), box == yoga::BoxSizing::ContentBox ? 370 : 350, "original Sort dialog width must match canonical content/border sizing");
+      near(YGNodeLayoutGetHeight(&sortDialog), 720, "CSS default dialog shrink must absorb its block-axis padding");
+      check(sortPanel.getChild(0) == &sortDialog && sortDialog.getChild(0) == &originalSortControl, "original Sort dialog and control must survive sizing changes");
+      checks += 4;
+    }
+    sortDialog.removeChild(&originalSortControl); originalSortControl.setOwner(nullptr);
+    sortPanel.removeChild(&sortDialog); sortDialog.setOwner(nullptr);
     flow.removeChild(&paint); paint.setOwner(nullptr);
     flow.removeChild(&contents); contents.setOwner(nullptr);
     contents.removeChild(&originalBody); originalBody.setOwner(nullptr);

@@ -67,6 +67,7 @@ export const getNativePanelStyles = (props: TNativePanelProps, theme: TNativeThe
     [
       {
         position: "absolute",
+        boxSizing: "content-box",
         top: 0,
         [side]: 0,
         height: "100%",
@@ -130,7 +131,7 @@ export const getNativePanelStyles = (props: TNativePanelProps, theme: TNativeThe
   const overlayOverrides = resolveNativeStyle(props.customOverlayStyles, "Panel", "customOverlayStyles")
   const overlay = resolveNativeStyle(
     [
-      { backgroundColor: theme.colors.overlayBackdrop },
+      { boxSizing: "content-box", backgroundColor: theme.colors.overlayBackdrop },
       Object.fromEntries(Object.entries(overlayOverrides).filter(([, value]) => value !== undefined)) as ViewStyle,
     ],
     "Panel",

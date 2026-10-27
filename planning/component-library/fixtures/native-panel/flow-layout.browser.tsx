@@ -5,6 +5,8 @@ import { createRoot } from "react-dom/client"
 
 import Panel from "../../../../packages/react/src/components/Panel/Panel"
 import styles from "../../../../packages/react/src/components/Panel/PanelStyles.module.css"
+import SortAndFilterPanel from "../../../../packages/react/src/components/SortAndFilterPanel/SortAndFilterPanel"
+import "../../../../packages/react/theme.css"
 
 const frame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
 const run = async () => {
@@ -61,6 +63,8 @@ const run = async () => {
       overlay: rect(parent()),
       input: rect(editor.current!),
       display: getComputedStyle(parent()).display,
+      panelBoxSizing: getComputedStyle(panel()).boxSizing,
+      overlayBoxSizing: getComputedStyle(parent()).boxSizing,
       flexBasis: getComputedStyle(panel()).flexBasis,
       samePanel: panel() === originalPanel,
       sameEditor: editor.current === originalEditor,
@@ -125,6 +129,87 @@ const run = async () => {
     await trace("min-parent-height-percent", "height", "100%")
     await settle({ ...normal, height: 40 }, { ...bounded, width: "auto", height: "auto" })
     await trace("auto-parent-width-percent", "width", "50%")
+    const decorated: CSSProperties = {
+      position: "relative",
+      width: 80,
+      height: 60,
+      padding: 10,
+      border: "4px solid black",
+    }
+    for (const [id, nextBody, nextOverlay] of [
+      ["body-content-default", decorated, bounded],
+      ["body-border-box", { ...decorated, boxSizing: "border-box" }, bounded],
+      ["body-content-reset", { ...decorated, boxSizing: undefined }, bounded],
+      ["body-content-percent", { ...decorated, width: "50%" }, bounded],
+      ["overlay-content-default", decorated, { ...bounded, boxSizing: undefined }],
+      ["overlay-content-percent", { ...decorated, width: "50%" }, { ...bounded, boxSizing: undefined }],
+      ["both-border-box", { ...decorated, boxSizing: "border-box" }, bounded],
+    ] as [string, CSSProperties, CSSProperties][]) {
+      await settle(nextBody, nextOverlay)
+      sample(id, "settled")
+    }
+    const sortContainer = document.createElement("div")
+    document.body.append(sortContainer)
+    const sortRoot = createRoot(sortContainer)
+    let originalSort: Element | null = null,
+      originalDialog: Element | null = null,
+      originalControl: Element | null = null
+    const sortRender = (boxSizing?: CSSProperties["boxSizing"]) =>
+      flushSync(() =>
+        sortRoot.render(
+          <MotionConfig reducedMotion="always">
+            <SortAndFilterPanel
+              title="Sizing sort"
+              onOpenChange={() => {}}
+              isOpen
+              overlayBlur={false}
+              possibleSortCriteria={[]}
+              possibleFilterCriteria={[]}
+              applyPendingSortAndFilterChanges={() => {}}
+              customModalStyles={{ transition: "none" }}
+              customDialogStyles={{ boxSizing }}
+            />
+          </MotionConfig>,
+        ),
+      )
+    for (const [id, boxSizing] of [
+      ["sort-content-default", undefined],
+      ["sort-border-box", "border-box"],
+      ["sort-content-reset", undefined],
+    ] as [string, CSSProperties["boxSizing"]][]) {
+      sortRender(boxSizing)
+      await frame()
+      await frame()
+      const panels = document.querySelectorAll(`.${styles.panel}`)
+      const sort = panels[panels.length - 1]
+      const presenceStarted = performance.now()
+      while (!["none", "matrix(1, 0, 0, 1, 0, 0)"].includes(getComputedStyle(sort).transform)) {
+        if (performance.now() - presenceStarted > 1000)
+          throw new Error("Original250ms Sort presence did not settle within1000ms")
+        await frame()
+      }
+      const dialog = document.querySelector('[role="dialog"][aria-label="Sizing sort"]')!
+      const control = dialog.querySelector("button")!
+      originalSort ??= sort
+      originalDialog ??= dialog
+      originalControl ??= control
+      results.push({
+        id,
+        panel: rect(sort),
+        dialog: rect(dialog),
+        boxSizing: getComputedStyle(dialog).boxSizing,
+        flexShrink: getComputedStyle(dialog).flexShrink,
+        padding: getComputedStyle(dialog).padding,
+        samePanel: sort === originalSort,
+        sameDialog: dialog === originalDialog,
+        sameControl: control === originalControl,
+        heldEditor: editor.current === originalEditor,
+        value: editor.current?.value,
+        changes,
+      })
+    }
+    flushSync(() => sortRoot.unmount())
+    sortContainer.remove()
   } catch (error) {
     results.push({ failure: error instanceof Error ? error.message : String(error) })
   }

@@ -202,3 +202,23 @@ it("retains the original empty editor and native dialog across focus, theme and 
   expect(host("dialog-held-editor").props.value).toBe("")
   expect(changed).not.toHaveBeenCalled()
 })
+
+it("preserves canonical box sizing and flex shrink through explicit dialog overrides and removal", async () => {
+  const result = await render(tree())
+  await present()
+  const dialog = host("query-panel-dialog"),
+    original = mockViews.get(dialog.props.ownerId)
+  const control = screen.getByRole("button", { name: "Add Sort Criteria" })
+  expect(dialog).toHaveStyle({ boxSizing: "content-box", flexShrink: 1, width: "100%", height: "100%", padding: 10 })
+  await result.rerender(tree({ boxSizing: "border-box", flexShrink: 0 }))
+  expect(dialog).toHaveStyle({ boxSizing: "border-box", flexShrink: 0 })
+  await result.rerender(
+    tree([
+      { boxSizing: "border-box", flexShrink: 0 },
+      { boxSizing: undefined, flexShrink: undefined },
+    ]),
+  )
+  expect(dialog).toHaveStyle({ boxSizing: "content-box", flexShrink: 1 })
+  expect(mockViews.get(dialog.props.ownerId)).toBe(original)
+  expect(screen.getByRole("button", { name: "Add Sort Criteria" })).toBe(control)
+})
