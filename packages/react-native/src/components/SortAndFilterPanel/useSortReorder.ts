@@ -20,6 +20,8 @@ type TDrag = {
   released: boolean
   point: { x: number; y: number } | null
   dropping: boolean
+  measurement: number
+  measuring: boolean
 }
 export type TSortReorderRequest = (source: string, target: string, position: "before" | "after") => void
 
@@ -104,6 +106,35 @@ export const useSortReorder = (
         })
       else cancel()
     }
+    const measure = (current: TDrag) => {
+      const revision = ++current.measurement
+      const originalTargets = rows().map((row) => ({
+        key: String(row.key),
+        target: targets.current.get(String(row.key)),
+      }))
+      const rectangles = new Map<string, TBounds>()
+      current.measuring = true
+      for (const { key, target } of originalTargets) {
+        if (!valid(current) || current.measurement !== revision) return
+        if (!target) return cancel()
+        target.measureInWindow((x, y, width, height) => {
+          if (!valid(current) || current.measurement !== revision) return
+          if (
+            targets.current.get(key) !== target ||
+            ![x, y, width, height].every(Number.isFinite) ||
+            width <= 0 ||
+            height <= 0
+          )
+            return cancel()
+          rectangles.set(key, { x, y, width, height })
+          if (rectangles.size !== originalTargets.length) return
+          bounds.current = rectangles
+          current.measuring = false
+          updateIndicator(current)
+          if (current.released) drop()
+        })
+      }
+    }
     const begin = (source: string, keyboard: boolean) => {
       cancel()
       if (!available()) return
@@ -124,6 +155,8 @@ export const useSortReorder = (
         released: false,
         point: null,
         dropping: false,
+        measurement: 0,
+        measuring: false,
       }
       drag.current = current
       setSource(source)
@@ -142,32 +175,14 @@ export const useSortReorder = (
           const allowed = gaps(source)
           choose(current, allowed.find((gap) => gap > index + 1) ?? allowed.at(-1) ?? null)
         }
-        for (const row of rows()) {
-          const key = String(row.key)
-          const target = targets.current.get(key)
-          target?.measureInWindow((x, y, width, height) => {
-            if (
-              valid(current) &&
-              targets.current.get(key) === target &&
-              [x, y, width, height].every(Number.isFinite) &&
-              width > 0 &&
-              height > 0
-            ) {
-              bounds.current.set(key, { x, y, width, height })
-              if (current.point) move(current.point.x, current.point.y)
-              if (current.released) drop()
-            }
-          })
-        }
+        if (!keyboard) measure(current)
         if (keyboard && current.released) drop()
       })
     }
-    const move = (x: number, y: number) => {
-      const current = drag.current
-      if (!current || current.keyboard) return
+    const updateIndicator = (current: TDrag) => {
       if (!valid(current)) return cancel()
-      current.point = { x, y }
-      if (!current.admitted) return
+      if (!current.point) return
+      const { x, y } = current.point
       const measured = rows().map((row) => bounds.current.get(String(row.key)))
       if (measured.some((rect) => !rect)) return
       const rectangles = measured as TBounds[]
@@ -188,11 +203,21 @@ export const useSortReorder = (
       const candidate = gap < 0 ? rectangles.length : gap
       choose(current, gaps(current.source).includes(candidate) ? candidate : null)
     }
+    const move = (x: number, y: number) => {
+      const current = drag.current
+      if (!current || current.keyboard) return
+      if (!valid(current)) return cancel()
+      current.point = { x, y }
+      // Native layout and ancestor scrolling can change without replacing a row.
+      // Only the latest complete batch may choose a target or settle a release.
+      if (current.admitted) measure(current)
+    }
     const drop = () => {
       const current = drag.current
       if (!current || !valid(current)) return cancel()
       current.released = true
-      if (!current.admitted || (!current.keyboard && bounds.current.size !== rows().length)) return
+      if (!current.admitted || (!current.keyboard && (current.measuring || bounds.current.size !== rows().length)))
+        return
       if (current.dropping) return
       if (current.gap === null) return cancel()
       const ordered = rows()

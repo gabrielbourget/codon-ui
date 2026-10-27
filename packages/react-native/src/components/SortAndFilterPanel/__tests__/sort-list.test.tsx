@@ -419,6 +419,80 @@ it("uses the real responder and measured original targets for a pointer reorder"
   expect(onReorder).toHaveBeenCalledWith("", "name", "after")
 })
 
+it("remeasures original rows after their window positions change during a pointer drag", async () => {
+  const onReorder = jest.fn()
+  await render(tree({ ...props(), onReorder }))
+  let offset = 0
+  for (const [index, id] of ["", "name"].entries())
+    jest
+      .spyOn(mockViews.get(option(id).props.ownerId)!, "measureInWindow")
+      .mockImplementation((callback) => callback(0, offset + index * 100, 200, 80))
+  const source = option()
+  await act(() => {
+    source.props.onStartShouldSetResponderCapture(pointer(10, 10))
+    source.props.onResponderGrant(pointer(10, 10))
+  })
+  await act(() => source.props.onResponderMove(pointer(10, 170, 2)))
+  offset = 200
+  await act(() => source.props.onResponderRelease(pointer(10, 370, 3)))
+  expect(onReorder).toHaveBeenCalledTimes(1)
+  expect(onReorder).toHaveBeenCalledWith("", "name", "after")
+})
+
+it("waits for the latest complete release measurements and rejects an older pointer batch", async () => {
+  const onReorder = jest.fn()
+  await render(tree({ ...props(), onReorder }))
+  const pending: (() => void)[] = []
+  let offset = 0
+  for (const [index, id] of ["", "name"].entries())
+    jest.spyOn(mockViews.get(option(id).props.ownerId)!, "measureInWindow").mockImplementation((callback) => {
+      const y = offset + index * 100
+      pending.push(() => callback(0, y, 200, 80))
+    })
+  const source = option()
+  await act(() => {
+    source.props.onStartShouldSetResponderCapture(pointer(10, 10))
+    source.props.onResponderGrant(pointer(10, 10))
+  })
+  await act(() => pending.splice(0).forEach((measure) => measure()))
+  offset = 200
+  await act(() => source.props.onResponderMove(pointer(10, 370, 2)))
+  const older = pending.splice(0)
+  offset = 400
+  await act(() => source.props.onResponderRelease(pointer(10, 570, 3)))
+  const current = pending.splice(0)
+  expect(older).toHaveLength(2)
+  expect(current).toHaveLength(2)
+  await act(() => older.forEach((measure) => measure()))
+  expect(onReorder).not.toHaveBeenCalled()
+  await act(() => current[0]!())
+  expect(onReorder).not.toHaveBeenCalled()
+  await act(() => current[1]!())
+  expect(onReorder).toHaveBeenCalledTimes(1)
+  expect(onReorder).toHaveBeenCalledWith("", "name", "after")
+})
+
+it("cancels a release with invalid current geometry instead of using the old complete rectangles", async () => {
+  const onReorder = jest.fn()
+  await render(tree({ ...props(), onReorder }))
+  let invalid = false
+  for (const [index, id] of ["", "name"].entries())
+    jest
+      .spyOn(mockViews.get(option(id).props.ownerId)!, "measureInWindow")
+      .mockImplementation((callback) => callback(0, index * 100, 200, invalid ? 0 : 80))
+  const source = option()
+  await act(() => {
+    source.props.onStartShouldSetResponderCapture(pointer(10, 10))
+    source.props.onResponderGrant(pointer(10, 10))
+  })
+  await act(() => source.props.onResponderMove(pointer(10, 170, 2)))
+  expect(screen.getByTestId("query-sort-drop-indicator")).toBeTruthy()
+  invalid = true
+  await act(() => source.props.onResponderRelease(pointer(10, 170, 3)))
+  expect(onReorder).not.toHaveBeenCalled()
+  expect(screen.queryByTestId("query-sort-drop-indicator")).toBeNull()
+})
+
 it("retains original release coordinates until admission and measurement complete", async () => {
   const onReorder = jest.fn()
   await render(tree({ ...props(), onReorder }))
