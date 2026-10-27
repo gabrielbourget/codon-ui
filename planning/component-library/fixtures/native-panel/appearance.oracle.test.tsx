@@ -18,6 +18,38 @@ const path = resolve(
   "../../../../packages/react/src/components/Panel/PanelStyles.module.css",
 )
 
+it("restores the canonical overlay stylesheet background after undefined inline paint while retaining the original editor", () => {
+  const sheet = document.createElement("style")
+  sheet.textContent = readFileSync(path, "utf8").replace(/\.([A-Za-z][\w-]*)/g, (selector, name) =>
+    (styles as Record<string, string>)[name] ? `.${(styles as Record<string, string>)[name]}` : selector,
+  )
+  document.head.append(sheet)
+  try {
+    const changed = vi.fn()
+    const tree = (backgroundColor?: string) => (
+      <Panel isOpen customOverlayStyles={{ backgroundColor }}>
+        <input aria-label="Overlay held editor" value="held" onChange={changed} />
+      </Panel>
+    )
+    const view = render(tree("plum"))
+    const panel = screen.getByTestId("panel"),
+      editor = screen.getByLabelText("Overlay held editor")
+    const overlay = panel.closest(`.${styles["panel__overlay"]}`) as HTMLElement
+    expect(overlay.style.backgroundColor).toBe("plum")
+    view.rerender(tree())
+    expect(overlay.style.backgroundColor).toBe("")
+    expect(getComputedStyle(overlay).backgroundColor).toBe("rgba(0, 0, 0, 0.3)")
+    view.rerender(tree("transparent"))
+    expect(getComputedStyle(overlay).backgroundColor).toBe("rgba(0, 0, 0, 0)")
+    expect(screen.getByTestId("panel")).toBe(panel)
+    expect(screen.getByLabelText("Overlay held editor")).toBe(editor)
+    expect(editor).toHaveValue("held")
+    expect(changed).not.toHaveBeenCalled()
+  } finally {
+    sheet.remove()
+  }
+})
+
 it("owns overlay filter, blend, isolation and stacking on the common original ancestor", () => {
   const changed = vi.fn()
   const tree = (overlay?: CSSProperties) => (

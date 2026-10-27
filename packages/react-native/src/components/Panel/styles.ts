@@ -126,8 +126,12 @@ export const getNativePanelStyles = (props: TNativePanelProps, theme: TNativeThe
   if (view.filter !== undefined) view.filter = resolvePanelFilters(view.filter, foreground) as ViewStyle["filter"]
   if (typeof view.opacity === "number" && Number.isFinite(view.opacity))
     view.opacity = Math.max(0, Math.min(1, view.opacity))
+  const overlayOverrides = resolveNativeStyle(props.customOverlayStyles, "Panel", "customOverlayStyles")
   const overlay = resolveNativeStyle(
-    [{ backgroundColor: theme.colors.overlayBackdrop }, props.customOverlayStyles],
+    [
+      { backgroundColor: theme.colors.overlayBackdrop },
+      Object.fromEntries(Object.entries(overlayOverrides).filter(([, value]) => value !== undefined)) as ViewStyle,
+    ],
     "Panel",
     "customOverlayStyles",
   )

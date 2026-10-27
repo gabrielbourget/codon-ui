@@ -105,6 +105,83 @@
       "duration": 350,
       "easing": "ease-in-out",
       "values": ["auto", "auto", "5", "5", "5"]
+    },
+    {
+      "id": "ratio-widen",
+      "property": "aspectRatio",
+      "from": 1,
+      "to": 4,
+      "computedFrom": "1 / 1",
+      "computedTo": "4 / 1",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": ["1 / 1", "1.19609 / 1", "2 / 1", "3.34423 / 1", "4 / 1"]
+    },
+    {
+      "id": "ratio-narrow",
+      "property": "aspectRatio",
+      "from": 4,
+      "to": 1,
+      "computedFrom": "4 / 1",
+      "computedTo": "1 / 1",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": ["4 / 1", "3.34423 / 1", "2 / 1", "1.19609 / 1", "1 / 1"]
+    },
+    {
+      "id": "ratio-fraction",
+      "property": "aspectRatio",
+      "from": 0.25,
+      "to": 4,
+      "computedFrom": "0.25 / 1",
+      "computedTo": "4 / 1",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": ["0.25 / 1", "0.357657 / 1", "1 / 1", "2.79598 / 1", "4 / 1"]
+    },
+    {
+      "id": "ratio-strings",
+      "property": "aspectRatio",
+      "from": "5 / 1",
+      "to": "3 / 2",
+      "computedFrom": "5 / 1",
+      "computedTo": "3 / 2",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": ["5 / 1", "4.2799 / 1", "2.73861 / 1", "1.75238 / 1", "1.5 / 1"]
+    },
+    {
+      "id": "ratio-exponent",
+      "property": "aspectRatio",
+      "from": "+2e0",
+      "to": "8 / 1",
+      "computedFrom": "2 / 1",
+      "computedTo": "8 / 1",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": ["2 / 1", "2.39218 / 1", "4 / 1", "6.68847 / 1", "8 / 1"]
+    },
+    {
+      "id": "ratio-auto",
+      "property": "aspectRatio",
+      "from": "auto",
+      "to": 4,
+      "computedFrom": "auto",
+      "computedTo": "4 / 1",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": ["auto", "auto", "4 / 1", "4 / 1", "4 / 1"]
+    },
+    {
+      "id": "ratio-zero",
+      "property": "aspectRatio",
+      "from": "0 / 1",
+      "to": 4,
+      "computedFrom": "0 / 1",
+      "computedTo": "4 / 1",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": ["0 / 1", "0 / 1", "4 / 1", "4 / 1", "4 / 1"]
     }
   ]
 }

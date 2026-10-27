@@ -18,7 +18,6 @@ const NUMBER_FIELDS = new Set([
   "flex",
   "flexGrow",
   "flexShrink",
-  "aspectRatio",
   "zIndex",
   "borderWidth",
   "borderTopWidth",
@@ -78,6 +77,26 @@ const DIMENSION_FIELDS = new Set([
 ])
 const RADIUS_FIELDS = /^border.*Radius$/
 const isNumber = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value)
+const aspectRatioNumber = (value: unknown) => {
+  if (isNumber(value)) return value > 0 ? value : undefined
+  if (typeof value !== "string") return undefined
+  const match =
+    /^\s*(\+?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?)\s*(?:\/\s*(\+?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?))?\s*$/i.exec(
+      value,
+    )
+  if (!match) return undefined
+  const numerator = Number(match[1]),
+    denominator = Number(match[2] ?? 1)
+  const ratio = numerator / denominator
+  return isNumber(numerator) &&
+    numerator > 0 &&
+    isNumber(denominator) &&
+    denominator > 0 &&
+    isNumber(ratio) &&
+    ratio > 0
+    ? ratio
+    : undefined
+}
 const numberMixer =
   (from: number, to: number): TMixer =>
   (progress) =>
@@ -105,6 +124,11 @@ const stableValue = (value: unknown): unknown => {
   return value
 }
 export const arePanelAppearanceValuesEqual = (field: string, first: unknown, last: unknown) => {
+  if (field === "aspectRatio") {
+    const a = aspectRatioNumber(first),
+      b = aspectRatioNumber(last)
+    if (a !== undefined && b !== undefined) return a === b
+  }
   if (field === "color" || field.endsWith("Color")) {
     const a = processColor(first as ColorValue)
     const b = processColor(last as ColorValue)
@@ -232,6 +256,16 @@ export const createPanelAppearanceMixer = (
   }
   // Fabric's FontWeight decoder accepts only100-step weights; arbitrary CSS weight interpolation remains required.
   if (field === "fontWeight") return undefined
+  if (field === "aspectRatio") {
+    const first = aspectRatioNumber(from),
+      last = aspectRatioNumber(to)
+    if (first === undefined || last === undefined) return undefined
+    // CSS Values §5.7.1 interpolates ratios in logarithmic space.
+    const firstLog = Math.log(first)
+    const lastLog = Math.log(last)
+    return (progress) =>
+      progress === 0 ? first : progress === 1 ? last : Math.exp(firstLog + (lastLog - firstLog) * progress)
+  }
   if (field === "zIndex")
     return isNumber(from) && isNumber(to) && Number.isInteger(from) && Number.isInteger(to)
       ? (progress) => Math.round(from + (to - from) * progress) || 0

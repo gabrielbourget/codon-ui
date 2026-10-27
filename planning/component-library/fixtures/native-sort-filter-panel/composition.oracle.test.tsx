@@ -2,7 +2,8 @@ import { readFileSync } from "node:fs"
 import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
-import { cleanup, render, screen } from "@testing-library/react"
+import { act, cleanup, render, screen } from "@testing-library/react"
+import type { CSSProperties } from "react"
 import { Dialog } from "react-aria-components"
 import { afterEach, beforeEach, expect, it, vi } from "vitest"
 
@@ -12,6 +13,7 @@ import Panel from "../../../../packages/react/src/components/Panel/Panel"
 import ActiveFilters from "../../../../packages/react/src/components/SortAndFilterPanel/InternalComponents/ActiveFilters/ActiveFilters"
 import filterStyles from "../../../../packages/react/src/components/SortAndFilterPanel/InternalComponents/ActiveFilters/ActiveFiltersStyles.module.css"
 import { resolveSortAndFilterPanelLabels } from "../../../../packages/react/src/components/SortAndFilterPanel/labels"
+import queryStyles from "../../../../packages/react/src/components/SortAndFilterPanel/SortAndFilterPanelStyles.module.css"
 import { createQueryFilterGroupDraftFromCriteria } from "../../../../packages/react/src/components/Table/filterDraft"
 import Text from "../../../../packages/react/src/components/Text/Text"
 import textStyles from "../../../../packages/react/src/components/Text/TextStyles.module.css"
@@ -24,6 +26,7 @@ beforeEach(() => {
     ["SortAndFilterPanel/InternalComponents/ActiveFilters/ActiveFiltersStyles.module.css", filterStyles],
     ["Text/TextStyles.module.css", textStyles],
     ["Button/ButtonStyles.module.css", buttonStyles],
+    ["SortAndFilterPanel/SortAndFilterPanelStyles.module.css", queryStyles],
   ]
     .map(([path, names]) =>
       readFileSync(resolve(base, path as string), "utf8").replace(/\.([A-Za-z][\w-]*)/g, (selector, name) =>
@@ -32,6 +35,37 @@ beforeEach(() => {
     )
     .join("\n")
   document.head.append(sheet)
+})
+
+it("keeps the canonical query dialog focus selector separate from descendant focus and restores CSS after undefined inline values", () => {
+  const changed = vi.fn()
+  const tree = (style?: CSSProperties) => (
+    <Panel isOpen>
+      <Dialog aria-label="Focus style" className={queryStyles.sortAndFilterPanel__content} style={style}>
+        <input aria-label="Focus held editor" value="held" onChange={changed} />
+      </Dialog>
+    </Panel>
+  )
+  const view = render(tree({ width: 120, height: 90, gap: 7, padding: 3 }))
+  const dialog = screen.getByRole("dialog", { name: "Focus style" }),
+    editor = screen.getByLabelText("Focus held editor")
+  const rule = [...sheet.sheet!.cssRules].find(
+    (entry) =>
+      entry instanceof CSSStyleRule && entry.selectorText === `.${queryStyles.sortAndFilterPanel__content}:focus`,
+  ) as CSSStyleRule
+  expect(rule.style.getPropertyValue("outline")).toBe("1.5px solid var(--cui-color-primary-500)")
+  act(() => dialog.focus())
+  expect(dialog.matches(rule.selectorText)).toBe(true)
+  act(() => editor.focus())
+  expect(dialog.matches(rule.selectorText)).toBe(false)
+  view.rerender(tree({ width: undefined, height: undefined, gap: undefined, padding: undefined }))
+  for (const field of ["width", "height", "gap", "padding"] as const) expect(dialog.style[field]).toBe("")
+  expect(getComputedStyle(dialog).width).toBe("100%")
+  expect(getComputedStyle(dialog).height).toBe("100%")
+  expect(screen.getByRole("dialog", { name: "Focus style" })).toBe(dialog)
+  expect(screen.getByLabelText("Focus held editor")).toBe(editor)
+  expect(editor).toHaveValue("held")
+  expect(changed).not.toHaveBeenCalled()
 })
 afterEach(() => {
   cleanup()

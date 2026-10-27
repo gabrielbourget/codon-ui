@@ -60,6 +60,53 @@ const setup = async () => {
   return { ...view, root, editor, change, node }
 }
 
+it("restores the overlay stylesheet backdrop after clearing inline paint while retaining original hosts and editor", async () => {
+  const f = await setup()
+  await f.rerender(f.node({ customOverlayStyles: { backgroundColor: "plum" } }))
+  const root = f.root.current,
+    editor = f.editor.current,
+    backdrop = row("panel-backdrop")
+  expect(root).not.toBeNull()
+  expect(editor).not.toBeNull()
+  expect(backdrop).toHaveStyle({ backgroundColor: "plum" })
+  await f.rerender(f.node({ customOverlayStyles: { backgroundColor: undefined } }))
+  expect(backdrop).toHaveStyle({ backgroundColor: "rgba(0, 0, 0, 0.3)" })
+  await f.rerender(f.node({ customOverlayStyles: { backgroundColor: "transparent" } }))
+  expect(backdrop).toHaveStyle({ backgroundColor: "transparent" })
+  await f.rerender(f.node({ customOverlayStyles: [{ backgroundColor: "plum" }, { backgroundColor: undefined }] }))
+  expect(backdrop).toHaveStyle({ backgroundColor: "rgba(0, 0, 0, 0.3)" })
+  expect(f.root.current).toBe(root)
+  expect(f.editor.current).toBe(editor)
+  expect(row("panel-backdrop")).toBe(backdrop)
+  expect(row("held").props.value).toBe("held")
+  expect(f.change).not.toHaveBeenCalled()
+})
+
+it("retargets ratio strings without extending the independent opacity deadline and restores the authored ratio", async () => {
+  const f = await setup()
+  await f.rerender(f.node({ height: "auto", customStyles: { aspectRatio: 1, opacity: 1 } }))
+  await advance(375)
+  const root = f.root.current,
+    editor = f.editor.current
+  await f.rerender(f.node({ height: "auto", customStyles: { aspectRatio: 4, opacity: 0.2 } }))
+  await advance(175)
+  const progress = (1 - style().opacity!) / 0.8
+  expect(progress).toBeGreaterThan(0.3)
+  expect(progress).toBeLessThan(0.7)
+  expect(style().aspectRatio).toBeCloseTo(Math.pow(4, progress), 6)
+  await f.rerender(f.node({ height: "auto", customStyles: { aspectRatio: "9 / 1", opacity: 0.2 } }))
+  await advance(200)
+  expect(style().opacity).toBe(0.2)
+  expect(typeof style().aspectRatio).toBe("number")
+  expect(style().aspectRatio).toBeLessThan(9)
+  await advance(175)
+  expect(style().aspectRatio).toBe("9 / 1")
+  expect(f.root.current).toBe(root)
+  expect(f.editor.current).toBe(editor)
+  expect(row("held").props.value).toBe("held")
+  expect(f.change).not.toHaveBeenCalled()
+})
+
 it("applies overlay transforms around the original Panel and backdrop while preserving the portal host", async () => {
   const f = await setup()
   const tree = (transform?: ViewStyle["transform"], transformOrigin?: ViewStyle["transformOrigin"]) =>

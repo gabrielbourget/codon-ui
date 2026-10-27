@@ -36,11 +36,19 @@
         ["integer-crossing", "zIndex", 10, -5],
         ["integer-descending", "zIndex", 5, 0],
         ["integer-auto", "zIndex", "auto", 5],
+        ["ratio-widen", "aspectRatio", 1, 4],
+        ["ratio-narrow", "aspectRatio", 4, 1],
+        ["ratio-fraction", "aspectRatio", 0.25, 4],
+        ["ratio-strings", "aspectRatio", "5 / 1", "3 / 2"],
+        ["ratio-exponent", "aspectRatio", "+2e0", "8 / 1"],
+        ["ratio-auto", "aspectRatio", "auto", 4],
+        ["ratio-zero", "aspectRatio", "0 / 1", 4],
       ]
       const results = cases.map(([id, property, from, to]) => {
         const element = document.createElement("div")
         element.className = "panel sample"
         element.textContent = id
+        if (property === "aspectRatio") element.style.height = "auto"
         document.getElementById("samples").append(element)
         const style = getComputedStyle(element)
         const duration = Number.parseFloat(style.transitionDuration) * 1000
