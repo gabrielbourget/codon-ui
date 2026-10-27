@@ -63,7 +63,8 @@ it("inherits Panel text styles through owned descendants within the original win
     textAlign: "right",
     fontStyle: "italic",
   })
-  expect(row().props.nativeTypographyWindow).toBeTruthy()
+  expect(row().props.nativeTypographyWindow).toBe("")
+  expect(row("panel-floating-host").props.nativeTypographyWindow).toMatch(/^codon-floating-/)
   expect(row("inherited-style")).toHaveStyle({
     letterSpacing: 2,
     textAlign: "right",

@@ -147,7 +147,7 @@ index 9c29ee6213deaa7293fb64dfc0d614af1f937cdf..0c11beb3e572ac4ef36b5db3c865e862
 @@ -1266,6 +1266,17 @@ public class FabricUIManager
              + " Fabric JSI API");
    }
-
+ 
 +  @UiThread
 +  public void checkNativeEventCommandBoundary(int surfaceId) {
 +    mMountItemDispatcher.checkNativeEventCommandBoundary(surfaceId);
@@ -178,14 +178,14 @@ index 984ff9e75074e74dc8b06b96e924160df9e34352..dab0dd223dd677d4f9c55bdb2a079931
 @@ -34,6 +36,7 @@ internal class MountItemDispatcher(
    private val mountItems: Queue<MountItem> = ConcurrentLinkedQueue()
    private val preMountItems: Queue<MountItem> = ConcurrentLinkedQueue()
-
+ 
 +  private var nativeEventCapture: NativeEventCommandScope? = null
    private var inDispatch: Boolean = false
    var batchedExecutionTime: Long = 0L
      private set
 @@ -44,13 +47,50 @@ internal class MountItemDispatcher(
    private var lastFrameTimeNanos: Long = 0L
-
+ 
    fun addViewCommandMountItem(mountItem: DispatchCommandMountItem) {
 +    val original = if (UiThreadUtil.isOnUiThread()) nativeEventCapture?.capture(mountItem) ?: mountItem else mountItem
      if (!ReactNativeFeatureFlags.disableEarlyViewCommandExecution()) {
@@ -196,7 +196,7 @@ index 984ff9e75074e74dc8b06b96e924160df9e34352..dab0dd223dd677d4f9c55bdb2a079931
 +      mountItems.add(original)
      }
    }
-
+ 
 +  fun checkNativeEventCommandBoundary(surfaceId: Int) {
 +    UiThreadUtil.assertOnUiThread()
 +    check(!inDispatch && nativeEventCapture == null) { "native-event-command-dispatch-reentrant" }
@@ -981,7 +981,7 @@ index 5fa5e6821a514c60b8aa7155362c1c2849d8b2fd..78eacc28e044a4651ff46b0faf296d9b
 --- a/ReactCommon/react/renderer/core/EventDispatcher.cpp
 +++ b/ReactCommon/react/renderer/core/EventDispatcher.cpp
 @@ -25,7 +25,10 @@ EventDispatcher::EventDispatcher(
-
+ 
  void EventDispatcher::dispatchEvent(RawEvent&& rawEvent) const {
    // Allows the event listener to interrupt default event dispatch
 -  if (eventListeners_.willDispatchEvent(rawEvent)) {
@@ -991,11 +991,11 @@ index 5fa5e6821a514c60b8aa7155362c1c2849d8b2fd..78eacc28e044a4651ff46b0faf296d9b
 +  if (rawEvent.continueAfterListeners(handled)) {
      return;
    }
-
+ 
 @@ -37,6 +40,15 @@ void EventDispatcher::dispatchEvent(RawEvent&& rawEvent) const {
    eventQueue_.enqueueEvent(std::move(rawEvent));
  }
-
+ 
 +void EventDispatcher::dispatchOriginalNativeEvents(
 +    jsi::Runtime& runtime, std::vector<RawEvent>&& events) const {
 +  if (auto logger = eventLogger_.lock()) {
@@ -1009,7 +1009,7 @@ index 5fa5e6821a514c60b8aa7155362c1c2849d8b2fd..78eacc28e044a4651ff46b0faf296d9b
    eventQueue_.experimental_flushSync();
  }
 @@ -49,7 +61,10 @@ void EventDispatcher::dispatchStateUpdate(
-
+ 
  void EventDispatcher::dispatchUniqueEvent(RawEvent&& rawEvent) const {
    // Allows the event listener to interrupt default event dispatch
 -  if (eventListeners_.willDispatchEvent(rawEvent)) {
@@ -1019,7 +1019,7 @@ index 5fa5e6821a514c60b8aa7155362c1c2849d8b2fd..78eacc28e044a4651ff46b0faf296d9b
 +  if (rawEvent.continueAfterListeners(handled)) {
      return;
    }
-
+ 
 diff --git a/ReactCommon/react/renderer/core/EventDispatcher.h b/ReactCommon/react/renderer/core/EventDispatcher.h
 index 88a9a953e4234088d567e5c9f040016f95fe9a08..dd1896505c16ea23ee439d8d419275708be3a821 100644
 --- a/ReactCommon/react/renderer/core/EventDispatcher.h
@@ -1029,7 +1029,7 @@ index 88a9a953e4234088d567e5c9f040016f95fe9a08..dd1896505c16ea23ee439d8d41927570
     */
    void experimental_flushSync() const;
 +  void dispatchOriginalNativeEvents(jsi::Runtime &runtime, std::vector<RawEvent> &&events) const;
-
+ 
    /*
     * Dispatches a raw event with asynchronous batched priority. Before the
 diff --git a/ReactCommon/react/renderer/core/EventListener.cpp b/ReactCommon/react/renderer/core/EventListener.cpp
@@ -1038,7 +1038,7 @@ index a64e24fdff706a9d47e5a98b7b51435de2823d58..4172ea78c0a843a05ac444a03c9f6225
 +++ b/ReactCommon/react/renderer/core/EventListener.cpp
 @@ -10,8 +10,17 @@
  #include <mutex>
-
+ 
  namespace facebook::react {
 +namespace {
 +thread_local unsigned int nativeEventListenerDepth = 0;
@@ -1047,12 +1047,12 @@ index a64e24fdff706a9d47e5a98b7b51435de2823d58..4172ea78c0a843a05ac444a03c9f6225
 +NativeEventListenerScope::~NativeEventListenerScope() { nativeEventListenerDepth--; }
 +bool NativeEventListenerScope::active() { return nativeEventListenerDepth != 0; }
 +
-
+ 
  bool EventListenerContainer::willDispatchEvent(const RawEvent& event) {
 +  // Construct before the lock so destruction records its release first.
 +  NativeEventListenerScope scope;
    std::shared_lock lock(mutex_);
-
+ 
    bool handled = false;
 diff --git a/ReactCommon/react/renderer/core/EventQueue.cpp b/ReactCommon/react/renderer/core/EventQueue.cpp
 index 6e99fd71bb7aa4f16da1be6828028e10fb4252fc..c659063bc8c3aa8c1b43a8b7c2fbc430fba1479b 100644
@@ -1061,7 +1061,7 @@ index 6e99fd71bb7aa4f16da1be6828028e10fb4252fc..c659063bc8c3aa8c1b43a8b7c2fbc430
 @@ -82,6 +82,11 @@ void EventQueue::enqueueStateUpdate(
    }
  }
-
+ 
 +void EventQueue::dispatchOriginalNativeEvents(
 +    jsi::Runtime& runtime, std::vector<RawEvent>&& events) const {
 +  eventProcessor_.flushEvents(runtime, std::move(events));
@@ -1077,7 +1077,7 @@ index f525767478aa700f3b1978a0b4f2dc8c7d3b7730..930f66425c2cb0dbe7b446d5354b4122
 @@ -63,6 +63,10 @@ class EventQueue {
     */
    void experimental_flushSync() const;
-
+ 
 +  // First processing of original records already consumed by an admitted
 +  // listener. Preserve this queue's existing processor/priority state.
 +  void dispatchOriginalNativeEvents(jsi::Runtime &runtime, std::vector<RawEvent> &&events) const;
@@ -1159,7 +1159,7 @@ index bced302982b13fb1e140c34173d7609b060974d5..7cea30ec80abe43885083290bcab0a5b
 @@ -25,4 +25,25 @@ RawEvent::RawEvent(
        isUnique(isUnique),
        eventStartTimeStamp(eventStartTimeStamp) {}
-
+ 
 +bool RawEvent::deferAfterListeners(std::function<void()> callback) const {
 +  if (nativeContinuation_) return false;
 +  nativeContinuation_ = std::make_shared<NativeEventContinuation>(std::move(callback));
@@ -1188,12 +1188,12 @@ index 3111ee7cddfe9f8ed92093413e4ff928bf17215a..a2694682a3187434f87dfe92cd0ecbe3
 +++ b/ReactCommon/react/renderer/core/RawEvent.h
 @@ -8,6 +8,8 @@
  #pragma once
-
+ 
  #include <memory>
 +#include <functional>
 +#include <react/renderer/core/NativeEventContinuation.h>
  #include <string>
-
+ 
  #include <react/renderer/core/EventLogger.h>
 @@ -88,6 +90,19 @@ struct RawEvent {
    // time if not specified by the client (e.g., when MotionEvent was triggered
@@ -1213,7 +1213,7 @@ index 3111ee7cddfe9f8ed92093413e4ff928bf17215a..a2694682a3187434f87dfe92cd0ecbe3
 + private:
 +  mutable std::shared_ptr<NativeEventContinuation> nativeContinuation_;
  };
-
+ 
  } // namespace facebook::react
 diff --git a/ReactCommon/react/renderer/runtimescheduler/NativeEventTaskScope.h b/ReactCommon/react/renderer/runtimescheduler/NativeEventTaskScope.h
 new file mode 100644
@@ -1274,7 +1274,7 @@ index f7393dbdd520a9b955dba39debeb09366130d6db..df8d16bd7aa337f54347959a4f2fc7f6
 @@ -53,6 +53,11 @@ void RuntimeScheduler::scheduleWork(RawCallback&& callback) noexcept {
    return runtimeSchedulerImpl_->scheduleWork(std::move(callback));
  }
-
+ 
 +bool RuntimeScheduler::scheduleNativeEventWork(
 +    RawCallback&& callback, NativeEventTaskScopeFactory factory) {
 +  return runtimeSchedulerImpl_->scheduleNativeEventWork(std::move(callback), std::move(factory));
@@ -1298,10 +1298,10 @@ index ded6174907f16358234cfb40a0cb2941737ba1a9..7cb1f9f668c8ee1dad9023bfbb2095f8
    virtual std::shared_ptr<Task> scheduleTask(SchedulerPriority priority, RawCallback &&callback) noexcept = 0;
 @@ -75,6 +77,7 @@ class RuntimeScheduler final : RuntimeSchedulerBase {
    RuntimeScheduler &operator=(RuntimeScheduler &&) = delete;
-
+ 
    void scheduleWork(RawCallback &&callback) noexcept override;
 +  bool scheduleNativeEventWork(RawCallback &&callback, NativeEventTaskScopeFactory factory) override;
-
+ 
    /*
     * Grants access to the runtime synchronously on the caller's thread.
 diff --git a/ReactCommon/react/renderer/runtimescheduler/RuntimeScheduler_Modern.cpp b/ReactCommon/react/renderer/runtimescheduler/RuntimeScheduler_Modern.cpp
@@ -1310,16 +1310,16 @@ index b786399ff5560cf9617d1294f4e9a8d47fab31c1..d5ad02e2720353c936d8a6d6c6c32078
 +++ b/ReactCommon/react/renderer/runtimescheduler/RuntimeScheduler_Modern.cpp
 @@ -6,6 +6,7 @@
   */
-
+ 
  #include "RuntimeScheduler_Modern.h"
 +#include <exception>
-
+ 
  #include <ReactCommon/RuntimeExecutorSyncUIThreadUtils.h>
  #include <cxxreact/TraceSection.h>
 @@ -47,6 +48,18 @@ void RuntimeScheduler_Modern::scheduleWork(RawCallback&& callback) noexcept {
    scheduleTask(SchedulerPriority::ImmediatePriority, std::move(callback));
  }
-
+ 
 +bool RuntimeScheduler_Modern::scheduleNativeEventWork(
 +    RawCallback&& callback, NativeEventTaskScopeFactory factory) {
 +  if (!callback || !factory) return false;
@@ -1337,7 +1337,7 @@ index b786399ff5560cf9617d1294f4e9a8d47fab31c1..d5ad02e2720353c936d8a6d6c6c32078
      jsi::Function&& callback) noexcept {
 @@ -190,7 +203,12 @@ void RuntimeScheduler_Modern::scheduleRenderingUpdate(
    TraceSection s("RuntimeScheduler::scheduleRenderingUpdate");
-
+ 
    surfaceIdsWithPendingRenderingUpdates_.insert(surfaceId);
 -  pendingRenderingUpdates_.push(renderingUpdate);
 +  if (currentTask_ && currentTask_->nativeEventScope && renderingUpdate) {
@@ -1347,12 +1347,12 @@ index b786399ff5560cf9617d1294f4e9a8d47fab31c1..d5ad02e2720353c936d8a6d6c6c32078
 +    pendingRenderingUpdates_.push(renderingUpdate);
 +  }
  }
-
+ 
  void RuntimeScheduler_Modern::setShadowTreeRevisionConsistencyManager(
 @@ -301,6 +319,38 @@ void RuntimeScheduler_Modern::runEventLoopTick(
    ScopedShadowTreeRevisionLock revisionLock(
        shadowTreeRevisionConsistencyManager_);
-
+ 
 +  if (task.nativeEventScopeFactory) {
 +    auto factory = std::exchange(task.nativeEventScopeFactory, {});
 +    try {
@@ -1387,7 +1387,7 @@ index b786399ff5560cf9617d1294f4e9a8d47fab31c1..d5ad02e2720353c936d8a6d6c6c32078
 +
    currentTask_ = &task;
    currentPriority_ = task.priority;
-
+ 
 @@ -380,8 +430,10 @@ void RuntimeScheduler_Modern::executeTask(
        task.callback = result.getObject(runtime).getFunction(runtime);
      }
@@ -1419,7 +1419,7 @@ index 05ba08896f19d720665dc463ff9dc70a87ec806e..64798d513808215e66a74e3e7298ef4c
     */
    void scheduleWork(RawCallback &&callback) noexcept override;
 +  bool scheduleNativeEventWork(RawCallback &&callback, NativeEventTaskScopeFactory factory) override;
-
+ 
    /*
     * Grants access to the runtime synchronously on the caller's thread.
 diff --git a/ReactCommon/react/renderer/runtimescheduler/Task.h b/ReactCommon/react/renderer/runtimescheduler/Task.h
@@ -1429,7 +1429,7 @@ index e1a91f57303d0496b0ae20a2b5fa4bb61bb268e9..76cb2c9be309b21a781576533041965d
 @@ -11,6 +11,7 @@
  #include <jsi/jsi.h>
  #include <react/timing/primitives.h>
-
+ 
 +#include <react/renderer/runtimescheduler/NativeEventTaskScope.h>
  #include <cstdint>
  #include <optional>
@@ -1437,7 +1437,7 @@ index e1a91f57303d0496b0ae20a2b5fa4bb61bb268e9..76cb2c9be309b21a781576533041965d
 @@ -33,6 +34,8 @@ struct Task final : public jsi::NativeState {
    friend RuntimeScheduler_Modern;
    friend TaskPriorityComparer;
-
+ 
 +  NativeEventTaskScopeFactory nativeEventScopeFactory;
 +  std::shared_ptr<NativeEventTaskScope> nativeEventScope;
    SchedulerPriority priority;
@@ -1486,11 +1486,11 @@ index 7ea5fc3c782fe911bba2d566031a7ef7d11825c6..3b0140ab690cbdc0e6d1afb458e6eb06
 +    runtimeScheduler_->scheduleRenderingUpdate(shadowNode->getSurfaceId(), std::move(original));
    }
  }
-
+ 
 @@ -474,6 +481,13 @@ std::shared_ptr<UIManager> Scheduler::getUIManager() const {
    return uiManager_;
  }
-
+ 
 +bool Scheduler::dispatchOriginalNativeEvents(
 +    jsi::Runtime& runtime, std::vector<RawEvent>&& events) const {
 +  if (!eventDispatcher_->has_value()) return false;
@@ -1507,12 +1507,12 @@ index bd6de832e04d16844fdff28d71d9e05b764e06a2..868f5512dc3b90cc5600c4a060b007a0
 +++ b/ReactCommon/react/renderer/scheduler/Scheduler.h
 @@ -113,6 +113,7 @@ class Scheduler final : public UIManagerDelegate {
    void reportMount(SurfaceId surfaceId) const;
-
+ 
  #pragma mark - Event listeners
 +  bool dispatchOriginalNativeEvents(jsi::Runtime &runtime, std::vector<RawEvent> &&events) const;
    void addEventListener(std::shared_ptr<const EventListener> listener);
    void removeEventListener(const std::shared_ptr<const EventListener> &listener);
-
+ 
 diff --git a/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm b/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
 index f96a0494000b37ab4d1fcdad5615613aef30b077..435ffbc3eb5237764de9367cdda9bd00d27caaa8 100644
 --- a/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
@@ -1906,7 +1906,7 @@ index 4d640400dc129724b1a46e429fc90da2fb1919cc..3bde3e14a4b85bc44ea07253c383204a
 @@ -58,6 +58,10 @@ UIManager::~UIManager() {
                 << ").";
  }
-
+ 
 +NativeEventCommands& UIManager::getNativeEventCommands() {
 +  return nativeEventCommands_;
 +}
@@ -1929,7 +1929,7 @@ index 28b8729e3e01ebe37d3e082ea24e7642e9568ead..93e467a5d54e78b0dab47df6f8d27013
 @@ -55,6 +56,8 @@ class UIManager final : public ShadowTreeDelegate {
    void setDelegate(UIManagerDelegate *delegate);
    UIManagerDelegate *getDelegate();
-
+ 
 +  NativeEventCommands &getNativeEventCommands();
 +
    /**
@@ -1938,7 +1938,7 @@ index 28b8729e3e01ebe37d3e082ea24e7642e9568ead..93e467a5d54e78b0dab47df6f8d27013
 @@ -245,6 +248,7 @@ class UIManager final : public ShadowTreeDelegate {
        const ShadowNode &shadowNode,
        const std::shared_ptr<const ShadowNode> &ancestorShadowNode) const;
-
+ 
 +  NativeEventCommands nativeEventCommands_;
    SharedComponentDescriptorRegistry componentDescriptorRegistry_;
    UIManagerDelegate *delegate_{};
@@ -1949,7 +1949,7 @@ index c79fc75df5b44609b066cdda67b446ac778bbee0..7a3ee18b24874d7b003f504157c5447f
 +++ b/ReactCommon/react/renderer/uimanager/UIManagerBinding.cpp
 @@ -154,13 +154,22 @@ void UIManagerBinding::dispatchEventToJS(
    }
-
+ 
    currentEventPriority_ = priority;
 +  auto completion = !instanceHandle.isNull() && payload.isObject()
 +      ? nativeEventPayloads_.before(runtime, eventTarget, type, payload)
@@ -1975,11 +1975,11 @@ index c79fc75df5b44609b066cdda67b446ac778bbee0..7a3ee18b24874d7b003f504157c5447f
 +  } else if (completion) completion(false);
    currentEventPriority_ = ReactEventPriority::Default;
  }
-
+ 
 @@ -1225,6 +1234,10 @@ UIManager& UIManagerBinding::getUIManager() {
    return *uiManager_;
  }
-
+ 
 +NativeEventPayloads& UIManagerBinding::getNativeEventPayloads() {
 +  return nativeEventPayloads_;
 +}
@@ -2002,15 +2002,15 @@ index 0d1910b442b67da7453506410363d7fad28c22e9..6514ae38758379bd7d39c97424ce8cc4
 @@ -64,6 +65,7 @@ class UIManagerBinding : public jsi::HostObject {
     */
    jsi::Value get(jsi::Runtime &runtime, const jsi::PropNameID &name) override;
-
+ 
 +  NativeEventPayloads &getNativeEventPayloads();
    UIManager &getUIManager();
    PointerEventsProcessor &getPointerEventsProcessor();
-
+ 
 @@ -80,6 +82,7 @@ class UIManagerBinding : public jsi::HostObject {
        const EventPayload &payload,
        HighResTimeStamp eventTimestamp) const;
-
+ 
 +  mutable NativeEventPayloads nativeEventPayloads_;
    std::shared_ptr<UIManager> uiManager_;
    std::unique_ptr<jsi::Function> eventHandler_;
