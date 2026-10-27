@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Panel filter interpolation reference</title>
+    <link rel="stylesheet" href="/panel.css" />
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 20px;
+      }
+      .sample {
+        position: relative;
+        top: auto;
+        height: 16px;
+        width: 160px;
+        color: rgb(32, 64, 128);
+      }
+      pre {
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Panel filter interpolation reference</h1>
+    <p>Browser parameter sampling with the unchanged canonical Panel stylesheet. This is not native pixel evidence.</p>
+    <div id="samples"></div>
+    <pre id="results">Waiting for stylesheet.</pre>
+    <script type="module">
+      const cases = [
+        ["prefix", "brightness(50%) blur(4px)", "brightness(150%) blur(12px) opacity(25%)"],
+        [
+          "none",
+          "none",
+          "brightness(.4) contrast(2) grayscale(.8) hue-rotate(180deg) invert(.6) opacity(.2) saturate(2) sepia(.9) blur(10px)",
+        ],
+        ["removal", "blur(10px)", "none"],
+        ["long-angle", "hue-rotate(400deg)", "hue-rotate(20deg)"],
+        ["radians", "hue-rotate(1rad)", "hue-rotate(-1rad)"],
+        ["grayscale-clamp", "grayscale(200%)", "grayscale(0%)"],
+        ["opacity-clamp", "opacity(200%)", "opacity(0%)"],
+        ["invert-clamp", "invert(200%)", "invert(0%)"],
+        ["sepia-clamp", "sepia(200%)", "sepia(0%)"],
+        [
+          "shadow-colors",
+          "drop-shadow(2px 4px 6px rgba(255, 0, 0, .5))",
+          "drop-shadow(10px -8px 2px rgba(0, 0, 255, .25))",
+        ],
+        ["shadow-default-color", "drop-shadow(2px 4px)", "drop-shadow(6px 8px 2px)"],
+        ["shadow-addition", "none", "drop-shadow(8px -4px 6px rgba(64, 128, 192, .6))"],
+        ["shadow-removal", "drop-shadow(8px -4px 6px rgba(64, 128, 192, .6))", "none"],
+        ["repeat", "blur(2px) blur(6px)", "blur(4px) blur(10px)"],
+        ["mismatch", "brightness(.5) blur(4px)", "blur(8px) brightness(1.5)"],
+        ["empty-brightness", "brightness()", "brightness(2)"],
+        ["empty-opacity", "opacity()", "opacity(.4)"],
+      ]
+      const results = cases.map(([id, from, to]) => {
+        const element = document.createElement("div")
+        element.className = "panel sample"
+        element.textContent = id
+        document.getElementById("samples").append(element)
+        const style = getComputedStyle(element)
+        const duration = Number.parseFloat(style.transitionDuration) * 1000
+        const easing = style.transitionTimingFunction
+        const animation = element.animate([{ filter: from }, { filter: to }], { duration, easing, fill: "both" })
+        animation.pause()
+        const values = [0, 0.25, 0.5, 0.75, 1].map((progress) => {
+          animation.currentTime = duration * progress
+          return getComputedStyle(element).filter
+        })
+        return { id, from, to, duration, easing, values }
+      })
+      const source = await fetch("/source.json").then((response) => response.json())
+      const result = { source, userAgent: navigator.userAgent, results }
+      document.getElementById("results").textContent = JSON.stringify(result, null, 2)
+      const saved = await fetch("/result", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(result),
+      })
+      document.body.dataset.receipt = String(saved.status)
+    </script>
+  </body>
+</html>

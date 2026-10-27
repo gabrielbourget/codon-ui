@@ -6,6 +6,7 @@ import { resolveNativeStyle, validateNativeColor } from "../colors"
 import { validateNativeDisplayDimension } from "../displayDimensions"
 
 import { resolvePanelBoxShadow } from "./appearanceValues"
+import { resolvePanelFilters } from "./filters"
 import { AVAILABLE_PANEL_POSITIONS, type TNativePanelProps } from "./types"
 
 const TEXT_FIELDS = [
@@ -122,6 +123,7 @@ export const getNativePanelStyles = (props: TNativePanelProps, theme: TNativeThe
     text.textShadowColor = foreground
   if (view.boxShadow !== undefined)
     view.boxShadow = resolvePanelBoxShadow(view.boxShadow, foreground) as ViewStyle["boxShadow"]
+  if (view.filter !== undefined) view.filter = resolvePanelFilters(view.filter, foreground) as ViewStyle["filter"]
   const overlay = resolveNativeStyle(
     [{ backgroundColor: theme.colors.overlayBackdrop }, props.customOverlayStyles],
     "Panel",

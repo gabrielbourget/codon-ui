@@ -2,6 +2,8 @@ import { processColor, type BoxShadowValue, type ColorValue, type TextStyle } fr
 
 import { mixNativeSRGBColors } from "../colors"
 
+import { createPanelFilterMixer } from "./filters"
+
 type TMixer = (progress: number) => unknown
 export type TPanelAppearanceBounds = Readonly<{ width: number; height: number }>
 
@@ -187,6 +189,7 @@ export const getPanelAppearanceDefault = (
   if (field === "fontWeight") return textDefaults.fontWeight ?? "normal"
   if (field === "fontSize" || field === "lineHeight") return textDefaults[field]
   if (field === "boxShadow") return undefined
+  if (field === "filter") return []
   if (field === "shadowOffset" || field === "textShadowOffset") return { width: 0, height: 0 }
   if (field.endsWith("Color") || field === "color") {
     if (field === "shadowColor") return "black"
@@ -214,6 +217,7 @@ export const createPanelAppearanceMixer = (
 ): TMixer | undefined => {
   if (field.endsWith("Color") || field === "color") return colorMixer(from, to)
   if (field === "boxShadow") return boxShadowMixer(from, to, foreground)
+  if (field === "filter") return createPanelFilterMixer(from, to, foreground as ColorValue)
   if (field === "shadowOffset" || field === "textShadowOffset") {
     const first = from as { width?: unknown; height?: unknown } | undefined
     const last = to as { width?: unknown; height?: unknown } | undefined
