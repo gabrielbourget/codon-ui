@@ -16,7 +16,8 @@ Pod::Spec.new do |s|
   s.platforms = { :ios => min_ios_version_supported }
   s.source = { :git => "https://github.com/gabrielbourget/codon-ui.git", :tag => s.version.to_s }
   s.source_files = "ios/**/*.{h,mm,swift}", "cpp/**/*.{h,cpp}"
-  s.private_header_files = "ios/**/*.h", "cpp/**/*.h"
+  s.public_header_files = "ios/CUIBackdropCaptureSource.h"
+  s.private_header_files = Dir.glob(File.join(__dir__, "{ios,cpp}/**/*.h")).map { |path| path.delete_prefix("#{__dir__}/") }.reject { |path| path == "ios/CUIBackdropCaptureSource.h" }
   s.frameworks = "Accessibility"
   s.pod_target_xcconfig = { "HEADER_SEARCH_PATHS" => "$(inherited) #{cui_state_peer_headers.join(' ')}" }
   install_modules_dependencies(s)

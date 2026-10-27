@@ -9,6 +9,7 @@ const setup = () => {
   const frames = new Map<number, () => void>()
   let next = 0
   let capture: ((response: Record<string, unknown>) => void) | undefined
+  let rejectCapture: ((error: Error) => void) | undefined
   let live = true
   const calls: Record<string, unknown>[] = []
   const failed = jest.fn()
@@ -16,8 +17,9 @@ const setup = () => {
     const command = JSON.parse(encoded) as Record<string, unknown>
     calls.push(command)
     if (command.action === "capture")
-      return new Promise<string>((resolve) => {
+      return new Promise<string>((resolve, reject) => {
         capture = (response) => resolve(JSON.stringify({ ...command, staged: true, ...response }))
+        rejectCapture = reject
       })
     return Promise.resolve(JSON.stringify({ ...command, published: true }))
   })
@@ -56,6 +58,10 @@ const setup = () => {
       capture?.(response)
       await flush()
     },
+    reject: async () => {
+      rejectCapture?.(new Error("Capture source rejected its incomplete frame"))
+      await flush()
+    },
     tick: () => {
       const entry = frames.entries().next().value
       if (!entry) throw new Error("No scheduled backdrop frame")
@@ -91,6 +97,32 @@ it("captures one frame at a time and publishes only the exact staged native fram
   await f.complete()
   expect(f.calls.at(-1)).toMatchObject({ action: "publish", frameId: "effect:2", generation: 1 })
   expect(f.failed).not.toHaveBeenCalled()
+  f.renderer.close()
+})
+
+it("surfaces the first capture-source failure and stops requesting frames", async () => {
+  const f = setup()
+  f.renderer.update(f.owner)
+  f.tick()
+  await f.reject()
+  expect(f.failed).toHaveBeenCalledTimes(1)
+  expect(f.failed).toHaveBeenCalledWith(
+    expect.objectContaining({ message: "Capture source rejected its incomplete frame" }),
+  )
+  f.renderer.update({ ...f.owner })
+  expect(f.frames.size).toBe(0)
+  expect(f.calls.map((call) => call.action)).toEqual(["capture"])
+  f.renderer.close()
+})
+
+it.each(["pause", "close"] as const)("ignores a late capture-source rejection after %s", async (action) => {
+  const f = setup()
+  f.renderer.update(f.owner)
+  f.tick()
+  f.renderer[action]()
+  await f.reject()
+  expect(f.failed).not.toHaveBeenCalled()
+  expect(f.frames.size).toBe(0)
   f.renderer.close()
 })
 

@@ -1,4 +1,5 @@
 #import "CUIBackdropRenderer.h"
+#import "CUIBackdropCaptureSource+Internal.h"
 #import "CUIKeyboardScope.h"
 #import <React/RCTAssert.h>
 #import <UIKit/UIKit.h>
@@ -29,6 +30,12 @@
 @property (nonatomic) BOOL busy;
 @property (nonatomic) NSInteger sourceTag;
 @property (nonatomic) NSInteger receiverTag;
+@property (nonatomic, weak) CUIBackdropCaptureRegistration *registration;
+@property (nonatomic, strong) id registrationObserver;
+@property (nonatomic, strong) CUIBackdropCaptureRequest *captureRequest;
+@property (nonatomic, strong) id<CUIBackdropCaptureCancellation> captureTask;
+@property (nonatomic, copy) dispatch_block_t cancelCapture;
+@property (nonatomic) BOOL cooperative;
 @end
 @implementation CUIBackdropFrame
 @end
@@ -71,6 +78,10 @@ static codon::backdrop::TQuad CUIBackdropNativeQuad(NSArray<NSNumber *> *values)
   return result;
 }
 static BOOL CUIBackdropAttached(CUIBackdropFrame *frame) {
+  CUIBackdropCaptureRegistration *registered = frame.source ?
+      [CUIBackdropCaptureRegistry registrationForTarget:frame.source] : nil;
+  if (frame.cooperative ? !registered || registered != frame.registration || !registered.active : registered != nil)
+    return NO;
   return frame->current && frame->current->load() && frame.source && frame.receiver &&
       frame.source.tag == frame.sourceTag && frame.receiver.tag == frame.receiverTag &&
       frame.source.window == frame.sourceWindow && frame.receiver.window == frame.receiverWindow &&
@@ -93,6 +104,10 @@ static void CUIBackdropCheckLayers(CALayer *layer) {
 }
 static void CUIBackdropRetire(CUIBackdropFrame *frame, BOOL clear) {
   if (frame->current) frame->current->store(false);
+  [frame.captureRequest cancel];
+  id<CUIBackdropCaptureCancellation> task = frame.captureTask; frame.captureTask = nil;
+  @try { [task cancel]; } @catch (NSException *ignored) { /* Retirement still settles the owned promise. */ }
+  if (frame.cancelCapture) frame.cancelCapture();
   frame.staged = nil;
   if (clear) { [frame.output removeFromSuperlayer]; frame.output = nil; }
 }
@@ -210,9 +225,10 @@ static void CUIBackdropRetire(CUIBackdropFrame *frame, BOOL clear) {
     if (!source.window || !receiver.window || UIApplication.sharedApplication.applicationState != UIApplicationStateActive) {
       retire(); return;
     }
-    CUIBackdropRequire(source.window.screen == receiver.window.screen &&
-        source != receiver && ![receiver isDescendantOfView:source],
-        @"Native backdrop: source/effect exclusion is not established");
+    CUIBackdropCaptureRegistration *registration = [CUIBackdropCaptureRegistry registrationForTarget:source];
+    CUIBackdropRequire(source.window.screen == receiver.window.screen && source != receiver &&
+        (registration || ![receiver isDescendantOfView:source]),
+        @"Native backdrop: source/effect exclusion requires a complete capture source");
     CUIBackdropRequire(source.bounds.size.width > 0 && source.bounds.size.height > 0 &&
         receiver.bounds.size.width > 0 && receiver.bounds.size.height > 0,
         @"Native backdrop: empty capture bounds");
@@ -239,16 +255,9 @@ static void CUIBackdropRetire(CUIBackdropFrame *frame, BOOL clear) {
     frame.sourceQuad = CUIBackdropQuad(source); frame.receiverQuad = CUIBackdropQuad(receiver);
     frame.frameId = request[@"frameId"]; frame.generation = request[@"generation"];
     frame.staged = nil;
-    CUIBackdropCheckLayers(source.layer);
+    if (frame.registrationObserver) [frame.registration removeRetirementObserver:frame.registrationObserver];
+    frame.registrationObserver = nil; frame.registration = registration; frame.cooperative = registration != nil;
     const CGFloat scale = receiver.window.screen.scale;
-    UIGraphicsImageRendererFormat *format = [UIGraphicsImageRendererFormat preferredFormat];
-    format.scale = scale; format.opaque = NO; format.preferredRange = UIGraphicsImageRendererFormatRangeStandard;
-    UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:source.bounds.size format:format];
-    __block BOOL complete = NO;
-    UIImage *captured = [renderer imageWithActions:^(UIGraphicsImageRendererContext *context) {
-      complete = [source drawViewHierarchyInRect:(CGRect){CGPointZero, source.bounds.size} afterScreenUpdates:NO];
-    }];
-    CUIBackdropRequire(complete && captured.CGImage, @"Native backdrop: UIKit capture is incomplete");
     auto token = frame->current;
     const double sigma = [request[@"radius"] doubleValue] * scale;
     const auto sourceQuad = CUIBackdropNativeQuad(frame.sourceQuad), receiverQuad = CUIBackdropNativeQuad(frame.receiverQuad);
@@ -258,47 +267,116 @@ static void CUIBackdropRetire(CUIBackdropFrame *frame, BOOL clear) {
         @"Native backdrop: unaddressable receiver raster");
     const size_t outputWidth = static_cast<size_t>(physicalWidth), outputHeight = static_cast<size_t>(physicalHeight);
     frame.busy = YES;
-    dispatch_async(_worker, ^{
-      @autoreleasepool {
-        UIImage *filtered;
-        NSString *failure;
-        try {
-          const size_t width = CGImageGetWidth(captured.CGImage), height = CGImageGetHeight(captured.CGImage);
-          if (!width || !height || width > std::numeric_limits<size_t>::max()/4/height)
-            throw std::length_error("Native backdrop: unaddressable source raster");
-          std::vector<uint8_t> pixels(width * height * 4);
-          CGColorSpaceRef color = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
-          CGContextRef bitmap = CGBitmapContextCreate(pixels.data(), width, height, 8, width * 4, color,
-              kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
-          CGColorSpaceRelease(color);
-          if (!bitmap) throw std::runtime_error("Native backdrop: sRGB bitmap unavailable");
-          CGContextDrawImage(bitmap, CGRectMake(0, 0, width, height), captured.CGImage);
-          CGContextRelease(bitmap);
-          auto output = codon::backdrop::projectedBlur(pixels.data(), width, height, sourceQuad,
-              outputWidth, outputHeight, receiverQuad, sigma, [token] { return token->load(); });
-          NSData *data = [NSData dataWithBytes:output.data() length:output.size()];
-          CGDataProviderRef provider = CGDataProviderCreateWithCFData((__bridge CFDataRef)data);
-          color = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
-          CGImageRef image = CGImageCreate(outputWidth, outputHeight, 8, 32, outputWidth * 4, color,
-              kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big, provider, nullptr, false, kCGRenderingIntentDefault);
-          CGColorSpaceRelease(color); CGDataProviderRelease(provider);
-          if (!image) throw std::runtime_error("Native backdrop: output image unavailable");
-          filtered = [UIImage imageWithCGImage:image scale:scale orientation:UIImageOrientationUp];
-          CGImageRelease(image);
-        } catch (const std::exception &error) { failure = [NSString stringWithUTF8String:error.what()]; }
-        dispatch_async(dispatch_get_main_queue(), ^{
-          frame.busy = NO;
-          if (failure && token->load()) { reject(@"E_CUI_BACKDROP", failure, nil); return; }
-          @try {
-            const BOOL staged = !_retired && _frames[owner] == frame && token->load() && CUIBackdropGeometry(frame);
-            if (staged) frame.staged = filtered;
-            response[@"frameId"] = request[@"frameId"]; response[@"generation"] = request[@"generation"];
-            response[@"staged"] = @(staged); response[@"superseded"] = @(!staged);
-            reply(response);
-          } @catch (NSException *error) { reject(@"E_CUI_BACKDROP", error.reason, nil); }
-        });
-      }
-    });
+    __weak CUIBackdropFrame *weakFrame = frame;
+    __weak CUIBackdropRenderer *weakSelf = self;
+    __block BOOL settled = NO;
+    const auto finish = ^(UIImage *filtered, NSString *failure) {
+      CUIBackdropFrame *capturedFrame = weakFrame;
+      if (settled || !capturedFrame || capturedFrame->current != token) return;
+      settled = YES; capturedFrame.busy = NO;
+      capturedFrame.captureTask = nil; capturedFrame.captureRequest = nil; capturedFrame.cancelCapture = nil;
+      if (failure && token->load()) { reject(@"E_CUI_BACKDROP", failure, nil); return; }
+      @try {
+        CUIBackdropRenderer *ownerRenderer = weakSelf;
+        const BOOL staged = ownerRenderer && !ownerRenderer->_retired && ownerRenderer->_frames[owner] == capturedFrame &&
+            token->load() && CUIBackdropGeometry(capturedFrame) && filtered;
+        if (staged) capturedFrame.staged = filtered;
+        response[@"frameId"] = request[@"frameId"]; response[@"generation"] = request[@"generation"];
+        response[@"staged"] = @(staged); response[@"superseded"] = @(!staged); reply(response);
+      } @catch (NSException *error) { reject(@"E_CUI_BACKDROP", error.reason, nil); }
+    };
+    frame.cancelCapture = ^{ finish(nil, nil); };
+    dispatch_queue_t worker = _worker;
+    const auto process = ^(UIImage *captured, CUIBackdropCapturedFrame *provided) {
+      dispatch_async(worker, ^{
+        @autoreleasepool {
+          UIImage *filtered;
+          NSString *failure;
+          try {
+            const size_t width = provided ? provided.width : CGImageGetWidth(captured.CGImage);
+            const size_t height = provided ? provided.height : CGImageGetHeight(captured.CGImage);
+            if (!width || !height || width > std::numeric_limits<size_t>::max()/4/height)
+              throw std::length_error("Native backdrop: unaddressable source raster");
+            std::vector<uint8_t> pixels(width * height * 4);
+            if (provided) {
+              memcpy(pixels.data(), provided.rgba.bytes, pixels.size());
+              for (size_t index = 0; index < pixels.size(); index += 4) {
+                if (!token->load()) throw std::runtime_error("Native backdrop: frame retired");
+                if (pixels[index] > pixels[index+3] || pixels[index+1] > pixels[index+3] || pixels[index+2] > pixels[index+3])
+                  throw std::runtime_error("Native backdrop: capture source pixels are not premultiplied sRGB RGBA");
+              }
+            } else {
+              CGColorSpaceRef color = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
+              CGContextRef bitmap = CGBitmapContextCreate(pixels.data(), width, height, 8, width * 4, color,
+                  kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
+              CGColorSpaceRelease(color);
+              if (!bitmap) throw std::runtime_error("Native backdrop: sRGB bitmap unavailable");
+              CGContextDrawImage(bitmap, CGRectMake(0, 0, width, height), captured.CGImage);
+              CGContextRelease(bitmap);
+            }
+            auto output = codon::backdrop::projectedBlur(pixels.data(), width, height, sourceQuad,
+                outputWidth, outputHeight, receiverQuad, sigma, [token] { return token->load(); });
+            NSData *data = [NSData dataWithBytes:output.data() length:output.size()];
+            CGDataProviderRef provider = CGDataProviderCreateWithCFData((__bridge CFDataRef)data);
+            CGColorSpaceRef color = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
+            CGImageRef image = CGImageCreate(outputWidth, outputHeight, 8, 32, outputWidth * 4, color,
+                kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big, provider, nullptr, false, kCGRenderingIntentDefault);
+            CGColorSpaceRelease(color); CGDataProviderRelease(provider);
+            if (!image) throw std::runtime_error("Native backdrop: output image unavailable");
+            filtered = [UIImage imageWithCGImage:image scale:scale orientation:UIImageOrientationUp];
+            CGImageRelease(image);
+          } catch (const std::exception &error) { failure = [NSString stringWithUTF8String:error.what()]; }
+          dispatch_async(dispatch_get_main_queue(), ^{ finish(filtered, failure); });
+        }
+      });
+    };
+    if (registration) {
+      CUIBackdropCaptureRequest *captureRequest = [[CUIBackdropCaptureRequest alloc] initWithTarget:source receiver:receiver
+          targetEpoch:frame.sourceSession receiverEpoch:frame.receiverSession ownerId:owner frameId:frame.frameId
+          generation:frame.generation targetScreenQuad:frame.sourceQuad receiverScreenQuad:frame.receiverQuad];
+      frame.captureRequest = captureRequest;
+      frame.registrationObserver = [registration observeRetirement:^{
+        CUIBackdropFrame *value = weakFrame; if (value) CUIBackdropRetire(value, YES);
+      }];
+      auto delivered = std::make_shared<std::atomic<bool>>(false);
+      @try {
+        id<CUIBackdropCaptureCancellation> task = [[registration source] captureBackdrop:captureRequest
+            completion:^(CUIBackdropCapturedFrame *result, NSError *error) {
+          if (delivered->exchange(true)) return;
+          dispatch_async(dispatch_get_main_queue(), ^{
+            CUIBackdropFrame *value = weakFrame;
+            if (!value || settled || value->current != token) return;
+            if (!CUIBackdropGeometry(value)) { CUIBackdropRetire(value, YES); return; }
+            @try {
+              CUIBackdropRequire(!error, error.localizedDescription ?: @"Native backdrop: capture source failed");
+              CUIBackdropRequire(result && result.request == captureRequest && !captureRequest.cancelled,
+                  @"Native backdrop: capture source returned a different or cancelled request");
+              CUIBackdropRequire(result.complete && result.excludesEffect && !result.protectedContent,
+                  @"Native backdrop: capture source frame is incomplete, protected or contains its effect");
+              CUIBackdropRequire(result.width == std::ceil(captureRequest.targetBounds.size.width*scale) &&
+                  result.height == std::ceil(captureRequest.targetBounds.size.height*scale),
+                  @"Native backdrop: capture source raster does not match target bounds");
+              process(nil, result);
+            } @catch (NSException *error) { finish(nil, error.reason); }
+          });
+        }];
+        CUIBackdropRequire(task != nil, @"Native backdrop: capture source must return cancellation ownership");
+        if (token->load()) frame.captureTask = task; else [task cancel];
+      } @catch (NSException *error) { finish(nil, error.reason); }
+      return;
+    }
+    @try {
+      CUIBackdropCheckLayers(source.layer);
+      UIGraphicsImageRendererFormat *format = [UIGraphicsImageRendererFormat preferredFormat];
+      format.scale = scale; format.opaque = NO; format.preferredRange = UIGraphicsImageRendererFormatRangeStandard;
+      UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:source.bounds.size format:format];
+      __block BOOL complete = NO;
+      UIImage *captured = [renderer imageWithActions:^(UIGraphicsImageRendererContext *context) {
+        complete = [source drawViewHierarchyInRect:(CGRect){CGPointZero, source.bounds.size} afterScreenUpdates:NO];
+      }];
+      CUIBackdropRequire(complete && captured.CGImage, @"Native backdrop: UIKit capture is incomplete");
+      process(captured, nil);
+    } @catch (NSException *error) { finish(nil, error.reason); }
   } @catch (NSException *error) { reject(@"E_CUI_BACKDROP", error.reason, nil); }
 }
 @end

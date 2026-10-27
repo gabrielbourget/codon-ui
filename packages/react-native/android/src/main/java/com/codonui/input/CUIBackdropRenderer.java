@@ -61,12 +61,22 @@ final class CUIBackdropRenderer implements LifecycleEventListener {
     Promise pending;
     ImageReader reader;
     Runnable cancelCapture;
+    WeakReference<CUIBackdropCaptureRegistration> registration;
+    Runnable stopRegistration;
+    CUIBackdropCaptureSource.Request captureRequest;
+    CUIBackdropCaptureSource.Cancellation captureTask;
+    boolean cooperative;
     boolean busy;
     ViewTreeObserver tree;
 
     void cancel(boolean clear) {
       boolean wasCurrent = current.getAndSet(false);
       staged = null;
+      if (captureRequest != null) captureRequest.cancel();
+      CUIBackdropCaptureSource.Cancellation task = captureTask; captureTask = null;
+      if (wasCurrent && task != null) {
+        try { task.cancel(); } catch (Exception ignored) { /* Retirement must still settle the owned promise. */ }
+      }
       if (wasCurrent && cancelCapture != null) cancelCapture.run();
       if (clear && output != null) {
         View view = receiver.get();
@@ -81,6 +91,8 @@ final class CUIBackdropRenderer implements LifecycleEventListener {
       if (tree != null && tree.isAlive()) tree.removeOnPreDrawListener(this);
       tree = null;
       cancel(true);
+      if (stopRegistration != null) stopRegistration.run();
+      stopRegistration = null;
     }
     @Override public void onViewAttachedToWindow(View view) {}
     @Override public void onViewDetachedFromWindow(View view) { cancel(true); }
@@ -168,6 +180,9 @@ final class CUIBackdropRenderer implements LifecycleEventListener {
   }
   private boolean attached(Frame frame) {
     View source = frame.source.get(), receiver = frame.receiver.get();
+    CUIBackdropCaptureRegistration registered = source == null ? null : CUIBackdropCaptureRegistry.find(source);
+    if (frame.cooperative ? registered == null || frame.registration.get() != registered || !registered.isActive()
+        : registered != null) return false;
     return !retired && active && frame.current.get() && source != null && receiver != null &&
         source.getId() == frame.sourceTag && receiver.getId() == frame.receiverTag &&
         source.isAttachedToWindow() && receiver.isAttachedToWindow() && receiver.hasWindowFocus() &&
@@ -189,6 +204,8 @@ final class CUIBackdropRenderer implements LifecycleEventListener {
     frame.busy = false;
     frame.reader = null;
     frame.cancelCapture = null;
+    frame.captureRequest = null;
+    frame.captureTask = null;
     Promise promise = frame.pending; frame.pending = null;
     try {
       if (failure != null && frame.current.get()) { promise.reject("E_CUI_BACKDROP", failure); return; }
@@ -197,6 +214,41 @@ final class CUIBackdropRenderer implements LifecycleEventListener {
       reply(promise, new JSONObject().put("ownerId", owner).put("frameId", frame.frameId)
           .put("generation", frame.generation).put("staged", staged).put("superseded", !staged));
     } catch (Exception error) { promise.reject("E_CUI_BACKDROP", error); }
+  }
+  private void acceptProvided(String owner, Frame captured, AtomicBoolean token,
+      CUIBackdropCaptureSource.Request request, CUIBackdropCaptureSource.Frame result, Exception failure, double sigma) {
+    if (captured.current != token || captured.settled.get()) return;
+    if (!geometry(captured)) { captured.cancel(true); return; }
+    if (failure != null) { finish(owner, captured, token, null, failure); return; }
+    if (result == null) { finish(owner, captured, token, null,
+        new IllegalStateException("Native backdrop: capture source returned no frame")); return; }
+    final int inputWidth = captured.sourceWidth, inputHeight = captured.sourceHeight;
+    final int outputWidth = captured.width, outputHeight = captured.height;
+    final double[] sourceQuad = nativeQuad(captured.sourceQuad), receiverQuad = nativeQuad(captured.receiverQuad);
+    worker.post(() -> {
+      Bitmap output = null; Exception error = null;
+      try {
+        output = filter(result.validatedRGBA(request), inputWidth, inputHeight, sourceQuad,
+            outputWidth, outputHeight, receiverQuad, sigma, token);
+      } catch (Exception problem) { error = problem; }
+      Bitmap image = output; Exception problem = error;
+      main.post(() -> finish(owner, captured, token, image, problem));
+    });
+  }
+  private static Bitmap filter(byte[] rgba, int inputWidth, int inputHeight, double[] sourceQuad,
+      int outputWidth, int outputHeight, double[] receiverQuad, double sigma, AtomicBoolean token) {
+    byte[] pixels = nativeBlur(rgba, inputWidth, inputHeight, sourceQuad, outputWidth, outputHeight,
+        receiverQuad, sigma, token);
+    int[] colors = new int[Math.multiplyExact(outputWidth, outputHeight)];
+    for (int index = 0; index < colors.length; index++) {
+      int offset = index * 4, alpha = pixels[offset + 3] & 255;
+      int red = alpha == 0 ? 0 : Math.min(255, ((pixels[offset] & 255) * 255 + alpha / 2) / alpha);
+      int green = alpha == 0 ? 0 : Math.min(255, ((pixels[offset + 1] & 255) * 255 + alpha / 2) / alpha);
+      int blue = alpha == 0 ? 0 : Math.min(255, ((pixels[offset + 2] & 255) * 255 + alpha / 2) / alpha);
+      colors[index] = Color.argb(alpha, red, green, blue);
+    }
+    require(token.get(), "frame retired");
+    return Bitmap.createBitmap(colors, outputWidth, outputHeight, Bitmap.Config.ARGB_8888);
   }
   void request(String encoded, Promise promise) {
     UiThreadUtil.assertOnUiThread();
@@ -256,7 +308,9 @@ final class CUIBackdropRenderer implements LifecycleEventListener {
         reply(promise, response.put("frameId", frameId).put("generation", request.get("generation"))
             .put("retired", true).put("staged", false)); return;
       }
-      require(source != receiver && !descendant(receiver, source), "source/effect exclusion is not established");
+      CUIBackdropCaptureRegistration registration = CUIBackdropCaptureRegistry.find(source);
+      require(source != receiver && (registration != null || !descendant(receiver, source)),
+          "source/effect exclusion requires a complete capture source");
       require(source.getDisplay() != null && receiver.getDisplay() != null &&
           source.getDisplay().getDisplayId() == receiver.getDisplay().getDisplayId(), "display changed");
       require(source.getWidth() > 0 && source.getHeight() > 0 && receiver.getWidth() > 0 && receiver.getHeight() > 0,
@@ -288,7 +342,11 @@ final class CUIBackdropRenderer implements LifecycleEventListener {
       frame.width = receiver.getWidth(); frame.height = receiver.getHeight();
       frame.sourceQuad = screenQuad(source); frame.receiverQuad = screenQuad(receiver);
       frame.frameId = frameId; frame.generation = request.getDouble("generation"); frame.staged = null;
-      checkSurfaces(source);
+      if (frame.stopRegistration != null) frame.stopRegistration.run();
+      frame.stopRegistration = null;
+      frame.cooperative = registration != null;
+      frame.registration = new WeakReference<>(registration);
+      if (registration == null) checkSurfaces(source);
       Frame captured = frame;
       AtomicBoolean token = captured.current;
       final int inputWidth = frame.sourceWidth, inputHeight = frame.sourceHeight;
@@ -296,6 +354,32 @@ final class CUIBackdropRenderer implements LifecycleEventListener {
       final double[] sourceQuad = nativeQuad(frame.sourceQuad), receiverQuad = nativeQuad(frame.receiverQuad);
       double sigma = request.getDouble("radius") * receiver.getResources().getDisplayMetrics().density;
       captured.pending = promise; captured.busy = true;
+      if (registration != null) {
+        CUIBackdropCaptureSource.Request captureRequest = new CUIBackdropCaptureSource.Request(source, receiver,
+            frame.sourceSession, frame.receiverSession, owner, frameId, frame.generation, frame.sourceQuad, frame.receiverQuad);
+        captured.captureRequest = captureRequest;
+        captured.cancelCapture = () -> finish(owner, captured, token, null, null);
+        WeakReference<Frame> weakFrame = new WeakReference<>(captured);
+        captured.stopRegistration = registration.onRetire(() -> {
+          Frame value = weakFrame.get(); if (value != null) value.cancel(true);
+        });
+        AtomicBoolean delivered = new AtomicBoolean();
+        WeakReference<CUIBackdropRenderer> weakRenderer = new WeakReference<>(this);
+        try {
+          CUIBackdropCaptureSource.Cancellation task = registration.source().capture(captureRequest, (result, failure) -> {
+            if (!delivered.compareAndSet(false, true)) return;
+            CUIBackdropRenderer driver = weakRenderer.get();
+            if (driver == null) return;
+            driver.main.post(() -> {
+              Frame value = weakFrame.get();
+              if (value != null) driver.acceptProvided(owner, value, token, captureRequest, result, failure, sigma);
+            });
+          });
+          require(task != null, "capture source must return cancellation ownership");
+          if (token.get()) captured.captureTask = task; else task.cancel();
+        } catch (Exception error) { finish(owner, captured, token, null, error); }
+        return;
+      }
       // API19 ImageReader plus API23 hardware Canvas cover the existing API24 minimum.
       ImageReader reader = ImageReader.newInstance(inputWidth, inputHeight, PixelFormat.RGBA_8888, 2);
       captured.reader = reader;
@@ -319,18 +403,7 @@ final class CUIBackdropRenderer implements LifecycleEventListener {
             require(token.get(), "frame retired");
             buffer.position(y * plane.getRowStride()); buffer.get(rgba, y * inputWidth * 4, inputWidth * 4);
           }
-          byte[] pixels = nativeBlur(rgba, inputWidth, inputHeight, sourceQuad, outputWidth, outputHeight,
-              receiverQuad, sigma, token);
-          int[] colors = new int[Math.multiplyExact(outputWidth, outputHeight)];
-          for (int index = 0; index < colors.length; index++) {
-            int offset = index * 4, alpha = pixels[offset + 3] & 255;
-            int red = alpha == 0 ? 0 : Math.min(255, ((pixels[offset] & 255) * 255 + alpha / 2) / alpha);
-            int green = alpha == 0 ? 0 : Math.min(255, ((pixels[offset + 1] & 255) * 255 + alpha / 2) / alpha);
-            int blue = alpha == 0 ? 0 : Math.min(255, ((pixels[offset + 2] & 255) * 255 + alpha / 2) / alpha);
-            colors[index] = Color.argb(alpha, red, green, blue);
-          }
-          require(token.get(), "frame retired");
-          filtered = Bitmap.createBitmap(colors, outputWidth, outputHeight, Bitmap.Config.ARGB_8888);
+          filtered = filter(rgba, inputWidth, inputHeight, sourceQuad, outputWidth, outputHeight, receiverQuad, sigma, token);
         } catch (Exception error) { failure = error; }
         finally { closeReader.run(); }
         Bitmap output = filtered; Exception error = failure;
