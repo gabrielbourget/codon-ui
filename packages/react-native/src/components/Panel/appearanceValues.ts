@@ -5,7 +5,12 @@ import { mixNativeSRGBColors } from "../colors"
 import { createPanelFilterMixer } from "./filters"
 
 type TMixer = (progress: number) => unknown
-export type TPanelAppearanceBounds = Readonly<{ width: number; height: number }>
+export type TPanelAppearanceBounds = Readonly<{
+  width: number
+  height: number
+  content?: Readonly<{ width: number; height: number }> | null
+}>
+const GAP_FIELDS = new Set(["gap", "rowGap", "columnGap"])
 
 const NUMBER_FIELDS = new Set([
   "opacity",
@@ -15,9 +20,6 @@ const NUMBER_FIELDS = new Set([
   "flexShrink",
   "aspectRatio",
   "zIndex",
-  "gap",
-  "rowGap",
-  "columnGap",
   "borderWidth",
   "borderTopWidth",
   "borderRightWidth",
@@ -190,6 +192,7 @@ export const getPanelAppearanceDefault = (
   if (field === "fontSize" || field === "lineHeight") return textDefaults[field]
   if (field === "boxShadow") return undefined
   if (field === "filter") return []
+  if (GAP_FIELDS.has(field)) return field === "gap" ? 0 : (style.gap ?? 0)
   if (field === "shadowOffset" || field === "textShadowOffset") return { width: 0, height: 0 }
   if (field.endsWith("Color") || field === "color") {
     if (field === "shadowColor") return "black"
@@ -233,6 +236,25 @@ export const createPanelAppearanceMixer = (
     return isNumber(from) && isNumber(to) && Number.isInteger(from) && Number.isInteger(to)
       ? (progress) => Math.round(from + (to - from) * progress) || 0
       : undefined
+  if (GAP_FIELDS.has(field)) {
+    const first = dimension(from)
+    const last = dimension(to)
+    if (!first || !last) return undefined
+    const start = Math.max(0, first.value)
+    const end = Math.max(0, last.value)
+    if (first.percent === last.percent) {
+      const mix = numberMixer(start, end)
+      return first.percent ? (progress) => `${mix(progress)}%` : mix
+    }
+    if (field === "gap") return undefined
+    return (progress) => {
+      const basis = field === "rowGap" ? bounds.content?.height : bounds.content?.width
+      if (basis === undefined) return from
+      return (
+        start * (first.percent ? basis / 100 : 1) * (1 - progress) + end * (last.percent ? basis / 100 : 1) * progress
+      )
+    }
+  }
   if (NUMBER_FIELDS.has(field)) return isNumber(from) && isNumber(to) ? numberMixer(from, to) : undefined
   if (!DIMENSION_FIELDS.has(field) && !RADIUS_FIELDS.test(field)) return undefined
   const first = dimension(from)

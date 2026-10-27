@@ -5,6 +5,7 @@
 @property (nonatomic, copy, readonly) NSString *nativeCollectionBinding;
 - (BOOL)capturesObservedKey:(UIKey *)key;
 - (NSDictionary *)motionSnapshotIdentity;
+- (NSArray<NSNumber *> *)motionContentBox;
 - (NSString *)motionProjectionRevision;
 - (BOOL)menuPointerTriggerEnabled;
 - (NSDictionary *)formActionSnapshot;

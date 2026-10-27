@@ -19,6 +19,13 @@ type TTrack = {
 }
 const DURATION = 350
 const ease = Easing.bezier(0.42, 0, 0.58, 1)
+const gapLonghands = (style: ViewStyle) => ({
+  ...style,
+  rowGap: style.rowGap ?? style.gap,
+  columnGap: style.columnGap ?? style.gap,
+})
+const hasPercentageGap = (style: ViewStyle) =>
+  [style.gap, style.rowGap, style.columnGap].some((value) => typeof value === "string" && value.endsWith("%"))
 
 // Each CSS property keeps its own deadline when another property is retargeted.
 export const useNativePanelAppearance = (
@@ -34,7 +41,7 @@ export const useNativePanelAppearance = (
     target: { view, text },
     tracks: new Map<string, TTrack>(),
     clock,
-    bounds: { width: bounds.width, height: bounds.height },
+    bounds: { ...bounds },
     revision: 0,
     signature: "",
     animation: undefined as Animated.CompositeAnimation | undefined,
@@ -58,16 +65,31 @@ export const useNativePanelAppearance = (
         if (progress === 1) current.tracks.delete(key)
         else Object.assign(result[part], { [field]: track.mix(ease(progress)) })
       }
+      if (
+        current.target.view.rowGap === undefined &&
+        current.target.view.columnGap === undefined &&
+        current.tracks.has("view:rowGap") &&
+        current.tracks.has("view:columnGap") &&
+        result.view.rowGap === result.view.columnGap
+      ) {
+        result.view.gap = result.view.rowGap
+        delete result.view.rowGap
+        delete result.view.columnGap
+      }
       return result
     }
     const now = Date.now()
     const previous = sample(now)
     const target = { view, text }
     for (const part of ["view", "text"] as const) {
-      const before = previous[part] as Record<string, unknown>
-      const after = target[part] as Record<string, unknown>
-      const priorTarget = current.target[part] as Record<string, unknown>
+      const before = (part === "view" ? gapLonghands(previous.view) : previous.text) as Record<string, unknown>
+      const after = (part === "view" ? gapLonghands(target.view) : target.text) as Record<string, unknown>
+      const priorTarget = (part === "view" ? gapLonghands(current.target.view) : current.target.text) as Record<
+        string,
+        unknown
+      >
       for (const field of new Set([...Object.keys(before), ...Object.keys(after)])) {
+        if (part === "view" && field === "gap") continue
         const key = `${part}:${field}`
         if (reduced) {
           current.tracks.delete(key)
@@ -140,5 +162,12 @@ export const useNativePanelAppearance = (
     },
     [],
   )
-  return rendered
+  return {
+    ...rendered,
+    needsContentObservation:
+      hasPercentageGap(view) ||
+      hasPercentageGap(rendered.view) ||
+      owner.current.tracks.has("view:rowGap") ||
+      owner.current.tracks.has("view:columnGap"),
+  }
 }

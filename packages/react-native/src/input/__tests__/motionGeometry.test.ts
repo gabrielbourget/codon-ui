@@ -14,6 +14,21 @@ import { geometryHarness, geometryPacket, geometrySnapshot } from "./motionGeome
 
 afterEach(() => jest.useRealTimers())
 it.each(["android", "ios"] as const)(
+  "retains optional resolved %s content boxes without inferring missing metrics",
+  (platform) => {
+    const original = geometrySnapshot(platform)
+    expect(decodeNativeMotionGeometry(JSON.stringify(original)).contentBox).toBeUndefined()
+    const snapshot = decodeNativeMotionGeometry(JSON.stringify({ ...original, contentBox: [12, 14, 74, 22] }))
+    expect(snapshot.contentBox).toEqual([12, 14, 74, 22])
+    expect(Object.isFrozen(snapshot.contentBox)).toBe(true)
+    for (const contentBox of [[0, 0, -1, 20], [0, 0, 20], "viewport"])
+      expect(() => decodeNativeMotionGeometry(JSON.stringify({ ...original, contentBox }))).toThrow(
+        /partial native geometry/,
+      )
+    expect(decodeNativeMotionGeometry(JSON.stringify({ ...original, contentBox: null })).contentBox).toBeNull()
+  },
+)
+it.each(["android", "ios"] as const)(
   "decodes truthful %s boxes, matrices and presentation availability",
   (platform) => {
     const snapshot = decodeNativeMotionGeometry(JSON.stringify(geometrySnapshot(platform)))

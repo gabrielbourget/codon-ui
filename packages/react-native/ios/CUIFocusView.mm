@@ -553,6 +553,11 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
   [_motionGeometry queryOwner:owner binding:binding requestId:requestId];
 }
 - (NSDictionary *)motionSnapshotIdentity { return [_motionGeometry snapshotIdentity]; }
+- (NSArray<NSNumber *> *)motionContentBox {
+  const auto insets = _layoutMetrics.contentInsets;
+  return @[@(insets.left), @(insets.top), @(MAX(0, self.bounds.size.width - insets.left - insets.right)),
+      @(MAX(0, self.bounds.size.height - insets.top - insets.bottom))];
+}
 - (void)mountingTransactionWillMount:(const MountingTransaction &)transaction withSurfaceTelemetry:(const SurfaceTelemetry &)surfaceTelemetry
 {
   [_motionGeometry captureKind:@"mount-before" requestId:@"" transaction:[NSString stringWithFormat:@"ios-surface:%d:mount:%lld", transaction.getSurfaceId(), (long long)transaction.getNumber()]];

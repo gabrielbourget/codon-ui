@@ -56,6 +56,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   private Boolean nativeMotionVisible = true;
   private int authoredVisibility = View.VISIBLE;
   private String motionProjectionRevision = "";
+  private int contentInsetLeft, contentInsetTop, contentInsetRight, contentInsetBottom;
   private int nativeScrollAnchorTag;
   private String nativeScrollAnchorKey = "";
   private String nativeScrollAnchorRevision = "";
@@ -71,6 +72,16 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
     motionGeometry = new CUIMotionGeometryObserver(this, data -> { CUIFocusView view = geometryRoot.get(); if (view != null) view.emit("topNativeMotionGeometry", data); });
     setFocusable(true);
     setFocusableInTouchMode(true);
+  }
+
+  void setMotionContentInsets(int left, int top, int right, int bottom) {
+    contentInsetLeft = left; contentInsetTop = top; contentInsetRight = right; contentInsetBottom = bottom;
+  }
+  org.json.JSONArray motionContentBox() throws org.json.JSONException {
+    double density = getResources().getDisplayMetrics().density;
+    return new org.json.JSONArray().put(contentInsetLeft / density).put(contentInsetTop / density)
+        .put(Math.max(0, getWidth() - contentInsetLeft - contentInsetRight) / density)
+        .put(Math.max(0, getHeight() - contentInsetTop - contentInsetBottom) / density);
   }
 
   private static java.util.Map<String, Object> jsonMap(org.json.JSONObject value) {

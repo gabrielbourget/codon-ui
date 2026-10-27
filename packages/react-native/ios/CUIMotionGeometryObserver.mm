@@ -96,6 +96,7 @@ static NSDictionary *CUIUntransformed(CALayer *layer, CALayer *window) {
 }
 - (NSDictionary *)snapshot {
   NSMutableDictionary *value = [[CUIMotionGeometryObserver querySnapshotForView:_root] mutableCopy];
+  value[@"contentBox"] = [_root isKindOfClass:CUIFocusView.class] ? [(CUIFocusView *)_root motionContentBox] : (id)NSNull.null;
   value[@"mountObservationAvailable"] = @YES;
   return value;
 }

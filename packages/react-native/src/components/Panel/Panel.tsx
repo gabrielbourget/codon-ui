@@ -1,4 +1,4 @@
-import { forwardRef, useContext, useInsertionEffect, useLayoutEffect, useRef, useState } from "react"
+import { forwardRef, useCallback, useContext, useInsertionEffect, useLayoutEffect, useRef, useState } from "react"
 import { Modal as NativeModal, Pressable, StyleSheet, useWindowDimensions, View } from "react-native"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 
@@ -29,6 +29,12 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
   const window = useWindowDimensions()
   const [viewport, setViewport] = useState<{ width: number; height: number } | null>(null)
   const [width, setWidth] = useState<number | null>(null)
+  const [contentBox, setContentBox] = useState<{ width: number; height: number } | null>(null)
+  const contentMeasured = useCallback((next: { width: number; height: number } | null) => {
+    setContentBox((previous) =>
+      previous?.width === next?.width && previous?.height === next?.height ? previous : next,
+    )
+  }, [])
   const source = useContext(NativeBackdropSourceContext)
   const open = props.isOpen ?? false
   const returnFocus = useNativePanelReturnFocus(open, props.restoreFocusRef)
@@ -51,7 +57,7 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
     styles.view,
     styles.text,
     motion.reduced !== false || !motion.present,
-    viewport ?? window,
+    { ...(viewport ?? window), content: contentBox },
     {
       color: theme.colors.foreground,
       fontSize: theme.typography.fontSizes.b10,
@@ -156,6 +162,8 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
                     isActive={isActive}
                     systemClose={systemClose}
                     keyboardDisabled={props.isKeyboardDismissDisabled ?? false}
+                    observeContentBox={appearance.needsContentObservation}
+                    onContentBox={contentMeasured}
                     initialFocusRef={props.initialFocusRef}
                     testID={identity}
                     collapsable={false}

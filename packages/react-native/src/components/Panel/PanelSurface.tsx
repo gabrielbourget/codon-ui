@@ -1,14 +1,23 @@
-import { forwardRef, useImperativeHandle, useRef, type ComponentProps } from "react"
+import { forwardRef, useImperativeHandle, useLayoutEffect, useRef, type ComponentProps } from "react"
 import { Animated, type View } from "react-native"
 
 import { nativeKeyTokens } from "../../input/keyScope"
+import { observeNativeMotionGeometry } from "../../input/motionGeometry"
 import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeKeyPolicy } from "../../input/NativeKeyboardScope"
 
 import { NativePanelFocusIntentContext, useNativePanelInitialFocus } from "./focus"
 import type { TNativePanelProps } from "./types"
 
-const AnimatedFocusView = Animated.createAnimatedComponent(NativeFocusHost)
+// Animated may replace its callback ref as styles change. Keep the owned host's
+// ref stable so a paint update cannot retire its native geometry observer.
+const PanelFocusHost = forwardRef<View, ComponentProps<typeof NativeFocusHost>>((props, ref) => {
+  const target = useRef<View>(null)
+  useImperativeHandle(ref, () => target.current!)
+  return <NativeFocusHost {...props} ref={target} />
+})
+PanelFocusHost.displayName = "PanelFocusHost"
+const AnimatedFocusView = Animated.createAnimatedComponent(PanelFocusHost)
 const escapeTokens = nativeKeyTokens("Escape")
 export const NativePanelSurface = forwardRef<
   View,
@@ -18,28 +27,61 @@ export const NativePanelSurface = forwardRef<
     isActive: () => boolean
     systemClose: () => void
     keyboardDisabled: boolean
+    observeContentBox: boolean
+    onContentBox: (bounds: { width: number; height: number } | null) => void
     initialFocusRef?: TNativePanelProps["initialFocusRef"]
   }
->(({ open, ready, isActive, systemClose, keyboardDisabled, initialFocusRef, ...props }, ref) => {
-  const root = useRef<View>(null)
-  useImperativeHandle(ref, () => root.current!)
-  useNativePanelInitialFocus(open, ready, isActive, root, initialFocusRef)
-  useNativeKeyPolicy({
-    tokens: escapeTokens,
-    targetTag: 0,
-    excludeEditable: false,
-    excludeComposing: true,
-    isEnabled: open && !keyboardDisabled,
-    lifetimeKey: JSON.stringify([open, keyboardDisabled]),
-    canAct: isActive,
-    onKey: (event) => {
-      if (event.nativeEvent.phase === "down" && !event.nativeEvent.repeat && !event.nativeEvent.cancelled) systemClose()
+>(
+  (
+    {
+      open,
+      ready,
+      isActive,
+      systemClose,
+      keyboardDisabled,
+      observeContentBox,
+      onContentBox,
+      initialFocusRef,
+      ...props
     },
-  })
-  return (
-    <NativePanelFocusIntentContext.Provider value={undefined}>
-      <AnimatedFocusView {...props} nativeTabStop={false} ref={root} />
-    </NativePanelFocusIntentContext.Provider>
-  )
-})
+    ref,
+  ) => {
+    const root = useRef<View>(null)
+    useImperativeHandle(ref, () => root.current!)
+    useLayoutEffect(() => {
+      if (!observeContentBox) {
+        onContentBox(null)
+        return
+      }
+      return observeNativeMotionGeometry(root.current, (record) => {
+        const content = record?.snapshot?.contentBox
+        onContentBox(content ? { width: content[2], height: content[3] } : null)
+      })
+    }, [observeContentBox, onContentBox])
+    useNativePanelInitialFocus(open, ready, isActive, root, initialFocusRef)
+    useNativeKeyPolicy({
+      tokens: escapeTokens,
+      targetTag: 0,
+      excludeEditable: false,
+      excludeComposing: true,
+      isEnabled: open && !keyboardDisabled,
+      lifetimeKey: JSON.stringify([open, keyboardDisabled]),
+      canAct: isActive,
+      onKey: (event) => {
+        if (event.nativeEvent.phase === "down" && !event.nativeEvent.repeat && !event.nativeEvent.cancelled)
+          systemClose()
+      },
+    })
+    return (
+      <NativePanelFocusIntentContext.Provider value={undefined}>
+        <AnimatedFocusView
+          {...props}
+          nativeMotionGeometryObservation={observeContentBox}
+          nativeTabStop={false}
+          ref={root}
+        />
+      </NativePanelFocusIntentContext.Provider>
+    )
+  },
+)
 NativePanelSurface.displayName = "NativePanelSurface"

@@ -29,6 +29,7 @@ export type TNativeMotionGeometrySnapshot = Readonly<{
   rootIdentity: string
   root: TNativeMotionGeometryBox
   layout: readonly number[]
+  contentBox?: readonly number[] | null
   untransformed: TNativeMotionGeometryBox
   model: TNativeMotionGeometryBox
   presentation: TNativeMotionGeometryBox | null
@@ -107,6 +108,7 @@ export const decodeNativeMotionGeometry = (encoded: string): TNativeMotionGeomet
     value.units !== (value.platform === "android" ? "dp" : "points") ||
     value.matrixFormat !== (value.platform === "android" ? "android-row-major-3x3" : "core-animation-4x4") ||
     !rect(value.layout) ||
+    (value.contentBox !== undefined && value.contentBox !== null && !rect(value.contentBox)) ||
     ![value.root, value.untransformed, value.model].every((item) => box(item, matrixLength)) ||
     (value.presentation !== null && !box(value.presentation, matrixLength)) ||
     typeof value.presentationSource !== "string" ||

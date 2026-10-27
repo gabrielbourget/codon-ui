@@ -95,6 +95,7 @@ export const PanelFixture = ({
                   color: expanded ? "teal" : "navy",
                   borderRadius: expanded ? 20 : undefined,
                   padding: expanded ? 20 : 0,
+                  gap: expanded ? "4%" : 2,
                   borderWidth: expanded ? 2 : 0,
                   borderColor: expanded ? "teal" : "navy",
                   fontSize: expanded ? 22 : 16,

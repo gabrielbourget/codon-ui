@@ -11,6 +11,7 @@ const stylesheet = readFileSync(
 const routes = new Map([
   ["/", ["text/html", readFileSync(new URL("./filter-reference.html", import.meta.url))]],
   ["/numeric", ["text/html", readFileSync(new URL("./numeric-reference.html", import.meta.url))]],
+  ["/gaps", ["text/html", readFileSync(new URL("./gap-reference.html", import.meta.url))]],
   ["/panel.css", ["text/css", stylesheet]],
   [
     "/source.json",

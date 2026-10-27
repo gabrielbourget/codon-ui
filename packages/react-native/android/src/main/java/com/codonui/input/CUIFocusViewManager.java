@@ -33,6 +33,12 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
   @Override protected ViewManagerDelegate<ReactViewGroup> getDelegate() { return delegate; }
   @Override public ReactViewGroup createViewInstance(ThemedReactContext context) { return new CUIFocusView(context); }
 
+  @Override public void setPadding(ReactViewGroup view, int left, int top, int right, int bottom) {
+    super.setPadding(view, left, top, right, bottom);
+    // Fabric supplies resolved border plus padding here; retain it without changing View padding or Yoga layout.
+    ((CUIFocusView)view).setMotionContentInsets(left, top, right, bottom);
+  }
+
   @Override @ReactProp(name = "ownerId")
   public void setOwnerId(ReactViewGroup view, String value) { ((CUIFocusView) view).setOwnerId(value); }
 
@@ -172,6 +178,7 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
   }
 
   @Override protected ReactViewGroup prepareToRecycleView(ThemedReactContext context, ReactViewGroup view) {
+    ((CUIFocusView)view).setMotionContentInsets(0, 0, 0, 0);
     ((CUIFocusView)view).retireFocusWithin();
     ((CUIFocusView)view).retireFormAction();
     ((CUIFocusView)view).retireMotionDrawing();

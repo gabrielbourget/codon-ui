@@ -186,7 +186,7 @@ final class CUIMotionGeometryObserver implements ViewTreeObserver.OnPreDrawListe
       .put("matrixFormat", "android-row-major-3x3").put("rootTag", windowRoot.getId()).put("rootIdentity", identity(windowRoot))
       .put("root", box(windowRoot, false)).put("layout", numbers(view.getLeft() / density, view.getTop() / density, view.getWidth() / density, view.getHeight() / density))
       .put("untransformed", box(view, false)).put("model", model).put("presentation", model).put("presentationSource", "android-view-render-node-matrix")
-      .put("ancestors", chain);
+      .put("ancestors", chain).put("contentBox", view instanceof CUIFocusView ? ((CUIFocusView)view).motionContentBox() : JSONObject.NULL);
   }
   static JSONObject querySnapshot(View view) throws JSONException {
     return snapshot(view).put("mountObservationAvailable", false);
