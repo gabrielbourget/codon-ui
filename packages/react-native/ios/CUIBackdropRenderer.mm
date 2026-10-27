@@ -2,11 +2,12 @@
 #import "CUIKeyboardScope.h"
 #import <React/RCTAssert.h>
 #import <UIKit/UIKit.h>
-#include "../cpp/backdrop/Gaussian.h"
+#include "../cpp/backdrop/ProjectedBlur.h"
 #include <atomic>
 #include <cmath>
 #include <climits>
 #include <memory>
+#include <limits>
 
 @interface CUIBackdropFrame : NSObject {
 @public std::shared_ptr<std::atomic<bool>> current;
@@ -23,7 +24,8 @@
 @property (nonatomic, strong) CALayer *output;
 @property (nonatomic) CGRect sourceBounds;
 @property (nonatomic) CGRect receiverBounds;
-@property (nonatomic) CGAffineTransform mapping;
+@property (nonatomic, copy) NSArray<NSNumber *> *sourceQuad;
+@property (nonatomic, copy) NSArray<NSNumber *> *receiverQuad;
 @property (nonatomic) BOOL busy;
 @property (nonatomic) NSInteger sourceTag;
 @property (nonatomic) NSInteger receiverTag;
@@ -48,26 +50,25 @@ static NSDictionary *CUIBackdropSourceSession(UIView *view) {
   NSMutableArray *children = [NSMutableArray new]; CUIBackdropCollectSessions(view, children);
   return @{@"ancestor":CUIBackdropSession(view) ?: @{}, @"children":children};
 }
-static CGPoint CUIBackdropPoint(UIView *source, UIView *receiver, CGPoint point) {
-  CGPoint windowPoint = [source convertPoint:point toView:source.window];
-  windowPoint = [source.window convertPoint:windowPoint toWindow:receiver.window];
-  return [receiver convertPoint:windowPoint fromView:receiver.window];
+static NSArray<NSNumber *> *CUIBackdropQuad(UIView *view) {
+  CGRect bounds = view.bounds;
+  CGPoint corners[] = {{CGRectGetMinX(bounds), CGRectGetMinY(bounds)}, {CGRectGetMaxX(bounds), CGRectGetMinY(bounds)},
+      {CGRectGetMaxX(bounds), CGRectGetMaxY(bounds)}, {CGRectGetMinX(bounds), CGRectGetMaxY(bounds)}};
+  NSMutableArray *quad = [NSMutableArray new];
+  for (auto corner : corners) {
+    CGPoint point = [view.layer convertPoint:corner toLayer:view.window.layer];
+    point = [view.window convertPoint:point toCoordinateSpace:view.window.screen.coordinateSpace];
+    const CGFloat scale = view.window.screen.scale;
+    CUIBackdropRequire(std::isfinite(point.x) && std::isfinite(point.y) && std::isfinite(scale) && scale > 0,
+        @"Native backdrop: nonfinite screen coordinate");
+    [quad addObjectsFromArray:@[@(point.x*scale), @(point.y*scale)]];
+  }
+  return quad;
 }
-static CGAffineTransform CUIBackdropMapping(UIView *source, UIView *receiver) {
-  const auto origin = source.bounds.origin;
-  const auto size = source.bounds.size;
-  const auto first = CUIBackdropPoint(source, receiver, origin);
-  const auto right = CUIBackdropPoint(source, receiver, CGPointMake(origin.x + size.width, origin.y));
-  const auto bottom = CUIBackdropPoint(source, receiver, CGPointMake(origin.x, origin.y + size.height));
-  CGAffineTransform mapping = CGAffineTransformMake((right.x-first.x)/size.width, (right.y-first.y)/size.width,
-      (bottom.x-first.x)/size.height, (bottom.y-first.y)/size.height, first.x, first.y);
-  const auto actual = CUIBackdropPoint(source, receiver, CGPointMake(origin.x+size.width, origin.y+size.height));
-  const auto expected = CGPointApplyAffineTransform(CGPointMake(size.width, size.height), mapping);
-  CUIBackdropRequire(std::isfinite(mapping.a) && std::isfinite(mapping.b) && std::isfinite(mapping.c) &&
-      std::isfinite(mapping.d) && std::isfinite(mapping.tx) && std::isfinite(mapping.ty) &&
-      std::abs(actual.x-expected.x) < 0.01 && std::abs(actual.y-expected.y) < 0.01,
-      @"Native backdrop: projective capture mapping remains unsupported");
-  return mapping;
+static codon::backdrop::TQuad CUIBackdropNativeQuad(NSArray<NSNumber *> *values) {
+  codon::backdrop::TQuad result;
+  for (size_t index = 0; index < 4; index++) result[index] = {[values[index*2] doubleValue], [values[index*2+1] doubleValue]};
+  return result;
 }
 static BOOL CUIBackdropAttached(CUIBackdropFrame *frame) {
   return frame->current && frame->current->load() && frame.source && frame.receiver &&
@@ -80,7 +81,8 @@ static BOOL CUIBackdropAttached(CUIBackdropFrame *frame) {
 static BOOL CUIBackdropGeometry(CUIBackdropFrame *frame) {
   return CUIBackdropAttached(frame) && CGRectEqualToRect(frame.source.bounds, frame.sourceBounds) &&
       CGRectEqualToRect(frame.receiver.bounds, frame.receiverBounds) &&
-      CGAffineTransformEqualToTransform(CUIBackdropMapping(frame.source, frame.receiver), frame.mapping);
+      [CUIBackdropQuad(frame.source) isEqual:frame.sourceQuad] &&
+      [CUIBackdropQuad(frame.receiver) isEqual:frame.receiverQuad];
 }
 static void CUIBackdropCheckLayers(CALayer *layer) {
   if (layer.hidden || layer.opacity == 0) return;
@@ -234,30 +236,36 @@ static void CUIBackdropRetire(CUIBackdropFrame *frame, BOOL clear) {
     frame.sourceWindow = source.window; frame.receiverWindow = receiver.window;
     frame.sourceSession = CUIBackdropSourceSession(source); frame.receiverSession = session;
     frame.sourceBounds = source.bounds; frame.receiverBounds = receiver.bounds;
-    frame.mapping = CUIBackdropMapping(source, receiver);
+    frame.sourceQuad = CUIBackdropQuad(source); frame.receiverQuad = CUIBackdropQuad(receiver);
     frame.frameId = request[@"frameId"]; frame.generation = request[@"generation"];
     frame.staged = nil;
     CUIBackdropCheckLayers(source.layer);
     const CGFloat scale = receiver.window.screen.scale;
     UIGraphicsImageRendererFormat *format = [UIGraphicsImageRendererFormat preferredFormat];
     format.scale = scale; format.opaque = NO; format.preferredRange = UIGraphicsImageRendererFormatRangeStandard;
-    UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:receiver.bounds.size format:format];
+    UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:source.bounds.size format:format];
     __block BOOL complete = NO;
     UIImage *captured = [renderer imageWithActions:^(UIGraphicsImageRendererContext *context) {
-      CGContextTranslateCTM(context.CGContext, -receiver.bounds.origin.x, -receiver.bounds.origin.y);
-      CGContextConcatCTM(context.CGContext, frame.mapping);
       complete = [source drawViewHierarchyInRect:(CGRect){CGPointZero, source.bounds.size} afterScreenUpdates:NO];
     }];
     CUIBackdropRequire(complete && captured.CGImage, @"Native backdrop: UIKit capture is incomplete");
-    frame.busy = YES;
     auto token = frame->current;
     const double sigma = [request[@"radius"] doubleValue] * scale;
+    const auto sourceQuad = CUIBackdropNativeQuad(frame.sourceQuad), receiverQuad = CUIBackdropNativeQuad(frame.receiverQuad);
+    const double physicalWidth = std::ceil(receiver.bounds.size.width*scale), physicalHeight = std::ceil(receiver.bounds.size.height*scale);
+    CUIBackdropRequire(std::isfinite(physicalWidth) && std::isfinite(physicalHeight) && physicalWidth > 0 &&
+        physicalHeight > 0 && physicalWidth <= INT_MAX && physicalHeight <= INT_MAX,
+        @"Native backdrop: unaddressable receiver raster");
+    const size_t outputWidth = static_cast<size_t>(physicalWidth), outputHeight = static_cast<size_t>(physicalHeight);
+    frame.busy = YES;
     dispatch_async(_worker, ^{
       @autoreleasepool {
         UIImage *filtered;
         NSString *failure;
         try {
           const size_t width = CGImageGetWidth(captured.CGImage), height = CGImageGetHeight(captured.CGImage);
+          if (!width || !height || width > std::numeric_limits<size_t>::max()/4/height)
+            throw std::length_error("Native backdrop: unaddressable source raster");
           std::vector<uint8_t> pixels(width * height * 4);
           CGColorSpaceRef color = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
           CGContextRef bitmap = CGBitmapContextCreate(pixels.data(), width, height, 8, width * 4, color,
@@ -266,11 +274,12 @@ static void CUIBackdropRetire(CUIBackdropFrame *frame, BOOL clear) {
           if (!bitmap) throw std::runtime_error("Native backdrop: sRGB bitmap unavailable");
           CGContextDrawImage(bitmap, CGRectMake(0, 0, width, height), captured.CGImage);
           CGContextRelease(bitmap);
-          auto output = codon::backdrop::gaussianBlur(pixels.data(), width, height, sigma, [token] { return token->load(); });
+          auto output = codon::backdrop::projectedBlur(pixels.data(), width, height, sourceQuad,
+              outputWidth, outputHeight, receiverQuad, sigma, [token] { return token->load(); });
           NSData *data = [NSData dataWithBytes:output.data() length:output.size()];
           CGDataProviderRef provider = CGDataProviderCreateWithCFData((__bridge CFDataRef)data);
           color = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
-          CGImageRef image = CGImageCreate(width, height, 8, 32, width * 4, color,
+          CGImageRef image = CGImageCreate(outputWidth, outputHeight, 8, 32, outputWidth * 4, color,
               kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big, provider, nullptr, false, kCGRenderingIntentDefault);
           CGColorSpaceRelease(color); CGDataProviderRelease(provider);
           if (!image) throw std::runtime_error("Native backdrop: output image unavailable");

@@ -16,6 +16,7 @@ add_library(codon_motion SHARED
   MotionDrawingJNI.cpp
   BackdropJNI.cpp
   "${CMAKE_CURRENT_LIST_DIR}/../../../../cpp/backdrop/Gaussian.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../cpp/backdrop/ProjectedBlur.cpp"
   "${CODON_MOTION_DIR}/FabricSnapshot.cpp"
   "${CODON_MOTION_DIR}/FabricLayout.cpp"
   "${CODON_MOTION_DIR}/NativeStyle.cpp"

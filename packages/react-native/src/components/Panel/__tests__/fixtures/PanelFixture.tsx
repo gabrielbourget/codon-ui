@@ -1,5 +1,5 @@
 import { useRef, useState, type Ref, type RefObject } from "react"
-import { View, type TextInput } from "react-native"
+import { View, type TextInput, type ViewStyle } from "react-native"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 
 import {
@@ -31,6 +31,15 @@ export const PanelFixture = ({
   const [mode, setMode] = useState<"light" | "dark">("light")
   const [requests, setRequests] = useState(0)
   const [focused, setFocused] = useState("None observed")
+  const [sourcePose, setSourcePose] = useState(0)
+  const sourceTransform: ViewStyle["transform"] =
+    sourcePose === 0
+      ? undefined
+      : sourcePose === 1
+        ? [{ scale: 0.85 }, { rotate: "8deg" }]
+        : sourcePose === 2
+          ? [{ perspective: 700 }, { rotateY: "18deg" }, { rotateZ: "6deg" }]
+          : [{ scaleX: -1 }]
   const localOpener = useRef<View>(null)
   const opener = openerRef ?? localOpener
   const closeTarget = useRef<View>(null)
@@ -43,7 +52,7 @@ export const PanelFixture = ({
     <SafeAreaProvider>
       <NativeThemeProvider mode={mode}>
         <NativeOverlayProvider backdropAdapter={adapter}>
-          <Root testID="panel-scene-root" style={{ flex: 1 }}>
+          <Root testID="panel-scene-root" style={{ flex: 1, transform: sourceTransform }}>
             <NativeFloatingLayerHost testID="panel-scene-window">
               <Button
                 ref={opener}
@@ -62,6 +71,7 @@ export const PanelFixture = ({
                   setExpanded(false)
                   setRequests(0)
                   setFocused("None observed")
+                  setSourcePose(0)
                 }}
               >
                 Reset panel scene
@@ -100,6 +110,14 @@ export const PanelFixture = ({
                 <Button onPress={() => setExpanded(!expanded)}>Toggle panel appearance</Button>
                 <Button onPress={() => setMode(mode === "light" ? "dark" : "light")}>Toggle scene theme</Button>
                 {adapter && <Button onPress={() => setBlur(!blur)}>Toggle configured blur</Button>}
+                {adapter && (
+                  <>
+                    <Text>Backdrop source pose: {sourcePose}</Text>
+                    <Button onPress={() => setSourcePose((value) => (value + 1) % 4)}>
+                      Cycle backdrop source transform
+                    </Button>
+                  </>
+                )}
                 <Button
                   ref={closeTarget}
                   testID="panel-close"

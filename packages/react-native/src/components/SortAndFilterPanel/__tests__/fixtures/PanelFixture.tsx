@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { ScrollView, View } from "react-native"
+import { ScrollView, View, type ViewStyle } from "react-native"
 
 import {
   Button,
@@ -51,17 +51,34 @@ export const SortAndFilterPanelFixture = ({ adapter }: { adapter?: TNativeBackdr
   const [requests, setRequests] = useState<TNativeQueryApplyRequest[]>([])
   const [closeRequests, setCloseRequests] = useState(0)
   const [blur, setBlur] = useState(!!adapter)
+  const [sourcePose, setSourcePose] = useState(0)
+  const sourceTransform: ViewStyle["transform"] =
+    sourcePose === 0
+      ? undefined
+      : sourcePose === 1
+        ? [{ scale: 0.85 }, { rotate: "8deg" }]
+        : sourcePose === 2
+          ? [{ perspective: 700 }, { rotateY: "18deg" }, { rotateZ: "6deg" }]
+          : [{ scaleX: -1 }]
   const Root = adapter ? NativeBackdropHost : View
   return (
     <NativeThemeProvider mode={mode}>
       <NativeOverlayProvider backdropAdapter={adapter}>
-        <Root style={{ flex: 1 }}>
+        <Root style={{ flex: 1, transform: sourceTransform }}>
           <NativeFloatingLayerHost>
             <ScrollView contentContainerStyle={{ padding: 15, gap: 10 }}>
               <Text elementType="h1">Sort and Filter Panel</Text>
               <Button onPress={() => setOpen(true)}>Open query panel</Button>
               <Button onPress={() => setEcho((value) => !value)}>Toggle owner echo</Button>
               {adapter && <Button onPress={() => setBlur((value) => !value)}>Toggle configured query blur</Button>}
+              {adapter && (
+                <>
+                  <Text>Backdrop source pose: {sourcePose}</Text>
+                  <Button onPress={() => setSourcePose((value) => (value + 1) % 4)}>
+                    Cycle query backdrop transform
+                  </Button>
+                </>
+              )}
               <Button onPress={() => setMode((value) => (value === "light" ? "dark" : "light"))}>Toggle theme</Button>
               <Button
                 onPress={() =>

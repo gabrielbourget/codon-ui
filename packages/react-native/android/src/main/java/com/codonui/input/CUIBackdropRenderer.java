@@ -53,7 +53,7 @@ final class CUIBackdropRenderer implements LifecycleEventListener {
     double generation;
     int sourceWidth, sourceHeight, width, height;
     int sourceTag, receiverTag;
-    float[] mapping;
+    float[] sourceQuad, receiverQuad;
     AtomicBoolean current = new AtomicBoolean(true);
     AtomicBoolean settled = new AtomicBoolean();
     Bitmap staged;
@@ -99,7 +99,8 @@ final class CUIBackdropRenderer implements LifecycleEventListener {
     thread.start(); worker = new Handler(thread.getLooper());
     context.addLifecycleEventListener(this);
   }
-  @DoNotStrip private static native byte[] nativeBlur(byte[] pixels, int width, int height, double sigma, AtomicBoolean current);
+  @DoNotStrip private static native byte[] nativeBlur(byte[] pixels, int width, int height, double[] sourceQuad,
+      int outputWidth, int outputHeight, double[] receiverQuad, double sigma, AtomicBoolean current);
   private static void require(boolean allowed, String message) {
     if (!allowed) throw new IllegalStateException("Native backdrop: " + message);
   }
@@ -124,8 +125,8 @@ final class CUIBackdropRenderer implements LifecycleEventListener {
     float[] rootOrigin = {0, 0};
     highest.getMatrix().mapPoints(rootOrigin);
     int[] location = new int[2]; highest.getLocationOnScreen(location);
-    result.postTranslate(location[0] - highest.getLeft() - rootOrigin[0],
-        location[1] - highest.getTop() - rootOrigin[1]);
+    result.postTranslate(location[0] - Math.round(highest.getLeft() + rootOrigin[0]),
+        location[1] - Math.round(highest.getTop() + rootOrigin[1]));
     return result;
   }
   private static void collectSessions(View view, ArrayList<String> values) {
@@ -142,12 +143,15 @@ final class CUIBackdropRenderer implements LifecycleEventListener {
     ArrayList<String> children = new ArrayList<>(); collectSessions(view, children);
     return session(view) + ":" + children.toString();
   }
-  private static Matrix mapping(View source, View receiver) {
-    Matrix result = toScreen(source), inverse = new Matrix();
-    require(toScreen(receiver).invert(inverse), "singular receiver transform");
-    result.postConcat(inverse);
-    float[] values = new float[9]; result.getValues(values);
-    for (float value : values) require(Float.isFinite(value), "invalid capture transform");
+  private static float[] screenQuad(View view) {
+    float[] quad = {0, 0, view.getWidth(), 0, view.getWidth(), view.getHeight(), 0, view.getHeight()};
+    toScreen(view).mapPoints(quad);
+    for (float value : quad) require(Float.isFinite(value), "invalid screen coordinate");
+    return quad;
+  }
+  private static double[] nativeQuad(float[] source) {
+    double[] result = new double[8];
+    for (int index = 0; index < 8; index++) result[index] = source[index];
     return result;
   }
   private static boolean descendant(View view, View root) {
@@ -173,9 +177,9 @@ final class CUIBackdropRenderer implements LifecycleEventListener {
   private boolean geometry(Frame frame) {
     if (!attached(frame)) return false;
     View source = frame.source.get(), receiver = frame.receiver.get();
-    float[] values = new float[9]; mapping(source, receiver).getValues(values);
     return source.getWidth() == frame.sourceWidth && source.getHeight() == frame.sourceHeight &&
-        receiver.getWidth() == frame.width && receiver.getHeight() == frame.height && Arrays.equals(values, frame.mapping);
+        receiver.getWidth() == frame.width && receiver.getHeight() == frame.height &&
+        Arrays.equals(screenQuad(source), frame.sourceQuad) && Arrays.equals(screenQuad(receiver), frame.receiverQuad);
   }
   private static void reply(Promise promise, JSONObject response) { promise.resolve(response.toString()); }
   private void finish(String owner, Frame frame, AtomicBoolean token, Bitmap image, Exception failure) {
@@ -282,16 +286,18 @@ final class CUIBackdropRenderer implements LifecycleEventListener {
       frame.sourceSession = sourceSession(source); frame.receiverSession = session(receiver);
       frame.sourceWidth = source.getWidth(); frame.sourceHeight = source.getHeight();
       frame.width = receiver.getWidth(); frame.height = receiver.getHeight();
-      Matrix mapping = mapping(source, receiver);
-      frame.mapping = new float[9]; mapping.getValues(frame.mapping);
+      frame.sourceQuad = screenQuad(source); frame.receiverQuad = screenQuad(receiver);
       frame.frameId = frameId; frame.generation = request.getDouble("generation"); frame.staged = null;
       checkSurfaces(source);
       Frame captured = frame;
       AtomicBoolean token = captured.current;
+      final int inputWidth = frame.sourceWidth, inputHeight = frame.sourceHeight;
+      final int outputWidth = frame.width, outputHeight = frame.height;
+      final double[] sourceQuad = nativeQuad(frame.sourceQuad), receiverQuad = nativeQuad(frame.receiverQuad);
       double sigma = request.getDouble("radius") * receiver.getResources().getDisplayMetrics().density;
       captured.pending = promise; captured.busy = true;
       // API19 ImageReader plus API23 hardware Canvas cover the existing API24 minimum.
-      ImageReader reader = ImageReader.newInstance(frame.width, frame.height, PixelFormat.RGBA_8888, 2);
+      ImageReader reader = ImageReader.newInstance(inputWidth, inputHeight, PixelFormat.RGBA_8888, 2);
       captured.reader = reader;
       AtomicBoolean readerClosed = new AtomicBoolean();
       Runnable closeReader = () -> { if (readerClosed.compareAndSet(false, true)) reader.close(); };
@@ -305,16 +311,17 @@ final class CUIBackdropRenderer implements LifecycleEventListener {
           require(image != null, "hardware capture is incomplete");
           require(token.get(), "frame retired");
           Image.Plane plane = image.getPlanes()[0];
-          require(plane.getPixelStride() == 4 && image.getWidth() == captured.width && image.getHeight() == captured.height,
+          require(plane.getPixelStride() == 4 && image.getWidth() == inputWidth && image.getHeight() == inputHeight,
               "unexpected capture pixel format");
           ByteBuffer buffer = plane.getBuffer();
-          byte[] rgba = new byte[Math.multiplyExact(Math.multiplyExact(captured.width, captured.height), 4)];
-          for (int y = 0; y < captured.height; y++) {
+          byte[] rgba = new byte[Math.multiplyExact(Math.multiplyExact(inputWidth, inputHeight), 4)];
+          for (int y = 0; y < inputHeight; y++) {
             require(token.get(), "frame retired");
-            buffer.position(y * plane.getRowStride()); buffer.get(rgba, y * captured.width * 4, captured.width * 4);
+            buffer.position(y * plane.getRowStride()); buffer.get(rgba, y * inputWidth * 4, inputWidth * 4);
           }
-          byte[] pixels = nativeBlur(rgba, captured.width, captured.height, sigma, token);
-          int[] colors = new int[captured.width * captured.height];
+          byte[] pixels = nativeBlur(rgba, inputWidth, inputHeight, sourceQuad, outputWidth, outputHeight,
+              receiverQuad, sigma, token);
+          int[] colors = new int[Math.multiplyExact(outputWidth, outputHeight)];
           for (int index = 0; index < colors.length; index++) {
             int offset = index * 4, alpha = pixels[offset + 3] & 255;
             int red = alpha == 0 ? 0 : Math.min(255, ((pixels[offset] & 255) * 255 + alpha / 2) / alpha);
@@ -323,7 +330,7 @@ final class CUIBackdropRenderer implements LifecycleEventListener {
             colors[index] = Color.argb(alpha, red, green, blue);
           }
           require(token.get(), "frame retired");
-          filtered = Bitmap.createBitmap(colors, captured.width, captured.height, Bitmap.Config.ARGB_8888);
+          filtered = Bitmap.createBitmap(colors, outputWidth, outputHeight, Bitmap.Config.ARGB_8888);
         } catch (Exception error) { failure = error; }
         finally { closeReader.run(); }
         Bitmap output = filtered; Exception error = failure;
@@ -334,7 +341,6 @@ final class CUIBackdropRenderer implements LifecycleEventListener {
         Canvas canvas = surface.lockHardwareCanvas();
         try {
           canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-          canvas.concat(mapping);
           source.draw(canvas);
         } finally { surface.unlockCanvasAndPost(canvas); }
       } catch (Exception error) {
