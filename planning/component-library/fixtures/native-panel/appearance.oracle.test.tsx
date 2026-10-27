@@ -17,6 +17,35 @@ const path = resolve(
   "../../../../packages/react/src/components/Panel/PanelStyles.module.css",
 )
 
+it("owns overlay transforms around the original Panel and editor while authored portals escape them", () => {
+  const changed = vi.fn()
+  const tree = (transform?: string, transformOrigin?: string) => (
+    <Panel isOpen customOverlayStyles={{ transform, transformOrigin }}>
+      <input aria-label="Transform editor" value="held" onChange={changed} />
+      {createPortal(<div data-testid="escaped-transform">Portal content</div>, document.body)}
+    </Panel>
+  )
+  const view = render(tree("translateX(40px) rotate(8deg) scale(0.8)", "0px 0px"))
+  const panel = screen.getByTestId("panel"),
+    editor = screen.getByLabelText("Transform editor")
+  const overlay = panel.closest(`.${styles["panel__overlay"]}`) as HTMLElement
+  expect(overlay.style.transform).toBe("translateX(40px) rotate(8deg) scale(0.8)")
+  expect(overlay.style.transformOrigin).toBe("0px 0px")
+  expect(overlay).toContainElement(panel)
+  expect(overlay).toContainElement(editor)
+  expect(overlay).not.toContainElement(screen.getByTestId("escaped-transform"))
+  view.rerender(tree("scaleX(-1)", "right bottom"))
+  expect(overlay.style.transform).toBe("scaleX(-1)")
+  expect(overlay.style.transformOrigin).toBe("right bottom")
+  view.rerender(tree())
+  expect(overlay.style.transform).toBe("")
+  expect(overlay.style.transformOrigin).toBe("")
+  expect(screen.getByTestId("panel")).toBe(panel)
+  expect(screen.getByLabelText("Transform editor")).toBe(editor)
+  expect(editor).toHaveValue("held")
+  expect(changed).not.toHaveBeenCalled()
+})
+
 it("owns overlay opacity on the common Panel/editor ancestor while authored portals escape it", () => {
   const changed = vi.fn()
   const tree = (opacity?: number) => (

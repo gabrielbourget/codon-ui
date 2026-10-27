@@ -1,7 +1,8 @@
-import { useContext, useInsertionEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+import { useContext, useInsertionEffect, useLayoutEffect, useMemo, useRef, useState, type RefObject } from "react"
 import { findNodeHandle, type View } from "react-native"
 
 import { NativeCollectionActionsContext } from "../../collection/actions"
+import { NativeCollectionRendererContext, type TNativeCollectionDropTarget } from "../../collection/renderer"
 import type { TNativeCollectionNode, TNativeCollectionSnapshot } from "../../collection/snapshot"
 import { focusNativeTarget } from "../../input/focus"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
@@ -9,6 +10,7 @@ import type { TNativeKeyboardEvent } from "../../input/types"
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../overlays/floating/scope"
 
 type TBounds = { x: number; y: number; width: number; height: number }
+type TTarget = { key: string; position: "before" | "after" }
 type TDrag = {
   source: string
   collection: TNativeCollectionSnapshot<object>
@@ -22,6 +24,13 @@ type TDrag = {
   dropping: boolean
   measurement: number
   measuring: boolean
+  root: View
+  delegate: React.ContextType<typeof NativeCollectionRendererContext>["dropTargetDelegate"]
+  layout: React.ContextType<typeof NativeCollectionRendererContext>["layoutDelegate"]
+  rendererRoot: React.ContextType<typeof NativeCollectionRendererContext>["CollectionRoot"]
+  viewport: TBounds | null
+  target: TTarget | null
+  requested: string | null
 }
 export type TSortReorderRequest = (source: string, target: string, position: "before" | "after") => void
 
@@ -30,20 +39,24 @@ export const useSortReorder = (
   collection: TNativeCollectionSnapshot<object>,
   canAct: () => boolean,
   onReorder: TSortReorderRequest | undefined,
+  root: RefObject<View | null>,
 ) => {
   const actions = useContext(NativeCollectionActionsContext)!
   const input = useNativeKeyScope()
   const floating = useContext(NativeFloatingScopeContext)
   const windowActive = useContext(NativeFloatingWindowContext)
+  const renderer = useContext(NativeCollectionRendererContext)
   const targets = useRef(new Map<string, View>())
   const bounds = useRef(new Map<string, TBounds>())
   const drag = useRef<TDrag | null>(null)
   const ticket = useRef(0)
   const [indicator, setIndicator] = useState<number | null>(null)
   const [source, setSource] = useState<string | null>(null)
-  const owner = useRef({ collection, canAct, onReorder, input, floating, windowActive, live: true })
+  const [targetKey, setTargetKey] = useState<string | null>(null)
+  const [indicatorKey, setIndicatorKey] = useState<string | null>(null)
+  const owner = useRef({ collection, canAct, onReorder, input, floating, windowActive, root, renderer, live: true })
   useInsertionEffect(() => {
-    owner.current = { collection, canAct, onReorder, input, floating, windowActive, live: true }
+    owner.current = { collection, canAct, onReorder, input, floating, windowActive, root, renderer, live: true }
   })
   useInsertionEffect(
     () => () => {
@@ -75,6 +88,10 @@ export const useSortReorder = (
       drag.current === current &&
       current.collection === owner.current.collection &&
       current.window === window() &&
+      current.root === owner.current.root.current &&
+      current.delegate === owner.current.renderer.dropTargetDelegate &&
+      current.layout === owner.current.renderer.layoutDelegate &&
+      current.rendererRoot === owner.current.renderer.CollectionRoot &&
       targets.current.get(current.source) === current.view
     const cancel = () => {
       ticket.current++
@@ -83,6 +100,8 @@ export const useSortReorder = (
       if (owner.current.live) {
         setIndicator(null)
         setSource(null)
+        setTargetKey(null)
+        setIndicatorKey(null)
       }
     }
     const gaps = (source: string) => {
@@ -92,10 +111,23 @@ export const useSortReorder = (
         (gap) => gap !== index && gap !== index + 1,
       )
     }
-    const choose = (current: TDrag, gap: number | null) => {
+    const targetForGap = (gap: number | null): TTarget | null => {
+      const ordered = rows()
+      if (gap === null) return null
+      const last = gap === ordered.length
+      const node = ordered[last ? ordered.length - 1 : gap]
+      return node ? { key: String(node.key), position: last ? "after" : "before" } : null
+    }
+    const choose = (current: TDrag, gap: number | null, target = targetForGap(gap)) => {
       if (!valid(current)) return cancel()
+      if (current.target?.key !== target?.key || current.target?.position !== target?.position) {
+        current.requested = null
+        current.target = target
+      }
       current.gap = gap
       setIndicator(gap)
+      setTargetKey(target?.key ?? null)
+      setIndicatorKey(targetForGap(gap)?.key ?? null)
     }
     const admit = (node: TNativeCollectionNode<object>, view: View, action: () => void) => {
       const target = findNodeHandle(view)
@@ -108,12 +140,24 @@ export const useSortReorder = (
     }
     const measure = (current: TDrag) => {
       const revision = ++current.measurement
+      current.measuring = true
+      if (current.delegate) {
+        const originalRoot = current.root
+        originalRoot.measureInWindow((x, y, width, height) => {
+          if (!valid(current) || current.measurement !== revision) return
+          if (![x, y, width, height].every(Number.isFinite) || width <= 0 || height <= 0) return cancel()
+          current.viewport = { x, y, width, height }
+          current.measuring = false
+          updateIndicator(current)
+          if (current.released) drop()
+        })
+        return
+      }
       const originalTargets = rows().map((row) => ({
         key: String(row.key),
         target: targets.current.get(String(row.key)),
       }))
       const rectangles = new Map<string, TBounds>()
-      current.measuring = true
       for (const { key, target } of originalTargets) {
         if (!valid(current) || current.measurement !== revision) return
         if (!target) return cancel()
@@ -140,7 +184,8 @@ export const useSortReorder = (
       if (!available()) return
       const node = owner.current.collection.getItem(source)
       const view = targets.current.get(source)
-      if (!node || !view) return
+      const root = owner.current.root.current
+      if (!node || !view || !root) return
       const collection = owner.current.collection
       const identity = window()
       const generation = ticket.current
@@ -157,6 +202,13 @@ export const useSortReorder = (
         dropping: false,
         measurement: 0,
         measuring: false,
+        root,
+        delegate: owner.current.renderer.dropTargetDelegate,
+        layout: owner.current.renderer.layoutDelegate,
+        rendererRoot: owner.current.renderer.CollectionRoot,
+        viewport: null,
+        target: null,
+        requested: null,
       }
       drag.current = current
       setSource(source)
@@ -183,6 +235,40 @@ export const useSortReorder = (
       if (!valid(current)) return cancel()
       if (!current.point) return
       const { x, y } = current.point
+      if (current.delegate) {
+        const viewport = current.viewport
+        if (!viewport) return
+        if (
+          !Number.isFinite(x) ||
+          !Number.isFinite(y) ||
+          x < viewport.x ||
+          y < viewport.y ||
+          x > viewport.x + viewport.width ||
+          y > viewport.y + viewport.height
+        )
+          return choose(current, null)
+        const gapFor = (target: TNativeCollectionDropTarget) => {
+          if (target.type !== "item" || target.dropPosition === "on" || typeof target.key !== "string") return null
+          const index = rows().findIndex((row) => row.key === target.key)
+          const gap = index + Number(target.dropPosition === "after")
+          return index >= 0 && gaps(current.source).includes(gap) ? gap : null
+        }
+        try {
+          const target = current.delegate.getDropTargetFromPoint(
+            x - viewport.x,
+            y - viewport.y,
+            (target) => gapFor(target) !== null,
+          )
+          const gap = target && gapFor(target)
+          if (gap === null || !target || target.type !== "item" || target.dropPosition === "on")
+            return choose(current, null)
+          choose(current, gap, { key: String(target.key), position: target.dropPosition })
+        } catch (error) {
+          cancel()
+          throw error
+        }
+        return
+      }
       const measured = rows().map((row) => bounds.current.get(String(row.key)))
       if (measured.some((rect) => !rect)) return
       const rectangles = measured as TBounds[]
@@ -216,22 +302,43 @@ export const useSortReorder = (
       const current = drag.current
       if (!current || !valid(current)) return cancel()
       current.released = true
-      if (!current.admitted || (!current.keyboard && (current.measuring || bounds.current.size !== rows().length)))
+      if (
+        !current.admitted ||
+        (!current.keyboard &&
+          (current.measuring || (current.delegate ? !current.viewport : bounds.current.size !== rows().length)))
+      )
         return
       if (current.dropping) return
       if (current.gap === null) return cancel()
-      const ordered = rows()
-      const last = current.gap === ordered.length
-      const node = ordered[last ? ordered.length - 1 : current.gap]
-      const view = node && targets.current.get(String(node.key))
-      if (!node || !view) return cancel()
+      const target = current.target
+      const node = target && owner.current.collection.getItem(target.key)
+      if (!node || !target) return cancel()
+      const view = targets.current.get(target.key)
+      if (!view) {
+        if (current.requested !== target.key) {
+          current.requested = target.key
+          try {
+            current.layout?.requestRendering?.(target.key)
+          } catch (error) {
+            cancel()
+            throw error
+          }
+        }
+        return
+      }
       const gap = current.gap
       current.dropping = true
       admit(node, view, () => {
-        if (!valid(current) || current.gap !== gap) return cancel()
+        if (
+          !valid(current) ||
+          current.gap !== gap ||
+          current.target !== target ||
+          targets.current.get(target.key) !== view
+        )
+          return cancel()
         const request = owner.current.onReorder
         cancel()
-        request?.(current.source, String(node.key), last ? "after" : "before")
+        request?.(current.source, target.key, target.position)
         if (current.keyboard && available() && targets.current.get(current.source) === current.view)
           focusNativeTarget(current.view)
       })
@@ -260,6 +367,11 @@ export const useSortReorder = (
           targets.current.delete(key)
           bounds.current.delete(key)
           if (drag.current?.source === key) cancel()
+        }
+        const current = drag.current
+        if (view && current?.released && !current.dropping && current.target?.key === key) {
+          if (current.keyboard) drop()
+          else measure(current)
         }
       },
       key: (key: string, event: TNativeKeyboardEvent) => {
@@ -297,5 +409,5 @@ export const useSortReorder = (
   }, [actions])
   useLayoutEffect(controls.validate)
   useLayoutEffect(() => input?.subscribe(controls.validate), [input, controls])
-  return { ...controls, indicator, source, enabled: !!onReorder }
+  return { ...controls, indicator, source, targetKey, indicatorKey, enabled: !!onReorder }
 }

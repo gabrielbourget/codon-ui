@@ -1,6 +1,14 @@
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react-native"
 import { createRef } from "react"
-import { AccessibilityInfo, Animated, processColor, StyleSheet, TextInput, type View } from "react-native"
+import {
+  AccessibilityInfo,
+  Animated,
+  processColor,
+  StyleSheet,
+  TextInput,
+  type View,
+  type ViewStyle,
+} from "react-native"
 
 import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
 import { Text } from "../../Text/Text"
@@ -51,6 +59,42 @@ const setup = async () => {
   const view = await render(node())
   return { ...view, root, editor, change, node }
 }
+
+it("applies overlay transforms around the original Panel and backdrop while preserving the portal host", async () => {
+  const f = await setup()
+  const tree = (transform?: ViewStyle["transform"], transformOrigin?: ViewStyle["transformOrigin"]) =>
+    f.node({ customOverlayStyles: { transform, transformOrigin, backgroundColor: "plum" } })
+  const transform: ViewStyle["transform"] = [{ translateX: 40 }, { rotate: "8deg" }, { scale: 0.8 }]
+  await f.rerender(tree(transform, [0, 0, 0]))
+  const group = row("panel-overlay-composite"),
+    originalRoot = f.root.current,
+    originalEditor = f.editor.current,
+    originalBackdrop = row("panel-backdrop")
+  expect(originalRoot).not.toBeNull()
+  expect(originalEditor).not.toBeNull()
+  const overlayAncestor = (element: ReturnType<typeof row>) => {
+    for (let node = element.parent; node; node = node.parent)
+      if (node.props.testID === "panel-overlay-composite") return node
+    return null
+  }
+  expect(overlayAncestor(row("panel"))).toBe(group)
+  expect(overlayAncestor(originalBackdrop)).toBe(group)
+  expect(group).toHaveStyle({ transform, transformOrigin: [0, 0, 0] })
+  expect(StyleSheet.flatten(originalBackdrop.props.style).transform).toBeUndefined()
+  expect(StyleSheet.flatten(row("panel-floating-host").props.style).transform).toBeUndefined()
+  expect(originalBackdrop).toHaveStyle({ backgroundColor: "plum" })
+  const replacement = [{ scaleX: -1 }]
+  await f.rerender(tree(replacement, "right bottom"))
+  expect(group).toHaveStyle({ transform: replacement, transformOrigin: "right bottom" })
+  await f.rerender(tree())
+  expect(StyleSheet.flatten(group.props.style).transform).toBeUndefined()
+  expect(StyleSheet.flatten(group.props.style).transformOrigin).toBeUndefined()
+  expect(f.root.current).toBe(originalRoot)
+  expect(f.editor.current).toBe(originalEditor)
+  expect(row("panel-backdrop")).toBe(originalBackdrop)
+  expect(row("held").props.value).toBe("held")
+  expect(f.change).not.toHaveBeenCalled()
+})
 
 it("groups overlay opacity across the original Panel and backdrop without dimming the window portal host", async () => {
   const f = await setup()

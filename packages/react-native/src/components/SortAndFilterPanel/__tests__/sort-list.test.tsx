@@ -1,6 +1,7 @@
 import "../../../collection/__tests__/nativeReceipts"
 
 import { act as rawAct, cleanup, within } from "@testing-library/react-native"
+import { Fragment, useState } from "react"
 import { AccessibilityInfo, Animated, Easing, PlatformColor, processColor, StyleSheet } from "react-native"
 import type * as RN from "react-native"
 
@@ -9,6 +10,13 @@ import {
   renderWithNativeCollections as render,
   screen,
 } from "../../../collection/__tests__/nativeReceipts"
+import {
+  DefaultNativeCollectionRenderer,
+  NativeCollectionRendererContext,
+  type TNativeCollectionRenderer,
+  type TNativeCollectionRootProps,
+  type TNativeCollectionDropTarget,
+} from "../../../collection/renderer"
 import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
 import { NativeFloatingWindowContext } from "../../../overlays/floating/scope"
 import { NativeThemeProvider } from "../../../theme"
@@ -394,12 +402,217 @@ const pointer = (x: number, y: number, timestamp = 1, touches = 1) => ({
     ],
   },
 })
+const measureView = (host: THost, implementation: RN.View["measureInWindow"]) => {
+  const measurement = jest.fn(implementation)
+  // The native preset shares these methods across View instances.
+  Object.defineProperty(mockViews.get(host.props.ownerId)!, "measureInWindow", {
+    configurable: true,
+    value: measurement,
+  })
+  return measurement
+}
 const measureRows = () => {
   for (const [index, id] of ["", "name"].entries()) {
-    const view = mockViews.get(option(id).props.ownerId)!
-    jest.spyOn(view, "measureInWindow").mockImplementation((callback) => callback(0, index * 100, 200, 80))
+    measureView(option(id), (callback) => callback(0, index * 100, 200, 80))
   }
 }
+
+it("uses the renderer drop delegate in current list coordinates without measuring every row", async () => {
+  const onReorder = jest.fn()
+  const delegate = {
+    getDropTargetFromPoint: jest.fn(
+      (
+        _x: number,
+        _y: number,
+        isValid?: (target: TNativeCollectionDropTarget) => boolean,
+      ): TNativeCollectionDropTarget => {
+        expect(isValid?.({ type: "item", key: "", dropPosition: "before" })).toBe(false)
+        expect(isValid?.({ type: "item", key: "name", dropPosition: "after" })).toBe(true)
+        return { type: "item", key: "name", dropPosition: "after" }
+      },
+    ),
+  }
+  await render(
+    <NativeCollectionRendererContext.Provider
+      value={{ ...DefaultNativeCollectionRenderer, dropTargetDelegate: delegate }}
+    >
+      {tree({ ...props(), onReorder })}
+    </NativeCollectionRendererContext.Provider>,
+  )
+  const root = screen.getByTestId("query-sort-list")
+  measureView(root, (callback) => callback(100, 200, 240, 220))
+  const rowMeasures = ["", "name"].map((id) => measureView(option(id), () => {}))
+  const source = option()
+  await act(() => {
+    source.props.onStartShouldSetResponderCapture(pointer(110, 210))
+    source.props.onResponderGrant(pointer(110, 210))
+  })
+  await act(() => source.props.onResponderMove(pointer(110, 370, 2)))
+  expect(delegate.getDropTargetFromPoint).toHaveBeenLastCalledWith(10, 170, expect.any(Function))
+  for (const measured of rowMeasures) expect(measured).not.toHaveBeenCalled()
+  await act(() => source.props.onResponderRelease(pointer(110, 370, 3)))
+  expect(onReorder).toHaveBeenCalledWith("", "name", "after")
+})
+
+it("persists dragged and logical target keys and waits for an original virtual target before admission", async () => {
+  let received: TNativeCollectionRootProps
+  let materialize: (key: string) => void = () => {}
+  const requestRendering = jest.fn(),
+    onReorder = jest.fn()
+  const Root = (value: TNativeCollectionRootProps) => {
+    received = value
+    const [visible, setVisible] = useState(new Set([""]))
+    materialize = (key) => setVisible((prior) => new Set([...prior, key]))
+    return (
+      <>
+        {Array.from(value.collection)
+          .filter((node) => visible.has(String(node.key)))
+          .map((node) => (
+            <Fragment key={String(node.key)}>{node.render?.(node)}</Fragment>
+          ))}
+      </>
+    )
+  }
+  const renderer: TNativeCollectionRenderer = {
+    ...DefaultNativeCollectionRenderer,
+    isVirtualized: true,
+    CollectionRoot: Root,
+    layoutDelegate: {
+      getContentSize: () => ({ width: 240, height: 220 }),
+      getVisibleRect: () => ({ x: 0, y: 0, width: 240, height: 220 }),
+      getItemRect: (key) =>
+        key === "" || key === "name" ? { x: 0, y: key === "" ? 0 : 100, width: 240, height: 80 } : null,
+      requestRendering,
+    },
+    dropTargetDelegate: {
+      getDropTargetFromPoint: (): TNativeCollectionDropTarget => ({ type: "item", key: "name", dropPosition: "after" }),
+    },
+  }
+  await render(
+    <NativeCollectionRendererContext.Provider value={renderer}>
+      {tree({ ...props(), onReorder })}
+    </NativeCollectionRendererContext.Provider>,
+  )
+  const root = screen.getByTestId("query-sort-list")
+  measureView(root, (callback) => callback(100, 200, 240, 220))
+  const source = option(),
+    original = mockViews.get(source.props.ownerId)
+  expect(screen.queryByTestId("query-sort-option-name")).toBeNull()
+  await act(() => {
+    source.props.onStartShouldSetResponderCapture(pointer(110, 210))
+    source.props.onResponderGrant(pointer(110, 210))
+  })
+  await act(() => source.props.onResponderRelease(pointer(110, 370, 2)))
+  expect(received!.persistedKeys).toEqual(new Set(["", "name"]))
+  expect(requestRendering).toHaveBeenCalledTimes(1)
+  expect(requestRendering).toHaveBeenCalledWith("name")
+  expect(onReorder).not.toHaveBeenCalled()
+  await act(() => materialize("name"))
+  expect(onReorder).toHaveBeenCalledTimes(1)
+  expect(onReorder).toHaveBeenCalledWith("", "name", "after")
+  expect(mockViews.get(source.props.ownerId)).toBe(original)
+})
+
+it.each(["on", "root", "foreign"])("rejects a renderer delegate's inadmissible %s target", async (kind) => {
+  const onReorder = jest.fn()
+  const result: TNativeCollectionDropTarget =
+    kind === "root"
+      ? { type: "root" }
+      : {
+          type: "item",
+          key: kind === "foreign" ? "missing" : "name",
+          dropPosition: kind === "foreign" ? "after" : "on",
+        }
+  await render(
+    <NativeCollectionRendererContext.Provider
+      value={{ ...DefaultNativeCollectionRenderer, dropTargetDelegate: { getDropTargetFromPoint: () => result } }}
+    >
+      {tree({ ...props(), onReorder })}
+    </NativeCollectionRendererContext.Provider>,
+  )
+  const root = screen.getByTestId("query-sort-list")
+  measureView(root, (callback) => callback(0, 0, 200, 200))
+  const source = option()
+  await act(() => {
+    source.props.onStartShouldSetResponderCapture(pointer(10, 10))
+    source.props.onResponderGrant(pointer(10, 10))
+  })
+  await act(() => source.props.onResponderRelease(pointer(10, 170, 2)))
+  expect(onReorder).not.toHaveBeenCalled()
+  expect(screen.queryByTestId("query-sort-drop-indicator")).toBeNull()
+})
+
+it("waits for the latest renderer viewport measurement before admitting a released target", async () => {
+  const onReorder = jest.fn()
+  const delegate = {
+    getDropTargetFromPoint: jest.fn(
+      (): TNativeCollectionDropTarget => ({ type: "item", key: "name", dropPosition: "after" }),
+    ),
+  }
+  await render(
+    <NativeCollectionRendererContext.Provider
+      value={{ ...DefaultNativeCollectionRenderer, dropTargetDelegate: delegate }}
+    >
+      {tree({ ...props(), onReorder })}
+    </NativeCollectionRendererContext.Provider>,
+  )
+  const pending: (() => void)[] = []
+  let offset = 0
+  measureView(screen.getByTestId("query-sort-list"), (callback) => {
+    const top = offset
+    pending.push(() => callback(0, top, 200, 200))
+  })
+  const source = option()
+  await act(() => {
+    source.props.onStartShouldSetResponderCapture(pointer(10, 10))
+    source.props.onResponderGrant(pointer(10, 10))
+  })
+  const older = pending.splice(0)
+  offset = 300
+  await act(() => source.props.onResponderRelease(pointer(10, 470, 2)))
+  const current = pending.splice(0)
+  expect(older).toHaveLength(1)
+  expect(current).toHaveLength(1)
+  await act(() => older[0]!())
+  expect(delegate.getDropTargetFromPoint).not.toHaveBeenCalled()
+  expect(onReorder).not.toHaveBeenCalled()
+  await act(() => current[0]!())
+  expect(delegate.getDropTargetFromPoint).toHaveBeenLastCalledWith(10, 170, expect.any(Function))
+  expect(onReorder).toHaveBeenCalledTimes(1)
+  expect(onReorder).toHaveBeenCalledWith("", "name", "after")
+})
+
+it("retires a pending renderer measurement when its original drop delegate is replaced", async () => {
+  const onReorder = jest.fn()
+  const original = jest.fn((): TNativeCollectionDropTarget => ({ type: "item", key: "name", dropPosition: "after" }))
+  const next = jest.fn(original.getMockImplementation()!)
+  const value = { ...props(), onReorder }
+  const withDelegate = (getDropTargetFromPoint: typeof original) => (
+    <NativeCollectionRendererContext.Provider
+      value={{ ...DefaultNativeCollectionRenderer, dropTargetDelegate: { getDropTargetFromPoint } }}
+    >
+      {tree(value)}
+    </NativeCollectionRendererContext.Provider>
+  )
+  const view = await render(withDelegate(original))
+  const pending: (() => void)[] = []
+  measureView(screen.getByTestId("query-sort-list"), (callback) => pending.push(() => callback(0, 0, 200, 200)))
+  const source = option(),
+    originalView = mockViews.get(source.props.ownerId)
+  await act(() => {
+    source.props.onStartShouldSetResponderCapture(pointer(10, 10))
+    source.props.onResponderGrant(pointer(10, 10))
+    source.props.onResponderRelease(pointer(10, 170, 2))
+  })
+  expect(pending).toHaveLength(1)
+  await view.rerender(withDelegate(next))
+  expect(mockViews.get(option().props.ownerId)).toBe(originalView)
+  await act(() => pending.splice(0).forEach((measure) => measure()))
+  expect(original).not.toHaveBeenCalled()
+  expect(next).not.toHaveBeenCalled()
+  expect(onReorder).not.toHaveBeenCalled()
+  expect(screen.queryByTestId("query-sort-drop-indicator")).toBeNull()
+})
 
 it("uses the real responder and measured original targets for a pointer reorder", async () => {
   const onReorder = jest.fn()
@@ -424,9 +637,7 @@ it("remeasures original rows after their window positions change during a pointe
   await render(tree({ ...props(), onReorder }))
   let offset = 0
   for (const [index, id] of ["", "name"].entries())
-    jest
-      .spyOn(mockViews.get(option(id).props.ownerId)!, "measureInWindow")
-      .mockImplementation((callback) => callback(0, offset + index * 100, 200, 80))
+    measureView(option(id), (callback) => callback(0, offset + index * 100, 200, 80))
   const source = option()
   await act(() => {
     source.props.onStartShouldSetResponderCapture(pointer(10, 10))
@@ -445,7 +656,7 @@ it("waits for the latest complete release measurements and rejects an older poin
   const pending: (() => void)[] = []
   let offset = 0
   for (const [index, id] of ["", "name"].entries())
-    jest.spyOn(mockViews.get(option(id).props.ownerId)!, "measureInWindow").mockImplementation((callback) => {
+    measureView(option(id), (callback) => {
       const y = offset + index * 100
       pending.push(() => callback(0, y, 200, 80))
     })
@@ -477,9 +688,7 @@ it("cancels a release with invalid current geometry instead of using the old com
   await render(tree({ ...props(), onReorder }))
   let invalid = false
   for (const [index, id] of ["", "name"].entries())
-    jest
-      .spyOn(mockViews.get(option(id).props.ownerId)!, "measureInWindow")
-      .mockImplementation((callback) => callback(0, index * 100, 200, invalid ? 0 : 80))
+    measureView(option(id), (callback) => callback(0, index * 100, 200, invalid ? 0 : 80))
   const source = option()
   await act(() => {
     source.props.onStartShouldSetResponderCapture(pointer(10, 10))
@@ -498,9 +707,7 @@ it("retains original release coordinates until admission and measurement complet
   await render(tree({ ...props(), onReorder }))
   const measurements: (() => void)[] = []
   for (const [index, id] of ["", "name"].entries())
-    jest
-      .spyOn(mockViews.get(option(id).props.ownerId)!, "measureInWindow")
-      .mockImplementation((callback) => measurements.push(() => callback(0, index * 100, 200, 80)))
+    measureView(option(id), (callback) => measurements.push(() => callback(0, index * 100, 200, 80)))
   const source = option()
   await rawAct(() => {
     source.props.onStartShouldSetResponderCapture(pointer(10, 10))

@@ -37,7 +37,12 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
   useLayoutEffect(() => returnFocus(overlay.mounted))
   const dismiss = useRef<TNativeFloatingWindowDismiss | null>(null)
   const styles = getNativePanelStyles(props, theme, viewport?.width ?? window.width)
-  const { opacity: overlayOpacity, ...overlayPaint } = styles.overlay
+  const {
+    opacity: overlayOpacity,
+    transform: overlayTransform,
+    transformOrigin: overlayTransformOrigin,
+    ...overlayPaint
+  } = styles.overlay
   const appearance = useNativePanelAppearance(
     styles.view,
     styles.text,
@@ -116,7 +121,10 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
                   focusable={false}
                   pointerEvents="box-none"
                   needsOffscreenAlphaCompositing
-                  style={[StyleSheet.absoluteFill, { opacity: overlayOpacity }]}
+                  style={[
+                    StyleSheet.absoluteFill,
+                    { opacity: overlayOpacity, transform: overlayTransform, transformOrigin: overlayTransformOrigin },
+                  ]}
                 >
                   {props.overlayBlur && <NativeBackdropEffect source={source} />}
                   <Pressable

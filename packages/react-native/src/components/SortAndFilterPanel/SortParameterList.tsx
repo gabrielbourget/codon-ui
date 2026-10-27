@@ -204,12 +204,18 @@ const List = ({
     allowItemDescendantKeys: true,
     canAct: props.canAct,
   })
-  const persistedKeys = useNativePersistedKeys(
+  const reorder = useSortReorder(collection, keyboard.canAct, props.onReorder, root)
+  const focusedKeys = useNativePersistedKeys(
     state.selectionManager.focusedKey,
     keyboard.requestedKey,
     keyboard.observedKey,
   )
-  const reorder = useSortReorder(collection, keyboard.canAct, props.onReorder)
+  const persistedKeys = useMemo(() => {
+    if (reorder.source === null && reorder.targetKey === null && reorder.indicatorKey === null) return focusedKeys
+    const keys = new Set(focusedKeys ?? [])
+    for (const key of [reorder.source, reorder.targetKey, reorder.indicatorKey]) if (key !== null) keys.add(key)
+    return keys
+  }, [focusedKeys, reorder.source, reorder.targetKey, reorder.indicatorKey])
   const register = useCallback<TKeyboard["register"]>(
     (node, view) => {
       keyboard.register(node, view)
