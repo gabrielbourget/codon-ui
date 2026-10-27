@@ -1,4 +1,5 @@
 #import "CUIOverlayHost.h"
+#include "../cpp/overlay/NativeOverlayLayout.h"
 
 #import <QuartzCore/QuartzCore.h>
 #import <react/renderer/components/CodonNativeInputSpec/ComponentDescriptors.h>
@@ -15,7 +16,7 @@ using namespace facebook::react;
 
 + (ComponentDescriptorProvider)componentDescriptorProvider
 {
-  return concreteComponentDescriptorProvider<CUIOverlayHostComponentDescriptor>();
+  return concreteComponentDescriptorProvider<CUIOwnedOverlayHostComponentDescriptor>();
 }
 
 - (instancetype)initWithFrame:(CGRect)frame
@@ -47,6 +48,7 @@ using namespace facebook::react;
   for (const auto &filter : _props->filter)
     if (filter.type == FilterType::Opacity && std::holds_alternative<Float>(filter.parameters))
       opacity *= std::clamp(std::get<Float>(filter.parameters), Float{0}, Float{1});
+  if (_layoutMetrics.displayType == DisplayType::Contents) opacity = 1;
   CGRect coverage = self.bounds;
   if (self.window) {
     CGRect windowCoverage = [self convertRect:self.window.bounds fromView:self.window];

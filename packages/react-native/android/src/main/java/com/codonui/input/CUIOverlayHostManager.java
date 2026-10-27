@@ -16,7 +16,7 @@ public final class CUIOverlayHostManager extends ReactViewManager implements CUI
   private final ViewManagerDelegate<ReactViewGroup> inherited = new ViewManagerPropertyUpdater.GenericViewManagerDelegate<>(this);
   private final CUIOverlayHostManagerDelegate<ReactViewGroup, CUIOverlayHostManager> delegate = new CUIOverlayHostManagerDelegate<>(this) {
     @Override public void setProperty(ReactViewGroup view, String name, Object value) {
-      if ("paintOpacity".equals(name)) super.setProperty(view, name, value);
+      if ("paintOpacity".equals(name) || "panelPosition".equals(name) || "panelViewportHeight".equals(name) || "panelViewportWidth".equals(name) || "establishesContainingBlock".equals(name)) super.setProperty(view, name, value);
       else inherited.setProperty(view, name, value);
     }
   };
@@ -26,6 +26,11 @@ public final class CUIOverlayHostManager extends ReactViewManager implements CUI
   @Override public ReactViewGroup createViewInstance(ThemedReactContext context) { return new CUIOverlayHost(context); }
   @Override @ReactProp(name = "paintOpacity", defaultDouble = 1)
   public void setPaintOpacity(ReactViewGroup view, double value) { ((CUIOverlayHost)view).setPaintOpacity(value); }
+  // Layout-only fields are consumed by the original Fabric descriptor during the native commit.
+  @Override @ReactProp(name = "panelPosition") public void setPanelPosition(ReactViewGroup view, String value) {}
+  @Override @ReactProp(name = "panelViewportHeight", defaultBoolean = false) public void setPanelViewportHeight(ReactViewGroup view, boolean value) {}
+  @Override @ReactProp(name = "panelViewportWidth", defaultBoolean = false) public void setPanelViewportWidth(ReactViewGroup view, boolean value) {}
+  @Override @ReactProp(name = "establishesContainingBlock", defaultBoolean = false) public void setEstablishesContainingBlock(ReactViewGroup view, boolean value) {}
   @Override protected ReactViewGroup prepareToRecycleView(ThemedReactContext context, ReactViewGroup view) {
     ((CUIOverlayHost)view).setPaintOpacity(1);
     return super.prepareToRecycleView(context, view);

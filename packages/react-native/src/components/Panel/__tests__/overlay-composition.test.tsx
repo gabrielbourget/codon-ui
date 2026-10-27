@@ -197,6 +197,7 @@ it("owns overlay filter, blend, isolation and stacking around the original Panel
     isolation: "isolate",
     zIndex: 50,
   })
+  expect(row("panel-overlay-viewport")).toHaveStyle({ zIndex: 50 })
   const ancestor = (element: ReturnType<typeof row>) => {
     for (let node = element.parent; node; node = node.parent)
       if (node.props.testID === "panel-overlay-composite") return node
@@ -215,6 +216,7 @@ it("owns overlay filter, blend, isolation and stacking around the original Panel
   await view.rerender(tree({ filter: "none", mixBlendMode: "normal", isolation: "auto", zIndex: 0 }))
   expect(group).toHaveStyle({ filter: [], mixBlendMode: "normal", isolation: "auto", zIndex: 0 })
   await view.rerender(tree())
+  expect(StyleSheet.flatten(row("panel-overlay-viewport").props.style).zIndex).toBeUndefined()
   for (const field of ["filter", "mixBlendMode", "isolation", "zIndex"] as const)
     expect(StyleSheet.flatten(group.props.style)[field]).toBeUndefined()
   expect(root.current).toBe(originalRoot)

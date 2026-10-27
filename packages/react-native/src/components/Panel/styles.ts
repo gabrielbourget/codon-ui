@@ -32,6 +32,7 @@ const TEXT_FIELDS = [
   "writingDirection",
   "userSelect",
 ] as const
+const NATIVE_BOX_POSITIONS = ["absolute", "relative", "static"] as const
 
 export const getNativePanelStyles = (props: TNativePanelProps, theme: TNativeTheme, viewportWidth: number) => {
   validateNativeDisplayDimension(props.width, "Panel", "width")
@@ -139,5 +140,21 @@ export const getNativePanelStyles = (props: TNativePanelProps, theme: TNativeThe
     overlay.filter = resolvePanelFilters(overlay.filter, theme.colors.foreground) as ViewStyle["filter"]
   if (typeof overlay.opacity === "number" && Number.isFinite(overlay.opacity))
     overlay.opacity = Math.max(0, Math.min(1, overlay.opacity))
-  return { text, view, overlay, side }
+  if (
+    authored.position !== undefined &&
+    !NATIVE_BOX_POSITIONS.includes(authored.position as (typeof NATIVE_BOX_POSITIONS)[number])
+  )
+    throw new TypeError("Panel: unsupported native layout position")
+  const panelPosition = authored.position ?? "fixed"
+  return {
+    text,
+    view,
+    overlay,
+    side,
+    layout: {
+      position: panelPosition as "fixed" | "absolute" | "relative" | "static",
+      viewportHeight: authored.height === undefined,
+      viewportWidth: authored.width === undefined,
+    },
+  }
 }
