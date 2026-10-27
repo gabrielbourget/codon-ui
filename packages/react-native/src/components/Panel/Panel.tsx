@@ -165,6 +165,7 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
                     pointerEvents="box-none"
                     paintOpacity={overlayLayout.opacity as TOverlayPaintOpacity}
                     panelPosition={overlayLayout.panelPosition}
+                    panelFlowFlexContainer={overlayLayout.panelFlowFlexContainer}
                     panelViewportHeight={overlayLayout.panelViewportHeight}
                     panelViewportWidth={overlayLayout.panelViewportWidth}
                     panelLayoutLengths={appearance.layoutLengths}

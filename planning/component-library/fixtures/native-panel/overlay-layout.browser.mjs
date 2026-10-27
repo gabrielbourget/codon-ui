@@ -13,7 +13,11 @@ const repository = resolve(here, "../../../..")
 const require = createRequire(join(repository, "packages/react/package.json"))
 const vite = require.resolve("vite", { paths: [dirname(require.resolve("vitest/package.json"))] })
 const { build } = await import(vite)
-const entry = process.argv[3] === "length-transitions" ? "length-transitions.browser.tsx" : "overlay-layout.browser.tsx"
+const entry =
+  {
+    "length-transitions": "length-transitions.browser.tsx",
+    "flow-layout": "flow-layout.browser.tsx",
+  }[process.argv[3]] ?? "overlay-layout.browser.tsx"
 const workspace = realpathSync(mkdtempSync(join(tmpdir(), "codon-panel-overlay-layout-")))
 const source = {
   canonicalRef: "ddc9f066f67af4742e05e04bd870726141c44129",

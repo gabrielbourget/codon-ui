@@ -26,6 +26,7 @@ export const getNativePanelOverlayLayout = (
   blur: boolean,
 ) => {
   const overlay = styles.overlay
+  const panelFlowFlexContainer = overlay.display === "flex"
   const contents = overlay.display === "contents"
   const transformed =
     typeof overlay.transform === "string"
@@ -41,6 +42,22 @@ export const getNativePanelOverlayLayout = (
       ([key]) => isGeometryField(key) || isBorderGeometry(key) || (COMPOSITE_FIELDS.has(key) && key !== "opacity"),
     ),
   ) as ViewStyle
+  if (!panelFlowFlexContainer)
+    for (const field of [
+      "flexDirection",
+      "flexWrap",
+      "alignItems",
+      "alignContent",
+      "justifyContent",
+      "gap",
+      "rowGap",
+      "columnGap",
+    ] as const)
+      delete host[field]
+  else {
+    host.flexDirection ??= "row"
+    host.alignContent ??= "stretch"
+  }
   const paint = Object.fromEntries(
     Object.entries(overlay).filter(([key]) => !isGeometryField(key) && !COMPOSITE_FIELDS.has(key)),
   ) as ViewStyle
@@ -60,6 +77,7 @@ export const getNativePanelOverlayLayout = (
     paint,
     opacity: contents ? 1 : (overlay.opacity ?? 1),
     panelPosition: styles.layout.position,
+    panelFlowFlexContainer,
     panelViewportHeight: styles.layout.viewportHeight && appearance.height === "100%",
     panelViewportWidth: styles.layout.viewportWidth && appearance.width === styles.view.width,
     establishesContainingBlock,

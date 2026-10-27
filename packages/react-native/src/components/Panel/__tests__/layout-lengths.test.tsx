@@ -26,6 +26,7 @@ const lengths = () =>
     field: string
     points: number
     percent: number
+    hasPercentage: boolean
   }[]
 const length = (field: string) => lengths().find((value) => value.field === field)!
 
@@ -46,6 +47,8 @@ it("matches the canonical midpoint geometry while retaining a live percentage co
   expect(width.points + width.percent * 232).toBe(208)
   const next = mixPanelLayoutLength(authored.width!, getPanelLayoutLength("width", 80)!)(0.5)
   expect(next.points + next.percent * 232).toBe(98)
+  expect(getPanelLayoutLength("height", "0%")).toEqual({ points: 0, percent: 0, hasPercentage: true })
+  expect(mixPanelLayoutLength(defaults.height!, authored.height!)(0).hasPercentage).toBe(true)
   expect(getPanelLayoutLength("height", "auto")).toBeUndefined()
   expect(getPanelLayoutLength("width", Infinity)).toBeUndefined()
 })
@@ -76,7 +79,7 @@ it("transitions default100vh to authored100% on the original clock and original 
   const timing = jest.spyOn(Animated, "timing")
   const overlay = { width: 240, height: 180, borderWidth: 4, transform: [{ translateX: 0 }] }
   await f.rerender(f.node({ height: "100%", customOverlayStyles: overlay }))
-  expect(length("height")).toEqual({ field: "height", points: 720, percent: 0 })
+  expect(length("height")).toEqual({ field: "height", points: 720, percent: 0, hasPercentage: true })
   await advance(175)
   const middle = length("height")
   expect(middle.percent).toBeGreaterThan(0.3)
@@ -86,10 +89,10 @@ it("transitions default100vh to authored100% on the original clock and original 
   expect(length("height")).toEqual(middle)
   expect(timing.mock.calls.filter(([, options]) => options.duration === 350)).toHaveLength(1)
   await advance(200)
-  expect(lengths()).toEqual([])
+  expect(lengths()).toEqual([{ field: "height", points: 0, percent: 1, hasPercentage: true }])
   expect(row("panel-overlay-composite").props.panelViewportHeight).toBe(false)
   await f.rerender(f.node({ customOverlayStyles: overlay }))
-  expect(length("height")).toEqual({ field: "height", points: 0, percent: 1 })
+  expect(length("height")).toEqual({ field: "height", points: 0, percent: 1, hasPercentage: true })
   await advance(375)
   expect(lengths()).toEqual([])
   expect(row("panel-overlay-composite").props.panelViewportHeight).toBe(true)
@@ -102,7 +105,7 @@ it("transitions default100vh to authored100% on the original clock and original 
 it("retargets mixed width coefficients and shortens reversal without resetting independent paint", async () => {
   const f = await setup()
   await f.rerender(f.node({ width: "50%", customStyles: { opacity: 0.2 } }))
-  expect(length("width")).toEqual({ field: "width", points: 300, percent: 0 })
+  expect(length("width")).toEqual({ field: "width", points: 300, percent: 0, hasPercentage: true })
   await advance(175)
   const middle = length("width")
   expect(middle.points).toBeCloseTo(300 * (1 - middle.percent / 0.5), 8)

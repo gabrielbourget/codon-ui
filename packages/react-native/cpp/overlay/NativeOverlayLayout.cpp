@@ -68,7 +68,8 @@ bool definiteAxis(const CUIOverlayHostProps &props, Size viewport, bool height) 
 
 std::shared_ptr<const ShadowNode> bodyWithLengths(const ShadowNode &node, const CUIOverlayHostProps &props,
     LayoutContext context, Size containingBlock, bool intrinsic = false) {
-  if (!props.panelViewportHeight && !props.panelViewportWidth && props.panelLayoutLengths.empty()) return node.clone({});
+  const bool block = isFlowBody(props) && !props.panelFlowFlexContainer;
+  if (!isFlowBody(props) && !props.panelViewportHeight && !props.panelViewportWidth && props.panelLayoutLengths.empty()) return node.clone({});
   folly::dynamic raw = folly::dynamic::object();
   if (props.panelViewportHeight) raw["height"] = context.viewportSize.height;
   if (props.panelViewportWidth)
@@ -76,15 +77,12 @@ std::shared_ptr<const ShadowNode> bodyWithLengths(const ShadowNode &node, const 
   const bool row = props.yogaStyle.flexDirection() == yoga::FlexDirection::Row ||
       props.yogaStyle.flexDirection() == yoga::FlexDirection::RowReverse;
   for (const auto &length : props.panelLayoutLengths) {
-    const bool cyclicHeight = isFlowBody(props) && !definiteAxis(props, context.viewportSize, true) &&
-        (length.field == "height" || length.field == "minHeight" || length.field == "maxHeight" ||
-         (length.field == "flexBasis" && !row));
-    const bool cyclicWidth = isFlowBody(props) && intrinsic && !definiteAxis(props, context.viewportSize, false) &&
-        (length.field == "width" || length.field == "minWidth" || length.field == "maxWidth" ||
-         (length.field == "flexBasis" && row));
-    if (length.percent != 0 && (cyclicHeight || cyclicWidth)) {
-      if (length.field.starts_with("min")) raw[length.field] = 0;
-      else if (length.field.starts_with("max")) raw[length.field] = nullptr;
+    const auto cyclic = codon::overlay::panelCyclicLength(length.field, length.hasPercentage,
+        isFlowBody(props) && intrinsic && !definiteAxis(props, context.viewportSize, false),
+        isFlowBody(props) && !definiteAxis(props, context.viewportSize, true), row);
+    if (cyclic != codon::overlay::PanelCyclicLength::None) {
+      if (cyclic == codon::overlay::PanelCyclicLength::Zero) raw[length.field] = 0;
+      else if (cyclic == codon::overlay::PanelCyclicLength::Undefined) raw[length.field] = nullptr;
       else raw[length.field] = "auto";
       continue;
     }
@@ -93,7 +91,10 @@ std::shared_ptr<const ShadowNode> bodyWithLengths(const ShadowNode &node, const 
     if (intrinsic) basis = 0;
     raw[length.field] = codon::overlay::resolvePanelTransitionLength(length.points, length.percent, basis);
   }
-  return node.clone({.props = cloneOwnedProps<CUIFocusViewProps>(node, RawProps(raw))});
+  auto bodyProps = cloneOwnedProps<CUIFocusViewProps>(node, RawProps(raw));
+  if (block) codon::overlay::applyPanelBlockFlow(bodyProps->yogaStyle);
+  else if (isFlowBody(props)) codon::overlay::applyPanelFlexFlow(bodyProps->yogaStyle);
+  return node.clone({.props = bodyProps});
 }
 
 void resolveOwnedRoot(yoga::Node &node, yoga::Config &config, Size containingBlock, LayoutDirection direction) {
@@ -236,9 +237,10 @@ void CUIOwnedOverlayHostShadowNode::completeClone(const ShadowNode &source, cons
   const bool sameLengths = previous.panelLayoutLengths.size() == next.panelLayoutLengths.size() &&
       std::equal(previous.panelLayoutLengths.begin(), previous.panelLayoutLengths.end(), next.panelLayoutLengths.begin(),
           [](const auto &first, const auto &last) {
-            return first.field == last.field && first.points == last.points && first.percent == last.percent;
+            return first.field == last.field && first.points == last.points && first.percent == last.percent && first.hasPercentage == last.hasPercentage;
           });
   if (fragment.children || previous.panelPosition != next.panelPosition ||
+      previous.panelFlowFlexContainer != next.panelFlowFlexContainer ||
       previous.panelViewportHeight != next.panelViewportHeight || previous.panelViewportWidth != next.panelViewportWidth ||
       !sameLengths ||
       previous.establishesContainingBlock != next.establishesContainingBlock) dirtyLayout();
@@ -298,7 +300,7 @@ void CUIOwnedOverlayHostShadowNode::layoutTree(LayoutContext context, LayoutCons
     const auto height = yogaNode_.style().dimension(yoga::Dimension::Height);
     const bool cyclicInline = !definiteAxis(getConcreteProps(), context.viewportSize, false) &&
         std::any_of(getConcreteProps().panelLayoutLengths.begin(), getConcreteProps().panelLayoutLengths.end(),
-            [](const auto &length) { return length.percent != 0 && !blockLength(length.field); });
+            [](const auto &length) { return length.hasPercentage && !blockLength(length.field); });
     if (cyclicInline)
       yogaNode_.style().setDimension(yoga::Dimension::Width, yoga::StyleSizeLength::points(metrics.frame.size.width));
     yogaNode_.markDirtyAndPropagate();

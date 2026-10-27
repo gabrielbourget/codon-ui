@@ -12,6 +12,7 @@ import {
 import {
   getPanelLayoutLength,
   getPanelLayoutLengths,
+  isPanelSizeLength,
   mixPanelLayoutLength,
   type TPanelLayoutLength,
   type TPanelLayoutLengths,
@@ -265,7 +266,11 @@ export const useNativePanelAppearance = (
     view: drawing.view,
     radii: drawing.radii,
     layoutLengths: Object.entries(rendered.lengths).flatMap(([field, length]) => {
-      if (!length || !owner.current.tracks.has(`view:${field}`)) return []
+      if (
+        !length ||
+        (!owner.current.tracks.has(`view:${field}`) && !(length.hasPercentage && isPanelSizeLength(field)))
+      )
+        return []
       if (field !== "inset") return [{ field, ...length }]
       // The shorthand has two percentage bases; retain more-specific authored axes.
       return ["insetInline", "insetBlock"].flatMap((axis) =>

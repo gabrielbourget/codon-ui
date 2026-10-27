@@ -100,3 +100,19 @@ it("leaves intermediate numeric appearance dimensions on the original property c
     panelViewportWidth: false,
   })
 })
+
+it("keeps default CSS block flow distinct from an explicitly authored flex container", () => {
+  const authored: ViewStyle = { flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 30 }
+  const block = resolve({ position: "relative", flexGrow: 1, flexBasis: 140 }, authored)
+  expect(block.panelFlowFlexContainer).toBe(false)
+  for (const field of ["flexDirection", "alignItems", "justifyContent", "gap"])
+    expect(block.host).not.toHaveProperty(field)
+  expect(resolve({ position: "relative" }, { ...authored, display: "flex" })).toMatchObject({
+    panelFlowFlexContainer: true,
+    host: authored,
+  })
+  expect(resolve({ position: "relative" }, { display: "flex" }).host).toMatchObject({
+    flexDirection: "row",
+    alignContent: "stretch",
+  })
+})
