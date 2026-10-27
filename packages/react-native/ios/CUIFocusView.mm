@@ -1,4 +1,5 @@
 #import "CUIFocusView.h"
+#import "CUIDialogFocusScopes.h"
 #import "CUIAccessibilityReferences.h"
 #import "CUICollectionRoot.h"
 #import "CUIInputWindow.h"
@@ -640,7 +641,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
   return YES;
 }
 
-- (BOOL)canBecomeFocused { return _nativeTabStop && [self canBecomeFirstResponder]; }
+- (BOOL)canBecomeFocused { return _nativeTabStop && !CUIIsDialogFocusRoot(self) && [self canBecomeFirstResponder]; }
 - (BOOL)canBecomeFirstResponder { return _keyboardFocusable && self.window != nil && !self.hidden && self.alpha > 0; }
 - (NSString *)fieldInputOwnerId { return _ownerId; }
 - (void)synchronizeFieldInputFocus { [_focusWithin synchronize]; }
@@ -802,7 +803,8 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 - (void)pressesBegan:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event
 {
   NSSet *original = CUIFieldInputRemainingPresses(self, presses, @"down");
-  NSSet *remaining = [self processPresses:original down:YES cancelled:NO];
+  NSMutableSet *remaining = [[self processPresses:original down:YES cancelled:NO] mutableCopy];
+  for (UIPress *press in remaining.copy) if (CUIHandleDialogFocusPress(self, press)) [remaining removeObject:press];
   if (remaining.count) [super pressesBegan:remaining withEvent:event];
 }
 

@@ -1,3 +1,4 @@
+#import "CUIDialogFocusScopes.h"
 #import "CUIFieldInputBinding.h"
 #import "CUIFieldGroupDocument.h"
 #import "CUIFieldPointerHandler.h"
@@ -277,7 +278,8 @@ static void CUIRefreshFieldInputWindow(UIWindow *window)
     router.editorHandler = ^BOOL(UIView *receiver, UIPress *press, NSString *phase) {
       CUIFieldInputWindow *current = weakRouter;
       if (!current || [CUIFieldWindows objectForKey:press.window] != current) return NO;
-      return [current handlePress:press phase:phase receiver:receiver];
+      if ([current handlePress:press phase:phase receiver:receiver]) return YES;
+      return [phase isEqualToString:@"down"] && CUIHandleDialogFocusPress(receiver, press);
     };
     [CUIFieldWindows setObject:router forKey:window];
   }

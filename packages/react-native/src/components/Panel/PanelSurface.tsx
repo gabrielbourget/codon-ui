@@ -3,6 +3,7 @@ import { Animated, type View } from "react-native"
 
 import { nativeKeyTokens } from "../../input/keyScope"
 import { observeNativeMotionGeometry } from "../../input/motionGeometry"
+import { NativeDialogEntryOwnerContext, useNativeDialogFocusOwner } from "../../input/NativeDialogFocusScope"
 import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeKeyPolicy, useNativeKeyScope } from "../../input/NativeKeyboardScope"
 
@@ -87,7 +88,8 @@ export const NativePanelSurface = forwardRef<
         if (observeRadii) onBorderBox(null)
       }
     }, [observeContentBox, onContentBox, observeRadii, onBorderBox])
-    useNativePanelInitialFocus(open, ready, isActive, root, initialFocusRef)
+    const reservedEntry = useNativePanelInitialFocus(open, ready, isActive, root, initialFocusRef)
+    const dialogOwner = useNativeDialogFocusOwner(root, () => open && ready && isActive(), reservedEntry)
     useNativeKeyPolicy({
       tokens: escapeTokens,
       targetTag: 0,
@@ -103,13 +105,15 @@ export const NativePanelSurface = forwardRef<
     })
     return (
       <NativePanelFocusIntentContext.Provider value={undefined}>
-        <AnimatedFocusView
-          {...props}
-          nativeMotionGeometryObservation={observeContentBox || observeRadii}
-          nativeMotionColorObservation
-          nativeTabStop={false}
-          ref={root}
-        />
+        <NativeDialogEntryOwnerContext.Provider value={dialogOwner}>
+          <AnimatedFocusView
+            {...props}
+            nativeMotionGeometryObservation={observeContentBox || observeRadii}
+            nativeMotionColorObservation
+            nativeTabStop={false}
+            ref={root}
+          />
+        </NativeDialogEntryOwnerContext.Provider>
       </NativePanelFocusIntentContext.Provider>
     )
   },

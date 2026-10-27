@@ -2,6 +2,7 @@ import { useRef, useSyncExternalStore, type ComponentProps } from "react"
 import { StyleSheet, type StyleProp, type TextStyle, type View, type ViewStyle } from "react-native"
 
 import { getNativeFocusedTarget, subscribeNativeFocus } from "../../input/focus"
+import { NativeDialogFocusScope } from "../../input/NativeDialogFocusScope"
 import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeTheme, type TNativeTheme } from "../../theme"
 import { resolveNativeStyle } from "../colors"
@@ -35,15 +36,17 @@ export const QueryPanelDialog = ({ style, ...props }: Omit<ComponentProps<typeof
   const focused = useSyncExternalStore(subscribeNativeFocus, getNativeFocusedTarget, () => null)
   const theme = useNativeTheme()
   return (
-    <NativeFocusHost
-      {...props}
-      ref={target}
-      style={[
-        target.current !== null && focused === target.current
-          ? { outlineWidth: 1.5, outlineStyle: "solid", outlineColor: theme.colors.focusRing }
-          : undefined,
-        definedStyle(style),
-      ]}
-    />
+    <NativeDialogFocusScope rootRef={target}>
+      <NativeFocusHost
+        {...props}
+        ref={target}
+        style={[
+          target.current !== null && focused === target.current
+            ? { outlineWidth: 1.5, outlineStyle: "solid", outlineColor: theme.colors.focusRing }
+            : undefined,
+          definedStyle(style),
+        ]}
+      />
+    </NativeDialogFocusScope>
   )
 }

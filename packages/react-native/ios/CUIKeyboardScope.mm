@@ -1,4 +1,5 @@
 #import "CUIKeyboardScope.h"
+#import "CUIDialogFocusScopes.h"
 #import "CUIInputWindow.h"
 #import "CUIMenuPointerPolicies.h"
 #import "CUIFloatingObserver.h"
@@ -137,6 +138,7 @@ static UIView *CUIFirstResponder(UIView *root)
   CUIMenuPointerPolicies *_menuPointers;
   NSArray<NSDictionary *> *_menuPointerRegistrations;
   double _menuPointerRevision;
+  CUIDialogFocusScopes *_dialogs;
   NSString *_ownerId;
   BOOL _captureEnabled;
   NSArray<NSDictionary *> *_policies;
@@ -181,6 +183,32 @@ static UIView *CUIFirstResponder(UIView *root)
     _sceneActive = YES;
     _floatingTargets = @[];
     __weak CUIKeyboardScope *weakSelf = self;
+    _dialogs = [[CUIDialogFocusScopes alloc] initWithOwner:self ready:^BOOL {
+      return [weakSelf captureReady];
+    } session:^NSDictionary * {
+      CUIKeyboardScope *scope = weakSelf;
+      return @{ @"ownerId": scope ? scope->_ownerId : @"", @"windowId": CUIInputWindowIdentity(scope.window), @"epoch": @(scope ? scope->_windowEpoch : 0) };
+    } emit:^(NSString *kind, NSDictionary *packet) {
+      CUIKeyboardScope *scope = weakSelf;
+      if (!scope || !scope->_eventEmitter) return;
+      auto emitter = std::static_pointer_cast<const CUIKeyboardScopeEventEmitter>(scope->_eventEmitter);
+      if ([kind isEqualToString:@"status"]) {
+        CUIKeyboardScopeEventEmitter::OnNativeDialogStatus data{};
+        data.ownerId = [packet[@"ownerId"] UTF8String]; data.windowId = [packet[@"windowId"] UTF8String];
+        data.epoch = [packet[@"epoch"] doubleValue]; data.revision = [packet[@"revision"] doubleValue];
+        data.ready = [packet[@"ready"] boolValue]; data.error = [packet[@"error"] UTF8String]; emitter->onNativeDialogStatus(data);
+      } else {
+        CUIKeyboardScopeEventEmitter::OnNativeDialogAction data{};
+        data.ownerId = [packet[@"ownerId"] UTF8String]; data.windowId = [packet[@"windowId"] UTF8String];
+        data.epoch = [packet[@"epoch"] doubleValue]; data.revision = [packet[@"revision"] doubleValue];
+        data.id = [packet[@"id"] UTF8String]; data.bindingId = [packet[@"bindingId"] UTF8String]; data.target = [packet[@"target"] intValue];
+        NSString *phase = packet[@"phase"];
+        data.phase = [phase isEqualToString:@"entered"] ? CUIKeyboardScopeEventEmitter::OnNativeDialogActionPhase::Entered
+          : [phase isEqualToString:@"wrapped"] ? CUIKeyboardScopeEventEmitter::OnNativeDialogActionPhase::Wrapped
+          : CUIKeyboardScopeEventEmitter::OnNativeDialogActionPhase::Restored;
+        emitter->onNativeDialogAction(data);
+      }
+    }];
     _editorKeyboardBindings = @[];
     _editorKeyboardTargets = NSMapTable.strongToWeakObjectsMapTable;
     _resolvedEditorKeyboardTargets = [NSMutableSet set];
@@ -228,6 +256,11 @@ static UIView *CUIFirstResponder(UIView *root)
   return @{ @"scopeOwnerId": _ownerId, @"windowId": CUIInputWindowIdentity(self.window), @"epoch": @(_windowEpoch) };
 }
 - (CUIMenuPointerPolicies *)menuPointers { return _menuPointers; }
+- (CUIDialogFocusScopes *)dialogFocusScopes { return _dialogs; }
+- (BOOL)shouldUpdateFocusInContext:(UIFocusUpdateContext *)context
+{
+  return [super shouldUpdateFocusInContext:context] && [_dialogs shouldAllowFocusUpdate:context];
+}
 - (void)emitMenuPointer:(NSDictionary *)packet
 {
   if (!_eventEmitter) return;
@@ -265,6 +298,7 @@ static UIView *CUIFirstResponder(UIView *root)
 }
 - (void)publishStatus
 {
+  [_dialogs refresh];
   [self publishEditorKeyboardStatus];
   [_floating setTargets:_floatingTargets active:[self captureReady]];
   CUIRefreshKeyboardObservation(self.window);
@@ -663,6 +697,15 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
   NSMutableArray *floating = [NSMutableArray array];
   for (const auto &target : next.floatingTargets) [floating addObject:@{ @"id": [NSString stringWithUTF8String:target.id.c_str()], @"targetTag": @(target.targetTag), @"descriptionTag": @(target.descriptionTag), @"descriptionLabel": [NSString stringWithUTF8String:target.descriptionLabel.c_str()] }];
   _floatingTargets = floating;
+  NSMutableArray *dialogs = [NSMutableArray new];
+  for (const auto &binding : next.dialogScopes) {
+    NSMutableArray *members = [NSMutableArray new], *entries = [NSMutableArray new];
+    for (const auto &member : binding.memberTargets) [members addObject:@{ @"id": @(member.id.c_str()), @"targetTag": @(member.targetTag) }];
+    for (const auto &entry : binding.entryTargets) [entries addObject:@{ @"id": @(entry.id.c_str()), @"targetTag": @(entry.targetTag), @"allowed": @(entry.allowed) }];
+    [dialogs addObject:@{ @"id": @(binding.id.c_str()), @"parentId": @(binding.parentId.c_str()), @"bindingId": @(binding.bindingId.c_str()),
+      @"targetTag": @(binding.targetTag), @"enabled": @(binding.enabled), @"entryAllowed": @(binding.entryAllowed), @"memberTargets": members, @"entryTargets": entries }];
+  }
+  [_dialogs update:dialogs revision:next.dialogRevision];
   [super updateProps:props oldProps:oldProps];
   [self publishStatus];
 }
@@ -684,7 +727,7 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
 {
   if (notification.object == self.window.windowScene) { _sceneActive = YES; _windowEpoch++; [self publishStatus]; }
 }
-- (void)layoutSubviews { [super layoutSubviews]; [self publishEditorKeyboardStatus]; CUIRefreshWindowPointerObservation(self.window); CUIRefreshMenuPointerPolicies(self.window); }
+- (void)layoutSubviews { [super layoutSubviews]; [_dialogs refresh]; [self publishEditorKeyboardStatus]; CUIRefreshWindowPointerObservation(self.window); CUIRefreshMenuPointerPolicies(self.window); }
 - (void)didMoveToWindow
 {
   [super didMoveToWindow];
@@ -708,6 +751,7 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
 }
 - (void)prepareForRecycle
 {
+  [_dialogs invalidate];
   [_menuPointers invalidate]; _menuPointerRegistrations = @[]; _menuPointerRevision = 0;
   [_floating invalidate]; _floatingTargets = @[];
   [_keyboard retireHeld];
@@ -728,6 +772,7 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
 }
 - (void)dealloc
 {
+  [_dialogs invalidate];
   [_menuPointers invalidate];
   [_floating invalidate];
   [_boundWindow removeGestureRecognizer:_keyboard];

@@ -2,8 +2,8 @@ import { readFileSync } from "node:fs"
 import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
-import { cleanup, render, screen } from "@testing-library/react"
-import type { CSSProperties } from "react"
+import { cleanup, render, screen, waitFor } from "@testing-library/react"
+import { useState, type CSSProperties } from "react"
 import { createPortal } from "react-dom"
 import { userEvent } from "@testing-library/user-event"
 import { Dialog } from "react-aria-components"
@@ -243,4 +243,140 @@ it("enables actual entry and forward/backward containment when its child Dialog 
   expect(screen.getByRole("button", { name: "Dialog last" })).toHaveFocus()
   await user.tab()
   expect(first).toHaveFocus()
+})
+
+it("contains sibling controls in the enclosing Panel scope after a child Dialog opts in", async () => {
+  const user = userEvent.setup()
+  render(
+    <Panel isOpen>
+      <button>Before dialog</button>
+      <Dialog aria-label="Scope requester">
+        <input aria-label="Inside requester" />
+      </Dialog>
+      <button>After dialog</button>
+    </Panel>,
+  )
+  expect(screen.getByRole("dialog", { name: "Scope requester" })).toHaveFocus()
+  screen.getByRole("button", { name: "After dialog" }).focus()
+  expect(screen.getByRole("button", { name: "After dialog" })).toHaveFocus()
+  await user.tab()
+  expect(screen.getByRole("button", { name: "Before dialog" })).toHaveFocus()
+  await user.tab({ shift: true })
+  expect(screen.getByRole("button", { name: "After dialog" })).toHaveFocus()
+})
+
+it("retains the enclosing Panel containment request after its requesting Dialog unmounts", async () => {
+  const user = userEvent.setup()
+  const node = (dialog: boolean) => (
+    <Panel isOpen>
+      <button>Remaining first</button>
+      {dialog && (
+        <Dialog aria-label="Temporary requester">
+          <input aria-label="Temporary editor" />
+        </Dialog>
+      )}
+      <button>Remaining last</button>
+    </Panel>
+  )
+  const view = render(node(true))
+  view.rerender(node(false))
+  screen.getByRole("button", { name: "Remaining last" }).focus()
+  await user.tab()
+  expect(screen.getByRole("button", { name: "Remaining first" })).toHaveFocus()
+})
+
+it("retains the original empty Dialog root for both traversal directions", async () => {
+  const user = userEvent.setup()
+  render(
+    <Panel isOpen>
+      <Dialog aria-label="Empty scope" />
+    </Panel>,
+  )
+  const dialog = screen.getByRole("dialog", { name: "Empty scope" })
+  expect(dialog).toHaveFocus()
+  await user.tab()
+  expect(dialog).toHaveFocus()
+  await user.tab({ shift: true })
+  expect(dialog).toHaveFocus()
+})
+
+it("recovers escaped focus to the latest eligible original in-scope control", async () => {
+  const changed = vi.fn()
+  render(
+    <>
+      <button>Outside</button>
+      <Panel isOpen>
+        <Dialog aria-label="Recovery scope">
+          <input aria-label="Original blank" value="" onChange={changed} />
+          <button>Latest target</button>
+        </Dialog>
+      </Panel>
+    </>,
+  )
+  const original = screen.getByLabelText("Original blank")
+  const latest = screen.getByRole("button", { name: "Latest target" })
+  latest.focus()
+  expect(latest).toHaveFocus()
+  screen.getByText("Outside").focus()
+  await waitFor(() => expect(latest).toHaveFocus())
+  expect(screen.getByLabelText("Original blank")).toBe(original)
+  expect(original).toHaveValue("")
+  expect(changed).not.toHaveBeenCalled()
+})
+
+it("gives the nested Dialog scope traversal and restores its original parent control on close", async () => {
+  const user = userEvent.setup(),
+    changed = vi.fn()
+  const Scene = () => {
+    const [open, setOpen] = useState(false)
+    return (
+      <Panel isOpen>
+        <Dialog aria-label="Parent scope">
+          <input aria-label="Parent blank" value="" onChange={changed} />
+          <button onClick={() => setOpen(true)}>Open nested</button>
+          <Panel isOpen={open} onOpenChange={setOpen}>
+            <Dialog aria-label="Nested scope">
+              <button>Nested first</button>
+              <button onClick={() => setOpen(false)}>Close nested</button>
+            </Dialog>
+          </Panel>
+        </Dialog>
+      </Panel>
+    )
+  }
+  render(<Scene />)
+  const original = screen.getByLabelText("Parent blank"),
+    opener = screen.getByRole("button", { name: "Open nested" })
+  await user.click(opener)
+  expect(screen.getByRole("dialog", { name: "Nested scope" })).toHaveFocus()
+  await user.tab({ shift: true })
+  expect(screen.getByRole("button", { name: "Close nested" })).toHaveFocus()
+  await user.tab()
+  expect(screen.getByRole("button", { name: "Nested first" })).toHaveFocus()
+  await user.click(screen.getByRole("button", { name: "Close nested" }))
+  await waitFor(() => expect(opener).toHaveFocus())
+  expect(screen.getByLabelText("Parent blank")).toBe(original)
+  expect(original).toHaveValue("")
+  expect(changed).not.toHaveBeenCalled()
+})
+
+it("keeps an authored raw portal outside Dialog containment while retaining its original controls", async () => {
+  const changed = vi.fn()
+  render(
+    <Panel isOpen>
+      <Dialog aria-label="Portal owner">
+        <input aria-label="Portal blank" value="" onChange={changed} />
+      </Dialog>
+      {createPortal(<button data-testid="authored-portal-focus">Authored portal control</button>, document.body)}
+    </Panel>,
+  )
+  const original = screen.getByLabelText("Portal blank"),
+    portal = screen.getByTestId("authored-portal-focus")
+  original.focus()
+  portal.focus()
+  await waitFor(() => expect(original).toHaveFocus())
+  expect(screen.getByLabelText("Portal blank")).toBe(original)
+  expect(screen.getByTestId("authored-portal-focus")).toBe(portal)
+  expect(original).toHaveValue("")
+  expect(changed).not.toHaveBeenCalled()
 })

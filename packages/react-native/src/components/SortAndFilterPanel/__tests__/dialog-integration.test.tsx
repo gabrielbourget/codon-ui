@@ -13,6 +13,7 @@ import {
 } from "../../../collection/__tests__/nativeReceipts"
 import { focusNativeTarget, getNativeFocusedTarget } from "../../../input/focus"
 import { NativeFocusHost } from "../../../input/NativeFocusView"
+import { NativeKeyboardScope } from "../../../input/NativeKeyboardScope"
 import { NativeFloatingWindowContext } from "../../../overlays/floating/scope"
 import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
 import { NativeThemeProvider } from "../../../theme"
@@ -167,10 +168,12 @@ it("retains the original empty editor and native dialog across focus, theme and 
   const node = (active: boolean, color: string) => (
     <NativeThemeProvider overrides={{ colors: { focusRing: color } }}>
       <NativeFloatingWindowContext.Provider value={active ? activeWindow : inactiveWindow}>
-        <QueryPanelDialog testID="standalone-dialog" role="dialog" accessible={false} nativeTabStop={false}>
-          <TextInput ref={editor} testID="dialog-held-editor" value="" onChangeText={changed} />
-          <NativeFocusHost testID="dialog-child" />
-        </QueryPanelDialog>
+        <NativeKeyboardScope captureEnabled>
+          <QueryPanelDialog testID="standalone-dialog" role="dialog" accessible={false} nativeTabStop={false}>
+            <TextInput ref={editor} testID="dialog-held-editor" value="" onChangeText={changed} />
+            <NativeFocusHost testID="dialog-child" />
+          </QueryPanelDialog>
+        </NativeKeyboardScope>
       </NativeFloatingWindowContext.Provider>
     </NativeThemeProvider>
   )

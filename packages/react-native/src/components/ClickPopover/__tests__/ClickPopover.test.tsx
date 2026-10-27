@@ -21,6 +21,7 @@ import {
   type TNativeDialogTriggerRenderState,
   type TNativeClickPopoverProps,
 } from "../../.."
+import { NativeDialogFocusScope } from "../../../input/NativeDialogFocusScope"
 import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
 import type { TNativeFloatingFocusEvent } from "../../../overlays/floating/interaction"
 
@@ -66,35 +67,51 @@ const tick = async () =>
     frames.clear()
     pending.forEach((callback) => callback(0))
   })
-const setup = (initial: Partial<TNativeClickPopoverProps> = {}, body: ReactNode = "Popover body") => {
+const setup = (
+  initial: Partial<TNativeClickPopoverProps> = {},
+  body: ReactNode = "Popover body",
+  contained = false,
+) => {
   const root = createRef<View>(),
     host = createRef<View>()
+  const dialogRoot = createRef<View>()
   const onOpenChange = jest.fn()
   let trigger: TNativeDialogTriggerRenderState
-  const node = (props = initial, theme: "light" | "dark" = "light", mounted = true) => (
-    <NativeThemeProvider mode={theme}>
-      <NativeFloatingLayerHost ref={host} testID="host">
-        <NativeDialogTrigger
-          isOpen
-          onOpenChange={onOpenChange}
-          trigger={(state) => {
-            trigger = state
-            return (
-              <Button {...state.triggerProps} testID="trigger">
-                Open
-              </Button>
-            )
-          }}
-        >
-          {mounted && (
-            <ClickPopover {...props} ref={root}>
-              {body}
-            </ClickPopover>
+  const node = (props = initial, theme: "light" | "dark" = "light", mounted = true) => {
+    const content = (
+      <NativeDialogTrigger
+        isOpen
+        onOpenChange={onOpenChange}
+        trigger={(state) => {
+          trigger = state
+          return (
+            <Button {...state.triggerProps} testID="trigger">
+              Open
+            </Button>
+          )
+        }}
+      >
+        {mounted && (
+          <ClickPopover {...props} ref={root}>
+            {body}
+          </ClickPopover>
+        )}
+      </NativeDialogTrigger>
+    )
+    return (
+      <NativeThemeProvider mode={theme}>
+        <NativeFloatingLayerHost ref={host} testID="host">
+          {contained ? (
+            <NativeDialogFocusScope rootRef={dialogRoot}>
+              <NativeFocusView ref={dialogRoot}>{content}</NativeFocusView>
+            </NativeDialogFocusScope>
+          ) : (
+            content
           )}
-        </NativeDialogTrigger>
-      </NativeFloatingLayerHost>
-    </NativeThemeProvider>
-  )
+        </NativeFloatingLayerHost>
+      </NativeThemeProvider>
+    )
+  }
   const acknowledge = async (epoch = 1, active = true) => {
     for (const ready of [false, true]) {
       const host = screen.getByTestId("host").props
@@ -140,7 +157,7 @@ const setup = (initial: Partial<TNativeClickPopoverProps> = {}, body: ReactNode 
     await act(() => screen.getByTestId("host").props.onTouchEndCapture(end))
     return end
   }
-  return { node, ready, acknowledge, outside, onOpenChange, root, trigger: () => trigger! }
+  return { dialogRoot, node, ready, acknowledge, outside, onOpenChange, root, trigger: () => trigger! }
 }
 
 it("composes a measured native dialog, real root ref and original onLayout event", async () => {
@@ -718,4 +735,29 @@ it.each(["pointer", "keyboard"] as const)("uses %s entry intent for a nonmodal S
   await f.ready()
   await tick()
   expect(Commands.requestContainerFocus).toHaveBeenCalledTimes(origin === "keyboard" ? 1 : 0)
+})
+
+it("owns a nested native focus boundary inside an explicit Dialog while retaining the existing popover entry and root", async () => {
+  const f = setup({}, <NativeFocusView testID="nested-choice" />, true)
+  const result = await render(f.node())
+  await f.ready()
+  const scopes = () => screen.getByTestId("host").props.dialogScopes
+  const parent = scopes().find(
+    (binding: { targetTag: number }) => binding.targetTag === findNodeHandle(f.dialogRoot.current),
+  )
+  const child = scopes().find((binding: { targetTag: number }) => binding.targetTag === findNodeHandle(f.root.current))
+  expect(parent).toBeDefined()
+  expect(parent.memberTargets).toEqual(
+    expect.arrayContaining([expect.objectContaining({ targetTag: findNodeHandle(f.root.current) })]),
+  )
+  expect(child).toMatchObject({ parentId: parent.id, enabled: true, entryAllowed: false })
+  expect(child.entryTargets[0].allowed).toBe(false)
+  const original = f.root.current,
+    enclosing = f.dialogRoot.current
+  await result.rerender(f.node({}, "dark"))
+  expect(f.root.current).toBe(original)
+  expect(f.dialogRoot.current).toBe(enclosing)
+  await result.rerender(f.node({}, "dark", false))
+  expect(scopes().some((binding: { id: string }) => binding.id === child.id)).toBe(false)
+  expect(scopes().some((binding: { id: string }) => binding.id === parent.id)).toBe(true)
 })

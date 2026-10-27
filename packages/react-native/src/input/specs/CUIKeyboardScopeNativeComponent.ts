@@ -39,6 +39,34 @@ type NativeKeyPolicy = Readonly<{
   excludeComposing: boolean
   targetTag: Int32
 }>
+type NativeDialogBinding = Readonly<{
+  id: string
+  parentId: string
+  bindingId: string
+  targetTag: Int32
+  memberTargets: ReadonlyArray<Readonly<{ id: string; targetTag: Int32 }>>
+  entryTargets: ReadonlyArray<Readonly<{ id: string; targetTag: Int32; allowed: boolean }>>
+  enabled: boolean
+  entryAllowed: boolean
+}>
+export type NativeDialogStatus = Readonly<{
+  ownerId: string
+  windowId: string
+  epoch: Double
+  revision: Double
+  ready: boolean
+  error: string
+}>
+export type NativeDialogAction = Readonly<{
+  ownerId: string
+  windowId: string
+  epoch: Double
+  revision: Double
+  id: string
+  bindingId: string
+  phase: "entered" | "wrapped" | "restored"
+  target: Int32
+}>
 export type NativeScopeStatus = Readonly<{
   ownerId: string
   windowId: string
@@ -225,6 +253,10 @@ export type NativeEditorKeyboardDecision = Readonly<{
 
 export interface NativeProps extends ViewProps {
   ownerId: string
+  dialogScopes?: ReadonlyArray<NativeDialogBinding>
+  dialogRevision?: Double
+  onNativeDialogStatus?: DirectEventHandler<NativeDialogStatus>
+  onNativeDialogAction?: DirectEventHandler<NativeDialogAction>
   editorKeyboardBindings?: ReadonlyArray<NativeEditorKeyboardBinding>
   onNativeEditorKey?: DirectEventHandler<NativeEditorKeyData>
   onNativeEditorKeyboardStatus?: DirectEventHandler<NativeEditorKeyboardStatus>

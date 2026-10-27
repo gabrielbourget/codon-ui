@@ -28,6 +28,7 @@ import type { PathProps } from "react-native-svg"
 
 import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
 import { focusNativeContainer, focusNativeTarget } from "../../input/focus"
+import { NativeDialogOverlayFocusOwner, useNativeDialogFocusMembership } from "../../input/NativeDialogFocusScope"
 import { NativeFocusHost, NativeFocusView } from "../../input/NativeFocusView"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { useNativeFloatingMotion } from "../../overlays/floating/motion"
@@ -291,6 +292,7 @@ export const NativeFloatingSurface = forwardRef<
   }, [nativeStyle, dynamicPosition, measuredPosition])
   const ready =
     geometryReady && motion.preferenceReady && windowActive?.() !== false && input?.isWindowActive() !== false
+  useNativeDialogFocusMembership(root, () => ready && layer.canAct())
   const scrollAnchorTag = useNativeFloatingScrollAnchor(
     open && layer.active && shouldUpdatePosition !== false,
     scrollRef,
@@ -422,121 +424,132 @@ export const NativeFloatingSurface = forwardRef<
           accessibilityElementsHidden={!ready || !layer.active}
         >
           <NativeFloatingScopeContext.Provider value={{ id: layer.id, canAct: layer.canAct }}>
-            <AnimatedFocusView
-              nativeRender={nativeRender}
-              nativeRenderState={renderState}
-              {...nativeProps}
-              ref={root}
-              testID={identity}
-              collapsable={false}
-              accessible={false}
-              focusable={nativeProps.focusable !== false && !childIsDialog && ready && layer.active}
-              accessibilityLabel={accessibilityLabel ?? aliasLabel}
-              nativeLabelledBy={nativeAccessibilityIDs(nativeProps.accessibilityLabelledBy ?? labelledBy)}
-              nativeDescribedBy={nativeAccessibilityIDs(describedBy)}
-              nativeDetailsBy={nativeAccessibilityIDs(detailsBy)}
-              nativeDescriptionLabel={descriptionLabel}
-              nativeDetailsLabel={detailsLabel}
-              nativeScrollAnchorTag={ready ? scrollAnchorTag : 0}
-              nativeScrollAnchorKey={scrollAnchorKey}
-              nativeScrollAnchorRevision={scrollAnchorRevision}
-              role={
-                nativeRootRole === null
-                  ? undefined
-                  : (nativeRootRole ?? (!childIsDialog && (!isNonModal || submenu) ? "dialog" : undefined))
-              }
-              accessibilityViewIsModal={!isNonModal}
-              style={[
-                {
-                  position: "absolute",
-                  zIndex: 100000,
-                  ...(position?.positionStyle ?? { top: 0, left: 0 }),
-                  maxHeight: position?.maxHeight,
-                },
-                painted.root,
-                motion.style,
-              ]}
-              {...{
-                onTouchStartCapture: mark,
-                onTouchEndCapture: mark,
-                onFocusCapture: (event: Parameters<NonNullable<TNativeClickPopoverProps["onFocus"]>>[0]) => {
-                  if (layer.canAct()) {
-                    suppressRestore.current = false
-                    host.interactions.mark(layer.id, event)
-                  }
-                },
-              }}
-              onLayout={updateLayout}
-              onBubbledFocus={(event) => {
-                if (layer.canAct()) onFocus?.(event)
-              }}
-              onBubbledBlur={(event) => {
-                if (layer.canAct()) onBlur?.(event)
-              }}
-              onAccessibilityEscape={() => {
-                if (layer.canAct()) host.layers.requestDismiss("accessibilityEscape")
-              }}
+            <NativeDialogOverlayFocusOwner
+              rootRef={root}
+              entryRef={childIsDialog ? dialog : undefined}
+              canAct={() => ready && layer.canAct()}
             >
-              <NativeContentContext.Provider
-                value={{
-                  foregroundColor: painted.rootText.color ?? theme.colors.foreground,
-                  isButton: false,
-                  textStyle: painted.rootText,
+              <AnimatedFocusView
+                nativeRender={nativeRender}
+                nativeRenderState={renderState}
+                {...nativeProps}
+                ref={root}
+                testID={identity}
+                collapsable={false}
+                accessible={false}
+                focusable={nativeProps.focusable !== false && !childIsDialog && ready && layer.active}
+                accessibilityLabel={accessibilityLabel ?? aliasLabel}
+                nativeLabelledBy={nativeAccessibilityIDs(nativeProps.accessibilityLabelledBy ?? labelledBy)}
+                nativeDescribedBy={nativeAccessibilityIDs(describedBy)}
+                nativeDetailsBy={nativeAccessibilityIDs(detailsBy)}
+                nativeDescriptionLabel={descriptionLabel}
+                nativeDetailsLabel={detailsLabel}
+                nativeScrollAnchorTag={ready ? scrollAnchorTag : 0}
+                nativeScrollAnchorKey={scrollAnchorKey}
+                nativeScrollAnchorRevision={scrollAnchorRevision}
+                role={
+                  nativeRootRole === null
+                    ? undefined
+                    : (nativeRootRole ?? (!childIsDialog && (!isNonModal || submenu) ? "dialog" : undefined))
+                }
+                accessibilityViewIsModal={!isNonModal}
+                style={[
+                  {
+                    position: "absolute",
+                    zIndex: 100000,
+                    ...(position?.positionStyle ?? { top: 0, left: 0 }),
+                    maxHeight: position?.maxHeight,
+                  },
+                  painted.root,
+                  motion.style,
+                ]}
+                {...{
+                  onTouchStartCapture: mark,
+                  onTouchEndCapture: mark,
+                  onFocusCapture: (event: Parameters<NonNullable<TNativeClickPopoverProps["onFocus"]>>[0]) => {
+                    if (layer.canAct()) {
+                      suppressRestore.current = false
+                      host.interactions.mark(layer.id, event)
+                    }
+                  },
+                }}
+                onLayout={updateLayout}
+                onBubbledFocus={(event) => {
+                  if (layer.canAct()) onFocus?.(event)
+                }}
+                onBubbledBlur={(event) => {
+                  if (layer.canAct()) onBlur?.(event)
+                }}
+                onAccessibilityEscape={() => {
+                  if (layer.canAct()) host.layers.requestDismiss("accessibilityEscape")
                 }}
               >
-                {showOverlayArrow && (
-                  <NativeFloatingArrow
-                    position={position}
-                    side={side}
-                    layout={arrowLayout}
-                    style={painted.arrow}
-                    graphicStyle={painted.arrowGraphic}
-                    paint={painted.arrowPaint as PathProps}
-                    color={painted.arrowColor}
-                    testID={`${identity}-overlay-arrow`}
-                    onLayout={({ nativeEvent }) => {
-                      if (!live.current || !layer.canMeasure()) return
-                      const { width, height } = nativeEvent.layout
-                      setArrowLayout((value) =>
-                        value?.width === width && value.height === height ? value : { width, height },
-                      )
-                    }}
-                  />
-                )}
-                {childIsDialog ? (
-                  <NativeFocusView
-                    ref={dialog}
-                    testID={`${identity}-dialog`}
-                    role="dialog"
-                    accessible={false}
-                    focusable={ready && layer.active}
-                    accessibilityLabel={accessibilityLabel ?? aliasLabel}
-                    style={[
-                      dialogFocused
-                        ? { outlineWidth: 1.5, outlineOffset: theme.spacing.unit, outlineColor: theme.colors.focusRing }
-                        : undefined,
-                      painted.dialog,
-                    ]}
-                    onFocus={(event) => {
-                      if (layer.canAct()) setDialogFocused(event.nativeEvent.target === findNodeHandle(dialog.current))
-                    }}
-                    onBlur={() => setDialogFocused(false)}
-                  >
-                    <NativeContentContext.Provider
-                      value={{
-                        foregroundColor: painted.dialogText.color ?? theme.colors.foreground,
-                        isButton: false,
-                        textStyle: painted.dialogText,
+                <NativeContentContext.Provider
+                  value={{
+                    foregroundColor: painted.rootText.color ?? theme.colors.foreground,
+                    isButton: false,
+                    textStyle: painted.rootText,
+                  }}
+                >
+                  {showOverlayArrow && (
+                    <NativeFloatingArrow
+                      position={position}
+                      side={side}
+                      layout={arrowLayout}
+                      style={painted.arrow}
+                      graphicStyle={painted.arrowGraphic}
+                      paint={painted.arrowPaint as PathProps}
+                      color={painted.arrowColor}
+                      testID={`${identity}-overlay-arrow`}
+                      onLayout={({ nativeEvent }) => {
+                        if (!live.current || !layer.canMeasure()) return
+                        const { width, height } = nativeEvent.layout
+                        setArrowLayout((value) =>
+                          value?.width === width && value.height === height ? value : { width, height },
+                        )
                       }}
+                    />
+                  )}
+                  {childIsDialog ? (
+                    <NativeFocusView
+                      ref={dialog}
+                      testID={`${identity}-dialog`}
+                      role="dialog"
+                      accessible={false}
+                      focusable={ready && layer.active}
+                      accessibilityLabel={accessibilityLabel ?? aliasLabel}
+                      style={[
+                        dialogFocused
+                          ? {
+                              outlineWidth: 1.5,
+                              outlineOffset: theme.spacing.unit,
+                              outlineColor: theme.colors.focusRing,
+                            }
+                          : undefined,
+                        painted.dialog,
+                      ]}
+                      onFocus={(event) => {
+                        if (layer.canAct())
+                          setDialogFocused(event.nativeEvent.target === findNodeHandle(dialog.current))
+                      }}
+                      onBlur={() => setDialogFocused(false)}
                     >
-                      {body}
-                    </NativeContentContext.Provider>
-                  </NativeFocusView>
-                ) : (
-                  body
-                )}
-              </NativeContentContext.Provider>
-            </AnimatedFocusView>
+                      <NativeContentContext.Provider
+                        value={{
+                          foregroundColor: painted.dialogText.color ?? theme.colors.foreground,
+                          isButton: false,
+                          textStyle: painted.dialogText,
+                        }}
+                      >
+                        {body}
+                      </NativeContentContext.Provider>
+                    </NativeFocusView>
+                  ) : (
+                    body
+                  )}
+                </NativeContentContext.Provider>
+              </AnimatedFocusView>
+            </NativeDialogOverlayFocusOwner>
           </NativeFloatingScopeContext.Provider>
         </View>
       </View>

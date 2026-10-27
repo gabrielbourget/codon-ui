@@ -10,5 +10,6 @@
 - (BOOL)menuPointerTriggerEnabled;
 - (NSDictionary *)formActionSnapshot;
 - (NSString *)fieldInputOwnerId;
+- (void)requestKeyboardFocus:(NSString *)ownerId;
 - (void)synchronizeFieldInputFocus;
 @end

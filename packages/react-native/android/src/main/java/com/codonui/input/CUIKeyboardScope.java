@@ -25,6 +25,9 @@ import java.util.Objects;
 import java.util.Set;
 
 public final class CUIKeyboardScope extends ReactViewGroup {
+  final CUIDialogFocusScopes dialogs = new CUIDialogFocusScopes(this);
+  boolean dialogFocusReady() { return captureReady(); }
+  void emitDialogFocus(String name, WritableMap data) { emit(name, data); }
   final CUIEditorKeyboardBindings editorKeyboard = new CUIEditorKeyboardBindings(this);
   final CUIMenuPointerPolicies menuPointers = new CUIMenuPointerPolicies(this);
   private List<CUIMenuPointerPolicies.Registration> menuPointerPolicies = new ArrayList<>();
@@ -211,6 +214,18 @@ public final class CUIKeyboardScope extends ReactViewGroup {
   }
 
   @Override public boolean dispatchKeyEvent(KeyEvent event) {
+    if (CUIFieldInputBinding.inDefault(event)) return dispatchOriginalKeyEvent(event);
+    dialogs.beginKey(event);
+    boolean handled=false;
+    try { handled=dispatchOriginalKeyEvent(event); return handled; }
+    finally { dialogs.finishKey(event, handled); }
+  }
+  @Override public View focusSearch(View focused, int direction) {
+    View next=super.focusSearch(focused, direction);
+    View wrapped=dialogs.redirect(focused, next, direction);
+    return wrapped == null ? next : wrapped;
+  }
+  private boolean dispatchOriginalKeyEvent(KeyEvent event) {
     if (CUIFieldInputBinding.inDefault(event)) return super.dispatchKeyEvent(event);
     if (!isAttachedToWindow() || !hasWindowFocus() || (event.getAction() != KeyEvent.ACTION_DOWN && event.getAction() != KeyEvent.ACTION_UP)) return super.dispatchKeyEvent(event);
     boolean down = event.getAction() == KeyEvent.ACTION_DOWN;
@@ -375,7 +390,7 @@ public final class CUIKeyboardScope extends ReactViewGroup {
       hold.retired = true;
     }
   }
-  @Override protected void onLayout(boolean changed, int left, int top, int right, int bottom) { super.onLayout(changed, left, top, right, bottom); editorKeyboard.publish(); }
+  @Override protected void onLayout(boolean changed, int left, int top, int right, int bottom) { super.onLayout(changed, left, top, right, bottom); editorKeyboard.publish(); dialogs.attach(); dialogs.refresh(); }
   @Override public void onWindowFocusChanged(boolean focused) { retireHeld(); held.clear(); if (!focused) CUIInputWindow.clearPointers(this); windowEpoch++; super.onWindowFocusChanged(focused); publishStatus(); }
   @Override protected void onWindowVisibilityChanged(int visibility) {
     super.onWindowVisibilityChanged(visibility);
@@ -383,9 +398,10 @@ public final class CUIKeyboardScope extends ReactViewGroup {
   }
   @Override protected void onAttachedToWindow() {
     super.onAttachedToWindow(); boundRoot = getRootView(); CUIInputWindow.register(this); policyOrder = CUIInputWindow.nextPolicyOrder(this);
-    ViewCompat.addOnUnhandledKeyEventListener(boundRoot, unhandled); windowEpoch++; publishStatus();
+    ViewCompat.addOnUnhandledKeyEventListener(boundRoot, unhandled); windowEpoch++; publishStatus(); dialogs.attach();
   }
   @Override protected void onDetachedFromWindow() {
+    dialogs.detach();
     floating.stop();
     menuPointers.dispose();
     retireHeld(); held.clear(); if (boundRoot != null) { ViewCompat.removeOnUnhandledKeyEventListener(boundRoot, unhandled); CUIInputWindow.unregister(boundRoot, this); CUIWindowPointers.release(boundRoot); CUIMenuPointerPolicies.release(boundRoot); boundRoot = null; }
