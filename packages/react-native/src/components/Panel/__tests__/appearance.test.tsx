@@ -51,6 +51,53 @@ const setup = async () => {
   const view = await render(node())
   return { ...view, root, editor, change, node }
 }
+
+it("groups overlay opacity across the original Panel and backdrop without dimming the window portal host", async () => {
+  const f = await setup()
+  const tree = (opacity?: number) => f.node({ customStyles: { opacity: 0.6 }, customOverlayStyles: { opacity } })
+  await f.rerender(tree(0.4))
+  await advance(375)
+  const originalRoot = f.root.current,
+    originalEditor = f.editor.current,
+    originalBackdrop = row("panel-backdrop")
+  expect(originalRoot).not.toBeNull()
+  expect(originalEditor).not.toBeNull()
+  const effectiveOpacity = (element: ReturnType<typeof row>) => {
+    let result = 1
+    for (let node: ReturnType<typeof row> | null = element; node; node = node.parent) {
+      const value = StyleSheet.flatten(node.props.style)?.opacity
+      if (typeof value === "number") result *= value
+    }
+    return result
+  }
+  expect(effectiveOpacity(row("panel"))).toBeCloseTo(0.24, 8)
+  expect(effectiveOpacity(row("panel-backdrop"))).toBeCloseTo(0.4, 8)
+  const opacityParent = (element: ReturnType<typeof row>) => {
+    for (let parent = element.parent; parent; parent = parent.parent)
+      if (StyleSheet.flatten(parent.props.style)?.opacity === 0.4) return parent
+    return null
+  }
+  const group = opacityParent(row("panel"))
+  expect(group).not.toBeNull()
+  expect(group).toBe(opacityParent(row("panel-backdrop")))
+  expect(group!.props.needsOffscreenAlphaCompositing).toBe(true)
+  expect(StyleSheet.flatten(row("panel-floating-host").props.style).opacity).toBeUndefined()
+  await f.rerender(tree(0.8))
+  expect(effectiveOpacity(row("panel"))).toBeCloseTo(0.48, 8)
+  expect(effectiveOpacity(row("panel-backdrop"))).toBeCloseTo(0.8, 8)
+  await f.rerender(tree(0))
+  expect(effectiveOpacity(row("panel"))).toBe(0)
+  expect(effectiveOpacity(row("panel-backdrop"))).toBe(0)
+  await f.rerender(tree(undefined))
+  expect(effectiveOpacity(row("panel"))).toBeCloseTo(0.6, 8)
+  expect(effectiveOpacity(row("panel-backdrop"))).toBe(1)
+  expect(f.root.current).toBe(originalRoot)
+  expect(f.editor.current).toBe(originalEditor)
+  expect(row("panel-backdrop")).toBe(originalBackdrop)
+  expect(row("held").props.value).toBe("held")
+  expect(f.change).not.toHaveBeenCalled()
+})
+
 it("runs Panel-owned paint and numeric layout changes for350ms on the original root/editor", async () => {
   const timing = jest.spyOn(Animated, "timing")
   const f = await setup(),

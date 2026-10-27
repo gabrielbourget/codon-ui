@@ -3,6 +3,7 @@ import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
 import { cleanup, render, screen } from "@testing-library/react"
+import { createPortal } from "react-dom"
 import { userEvent } from "@testing-library/user-event"
 import { Dialog } from "react-aria-components"
 import { afterEach, expect, it, vi } from "vitest"
@@ -15,6 +16,34 @@ const path = resolve(
   dirname(fileURLToPath(import.meta.url)),
   "../../../../packages/react/src/components/Panel/PanelStyles.module.css",
 )
+
+it("owns overlay opacity on the common Panel/editor ancestor while authored portals escape it", () => {
+  const changed = vi.fn()
+  const tree = (opacity?: number) => (
+    <Panel isOpen customStyles={{ opacity: 0.6 }} customOverlayStyles={{ opacity }}>
+      <input aria-label="Opacity editor" value="held" onChange={changed} />
+      {createPortal(<div data-testid="escaped-opacity">Portal content</div>, document.body)}
+    </Panel>
+  )
+  const view = render(tree(0.4))
+  const panel = screen.getByTestId("panel"),
+    editor = screen.getByLabelText("Opacity editor")
+  const overlay = panel.closest(`.${styles["panel__overlay"]}`) as HTMLElement
+  expect(overlay.style.opacity).toBe("0.4")
+  expect(panel.style.opacity).toBe("0.6")
+  expect(overlay).toContainElement(editor)
+  expect(overlay).not.toContainElement(screen.getByTestId("escaped-opacity"))
+  view.rerender(tree(0.8))
+  expect(overlay.style.opacity).toBe("0.8")
+  view.rerender(tree(0))
+  expect(overlay.style.opacity).toBe("0")
+  view.rerender(tree(undefined))
+  expect(overlay.style.opacity).toBe("")
+  expect(screen.getByTestId("panel")).toBe(panel)
+  expect(screen.getByLabelText("Opacity editor")).toBe(editor)
+  expect(editor).toHaveValue("held")
+  expect(changed).not.toHaveBeenCalled()
+})
 
 it("owns all350ms ease-in-out style transitions on the actual Panel root, with an independent overlay", () => {
   const sheet = document.createElement("style")

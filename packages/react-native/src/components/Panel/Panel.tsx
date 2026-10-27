@@ -1,5 +1,5 @@
 import { forwardRef, useContext, useInsertionEffect, useLayoutEffect, useRef, useState } from "react"
-import { Modal as NativeModal, Pressable, StyleSheet, useWindowDimensions, type View } from "react-native"
+import { Modal as NativeModal, Pressable, StyleSheet, useWindowDimensions, View } from "react-native"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 
 import { NativeBackdropSourceContext } from "../../overlays/backdrop/context"
@@ -37,6 +37,7 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
   useLayoutEffect(() => returnFocus(overlay.mounted))
   const dismiss = useRef<TNativeFloatingWindowDismiss | null>(null)
   const styles = getNativePanelStyles(props, theme, viewport?.width ?? window.width)
+  const { opacity: overlayOpacity, ...overlayPaint } = styles.overlay
   const appearance = useNativePanelAppearance(
     styles.view,
     styles.text,
@@ -107,62 +108,73 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
                     setViewport({ width: nativeEvent.layout.width, height: nativeEvent.layout.height })
                 }}
               >
-                {props.overlayBlur && <NativeBackdropEffect source={source} />}
-                <Pressable
-                  testID={`${identity}-backdrop`}
-                  accessible={false}
-                  focusable={false}
-                  importantForAccessibility="no"
-                  style={[StyleSheet.absoluteFill, styles.overlay]}
-                  onPress={() => {
-                    if (current.current.props.isDismissable !== false) close()
-                  }}
-                />
-                <NativePanelSurface
-                  ref={ref}
-                  open={open}
-                  ready={width !== null && overlay.active}
-                  isActive={isActive}
-                  systemClose={systemClose}
-                  keyboardDisabled={props.isKeyboardDismissDisabled ?? false}
-                  initialFocusRef={props.initialFocusRef}
-                  testID={identity}
+                {/* Portal layers stay outside this shared blur, tint and body opacity group. */}
+                <View
+                  testID={`${identity}-overlay-composite`}
                   collapsable={false}
                   accessible={false}
-                  accessibilityLabel={label}
-                  accessibilityElementsHidden={overlay.covered || !open}
-                  importantForAccessibility={overlay.covered || !open ? "no-hide-descendants" : "auto"}
-                  pointerEvents={open && overlay.active ? "auto" : "none"}
-                  onLayout={({ nativeEvent }) => {
-                    const next = nativeEvent.layout.width
-                    if (current.current.live && current.current.props === props && Number.isFinite(next) && next >= 0)
-                      setWidth(next)
-                  }}
-                  style={[
-                    appearance.view,
-                    {
-                      transform: [
-                        {
-                          translateX: motion.progress.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [
-                              0,
-                              (styles.side === "left" ? -1 : 1) * (width ?? viewport?.width ?? window.width),
-                            ],
-                          }),
-                        },
-                      ],
-                    },
-                  ]}
+                  focusable={false}
+                  pointerEvents="box-none"
+                  needsOffscreenAlphaCompositing
+                  style={[StyleSheet.absoluteFill, { opacity: overlayOpacity }]}
                 >
-                  <NativeContentContext.Provider
-                    value={{ foregroundColor: appearance.text.color ?? theme.colors.foreground, isButton: false }}
+                  {props.overlayBlur && <NativeBackdropEffect source={source} />}
+                  <Pressable
+                    testID={`${identity}-backdrop`}
+                    accessible={false}
+                    focusable={false}
+                    importantForAccessibility="no"
+                    style={[StyleSheet.absoluteFill, overlayPaint]}
+                    onPress={() => {
+                      if (current.current.props.isDismissable !== false) close()
+                    }}
+                  />
+                  <NativePanelSurface
+                    ref={ref}
+                    open={open}
+                    ready={width !== null && overlay.active}
+                    isActive={isActive}
+                    systemClose={systemClose}
+                    keyboardDisabled={props.isKeyboardDismissDisabled ?? false}
+                    initialFocusRef={props.initialFocusRef}
+                    testID={identity}
+                    collapsable={false}
+                    accessible={false}
+                    accessibilityLabel={label}
+                    accessibilityElementsHidden={overlay.covered || !open}
+                    importantForAccessibility={overlay.covered || !open ? "no-hide-descendants" : "auto"}
+                    pointerEvents={open && overlay.active ? "auto" : "none"}
+                    onLayout={({ nativeEvent }) => {
+                      const next = nativeEvent.layout.width
+                      if (current.current.live && current.current.props === props && Number.isFinite(next) && next >= 0)
+                        setWidth(next)
+                    }}
+                    style={[
+                      appearance.view,
+                      {
+                        transform: [
+                          {
+                            translateX: motion.progress.interpolate({
+                              inputRange: [0, 1],
+                              outputRange: [
+                                0,
+                                (styles.side === "left" ? -1 : 1) * (width ?? viewport?.width ?? window.width),
+                              ],
+                            }),
+                          },
+                        ],
+                      },
+                    ]}
                   >
-                    <NativeTextStyleProvider style={appearance.text}>
-                      {getNativeButtonContent(props.children, appearance.text)}
-                    </NativeTextStyleProvider>
-                  </NativeContentContext.Provider>
-                </NativePanelSurface>
+                    <NativeContentContext.Provider
+                      value={{ foregroundColor: appearance.text.color ?? theme.colors.foreground, isButton: false }}
+                    >
+                      <NativeTextStyleProvider style={appearance.text}>
+                        {getNativeButtonContent(props.children, appearance.text)}
+                      </NativeTextStyleProvider>
+                    </NativeContentContext.Provider>
+                  </NativePanelSurface>
+                </View>
               </NativeFloatingWindowHost>
             </NativeBackdropWindow>
           </SafeAreaProvider>
