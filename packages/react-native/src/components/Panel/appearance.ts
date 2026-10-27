@@ -7,6 +7,7 @@ import {
   getPanelAppearanceDefault,
   type TPanelAppearanceBounds,
 } from "./appearanceValues"
+import { panelRadiusNeedsMeasurement, resolvePanelRadii } from "./radii"
 
 type TStyles = { view: ViewStyle; text: TextStyle }
 type TTrack = {
@@ -95,9 +96,10 @@ export const useNativePanelAppearance = (
           current.tracks.delete(key)
           continue
         }
-        const first = before[field] ?? getPanelAppearanceDefault(field, before, textDefaults)
-        const last = after[field] ?? getPanelAppearanceDefault(field, after, textDefaults)
-        const prior = priorTarget[field] ?? getPanelAppearanceDefault(field, priorTarget, textDefaults)
+        const first = before[field] ?? getPanelAppearanceDefault(field, before, textDefaults, current.bounds.border)
+        const last = after[field] ?? getPanelAppearanceDefault(field, after, textDefaults, current.bounds.border)
+        const prior =
+          priorTarget[field] ?? getPanelAppearanceDefault(field, priorTarget, textDefaults, current.bounds.border)
         if (arePanelAppearanceValuesEqual(field, prior, last)) continue
         const mix = createPanelAppearanceMixer(field, first, last, current.bounds, text.color ?? textDefaults.color)
         if (mix && !arePanelAppearanceValuesEqual(field, first, last)) {
@@ -162,8 +164,12 @@ export const useNativePanelAppearance = (
     },
     [],
   )
+  const drawing = resolvePanelRadii(rendered.view, bounds.border)
   return {
     ...rendered,
+    view: drawing.view,
+    radii: drawing.radii,
+    needsRadiusObservation: panelRadiusNeedsMeasurement(view) || panelRadiusNeedsMeasurement(rendered.view),
     needsContentObservation:
       hasPercentageGap(view) ||
       hasPercentageGap(rendered.view) ||

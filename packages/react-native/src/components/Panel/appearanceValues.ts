@@ -3,12 +3,14 @@ import { processColor, type BoxShadowValue, type ColorValue, type TextStyle } fr
 import { mixNativeSRGBColors } from "../colors"
 
 import { createPanelFilterMixer } from "./filters"
+import { getPanelRadiusDefault, isPanelRadiusField, mixPanelRadius, type TPanelBorderBox } from "./radii"
 
 type TMixer = (progress: number) => unknown
 export type TPanelAppearanceBounds = Readonly<{
   width: number
   height: number
   content?: Readonly<{ width: number; height: number }> | null
+  border?: TPanelBorderBox | null
 }>
 const GAP_FIELDS = new Set(["gap", "rowGap", "columnGap"])
 
@@ -209,6 +211,7 @@ export const getPanelAppearanceDefault = (
   field: string,
   style: Readonly<Record<string, unknown>>,
   textDefaults: Pick<TextStyle, "color" | "fontSize" | "fontWeight" | "lineHeight">,
+  borderBox?: TPanelBorderBox | null,
 ): unknown => {
   if (field === "opacity") return 1
   if (field === "aspectRatio" || field === "zIndex" || field === "flex") return undefined
@@ -224,7 +227,7 @@ export const getPanelAppearanceDefault = (
       return style.borderColor ?? style.color ?? textDefaults.color
     return field === "backgroundColor" ? "transparent" : (style.color ?? textDefaults.color)
   }
-  if (RADIUS_FIELDS.test(field)) return style.borderRadius ?? 0
+  if (RADIUS_FIELDS.test(field)) return getPanelRadiusDefault(field, style, borderBox)
   if (field.startsWith("border") && field.endsWith("Width")) return style.borderWidth ?? 0
   const spacing = /^(padding|margin)(Top|Right|Bottom|Left|Start|End|Horizontal|Vertical)?$/.exec(field)
   if (spacing) {
@@ -245,6 +248,7 @@ export const createPanelAppearanceMixer = (
   if (field.endsWith("Color") || field === "color") return colorMixer(from, to)
   if (field === "boxShadow") return boxShadowMixer(from, to, foreground)
   if (field === "filter") return createPanelFilterMixer(from, to, foreground as ColorValue)
+  if (isPanelRadiusField(field)) return mixPanelRadius(from, to)
   if (field === "shadowOffset" || field === "textShadowOffset") {
     const first = from as { width?: unknown; height?: unknown } | undefined
     const last = to as { width?: unknown; height?: unknown } | undefined
@@ -298,8 +302,7 @@ export const createPanelAppearanceMixer = (
     const mixer = numberMixer(first.value, last.value)
     return first.percent ? (progress) => `${mixer(progress)}%` : mixer
   }
-  // A single RN radius cannot represent CSS's mixed-unit elliptical corners.
-  if (RADIUS_FIELDS.test(field) || field === "flexBasis") return undefined
+  if (field === "flexBasis") return undefined
   return (progress) => {
     const basis = /^(height|minHeight|maxHeight|top|bottom|insetBlock.*)$/.test(field) ? bounds.height : bounds.width
     const start = first.value * (first.percent ? basis / 100 : 1)

@@ -20,6 +20,7 @@ import { useNativePanelAppearance } from "./appearance"
 import { useNativePanelReturnFocus } from "./focus"
 import { useNativePanelMotion } from "./motion"
 import { NativePanelSurface } from "./PanelSurface"
+import type { TPanelBorderBox } from "./radii"
 import { getNativePanelStyles } from "./styles"
 import type { TNativePanelProps } from "./types"
 
@@ -30,6 +31,17 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
   const [viewport, setViewport] = useState<{ width: number; height: number } | null>(null)
   const [width, setWidth] = useState<number | null>(null)
   const [contentBox, setContentBox] = useState<{ width: number; height: number } | null>(null)
+  const [borderBox, setBorderBox] = useState<TPanelBorderBox | null>(null)
+  const borderMeasured = useCallback((next: TPanelBorderBox | null) => {
+    setBorderBox((previous) =>
+      previous?.width === next?.width &&
+      previous?.height === next?.height &&
+      previous?.direction === next?.direction &&
+      previous?.platform === next?.platform
+        ? previous
+        : next,
+    )
+  }, [])
   const contentMeasured = useCallback((next: { width: number; height: number } | null) => {
     setContentBox((previous) =>
       previous?.width === next?.width && previous?.height === next?.height ? previous : next,
@@ -57,7 +69,7 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
     styles.view,
     styles.text,
     motion.reduced !== false || !motion.present,
-    { ...(viewport ?? window), content: contentBox },
+    { ...(viewport ?? window), content: contentBox, border: borderBox },
     {
       color: theme.colors.foreground,
       fontSize: theme.typography.fontSizes.b10,
@@ -164,6 +176,10 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
                     keyboardDisabled={props.isKeyboardDismissDisabled ?? false}
                     observeContentBox={appearance.needsContentObservation}
                     onContentBox={contentMeasured}
+                    observeRadii={appearance.needsRadiusObservation}
+                    onBorderBox={borderMeasured}
+                    nativeMotionDrawingOwner
+                    nativeMotionProjectionRadii={appearance.radii}
                     initialFocusRef={props.initialFocusRef}
                     testID={identity}
                     collapsable={false}

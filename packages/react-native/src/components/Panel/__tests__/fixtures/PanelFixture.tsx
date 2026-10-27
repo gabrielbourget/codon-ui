@@ -28,6 +28,7 @@ export const PanelFixture = ({
   const [right, setRight] = useState(false)
   const [blur, setBlur] = useState(false)
   const [expanded, setExpanded] = useState(false)
+  const [cornerPose, setCornerPose] = useState(0)
   const [mode, setMode] = useState<"light" | "dark">("light")
   const [requests, setRequests] = useState(0)
   const [focused, setFocused] = useState("None observed")
@@ -69,6 +70,7 @@ export const PanelFixture = ({
                   setRight(false)
                   setBlur(false)
                   setExpanded(false)
+                  setCornerPose(0)
                   setRequests(0)
                   setFocused("None observed")
                   setSourcePose(0)
@@ -100,6 +102,11 @@ export const PanelFixture = ({
                   borderColor: expanded ? "teal" : "navy",
                   fontSize: expanded ? 22 : 16,
                   letterSpacing: expanded ? 1 : 0,
+                  ...(cornerPose === 1
+                    ? { borderTopLeftRadius: "35%", borderBottomRightRadius: 8 }
+                    : cornerPose === 2
+                      ? { borderTopLeftRadius: 12, borderBottomRightRadius: "45%" }
+                      : {}),
                 }}
                 raised={expanded}
               >
@@ -109,6 +116,7 @@ export const PanelFixture = ({
                 <Button onPress={() => setVeto(!veto)}>Toggle veto</Button>
                 <Button onPress={() => setRight(!right)}>Toggle physical side</Button>
                 <Button onPress={() => setExpanded(!expanded)}>Toggle panel appearance</Button>
+                <Button onPress={() => setCornerPose((value) => (value + 1) % 3)}>Cycle panel corners</Button>
                 <Button onPress={() => setMode(mode === "light" ? "dark" : "light")}>Toggle scene theme</Button>
                 {adapter && <Button onPress={() => setBlur(!blur)}>Toggle configured blur</Button>}
                 {adapter && (
