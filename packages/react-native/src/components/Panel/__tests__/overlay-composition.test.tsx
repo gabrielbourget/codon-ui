@@ -207,6 +207,7 @@ it("owns overlay filter, blend, isolation and stacking around the original Panel
   expect(ancestor(backdrop)).toBe(group)
   expect(originalRoot).not.toBeNull()
   expect(originalEditor).not.toBeNull()
+  expect(row("panel").props.nativeForegroundComposition).toBe(true)
   expect(row("panel")).toHaveStyle({ filter: [{ contrast: 1.5 }] })
   expect(backdrop).toHaveStyle({ backgroundColor: "plum" })
   for (const field of ["filter", "mixBlendMode", "isolation", "zIndex"] as const) {

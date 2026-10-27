@@ -27,6 +27,13 @@ public final class CUIOverlayHostManager extends ReactViewManager implements CUI
   @Override public ReactViewGroup createViewInstance(ThemedReactContext context) { return new CUIOverlayHost(context); }
   @Override @ReactProp(name = "paintOpacity", defaultDouble = 1)
   public void setPaintOpacity(ReactViewGroup view, double value) { ((CUIOverlayHost)view).setPaintOpacity(value); }
+  @Override @ReactProp(name = "filter", customType = "Filter")
+  public void setFilter(ReactViewGroup view, ReadableArray value) { ((CUIOverlayHost)view).foreground.setFilters(value); }
+  @Override public void setBackfaceVisibility(ReactViewGroup view, String value) { ((CUIOverlayHost)view).foreground.setBackfaceVisibility(value); super.setBackfaceVisibility(view,value); }
+  @Override public void setOpacity(ReactViewGroup view, float value) { ((CUIOverlayHost)view).foreground.setOpacity(value); }
+  @Override protected void onAfterUpdateTransaction(ReactViewGroup view) {
+    super.onAfterUpdateTransaction(view); ((CUIOverlayHost)view).foreground.configure();
+  }
   // Layout-only fields are consumed by the original Fabric descriptor during the native commit.
   @Override @ReactProp(name = "panelPosition") public void setPanelPosition(ReactViewGroup view, String value) {}
   @Override @ReactProp(name = "panelFlowFlexContainer", defaultBoolean = false) public void setPanelFlowFlexContainer(ReactViewGroup view, boolean value) {}
@@ -34,7 +41,10 @@ public final class CUIOverlayHostManager extends ReactViewManager implements CUI
   @Override @ReactProp(name = "panelViewportWidth", defaultBoolean = false) public void setPanelViewportWidth(ReactViewGroup view, boolean value) {}
   @Override @ReactProp(name = "panelLayoutLengths") public void setPanelLayoutLengths(ReactViewGroup view, ReadableArray value) {}
   @Override @ReactProp(name = "establishesContainingBlock", defaultBoolean = false) public void setEstablishesContainingBlock(ReactViewGroup view, boolean value) {}
+  @Override public void onDropViewInstance(ReactViewGroup view) { ((CUIOverlayHost)view).foreground.detached(); super.onDropViewInstance(view); }
   @Override protected ReactViewGroup prepareToRecycleView(ThemedReactContext context, ReactViewGroup view) {
+    ((CUIOverlayHost)view).foreground.recycle();
+    ((CUIOverlayHost)view).foreground.setEnabled(true);
     ((CUIOverlayHost)view).setPaintOpacity(1);
     return super.prepareToRecycleView(context, view);
   }

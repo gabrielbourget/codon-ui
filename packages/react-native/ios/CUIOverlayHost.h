@@ -1,4 +1,4 @@
-#import <React/RCTViewComponentView.h>
+#import "CUIMotionDrawingView.h"
 
-@interface CUIOverlayHost : RCTViewComponentView
+@interface CUIOverlayHost : CUIMotionDrawingView
 @end

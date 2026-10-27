@@ -11,6 +11,7 @@
 #include "InitialValueQuery.h"
 #include "MotionDrawingJNI.h"
 #include "BackdropJNI.h"
+#include "ForegroundJNI.h"
 #include "MotionIntrinsicsJNI.h"
 #include "GeometryQuery.h"
 #include "../../../../cpp/table/StickyPresentation.h"
@@ -137,6 +138,7 @@ extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *) {
     codon::motion::registerMotionDrawingNatives(jni::Environment::current());
     registerFormDocumentNatives();
     registerBackdropNatives(jni::Environment::current());
+    registerForegroundNatives(jni::Environment::current());
     jni::findClassStatic("com/codonui/input/CUIMotionSnapshotModule")->registerNatives({
         makeNativeMethod("nativeSnapshot", nativeSnapshot),
         makeNativeMethod("nativeInitialValue", nativeInitialValue),

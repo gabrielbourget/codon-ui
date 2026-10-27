@@ -68,6 +68,7 @@ export const NativeFocusHost = forwardRef<
     nativeMotionGeometryRevision?: string
     nativeMotionVisible?: boolean
     nativeMotionProjectionRevision?: string
+    nativeForegroundComposition?: boolean
     nativeMotionDrawingOwner?: boolean
     nativeMotionProjectionRadii?: string
     nativeFocusWithinObservation?: boolean

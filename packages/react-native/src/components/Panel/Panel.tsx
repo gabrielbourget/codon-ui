@@ -223,6 +223,7 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
                         appearanceHost={appearanceHost}
                         appearanceScope={appearanceScope}
                         nativeMotionDrawingOwner
+                        nativeForegroundComposition
                         nativeMotionProjectionRadii={appearance.radii}
                         initialFocusRef={props.initialFocusRef}
                         testID={identity}

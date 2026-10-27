@@ -24,7 +24,7 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
   private final ViewManagerDelegate<ReactViewGroup> inherited = new ViewManagerPropertyUpdater.GenericViewManagerDelegate<>(this);
   private final CUIFocusViewManagerDelegate<ReactViewGroup, CUIFocusViewManager> delegate = new CUIFocusViewManagerDelegate<>(this) {
     @Override public void setProperty(ReactViewGroup view, String name, Object value) {
-      if ("nativeFocusWithinBinding".equals(name) || "nativeFormActionBinding".equals(name) || "nativeCollectionSemantics".equals(name) || "nativeCollectionBinding".equals(name) || "nativeMotionDrawingOwner".equals(name) || "nativeMotionProjectionRadii".equals(name) || "nativeMotionProjectionRevision".equals(name) || "nativeMotionVisible".equals(name) || "ownerId".equals(name) || "keyboardFocusable".equals(name) || "nativePressable".equals(name) || "nativeMotionGeometryBinding".equals(name) || "nativeMotionGeometryRevision".equals(name) || "nativeMotionColorObservation".equals(name) || "nativeNavigation".equals(name) || "nativeNavigationLabel".equals(name) || "capturedKeys".equals(name) || "nativeLabelledBy".equals(name) || "nativeDescribedBy".equals(name) || "nativeDetailsBy".equals(name) || "nativeDescriptionTag".equals(name) || "nativeDescriptionLabel".equals(name) || "nativeDetailsLabel".equals(name) || "nativeScrollAnchorTag".equals(name) || "nativeScrollAnchorKey".equals(name) || "nativeScrollAnchorRevision".equals(name)) super.setProperty(view, name, value);
+      if ("nativeForegroundComposition".equals(name) || "nativeFocusWithinBinding".equals(name) || "nativeFormActionBinding".equals(name) || "nativeCollectionSemantics".equals(name) || "nativeCollectionBinding".equals(name) || "nativeMotionDrawingOwner".equals(name) || "nativeMotionProjectionRadii".equals(name) || "nativeMotionProjectionRevision".equals(name) || "nativeMotionVisible".equals(name) || "ownerId".equals(name) || "keyboardFocusable".equals(name) || "nativePressable".equals(name) || "nativeMotionGeometryBinding".equals(name) || "nativeMotionGeometryRevision".equals(name) || "nativeMotionColorObservation".equals(name) || "nativeNavigation".equals(name) || "nativeNavigationLabel".equals(name) || "capturedKeys".equals(name) || "nativeLabelledBy".equals(name) || "nativeDescribedBy".equals(name) || "nativeDetailsBy".equals(name) || "nativeDescriptionTag".equals(name) || "nativeDescriptionLabel".equals(name) || "nativeDetailsLabel".equals(name) || "nativeScrollAnchorTag".equals(name) || "nativeScrollAnchorKey".equals(name) || "nativeScrollAnchorRevision".equals(name)) super.setProperty(view, name, value);
       else inherited.setProperty(view, name, value);
     }
   };
@@ -76,6 +76,18 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
   @Override @ReactProp(name = "nativeMotionProjectionRevision")
   public void setNativeMotionProjectionRevision(ReactViewGroup view, String revision) { ((CUIFocusView)view).setNativeMotionProjectionRevision(revision); }
 
+  @Override @ReactProp(name = "nativeForegroundComposition", defaultBoolean = false)
+  public void setNativeForegroundComposition(ReactViewGroup view, boolean value) { ((CUIFocusView)view).setNativeForegroundComposition(value); }
+  @Override @ReactProp(name = "filter", customType = "Filter")
+  public void setFilter(ReactViewGroup view, com.facebook.react.bridge.ReadableArray value) {
+    ((CUIFocusView)view).captureForegroundFilters(value); super.setFilter(view, value);
+  }
+  @Override public void setBackfaceVisibility(ReactViewGroup view, String value) {
+    ((CUIFocusView)view).captureForegroundBackface(value); super.setBackfaceVisibility(view,value);
+  }
+  @Override public void setOpacity(ReactViewGroup view, float value) {
+    ((CUIFocusView)view).captureForegroundOpacity(value); super.setOpacity(view, value);
+  }
   @Override @ReactProp(name = "nativeMotionDrawingOwner", defaultBoolean = false)
   public void setNativeMotionDrawingOwner(ReactViewGroup view, boolean enabled) {
     ((CUIFocusView)view).setNativeMotionDrawingOwner(enabled);
@@ -102,6 +114,7 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
 
   @Override protected void onAfterUpdateTransaction(ReactViewGroup view) {
     super.onAfterUpdateTransaction(view);
+    ((CUIFocusView)view).synchronizeForeground();
     // Keep native activation independent of keyboard focus eligibility.
     if (((CUIFocusView) view).isNativePressable()) ((CUIFocusView) view).synchronizeNativeClick();
     ((CUIFocusView) view).synchronizeKeyboardFocusability();
@@ -182,6 +195,7 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
     ((CUIFocusView)view).retireFocusWithin();
     ((CUIFocusView)view).retireFormAction();
     ((CUIFocusView)view).retireMotionDrawing();
+    ((CUIFocusView)view).retireForeground();
     return super.prepareToRecycleView(context, view);
   }
 
@@ -189,6 +203,7 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
     ((CUIFocusView) view).retireFocusWithin();
     ((CUIFocusView) view).retireFormAction();
     ((CUIFocusView) view).retireMotionDrawing();
+    ((CUIFocusView) view).retireForeground();
     ((CUIFocusView) view).cancelHeldKeys();
     ((CUIFocusView) view).invalidateMotionColors();
     ((CUIFocusView) view).invalidateMotionGeometry();
