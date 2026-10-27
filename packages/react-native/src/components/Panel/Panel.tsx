@@ -150,6 +150,7 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
                   style={[
                     StyleSheet.absoluteFill,
                     {
+                      display: overlayPaint.display,
                       opacity: overlayOpacity,
                       transform: overlayTransform,
                       transformOrigin: overlayTransformOrigin,
