@@ -71,9 +71,11 @@ export const confirmNativeCollections = async (view: Pick<TView, "container"> = 
       }
       return ""
     }
+    const parents = new Map(nodes.map((host) => [host, parentId(host)]))
+    const retainedParents = new Set(parents.values())
     const hierarchy = nodes.map((host) => {
       const id = host.props.descriptorId as string,
-        parentDescriptorId = parentId(host)
+        parentDescriptorId = parents.get(host)!
       const index = positions.get(parentDescriptorId) ?? 0
       positions.set(parentDescriptorId, index + 1)
       if (!mockNodeTargets.has(id)) mockNodeTargets.set(id, ++mockNextTarget)
@@ -84,11 +86,17 @@ export const confirmNativeCollections = async (view: Pick<TView, "container"> = 
         target: mockNodeTargets.get(id),
         index,
         retainedIndex: index,
-        hasRetainedChildren: nodes.some((child) => parentId(child) === id),
+        hasRetainedChildren: retainedParents.has(id),
       }
     })
     const owner = root.props.ownerId as string
-    const signature = JSON.stringify([mockRootTargets.get(owner), hierarchy])
+    const signature = JSON.stringify([
+      owner,
+      root.props.rootId,
+      root.props.rootRevision,
+      mockRootTargets.get(owner),
+      hierarchy,
+    ])
     if (signatures.get(owner) === signature) continue
     signatures.set(owner, signature)
     published++
