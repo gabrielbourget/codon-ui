@@ -41,6 +41,10 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
     opacity: overlayOpacity,
     transform: overlayTransform,
     transformOrigin: overlayTransformOrigin,
+    filter: overlayFilter,
+    mixBlendMode: overlayBlendMode,
+    isolation: overlayIsolation,
+    zIndex: overlayStackingOrder,
     ...overlayPaint
   } = styles.overlay
   const appearance = useNativePanelAppearance(
@@ -113,7 +117,7 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
                     setViewport({ width: nativeEvent.layout.width, height: nativeEvent.layout.height })
                 }}
               >
-                {/* Portal layers stay outside this shared blur, tint and body opacity group. */}
+                {/* Portal layers stay outside the authored overlay's common compositing group. */}
                 <View
                   testID={`${identity}-overlay-composite`}
                   collapsable={false}
@@ -123,7 +127,15 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
                   needsOffscreenAlphaCompositing
                   style={[
                     StyleSheet.absoluteFill,
-                    { opacity: overlayOpacity, transform: overlayTransform, transformOrigin: overlayTransformOrigin },
+                    {
+                      opacity: overlayOpacity,
+                      transform: overlayTransform,
+                      transformOrigin: overlayTransformOrigin,
+                      filter: overlayFilter,
+                      mixBlendMode: overlayBlendMode,
+                      isolation: overlayIsolation,
+                      zIndex: overlayStackingOrder,
+                    },
                   ]}
                 >
                   {props.overlayBlur && <NativeBackdropEffect source={source} />}

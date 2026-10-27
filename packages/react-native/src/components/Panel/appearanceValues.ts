@@ -229,6 +229,10 @@ export const createPanelAppearanceMixer = (
   }
   // Fabric's FontWeight decoder accepts only100-step weights; arbitrary CSS weight interpolation remains required.
   if (field === "fontWeight") return undefined
+  if (field === "zIndex")
+    return isNumber(from) && isNumber(to) && Number.isInteger(from) && Number.isInteger(to)
+      ? (progress) => Math.round(from + (to - from) * progress) || 0
+      : undefined
   if (NUMBER_FIELDS.has(field)) return isNumber(from) && isNumber(to) ? numberMixer(from, to) : undefined
   if (!DIMENSION_FIELDS.has(field) && !RADIUS_FIELDS.test(field)) return undefined
   const first = dimension(from)

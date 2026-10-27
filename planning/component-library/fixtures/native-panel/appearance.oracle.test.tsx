@@ -3,6 +3,7 @@ import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
 import { cleanup, render, screen } from "@testing-library/react"
+import type { CSSProperties } from "react"
 import { createPortal } from "react-dom"
 import { userEvent } from "@testing-library/user-event"
 import { Dialog } from "react-aria-components"
@@ -16,6 +17,38 @@ const path = resolve(
   dirname(fileURLToPath(import.meta.url)),
   "../../../../packages/react/src/components/Panel/PanelStyles.module.css",
 )
+
+it("owns overlay filter, blend, isolation and stacking on the common original ancestor", () => {
+  const changed = vi.fn()
+  const tree = (overlay?: CSSProperties) => (
+    <Panel isOpen customStyles={{ filter: "contrast(150%)" }} customOverlayStyles={overlay}>
+      <input aria-label="Compositor editor" value="held" onChange={changed} />
+      {createPortal(<div data-testid="escaped-compositor">Portal content</div>, document.body)}
+    </Panel>
+  )
+  const view = render(
+    tree({ filter: "brightness(50%) opacity(25%)", mixBlendMode: "multiply", isolation: "isolate", zIndex: 50 }),
+  )
+  const panel = screen.getByTestId("panel"),
+    editor = screen.getByLabelText("Compositor editor")
+  const overlay = panel.closest(`.${styles["panel__overlay"]}`) as HTMLElement
+  expect(overlay.style.filter).toBe("brightness(50%) opacity(25%)")
+  expect(overlay.style.mixBlendMode).toBe("multiply")
+  expect(overlay.style.isolation).toBe("isolate")
+  expect(overlay.style.zIndex).toBe("50")
+  expect(panel.style.filter).toBe("contrast(150%)")
+  expect(overlay).toContainElement(editor)
+  expect(overlay).not.toContainElement(screen.getByTestId("escaped-compositor"))
+  view.rerender(tree({ filter: "none", mixBlendMode: "normal", isolation: "auto", zIndex: 0 }))
+  expect(overlay.style.filter).toBe("none")
+  expect(overlay.style.zIndex).toBe("0")
+  view.rerender(tree())
+  for (const field of ["filter", "mixBlendMode", "isolation", "zIndex"] as const) expect(overlay.style[field]).toBe("")
+  expect(screen.getByTestId("panel")).toBe(panel)
+  expect(screen.getByLabelText("Compositor editor")).toBe(editor)
+  expect(editor).toHaveValue("held")
+  expect(changed).not.toHaveBeenCalled()
+})
 
 it("owns overlay transforms around the original Panel and editor while authored portals escape them", () => {
   const changed = vi.fn()

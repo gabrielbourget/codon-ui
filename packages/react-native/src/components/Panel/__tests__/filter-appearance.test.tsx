@@ -11,6 +11,7 @@ const theme = resolveNativeTheme("light")
 const Probe = ({
   filter,
   opacity = 1,
+  zIndex,
   reduced = false,
   root,
   editor,
@@ -18,13 +19,14 @@ const Probe = ({
 }: {
   filter?: ViewStyle["filter"]
   opacity?: number
+  zIndex?: number
   reduced?: boolean
   root: RefObject<View | null>
   editor: RefObject<TextInput | null>
   changed: (value: string) => void
 }) => {
   const styles = getNativePanelStyles(
-    { accessibilityLabel: "Filter", customStyles: { color: "navy", filter, opacity } },
+    { accessibilityLabel: "Filter", customStyles: { color: "navy", filter, opacity, zIndex } },
     theme,
     300,
   )
@@ -58,7 +60,7 @@ const setup = async () => {
   const root = createRef<View>(),
     editor = createRef<TextInput>(),
     changed = jest.fn()
-  const node = (props: { filter?: ViewStyle["filter"]; opacity?: number; reduced?: boolean }) => (
+  const node = (props: { filter?: ViewStyle["filter"]; opacity?: number; zIndex?: number; reduced?: boolean }) => (
     <Probe {...props} root={root} editor={editor} changed={changed} />
   )
   const view = await render(node({ filter: "brightness(50%) blur(4px)" }))
@@ -107,6 +109,32 @@ it("keeps incompatible filters discrete and reduced-motion updates static withou
   await f.rerender(f.node({ filter: "drop-shadow(8px -4px 6px)", opacity: 0.4, reduced: true }))
   expect(style().filter).toEqual([{ dropShadow: { offsetX: 8, offsetY: -4, standardDeviation: 6, color: "navy" } }])
   expect(style().opacity).toBe(0.4)
+  expect(f.root.current).toBe(root)
+  expect(f.editor.current).toBe(editor)
+  expect(f.changed).not.toHaveBeenCalled()
+})
+
+it("keeps equivalent clamped opacity targets on the same deadline while stacking updates stay integral", async () => {
+  const f = await setup(),
+    root = f.root.current,
+    editor = f.editor.current
+  const filter = "brightness(50%) blur(4px)"
+  await f.rerender(f.node({ filter, opacity: 2, zIndex: 0 }))
+  expect(style().opacity).toBe(1)
+  await f.rerender(f.node({ filter, opacity: 3, zIndex: 5 }))
+  await advance(175)
+  expect(style().opacity).toBe(1)
+  expect(Number.isInteger(style().zIndex)).toBe(true)
+  expect(style().zIndex).toBeGreaterThan(0)
+  expect(style().zIndex).toBeLessThan(5)
+  await f.rerender(f.node({ filter, opacity: 2, zIndex: 5 }))
+  await advance(200)
+  expect(style().opacity).toBe(1)
+  expect(style().zIndex).toBe(5)
+  await f.rerender(f.node({ filter, opacity: -1, zIndex: 0 }))
+  await advance(375)
+  expect(style().opacity).toBe(0)
+  expect(style().zIndex).toBe(0)
   expect(f.root.current).toBe(root)
   expect(f.editor.current).toBe(editor)
   expect(f.changed).not.toHaveBeenCalled()

@@ -124,10 +124,16 @@ export const getNativePanelStyles = (props: TNativePanelProps, theme: TNativeThe
   if (view.boxShadow !== undefined)
     view.boxShadow = resolvePanelBoxShadow(view.boxShadow, foreground) as ViewStyle["boxShadow"]
   if (view.filter !== undefined) view.filter = resolvePanelFilters(view.filter, foreground) as ViewStyle["filter"]
+  if (typeof view.opacity === "number" && Number.isFinite(view.opacity))
+    view.opacity = Math.max(0, Math.min(1, view.opacity))
   const overlay = resolveNativeStyle(
     [{ backgroundColor: theme.colors.overlayBackdrop }, props.customOverlayStyles],
     "Panel",
     "customOverlayStyles",
   )
+  if (overlay.filter !== undefined)
+    overlay.filter = resolvePanelFilters(overlay.filter, theme.colors.foreground) as ViewStyle["filter"]
+  if (typeof overlay.opacity === "number" && Number.isFinite(overlay.opacity))
+    overlay.opacity = Math.max(0, Math.min(1, overlay.opacity))
   return { text, view, overlay, side }
 }

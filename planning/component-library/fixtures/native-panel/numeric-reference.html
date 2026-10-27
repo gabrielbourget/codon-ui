@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Panel numeric interpolation reference</title>
+    <link rel="stylesheet" href="/panel.css" />
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 20px;
+      }
+      .sample {
+        position: relative;
+        top: auto;
+        height: 16px;
+        width: 160px;
+      }
+      pre {
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Panel numeric interpolation reference</h1>
+    <p>Computed parameters with the unchanged Panel stylesheet; no native pixel claim.</p>
+    <div id="samples"></div>
+    <pre id="results">Waiting for stylesheet.</pre>
+    <script type="module">
+      const cases = [
+        ["opacity-upper", "opacity", 2, 0],
+        ["opacity-lower", "opacity", -1, 1],
+        ["opacity-both", "opacity", 2, -1],
+        ["opacity-interior", "opacity", 0.8, 0.2],
+        ["integer-positive", "zIndex", 0, 5],
+        ["integer-negative", "zIndex", -5, 0],
+        ["integer-crossing", "zIndex", 10, -5],
+        ["integer-descending", "zIndex", 5, 0],
+        ["integer-auto", "zIndex", "auto", 5],
+      ]
+      const results = cases.map(([id, property, from, to]) => {
+        const element = document.createElement("div")
+        element.className = "panel sample"
+        element.textContent = id
+        document.getElementById("samples").append(element)
+        const style = getComputedStyle(element)
+        const duration = Number.parseFloat(style.transitionDuration) * 1000
+        const easing = style.transitionTimingFunction
+        element.style.transition = "none"
+        element.style[property] = String(from)
+        const computedFrom = getComputedStyle(element)[property]
+        element.style[property] = String(to)
+        const computedTo = getComputedStyle(element)[property]
+        const animation = element.animate([{ [property]: computedFrom }, { [property]: computedTo }], {
+          duration,
+          easing,
+          fill: "both",
+        })
+        animation.pause()
+        const values = [0, 0.25, 0.5, 0.75, 1].map((progress) => {
+          animation.currentTime = duration * progress
+          return getComputedStyle(element)[property]
+        })
+        return { id, property, from, to, computedFrom, computedTo, duration, easing, values }
+      })
+      const source = await fetch("/source.json").then((response) => response.json())
+      const result = { source, sampler: "computed-endpoints", userAgent: navigator.userAgent, results }
+      document.getElementById("results").textContent = JSON.stringify(result, null, 2)
+      const saved = await fetch("/result", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(result),
+      })
+      document.body.dataset.receipt = String(saved.status)
+    </script>
+  </body>
+</html>

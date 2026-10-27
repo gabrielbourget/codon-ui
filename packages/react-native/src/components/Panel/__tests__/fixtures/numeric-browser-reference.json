@@ -1,0 +1,110 @@
+{
+  "source": {
+    "path": "packages/react/src/components/Panel/PanelStyles.module.css",
+    "sha256": "df3658550291bd80a57e7b1137d4bbd2ac38e1843ba558d9760b02651aa65d9e",
+    "fixture": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/planning/component-library/fixtures/native-panel/filter-reference.mjs"
+  },
+  "sampler": "computed-endpoints",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+  "results": [
+    {
+      "id": "opacity-upper",
+      "property": "opacity",
+      "from": 2,
+      "to": 0,
+      "computedFrom": "1",
+      "computedTo": "0",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": ["1", "0.870838", "0.5", "0.129162", "0"]
+    },
+    {
+      "id": "opacity-lower",
+      "property": "opacity",
+      "from": -1,
+      "to": 1,
+      "computedFrom": "0",
+      "computedTo": "1",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": ["0", "0.129162", "0.5", "0.870838", "1"]
+    },
+    {
+      "id": "opacity-both",
+      "property": "opacity",
+      "from": 2,
+      "to": -1,
+      "computedFrom": "1",
+      "computedTo": "0",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": ["1", "0.870838", "0.5", "0.129162", "0"]
+    },
+    {
+      "id": "opacity-interior",
+      "property": "opacity",
+      "from": 0.8,
+      "to": 0.2,
+      "computedFrom": "0.8",
+      "computedTo": "0.2",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": ["0.8", "0.722503", "0.5", "0.277497", "0.2"]
+    },
+    {
+      "id": "integer-positive",
+      "property": "zIndex",
+      "from": 0,
+      "to": 5,
+      "computedFrom": "0",
+      "computedTo": "5",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": ["0", "1", "3", "4", "5"]
+    },
+    {
+      "id": "integer-negative",
+      "property": "zIndex",
+      "from": -5,
+      "to": 0,
+      "computedFrom": "-5",
+      "computedTo": "0",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": ["-5", "-4", "-2", "-1", "0"]
+    },
+    {
+      "id": "integer-crossing",
+      "property": "zIndex",
+      "from": 10,
+      "to": -5,
+      "computedFrom": "10",
+      "computedTo": "-5",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": ["10", "8", "3", "-3", "-5"]
+    },
+    {
+      "id": "integer-descending",
+      "property": "zIndex",
+      "from": 5,
+      "to": 0,
+      "computedFrom": "5",
+      "computedTo": "0",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": ["5", "4", "3", "1", "0"]
+    },
+    {
+      "id": "integer-auto",
+      "property": "zIndex",
+      "from": "auto",
+      "to": 5,
+      "computedFrom": "auto",
+      "computedTo": "5",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": ["auto", "auto", "5", "5", "5"]
+    }
+  ]
+}
