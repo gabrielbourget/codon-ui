@@ -1,0 +1,73 @@
+{
+  "status": "Private collection drag/drop state, transfer ownership, action controller and target delegate construction; native binding and complete Table/Sort integration remain required",
+  "canonicalReactManifest": "ddc9f066f67af4742e05e04bd870726141c44129",
+  "approval": "roadmap3.5.40.26; Gabriel call_d43520ac270546be8c68a90ad60d8323 approved2026-10-27",
+  "license": "../LICENSE.react-aria.md",
+  "sources": [
+    {
+      "package": "react-stately",
+      "version": "3.46.0",
+      "distributionPath": "dist/private/dnd/useDraggableCollectionState.js.map",
+      "sourceMapSHA256": "1f3a4ea01c6b738518d99fc20940b8e3bc5202fcff197c12475df1a97ae12a41",
+      "sourcePath": "packages/react-stately/src/dnd/useDraggableCollectionState.ts",
+      "sourceContentSHA256": "c6edc7a840e2c39de6dfd72e507c8c067607bf1ed0d38a5f3175388cc57e54db"
+    },
+    {
+      "package": "react-stately",
+      "version": "3.46.0",
+      "distributionPath": "dist/private/dnd/useDroppableCollectionState.js.map",
+      "sourceMapSHA256": "b2d677a05f1039e74fbdfd5ae82f6a7aa2bb55549b1413e6ac58190a3e9f790e",
+      "sourcePath": "packages/react-stately/src/dnd/useDroppableCollectionState.ts",
+      "sourceContentSHA256": "9ee19ce2edff0b7651df65c760084116ccd6ca8d5bd82a0bbf4131ea71856879"
+    },
+    {
+      "package": "react-aria-components",
+      "version": "1.17.0",
+      "distributionPath": "dist/private/useDragAndDrop.js.map",
+      "sourceMapSHA256": "c780c6114dbed6de5a57979b881d700f596ca5029ec7d93257d86012bbbbce0e",
+      "sourcePath": "packages/react-aria-components/src/useDragAndDrop.tsx",
+      "sourceContentSHA256": "a7488b6276d80013f4e0c24fbcb00f87fe713a8c92e63f8bef3b5a2d66979f84"
+    },
+    {
+      "package": "react-aria-components",
+      "version": "1.17.0",
+      "distributionPath": "dist/private/DragAndDrop.js.map",
+      "sourceMapSHA256": "48865a2b9e5f6ca138a841717cd21cdda1a369043eae1c0e90ade0413a97b414",
+      "sourcePath": "packages/react-aria-components/src/DragAndDrop.tsx",
+      "sourceContentSHA256": "d949370d5e98813ee2f8cada741bde17d470809c565c2ff44c3a9c656ee2c691"
+    },
+    {
+      "package": "react-aria",
+      "version": "3.48.0",
+      "distributionPath": "dist/private/dnd/useDroppableCollection.js.map",
+      "sourceMapSHA256": "e23d8c2148b68c91d6f461f9e665d28efde7a8f21b524a3c6fb38027fdec83a6",
+      "sourcePath": "packages/react-aria/src/dnd/useDroppableCollection.ts",
+      "sourceContentSHA256": "b8a9002394ae30e45dec95de774f82a2f79c3369978c65c42fd219e4efc41c87"
+    },
+    {
+      "package": "react-aria",
+      "version": "3.48.0",
+      "distributionPath": "dist/private/dnd/ListDropTargetDelegate.js.map",
+      "sourceMapSHA256": "22634f8aed471d31f3ada528c3184b134c4fc7d2a50ae30836e36cf4a1755577",
+      "sourcePath": "packages/react-aria/src/dnd/ListDropTargetDelegate.ts",
+      "sourceContentSHA256": "ee246602dd9da4363c2c492ea488ba09e44262d9adcb283969519eb64360a0ee"
+    },
+    {
+      "package": "react-aria",
+      "version": "3.48.0",
+      "distributionPath": "dist/private/dnd/useDrag.js.map",
+      "sourceMapSHA256": "a26a17dd872bf6fc4ac4720b0cc7525946121046c6ede291faa2b1d07016a896",
+      "sourcePath": "packages/react-aria/src/dnd/useDrag.ts",
+      "sourceContentSHA256": "295697348308fcbf4ebf91b7d802e8a3cabefb1c2019ce96a200da6a382e2ca8"
+    }
+  ],
+  "adaptations": [
+    "Existing native collections, selection manager, View refs, coordinates and owned transfer resources replace DOM types; no react-aria runtime dependency.",
+    "Draggable/droppable state algorithms retain source key selection, ancestor filtering, drag callbacks and drop target/operation behavior.",
+    "Private source only; native action handoff, OS transfer, Table/Sort integration and all source/consumer/product/native gates remain required.",
+    "Private retirement clears owned refs/state without invoking stale end/exit handlers.",
+    "Physical lift preserves onDragStart/getItems/representation-write/allowed-operation order. Preview items retain original JS identity; virtual mode does not eagerly read representation getters.",
+    "Native list targeting consumes original root/item geometry cohorts and retains typed keys; it returns no item target for an unmaterialized native row.",
+    "OS data drivers, native action handoff, custom preview/keyboard/AT adapters, complete hook factory and Table/Sort bindings remain unimplemented in this core increment; no public export follows."
+  ]
+}
