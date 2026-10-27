@@ -5,6 +5,12 @@
 #include <stdexcept>
 
 namespace codon::overlay {
+float resolvePanelTransitionLength(float points, float percent, float containingBlock) {
+  const float value = points + percent * containingBlock;
+  if (!std::isfinite(value)) throw std::runtime_error("Panel transition requires finite original containing-block lengths");
+  return value;
+}
+
 void layoutOwnedOverlayRoot(
     facebook::yoga::Node &node, facebook::yoga::Config &config,
     float width, float height, facebook::yoga::Direction direction) {

@@ -87,6 +87,7 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
     },
     appearanceHost,
     () => appearanceScope.current?.() ?? false,
+    styles.layout,
   )
   const overlayLayout = getNativePanelOverlayLayout(styles, appearance.view, props.overlayBlur ?? false)
   const identity = props.testID ?? props["data-testid"] ?? "panel"
@@ -166,6 +167,7 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
                     panelPosition={overlayLayout.panelPosition}
                     panelViewportHeight={overlayLayout.panelViewportHeight}
                     panelViewportWidth={overlayLayout.panelViewportWidth}
+                    panelLayoutLengths={appearance.layoutLengths}
                     establishesContainingBlock={overlayLayout.establishesContainingBlock}
                     style={[StyleSheet.absoluteFill, overlayLayout.host]}
                   >

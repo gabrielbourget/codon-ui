@@ -59,6 +59,38 @@ int main() {
       plane.removeChild(&body);
       body.setOwner(nullptr);
     }
+    yoga::Node transitionPlane(&config), originalTransitionBody(&config);
+    transitionPlane.style().setDimension(yoga::Dimension::Width, yoga::StyleSizeLength::points(232));
+    originalTransitionBody.style().setPositionType(yoga::PositionType::Absolute);
+    transitionPlane.insertChild(&originalTransitionBody, 0);
+    originalTransitionBody.setOwner(&transitionPlane);
+    for (const float containingHeight : {172.f, 252.f}) {
+      transitionPlane.style().setDimension(yoga::Dimension::Height, yoga::StyleSizeLength::points(containingHeight));
+      for (const float progress : {0.f, 0.5f, 1.f}) {
+        auto &bodyStyle = originalTransitionBody.style();
+        bodyStyle.setDimension(yoga::Dimension::Height, yoga::StyleSizeLength::points(
+            codon::overlay::resolvePanelTransitionLength(720 * (1 - progress), progress, containingHeight)));
+        bodyStyle.setDimension(yoga::Dimension::Width, yoga::StyleSizeLength::points(
+            codon::overlay::resolvePanelTransitionLength(300 * (1 - progress), 0.5f * progress, 232)));
+        originalTransitionBody.markDirtyAndPropagate();
+        codon::overlay::layoutOwnedOverlayRoot(transitionPlane, config, 240, containingHeight + 8, direction);
+        const auto expectedHeight = progress == 0 ? 720.f : progress == 1 ? containingHeight
+            : containingHeight == 172 ? 446.f : 486.f;
+        const auto expectedWidth = progress == 0 ? 300.f : progress == 1 ? 116.f : 208.f;
+        near(YGNodeLayoutGetHeight(&originalTransitionBody), expectedHeight, "canonical height transition must retain its live actual containing-block basis");
+        near(YGNodeLayoutGetWidth(&originalTransitionBody), expectedWidth, "canonical mixed width must use the actual padding box, not viewport width");
+        check(transitionPlane.getChild(0) == &originalTransitionBody && originalTransitionBody.getOwner() == &transitionPlane,
+            "transition and parent resizing must retain the original body Yoga node");
+        checks += 3;
+      }
+    }
+    originalTransitionBody.style().setDimension(yoga::Dimension::Width, yoga::StyleSizeLength::points(
+        codon::overlay::resolvePanelTransitionLength(40, 0.25f, 232)));
+    originalTransitionBody.markDirtyAndPropagate();
+    codon::overlay::layoutOwnedOverlayRoot(transitionPlane, config, 240, 260, direction);
+    near(YGNodeLayoutGetWidth(&originalTransitionBody), 98, "canonical percentage-to-number midpoint must retain both endpoint contributions");
+    checks++;
+    transitionPlane.removeChild(&originalTransitionBody); originalTransitionBody.setOwner(nullptr);
     yoga::Node flow(&config), contents(&config), originalBody(&config), paint(&config);
     flow.style().setPositionType(yoga::PositionType::Absolute);
     flow.style().setDimension(yoga::Dimension::Width, yoga::StyleSizeLength::points(240));

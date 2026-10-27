@@ -5,10 +5,12 @@
 #include <react/renderer/components/view/conversions.h>
 #include <react/renderer/core/LayoutConstraints.h>
 #include <react/renderer/core/LayoutContext.h>
+#include <folly/dynamic.h>
 #include <yoga/Yoga.h>
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
+#include <utility>
 
 namespace facebook::react {
 namespace {
@@ -34,17 +36,64 @@ void publishRoot(LayoutContext context, LayoutableShadowNode &node) {
 }
 
 template <typename T>
-std::shared_ptr<T> cloneOwnedProps(const ShadowNode &node) {
+std::shared_ptr<T> cloneOwnedProps(const ShadowNode &node, RawProps raw = RawProps{}) {
   const auto context = node.getContextContainer();
   if (!context) throw std::runtime_error("Panel overlay requires its original Fabric props context");
   auto cloned = node.getComponentDescriptor().cloneProps(
-      PropsParserContext(node.getSurfaceId(), *context), node.getProps(), RawProps{});
+      PropsParserContext(node.getSurfaceId(), *context), node.getProps(), std::move(raw));
   if (cloned == node.getProps()) throw std::runtime_error("Panel layout must not mutate shared original props");
   auto typed = std::dynamic_pointer_cast<const T>(cloned);
   if (!typed) throw std::runtime_error("Panel overlay lost its original props type");
   auto result = std::const_pointer_cast<T>(typed);
   result->ensureUnsealed();
   return result;
+}
+
+bool blockLength(const std::string &field) {
+  return field == "height" || field == "minHeight" || field == "maxHeight" || field == "top" ||
+      field == "bottom" || field == "insetBlock" || field == "insetBlockStart" || field == "insetBlockEnd";
+}
+
+bool definiteAxis(const CUIOverlayHostProps &props, Size viewport, bool height) {
+  const auto &style = props.yogaStyle;
+  const auto size = height ? viewport.height : viewport.width;
+  if (style.dimension(height ? yoga::Dimension::Height : yoga::Dimension::Width).resolve(size).isDefined()) return true;
+  if (style.positionType() != yoga::PositionType::Absolute) return false;
+  const auto paired = [&](yoga::Edge start, yoga::Edge end) {
+    return style.position(start).resolve(size).isDefined() && style.position(end).resolve(size).isDefined();
+  };
+  return height ? paired(yoga::Edge::Top, yoga::Edge::Bottom)
+      : paired(yoga::Edge::Left, yoga::Edge::Right) || paired(yoga::Edge::Start, yoga::Edge::End);
+}
+
+std::shared_ptr<const ShadowNode> bodyWithLengths(const ShadowNode &node, const CUIOverlayHostProps &props,
+    LayoutContext context, Size containingBlock, bool intrinsic = false) {
+  if (!props.panelViewportHeight && !props.panelViewportWidth && props.panelLayoutLengths.empty()) return node.clone({});
+  folly::dynamic raw = folly::dynamic::object();
+  if (props.panelViewportHeight) raw["height"] = context.viewportSize.height;
+  if (props.panelViewportWidth)
+    raw["width"] = context.viewportSize.width < 500 ? context.viewportSize.width * Float{0.8} : Float{300};
+  const bool row = props.yogaStyle.flexDirection() == yoga::FlexDirection::Row ||
+      props.yogaStyle.flexDirection() == yoga::FlexDirection::RowReverse;
+  for (const auto &length : props.panelLayoutLengths) {
+    const bool cyclicHeight = isFlowBody(props) && !definiteAxis(props, context.viewportSize, true) &&
+        (length.field == "height" || length.field == "minHeight" || length.field == "maxHeight" ||
+         (length.field == "flexBasis" && !row));
+    const bool cyclicWidth = isFlowBody(props) && intrinsic && !definiteAxis(props, context.viewportSize, false) &&
+        (length.field == "width" || length.field == "minWidth" || length.field == "maxWidth" ||
+         (length.field == "flexBasis" && row));
+    if (length.percent != 0 && (cyclicHeight || cyclicWidth)) {
+      if (length.field.starts_with("min")) raw[length.field] = 0;
+      else if (length.field.starts_with("max")) raw[length.field] = nullptr;
+      else raw[length.field] = "auto";
+      continue;
+    }
+    auto basis = blockLength(length.field) || (length.field == "flexBasis" && !row)
+        ? containingBlock.height : containingBlock.width;
+    if (intrinsic) basis = 0;
+    raw[length.field] = codon::overlay::resolvePanelTransitionLength(length.points, length.percent, basis);
+  }
+  return node.clone({.props = cloneOwnedProps<CUIFocusViewProps>(node, RawProps(raw))});
 }
 
 void resolveOwnedRoot(yoga::Node &node, yoga::Config &config, Size containingBlock, LayoutDirection direction) {
@@ -132,15 +181,9 @@ void CUIOwnedOverlayHostShadowNode::prepareFlowChildren(LayoutContext context) {
       slotProps->yogaStyle.setDisplay(yoga::Display::Contents);
       if (nested->size() != 1 || !dynamic_cast<const CUIFocusViewProps *>(nested->front()->getProps().get()))
         throw std::runtime_error("Panel flow must retain its original focus/drawing body");
-      if (props.panelViewportHeight || props.panelViewportWidth) {
-        auto bodyProps = cloneOwnedProps<CUIFocusViewProps>(*nested->front());
-        if (props.panelViewportHeight)
-          bodyProps->yogaStyle.setDimension(yoga::Dimension::Height, yoga::StyleSizeLength::points(context.viewportSize.height));
-        if (props.panelViewportWidth)
-          bodyProps->yogaStyle.setDimension(yoga::Dimension::Width, yoga::StyleSizeLength::points(
-              context.viewportSize.width < 500 ? context.viewportSize.width * Float{0.8} : Float{300}));
-        nested->front() = nested->front()->clone({.props = bodyProps});
-      }
+      // Cyclic percentages do not supply an intrinsic contribution. The final
+      // original body pass below resolves them against the actual content box.
+      nested->front() = bodyWithLengths(*nested->front(), props, context, {}, true);
     } else {
       slotProps->yogaStyle.setDisplay(props.yogaStyle.display() == yoga::Display::Contents ? yoga::Display::None : yoga::Display::Flex);
       slotProps->yogaStyle.setDimension(yoga::Dimension::Width, yoga::StyleSizeLength::ofAuto());
@@ -190,8 +233,14 @@ void CUIOwnedOverlayHostShadowNode::completeClone(const ShadowNode &source, cons
   YogaLayoutableShadowNode::completeClone(source, fragment);
   const auto &previous = static_cast<const CUIOwnedOverlayHostShadowNode &>(source).getConcreteProps();
   const auto &next = getConcreteProps();
+  const bool sameLengths = previous.panelLayoutLengths.size() == next.panelLayoutLengths.size() &&
+      std::equal(previous.panelLayoutLengths.begin(), previous.panelLayoutLengths.end(), next.panelLayoutLengths.begin(),
+          [](const auto &first, const auto &last) {
+            return first.field == last.field && first.points == last.points && first.percent == last.percent;
+          });
   if (fragment.children || previous.panelPosition != next.panelPosition ||
       previous.panelViewportHeight != next.panelViewportHeight || previous.panelViewportWidth != next.panelViewportWidth ||
+      !sameLengths ||
       previous.establishesContainingBlock != next.establishesContainingBlock) dirtyLayout();
 }
 
@@ -233,6 +282,31 @@ void CUIOwnedOverlayHostShadowNode::layoutTree(LayoutContext context, LayoutCons
   yogaNode_.markDirtyAndPropagate();
   resolveOwnedRoot(yogaNode_, yogaConfig_, context.viewportSize, constraints.layoutDirection);
   applyRootMetrics(*this, yogaNode_, context);
+  if (flow && !getConcreteProps().panelLayoutLengths.empty()) {
+    const auto metrics = getLayoutMetrics();
+    const auto inset = metrics.contentInsets;
+    const Size content{
+        std::max(Float{0}, metrics.frame.size.width - inset.left - inset.right),
+        std::max(Float{0}, metrics.frame.size.height - inset.top - inset.bottom)};
+    const auto slot = getChildren().at(2);
+    auto nested = std::make_shared<std::vector<std::shared_ptr<const ShadowNode>>>(slot->getChildren());
+    nested->front() = bodyWithLengths(*nested->front(), getConcreteProps(), context, content);
+    replaceChild(*slot, slot->clone({.children = nested}), 2);
+    // Cyclic inline percentages resolve after intrinsic sizing. Block-axis size
+    // cycles continue to behave as auto in bodyWithLengths (CSS Sizing §5.2).
+    const auto width = yogaNode_.style().dimension(yoga::Dimension::Width);
+    const auto height = yogaNode_.style().dimension(yoga::Dimension::Height);
+    const bool cyclicInline = !definiteAxis(getConcreteProps(), context.viewportSize, false) &&
+        std::any_of(getConcreteProps().panelLayoutLengths.begin(), getConcreteProps().panelLayoutLengths.end(),
+            [](const auto &length) { return length.percent != 0 && !blockLength(length.field); });
+    if (cyclicInline)
+      yogaNode_.style().setDimension(yoga::Dimension::Width, yoga::StyleSizeLength::points(metrics.frame.size.width));
+    yogaNode_.markDirtyAndPropagate();
+    resolveOwnedRoot(yogaNode_, yogaConfig_, context.viewportSize, constraints.layoutDirection);
+    applyRootMetrics(*this, yogaNode_, context);
+    yogaNode_.style().setDimension(yoga::Dimension::Width, width);
+    yogaNode_.style().setDimension(yoga::Dimension::Height, height);
+  }
   layout(context);
 }
 
@@ -272,15 +346,7 @@ void CUIOwnedOverlayHostShadowNode::layout(LayoutContext context) {
       if (nested->size() != 1) throw std::runtime_error("Panel body must retain its one original control family");
       const auto *originalProps = dynamic_cast<const CUIFocusViewProps *>(nested->front()->getProps().get());
       if (!originalProps) throw std::runtime_error("Panel body must retain its original native focus/drawing host");
-      if (props.panelViewportHeight || props.panelViewportWidth) {
-        auto bodyProps = cloneOwnedProps<CUIFocusViewProps>(*nested->front());
-        if (props.panelViewportHeight)
-          bodyProps->yogaStyle.setDimension(yoga::Dimension::Height, yoga::StyleSizeLength::points(context.viewportSize.height));
-        if (props.panelViewportWidth)
-          bodyProps->yogaStyle.setDimension(yoga::Dimension::Width, yoga::StyleSizeLength::points(
-              context.viewportSize.width < 500 ? context.viewportSize.width * Float{0.8} : Float{300}));
-        nested->front() = nested->front()->clone({.props = bodyProps});
-      }
+      nested->front() = bodyWithLengths(*nested->front(), props, context, body.size);
     }
     auto child = original->clone({.props = resolved, .children = nested});
     auto *layoutable = dynamic_cast<CUIOwnedOverlaySlotShadowNode *>(child.get());

@@ -13,6 +13,7 @@ const repository = resolve(here, "../../../..")
 const require = createRequire(join(repository, "packages/react/package.json"))
 const vite = require.resolve("vite", { paths: [dirname(require.resolve("vitest/package.json"))] })
 const { build } = await import(vite)
+const entry = process.argv[3] === "length-transitions" ? "length-transitions.browser.tsx" : "overlay-layout.browser.tsx"
 const workspace = realpathSync(mkdtempSync(join(tmpdir(), "codon-panel-overlay-layout-")))
 const source = {
   canonicalRef: "ddc9f066f67af4742e05e04bd870726141c44129",
@@ -30,10 +31,10 @@ const source = {
   react: JSON.parse(readFileSync(require.resolve("react/package.json"))).version,
   reactDom: JSON.parse(readFileSync(require.resolve("react-dom/package.json"))).version,
   fixture: createHash("sha256")
-    .update(readFileSync(join(here, "overlay-layout.browser.tsx")))
+    .update(readFileSync(join(here, entry)))
     .digest("hex"),
 }
-const html = `<!doctype html><html><head><meta charset="utf-8"><title>Canonical Panel overlay layout controls</title><style>html,body{margin:0;padding:0}pre{white-space:pre-wrap}:root{--cui-z-index-panel:100;--cui-z-index-content-offset:1;--cui-z-index-overlay-offset:0}</style></head><body><div id="root"></div><pre id="results">Running canonical layout controls.</pre><script type="module" src="${join(here, "overlay-layout.browser.tsx")}"></script></body></html>`
+const html = `<!doctype html><html><head><meta charset="utf-8"><title>Canonical Panel overlay layout controls</title><style>html,body{margin:0;padding:0}pre{white-space:pre-wrap}:root{--cui-z-index-panel:100;--cui-z-index-content-offset:1;--cui-z-index-overlay-offset:0}</style></head><body><div id="root"></div><pre id="results">Running canonical layout controls.</pre><script type="module" src="${join(here, entry)}"></script></body></html>`
 writeFileSync(join(workspace, "index.html"), html)
 await build({
   root: workspace,
