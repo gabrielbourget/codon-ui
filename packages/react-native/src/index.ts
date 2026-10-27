@@ -693,6 +693,7 @@ export { NativeTimeFieldLabel, NativeTimeFieldText, NativeTimeFieldError } from 
 
 export { NativeOverlayProvider } from "./overlays/NativeOverlayProvider"
 export { NativeBackdropHost } from "./overlays/backdrop/NativeBackdropHost"
+export { DefaultNativeBackdropAdapter } from "./overlays/backdrop/DefaultNativeBackdropAdapter"
 export type {
   TNativeBackdropAdapter,
   TNativeBackdropEffectProps,

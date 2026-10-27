@@ -17,10 +17,18 @@ import org.json.JSONObject;
 public final class CUIMotionSnapshotModule extends NativeCUIMotionSnapshotSpec {
   static { System.loadLibrary("codon_motion"); }
   private final AtomicBoolean valid = new AtomicBoolean(true);
+  private CUIBackdropRenderer backdrop;
   private static final String[] strings = {"ownerId", "bindingId", "windowId", "scopeOwnerId", "nativeViewRevision"};
   private static final String[] numbers = {"target", "epoch", "attachmentRevision"};
 
   CUIMotionSnapshotModule(ReactApplicationContext context) { super(context); }
+  @Override public void backdropFrame(String request, Promise promise) {
+    UiThreadUtil.runOnUiThread(() -> {
+      if (!valid.get()) { promise.reject("E_CUI_BACKDROP", "Native backdrop: module retired"); return; }
+      if (backdrop == null) backdrop = new CUIBackdropRenderer(getReactApplicationContext());
+      backdrop.request(request, promise);
+    });
+  }
   private static native String nativeSnapshot(FabricUIManager manager, int target, String owner, String binding, String revision);
   private static native String nativeInitialValue(FabricUIManager manager, int target, String owner, String binding, String revision, String name);
   private static native String nativeEvaluatedLayout(FabricUIManager manager, int target, String owner, String binding, String revision, Object context, String request, long presentation);
@@ -187,6 +195,7 @@ public final class CUIMotionSnapshotModule extends NativeCUIMotionSnapshotSpec {
     if (popHandle != 0) { nativeClosePop(popHandle); popHandle = 0; }
     UiThreadUtil.runOnUiThread(() -> {
       synchronized (CUIMotionSnapshotModule.this) {
+        if (backdrop != null) { backdrop.invalidate(); backdrop = null; }
         if (tableDriver != null) { tableDriver.invalidate(); tableDriver = null; }
         if (tableHandle != 0) { nativeCloseTable(tableHandle); tableHandle = 0; }
         tableManager = null;

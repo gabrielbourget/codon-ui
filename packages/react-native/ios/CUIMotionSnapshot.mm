@@ -7,6 +7,7 @@
 #import "CUIFocusView.h"
 #import "CUIMotionGeometryObserver.h"
 #import "CUITableStickyPresentation.h"
+#import "CUIBackdropRenderer.h"
 #include "../cpp/motion/SnapshotQuery.h"
 #include "../cpp/motion/PopFrame.h"
 #include "../cpp/motion/PopPresentation.h"
@@ -184,6 +185,7 @@ static BOOL CUISnapshotIdentityMatches(NSDictionary *request, NSDictionary *iden
   id<RCTSurfacePresenterStub> _presenter;
   std::shared_ptr<std::atomic<bool>> _valid;
   std::shared_ptr<CUIPopSession> _pop;
+  CUIBackdropRenderer *_backdrop;
 }
 RCT_EXPORT_MODULE(CUIMotionSnapshot)
 + (BOOL)requiresMainQueueSetup { return NO; }
@@ -201,7 +203,19 @@ RCT_EXPORT_MODULE(CUIMotionSnapshot)
   _pop->presenter = [(id)presenter isKindOfClass:RCTSurfacePresenter.class] ? (RCTSurfacePresenter *)presenter : nil;
 }
 - (void)setBridge:(RCTBridge *)bridge { [self setSurfacePresenter:bridge.surfacePresenter]; }
-- (void)invalidate { _valid->store(false); _pop->close(); }
+- (void)invalidate {
+  _valid->store(false); _pop->close();
+  CUIBackdropRenderer *backdrop = _backdrop;
+  dispatch_async(dispatch_get_main_queue(), ^{ [backdrop invalidate]; });
+}
+
+- (void)backdropFrame:(NSString *)encoded resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
+  RCTAssertMainQueue();
+  if (!_valid->load()) { reject(@"E_CUI_BACKDROP", @"Native backdrop: module retired", nil); return; }
+  if (!_backdrop) _backdrop = [CUIBackdropRenderer new];
+  [_backdrop request:encoded presenter:[(id)_presenter isKindOfClass:RCTSurfacePresenter.class] ?
+      (RCTSurfacePresenter *)_presenter : nil resolve:resolve reject:reject];
+}
 
 - (void)getSnapshot:(NSString *)encoded resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
   [self readOwnedSnapshot:encoded kind:0 resolve:resolve reject:reject];
