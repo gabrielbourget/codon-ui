@@ -1,5 +1,7 @@
-import { useLayoutEffect, useRef, useState } from "react"
-import { Animated, Easing, type TextStyle, type ViewStyle } from "react-native"
+import { useLayoutEffect, useRef, useState, type RefObject } from "react"
+import { Animated, Easing, type TextStyle, type View, type ViewStyle } from "react-native"
+
+import { subscribeNativeMotionColorEnvironment } from "../../input/motionColors"
 
 import {
   arePanelAppearanceValuesEqual,
@@ -7,6 +9,7 @@ import {
   getPanelAppearanceDefault,
   type TPanelAppearanceBounds,
 } from "./appearanceValues"
+import { createPanelNativeColorMixer } from "./nativeColors"
 import { panelRadiusNeedsMeasurement, resolvePanelRadii } from "./radii"
 
 type TStyles = { view: ViewStyle; text: TextStyle }
@@ -17,6 +20,7 @@ type TTrack = {
   reverseStart: unknown
   reverseFactor: number
   target: unknown
+  release?: (completed?: boolean) => void
 }
 const DURATION = 350
 const ease = Easing.bezier(0.42, 0, 0.58, 1)
@@ -35,9 +39,12 @@ export const useNativePanelAppearance = (
   reduced: boolean,
   bounds: TPanelAppearanceBounds,
   textDefaults: TextStyle,
+  colorTarget?: RefObject<View | null>,
+  colorScopeKnown?: () => boolean,
 ) => {
   const [clock] = useState(() => new Animated.Value(0))
   const [rendered, setRendered] = useState<TStyles>({ view, text })
+  const [nativeError, setNativeError] = useState<Error | null>(null)
   const owner = useRef({
     target: { view, text },
     tracks: new Map<string, TTrack>(),
@@ -47,9 +54,14 @@ export const useNativePanelAppearance = (
     signature: "",
     animation: undefined as Animated.CompositeAnimation | undefined,
     listener: undefined as string | undefined,
+    sample: undefined as ((now: number) => TStyles) | undefined,
+    colorHost: null as View | null,
+    colorUnsubscribe: undefined as (() => void) | undefined,
+    active: true,
   })
   useLayoutEffect(() => {
     const current = owner.current
+    current.active = true
     const signature = JSON.stringify([view, text, reduced, bounds, textDefaults])
     if (current.signature === signature) return
     current.signature = signature
@@ -63,8 +75,10 @@ export const useNativePanelAppearance = (
       for (const [key, track] of current.tracks) {
         const [part, field] = key.split(":") as [keyof TStyles, string]
         const progress = Math.max(0, Math.min(1, (now - track.started) / track.duration))
-        if (progress === 1) current.tracks.delete(key)
-        else Object.assign(result[part], { [field]: track.mix(ease(progress)) })
+        if (progress === 1) {
+          track.release?.(true)
+          current.tracks.delete(key)
+        } else Object.assign(result[part], { [field]: track.mix(ease(progress)) })
       }
       if (
         current.target.view.rowGap === undefined &&
@@ -79,6 +93,7 @@ export const useNativePanelAppearance = (
       }
       return result
     }
+    current.sample = sample
     const now = Date.now()
     const previous = sample(now)
     const target = { view, text }
@@ -93,6 +108,7 @@ export const useNativePanelAppearance = (
         if (part === "view" && field === "gap") continue
         const key = `${part}:${field}`
         if (reduced) {
+          current.tracks.get(key)?.release?.()
           current.tracks.delete(key)
           continue
         }
@@ -101,7 +117,25 @@ export const useNativePanelAppearance = (
         const prior =
           priorTarget[field] ?? getPanelAppearanceDefault(field, priorTarget, textDefaults, current.bounds.border)
         if (arePanelAppearanceValuesEqual(field, prior, last)) continue
-        const mix = createPanelAppearanceMixer(field, first, last, current.bounds, text.color ?? textDefaults.color)
+        let mix = createPanelAppearanceMixer(field, first, last, current.bounds, text.color ?? textDefaults.color)
+        const nativeColor =
+          !mix && colorTarget && colorScopeKnown?.() !== false && !arePanelAppearanceValuesEqual(field, first, last)
+            ? createPanelNativeColorMixer(
+                field,
+                first,
+                last,
+                current.bounds,
+                text.color ?? textDefaults.color,
+                colorTarget,
+                () => {
+                  if (current.active && current.sample) setRendered(current.sample(Date.now()))
+                },
+                (error) => {
+                  if (current.active) setNativeError((previous) => previous ?? error)
+                },
+              )
+            : undefined
+        mix ??= nativeColor?.mix
         if (mix && !arePanelAppearanceValuesEqual(field, first, last)) {
           const priorTrack = current.tracks.get(key)
           const reversing = priorTrack && arePanelAppearanceValuesEqual(field, priorTrack.reverseStart, last)
@@ -116,6 +150,7 @@ export const useNativePanelAppearance = (
                 ),
               )
             : 1
+          priorTrack?.release?.()
           if (reverseFactor > 0)
             current.tracks.set(key, {
               mix,
@@ -124,9 +159,16 @@ export const useNativePanelAppearance = (
               reverseStart: reversing ? priorTrack.target : first,
               reverseFactor,
               target: last,
+              release: nativeColor?.release,
             })
-          else current.tracks.delete(key)
-        } else current.tracks.delete(key)
+          else {
+            nativeColor?.release()
+            current.tracks.delete(key)
+          }
+        } else {
+          current.tracks.get(key)?.release?.()
+          current.tracks.delete(key)
+        }
       }
     }
     current.target = target
@@ -146,6 +188,7 @@ export const useNativePanelAppearance = (
     })
     current.animation.start(({ finished }) => {
       if (finished && current.revision === revision) {
+        for (const track of current.tracks.values()) track.release?.(true)
         current.tracks.clear()
         setRendered(current.target)
         if (current.listener !== undefined) current.clock.removeListener(current.listener)
@@ -153,9 +196,34 @@ export const useNativePanelAppearance = (
       }
     })
   })
+  useLayoutEffect(() => {
+    const current = owner.current
+    const target = colorTarget?.current ?? null
+    const retireColors = () => {
+      for (const [key, track] of current.tracks)
+        if (track.release) {
+          track.release()
+          current.tracks.delete(key)
+        }
+      if (current.active && current.sample) setRendered(current.sample(Date.now()))
+    }
+    if (target !== current.colorHost) {
+      current.colorUnsubscribe?.()
+      current.colorUnsubscribe = undefined
+      current.colorHost = target
+      retireColors()
+    }
+    if (target && !current.colorUnsubscribe)
+      current.colorUnsubscribe = subscribeNativeMotionColorEnvironment(target, retireColors)
+  })
   useLayoutEffect(
     () => () => {
       const current = owner.current
+      current.active = false
+      current.colorUnsubscribe?.()
+      current.colorUnsubscribe = undefined
+      for (const track of current.tracks.values()) track.release?.()
+      current.tracks.clear()
       current.revision++
       current.signature = ""
       current.animation?.stop()
@@ -165,6 +233,7 @@ export const useNativePanelAppearance = (
     [],
   )
   const drawing = resolvePanelRadii(rendered.view, bounds.border)
+  if (nativeError) throw nativeError
   return {
     ...rendered,
     view: drawing.view,

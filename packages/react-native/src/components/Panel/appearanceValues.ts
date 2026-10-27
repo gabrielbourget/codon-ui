@@ -110,6 +110,8 @@ const dimension = (value: unknown) => {
   return match ? { value: Number(match[1]), percent: match[2] === "%" } : undefined
 }
 const colorMixer = (from: unknown, to: unknown): TMixer | undefined => {
+  if (processColor(from as ColorValue) == null || processColor(to as ColorValue) == null) return undefined
+  if (JSON.stringify(stableValue(from)) === JSON.stringify(stableValue(to))) return () => from
   if (typeof processColor(from as ColorValue) !== "number" || typeof processColor(to as ColorValue) !== "number")
     return undefined
   return (progress) => mixNativeSRGBColors(from as ColorValue, to as ColorValue, 1 - progress)

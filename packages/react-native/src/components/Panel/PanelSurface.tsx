@@ -1,10 +1,10 @@
-import { forwardRef, useImperativeHandle, useLayoutEffect, useRef, type ComponentProps } from "react"
+import { forwardRef, useImperativeHandle, useLayoutEffect, useRef, type ComponentProps, type RefObject } from "react"
 import { Animated, type View } from "react-native"
 
 import { nativeKeyTokens } from "../../input/keyScope"
 import { observeNativeMotionGeometry } from "../../input/motionGeometry"
 import { NativeFocusHost } from "../../input/NativeFocusView"
-import { useNativeKeyPolicy } from "../../input/NativeKeyboardScope"
+import { useNativeKeyPolicy, useNativeKeyScope } from "../../input/NativeKeyboardScope"
 
 import { NativePanelFocusIntentContext, useNativePanelInitialFocus } from "./focus"
 import type { TPanelBorderBox } from "./radii"
@@ -32,6 +32,8 @@ export const NativePanelSurface = forwardRef<
     onContentBox: (bounds: { width: number; height: number } | null) => void
     observeRadii: boolean
     onBorderBox: (bounds: TPanelBorderBox | null) => void
+    appearanceHost: RefObject<View | null>
+    appearanceScope: RefObject<(() => boolean) | null>
     initialFocusRef?: TNativePanelProps["initialFocusRef"]
   }
 >(
@@ -46,13 +48,18 @@ export const NativePanelSurface = forwardRef<
       onContentBox,
       observeRadii,
       onBorderBox,
+      appearanceHost,
+      appearanceScope,
       initialFocusRef,
       ...props
     },
     ref,
   ) => {
     const root = useRef<View>(null)
+    const scope = useNativeKeyScope()
     useImperativeHandle(ref, () => root.current!)
+    useImperativeHandle(appearanceHost, () => root.current!)
+    useImperativeHandle(appearanceScope, () => () => !!scope?.acknowledgedSession().windowId)
     useLayoutEffect(() => {
       if (!observeContentBox) onContentBox(null)
       if (!observeRadii) onBorderBox(null)
@@ -99,6 +106,7 @@ export const NativePanelSurface = forwardRef<
         <AnimatedFocusView
           {...props}
           nativeMotionGeometryObservation={observeContentBox || observeRadii}
+          nativeMotionColorObservation
           nativeTabStop={false}
           ref={root}
         />

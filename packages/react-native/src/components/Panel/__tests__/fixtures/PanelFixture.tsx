@@ -1,5 +1,5 @@
 import { useRef, useState, type Ref, type RefObject } from "react"
-import { View, type TextInput, type ViewStyle } from "react-native"
+import { DynamicColorIOS, Platform, PlatformColor, View, type TextInput, type ViewStyle } from "react-native"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 
 import {
@@ -13,6 +13,11 @@ import {
   type TNativeBackdropAdapter,
 } from "../../../.."
 import { Panel } from "../../Panel"
+
+const nativeForeground =
+  Platform.OS === "ios" ? PlatformColor("labelColor") : PlatformColor("?android:attr/textColorPrimary")
+const nativeBackground =
+  Platform.OS === "ios" ? DynamicColorIOS({ light: "lavender", dark: "navy" }) : PlatformColor("@android:color/black")
 
 export const PanelFixture = ({
   adapter,
@@ -29,6 +34,7 @@ export const PanelFixture = ({
   const [blur, setBlur] = useState(false)
   const [expanded, setExpanded] = useState(false)
   const [cornerPose, setCornerPose] = useState(0)
+  const [nativeColors, setNativeColors] = useState(false)
   const [mode, setMode] = useState<"light" | "dark">("light")
   const [requests, setRequests] = useState(0)
   const [focused, setFocused] = useState("None observed")
@@ -71,6 +77,7 @@ export const PanelFixture = ({
                   setBlur(false)
                   setExpanded(false)
                   setCornerPose(0)
+                  setNativeColors(false)
                   setRequests(0)
                   setFocused("None observed")
                   setSourcePose(0)
@@ -90,11 +97,11 @@ export const PanelFixture = ({
                 position={right ? "right" : "left"}
                 horizontalGap={expanded ? 12 : 0}
                 width={expanded ? 360 : undefined}
-                backgroundColor={expanded ? "lavender" : undefined}
+                backgroundColor={nativeColors ? nativeBackground : expanded ? "lavender" : undefined}
                 panelGeometry="rounded"
                 overlayBlur={blur}
                 customStyles={{
-                  color: expanded ? "teal" : "navy",
+                  color: nativeColors ? nativeForeground : expanded ? "teal" : "navy",
                   borderRadius: expanded ? 20 : undefined,
                   padding: expanded ? 20 : 0,
                   gap: expanded ? "4%" : 2,
@@ -117,6 +124,7 @@ export const PanelFixture = ({
                 <Button onPress={() => setRight(!right)}>Toggle physical side</Button>
                 <Button onPress={() => setExpanded(!expanded)}>Toggle panel appearance</Button>
                 <Button onPress={() => setCornerPose((value) => (value + 1) % 3)}>Cycle panel corners</Button>
+                <Button onPress={() => setNativeColors((value) => !value)}>Toggle native panel colors</Button>
                 <Button onPress={() => setMode(mode === "light" ? "dark" : "light")}>Toggle scene theme</Button>
                 {adapter && <Button onPress={() => setBlur(!blur)}>Toggle configured blur</Button>}
                 {adapter && (

@@ -31,6 +31,8 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
   const [viewport, setViewport] = useState<{ width: number; height: number } | null>(null)
   const [width, setWidth] = useState<number | null>(null)
   const [contentBox, setContentBox] = useState<{ width: number; height: number } | null>(null)
+  const appearanceHost = useRef<View>(null)
+  const appearanceScope = useRef<(() => boolean) | null>(null)
   const [borderBox, setBorderBox] = useState<TPanelBorderBox | null>(null)
   const borderMeasured = useCallback((next: TPanelBorderBox | null) => {
     setBorderBox((previous) =>
@@ -76,6 +78,8 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
       fontWeight: theme.typography.fontWeights.regular,
       lineHeight: theme.typography.lineHeight,
     },
+    appearanceHost,
+    () => appearanceScope.current?.() ?? false,
   )
   const identity = props.testID ?? props["data-testid"] ?? "panel"
   const label = props.accessibilityLabel ?? props["aria-label"]
@@ -178,6 +182,8 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
                     onContentBox={contentMeasured}
                     observeRadii={appearance.needsRadiusObservation}
                     onBorderBox={borderMeasured}
+                    appearanceHost={appearanceHost}
+                    appearanceScope={appearanceScope}
                     nativeMotionDrawingOwner
                     nativeMotionProjectionRadii={appearance.radii}
                     initialFocusRef={props.initialFocusRef}
