@@ -1,9 +1,11 @@
 import { TurboModuleRegistry } from "react-native"
-import type { View } from "react-native"
+import type { View, ViewStyle } from "react-native"
 
+import { getNativeCardStyle } from "../../components/Card/styles"
 import { geometryPacket, geometrySnapshot } from "../../input/__tests__/motionGeometry.fixture"
 import { NativeMotionGeometryObserver, registerNativeMotionGeometryObserver } from "../../input/motionGeometry"
 import type { TNativeMotionGeometryRecord } from "../../input/motionGeometry"
+import { resolveNativeTheme } from "../../theme/defaults"
 import { NativeMotionDrag } from "../interactions/NativeMotionDrag"
 import type { TNativeMotionPointerEvent } from "../interactions/types"
 import { MotionGlobalConfig, frameData, time } from "../kernel"
@@ -12,6 +14,12 @@ import type { TNativeMotionOwnerProps } from "../owner/NativeMotionOwner"
 import { NativeProjectionState } from "../projection/NativeProjectionState"
 import { nativeProjectionStyles } from "../projection/nativeStyles"
 import { nativeWindowNodeGroup } from "../projection/windowGroup"
+
+const processBoxShadow = jest.requireActual<{
+  default: (
+    value: ViewStyle["boxShadow"],
+  ) => Array<{ offsetX: number; offsetY: number; blurRadius?: number; spreadDistance?: number }>
+}>("react-native/Libraries/StyleSheet/processBoxShadow").default
 
 // Real observer/owner/projection code with explicit ref/native-packet/frame models; no native rendering occurs.
 const frames = new Map<number, Parameters<typeof requestAnimationFrame>[0]>(),
@@ -129,6 +137,77 @@ afterEach(async () => {
   frames.clear()
   MotionGlobalConfig.useManualTiming = false
   jest.restoreAllMocks()
+})
+it.each([
+  {
+    name: "default raised style",
+    style: getNativeCardStyle({}, resolveNativeTheme("light")),
+    count: 2,
+    x: 0,
+    y: 2,
+    blur: 4,
+  },
+  {
+    name: "CSS string",
+    style: { boxShadow: "2px 4px 8px 2px rgba(0,0,0,0.5)" } as ViewStyle,
+    count: 1,
+    x: 4,
+    y: 4,
+    blur: 8 / 0.75,
+  },
+  {
+    name: "native unit strings",
+    style: { boxShadow: [{ offsetX: "2px", offsetY: "4px", color: "navy" }] } as ViewStyle,
+    count: 1,
+    x: 4,
+    y: 4,
+    blur: undefined,
+  },
+])("projects Card shadows from $name through the actual SDK parser", async ({ style, count, x, y, blur }) => {
+  const f = create()
+  const original = JSON.stringify(style)
+  expect(processBoxShadow(style.boxShadow)).toHaveLength(count)
+  f.actor.configure("initial", style, undefined, undefined, undefined)
+  f.send("frame")
+  await turn()
+  f.actor.configure("shadow-size", style, undefined, undefined, undefined)
+  f.send("mount-before", "shadow-size", 10, 100, "initial")
+  f.send("mount-after", "shadow-size", 10, 200, "shadow-size")
+  await turn()
+  const parsed = processBoxShadow(f.actor.getSnapshot().style.boxShadow)
+  expect(parsed).toHaveLength(count)
+  expect(parsed[0].offsetX).toBe(x)
+  expect(parsed[0].offsetY).toBe(y)
+  if (blur === undefined) expect(parsed[0].blurRadius).toBeUndefined()
+  else expect(parsed[0].blurRadius).toBeCloseTo(blur, 5)
+  expect(JSON.stringify(style)).toBe(original)
+  expect(f.errors).not.toHaveBeenCalled()
+})
+it("tracks native shadow-list live values after a string value without retaining the stale scalar", async () => {
+  const f = create()
+  const shadow = f.owner.getValue("boxShadow", "2px 4px 8px red")
+  const style = { boxShadow: "2px 4px 8px red" }
+  f.actor.configure("initial", style, undefined, undefined, undefined)
+  f.send("frame")
+  await turn()
+  f.actor.configure("shadow-live", style, undefined, undefined, undefined)
+  f.send("mount-before", "shadow-live", 10, 100, "initial")
+  f.send("mount-after", "shadow-live", 10, 200, "shadow-live")
+  await turn()
+  const latest = Object.freeze([Object.freeze({ offsetX: 4, offsetY: 6, color: "blue" })])
+  shadow.set(latest)
+  await flush(1050)
+  const output = f.actor.getSnapshot().style.boxShadow
+  expect(Array.isArray(output)).toBe(true)
+  const x = f.actor.node!.projectionDeltaWithTransform!.x.scale * f.actor.node!.treeScale!.x
+  const y = f.actor.node!.projectionDeltaWithTransform!.y.scale * f.actor.node!.treeScale!.y
+  expect(processBoxShadow(output)).toMatchObject([{ offsetX: 4 / x, offsetY: 6 / y }])
+  expect((output as ReadonlyArray<{ color: string }>)[0].color).toBe("blue")
+  expect(shadow.get()).toBe(latest)
+  shadow.set("none")
+  await flush(1060)
+  expect(processBoxShadow(f.actor.getSnapshot().style.boxShadow)).toEqual([])
+  expect(f.errors).not.toHaveBeenCalled()
 })
 it("projects a matched actual before/after cohort and finishes the real source-owned animation", async () => {
   const start = jest.fn(),
