@@ -244,7 +244,8 @@ const Receiver = <T extends object>({
     collection,
     selectionManager: manager,
     root,
-    current: sourceKeyboard.canAct,
+    // The native drag lease owns window admission while keyboard focus moves.
+    current: () => true,
     layoutDelegate: renderer.layoutDelegate,
   })
   const keyboard =

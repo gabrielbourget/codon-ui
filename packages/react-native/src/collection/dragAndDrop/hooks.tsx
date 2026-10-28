@@ -501,6 +501,20 @@ export const nativeDragRootFor = (ref: RefObject<View | null>, scope: ReturnType
   roots.get(ref)?.get(scope) ?? null
 export const nativeDragVirtualKeys = dragKeys
 
+export type TNativeCollectionDragAndDropResult = {
+  dragState: TNativeDraggableCollectionState
+  dropState: TNativeDroppableCollectionState
+  dragEnabled: boolean
+  dropEnabled: boolean
+  binding: NativeCollectionDragBinding | null
+  context: TNativeDragAndDropContextValue
+  isDropTarget: boolean
+  persistedKeys: Set<TNativeCollectionKey>
+  renderDropIndicator?: (target: TNativeDropTarget) => ReactNode
+  collectionProps: TNativeDragElementProps
+  preview: ReactNode
+  renderIndicator: (props: TNativeDropIndicatorProps, ref: ForwardedRef<View>) => ReactNode
+}
 export const useNativeCollectionDragAndDrop = <T = object,>({
   hooks,
   collection,
@@ -515,7 +529,7 @@ export const useNativeCollectionDragAndDrop = <T = object,>({
   root: RefObject<View | null>
   current: () => boolean
   layoutDelegate?: TNativeDropCollectionOptions["layoutDelegate"]
-}) => {
+}): TNativeCollectionDragAndDropResult => {
   const [failure, setFailure] = useState<{ error: unknown } | null>(null)
   const dragEnabled = !!hooks?.useDraggableCollectionState,
     dropEnabled = !!hooks?.useDroppableCollectionState

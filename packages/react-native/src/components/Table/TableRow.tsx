@@ -22,6 +22,7 @@ import { resolveNativeStyle } from "../colors"
 import { openNativeLink } from "../Link/navigation"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
 import { splitNativeTextStyle } from "../nativeTextStyle"
+import { QueryGlyph } from "../SortAndFilterPanel/glyphs"
 import { resolveNativeTagTransition, useNativeTagColor, useNativeTagReducedMotion } from "../Tag/motion"
 import {
   getNativeTagGroupActionState,
@@ -29,7 +30,6 @@ import {
   getNativeTagGroupSelectionOperation,
   NATIVE_TAG_GROUP_POINTER_TYPES,
 } from "../TagGroup/intent"
-import { Text } from "../Text/Text"
 
 import { NativeTableOptionsContext, useNativeTable } from "./context"
 import { getNativeTableColumns, renderNativeTableValue } from "./rendering"
@@ -43,6 +43,10 @@ import { useTableTargetRef } from "./useTableTargetRef"
 const BACKGROUND_TRANSITION = resolveNativeTagTransition(250)
 const FOREGROUND_TRANSITION = resolveNativeTagTransition(350)
 const noSubscription = () => () => {}
+const DragIcon = () => {
+  const content = useNativeContentContext()!
+  return <QueryGlyph kind="grip" size={12} color={content.foregroundColor} />
+}
 
 const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node: TNativeCollectionNode<object>) => {
   const {
@@ -426,7 +430,7 @@ export const TableRow = createNativeCollectionBranch<object, TNativeTableRowProp
             style={{ width: 30, padding: 0 }}
           >
             <NativeButton slot="drag" style={{ padding: 4 }}>
-              <Text>⠿</Text>
+              <DragIcon />
             </NativeButton>
           </TableCell>
         )}

@@ -1,6 +1,5 @@
 import { act, renderHook } from "@testing-library/react-native"
 import { useRef } from "react"
-import * as Native from "react-native"
 import { findNodeHandle, type View } from "react-native"
 
 import { createNativeKeyScope } from "../../../input/keyScope"
@@ -10,6 +9,7 @@ import { SelectionManager } from "../../state/SelectionManager"
 import { useMultipleSelectionState } from "../../state/useMultipleSelectionState"
 import { nativeDragRootFor, useNativeCollectionDragAndDrop, useNativeDragAndDrop } from "../hooks"
 import type { TNativeDragAndDropOptions } from "../hooks"
+import { nativeDragFormatter } from "../messages"
 import { nativeVirtualDrag } from "../virtualDrag"
 
 import { dragCollection, dragValues } from "./fixtures"
@@ -27,7 +27,7 @@ let tag = 100
 const view = () => ({ dragTestTag: ++tag }) as unknown as View
 beforeEach(() => {
   jest
-    .spyOn(Native, "findNodeHandle")
+    .spyOn(jest.requireActual<typeof import("react-native")>("react-native"), "findNodeHandle")
     .mockImplementation((view: unknown) => (view as { dragTestTag: number } | null)?.dragTestTag ?? null)
 })
 afterEach(() => {
@@ -136,7 +136,12 @@ const setup = async (options: TNativeDragAndDropOptions = {}, selected = new Set
           root: { x: 100, y: 200, width: 100, height: 200 },
           items: data.members.map((member: TNativeDragMemberBinding) => ({
             ...member,
-            rect: { x: 100, y: member.key === "number:0" ? 200 : 230, width: 100, height: 30 },
+            rect: {
+              x: 100,
+              y: 200 + ["number:0", "string:", "string:folder", "string:child"].indexOf(member.key) * 30,
+              width: 100,
+              height: 30,
+            },
           })),
         },
         ...values,
@@ -200,6 +205,8 @@ it("uses root-relative pointer coordinates while retaining original window-space
   const fixture = await setup({ getItems: () => [{ "text/plain": "zero" }], onItemDrop: () => {} })
   await fixture.row(0)
   await fixture.row("")
+  await fixture.row("folder")
+  await fixture.row("child")
   await act(() => {
     fixture.actions.dispatch(fixture.packet("lift"))
   })
@@ -257,6 +264,70 @@ it("retains every dragging key and the original zero/empty target key in virtual
     fixture.actions.dispatch(fixture.packet("lift"))
   })
   expect([...fixture.rendered.result.current.persistedKeys]).toEqual([0, ""])
+  await fixture.rendered.unmount()
+  fixture.actions.dispose()
+})
+
+it("requires native lift eligibility and quietly retires the virtual session with its original window", async () => {
+  const end = jest.fn(),
+    fixture = await setup({ getItems: () => [{ "text/plain": "zero" }], onDragEnd: end })
+  await fixture.row(0)
+  const measure = jest
+    .spyOn(fixture.rendered.result.current.binding, "measure")
+    .mockResolvedValue({ x: 100, y: 200, width: 100, height: 30 })
+  fixture.actions.acceptStatus(
+    JSON.stringify({
+      kind: "window",
+      ownerId: "owner",
+      windowId: "window",
+      epoch: 1,
+      surfaceId: 1,
+      scopeTarget: 10,
+      available: true,
+      canLift: false,
+      canDrop: true,
+    }),
+  )
+  await act(async () => {
+    await nativeVirtualDrag.start(fixture.rendered.result.current.binding, 0, nativeDragFormatter("en-US"), "virtual")
+  })
+  expect(measure).not.toHaveBeenCalled()
+  expect(nativeVirtualDrag.isDragging()).toBe(false)
+  fixture.actions.acceptStatus(
+    JSON.stringify({
+      kind: "window",
+      ownerId: "owner",
+      windowId: "window",
+      epoch: 1,
+      surfaceId: 1,
+      scopeTarget: 10,
+      available: true,
+      canLift: true,
+      canDrop: true,
+    }),
+  )
+  await act(async () => {
+    await nativeVirtualDrag.start(fixture.rendered.result.current.binding, 0, nativeDragFormatter("en-US"), "virtual")
+  })
+  expect(nativeVirtualDrag.isDragging()).toBe(true)
+  await act(() =>
+    fixture.actions.acceptStatus(
+      JSON.stringify({
+        kind: "window",
+        ownerId: "owner",
+        windowId: "window",
+        epoch: 2,
+        surfaceId: 1,
+        scopeTarget: 10,
+        available: false,
+        canLift: false,
+        canDrop: false,
+      }),
+    ),
+  )
+  expect(nativeVirtualDrag.isDragging()).toBe(false)
+  expect(fixture.rendered.result.current.dragState.draggingKeys.size).toBe(0)
+  expect(end).not.toHaveBeenCalled()
   await fixture.rendered.unmount()
   fixture.actions.dispose()
 })

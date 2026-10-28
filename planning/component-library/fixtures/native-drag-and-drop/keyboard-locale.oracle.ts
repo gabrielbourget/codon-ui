@@ -12,9 +12,8 @@ import type { TNativeDropTarget } from "../../../../packages/react-native/src/co
 
 const root = fileURLToPath(new URL("../../../../", import.meta.url))
 const load = createRequire(realpathSync(root + "packages/react-native/node_modules/react-stately/package.json"))
-const { LocalizedStringDictionary, LocalizedStringFormatter } = await import(
-  pathToFileURL(load.resolve("@internationalized/string")).href
-)
+const formatterModule = await import(pathToFileURL(load.resolve("@internationalized/string")).href)
+const { LocalizedStringDictionary, LocalizedStringFormatter } = formatterModule.default ?? formatterModule
 const originalMessages: Record<string, Record<string, unknown>> = {}
 const inputHashes: Record<string, string> = {}
 for (const locale of Object.keys(nativeDragMessages)) {

@@ -165,19 +165,24 @@ export const nativeVirtualDrag = {
   snapshot: () => revision,
   active: () => session,
   isDragging: () => !!session,
+  retire: (root: NativeCollectionDragBinding) => {
+    if (session?.source === root) {
+      start++
+      session = null
+      changed()
+    } else if (session?.root === root) {
+      session.root = null
+      session.target = null
+      session.generation++
+      changed()
+    }
+  },
   register: (root: NativeCollectionDragBinding) => {
     roots.add(root)
     changed()
     return () => {
       roots.delete(root)
-      if (session?.source === root) {
-        session = null
-        changed()
-      } else if (session?.root === root) {
-        session.root = null
-        session.target = null
-        changed()
-      }
+      nativeVirtualDrag.retire(root)
     }
   },
   endpoint: (owner: object, value: TEndpoint | null) => {

@@ -184,10 +184,10 @@ const List = ({
     allowItemDescendantKeys: true,
     canAct: props.canAct,
   })
-  const owner = useRef({ props, canAct: keyboard.canAct })
+  const owner = useRef({ props, canAct: () => props.canAct?.() !== false })
   const dragged = useRef<string | null>(null)
   useInsertionEffect(() => {
-    owner.current = { props, canAct: keyboard.canAct }
+    owner.current = { props, canAct: () => props.canAct?.() !== false }
   })
   const dropped = (event: TNativeInsertDropEvent | TNativeReorderDropEvent) => {
     const current = owner.current
@@ -221,7 +221,7 @@ const List = ({
     collection,
     selectionManager: state.selectionManager,
     root,
-    current: keyboard.canAct,
+    current: () => props.canAct?.() !== false,
     layoutDelegate: renderer.layoutDelegate,
   })
   const focusedKeys = useNativePersistedKeys(

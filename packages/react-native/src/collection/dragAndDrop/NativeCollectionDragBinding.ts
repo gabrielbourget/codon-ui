@@ -29,6 +29,7 @@ import type {
 } from "./types"
 import type { TNativeDraggableCollectionState } from "./useNativeDraggableCollectionState"
 import type { TNativeDroppableCollectionState } from "./useNativeDroppableCollectionState"
+import { nativeVirtualDrag } from "./virtualDrag"
 
 type TRow = {
   key: TNativeCollectionKey
@@ -111,7 +112,7 @@ export class NativeCollectionDragBinding {
     }
     this.nativeTarget = {
       identity: this.identity,
-      current: () => this.current() && !!this.target,
+      current: () => this.current() && !!this.target && this.scope?.window().canDrop === true,
       get state() {
         return targetState()
       },
@@ -135,9 +136,10 @@ export class NativeCollectionDragBinding {
   }
   logicalCurrent = () => this.roles.size > 0 && !!this.root.current && this.currentOwner()
   current = () => this.logicalCurrent() && this.root.current === this.bound && !!this.lease?.current()
-  ready = () => this.current() && !!this.lease?.ready()
+  ready = () => this.current() && !!this.lease?.ready() && this.scope?.window().canLift === true
   retire = () => {
     this.controller.retire(this.identity)
+    nativeVirtualDrag.retire(this)
   }
   private view(row: TRow, role: "source" | "target" = "target") {
     const owners = [...row.owners.values()]
@@ -383,7 +385,7 @@ export class NativeCollectionDragBinding {
     types: TNativeDragTypes,
     operations: TNativeDropOperation[],
   ) {
-    if (!this.target || !this.session(id, operations)) return "cancel" as const
+    if (!this.nativeTarget.current() || !this.session(id, operations)) return "cancel" as const
     return this.controller.targetAt(id, this.nativeTarget, target, types, operations)
   }
   virtualDrop(id: string, items: TNativeDropItem[], point: TNativeDragPoint) {
@@ -398,6 +400,7 @@ export class NativeCollectionDragBinding {
     operations: TNativeDropOperation[],
     source: NativeCollectionDragBinding,
   ) {
+    if (!this.targetEnabled || !this.nativeTarget.current()) return "cancel" as const
     return (
       this.target?.getDropOperation({
         target,

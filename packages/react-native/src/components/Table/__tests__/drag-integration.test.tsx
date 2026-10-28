@@ -30,13 +30,14 @@ jest.mock("../../../input/specs/NativeCUIDragAndDrop", () => ({
   },
 }))
 afterEach(cleanup)
+afterEach(() => jest.restoreAllMocks())
 const originalRows = [
   { id: 0, name: "Zero" },
   { id: "", name: "Empty" },
 ]
 const columns = [{ id: "name", name: "Name", isRowHeader: true }]
-const scope = () => {
-  const actions = createNativeDragActions(createNativeKeyScope("owner"))
+const scope = (keyboard = createNativeKeyScope("owner")) => {
+  const actions = createNativeDragActions(keyboard)
   actions.acceptStatus(
     JSON.stringify({
       kind: "window",
@@ -71,8 +72,9 @@ const Fixture = ({ items, trace }: { items: typeof originalRows; trace: unknown[
   )
 }
 const installTags = () => {
-  const native = jest.requireActual<typeof import("react-native")>("react-native"),
-    original = native.findNodeHandle
+  const native = jest.requireActual<typeof import("react-native")>("react-native")
+  const installed = native.findNodeHandle as jest.MockedFunction<typeof native.findNodeHandle>
+  const original = jest.isMockFunction(installed) ? installed.getMockImplementation()! : native.findNodeHandle
   const tags = new WeakMap<object, number>()
   let tag = 70000
   const spy = jest.spyOn(native, "findNodeHandle").mockImplementation((view) => {
@@ -85,76 +87,129 @@ const installTags = () => {
   return () => spy.mockRestore()
 }
 it("connects the original Table rows, typed zero/empty keys, reserved drag column and source values", async () => {
-  const restore = installTags(),
-    actions = scope(),
-    trace: unknown[] = []
-  const tree = (items = originalRows) => (
-    <NativeThemeProvider>
-      <NativeDragActionsContext.Provider value={actions}>
-        <Fixture items={items} trace={trace} />
-      </NativeDragActionsContext.Provider>
-    </NativeThemeProvider>
-  )
-  const rendered = await render(tree())
-  const data = JSON.parse(actions.bindings())[0]
-  expect(data.members.map((member: TNativeDragMemberBinding) => member.key)).toEqual(["number:0", "string:"])
-  expect(JSON.parse(screen.getByTestId("table").props.nativeCollectionSemantics).columnCount).toBe(2)
-  expect(screen.getByTestId("table").props.dragAndDropHooks).toBeUndefined()
-  const member = data.members[0]
-  actions.acceptStatus(
-    JSON.stringify({
-      kind: "binding",
-      ownerId: "owner",
-      windowId: "window",
-      epoch: 1,
+  try {
+    const restore = installTags(),
+      keyboard = createNativeKeyScope("owner"),
+      actions = scope(keyboard),
+      trace: unknown[] = []
+    let keyboardActive = true
+    jest.spyOn(keyboard, "isWindowActive").mockImplementation(() => keyboardActive)
+    const module = jest.requireActual<typeof import("../useTableKeyboard")>("../useTableKeyboard")
+    const useKeyboard = module.useTableKeyboard
+    const useControlledKeyboard: typeof useKeyboard = (owner) => {
+      const current = useKeyboard(owner)
+      return { ...current, canAct: () => keyboard.isWindowActive() !== false && current.canAct() }
+    }
+    jest.spyOn(module, "useTableKeyboard").mockImplementation(useControlledKeyboard)
+    const tree = (items = originalRows) => (
+      <NativeThemeProvider>
+        <NativeDragActionsContext.Provider value={actions}>
+          <Fixture items={items} trace={trace} />
+        </NativeDragActionsContext.Provider>
+      </NativeThemeProvider>
+    )
+    const rendered = await render(tree())
+    const data = JSON.parse(actions.bindings())[0]
+    expect(data.members.map((member: TNativeDragMemberBinding) => member.key)).toEqual(["number:0", "string:"])
+    expect(JSON.parse(screen.getByTestId("table").props.nativeCollectionSemantics).columnCount).toBe(2)
+    expect(screen.getByTestId("table").props.dragAndDropHooks).toBeUndefined()
+    const member = data.members[0]
+    actions.acceptStatus(
+      JSON.stringify({
+        kind: "binding",
+        ownerId: "owner",
+        windowId: "window",
+        epoch: 1,
+        moduleId: "native-module",
+        bindingId: data.bindingId,
+        revision: data.revision,
+        rootTarget: data.rootTarget,
+        ready: true,
+        error: "",
+      }),
+    )
+    const identity = {
       moduleId: "native-module",
+      ownerId: "owner",
       bindingId: data.bindingId,
       revision: data.revision,
       rootTarget: data.rootTarget,
-      ready: true,
-      error: "",
-    }),
-  )
-  const identity = {
-    moduleId: "native-module",
-    ownerId: "owner",
-    bindingId: data.bindingId,
-    revision: data.revision,
-    rootTarget: data.rootTarget,
-    itemTarget: member.targetTag,
-    windowId: "window",
-    epoch: 1,
-    surfaceId: 1,
-    scopeTarget: 10,
-    sessionId: "table-drag",
-    kind: "lift",
-  }
-  const geometry = {
-    revision: 1,
-    root: { x: 0, y: 0, width: 100, height: 100 },
-    items: data.members.map((member: TNativeDragMemberBinding, index: number) => ({
-      ...member,
-      rect: { x: 0, y: index * 30, width: 100, height: 30 },
-    })),
-  }
-  await act(() => {
-    actions.dispatch(
+      itemTarget: member.targetTag,
+      windowId: "window",
+      epoch: 1,
+      surfaceId: 1,
+      scopeTarget: 10,
+      sessionId: "table-drag",
+      kind: "lift",
+    }
+    const geometry = {
+      revision: 1,
+      root: { x: 0, y: 0, width: 100, height: 100 },
+      items: data.members.map((member: TNativeDragMemberBinding, index: number) => ({
+        ...member,
+        rect: { x: 0, y: index * 30, width: 100, height: 30 },
+      })),
+    }
+    await act(() => {
+      actions.dispatch(
+        JSON.stringify({
+          version: 1,
+          token: 1,
+          identity,
+          payload: { x: 10, y: 10, key: member.key, instanceId: member.instanceId, geometry },
+        }),
+      )
+    })
+    expect(trace).toEqual(["start", ["items", [0], [originalRows[0]]]])
+    keyboardActive = false
+    actions.acceptStatus(
       JSON.stringify({
-        version: 1,
-        token: 1,
-        identity,
-        payload: { x: 10, y: 10, key: member.key, instanceId: member.instanceId, geometry },
+        kind: "window",
+        ownerId: "owner",
+        windowId: "window",
+        epoch: 1,
+        surfaceId: 1,
+        scopeTarget: 10,
+        available: true,
+        canLift: false,
+        canDrop: true,
       }),
     )
-  })
-  expect(trace).toEqual(["start", ["items", [0], [originalRows[0]]]])
-  await rendered.rerender(tree([...originalRows].reverse()))
-  expect(
-    JSON.parse(actions.bindings())[0].members.find((row: TNativeDragMemberBinding) => row.key === "number:0").targetTag,
-  ).toBe(member.targetTag)
-  await rendered.unmount()
-  actions.dispose()
-  restore()
+    await act(() => {
+      expect(
+        actions.dispatch(
+          JSON.stringify({
+            version: 1,
+            token: 2,
+            identity: { ...identity, kind: "move" },
+            payload: { x: 10, y: 11, geometry: { ...geometry, revision: 2 } },
+          }),
+        ),
+      ).toEqual({ moved: true })
+      actions.dispatch(
+        JSON.stringify({
+          version: 1,
+          token: 3,
+          identity: { ...identity, kind: "end" },
+          payload: { x: 10, y: 11, operation: "copy", geometry: { ...geometry, revision: 3 } },
+        }),
+      )
+    })
+    expect(trace.at(-1)).toEqual(["end", "copy"])
+
+    await rendered.rerender(tree([...originalRows].reverse()))
+    expect(
+      JSON.parse(actions.bindings())[0].members.find((row: TNativeDragMemberBinding) => row.key === "number:0")
+        .targetTag,
+    ).toBe(member.targetTag)
+    await rendered.unmount()
+    actions.dispose()
+    restore()
+  } catch (error) {
+    if (error instanceof AggregateError)
+      throw new Error(error.errors.map((cause: Error) => cause.stack ?? String(cause)).join("\n"))
+    throw error
+  }
 })
 it("connects Sort to the canonical text payload and controller-owned reorder callback", async () => {
   const restore = installTags(),
@@ -234,7 +289,11 @@ it("connects Sort to the canonical text payload and controller-owned reorder cal
     )
   })
   expect(response).toMatchObject({ items: [[{ type: "text/plain", data: "City" }]] })
-  const read = jest.spyOn(NativeDragDataBinding.prototype, "takeItems").mockResolvedValueOnce([])
+  const read = jest
+    .spyOn(NativeDragDataBinding.prototype, "takeItems")
+    .mockResolvedValueOnce([
+      { kind: "text", types: new Set(["text/plain"]), getText: async () => "City", release: () => {} },
+    ])
   await act(async () => {
     actions.dispatch(
       JSON.stringify({
