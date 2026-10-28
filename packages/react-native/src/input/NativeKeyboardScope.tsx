@@ -132,12 +132,14 @@ export const NativeKeyboardScope = forwardRef<View, TNativeKeyboardScopeProps>(
     const attached = useRef(false)
     const releaseRef = useRef<(() => void) | undefined>(undefined)
     useSyncExternalStore(scope.subscribe, scope.snapshot, scope.snapshot)
+    useSyncExternalStore(dragActions.subscribe, dragActions.snapshot, dragActions.snapshot)
     useSyncExternalStore(dialogs.subscribe, dialogs.snapshot, dialogs.snapshot)
     useSyncExternalStore(pointers.subscribe, pointers.snapshot, pointers.snapshot)
     useSyncExternalStore(menuPointers.subscribe, menuPointers.snapshot, menuPointers.snapshot)
     useSyncExternalStore(observations.subscribe, observations.snapshot, observations.snapshot)
     useSyncExternalStore(keyboardObservations.subscribe, keyboardObservations.snapshot, keyboardObservations.snapshot)
     useInsertionEffect(() => scope.setEnabled(captureEnabled), [scope, captureEnabled])
+    useInsertionEffect(() => dragActions.setEnabled(captureEnabled), [dragActions, captureEnabled])
     useInsertionEffect(() => pointers.setEnabled(captureEnabled), [pointers, captureEnabled])
     useInsertionEffect(() => menuPointers.setEnabled(captureEnabled), [menuPointers, captureEnabled])
     useInsertionEffect(() => () => menuPointers.dispose(), [menuPointers])
@@ -148,6 +150,9 @@ export const NativeKeyboardScope = forwardRef<View, TNativeKeyboardScopeProps>(
     useInsertionEffect(() => () => dialogs.dispose(), [dialogs])
     useInsertionEffect(() => () => observations.dispose(), [observations])
     useInsertionEffect(() => () => keyboardObservations.dispose(), [keyboardObservations])
+    useLayoutEffect(() => {
+      dragActions.flush()
+    }, [dragActions, captureEnabled])
     useLayoutEffect(() => {
       scope.flush()
       dialogs.flush()
@@ -179,6 +184,8 @@ export const NativeKeyboardScope = forwardRef<View, TNativeKeyboardScopeProps>(
     const session = scope.acknowledgedSession()
     const pointerFailure = pointers.error()
     if (pointerFailure) throw new Error(pointerFailure)
+    const dragFailure = dragActions.error()
+    if (dragFailure) throw new Error(dragFailure)
     const dialogFailure = dialogs.error()
     if (dialogFailure) throw new Error(dialogFailure)
     return (
@@ -218,6 +225,10 @@ export const NativeKeyboardScope = forwardRef<View, TNativeKeyboardScopeProps>(
                         }}
                         ref={setRef}
                         ownerId={ownerId}
+                        dragBindings={dragActions.bindings()}
+                        onNativeDragStatus={(event) => {
+                          if (attached.current) dragActions.acceptStatus(event.nativeEvent.packet)
+                        }}
                         onNativeDragAction={(event) => {
                           if (attached.current) dragActions.dispatch(event.nativeEvent.packet)
                         }}

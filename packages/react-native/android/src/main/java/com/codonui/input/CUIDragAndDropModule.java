@@ -1,6 +1,10 @@
 package com.codonui.input;
 
 import com.facebook.react.bridge.Promise;
+import com.facebook.react.bridge.UiThreadUtil;
+import com.facebook.react.bridge.UIManager;
+import com.facebook.react.uimanager.UIManagerHelper;
+import android.view.View;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.module.annotations.ReactModule;
 import com.facebook.react.turbomodule.core.interfaces.BindingsInstallerHolder;
@@ -33,6 +37,18 @@ public final class CUIDragAndDropModule extends NativeCUIDragAndDropSpec impleme
       else if (value instanceof JSONObject || value instanceof JSONArray || value instanceof String) promise.resolve(value.toString());
       else promise.reject("E_CUI_DRAG_DATA", "Native drag data: invalid native response");
     };
+  }
+  @Override public void readGeometry(String encoded, Promise promise) {
+    UiThreadUtil.runOnUiThread(() -> {
+      try {
+        JSONObject request=new JSONObject(encoded);
+        if (!request.getString("moduleId").equals(data.moduleId) || CUIDragDataStore.forModule(data.moduleId)!=data) throw new IllegalStateException("native-drag-geometry-module-retired");
+        UIManager manager=UIManagerHelper.getUIManagerForReactTag(getReactApplicationContext(),request.getInt("scopeTarget"));
+        View view=manager==null?null:manager.resolveView(request.getInt("scopeTarget"));
+        if (!(view instanceof CUIKeyboardScope)) throw new IllegalStateException("native-drag-geometry-scope-retired");
+        promise.resolve(((CUIKeyboardScope)view).dragInteractions.geometry(request).toString());
+      } catch (Exception error) { promise.reject("E_CUI_DRAG_GEOMETRY",error); }
+    });
   }
   @Override public void readItems(String request, Promise promise) {
     try { data.readItems(new JSONObject(request), record(promise)); }

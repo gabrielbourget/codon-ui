@@ -46,6 +46,7 @@ static void CUIInitializeDragModules() {
 }
 @interface CUIDragAndDrop : NativeCUIDragAndDropSpecBase <NativeCUIDragAndDropSpec, RCTInvalidating>
 @property(nonatomic, weak) RCTModuleRegistry *moduleRegistry;
+- (UIView *)resolveDragView:(NSInteger)target;
 - (NSString *)runAction:(CUIKeyboardScope *)scope identity:(NSDictionary *)identity payload:(NSDictionary *)payload pointer:(BOOL)pointer current:(BOOL (^)(void))current;
 @end
 
@@ -84,6 +85,10 @@ RCT_EXPORT_MODULE(CUIDragAndDrop)
 }
 - (NSNumber *)acceptsAction:(NSString *)request { return @(_action->accepts(request.UTF8String)); }
 - (NSNumber *)settleAction:(NSString *)request { return @(_action->settle(request.UTF8String)); }
+- (UIView *)resolveDragView:(NSInteger)target {
+  if (!NSThread.isMainThread || !_action->ready()) return nil;
+  return [(RCTSurfacePresenter *)_presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:target];
+}
 - (NSString *)runAction:(CUIKeyboardScope *)scope identity:(NSDictionary *)identity payload:(NSDictionary *)payload pointer:(BOOL)pointer current:(BOOL (^)(void))current {
   if (!NSThread.isMainThread || !current || !current()) @throw [NSException exceptionWithName:@"CUI.DragAction" reason:@"native-drag-original-main-view-required" userInfo:nil];
   RCTSurfacePresenter *presenter = (RCTSurfacePresenter *)_presenter;
@@ -95,7 +100,7 @@ RCT_EXPORT_MODULE(CUIDragAndDrop)
   auto data = folly::parseJson(std::string((const char *)payloadBytes.bytes, payloadBytes.length));
   const auto response = codon::drag::run(_action, manager, id, std::move(data), pointer,
     [scope, current, id] {
-      NSDictionary *session = scope.activationSession;
+      NSDictionary *session = scope.dragActivationSession;
       return NSThread.isMainThread && current() && scope.dragCaptureReady && scope.tag == id.scopeTarget &&
         [session[@"scopeOwnerId"] isEqual:@(id.ownerId.c_str())] && [session[@"windowId"] isEqual:@(id.windowId.c_str())] &&
         [session[@"epoch"] longLongValue] == id.epoch;
@@ -116,6 +121,17 @@ RCT_EXPORT_MODULE(CUIDragAndDrop)
   NSData *bytes = record ? [NSJSONSerialization dataWithJSONObject:record options:0 error:&encoding] : nil;
   if (!bytes || encoding) { reject(@"E_CUI_DRAG_DATA", @"Native drag data: invalid native response", encoding); return; }
   resolve([[NSString alloc] initWithData:bytes encoding:NSUTF8StringEncoding]);
+}
+- (void)readGeometry:(NSString *)encoded resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    @try {
+      NSDictionary *request = [self request:encoded];
+      if (![request[@"moduleId"] isEqual:_data.moduleId]) @throw [NSException exceptionWithName:@"CUI.Drag" reason:@"native-drag-geometry-module-retired" userInfo:nil];
+      UIView *scope = [self resolveDragView:[request[@"scopeTarget"] integerValue]];
+      if (![scope isKindOfClass:CUIKeyboardScope.class]) @throw [NSException exceptionWithName:@"CUI.Drag" reason:@"native-drag-geometry-scope-retired" userInfo:nil];
+      [self resolveRecord:[(CUIKeyboardScope *)scope dragGeometry:request] error:nil resolve:resolve reject:reject];
+    } @catch (NSException *error) { reject(@"E_CUI_DRAG_GEOMETRY",error.reason,nil); }
+  });
 }
 - (void)readItems:(NSString *)encoded resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
   @try { [_data readItems:[self request:encoded] completion:^(NSArray *value, NSError *error) {
@@ -150,4 +166,9 @@ NSString *CUIRunDragAction(CUIKeyboardScope *scope, NSDictionary *identity, NSDi
   CUIInitializeDragModules(); [CUIDragModulesLock lock]; CUIDragAndDrop *module = [CUIDragModules objectForKey:identity[@"moduleId"]]; [CUIDragModulesLock unlock];
   if (!module) @throw [NSException exceptionWithName:@"CUI.DragAction" reason:@"native-drag-original-module-retired" userInfo:nil];
   return [module runAction:scope identity:identity payload:payload pointer:pointer current:current];
+}
+
+UIView *CUIResolveDragView(NSString *moduleId, NSInteger target) {
+  CUIInitializeDragModules(); [CUIDragModulesLock lock]; CUIDragAndDrop *module = [CUIDragModules objectForKey:moduleId]; [CUIDragModulesLock unlock];
+  return [module resolveDragView:target];
 }

@@ -5,6 +5,7 @@ export interface Spec extends TurboModule {
   getLease(): string
   acceptsAction(request: string): boolean
   settleAction(request: string): boolean
+  readGeometry(request: string): Promise<string>
   readItems(request: string): Promise<string>
   adoptItems(request: string): boolean
   readText(request: string): Promise<string>

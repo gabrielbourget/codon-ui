@@ -6,6 +6,11 @@
 - (NSDictionary *)activationSession;
 - (NSString *)dragMountWitness;
 - (BOOL)dragCaptureReady;
+- (BOOL)dragEnabled;
+- (int32_t)dragSurfaceId;
+- (NSDictionary *)dragActivationSession;
+- (NSDictionary *)dragGeometry:(NSDictionary *)request;
+- (void)emitDragStatus:(NSDictionary *)record;
 - (CUIMenuPointerPolicies *)menuPointers;
 - (CUIDialogFocusScopes *)dialogFocusScopes;
 @end

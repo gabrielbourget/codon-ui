@@ -291,6 +291,26 @@ final class CUIDragDataStore: NSObject {
     }; progress(task, importId: importId)
   }
 
+  @objc(beginImportTextMaps:)
+  func beginImportTextMaps(_ maps: [[[String: String]]]) -> String {
+    state {
+      guard live else { return "" }
+      var created: [String] = [], results: [[String: Any]] = []
+      for rows in maps {
+        var strings: [String: String] = [:], types: [String] = []
+        for row in rows {
+          guard row.count == 2, let type = row["type"], let value = row["data"], strings[type] == nil else {
+            for handle in created { _ = remove(handle) }; return ""
+          }
+          strings[type] = value; types.append(type)
+        }
+        let entry = Entry(kind: "text", text: strings, representations: types), handle = insert(entry)
+        created.append(handle); results.append(describe(handle, entry))
+      }
+      let handle = moduleId + ":transfer:" + UUID().uuidString, transfer = Transfer()
+      transfer.results = results; transfers[handle] = transfer; return handle
+    }
+  }
   @objc(beginImportProviders:)
   func beginImportProviders(_ providers: [NSItemProvider]) -> String {
     let handle = moduleId + ":transfer:" + UUID().uuidString, transfer = Transfer()

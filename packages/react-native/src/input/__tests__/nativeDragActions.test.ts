@@ -24,6 +24,19 @@ const setup = () => {
       windowActive: true,
     })
   const actions = createNativeDragActions(scope)
+  actions.acceptStatus(
+    JSON.stringify({
+      kind: "window",
+      ownerId: "owner",
+      windowId: "window",
+      epoch: 1,
+      surfaceId: 1,
+      scopeTarget: 10,
+      available: true,
+      canLift: true,
+      canDrop: true,
+    }),
+  )
   let live = true
   const dispatch = jest.fn(() => ({ items: [{ "text/plain": "original" }] })),
     retire = jest.fn()
@@ -176,7 +189,7 @@ it("unregisters old collection leases once and never routes a late action into a
 })
 it("rejects native-window retirement and malformed or non-native scalar tokens", () => {
   const f = setup()
-  f.scope.setEnabled(false)
+  f.actions.setEnabled(false)
   expect(() => f.actions.dispatch(f.packet())).toThrow("authority")
   for (const token of [0, -1, 0.5, Number.MAX_SAFE_INTEGER + 1])
     expect(() => parseNativeDragAction(f.packet({}, token))).toThrow("original token required")
@@ -205,3 +218,139 @@ it.each([undefined, null, 0, false])(
     f.actions.dispose()
   },
 )
+
+it("keeps an original source end live after keyboard focus leaves while refusing new lifts", () => {
+  const f = setup()
+  f.scope.acceptNativeStatus({
+    ownerId: "owner",
+    windowId: "window",
+    epoch: 2,
+    policyRevision: f.scope.policyRevision(),
+    ready: false,
+    windowActive: false,
+  })
+  f.actions.acceptStatus(
+    JSON.stringify({
+      kind: "window",
+      ownerId: "owner",
+      windowId: "window",
+      epoch: 1,
+      surfaceId: 1,
+      scopeTarget: 10,
+      available: true,
+      canLift: false,
+      canDrop: false,
+    }),
+  )
+  expect(f.registration.current()).toBe(true)
+  expect(() => f.actions.dispatch(f.packet())).toThrow("authority")
+  f.actions.dispatch(f.packet({ kind: "end" }))
+  expect(f.dispatch).toHaveBeenCalledTimes(1)
+  f.actions.dispose()
+})
+it("retires original bindings when the actual drag window or surface changes", () => {
+  const f = setup()
+  f.actions.acceptStatus(
+    JSON.stringify({
+      kind: "window",
+      ownerId: "owner",
+      windowId: "new-window",
+      epoch: 2,
+      surfaceId: 2,
+      scopeTarget: 10,
+      available: true,
+      canLift: true,
+      canDrop: true,
+    }),
+  )
+  expect(f.retire).toHaveBeenCalledTimes(1)
+  expect(() => f.actions.dispatch(f.packet())).toThrow("authority")
+  const current = f.actions.window()
+  f.actions.acceptStatus(
+    JSON.stringify({
+      kind: "window",
+      ownerId: "owner",
+      windowId: "window",
+      epoch: 1,
+      surfaceId: 1,
+      scopeTarget: 10,
+      available: true,
+      canLift: true,
+      canDrop: true,
+    }),
+  )
+  expect(f.actions.window()).toEqual(current)
+  f.actions.dispose()
+})
+it("publishes only original view metadata and waits for native enrollment before a new lift", () => {
+  const f = setup()
+  f.registration.unregister()
+  const metadata = {
+    draggable: true,
+    droppable: true,
+    members: [{ key: "number:0", instanceId: "row-instance", targetTag: 30, handleTag: 0 }],
+    previewTarget: 0,
+    previewInstanceId: "",
+    previewX: 0,
+    previewY: 0,
+  }
+  const lease = f.actions.register({
+    bindingId: "collection",
+    revision: "original",
+    rootTarget: 20,
+    itemTargets: new Set([30]),
+    native: metadata,
+    current: () => true,
+    dispatch: f.dispatch,
+    retire: f.retire,
+  })
+  expect(lease.ready()).toBe(false)
+  expect(() => f.actions.dispatch(f.packet())).toThrow("authority")
+  const serialized = JSON.parse(f.actions.bindings())
+  expect(serialized).toEqual([
+    { ...metadata, moduleId: "native-module", bindingId: "collection", revision: "original", rootTarget: 20 },
+  ])
+  f.actions.acceptStatus(
+    JSON.stringify({
+      kind: "binding",
+      ownerId: "owner",
+      windowId: "window",
+      epoch: 1,
+      moduleId: "native-module",
+      bindingId: "collection",
+      revision: "original",
+      rootTarget: 20,
+      ready: true,
+      error: "",
+    }),
+  )
+  expect(lease.ready()).toBe(true)
+  f.actions.dispatch(f.packet())
+  lease.updateNative({
+    ...metadata,
+    previewTarget: 40,
+    previewInstanceId: "authored-preview",
+    previewX: -3,
+    previewY: 5,
+  })
+  expect(lease.ready()).toBe(false)
+  expect(lease.current()).toBe(true)
+  f.actions.dispatch(f.packet({ kind: "end" }, 2))
+  expect(f.dispatch).toHaveBeenCalledTimes(2)
+  f.actions.dispose()
+})
+it("refuses stale member refs and wrong scope packets after native metadata changes", () => {
+  const f = setup()
+  expect(() => f.actions.dispatch(f.packet({ scopeTarget: 11 }))).toThrow("authority")
+  f.registration.updateNative({
+    draggable: true,
+    droppable: true,
+    members: [{ key: "number:0", instanceId: "new-row", targetTag: 31, handleTag: 0 }],
+    previewTarget: 0,
+    previewInstanceId: "",
+    previewX: 0,
+    previewY: 0,
+  })
+  expect(() => f.actions.dispatch(f.packet({ kind: "end" }))).toThrow("authority")
+  f.actions.dispose()
+})

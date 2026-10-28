@@ -23,11 +23,36 @@ export type TNativeDragActionPacket = Readonly<{
   identity: TNativeDragActionIdentity
   payload: Readonly<Record<string, unknown>>
 }>
+export type TNativeDragMemberBinding = Readonly<{
+  key: string
+  instanceId: string
+  targetTag: number
+  handleTag: number
+}>
+export type TNativeDragViewBinding = Readonly<{
+  draggable: boolean
+  droppable: boolean
+  members: readonly TNativeDragMemberBinding[]
+  previewTarget: number
+  previewInstanceId: string
+  previewX: number
+  previewY: number
+}>
+export type TNativeDragWindow = Readonly<{
+  windowId: string
+  epoch: number
+  surfaceId: number
+  scopeTarget: number
+  available: boolean
+  canLift: boolean
+  canDrop: boolean
+}>
 export type TNativeDragActionRegistration = Readonly<{
   bindingId: string
   revision: string
   rootTarget: number
   itemTargets: ReadonlySet<number>
+  native?: TNativeDragViewBinding
   current: () => boolean
   retire: () => void
   dispatch: (packet: TNativeDragActionPacket, current: () => boolean) => unknown
@@ -64,17 +89,176 @@ export const parseNativeDragAction = (encoded: string): TNativeDragActionPacket 
 }
 
 export const createNativeDragActions = (scope: TNativeKeyScope) => {
-  const entries = new Map<string, { moduleId: string; value: TNativeDragActionRegistration; live: boolean }>()
+  type TEntry = { moduleId: string; value: TNativeDragActionRegistration; live: boolean; nativeReady: boolean }
+  const entries = new Map<string, TEntry>()
+  const listeners = new Set<() => void>()
+  let revision = 0,
+    published = 0,
+    enabled = true,
+    failure = ""
+  let window: TNativeDragWindow = {
+    windowId: "",
+    epoch: 0,
+    surfaceId: 0,
+    scopeTarget: 0,
+    available: false,
+    canLift: false,
+    canDrop: false,
+  }
+  const flush = () => {
+    if (published === revision) return
+    published = revision
+    for (const listener of listeners) listener()
+  }
+  const changed = () => {
+    revision++
+    flush()
+  }
   const lastTokens = new Map<string, number>()
   let disposed = false
   let cleanupErrors: unknown[] = []
-  const current = (entry: { moduleId: string; value: TNativeDragActionRegistration; live: boolean }) =>
+  const current = (entry: TEntry) =>
     !disposed &&
+    enabled &&
+    window.available &&
     entry.live &&
     entries.get(entry.value.bindingId) === entry &&
-    scope.isNativeReady() &&
     entry.value.current()
+  const checkedNative = (value: TNativeDragViewBinding) => {
+    const keys = new Set<string>(),
+      instances = new Set<string>()
+    if (
+      typeof value.draggable !== "boolean" ||
+      typeof value.droppable !== "boolean" ||
+      !Array.isArray(value.members) ||
+      typeof value.previewInstanceId !== "string" ||
+      !Number.isFinite(value.previewX) ||
+      !Number.isFinite(value.previewY) ||
+      (value.previewTarget !== 0 && (!target(value.previewTarget) || !value.previewInstanceId))
+    )
+      throw new Error("Native drag action: invalid native view metadata")
+    for (const member of value.members) {
+      if (
+        typeof member.key !== "string" ||
+        typeof member.instanceId !== "string" ||
+        !member.instanceId ||
+        !target(member.targetTag) ||
+        (member.handleTag !== 0 && !target(member.handleTag)) ||
+        keys.has(member.key) ||
+        instances.has(member.instanceId)
+      )
+        throw new Error("Native drag action: duplicate or invalid original member metadata")
+      keys.add(member.key)
+      instances.add(member.instanceId)
+    }
+    return { ...value, members: value.members.map((member) => ({ ...member })) }
+  }
   return {
+    subscribe: (listener: () => void) => {
+      listeners.add(listener)
+      return () => {
+        listeners.delete(listener)
+      }
+    },
+    snapshot: () => revision,
+    flush,
+    window: () => ({ ...window }),
+    error: () => failure,
+    setEnabled: (next: boolean) => {
+      if (enabled === next) return
+      enabled = next
+      revision++
+    },
+    bindings: () =>
+      JSON.stringify(
+        !enabled || disposed
+          ? []
+          : [...entries.values()].flatMap((entry) =>
+              entry.live && entry.value.native && entry.value.current()
+                ? [
+                    {
+                      ...entry.value.native,
+                      moduleId: entry.moduleId,
+                      bindingId: entry.value.bindingId,
+                      revision: entry.value.revision,
+                      rootTarget: entry.value.rootTarget,
+                    },
+                  ]
+                : [],
+            ),
+      ),
+    acceptStatus: (encoded: string) => {
+      const status = object(JSON.parse(encoded))
+      if (
+        disposed ||
+        status.ownerId !== scope.ownerId ||
+        typeof status.windowId !== "string" ||
+        !positive(status.epoch)
+      )
+        return
+      if (
+        status.epoch < window.epoch ||
+        (status.epoch === window.epoch && window.windowId && status.windowId !== window.windowId)
+      )
+        return
+      if (status.kind === "window") {
+        if (
+          !target(status.surfaceId) ||
+          !target(status.scopeTarget) ||
+          typeof status.available !== "boolean" ||
+          typeof status.canLift !== "boolean" ||
+          typeof status.canDrop !== "boolean"
+        )
+          throw new Error("Native drag action: invalid original window status")
+        const next = {
+          windowId: status.windowId,
+          epoch: status.epoch,
+          surfaceId: status.surfaceId,
+          scopeTarget: status.scopeTarget,
+          available: status.available,
+          canLift: status.canLift,
+          canDrop: status.canDrop,
+        }
+        if (
+          next.epoch !== window.epoch ||
+          next.windowId !== window.windowId ||
+          next.surfaceId !== window.surfaceId ||
+          next.scopeTarget !== window.scopeTarget ||
+          !next.available
+        ) {
+          for (const entry of entries.values()) {
+            entry.nativeReady = false
+            entry.value.retire()
+          }
+        }
+        if (JSON.stringify(next) !== JSON.stringify(window)) {
+          window = next
+          changed()
+        }
+        return
+      }
+      if (status.epoch !== window.epoch || status.windowId !== window.windowId || !window.available) return
+      const entry = typeof status.bindingId === "string" ? entries.get(status.bindingId) : undefined
+      if (
+        !entry ||
+        status.moduleId !== entry.moduleId ||
+        status.revision !== entry.value.revision ||
+        status.rootTarget !== entry.value.rootTarget
+      )
+        return
+      if (status.kind === "retired") {
+        entry.value.retire()
+        changed()
+        return
+      }
+      if (status.kind !== "binding" || typeof status.ready !== "boolean" || typeof status.error !== "string")
+        throw new Error("Native drag action: invalid original binding status")
+      if (status.error && !failure) failure = status.error
+      if (entry.nativeReady !== status.ready || status.error) {
+        entry.nativeReady = status.ready
+        changed()
+      }
+    },
     register: (value: TNativeDragActionRegistration) => {
       if (
         disposed ||
@@ -88,16 +272,41 @@ export const createNativeDragActions = (scope: TNativeKeyScope) => {
         throw new Error("Native drag action: invalid or duplicate original collection binding")
       const moduleId = NativeModule.getLease()
       if (!moduleId) throw new Error("Native drag action: original native module is unavailable")
-      const entry = { moduleId, value: { ...value, itemTargets: new Set(value.itemTargets) }, live: true }
+      const entry: TEntry = {
+        moduleId,
+        value: {
+          ...value,
+          native: value.native ? checkedNative(value.native) : undefined,
+          itemTargets: new Set(value.itemTargets),
+        },
+        live: true,
+        nativeReady: false,
+      }
       entries.set(value.bindingId, entry)
+      changed()
       return {
         moduleId,
         current: () => current(entry),
+        ready: () => current(entry) && (!entry.value.native || entry.nativeReady),
+        updateNative: (native: TNativeDragViewBinding) => {
+          if (!entry.live || disposed || entries.get(value.bindingId) !== entry)
+            throw new Error("Native drag action: original registration retired")
+          const checked = checkedNative(native)
+          if (JSON.stringify(checked) === JSON.stringify(entry.value.native)) return
+          entry.value = {
+            ...entry.value,
+            native: checked,
+            itemTargets: new Set(checked.members.map((member) => member.targetTag)),
+          }
+          entry.nativeReady = false
+          changed()
+        },
         unregister: () => {
           if (!entry.live) return
           entry.live = false
           if (entries.get(value.bindingId) === entry) entries.delete(value.bindingId)
           value.retire()
+          changed()
         },
       }
     },
@@ -106,7 +315,7 @@ export const createNativeDragActions = (scope: TNativeKeyScope) => {
       const packet = parseNativeDragAction(encoded),
         identity = packet.identity
       const entry = entries.get(identity.bindingId),
-        session = scope.acknowledgedSession()
+        session = window
       if (
         !native ||
         !entry ||
@@ -117,6 +326,10 @@ export const createNativeDragActions = (scope: TNativeKeyScope) => {
         identity.epoch !== session.epoch ||
         identity.revision !== entry.value.revision ||
         identity.rootTarget !== entry.value.rootTarget ||
+        identity.surfaceId !== session.surfaceId ||
+        identity.scopeTarget !== session.scopeTarget ||
+        (identity.kind === "lift" && (!window.canLift || (!!entry.value.native && !entry.nativeReady))) ||
+        (["target", "activate", "drop"].includes(identity.kind) && !window.canDrop) ||
         (identity.itemTarget !== 0 && !entry.value.itemTargets.has(identity.itemTarget)) ||
         packet.token <= (lastTokens.get(identity.moduleId) ?? 0) ||
         !native.acceptsAction(encoded)
@@ -125,8 +338,8 @@ export const createNativeDragActions = (scope: TNativeKeyScope) => {
       lastTokens.set(identity.moduleId, packet.token)
       const accepts = () =>
         current(entry) &&
-        scope.acknowledgedSession().windowId === identity.windowId &&
-        scope.acknowledgedSession().epoch === identity.epoch &&
+        window.windowId === identity.windowId &&
+        window.epoch === identity.epoch &&
         native.acceptsAction(encoded)
       let response: unknown,
         failure: unknown,
@@ -189,6 +402,7 @@ export const createNativeDragActions = (scope: TNativeKeyScope) => {
       }
       entries.clear()
       lastTokens.clear()
+      listeners.clear()
       if (failed) throw failure
     },
   }

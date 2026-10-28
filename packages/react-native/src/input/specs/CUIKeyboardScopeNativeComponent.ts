@@ -254,6 +254,8 @@ export type NativeEditorKeyboardDecision = Readonly<{
 
 export interface NativeProps extends ViewProps {
   onNativeDragAction?: DirectEventHandler<NativeDragActionData>
+  onNativeDragStatus?: DirectEventHandler<NativeDragActionData>
+  dragBindings?: WithDefault<string, "[]">
   nativeTypographyWindow?: string
   ownerId: string
   dialogScopes?: ReadonlyArray<NativeDialogBinding>

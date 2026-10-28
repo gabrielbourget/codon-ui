@@ -367,6 +367,25 @@ final class CUIDragDataStore {
     if (!submitted) throw failure("module retired before original transfer import");
     return handle;
   }
+  String beginImportTextMaps(JSONArray maps) throws Exception {
+    UiThreadUtil.assertOnUiThread();
+    synchronized (lock) {
+      if (!live) throw failure("module retired before original local drop");
+      JSONArray results=new JSONArray(); List<String> created=new ArrayList<>();
+      try {
+        for (int i=0;i<maps.length();i++) {
+          LinkedHashMap<String,String> values=new LinkedHashMap<>(); JSONArray rows=maps.getJSONArray(i);
+          for (int j=0;j<rows.length();j++) {
+            JSONObject row=rows.getJSONObject(j); Object type=row.get("type"), data=row.get("data");
+            if (row.length()!=2 || !(type instanceof String) || !(data instanceof String) || values.containsKey(type)) throw failure("invalid original local representation");
+            values.put((String)type,(String)data);
+          }
+          Entry entry=new Entry("text",null,null,values); String handle=insert(entry); created.add(handle); results.put(describe(handle,entry));
+        }
+        String handle=moduleId+":transfer:"+UUID.randomUUID(); Transfer transfer=new Transfer(); transfer.items=results; transfer.finished=true; transfers.put(handle,transfer); return handle;
+      } catch (Exception error) { for (String handle:created) remove(handle); throw error; }
+    }
+  }
   void readItems(JSONObject request, Reply<JSONArray> reply) {
     try {
       Transfer transfer;

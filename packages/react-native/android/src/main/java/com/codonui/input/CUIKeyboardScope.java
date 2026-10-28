@@ -27,11 +27,16 @@ import java.util.Objects;
 import java.util.Set;
 
 public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerListener {
+  final CUIDragInteractions dragInteractions = new CUIDragInteractions(this);
   private UIManager dragMountManager;
   private long dragMountBatch;
-  boolean dragCaptureReady() { return captureReady(); }
+  boolean dragCaptureReady() { return dragInteractions.available(); }
+  boolean dragEnabled() { return captureEnabled; }
+  long dragEpoch() { return dragInteractions.epoch(); }
+  String dragWindowId() { return dragInteractions.window(); }
+  void emitDragStatus(String record) { WritableMap data=Arguments.createMap(); data.putString("packet",record); emit("topNativeDragStatus",data); }
   String dragMountWitness() { return isAttachedToWindow() ? "android-mount:" + dragMountBatch : "unmounted"; }
-  @Override public void didMountItems(UIManager manager) { if (manager == dragMountManager) dragMountBatch++; }
+  @Override public void didMountItems(UIManager manager) { if (manager == dragMountManager) { dragMountBatch++; dragInteractions.refresh(); } }
   @Override public void willDispatchViewUpdates(UIManager manager) {}
   @Override public void willMountItems(UIManager manager) {}
   @Override public void didDispatchMountItems(UIManager manager) {}
@@ -187,6 +192,7 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
   double formActionEpoch() { return windowEpoch; }
   private boolean captureReady() { return captureEnabled && windowActive() && acceptedEpoch == windowEpoch && acceptedWindowId.equals(CUIInputWindow.identity(this)); }
   void publishStatus() {
+    dragInteractions.refreshWindow();
     editorKeyboard.publish();
     CUIWindowPointers.refresh(this);
     menuPointers.update(menuPointerPolicies, menuPointerRevision);
@@ -336,11 +342,21 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
     CUIInputWindow.beginPointer(this);
     try {
       CUIFieldInputBinding.PointerDecision decision = CUIFieldInputBinding.dispatchPointer(this, event);
-      if (decision.prevented) return true;
-      return super.dispatchTouchEvent(event) || decision.admitted;
+      if (decision.prevented) { dragInteractions.cancelPointer(); return true; }
+      boolean handled=super.dispatchTouchEvent(event);
+      dragInteractions.touch(event);
+      return handled || decision.admitted;
     } finally {
       CUIInputWindow.endPointer(this);
     }
+  }
+  @Override public boolean dispatchDragEvent(android.view.DragEvent event) {
+    CUIDragInteractions.beginDispatch();
+    try {
+      float[] point=(event.getAction()==android.view.DragEvent.ACTION_DRAG_LOCATION || event.getAction()==android.view.DragEvent.ACTION_DROP)?dragInteractions.point(event.getX(),event.getY()):new float[]{0,0};
+      boolean original=super.dispatchDragEvent(event);
+      return dragInteractions.drag(event,original,point) || original;
+    } finally { CUIDragInteractions.endDispatch(); }
   }
   @Override public boolean dispatchGenericMotionEvent(MotionEvent event) {
     if ((event.getActionMasked() == MotionEvent.ACTION_HOVER_MOVE || event.getActionMasked() == MotionEvent.ACTION_HOVER_ENTER)
@@ -415,6 +431,7 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
     ViewCompat.addOnUnhandledKeyEventListener(boundRoot, unhandled); windowEpoch++; publishStatus(); dialogs.attach();
   }
   @Override protected void onDetachedFromWindow() {
+    dragInteractions.cancelPointer();
     if (dragMountManager != null) dragMountManager.removeUIManagerEventListener(this); dragMountManager = null;
     dialogs.detach();
     floating.stop();

@@ -31,7 +31,7 @@ final class CUIDragActionDispatch {
     try {
       return original != null && original.check() && scope.dragCaptureReady() && identity.getInt("scopeTarget") == scope.getId() &&
         identity.getInt("surfaceId") == UIManagerHelper.getSurfaceId(scope) && identity.getString("ownerId").equals(scope.formActionOwnerId()) &&
-        identity.getDouble("epoch") == scope.formActionEpoch() && identity.getString("windowId").equals(CUIInputWindow.identity(scope));
+        identity.getDouble("epoch") == scope.dragEpoch() && identity.getString("windowId").equals(scope.dragWindowId());
     } catch (Exception error) { return false; }
   }
   @DoNotStrip String mountWitness() { UiThreadUtil.assertOnUiThread(); return scope.dragMountWitness(); }

@@ -8,6 +8,7 @@ NS_ASSUME_NONNULL_BEGIN
     blobWriter:(NSDictionary *_Nullable (^)(NSData *, NSString *))writer
     blobReleaser:(void (^)(NSString *))releaser;
 - (NSString *)importProviders:(NSArray<NSItemProvider *> *)providers completion:(void (^)(NSArray *_Nullable, NSError *_Nullable))completion;
+- (NSString *)beginImportTextMaps:(NSArray<NSArray<NSDictionary *> *> *)maps;
 - (NSString *)beginImportProviders:(NSArray<NSItemProvider *> *)providers;
 - (void)readItems:(NSDictionary *)request completion:(void (^)(NSArray *_Nullable, NSError *_Nullable))completion;
 - (BOOL)adoptItems:(NSDictionary *)request;
