@@ -104,6 +104,24 @@ void CUIAssertOwnedMotionDrawing() {
       RCTGetCornerInsets(nativeUniformRadii, UIEdgeInsetsZero), elliptical.borderCurves);
   NSCAssert(nativeUniformPath, @"Uniform continuous overlap must retain the direct native system path");
   CGPathRelease(nativeUniformPath);
+  if (@available(iOS 16.0, *)) {
+    const RCTCornerRadii unevenSharedAxes{70, 35, 40, 20, 20, 10, 10, 5};
+    const auto unevenInsets = RCTGetCornerInsets(unevenSharedAxes, UIEdgeInsetsZero);
+    CGPathRef nativeUneven = CUIPathCreateWithRoundedRect(view.bounds, unevenInsets, elliptical.borderCurves);
+    CGPathRef circularUneven = RCTPathCreateWithRoundedRect(view.bounds, unevenInsets, nil, NO);
+    NSCAssert(nativeUneven && !CGPathEqualToPath(nativeUneven, circularUneven),
+        @"Overlapping unequal continuous corners with shared axes retain the native system contour");
+    NSCAssert(CGRectEqualToRect(CGPathGetPathBoundingBox(nativeUneven), view.bounds) &&
+        CGPathContainsPoint(nativeUneven, nil, CGPointMake(60, 40), NO) &&
+        !CGPathContainsPoint(nativeUneven, nil, CGPointZero, NO),
+        @"The uneven native contour retains its original border box and enclosed interior");
+    CGPathRelease(nativeUneven);
+    CGPathRelease(circularUneven);
+    NSCAssert([editor.text isEqualToString:@"original dirty value"] &&
+        [editor offsetFromPosition:editor.beginningOfDocument toPosition:editor.selectedTextRange.start] == selectionStart &&
+        [editor offsetFromPosition:editor.beginningOfDocument toPosition:editor.selectedTextRange.end] == selectionEnd,
+        @"Uneven path construction cannot replace or mutate the original editor");
+  }
   BOOL mixedOverlapRejected = NO;
   @try {
     const RCTCornerRadii overlapping{70, 40, 40, 20, 20, 20, 10, 10};

@@ -119,15 +119,28 @@ final class CUIMotionFontSnapshot {
     @Override public void updateDrawState(TextPaint paint) { apply(paint); }
   }
 
+  static final class Snapshot {
+    final ReactFontManager manager;
+    final Map<CustomStyleSpan, MetricAffectingSpan> replacements;
+    Snapshot(ReactFontManager manager, Map<CustomStyleSpan, MetricAffectingSpan> replacements) {
+      this.manager = manager; this.replacements = replacements;
+    }
+  }
+
   static Map<CustomStyleSpan, MetricAffectingSpan> capture(CustomStyleSpan[] spans) {
+    return capture(spans, null).replacements;
+  }
+
+  static Snapshot capture(CustomStyleSpan[] spans, String baseFamily) {
     UiThreadUtil.assertOnUiThread();
-    boolean named = false;
+    boolean named = baseFamily != null;
     for (CustomStyleSpan span : spans) if (span.getFontFamily() != null) { named = true; break; }
-    if (!named) return Collections.emptyMap();
+    if (!named) return new Snapshot(new ReactFontManager(), Collections.emptyMap());
     Map<String, Family> captured = new LinkedHashMap<>();
     ReactFontManager original = ReactFontManager.getInstance();
     Map<?, ?> fonts = (Map<?, ?>)read(PinnedFonts.fonts, original);
     Map<?, ?> custom = (Map<?, ?>)read(PinnedFonts.custom, original);
+    if (baseFamily != null) captured.put(baseFamily, captureFamily(baseFamily, fonts, custom));
     for (CustomStyleSpan span : spans) {
       String name = span.getFontFamily();
       if (name != null && !captured.containsKey(name)) captured.put(name, captureFamily(name, fonts, custom));
@@ -154,6 +167,6 @@ final class CUIMotionFontSnapshot {
       int weight = (Integer)read(PinnedFonts.weight, span);
       replacements.put(span, new OwnedStyle(owned, assets, name, style, weight, span.getWeightScalar(), span.getFontFeatureSettings()));
     }
-    return replacements;
+    return new Snapshot(owned, Collections.unmodifiableMap(replacements));
   }
 }

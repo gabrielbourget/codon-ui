@@ -24,6 +24,7 @@ add_library(codon_motion SHARED
   "${CODON_MOTION_DIR}/FabricLayout.cpp"
   "${CODON_MOTION_DIR}/NativeStyle.cpp"
   "${CODON_MOTION_DIR}/NativeIntrinsics.cpp"
+  "${CODON_MOTION_DIR}/NativeIntrinsicSource.cpp"
   "${CODON_MOTION_DIR}/ScratchYoga.cpp"
   "${CODON_MOTION_DIR}/PopFrame.cpp"
   "${CODON_MOTION_DIR}/PopStyle.cpp"

@@ -1,5 +1,6 @@
 // Native adapters of RN0.86.3 intrinsic algorithms; see UPSTREAM.json and LICENSE.react-native.md.
 #include "NativeIntrinsics.h"
+#include "NativeIntrinsicSource.h"
 
 #include <react/featureflags/ReactNativeFeatureFlags.h>
 #include <react/renderer/components/text/BaseTextShadowNode.h>
@@ -17,6 +18,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <optional>
 #include <stdexcept>
 
 namespace codon::motion {
@@ -167,19 +169,6 @@ AttributedStringBox editorMeasurementText(const TEditor &node, const TEditorProp
 #endif
 }
 
-void requireIsolatedFontCache(const AttributedString &text) {
-#if defined(__ANDROID__)
-  if (!text.getBaseTextAttributes().fontFamily.empty())
-    throw std::runtime_error("Native motion: shared font-family cache isolation unavailable");
-  for (const auto &fragment : text.getFragments()) {
-    if (!fragment.textAttributes.fontFamily.empty())
-      throw std::runtime_error("Native motion: shared font-family cache isolation unavailable");
-  }
-#else
-  (void)text;
-#endif
-}
-
 class TIntrinsicState : public std::enable_shared_from_this<TIntrinsicState> {
  public:
   TNativeFabricSnapshot snapshot;
@@ -215,22 +204,31 @@ class TIntrinsicState : public std::enable_shared_from_this<TIntrinsicState> {
     BaseTextShadowNode::Attachments attachments;
     buildSelectedAttributedString(attributes, node, result, attachments, propsForNode, check);
     result.setBaseTextAttributes(attributes);
-    requireIsolatedFontCache(result);
     auto local = constraints; local.minimumSize = {0, 0};
     for (const auto &attachment : attachments) {
       current();
       if (!dynamic_cast<const LayoutableShadowNode *>(attachment.shadowNode)) continue;
-      if (!dynamic_cast<const YogaLayoutableShadowNode *>(attachment.shadowNode))
-        throw std::runtime_error("Native motion: isolated non-Yoga attachment measurement unavailable");
-      auto input = copyNativeScratchSubtree(*attachment.shadowNode, context, local, resolver(), propsForNode, check);
-      TNativeScratchConstraints bounds{
+      facebook::react::Size size;
+      if (!dynamic_cast<const YogaLayoutableShadowNode *>(attachment.shadowNode)) {
+        const auto selected = selectedTextProps(*attachment.shadowNode, propsForNode, check);
+        auto intrinsic = captureNativeIntrinsicSource({attachment.shadowNode->getFamilyShared(), selected,
+          attachment.shadowNode->getState(), context, snapshot.revision, check});
+        const auto measured = intrinsic.measure(local.maximumSize.width, std::isfinite(local.maximumSize.width)
+            ? YGMeasureModeAtMost : YGMeasureModeUndefined,
+          local.maximumSize.height, std::isfinite(local.maximumSize.height)
+            ? YGMeasureModeAtMost : YGMeasureModeUndefined, direction);
+        size = {measured.width, measured.height};
+      } else {
+        auto input = copyNativeScratchSubtree(*attachment.shadowNode, context, local, resolver(), propsForNode, check);
+        TNativeScratchConstraints bounds{
           0, 0, static_cast<float>(local.maximumSize.width), static_cast<float>(local.maximumSize.height),
           static_cast<float>(context.pointScaleFactor),
           local.layoutDirection == LayoutDirection::RightToLeft ? YGDirectionRTL :
               local.layoutDirection == LayoutDirection::LeftToRight ? YGDirectionLTR : YGDirectionInherit,
           ReactNativeFeatureFlags::fixYogaFlexBasisFitContentInMainAxis()};
-      const auto measured = evaluateNativeScratchYoga(input, bounds, input.tag, {input.style})[0];
-      auto size = facebook::react::Size{measured.frame[2], measured.frame[3]};
+        const auto measured = evaluateNativeScratchYoga(input, bounds, input.tag, {input.style})[0];
+        size = {measured.frame[2], measured.frame[3]};
+      }
       size.width += 0.01f; size.height += 0.01f;
       size = roundToPixel<&facebook::react::ceil>(size, context.pointScaleFactor);
       LayoutMetrics layout;
@@ -240,10 +238,34 @@ class TIntrinsicState : public std::enable_shared_from_this<TIntrinsicState> {
     return result;
   }
 
+  TNativeScratchIntrinsic provider(const ShadowNode &node, const LayoutContext &context,
+      const Props::Shared &selected) {
+    auto self = shared_from_this();
+    const auto *source = &node;
+    // Provider capture is deferred until Yoga actually asks: fixed-size opaque leaves
+    // need no measurement session. Both callbacks share one owned capture and retirement.
+    auto intrinsic = std::make_shared<std::optional<TNativeScratchIntrinsic>>();
+    const auto capture = [self, source, context, selected, intrinsic]() -> TNativeScratchIntrinsic & {
+      self->current();
+      if (!*intrinsic) *intrinsic = captureNativeIntrinsicSource({source->getFamilyShared(), selected,
+        source->getState(), context, self->snapshot.revision, self->check});
+      return **intrinsic;
+    };
+    return {
+      [capture](float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode, YGDirection direction) {
+        return capture().measure(width, widthMode, height, heightMode, direction);
+      },
+      [capture](float width, float height, const auto &border, const auto &padding, YGDirection direction) {
+        return capture().baseline(width, height, border, padding, direction);
+      }
+    };
+  }
+
   TNativeScratchIntrinsic resolve(const ShadowNode &node, const LayoutContext &context, const Props::Shared &selected) {
     current();
     auto self = shared_from_this();
     const auto *source = &node;
+    if (hasNativeIntrinsicSource(node.getFamily())) return provider(node, context, selected);
     if (const auto *paragraph = dynamic_cast<const ParagraphShadowNode *>(source)) {
       const auto props = std::dynamic_pointer_cast<const ParagraphProps>(selected);
       if (!props) throw std::runtime_error("Native motion: selected Paragraph props type mismatch");
@@ -254,6 +276,10 @@ class TIntrinsicState : public std::enable_shared_from_this<TIntrinsicState> {
           const auto &attributes = props->paragraphAttributes;
           TextLayoutContext layout{.pointScaleFactor = context.pointScaleFactor, .surfaceId = paragraph->getSurfaceId()};
           facebook::react::Size size;
+#if defined(__ANDROID__)
+          if (!self->services.textMeasure) throw std::runtime_error("Native motion: isolated Android text service unavailable");
+          size = self->services.textMeasure(*paragraph, AttributedStringBox(content), attributes, context, constraints);
+#else
           if constexpr (TextLayoutManagerExtended::supportsPreparedTextLayout()) {
             if (ReactNativeFeatureFlags::enablePreparedTextLayout()) {
               TextLayoutManagerExtended extended(*self->text);
@@ -261,15 +287,21 @@ class TIntrinsicState : public std::enable_shared_from_this<TIntrinsicState> {
               size = extended.measurePreparedLayout(prepared, layout, constraints).size;
             } else size = self->text->measure(AttributedStringBox(content), attributes, layout, constraints).size;
           } else size = self->text->measure(AttributedStringBox(content), attributes, layout, constraints).size;
+#endif
           self->current(); return YGSize{static_cast<float>(size.width), static_cast<float>(size.height)};
         },
         [self, paragraph, props, context](float width, float height, const auto &, const auto &, YGDirection direction) {
           LayoutConstraints bounds{{width, height}, {width, height}, direction == YGDirectionRTL ? LayoutDirection::RightToLeft : LayoutDirection::LeftToRight};
           auto content = self->paragraphText(*paragraph, *props, context, bounds, direction);
-          TextLayoutManagerExtended extended(*self->text);
           Float baseline = 0;
+#if defined(__ANDROID__)
+          if (!self->services.textBaseline) throw std::runtime_error("Native motion: isolated Android baseline service unavailable");
+          baseline = self->services.textBaseline(*paragraph, AttributedStringBox(content), props->paragraphAttributes, context, {width, height});
+#else
+          TextLayoutManagerExtended extended(*self->text);
           if constexpr (TextLayoutManagerExtended::supportsLineMeasurement())
             baseline = LineMeasurement::baseline(extended.measureLines(AttributedStringBox(content), props->paragraphAttributes, {width, height}));
+#endif
           self->current(); return static_cast<float>(baseline);
         },
       };
@@ -284,29 +316,35 @@ class TIntrinsicState : public std::enable_shared_from_this<TIntrinsicState> {
           auto textBounds = bounds;
           if (!props->multiline) textBounds.maximumSize.width = std::numeric_limits<Float>::infinity();
           facebook::react::Size size;
+          auto content = editorMeasurementText(*editor, *props, context, self->propsForNode, self->check);
 #if defined(__ANDROID__)
-          if (editor->getStateData().cachedAttributedStringId != 0) {
-            if (!self->services.cachedEditor) throw std::runtime_error("Native motion: isolated cached editor service unavailable");
-            size = self->services.cachedEditor(*editor, context, textBounds, props);
-          } else
-#endif
-          {
-            auto content = editorMeasurementText(*editor, *props, context, self->propsForNode, self->check);
-            if (content.getMode() == AttributedStringBox::Mode::Value) requireIsolatedFontCache(content.getValue());
-            size = self->text->measure(content, props->paragraphAttributes,
-                {.pointScaleFactor = context.pointScaleFactor, .surfaceId = editor->getSurfaceId()}, textBounds).size;
+          if (!self->services.textMeasure) throw std::runtime_error("Native motion: isolated Android editor service unavailable");
+          size = self->services.textMeasure(*editor, content, props->paragraphAttributes, context, textBounds);
+#else
+          if (content.getMode() == AttributedStringBox::Mode::OpaquePointer) {
+            if (!self->services.isolateEditorText)
+              throw std::runtime_error("Native motion: isolated opaque editor snapshot unavailable");
+            content = self->services.isolateEditorText(content);
           }
+          self->current();
+          size = self->text->measure(content, props->paragraphAttributes,
+              {.pointScaleFactor = context.pointScaleFactor, .surfaceId = editor->getSurfaceId()}, textBounds).size;
+#endif
           size = bounds.clamp(size); self->current();
           return YGSize{static_cast<float>(size.width), static_cast<float>(size.height)};
         },
         [self, editor, props, context](float width, float height, const auto &border, const auto &padding, YGDirection) {
           self->current();
           auto content = editorBaselineText(*editor, *props, context, self->propsForNode, self->check);
-          requireIsolatedFontCache(content);
-          TextLayoutManagerExtended extended(*self->text);
           Float baseline = 0;
+#if defined(__ANDROID__)
+          if (!self->services.textBaseline) throw std::runtime_error("Native motion: isolated Android editor baseline unavailable");
+          baseline = self->services.textBaseline(*editor, AttributedStringBox(content), props->paragraphAttributes, context, {width, height});
+#else
+          TextLayoutManagerExtended extended(*self->text);
           if constexpr (TextLayoutManagerExtended::supportsLineMeasurement())
             baseline = LineMeasurement::baseline(extended.measureLines(AttributedStringBox(content), props->paragraphAttributes, {width, height}));
+#endif
           self->current(); return static_cast<float>(baseline + border[1] + padding[1]);
         },
       };
@@ -327,18 +365,7 @@ class TIntrinsicState : public std::enable_shared_from_this<TIntrinsicState> {
         }, {},
       };
     }
-    // Preserve the measurable/baseline traits. A fixed-size leaf can complete
-    // without intrinsic work; unsupported callbacks reject only if Yoga asks.
-    return {
-      [self, component](float, YGMeasureMode, float, YGMeasureMode, YGDirection) -> YGSize {
-        self->current();
-        throw std::runtime_error("Native motion: isolated intrinsic provider unavailable for " + component);
-      },
-      [self, component](float, float, const auto &, const auto &, YGDirection) -> float {
-        self->current();
-        throw std::runtime_error("Native motion: isolated intrinsic baseline unavailable for " + component);
-      }
-    };
+    return provider(node, context, selected);
   }
 };
 } // namespace

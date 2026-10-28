@@ -58,9 +58,9 @@ static jni::local_ref<jstring> nativeEvaluatedLayout(
     jni::alias_ref<jstring> revision, jni::alias_ref<jobject> context, jni::alias_ref<jstring> request, jlong presentation) {
   if (!owner || !binding || !revision || !context || !request)
     throw std::invalid_argument("Native motion layout: actual owner/context required");
-  const auto factory = [context](const codon::motion::TNativeFabricSnapshot &snapshot,
+  const auto factory = [context, manager](const codon::motion::TNativeFabricSnapshot &snapshot,
       const codon::motion::TNativeScratchPropsResolver &props, const codon::motion::TNativeFabricReadGuard &check) {
-    return codon::motion::createAndroidIntrinsicResolver(snapshot, snapshot.target->getContextContainer(), context, check, props);
+    return codon::motion::createAndroidIntrinsicResolver(snapshot, snapshot.target->getContextContainer(), context, manager, check, props);
   };
   const auto authored = [presentation](const ShadowNode &node) {
     return presentation ? reinterpret_cast<codon::motion::NativePopPresentation *>(presentation)->authoredProps(node) : node.getProps();

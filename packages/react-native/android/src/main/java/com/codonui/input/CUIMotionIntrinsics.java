@@ -1,6 +1,8 @@
 package com.codonui.input;
 
 import android.content.Context;
+import android.content.res.AssetManager;
+import android.graphics.Typeface;
 import android.text.Layout;
 import android.text.NoCopySpan;
 import android.text.Spannable;
@@ -26,11 +28,22 @@ import com.facebook.yoga.YogaMeasureMode;
 import com.facebook.yoga.YogaMeasureOutput;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import com.facebook.react.fabric.FabricUIManager;
+import com.facebook.react.uimanager.ViewManager;
+import com.facebook.react.uimanager.ViewManagerRegistry;
+import com.facebook.react.views.text.ReactTextViewManager;
+import com.facebook.react.views.text.ReactTextViewManagerCallback;
+import com.facebook.react.views.text.ReactTypefaceUtils;
+import com.facebook.react.views.text.ReactFontWeightScalar;
+import com.facebook.react.views.text.TextAttributeProps;
 import java.util.Map;
 
 // Private RN0.86.3 adapter. Native layout/fidelity and cache concurrency need installed proof.
 final class CUIMotionIntrinsics {
-  private final Context context;
+  private final ThemedReactContext context;
+  private final FabricUIManager manager;
   private final ReactProgressBarViewManager progress = new ReactProgressBarViewManager();
   private static final Class<?>[] auditedSpans = {
     ReactAbsoluteSizeSpan.class, CustomLetterSpacingSpan.class, CustomLineHeightSpan.class,
@@ -40,13 +53,16 @@ final class CUIMotionIntrinsics {
     ReactLinkSpan.class, ReactClickableSpan.class
   };
 
-  private CUIMotionIntrinsics(Context context) { this.context = context; }
+  private CUIMotionIntrinsics(ThemedReactContext context, FabricUIManager manager) {
+    this.context = context; this.manager = manager;
+  }
 
-  static CUIMotionIntrinsics create(Context context) {
+  static CUIMotionIntrinsics create(Context context, FabricUIManager manager) {
     UiThreadUtil.assertOnUiThread();
     if (!(context instanceof ThemedReactContext))
       throw new IllegalArgumentException("Native motion: actual themed view context required");
-    return new CUIMotionIntrinsics(context);
+    if (manager == null) throw new IllegalArgumentException("Native motion: original Fabric manager required");
+    return new CUIMotionIntrinsics((ThemedReactContext)context, manager);
   }
 
   private static void bounds(float minimum, float maximum) {
@@ -64,14 +80,23 @@ final class CUIMotionIntrinsics {
     return span;
   }
 
-  static SpannableString copyCachedText(Spannable original) {
+  private static void requireContainer(Spannable original) {
     UiThreadUtil.assertOnUiThread();
-    if (original.getClass() != SpannableStringBuilder.class && original.getClass() != SpannableString.class)
-      throw new IllegalStateException("Native motion: unaudited cached text container " + original.getClass().getName());
+    if (original == null || (original.getClass() != SpannableStringBuilder.class && original.getClass() != SpannableString.class))
+      throw new IllegalStateException("Native motion: unaudited cached text container");
+  }
+
+  static SpannableString copyCachedText(Spannable original) {
+    requireContainer(original);
+    return copyText(original, CUIMotionFontSnapshot.capture(
+      original.getSpans(0, original.length(), CustomStyleSpan.class)), null);
+  }
+
+  private static SpannableString copyText(Spannable original,
+      Map<CustomStyleSpan, MetricAffectingSpan> fonts, CUIIntrinsicSource.Session session) {
+    requireContainer(original);
     // Start from characters only: copying a Spanned constructor can retain original watchers.
     SpannableString copied = new SpannableString(original.toString());
-    Map<CustomStyleSpan, MetricAffectingSpan> fonts = CUIMotionFontSnapshot.capture(
-      original.getSpans(0, original.length(), CustomStyleSpan.class));
     for (Object span : original.getSpans(0, original.length(), Object.class)) {
       Object owned;
       if (span.getClass() == ReactTextPaintHolderSpan.class) {
@@ -81,7 +106,16 @@ final class CUIMotionIntrinsics {
         paint.drawableState = source.drawableState == null ? null : source.drawableState.clone();
         owned = new ReactTextPaintHolderSpan(paint);
       } else {
-        owned = measurementSpan(span);
+        try { owned = measurementSpan(span); }
+        catch (IllegalStateException unsupported) {
+          if (session == null) throw unsupported;
+          requireCurrent(session);
+          owned = session.copySpan(span);
+          requireCurrent(session);
+          if (owned == null || owned == span || owned instanceof SpanWatcher ||
+              owned instanceof TextWatcher || owned instanceof NoCopySpan)
+            throw new IllegalStateException("Native motion: isolated measurement span required", unsupported);
+        }
         if (span instanceof CustomStyleSpan && fonts.containsKey(span)) owned = fonts.get(span);
       }
       if (owned != null) copied.setSpan(owned, original.getSpanStart(span), original.getSpanEnd(span), original.getSpanFlags(span));
@@ -120,33 +154,127 @@ final class CUIMotionIntrinsics {
     }
   }
 
-  long cachedEditor(ReadableMapBuffer attributed, ReadableMapBuffer paragraph,
-      float minWidth, float maxWidth, float minHeight, float maxHeight) {
-    UiThreadUtil.assertOnUiThread(); bounds(minWidth, maxWidth); bounds(minHeight, maxHeight);
-    if (!attributed.contains(TextLayoutManager.AS_KEY_CACHE_ID))
-      throw new IllegalArgumentException("Native motion: actual cached editor ID required");
-    Spannable original = TextLayoutManager.INSTANCE.getOrCreateSpannableForText(context.getAssets(), attributed, null);
-    SpannableString copied = copyCachedText(original);
-    ReactTextPaintHolderSpan[] holders = copied.getSpans(0, 0, ReactTextPaintHolderSpan.class);
-    if (holders.length != 1) throw new IllegalStateException("Native motion: exact cached editor paint required");
-    float width = LayoutMetricsConversions.getYogaSize(minWidth, maxWidth);
-    float height = LayoutMetricsConversions.getYogaSize(minHeight, maxHeight);
-    YogaMeasureMode widthMode = LayoutMetricsConversions.getYogaMeasureMode(minWidth, maxWidth);
-    YogaMeasureMode heightMode = LayoutMetricsConversions.getYogaMeasureMode(minHeight, maxHeight);
-    Object result = invoke(PinnedLayout.create, TextLayoutManager.INSTANCE, copied, holders[0].getTextPaint(),
-      attributed, paragraph, width, widthMode, height, heightMode);
-    Layout layout = (Layout)invoke(PinnedLayout.layout, result);
-    int maximumLines = paragraph.contains(TextLayoutManager.PA_KEY_MAX_NUMBER_OF_LINES)
-      ? paragraph.getInt(TextLayoutManager.PA_KEY_MAX_NUMBER_OF_LINES) : ReactConstants.UNSET;
-    int lines = maximumLines == ReactConstants.UNSET || maximumLines == 0
-      ? layout.getLineCount() : Math.min(maximumLines, layout.getLineCount());
-    float measuredWidth = widthMode == YogaMeasureMode.EXACTLY ? width : layout.getWidth();
-    float measuredHeight = height;
-    if (heightMode != YogaMeasureMode.EXACTLY) {
-      measuredHeight = layout.getLineBottom(lines - 1);
-      if (heightMode == YogaMeasureMode.AT_MOST && measuredHeight > height) measuredHeight = height;
+  private static final class PinnedRegistry {
+    static final Field registry;
+    static {
+      try {
+        registry = FabricUIManager.class.getDeclaredField("mViewManagerRegistry");
+        int modifiers = registry.getModifiers();
+        if (registry.getDeclaringClass() != FabricUIManager.class || registry.getType() != ViewManagerRegistry.class ||
+            !Modifier.isPrivate(modifiers) || !Modifier.isFinal(modifiers) || Modifier.isStatic(modifiers))
+          throw new NoSuchFieldException("FabricUIManager.mViewManagerRegistry descriptor");
+        registry.setAccessible(true);
+      } catch (ReflectiveOperationException failure) {
+        throw new IllegalStateException("Native motion: original text registry unavailable", failure);
+      }
     }
-    return YogaMeasureOutput.make(PixelUtil.toDIPFromPixel(measuredWidth), PixelUtil.toDIPFromPixel(measuredHeight));
+  }
+
+  private ReactTextViewManagerCallback originalCallback() {
+    try {
+      ViewManager<?, ?> original = ((ViewManagerRegistry)PinnedRegistry.registry.get(manager))
+        .get(ReactTextViewManager.REACT_CLASS);
+      return original instanceof ReactTextViewManagerCallback ? (ReactTextViewManagerCallback)original : null;
+    } catch (IllegalAccessException failure) {
+      throw new IllegalStateException("Native motion: original text registry inaccessible", failure);
+    }
+  }
+
+  private static void requireCurrent(CUIIntrinsicSource.Session session) {
+    if (session != null && !session.isCurrent())
+      throw new IllegalStateException("Native motion: isolated text source retired");
+  }
+
+  private static TextPaint basePaint(TextAttributeProps attributes, AssetManager assets,
+      CUIMotionFontSnapshot.Snapshot fonts, boolean prepared) {
+    // Match scratchPaintWithAttributes initial values; never borrow its ThreadLocal paint.
+    TextPaint paint = new TextPaint(TextPaint.ANTI_ALIAS_FLAG);
+    if (!prepared) {
+      paint.setTypeface(null); paint.setTextSize(12); paint.setFakeBoldText(false); paint.setTextSkewX(0);
+    }
+    if (attributes.getFontSize() != ReactConstants.UNSET) paint.setTextSize(attributes.getFontSize());
+    int style = attributes.getFontStyle(), weight = attributes.getFontWeight();
+    String family = attributes.getFontFamily();
+    if (style != ReactConstants.UNSET || weight != ReactConstants.UNSET || family != null) {
+      Typeface face = family == null ? ReactTypefaceUtils.applyStyles(null, style, weight, null, assets)
+        : fonts.manager.getTypeface(family, style, weight, assets);
+      paint.setTypeface(face);
+      if (style != ReactConstants.UNSET && style != face.getStyle()) {
+        int missing = style & ~face.getStyle();
+        paint.setFakeBoldText((missing & Typeface.BOLD) != 0);
+        paint.setTextSkewX((missing & Typeface.ITALIC) != 0 ? -0.25f : 0);
+      }
+    }
+    ReactFontWeightScalar.apply(paint, attributes.getFontWeightScalar());
+    return paint;
+  }
+
+  private float[] textResult(ReadableMapBuffer attributed, ReadableMapBuffer paragraph, int tag, int surface,
+      float minWidth, float maxWidth, float minHeight, float maxHeight, boolean prepared) {
+    UiThreadUtil.assertOnUiThread(); bounds(minWidth, maxWidth); bounds(minHeight, maxHeight);
+    boolean cached = attributed.contains(TextLayoutManager.AS_KEY_CACHE_ID);
+    AssetManager assets = context.getReactApplicationContext().getAssets();
+    ReactTextViewManagerCallback callback = originalCallback();
+    CUIIntrinsicSource.Session session = null;
+    if (callback != null) {
+      if (!(callback instanceof CUIIntrinsicSource))
+        throw new IllegalStateException("Native motion: original text callback requires CUIIntrinsicSource");
+      session = ((CUIIntrinsicSource)callback).captureIntrinsic(new CUIIntrinsicSource.Request(tag, surface,
+        attributed, paragraph, assets, context.getResources().getDisplayMetrics().density,
+        context.getResources().getConfiguration().fontScale, cached));
+      if (session == null) throw new IllegalStateException("Native motion: isolated text session required");
+    }
+    try {
+      requireCurrent(session);
+      final CUIIntrinsicSource.Session captured = session;
+      // Cached text has already been postprocessed. Never replay its original callback.
+      ReactTextViewManagerCallback isolated = cached || captured == null ? null : text -> {
+        requireCurrent(captured); captured.postProcess(text); requireCurrent(captured);
+      };
+      Spannable original = TextLayoutManager.INSTANCE.getOrCreateSpannableForText(assets, attributed, isolated);
+      requireContainer(original);
+      TextAttributeProps base = cached ? null : TextAttributeProps.fromMapBuffer(
+        attributed.getMapBuffer(TextLayoutManager.AS_KEY_BASE_ATTRIBUTES));
+      CUIMotionFontSnapshot.Snapshot fonts = CUIMotionFontSnapshot.capture(
+        original.getSpans(0, original.length(), CustomStyleSpan.class), base == null ? null : base.getFontFamily());
+      SpannableString copied = copyText(original, fonts.replacements, session);
+      TextPaint paint;
+      if (cached) {
+        ReactTextPaintHolderSpan[] holders = copied.getSpans(0, 0, ReactTextPaintHolderSpan.class);
+        if (holders.length != 1) throw new IllegalStateException("Native motion: exact cached editor paint required");
+        paint = holders[0].getTextPaint();
+      } else paint = basePaint(base, assets, fonts, prepared);
+      float width = LayoutMetricsConversions.getYogaSize(minWidth, maxWidth);
+      float height = LayoutMetricsConversions.getYogaSize(minHeight, maxHeight);
+      YogaMeasureMode widthMode = LayoutMetricsConversions.getYogaMeasureMode(minWidth, maxWidth);
+      YogaMeasureMode heightMode = LayoutMetricsConversions.getYogaMeasureMode(minHeight, maxHeight);
+      Object result = invoke(PinnedLayout.create, TextLayoutManager.INSTANCE, copied, paint,
+        attributed, paragraph, width, widthMode, height, heightMode);
+      Layout layout = (Layout)invoke(PinnedLayout.layout, result);
+      int maximumLines = paragraph.contains(TextLayoutManager.PA_KEY_MAX_NUMBER_OF_LINES)
+        ? paragraph.getInt(TextLayoutManager.PA_KEY_MAX_NUMBER_OF_LINES) : ReactConstants.UNSET;
+      // RN0.86.3 calculateLineCount/calculateWidth/calculateHeight, shared by fresh and cached text.
+      int lines = maximumLines == ReactConstants.UNSET || maximumLines == 0
+        ? layout.getLineCount() : Math.min(maximumLines, layout.getLineCount());
+      float measuredWidth = widthMode == YogaMeasureMode.EXACTLY ? width : layout.getWidth();
+      float measuredHeight = heightMode == YogaMeasureMode.EXACTLY ? height : layout.getLineBottom(lines - 1);
+      if (heightMode == YogaMeasureMode.AT_MOST && measuredHeight > height) measuredHeight = height;
+      requireCurrent(session);
+      // Fabric LineMeasurement::baseline selects the first line ASCENDER, not getLineBaseline.
+      return new float[]{PixelUtil.toDIPFromPixel(measuredWidth), PixelUtil.toDIPFromPixel(measuredHeight),
+        layout.getLineCount() == 0 ? 0 : PixelUtil.toDIPFromPixel(-layout.getLineAscent(0))};
+    } finally { if (session != null) session.close(); }
+  }
+
+  long textMeasure(ReadableMapBuffer attributed, ReadableMapBuffer paragraph, int tag, int surface,
+      float minWidth, float maxWidth, float minHeight, float maxHeight, boolean prepared) {
+    float[] result = textResult(attributed, paragraph, tag, surface, minWidth, maxWidth, minHeight, maxHeight, prepared);
+    return YogaMeasureOutput.make(result[0], result[1]);
+  }
+
+  float textBaseline(ReadableMapBuffer attributed, ReadableMapBuffer paragraph, int tag, int surface,
+      float width, float height) {
+    return textResult(attributed, paragraph, tag, surface, width, width, height, height, false)[2];
   }
 
   long progress(ReadableMap props, float minWidth, float maxWidth, float minHeight, float maxHeight) {

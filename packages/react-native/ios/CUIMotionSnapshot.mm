@@ -15,6 +15,7 @@
 #include "../cpp/motion/InitialValueQuery.h"
 #include "../cpp/motion/GeometryQuery.h"
 #include "../cpp/motion/NativeIntrinsics.h"
+#import "CUIMotionIntrinsicText.h"
 #include <react/renderer/uimanager/UIManagerBinding.h>
 #include <folly/json.h>
 #include <atomic>
@@ -270,7 +271,9 @@ RCT_EXPORT_MODULE(CUIMotionSnapshot)
           };
           const auto factory = [](const codon::motion::TNativeFabricSnapshot &snapshot,
               const codon::motion::TNativeScratchPropsResolver &props, const codon::motion::TNativeFabricReadGuard &check) {
-            return codon::motion::createNativeIntrinsicResolver(snapshot, snapshot.target->getContextContainer(), {}, check, props);
+            codon::motion::TNativeIsolatedIntrinsicServices services;
+            services.isolateEditorText = CUIIsolateMotionEditorText;
+            return codon::motion::createNativeIntrinsicResolver(snapshot, snapshot.target->getContextContainer(), services, check, props);
           };
           if (kind == 2) {
             std::lock_guard sessionLock(_pop->mutex);
