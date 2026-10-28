@@ -337,12 +337,12 @@ export const nativeVirtualDrag = {
             candidate.operation(entry.target, current.types, current.operations, current.source) !== "cancel",
         )
       )
-        add(candidate.root.current, true)
+        add(candidate.root.current, false)
     const selected =
       current.root && current.target
         ? add(
             selectedEndpoint(current)?.view() ?? (current.target.type === "root" ? current.root.root.current : null),
-            true,
+            current.target.type !== "root",
           )
         : source
     const nativeSelection = !!current.nativeFocusView && selected?.tag === findNodeHandle(current.nativeFocusView)

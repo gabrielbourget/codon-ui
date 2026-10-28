@@ -146,6 +146,7 @@ using namespace facebook::react;
 - (instancetype)initWithFrame:(CGRect)frame
 {
   if (self = [super initWithFrame:frame]) {
+    CUIRegisterVirtualDragAccessibilitySource(self,self);
     _props = std::make_shared<const CUIFocusViewProps>();
     _keyboardFocusable = YES;
     _nativeTabStop = YES;
@@ -303,14 +304,29 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
   return parent;
 }
 
+- (BOOL)cuiAppliesVirtualDragAccessibilityProjection { return YES; }
+- (UIView *)cuiOriginalViewForAccessibilityElement:(id)element { return [element isKindOfClass:UIView.class] ? element : nil; }
+- (NSArray *)accessibilityElements
+{
+  if (RCTAccessibilityProjectionForView(self)==RCTAccessibilityProjectionOriginal || ![self isListRoot]) return [super accessibilityElements];
+  NSArray *items=[[self listItems] sortedArrayUsingComparator:^NSComparisonResult(CUIFocusView *left,CUIFocusView *right) {
+    NSInteger a=CUICollectionInteger(left->_nativeCollectionSemantics,@"ordinal"), b=CUICollectionInteger(right->_nativeCollectionSemantics,@"ordinal");
+    return a<b ? NSOrderedAscending : a>b ? NSOrderedDescending : NSOrderedSame;
+  }];
+  return CUIProjectVirtualDragAccessibilityChildren(self,self,items);
+}
 - (NSInteger)accessibilityElementCount
 {
+  if (RCTAccessibilityProjectionForView(self)!=RCTAccessibilityProjectionOriginal) return self.accessibilityElements.count;
   if (![_nativeCollectionSemantics[@"kind"] isEqual:@"list-root"]) return [super accessibilityElementCount];
   return [self isListRoot] ? CUICollectionInteger(_nativeCollectionSemantics, @"count") : 0;
 }
 
 - (id)accessibilityElementAtIndex:(NSInteger)index
 {
+  if (RCTAccessibilityProjectionForView(self)!=RCTAccessibilityProjectionOriginal) {
+    NSArray *elements=self.accessibilityElements; return index>=0 && index<elements.count ? elements[index] : nil;
+  }
   if (![_nativeCollectionSemantics[@"kind"] isEqual:@"list-root"]) return [super accessibilityElementAtIndex:index];
   if (![self isListRoot]) return nil;
   if (index < 0 || index >= [self accessibilityElementCount]) return nil;
@@ -321,6 +337,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 
 - (NSInteger)indexOfAccessibilityElement:(id)element
 {
+  if (RCTAccessibilityProjectionForView(self)!=RCTAccessibilityProjectionOriginal) return [self.accessibilityElements indexOfObjectIdenticalTo:element];
   if (![_nativeCollectionSemantics[@"kind"] isEqual:@"list-root"]) return [super indexOfAccessibilityElement:element];
   if (![self isListRoot]) return NSNotFound;
   if (![element isKindOfClass:CUIFocusView.class] || [(CUIFocusView *)element listParent] != self) return NSNotFound;
@@ -394,7 +411,8 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 - (id<UIAccessibilityContainerDataTableCell>)accessibilityDataTableCellElementForRow:(NSUInteger)row column:(NSUInteger)column
 {
   for (CUIFocusView *cell in [self collectionCells])
-    if (NSLocationInRange(row, cell.accessibilityRowRange) && NSLocationInRange(column, cell.accessibilityColumnRange)) return cell;
+    if (NSLocationInRange(row, cell.accessibilityRowRange) && NSLocationInRange(column, cell.accessibilityColumnRange)
+      && RCTAccessibilityProjectionForView(cell)!=RCTAccessibilityProjectionExcluded) return cell;
   return nil;
 }
 
@@ -415,7 +433,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
       }
     }
   }
-  return (NSArray<id<UIAccessibilityContainerDataTableCell>> *)headers.array;
+  return (NSArray<id<UIAccessibilityContainerDataTableCell>> *)CUIProjectVirtualDragAccessibilityChildren(self,self,headers.array);
 }
 - (NSArray<id<UIAccessibilityContainerDataTableCell>> *)accessibilityHeaderElementsForRow:(NSUInteger)row { return [self collectionHeadersForIndex:row row:YES]; }
 - (NSArray<id<UIAccessibilityContainerDataTableCell>> *)accessibilityHeaderElementsForColumn:(NSUInteger)column { return [self collectionHeadersForIndex:column row:NO]; }
@@ -612,6 +630,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 
 - (BOOL)accessibilityActivate
 {
+  if (!CUIAllowsVirtualDragInteraction(self)) return NO;
   if (!_nativePressable) return [super accessibilityActivate];
   CUIRecordMenuPointerVirtual(self.window);
   UIWindow *window = self.window;

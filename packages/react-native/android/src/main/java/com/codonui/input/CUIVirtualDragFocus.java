@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import com.facebook.react.uimanager.ReactAccessibilityProjection;
 
 // Private original-view focus owner; this does not project or replace accessibility nodes.
 final class CUIVirtualDragFocus {
@@ -32,10 +33,11 @@ final class CUIVirtualDragFocus {
   private long appliedSelection;
   private WeakReference<View> lastObserved=new WeakReference<>(null);
   private String lastIdentity="";
+  private String accessibilityError;
   private final ViewTreeObserver.OnGlobalFocusChangeListener focusChanged=(oldView,newView)->refresh();
   private final ViewTreeObserver.OnPreDrawListener beforeDraw=()->{ refresh(); return true; };
 
-  CUIVirtualDragFocus(CUIKeyboardScope scope) { this.scope=scope; }
+  CUIVirtualDragFocus(CUIKeyboardScope scope) { this.scope=scope; CUIVirtualDragAccessibility.install(); }
   boolean active() {
     return !failed && manifest!=null && scope.dragInteractions.canLift()
       && manifest.optString("windowId").equals(scope.dragWindowId()) && manifest.optLong("epoch")==scope.dragEpoch();
@@ -73,7 +75,7 @@ final class CUIVirtualDragFocus {
       if (nextSource==null || !member) throw new IllegalArgumentException("native-virtual-focus-source-not-original");
       boolean same=manifest!=null && manifest.optString("sessionId").equals(next.getString("sessionId"));
       manifest=next; binding=data; targets=nextTargets; source=nextSource; selected=nextSelected;
-      if (!same) { failed=false; lastObserved.clear(); lastIdentity=""; appliedSelection=0; }
+      if (!same) { failed=false; lastObserved.clear(); lastIdentity=""; appliedSelection=0; accessibilityError=null; }
       refresh();
     } catch (Exception error) { manifest=next; binding=data; fail(error.getMessage()==null?"native-virtual-focus-manifest-invalid":error.getMessage()); }
   }
@@ -88,6 +90,20 @@ final class CUIVirtualDragFocus {
       if (target.descendants && original!=null && contains(original,view) && (found==null || contains(found.get(scope),original))) found=target;
     }
     return found;
+  }
+  int accessibilityMode(View view) {
+    if (!active() || view.getRootView()!=scope.getRootView()) return ReactAccessibilityProjection.ORIGINAL;
+    if (accessibilityError!=null) return ReactAccessibilityProjection.EXCLUDED;
+    if (matching(view)!=null) return ReactAccessibilityProjection.ALLOWED;
+    for (Target target:targets) { View original=target.get(scope);
+      if (original!=null && contains(view,original)) return ReactAccessibilityProjection.TRAVERSE;
+    }
+    return ReactAccessibilityProjection.EXCLUDED;
+  }
+  void rejectAccessibilityProjection(String error) { if (accessibilityError==null) { accessibilityError=error; scope.post(this::refresh); } }
+  boolean allowsInteraction(View view) {
+    if (!active()) return true;
+    return view!=null && matching(view)!=null;
   }
   private void emit(String kind,Target target,String error) {
     if (binding==null || manifest==null) return;
@@ -112,10 +128,14 @@ final class CUIVirtualDragFocus {
     if (moving) return;
     JSONObject intent=manifest;
     if (!active()) { detach(); return; }
+    if (accessibilityError!=null) { fail(accessibilityError); return; }
     View sourceView=source.get(scope), selectedView=selected==null?null:selected.get(scope);
     if (sourceView==null || (selected!=null && selectedView==null)) {
       if ((sourceView==null && source.resolved) || (selected!=null && selectedView==null && selected.resolved)) fail("native-virtual-focus-original-target-retired");
       return;
+    }
+    for (Target target:targets) { View original=target.get(scope);
+      if (original!=null && !CUIVirtualDragAccessibility.supports(original)) { fail("native-virtual-accessibility-opaque-source-unregistered"); return; }
     }
     ViewTreeObserver next=scope.getRootView().getViewTreeObserver();
     if (observer!=next && next.isAlive()) { detach(); observer=next; observer.addOnGlobalFocusChangeListener(focusChanged); observer.addOnPreDrawListener(beforeDraw); }
@@ -145,5 +165,5 @@ final class CUIVirtualDragFocus {
     if (observer!=null && observer.isAlive()) { observer.removeOnGlobalFocusChangeListener(focusChanged); observer.removeOnPreDrawListener(beforeDraw); }
     observer=null;
   }
-  void invalidate() { detach(); manifest=null; binding=null; targets.clear(); source=null; selected=null; lastObserved.clear(); lastIdentity=""; failed=false; appliedSelection=0; }
+  void invalidate() { detach(); manifest=null; binding=null; targets.clear(); source=null; selected=null; lastObserved.clear(); lastIdentity=""; failed=false; appliedSelection=0; accessibilityError=null; }
 }

@@ -876,3 +876,19 @@ it("issues one owned focus intent while its original endpoint awaits native obse
   await fixture.rendered.unmount()
   fixture.actions.dispose()
 })
+
+it("enrolls a root fallback without exposing unrelated original collection descendants", async () => {
+  const fixture = await setup({ getItems: () => [{ "text/plain": "zero" }], onRootDrop: () => {} })
+  await fixture.row(0)
+  const binding = fixture.rendered.result.current.binding
+  jest.spyOn(binding, "measure").mockResolvedValue({ x: 10, y: 20, width: 100, height: 80 })
+  await act(async () => nativeVirtualDrag.start(binding, 0, nativeDragFormatter("en-US"), "virtual"))
+  await act(() => nativeVirtualDrag.choose(binding, { type: "root" }))
+  expect(fixture.metadata().virtualFocus.selected).toMatchObject({
+    tag: findNodeHandle(binding.root.current),
+    descendants: false,
+  })
+  await act(async () => nativeVirtualDrag.cancel())
+  await fixture.rendered.unmount()
+  fixture.actions.dispose()
+})

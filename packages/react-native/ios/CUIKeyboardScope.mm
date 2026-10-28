@@ -1,6 +1,7 @@
 #import "CUIKeyboardScope.h"
 #import "CUIDialogFocusScopes.h"
 #import "CUIVirtualDragFocus.h"
+#import "CUIVirtualDragAccessibility.h"
 #import "CUIDragInteractions.h"
 #import "CUIInputWindow.h"
 #import "CUIMenuPointerPolicies.h"
@@ -58,6 +59,7 @@ static UIView *CUIFirstResponder(UIView *root)
 @interface CUIKeyboardRecognizer : UIGestureRecognizer
 @property(nonatomic, weak) CUIKeyboardScope *scope;
 @property(nonatomic, strong) NSMutableDictionary<NSNumber *, CUIKeyHold *> *held;
+@property(nonatomic, strong) NSMutableSet<NSNumber *> *suppressed;
 - (void)retireHeld;
 @end
 
@@ -66,6 +68,7 @@ static UIView *CUIFirstResponder(UIView *root)
 {
   if (self = [super initWithTarget:nil action:nil]) {
     _held = [NSMutableDictionary dictionary];
+    _suppressed = [NSMutableSet set];
     self.cancelsTouchesInView = YES;
     self.delaysTouchesBegan = YES;
     self.delaysTouchesEnded = YES;
@@ -78,6 +81,12 @@ static UIView *CUIFirstResponder(UIView *root)
   for (UIPress *press in presses) {
     if (!press.key) continue;
     NSNumber *code = @(press.key.keyCode);
+    CUIVirtualDragFocus *virtualOwner=CUIActiveVirtualDragFocus(self.view.window);
+    if ([self.suppressed containsObject:code] || (virtualOwner && ![virtualOwner allowsInteractionWithView:CUIInputFocusedView(self.view.window)])) {
+      [self.suppressed addObject:code];
+      self.state=self.state==UIGestureRecognizerStatePossible ? UIGestureRecognizerStateBegan : UIGestureRecognizerStateChanged;
+      [virtualOwner refresh]; continue;
+    }
     CUIKeyHold *hold = self.held[code];
     BOOL repeat = hold != nil;
     if (!hold) {
@@ -103,13 +112,14 @@ static UIView *CUIFirstResponder(UIView *root)
 {
   for (UIPress *press in presses) {
     NSNumber *code = @(press.key.keyCode);
+    if ([self.suppressed containsObject:code]) { [self.suppressed removeObject:code]; continue; }
     CUIKeyHold *hold = self.held[code];
     if (!hold) continue;
     hold.press = press;
     if (!hold.retired) [self.scope emitKey:hold down:NO repeat:NO cancelled:cancelled];
     [self.held removeObjectForKey:code];
   }
-  if (!self.held.count && self.state != UIGestureRecognizerStatePossible) self.state = UIGestureRecognizerStateEnded;
+  if (!self.held.count && !self.suppressed.count && self.state != UIGestureRecognizerStatePossible) self.state = UIGestureRecognizerStateEnded;
 }
 - (void)pressesEnded:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event { [self finishPresses:presses cancelled:NO]; }
 - (void)pressesCancelled:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event { [self finishPresses:presses cancelled:YES]; }
@@ -124,6 +134,7 @@ static UIView *CUIFirstResponder(UIView *root)
 {
   [self retireHeld];
   [self.held removeAllObjects];
+  [self.suppressed removeAllObjects];
   [super reset];
 }
 - (BOOL)canPreventGestureRecognizer:(UIGestureRecognizer *)other { return NO; }
@@ -166,6 +177,12 @@ static UIView *CUIFirstResponder(UIView *root)
   BOOL _sceneActive;
   CUIFloatingObserver *_floating;
   NSArray<NSDictionary *> *_floatingTargets;
+}
+
+- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
+{
+  UIView *original=[super hitTest:point withEvent:event];
+  return original && !CUIAllowsVirtualDragInteraction(original) ? self : original;
 }
 
 + (ComponentDescriptorProvider)componentDescriptorProvider

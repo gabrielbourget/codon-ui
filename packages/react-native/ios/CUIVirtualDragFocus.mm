@@ -3,6 +3,7 @@
 #import "CUIKeyboardScope.h"
 #import "CUIInputWindow.h"
 #import "CUIFocusView.h"
+#import "CUIVirtualDragAccessibility.h"
 
 @interface CUIVirtualFocusTarget : NSObject
 @property(nonatomic, copy) NSString *identity;
@@ -22,10 +23,11 @@
   NSArray *_observers;
   __weak UIView *_lastObserved;
   NSString *_lastObservedIdentity;
+  NSString *_accessibilityError;
   BOOL _moving, _failed, _queued;
   double _appliedSelection;
 }
-- (instancetype)initWithScope:(CUIKeyboardScope *)scope { if (self=[super init]) { _scope=scope; _targets=@[]; } return self; }
+- (instancetype)initWithScope:(CUIKeyboardScope *)scope { if (self=[super init]) { _scope=scope; _targets=@[]; CUIInstallVirtualDragAccessibilityProjection(); } return self; }
 - (BOOL)active {
   NSDictionary *session=_scope.dragActivationSession;
   return !_failed && _manifest && _scope.dragCaptureReady && _scope.window.isKeyWindow && UIApplication.sharedApplication.applicationState==UIApplicationStateActive &&
@@ -72,7 +74,7 @@
     if (!source || !member) @throw @"native-virtual-focus-source-not-original";
     BOOL sameSession=[_manifest[@"sessionId"] isEqual:manifest[@"sessionId"]];
     _manifest=[manifest copy]; _binding=[binding copy]; _targets=targets; _source=source; _selected=selected;
-    if (!sameSession) { _failed=NO; _lastObserved=nil; _lastObservedIdentity=nil; _appliedSelection=0; }
+    if (!sameSession) { _failed=NO; _lastObserved=nil; _lastObservedIdentity=nil; _appliedSelection=0; _accessibilityError=nil; }
     [self refresh];
   } @catch (id error) { _manifest=[manifest copy]; _binding=[binding copy]; [self fail:[error isKindOfClass:NSString.class] ? error : @"native-virtual-focus-manifest-invalid"]; }
 }
@@ -84,6 +86,25 @@
     if (target.descendants && original && [view isDescendantOfView:original] && (!found || [original isDescendantOfView:[self resolve:found]])) found=target;
   }
   return found;
+}
+- (RCTAccessibilityProjectionMode)accessibilityModeForView:(UIView *)view {
+  if (![self active] || view.window!=_scope.window) return RCTAccessibilityProjectionOriginal;
+  if (_accessibilityError) return RCTAccessibilityProjectionExcluded;
+  if ([self matching:view]) return RCTAccessibilityProjectionAllowed;
+  for (CUIVirtualFocusTarget *target in _targets) {
+    UIView *original=[self resolve:target];
+    if (original && [original isDescendantOfView:view]) return RCTAccessibilityProjectionTraverse;
+  }
+  return RCTAccessibilityProjectionExcluded;
+}
+- (void)rejectAccessibilityProjection:(NSString *)error {
+  // A native getter never calls JavaScript or mutates authored props. Publish on the owned frame.
+  if (!_accessibilityError) _accessibilityError=[error copy];
+  [self schedule];
+}
+- (BOOL)allowsInteractionWithView:(UIView *)view {
+  if (![self active]) return YES;
+  return view && [self matching:view];
 }
 - (BOOL)focus:(CUIVirtualFocusTarget *)target {
   UIView *view=[self resolve:target]; if (!view || view.hidden || !view.window || ![self active]) return NO;
@@ -101,10 +122,15 @@
   if (_moving) return;
   NSDictionary *intent=_manifest;
   if (![self active]) { [self stop]; return; }
+  if (_accessibilityError) { [self fail:_accessibilityError]; return; }
   UIView *source=[self resolve:_source], *selected=[self resolve:_selected];
   if (!source || (_selected && !selected)) {
     if ((!source && _source.resolved) || (_selected && !selected && _selected.resolved)) [self fail:@"native-virtual-focus-original-target-retired"];
     return;
+  }
+  for (CUIVirtualFocusTarget *target in _targets) {
+    UIView *view=[self resolve:target];
+    if (view && !CUIValidateVirtualDragAccessibilityView(view)) { [self fail:@"native-virtual-accessibility-opaque-source-unregistered"]; return; }
   }
   if (!_display) {
     _display=[CADisplayLink displayLinkWithTarget:self selector:@selector(tick:)]; [_display addToRunLoop:NSRunLoop.mainRunLoop forMode:NSRunLoopCommonModes];
@@ -140,7 +166,7 @@
 - (void)schedule { if (_queued) return; _queued=YES; __weak CUIVirtualDragFocus *weak=self; dispatch_async(dispatch_get_main_queue(), ^{ CUIVirtualDragFocus *owner=weak; if (owner) { owner->_queued=NO; [owner refresh]; } }); }
 - (void)tick:(CADisplayLink *)link { [self refresh]; }
 - (void)stop { [_display invalidate]; _display=nil; for (id observer in _observers) [NSNotificationCenter.defaultCenter removeObserver:observer]; _observers=nil; }
-- (void)invalidate { [self stop]; _manifest=nil; _binding=nil; _targets=@[]; _source=nil; _selected=nil; _lastObserved=nil; _lastObservedIdentity=nil; _failed=NO; _appliedSelection=0; }
+- (void)invalidate { [self stop]; _manifest=nil; _binding=nil; _targets=@[]; _source=nil; _selected=nil; _lastObserved=nil; _lastObservedIdentity=nil; _failed=NO; _appliedSelection=0; _accessibilityError=nil; }
 - (void)dealloc { [self stop]; }
 @end
 

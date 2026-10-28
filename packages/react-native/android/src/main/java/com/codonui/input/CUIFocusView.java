@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.HashSet;
 import java.util.Set;
 
-public final class CUIFocusView extends ReactViewGroup implements View.OnClickListener {
+public final class CUIFocusView extends ReactViewGroup implements View.OnClickListener, CUIVirtualDragAccessibility.Source {
   PointerEvents authoredPointerEvents() { return super.getPointerEvents(); }
   @Override public PointerEvents getPointerEvents() {
     return CUIMenuPointerPolicies.suppresses(this) ? PointerEvents.NONE : super.getPointerEvents();
@@ -65,6 +65,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
 
   public CUIFocusView(ThemedReactContext context) {
     super(context);
+    CUIVirtualDragAccessibility.registerSource(this,this);
     motionDrawing = new CUIMotionDrawing(this);
     scrollAnchor = new CUIFloatingScrollAnchor(this);
     motionColors = new CUIMotionColorSampler(this, data -> emit("topNativeMotionColors", data));
@@ -227,6 +228,14 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
     return label.value + ", " + content;
   }
   @Override public AccessibilityNodeInfo createAccessibilityNodeInfo() {
+    AccessibilityNodeInfo info;
+    com.facebook.react.uimanager.ReactAccessibilityProjection.beginOriginalMetadata();
+    try { info=createOriginalAccessibilityNodeInfo(); }
+    finally { com.facebook.react.uimanager.ReactAccessibilityProjection.endOriginalMetadata(); }
+    if (info!=null) CUIVirtualDragAccessibility.projectNode(this,AccessibilityNodeInfoCompat.wrap(info));
+    return info;
+  }
+  private AccessibilityNodeInfo createOriginalAccessibilityNodeInfo() {
     AccessibilityNodeInfo info = super.createAccessibilityNodeInfo();
     if (info == null) return null;
     AccessibilityNodeInfoCompat node = AccessibilityNodeInfoCompat.wrap(info);
@@ -247,6 +256,8 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
     collectionAccessibility.apply(info);
     return info;
   }
+  @Override public boolean appliesVirtualDragAccessibilityProjection() { return true; }
+  @Override public View originalViewForAccessibilityNode(AccessibilityNodeInfoCompat original) { return this; }
   void inspectAccessibility(String owner) {
     if (!ownerId.equals(owner) || !isAttachedToWindow() || !hasWindowFocus()) return;
     AccessibilityNodeInfo info = createAccessibilityNodeInfo();
@@ -308,6 +319,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   }
 
   @Override public boolean performAccessibilityAction(int action, android.os.Bundle arguments) {
+    if (!CUIVirtualDragAccessibility.allowsInteraction(this)) return false;
     if (action == android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK) CUIMenuPointerPolicies.recordVirtual(this);
     boolean handled = super.performAccessibilityAction(action, arguments);
     if (handled && nativePressable && action == android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK)
