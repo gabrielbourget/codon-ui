@@ -19,6 +19,7 @@ final class CUIClampHost extends ReactViewGroup {
   static { System.loadLibrary("react_codegen_CodonNativeOverlay"); }
   private static native void nativePresent(String owner, double x, double y);
   private static native void nativeRetire(String owner);
+  private static native void nativeActive(String owner, boolean active);
   private ReadableMap plan;
   private boolean hasClamp;
   private final ArrayList<WeakReference<ReactTextView>> paragraphs = new ArrayList<>();
@@ -27,6 +28,7 @@ final class CUIClampHost extends ReactViewGroup {
   void setHasClamp(boolean next) { hasClamp = next; setClipChildren(next); }
   void setPlan(ReadableMap next) {
     retire(); plan = next;
+    if (!owner().isEmpty()) nativeActive(owner(),isAttachedToWindow() && hasWindowFocus());
     invalidate();
   }
   private String owner() { return plan == null || !plan.hasKey("owner") ? "" : plan.getString("owner"); }
@@ -111,11 +113,22 @@ final class CUIClampHost extends ReactViewGroup {
     if (focused != null && focused != this) reveal(focused,new Rect(0,0,focused.getWidth(),focused.getHeight()));
     present();
   }
-  @Override protected void onAttachedToWindow() { super.onAttachedToWindow(); present(); }
-  @Override protected void onDetachedFromWindow() { retire(); super.onDetachedFromWindow(); }
+  @Override protected void onAttachedToWindow() {
+    super.onAttachedToWindow();
+    if (!owner().isEmpty()) nativeActive(owner(),hasWindowFocus());
+    present();
+  }
+  @Override protected void onDetachedFromWindow() {
+    if (!owner().isEmpty()) nativeActive(owner(),false);
+    retire(); super.onDetachedFromWindow();
+  }
   @Override public void onWindowFocusChanged(boolean active) {
     super.onWindowFocusChanged(active);
+    if (!owner().isEmpty()) nativeActive(owner(),active);
     if (active) present(); else retire();
   }
-  void recycleClamp() { retire(); plan = null; hasClamp = false; scrollTo(0,0); }
+  void recycleClamp() {
+    if (!owner().isEmpty()) nativeActive(owner(),false);
+    retire(); plan = null; hasClamp = false; scrollTo(0,0);
+  }
 }

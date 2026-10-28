@@ -14,6 +14,7 @@ add_library(codon_motion SHARED
   "${CMAKE_CURRENT_LIST_DIR}/../../../../cpp/form/FabricFormDocument.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../cpp/form/FormDocumentQuery.cpp"
   MotionIntrinsicsJNI.cpp
+  ClampKernelJNI.cpp
   MotionDrawingJNI.cpp
   ForegroundJNI.cpp
   "${CMAKE_CURRENT_LIST_DIR}/../../../../cpp/overlay/ForegroundFilters.cpp"

@@ -1385,10 +1385,62 @@ index 45c8bec4c2b8adf3004edfaa20e52c98e577351b..5371721f9178da273a42243eaba37107
  
    private fun setFontStyle(fontStyleString: String?) {
 diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt b/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
-index eacec697670d254229a59813220b594847f1d828..e1b84c1bbfd9aff42c81c589e181e0bbd653b834 100644
 --- a/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
 +++ b/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
-@@ -310,6 +310,7 @@ internal object TextLayoutManager {
+@@ -105,6 +105,35 @@
+
+   private val tagToSpannableCache = ConcurrentHashMap<Int, Spannable>()
+
++  interface CuiTextSnapshotObserver {
++    // UI producer copies only; implementations never mutate the supplied native cache.
++    fun published(original: Spannable)
++    fun failed(failure: RuntimeException)
++    fun cleared()
++  }
++  private data class CuiTextSnapshotOwner(val owner: Long, val observer: CuiTextSnapshotObserver)
++  private val cuiTextSnapshotObservers = ConcurrentHashMap<Int, CuiTextSnapshotOwner>()
++  fun setCuiTextSnapshotObserver(tag: Int, owner: Long, observer: CuiTextSnapshotObserver) {
++    val registration = CuiTextSnapshotOwner(owner, observer)
++    cuiTextSnapshotObservers[tag] = registration
++    com.facebook.react.bridge.UiThreadUtil.runOnUiThread {
++      if (cuiTextSnapshotObservers[tag] === registration) {
++        tagToSpannableCache[tag]?.let { cuiPublishTextSnapshot(observer, it) }
++      }
++    }
++  }
++  private fun cuiPublishTextSnapshot(observer: CuiTextSnapshotObserver, original: Spannable) {
++    try { observer.published(original) }
++    catch (failure: RuntimeException) {
++      try { observer.failed(failure) }
++      catch (_: RuntimeException) { /* Observation cannot interrupt original input publication. */ }
++    }
++  }
++  fun removeCuiTextSnapshotObserver(tag: Int, owner: Long) {
++    val current = cuiTextSnapshotObservers[tag]
++    if (current?.owner == owner) cuiTextSnapshotObservers.remove(tag, current)
++  }
++
+   // Lazily cached Method for StaticLayout.Builder.setUseBoundsForWidth (API 35+).
+   // Reflection is needed because some internal targets compile against an SDK older than 35.
+   private val setUseBoundsForWidthMethod: java.lang.reflect.Method? by lazy {
+@@ -119,10 +148,16 @@
+
+   fun setCachedSpannableForTag(reactTag: Int, sp: Spannable): Unit {
+     tagToSpannableCache[reactTag] = sp
++    val observer = cuiTextSnapshotObservers[reactTag]?.observer
++    if (observer != null) {
++      cuiPublishTextSnapshot(observer, sp)
++    }
+   }
+
+   fun deleteCachedSpannableForTag(reactTag: Int): Unit {
+     tagToSpannableCache.remove(reactTag)
++    try { cuiTextSnapshotObservers[reactTag]?.observer?.cleared() }
++    catch (_: RuntimeException) { /* Observation cannot interrupt original cache retirement. */ }
+   }
+
+   fun isRTL(attributedString: MapBuffer): Boolean {
+@@ -310,6 +345,7 @@
                        textAttributes.fontFeatureSettings,
                        textAttributes.fontFamily,
                        assets,
@@ -1396,7 +1448,7 @@ index eacec697670d254229a59813220b594847f1d828..e1b84c1bbfd9aff42c81c589e181e0bb
                    ),
                )
            )
-@@ -486,6 +487,7 @@ internal object TextLayoutManager {
+@@ -486,6 +522,7 @@
                    fragment.props.fontFeatureSettings,
                    fragment.props.fontFamily,
                    assets,
@@ -1404,13 +1456,13 @@ index eacec697670d254229a59813220b594847f1d828..e1b84c1bbfd9aff42c81c589e181e0bb
                ),
                start,
                end,
-@@ -731,6 +733,7 @@ internal object TextLayoutManager {
+@@ -731,6 +768,7 @@
          paint.textSkewX = if ((missingStyle and Typeface.ITALIC) != 0) -0.25f else 0f
        }
      }
 +    ReactFontWeightScalar.apply(paint, baseTextAttributes.fontWeightScalar)
    }
- 
+
    /**
 diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/CustomStyleSpan.kt b/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/CustomStyleSpan.kt
 index dec85221456093ba1462641cb6843c2a9e146dd5..622574aa231db222690aebe0470a9b47bb409a0d 100644
@@ -2033,7 +2085,7 @@ diff --git a/ReactCommon/react/renderer/components/text/ParagraphShadowNode.cpp 
 
    return content_.value();
  }
-@@ -135,6 +138,24 @@
+@@ -135,6 +138,25 @@
    return content;
  }
 
@@ -2049,8 +2101,9 @@ diff --git a/ReactCommon/react/renderer/components/text/ParagraphShadowNode.cpp 
 +LinesMeasurements ParagraphShadowNode::cuiClampFlowLines(const LayoutContext &context) const {
 +  const auto metrics = getLayoutMetrics();
 +  const auto size = metrics.getContentFrame().size;
-+  auto content = getContentWithMeasuredAttachments(context,
-+      LayoutConstraints{.minimumSize = size, .maximumSize = size, .layoutDirection = metrics.layoutDirection});
++  // Final normal layout has already published complete selected attachment metrics.
++  // Reading that immutable value avoids a second original attachment/editor measurement.
++  const auto &content = getStateData();
 +  return TextLayoutManagerExtended(*textLayoutManager_).measureLines(
 +      AttributedStringBox{content.attributedString}, content.paragraphAttributes, size);
 +}
@@ -2058,7 +2111,7 @@ diff --git a/ReactCommon/react/renderer/components/text/ParagraphShadowNode.cpp 
  void ParagraphShadowNode::setTextLayoutManager(
      std::shared_ptr<const TextLayoutManager> textLayoutManager) {
    ensureUnsealed();
-@@ -153,16 +174,14 @@
+@@ -153,16 +175,14 @@
 
    if (state.measuredLayout.measurement.size == layout.measurement.size &&
        state.attributedString == content.attributedString &&
@@ -2080,7 +2133,7 @@ diff --git a/ReactCommon/react/renderer/components/text/ParagraphShadowNode.cpp 
  }
 
  void ParagraphShadowNode::updateStateIfNeeded(const Content& content) {
-@@ -171,15 +190,15 @@
+@@ -171,15 +191,15 @@
    auto& state = getStateData();
 
    react_native_assert(textLayoutManager_);
@@ -3256,3 +3309,203 @@ index 0d1910b442b67da7453506410363d7fad28c22e9..6514ae38758379bd7d39c97424ce8cc4
    std::shared_ptr<UIManager> uiManager_;
    std::unique_ptr<jsi::Function> eventHandler_;
    mutable PointerEventsProcessor pointerEventsProcessor_;
+diff --git a/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm b/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
+--- a/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
++++ b/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
+@@ -730,6 +730,7 @@
+   auto data = _state->getData();
+   _lastStringStateWasUpdatedWith = attributedString;
+   data.attributedStringBox = RCTAttributedStringBoxFromNSAttributedString(attributedString);
++  data.cuiTextSnapshotSource = captureCuiTextSnapshot(self.tag, wrapManagedObject(attributedString));
+   _mostRecentEventCount += _comingFromJS ? 0 : 1;
+   data.mostRecentEventCount = _mostRecentEventCount;
+   _state->updateState(std::move(data));
+diff --git a/ReactCommon/react/renderer/components/textinput/TextInputState.h b/ReactCommon/react/renderer/components/textinput/TextInputState.h
+--- a/ReactCommon/react/renderer/components/textinput/TextInputState.h
++++ b/ReactCommon/react/renderer/components/textinput/TextInputState.h
+@@ -10,6 +10,7 @@
+ #include <react/renderer/attributedstring/AttributedStringBox.h>
+ #include <react/renderer/attributedstring/ParagraphAttributes.h>
+ #include <react/renderer/textlayoutmanager/TextLayoutManager.h>
++#include <react/renderer/components/textinput/CuiTextSnapshot.h>
+
+ namespace facebook::react {
+
+@@ -53,6 +54,10 @@
+   ParagraphAttributes paragraphAttributes;
+
+   int64_t mostRecentEventCount{0};
++
++  // Read-only retained source; original text, selection, event count and cache ID stay unchanged.
++  std::shared_ptr<const CuiTextSnapshotSource> cuiTextSnapshotSource;
++
+ };
+
+ } // namespace facebook::react
+diff --git a/ReactCommon/react/renderer/components/textinput/CuiTextSnapshot.cpp b/ReactCommon/react/renderer/components/textinput/CuiTextSnapshot.cpp
+new file mode 100644
+--- /dev/null
++++ b/ReactCommon/react/renderer/components/textinput/CuiTextSnapshot.cpp
+@@ -0,0 +1,88 @@
++#include "CuiTextSnapshot.h"
++#include <atomic>
++#include <mutex>
++#include <stdexcept>
++#include <unordered_map>
++
++namespace facebook::react {
++namespace {
++class Source final : public CuiTextSnapshotSource {
++ public:
++  const Tag target;
++  const uint64_t owner;
++  const CuiTextSnapshotCapture capture;
++  std::atomic<bool> active{true};
++  Source(Tag target, uint64_t owner, CuiTextSnapshotCapture capture)
++      : target(target), owner(owner), capture(std::move(capture)) {}
++  std::shared_ptr<const CuiTextSnapshot> read() const override {
++    std::lock_guard lock(mutex_);
++    if (!active.load() || !latest_) throw std::runtime_error("Native text snapshot is unavailable or retired");
++    if (!latest_->failure.empty()) throw std::runtime_error(latest_->failure);
++    return latest_;
++  }
++  bool current(const std::shared_ptr<const CuiTextSnapshot> &snapshot) const override {
++    std::lock_guard lock(mutex_);
++    return active.load() && snapshot && latest_ == snapshot && snapshot->failure.empty();
++  }
++  bool publish(std::shared_ptr<const void> payload, std::string failure) {
++    std::lock_guard lock(mutex_);
++    if (!active.load()) return false;
++    if (!payload && failure.empty()) failure = "Native text snapshot source returned no owned payload";
++    latest_ = std::make_shared<const CuiTextSnapshot>(CuiTextSnapshot{++version_,std::move(payload),std::move(failure)});
++    return true;
++  }
++ private:
++  mutable std::mutex mutex_;
++  uint64_t version_{0};
++  std::shared_ptr<const CuiTextSnapshot> latest_;
++};
++std::mutex registryMutex;
++std::unordered_map<Tag,std::weak_ptr<Source>> registry;
++class Registration final : public CuiTextSnapshotRegistration {
++ public:
++  explicit Registration(std::shared_ptr<Source> source) : source_(std::move(source)) {}
++  ~Registration() override { dispose(); }
++  std::shared_ptr<const CuiTextSnapshotSource> source() const override { return source_; }
++  void dispose() noexcept override { source_->active.store(false); }
++ private:
++  std::shared_ptr<Source> source_;
++};
++std::shared_ptr<Source> findSource(Tag target) {
++  std::lock_guard lock(registryMutex);
++  auto found = registry.find(target);
++  auto result = found == registry.end() ? nullptr : found->second.lock();
++  return result && result->active.load() ? result : nullptr;
++}
++}
++std::shared_ptr<CuiTextSnapshotRegistration> registerCuiTextSnapshotSource(
++    Tag target, uint64_t owner, CuiTextSnapshotCapture capture) {
++  if (target <= 0 || owner == 0) throw std::invalid_argument("Original native text target/owner required");
++  auto source = std::make_shared<Source>(target,owner,std::move(capture));
++  {
++    std::lock_guard lock(registryMutex);
++    for (auto entry=registry.begin();entry!=registry.end();) {
++      if (entry->second.expired()) entry=registry.erase(entry);
++      else ++entry;
++    }
++    auto previous = registry[target].lock();
++    if (previous) previous->active.store(false);
++    registry[target] = source;
++  }
++  return std::make_shared<Registration>(std::move(source));
++}
++std::shared_ptr<const CuiTextSnapshotSource> findCuiTextSnapshotSource(Tag target) { return findSource(target); }
++std::shared_ptr<const CuiTextSnapshotSource> captureCuiTextSnapshot(Tag target, std::shared_ptr<void> original) {
++  auto source = findSource(target);
++  if (!source) return nullptr;
++  try {
++    if (!source->capture) throw std::runtime_error("Native text snapshot producer unavailable");
++    source->publish(source->capture(std::move(original)),{});
++  } catch (const std::exception &failure) { source->publish({},failure.what()); }
++  catch (...) { source->publish({},"Native text snapshot producer failed"); }
++  return source;
++}
++bool publishCuiTextSnapshot(Tag target, uint64_t owner, std::shared_ptr<const void> ownedPayload, std::string failure) {
++  auto source = findSource(target);
++  return source && source->owner == owner && source->publish(std::move(ownedPayload),std::move(failure));
++}
++}
+diff --git a/ReactCommon/react/renderer/components/textinput/CuiTextSnapshot.h b/ReactCommon/react/renderer/components/textinput/CuiTextSnapshot.h
+new file mode 100644
+--- /dev/null
++++ b/ReactCommon/react/renderer/components/textinput/CuiTextSnapshot.h
+@@ -0,0 +1,37 @@
++#pragma once
++#include <jsi/jsi.h>
++#include <react/renderer/core/ReactPrimitives.h>
++#include <functional>
++#include <memory>
++#include <string>
++
++namespace facebook::react {
++struct CuiTextSnapshot final {
++  uint64_t version;
++  std::shared_ptr<const void> ownedPayload;
++  std::string failure;
++};
++// An exact-family, native-window registration owns this source. State retains only a read handle.
++class JSI_EXPORT CuiTextSnapshotSource {
++ public:
++  virtual ~CuiTextSnapshotSource() = default;
++  virtual std::shared_ptr<const CuiTextSnapshot> read() const = 0;
++  virtual bool current(const std::shared_ptr<const CuiTextSnapshot> &snapshot) const = 0;
++};
++using CuiTextSnapshotCapture = std::function<std::shared_ptr<const void>(std::shared_ptr<void>)>;
++class JSI_EXPORT CuiTextSnapshotRegistration {
++ public:
++  virtual ~CuiTextSnapshotRegistration() = default;
++  virtual std::shared_ptr<const CuiTextSnapshotSource> source() const = 0;
++  virtual void dispose() noexcept = 0;
++};
++JSI_EXPORT std::shared_ptr<CuiTextSnapshotRegistration> registerCuiTextSnapshotSource(
++    Tag target, uint64_t owner, CuiTextSnapshotCapture capture);
++JSI_EXPORT std::shared_ptr<const CuiTextSnapshotSource> findCuiTextSnapshotSource(Tag target);
++// UI producer capture only. Errors are retained as failure snapshots, never thrown through original input.
++JSI_EXPORT std::shared_ptr<const CuiTextSnapshotSource> captureCuiTextSnapshot(
++    Tag target, std::shared_ptr<void> original);
++// Android's opt-in UI cache observer publishes an independently owned payload through its native bridge.
++JSI_EXPORT bool publishCuiTextSnapshot(Tag target, uint64_t owner,
++    std::shared_ptr<const void> ownedPayload, std::string failure = {});
++}
+diff --git a/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputState.h b/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputState.h
+--- a/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputState.h
++++ b/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputState.h
+@@ -10,6 +10,7 @@
+ #include <react/renderer/attributedstring/AttributedStringBox.h>
+ #include <react/renderer/attributedstring/ParagraphAttributes.h>
+ #include <react/renderer/textlayoutmanager/TextLayoutManager.h>
++#include <react/renderer/components/textinput/CuiTextSnapshot.h>
+
+ #include <folly/dynamic.h>
+ #include <react/renderer/mapbuffer/MapBuffer.h>
+@@ -40,7 +41,8 @@
+         reactTreeAttributedString(previousState.reactTreeAttributedString),
+         paragraphAttributes(previousState.paragraphAttributes),
+         mostRecentEventCount(data.getDefault("mostRecentEventCount", previousState.mostRecentEventCount).getInt()),
+-        cachedAttributedStringId(data.getDefault("opaqueCacheId", previousState.cachedAttributedStringId).getInt())
++        cachedAttributedStringId(data.getDefault("opaqueCacheId", previousState.cachedAttributedStringId).getInt()),
++        cuiTextSnapshotSource(findCuiTextSnapshotSource(cachedAttributedStringId))
+   {
+   }
+
+@@ -74,6 +76,10 @@
+    * AttributedString for measurement purposes only.
+    */
+   int64_t cachedAttributedStringId{0};
++
++  // Read-only retained source; original text, selection, event count and cache ID stay unchanged.
++  std::shared_ptr<const CuiTextSnapshotSource> cuiTextSnapshotSource;
++
+ };
+
+ } // namespace facebook::react

@@ -79,9 +79,24 @@ void CUIClampCapture::check() const {
   if (!registration_->active() || !session_ || !session_->current())
     throw std::runtime_error("Table clamp native content session retired");
 }
-std::vector<TClampFragment> CUIClampCapture::fragments() const {
+codon::motion::TNativeScratchIntrinsic CUIClampCapture::callbacks() const {
   check();
-  auto result = session_->fragments();
+  auto result = session_->callbacks();
+  if (!result.measure || !result.baseline)
+    throw std::runtime_error("Table clamp requires complete isolated native intrinsic callbacks");
+  const auto current = [capture = shared_from_this()] { capture->check(); };
+  return {
+    [measure = std::move(result.measure), current](auto... arguments) {
+      current(); auto value = measure(arguments...); current(); return value;
+    },
+    [baseline = std::move(result.baseline), current](auto... arguments) {
+      current(); auto value = baseline(arguments...); current(); return value;
+    }
+  };
+}
+std::vector<TClampFragment> CUIClampCapture::fragments(Size selectedSize) const {
+  check();
+  auto result = session_->fragments(selectedSize);
   check();
   return result;
 }

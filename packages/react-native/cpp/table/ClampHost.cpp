@@ -1,4 +1,6 @@
 #include "ClampHost.h"
+#include "ClampSizing.h"
+#include "ClampKernel.h"
 
 #include <react/renderer/components/text/ParagraphShadowNode.h>
 #include <react/renderer/components/view/ViewShadowNode.h>
@@ -21,7 +23,7 @@ std::unordered_map<uint64_t, std::weak_ptr<CUIClampPlan>> plans;
 std::unordered_map<uint64_t, std::shared_ptr<CUIClampPlan>> presentedPlans;
 }
 
-void CUIClampPlan::present(Point offset) {
+void CUIClampPlan::present(facebook::react::Point offset) {
   if (!std::isfinite(offset.x) || !std::isfinite(offset.y)) throw std::runtime_error("Table clamp requires a finite original scroll position");
   const auto clipped = viewport.clipped && offset.x == 0 && offset.y == 0;
   for (const auto &participant : participants) {
@@ -40,7 +42,7 @@ void CUIClampPlan::retire() noexcept {
   for (const auto &participant : participants) participant.capture->retire(owner);
 }
 
-void presentClampPlan(uint64_t owner, Point offset) {
+void presentClampPlan(uint64_t owner, facebook::react::Point offset) {
   std::shared_ptr<CUIClampPlan> plan;
   {
     std::lock_guard lock(planMutex);
@@ -62,6 +64,15 @@ void retireClampPlan(uint64_t owner) noexcept {
     presentedPlans.erase(entry);
   }
   plan->retire();
+}
+void setClampPlanActive(uint64_t owner, bool active) noexcept {
+  std::shared_ptr<CUIClampPlan> plan;
+  {
+    std::lock_guard lock(planMutex);
+    const auto entry = plans.find(owner);
+    if (entry != plans.end()) plan = entry->second.lock();
+  }
+  if (plan) plan->textScope->active(active);
 }
 
 #ifdef ANDROID
@@ -117,7 +128,8 @@ std::shared_ptr<ShadowNode> prepareContent(const ShadowNode &original, LayoutCon
   return clone;
 }
 void collectContent(const ShadowNode &node, Point offset, const CUIClampHostProps &props,
-    LayoutContext context, CUIClampPlan &plan, std::vector<TClampFragment> &fragments) {
+    LayoutContext context, CUIClampPlan &plan, std::vector<TClampFragment> &fragments,
+    const codon::motion::TNativeSubtreeIntrinsics &intrinsics) {
   const auto layout = dynamic_cast<const LayoutableShadowNode *>(&node);
   if (!layout || layout->getLayoutMetrics().displayType == DisplayType::None) return;
   const auto &metrics = layout->getLayoutMetrics();
@@ -136,7 +148,7 @@ void collectContent(const ShadowNode &node, Point offset, const CUIClampHostProp
         props.windowId, props.epoch, [weak = std::weak_ptr<ShadowNodeFamily>(family)] {
           if (weak.expired()) throw std::runtime_error("Table clamp original family retired");
         }});
-    auto supplied = capture->fragments();
+    auto supplied = capture->fragments(metrics.frame.size);
     for (auto &fragment : supplied) {
       if (fragment.tag != node.getTag())
         throw std::runtime_error("Table clamp opaque fragment belongs to another original view");
@@ -161,14 +173,18 @@ void collectContent(const ShadowNode &node, Point offset, const CUIClampHostProp
   }
   if (atomicContent(name)) {
     auto baseline = metrics.frame.size.height;
-    if (const auto yoga = dynamic_cast<const YogaLayoutableShadowNode *>(&node))
-      baseline = yoga->baseline(context, metrics.frame.size);
+    if (node.getTraits().check(ShadowNodeTraits::BaselineYogaNode)) {
+      const auto callbacks = intrinsics.resolve(node, context, node.getProps());
+      baseline = callbacks.baseline(metrics.frame.size.width, metrics.frame.size.height, {},
+          {metrics.contentInsets.left,metrics.contentInsets.top,metrics.contentInsets.right,metrics.contentInsets.bottom},
+          metrics.layoutDirection == LayoutDirection::RightToLeft ? YGDirectionRTL : YGDirectionLTR);
+    }
     fragments.push_back({{offset, metrics.frame.size}, offset.y + baseline, node.getTag(), 0,
         static_cast<uint64_t>(node.getTag()), ClampFragmentKind::Atomic});
     return;
   }
   if (!flowContainer(name)) throw std::runtime_error("Table clamp requires registered opaque native content: " + std::string(name));
-  for (const auto &child : node.getChildren()) collectContent(*child, offset, props, context, plan, fragments);
+  for (const auto &child : node.getChildren()) collectContent(*child, offset, props, context, plan, fragments, intrinsics);
 }
 }
 
@@ -178,10 +194,17 @@ struct CUIOwnedClampHostShadowNode::TContent {
 };
 CUIOwnedClampHostShadowNode::CUIOwnedClampHostShadowNode(const ShadowNodeFragment &fragment,
     const ShadowNodeFamily::Shared &family, ShadowNodeTraits traits)
-    : ConcreteViewShadowNode(fragment, family, traits), authoredChildren_(getChildren()) {}
+    : ConcreteViewShadowNode(fragment, family, traits), authoredChildren_(getChildren()),
+      textScope_(std::make_shared<CUIClampTextScope>(getConcreteProps().ownerId + ":" + getConcreteProps().epoch)) {}
 CUIOwnedClampHostShadowNode::CUIOwnedClampHostShadowNode(const ShadowNode &source, const ShadowNodeFragment &fragment)
     : ConcreteViewShadowNode(source, fragment), authoredChildren_(fragment.children ? *fragment.children
-        : static_cast<const CUIOwnedClampHostShadowNode &>(source).authoredChildren_) {}
+        : static_cast<const CUIOwnedClampHostShadowNode &>(source).authoredChildren_),
+      textScope_(static_cast<const CUIOwnedClampHostShadowNode &>(source).textScope_) {
+  const auto &before = static_cast<const CUIOwnedClampHostShadowNode &>(source).getConcreteProps();
+  const auto &after = getConcreteProps();
+  if (before.ownerId != after.ownerId || before.windowId != after.windowId || before.epoch != after.epoch)
+    textScope_ = std::make_shared<CUIClampTextScope>(after.ownerId + ":" + after.epoch);
+}
 void CUIOwnedClampHostShadowNode::appendChild(const std::shared_ptr<const ShadowNode> &child) {
   authoredChildren_.push_back(child);
   ConcreteViewShadowNode::appendChild(child);
@@ -219,6 +242,7 @@ CUIOwnedClampHostShadowNode::TContent CUIOwnedClampHostShadowNode::resolveConten
   metrics.frame.origin = {};
   layout->setLayoutMetrics(metrics);
   auto plan = std::make_shared<CUIClampPlan>();
+  plan->textScope = textScope_;
   plan->owner = codon::table::nextOwner.fetch_add(1);
   const auto naturalSize = metrics.frame.size;
   plan->contentOrigin = {std::min(Float{0}, metrics.overflowInset.left),std::min(Float{0}, metrics.overflowInset.top)};
@@ -227,7 +251,16 @@ CUIOwnedClampHostShadowNode::TContent CUIOwnedClampHostShadowNode::resolveConten
       std::max(naturalSize.height, naturalSize.height - metrics.overflowInset.bottom) - plan->contentOrigin.y};
   plan->clipsContents = props.hasClamp;
   std::vector<TClampFragment> fragments;
-  if (active) collectContent(*child, {}, props, context, *plan, fragments);
+  if (active) {
+    textScope_->prepare(*child);
+    std::function<void()> check;
+    auto services = textScope_->services(*child, check);
+    const auto intrinsics = clampKernel().intrinsics(child,
+        child->getState() ? child->getState()->getRevision() : State::initialRevisionValue,
+        std::move(services), check, {});
+    collectContent(*child, {}, props, context, *plan, fragments, intrinsics);
+    check();
+  }
   plan->viewport = resolveClampViewport(fragments, naturalSize.height, limit, context.pointScaleFactor);
   plan->viewportSize = {naturalSize.width, static_cast<Float>(plan->viewport.height)};
   for (auto &paragraph : plan->paragraphs) {
@@ -242,10 +275,10 @@ CUIOwnedClampHostShadowNode::TContent CUIOwnedClampHostShadowNode::resolveConten
 }
 
 Size CUIOwnedClampHostShadowNode::measureContent(const LayoutContext &context, const LayoutConstraints &constraints) const {
-  auto measurementContext = context;
-  // Provisional native layout nodes die with this measurement; publish only the final retained tree.
-  measurementContext.affectedNodes = nullptr;
-  return constraints.clamp(resolveContent(measurementContext, constraints).plan->viewportSize);
+  const auto &props = getConcreteProps();
+  if (props.ownerId.empty() || props.epoch.empty() || authoredChildren_.size() != 1)
+    throw std::runtime_error("Table clamp requires its original owner, epoch and content root");
+  return measureClampContent(authoredChildren_.front(), props, context, constraints, textScope_);
 }
 void CUIOwnedClampHostShadowNode::layout(LayoutContext context) {
   const auto metrics = getLayoutMetrics();

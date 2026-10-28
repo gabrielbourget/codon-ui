@@ -1,6 +1,11 @@
 #pragma once
 
 #include "ClampFlow.h"
+#if __has_include("../motion/NativeIntrinsicSource.h")
+#include "../motion/NativeIntrinsicSource.h"
+#else
+#include <CodonNativeInput/NativeIntrinsicSource.h>
+#endif
 #include <react/renderer/core/LayoutContext.h>
 #include <react/renderer/core/LayoutConstraints.h>
 #include <react/renderer/core/ShadowNode.h>
@@ -40,7 +45,8 @@ class JSI_EXPORT CUIClampSession {
  public:
   virtual ~CUIClampSession() = default;
   virtual bool current() const = 0;
-  virtual std::vector<TClampFragment> fragments() const = 0;
+  virtual codon::motion::TNativeScratchIntrinsic callbacks() = 0;
+  virtual std::vector<TClampFragment> fragments(facebook::react::Size selectedSize) const = 0;
   virtual void present(const TClampPresentation &presentation) = 0;
   virtual void releasePresentation(uint64_t owner) noexcept = 0;
   virtual void release() noexcept = 0;
@@ -77,13 +83,14 @@ class JSI_EXPORT CUIClampRegistration {
       const facebook::react::ShadowNode &, const facebook::react::LayoutContext &, bool);
 };
 
-class JSI_EXPORT CUIClampCapture {
+class JSI_EXPORT CUIClampCapture : public std::enable_shared_from_this<CUIClampCapture> {
  public:
   CUIClampCapture() = default;
   CUIClampCapture(const CUIClampCapture &) = delete;
   CUIClampCapture &operator=(const CUIClampCapture &) = delete;
   ~CUIClampCapture();
-  std::vector<TClampFragment> fragments() const;
+  codon::motion::TNativeScratchIntrinsic callbacks() const;
+  std::vector<TClampFragment> fragments(facebook::react::Size selectedSize) const;
   void present(const TClampPresentation &presentation);
   void retire(uint64_t owner) noexcept;
   void check() const;

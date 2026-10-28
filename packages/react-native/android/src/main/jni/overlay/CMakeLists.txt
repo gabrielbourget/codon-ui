@@ -10,9 +10,13 @@ file(GLOB CUI_OVERLAY_GENERATED_SOURCES CONFIGURE_DEPENDS
 add_library(${CUI_OVERLAY_TARGET} SHARED
   CodonNativeOverlay.cpp
   ClampHostJNI.cpp
+  ClampTextJNI.cpp
+  ClampKernelJNI.cpp
   "${CUI_OVERLAY_ANDROID_DIR}/../cpp/table/ClampFlow.cpp"
   "${CUI_OVERLAY_ANDROID_DIR}/../cpp/table/ClampContentSource.cpp"
   "${CUI_OVERLAY_ANDROID_DIR}/../cpp/table/ClampHost.cpp"
+  "${CUI_OVERLAY_ANDROID_DIR}/../cpp/table/ClampSizing.cpp"
+  "${CUI_OVERLAY_ANDROID_DIR}/../cpp/table/ClampText.cpp"
   "${CUI_OVERLAY_CPP_DIR}/NativeOverlayLayout.cpp"
   "${CUI_OVERLAY_CPP_DIR}/NativeTypographyScope.cpp"
   "${CUI_OVERLAY_CPP_DIR}/NativeTypographySource.cpp"

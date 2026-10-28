@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ClampContentSource.h"
+#include "ClampText.h"
 #include <react/renderer/components/CodonNativeInputSpec/ShadowNodes.h>
 #include <react/renderer/core/ConcreteComponentDescriptor.h>
 #include <mutex>
@@ -29,12 +30,14 @@ class JSI_EXPORT CUIClampPlan {
   bool clipsContents{false};
   std::vector<TClampParagraph> paragraphs;
   std::vector<TClampParticipant> participants;
+  std::shared_ptr<CUIClampTextScope> textScope;
   void present(facebook::react::Point offset);
   void retire() noexcept;
 };
 
 JSI_EXPORT void presentClampPlan(uint64_t owner, facebook::react::Point offset);
 JSI_EXPORT void retireClampPlan(uint64_t owner) noexcept;
+JSI_EXPORT void setClampPlanActive(uint64_t owner, bool active) noexcept;
 
 struct TClampHostState {
   std::shared_ptr<CUIClampPlan> plan;
@@ -63,6 +66,7 @@ class JSI_EXPORT CUIOwnedClampHostShadowNode final : public ConcreteViewShadowNo
   struct TContent;
   TContent resolveContent(const LayoutContext &context, const LayoutConstraints &constraints) const;
   std::vector<std::shared_ptr<const ShadowNode>> authoredChildren_;
+  std::shared_ptr<codon::table::CUIClampTextScope> textScope_;
 };
 using CUIOwnedClampHostComponentDescriptor = ConcreteComponentDescriptor<CUIOwnedClampHostShadowNode>;
 } // namespace facebook::react

@@ -32,3 +32,8 @@ extern "C" JNIEXPORT void JNICALL Java_com_codonui_input_CUIClampHost_nativeReti
   try { codon::table::retireClampPlan(ownerId(env,owner)); }
   catch (const std::exception &error) { failure(env,error); }
 }
+extern "C" JNIEXPORT void JNICALL Java_com_codonui_input_CUIClampHost_nativeActive(
+    JNIEnv *env, jclass, jstring owner, jboolean active) {
+  try { codon::table::setClampPlanActive(ownerId(env,owner),active); }
+  catch (const std::exception &error) { failure(env,error); }
+}

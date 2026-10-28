@@ -37,6 +37,7 @@ public final class CodonInputPackage extends BaseReactPackage {
 
   @Override
   public List<ViewManager> createViewManagers(ReactApplicationContext context) {
+    CUIClampText.registerContext(context);
     return Arrays.asList(new CUIClampHostManager(), new CUIOverlaySlotManager(), new CUIOverlayViewportManager(), new CUIOverlayHostManager(), new CUIFocusViewManager(), new CUIKeyboardScopeManager(), new CUICollectionRootManager(), new CUICollectionNodeManager(), new CUIFormRootManager(), new CUIFieldBindingManager(), new CUIDateSegmentManager());
   }
 }

@@ -74,6 +74,7 @@ using namespace codon::table;
 - (void)updateState:(const State::Shared &)state oldState:(const State::Shared &)oldState {
   [self retirePresentation];
   _plan = std::static_pointer_cast<const CUIOwnedClampHostShadowNode::ConcreteState>(state)->getData().plan;
+  if (_plan && self.window) _plan->textScope->active(UIApplication.sharedApplication.applicationState == UIApplicationStateActive);
   [self setNeedsLayout];
 }
 - (UIView *)originalView:(NSInteger)tag inView:(UIView *)root {
@@ -153,8 +154,14 @@ using namespace codon::table;
 - (void)editorFocused:(NSNotification *)notification {
   if ([notification.object isKindOfClass:UIView.class]) [self revealOriginalView:notification.object];
 }
-- (void)applicationBackgrounded:(NSNotification *)notification { [self retirePresentation]; }
-- (void)applicationBecameActive:(NSNotification *)notification { [self setNeedsLayout]; }
+- (void)applicationBackgrounded:(NSNotification *)notification {
+  if (_plan) _plan->textScope->active(false);
+  [self retirePresentation];
+}
+- (void)applicationBecameActive:(NSNotification *)notification {
+  if (_plan) _plan->textScope->active(self.window != nil);
+  [self setNeedsLayout];
+}
 - (void)didUpdateFocusInContext:(UIFocusUpdateContext *)context withAnimationCoordinator:(UIFocusAnimationCoordinator *)coordinator {
   [super didUpdateFocusInContext:context withAnimationCoordinator:coordinator];
   [self revealOriginalView:context.nextFocusedView];
@@ -162,10 +169,12 @@ using namespace codon::table;
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView { [self applyPresentation]; }
 - (void)didMoveToWindow {
   [super didMoveToWindow];
+  if (_plan) _plan->textScope->active(self.window != nil);
   if (!self.window) [self retirePresentation];
   else [self setNeedsLayout];
 }
 - (void)prepareForRecycle {
+  if (_plan) _plan->textScope->active(false);
   [self retirePresentation];
   _plan.reset();
   _viewport.contentOffset = CGPointZero;
