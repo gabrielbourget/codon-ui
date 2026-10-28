@@ -279,7 +279,11 @@ Size CUIOwnedClampHostShadowNode::measureContent(const LayoutContext &context, c
   const auto &props = getConcreteProps();
   if (props.ownerId.empty() || props.epoch.empty() || authoredChildren_.size() != 1)
     throw std::runtime_error("Table clamp requires its original owner, epoch and content root");
-  return measureClampContent(authoredChildren_.front(), props, context, constraints, textScope_);
+  auto bounds = constraints;
+  if (bounds.layoutDirection == LayoutDirection::Undefined)
+    bounds.layoutDirection = YGNodeLayoutGetDirection(&yogaNode_) == YGDirectionRTL
+        ? LayoutDirection::RightToLeft : LayoutDirection::LeftToRight;
+  return measureClampContent(authoredChildren_.front(), props, context, bounds, textScope_);
 }
 void CUIOwnedClampHostShadowNode::layout(LayoutContext context) {
   const auto metrics = getLayoutMetrics();
