@@ -147,6 +147,7 @@ export class NativeCollectionDragBinding {
   current = () => this.logicalCurrent() && this.root.current === this.bound && !!this.lease?.current()
   ready = () => this.current() && !!this.lease?.ready() && this.scope?.window().canLift === true
   retire = () => {
+    this.preview = null
     this.controller.retire(this.identity)
     if (this.dropFocus) clearTimeout(this.dropFocus.timer)
     this.dropFocus = null
@@ -292,6 +293,7 @@ export class NativeCollectionDragBinding {
         dispatch: this.dispatch,
       })
     else this.lease.updateNative(metadata)
+    nativeVirtualDrag.reconcile(this)
   }
   detach(unmounted = false) {
     if (!this.lease && !this.bound && !this.controller.activeSession()) return
@@ -537,7 +539,15 @@ export class NativeCollectionDragBinding {
           ...point,
           type: "dragstart",
         })
-        source.preview?.current?.(lifted.items, (view, x, y) => this.setPreview(view, x, y))
+        const preview = source.preview?.current
+        preview?.(lifted.items, (view, x, y) => {
+          if (
+            this.current() &&
+            this.source?.preview?.current === preview &&
+            this.controller.activeSession() === lifted.session
+          )
+            this.setPreview(view, x, y)
+        })
         return {
           items: lifted.transferItems!.map((item) => Object.entries(item).map(([type, data]) => ({ type, data }))),
           operations: lifted.allowedOperations,

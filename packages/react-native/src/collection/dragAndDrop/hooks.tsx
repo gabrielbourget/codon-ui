@@ -481,7 +481,9 @@ export const NativeDragPreview = forwardRef<
   const x = content && "element" in content ? content.x : 0,
     y = content && "element" in content ? content.y : 0
   useLayoutEffect(() => {
-    if (request && view.current) request.callback(view.current, x, y)
+    if (!request || !view.current) return
+    request.callback(view.current, x, y)
+    return () => request.callback(null)
   }, [request, x, y])
   useLayoutEffect(() => {
     if (!context.dragState?.draggingKeys.size) setRequest(null)

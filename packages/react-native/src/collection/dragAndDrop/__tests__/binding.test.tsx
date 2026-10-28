@@ -1,8 +1,9 @@
 import { act, renderHook } from "@testing-library/react-native"
-import { useRef } from "react"
+import { useInsertionEffect, useRef } from "react"
 import { findNodeHandle, type View } from "react-native"
 
 import { dispatchNativeActivationPolicy } from "../../../input/activation"
+import { observeNativeFocus, registerNativeFocusTarget } from "../../../input/focus"
 import { createNativeKeyScope } from "../../../input/keyScope"
 import { NativeDragActionsContext, createNativeDragActions } from "../../../input/nativeDragActions"
 import type { TNativeDragActionIdentity, TNativeDragMemberBinding } from "../../../input/nativeDragActions"
@@ -17,6 +18,7 @@ import {
 import type { TNativeDragAndDropOptions } from "../hooks"
 import { nativeDragFormatter } from "../messages"
 import { nativeDragRuntime } from "../runtime"
+import type { TNativeDragPreviewRenderer } from "../types"
 import { nativeVirtualDrag } from "../virtualDrag"
 
 import { dragCollection, dragValues } from "./fixtures"
@@ -32,7 +34,8 @@ jest.mock("../../../input/specs/NativeCUIDragAndDrop", () => ({
 }))
 // Synthetic original-view identities and native packets prove source routing only.
 let tag = 100
-const view = () => ({ dragTestTag: ++tag }) as unknown as View
+const view = () =>
+  ({ dragTestTag: ++tag, getBoundingClientRect: () => ({ x: 100, y: 200, width: 100, height: 30 }) }) as unknown as View
 beforeEach(() => {
   jest
     .spyOn(jest.requireActual<typeof import("react-native")>("react-native"), "findNodeHandle")
@@ -42,9 +45,21 @@ afterEach(async () => {
   await nativeVirtualDrag.cancel()
   jest.restoreAllMocks()
 })
-const setup = async (options: TNativeDragAndDropOptions = {}, selected = new Set<string | number>([0])) => {
+const setup = async (
+  options: TNativeDragAndDropOptions = {},
+  selected = new Set<string | number>([0]),
+  preview?: TNativeDragPreviewRenderer,
+) => {
   const scope = createNativeKeyScope("owner"),
     actions = createNativeDragActions(scope)
+  scope.acceptNativeStatus({
+    ownerId: "owner",
+    windowId: "window",
+    epoch: 1,
+    policyRevision: scope.policyRevision(),
+    ready: false,
+    windowActive: true,
+  })
   actions.acceptStatus(
     JSON.stringify({
       kind: "window",
@@ -74,6 +89,9 @@ const setup = async (options: TNativeDragAndDropOptions = {}, selected = new Set
         selectionManager: manager,
         root,
         current: () => true,
+      })
+      useInsertionEffect(() => {
+        if (preview) result.dragState.preview = { current: preview }
       })
       const draggable = useNativeDraggableItem({ key: 0, hasDragButton: true }, result.dragState)
       return { ...result, draggable, original: root, binding: nativeDragRootFor(root, actions)! }
@@ -457,10 +475,18 @@ it("routes an original accessibility activation through its target before anothe
   await act(async () => {
     await nativeVirtualDrag.start(binding, 0, nativeDragFormatter("en-US"), "virtual")
   })
+  jest.spyOn(fixture.actions, "activationSession").mockReturnValue({ windowId: "window", epoch: 9 })
+  expect(fixture.actions.window().epoch).toBe(1)
+  expect(
+    dispatchNativeActivationPolicy(child, {
+      nativeEvent: { target: findNodeHandle(child), scopeOwnerId: "owner", windowId: "window", epoch: 8 },
+    } as never),
+  ).toBe(true)
+  expect(onItemDrop).not.toHaveBeenCalled()
   let consumed = false
   await act(async () => {
     consumed = dispatchNativeActivationPolicy(child, {
-      nativeEvent: { target: findNodeHandle(child), scopeOwnerId: "owner", windowId: "window", epoch: 1 },
+      nativeEvent: { target: findNodeHandle(child), scopeOwnerId: "owner", windowId: "window", epoch: 9 },
     } as never)
     await Promise.resolve()
     await Promise.resolve()
@@ -544,4 +570,165 @@ it("retains the source root fallback when a custom point target rejects an exter
   expect(fixture.rendered.result.current.dropState.target).toEqual({ type: "root" })
   await fixture.rendered.unmount()
   fixture.actions.dispose()
+})
+
+it("rotates collection navigation from the nearest original handle, retaining registration-order ties and source cancellation", async () => {
+  const first = await setup({ onItemDrop: () => {} }),
+    second = await setup({ onItemDrop: () => {} }),
+    source = await setup({ getItems: () => [{ "text/plain": "zero" }] })
+  await source.row(0)
+  const handle = view()
+  Object.assign(handle, { getBoundingClientRect: () => ({ x: 10, y: 20, width: 12, height: 12 }) })
+  Object.assign(first.original, { getBoundingClientRect: () => ({ x: 10, y: 50, width: 100, height: 100 }) })
+  Object.assign(second.original, { getBoundingClientRect: () => ({ x: 10, y: 25, width: 100, height: 100 }) })
+  const binding = source.rendered.result.current.binding
+  await act(() => binding.handle(0, handle))
+  source.ready()
+  jest.spyOn(binding, "measure").mockResolvedValue({ x: 10, y: 20, width: 12, height: 12 })
+  await act(async () => nativeVirtualDrag.start(binding, 0, nativeDragFormatter("en-US"), "virtual", "handle"))
+  await act(() => nativeVirtualDrag.cycle(1))
+  expect(nativeVirtualDrag.active()?.root).toBe(second.rendered.result.current.binding)
+  await act(() => nativeVirtualDrag.cycle(1))
+  expect(nativeVirtualDrag.active()?.root).toBe(first.rendered.result.current.binding)
+  await act(() => nativeVirtualDrag.cycle(1))
+  expect(nativeVirtualDrag.active()?.root).toBeNull()
+  await act(() => nativeVirtualDrag.cycle(-1))
+  expect(nativeVirtualDrag.active()?.root).toBe(first.rendered.result.current.binding)
+  Object.assign(first.original, { getBoundingClientRect: () => ({ x: 10, y: 25, width: 100, height: 100 }) })
+  await act(() => nativeVirtualDrag.retire(first.rendered.result.current.binding))
+  await act(() => nativeVirtualDrag.cycle(1))
+  // Equal distances keep the first registered target at the start of the ring.
+  expect(nativeVirtualDrag.active()?.root).toBe(first.rendered.result.current.binding)
+  await act(async () => nativeVirtualDrag.cancel())
+  for (const fixture of [first, second, source]) {
+    await fixture.rendered.unmount()
+    fixture.actions.dispose()
+  }
+})
+
+it("replaces a rejected target, retains independent scope epochs and refuses a foreign or disabled window", async () => {
+  const firstOptions = { onItemDrop: () => {}, isDisabled: false }
+  const first = await setup(firstOptions),
+    second = await setup({ onItemDrop: () => {} }),
+    source = await setup({ getItems: () => [{ "text/plain": "zero" }] })
+  await source.row(0)
+  const binding = source.rendered.result.current.binding
+  jest.spyOn(binding, "measure").mockResolvedValue({ x: 100, y: 200, width: 100, height: 30 })
+  await act(async () => nativeVirtualDrag.start(binding, 0, nativeDragFormatter("en-US"), "virtual"))
+  await act(() => nativeVirtualDrag.cycle(1))
+  expect(nativeVirtualDrag.active()?.root).toBe(first.rendered.result.current.binding)
+  firstOptions.isDisabled = true
+  await first.rendered.rerender(undefined)
+  expect(nativeVirtualDrag.active()?.root).toBe(second.rendered.result.current.binding)
+  const window = second.actions.window()
+  jest.spyOn(second.actions, "window").mockReturnValue({ ...window, epoch: window.epoch + 1 })
+  await act(() => nativeVirtualDrag.reconcile(second.rendered.result.current.binding))
+  expect(nativeVirtualDrag.active()?.root).toBe(second.rendered.result.current.binding)
+  jest.mocked(second.actions.window).mockReturnValue({ ...window, windowId: "foreign-window" })
+  await act(() => nativeVirtualDrag.reconcile(second.rendered.result.current.binding))
+  expect(nativeVirtualDrag.active()?.root).toBeNull()
+  jest.mocked(second.actions.window).mockReturnValue({ ...window, canDrop: false })
+  await act(() => nativeVirtualDrag.cycle(1))
+  expect(nativeVirtualDrag.active()?.root).toBeNull()
+  await act(async () => nativeVirtualDrag.cancel())
+  for (const fixture of [first, second, source]) {
+    await fixture.rendered.unmount()
+    fixture.actions.dispose()
+  }
+})
+
+it.each(["missing", "nonfinite", "negative", "replacement"] as const)(
+  "refuses %s original target geometry without selecting by registration as a fallback",
+  async (kind) => {
+    const target = await setup({ onItemDrop: () => {} }),
+      source = await setup({ getItems: () => [{ "text/plain": "zero" }] })
+    await source.row(0)
+    const binding = source.rendered.result.current.binding
+    jest.spyOn(binding, "measure").mockResolvedValue({ x: 100, y: 200, width: 100, height: 30 })
+    await act(async () => nativeVirtualDrag.start(binding, 0, nativeDragFormatter("en-US"), "virtual"))
+    Object.assign(target.original, {
+      getBoundingClientRect:
+        kind === "missing"
+          ? undefined
+          : () => {
+              if (kind === "replacement") target.rendered.result.current.original.current = view()
+              return { x: kind === "nonfinite" ? NaN : 0, y: 0, width: kind === "negative" ? -1 : 10, height: 10 }
+            },
+    })
+    expect(() => nativeVirtualDrag.cycle(1)).toThrow(/rectangle|changed/)
+    expect(nativeVirtualDrag.active()?.root).toBeNull()
+    await act(async () => nativeVirtualDrag.cancel())
+    for (const fixture of [target, source]) {
+      await fixture.rendered.unmount()
+      fixture.actions.dispose()
+    }
+  },
+)
+
+it("ignores a delayed authored preview from an ended session even when the next drag reuses its native session id", async () => {
+  const callbacks: Parameters<TNativeDragPreviewRenderer>[1][] = [],
+    preview: TNativeDragPreviewRenderer = (_items, callback) => {
+      callbacks.push(callback)
+    }
+  const fixture = await setup({ getItems: () => [{ "text/plain": "zero" }] }, undefined, preview)
+  await fixture.row(0)
+  const binding = fixture.rendered.result.current.binding
+  await act(() => fixture.actions.dispatch(fixture.packet("lift")))
+  const original = view()
+  await act(() => callbacks[0](original, 4, 7))
+  expect(fixture.metadata()).toMatchObject({ previewTarget: findNodeHandle(original), previewX: 4, previewY: 7 })
+  await act(() => fixture.actions.dispatch(fixture.packet("end", { operation: "cancel" })))
+  fixture.ready()
+  await act(() => fixture.actions.dispatch(fixture.packet("lift")))
+  const current = view()
+  await act(() => callbacks[1](current, 8, 9))
+  await act(() => callbacks[0](original, 100, 100))
+  await act(() => callbacks[0](null))
+  expect(fixture.metadata()).toMatchObject({ previewTarget: findNodeHandle(current), previewX: 8, previewY: 9 })
+  await act(() => binding.retire())
+  await act(() => callbacks[1](current, 1, 1))
+  binding.publish()
+  expect(fixture.metadata().previewTarget).toBe(0)
+  await fixture.rendered.unmount()
+  fixture.actions.dispose()
+})
+
+it("selects the closest valid original endpoint when a descendant receives owned focus", async () => {
+  const target = await setup({ onItemDrop: () => {} }),
+    source = await setup({ getItems: () => [{ "text/plain": "zero" }] })
+  await source.row(0)
+  const binding = source.rendered.result.current.binding,
+    parent = view(),
+    nested = view(),
+    child = view(),
+    outerOwner = {},
+    innerOwner = {}
+  Object.assign(parent, { childNodes: [nested] })
+  Object.assign(nested, { childNodes: [child] })
+  nativeVirtualDrag.endpoint(outerOwner, {
+    root: target.rendered.result.current.binding,
+    target: { type: "item", key: 0, dropPosition: "on" },
+    view: () => parent,
+    activate: () => null,
+  })
+  nativeVirtualDrag.endpoint(innerOwner, {
+    root: target.rendered.result.current.binding,
+    target: { type: "item", key: "", dropPosition: "on" },
+    view: () => nested,
+    activate: () => null,
+  })
+  const unregister = registerNativeFocusTarget(child, { focus: () => {}, blur: () => {}, canFocus: () => true })
+  jest.spyOn(binding, "measure").mockResolvedValue({ x: 100, y: 200, width: 100, height: 30 })
+  await act(async () => nativeVirtualDrag.start(binding, 0, nativeDragFormatter("en-US"), "virtual"))
+  await act(() => observeNativeFocus(child, true))
+  expect(nativeVirtualDrag.active()?.root).toBe(target.rendered.result.current.binding)
+  expect(nativeVirtualDrag.active()?.target).toEqual({ type: "item", key: "", dropPosition: "on" })
+  await act(async () => nativeVirtualDrag.cancel())
+  unregister()
+  nativeVirtualDrag.endpoint(innerOwner, null)
+  nativeVirtualDrag.endpoint(outerOwner, null)
+  for (const fixture of [target, source]) {
+    await fixture.rendered.unmount()
+    fixture.actions.dispose()
+  }
 })

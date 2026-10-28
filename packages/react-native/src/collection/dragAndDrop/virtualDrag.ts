@@ -99,14 +99,60 @@ const validNext = (
       )
     : null
 const eligible = (current: TSession) =>
-  [...roots].filter(
-    (root) =>
+  [...roots].filter((root) => {
+    const window = root.scope?.window(),
+      sourceWindow = current.source.scope?.window()
+    return (
       root.current() &&
       !!root.target &&
       !root.target.isDisabled &&
-      root.scope?.window().windowId === current.source.scope?.window().windowId &&
-      !!validNext(current, root, null),
-  )
+      window?.available === true &&
+      window?.canDrop === true &&
+      window.windowId === sourceWindow?.windowId &&
+      !!validNext(current, root, null)
+    )
+  })
+// RN's original ReadOnlyElement reads transformed native geometry synchronously.
+// Keep the pinned nearest-origin rotation, including registration-order ties.
+const orderedRoots = (current: TSession) => {
+  const valid = eligible(current)
+  if (!valid.length) return valid
+  const source = current.sourceView
+  const bounds = (view: View) => {
+    if (typeof view.getBoundingClientRect !== "function")
+      throw new Error("Native virtual drag: original target rectangle unavailable")
+    const rect = view.getBoundingClientRect()
+    if (![rect.x, rect.y, rect.width, rect.height].every(Number.isFinite) || rect.width < 0 || rect.height < 0)
+      throw new Error("Native virtual drag: invalid original target rectangle")
+    return rect
+  }
+  const origin = bounds(source)
+  let nearest = 0,
+    distance = Infinity
+  for (let index = 0; index < valid.length; index++) {
+    const root = valid[index],
+      view = root.root.current!
+    const window = root.scope!.window()
+    const rect = bounds(view)
+    const after = root.scope!.window()
+    if (
+      !root.current() ||
+      root.root.current !== view ||
+      !originalSource(current) ||
+      session !== current ||
+      after.windowId !== window.windowId ||
+      after.epoch !== window.epoch ||
+      !after.canDrop
+    )
+      throw new Error("Native virtual drag: target changed during geometry read")
+    const squared = (rect.x - origin.x) ** 2 + (rect.y - origin.y) ** 2
+    if (squared < distance) {
+      distance = squared
+      nearest = index
+    }
+  }
+  return [...valid.slice(nearest), ...valid.slice(0, nearest)]
+}
 const selectedEndpoint = (current: TSession) =>
   [...endpoints.values()].find(
     (entry) => entry.root === current.root && equal(entry.target, current.target) && entry.view(),
@@ -167,12 +213,20 @@ const select = (current: TSession, root: NativeCollectionDragBinding | null, tar
 const observeFocus = (current: TSession) => {
   if (session !== current || restoring || current.pending || !originalSource(current)) return
   const view = getNativeFocusedTarget()
-  if (view === current.sourceView || view === selectedEndpoint(current)?.activate()) return
-  const endpoint = [...endpoints.values()].find(
-    (entry) =>
-      entry.view() === view &&
-      entry.root.operation(entry.target, current.types, current.operations, current.source) !== "cancel",
-  )
+  const activation = selectedEndpoint(current)?.activate()
+  if (view === current.sourceView || (view && activation && containsNativeView(activation, view))) return
+  const valid = eligible(current)
+  const endpoint = [...endpoints.values()].reduce<TEndpoint | null>((selected, entry) => {
+    const target = entry.view()
+    return view &&
+      target &&
+      valid.includes(entry.root) &&
+      containsNativeView(target, view) &&
+      entry.root.operation(entry.target, current.types, current.operations, current.source) !== "cancel" &&
+      (!selected || containsNativeView(selected.view()!, target))
+      ? entry
+      : selected
+  }, null)
   if (endpoint) select(current, endpoint.root, endpoint.target)
   else focus(current)
 }
@@ -237,7 +291,26 @@ export const nativeVirtualDrag = {
       session.target = null
       session.generation++
       changed()
+      focus(session)
     }
+  },
+  reconcile: (root: NativeCollectionDragBinding) => {
+    const current = session
+    if (!current || current.pending) return
+    if (!originalSource(current)) {
+      nativeVirtualDrag.retire(current.source)
+      return
+    }
+    if (current.root !== root) return
+    if (!eligible(current).includes(root)) {
+      const replacement = orderedRoots(current)[0]
+      select(current, replacement ?? null, replacement ? initial(current, replacement) : null)
+    } else if (
+      current.target &&
+      root.operation(current.target, current.types, current.operations, current.source) === "cancel"
+    )
+      select(current, root, initial(current, root))
+    else focus(current)
   },
   register: (root: NativeCollectionDragBinding) => {
     roots.add(root)
@@ -312,11 +385,14 @@ export const nativeVirtualDrag = {
         return false
       if (event.nativeEvent.target !== findNodeHandle(view)) return true
       const actor = [current.source, ...roots].find((root) => root.scope?.ownerId === event.nativeEvent.scopeOwnerId)
-      if (actor && actor.scope?.window().epoch !== event.nativeEvent.epoch) return true
+      const keyboard = actor?.scope?.activationSession()
+      if (actor && (keyboard?.windowId !== event.nativeEvent.windowId || keyboard.epoch !== event.nativeEvent.epoch))
+        return true
       if (current.pending) return true
+      const valid = eligible(current)
       const allowed = [...endpoints.values()].filter(
         (entry) =>
-          entry.root.current() &&
+          valid.includes(entry.root) &&
           entry.root.operation(entry.target, current.types, current.operations, current.source) !== "cancel",
       )
       const activation = allowed.find((entry) => {
@@ -344,16 +420,25 @@ export const nativeVirtualDrag = {
     nativeDragRuntime.requestAnimationFrame(() => {
       if (session !== current) return
       announce(formatter.format(modality === "keyboard" ? "dragStartedKeyboard" : "dragStartedVirtual"))
-      if (modality === "keyboard") nativeVirtualDrag.cycle(1)
+      if (modality === "keyboard") {
+        try {
+          nativeVirtualDrag.cycle(1)
+        } catch (error) {
+          failure(current, error)
+        }
+      }
     })
   },
   cycle: (direction: 1 | -1) => {
     const current = session
     if (!current || current.pending) return
-    const valid = eligible(current),
-      sourceIndex = valid.indexOf(current.source)
-    const ordered = sourceIndex >= 0 ? [...valid.slice(sourceIndex), ...valid.slice(0, sourceIndex)] : valid
-    const index = current.root ? ordered.indexOf(current.root) + direction : direction > 0 ? 0 : ordered.length - 1
+    if (!originalSource(current)) {
+      nativeVirtualDrag.retire(current.source)
+      return
+    }
+    const ordered = orderedRoots(current)
+    const previous = current.root ? ordered.indexOf(current.root) : -1
+    const index = previous >= 0 ? previous + direction : direction > 0 ? 0 : ordered.length - 1
     if (index < 0 || index >= ordered.length) {
       select(current, null, null)
       return
@@ -366,7 +451,7 @@ export const nativeVirtualDrag = {
     if (
       !current ||
       current.pending ||
-      !root.current() ||
+      !eligible(current).includes(root) ||
       root.operation(target, current.types, current.operations, current.source) === "cancel"
     )
       return false

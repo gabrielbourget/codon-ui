@@ -168,6 +168,7 @@ export const createNativeDragActions = (scope: TNativeKeyScope) => {
       }
     },
     ownerId: scope.ownerId,
+    activationSession: scope.acknowledgedSession,
     snapshot: () => revision,
     flush,
     window: () => ({ ...window }),

@@ -1,5 +1,5 @@
 {
-  "status": "Private collection drag/drop state, transfer ownership, action controller and target delegate construction; native binding and complete Table/Sort integration remain required",
+  "status": "Private collection drag/drop state, retained transfer, original native interactions, hooks and Table/Sort integration; full native focus/AT, transport, family and acceptance gates remain required",
   "canonicalReactManifest": "ddc9f066f67af4742e05e04bd870726141c44129",
   "approval": "roadmap3.5.40.26; Gabriel call_d43520ac270546be8c68a90ad60d8323 approved2026-10-27",
   "license": "../LICENSE.react-aria.md",
@@ -132,7 +132,8 @@
     "Private retirement clears owned refs/state without invoking stale end/exit handlers.",
     "Physical lift preserves onDragStart/getItems/representation-write/allowed-operation order. Preview items retain original JS identity; virtual mode does not eagerly read representation getters.",
     "Native list targeting consumes original root/item geometry cohorts and retains typed keys; it returns no item target for an unmaterialized native row.",
-    "OS data drivers, native action handoff, custom preview/keyboard/AT adapters, complete hook factory and Table/Sort bindings remain unimplemented in this core increment; no public export follows."
+    "Table/Sort receive the complete private hook shape, original view/preview refs, native pointer owners, virtual targets and locale source. Native focus/AT containment, proposed transport, whole-family and acceptance gates remain required; no public export follows.",
+    "Virtual collection order uses the pinned nearest-origin rotation and registration-order ties over original RN ReadOnlyElement transformed bounds, with current window/epoch/canDrop admission. Late preview callbacks are bound to the exact active source session and renderer; retirement clears the original preview."
   ],
   "localeSources": [
     {
