@@ -40,20 +40,43 @@ it("clears removed owned projection/pop properties while preserving the original
   expect(screen.getByTestId("projection-root").props.nativeMotionDrawingOwner).toBe(true)
   const radii = JSON.stringify({ topLeft: { x: 20, y: 10 }, topRight: null, bottomLeft: null, bottomRight: null })
   await act(() =>
-    write({ style: { position: "absolute", left: 20, top: 10, width: 100, height: 50 }, visible: false, radii }),
+    write({
+      style: {
+        position: "absolute",
+        left: 20,
+        top: 10,
+        width: 100,
+        height: 50,
+        boxShadow: [{ offsetX: 2, offsetY: 4, color: "navy" }],
+      },
+      visible: false,
+      radii,
+    }),
   )
   expect(setter).toHaveBeenLastCalledWith(
     expect.objectContaining({
       nativeMotionVisible: false,
       nativeMotionProjectionRadii: radii,
-      style: expect.objectContaining({ position: "absolute", left: 20 }),
+      style: expect.objectContaining({
+        position: "absolute",
+        left: 20,
+        boxShadow: [{ offsetX: 2, offsetY: 4, color: "navy" }],
+      }),
     }),
   )
   await act(() => write({ style: {}, visible: true, radii: "" }))
   expect(setter).toHaveBeenLastCalledWith({
     nativeMotionVisible: true,
     nativeMotionProjectionRadii: "",
-    style: expect.objectContaining({ padding: 8, position: null, left: null, top: null, width: null, height: null }),
+    style: expect.objectContaining({
+      padding: 8,
+      position: null,
+      left: null,
+      top: null,
+      width: null,
+      height: null,
+      boxShadow: null,
+    }),
   })
   expect(ref.current).toBe(root)
   expect(screen.getByTestId("editor")).toBe(editor)

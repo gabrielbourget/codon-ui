@@ -262,6 +262,7 @@ export const TableHeader = createNativeCollectionBranch<object, TNativeTableHead
     const options = useContext(NativeTableOptionsContext)
     return (
       <>
+        {options.draggingEnabled && <TableColumn id="__drag" columnID="__drag" style={{ width: 30, padding: 0 }} />}
         {options.behavior === "toggle" && (
           <TableColumn
             id="__selection"

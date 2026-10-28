@@ -11,6 +11,7 @@ jest.mock("../specs/CUIFocusViewNativeComponent", () => ({
   __esModule: true,
   default: jest.requireActual("react-native").View,
   Commands: {
+    queryMotionGeometry: jest.fn(),
     sampleMotionColors: jest.fn(),
     requestKeyboardFocus: jest.fn(),
     requestKeyboardBlur: jest.fn(),
@@ -22,7 +23,65 @@ beforeEach(() => {
   jest.clearAllMocks()
   jest.spyOn(jest.requireActual("react-native"), "findNodeHandle").mockReturnValue(71)
 })
+
+it("keeps a pending color batch and original caller ref while geometry observation changes", async () => {
+  const root = createRef<View>(),
+    cleanup = jest.fn(),
+    caller = jest.fn((target: View | null) => {
+      root.current = target
+      return cleanup
+    })
+  const node = (geometry: boolean) => (
+    <NativeFocusHost
+      ref={caller}
+      testID="host"
+      nativeMotionColorObservation
+      nativeMotionGeometryObservation={geometry}
+    />
+  )
+  const view = await render(node(false))
+  const target = root.current!
+  const pending = sampleNativeMotionColors(target, [PlatformColor("labelColor")])
+  const outcome = pending.then(
+    (value) => ({ value }),
+    (error: unknown) => ({ error }),
+  )
+  const command = jest.mocked(Commands.sampleMotionColors)
+  await view.rerender(node(true))
+  await view.rerender(node(false))
+  expect(caller).toHaveBeenCalledTimes(1)
+  expect(cleanup).not.toHaveBeenCalled()
+  expect(root.current).toBe(target)
+  const host = screen.getByTestId("host")
+  await act(() =>
+    host.props.onNativeMotionColors({
+      nativeEvent: report(host.props.ownerId, { requestId: command.mock.calls[0][2] }),
+    }),
+  )
+  await act(() =>
+    host.props.onNativeMotionColors({
+      nativeEvent: report(host.props.ownerId, {
+        kind: "sample",
+        requestId: command.mock.calls[1][2],
+        colors: "[[1,0,0,1]]",
+      }),
+    }),
+  )
+  expect(await outcome).toMatchObject({ value: { colors: [{ red: 1 }] } })
+})
 afterEach(() => jest.restoreAllMocks())
+it("retires the color observer when it is disabled while retaining the original native host", async () => {
+  const root = createRef<View>()
+  const node = (enabled: boolean) => <NativeFocusHost ref={root} testID="host" nativeMotionColorObservation={enabled} />
+  const view = await render(node(true))
+  const target = root.current!
+  const pending = sampleNativeMotionColors(target, [PlatformColor("labelColor")])
+  const failure = expect(pending).rejects.toThrow(/retired/)
+  await view.rerender(node(false))
+  await failure
+  expect(root.current).toBe(target)
+  await expect(sampleNativeMotionColors(target, ["red"])).rejects.toThrow(/no sampler/)
+})
 const report = (ownerId: string, extra: Partial<NativeMotionColors> = {}): NativeMotionColors => ({
   ownerId,
   target: 71,

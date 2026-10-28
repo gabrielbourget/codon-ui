@@ -2,6 +2,7 @@ import { createRef } from "react"
 import { View } from "react-native"
 
 import {
+  DefaultNativeBackdropAdapter,
   Modal,
   NativeBackdropHost,
   NativeOverlayProvider,
@@ -9,6 +10,8 @@ import {
   type TNativeBackdropEffectProps,
   type TNativeBackdropLease,
 } from "../src"
+
+export const ReferenceBackdropConsumer = () => <BackdropConsumer adapter={DefaultNativeBackdropAdapter} />
 
 // A renderer is supplied by the consumer; this fixture supplies no blur implementation.
 export const BackdropConsumer = ({ adapter }: { adapter: TNativeBackdropAdapter }) => (

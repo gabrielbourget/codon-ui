@@ -101,15 +101,17 @@ final class CUIMotionFontSnapshot {
     private final String family;
     private final int style;
     private final int weight;
+    private final double scalarWeight;
     private final String features;
-    OwnedStyle(ReactFontManager manager, AssetManager assets, String family, int style, int weight, String features) {
+    OwnedStyle(ReactFontManager manager, AssetManager assets, String family, int style, int weight, double scalarWeight, String features) {
       this.manager = manager; this.assets = assets; this.family = family;
-      this.style = style; this.weight = weight; this.features = features;
+      this.style = style; this.weight = weight; this.scalarWeight = scalarWeight; this.features = features;
     }
     private void apply(TextPaint paint) {
       paint.setFontFeatureSettings(features);
       // Preserve the original layout engine's lookup order, including cache misses across spans.
       paint.setTypeface(manager.getTypeface(family, style, weight, assets));
+      com.facebook.react.views.text.ReactFontWeightScalar.apply(paint, scalarWeight);
       paint.setSubpixelText(true);
       paint.setLinearText(true);
     }
@@ -117,15 +119,28 @@ final class CUIMotionFontSnapshot {
     @Override public void updateDrawState(TextPaint paint) { apply(paint); }
   }
 
+  static final class Snapshot {
+    final ReactFontManager manager;
+    final Map<CustomStyleSpan, MetricAffectingSpan> replacements;
+    Snapshot(ReactFontManager manager, Map<CustomStyleSpan, MetricAffectingSpan> replacements) {
+      this.manager = manager; this.replacements = replacements;
+    }
+  }
+
   static Map<CustomStyleSpan, MetricAffectingSpan> capture(CustomStyleSpan[] spans) {
+    return capture(spans, null).replacements;
+  }
+
+  static Snapshot capture(CustomStyleSpan[] spans, String baseFamily) {
     UiThreadUtil.assertOnUiThread();
-    boolean named = false;
+    boolean named = baseFamily != null;
     for (CustomStyleSpan span : spans) if (span.getFontFamily() != null) { named = true; break; }
-    if (!named) return Collections.emptyMap();
+    if (!named) return new Snapshot(new ReactFontManager(), Collections.emptyMap());
     Map<String, Family> captured = new LinkedHashMap<>();
     ReactFontManager original = ReactFontManager.getInstance();
     Map<?, ?> fonts = (Map<?, ?>)read(PinnedFonts.fonts, original);
     Map<?, ?> custom = (Map<?, ?>)read(PinnedFonts.custom, original);
+    if (baseFamily != null) captured.put(baseFamily, captureFamily(baseFamily, fonts, custom));
     for (CustomStyleSpan span : spans) {
       String name = span.getFontFamily();
       if (name != null && !captured.containsKey(name)) captured.put(name, captureFamily(name, fonts, custom));
@@ -150,8 +165,8 @@ final class CUIMotionFontSnapshot {
       if (assets == null) throw new IllegalStateException("Native motion: original font assets required");
       int style = (Integer)read(PinnedFonts.style, span);
       int weight = (Integer)read(PinnedFonts.weight, span);
-      replacements.put(span, new OwnedStyle(owned, assets, name, style, weight, span.getFontFeatureSettings()));
+      replacements.put(span, new OwnedStyle(owned, assets, name, style, weight, span.getWeightScalar(), span.getFontFeatureSettings()));
     }
-    return replacements;
+    return new Snapshot(owned, Collections.unmodifiableMap(replacements));
   }
 }

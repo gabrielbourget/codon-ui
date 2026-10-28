@@ -1,0 +1,298 @@
+{
+  "status": "Private collection drag/drop state, retained transfer, original native interactions, hooks and Table/Sort integration; full native focus/AT, transport, family and acceptance gates remain required",
+  "canonicalReactManifest": "ddc9f066f67af4742e05e04bd870726141c44129",
+  "approval": "roadmap3.5.40.26; Gabriel call_d43520ac270546be8c68a90ad60d8323 approved2026-10-27",
+  "license": "../LICENSE.react-aria.md",
+  "sources": [
+    {
+      "package": "react-stately",
+      "version": "3.46.0",
+      "distributionPath": "dist/private/dnd/useDraggableCollectionState.js.map",
+      "sourceMapSHA256": "1f3a4ea01c6b738518d99fc20940b8e3bc5202fcff197c12475df1a97ae12a41",
+      "sourcePath": "packages/react-stately/src/dnd/useDraggableCollectionState.ts",
+      "sourceContentSHA256": "c6edc7a840e2c39de6dfd72e507c8c067607bf1ed0d38a5f3175388cc57e54db"
+    },
+    {
+      "package": "react-stately",
+      "version": "3.46.0",
+      "distributionPath": "dist/private/dnd/useDroppableCollectionState.js.map",
+      "sourceMapSHA256": "b2d677a05f1039e74fbdfd5ae82f6a7aa2bb55549b1413e6ac58190a3e9f790e",
+      "sourcePath": "packages/react-stately/src/dnd/useDroppableCollectionState.ts",
+      "sourceContentSHA256": "9ee19ce2edff0b7651df65c760084116ccd6ca8d5bd82a0bbf4131ea71856879"
+    },
+    {
+      "package": "react-aria-components",
+      "version": "1.17.0",
+      "distributionPath": "dist/private/useDragAndDrop.js.map",
+      "sourceMapSHA256": "c780c6114dbed6de5a57979b881d700f596ca5029ec7d93257d86012bbbbce0e",
+      "sourcePath": "packages/react-aria-components/src/useDragAndDrop.tsx",
+      "sourceContentSHA256": "a7488b6276d80013f4e0c24fbcb00f87fe713a8c92e63f8bef3b5a2d66979f84"
+    },
+    {
+      "package": "react-aria-components",
+      "version": "1.17.0",
+      "distributionPath": "dist/private/DragAndDrop.js.map",
+      "sourceMapSHA256": "48865a2b9e5f6ca138a841717cd21cdda1a369043eae1c0e90ade0413a97b414",
+      "sourcePath": "packages/react-aria-components/src/DragAndDrop.tsx",
+      "sourceContentSHA256": "d949370d5e98813ee2f8cada741bde17d470809c565c2ff44c3a9c656ee2c691"
+    },
+    {
+      "package": "react-aria",
+      "version": "3.48.0",
+      "distributionPath": "dist/private/dnd/useDroppableCollection.js.map",
+      "sourceMapSHA256": "e23d8c2148b68c91d6f461f9e665d28efde7a8f21b524a3c6fb38027fdec83a6",
+      "sourcePath": "packages/react-aria/src/dnd/useDroppableCollection.ts",
+      "sourceContentSHA256": "b8a9002394ae30e45dec95de774f82a2f79c3369978c65c42fd219e4efc41c87"
+    },
+    {
+      "package": "react-aria",
+      "version": "3.48.0",
+      "distributionPath": "dist/private/dnd/ListDropTargetDelegate.js.map",
+      "sourceMapSHA256": "22634f8aed471d31f3ada528c3184b134c4fc7d2a50ae30836e36cf4a1755577",
+      "sourcePath": "packages/react-aria/src/dnd/ListDropTargetDelegate.ts",
+      "sourceContentSHA256": "ee246602dd9da4363c2c492ea488ba09e44262d9adcb283969519eb64360a0ee"
+    },
+    {
+      "package": "react-aria",
+      "version": "3.48.0",
+      "distributionPath": "dist/private/dnd/useDrag.js.map",
+      "sourceMapSHA256": "a26a17dd872bf6fc4ac4720b0cc7525946121046c6ede291faa2b1d07016a896",
+      "sourcePath": "packages/react-aria/src/dnd/useDrag.ts",
+      "sourceContentSHA256": "295697348308fcbf4ebf91b7d802e8a3cabefb1c2019ce96a200da6a382e2ca8"
+    },
+    {
+      "package": "react-aria",
+      "version": "3.48.0",
+      "distributionPath": "dist/private/dnd/useDraggableCollection.js.map",
+      "sourceMapSHA256": "4ee343da7f18777a19a2ab1ef1ab66efbf592cc7381e77b8412d6bb1f965c692",
+      "sourcePath": "packages/react-aria/src/dnd/useDraggableCollection.ts",
+      "sourceContentSHA256": "ca5fbf2d625f3003857a03296221a68e72c9652a65dca5295a4a6f3417f8abbf"
+    },
+    {
+      "package": "react-aria",
+      "version": "3.48.0",
+      "distributionPath": "dist/private/dnd/useDraggableItem.js.map",
+      "sourceMapSHA256": "5ecde061aa1f64f95f45434c9fceed729a7104d46e5149e8351501a7c1790b6d",
+      "sourcePath": "packages/react-aria/src/dnd/useDraggableItem.ts",
+      "sourceContentSHA256": "d400659dc73dbe6757a82110328d1532749c10109409511dbbcbc2151c58f326"
+    },
+    {
+      "package": "react-aria",
+      "version": "3.48.0",
+      "distributionPath": "dist/private/dnd/useDroppableItem.js.map",
+      "sourceMapSHA256": "6e470a179e98095a357aa3e7f367be945f27c65f1937cc2792ed81f4dfef59d4",
+      "sourcePath": "packages/react-aria/src/dnd/useDroppableItem.ts",
+      "sourceContentSHA256": "26836473fe8a2382bceeafe3544336756b798c7dc4259d7e12b0dba6de48a7ae"
+    },
+    {
+      "package": "react-aria",
+      "version": "3.48.0",
+      "distributionPath": "dist/private/dnd/useDropIndicator.js.map",
+      "sourceMapSHA256": "cc69447c716cbee2afa39fb7489ebc4d9653ed81362d28c078e98dd9d9064908",
+      "sourcePath": "packages/react-aria/src/dnd/useDropIndicator.ts",
+      "sourceContentSHA256": "e68d62f2b846d7f56a913d1ebfd4377142b9381432337e4fd57167ec42c023eb"
+    },
+    {
+      "package": "react-aria",
+      "version": "3.48.0",
+      "distributionPath": "dist/private/dnd/DropTargetKeyboardNavigation.js.map",
+      "sourceMapSHA256": "f7c9dbff23bba1743d9c21c037d9517c01ccbc018597c8cf2391041e13e4713e",
+      "sourcePath": "packages/react-aria/src/dnd/DropTargetKeyboardNavigation.ts",
+      "sourceContentSHA256": "967d06d22b24798b2b600ae16248e00e9fa4936f9ad62a73c6871bc4b2b8a6a3"
+    },
+    {
+      "package": "react-aria",
+      "version": "3.48.0",
+      "distributionPath": "dist/private/dnd/DragManager.js.map",
+      "sourceMapSHA256": "cace24b77852d94d1df59653b98d1c56e81d7cc5c923b658eb14753e2d226e41",
+      "sourcePath": "packages/react-aria/src/dnd/DragManager.ts",
+      "sourceContentSHA256": "41c424e5ab3d6f22b6458dffa1d79cd65e7a44f0973bd1d20045ea16eece5be3"
+    },
+    {
+      "package": "react-aria",
+      "version": "3.48.0",
+      "distributionPath": "dist/private/dnd/useDrop.js.map",
+      "sourceMapSHA256": "3e1c5a1545335ec5ee88f766d768f26a316e0f43d148e041cd511629bc7134bc",
+      "sourcePath": "packages/react-aria/src/dnd/useDrop.ts",
+      "sourceContentSHA256": "9997d7a1bd266fff6af00bd3a8ef0204e7fb94ab71a2afa02b8cc8b2ff7e6ae9"
+    },
+    {
+      "package": "react-aria",
+      "version": "3.48.0",
+      "distributionPath": "dist/private/dnd/useAutoScroll.js.map",
+      "sourceMapSHA256": "2d825e9796b560df62b7b93b6e0296537a3a2164e2263dca7237bdad2051860f",
+      "sourcePath": "packages/react-aria/src/dnd/useAutoScroll.ts",
+      "sourceContentSHA256": "de6ecec8a2e7a6077893b28a72cb760d8ad23d2c974374591c93c930021dad06"
+    },
+    {
+      "package": "react-aria",
+      "version": "3.48.0",
+      "distributionPath": "dist/private/selection/ListKeyboardDelegate.js.map",
+      "sourceMapSHA256": "6b0189efa692acb61a8bb66e7293a32841c4d7182b5d4f1a7bb75ea0e7cfc88b",
+      "sourcePath": "packages/react-aria/src/selection/ListKeyboardDelegate.ts",
+      "sourceContentSHA256": "a399d1a4b6df3313444d45765b2c6300c4c4ef1554de15f45370773aa8c19fba"
+    }
+  ],
+  "adaptations": [
+    "Existing native collections, selection manager, View refs, coordinates and owned transfer resources replace DOM types; no react-aria runtime dependency.",
+    "Draggable/droppable state algorithms retain source key selection, ancestor filtering, drag callbacks and drop target/operation behavior.",
+    "Private source only; native action handoff, OS transfer, Table/Sort integration and all source/consumer/product/native gates remain required.",
+    "Private retirement clears owned refs/state without invoking stale end/exit handlers.",
+    "Physical lift preserves onDragStart/getItems/representation-write/allowed-operation order. Preview items retain original JS identity; virtual mode does not eagerly read representation getters.",
+    "Native list targeting consumes original root/item geometry cohorts and retains typed keys; it returns no item target for an unmaterialized native row.",
+    "Table/Sort receive the complete private hook shape, original view/preview refs, native pointer owners, virtual targets and locale source. Native focus/AT containment, proposed transport, whole-family and acceptance gates remain required; no public export follows.",
+    "Virtual collection order uses the pinned nearest-origin rotation and registration-order ties over original RN ReadOnlyElement transformed bounds, with current window/epoch/canDrop admission. Late preview callbacks are bound to the exact active source session and renderer; retirement clears the original preview."
+  ],
+  "localeSources": [
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/ar-AE.js",
+      "sha256": "51a5d59a377748b572e0c1e552a2ff0af7bc1bd8fe885f5e08fcd28efe1aad0c"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/bg-BG.js",
+      "sha256": "b5421d2818b312a5fbaea3c3760f5a00d1d8f4bf1df1a3ca05593962d3cce193"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/cs-CZ.js",
+      "sha256": "7a03b91fb6d12986d0b95303abd9b217f82844418c3ebb64ceb759e964fc90a1"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/da-DK.js",
+      "sha256": "d51c77484a443efa258063693b81e3786c7d56f39c3b426a96c7c704b2088f56"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/de-DE.js",
+      "sha256": "a69bca3e819cc5ae03ab5541eae5eb02a7b2c51d8ea11cd9d22ef3e7023a3b1a"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/el-GR.js",
+      "sha256": "08afeb78de736fa60251b03f2b3daf8328ffe3c5a4927f2e0a4abed9211d9d55"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/en-US.js",
+      "sha256": "133e6328bc570a4311945578ecffd7554a9c57ba0d0dd96177225f35b92f3892"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/es-ES.js",
+      "sha256": "8fc1d22b1f1df45c7b973a4536057d5c53bae8061b7b85b93f3555239038ae85"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/et-EE.js",
+      "sha256": "8eb3edf1a995ea8bb2be9119d2cfe3f321dd9631849434074fae590ffd3a94bd"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/fi-FI.js",
+      "sha256": "c28487f644c0c173fb1a11a17d76cb65904a88ff46a3011266c9a4eab9ee9c5d"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/fr-FR.js",
+      "sha256": "1058f09d6b215df2f22e72cb226fb766ce3e2ff1eece7dfa07361ae448876492"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/he-IL.js",
+      "sha256": "fcf0ff0092b8398b39d21eabe0faa2d6c9890f117cfaaa5d4e6825711f602e8d"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/hr-HR.js",
+      "sha256": "1d690f63f658d93cc2547b664c346fd6d4e70478c3b0e588acf48f6322cae9df"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/hu-HU.js",
+      "sha256": "0ccf00154846ddda88f3616cb90b313041e54dab918e09a4aeb6fc56f8452269"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/it-IT.js",
+      "sha256": "ce4cf4ebe568cf31d53b229c015d55479c1ea1f7a9244529241e66b0b5b92e5e"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/ja-JP.js",
+      "sha256": "30b92e0bff8f1a5d1682beb86dd8131c0ddbc6337bd571c5b398599fa8bc8f63"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/ko-KR.js",
+      "sha256": "6cf29ccb23a8bd837990ca6de12638c31596a66514a884774b3cc69e1fd9a044"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/lt-LT.js",
+      "sha256": "152adccad0e0db1543173acc16016aa6e58fa31c96e53e724f13ab9c6770e6ae"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/lv-LV.js",
+      "sha256": "eef7d38a5dd00c11e38704e43ee651ad190af3b44587af7fe7aaae8b6587a8a1"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/nb-NO.js",
+      "sha256": "848cc35890cef4fc1e29c92f7b6ca707f8bc2fe7cf94ac1c100e17dfb5b2a672"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/nl-NL.js",
+      "sha256": "00d8ab5b2cb09df751e9f0f4947f6cfc593a3624a8ed146702df7fe05dc1b5aa"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/pl-PL.js",
+      "sha256": "c30d351ec0ef1cce37416fd2a3e4e341561c2f72aa1ba4143e42291f39e87272"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/pt-BR.js",
+      "sha256": "c6f84d545703d514f2d922409ca0df00c936caf32a16cff09df97bedc4ac81fc"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/pt-PT.js",
+      "sha256": "1c11bbd9e4b9b967746a42b0a3d70211be1e4d4397e4aa1860878783b6d9e473"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/ro-RO.js",
+      "sha256": "b6228ab19edb2dad66be89eace6e18bc573c9a0ed06fd02cffdbef7f9b068597"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/ru-RU.js",
+      "sha256": "a333bbb1bf01f5b2d8e752986b8f453d9e853afdea9cfd10caef98733c946279"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/sk-SK.js",
+      "sha256": "0a86a90a85e4add5a39c9c8cde508b008dd1033a06bc3835a7e42beb1c450954"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/sl-SI.js",
+      "sha256": "5415139770246b35a6410fe4c25de8f69ac234ca6d93a1c0b4f24aace658998d"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/sr-SP.js",
+      "sha256": "b47b9e50312ff80f851bb21dd6b7bb8adb0752f50e785c02c41ecfdea8733d47"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/sv-SE.js",
+      "sha256": "f610cd67142b5b9b962667d166222c6c4ca311054120b30f2db977218d91861a"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/tr-TR.js",
+      "sha256": "7748a395448887c3294237831cf9be91cda86af23e98d3c7543e105a40bc0d5f"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/uk-UA.js",
+      "sha256": "a7a0618090389d410b7517a93a3c95b6eff3bda7c250c1fa7149a3401fc82264"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/zh-CN.js",
+      "sha256": "2468855337f9d00af1f198cb55666cf1db396538c559a8ff92161f31e28e1c47"
+    },
+    {
+      "path": "packages/react/node_modules/react-aria/dist/private/intl/dnd/zh-TW.js",
+      "sha256": "c8c8dc615ebaab77f5c6ee73cbc77e61a21336fd5fb1baeadbb6895596674a70"
+    }
+  ],
+  "portableFormatterSources": [
+    {
+      "package": "@internationalized/string",
+      "version": "3.2.8",
+      "sourcePath": "src/LocalizedStringDictionary.ts",
+      "sourceContentSHA256": "41ee060bc5586ede97d086379a2604d234bc3e3f2fde61697b8919b041b1071b"
+    },
+    {
+      "package": "@internationalized/string",
+      "version": "3.2.8",
+      "sourcePath": "src/LocalizedStringFormatter.ts",
+      "sourceContentSHA256": "e117625bd8420e1baa636b57b0bc5b785b563c374885887d14532854add83c8c"
+    }
+  ]
+}

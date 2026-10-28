@@ -1,6 +1,9 @@
 #include "MotionIntrinsicsJNI.h"
 
 #include <react/common/mapbuffer/JReadableMapBuffer.h>
+#include <react/fabric/JFabricUIManager.h>
+#include <react/featureflags/ReactNativeFeatureFlags.h>
+#include <react/renderer/components/text/ParagraphShadowNode.h>
 #include <react/jni/ReadableNativeMap.h>
 #include <react/renderer/attributedstring/conversions.h>
 #include <react/renderer/components/androidtextinput/AndroidTextInputShadowNode.h>
@@ -24,31 +27,55 @@ struct JContext : jni::JavaClass<JContext> {
 struct TServices {
   jni::global_ref<JIntrinsics::javaobject> service;
   TNativeFabricReadGuard check;
-  TServices(jni::alias_ref<jobject> context, TNativeFabricReadGuard guard)
+  TServices(jni::alias_ref<jobject> context, jni::alias_ref<jobject> manager, TNativeFabricReadGuard guard)
       : check(std::move(guard)) {
-    if (!context || !check) throw std::invalid_argument("Native motion: actual guarded Android context required");
+    if (!context || !manager || !check) throw std::invalid_argument("Native motion: actual guarded Android context required");
     check();
-    static auto create = JIntrinsics::javaClassStatic()->getStaticMethod<JIntrinsics::javaobject(JContext::javaobject)>("create");
+    static auto create = JIntrinsics::javaClassStatic()->getStaticMethod<JIntrinsics::javaobject(JContext::javaobject, JFabricUIManager::javaobject)>("create");
     auto typedContext = reinterpret_cast<JContext::javaobject>(context.get());
-    service = jni::make_global(create(JIntrinsics::javaClassStatic(), typedContext));
+    service = jni::make_global(create(JIntrinsics::javaClassStatic(), typedContext, reinterpret_cast<JFabricUIManager::javaobject>(manager.get())));
     check();
   }
 
-  Size cached(const ShadowNode &source, const LayoutContext &, const LayoutConstraints &bounds, const Props::Shared &selected) {
+  jni::local_ref<JReadableMapBuffer::javaobject> attributed(
+      const ShadowNode &source, const AttributedStringBox &content, bool cached) {
+    if (cached) {
+      const auto *node = dynamic_cast<const AndroidTextInputShadowNode *>(&source);
+      if (node && node->getStateData().cachedAttributedStringId != 0) {
+        MapBufferBuilder builder;
+        builder.putInt(AS_KEY_CACHE_ID, static_cast<int32_t>(node->getStateData().cachedAttributedStringId));
+        return JReadableMapBuffer::createWithContents(builder.build());
+      }
+    }
+    if (content.getMode() != AttributedStringBox::Mode::Value)
+      throw std::invalid_argument("Native motion: immutable Android attributed value required");
+    auto value = toMapBuffer(content.getValue());
+    return JReadableMapBuffer::createWithContents(std::move(value));
+  }
+
+  Size measureText(const ShadowNode &source, const AttributedStringBox &content,
+      const ParagraphAttributes &attributes, const LayoutContext &, const LayoutConstraints &bounds) {
     check();
-    const auto *node = dynamic_cast<const AndroidTextInputShadowNode *>(&source);
-    if (!node || node->getStateData().cachedAttributedStringId == 0)
-      throw std::invalid_argument("Native motion: actual cached Android editor required");
-    MapBufferBuilder attributed;
-    attributed.putInt(AS_KEY_CACHE_ID, static_cast<int32_t>(node->getStateData().cachedAttributedStringId));
-    auto text = JReadableMapBuffer::createWithContents(attributed.build());
-    const auto *selectedProps = dynamic_cast<const AndroidTextInputProps *>(selected.get());
-    if (!selectedProps) throw std::invalid_argument("Native motion: actual selected editor props required");
-    auto paragraph = JReadableMapBuffer::createWithContents(toMapBuffer(selectedProps->paragraphAttributes));
+    auto text = attributed(source, content, true);
+    auto paragraph = JReadableMapBuffer::createWithContents(toMapBuffer(attributes));
     static auto measure = JIntrinsics::javaClassStatic()->getMethod<jlong(
-        JReadableMapBuffer::javaobject, JReadableMapBuffer::javaobject, jfloat, jfloat, jfloat, jfloat)>("cachedEditor");
-    auto result = yogaMeassureToSize(measure(service, text.get(), paragraph.get(), bounds.minimumSize.width,
-        bounds.maximumSize.width, bounds.minimumSize.height, bounds.maximumSize.height));
+        JReadableMapBuffer::javaobject, JReadableMapBuffer::javaobject, jint, jint,
+        jfloat, jfloat, jfloat, jfloat, jboolean)>("textMeasure");
+    auto result = yogaMeassureToSize(measure(service, text.get(), paragraph.get(), source.getTag(), source.getSurfaceId(),
+        bounds.minimumSize.width, bounds.maximumSize.width, bounds.minimumSize.height, bounds.maximumSize.height,
+        dynamic_cast<const ParagraphShadowNode *>(&source) != nullptr && ReactNativeFeatureFlags::enablePreparedTextLayout()));
+    check(); return result;
+  }
+
+  Float baseline(const ShadowNode &source, const AttributedStringBox &content,
+      const ParagraphAttributes &attributes, const LayoutContext &, const Size &size) {
+    check();
+    // The original Android editor baseline uses its attributed value, not its cached measurement ID.
+    auto text = attributed(source, content, false);
+    auto paragraph = JReadableMapBuffer::createWithContents(toMapBuffer(attributes));
+    static auto baseline = JIntrinsics::javaClassStatic()->getMethod<jfloat(
+        JReadableMapBuffer::javaobject, JReadableMapBuffer::javaobject, jint, jint, jfloat, jfloat)>("textBaseline");
+    auto result = baseline(service, text.get(), paragraph.get(), source.getTag(), source.getSurfaceId(), size.width, size.height);
     check(); return result;
   }
 
@@ -71,11 +98,17 @@ struct TServices {
 
 TNativeScratchIntrinsicResolver createAndroidIntrinsicResolver(
     const TNativeFabricSnapshot &snapshot, std::shared_ptr<const ContextContainer> contextContainer,
-    jni::alias_ref<jobject> actualThemedViewContext, TNativeFabricReadGuard check,
+    jni::alias_ref<jobject> actualThemedViewContext, jni::alias_ref<jobject> actualFabricManager, TNativeFabricReadGuard check,
     TNativeScratchPropsResolver propsForNode) {
-  auto state = std::make_shared<TServices>(actualThemedViewContext, check);
+  auto state = std::make_shared<TServices>(actualThemedViewContext, actualFabricManager, check);
   TNativeIsolatedIntrinsicServices services{
-      [state](const auto &node, const auto &context, const auto &bounds, const auto &props) { return state->cached(node, context, bounds, props); },
+      {},
+      [state](const auto &node, const auto &content, const auto &attributes, const auto &context, const auto &bounds) {
+        return state->measureText(node, content, attributes, context, bounds);
+      },
+      [state](const auto &node, const auto &content, const auto &attributes, const auto &context, const auto &size) {
+        return state->baseline(node, content, attributes, context, size);
+      },
       [state](const auto &node, const auto &context, const auto &bounds, const auto &props) { return state->progress(node, context, bounds, props); }};
   return createNativeIntrinsicResolver(snapshot, std::move(contextContainer), std::move(services), std::move(check), std::move(propsForNode));
 }

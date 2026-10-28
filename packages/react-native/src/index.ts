@@ -693,6 +693,7 @@ export { NativeTimeFieldLabel, NativeTimeFieldText, NativeTimeFieldError } from 
 
 export { NativeOverlayProvider } from "./overlays/NativeOverlayProvider"
 export { NativeBackdropHost } from "./overlays/backdrop/NativeBackdropHost"
+export { DefaultNativeBackdropAdapter } from "./overlays/backdrop/DefaultNativeBackdropAdapter"
 export type {
   TNativeBackdropAdapter,
   TNativeBackdropEffectProps,
@@ -908,3 +909,47 @@ export type {
   TPartialNativeDatePickerLabels as PartialDateTimePickerLabels,
   TPartialNativeDatePickerLabels as PartialDateTimeRangePickerLabels,
 } from "./date/picker/types"
+
+export * from "./components/Panel"
+export * from "./components/SortAndFilterPanel"
+export * from "./components/Card"
+export { NativeDialogFocusScope } from "./input/NativeDialogFocusScope"
+export {
+  useNativeDragAndDrop,
+  useNativeDraggableCollection,
+  useNativeDroppableCollection,
+  useNativeDraggableItem,
+  useNativeDroppableItem,
+  useNativeDropIndicator,
+  NativeDragAndDropContext,
+  NativeDropIndicatorContext,
+  NativeDropIndicator,
+  NativeDragPreview,
+} from "./collection/dragAndDrop/hooks"
+export type {
+  TNativeDragAndDropOptions,
+  TNativeDragAndDropHooks,
+  TNativeDragAndDrop,
+  TNativeDragAndDropContextValue,
+  TNativeDragElementProps,
+  TNativeDraggableItemProps,
+  TNativeDraggableItemResult,
+  TNativeDroppableItemOptions,
+  TNativeDroppableItemResult,
+  TNativeDropIndicatorAria,
+  TNativeDropIndicatorRenderProps,
+  TNativeDropIndicatorProps,
+} from "./collection/dragAndDrop/hooks"
+export { NativeListDropTargetDelegate } from "./collection/dragAndDrop/NativeListDropTargetDelegate"
+export type { TNativeListDropTargetDelegateOptions } from "./collection/dragAndDrop/NativeListDropTargetDelegate"
+export { useNativeDraggableCollectionState } from "./collection/dragAndDrop/useNativeDraggableCollectionState"
+export type {
+  TNativeDraggableCollectionStateOptions,
+  TNativeDraggableCollectionState,
+} from "./collection/dragAndDrop/useNativeDraggableCollectionState"
+export { useNativeDroppableCollectionState } from "./collection/dragAndDrop/useNativeDroppableCollectionState"
+export type {
+  TNativeDroppableCollectionStateOptions,
+  TNativeDroppableCollectionState,
+} from "./collection/dragAndDrop/useNativeDroppableCollectionState"
+export * from "./collection/dragAndDrop/types"

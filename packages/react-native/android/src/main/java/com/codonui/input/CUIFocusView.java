@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.HashSet;
 import java.util.Set;
 
-public final class CUIFocusView extends ReactViewGroup implements View.OnClickListener {
+public final class CUIFocusView extends ReactViewGroup implements View.OnClickListener, CUIVirtualDragAccessibility.Source {
   PointerEvents authoredPointerEvents() { return super.getPointerEvents(); }
   @Override public PointerEvents getPointerEvents() {
     return CUIMenuPointerPolicies.suppresses(this) ? PointerEvents.NONE : super.getPointerEvents();
@@ -56,6 +56,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   private Boolean nativeMotionVisible = true;
   private int authoredVisibility = View.VISIBLE;
   private String motionProjectionRevision = "";
+  private int contentInsetLeft, contentInsetTop, contentInsetRight, contentInsetBottom;
   private int nativeScrollAnchorTag;
   private String nativeScrollAnchorKey = "";
   private String nativeScrollAnchorRevision = "";
@@ -64,6 +65,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
 
   public CUIFocusView(ThemedReactContext context) {
     super(context);
+    CUIVirtualDragAccessibility.registerSource(this,this);
     motionDrawing = new CUIMotionDrawing(this);
     scrollAnchor = new CUIFloatingScrollAnchor(this);
     motionColors = new CUIMotionColorSampler(this, data -> emit("topNativeMotionColors", data));
@@ -71,6 +73,16 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
     motionGeometry = new CUIMotionGeometryObserver(this, data -> { CUIFocusView view = geometryRoot.get(); if (view != null) view.emit("topNativeMotionGeometry", data); });
     setFocusable(true);
     setFocusableInTouchMode(true);
+  }
+
+  void setMotionContentInsets(int left, int top, int right, int bottom) {
+    contentInsetLeft = left; contentInsetTop = top; contentInsetRight = right; contentInsetBottom = bottom;
+  }
+  org.json.JSONArray motionContentBox() throws org.json.JSONException {
+    double density = getResources().getDisplayMetrics().density;
+    return new org.json.JSONArray().put(contentInsetLeft / density).put(contentInsetTop / density)
+        .put(Math.max(0, getWidth() - contentInsetLeft - contentInsetRight) / density)
+        .put(Math.max(0, getHeight() - contentInsetTop - contentInsetBottom) / density);
   }
 
   private static java.util.Map<String, Object> jsonMap(org.json.JSONObject value) {
@@ -131,7 +143,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   void setNativeTabStop(boolean value) { nativeTabStop = value; }
   @Override public void addFocusables(ArrayList<View> views, int direction, int mode) {
     super.addFocusables(views, direction, mode);
-    if (!nativeTabStop && (direction == View.FOCUS_FORWARD || direction == View.FOCUS_BACKWARD)) views.remove(this);
+    if ((!nativeTabStop || CUIDialogFocusScopes.isDialogRoot(this)) && (direction == View.FOCUS_FORWARD || direction == View.FOCUS_BACKWARD)) views.remove(this);
   }
 
   @Override public void setVisibility(int visibility) {
@@ -142,13 +154,21 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
     nativeMotionVisible = visible;
     super.setVisibility(!visible && authoredVisibility == View.VISIBLE ? View.INVISIBLE : authoredVisibility);
   }
+  private final CUIForegroundRenderer foreground = new CUIForegroundRenderer(this, this::drawForegroundSource);
+  private void drawForegroundSource(Canvas canvas) { motionDrawing.synchronize(); super.draw(canvas); }
+  void setNativeForegroundComposition(boolean enabled) { foreground.setEnabled(enabled); }
+  void captureForegroundFilters(com.facebook.react.bridge.ReadableArray value) { foreground.setFilters(value); }
+  void captureForegroundOpacity(float value) { foreground.setOpacity(value); }
+  void captureForegroundBackface(String value) { foreground.setBackfaceVisibility(value); }
+  void synchronizeForeground() { foreground.configure(); }
+  void retireForeground() { foreground.recycle(); }
   void setNativeMotionDrawingOwner(boolean enabled) { motionDrawing.setEnabled(enabled); }
   void setNativeMotionProjectionRadii(String radii) { motionDrawing.setRadii(radii); }
   void captureMotionBorderColor(int index, Integer color) { motionDrawing.setBorderColor(index, color); }
   void captureMotionShadows(com.facebook.react.bridge.ReadableArray shadows) { motionDrawing.setShadows(shadows); }
   void synchronizeMotionDrawing() { motionDrawing.synchronize(); }
   void retireMotionDrawing() { motionDrawing.retire(); }
-  @Override public void draw(Canvas canvas) { motionDrawing.synchronize(); super.draw(canvas); }
+  @Override public void draw(Canvas canvas) { if (!foreground.draw(canvas)) drawForegroundSource(canvas); }
   @Override public void dispatchDraw(Canvas canvas) {
     if (!motionDrawing.active()) { super.dispatchDraw(canvas); return; }
     int saved = canvas.save();
@@ -170,7 +190,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   void synchronizeMotionColors() { motionColors.updateOwner(ownerId, nativeMotionColorObservation); motionColors.synchronize(); }
   void invalidateMotionColors() { motionColors.invalidate(); }
   void sampleMotionColors(String owner, String requestId, String request) { synchronizeMotionColors(); motionColors.sample(owner, requestId, request); }
-  @Override protected void onAttachedToWindow() { super.onAttachedToWindow(); if (motionColors != null) motionColors.attached(); if (motionGeometry != null) motionGeometry.attached(); if (formAction != null) formAction.attachmentChanged(true); synchronizeFocusWithin(); }
+  @Override protected void onAttachedToWindow() { super.onAttachedToWindow(); foreground.attached(); if (motionColors != null) motionColors.attached(); if (motionGeometry != null) motionGeometry.attached(); if (formAction != null) formAction.attachmentChanged(true); synchronizeFocusWithin(); }
   @Override protected void drawableStateChanged() { super.drawableStateChanged(); if (motionColors != null) motionColors.synchronize(); }
   @Override protected void onConfigurationChanged(android.content.res.Configuration configuration) { super.onConfigurationChanged(configuration); if (motionColors != null) motionColors.synchronize(); }
 
@@ -208,6 +228,14 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
     return label.value + ", " + content;
   }
   @Override public AccessibilityNodeInfo createAccessibilityNodeInfo() {
+    AccessibilityNodeInfo info;
+    com.facebook.react.uimanager.ReactAccessibilityProjection.beginOriginalMetadata();
+    try { info=createOriginalAccessibilityNodeInfo(); }
+    finally { com.facebook.react.uimanager.ReactAccessibilityProjection.endOriginalMetadata(); }
+    if (info!=null) CUIVirtualDragAccessibility.projectNode(this,AccessibilityNodeInfoCompat.wrap(info));
+    return info;
+  }
+  private AccessibilityNodeInfo createOriginalAccessibilityNodeInfo() {
     AccessibilityNodeInfo info = super.createAccessibilityNodeInfo();
     if (info == null) return null;
     AccessibilityNodeInfoCompat node = AccessibilityNodeInfoCompat.wrap(info);
@@ -228,6 +256,8 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
     collectionAccessibility.apply(info);
     return info;
   }
+  @Override public boolean appliesVirtualDragAccessibilityProjection() { return true; }
+  @Override public View originalViewForAccessibilityNode(AccessibilityNodeInfoCompat original) { return this; }
   void inspectAccessibility(String owner) {
     if (!ownerId.equals(owner) || !isAttachedToWindow() || !hasWindowFocus()) return;
     AccessibilityNodeInfo info = createAccessibilityNodeInfo();
@@ -289,6 +319,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   }
 
   @Override public boolean performAccessibilityAction(int action, android.os.Bundle arguments) {
+    if (!CUIVirtualDragAccessibility.allowsInteraction(this)) return false;
     if (action == android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK) CUIMenuPointerPolicies.recordVirtual(this);
     boolean handled = super.performAccessibilityAction(action, arguments);
     if (handled && nativePressable && action == android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK)
@@ -450,6 +481,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
 
   @Override
   protected void onDetachedFromWindow() {
+    foreground.detached();
     if (focusWithin != null) focusWithin.detached();
     if (formAction != null) formAction.attachmentChanged(false);
     motionGeometry.detached();
@@ -463,6 +495,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
 
   @Override
   public void onWindowFocusChanged(boolean focused) {
+    if (!focused) foreground.detached(); else foreground.attached();
     if (formAction != null) formAction.snapshot();
     if (!focused) scrollAnchor.invalidate();
     if (!focused) cancelHeldKeys();

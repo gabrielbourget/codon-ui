@@ -9,9 +9,15 @@ import {
   useSyncExternalStore,
   type RefObject,
 } from "react"
-import { AppState, type TextInput, type View } from "react-native"
+import { AppState, findNodeHandle, type TextInput, type View } from "react-native"
 
-import { captureNativeFocusTarget, focusNativeTarget, getNativeFocusedTarget } from "../../input/focus"
+import {
+  captureNativeFocusTarget,
+  focusNativeTarget,
+  getNativeFocusedTarget,
+  subscribeNativeFocus,
+} from "../../input/focus"
+import { NativeDialogRegistryContext } from "../../input/NativeDialogFocusScope"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { OverlayParentContext, OverlayRegistryContext } from "../../overlays/NativeOverlayProvider"
 
@@ -149,19 +155,43 @@ export const useNativePanelInitialFocus = (
   initialRef?: RefObject<TTarget | null>,
 ) => {
   const input = useNativeKeyScope()
+  const dialogs = useContext(NativeDialogRegistryContext)
   const intent = useContext(NativePanelFocusIntentContext)
   const revision = useSyncExternalStore(input?.subscribe ?? subscribeNone, input?.snapshot ?? zero, zero)
   const current = useRef({ open, ready, isActive, initialRef, intent, intentRevision: 0 })
   const acquired = useRef<{ session: string; intentRevision: number } | null>(null)
+  const explicitObservation = useRef<{ target: TTarget; session: string; intentRevision: number } | null>(null)
   const appState = useRef(AppState.currentState)
   const appGeneration = useRef(0)
   const [appRevision, setAppRevision] = useState(0)
   useInsertionEffect(() => {
     const intentRevision = current.current.intentRevision + Number(current.current.intent !== intent)
     current.current = { open, ready, isActive, initialRef, intent, intentRevision }
-    if (!open) acquired.current = null
+    if (!open) {
+      acquired.current = null
+      explicitObservation.current = null
+    }
   })
   const session = sessionKey(input)
+  useLayoutEffect(() => {
+    const observed = () => {
+      const owner = current.current,
+        target = owner.initialRef?.current
+      if (!owner.open || !owner.isActive() || !input?.isNativeReady() || !target || getNativeFocusedTarget() !== target)
+        return
+      const next = { target, session: sessionKey(input), intentRevision: owner.intentRevision }
+      if (
+        explicitObservation.current?.target === target &&
+        explicitObservation.current.session === next.session &&
+        explicitObservation.current.intentRevision === next.intentRevision
+      )
+        return
+      explicitObservation.current = next
+      dialogs?.flush()
+    }
+    observed()
+    return subscribeNativeFocus(observed)
+  }, [input, dialogs])
   useLayoutEffect(() => {
     let live = true
     const subscription = AppState.addEventListener("change", (state) => {
@@ -185,7 +215,12 @@ export const useNativePanelInitialFocus = (
       appState.current !== "active"
     )
       return
+    dialogs?.flush()
     const ref = initialRef ?? root
+    if (initialRef === undefined && root.current && dialogs?.hasEntryFor(findNodeHandle(root.current) ?? 0)) {
+      acquired.current = { session, intentRevision: current.current.intentRevision }
+      return
+    }
     const target = ref.current
     const intentRevision = current.current.intentRevision
     let retired = false
@@ -207,11 +242,29 @@ export const useNativePanelInitialFocus = (
         sessionKey(input) !== session
       )
         return
+      dialogs?.flush()
+      if (initialRef === undefined && root.current && dialogs?.hasEntryFor(findNodeHandle(root.current) ?? 0)) {
+        acquired.current = { session, intentRevision }
+        return
+      }
       if (focusNativeTarget(target)) acquired.current = { session, intentRevision }
     })
     return () => {
       retired = true
       cancelAnimationFrame(frame)
     }
-  }, [open, ready, isActive, initialRef, root, input, revision, session, appRevision, intent])
+  }, [open, ready, isActive, initialRef, root, input, dialogs, revision, session, appRevision, intent])
+  return useCallback(() => {
+    const owner = current.current,
+      observed = explicitObservation.current
+    return (
+      owner.initialRef !== undefined &&
+      !(
+        observed &&
+        observed.target === owner.initialRef.current &&
+        observed.session === sessionKey(input) &&
+        observed.intentRevision === owner.intentRevision
+      )
+    )
+  }, [input])
 }

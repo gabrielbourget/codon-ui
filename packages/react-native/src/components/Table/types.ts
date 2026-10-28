@@ -1,8 +1,10 @@
 import type { ReactElement, ReactNode, RefAttributes } from "react"
-import type { ColorValue, StyleProp, TextStyle, View, ViewProps } from "react-native"
+import type { ColorValue, ScrollViewProps, StyleProp, TextStyle, View, ViewProps } from "react-native"
 import type { TableStateProps } from "react-stately/useTableState"
+import type { ColumnSize } from "react-stately/useTableState"
 
 import type { TNativeSlotProps } from "../../collection/context"
+import type { TNativeDragAndDropHooks } from "../../collection/dragAndDrop/hooks"
 import type { TNativeCollectionKey } from "../../collection/snapshot"
 import type { MultipleSelectionStateProps } from "../../collection/state/useMultipleSelectionState"
 import type { TNativeFocusViewProps } from "../../input/types"
@@ -13,6 +15,7 @@ import type { TNativePaginationProps } from "../Pagination/types"
 
 import type { TPartialNativeTableFilteringLabels } from "./filterLabels"
 import type { TAvailableListItem } from "./filterMetadata"
+import type { TPartialNativeTableLabels } from "./labels"
 import type {
   TTableSortInstruction,
   TTableFilterGroup,
@@ -20,6 +23,7 @@ import type {
   TTableFilterOperationCode,
 } from "./queryTypes"
 import type { TNativeTableState } from "./state/useTableState"
+import type { TNativeTableStickyOffset } from "./stickyStyles"
 import type { TNativeTableHoverEvents } from "./useTableHover"
 
 export type TNativeTableColumnFilterMetadata = {
@@ -49,11 +53,12 @@ export type TNativeTableFilteringControls = {
 )
 
 export type TNativeTableColumnSortMetadata = { enabled?: boolean; criteriaID: string; queryKey?: string }
+export type TNativeTableColumnResizeDetails = { columnID: string; width: number }
 export type TNativeTableColumnResizingControls = {
   enabled?: boolean
   minWidth?: number
   maxWidth?: number
-  onColumnResize: (details: { columnID: string; width: number }) => void
+  onColumnResize: (details: TNativeTableColumnResizeDetails) => void
 }
 export type TNativeTableSortingControls = {
   activeSorts: TTableSortInstruction[]
@@ -79,6 +84,8 @@ type TColumnMetadataBase<T extends object> = {
   maxWidth?: TextStyle["maxWidth"]
   alignment?: "Left" | "Center" | "Right"
   headerAlignment?: "Left" | "Center" | "Right"
+  truncate?: boolean
+  maxLines?: number
   cellRenderer?: (context: { row: T; column: TNativeTableColumnMetadata<T> }) => ReactNode
   customHeaderColumnStyles?: StyleProp<TextStyle>
   customHeaderCellStyles?: StyleProp<TextStyle>
@@ -136,22 +143,27 @@ export type TNativeTableInheritedProps = Omit<ViewProps, "children" | "style" | 
     disallowSelectAll?: boolean
     escapeKeyBehavior?: "clearSelection" | "none"
     shouldFocusWrap?: boolean
+    onScroll?: ScrollViewProps["onScroll"]
   }
 export type TNativeTableProps<T extends object = object> = Omit<
   TNativeTableInheritedProps,
   "style" | "sortDescriptor" | "onSortChange"
 > &
   TStyleProps & {
+    dragAndDropHooks?: TNativeDragAndDropHooks<T>
     geometry?: TCornerGeometry
     hoverColor?: ColorValue
     zebra?: boolean
     zebraColor?: ColorValue
-    labels?: { selection?: Partial<{ selectAllRowsAriaLabel: string; selectRowAriaLabel: string }> }
+    labels?: TPartialNativeTableLabels
     clickableRows?: boolean
     columns?: TNativeTableColumnMetadata<T>[]
     queryControls?: TNativeTableQueryControls
     filteringLabels?: TPartialNativeTableFilteringLabels
     columnResizing?: TNativeTableColumnResizingControls
+    stickyHeader?: boolean
+    stickyHeaderOffset?: TNativeTableStickyOffset
+    stickyHeaderBackgroundColor?: ColorValue
   }
 export type TNativeTableReceivedProps<T extends object> = Omit<TNativeTableProps<T>, "style"> &
   Pick<TNativeTableInheritedProps, "style" | "sortDescriptor" | "onSortChange">
@@ -161,15 +173,35 @@ export type TNativeTableHeaderProps<T extends object> = Omit<ViewProps, "childre
     render?: (props: ViewProps & RefAttributes<View>, state: TNativeTableHeaderRenderState) => ReactElement
   } & TNativeTableHoverEvents
 export type TNativeTableHeaderRenderState = Readonly<{ isHovered: boolean }>
-export type TNativeTableColumnProps = Omit<ViewProps, "id" | "style"> &
-  TStyleProps & {
-    textValue?: string
-    id?: TNativeCollectionKey
-    columnID: string
-    isRowHeader?: boolean
-    allowsSorting?: boolean
-    alignment?: TNativeTableColumnMetadata<object>["alignment"]
-  }
+export type TNativeTableColumnRenderState = Readonly<{
+  isHovered: boolean
+  isPressed: boolean
+  isFocused: boolean
+  isFocusVisible: boolean
+  allowsSorting: boolean | undefined
+  sortDirection: "ascending" | "descending" | undefined
+  isResizing: boolean
+  sort: (direction: "ascending" | "descending") => void
+  startResize: () => void
+}>
+export type TNativeTableColumnProps = Omit<TNativeFocusViewProps, "id" | "style" | "children"> & {
+  customStyles?: StyleProp<TextStyle>
+  style?:
+    | StyleProp<TextStyle>
+    | ((state: TNativeTableColumnRenderState & { defaultStyle: TextStyle }) => StyleProp<TextStyle>)
+  children?: ReactNode | ((state: TNativeTableColumnRenderState & { defaultChildren: undefined }) => ReactNode)
+  render?: (props: TNativeFocusViewProps & RefAttributes<View>, state: TNativeTableColumnRenderState) => ReactElement
+  width?: ColumnSize
+  defaultWidth?: ColumnSize
+  minWidth?: ColumnSize
+  maxWidth?: ColumnSize
+  textValue?: string
+  id?: TNativeCollectionKey
+  columnID: string
+  isRowHeader?: boolean
+  allowsSorting?: boolean
+  alignment?: TNativeTableColumnMetadata<object>["alignment"]
+}
 export type TNativeTableCellRenderState = Readonly<{
   isPressed: boolean
   isFocused: boolean
@@ -195,6 +227,8 @@ export type TNativeTableCellProps = Omit<ViewProps, "id" | "style" | "children">
     colSpan?: number
     columnID: string
     alignment?: TNativeTableColumnMetadata<object>["alignment"]
+    truncate?: boolean
+    maxLines?: number
   }
 export type TNativeTableRowProps<T extends object> = Omit<TNativeFocusViewProps, "id" | "children" | "style"> &
   Partial<Pick<TNativeLinkProps, "href" | "onNavigationError">> &
@@ -206,7 +240,9 @@ export type TNativeTableRowProps<T extends object> = Omit<TNativeFocusViewProps,
     textValue?: string
     id?: TNativeCollectionKey
     hasChildItems?: boolean
+    iconColor?: ColorValue
     item: T
+    value?: T
     columns: TNativeTableColumnMetadata<T>[]
     geometry?: TCornerGeometry
     renderCell?: (context: { row: T; column: TNativeTableColumnMetadata<T> }) => ReactNode

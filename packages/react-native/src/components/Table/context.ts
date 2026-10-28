@@ -4,12 +4,14 @@ import type { ColorValue } from "react-native"
 import type { View } from "react-native"
 
 import type { TNativeContextValue } from "../../collection/context"
+import type { useNativeCollectionDragAndDrop } from "../../collection/dragAndDrop/hooks"
 import type { TNativeCollectionKey, TNativeCollectionNode } from "../../collection/snapshot"
 import type { SelectionManager } from "../../collection/state/SelectionManager"
 
 import type { resolveNativeTableFilteringLabels } from "./filterLabels"
 import type { NativeTableCollection } from "./state/TableCollection"
 import type { TNativeTableState } from "./state/useTableState"
+import type { TNativeTableStickyOptions } from "./stickyStyles"
 import type { TNativeTableQueryControls, TNativeTableColumnResizingControls, TNativeTableInheritedProps } from "./types"
 import type { useTableKeyboard } from "./useTableKeyboard"
 
@@ -19,12 +21,14 @@ export const NativeTableOptionsContext = createContext<{
   labels: { selectAllRowsAriaLabel: string; selectRowAriaLabel: string }
   sortingEnabled: boolean
   resizingEnabled: boolean
+  draggingEnabled: boolean
 }>({
   mode: "none",
   behavior: null,
   labels: { selectAllRowsAriaLabel: "Select All", selectRowAriaLabel: "Select Row" },
   sortingEnabled: false,
   resizingEnabled: false,
+  draggingEnabled: false,
 })
 export const NativeTableCellContext = createContext<{
   node: TNativeCollectionNode<object>
@@ -38,9 +42,14 @@ export const NativeTablePropsContext =
 export const NativeTableStateContext = createContext<TNativeTableState<object> | null>(null)
 
 export type TNativeTableContext = {
+  dragAndDrop: ReturnType<typeof useNativeCollectionDragAndDrop>
   state: TNativeTableState<object>
   collection: NativeTableCollection<object>
   target: number
+  root: RefObject<View | null>
+  sticky: TNativeTableStickyOptions
+  stickySession: () => { scopeOwnerId: string; windowId: string; epoch: number } | null
+  subscribeStickyLifetime: (listener: () => void) => () => void
   rows: TNativeCollectionNode<object>[]
   headerCount: number
   rowHeaderColumns: ReadonlySet<string>

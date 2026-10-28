@@ -2,6 +2,7 @@ package com.codonui.input;
 
 import android.view.View;
 import android.os.SystemClock;
+import com.facebook.proguard.annotations.DoNotStrip;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.UIManager;
@@ -16,10 +17,18 @@ import org.json.JSONObject;
 public final class CUIMotionSnapshotModule extends NativeCUIMotionSnapshotSpec {
   static { System.loadLibrary("codon_motion"); }
   private final AtomicBoolean valid = new AtomicBoolean(true);
+  private CUIBackdropRenderer backdrop;
   private static final String[] strings = {"ownerId", "bindingId", "windowId", "scopeOwnerId", "nativeViewRevision"};
   private static final String[] numbers = {"target", "epoch", "attachmentRevision"};
 
   CUIMotionSnapshotModule(ReactApplicationContext context) { super(context); }
+  @Override public void backdropFrame(String request, Promise promise) {
+    UiThreadUtil.runOnUiThread(() -> {
+      if (!valid.get()) { promise.reject("E_CUI_BACKDROP", "Native backdrop: module retired"); return; }
+      if (backdrop == null) backdrop = new CUIBackdropRenderer(getReactApplicationContext());
+      backdrop.request(request, promise);
+    });
+  }
   private static native String nativeSnapshot(FabricUIManager manager, int target, String owner, String binding, String revision);
   private static native String nativeInitialValue(FabricUIManager manager, int target, String owner, String binding, String revision, String name);
   private static native String nativeEvaluatedLayout(FabricUIManager manager, int target, String owner, String binding, String revision, Object context, String request, long presentation);
@@ -28,9 +37,58 @@ public final class CUIMotionSnapshotModule extends NativeCUIMotionSnapshotSpec {
   // Access is serialized with invalidate; the C++ owner retains the manager
   // and unregisters its hook before releasing that retained manager.
   private long popHandle;
+  private long tableHandle;
+  private FabricUIManager tableManager;
+  private CUITableStickyPresentation tableDriver;
+  private RuntimeException tableFailure;
+  private static native long nativeCreateTable(FabricUIManager manager, CUIMotionSnapshotModule module);
+  private static native String nativeTableRequest(long handle, String request);
+  private static native String nativeTableTargets(long handle);
+  private static native void nativeTableSynchronize(long handle);
+  private static native void nativeTableFrame(long handle, String lease, double[] geometry);
+  private static native void nativeTableRetire(long handle, String lease);
+  private static native void nativeCloseTable(long handle);
   private static native long nativeCreatePop(FabricUIManager manager);
   private static native String nativePopRequest(long handle, String request);
   private static native void nativeClosePop(long handle);
+
+  @Override public synchronized String tableStickyPresentation(String encoded) {
+    try {
+      JSONObject request = new JSONObject(encoded);
+      if (!valid.get() || !getReactApplicationContext().hasActiveReactInstance()) {
+        if ("release".equals(request.getString("action"))) return new JSONObject().put("lease", request.getString("lease")).put("released", true).toString();
+        throw new IllegalStateException("Table sticky: module retired");
+      }
+      if (tableFailure != null && !"release".equals(request.getString("action"))) throw tableFailure;
+      if (tableHandle == 0) {
+        Object value = request.get("target");
+        if (!(value instanceof Number)) throw new IllegalArgumentException("Table sticky: target required");
+        double target = ((Number)value).doubleValue();
+        if (!Double.isFinite(target) || target <= 0 || target > Integer.MAX_VALUE || target != Math.rint(target)) throw new IllegalArgumentException("Table sticky: invalid target");
+        UIManager manager = UIManagerHelper.getUIManagerForReactTag(getReactApplicationContext(), (int)target);
+        if (!(manager instanceof FabricUIManager)) throw new IllegalStateException("Table sticky: Fabric unavailable");
+        tableManager = (FabricUIManager)manager;
+        tableHandle = nativeCreateTable(tableManager, this);
+      }
+      String result = nativeTableRequest(tableHandle, encoded);
+      onTableStickyMount();
+      return result;
+    } catch (Exception failure) { throw new IllegalStateException("E_CUI_TABLE_STICKY", failure); }
+  }
+  @DoNotStrip private void onTableStickyMount() {
+    UiThreadUtil.runOnUiThread(() -> {
+      synchronized (CUIMotionSnapshotModule.this) {
+        if (!valid.get() || tableHandle == 0) return;
+        if (tableDriver == null) tableDriver = new CUITableStickyPresentation(this, getReactApplicationContext(), tableManager);
+        tableDriver.synchronize();
+      }
+    });
+  }
+  synchronized String tableStickyTargets() { return tableHandle == 0 ? "[]" : nativeTableTargets(tableHandle); }
+  synchronized void tableStickySynchronize() { if (tableHandle != 0) nativeTableSynchronize(tableHandle); }
+  synchronized void tableStickyFrame(String lease, double[] geometry) { if (tableHandle != 0 && valid.get()) nativeTableFrame(tableHandle, lease, geometry); }
+  synchronized void tableStickyRetire(String lease) { if (tableHandle != 0) nativeTableRetire(tableHandle, lease); }
+  synchronized void tableStickyFailure(Exception failure) { if (tableFailure == null) tableFailure = new IllegalStateException("Table sticky: native frame failed", failure); }
 
   @Override public synchronized String popPresentation(String encoded) {
     try {
@@ -135,6 +193,14 @@ public final class CUIMotionSnapshotModule extends NativeCUIMotionSnapshotSpec {
   @Override public synchronized void invalidate() {
     valid.set(false);
     if (popHandle != 0) { nativeClosePop(popHandle); popHandle = 0; }
+    UiThreadUtil.runOnUiThread(() -> {
+      synchronized (CUIMotionSnapshotModule.this) {
+        if (backdrop != null) { backdrop.invalidate(); backdrop = null; }
+        if (tableDriver != null) { tableDriver.invalidate(); tableDriver = null; }
+        if (tableHandle != 0) { nativeCloseTable(tableHandle); tableHandle = 0; }
+        tableManager = null;
+      }
+    });
     super.invalidate();
   }
 

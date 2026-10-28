@@ -2,13 +2,9 @@
 
 #include "FabricSnapshot.h"
 #include "ScratchYoga.h"
+#include "NativeIntrinsicSource.h"
 
 namespace codon::motion {
-
-struct TNativeScratchIntrinsic {
-  TNativeScratchMeasure measure;
-  TNativeScratchBaseline baseline;
-};
 
 // Factories must capture audited immutable data/native measurement services.
 // Calling measureContent/layout on the original node is not a safe default.

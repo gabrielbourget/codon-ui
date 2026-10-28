@@ -13,9 +13,12 @@ import { findNodeHandle, type GestureResponderEvent, type NativeSyntheticEvent, 
 
 import { NativeCollectionItemBindingContext } from "../collection/binding"
 import { NativeCollectionSemanticsContext } from "../collection/semantics"
+import { useNativeInheritedTextStyle } from "../components/NativeTextStyleProvider"
+import { serializeNativeTypographyStyle } from "../components/nativeTypographyStyle"
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../overlays/floating/scope"
 
 import { receiveNativeAccessibilityInspection, registerNativeAccessibilityInspector } from "./accessibilityInspection"
+import { dispatchNativeActivationPolicy } from "./activation"
 import {
   NativeFieldInputContext,
   receiveNativeFieldKey,
@@ -68,6 +71,8 @@ export const NativeFocusHost = forwardRef<
     nativeMotionGeometryRevision?: string
     nativeMotionVisible?: boolean
     nativeMotionProjectionRevision?: string
+    nativeTypographyStyle?: string
+    nativeForegroundComposition?: boolean
     nativeMotionDrawingOwner?: boolean
     nativeMotionProjectionRadii?: string
     nativeFocusWithinObservation?: boolean
@@ -127,6 +132,10 @@ export const NativeFocusHost = forwardRef<
   const activationId = useRef(0)
   const release = useRef<(() => void) | undefined>(undefined)
   const releaseInspector = useRef<(() => void) | undefined>(undefined)
+  const motionOptions = useRef({ colors: nativeMotionColorObservation, geometry: nativeMotionGeometryObservation })
+  useInsertionEffect(() => {
+    motionOptions.current = { colors: nativeMotionColorObservation, geometry: nativeMotionGeometryObservation }
+  })
   const motionColors = useRef<NativeMotionColorSampler | undefined>(undefined)
   const releaseMotionColors = useRef<(() => void) | undefined>(undefined)
   const motionGeometry = useRef<NativeMotionGeometryObserver | undefined>(undefined)
@@ -151,6 +160,7 @@ export const NativeFocusHost = forwardRef<
   const keyboardFocusable = tabIndex === -1 && !fieldInput ? false : (focusable ?? true)
   const inputScope = useNativeKeyScope()
   const floatingScope = useContext(NativeFloatingScopeContext)
+  const inheritedTypography = useNativeInheritedTextStyle()
   const windowActive = useContext(NativeFloatingWindowContext)
   const focusEligibility = useRef({ keyboardFocusable, inputScope, floatingScope, windowActive })
   useInsertionEffect(() => {
@@ -225,6 +235,52 @@ export const NativeFocusHost = forwardRef<
   )
   useLayoutEffect(retireObservation)
   useLayoutEffect(() => inputScope?.subscribe(retireObservation), [inputScope, retireObservation])
+  // Feature changes retire only that observer, preserving unrelated leases and the caller ref.
+  const refreshMotionObservers = useCallback(
+    (target = nativeTarget.current) => {
+      if (!target || !motionOptions.current.colors) {
+        releaseMotionColors.current?.()
+        releaseMotionColors.current = undefined
+        motionColors.current = undefined
+      }
+      if (!target || !motionOptions.current.geometry) {
+        releaseMotionGeometry.current?.()
+        releaseMotionGeometry.current = undefined
+        motionGeometry.current = undefined
+      }
+      if (target && motionOptions.current.colors && !motionColors.current) {
+        const sampler = new NativeMotionColorSampler({
+          ownerId,
+          target: () => findNodeHandle(target),
+          scope: () => {
+            const scope = focusEligibility.current.inputScope
+            const session = scope?.acknowledgedSession()
+            return { ownerId: scope?.ownerId ?? "", windowId: session?.windowId, epoch: session?.epoch }
+          },
+          dispatch: (requestId, request) => Commands.sampleMotionColors(target, ownerId, requestId, request),
+        })
+        motionColors.current = sampler
+        releaseMotionColors.current = registerNativeMotionColorSampler(target, sampler)
+      }
+      if (target && motionOptions.current.geometry && !motionGeometry.current) {
+        const observer = new NativeMotionGeometryObserver({
+          ownerId,
+          bindingId: geometryBinding,
+          target: () => findNodeHandle(target),
+          scope: () => {
+            const scope = focusEligibility.current.inputScope
+            const session = scope?.acknowledgedSession()
+            return { ownerId: scope?.ownerId ?? "", windowId: session?.windowId, epoch: session?.epoch }
+          },
+          dispatch: (requestId) => Commands.queryMotionGeometry(target, ownerId, geometryBinding, requestId),
+          ...nativeMotionGeometryHistory(target),
+        })
+        motionGeometry.current = observer
+        releaseMotionGeometry.current = registerNativeMotionGeometryObserver(target, observer)
+      }
+    },
+    [ownerId, geometryBinding],
+  )
   const setRef = useCallback(
     (target: ElementRef<typeof FocusHost> | null) => {
       attached.current = target !== null
@@ -257,36 +313,7 @@ export const NativeFocusHost = forwardRef<
         ? registerNativeAccessibilityInspector(target, () => Commands.inspectAccessibility(target, ownerId))
         : undefined
       releaseDescription.current = target ? registerNativeDescriptionSource(target, setDescription) : undefined
-      if (target && nativeMotionColorObservation) {
-        const sampler = new NativeMotionColorSampler({
-          ownerId,
-          target: () => findNodeHandle(target),
-          scope: () => {
-            const scope = focusEligibility.current.inputScope
-            const session = scope?.acknowledgedSession()
-            return { ownerId: scope?.ownerId ?? "", windowId: session?.windowId, epoch: session?.epoch }
-          },
-          dispatch: (requestId, request) => Commands.sampleMotionColors(target, ownerId, requestId, request),
-        })
-        motionColors.current = sampler
-        releaseMotionColors.current = registerNativeMotionColorSampler(target, sampler)
-      }
-      if (target && nativeMotionGeometryObservation) {
-        const observer = new NativeMotionGeometryObserver({
-          ownerId,
-          bindingId: geometryBinding,
-          target: () => findNodeHandle(target),
-          scope: () => {
-            const scope = focusEligibility.current.inputScope
-            const session = scope?.acknowledgedSession()
-            return { ownerId: scope?.ownerId ?? "", windowId: session?.windowId, epoch: session?.epoch }
-          },
-          dispatch: (requestId) => Commands.queryMotionGeometry(target, ownerId, geometryBinding, requestId),
-          ...nativeMotionGeometryHistory(target),
-        })
-        motionGeometry.current = observer
-        releaseMotionGeometry.current = registerNativeMotionGeometryObserver(target, observer)
-      }
+      refreshMotionObservers(target)
       if (typeof forwardedRef === "function") {
         if (target) {
           const cleanup = forwardedRef(target)
@@ -297,17 +324,11 @@ export const NativeFocusHost = forwardRef<
       within.current = null
       refreshWithin()
     },
-    [
-      forwardedRef,
-      ownerId,
-      canFocus,
-      focusWindow,
-      nativeMotionColorObservation,
-      nativeMotionGeometryObservation,
-      geometryBinding,
-      refreshWithin,
-    ],
+    [forwardedRef, ownerId, canFocus, focusWindow, refreshMotionObservers, refreshWithin],
   )
+  useLayoutEffect(() => {
+    refreshMotionObservers()
+  }, [nativeMotionColorObservation, nativeMotionGeometryObservation, refreshMotionObservers])
   const normalized = nativeViewProps(rest)
   const labelledBy = normalized.accessibilityLabelledBy
   const pointerHandler = <TEvent extends NativeSyntheticEvent<object>>(
@@ -338,6 +359,8 @@ export const NativeFocusHost = forwardRef<
     <NativeViewContextBoundary>
       <FocusHost
         {...normalized}
+        nativeTypographyStyle={rest.nativeTypographyStyle ?? serializeNativeTypographyStyle(inheritedTypography)}
+        nativeTypographyWindow={floatingScope?.id ?? ""}
         onPointerDown={pointerHandler("pointer-start", rest.onPointerDown)}
         onPointerUp={pointerHandler("pointer-end", rest.onPointerUp)}
         onPointerCancel={pointerHandler("pointer-cancel", rest.onPointerCancel)}
@@ -406,7 +429,8 @@ export const NativeFocusHost = forwardRef<
           if (!attached.current || data.ownerId !== ownerId || !isActivationEvent(event)) return
           if (!Number.isSafeInteger(data.activationId) || data.activationId <= activationId.current) return
           activationId.current = data.activationId
-          onNativeActivation?.(event)
+          const target = nativeTarget.current
+          if (!target || !dispatchNativeActivationPolicy(target, event)) onNativeActivation?.(event)
         }}
         onNativeKey={(event) => {
           if (!attached.current || event.nativeEvent.ownerId !== ownerId || !isKeyboardEvent(event)) return

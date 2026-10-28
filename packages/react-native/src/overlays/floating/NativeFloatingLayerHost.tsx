@@ -86,6 +86,7 @@ export const useNativeFloatingHost = () => {
   if (!host) throw new Error("Floating layers require NativeFloatingLayerHost in the same native window")
   return host
 }
+export const useOptionalNativeFloatingHost = () => useContext(FloatingHostContext)
 
 const layerHostName = (host: string, layer: string) => `${host}-layer-${layer}`
 export const NativeFloatingPortal = ({ children, layerId }: { children: ReactNode; layerId?: string }) => {
@@ -227,6 +228,7 @@ export const NativeFloatingLayerHost = forwardRef<TNativeFloatingLayerHostRef, T
             {...rest}
             ref={root}
             captureEnabled={windowActive?.() !== false}
+            nativeTypographyWindow={name}
             testID={testID}
             collapsable={false}
             pointerEvents="box-none"

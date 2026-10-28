@@ -134,7 +134,7 @@
     },
     {
       "file": "NativeProjectionState.ts",
-      "sha256": "f02c2857a1a4ff6e8fa647b167eb934e0934be83b326073a781ce1c288d2ec5c"
+      "sha256": "4fd3b6a6376b64fccb2fd0ed79fb586b0f20819f1137d7bff4d266e3f7b37687"
     },
     {
       "file": "animation/mix-values.ts",
@@ -182,7 +182,7 @@
     },
     {
       "file": "nativeStyles.ts",
-      "sha256": "fa07628532592a59b25983080722d4850a14e23aac09778dc8564bdb00725c43"
+      "sha256": "cddd81bdda41744b6c9f0234d08e4977200f40c472558aa00cf9b3bf068237cc"
     },
     {
       "file": "node/create-projection-node.ts",
@@ -259,6 +259,11 @@
       "path": "ReactCommon/react/renderer/components/view/BaseViewProps.cpp",
       "packageArtifactRef": "react-native@0.86.3/ReactCommon/react/renderer/components/view/BaseViewProps.cpp",
       "sha256": "040d7c7be7ace403677e771a3bbfe6411303ec16b02bc46e686daef5d90f4a64"
+    },
+    {
+      "path": "Libraries/StyleSheet/processBoxShadow.js",
+      "packageArtifactRef": "react-native@0.86.3/Libraries/StyleSheet/processBoxShadow.js",
+      "sha256": "c3fa39d82e2b3566144db039f1297e889b8486858c0208cc2c5f2ecec62fa7db"
     }
   ],
   "declarationInput": {
@@ -276,5 +281,13 @@
       "packageArtifactRef": "motion-utils/dist/es/subscription-manager.mjs",
       "sha256": "463917e7f9ec5fc58495bf20eb697d8e1912b84a5deae55f0e374c534228b4a8"
     }
-  ]
+  ],
+  "shadowCorrectionInput": {
+    "packageArtifactRef": "motion-dom@12.40.0/dist/es/projection/styles/scale-box-shadow.mjs.map",
+    "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/projection/styles/scale-box-shadow.ts",
+    "sourceKind": "npm-source-map-sourcesContent",
+    "sourceSha256": "5e7ec95824f28decc20f7a85c85d6881fd7a85b081d5e3d6483d1dfd25c8c850",
+    "adapter": "nativeStyles.ts",
+    "scope": "Pinned string shadow correction and fallthrough; native object lists retain original color identities, optional field presence and supported pixel lengths."
+  }
 }

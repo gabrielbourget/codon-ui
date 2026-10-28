@@ -1,4 +1,8 @@
 #import "CUIKeyboardScope.h"
+#import "CUIDialogFocusScopes.h"
+#import "CUIVirtualDragFocus.h"
+#import "CUIVirtualDragAccessibility.h"
+#import "CUIDragInteractions.h"
 #import "CUIInputWindow.h"
 #import "CUIMenuPointerPolicies.h"
 #import "CUIFloatingObserver.h"
@@ -7,6 +11,7 @@
 #import "CUIFieldInputBinding.h"
 #include "../cpp/CUIEditorKeyboardDefaultRegistry.h"
 #import <UIKit/UIGestureRecognizerSubclass.h>
+#import <React/RCTMountingTransactionObserving.h>
 #import <react/renderer/components/CodonNativeInputSpec/ComponentDescriptors.h>
 #import <react/renderer/components/CodonNativeInputSpec/EventEmitters.h>
 #import <react/renderer/components/CodonNativeInputSpec/Props.h>
@@ -37,7 +42,7 @@ static UIView *CUIFirstResponder(UIView *root)
 @end
 
 @class CUIKeyboardRecognizer;
-@interface CUIKeyboardScope () <UIGestureRecognizerDelegate, CUIKeyboardObservationScope, CUIWindowPointerScope>
+@interface CUIKeyboardScope () <UIGestureRecognizerDelegate, CUIKeyboardObservationScope, CUIWindowPointerScope, RCTMountingTransactionObserving>
 - (NSString *)policyForPress:(UIPress *)press;
 - (BOOL)hasPolicyForPress:(UIPress *)press;
 - (void)recordModality:(NSString *)origin;
@@ -54,6 +59,7 @@ static UIView *CUIFirstResponder(UIView *root)
 @interface CUIKeyboardRecognizer : UIGestureRecognizer
 @property(nonatomic, weak) CUIKeyboardScope *scope;
 @property(nonatomic, strong) NSMutableDictionary<NSNumber *, CUIKeyHold *> *held;
+@property(nonatomic, strong) NSMutableSet<NSNumber *> *suppressed;
 - (void)retireHeld;
 @end
 
@@ -62,6 +68,7 @@ static UIView *CUIFirstResponder(UIView *root)
 {
   if (self = [super initWithTarget:nil action:nil]) {
     _held = [NSMutableDictionary dictionary];
+    _suppressed = [NSMutableSet set];
     self.cancelsTouchesInView = YES;
     self.delaysTouchesBegan = YES;
     self.delaysTouchesEnded = YES;
@@ -74,6 +81,12 @@ static UIView *CUIFirstResponder(UIView *root)
   for (UIPress *press in presses) {
     if (!press.key) continue;
     NSNumber *code = @(press.key.keyCode);
+    CUIVirtualDragFocus *virtualOwner=CUIActiveVirtualDragFocus(self.view.window);
+    if ([self.suppressed containsObject:code] || (virtualOwner && ![virtualOwner allowsInteractionWithView:CUIInputFocusedView(self.view.window)])) {
+      [self.suppressed addObject:code];
+      self.state=self.state==UIGestureRecognizerStatePossible ? UIGestureRecognizerStateBegan : UIGestureRecognizerStateChanged;
+      [virtualOwner refresh]; continue;
+    }
     CUIKeyHold *hold = self.held[code];
     BOOL repeat = hold != nil;
     if (!hold) {
@@ -99,13 +112,14 @@ static UIView *CUIFirstResponder(UIView *root)
 {
   for (UIPress *press in presses) {
     NSNumber *code = @(press.key.keyCode);
+    if ([self.suppressed containsObject:code]) { [self.suppressed removeObject:code]; continue; }
     CUIKeyHold *hold = self.held[code];
     if (!hold) continue;
     hold.press = press;
     if (!hold.retired) [self.scope emitKey:hold down:NO repeat:NO cancelled:cancelled];
     [self.held removeObjectForKey:code];
   }
-  if (!self.held.count && self.state != UIGestureRecognizerStatePossible) self.state = UIGestureRecognizerStateEnded;
+  if (!self.held.count && !self.suppressed.count && self.state != UIGestureRecognizerStatePossible) self.state = UIGestureRecognizerStateEnded;
 }
 - (void)pressesEnded:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event { [self finishPresses:presses cancelled:NO]; }
 - (void)pressesCancelled:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event { [self finishPresses:presses cancelled:YES]; }
@@ -120,6 +134,7 @@ static UIView *CUIFirstResponder(UIView *root)
 {
   [self retireHeld];
   [self.held removeAllObjects];
+  [self.suppressed removeAllObjects];
   [super reset];
 }
 - (BOOL)canPreventGestureRecognizer:(UIGestureRecognizer *)other { return NO; }
@@ -137,7 +152,11 @@ static UIView *CUIFirstResponder(UIView *root)
   CUIMenuPointerPolicies *_menuPointers;
   NSArray<NSDictionary *> *_menuPointerRegistrations;
   double _menuPointerRevision;
+  CUIDialogFocusScopes *_dialogs;
   NSString *_ownerId;
+  NSString *_dragMountWitness;
+  int32_t _dragSurfaceId;
+  CUIDragInteractions *_dragInteractions;
   BOOL _captureEnabled;
   NSArray<NSDictionary *> *_policies;
   CUIKeyboardRecognizer *_keyboard;
@@ -160,6 +179,12 @@ static UIView *CUIFirstResponder(UIView *root)
   NSArray<NSDictionary *> *_floatingTargets;
 }
 
+- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
+{
+  UIView *original=[super hitTest:point withEvent:event];
+  return original && !CUIAllowsVirtualDragInteraction(original) ? self : original;
+}
+
 + (ComponentDescriptorProvider)componentDescriptorProvider
 {
   return concreteComponentDescriptorProvider<CUIKeyboardScopeComponentDescriptor>();
@@ -169,6 +194,7 @@ static UIView *CUIFirstResponder(UIView *root)
   if (self = [super initWithFrame:frame]) {
     _props = std::make_shared<const CUIKeyboardScopeProps>();
     _ownerId = @"";
+    _dragInteractions = [[CUIDragInteractions alloc] initWithScope:self];
     _captureEnabled = YES;
     _policies = @[];
     _observations = @[];
@@ -181,6 +207,32 @@ static UIView *CUIFirstResponder(UIView *root)
     _sceneActive = YES;
     _floatingTargets = @[];
     __weak CUIKeyboardScope *weakSelf = self;
+    _dialogs = [[CUIDialogFocusScopes alloc] initWithOwner:self ready:^BOOL {
+      return [weakSelf captureReady];
+    } session:^NSDictionary * {
+      CUIKeyboardScope *scope = weakSelf;
+      return @{ @"ownerId": scope ? scope->_ownerId : @"", @"windowId": CUIInputWindowIdentity(scope.window), @"epoch": @(scope ? scope->_windowEpoch : 0) };
+    } emit:^(NSString *kind, NSDictionary *packet) {
+      CUIKeyboardScope *scope = weakSelf;
+      if (!scope || !scope->_eventEmitter) return;
+      auto emitter = std::static_pointer_cast<const CUIKeyboardScopeEventEmitter>(scope->_eventEmitter);
+      if ([kind isEqualToString:@"status"]) {
+        CUIKeyboardScopeEventEmitter::OnNativeDialogStatus data{};
+        data.ownerId = [packet[@"ownerId"] UTF8String]; data.windowId = [packet[@"windowId"] UTF8String];
+        data.epoch = [packet[@"epoch"] doubleValue]; data.revision = [packet[@"revision"] doubleValue];
+        data.ready = [packet[@"ready"] boolValue]; data.error = [packet[@"error"] UTF8String]; emitter->onNativeDialogStatus(data);
+      } else {
+        CUIKeyboardScopeEventEmitter::OnNativeDialogAction data{};
+        data.ownerId = [packet[@"ownerId"] UTF8String]; data.windowId = [packet[@"windowId"] UTF8String];
+        data.epoch = [packet[@"epoch"] doubleValue]; data.revision = [packet[@"revision"] doubleValue];
+        data.id = [packet[@"id"] UTF8String]; data.bindingId = [packet[@"bindingId"] UTF8String]; data.target = [packet[@"target"] intValue];
+        NSString *phase = packet[@"phase"];
+        data.phase = [phase isEqualToString:@"entered"] ? CUIKeyboardScopeEventEmitter::OnNativeDialogActionPhase::Entered
+          : [phase isEqualToString:@"wrapped"] ? CUIKeyboardScopeEventEmitter::OnNativeDialogActionPhase::Wrapped
+          : CUIKeyboardScopeEventEmitter::OnNativeDialogActionPhase::Restored;
+        emitter->onNativeDialogAction(data);
+      }
+    }];
     _editorKeyboardBindings = @[];
     _editorKeyboardTargets = NSMapTable.strongToWeakObjectsMapTable;
     _resolvedEditorKeyboardTargets = [NSMutableSet set];
@@ -227,7 +279,32 @@ static UIView *CUIFirstResponder(UIView *root)
 {
   return @{ @"scopeOwnerId": _ownerId, @"windowId": CUIInputWindowIdentity(self.window), @"epoch": @(_windowEpoch) };
 }
+- (BOOL)dragCaptureReady { return [_dragInteractions available]; }
+- (BOOL)dragEnabled { return _captureEnabled; }
+- (int32_t)dragSurfaceId { return _dragSurfaceId; }
+- (NSDictionary *)dragActivationSession { return _dragInteractions.session; }
+- (NSDictionary *)dragGeometry:(NSDictionary *)request { return [_dragInteractions geometry:request]; }
+- (void)emitDragStatus:(NSDictionary *)record {
+  if (!_eventEmitter) return;
+  NSData *json = [NSJSONSerialization dataWithJSONObject:record options:0 error:nullptr];
+  if (!json) return;
+  CUIKeyboardScopeEventEmitter::OnNativeDragStatus status{}; status.packet = std::string((const char *)json.bytes, json.length);
+  std::static_pointer_cast<const CUIKeyboardScopeEventEmitter>(_eventEmitter)->onNativeDragStatus(status);
+}
+- (NSString *)dragMountWitness { return _dragMountWitness ?: @"unmounted"; }
+- (void)mountingTransactionDidMount:(const MountingTransaction &)transaction withSurfaceTelemetry:(const SurfaceTelemetry &)surfaceTelemetry {
+  _dragSurfaceId = transaction.getSurfaceId();
+  _dragMountWitness = self.window ? [NSString stringWithFormat:@"ios-surface:%d:mount:%lld", transaction.getSurfaceId(), (long long)transaction.getNumber()] : nil;
+  [_dragInteractions refresh];
+}
 - (CUIMenuPointerPolicies *)menuPointers { return _menuPointers; }
+- (CUIDialogFocusScopes *)dialogFocusScopes { return _dialogs; }
+- (CUIVirtualDragFocus *)virtualDragFocus { return [_dragInteractions virtualFocus]; }
+- (BOOL)shouldUpdateFocusInContext:(UIFocusUpdateContext *)context
+{
+  CUIVirtualDragFocus *drag=CUIActiveVirtualDragFocus(self.window);
+  return [super shouldUpdateFocusInContext:context] && [_dialogs shouldAllowFocusUpdate:context] && (!drag || [drag allowsFocus:context]);
+}
 - (void)emitMenuPointer:(NSDictionary *)packet
 {
   if (!_eventEmitter) return;
@@ -265,6 +342,8 @@ static UIView *CUIFirstResponder(UIView *root)
 }
 - (void)publishStatus
 {
+  [_dragInteractions refreshWindow];
+  [_dialogs refresh];
   [self publishEditorKeyboardStatus];
   [_floating setTargets:_floatingTargets active:[self captureReady]];
   CUIRefreshKeyboardObservation(self.window);
@@ -663,7 +742,17 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
   NSMutableArray *floating = [NSMutableArray array];
   for (const auto &target : next.floatingTargets) [floating addObject:@{ @"id": [NSString stringWithUTF8String:target.id.c_str()], @"targetTag": @(target.targetTag), @"descriptionTag": @(target.descriptionTag), @"descriptionLabel": [NSString stringWithUTF8String:target.descriptionLabel.c_str()] }];
   _floatingTargets = floating;
+  NSMutableArray *dialogs = [NSMutableArray new];
+  for (const auto &binding : next.dialogScopes) {
+    NSMutableArray *members = [NSMutableArray new], *entries = [NSMutableArray new];
+    for (const auto &member : binding.memberTargets) [members addObject:@{ @"id": @(member.id.c_str()), @"targetTag": @(member.targetTag) }];
+    for (const auto &entry : binding.entryTargets) [entries addObject:@{ @"id": @(entry.id.c_str()), @"targetTag": @(entry.targetTag), @"allowed": @(entry.allowed) }];
+    [dialogs addObject:@{ @"id": @(binding.id.c_str()), @"parentId": @(binding.parentId.c_str()), @"bindingId": @(binding.bindingId.c_str()),
+      @"targetTag": @(binding.targetTag), @"enabled": @(binding.enabled), @"entryAllowed": @(binding.entryAllowed), @"memberTargets": members, @"entryTargets": entries }];
+  }
+  [_dialogs update:dialogs revision:next.dialogRevision];
   [super updateProps:props oldProps:oldProps];
+  [_dragInteractions update:@(next.dragBindings.c_str())];
   [self publishStatus];
 }
 - (void)windowDeactivated:(NSNotification *)notification
@@ -684,7 +773,7 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
 {
   if (notification.object == self.window.windowScene) { _sceneActive = YES; _windowEpoch++; [self publishStatus]; }
 }
-- (void)layoutSubviews { [super layoutSubviews]; [self publishEditorKeyboardStatus]; CUIRefreshWindowPointerObservation(self.window); CUIRefreshMenuPointerPolicies(self.window); }
+- (void)layoutSubviews { [super layoutSubviews]; [_dragInteractions refreshWindow]; [_dialogs refresh]; [self publishEditorKeyboardStatus]; CUIRefreshWindowPointerObservation(self.window); CUIRefreshMenuPointerPolicies(self.window); }
 - (void)didMoveToWindow
 {
   [super didMoveToWindow];
@@ -708,6 +797,9 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
 }
 - (void)prepareForRecycle
 {
+  _dragMountWitness = nil; _dragSurfaceId = 0;
+  [_dragInteractions invalidate]; _dragInteractions = [[CUIDragInteractions alloc] initWithScope:self];
+  [_dialogs invalidate];
   [_menuPointers invalidate]; _menuPointerRegistrations = @[]; _menuPointerRevision = 0;
   [_floating invalidate]; _floatingTargets = @[];
   [_keyboard retireHeld];
@@ -728,6 +820,9 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
 }
 - (void)dealloc
 {
+  _dragMountWitness = nil; _dragSurfaceId = 0;
+  [_dragInteractions invalidate]; _dragInteractions = [[CUIDragInteractions alloc] initWithScope:self];
+  [_dialogs invalidate];
   [_menuPointers invalidate];
   [_floating invalidate];
   [_boundWindow removeGestureRecognizer:_keyboard];

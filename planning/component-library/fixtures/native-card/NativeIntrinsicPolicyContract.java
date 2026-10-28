@@ -64,14 +64,34 @@ public final class NativeIntrinsicPolicyContract {
     for (float[] value : valid) { invoke(bounds, value[0], value[1]); require(true, "valid bounds"); }
     float[][] invalid = {{Float.NaN,100},{-1,100},{0,Float.NaN},{Float.POSITIVE_INFINITY,Float.POSITIVE_INFINITY},{1,0},{0,Float.NEGATIVE_INFINITY}};
     for (float[] value : invalid) rejects(bounds, "invalid intrinsic constraints", value[0], value[1]);
-    require(CUIMotionIntrinsics.class.getDeclaredMethod("create", Context.class).getReturnType() == CUIMotionIntrinsics.class, "typed JNI Context factory descriptor");
-    require(CUIMotionIntrinsics.class.getDeclaredMethod("cachedEditor", ReadableMapBuffer.class, ReadableMapBuffer.class,
-      float.class, float.class, float.class, float.class).getReturnType() == long.class, "cached editor JNI descriptor");
+    require(CUIMotionIntrinsics.class.getDeclaredMethod("create", Context.class, com.facebook.react.fabric.FabricUIManager.class).getReturnType() == CUIMotionIntrinsics.class, "typed JNI Context factory descriptor");
+    require(CUIMotionIntrinsics.class.getDeclaredMethod("textMeasure", ReadableMapBuffer.class, ReadableMapBuffer.class, int.class, int.class,
+      float.class, float.class, float.class, float.class, boolean.class).getReturnType() == long.class, "unified fresh/cached text JNI descriptor");
+    require(CUIMotionIntrinsics.class.getDeclaredMethod("textBaseline", ReadableMapBuffer.class, ReadableMapBuffer.class,
+      int.class, int.class, float.class, float.class).getReturnType() == float.class, "first-line ascender JNI descriptor");
+    Method current = CUIMotionIntrinsics.class.getDeclaredMethod("requireCurrent", CUIIntrinsicSource.Session.class);
+    current.setAccessible(true);
+    int[] closes = {0};
+    CUIIntrinsicSource.Session retired = new CUIIntrinsicSource.Session() {
+      public boolean isCurrent() { return false; }
+      public void postProcess(Spannable owned) { throw new AssertionError("retired postprocess entered"); }
+      public Object copySpan(Object original) { throw new AssertionError("retired span callback entered"); }
+      public void close() { closes[0]++; }
+    };
+    rejects(current, "isolated text source retired", retired);
+    require(closes[0] == 0, "admission does not steal session retirement ownership");
     require(CUIMotionIntrinsics.class.getDeclaredMethod("progress", ReadableMap.class,
       float.class, float.class, float.class, float.class).getReturnType() == long.class, "progress JNI descriptor");
     Class<?> pinned = Class.forName("com.codonui.input.CUIMotionIntrinsics$PinnedLayout");
     require(pinned.getDeclaredField("create").get(null) instanceof Method, "actual pinned private helper resolves");
     require(pinned.getDeclaredField("layout").get(null) instanceof Method, "actual pinned Layout getter resolves");
+    Class<?> registry = Class.forName("com.codonui.input.CUIMotionIntrinsics$PinnedRegistry");
+    java.lang.reflect.Field descriptor = (java.lang.reflect.Field)registry.getDeclaredField("registry").get(null);
+    require(descriptor.getName().equals("mViewManagerRegistry") &&
+      descriptor.getType() == com.facebook.react.uimanager.ViewManagerRegistry.class &&
+      java.lang.reflect.Modifier.isPrivate(descriptor.getModifiers()) &&
+      java.lang.reflect.Modifier.isFinal(descriptor.getModifiers()) &&
+      !java.lang.reflect.Modifier.isStatic(descriptor.getModifiers()), "exact approved original callback registry descriptor");
     System.out.println("PASS " + assertions + " production policy/actual peer-descriptor assertions; no Android layout, native paint, original cached text or installed proof");
   }
 }

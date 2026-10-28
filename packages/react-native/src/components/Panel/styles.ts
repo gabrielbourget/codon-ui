@@ -5,6 +5,8 @@ import { AVAILABLE_CORNER_GEOMETRY_CODES } from "../../tokens/geometry"
 import { resolveNativeStyle, validateNativeColor } from "../colors"
 import { validateNativeDisplayDimension } from "../displayDimensions"
 
+import { resolvePanelBoxShadow } from "./appearanceValues"
+import { resolvePanelFilters } from "./filters"
 import { AVAILABLE_PANEL_POSITIONS, type TNativePanelProps } from "./types"
 
 const TEXT_FIELDS = [
@@ -30,6 +32,7 @@ const TEXT_FIELDS = [
   "writingDirection",
   "userSelect",
 ] as const
+const NATIVE_BOX_POSITIONS = ["absolute", "relative", "static"] as const
 
 export const getNativePanelStyles = (props: TNativePanelProps, theme: TNativeTheme, viewportWidth: number) => {
   validateNativeDisplayDimension(props.width, "Panel", "width")
@@ -64,6 +67,7 @@ export const getNativePanelStyles = (props: TNativePanelProps, theme: TNativeThe
     [
       {
         position: "absolute",
+        boxSizing: "content-box",
         top: 0,
         [side]: 0,
         height: "100%",
@@ -107,10 +111,51 @@ export const getNativePanelStyles = (props: TNativePanelProps, theme: TNativeThe
   const view = Object.fromEntries(
     Object.entries(style).filter(([key]) => !TEXT_FIELDS.some((field) => field === key)),
   ) as ViewStyle
+  const foreground = text.color ?? theme.colors.foreground
+  if (
+    view.borderColor === undefined &&
+    Object.entries(view).some(([key, value]) => /^border.*Width$/.test(key) && value !== undefined)
+  )
+    view.borderColor = foreground
+  if (view.outlineColor === undefined && view.outlineWidth !== undefined) view.outlineColor = foreground
+  if (
+    text.textShadowColor === undefined &&
+    (text.textShadowOffset !== undefined || text.textShadowRadius !== undefined)
+  )
+    text.textShadowColor = foreground
+  if (view.boxShadow !== undefined)
+    view.boxShadow = resolvePanelBoxShadow(view.boxShadow, foreground) as ViewStyle["boxShadow"]
+  if (view.filter !== undefined) view.filter = resolvePanelFilters(view.filter, foreground) as ViewStyle["filter"]
+  if (typeof view.opacity === "number" && Number.isFinite(view.opacity))
+    view.opacity = Math.max(0, Math.min(1, view.opacity))
+  const overlayOverrides = resolveNativeStyle(props.customOverlayStyles, "Panel", "customOverlayStyles")
   const overlay = resolveNativeStyle(
-    [{ backgroundColor: theme.colors.overlayBackdrop }, props.customOverlayStyles],
+    [
+      { boxSizing: "content-box", backgroundColor: theme.colors.overlayBackdrop },
+      Object.fromEntries(Object.entries(overlayOverrides).filter(([, value]) => value !== undefined)) as ViewStyle,
+    ],
     "Panel",
     "customOverlayStyles",
   )
-  return { text, view, overlay, side }
+  if (overlay.filter !== undefined)
+    overlay.filter = resolvePanelFilters(overlay.filter, theme.colors.foreground) as ViewStyle["filter"]
+  if (typeof overlay.opacity === "number" && Number.isFinite(overlay.opacity))
+    overlay.opacity = Math.max(0, Math.min(1, overlay.opacity))
+  if (
+    authored.position !== undefined &&
+    !NATIVE_BOX_POSITIONS.includes(authored.position as (typeof NATIVE_BOX_POSITIONS)[number])
+  )
+    throw new TypeError("Panel: unsupported native layout position")
+  const panelPosition = authored.position ?? "fixed"
+  return {
+    text,
+    view,
+    overlay,
+    side,
+    layout: {
+      position: panelPosition as "fixed" | "absolute" | "relative" | "static",
+      viewportHeight: authored.height === undefined,
+      viewportWidth: authored.width === undefined,
+    },
+  }
 }

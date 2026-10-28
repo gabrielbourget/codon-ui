@@ -25,6 +25,37 @@ beforeEach(() => {
   jest.spyOn(jest.requireActual("react-native"), "findNodeHandle").mockReturnValue(71)
 })
 afterEach(() => jest.restoreAllMocks())
+it("keeps an original pending geometry query while color observation is enabled and removed", async () => {
+  const root = createRef<View>()
+  const node = (colors: boolean) => (
+    <NativeFocusHost ref={root} testID="host" nativeMotionGeometryObservation nativeMotionColorObservation={colors} />
+  )
+  const view = await render(node(false))
+  const target = root.current!
+  const pending = readNativeMotionGeometry(target)
+  const outcome = pending.then(
+    (value) => ({ value }),
+    (error: unknown) => ({ error }),
+  )
+  const call = jest.mocked(Commands.queryMotionGeometry).mock.calls[0]
+  await view.rerender(node(true))
+  await view.rerender(node(false))
+  const host = screen.getByTestId("host")
+  await act(() =>
+    host.props.onNativeMotionGeometry({
+      nativeEvent: geometryPacket({
+        ownerId: host.props.ownerId,
+        bindingId: host.props.nativeMotionGeometryBinding,
+        requestId: call[3],
+        scopeOwnerId: "",
+        epoch: 0,
+      }),
+    }),
+  )
+  expect(await outcome).toMatchObject({ value: { snapshot: { layout: [0, 0, 100, 50] } } })
+  expect(root.current).toBe(target)
+  expect(Commands.queryMotionGeometry).toHaveBeenCalledTimes(1)
+})
 it("passes private owned-drawing data without replacing the original native root or controlled editor", async () => {
   // Preset native refs/props only; no UIKit/CoreAnimation drawing executes.
   const root = createRef<View>(),

@@ -1,11 +1,31 @@
 import type { ViewStyle } from "react-native"
 import { I18nManager, Platform } from "react-native"
 
+import { complex } from "../kernel/engine/value/types/complex"
 import { buildNativeMotionTransform } from "../visual/nativeTransform"
 import type { TNativeMotionTransform, TNativeMotionTransformTemplate } from "../visual/types"
 
 import type { IProjectionNode } from "./node/types"
 import type { Delta, NativeProjectionStyle, Point, ResolvedValues } from "./types"
+
+// Pinned Motion12.40.0 scale-box-shadow, including its complex/multiple-shadow fallthrough.
+const correctShadowString = (source: string, scaleX: number, scaleY: number) => {
+  const values = complex.parse(source)
+  if (values.length > 5) return source
+  const transform = complex.createTransformer(source)
+  const offset = typeof values[0] === "number" ? 0 : 1
+  values[offset] = (values[offset] as number) / scaleX
+  values[offset + 1] = (values[offset + 1] as number) / scaleY
+  const average = (scaleX + scaleY) / 2
+  if (typeof values[offset + 2] === "number") values[offset + 2] = (values[offset + 2] as number) / average
+  if (typeof values[offset + 3] === "number") values[offset + 3] = (values[offset + 3] as number) / average
+  return transform(values)
+}
+const correctShadowLength = (source: number | string, scale: number) => {
+  if (typeof source === "number") return source / scale
+  const match = /^([+-]?\d*\.?\d+)(px)?$/.exec(source)
+  return match && (match[2] || Number(match[1]) === 0) ? Number(match[1]) / scale : source
+}
 
 export const buildNativeProjectionTransform = (
   delta: Delta,
@@ -182,14 +202,17 @@ export const nativeProjectionStyles = (
   if (authored.shadowOffset)
     style.shadowOffset = { width: authored.shadowOffset.width / sx, height: authored.shadowOffset.height / sy }
   if (authored.shadowRadius !== undefined) style.shadowRadius = authored.shadowRadius / ((sx + sy) / 2)
-  if (Array.isArray(authored.boxShadow))
-    style.boxShadow = authored.boxShadow.map((shadow) => ({
+  const boxShadow = values.boxShadow ?? lead.options.visualElement?.props.style?.boxShadow ?? authored.boxShadow
+  if (typeof boxShadow === "string") style.boxShadow = correctShadowString(boxShadow, sx, sy)
+  else if (Array.isArray(boxShadow))
+    style.boxShadow = boxShadow.map((shadow) => ({
       ...shadow,
-      offsetX: typeof shadow.offsetX === "number" ? shadow.offsetX / sx : shadow.offsetX,
-      offsetY: typeof shadow.offsetY === "number" ? shadow.offsetY / sy : shadow.offsetY,
-      blurRadius: typeof shadow.blurRadius === "number" ? shadow.blurRadius / ((sx + sy) / 2) : shadow.blurRadius,
-      spreadDistance:
-        typeof shadow.spreadDistance === "number" ? shadow.spreadDistance / ((sx + sy) / 2) : shadow.spreadDistance,
+      offsetX: correctShadowLength(shadow.offsetX, sx),
+      offsetY: correctShadowLength(shadow.offsetY, sy),
+      ...(shadow.blurRadius === undefined ? {} : { blurRadius: correctShadowLength(shadow.blurRadius, (sx + sy) / 2) }),
+      ...(shadow.spreadDistance === undefined
+        ? {}
+        : { spreadDistance: correctShadowLength(shadow.spreadDistance, (sx + sy) / 2) }),
     })) as ViewStyle["boxShadow"]
   return style
 }

@@ -25,18 +25,37 @@ public final class CUIKeyboardScopeManager extends ReactViewManager implements C
   private final ViewManagerDelegate<ReactViewGroup> inherited = new ViewManagerPropertyUpdater.GenericViewManagerDelegate<>(this);
   private final CUIKeyboardScopeManagerDelegate<ReactViewGroup, CUIKeyboardScopeManager> delegate = new CUIKeyboardScopeManagerDelegate<>(this) {
     @Override public void setProperty(ReactViewGroup view, String name, Object value) {
-      if ("editorKeyboardBindings".equals(name) || "menuPointerPolicies".equals(name) || "menuPointerRevision".equals(name) || "pointerRegistrations".equals(name) || "pointerRevision".equals(name) || "ownerId".equals(name) || "enabled".equals(name) || "policies".equals(name) || "acceptedWindowId".equals(name) || "acceptedEpoch".equals(name) || "policyRevision".equals(name) || "floatingTargets".equals(name) || "observations".equals(name) || "observationRevision".equals(name)) super.setProperty(view, name, value);
+      if ("dragBindings".equals(name) || "nativeTypographyWindow".equals(name) || "dialogScopes".equals(name) || "dialogRevision".equals(name) || "editorKeyboardBindings".equals(name) || "menuPointerPolicies".equals(name) || "menuPointerRevision".equals(name) || "pointerRegistrations".equals(name) || "pointerRevision".equals(name) || "ownerId".equals(name) || "enabled".equals(name) || "policies".equals(name) || "acceptedWindowId".equals(name) || "acceptedEpoch".equals(name) || "policyRevision".equals(name) || "floatingTargets".equals(name) || "observations".equals(name) || "observationRevision".equals(name)) super.setProperty(view, name, value);
       else inherited.setProperty(view, name, value);
     }
   };
   @Override public String getName() { return NAME; }
   @Override protected ViewManagerDelegate<ReactViewGroup> getDelegate() { return delegate; }
   @Override public ReactViewGroup createViewInstance(ThemedReactContext context) { return new CUIKeyboardScope(context); }
+  @Override @ReactProp(name = "dragBindings") public void setDragBindings(ReactViewGroup view,String value) { ((CUIKeyboardScope)view).dragInteractions.update(value==null?"[]":value); }
+  @Override @ReactProp(name = "nativeTypographyWindow") public void setNativeTypographyWindow(ReactViewGroup view, String value) {}
   @Override @ReactProp(name = "ownerId") public void setOwnerId(ReactViewGroup view, String value) { ((CUIKeyboardScope) view).setOwnerId(value); }
   @Override @ReactProp(name = "enabled", defaultBoolean = true) public void setEnabled(ReactViewGroup view, boolean value) { ((CUIKeyboardScope) view).setCaptureEnabled(value); }
   @Override @ReactProp(name = "acceptedWindowId") public void setAcceptedWindowId(ReactViewGroup view, String value) { ((CUIKeyboardScope) view).setAcceptedWindowId(value); }
   @Override @ReactProp(name = "acceptedEpoch") public void setAcceptedEpoch(ReactViewGroup view, double value) { ((CUIKeyboardScope) view).setAcceptedEpoch(value); }
   @Override @ReactProp(name = "policyRevision") public void setPolicyRevision(ReactViewGroup view, double value) { ((CUIKeyboardScope) view).setPolicyRevision(value); }
+  @Override @ReactProp(name = "dialogRevision") public void setDialogRevision(ReactViewGroup view, double value) { ((CUIKeyboardScope)view).dialogs.setRevision(value); }
+  @Override @ReactProp(name = "dialogScopes") public void setDialogScopes(ReactViewGroup view, ReadableArray value) {
+    List<CUIDialogFocusScopes.Binding> bindings=new ArrayList<>();
+    if (value != null) for (int index=0; index<value.size(); index++) {
+      ReadableMap entry=value.getMap(index); List<CUIDialogFocusScopes.Target> members=new ArrayList<>();
+      ReadableArray targets=entry.getArray("memberTargets");
+      if (targets != null) for (int item=0; item<targets.size(); item++) {
+        ReadableMap member=targets.getMap(item); members.add(new CUIDialogFocusScopes.Target(member.getString("id"), member.getInt("targetTag")));
+      }
+      List<CUIDialogFocusScopes.Entry> entries=new ArrayList<>(); ReadableArray entryTargets=entry.getArray("entryTargets");
+      if (entryTargets != null) for (int item=0; item<entryTargets.size(); item++) {
+        ReadableMap target=entryTargets.getMap(item); entries.add(new CUIDialogFocusScopes.Entry(target.getString("id"), target.getInt("targetTag"), target.getBoolean("allowed")));
+      }
+      bindings.add(new CUIDialogFocusScopes.Binding(entry.getString("id"), entry.getString("parentId"), entry.getString("bindingId"), entry.getInt("targetTag"), members, entries, entry.getBoolean("enabled"), entry.getBoolean("entryAllowed")));
+    }
+    ((CUIKeyboardScope)view).dialogs.update(bindings);
+  }
   @Override @ReactProp(name = "observationRevision") public void setObservationRevision(ReactViewGroup view, double value) { ((CUIKeyboardScope) view).setObservationRevision(value); }
   @Override @ReactProp(name = "observations") public void setObservations(ReactViewGroup view, ReadableArray value) {
     List<CUIKeyboardScope.Observation> observations = new ArrayList<>();
@@ -89,6 +108,10 @@ public final class CUIKeyboardScopeManager extends ReactViewManager implements C
   @Override public Map<String, Object> getExportedCustomDirectEventTypeConstants() {
     Map<String, Object> events = new HashMap<>(); Map<String, Object> existing = super.getExportedCustomDirectEventTypeConstants();
     if (existing != null) events.putAll(existing);
+    events.put("topNativeDragStatus", Collections.singletonMap("registrationName", "onNativeDragStatus"));
+    events.put("topNativeDragAction", Collections.singletonMap("registrationName", "onNativeDragAction"));
+    events.put("topNativeDialogStatus", Collections.singletonMap("registrationName", "onNativeDialogStatus"));
+    events.put("topNativeDialogAction", Collections.singletonMap("registrationName", "onNativeDialogAction"));
     events.put("topNativeEditorKey", Collections.singletonMap("registrationName", "onNativeEditorKey"));
     events.put("topNativeEditorKeyboardStatus", Collections.singletonMap("registrationName", "onNativeEditorKeyboardStatus"));
     events.put("topNativeEditorKeyboardDecision", Collections.singletonMap("registrationName", "onNativeEditorKeyboardDecision"));

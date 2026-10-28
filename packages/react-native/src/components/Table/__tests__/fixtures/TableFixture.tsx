@@ -28,6 +28,10 @@ import type {
 } from "../../types"
 
 import { CellFixtureBody, TableCellFixture } from "./TableCellFixture"
+import { TableColumnFixture } from "./TableColumnFixture"
+import { TableDragFixture } from "./TableDragFixture"
+import { TableStickyFixture } from "./TableStickyFixture"
+import { TableVirtualizedFixture } from "./TableVirtualizedFixture"
 
 type TPerson = { id: string; name: string; active: boolean }
 const people: TPerson[] = [
@@ -49,6 +53,8 @@ const renderBody: NonNullable<TNativeTableBodyProps<TPerson>["render"]> = (props
 )
 export const TableFixture = ({ editorRef, tableRef }: { editorRef?: Ref<TextInput>; tableRef?: Ref<View> }) => {
   const [showTemporal, setShowTemporal] = useState(false)
+  const [showVirtual, setShowVirtual] = useState(false)
+  const [showSticky, setShowSticky] = useState(false)
   const [customRoot, setCustomRoot] = useState(false)
   const [largeText, setLargeText] = useState(false)
   const renderRoot = useCallback<NonNullable<TNativeTableProps["render"]>>(
@@ -83,6 +89,7 @@ export const TableFixture = ({ editorRef, tableRef }: { editorRef?: Ref<TextInpu
         }),
       )
   }
+  const [showDrag, setShowDrag] = useState(false)
   const [headerHovered, setHeaderHovered] = useState(false)
   const [reversed, setReversed] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -269,8 +276,15 @@ export const TableFixture = ({ editorRef, tableRef }: { editorRef?: Ref<TextInpu
             <Text testID="table-filter-requests">{JSON.stringify(filterRequests)}</Text>
             <Text testID="table-widths">{JSON.stringify(widths)}</Text>
             <Text testID="table-resize-requests">{JSON.stringify(resizeRequests)}</Text>
+            <TableColumnFixture />
             <TableRowFixture />
             <TableCellFixture />
+            <Button onPress={() => setShowSticky((value) => !value)}>Toggle sticky header source scene</Button>
+            <Button onPress={() => setShowDrag((value) => !value)}>Toggle drag and drop tables</Button>
+            {showDrag && <TableDragFixture />}
+            {showSticky && <TableStickyFixture />}
+            <Button onPress={() => setShowVirtual((value) => !value)}>Toggle virtualized Table owner</Button>
+            {showVirtual && <TableVirtualizedFixture />}
           </ScrollView>
         </NativeFloatingLayerHost>
       </NativeOverlayProvider>

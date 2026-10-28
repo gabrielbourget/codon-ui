@@ -1,10 +1,12 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native"
 import { createRef, useContext, useLayoutEffect, type ReactNode } from "react"
 import { AccessibilityInfo, AppState, findNodeHandle, Platform, type TextInput, type View } from "react-native"
+import { Portal } from "react-native-teleport"
 
 import { NativeFloatingLayerHost, NativeFocusView, NativeOverlayProvider, Text } from "../../.."
 import { getNativeFocusedTarget } from "../../../input/focus"
 import * as focusRegistry from "../../../input/focus"
+import { NativeDialogFocusScope } from "../../../input/NativeDialogFocusScope"
 import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
 import { useNativeFloatingHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import { NativeFloatingScopeContext } from "../../../overlays/floating/scope"
@@ -117,6 +119,19 @@ const setup = () => {
   }
   return { prior, replacement, panel, first, second, node, shown, measured, ready, dismissed }
 }
+
+it("keeps the Panel boundary programmatically focusable without adding it to native Tab traversal", async () => {
+  const f = setup()
+  await render(f.node())
+  expect(row("panel").props.nativeTabStop).toBe(false)
+  expect(row("panel").props.keyboardFocusable).toBe(true)
+  expect(row("panel-backdrop").props.focusable).toBe(false)
+  expect(row("first").props.keyboardFocusable).toBe(true)
+  await f.ready()
+  await flush()
+  expect(focusRegistry.captureNativeFocusTarget(f.panel.current!)).not.toBeNull()
+  expect(Commands.requestKeyboardFocus).toHaveBeenLastCalledWith(f.panel.current, row("panel").props.ownerId)
+})
 
 it("CAP.panel.focus.002 waits for native presentation, measurement and scope readiness before requesting its actual root", async () => {
   const f = setup()
@@ -515,4 +530,105 @@ it("SCENE.panel.003 retains current owner/editor/theme values while explicit nat
   await fireEvent.press(screen.getByRole("button", { name: "Reset panel scene" }))
   expect(screen.getByText("Close requests: 0")).toBeOnTheScreen()
   expect(screen.getByText("Owner open: false")).toBeOnTheScreen()
+})
+
+it("binds explicit Dialog entry to the original root and the enclosing Panel without a JavaScript focus request", async () => {
+  const f = setup(),
+    dialog = createRef<View>(),
+    onFocus = jest.fn()
+  const extra = (
+    <NativeDialogFocusScope rootRef={dialog}>
+      <NativeFocusView ref={dialog} testID="explicit-dialog" onFocus={onFocus}>
+        <NativeFocusView testID="dialog-child" />
+      </NativeFocusView>
+    </NativeDialogFocusScope>
+  )
+  await render(f.node({}, extra))
+  await f.ready()
+  await flush()
+  const binding = row("panel-floating-host").props.dialogScopes[0]
+  expect(binding).toMatchObject({ targetTag: findNodeHandle(f.panel.current), enabled: true, entryAllowed: false })
+  expect(binding.entryTargets).toEqual([
+    expect.objectContaining({ targetTag: findNodeHandle(dialog.current), allowed: true }),
+  ])
+  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+  expect(onFocus).not.toHaveBeenCalled()
+  const original = dialog.current
+  await observe("explicit-dialog", original!)
+  expect(onFocus).toHaveBeenCalledTimes(1)
+  expect(dialog.current).toBe(original)
+  expect(row("first").props.keyboardFocusable).toBe(true)
+})
+
+it("keeps the enclosing native containment lease after removing its requesting Dialog without replacing sibling targets", async () => {
+  const f = setup(),
+    dialog = createRef<View>()
+  const extra = (
+    <NativeDialogFocusScope rootRef={dialog}>
+      <NativeFocusView ref={dialog} testID="explicit-dialog" />
+    </NativeDialogFocusScope>
+  )
+  const result = await render(f.node({}, extra))
+  await f.ready()
+  await flush()
+  const first = f.first.current,
+    second = f.second.current
+  const binding = row("panel-floating-host").props.dialogScopes[0]
+  await result.rerender(f.node())
+  const retained = row("panel-floating-host").props.dialogScopes[0]
+  expect(retained.bindingId).toBe(binding.bindingId)
+  expect(retained.targetTag).toBe(binding.targetTag)
+  expect(retained.entryTargets).toEqual([])
+  expect(retained.enabled).toBe(true)
+  expect(f.first.current).toBe(first)
+  expect(f.second.current).toBe(second)
+})
+
+it("keeps explicit parent entry authoritative through its actual native observation", async () => {
+  const f = setup(),
+    dialog = createRef<View>()
+  const extra = (
+    <NativeDialogFocusScope rootRef={dialog}>
+      <NativeFocusView ref={dialog} testID="explicit-dialog" />
+    </NativeDialogFocusScope>
+  )
+  await render(f.node({ initialFocusRef: f.first }, extra))
+  await f.ready()
+  await flush()
+  expect(Commands.requestKeyboardFocus).toHaveBeenLastCalledWith(f.first.current, row("first").props.ownerId)
+  expect(row("panel-floating-host").props.dialogScopes[0].entryTargets[0].allowed).toBe(false)
+  await observe("first", f.first.current!)
+  expect(row("panel-floating-host").props.dialogScopes[0].entryTargets[0].allowed).toBe(false)
+  expect(Commands.requestKeyboardFocus).toHaveBeenCalledTimes(1)
+})
+
+it("keeps an authored raw portal outside the enclosing Dialog boundary", async () => {
+  const f = setup(),
+    dialog = createRef<View>(),
+    authored = createRef<View>()
+  const AuthoredPortal = () => {
+    const host = useNativeFloatingHost()
+    return (
+      <Portal hostName={host.name}>
+        <NativeFocusView testID="authored-portal-target" ref={authored} />
+      </Portal>
+    )
+  }
+  await render(
+    f.node(
+      {},
+      <NativeDialogFocusScope rootRef={dialog}>
+        <NativeFocusView testID="explicit-dialog" ref={dialog}>
+          <AuthoredPortal />
+        </NativeFocusView>
+      </NativeDialogFocusScope>,
+    ),
+  )
+  await f.ready()
+  await flush()
+  expect(authored.current).not.toBeNull()
+  const binding = row("panel-floating-host").props.dialogScopes[0]
+  expect(binding.memberTargets.map((member: { targetTag: number }) => member.targetTag)).not.toContain(
+    findNodeHandle(authored.current),
+  )
 })

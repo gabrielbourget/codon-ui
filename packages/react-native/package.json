@@ -81,9 +81,13 @@
       "modulesProvider": {
         "CUIMotionSnapshot": "CUIMotionSnapshot",
         "CUIFormDocument": "CUIFormDocument",
-        "CUIEditorKeyboardDefaults": "CUIEditorKeyboardDefaults"
+        "CUIEditorKeyboardDefaults": "CUIEditorKeyboardDefaults",
+        "CUIDragAndDrop": "CUIDragAndDrop"
       },
       "componentProvider": {
+        "CUIOverlaySlot": "CUIOverlaySlot",
+        "CUIOverlayViewport": "CUIOverlayViewport",
+        "CUIOverlayHost": "CUIOverlayHost",
         "CUIFocusView": "CUIFocusView",
         "CUIKeyboardScope": "CUIKeyboardScope",
         "CUICollectionRoot": "CUICollectionRoot",

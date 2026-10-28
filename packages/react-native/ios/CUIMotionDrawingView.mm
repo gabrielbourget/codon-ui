@@ -1,5 +1,6 @@
 // CUI-owned rendering adaptation of RN0.86.3; see cpp/motion/UPSTREAM.json and its RN license.
 #import "CUIMotionDrawingView.h"
+#import "CUIForegroundRenderer.h"
 #import "CUIMotionDrawingGeometry.h"
 #import "CUIMotionContinuousCorners.h"
 #import "CUIMotionMaskGeometry.h"
@@ -71,7 +72,7 @@ static void RCTAddContourEffectToLayer(
       curves.bottomLeft == BorderCurve::Circular && curves.bottomRight == BorderCurve::Circular;
   UIImage *image = circular
       ? RCTGetBorderImage(contourStyle, layer.bounds.size, cornerRadii, contourInsets, contourColors, [UIColor clearColor], NO)
-      : CUIGetBorderImage(contourStyle, layer.bounds.size, cornerRadii, contourInsets, contourColors, [UIColor clearColor], NO, curves);
+      : CUIGetBorderImage(contourStyle, layer.bounds.size, cornerRadii, contourInsets, contourColors, [UIColor clearColor], NO, curves, YES);
 
   if (image == nil) {
     layer.contents = nil;
@@ -233,6 +234,8 @@ static CUIMotionCornerCurves CUIUniformCornerCurve(BorderCurve curve) {
 
 @implementation CUIMotionDrawingView {
   BOOL _cuiDrawingEnabled;
+  CUIForegroundRenderer *_cuiForeground;
+  CGFloat _cuiPaintOpacity;
   BOOL _cuiModeDecided;
   BOOL _cuiDrawingDirty;
   NSDictionary *_cuiRadii;
@@ -253,6 +256,31 @@ static CUIMotionCornerCurves CUIUniformCornerCurve(BorderCurve curve) {
   _cuiDrawingEnabled = enabled;
 }
 
+- (void)setCuiForegroundEnabled:(BOOL)enabled {
+  if (enabled && !_cuiForeground) {
+    if (self.subviews.count) @throw [NSException exceptionWithName:@"CUI.Foreground" reason:@"Foreground ownership must precede original child mounting" userInfo:nil];
+    _cuiForeground = [[CUIForegroundRenderer alloc] initWithOwner:self];
+    _cuiPaintOpacity = 1;
+  }
+  if (!enabled && _cuiForeground) @throw [NSException exceptionWithName:@"CUI.Foreground" reason:@"Foreground ownership must be stable" userInfo:nil];
+}
+- (void)setCuiPaintOpacity:(CGFloat)opacity {
+  _cuiPaintOpacity = opacity;
+  if (_cuiForeground) [_cuiForeground configure:*_props paintOpacity:_cuiPaintOpacity];
+}
+- (void)updateProps:(const Props::Shared &)props oldProps:(const Props::Shared &)oldProps {
+  [super updateProps:props oldProps:oldProps];
+  if (_cuiForeground) {
+    CALayer *source = _cuiForeground.source.layer;
+    source.shadowColor = RCTUIColorFromSharedColor(_props->shadowColor).CGColor;
+    source.shadowOffset = CGSizeMake(_props->shadowOffset.width, _props->shadowOffset.height);
+    source.shadowOpacity = _props->shadowOpacity; source.shadowRadius = _props->shadowRadius;
+    self.layer.shadowOpacity = 0;
+    [_cuiForeground configure:*_props paintOpacity:_cuiPaintOpacity];
+  }
+}
+- (void)didMoveToWindow { [super didMoveToWindow]; [_cuiForeground synchronize]; }
+- (void)layoutSubviews { [super layoutSubviews]; [_cuiForeground synchronize]; }
 - (void)setCuiProjectionRadii:(NSString *)encoded {
   NSData *data = [encoded dataUsingEncoding:NSUTF8StringEncoding];
   NSError *error = nil;
@@ -308,13 +336,16 @@ static CUIMotionCornerCurves CUIUniformCornerCurve(BorderCurve curve) {
   if (_cuiDrawingEnabled) {
     _cuiContainerView.frame = (CGRect){CGPointZero, self.bounds.size};
     [_cuiSwiftUIWrapper updateLayoutWithBounds:self.bounds];
+    [_cuiForeground synchronize];
   }
 }
 - (void)finalizeUpdates:(RNComponentViewUpdateMask)mask {
   [super finalizeUpdates:mask];
   if (_cuiDrawingEnabled && _cuiDrawingDirty) [self invalidateLayer];
+  [_cuiForeground synchronize];
 }
 - (void)prepareForRecycle {
+  [_cuiForeground retire]; _cuiForeground = nil;
   UIView *content = _cuiSwiftUIWrapper ? _cuiSwiftUIWrapper.contentView : self;
   if (_cuiContainerView) {
     for (UIView *child in [_cuiContainerView.subviews copy]) [content addSubview:child];
@@ -351,6 +382,7 @@ static CUIMotionCornerCurves CUIUniformCornerCurve(BorderCurve curve) {
 // SwiftUI wrapper.
 - (UIView *)effectiveContentView
 {
+  if (_cuiForeground) return _cuiForeground.source;
   if (!_cuiDrawingEnabled) return [super effectiveContentView];
   if (!ReactNativeFeatureFlags::enableSwiftUIBasedFilters()) {
     return self;
@@ -603,7 +635,7 @@ static CUIMotionCornerCurves CUIUniformCornerCurve(BorderCurve curve) {
     [_cuiSwiftUIWrapper resetStyles];
   }
   self.layer.opacity = (float)_props->opacity;
-  if (!_props->filter.empty()) {
+  if (!_cuiForeground && !_props->filter.empty()) {
     float multiplicativeBrightness = 1;
     bool hasBrightnessFilter = false;
     for (const auto &primitive : _props->filter) {
@@ -666,6 +698,8 @@ static CUIMotionCornerCurves CUIUniformCornerCurve(BorderCurve curve) {
       [layer addSublayer:_cuiFilterLayer];
     }
   }
+
+  if (_cuiForeground) { self.layer.opacity = 1; [_cuiForeground synchronize]; }
 
   // background image
   [self clearExistingCuiBackgroundImageLayers];
@@ -826,7 +860,7 @@ static CUIMotionCornerCurves CUIUniformCornerCurve(BorderCurve curve) {
           reason:@"Native continuous mask parameters unavailable" userInfo:nil];
     return mask;
   }
-  CGPathRef path = CUIPathCreateWithRoundedRect(bounds, cornerInsets, curves);
+  CGPathRef path = CUIPathCreateWithRoundedRect(bounds, cornerInsets, curves, NO, YES);
   CAShapeLayer *maskLayer = CUICreateOwnedShapeMask(path);
   CGPathRelease(path);
   return maskLayer;

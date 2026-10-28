@@ -1,5 +1,5 @@
 import { useRef, useState, type Ref, type RefObject } from "react"
-import { View, type TextInput } from "react-native"
+import { DynamicColorIOS, Platform, PlatformColor, View, type TextInput, type ViewStyle } from "react-native"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 
 import {
@@ -13,6 +13,11 @@ import {
   type TNativeBackdropAdapter,
 } from "../../../.."
 import { Panel } from "../../Panel"
+
+const nativeForeground =
+  Platform.OS === "ios" ? PlatformColor("labelColor") : PlatformColor("?android:attr/textColorPrimary")
+const nativeBackground =
+  Platform.OS === "ios" ? DynamicColorIOS({ light: "lavender", dark: "navy" }) : PlatformColor("@android:color/black")
 
 export const PanelFixture = ({
   adapter,
@@ -28,9 +33,20 @@ export const PanelFixture = ({
   const [right, setRight] = useState(false)
   const [blur, setBlur] = useState(false)
   const [expanded, setExpanded] = useState(false)
+  const [cornerPose, setCornerPose] = useState(0)
+  const [nativeColors, setNativeColors] = useState(false)
   const [mode, setMode] = useState<"light" | "dark">("light")
   const [requests, setRequests] = useState(0)
   const [focused, setFocused] = useState("None observed")
+  const [sourcePose, setSourcePose] = useState(0)
+  const sourceTransform: ViewStyle["transform"] =
+    sourcePose === 0
+      ? undefined
+      : sourcePose === 1
+        ? [{ scale: 0.85 }, { rotate: "8deg" }]
+        : sourcePose === 2
+          ? [{ perspective: 700 }, { rotateY: "18deg" }, { rotateZ: "6deg" }]
+          : [{ scaleX: -1 }]
   const localOpener = useRef<View>(null)
   const opener = openerRef ?? localOpener
   const closeTarget = useRef<View>(null)
@@ -43,7 +59,7 @@ export const PanelFixture = ({
     <SafeAreaProvider>
       <NativeThemeProvider mode={mode}>
         <NativeOverlayProvider backdropAdapter={adapter}>
-          <Root testID="panel-scene-root" style={{ flex: 1 }}>
+          <Root testID="panel-scene-root" style={{ flex: 1, transform: sourceTransform }}>
             <NativeFloatingLayerHost testID="panel-scene-window">
               <Button
                 ref={opener}
@@ -60,8 +76,11 @@ export const PanelFixture = ({
                   setRight(false)
                   setBlur(false)
                   setExpanded(false)
+                  setCornerPose(0)
+                  setNativeColors(false)
                   setRequests(0)
                   setFocused("None observed")
+                  setSourcePose(0)
                 }}
               >
                 Reset panel scene
@@ -78,10 +97,25 @@ export const PanelFixture = ({
                 position={right ? "right" : "left"}
                 horizontalGap={expanded ? 12 : 0}
                 width={expanded ? 360 : undefined}
-                backgroundColor={expanded ? "lavender" : undefined}
+                backgroundColor={nativeColors ? nativeBackground : expanded ? "lavender" : undefined}
                 panelGeometry="rounded"
                 overlayBlur={blur}
-                customStyles={{ color: expanded ? "teal" : "navy", borderRadius: expanded ? 20 : undefined }}
+                customStyles={{
+                  color: nativeColors ? nativeForeground : expanded ? "teal" : "navy",
+                  borderRadius: expanded ? 20 : undefined,
+                  padding: expanded ? 20 : 0,
+                  gap: expanded ? "4%" : 2,
+                  borderWidth: expanded ? 2 : 0,
+                  borderColor: expanded ? "teal" : "navy",
+                  fontSize: expanded ? 22 : 16,
+                  letterSpacing: expanded ? 1 : 0,
+                  ...(cornerPose === 1
+                    ? { borderTopLeftRadius: "35%", borderBottomRightRadius: 8 }
+                    : cornerPose === 2
+                      ? { borderTopLeftRadius: 12, borderBottomRightRadius: "45%" }
+                      : {}),
+                }}
+                raised={expanded}
               >
                 <Text>Arbitrary panel content</Text>
                 <Input ref={inputRef} accessibilityLabel="Held query" value="" onChange={() => {}} />
@@ -89,8 +123,18 @@ export const PanelFixture = ({
                 <Button onPress={() => setVeto(!veto)}>Toggle veto</Button>
                 <Button onPress={() => setRight(!right)}>Toggle physical side</Button>
                 <Button onPress={() => setExpanded(!expanded)}>Toggle panel appearance</Button>
+                <Button onPress={() => setCornerPose((value) => (value + 1) % 3)}>Cycle panel corners</Button>
+                <Button onPress={() => setNativeColors((value) => !value)}>Toggle native panel colors</Button>
                 <Button onPress={() => setMode(mode === "light" ? "dark" : "light")}>Toggle scene theme</Button>
                 {adapter && <Button onPress={() => setBlur(!blur)}>Toggle configured blur</Button>}
+                {adapter && (
+                  <>
+                    <Text>Backdrop source pose: {sourcePose}</Text>
+                    <Button onPress={() => setSourcePose((value) => (value + 1) % 4)}>
+                      Cycle backdrop source transform
+                    </Button>
+                  </>
+                )}
                 <Button
                   ref={closeTarget}
                   testID="panel-close"

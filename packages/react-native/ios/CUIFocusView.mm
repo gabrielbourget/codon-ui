@@ -1,4 +1,6 @@
 #import "CUIFocusView.h"
+#include "../cpp/overlay/NativeTypographyScope.h"
+#import "CUIDialogFocusScopes.h"
 #import "CUIAccessibilityReferences.h"
 #import "CUICollectionRoot.h"
 #import "CUIInputWindow.h"
@@ -138,12 +140,13 @@ using namespace facebook::react;
 
 + (ComponentDescriptorProvider)componentDescriptorProvider
 {
-  return concreteComponentDescriptorProvider<CUIFocusViewComponentDescriptor>();
+  return concreteComponentDescriptorProvider<CUIOwnedTypographyFocusComponentDescriptor>();
 }
 
 - (instancetype)initWithFrame:(CGRect)frame
 {
   if (self = [super initWithFrame:frame]) {
+    CUIRegisterVirtualDragAccessibilitySource(self,self);
     _props = std::make_shared<const CUIFocusViewProps>();
     _keyboardFocusable = YES;
     _nativeTabStop = YES;
@@ -301,14 +304,29 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
   return parent;
 }
 
+- (BOOL)cuiAppliesVirtualDragAccessibilityProjection { return YES; }
+- (UIView *)cuiOriginalViewForAccessibilityElement:(id)element { return [element isKindOfClass:UIView.class] ? element : nil; }
+- (NSArray *)accessibilityElements
+{
+  if (RCTAccessibilityProjectionForView(self)==RCTAccessibilityProjectionOriginal || ![self isListRoot]) return [super accessibilityElements];
+  NSArray *items=[[self listItems] sortedArrayUsingComparator:^NSComparisonResult(CUIFocusView *left,CUIFocusView *right) {
+    NSInteger a=CUICollectionInteger(left->_nativeCollectionSemantics,@"ordinal"), b=CUICollectionInteger(right->_nativeCollectionSemantics,@"ordinal");
+    return a<b ? NSOrderedAscending : a>b ? NSOrderedDescending : NSOrderedSame;
+  }];
+  return CUIProjectVirtualDragAccessibilityChildren(self,self,items);
+}
 - (NSInteger)accessibilityElementCount
 {
+  if (RCTAccessibilityProjectionForView(self)!=RCTAccessibilityProjectionOriginal) return self.accessibilityElements.count;
   if (![_nativeCollectionSemantics[@"kind"] isEqual:@"list-root"]) return [super accessibilityElementCount];
   return [self isListRoot] ? CUICollectionInteger(_nativeCollectionSemantics, @"count") : 0;
 }
 
 - (id)accessibilityElementAtIndex:(NSInteger)index
 {
+  if (RCTAccessibilityProjectionForView(self)!=RCTAccessibilityProjectionOriginal) {
+    NSArray *elements=self.accessibilityElements; return index>=0 && index<elements.count ? elements[index] : nil;
+  }
   if (![_nativeCollectionSemantics[@"kind"] isEqual:@"list-root"]) return [super accessibilityElementAtIndex:index];
   if (![self isListRoot]) return nil;
   if (index < 0 || index >= [self accessibilityElementCount]) return nil;
@@ -319,6 +337,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 
 - (NSInteger)indexOfAccessibilityElement:(id)element
 {
+  if (RCTAccessibilityProjectionForView(self)!=RCTAccessibilityProjectionOriginal) return [self.accessibilityElements indexOfObjectIdenticalTo:element];
   if (![_nativeCollectionSemantics[@"kind"] isEqual:@"list-root"]) return [super indexOfAccessibilityElement:element];
   if (![self isListRoot]) return NSNotFound;
   if (![element isKindOfClass:CUIFocusView.class] || [(CUIFocusView *)element listParent] != self) return NSNotFound;
@@ -392,7 +411,8 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 - (id<UIAccessibilityContainerDataTableCell>)accessibilityDataTableCellElementForRow:(NSUInteger)row column:(NSUInteger)column
 {
   for (CUIFocusView *cell in [self collectionCells])
-    if (NSLocationInRange(row, cell.accessibilityRowRange) && NSLocationInRange(column, cell.accessibilityColumnRange)) return cell;
+    if (NSLocationInRange(row, cell.accessibilityRowRange) && NSLocationInRange(column, cell.accessibilityColumnRange)
+      && RCTAccessibilityProjectionForView(cell)!=RCTAccessibilityProjectionExcluded) return cell;
   return nil;
 }
 
@@ -413,7 +433,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
       }
     }
   }
-  return (NSArray<id<UIAccessibilityContainerDataTableCell>> *)headers.array;
+  return (NSArray<id<UIAccessibilityContainerDataTableCell>> *)CUIProjectVirtualDragAccessibilityChildren(self,self,headers.array);
 }
 - (NSArray<id<UIAccessibilityContainerDataTableCell>> *)accessibilityHeaderElementsForRow:(NSUInteger)row { return [self collectionHeadersForIndex:row row:YES]; }
 - (NSArray<id<UIAccessibilityContainerDataTableCell>> *)accessibilityHeaderElementsForColumn:(NSUInteger)column { return [self collectionHeadersForIndex:column row:NO]; }
@@ -553,6 +573,11 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
   [_motionGeometry queryOwner:owner binding:binding requestId:requestId];
 }
 - (NSDictionary *)motionSnapshotIdentity { return [_motionGeometry snapshotIdentity]; }
+- (NSArray<NSNumber *> *)motionContentBox {
+  const auto insets = _layoutMetrics.contentInsets;
+  return @[@(insets.left), @(insets.top), @(MAX(0, self.bounds.size.width - insets.left - insets.right)),
+      @(MAX(0, self.bounds.size.height - insets.top - insets.bottom))];
+}
 - (void)mountingTransactionWillMount:(const MountingTransaction &)transaction withSurfaceTelemetry:(const SurfaceTelemetry &)surfaceTelemetry
 {
   [_motionGeometry captureKind:@"mount-before" requestId:@"" transaction:[NSString stringWithFormat:@"ios-surface:%d:mount:%lld", transaction.getSurfaceId(), (long long)transaction.getNumber()]];
@@ -605,6 +630,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 
 - (BOOL)accessibilityActivate
 {
+  if (!CUIAllowsVirtualDragInteraction(self)) return NO;
   if (!_nativePressable) return [super accessibilityActivate];
   CUIRecordMenuPointerVirtual(self.window);
   UIWindow *window = self.window;
@@ -635,7 +661,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
   return YES;
 }
 
-- (BOOL)canBecomeFocused { return _nativeTabStop && [self canBecomeFirstResponder]; }
+- (BOOL)canBecomeFocused { return _nativeTabStop && !CUIIsDialogFocusRoot(self) && [self canBecomeFirstResponder]; }
 - (BOOL)canBecomeFirstResponder { return _keyboardFocusable && self.window != nil && !self.hidden && self.alpha > 0; }
 - (NSString *)fieldInputOwnerId { return _ownerId; }
 - (void)synchronizeFieldInputFocus { [_focusWithin synchronize]; }
@@ -797,7 +823,8 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 - (void)pressesBegan:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event
 {
   NSSet *original = CUIFieldInputRemainingPresses(self, presses, @"down");
-  NSSet *remaining = [self processPresses:original down:YES cancelled:NO];
+  NSMutableSet *remaining = [[self processPresses:original down:YES cancelled:NO] mutableCopy];
+  for (UIPress *press in remaining.copy) if (CUIHandleDialogFocusPress(self, press)) [remaining removeObject:press];
   if (remaining.count) [super pressesBegan:remaining withEvent:event];
 }
 
@@ -841,6 +868,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 {
   const auto &next = *std::static_pointer_cast<const CUIFocusViewProps>(props);
   [self setCuiDrawingEnabled:next.nativeMotionDrawingOwner];
+  [self setCuiForegroundEnabled:next.nativeForegroundComposition];
   [self setCuiProjectionRadii:[NSString stringWithUTF8String:next.nativeMotionProjectionRadii.c_str()]];
   [_scrollAnchor prepareTag:next.nativeScrollAnchorTag key:[NSString stringWithUTF8String:next.nativeScrollAnchorKey.c_str()] revision:[NSString stringWithUTF8String:next.nativeScrollAnchorRevision.c_str()]];
   NSString *owner = [NSString stringWithUTF8String:next.ownerId.c_str()];

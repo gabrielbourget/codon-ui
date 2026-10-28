@@ -1,4 +1,4 @@
-import type { TPartialNativeTableFilteringLabels } from "../Table/filterLabels"
+import { resolveNativeTableFilteringLabels, type TPartialNativeTableFilteringLabels } from "../Table/filterLabels"
 
 import { resolveQueryControlLabels, type TPartialQueryControlLabels } from "./controlLabels"
 
@@ -39,7 +39,7 @@ export const resolveNativeSortAndFilterPanelLabels = (labels?: TPartialNativeSor
       ...labels?.activeFilters,
       joinOperators: { ...activeFilters.joinOperators, ...labels?.activeFilters?.joinOperators },
     },
-    filtering: labels?.filtering,
+    filtering: resolveNativeTableFilteringLabels(labels?.filtering),
     native: {
       closeSortCriteria: "Close sort criteria",
       closeFilterCriteria: "Close filter criteria",
@@ -48,3 +48,4 @@ export const resolveNativeSortAndFilterPanelLabels = (labels?: TPartialNativeSor
   }
 }
 export type TNativeSortAndFilterPanelLabels = ReturnType<typeof resolveNativeSortAndFilterPanelLabels>
+export const DEFAULT_NATIVE_SORT_AND_FILTER_PANEL_LABELS = resolveNativeSortAndFilterPanelLabels()

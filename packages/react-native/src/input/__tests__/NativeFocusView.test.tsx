@@ -1,7 +1,16 @@
 import { act, render, screen } from "@testing-library/react-native"
 import { createRef } from "react"
-import { TextInput, View, type NativeSyntheticEvent } from "react-native"
+import {
+  processColor,
+  Text as CoreText,
+  TextInput,
+  View,
+  type NativeSyntheticEvent,
+  type TextStyle,
+} from "react-native"
 
+import { NativeTextStyleProvider } from "../../components/NativeTextStyleProvider"
+import { NativeFloatingScopeContext } from "../../overlays/floating/scope"
 import { inspectNativeAccessibility, registerNativeAccessibilityInspector } from "../accessibilityInspection"
 import { nativeAccessibilityIDs } from "../accessibilityReferences"
 import { blurNativeTarget, focusNativeTarget, registerNativeFocusTarget } from "../focus"
@@ -432,3 +441,76 @@ it.each(["android", "ios"] as const)(
     expect(record.nativeEvent.observedAt).toBe(0)
   },
 )
+
+it("binds full inherited typography to the original generated host and retires it at a different window", async () => {
+  const root = createRef<View>(),
+    editor = createRef<TextInput>(),
+    changed = jest.fn()
+  const fields: TextStyle = {
+    color: "red",
+    fontFamily: "Original variable face",
+    fontSize: 19.25,
+    fontWeight: 750.123456789,
+    fontStyle: "italic",
+    fontVariant: ["tabular-nums"],
+    letterSpacing: 0,
+    lineHeight: 23.5,
+    textAlign: "right",
+    verticalAlign: "middle",
+    includeFontPadding: false,
+    textDecorationLine: "underline line-through",
+    textDecorationStyle: "dotted",
+    textDecorationColor: "blue",
+    textShadowColor: "green",
+    textShadowOffset: { width: -0.5, height: 1.25 },
+    textShadowRadius: 0,
+    textTransform: "uppercase",
+    writingDirection: "rtl",
+    userSelect: "none",
+    padding: 99,
+  }
+  const tree = (windowId: string, style: TextStyle) => (
+    <NativeFloatingScopeContext.Provider value={{ id: "original-window", canAct: () => true }}>
+      <NativeTextStyleProvider style={style}>
+        <NativeFloatingScopeContext.Provider value={{ id: windowId, canAct: () => true }}>
+          <NativeFocusHost ref={root} testID="focus">
+            <CoreText testID="original-core-text">Original text receiver</CoreText>
+            <TextInput ref={editor} testID="original-core-editor" value="" onChangeText={changed} />
+          </NativeFocusHost>
+        </NativeFloatingScopeContext.Provider>
+      </NativeTextStyleProvider>
+    </NativeFloatingScopeContext.Provider>
+  )
+  const view = await render(tree("original-window", fields))
+  const originalRoot = root.current,
+    originalEditor = editor.current,
+    originalText = screen.getByTestId("original-core-text")
+  expect(originalRoot).not.toBeNull()
+  expect(originalEditor).not.toBeNull()
+  expect(JSON.parse(host().props.nativeTypographyStyle)).toEqual({
+    ...fields,
+    color: processColor("red"),
+    textDecorationColor: processColor("blue"),
+    textShadowColor: processColor("green"),
+    textAlignVertical: "center",
+    selectable: false,
+    verticalAlign: undefined,
+    userSelect: undefined,
+    padding: undefined,
+  })
+  expect(host().props.nativeTypographyWindow).toBe("original-window")
+  expect(originalText.props.style).toBeUndefined()
+  await view.rerender(tree("original-window", { fontWeight: "normal", letterSpacing: 0 }))
+  expect(JSON.parse(host().props.nativeTypographyStyle)).toEqual({ fontWeight: "normal", letterSpacing: 0 })
+  await view.rerender(tree("different-window", fields))
+  expect(host().props.nativeTypographyStyle).toBeUndefined()
+  expect(host().props.nativeTypographyWindow).toBe("different-window")
+  expect(root.current).toBe(originalRoot)
+  expect(editor.current).toBe(originalEditor)
+  expect(screen.getByTestId("original-core-text")).toBe(originalText)
+  expect(screen.getByTestId("original-core-editor").props.value).toBe("")
+  expect(changed).not.toHaveBeenCalled()
+  await view.unmount()
+  expect(root.current).toBeNull()
+  expect(editor.current).toBeNull()
+})

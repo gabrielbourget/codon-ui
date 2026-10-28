@@ -1,10 +1,12 @@
-import { forwardRef, type ForwardRefExoticComponent, type ReactElement, type RefAttributes } from "react"
+import { forwardRef, useContext, type ForwardRefExoticComponent, type ReactElement, type RefAttributes } from "react"
 import { Text as RNText, type TextProps, type TextStyle } from "react-native"
 
+import { NativeFloatingScopeContext } from "../../overlays/floating/scope"
 import { useNativeTheme } from "../../theme"
 import { resolveNativeStyle, validateNativeColor } from "../colors"
-import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
+import { NativeContentContext, NativeTextLayoutContext, useNativeContentContext } from "../NativeContentContext"
 import { splitNativeTextStyle } from "../nativeTextStyle"
+import { useNativeInheritedTextStyle } from "../NativeTextStyleProvider"
 
 import type { TNativeTextProps, TNativeTextRef } from "./types"
 
@@ -35,6 +37,10 @@ export const NativeText = forwardRef<TNativeTextRef, TNativeTextProps & { native
   ) => {
     const theme = useNativeTheme()
     const content = useNativeContentContext()
+    const inherited = useNativeInheritedTextStyle()
+    const textLayout = useContext(NativeTextLayoutContext)
+    const windowId = useContext(NativeFloatingScopeContext)?.id ?? null
+    const currentTextLayout = textLayout?.windowId === windowId ? textLayout : undefined
     const foreground = color ?? content?.foregroundColor ?? theme.colors.foreground
     validateNativeColor(foreground, "Text", "color")
     const family = variant.startsWith("d") ? "display" : variant.startsWith("h") ? "heading" : "body"
@@ -44,16 +50,15 @@ export const NativeText = forwardRef<TNativeTextRef, TNativeTextProps & { native
       color: foreground,
       fontSize: theme.typography.fontSizes[variant],
       fontWeight: theme.typography.fontWeights[fontWeight],
-      fontStyle: fontStyle ?? "normal",
+      fontStyle: fontStyle ?? inherited?.fontStyle ?? "normal",
       fontFamily: theme.typography.fontFamilies[family] ?? theme.typography.fontFamilies.body,
       lineHeight: theme.typography.lineHeight,
     }
-    const merged = resolveNativeStyle([defaultStyle, custom, final], "Text", "resolvedStyle")
+    const computed = { ...inherited, ...defaultStyle }
+    const merged = resolveNativeStyle([computed, custom, final], "Text", "resolvedStyle")
     const resolved: TextStyle = {
       ...merged,
-      ...Object.fromEntries(
-        Object.entries(defaultStyle).filter(([key]) => merged[key as keyof TextStyle] === undefined),
-      ),
+      ...Object.fromEntries(Object.entries(computed).filter(([key]) => merged[key as keyof TextStyle] === undefined)),
     }
     const semanticRole: TextProps["role"] =
       role ??
@@ -67,6 +72,8 @@ export const NativeText = forwardRef<TNativeTextRef, TNativeTextProps & { native
 
     const nativeProps: TextProps & RefAttributes<TNativeTextRef> = {
       ...rest,
+      numberOfLines: rest.numberOfLines ?? currentTextLayout?.numberOfLines,
+      ellipsizeMode: rest.ellipsizeMode ?? currentTextLayout?.ellipsizeMode,
       ref,
       role: semanticRole,
       accessibilityRole,

@@ -1,14 +1,12 @@
 import { useRef, type ReactNode, type RefObject } from "react"
 import { View, type StyleProp, type TextStyle } from "react-native"
 
-import { NativeFocusView } from "../../input/NativeFocusView"
 import { useNativeTheme } from "../../theme"
-import { resolveNativeStyle } from "../colors"
 import { useFilterRequest } from "../Filtering/requests"
 import { FormField } from "../FormField/FormField"
 import { LineSegment } from "../LineSegment/LineSegment"
 import { NativeContentContext } from "../NativeContentContext"
-import { splitNativeTextStyle } from "../nativeTextStyle"
+import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
 import { NativePanelFocusIntentContext } from "../Panel/focus"
 import { Panel } from "../Panel/Panel"
 import type { TNativePanelProps } from "../Panel/types"
@@ -19,6 +17,7 @@ import { QueryActiveFilters } from "./ActiveFilters"
 import { useNativeQueryDraftController, type TNativeQueryControllerProps } from "./controller"
 import { resolveNativeSortAndFilterPanelLabels, type TPartialNativeSortAndFilterPanelLabels } from "./labels"
 import { QueryActiveSorts, QueryPanelFooter, QueryPanelHeader, QuerySortCriteriaField } from "./QueryControls"
+import { QueryPanelDialog, resolveQueryDialogStyle } from "./QueryDialog"
 import { QuerySortParameterList } from "./SortParameterList"
 
 export const NATIVE_QUERY_FOCUS_TARGETS = ["sort", "filter"] as const
@@ -59,32 +58,17 @@ const QueryPanelBody = ({
   const theme = useNativeTheme()
   const controller = useNativeQueryDraftController(props)
   const request = useFilterRequest({ ...props, canAct: () => props.isOpen })
-  const style = splitNativeTextStyle(
-    resolveNativeStyle(
-      [
-        {
-          height: "100%",
-          width: "100%",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: theme.spacing.unit * 2,
-          padding: theme.spacing.unit * 2,
-        },
-        props.customDialogStyles,
-      ],
-      "SortAndFilterPanel",
-      "customDialogStyles",
-    ),
-  )
+  const style = resolveQueryDialogStyle(props.customDialogStyles, theme)
   const separator = <LineSegment color={theme.colors.controlBorder} height={1} size="100%" />
-  return (
+  const content = (
     <NativeContentContext.Provider
       value={{ foregroundColor: style.text.color ?? theme.colors.foreground, isButton: false }}
     >
-      <NativeFocusView
+      <QueryPanelDialog
         testID="query-panel-dialog"
         role="dialog"
         accessible={false}
+        nativeTabStop={false}
         accessibilityLabel={props.title}
         style={style.view}
       >
@@ -161,9 +145,10 @@ const QueryPanelBody = ({
           onCancelPendingChanges={controller.cancel}
           onApplyPendingChanges={controller.apply}
         />
-      </NativeFocusView>
+      </QueryPanelDialog>
     </NativeContentContext.Provider>
   )
+  return <NativeTextStyleProvider style={style.text}>{content}</NativeTextStyleProvider>
 }
 
 // Private compound view; parent sort collection/reorder, temporal and native acceptance remain required.

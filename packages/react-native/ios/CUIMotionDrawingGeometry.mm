@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <iterator>
 #include <vector>
 
 static BOOL CUIHasContinuous(const CUIMotionCornerCurves &curves) {
@@ -23,7 +24,7 @@ static BOOL CUIHasContinuous(const CUIMotionCornerCurves &curves) {
 }
 
 CGPathRef CUIPathCreateWithRoundedRect(
-    CGRect bounds, RCTCornerInsets insets, const CUIMotionCornerCurves &curves, BOOL inverted) {
+    CGRect bounds, RCTCornerInsets insets, const CUIMotionCornerCurves &curves, BOOL inverted, BOOL permitsNativeCircularContour) {
   if (!CUIHasContinuous(curves)) return RCTPathCreateWithRoundedRect(bounds, insets, nil, inverted);
   using facebook::react::BorderCurve;
   NSUInteger corners = (curves.topLeft == BorderCurve::Continuous ? UIRectCornerTopLeft : 0) |
@@ -33,6 +34,15 @@ CGPathRef CUIPathCreateWithRoundedRect(
   UIBezierPath *path = [CUIMotionContinuousCorners pathForBounds:bounds
       topLeft:insets.topLeft topRight:insets.topRight bottomLeft:insets.bottomLeft bottomRight:insets.bottomRight
       continuousCorners:corners];
+  if (!path && permitsNativeCircularContour && NSThread.isMainThread &&
+      std::isfinite(bounds.origin.x) && std::isfinite(bounds.origin.y)) {
+    const CGFloat dimensions[] = {bounds.size.width, bounds.size.height,
+        insets.topLeft.width, insets.topLeft.height, insets.topRight.width, insets.topRight.height,
+        insets.bottomLeft.width, insets.bottomLeft.height, insets.bottomRight.width, insets.bottomRight.height};
+    const BOOL valid = std::all_of(std::begin(dimensions), std::end(dimensions),
+        [](CGFloat value) { return std::isfinite(value) && value >= 0; });
+    if (valid) return RCTPathCreateWithRoundedRect(bounds, insets, nil, inverted);
+  }
   if (!path)
     @throw [NSException exceptionWithName:@"CUI.MotionDrawing"
         reason:@"Exact mixed continuous corner overlap or native path extraction remains unproved" userInfo:nil];
@@ -85,13 +95,13 @@ NS_INLINE BOOL RCTCornerRadiiAreAboveThreshold(RCTCornerRadii cornerRadii)
       cornerRadii.bottomRightVertical > RCTViewBorderThreshold);
 }
 
-static CGPathRef CUIPathCreateOuterOutline(BOOL drawToEdge, CGRect rect, RCTCornerRadii cornerRadii, const CUIMotionCornerCurves &curves)
+static CGPathRef CUIPathCreateOuterOutline(BOOL drawToEdge, CGRect rect, RCTCornerRadii cornerRadii, const CUIMotionCornerCurves &curves, BOOL permitsNativeCircularContour)
 {
   if (drawToEdge) {
     return CGPathCreateWithRect(rect, NULL);
   }
 
-  return CUIPathCreateWithRoundedRect(rect, RCTGetCornerInsets(cornerRadii, UIEdgeInsetsZero), curves, NO);
+  return CUIPathCreateWithRoundedRect(rect, RCTGetCornerInsets(cornerRadii, UIEdgeInsetsZero), curves, NO, permitsNativeCircularContour);
 }
 
 static UIGraphicsImageRenderer *
@@ -197,7 +207,7 @@ static UIImage *CUIGetSolidBorderImage(
     UIEdgeInsets borderInsets,
     RCTBorderColors borderColors,
     UIColor *backgroundColor,
-    BOOL drawToEdge, const CUIMotionCornerCurves &curves)
+    BOOL drawToEdge, const CUIMotionCornerCurves &curves, BOOL permitsNativeCircularContour)
 {
   const BOOL hasCornerRadii = RCTCornerRadiiAreAboveThreshold(cornerRadii);
   const RCTCornerInsets cornerInsets = RCTGetCornerInsets(cornerRadii, borderInsets);
@@ -239,7 +249,7 @@ static UIImage *CUIGetSolidBorderImage(
   UIImage *image = [imageRenderer imageWithActions:^(UIGraphicsImageRendererContext *_Nonnull rendererContext) {
     const CGContextRef context = rendererContext.CGContext;
     const CGRect rect = {.size = size};
-    CGPathRef path = CUIPathCreateOuterOutline(drawToEdge, rect, cornerRadii, curves);
+    CGPathRef path = CUIPathCreateOuterOutline(drawToEdge, rect, cornerRadii, curves, permitsNativeCircularContour);
 
     if (backgroundColor) {
       CGContextSetFillColorWithColor(context, backgroundColor.CGColor);
@@ -251,7 +261,7 @@ static UIImage *CUIGetSolidBorderImage(
     CGPathRelease(path);
 
     CGPathRef insetPath =
-        CUIPathCreateWithRoundedRect(UIEdgeInsetsInsetRect(rect, borderInsets), cornerInsets, curves, NO);
+        CUIPathCreateWithRoundedRect(UIEdgeInsetsInsetRect(rect, borderInsets), cornerInsets, curves, NO, permitsNativeCircularContour);
 
     CGContextAddPath(context, insetPath);
     CGContextEOClip(context);
@@ -475,7 +485,7 @@ static UIImage *CUIGetDashedOrDottedBorderImage(
     UIEdgeInsets borderInsets,
     RCTBorderColors borderColors,
     UIColor *backgroundColor,
-    BOOL drawToEdge, const CUIMotionCornerCurves &curves)
+    BOOL drawToEdge, const CUIMotionCornerCurves &curves, BOOL permitsNativeCircularContour)
 {
   NSCParameterAssert(borderStyle == RCTBorderStyleDashed || borderStyle == RCTBorderStyleDotted);
 
@@ -497,7 +507,7 @@ static UIImage *CUIGetDashedOrDottedBorderImage(
     const CGRect rect = {.size = viewSize};
 
     if (backgroundColor) {
-      CGPathRef outerPath = CUIPathCreateOuterOutline(drawToEdge, rect, cornerRadii, curves);
+      CGPathRef outerPath = CUIPathCreateOuterOutline(drawToEdge, rect, cornerRadii, curves, permitsNativeCircularContour);
       CGContextAddPath(context, outerPath);
       CGPathRelease(outerPath);
 
@@ -510,7 +520,7 @@ static UIImage *CUIGetDashedOrDottedBorderImage(
     // reaches the edge of the rect.
     CGRect pathRect = CGRectInset(rect, lineWidth / 2.0, lineWidth / 2.0);
     CGPathRef path =
-        CUIPathCreateWithRoundedRect(pathRect, RCTGetCornerInsets(cornerRadii, UIEdgeInsetsZero), curves, NO);
+        CUIPathCreateWithRoundedRect(pathRect, RCTGetCornerInsets(cornerRadii, UIEdgeInsetsZero), curves, NO, permitsNativeCircularContour);
 
     if (!RCTBorderInsetsAreEqual(borderInsets)) {
       CGContextSaveGState(context);
@@ -527,7 +537,7 @@ static UIImage *CUIGetDashedOrDottedBorderImage(
 
         // The padding edge (inner border) radius is the outer border radius minus the corresponding border thickness
         CGPathRef innerRoundedRect =
-            CUIPathCreateWithRoundedRect(insetRect, RCTGetCornerInsets(cornerRadii, borderInsets), curves, NO);
+            CUIPathCreateWithRoundedRect(insetRect, RCTGetCornerInsets(cornerRadii, borderInsets), curves, NO, permitsNativeCircularContour);
 
         // Add both paths to outerPath
         CGPathAddPath(outerPath, NULL, innerRoundedRect);
@@ -563,15 +573,15 @@ UIImage *CUIGetBorderImage(
     UIEdgeInsets borderInsets,
     RCTBorderColors borderColors,
     UIColor *backgroundColor,
-    BOOL drawToEdge, const CUIMotionCornerCurves &curves)
+    BOOL drawToEdge, const CUIMotionCornerCurves &curves, BOOL permitsNativeCircularContour)
 {
   switch (borderStyle) {
     case RCTBorderStyleSolid:
-      return CUIGetSolidBorderImage(cornerRadii, viewSize, borderInsets, borderColors, backgroundColor, drawToEdge, curves);
+      return CUIGetSolidBorderImage(cornerRadii, viewSize, borderInsets, borderColors, backgroundColor, drawToEdge, curves, permitsNativeCircularContour);
     case RCTBorderStyleDashed:
     case RCTBorderStyleDotted:
       return CUIGetDashedOrDottedBorderImage(
-          borderStyle, cornerRadii, viewSize, borderInsets, borderColors, backgroundColor, drawToEdge, curves);
+          borderStyle, cornerRadii, viewSize, borderInsets, borderColors, backgroundColor, drawToEdge, curves, permitsNativeCircularContour);
     case RCTBorderStyleUnset:
       break;
   }

@@ -107,3 +107,17 @@ export const focusNativeContainer = (target: TTarget | null): boolean => {
   return true
 }
 export const blurNativeTarget = (target: TTarget | null): boolean => request(target, "blur")
+
+// Pinned RN ReadOnlyNode childNodes are original native hosts, not a JS hierarchy mirror.
+export const containsNativeView = (root: View, target: TTarget): boolean => {
+  const visited = new Set<object>()
+  const contains = (node: object): boolean => {
+    if (node === target) return true
+    if (visited.has(node)) return false
+    visited.add(node)
+    for (const child of (node as { readonly childNodes?: Iterable<object> }).childNodes ?? [])
+      if (contains(child)) return true
+    return false
+  }
+  return contains(root)
+}

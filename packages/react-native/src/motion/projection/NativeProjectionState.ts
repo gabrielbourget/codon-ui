@@ -198,8 +198,9 @@ export class NativeProjectionState implements TNativePopRoot {
     this.listeners.forEach((listener) => listener())
   }
   private updateValues = () => {
-    const values = { ...this.authored, ...this.owner.latestValues }
-    for (const key of Object.keys(this.latest)) if (!(key in values)) delete this.latest[key]
+    const values: Record<string, unknown> = { ...this.authored, ...this.owner.latestValues }
+    for (const key of Object.keys(this.latest))
+      if (typeof values[key] !== "string" && typeof values[key] !== "number") delete this.latest[key]
     for (const [key, value] of Object.entries(values))
       if (typeof value === "string" || typeof value === "number") this.latest[key] = value
     if (this.node) {
@@ -347,7 +348,12 @@ export class NativeProjectionState implements TNativePopRoot {
         this.publish(style, node.isVisible, radii)
       },
     }
-    const getStyle = () => this.authored
+    const getStyle = () => {
+      const boxShadow = this.owner.latestValues.boxShadow
+      return boxShadow === undefined
+        ? this.authored
+        : { ...this.authored, boxShadow: boxShadow as NativeProjectionStyle["boxShadow"] }
+    }
     const getReducedMotion = () => this.owner.shouldReduceMotion
     const visual: VisualElement = {
       props: {

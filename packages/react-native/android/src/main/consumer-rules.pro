@@ -10,6 +10,7 @@
 }
 -keepclassmembers class com.facebook.react.fabric.FabricUIManager {
   com.facebook.react.fabric.FabricUIManagerBinding mBinding;
+  private final com.facebook.react.uimanager.ViewManagerRegistry mViewManagerRegistry;
 }
 -keepclassmembers class com.facebook.react.common.assets.ReactFontManager {
   private final java.util.Map fontCache;

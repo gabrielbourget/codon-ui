@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Panel percentage gap reference</title>
+    <link rel="stylesheet" href="/panel.css" />
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 20px;
+      }
+      #samples {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .sample {
+        position: relative;
+        top: auto;
+        box-sizing: border-box;
+        padding: 10px;
+        border: 2px solid;
+      }
+      .sample > div {
+        flex: none;
+        width: 10px;
+        height: 10px;
+        background: teal;
+      }
+      pre {
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Panel percentage gap reference</h1>
+    <p>Actual child spacing with the unchanged Panel stylesheet; no native pixel claim.</p>
+    <pre id="results">Waiting for stylesheet.</pre>
+    <div id="samples"></div>
+    <script type="module">
+      const cases = [
+        { id: "number-percent", property: "gap", from: "10px", to: "20%" },
+        { id: "percent-number", property: "gap", from: "10%", to: "30px" },
+        { id: "percent-percent", property: "gap", from: "10%", to: "30%" },
+        { id: "numeric", property: "gap", from: "0px", to: "20px" },
+        { id: "row-override", property: "gap", from: "10%", to: "30px", overrides: { rowGap: "5px" } },
+        { id: "column-override", property: "gap", from: "10px", to: "20%", overrides: { columnGap: "7px" } },
+        { id: "live-content", property: "gap", from: "10%", to: "30px", resize: true },
+      ]
+      const results = cases.flatMap((test) =>
+        ["rowGap", "columnGap"].map((field) => {
+          const element = document.createElement("div")
+          element.className = "panel sample"
+          element.style.width = "300px"
+          element.style.height = "500px"
+          element.style.flexDirection = field === "rowGap" ? "column" : "row"
+          element.append(document.createElement("div"), document.createElement("div"))
+          document.getElementById("samples").append(element)
+          const original = getComputedStyle(element)
+          const duration = Number.parseFloat(original.transitionDuration) * 1000
+          const easing = original.transitionTimingFunction
+          element.style.transition = "none"
+          element.style[test.property] = test.from
+          Object.assign(element.style, test.overrides)
+          const from = getComputedStyle(element)[field]
+          element.style[test.property] = test.to
+          Object.assign(element.style, test.overrides)
+          const to = getComputedStyle(element)[field]
+          const animation = element.animate([{ [field]: from }, { [field]: to }], { duration, easing, fill: "both" })
+          animation.pause()
+          const values = [0, 0.25, 0.5, 0.75, 1].map((progress) => {
+            if (test.resize) {
+              element.style.width = `${300 + progress * 200}px`
+              element.style.height = `${500 + progress * 100}px`
+            }
+            animation.currentTime = duration * progress
+            const style = getComputedStyle(element)
+            const bounds = element.getBoundingClientRect()
+            const contentWidth =
+              bounds.width -
+              parseFloat(style.borderLeftWidth) -
+              parseFloat(style.borderRightWidth) -
+              parseFloat(style.paddingLeft) -
+              parseFloat(style.paddingRight)
+            const contentHeight =
+              bounds.height -
+              parseFloat(style.borderTopWidth) -
+              parseFloat(style.borderBottomWidth) -
+              parseFloat(style.paddingTop) -
+              parseFloat(style.paddingBottom)
+            const [first, second] = [...element.children].map((child) => child.getBoundingClientRect())
+            const distance = field === "rowGap" ? second.top - first.bottom : second.left - first.right
+            return { progress, contentWidth, contentHeight, computed: style[field], distance }
+          })
+          return { id: test.id, field, from, to, duration, easing, values }
+        }),
+      )
+      const source = await fetch("/source.json").then((response) => response.json())
+      const result = { source, sampler: "computed-endpoints-child-spacing", userAgent: navigator.userAgent, results }
+      document.getElementById("results").textContent = JSON.stringify(result, null, 2)
+      const saved = await fetch("/result", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(result),
+      })
+      document.body.dataset.receipt = String(saved.status)
+    </script>
+  </body>
+</html>

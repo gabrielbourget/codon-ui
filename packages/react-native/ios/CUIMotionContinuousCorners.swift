@@ -138,12 +138,35 @@ final class CUIMotionContinuousCorners: NSObject {
     bottomRight: CGSize,
     continuousCorners: UInt
   ) -> UIBezierPath? {
+    let sizes = [topLeft, topRight, bottomRight, bottomLeft]
+    guard [bounds.origin.x, bounds.origin.y, bounds.width, bounds.height].allSatisfy({ $0.isFinite }),
+      bounds.width >= 0, bounds.height >= 0,
+      sizes.allSatisfy({ $0.width.isFinite && $0.height.isFinite && $0.width >= 0 && $0.height >= 0 }) else { return nil }
     let allCorners = UIRectCorner.topLeft.rawValue | UIRectCorner.topRight.rawValue |
       UIRectCorner.bottomLeft.rawValue | UIRectCorner.bottomRight.rawValue
     if topLeft == topRight && topLeft == bottomLeft && topLeft == bottomRight &&
       (continuousCorners & allCorners == allCorners || continuousCorners == 0) {
       return UIBezierPath(cgPath: Path(roundedRect: bounds, cornerSize: topLeft,
         style: continuousCorners == 0 ? .circular : .continuous).cgPath)
+    }
+    if #available(iOS 16.0, *), continuousCorners & allCorners == allCorners,
+      let reference = sizes.first(where: { $0.width > 0 && $0.height > 0 }) {
+      let axisScale = reference.width / reference.height
+      let normalizedWidth = bounds.width / axisScale
+      // One affine coordinate system preserves every requested radius exactly.
+      // The system creates the entire uneven contour, including adjacent-corner
+      // compression; isolated corner segments cannot supply that interaction.
+      if axisScale.isFinite && axisScale > 0 && normalizedWidth.isFinite,
+        sizes.allSatisfy({ $0.width == 0 || $0.height == 0 || $0.width == $0.height * axisScale }) {
+        let radii = sizes.map { $0.width == 0 || $0.height == 0 ? 0 : $0.height }
+        let normalizedBounds = CGRect(x: 0, y: 0, width: normalizedWidth, height: bounds.height)
+        let native = Path(roundedRect: normalizedBounds, cornerRadii: RectangleCornerRadii(
+          topLeading: radii[0], bottomLeading: radii[3], bottomTrailing: radii[2], topTrailing: radii[1]),
+          style: .continuous).cgPath
+        var transform = CGAffineTransform(a: axisScale, b: 0, c: 0, d: 1, tx: bounds.minX, ty: bounds.minY)
+        guard let original = native.copy(using: &transform) else { return nil }
+        return UIBezierPath(cgPath: original)
+      }
     }
     let candidates = [
       corner(topLeft, continuous: continuousCorners & UIRectCorner.topLeft.rawValue != 0),
@@ -158,8 +181,8 @@ final class CUIMotionContinuousCorners: NSObject {
     let limits = [max(0, bounds.width), max(0, bounds.width), max(0, bounds.height), max(0, bounds.height)]
     // A native uniform rectangle changes its curve as adjacent continuous spans
     // meet. Affine shrinking of isolated corners does not reproduce that shape.
-    // Keep this unsupported mixed-corner branch explicit until its exact native
-    // path can be obtained; do not publish a fitted or circular substitute.
+    // Older runtimes and independently proportioned/mixed-style corners still
+    // need their exact interacting contour; retain that unsupported branch.
     guard zip(sums, limits).allSatisfy({ $0.0 <= $0.1 + 1e-10 }) else { return nil }
     let scale: CGFloat = 1
     let transforms = [

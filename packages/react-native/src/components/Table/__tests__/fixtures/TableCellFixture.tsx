@@ -35,10 +35,16 @@ const renderCell: NonNullable<TNativeTableCellProps["render"]> = (props, state) 
 )
 export const TableCellFixture = ({ editorRef }: { editorRef?: Ref<TextInput> }) => {
   const [custom, setCustom] = useState(false)
+  const [truncate, setTruncate] = useState(false)
+  const [maxLines, setMaxLines] = useState<number | undefined>()
   const [requests, setRequests] = useState<string[]>([])
   return (
     <>
       <Button onPress={() => setCustom((value) => !value)}>Toggle cell renderer</Button>
+      <Button onPress={() => setTruncate((value) => !value)}>Toggle cell truncation</Button>
+      <Button onPress={() => setMaxLines((value) => (value === undefined ? 2 : undefined))}>
+        Toggle cell line limit
+      </Button>
       <Table testID="table-cell-render-probe" accessibilityLabel="Custom cell rendering">
         <TableHeader columns={columns} />
         <CellFixtureBody>
@@ -48,7 +54,12 @@ export const TableCellFixture = ({ editorRef }: { editorRef?: Ref<TextInput> }) 
               columnID="value"
               testID="table-custom-cell"
               render={custom ? renderCell : undefined}
+              truncate={truncate}
+              maxLines={maxLines}
             >
+              <Text testID="table-custom-cell-text">
+                A long cell phrase that can wrap over several lines at narrow widths.
+              </Text>
               <Input
                 ref={editorRef}
                 testID="table-custom-cell-editor"

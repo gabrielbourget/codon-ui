@@ -25,6 +25,8 @@ export type TNativeCollectionItemDropTarget = Readonly<{
 }>
 export type TNativeCollectionDropTarget = TNativeCollectionItemDropTarget | Readonly<{ type: "root" }>
 export type TNativeCollectionLayoutDelegate = LayoutDelegate & {
+  getKeyLeftOf?: (key: TNativeCollectionKey) => TNativeCollectionKey | null
+  getKeyRightOf?: (key: TNativeCollectionKey) => TNativeCollectionKey | null
   getItemRect?: (key: TNativeCollectionKey) => TNativeCollectionRect | null
   getVisibleRect?: () => TNativeCollectionRect
   requestRendering?: (key: TNativeCollectionKey) => void

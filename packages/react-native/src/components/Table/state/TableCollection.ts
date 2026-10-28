@@ -191,16 +191,34 @@ export class NativeTableCollection<T> implements TNativeCollectionSnapshot<T> {
     }
     if (headKey != null) visit(nodes.get(headKey)!.firstChildKey)
     const headerRows = buildHeaderRows(columnMap, columns)
+    const shareHeaders =
+      source instanceof NativeTableCollection &&
+      options?.nodes &&
+      columns.length === source.columns.length &&
+      columns.every((column, index) => {
+        const previous = source.columns[index]
+        return (
+          column.key === previous.key &&
+          column.props === previous.props &&
+          column.parentKey === previous.parentKey &&
+          column.colSpan === previous.colSpan &&
+          column.level === previous.level
+        )
+      })
+    if (shareHeaders) {
+      for (const [key, node] of source.#nodes)
+        if (node.type === "column" || node.type === "tableheader") nodes.set(key, node as TMutableNode<T>)
+    }
     this.#nodes = nodes
-    this.head = headKey != null ? nodes.get(headKey)! : emptyNode("tableheader", -1)
+    this.head = shareHeaders ? source.head : headKey != null ? nodes.get(headKey)! : emptyNode("tableheader", -1)
     this.body = bodyKey != null ? nodes.get(bodyKey)! : emptyNode("tablebody", -2)
-    this.columns = columns
+    this.columns = shareHeaders ? source.columns : columns
     for (const node of nodes.values()) {
       if (node.type === "cell")
         Object.defineProperty(node, "column", { get: () => this.columns[node.index], enumerable: true })
-      freezeNode(node)
+      if (!Object.isFrozen(node)) freezeNode(node)
     }
-    this.headerRows = headerRows
+    this.headerRows = shareHeaders ? source.headerRows : headerRows
     this.expandedKeys = expandedKeys
     this.rowHeaderColumnKeys = new Set(columns.filter((node) => node.props.isRowHeader).map((node) => node.key))
     if (columns.length && !this.rowHeaderColumnKeys.size)

@@ -1,23 +1,52 @@
+diff --git a/Libraries/StyleSheet/StyleSheetTypes.d.ts b/Libraries/StyleSheet/StyleSheetTypes.d.ts
+index c951a773d0ec00ef8edc10875852255634f84af6..9a6e46d53111c981a303028ffc7e91cc97ba27cf 100644
+--- a/Libraries/StyleSheet/StyleSheetTypes.d.ts
++++ b/Libraries/StyleSheet/StyleSheetTypes.d.ts
+@@ -614,6 +614,7 @@ export interface TextStyle extends TextStyleIOS, TextStyleAndroid, ViewStyle {
+     | 700
+     | 800
+     | 900
++    | number
+     | 'ultralight'
+     | 'thin'
+     | 'light'
+diff --git a/Libraries/StyleSheet/StyleSheetTypes.js b/Libraries/StyleSheet/StyleSheetTypes.js
+index 1bf46c32b078c62f03f692e8f52e96945ffa0bf9..bdd1e6d6c4d14ba22eaaa4f80a9fd9809506c904 100644
+--- a/Libraries/StyleSheet/StyleSheetTypes.js
++++ b/Libraries/StyleSheet/StyleSheetTypes.js
+@@ -946,6 +946,7 @@ export type ____FontWeight_Internal =
+   | 700
+   | 800
+   | 900
++  | number
+   | 'ultralight'
+   | 'thin'
+   | 'light'
 diff --git a/Libraries/Text/TextInput/Multiline/RCTUITextView.h b/Libraries/Text/TextInput/Multiline/RCTUITextView.h
 index be946f87bbe3112dbeb7619b3f93e19d86eb6ec2..3038784f13890da03449535e00b8daacda186a3d 100644
 --- a/Libraries/Text/TextInput/Multiline/RCTUITextView.h
 +++ b/Libraries/Text/TextInput/Multiline/RCTUITextView.h
 @@ -21,6 +21,7 @@ NS_ASSUME_NONNULL_BEGIN
  - (instancetype)initWithCoder:(NSCoder *)decoder NS_UNAVAILABLE;
-
+ 
  @property (nonatomic, weak) id<RCTBackedTextInputDelegate> textInputDelegate;
 +@property (nonatomic, copy, nullable) RCTTextInputPressHandler nativeKeyPressHandler;
-
+ 
  @property (nonatomic, assign) BOOL contextMenuHidden;
  @property (nonatomic, assign, readonly) BOOL textWasPasted;
 diff --git a/Libraries/Text/TextInput/Multiline/RCTUITextView.mm b/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
-index cbda3771e97cfa375976621f30e4939988156a1f..c6cd68062abf796b11abd060ba65c4c9a36275b3 100644
+index cbda3771e97cfa375976621f30e4939988156a1f..a918fe40184076b079a6f6335c5396bd704e1f85 100644
 --- a/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
 +++ b/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
-@@ -35,6 +35,24 @@ static UIColor *defaultPlaceholderColor(void)
+@@ -1,3 +1,4 @@
++#import <React/RCTAccessibilityProjection.h>
+ /*
+  * Copyright (c) Meta Platforms, Inc. and affiliates.
+  *
+@@ -35,6 +36,24 @@ static UIColor *defaultPlaceholderColor(void)
    return [UIColor placeholderTextColor];
  }
-
+ 
 +- (void)pressesBegan:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event
 +{
 +  NSSet<UIPress *> *remaining = RCTTextInputRemainingPresses(self, presses, @"down", self.nativeKeyPressHandler);
@@ -39,18 +68,36 @@ index cbda3771e97cfa375976621f30e4939988156a1f..c6cd68062abf796b11abd060ba65c4c9
  - (instancetype)initWithFrame:(CGRect)frame
  {
    if (self = [super initWithFrame:frame]) {
+@@ -380,4 +399,17 @@ static UIColor *defaultPlaceholderColor(void)
+ 
+ #pragma mark - Utility Methods
+ 
++- (BOOL)isAccessibilityElement
++{
++  return RCTProjectAccessibilityElement(self, [super isAccessibilityElement]);
++}
++- (BOOL)accessibilityElementsHidden
++{
++  return RCTProjectAccessibilityHidden(self, [super accessibilityElementsHidden]);
++}
++- (BOOL)accessibilityActivate
++{
++  return RCTAccessibilityProjectionAllowsAction(self) ? [super accessibilityActivate] : NO;
++}
++
+ @end
 diff --git a/Libraries/Text/TextInput/RCTBackedTextInputViewProtocol.h b/Libraries/Text/TextInput/RCTBackedTextInputViewProtocol.h
 index b67beb956481ab7bab5d3799a3d2de9d5d3873a6..9ba09826eac8408bde3da47b347f43495a01a5b1 100644
 --- a/Libraries/Text/TextInput/RCTBackedTextInputViewProtocol.h
 +++ b/Libraries/Text/TextInput/RCTBackedTextInputViewProtocol.h
 @@ -12,8 +12,13 @@
-
+ 
  NS_ASSUME_NONNULL_BEGIN
-
+ 
 +typedef BOOL (^RCTTextInputPressHandler)(UIView *view, UIPress *press, NSString *phase);
 +
  @protocol RCTBackedTextInputViewProtocol <UITextInput>
-
+ 
 +// Optional scoped original-press handling, before UIKit performs its default.
 +@property (nonatomic, copy, nullable) RCTTextInputPressHandler nativeKeyPressHandler;
 +
@@ -58,9 +105,9 @@ index b67beb956481ab7bab5d3799a3d2de9d5d3873a6..9ba09826eac8408bde3da47b347f4349
  @property (nonatomic, copy, nullable) NSString *placeholder;
  @property (nonatomic, strong, nullable) UIColor *placeholderColor;
 @@ -58,4 +63,17 @@ NS_ASSUME_NONNULL_BEGIN
-
+ 
  @end
-
+ 
 +static inline NSSet<UIPress *> *RCTTextInputRemainingPresses(
 +    UIView *view, NSSet<UIPress *> *presses, NSString *phase, RCTTextInputPressHandler _Nullable handler)
 +{
@@ -81,20 +128,25 @@ index fe6d957aa2c7bad2eb6c24d5b5cad7cfce87d5c0..be2967927af48013fbe71f7cb2746245
 +++ b/Libraries/Text/TextInput/Singleline/RCTUITextField.h
 @@ -20,6 +20,7 @@ NS_ASSUME_NONNULL_BEGIN
  - (instancetype)initWithCoder:(NSCoder *)decoder NS_UNAVAILABLE;
-
+ 
  @property (nonatomic, weak) id<RCTBackedTextInputDelegate> textInputDelegate;
 +@property (nonatomic, copy, nullable) RCTTextInputPressHandler nativeKeyPressHandler;
-
+ 
  @property (nonatomic, assign) BOOL caretHidden;
  @property (nonatomic, assign) BOOL contextMenuHidden;
 diff --git a/Libraries/Text/TextInput/Singleline/RCTUITextField.mm b/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
-index 052c003476d18c7c75b1ae2890d0d221af5b57e3..867e87253d96b5d4f38c48507e338cfbcf6fc01e 100644
+index 052c003476d18c7c75b1ae2890d0d221af5b57e3..dbe775bd5adca6e08f47323b66c21053317b7976 100644
 --- a/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
 +++ b/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
-@@ -24,6 +24,24 @@
+@@ -1,3 +1,4 @@
++#import <React/RCTAccessibilityProjection.h>
+ /*
+  * Copyright (c) Meta Platforms, Inc. and affiliates.
+  *
+@@ -24,6 +25,24 @@
  // This variable is unused.
  @synthesize dataDetectorTypes;
-
+ 
 +- (void)pressesBegan:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event
 +{
 +  NSSet<UIPress *> *remaining = RCTTextInputRemainingPresses(self, presses, @"down", self.nativeKeyPressHandler);
@@ -116,6 +168,273 @@ index 052c003476d18c7c75b1ae2890d0d221af5b57e3..867e87253d96b5d4f38c48507e338cfb
  - (instancetype)initWithFrame:(CGRect)frame
  {
    if (self = [super initWithFrame:frame]) {
+@@ -293,4 +312,17 @@
+   return CGSizeMake(MIN(size.width, intrinsicSize.width), MIN(size.height, intrinsicSize.height));
+ }
+ 
++- (BOOL)isAccessibilityElement
++{
++  return RCTProjectAccessibilityElement(self, [super isAccessibilityElement]);
++}
++- (BOOL)accessibilityElementsHidden
++{
++  return RCTProjectAccessibilityHidden(self, [super accessibilityElementsHidden]);
++}
++- (BOOL)accessibilityActivate
++{
++  return RCTAccessibilityProjectionAllowsAction(self) ? [super accessibilityActivate] : NO;
++}
++
+ @end
+diff --git a/React/Base/RCTAccessibilityProjection.h b/React/Base/RCTAccessibilityProjection.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..8c3b0512326e9fc2bf2656e2da53b970bb7dd30f
+--- /dev/null
++++ b/React/Base/RCTAccessibilityProjection.h
+@@ -0,0 +1,29 @@
++/* Copyright (c) Meta Platforms, Inc. and affiliates. MIT; see LICENSE. */
++#import <UIKit/UIKit.h>
++
++NS_ASSUME_NONNULL_BEGIN
++
++typedef NS_ENUM(NSInteger, RCTAccessibilityProjectionMode) {
++  RCTAccessibilityProjectionOriginal,
++  RCTAccessibilityProjectionAllowed,
++  RCTAccessibilityProjectionTraverse,
++  RCTAccessibilityProjectionExcluded,
++};
++
++// A receiver reads current ownership only. It must never change a view or invoke JavaScript.
++@protocol RCTAccessibilityProjectionReceiver <NSObject>
++- (RCTAccessibilityProjectionMode)accessibilityProjectionForView:(UIView *)view;
++- (NSArray *)projectAccessibilityChildren:(NSArray *)children container:(id)container view:(UIView *)view;
++@end
++
++// Scoped original metadata reads preserve nested label/value construction. These are not view mutations.
++FOUNDATION_EXPORT id _Nullable RCTReadOriginalAccessibilityValue(id _Nullable (^reader)(void));
++FOUNDATION_EXPORT BOOL RCTReadOriginalAccessibilityBoolean(BOOL (^reader)(void));
++FOUNDATION_EXPORT BOOL RCTRegisterAccessibilityProjectionReceiver(id<RCTAccessibilityProjectionReceiver> receiver);
++FOUNDATION_EXPORT RCTAccessibilityProjectionMode RCTAccessibilityProjectionForView(UIView *view);
++FOUNDATION_EXPORT BOOL RCTProjectAccessibilityElement(UIView *view, BOOL original);
++FOUNDATION_EXPORT BOOL RCTProjectAccessibilityHidden(UIView *view, BOOL original);
++FOUNDATION_EXPORT NSArray *_Nullable RCTProjectAccessibilityChildren(UIView *view, id container, NSArray *_Nullable original);
++FOUNDATION_EXPORT BOOL RCTAccessibilityProjectionAllowsAction(UIView *view);
++
++NS_ASSUME_NONNULL_END
+diff --git a/React/Base/RCTAccessibilityProjection.mm b/React/Base/RCTAccessibilityProjection.mm
+new file mode 100644
+index 0000000000000000000000000000000000000000..615a2009a4337eabd9abdee8975241f1fb412a64
+--- /dev/null
++++ b/React/Base/RCTAccessibilityProjection.mm
+@@ -0,0 +1,50 @@
++/* Copyright (c) Meta Platforms, Inc. and affiliates. MIT; see LICENSE. */
++#import "RCTAccessibilityProjection.h"
++
++static __weak id<RCTAccessibilityProjectionReceiver> RCTProjectionReceiver;
++static thread_local NSUInteger RCTOriginalAccessibilityDepth;
++id RCTReadOriginalAccessibilityValue(id (^reader)(void))
++{
++  RCTOriginalAccessibilityDepth++;
++  @try { return reader(); } @finally { RCTOriginalAccessibilityDepth--; }
++}
++BOOL RCTReadOriginalAccessibilityBoolean(BOOL (^reader)(void))
++{
++  RCTOriginalAccessibilityDepth++;
++  @try { return reader(); } @finally { RCTOriginalAccessibilityDepth--; }
++}
++
++BOOL RCTRegisterAccessibilityProjectionReceiver(id<RCTAccessibilityProjectionReceiver> receiver)
++{
++  NSCAssert(NSThread.isMainThread, @"Accessibility projection registration requires the main thread");
++  if (RCTProjectionReceiver && RCTProjectionReceiver != receiver) return NO;
++  RCTProjectionReceiver = receiver;
++  return YES;
++}
++RCTAccessibilityProjectionMode RCTAccessibilityProjectionForView(UIView *view)
++{
++  if (RCTOriginalAccessibilityDepth) return RCTAccessibilityProjectionOriginal;
++  id<RCTAccessibilityProjectionReceiver> receiver = RCTProjectionReceiver;
++  return receiver ? [receiver accessibilityProjectionForView:view] : RCTAccessibilityProjectionOriginal;
++}
++BOOL RCTProjectAccessibilityElement(UIView *view, BOOL original)
++{
++  RCTAccessibilityProjectionMode mode = RCTAccessibilityProjectionForView(view);
++  return mode == RCTAccessibilityProjectionTraverse || mode == RCTAccessibilityProjectionExcluded ? NO : original;
++}
++BOOL RCTProjectAccessibilityHidden(UIView *view, BOOL original)
++{
++  return RCTAccessibilityProjectionForView(view) == RCTAccessibilityProjectionExcluded ? YES : original;
++}
++NSArray *RCTProjectAccessibilityChildren(UIView *view, id container, NSArray *original)
++{
++  id<RCTAccessibilityProjectionReceiver> receiver = RCTProjectionReceiver;
++  if (!receiver || RCTAccessibilityProjectionForView(view) == RCTAccessibilityProjectionOriginal) return original;
++  return [receiver projectAccessibilityChildren:original ?: view.subviews container:container view:view];
++}
++BOOL RCTAccessibilityProjectionAllowsAction(UIView *view)
++{
++  id<RCTAccessibilityProjectionReceiver> receiver = RCTProjectionReceiver;
++  RCTAccessibilityProjectionMode mode = receiver ? [receiver accessibilityProjectionForView:view] : RCTAccessibilityProjectionOriginal;
++  return mode == RCTAccessibilityProjectionOriginal || mode == RCTAccessibilityProjectionAllowed;
++}
+diff --git a/React/Fabric/Mounting/ComponentViews/Text/RCTAccessibilityElement.mm b/React/Fabric/Mounting/ComponentViews/Text/RCTAccessibilityElement.mm
+index 60dfc922f9e9ac2aef450b9bf8a87b654658d226..bc7fad941fdbe0ae981df1cf1cef3be3acfa21cb 100644
+--- a/React/Fabric/Mounting/ComponentViews/Text/RCTAccessibilityElement.mm
++++ b/React/Fabric/Mounting/ComponentViews/Text/RCTAccessibilityElement.mm
+@@ -1,3 +1,4 @@
++#import <React/RCTAccessibilityProjection.h>
+ /*
+  * Copyright (c) Meta Platforms, Inc. and affiliates.
+  *
+@@ -9,6 +10,18 @@
+ 
+ @implementation RCTAccessibilityElement
+ 
++- (BOOL)isAccessibilityElement
++{
++  UIView *owner = [self.accessibilityContainer isKindOfClass:UIView.class] ? self.accessibilityContainer : nil;
++  return owner ? RCTProjectAccessibilityElement(owner, [super isAccessibilityElement]) : [super isAccessibilityElement];
++}
++- (BOOL)accessibilityElementsHidden
++{
++  UIView *owner = [self.accessibilityContainer isKindOfClass:UIView.class] ? self.accessibilityContainer : nil;
++  return owner ? RCTProjectAccessibilityHidden(owner, [super accessibilityElementsHidden]) : [super accessibilityElementsHidden];
++}
++
++
+ - (CGRect)accessibilityFrame
+ {
+   UIView *container = (UIView *)self.accessibilityContainer;
+diff --git a/React/Fabric/Mounting/ComponentViews/Text/RCTParagraphComponentView.mm b/React/Fabric/Mounting/ComponentViews/Text/RCTParagraphComponentView.mm
+index 07fb9c4e7b674182a40d57b7ad5f70fc71503d34..832218c72014a40cab103b02685d6e3e74c9db3d 100644
+--- a/React/Fabric/Mounting/ComponentViews/Text/RCTParagraphComponentView.mm
++++ b/React/Fabric/Mounting/ComponentViews/Text/RCTParagraphComponentView.mm
+@@ -1,3 +1,4 @@
++#import <React/RCTAccessibilityProjection.h>
+ /*
+  * Copyright (c) Meta Platforms, Inc. and affiliates.
+  *
+@@ -176,7 +177,7 @@ using namespace facebook::react;
+   return NO;
+ }
+ 
+-- (NSArray *)accessibilityElements
++- (NSArray *)rctOriginalAccessibilityElements
+ {
+   const auto &paragraphProps = static_cast<const ParagraphProps &>(*_props);
+ 
+@@ -212,6 +213,12 @@ using namespace facebook::react;
+   return elements;
+ }
+ 
++- (NSArray *)accessibilityElements
++{
++  NSArray *original = RCTReadOriginalAccessibilityValue(^id { return [self rctOriginalAccessibilityElements]; });
++  return RCTProjectAccessibilityChildren(self, self, original);
++}
++
+ - (BOOL)isAccessibilityCoopted
+ {
+   UIView *ancestor = self.superview;
+diff --git a/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm b/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
+index b033b7c71914d287470b7b86bd6bf39d311294ba..28fb5349ce77226d3a1976ad8adefb866f9f05cd 100644
+--- a/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
++++ b/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
+@@ -6,6 +6,7 @@
+  */
+ 
+ #import "RCTViewComponentView.h"
++#import <React/RCTAccessibilityProjection.h>
+ #import <React/RCTSurfaceHostingProxyRootView.h>
+ 
+ #import <CoreGraphics/CoreGraphics.h>
+@@ -1457,7 +1458,7 @@ static NSString *RCTRecursiveAccessibilityLabel(UIView *view)
+   return result;
+ }
+ 
+-- (NSString *)accessibilityLabel
++- (NSString *)rctOriginalAccessibilityLabel
+ {
+   NSString *label = super.accessibilityLabel;
+   if (label) {
+@@ -1470,6 +1471,11 @@ static NSString *RCTRecursiveAccessibilityLabel(UIView *view)
+   return nil;
+ }
+ 
++- (NSString *)accessibilityLabel
++{
++  return RCTReadOriginalAccessibilityValue(^id { return [self rctOriginalAccessibilityLabel]; });
++}
++
+ - (NSString *)accessibilityLabelForCoopting
+ {
+   return super.accessibilityLabel;
+@@ -1487,11 +1493,21 @@ static NSString *RCTRecursiveAccessibilityLabel(UIView *view)
+ 
+ - (BOOL)isAccessibilityElement
+ {
+-  if (self.contentView != nil) {
+-    return self.contentView.isAccessibilityElement;
+-  }
++  BOOL original = RCTReadOriginalAccessibilityBoolean(^BOOL {
++    return self.contentView != nil ? self.contentView.isAccessibilityElement : [super isAccessibilityElement];
++  });
++  return RCTProjectAccessibilityElement(self, original);
++}
+ 
+-  return [super isAccessibilityElement];
++- (BOOL)accessibilityElementsHidden
++{
++  return RCTProjectAccessibilityHidden(self, [super accessibilityElementsHidden]);
++}
++
++- (NSArray *)accessibilityElements
++{
++  NSArray *original = RCTReadOriginalAccessibilityValue(^id { return [super accessibilityElements]; });
++  return RCTProjectAccessibilityChildren(self, self, original);
+ }
+ 
+ - (NSString *)accessibilityValue
+@@ -1600,6 +1616,7 @@ static NSString *RCTRecursiveAccessibilityLabel(UIView *view)
+ 
+ - (BOOL)accessibilityActivate
+ {
++  if (!RCTAccessibilityProjectionAllowsAction(self)) return NO;
+   if (_eventEmitter && _props->onAccessibilityTap) {
+     _eventEmitter->onAccessibilityTap();
+     return YES;
+@@ -1620,6 +1637,7 @@ static NSString *RCTRecursiveAccessibilityLabel(UIView *view)
+ 
+ - (BOOL)accessibilityPerformEscape
+ {
++  if (!RCTAccessibilityProjectionAllowsAction(self)) return NO;
+   if (_eventEmitter && _props->onAccessibilityEscape) {
+     _eventEmitter->onAccessibilityEscape();
+     return YES;
+@@ -1630,6 +1648,7 @@ static NSString *RCTRecursiveAccessibilityLabel(UIView *view)
+ 
+ - (void)accessibilityIncrement
+ {
++  if (!RCTAccessibilityProjectionAllowsAction(self)) return;
+   if (_eventEmitter && _props->onAccessibilityAction) {
+     _eventEmitter->onAccessibilityAction("increment");
+   }
+@@ -1637,6 +1656,7 @@ static NSString *RCTRecursiveAccessibilityLabel(UIView *view)
+ 
+ - (void)accessibilityDecrement
+ {
++  if (!RCTAccessibilityProjectionAllowsAction(self)) return;
+   if (_eventEmitter && _props->onAccessibilityAction) {
+     _eventEmitter->onAccessibilityAction("decrement");
+   }
+@@ -1644,6 +1664,7 @@ static NSString *RCTRecursiveAccessibilityLabel(UIView *view)
+ 
+ - (BOOL)didActivateAccessibilityCustomAction:(UIAccessibilityCustomAction *)action
+ {
++  if (!RCTAccessibilityProjectionAllowsAction(self)) return NO;
+   if (_eventEmitter && _props->onAccessibilityAction) {
+     // iOS defines the name as the localized label, so iterate through accessibilityActions to find the matching
+     // non-localized action name when passing to JS. This allows for standard action names across platforms.
 diff --git a/ReactAndroid/src/main/java/com/facebook/react/fabric/FabricUIManager.java b/ReactAndroid/src/main/java/com/facebook/react/fabric/FabricUIManager.java
 index 9c29ee6213deaa7293fb64dfc0d614af1f937cdf..0c11beb3e572ac4ef36b5db3c865e862db2e7f99 100644
 --- a/ReactAndroid/src/main/java/com/facebook/react/fabric/FabricUIManager.java
@@ -309,6 +628,1199 @@ index 0000000000000000000000000000000000000000..c6c2bcc40f92410ff613d3fc88ebc963
 +    dispatcher.endNativeEventCapture(this)
 +  }
 +}
+diff --git a/ReactAndroid/src/main/java/com/facebook/react/uimanager/ReactAccessibilityDelegate.kt b/ReactAndroid/src/main/java/com/facebook/react/uimanager/ReactAccessibilityDelegate.kt
+index 3c1cbe917d11bf817e854e2006bfd31c8595d2a1..7c5ed0001535a4d0711ce5fff637c98e9816279f 100644
+--- a/ReactAndroid/src/main/java/com/facebook/react/uimanager/ReactAccessibilityDelegate.kt
++++ b/ReactAndroid/src/main/java/com/facebook/react/uimanager/ReactAccessibilityDelegate.kt
+@@ -69,121 +69,128 @@ public open class ReactAccessibilityDelegate( // The View this delegate is attac
+   }
+ 
+   override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfoCompat) {
+-    super.onInitializeAccessibilityNodeInfo(host, info)
+-
+-    if (host.getTag(R.id.accessibility_state_expanded) != null) {
+-      val accessibilityStateExpanded = host.getTag(R.id.accessibility_state_expanded) as Boolean
+-      info.addAction(
+-          if (accessibilityStateExpanded) AccessibilityNodeInfoCompat.ACTION_COLLAPSE
+-          else AccessibilityNodeInfoCompat.ACTION_EXPAND
+-      )
+-    }
+-    val accessibilityRole = AccessibilityRole.fromViewTag(host)
+-    val accessibilityHint = host.getTag(R.id.accessibility_hint) as String?
+-    if (accessibilityRole != null) {
+-      setRole(info, accessibilityRole, host.context)
+-    }
++    com.facebook.react.uimanager.ReactAccessibilityProjection.beginOriginalMetadata()
++    try {
++      super.onInitializeAccessibilityNodeInfo(host, info)
++
++      if (host.getTag(R.id.accessibility_state_expanded) != null) {
++        val accessibilityStateExpanded = host.getTag(R.id.accessibility_state_expanded) as Boolean
++        info.addAction(
++            if (accessibilityStateExpanded) AccessibilityNodeInfoCompat.ACTION_COLLAPSE
++            else AccessibilityNodeInfoCompat.ACTION_EXPAND
++        )
++      }
++      val accessibilityRole = AccessibilityRole.fromViewTag(host)
++      val accessibilityHint = host.getTag(R.id.accessibility_hint) as String?
++      if (accessibilityRole != null) {
++        setRole(info, accessibilityRole, host.context)
++      }
+ 
+-    if (accessibilityHint != null) {
+-      info.tooltipText = accessibilityHint
+-    }
++      if (accessibilityHint != null) {
++        info.tooltipText = accessibilityHint
++      }
+ 
+-    val accessibilityLabelledBy = host.getTag(R.id.labelled_by)
+-    if (accessibilityLabelledBy != null) {
+-      this.accessibilityLabelledBy = findView(host.rootView, accessibilityLabelledBy as String)
+-      if (this.accessibilityLabelledBy != null) {
+-        info.setLabeledBy(this.accessibilityLabelledBy)
++      val accessibilityLabelledBy = host.getTag(R.id.labelled_by)
++      if (accessibilityLabelledBy != null) {
++        this.accessibilityLabelledBy = findView(host.rootView, accessibilityLabelledBy as String)
++        if (this.accessibilityLabelledBy != null) {
++          info.setLabeledBy(this.accessibilityLabelledBy)
++        }
+       }
+-    }
+ 
+-    // state is changeable.
+-    val accessibilityState = host.getTag(R.id.accessibility_state) as ReadableMap?
+-    if (accessibilityState != null) {
+-      setState(info, accessibilityState)
+-    }
+-    val accessibilityActions = host.getTag(R.id.accessibility_actions) as ReadableArray?
+-
+-    val accessibilityCollectionItem =
+-        host.getTag(R.id.accessibility_collection_item) as ReadableMap?
+-    if (accessibilityCollectionItem != null) {
+-      val rowIndex = accessibilityCollectionItem.getInt("rowIndex")
+-      val columnIndex = accessibilityCollectionItem.getInt("columnIndex")
+-      val rowSpan = accessibilityCollectionItem.getInt("rowSpan")
+-      val columnSpan = accessibilityCollectionItem.getInt("columnSpan")
+-      val heading = accessibilityCollectionItem.getBoolean("heading")
+-
+-      val collectionItemCompat =
+-          CollectionItemInfoCompat.obtain(rowIndex, rowSpan, columnIndex, columnSpan, heading)
+-      info.setCollectionItemInfo(collectionItemCompat)
+-    }
++      // state is changeable.
++      val accessibilityState = host.getTag(R.id.accessibility_state) as ReadableMap?
++      if (accessibilityState != null) {
++        setState(info, accessibilityState)
++      }
++      val accessibilityActions = host.getTag(R.id.accessibility_actions) as ReadableArray?
++
++      val accessibilityCollectionItem =
++          host.getTag(R.id.accessibility_collection_item) as ReadableMap?
++      if (accessibilityCollectionItem != null) {
++        val rowIndex = accessibilityCollectionItem.getInt("rowIndex")
++        val columnIndex = accessibilityCollectionItem.getInt("columnIndex")
++        val rowSpan = accessibilityCollectionItem.getInt("rowSpan")
++        val columnSpan = accessibilityCollectionItem.getInt("columnSpan")
++        val heading = accessibilityCollectionItem.getBoolean("heading")
++
++        val collectionItemCompat =
++            CollectionItemInfoCompat.obtain(rowIndex, rowSpan, columnIndex, columnSpan, heading)
++        info.setCollectionItemInfo(collectionItemCompat)
++      }
+ 
+-    if (accessibilityActions != null) {
+-      for (i in 0..<accessibilityActions.size()) {
+-        val action = accessibilityActions.getMap(i)
+-        require(!(action == null || !action.hasKey("name"))) { "Unknown accessibility action." }
+-
+-        val actionName = action.getString("name")
+-        // AccessibilityActionCompat actionLabel must be non-null
+-        val actionLabel =
+-            if (action.hasKey("label")) Assertions.assertNotNull(action.getString("label")) else ""
+-        val actionId: Int =
+-            actionIdMap.get(actionName)
+-                ?: customActionIdMap.getOrPut(actionName) { customActionCounter++ }
+-        accessibilityActionsMap[actionId] = actionName
+-        val accessibilityAction = AccessibilityActionCompat(actionId, actionLabel)
+-        info.addAction(accessibilityAction)
++      if (accessibilityActions != null) {
++        for (i in 0..<accessibilityActions.size()) {
++          val action = accessibilityActions.getMap(i)
++          require(!(action == null || !action.hasKey("name"))) { "Unknown accessibility action." }
++
++          val actionName = action.getString("name")
++          // AccessibilityActionCompat actionLabel must be non-null
++          val actionLabel =
++              if (action.hasKey("label")) Assertions.assertNotNull(action.getString("label")) else ""
++          val actionId: Int =
++              actionIdMap.get(actionName)
++                  ?: customActionIdMap.getOrPut(actionName) { customActionCounter++ }
++          accessibilityActionsMap[actionId] = actionName
++          val accessibilityAction = AccessibilityActionCompat(actionId, actionLabel)
++          info.addAction(accessibilityAction)
++        }
+       }
+-    }
+ 
+-    // Process accessibilityValue
+-    val accessibilityValue = host.getTag(R.id.accessibility_value) as ReadableMap?
+-    if (
+-        accessibilityValue != null &&
+-            accessibilityValue.hasKey("min") &&
+-            accessibilityValue.hasKey("now") &&
+-            accessibilityValue.hasKey("max")
+-    ) {
+-      val minDynamic = accessibilityValue.getDynamic("min")
+-      val nowDynamic = accessibilityValue.getDynamic("now")
+-      val maxDynamic = accessibilityValue.getDynamic("max")
++      // Process accessibilityValue
++      val accessibilityValue = host.getTag(R.id.accessibility_value) as ReadableMap?
+       if (
+-          minDynamic.type == ReadableType.Number &&
+-              nowDynamic.type == ReadableType.Number &&
+-              maxDynamic.type == ReadableType.Number
++          accessibilityValue != null &&
++              accessibilityValue.hasKey("min") &&
++              accessibilityValue.hasKey("now") &&
++              accessibilityValue.hasKey("max")
+       ) {
+-        val min = minDynamic.asInt()
+-        val now = nowDynamic.asInt()
+-        val max = maxDynamic.asInt()
+-        if (max > min && now >= min && max >= now) {
+-          info.rangeInfo =
+-              RangeInfoCompat.obtain(
+-                  RangeInfoCompat.RANGE_TYPE_INT,
+-                  min.toFloat(),
+-                  max.toFloat(),
+-                  now.toFloat(),
+-              )
++        val minDynamic = accessibilityValue.getDynamic("min")
++        val nowDynamic = accessibilityValue.getDynamic("now")
++        val maxDynamic = accessibilityValue.getDynamic("max")
++        if (
++            minDynamic.type == ReadableType.Number &&
++                nowDynamic.type == ReadableType.Number &&
++                maxDynamic.type == ReadableType.Number
++        ) {
++          val min = minDynamic.asInt()
++          val now = nowDynamic.asInt()
++          val max = maxDynamic.asInt()
++          if (max > min && now >= min && max >= now) {
++            info.rangeInfo =
++                RangeInfoCompat.obtain(
++                    RangeInfoCompat.RANGE_TYPE_INT,
++                    min.toFloat(),
++                    max.toFloat(),
++                    now.toFloat(),
++                )
++          }
+         }
+       }
+-    }
+ 
+-    // Expose the testID prop as the resource-id name of the view. Black-box E2E/UI testing
+-    // frameworks, which interact with the UI through the accessibility framework, do not have
+-    // access to view tags. This allows developers/testers to avoid polluting the
+-    // content-description with test identifiers.
+-    val testId = host.getTag(R.id.react_test_id) as String?
+-    if (testId != null) {
+-      info.viewIdResourceName = testId
+-    }
+-    val missingContentDescription = info.contentDescription.isNullOrEmpty()
+-    val missingText = info.text.isNullOrEmpty()
+-    val missingTextAndDescription = missingContentDescription && missingText
+-    val hasContentToAnnounce =
+-        accessibilityActions != null ||
+-            accessibilityState != null ||
+-            accessibilityLabelledBy != null ||
+-            accessibilityRole != null
+-    if (missingTextAndDescription && hasContentToAnnounce) {
+-      info.contentDescription = getTalkbackDescription(host, info)
++      // Expose the testID prop as the resource-id name of the view. Black-box E2E/UI testing
++      // frameworks, which interact with the UI through the accessibility framework, do not have
++      // access to view tags. This allows developers/testers to avoid polluting the
++      // content-description with test identifiers.
++      val testId = host.getTag(R.id.react_test_id) as String?
++      if (testId != null) {
++        info.viewIdResourceName = testId
++      }
++      val missingContentDescription = info.contentDescription.isNullOrEmpty()
++      val missingText = info.text.isNullOrEmpty()
++      val missingTextAndDescription = missingContentDescription && missingText
++      val hasContentToAnnounce =
++          accessibilityActions != null ||
++              accessibilityState != null ||
++              accessibilityLabelledBy != null ||
++              accessibilityRole != null
++      if (missingTextAndDescription && hasContentToAnnounce) {
++        info.contentDescription = getTalkbackDescription(host, info)
++      }
++
++    } finally {
++      com.facebook.react.uimanager.ReactAccessibilityProjection.endOriginalMetadata()
++      com.facebook.react.uimanager.ReactAccessibilityProjection.projectNode(host, info)
+     }
+   }
+ 
+@@ -218,6 +225,7 @@ public open class ReactAccessibilityDelegate( // The View this delegate is attac
+   }
+ 
+   override fun performAccessibilityAction(host: View, action: Int, args: Bundle?): Boolean {
++    if (!ReactAccessibilityProjection.allowsAction(host)) return false
+     if (action == AccessibilityNodeInfoCompat.ACTION_COLLAPSE) {
+       host.setTag(R.id.accessibility_state_expanded, false)
+     }
+diff --git a/ReactAndroid/src/main/java/com/facebook/react/uimanager/ReactAccessibilityProjection.java b/ReactAndroid/src/main/java/com/facebook/react/uimanager/ReactAccessibilityProjection.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..eafb0364d5575ce94ee9f12746f751ecb98720be
+--- /dev/null
++++ b/ReactAndroid/src/main/java/com/facebook/react/uimanager/ReactAccessibilityProjection.java
+@@ -0,0 +1,43 @@
++/* Copyright (c) Meta Platforms, Inc. and affiliates. MIT; see LICENSE. */
++package com.facebook.react.uimanager;
++
++import android.os.Looper;
++import android.view.View;
++import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
++import java.lang.ref.WeakReference;
++import java.util.ArrayList;
++
++/** Opt-in read-time projection. Original view properties, nodes and delegates remain owned. */
++public final class ReactAccessibilityProjection {
++  public static final int ORIGINAL=0, ALLOWED=1, TRAVERSE=2, EXCLUDED=3;
++  public interface Receiver {
++    int mode(View view);
++    void projectChildren(View host,ArrayList<View> original,int start);
++  }
++  private static WeakReference<Receiver> receiver=new WeakReference<>(null);
++  private static final ThreadLocal<Integer> originalDepth=new ThreadLocal<Integer>() {
++    @Override protected Integer initialValue() { return 0; }
++  };
++  private ReactAccessibilityProjection() {}
++  public static void beginOriginalMetadata() { originalDepth.set(originalDepth.get()+1); }
++  public static void endOriginalMetadata() {
++    int depth=originalDepth.get();
++    if (depth<1) throw new IllegalStateException("Original accessibility metadata scope is unbalanced");
++    originalDepth.set(depth-1);
++  }
++  public static boolean register(Receiver value) {
++    if (Looper.myLooper()!=Looper.getMainLooper()) throw new IllegalStateException("Accessibility projection registration requires the UI thread");
++    Receiver current=receiver.get(); if (current!=null && current!=value) return false;
++    receiver=new WeakReference<>(value); return true;
++  }
++  public static int mode(View view) { if (originalDepth.get()>0) return ORIGINAL; Receiver value=receiver.get(); return value==null?ORIGINAL:value.mode(view); }
++  public static void projectChildren(View host,ArrayList<View> original,int start) {
++    Receiver value=receiver.get(); if (value!=null && originalDepth.get()==0) value.projectChildren(host,original,start);
++  }
++  public static void projectNode(View host,AccessibilityNodeInfoCompat original) {
++    int mode=mode(host);
++    if (mode==TRAVERSE || mode==EXCLUDED) { original.setScreenReaderFocusable(false); original.setFocusable(false); }
++    if (mode==EXCLUDED) { original.setVisibleToUser(false); original.setImportantForAccessibility(false); }
++  }
++  public static boolean allowsAction(View view) { Receiver current=receiver.get(); int mode=current==null?ORIGINAL:current.mode(view); return mode==ORIGINAL || mode==ALLOWED; }
++}
+diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactFontWeightScalar.kt b/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactFontWeightScalar.kt
+new file mode 100644
+index 0000000000000000000000000000000000000000..a282cce3626f087da5d3eeb125eb4204be628d5d
+--- /dev/null
++++ b/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactFontWeightScalar.kt
+@@ -0,0 +1,56 @@
++/*
++ * Copyright (c) Meta Platforms, Inc. and affiliates.
++ *
++ * This source code is licensed under the MIT license found in the
++ * LICENSE file in the root directory of this source tree.
++ */
++
++package com.facebook.react.views.text
++
++import android.graphics.Paint
++import android.graphics.fonts.FontVariationAxis
++import android.os.Build
++import java.util.WeakHashMap
++
++/** Scalar transport remains exact; native face matching remains the original peer policy. */
++public object ReactFontWeightScalar {
++  private data class Applied(val baseline: String?, val settings: String)
++  private val applied = WeakHashMap<Paint, Applied>()
++
++  @JvmStatic
++  public fun parse(value: String?): Double {
++    val scalar = when (value) {
++      "normal", "regular" -> 400.0
++      "bold" -> 700.0
++      else -> value?.toDoubleOrNull() ?: Double.NaN
++    }
++    return if (scalar.isFinite() && scalar >= 1 && scalar <= 1000) scalar else Double.NaN
++  }
++
++  /** Replaces only the owned wght entry; removal restores the prior original Paint settings. */
++  @JvmStatic
++  public fun apply(paint: Paint, scalar: Double): Boolean {
++    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return false
++    synchronized(applied) {
++      val old = applied[paint]
++      val current = paint.fontVariationSettings
++      val baseline = if (old != null && current == old.settings) old.baseline else current
++      if (!scalar.isFinite()) {
++        if (old != null && current == old.settings) paint.setFontVariationSettings(baseline)
++        applied.remove(paint)
++        return false
++      }
++      val axes = FontVariationAxis.fromFontVariationSettings(baseline)?.toMutableList() ?: mutableListOf()
++      axes.removeAll { it.tag == "wght" }
++      axes.add(FontVariationAxis("wght", scalar.toFloat()))
++      val settings = FontVariationAxis.toFontVariationSettings(axes.toTypedArray())
++      val accepted = paint.setFontVariationSettings(settings)
++      if (accepted) applied[paint] = Applied(baseline, settings)
++      else {
++        if (old != null && current == old.settings) paint.setFontVariationSettings(baseline)
++        applied.remove(paint)
++      }
++      return accepted
++    }
++  }
++}
+diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextViewAccessibilityDelegate.kt b/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextViewAccessibilityDelegate.kt
+index 6834a329ac6ce13dfe222fe43cee957afe4150a1..0e2a0c97225e73e9d2398b0d3914b08929b5a7bb 100644
+--- a/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextViewAccessibilityDelegate.kt
++++ b/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextViewAccessibilityDelegate.kt
+@@ -98,6 +98,7 @@ internal class ReactTextViewAccessibilityDelegate(
+       action: Int,
+       arguments: Bundle?,
+   ): Boolean {
++    if (!com.facebook.react.uimanager.ReactAccessibilityProjection.allowsAction(hostView)) return false
+     if (accessibilityLinks == null) {
+       return false
+     }
+@@ -185,49 +186,63 @@ internal class ReactTextViewAccessibilityDelegate(
+   }
+ 
+   override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfoCompat) {
+-    super.onInitializeAccessibilityNodeInfo(host, info)
+-    // PreparedLayoutTextView isn't actually a TextView, so we need to teach it about its text that
+-    // it is holding so TalkBack knows what to announce when focusing it.
+-    if (host is PreparedLayoutTextView) {
+-      info.text = host.text
++    com.facebook.react.uimanager.ReactAccessibilityProjection.beginOriginalMetadata()
++    try {
++      super.onInitializeAccessibilityNodeInfo(host, info)
++      // PreparedLayoutTextView isn't actually a TextView, so we need to teach it about its text that
++      // it is holding so TalkBack knows what to announce when focusing it.
++      if (host is PreparedLayoutTextView) {
++        info.text = host.text
++      }
++
++    } finally {
++      com.facebook.react.uimanager.ReactAccessibilityProjection.endOriginalMetadata()
++      com.facebook.react.uimanager.ReactAccessibilityProjection.projectNode(host, info)
+     }
+   }
+ 
+   @Suppress("DEPRECATION")
+   override fun onPopulateNodeForVirtualView(virtualViewId: Int, node: AccessibilityNodeInfoCompat) {
+-    // If we get an invalid virtualViewId for some reason (which is known to happen in API 19 and
+-    // below), return an "empty" node to prevent from crashing. This will never be presented to
+-    // the user, as Talkback filters out nodes with no content to announce.
+-    val accessibilityLinks = accessibilityLinks
+-    if (accessibilityLinks == null) {
+-      node.contentDescription = ""
+-      node.setBoundsInParent(Rect(0, 0, 1, 1))
+-      return
+-    }
++    com.facebook.react.uimanager.ReactAccessibilityProjection.beginOriginalMetadata()
++    try {
++      // If we get an invalid virtualViewId for some reason (which is known to happen in API 19 and
++      // below), return an "empty" node to prevent from crashing. This will never be presented to
++      // the user, as Talkback filters out nodes with no content to announce.
++      val accessibilityLinks = accessibilityLinks
++      if (accessibilityLinks == null) {
++        node.contentDescription = ""
++        node.setBoundsInParent(Rect(0, 0, 1, 1))
++        return
++      }
+ 
+-    val accessibleTextSpan: AccessibilityLinks.AccessibleLink? =
+-        accessibilityLinks.getLinkById(virtualViewId)
+-    if (accessibleTextSpan == null) {
+-      node.contentDescription = ""
+-      node.setBoundsInParent(Rect(0, 0, 1, 1))
+-      return
+-    }
++      val accessibleTextSpan: AccessibilityLinks.AccessibleLink? =
++          accessibilityLinks.getLinkById(virtualViewId)
++      if (accessibleTextSpan == null) {
++        node.contentDescription = ""
++        node.setBoundsInParent(Rect(0, 0, 1, 1))
++        return
++      }
+ 
+-    // NOTE: The span may not actually have visible bounds within its parent,
+-    // due to line limits, etc.
+-    val bounds = getBoundsInParent(accessibleTextSpan)
+-    if (bounds == null) {
+-      node.contentDescription = ""
+-      node.setBoundsInParent(Rect(0, 0, 1, 1))
+-      return
+-    }
++      // NOTE: The span may not actually have visible bounds within its parent,
++      // due to line limits, etc.
++      val bounds = getBoundsInParent(accessibleTextSpan)
++      if (bounds == null) {
++        node.contentDescription = ""
++        node.setBoundsInParent(Rect(0, 0, 1, 1))
++        return
++      }
++
++      node.contentDescription = accessibleTextSpan.description
++      node.addAction(AccessibilityNodeInfoCompat.ACTION_CLICK)
++      node.setBoundsInParent(bounds)
++      node.setClickable(true)
++      node.roleDescription = hostView.resources.getString(R.string.link_description)
++      node.className = AccessibilityRole.getValue(AccessibilityRole.BUTTON)
+ 
+-    node.contentDescription = accessibleTextSpan.description
+-    node.addAction(AccessibilityNodeInfoCompat.ACTION_CLICK)
+-    node.setBoundsInParent(bounds)
+-    node.setClickable(true)
+-    node.roleDescription = hostView.resources.getString(R.string.link_description)
+-    node.className = AccessibilityRole.getValue(AccessibilityRole.BUTTON)
++    } finally {
++      com.facebook.react.uimanager.ReactAccessibilityProjection.endOriginalMetadata()
++      com.facebook.react.uimanager.ReactAccessibilityProjection.projectNode(hostView, node)
++    }
+   }
+ 
+   private fun getBoundsInParent(accessibleLink: AccessibilityLinks.AccessibleLink): Rect? {
+diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTypefaceUtils.kt b/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTypefaceUtils.kt
+index e33daa691f3174e611ccb93ad511582365d3b51f..e87c7b0b05f4c845d50a1c370ff982b769b4f807 100644
+--- a/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTypefaceUtils.kt
++++ b/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTypefaceUtils.kt
+@@ -16,21 +16,10 @@ import com.facebook.react.common.assets.ReactFontManager
+ public object ReactTypefaceUtils {
+ 
+   @JvmStatic
+-  public fun parseFontWeight(fontWeightString: String?): Int =
+-      when (fontWeightString) {
+-        "100" -> 100
+-        "200" -> 200
+-        "300" -> 300
+-        "normal",
+-        "400" -> 400
+-        "500" -> 500
+-        "600" -> 600
+-        "bold",
+-        "700" -> 700
+-        "800" -> 800
+-        "900" -> 900
+-        else -> ReactConstants.UNSET
+-      }
++  public fun parseFontWeight(fontWeightString: String?): Int {
++    val scalar = ReactFontWeightScalar.parse(fontWeightString)
++    return if (scalar.isFinite()) scalar.toInt() else ReactConstants.UNSET
++  }
+ 
+   @JvmStatic
+   public fun parseFontStyle(fontStyleString: String?): Int =
+diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt b/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt
+index 45c8bec4c2b8adf3004edfaa20e52c98e577351b..5371721f9178da273a42243eaba371070aae9a7c 100644
+--- a/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt
++++ b/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt
+@@ -106,6 +106,9 @@ public class TextAttributeProps private constructor() {
+   public var fontWeight: Int = ReactConstants.UNSET
+     private set
+ 
++  public var fontWeightScalar: Double = Double.NaN
++    private set
++
+   /**
+    * NB: If a font family is used that does not have a style in a certain Android version (ie.
+    * monospace bold pre Android 5.0), that style (ie. bold) will not be inherited by nested Text
+@@ -242,6 +245,7 @@ public class TextAttributeProps private constructor() {
+ 
+   private fun setFontWeight(fontWeightString: String?) {
+     fontWeight = parseFontWeight(fontWeightString)
++    fontWeightScalar = ReactFontWeightScalar.parse(fontWeightString)
+   }
+ 
+   private fun setFontStyle(fontStyleString: String?) {
+diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt b/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
+index eacec697670d254229a59813220b594847f1d828..e1b84c1bbfd9aff42c81c589e181e0bbd653b834 100644
+--- a/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
++++ b/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
+@@ -310,6 +310,7 @@ internal object TextLayoutManager {
+                       textAttributes.fontFeatureSettings,
+                       textAttributes.fontFamily,
+                       assets,
++                      textAttributes.fontWeightScalar,
+                   ),
+               )
+           )
+@@ -486,6 +487,7 @@ internal object TextLayoutManager {
+                   fragment.props.fontFeatureSettings,
+                   fragment.props.fontFamily,
+                   assets,
++                  fragment.props.fontWeightScalar,
+               ),
+               start,
+               end,
+@@ -731,6 +733,7 @@ internal object TextLayoutManager {
+         paint.textSkewX = if ((missingStyle and Typeface.ITALIC) != 0) -0.25f else 0f
+       }
+     }
++    ReactFontWeightScalar.apply(paint, baseTextAttributes.fontWeightScalar)
+   }
+ 
+   /**
+diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/CustomStyleSpan.kt b/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/CustomStyleSpan.kt
+index dec85221456093ba1462641cb6843c2a9e146dd5..622574aa231db222690aebe0470a9b47bb409a0d 100644
+--- a/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/CustomStyleSpan.kt
++++ b/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/CustomStyleSpan.kt
+@@ -15,6 +15,7 @@ import android.text.style.MetricAffectingSpan
+ import com.facebook.react.common.ReactConstants
+ import com.facebook.react.common.assets.ReactFontManager
+ import com.facebook.react.views.text.ReactTypefaceUtils
++import com.facebook.react.views.text.ReactFontWeightScalar
+ 
+ /**
+  * A [MetricAffectingSpan] that allows to change the style of the displayed font. CustomStyleSpan
+@@ -27,19 +28,20 @@ import com.facebook.react.views.text.ReactTypefaceUtils
+  * appropriate default typeface depending on the style. Fonts are retrieved and cached using the
+  * [ReactFontManager]
+  */
+-internal class CustomStyleSpan(
++internal class CustomStyleSpan @JvmOverloads constructor(
+     private val privateStyle: Int,
+     private val privateWeight: Int,
+     val fontFeatureSettings: String?,
+     val fontFamily: String?,
+     private val assetManager: AssetManager,
++    val weightScalar: Double = Double.NaN,
+ ) : MetricAffectingSpan(), ReactSpan {
+   override fun updateDrawState(ds: TextPaint) {
+-    apply(ds, privateStyle, privateWeight, fontFeatureSettings, fontFamily, assetManager)
++    apply(ds, privateStyle, privateWeight, fontFeatureSettings, fontFamily, assetManager, weightScalar)
+   }
+ 
+   override fun updateMeasureState(paint: TextPaint) {
+-    apply(paint, privateStyle, privateWeight, fontFeatureSettings, fontFamily, assetManager)
++    apply(paint, privateStyle, privateWeight, fontFeatureSettings, fontFamily, assetManager, weightScalar)
+   }
+ 
+   val style: Int
+@@ -66,6 +68,7 @@ internal class CustomStyleSpan(
+         fontFeatureSettingsParam: String?,
+         family: String?,
+         assetManager: AssetManager,
++        weightScalar: Double,
+     ) {
+       val typeface =
+           ReactTypefaceUtils.applyStyles(paint.typeface, style, weight, family, assetManager)
+@@ -74,6 +77,7 @@ internal class CustomStyleSpan(
+         setTypeface(typeface)
+         isSubpixelText = true
+         isLinearText = true
++        ReactFontWeightScalar.apply(this, weightScalar)
+       }
+     }
+   }
+diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt b/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt
+index b8c3b7e1b740af8ea8abffb4a30b56281c02790c..ac746e49e4c281349bc0fa601a47c9ce9b256779 100644
+--- a/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt
++++ b/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt
+@@ -10,6 +10,7 @@ package com.facebook.react.views.textinput
+ import android.annotation.SuppressLint
+ import android.content.Context
+ import android.content.res.Configuration
++import com.facebook.react.views.text.ReactFontWeightScalar
+ import android.graphics.Canvas
+ import android.graphics.Color
+ import android.graphics.Paint
+@@ -130,6 +131,7 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
+   private var typefaceDirty = false
+   private var fontFamily: String? = null
+   private var fontWeight = ReactConstants.UNSET
++  private var fontWeightScalar = Double.NaN
+   private var fontStyle = ReactConstants.UNSET
+   private var autoFocus = false
+   private var contextMenuHidden = false
+@@ -228,6 +230,7 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
+                 this@ReactEditText.importantForAccessibility,
+             ) {
+           override fun performAccessibilityAction(host: View, action: Int, args: Bundle?): Boolean {
++            if (!com.facebook.react.uimanager.ReactAccessibilityProjection.allowsAction(host)) return false
+             if (action == AccessibilityNodeInfo.ACTION_CLICK) {
+               val length = checkNotNull(text).length
+               if (length > 0) {
+@@ -574,8 +577,10 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
+ 
+   public fun setFontWeight(fontWeightString: String?) {
+     val fontWeight = parseFontWeight(fontWeightString)
+-    if (fontWeight != this.fontWeight) {
++    val scalar = ReactFontWeightScalar.parse(fontWeightString)
++    if (fontWeight != this.fontWeight || !(scalar == fontWeightScalar || (scalar.isNaN() && fontWeightScalar.isNaN()))) {
+       this.fontWeight = fontWeight
++      fontWeightScalar = scalar
+       typefaceDirty = true
+     }
+   }
+@@ -604,6 +609,9 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
+ 
+     val newTypeface = applyStyles(typeface, fontStyle, fontWeight, fontFamily, context.assets)
+     typeface = newTypeface
++    ReactFontWeightScalar.apply(paint, fontWeightScalar)
++    requestLayout()
++    invalidate()
+ 
+     // Match behavior of CustomStyleSpan and enable SUBPIXEL_TEXT_FLAG when setting anything
+     // nonstandard
+@@ -768,6 +776,7 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
+       span.style == fontStyle &&
+           span.fontFamily == fontFamily &&
+           span.weight == fontWeight &&
++          (span.weightScalar == fontWeightScalar || (span.weightScalar.isNaN() && fontWeightScalar.isNaN())) &&
+           span.fontFeatureSettings == fontFeatureSettings
+     }
+   }
+@@ -846,7 +855,7 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
+             fontFeatureSettings != null
+     ) {
+       workingText.setSpan(
+-          CustomStyleSpan(fontStyle, fontWeight, fontFeatureSettings, fontFamily, context.assets),
++          CustomStyleSpan(fontStyle, fontWeight, fontFeatureSettings, fontFamily, context.assets, fontWeightScalar),
+           0,
+           workingText.length,
+           spanFlags,
+diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/view/ReactViewGroup.kt b/ReactAndroid/src/main/java/com/facebook/react/views/view/ReactViewGroup.kt
+index 59775241c80bec99ad3ec080f2425aacc8900c24..ba5dc1c3cc8a0afff7fdfe0d52250cf4a6fe37b3 100644
+--- a/ReactAndroid/src/main/java/com/facebook/react/views/view/ReactViewGroup.kt
++++ b/ReactAndroid/src/main/java/com/facebook/react/views/view/ReactViewGroup.kt
+@@ -1000,67 +1000,84 @@ public open class ReactViewGroup public constructor(context: Context?) :
+     alpha = 0f
+   }
+ 
+-  override fun addChildrenForAccessibility(outChildren: ArrayList<View>) {
+-    val axOrderParent = getTag(R.id.accessibility_order_parent)
+-    var axOrderParentOrderList: MutableList<String>? = null
+-    if (axOrderParent is ReactViewGroup) {
+-      axOrderParentOrderList = (axOrderParent as ReactViewGroup?)?.axOrderList
++  override fun onInitializeAccessibilityNodeInfo(info: android.view.accessibility.AccessibilityNodeInfo) {
++    com.facebook.react.uimanager.ReactAccessibilityProjection.beginOriginalMetadata()
++    try {
++      super.onInitializeAccessibilityNodeInfo(info)
++    } finally {
++      com.facebook.react.uimanager.ReactAccessibilityProjection.endOriginalMetadata()
++      com.facebook.react.uimanager.ReactAccessibilityProjection.projectNode(
++          this, androidx.core.view.accessibility.AccessibilityNodeInfoCompat.wrap(info))
+     }
++  }
++
++  override fun addChildrenForAccessibility(outChildren: ArrayList<View>) {
++    val start = outChildren.size
++    try {
++      val axOrderParent = getTag(R.id.accessibility_order_parent)
++      var axOrderParentOrderList: MutableList<String>? = null
++      if (axOrderParent is ReactViewGroup) {
++        axOrderParentOrderList = (axOrderParent as ReactViewGroup?)?.axOrderList
++      }
+ 
+-    val axOrder: MutableList<*>? = axOrderList
+-    if (axOrder != null) {
+-
+-      val am: AccessibilityManager? =
+-          this.context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager?
+-      if (accessibilityStateChangeListener == null && am != null) {
+-        val newAccessibilityStateChangeListener =
+-            AccessibilityManager.AccessibilityStateChangeListener { enabled ->
+-              if (!enabled) {
+-                for (i in 0..<childCount) {
+-                  ReactAxOrderHelper.restoreFocusability(getChildAt(i))
++      val axOrder: MutableList<*>? = axOrderList
++      if (axOrder != null) {
++
++        val am: AccessibilityManager? =
++            this.context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager?
++        if (accessibilityStateChangeListener == null && am != null) {
++          val newAccessibilityStateChangeListener =
++              AccessibilityManager.AccessibilityStateChangeListener { enabled ->
++                if (!enabled) {
++                  for (i in 0..<childCount) {
++                    ReactAxOrderHelper.restoreFocusability(getChildAt(i))
++                  }
+                 }
+               }
+-            }
+ 
+-        am.addAccessibilityStateChangeListener(newAccessibilityStateChangeListener)
+-        accessibilityStateChangeListener = newAccessibilityStateChangeListener
+-      }
++          am.addAccessibilityStateChangeListener(newAccessibilityStateChangeListener)
++          accessibilityStateChangeListener = newAccessibilityStateChangeListener
++        }
+ 
+-      val result = arrayOfNulls<View?>(axOrder.size)
++        val result = arrayOfNulls<View?>(axOrder.size)
+ 
+-      for (i in 0..<childCount) {
+-        ReactAxOrderHelper.buildAxOrderList(getChildAt(i), this, axOrder, result)
+-      }
++        for (i in 0..<childCount) {
++          ReactAxOrderHelper.buildAxOrderList(getChildAt(i), this, axOrder, result)
++        }
+ 
+-      for (i in result.indices) {
+-        val view = result[i]
+-        if (view != null) {
+-          if (view.isFocusable) {
+-            outChildren.add(view)
+-          } else {
+-            view.addChildrenForAccessibility(outChildren)
++        for (i in result.indices) {
++          val view = result[i]
++          if (view != null) {
++            if (view.isFocusable) {
++              outChildren.add(view)
++            } else {
++              view.addChildrenForAccessibility(outChildren)
++            }
+           }
+         }
+-      }
+-    } else if (axOrderParentOrderList != null) {
+-      // view is a container so add its children normally
+-      if (!isFocusable) {
+-        safeAddChildrenForAccessibility(outChildren)
+-        return
+-
+-        // If this view can coopt, turn the focusability off its children but add them to the tree
+-      } else if (isFocusable && (contentDescription == null || contentDescription == "")) {
+-        safeAddChildrenForAccessibility(outChildren)
+-        for (i in 0..<childCount) {
+-          ReactAxOrderHelper.disableFocusForSubtree(getChildAt(i), axOrderParentOrderList)
++      } else if (axOrderParentOrderList != null) {
++        // view is a container so add its children normally
++        if (!isFocusable) {
++          safeAddChildrenForAccessibility(outChildren)
++          return
++
++          // If this view can coopt, turn the focusability off its children but add them to the tree
++        } else if (isFocusable && (contentDescription == null || contentDescription == "")) {
++          safeAddChildrenForAccessibility(outChildren)
++          for (i in 0..<childCount) {
++            ReactAxOrderHelper.disableFocusForSubtree(getChildAt(i), axOrderParentOrderList)
++          }
++          // if this view is focusable and has a contentDescription then we don't care about its
++          // descendants for accessibility
++        } else if (isFocusable && !(contentDescription == null || contentDescription == "")) {
++          return
+         }
+-        // if this view is focusable and has a contentDescription then we don't care about its
+-        // descendants for accessibility
+-      } else if (isFocusable && !(contentDescription == null || contentDescription == "")) {
+-        return
++      } else {
++        safeAddChildrenForAccessibility(outChildren)
+       }
+-    } else {
+-      safeAddChildrenForAccessibility(outChildren)
++
++    } finally {
++      com.facebook.react.uimanager.ReactAccessibilityProjection.projectChildren(this, outChildren, start)
+     }
+   }
+ 
+diff --git a/ReactCommon/react/renderer/attributedstring/FontWeightScalar.h b/ReactCommon/react/renderer/attributedstring/FontWeightScalar.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..77ebe387c80984230850511f7bedd55fb236afbe
+--- /dev/null
++++ b/ReactCommon/react/renderer/attributedstring/FontWeightScalar.h
+@@ -0,0 +1,31 @@
++#pragma once
++#include <algorithm>
++#include <array>
++#include <cmath>
++#include <limits>
++#include <locale>
++#include <sstream>
++#include <string>
++
++namespace facebook::react {
++inline double parseFontWeightScalar(const std::string &value) {
++  if (value == "normal" || value == "regular") return 400;
++  if (value == "bold") return 700;
++  std::istringstream parser(value);
++  parser.imbue(std::locale::classic());
++  double scalar = std::numeric_limits<double>::quiet_NaN();
++  parser >> std::noskipws >> scalar;
++  return parser && parser.eof() && std::isfinite(scalar) && scalar >= 1 && scalar <= 1000
++      ? scalar : std::numeric_limits<double>::quiet_NaN();
++}
++inline bool fontWeightScalarEqual(double first, double second) {
++  return first == second || (std::isnan(first) && std::isnan(second));
++}
++template <typename TWeight>
++inline TWeight interpolateFontWeight(double scalar, const std::array<TWeight, 9> &weights) {
++  const double position = std::clamp((scalar-100)/100,0.0,8.0);
++  const auto first = static_cast<size_t>(std::floor(position));
++  const auto last = std::min(first+1,weights.size()-1);
++  return weights[first]+(weights[last]-weights[first])*(position-first);
++}
++}
+diff --git a/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp b/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp
+index 69ea8c82fc3f514cc3121c08231194b1515b7bbe..72609600368cbfb44cf9c65df8330be7318ee3be 100644
+--- a/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp
++++ b/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp
+@@ -6,6 +6,7 @@
+  */
+ 
+ #include "TextAttributes.h"
++#include "FontWeightScalar.h"
+ 
+ #include <react/renderer/attributedstring/conversions.h>
+ #include <react/renderer/core/conversions.h>
+@@ -36,8 +37,10 @@ void TextAttributes::apply(TextAttributes textAttributes) {
+   fontSizeMultiplier = !std::isnan(textAttributes.fontSizeMultiplier)
+       ? textAttributes.fontSizeMultiplier
+       : fontSizeMultiplier;
+-  fontWeight = textAttributes.fontWeight.has_value() ? textAttributes.fontWeight
+-                                                     : fontWeight;
++  if (textAttributes.fontWeight.has_value() || !std::isnan(textAttributes.fontWeightScalar)) {
++    fontWeight = textAttributes.fontWeight;
++    fontWeightScalar = textAttributes.fontWeightScalar;
++  }
+   fontStyle = textAttributes.fontStyle.has_value() ? textAttributes.fontStyle
+                                                    : fontStyle;
+   fontVariant = textAttributes.fontVariant.has_value()
+@@ -167,6 +170,7 @@ bool TextAttributes::operator==(const TextAttributes& rhs) const {
+              rhs.textTransform) &&
+       floatEquality(maxFontSizeMultiplier, rhs.maxFontSizeMultiplier) &&
+       floatEquality(opacity, rhs.opacity) &&
++      fontWeightScalarEqual(fontWeightScalar, rhs.fontWeightScalar) &&
+       floatEquality(fontSize, rhs.fontSize) &&
+       floatEquality(fontSizeMultiplier, rhs.fontSizeMultiplier) &&
+       floatEquality(letterSpacing, rhs.letterSpacing) &&
+diff --git a/ReactCommon/react/renderer/attributedstring/TextAttributes.h b/ReactCommon/react/renderer/attributedstring/TextAttributes.h
+index b66452408b75220b3acca0f463eae213317b0a5e..8e87d1c43ae33816db6015c090c572d4da672851 100644
+--- a/ReactCommon/react/renderer/attributedstring/TextAttributes.h
++++ b/ReactCommon/react/renderer/attributedstring/TextAttributes.h
+@@ -8,6 +8,7 @@
+ #pragma once
+ 
+ #include <functional>
++#include <cmath>
+ #include <limits>
+ #include <optional>
+ 
+@@ -48,6 +49,7 @@ class TextAttributes : public DebugStringConvertible {
+   Float fontSize{std::numeric_limits<Float>::quiet_NaN()};
+   Float fontSizeMultiplier{std::numeric_limits<Float>::quiet_NaN()};
+   std::optional<FontWeight> fontWeight{};
++  double fontWeightScalar{std::numeric_limits<double>::quiet_NaN()};
+   std::optional<FontStyle> fontStyle{};
+   std::optional<FontVariant> fontVariant{};
+   std::optional<bool> allowFontScaling{};
+@@ -118,6 +120,7 @@ struct hash<facebook::react::TextAttributes> {
+         textAttributes.maxFontSizeMultiplier,
+         textAttributes.fontSizeMultiplier,
+         textAttributes.fontWeight,
++        std::isnan(textAttributes.fontWeightScalar) ? 0.0 : textAttributes.fontWeightScalar,
+         textAttributes.fontStyle,
+         textAttributes.fontVariant,
+         textAttributes.allowFontScaling,
+diff --git a/ReactCommon/react/renderer/attributedstring/TextStyleFields.h b/ReactCommon/react/renderer/attributedstring/TextStyleFields.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..f3dd2de9cab0a7877c50eed1c1795d2e53202c82
+--- /dev/null
++++ b/ReactCommon/react/renderer/attributedstring/TextStyleFields.h
+@@ -0,0 +1,18 @@
++#pragma once
++#include <array>
++#include <cstdint>
++#include <string_view>
++
++namespace facebook::react {
++inline constexpr std::array<std::string_view,23> TextStyleFieldNames = {
++  "color", "fontFamily", "fontSize", "fontWeight", "fontStyle", "fontVariant", "letterSpacing", "lineHeight",
++  "textAlign", "textAlignVertical", "includeFontPadding", "textDecorationLine", "textDecorationStyle",
++  "textDecorationColor", "textShadowColor", "textShadowOffset", "textShadowRadius", "textTransform", "writingDirection",
++  "selectable", "fontSizeMultiplier", "allowFontScaling", "maxFontSizeMultiplier"
++};
++inline uint64_t textStyleFieldBit(std::string_view name) {
++  for (size_t index=0;index<TextStyleFieldNames.size();index++)
++    if (TextStyleFieldNames[index]==name) return uint64_t{1}<<index;
++  return 0;
++}
++}
+diff --git a/ReactCommon/react/renderer/attributedstring/conversions.h b/ReactCommon/react/renderer/attributedstring/conversions.h
+index 331e2019338aa2eaf4539ba8194cd77020117fff..1ff5e176ccdb072d00961306850ea209ddde22ab 100644
+--- a/ReactCommon/react/renderer/attributedstring/conversions.h
++++ b/ReactCommon/react/renderer/attributedstring/conversions.h
+@@ -12,6 +12,7 @@
+ #include <react/renderer/attributedstring/AttributedString.h>
+ #include <react/renderer/attributedstring/ParagraphAttributes.h>
+ #include <react/renderer/attributedstring/TextAttributes.h>
++#include <react/renderer/attributedstring/FontWeightScalar.h>
+ #include <react/renderer/attributedstring/conversions.h>
+ #include <react/renderer/attributedstring/primitives.h>
+ #include <react/renderer/components/view/accessibilityPropsConversions.h>
+@@ -24,6 +25,8 @@
+ #include <react/renderer/css/CSSFontVariant.h>
+ #include <react/renderer/css/CSSValueParser.h>
+ #include <unordered_map>
++#include <cstdlib>
++#include <cmath>
+ 
+ #ifdef RN_SERIALIZABLE_STATE
+ #include <react/renderer/mapbuffer/MapBuffer.h>
+@@ -201,73 +204,26 @@ inline void fromRawValue(const PropsParserContext &context, const RawValue &valu
+   result = TextBreakStrategy::HighQuality;
+ }
+ 
+-inline void fromRawValue(const PropsParserContext &context, const RawValue &value, FontWeight &result)
++// Keep the CSS scalar distinct from the legacy integral face-selection enum.
++inline double fontWeightScalarFromRawValue(const RawValue &value)
+ {
+-  react_native_expect(value.hasType<std::string>() || value.hasType<int>());
++  double scalar = std::numeric_limits<double>::quiet_NaN();
+   if (value.hasType<std::string>()) {
+-    auto string = (std::string)value;
+-    if (string == "normal") {
+-      result = FontWeight::Regular;
+-    } else if (string == "regular") {
+-      result = FontWeight::Regular;
+-    } else if (string == "bold") {
+-      result = FontWeight::Bold;
+-    } else if (string == "100") {
+-      result = FontWeight::Weight100;
+-    } else if (string == "200") {
+-      result = FontWeight::Weight200;
+-    } else if (string == "300") {
+-      result = FontWeight::Weight300;
+-    } else if (string == "400") {
+-      result = FontWeight::Weight400;
+-    } else if (string == "500") {
+-      result = FontWeight::Weight500;
+-    } else if (string == "600") {
+-      result = FontWeight::Weight600;
+-    } else if (string == "700") {
+-      result = FontWeight::Weight700;
+-    } else if (string == "800") {
+-      result = FontWeight::Weight800;
+-    } else if (string == "900") {
+-      result = FontWeight::Weight900;
+-    } else {
+-      LOG(ERROR) << "Unsupported FontWeight value: " << string;
+-      // sane default for prod
+-      result = FontWeight::Regular;
+-    }
+-    return;
++    return parseFontWeightScalar(static_cast<std::string>(value));
++  } else if (value.hasType<double>() || value.hasType<int>()) {
++    scalar = static_cast<double>(value);
+   }
++  return std::isfinite(scalar) && scalar >= 1 && scalar <= 1000 ? scalar : std::numeric_limits<double>::quiet_NaN();
++}
+ 
+-  if (value.hasType<int>()) {
+-    auto numeric = (int)value;
+-    if (numeric == 100) {
+-      result = FontWeight::Weight100;
+-    } else if (numeric == 200) {
+-      result = FontWeight::Weight200;
+-    } else if (numeric == 300) {
+-      result = FontWeight::Weight300;
+-    } else if (numeric == 400) {
+-      result = FontWeight::Weight400;
+-    } else if (numeric == 500) {
+-      result = FontWeight::Weight500;
+-    } else if (numeric == 600) {
+-      result = FontWeight::Weight600;
+-    } else if (numeric == 700) {
+-      result = FontWeight::Weight700;
+-    } else if (numeric == 800) {
+-      result = FontWeight::Weight800;
+-    } else if (numeric == 900) {
+-      result = FontWeight::Weight900;
+-    } else {
+-      LOG(ERROR) << "Unsupported FontWeight value: " << numeric;
+-      // sane default for prod
+-      result = FontWeight::Regular;
+-    }
++inline void fromRawValue(const PropsParserContext &context, const RawValue &value, FontWeight &result)
++{
++  const auto scalar = fontWeightScalarFromRawValue(value);
++  if (std::isfinite(scalar)) {
++    result = static_cast<FontWeight>(static_cast<int>(scalar));
+     return;
+   }
+-
+-  LOG(ERROR) << "Unsupported FontWeight type";
+-  react_native_expect(false);
++  LOG(ERROR) << "Unsupported FontWeight value";
+   result = FontWeight::Regular;
+ }
+ 
+@@ -1262,7 +1218,9 @@ inline MapBuffer toMapBuffer(const TextAttributes &textAttributes)
+   if (!std::isnan(textAttributes.fontSizeMultiplier)) {
+     builder.putDouble(TA_KEY_FONT_SIZE_MULTIPLIER, textAttributes.fontSizeMultiplier);
+   }
+-  if (textAttributes.fontWeight.has_value()) {
++  if (std::isfinite(textAttributes.fontWeightScalar)) {
++    builder.putString(TA_KEY_FONT_WEIGHT, folly::to<std::string>(textAttributes.fontWeightScalar));
++  } else if (textAttributes.fontWeight.has_value()) {
+     builder.putString(TA_KEY_FONT_WEIGHT, toString(*textAttributes.fontWeight));
+   }
+   if (textAttributes.fontStyle.has_value()) {
+diff --git a/ReactCommon/react/renderer/components/text/BaseTextProps.cpp b/ReactCommon/react/renderer/components/text/BaseTextProps.cpp
+index e2ab6780f96d05b96f3ca26fd560dd2308fd9621..297d98688e2e06054d6e4fb8c5d4ea70c2b01787 100644
+--- a/ReactCommon/react/renderer/components/text/BaseTextProps.cpp
++++ b/ReactCommon/react/renderer/components/text/BaseTextProps.cpp
+@@ -56,6 +56,11 @@ static TextAttributes convertRawProp(
+       "fontWeight",
+       sourceTextAttributes.fontWeight,
+       defaultTextAttributes.fontWeight);
++  if (const auto *weight = rawProps.at("fontWeight", nullptr, nullptr)) {
++    textAttributes.fontWeightScalar = weight->hasValue() ? fontWeightScalarFromRawValue(*weight) : defaultTextAttributes.fontWeightScalar;
++  } else {
++    textAttributes.fontWeightScalar = sourceTextAttributes.fontWeightScalar;
++  }
+   textAttributes.fontStyle = convertRawProp(
+       context,
+       rawProps,
+@@ -237,13 +242,28 @@ BaseTextProps::BaseTextProps(
+                     context,
+                     rawProps,
+                     sourceProps.textAttributes,
+-                    TextAttributes{})) {};
++                    TextAttributes{})),
++      textStyleDeclaredFields(sourceProps.textStyleDeclaredFields) {
++  if (!ReactNativeFeatureFlags::enableCppPropsIteratorSetter()) {
++    for (const auto field : TextStyleFieldNames) {
++      const auto *value = rawProps.at(field.data(), nullptr, nullptr);
++      if (!value) continue;
++      const auto bit = textStyleFieldBit(field);
++      if (value->hasValue()) textStyleDeclaredFields |= bit;
++      else textStyleDeclaredFields &= ~bit;
++    }
++  }
++};
+ 
+ void BaseTextProps::setProp(
+     const PropsParserContext& context,
+     RawPropsPropNameHash hash,
+-    const char* /*propName*/,
++    const char* propName,
+     const RawValue& value) {
++  if (const auto bit = propName ? textStyleFieldBit(propName) : 0) {
++    if (value.hasValue()) textStyleDeclaredFields |= bit;
++    else textStyleDeclaredFields &= ~bit;
++  }
+   static auto defaults = TextAttributes{};
+ 
+   switch (hash) {
+@@ -259,8 +279,12 @@ void BaseTextProps::setProp(
+         textAttributes,
+         fontSizeMultiplier,
+         "fontSizeMultiplier");
+-    REBUILD_FIELD_SWITCH_CASE(
+-        defaults, value, textAttributes, fontWeight, "fontWeight");
++    case CONSTEXPR_RAW_PROPS_KEY_HASH("fontWeight"): {
++      textAttributes.fontWeight = value.hasValue() ? std::optional<FontWeight>{} : defaults.fontWeight;
++      textAttributes.fontWeightScalar = value.hasValue() ? fontWeightScalarFromRawValue(value) : defaults.fontWeightScalar;
++      if (value.hasValue()) { FontWeight weight; fromRawValue(context, value, weight); textAttributes.fontWeight = weight; }
++      return;
++    }
+     REBUILD_FIELD_SWITCH_CASE(
+         defaults, value, textAttributes, fontStyle, "fontStyle");
+     REBUILD_FIELD_SWITCH_CASE(
+@@ -377,8 +401,11 @@ void BaseTextProps::appendTextAttributesProps(
+     result["fontSizeMultiplier"] = textAttributes.fontSizeMultiplier;
+   }
+ 
+-  if (textAttributes.fontWeight != oldProps->textAttributes.fontWeight) {
+-    result["fontWeight"] = textAttributes.fontWeight.has_value()
++  if (textAttributes.fontWeight != oldProps->textAttributes.fontWeight ||
++      !fontWeightScalarEqual(textAttributes.fontWeightScalar, oldProps->textAttributes.fontWeightScalar)) {
++    result["fontWeight"] = std::isfinite(textAttributes.fontWeightScalar)
++        ? folly::dynamic(folly::to<std::string>(textAttributes.fontWeightScalar))
++        : textAttributes.fontWeight.has_value()
+         ? toString(textAttributes.fontWeight.value())
+         : folly::dynamic(nullptr);
+   }
+diff --git a/ReactCommon/react/renderer/components/text/BaseTextProps.h b/ReactCommon/react/renderer/components/text/BaseTextProps.h
+index 732288d87c4494269848c27d132d564068414cf5..fbf923cdb702d7ba14022485231783074f4b3fd4 100644
+--- a/ReactCommon/react/renderer/components/text/BaseTextProps.h
++++ b/ReactCommon/react/renderer/components/text/BaseTextProps.h
+@@ -6,6 +6,7 @@
+  */
+ 
+ #pragma once
++#include <react/renderer/attributedstring/TextStyleFields.h>
+ 
+ #include <react/renderer/attributedstring/TextAttributes.h>
+ #include <react/renderer/core/Props.h>
+@@ -29,6 +30,7 @@ class BaseTextProps {
+ #pragma mark - Props
+ 
+   TextAttributes textAttributes{};
++  uint64_t textStyleDeclaredFields{0};
+ 
+ #pragma mark - DebugStringConvertible (partially)
+ 
+diff --git a/ReactCommon/react/renderer/components/view/YogaStylableProps.cpp b/ReactCommon/react/renderer/components/view/YogaStylableProps.cpp
+index ae2da15fc0a4b265f48bfb6b6aff80800bbe2e79..b50266748e9fce2bc6516cc5fc26acd1b214e1cf 100644
+--- a/ReactCommon/react/renderer/components/view/YogaStylableProps.cpp
++++ b/ReactCommon/react/renderer/components/view/YogaStylableProps.cpp
+@@ -24,7 +24,8 @@ YogaStylableProps::YogaStylableProps(
+     const YogaStylableProps& sourceProps,
+     const RawProps& rawProps,
+     const std::function<bool(const std::string&)>& filterObjectKeys)
+-    : Props() {
++    : Props(),
++      cuiHasAuthoredPosition(sourceProps.cuiHasAuthoredPosition) {
+   initialize(context, sourceProps, rawProps, filterObjectKeys);
+ 
+   yogaStyle = ReactNativeFeatureFlags::enableCppPropsIteratorSetter()
+@@ -32,6 +33,9 @@ YogaStylableProps::YogaStylableProps(
+       : convertRawProp(context, rawProps, sourceProps.yogaStyle);
+ 
+   if (!ReactNativeFeatureFlags::enableCppPropsIteratorSetter()) {
++    if (const auto *position = rawProps.at("position", nullptr, nullptr)) {
++      cuiHasAuthoredPosition = position->hasValue();
++    }
+     convertRawPropAliases(context, sourceProps, rawProps);
+   }
+ };
+@@ -145,7 +149,12 @@ void YogaStylableProps::setProp(
+     REBUILD_FIELD_SWITCH_CASE_YSP(flexGrow, setFlexGrow);
+     REBUILD_FIELD_SWITCH_CASE_YSP(flexShrink, setFlexShrink);
+     REBUILD_FIELD_SWITCH_CASE_YSP(flexBasis, setFlexBasis);
+-    REBUILD_FIELD_SWITCH_CASE2(positionType, setPositionType, "position");
++    case CONSTEXPR_RAW_PROPS_KEY_HASH("position"): {
++      cuiHasAuthoredPosition = value.hasValue();
++      yogaStyle.setPositionType(
++          getFieldValue(context, value, ygDefaults.positionType()));
++      return;
++    }
+     REBUILD_FIELD_YG_GUTTER(gap, setGap, "rowGap", "columnGap", "gap");
+     case CONSTEXPR_RAW_PROPS_KEY_HASH("aspectRatio"): {
+       yogaStyle.setAspectRatio(
+diff --git a/ReactCommon/react/renderer/components/view/YogaStylableProps.h b/ReactCommon/react/renderer/components/view/YogaStylableProps.h
+index 6febf08d5ce4a65b3fb1751072274c8dd4f73f01..adc64e5dc182ea273f16ba6878750bf1dc1fe451 100644
+--- a/ReactCommon/react/renderer/components/view/YogaStylableProps.h
++++ b/ReactCommon/react/renderer/components/view/YogaStylableProps.h
+@@ -30,6 +30,9 @@ class YogaStylableProps : public Props {
+ #pragma mark - Props
+   yoga::Style yogaStyle{};
+ 
++  // CUI Table sticky ownership distinguishes omission from explicit relative.
++  bool cuiHasAuthoredPosition{false};
++
+   // Duplicates of existing properties with different names, taking
+   // precedence. E.g. "marginBlock" instead of "marginVertical"
+   yoga::Style::Length insetInlineStart;
 diff --git a/ReactCommon/react/renderer/core/EventDispatcher.cpp b/ReactCommon/react/renderer/core/EventDispatcher.cpp
 index 5fa5e6821a514c60b8aa7155362c1c2849d8b2fd..78eacc28e044a4651ff46b0faf296d9b6047a2fe 100644
 --- a/ReactCommon/react/renderer/core/EventDispatcher.cpp
@@ -846,6 +2358,125 @@ index bd6de832e04d16844fdff28d71d9e05b764e06a2..868f5512dc3b90cc5600c4a060b007a0
    void addEventListener(std::shared_ptr<const EventListener> listener);
    void removeEventListener(const std::shared_ptr<const EventListener> &listener);
  
+diff --git a/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm b/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
+index f96a0494000b37ab4d1fcdad5615613aef30b077..435ffbc3eb5237764de9367cdda9bd00d27caaa8 100644
+--- a/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
++++ b/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
+@@ -14,14 +14,16 @@
+ #include <react/renderer/textlayoutmanager/RCTFontUtils.h>
+ #include <react/renderer/textlayoutmanager/RCTTextPrimitivesConversions.h>
+ #include <react/utils/ManagedObjectWrapper.h>
++#include <react/renderer/attributedstring/FontWeightScalar.h>
+ #include <array>
++#include <algorithm>
++#include <cmath>
+ 
+ using namespace facebook::react;
+ 
+-inline static UIFontWeight RCTUIFontWeightFromInteger(NSInteger fontWeight)
++inline static UIFontWeight RCTUIFontWeightFromScalar(double fontWeight)
+ {
+-  assert(fontWeight > 50);
+-  assert(fontWeight < 950);
++  assert(std::isfinite(fontWeight) && fontWeight >= 1 && fontWeight <= 1000);
+ 
+   static auto weights = std::to_array<UIFontWeight>({/* ~100 */ UIFontWeightUltraLight,
+                                                      /* ~200 */ UIFontWeightThin,
+@@ -32,8 +34,7 @@ inline static UIFontWeight RCTUIFontWeightFromInteger(NSInteger fontWeight)
+                                                      /* ~700 */ UIFontWeightBold,
+                                                      /* ~800 */ UIFontWeightHeavy,
+                                                      /* ~900 */ UIFontWeightBlack});
+-  // The expression is designed to convert something like 760 or 830 to 7.
+-  return weights[(fontWeight + 50) / 100 - 1];
++  return interpolateFontWeight(fontWeight, weights);
+ }
+ 
+ inline static UIFontTextStyle RCTUIFontTextStyleForDynamicTypeRamp(const DynamicTypeRamp &dynamicTypeRamp)
+@@ -133,9 +134,11 @@ inline static UIFont *RCTEffectiveFontFromTextAttributes(const TextAttributes &t
+   fontProperties.variant = textAttributes.fontVariant.has_value()
+       ? RCTFontVariantFromFontVariant(textAttributes.fontVariant.value())
+       : RCTFontVariantUndefined;
+-  fontProperties.weight = textAttributes.fontWeight.has_value()
+-      ? RCTUIFontWeightFromInteger((NSInteger)textAttributes.fontWeight.value())
+-      : NAN;
++  fontProperties.cssWeight = std::isfinite(textAttributes.fontWeightScalar)
++      ? textAttributes.fontWeightScalar
++      : textAttributes.fontWeight.has_value() ? static_cast<double>(*textAttributes.fontWeight) : NAN;
++  fontProperties.weight = std::isfinite(fontProperties.cssWeight)
++      ? RCTUIFontWeightFromScalar(fontProperties.cssWeight) : NAN;
+   fontProperties.sizeMultiplier = RCTEffectiveFontSizeMultiplierFromTextAttributes(textAttributes);
+ 
+   return RCTFontWithFontProperties(fontProperties);
+diff --git a/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTFontProperties.h b/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTFontProperties.h
+index efbfdf0d894e03ec61f63b857c7f5d413da660e6..1eae2c95863d4c707d9cfc767b1908563b9c31ac 100644
+--- a/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTFontProperties.h
++++ b/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTFontProperties.h
+@@ -50,6 +50,7 @@ struct RCTFontProperties {
+   NSString *family = nil;
+   CGFloat size = NAN;
+   UIFontWeight weight = NAN;
++  double cssWeight = NAN;
+   RCTFontStyle style = RCTFontStyleUndefined;
+   RCTFontVariant variant = RCTFontVariantUndefined;
+   CGFloat sizeMultiplier = NAN;
+diff --git a/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTFontUtils.mm b/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTFontUtils.mm
+index b2b27626edc46625ac2372a13977d700948835b6..5a28fa1a46d60d9f077f8f09e693307eaeb3b2f2 100644
+--- a/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTFontUtils.mm
++++ b/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTFontUtils.mm
+@@ -10,6 +10,7 @@
+ #import <CoreText/CoreText.h>
+ #import <React/RCTFont+Private.h>
+ #import <React/RCTFont.h>
++#import <CoreText/CoreText.h>
+ 
+ #import <algorithm>
+ #import <cmath>
+@@ -41,6 +42,7 @@ static RCTFontProperties RCTResolveFontProperties(
+   fontProperties.family = (fontProperties.family.length != 0u) ? fontProperties.family : baseFontProperties.family;
+   fontProperties.size = !isnan(fontProperties.size) ? fontProperties.size : baseFontProperties.size;
+   fontProperties.weight = !isnan(fontProperties.weight) ? fontProperties.weight : baseFontProperties.weight;
++  fontProperties.cssWeight = !isnan(fontProperties.cssWeight) ? fontProperties.cssWeight : baseFontProperties.cssWeight;
+   fontProperties.style =
+       fontProperties.style != RCTFontStyleUndefined ? fontProperties.style : baseFontProperties.style;
+   fontProperties.variant =
+@@ -261,10 +263,11 @@ static UIFont *RCTDefaultFontWithFontProperties(const RCTFontProperties &fontPro
+   static std::mutex fontCacheMutex;
+ 
+   CGFloat effectiveFontSize = fontProperties.sizeMultiplier * fontProperties.size;
+-  NSString *cacheKey = [NSString stringWithFormat:@"%@/%.1f/%.2f/%ld",
++  NSString *cacheKey = [NSString stringWithFormat:@"%@/%a/%a/%a/%ld",
+                                                   fontProperties.family,
+                                                   effectiveFontSize,
+                                                   fontProperties.weight,
++                                                  fontProperties.cssWeight,
+                                                   (long)fontProperties.style];
+   UIFont *font;
+ 
+@@ -394,6 +397,24 @@ UIFont *RCTFontWithFontProperties(RCTFontProperties fontProperties)
+     }
+   }
+ 
++  // Retain the actual peer-selected face and all existing variation axes; replace only wght.
++  if (std::isfinite(fontProperties.cssWeight)) {
++    NSArray *axes = CFBridgingRelease(CTFontCopyVariationAxes((__bridge CTFontRef)font));
++    for (NSDictionary *axis in axes) {
++      NSNumber *identifier = axis[(__bridge NSString *)kCTFontVariationAxisIdentifierKey];
++      if (identifier.unsignedIntValue != 0x77676874) continue;
++      const double minimum = [axis[(__bridge NSString *)kCTFontVariationAxisMinimumValueKey] doubleValue];
++      const double maximum = [axis[(__bridge NSString *)kCTFontVariationAxisMaximumValueKey] doubleValue];
++      NSMutableDictionary *variation = [CFBridgingRelease(CTFontCopyVariation((__bridge CTFontRef)font)) mutableCopy] ?: [NSMutableDictionary new];
++      variation[identifier] = @(std::clamp(fontProperties.cssWeight, minimum, maximum));
++      UIFontDescriptor *descriptor = [font.fontDescriptor fontDescriptorByAddingAttributes:@{(__bridge NSString *)kCTFontVariationAttribute: variation}];
++      UIFont *weighted = [UIFont fontWithDescriptor:descriptor size:effectiveFontSize];
++      if (!weighted) @throw [NSException exceptionWithName:@"RCT.FontWeight" reason:@"Original variable font weight authority unavailable" userInfo:nil];
++      font = weighted;
++      break;
++    }
++  }
++
+   // Apply font variants to font object.
+   if (fontProperties.variant != RCTFontVariantDefault) {
+     NSArray *fontFeatures = RCTFontFeatures(fontProperties.variant);
 diff --git a/ReactCommon/react/renderer/uimanager/NativeEventCommands.h b/ReactCommon/react/renderer/uimanager/NativeEventCommands.h
 new file mode 100644
 index 0000000000000000000000000000000000000000..ca613b3392d37e892682337ffea41b60ec5f6579
