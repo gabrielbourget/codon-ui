@@ -191,11 +191,21 @@ export class NativeDragController {
     }
     if (this.target?.owner.identity !== owner.identity) this.clearTarget()
     if (!this.current(session) || !owner.current()) return "cancel" as const
+    if (
+      this.target?.owner.identity === owner.identity &&
+      this.target.operation === operation &&
+      owner.state.isDropTarget(target)
+    )
+      return operation
     owner.state.setTarget(target)
     if (!this.current(session) || !owner.current()) return "cancel" as const
     this.target = { owner, target, operation, generation: ++this.generation }
     this.changed()
     return operation
+  }
+
+  dropTarget() {
+    return this.target?.target ?? null
   }
 
   activate(id: string, event: TNativeDragPoint) {

@@ -561,6 +561,7 @@ export const useNativeCollectionDragAndDrop = <T = object,>({
   layoutDelegate,
   focusKey,
   rootLabel,
+  scrollRef,
 }: {
   hooks?: TNativeDragAndDropHooks<T>
   collection: TNativeDraggableCollectionStateOptions["collection"]
@@ -570,6 +571,7 @@ export const useNativeCollectionDragAndDrop = <T = object,>({
   layoutDelegate?: TNativeDropCollectionOptions["layoutDelegate"]
   focusKey?: TNativeDropCollectionOptions["focusKey"]
   rootLabel?: string
+  scrollRef?: TNativeDropCollectionOptions["scrollRef"]
 }): TNativeCollectionDragAndDropResult => {
   const [failure, setFailure] = useState<{ error: unknown } | null>(null)
   const dragEnabled = !!hooks?.useDraggableCollectionState,
@@ -590,7 +592,7 @@ export const useNativeCollectionDragAndDrop = <T = object,>({
   })
   ;(hooks?.useDraggableCollection ?? useNativeDraggableCollection)({}, drag, root)
   const result = (hooks?.useDroppableCollection ?? useNativeDroppableCollection)(
-    { layoutDelegate, focusKey, rootLabel, dropTargetDelegate: hooks?.dropTargetDelegate },
+    { layoutDelegate, focusKey, rootLabel, scrollRef, dropTargetDelegate: hooks?.dropTargetDelegate },
     drop,
     root,
   )

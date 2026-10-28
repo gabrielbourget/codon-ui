@@ -4,6 +4,8 @@
 #import "CUIInputWindow.h"
 #import "CUIKeyboardScope.h"
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
+#import <QuartzCore/QuartzCore.h>
+#include "../cpp/drag/Motion.h"
 #include <cmath>
 #include <climits>
 
@@ -71,7 +73,7 @@ static BOOL CUIDescendant(UIView *view, UIView *root) { for (UIView *item = view
 @implementation CUIDragMember
 @end
 
-@interface CUIDragBinding : NSObject <UIDragInteractionDelegate, UIDropInteractionDelegate>
+@interface CUIDragBinding : NSObject <UIDragInteractionDelegate, UIDropInteractionDelegate> { @public codon::drag::HoverActivation _hover; }
 @property(nonatomic, weak) CUIDragInteractions *owner;
 @property(nonatomic, copy) NSDictionary *data;
 @property(nonatomic, weak) UIView *root;
@@ -82,11 +84,24 @@ static BOOL CUIDescendant(UIView *view, UIView *root) { for (UIView *item = view
 @property(nonatomic, strong) NSMapTable<id<UIDropSession>, NSString *> *destinations;
 @property(nonatomic, weak) UIView *preview;
 @property(nonatomic, copy) NSString *previewIdentity;
-@property(nonatomic, assign) BOOL retired, rootResolved, ready;
+@property(nonatomic, assign) BOOL retired, rootResolved, ready, motionDirty, hasScrollOffset;
+@property(nonatomic, weak) UIView *scrollHost;
+@property(nonatomic, copy) NSString *scrollIdentity;
+@property(nonatomic, weak) UIScrollView *activeScroller;
+@property(nonatomic, assign) CGPoint scrollOffset, motionPoint;
+@property(nonatomic, assign) BOOL hasMotionPoint;
+@property(nonatomic, strong) CADisplayLink *motionLink;
+@property(nonatomic, weak) id<UIDropSession> motionSession;
+@property(nonatomic, copy) NSDictionary *motionReply;
 - (BOOL)owns:(CUIDragTransfer *)transfer;
 - (BOOL)current;
 - (void)refresh;
 - (void)retire;
+- (void)stopMotion;
+- (void)startMotionFrames;
+- (void)motionFrame:(CADisplayLink *)link;
+- (NSDictionary *)updateTarget:(id<UIDropSession>)session;
+- (void)trackMotion:(id<UIDropSession>)session reply:(NSDictionary *)reply;
 @end
 
 @interface CUIDragInteractions ()
@@ -124,7 +139,8 @@ static BOOL CUIDescendant(UIView *view, UIView *root) { for (UIView *item = view
     if (![binding isKindOfClass:NSDictionary.class] || !CUIString(binding[@"bindingId"]).length || !CUIString(binding[@"revision"]).length || !CUIString(binding[@"moduleId"]).length ||
         ![binding[@"members"] isKindOfClass:NSArray.class] || [ids containsObject:binding[@"bindingId"]] || [roots containsObject:binding[@"rootTarget"]])
       @throw [NSException exceptionWithName:@"CUI.Drag" reason:@"native-drag-bindings-ambiguous" userInfo:nil];
-    CUITag(binding[@"rootTarget"]); CUITag(binding[@"previewTarget"], YES); [ids addObject:binding[@"bindingId"]]; [roots addObject:binding[@"rootTarget"]];
+    CUITag(binding[@"rootTarget"]); CUITag(binding[@"previewTarget"], YES);
+    if (binding[@"scrollTarget"]) { NSInteger scroll = CUITag(binding[@"scrollTarget"], YES); if (scroll && !CUIString(binding[@"scrollInstanceId"]).length) @throw [NSException exceptionWithName:@"CUI.Drag" reason:@"native-drag-original-scroll-identity-invalid" userInfo:nil]; } [ids addObject:binding[@"bindingId"]]; [roots addObject:binding[@"rootTarget"]];
     NSMutableSet *keys = [NSMutableSet new], *instances = [NSMutableSet new];
     for (NSDictionary *member in binding[@"members"]) {
       CUIString(member[@"key"]); NSString *instance = CUIString(member[@"instanceId"]); CUITag(member[@"targetTag"]); CUITag(member[@"handleTag"], YES);
@@ -160,7 +176,7 @@ static BOOL CUIDescendant(UIView *view, UIView *root) { for (UIView *item = view
     NSString *signature = [[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject:status options:NSJSONWritingSortedKeys error:nil] encoding:NSUTF8StringEncoding];
     if (![_windowStatus isEqual:signature]) { _windowStatus = signature; [_scope emitDragStatus:status]; }
   }
-  for (CUIDragBinding *binding in _bindings.allValues) binding.drag.enabled = [binding.data[@"draggable"] boolValue] && ([self canLift] || binding.sources.count > 0);
+  for (CUIDragBinding *binding in _bindings.allValues) { binding.drag.enabled = [binding.data[@"draggable"] boolValue] && ([self canLift] || binding.sources.count > 0); if (![self canDrop]) [binding stopMotion]; }
 }
 - (void)refresh {
   [self refreshWindow];
@@ -251,11 +267,20 @@ static BOOL CUIDescendant(UIView *view, UIView *root) { for (UIView *item = view
       if (!preview || preview.window != _root.window || ([_previewIdentity isEqual:identity] && _preview != preview)) @throw [NSException exceptionWithName:@"CUI.Drag" reason:@"native-drag-original-preview-unavailable" userInfo:nil];
       _previewIdentity = identity; _preview = preview;
     } else { _preview = nil; _previewIdentity = nil; }
-    _ready = YES;
+    NSInteger scrollTag = [_data[@"scrollTarget"] integerValue];
+    if (scrollTag) {
+      NSString *identity = [NSString stringWithFormat:@"%@:%@", _data[@"scrollInstanceId"], _data[@"scrollTarget"]];
+      UIView *host = CUIResolveDragView(_data[@"moduleId"], scrollTag);
+      if (!host || host.window != _root.window || (!CUIDescendant(host,_root) && !CUIDescendant(_root,host)) || ([_scrollIdentity isEqual:identity] && _scrollHost != host)) @throw [NSException exceptionWithName:@"CUI.Drag" reason:@"native-drag-original-scroll-host-unavailable" userInfo:nil];
+      if (![_scrollIdentity isEqual:identity]) { _activeScroller = nil; _hasScrollOffset = NO; }
+      _scrollIdentity = identity; _scrollHost = host;
+    } else { _scrollHost = nil; _scrollIdentity = nil; }
+    _ready = YES; _motionDirty = YES;
+    if (_motionSession) [self startMotionFrames];
     [_owner status:self ready:YES error:@"" kind:@"binding"];
   } @catch (NSException *error) { [_owner status:self ready:NO error:error.reason kind:@"binding"]; }
 }
-- (void)retire { _ready = NO; _retired = YES; for (CUIDragTransfer *source in _sources.objectEnumerator) source.ended = YES; [_sources removeAllObjects]; _rootResolved = NO; if (_drag) [_root removeInteraction:_drag]; if (_drop) [_root removeInteraction:_drop]; _drag = nil; _drop = nil; _root = nil; [_members removeAllObjects]; _preview = nil; _previewIdentity = nil; }
+- (void)retire { [self stopMotion]; _scrollHost = nil; _scrollIdentity = nil; _ready = NO; _retired = YES; for (CUIDragTransfer *source in _sources.objectEnumerator) source.ended = YES; [_sources removeAllObjects]; _rootResolved = NO; if (_drag) [_root removeInteraction:_drag]; if (_drop) [_root removeInteraction:_drop]; _drag = nil; _drop = nil; _root = nil; [_members removeAllObjects]; _preview = nil; _previewIdentity = nil; }
 - (CUIDragMember *)memberAt:(CGPoint)point {
   UIView *hit = [_root hitTest:[_owner.scope.window convertPoint:point toView:_root] withEvent:nil];
   CUIDragMember *selected = nil;
@@ -356,18 +381,21 @@ static BOOL CUIDescendant(UIView *view, UIView *root) { for (UIView *item = view
 }
 - (UIDropProposal *)dropInteraction:(UIDropInteraction *)interaction sessionDidUpdate:(id<UIDropSession>)session {
   @try {
-    NSDictionary *reply = [_owner action:self kind:@"target" session:[self identifier:session] member:nil point:[session locationInView:_owner.scope.window] values:[self types:session] current:^BOOL{ return [self dropInteraction:interaction canHandleSession:session]; }];
+    NSDictionary *reply = [self updateTarget:session];
+    [self trackMotion:session reply:reply];
     NSString *operation = CUIString(reply[@"operation"]);
     if ([operation isEqual:@"link"]) @throw [NSException exceptionWithName:@"CUI.Drag" reason:@"native-drag-link-proposal-unrepresentable" userInfo:nil];
     UIDropOperation native = [operation isEqual:@"copy"] ? UIDropOperationCopy : [operation isEqual:@"move"] && session.allowsMoveOperation ? UIDropOperationMove : UIDropOperationCancel;
     return [[UIDropProposal alloc] initWithDropOperation:native];
-  } @catch (NSException *error) { [_owner status:self ready:NO error:error.reason kind:@"binding"]; return [[UIDropProposal alloc] initWithDropOperation:UIDropOperationCancel]; }
+  } @catch (NSException *error) { [self stopMotion]; [_owner status:self ready:NO error:error.reason kind:@"binding"]; return [[UIDropProposal alloc] initWithDropOperation:UIDropOperationCancel]; }
 }
 - (void)dropInteraction:(UIDropInteraction *)interaction sessionDidExit:(id<UIDropSession>)session {
+  [self stopMotion];
   @try { if ([self current]) [_owner action:self kind:@"exit" session:[self identifier:session] member:nil point:[session locationInView:_owner.scope.window] values:@{} current:^BOOL{ return [self current]; }]; }
   @catch (NSException *error) { [_owner status:self ready:NO error:error.reason kind:@"binding"]; }
 }
 - (void)dropInteraction:(UIDropInteraction *)interaction performDrop:(id<UIDropSession>)session {
+  [self stopMotion];
   CUIDragTransfer *local = [self local:session]; if (local) local.attempted = YES;
   CUIDragDataStore *store = [CUIDragDataStore storeForModuleId:_data[@"moduleId"]]; NSString *handle = nil;
   @try {
@@ -384,8 +412,96 @@ static BOOL CUIDescendant(UIView *view, UIView *root) { for (UIView *item = view
   }
 }
 - (void)dropInteraction:(UIDropInteraction *)interaction sessionDidEnd:(id<UIDropSession>)session {
+  [self stopMotion];
   @try { if ([self local:session].source != self && [self current]) [_owner action:self kind:@"end" session:[self identifier:session] member:nil point:CGPointZero values:@{ @"operation": @"cancel", @"external": @YES } current:^BOOL{ return [self current]; }]; }
   @catch (NSException *error) { [_owner status:self ready:NO error:error.reason kind:@"binding"]; }
   [_destinations removeObjectForKey:session];
 }
+- (NSDictionary *)updateTarget:(id<UIDropSession>)session {
+  return [_owner action:self kind:@"target" session:[self identifier:session] member:nil point:[session locationInView:_owner.scope.window] values:[self types:session] current:^BOOL{ return [self dropInteraction:self.drop canHandleSession:session]; }];
+}
+- (void)startMotionFrames {
+  if (_motionLink || !_motionSession) return;
+  _motionLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(motionFrame:)];
+  [_motionLink addToRunLoop:NSRunLoop.mainRunLoop forMode:NSRunLoopCommonModes];
+}
+- (void)stopMotion {
+  [_motionLink invalidate]; _motionLink = nil; _motionSession = nil; _motionReply = nil;
+  _activeScroller = nil; _hasScrollOffset = NO; _hasMotionPoint = NO; _motionDirty = NO; _hover.stop();
+}
+- (void)trackMotion:(id<UIDropSession>)session reply:(NSDictionary *)reply {
+  if (![self current] || ![_owner canDrop] || [reply[@"operation"] isEqual:@"cancel"]) { [self stopMotion]; return; }
+  if (_motionSession && _motionSession != session) [self stopMotion];
+  _motionSession = session; _motionReply = reply;
+  NSDictionary *target = [reply[@"target"] isKindOfClass:NSDictionary.class] ? reply[@"target"] : nil;
+  CGPoint point = [session locationInView:_owner.scope.window];
+  _motionPoint = point; _hasMotionPoint = YES;
+  NSString *identity = target ? [NSString stringWithFormat:@"%@:%@:%@", target[@"key"], target[@"instanceId"], target[@"position"]] : @"";
+  _hover.update(identity.UTF8String ?: "", CUIString(reply[@"operation"]).UTF8String, point.x, point.y, [target[@"activate"] boolValue], CACurrentMediaTime()*1000);
+  [self startMotionFrames];
+}
+- (UIScrollView *)explicitScroller {
+  if (!_scrollHost) return nil;
+  NSMutableArray<UIView *> *pending = [NSMutableArray arrayWithObject:_scrollHost]; UIScrollView *result = nil;
+  while (pending.count) {
+    UIView *view = pending.lastObject; [pending removeLastObject];
+    if ([view isKindOfClass:UIScrollView.class]) {
+      if (result) @throw [NSException exceptionWithName:@"CUI.Drag" reason:@"native-drag-scroll-host-ambiguous" userInfo:nil];
+      result = (UIScrollView *)view;
+    } else [pending addObjectsFromArray:view.subviews];
+  }
+  if (!result) @throw [NSException exceptionWithName:@"CUI.Drag" reason:@"native-drag-scroll-host-has-no-original-scroll-view" userInfo:nil];
+  return result;
+}
+- (UIScrollView *)scroller {
+  UIScrollView *preferred = [self explicitScroller]; UIView *start = preferred;
+  if (!start) {
+    NSDictionary *target = [_motionReply[@"target"] isKindOfClass:NSDictionary.class] ? _motionReply[@"target"] : nil; CUIDragMember *member = target ? _members[target[@"instanceId"]] : nil;
+    start = member.view ? member.view.superview : _root;
+  }
+  for (UIView *view = start; view; view = view.superview) if ([view isKindOfClass:UIScrollView.class]) {
+    UIScrollView *scroll = (UIScrollView *)view; UIEdgeInsets inset = scroll.adjustedContentInset;
+    if (scroll.scrollEnabled && (scroll.contentSize.width + inset.left + inset.right > scroll.bounds.size.width || scroll.contentSize.height + inset.top + inset.bottom > scroll.bounds.size.height)) return scroll;
+  }
+  return nil;
+}
+- (BOOL)scrollMotion:(CGPoint)point edge:(BOOL *)edge {
+  UIScrollView *scroll = [self scroller]; if (!scroll || scroll.window != _owner.scope.window) { _activeScroller = nil; _hasScrollOffset = NO; return NO; }
+  CGRect box = [scroll convertRect:scroll.bounds toView:_owner.scope.window];
+  UIEdgeInsets inset = scroll.adjustedContentInset; CGPoint offset = scroll.contentOffset;
+  CGFloat minX = -inset.left, maxX = MAX(minX, scroll.contentSize.width-scroll.bounds.size.width+inset.right);
+  CGFloat minY = -inset.top, maxY = MAX(minY, scroll.contentSize.height-scroll.bounds.size.height+inset.bottom);
+  CGFloat dx = maxX>minX ? codon::drag::edgeScrollDelta(point.x-box.origin.x,box.size.width) : 0;
+  CGFloat dy = maxY>minY ? codon::drag::edgeScrollDelta(point.y-box.origin.y,box.size.height) : 0;
+  *edge = dx != 0 || dy != 0;
+  BOOL external = _activeScroller == scroll && _hasScrollOffset && !CGPointEqualToPoint(_scrollOffset,offset);
+  _activeScroller = scroll; _scrollOffset = offset; _hasScrollOffset = YES;
+  if (external) return YES;
+  CGPoint next = CGPointMake(MIN(maxX,MAX(minX,offset.x+dx)),MIN(maxY,MAX(minY,offset.y+dy)));
+  if (CGPointEqualToPoint(next,offset)) return NO;
+  [scroll setContentOffset:next animated:NO]; _scrollOffset = scroll.contentOffset;
+  return !CGPointEqualToPoint(offset,_scrollOffset);
+}
+- (void)motionFrame:(CADisplayLink *)link {
+  id<UIDropSession> session = _motionSession;
+  if (!session || ![self dropInteraction:_drop canHandleSession:session]) { [self stopMotion]; return; }
+  @try {
+    CGPoint point = [session locationInView:_owner.scope.window]; BOOL edge = NO;
+    BOOL moved = [self scrollMotion:point edge:&edge];
+    double now = CACurrentMediaTime()*1000;
+    BOOL due = _hover.initialized && !_hover.fired && now >= _hover.due;
+    if (moved || _motionDirty || due || !_hasMotionPoint || !CGPointEqualToPoint(point,_motionPoint)) {
+      _motionDirty = NO; NSDictionary *reply = [self updateTarget:session];
+      if ([reply[@"operation"] isEqual:@"link"]) @throw [NSException exceptionWithName:@"CUI.Drag" reason:@"native-drag-link-proposal-unrepresentable" userInfo:nil];
+      [self trackMotion:session reply:reply];
+    }
+    if (_motionSession == session && _hover.ready(now)) {
+      NSDictionary *target = [_motionReply[@"target"] isKindOfClass:NSDictionary.class] ? _motionReply[@"target"] : nil; CUIDragMember *member = target ? _members[target[@"instanceId"]] : nil;
+      if (member && member.view && [target[@"targetTag"] isEqual:member.data[@"targetTag"]])
+        [_owner action:self kind:@"activate" session:[self identifier:session] member:member point:point values:@{ @"expectedTarget": target } current:^BOOL{ return [self dropInteraction:self.drop canHandleSession:session]; }];
+    }
+    if (!edge && (!_hover.initialized || _hover.fired) && !_motionDirty) { [_motionLink invalidate]; _motionLink = nil; }
+  } @catch (NSException *error) { [self stopMotion]; [_owner status:self ready:NO error:error.reason kind:@"binding"]; }
+}
+
 @end

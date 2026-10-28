@@ -249,6 +249,7 @@ const Receiver = <T extends object>({
     layoutDelegate: renderer.layoutDelegate,
     focusKey: sourceKeyboard.requestFocus,
     rootLabel: props.accessibilityLabel ?? props["aria-label"],
+    scrollRef,
   })
   const keyboard =
     state.isKeyboardNavigationDisabled || dragAndDrop.context.dragAndDropHooks?.isVirtualDragging?.()

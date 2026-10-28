@@ -7,7 +7,7 @@ import { focusNativeTarget } from "../../input/focus"
 import type { TNativeDragActionPacket, TNativeDragActions, TNativeDragViewBinding } from "../../input/nativeDragActions"
 import NativeModule from "../../input/specs/NativeCUIDragAndDrop"
 import type { TNativeKeyboardEvent } from "../../input/types"
-import type { TNativeCollectionLayoutDelegate } from "../renderer"
+import type { TNativeCollectionScrollHost, TNativeCollectionLayoutDelegate } from "../renderer"
 import type { TNativeCollectionKey } from "../snapshot"
 
 import { NativeDragController } from "./controller"
@@ -49,6 +49,7 @@ export type TNativeDropCollectionOptions = TNativeDroppableCollectionProps & {
   keyboardDelegate?: TNativeDropKeyboardDelegate
   focusKey?: (key: TNativeCollectionKey) => void
   rootLabel?: string
+  scrollRef?: RefObject<TNativeCollectionScrollHost | null>
 }
 const object = (value: unknown): Record<string, unknown> => {
   if (!value || typeof value !== "object" || Array.isArray(value))
@@ -82,6 +83,7 @@ export class NativeCollectionDragBinding {
   targetEnabled = false
   private rows = new Map<TNativeCollectionKey, TRow>()
   private handles = new Map<TNativeCollectionKey, View>()
+  private scroll: { host: object; id: string } | null = null
   private preview: { view: View; id: string; x: number; y: number } | null = null
   private lease: ReturnType<TNativeDragActions["register"]> | null = null
   private bound: View | null = null
@@ -232,10 +234,17 @@ export class NativeCollectionDragBinding {
           : []
       })
     })
+    const scroll = this.dropOptions.scrollRef?.current
+    const candidate = scroll && (scroll.getNativeScrollRef?.() ?? scroll.getScrollRef?.())
+    const host = candidate && "getNativeScrollRef" in candidate ? candidate.getNativeScrollRef() : candidate
+    if (host && this.scroll?.host !== host) this.scroll = { host, id: `${this.id}:scroll:${++this.rowSerial}` }
+    if (!host) this.scroll = null
     return {
       draggable: this.sourceEnabled && !!this.source && !this.source.isDisabled,
       droppable: this.targetEnabled && !!this.target && !this.target.isDisabled,
       members,
+      scrollTarget: this.scroll ? (findNodeHandle(this.scroll.host as View) ?? 0) : 0,
+      scrollInstanceId: this.scroll?.id ?? "",
       previewTarget: this.preview ? (findNodeHandle(this.preview.view) ?? 0) : 0,
       previewInstanceId: this.preview?.id ?? "",
       previewX: this.preview?.x ?? 0,
@@ -496,7 +505,8 @@ export class NativeCollectionDragBinding {
       this.dropOptions.dropTargetDelegate ??
       new NativeListDropTargetDelegate(visible, this.root, { direction: this.dropOptions.direction })
     const rootRect = readNativeDragGeometry(this.root.current!).root
-    const target = delegate.getDropTargetFromPoint(point.x - rootRect.x, point.y - rootRect.y, valid)
+    let target = delegate.getDropTargetFromPoint(point.x - rootRect.x, point.y - rootRect.y, valid)
+    if (target && !valid(target) && valid({ type: "root" })) target = { type: "root" }
     return this.controller.targetAt(id, this.nativeTarget, target, types, allowed)
   }
   dispatch = (packet: TNativeDragActionPacket, current: () => boolean): object => {
@@ -546,13 +556,43 @@ export class NativeCollectionDragBinding {
         this.setPreview(null)
         return { ended: this.controller.end(identity.sessionId, point, operation) }
       }
-      if (identity.kind === "activate") return { activated: this.controller.activate(identity.sessionId, point) }
+      if (identity.kind === "activate") {
+        if (payload.expectedTarget) {
+          const expected = object(payload.expectedTarget),
+            target = this.controller.dropTarget()
+          if (
+            target?.type !== "item" ||
+            encodeCollectionKey(target.key) !== expected.key ||
+            target.dropPosition !== expected.position
+          )
+            return { activated: false }
+          const row = this.rowFor(expected.key, expected.instanceId),
+            view = this.view(row, "target")
+          if (!view || findNodeHandle(view) !== expected.targetTag) return { activated: false }
+        }
+        return { activated: this.controller.activate(identity.sessionId, point) }
+      }
       if (!Array.isArray(payload.types) || payload.types.some((type) => typeof type !== "string"))
         throw new Error("Native drop binding: original types required")
       const types = new Set<string | symbol>(payload.types as string[])
       if (payload.directory) types.add(NATIVE_DIRECTORY_DRAG_TYPE)
       const operation = this.targetAt(identity.sessionId, point, types, offered(payload.operations))
-      if (identity.kind === "target") return { operation }
+      if (identity.kind === "target") {
+        const target = this.controller.dropTarget()
+        const member =
+          target?.type === "item"
+            ? this.metadata().members.find(
+                (member) => member.key === encodeCollectionKey(target.key) && member.role !== "source",
+              )
+            : null
+        return {
+          operation,
+          target:
+            member && target?.type === "item"
+              ? { ...member, position: target.dropPosition, activate: !!this.dropOptions.onDropActivate }
+              : null,
+        }
+      }
       if (operation === "cancel") return { accepted: false, operation }
       if (typeof payload.dataHandle !== "string")
         throw new Error("Native drop binding: original transfer handle required")

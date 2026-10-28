@@ -107,6 +107,22 @@
       "sourceMapSHA256": "cace24b77852d94d1df59653b98d1c56e81d7cc5c923b658eb14753e2d226e41",
       "sourcePath": "packages/react-aria/src/dnd/DragManager.ts",
       "sourceContentSHA256": "41c424e5ab3d6f22b6458dffa1d79cd65e7a44f0973bd1d20045ea16eece5be3"
+    },
+    {
+      "package": "react-aria",
+      "version": "3.48.0",
+      "distributionPath": "dist/private/dnd/useDrop.js.map",
+      "sourceMapSHA256": "3e1c5a1545335ec5ee88f766d768f26a316e0f43d148e041cd511629bc7134bc",
+      "sourcePath": "packages/react-aria/src/dnd/useDrop.ts",
+      "sourceContentSHA256": "9997d7a1bd266fff6af00bd3a8ef0204e7fb94ab71a2afa02b8cc8b2ff7e6ae9"
+    },
+    {
+      "package": "react-aria",
+      "version": "3.48.0",
+      "distributionPath": "dist/private/dnd/useAutoScroll.js.map",
+      "sourceMapSHA256": "2d825e9796b560df62b7b93b6e0296537a3a2164e2263dca7237bdad2051860f",
+      "sourcePath": "packages/react-aria/src/dnd/useAutoScroll.ts",
+      "sourceContentSHA256": "de6ecec8a2e7a6077893b28a72cb760d8ad23d2c974374591c93c930021dad06"
     }
   ],
   "adaptations": [

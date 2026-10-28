@@ -34,6 +34,8 @@ export type TNativeDragViewBinding = Readonly<{
   draggable: boolean
   droppable: boolean
   members: readonly TNativeDragMemberBinding[]
+  scrollTarget?: number
+  scrollInstanceId?: string
   previewTarget: number
   previewInstanceId: string
   previewX: number
@@ -132,6 +134,9 @@ export const createNativeDragActions = (scope: TNativeKeyScope) => {
       typeof value.draggable !== "boolean" ||
       typeof value.droppable !== "boolean" ||
       !Array.isArray(value.members) ||
+      (value.scrollTarget !== undefined &&
+        value.scrollTarget !== 0 &&
+        (!target(value.scrollTarget) || !value.scrollInstanceId)) ||
       typeof value.previewInstanceId !== "string" ||
       !Number.isFinite(value.previewX) ||
       !Number.isFinite(value.previewY) ||

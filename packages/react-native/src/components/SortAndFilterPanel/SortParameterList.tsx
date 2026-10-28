@@ -20,7 +20,11 @@ import {
   useNativeDroppableItem,
 } from "../../collection/dragAndDrop/hooks"
 import type { TNativeInsertDropEvent, TNativeReorderDropEvent } from "../../collection/dragAndDrop/types"
-import { NativeCollectionRendererContext, useNativePersistedKeys } from "../../collection/renderer"
+import {
+  NativeCollectionRendererContext,
+  useNativePersistedKeys,
+  type TNativeCollectionScrollHost,
+} from "../../collection/renderer"
 import { NativeCollectionSemanticsContext } from "../../collection/semantics"
 import type { TNativeCollectionSessionSnapshot } from "../../collection/session"
 import type { TNativeCollectionNode, TNativeCollectionSnapshot } from "../../collection/snapshot"
@@ -173,6 +177,7 @@ const List = ({
 }) => {
   const state = useListState({ collection, selectionMode: "none" })
   const root = useRef<View | null>(null)
+  const scrollRef = useRef<TNativeCollectionScrollHost | null>(null)
   const [target, setTarget] = useState(0)
   const bind = useCallback((view: View | null) => {
     root.current = view
@@ -235,6 +240,7 @@ const List = ({
     layoutDelegate: renderer.layoutDelegate,
     focusKey: keyboard.requestFocus,
     rootLabel: props.listLabels.listAriaLabel,
+    scrollRef,
   })
   const focusedKeys = useNativePersistedKeys(
     state.selectionManager.focusedKey,
@@ -284,6 +290,7 @@ const List = ({
                 />
                 <NativeContentContext.Provider value={{ foregroundColor: theme.colors.foreground, isButton: false }}>
                   <renderer.CollectionRoot
+                    scrollRef={scrollRef}
                     collection={collection}
                     persistedKeys={persistedKeys}
                     renderDropIndicator={dragAndDrop.renderDropIndicator}

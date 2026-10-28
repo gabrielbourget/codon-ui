@@ -9,6 +9,11 @@ import android.graphics.Point;
 import android.graphics.RectF;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
+import android.view.Choreographer;
+import com.facebook.react.views.scroll.ReactScrollView;
+import com.facebook.react.views.scroll.ReactNestedScrollView;
+import com.facebook.react.views.scroll.ReactHorizontalScrollView;
 import android.view.DragEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -56,7 +61,8 @@ final class CUIDragInteractions {
     final Map<String, Member> members = new LinkedHashMap<>();
     WeakReference<View> root = new WeakReference<>(null), preview = new WeakReference<>(null);
     boolean resolved, ready, retired;
-    String previewIdentity = "";
+    String previewIdentity = "", scrollIdentity = "";
+    WeakReference<View> scrollHost = new WeakReference<>(null);
     Binding(JSONObject data) { this.data = data; }
   }
   private static final class Source {
@@ -100,6 +106,9 @@ final class CUIDragInteractions {
   private WeakReference<View> windowRoot = new WeakReference<>(null);
   private boolean closed;
   private Source source;
+  private Motion motion;
+  private boolean dragActive;
+  private String activeDragId;
 
   CUIDragInteractions(CUIKeyboardScope scope) { this.scope = scope; }
   private static int tag(Object value, boolean zero) {
@@ -145,6 +154,7 @@ final class CUIDragInteractions {
     if (nextSurface>0) lastSurface=nextSurface;
     int surface=lastSurface; if (surface<=0 || epoch==0) return;
     if (!canLift()) cancelPointer();
+    if (!canDrop()) stopMotion();
     try {
       JSONObject status=new JSONObject().put("kind","window").put("ownerId",owner).put("windowId",window).put("epoch",epoch).put("surfaceId",surface).put("scopeTarget",scope.getId())
         .put("available",available()).put("canLift",canLift()).put("canDrop",canDrop());
@@ -181,7 +191,16 @@ final class CUIDragInteractions {
           if (view==null || !view.isAttachedToWindow() || view.getRootView()!=root.getRootView() || (nonce.equals(binding.previewIdentity) && binding.preview.get()!=view)) throw new IllegalStateException("native-drag-original-preview-unavailable");
           binding.previewIdentity=nonce; binding.preview=new WeakReference<>(view);
         } else { binding.previewIdentity=""; binding.preview.clear(); }
-        binding.ready=true; status(binding,true,"","binding");
+        int scrollTag=tag(binding.data.opt("scrollTarget")==null?0:binding.data.opt("scrollTarget"),true);
+        if (scrollTag!=0) {
+          String identity=binding.data.getString("scrollInstanceId")+":"+scrollTag; View host=resolve(scrollTag);
+          if (host==null || !host.isAttachedToWindow() || host.getRootView()!=root.getRootView() || (!descendant(host,root) && !descendant(root,host)) || (identity.equals(binding.scrollIdentity) && binding.scrollHost.get()!=host)) throw new IllegalStateException("native-drag-original-scroll-host-unavailable");
+          if (!identity.equals(binding.scrollIdentity) && motion!=null && motion.binding==binding) motion.hasOffset=false;
+          binding.scrollIdentity=identity; binding.scrollHost=new WeakReference<>(host);
+        } else { binding.scrollHost.clear(); binding.scrollIdentity=""; }
+        binding.ready=true;
+        if (motion!=null && motion.binding==binding) { motion.dirty=true; motion.schedule(); }
+        status(binding,true,"","binding");
       } catch (Exception error) { status(binding,false,error.toString(),"binding"); }
     }
   }
@@ -193,7 +212,7 @@ final class CUIDragInteractions {
   }
   private boolean owns(Source value) { return !value.ended && value.owner.source==value && value.epoch==value.owner.epoch && value.owner.current(value.binding) &&
     value.binding.members.get(value.member.instance)==value.member && value.member.view.get()==value.original && value.original.isAttachedToWindow() && descendant(value.original,value.binding.root.get()); }
-  private void retire(Binding binding) { if (binding==null) return; binding.ready=false; binding.retired=true; binding.resolved=false; binding.root.clear(); binding.preview.clear(); binding.previewIdentity=""; binding.members.clear(); if (source!=null && source.binding==binding) { source.ended=true; source=null; } }
+  private void retire(Binding binding) { if (binding==null) return; if (motion!=null && motion.binding==binding) stopMotion(); binding.scrollHost.clear(); binding.scrollIdentity=""; binding.ready=false; binding.retired=true; binding.resolved=false; binding.root.clear(); binding.preview.clear(); binding.previewIdentity=""; binding.members.clear(); if (source!=null && source.binding==binding) { source.ended=true; source=null; } }
   private void status(Binding binding,boolean ready,String error,String kind) {
     if (epoch==0) return;
     try {
@@ -337,7 +356,7 @@ final class CUIDragInteractions {
     int action=event.getAction(); Source local=local(event); String id=identifier(event);
     try {
       if (action==DragEvent.ACTION_DRAG_STARTED) {
-        foreignId=local==null?UUID.randomUUID().toString():null;
+        stopMotion(); foreignId=local==null?UUID.randomUUID().toString():null; dragActive=true; activeDragId=identifier(event);
         if (local==null && event.getClipDescription()!=null && event.getClipDescription().hasMimeType(LOCAL_TYPE)) return false;
         if (source!=null && !source.ended) return true;
         for (Binding binding:bindings.values()) if (current(binding) && binding.data.getBoolean("droppable")) return true;
@@ -349,12 +368,13 @@ final class CUIDragInteractions {
           float[] sourcePoint=project(point,scope,local.owner.scope);
           local.owner.action(local.binding,"move",local.identifier(),local.member,sourcePoint,new JSONObject().put("nativeAction",action),()->local.owner.owns(local));
         }
-        if (!canDrop() || original) return false;
-        Binding target=targetAt(point); if (target==null) return false;
+        if (action==DragEvent.ACTION_DROP) stopMotion();
+        if (!canDrop() || original) { stopMotion(); leaveTargets(id,point); return false; }
+        Binding target=targetAt(point); if (target==null) { stopMotion(); leaveTargets(id,point); return false; }
         JSONObject response=action(target,"target",id,null,point,types(event),()->canDrop()); entered.add(target);
         String operation=response.getString("operation");
         for (Binding old:new ArrayList<>(entered)) if (old!=target) { if (current(old)) action(old,"exit",id,null,point,new JSONObject(),()->current(old)); entered.remove(old); }
-        if (action==DragEvent.ACTION_DRAG_LOCATION) return !operation.equals("cancel");
+        if (action==DragEvent.ACTION_DRAG_LOCATION) { trackMotion(target,id,point,types(event),response); return !operation.equals("cancel"); }
         if (operation.equals("cancel")) return false;
         if (local!=null) local.attempted=true;
         CUIDragDataStore store=CUIDragDataStore.forModule(target.data.getString("moduleId")); if (store==null) throw new IllegalStateException("native-drag-data-module-retired");
@@ -368,10 +388,12 @@ final class CUIDragInteractions {
         } catch (Exception error) { store.releaseData(new JSONObject().put("moduleId",store.moduleId).put("handle",handle)); throw error; }
       }
       if (action==DragEvent.ACTION_DRAG_EXITED) {
+        stopMotion();
         for (Binding binding:new ArrayList<>(entered)) if (current(binding)) action(binding,"exit",id,null,new float[]{0,0},new JSONObject().put("nativeAction",action),()->current(binding));
         entered.clear(); return false;
       }
       if (action==DragEvent.ACTION_DRAG_ENDED) {
+        stopMotion(); dragActive=false; activeDragId=null;
         if (source!=null && event.getLocalState()==source) {
           Source ending=source;
           try { if (owns(ending)) action(ending.binding,"end",ending.identifier(),ending.member,new float[]{0,0},new JSONObject()
@@ -382,8 +404,84 @@ final class CUIDragInteractions {
         for (Binding binding:new ArrayList<>(entered)) if (current(binding) && (local==null || local.binding!=binding)) action(binding,"end",id,null,new float[]{0,0},new JSONObject().put("operation","cancel").put("external",true).put("nativeResult",event.getResult()),()->current(binding));
         entered.clear(); foreignId=null; return false;
       }
-    } catch (Exception error) { for (Binding binding:bindings.values()) if (current(binding)) status(binding,false,error.toString(),"binding"); }
+    } catch (Exception error) { stopMotion(); for (Binding binding:bindings.values()) if (current(binding)) status(binding,false,error.toString(),"binding"); }
     return false;
+  }
+  private void leaveTargets(String id,float[] point) throws Exception {
+    for (Binding binding:new ArrayList<>(entered)) if (current(binding)) action(binding,"exit",id,null,point,new JSONObject(),()->current(binding));
+    entered.clear();
+  }
+  private void stopMotion() { Motion previous=motion; motion=null; if (previous!=null) previous.stop(); }
+  private void trackMotion(Binding binding,String session,float[] point,JSONObject types,JSONObject reply) throws Exception {
+    if (reply.getString("operation").equals("cancel")) { stopMotion(); return; }
+    if (motion==null || motion.binding!=binding || !motion.session.equals(session)) { stopMotion(); motion=new Motion(binding,session); }
+    motion.update(point,types,reply); motion.schedule();
+  }
+  private boolean scrollEnabled(View view) {
+    if (!view.isEnabled()) return false;
+    if (view instanceof ReactScrollView) return ((ReactScrollView)view).getScrollEnabled();
+    if (view instanceof ReactNestedScrollView) return ((ReactNestedScrollView)view).getScrollEnabled();
+    if (view instanceof ReactHorizontalScrollView) return ((ReactHorizontalScrollView)view).getScrollEnabled();
+    return true;
+  }
+  private View scroller(Binding binding,JSONObject reply) throws Exception {
+    View start=binding.scrollHost.get();
+    if (start==null) {
+      JSONObject target=reply.optJSONObject("target"); Member member=target==null?null:binding.members.get(target.getString("instanceId"));
+      start=member!=null && member.view.get()!=null && member.view.get().getParent() instanceof View?(View)member.view.get().getParent():binding.root.get();
+    }
+    for (View view=start;view!=null;view=view.getParent() instanceof View?(View)view.getParent():null)
+      if (scrollEnabled(view) && (view.canScrollHorizontally(-1) || view.canScrollHorizontally(1) || view.canScrollVertically(-1) || view.canScrollVertically(1))) return view;
+    return null;
+  }
+  private final class Motion implements Choreographer.FrameCallback {
+    final Binding binding; final String session; final long expectedEpoch;
+    final CUIDragMotion.Hover hover=new CUIDragMotion.Hover();
+    JSONObject types,reply; float[] point; boolean posted,dirty=true,hasOffset;
+    WeakReference<View> viewport=new WeakReference<>(null); int offsetX,offsetY;
+    Motion(Binding binding,String session) { this.binding=binding; this.session=session; expectedEpoch=epoch; }
+    boolean currentSession() { return motion==this && dragActive && session.equals(activeDragId) && expectedEpoch==epoch && canDrop() && current(binding); }
+    void stop() { if (posted) Choreographer.getInstance().removeFrameCallback(this); posted=false; hover.stop(); viewport.clear(); }
+    void schedule() { if (!posted && currentSession()) { posted=true; Choreographer.getInstance().postFrameCallback(this); } }
+    void update(float[] nextPoint,JSONObject nextTypes,JSONObject nextReply) throws Exception {
+      point=nextPoint.clone(); types=new JSONObject(nextTypes.toString()); reply=nextReply;
+      JSONObject target=reply.optJSONObject("target");
+      String identity=target==null?"":target.getString("key")+":"+target.getString("instanceId")+":"+target.getString("position");
+      hover.update(identity,reply.getString("operation"),point[0]/density(),point[1]/density(),target!=null && target.optBoolean("activate",false),SystemClock.uptimeMillis());
+    }
+    @Override public void doFrame(long frameTimeNanos) {
+      posted=false; if (!currentSession()) { if (motion==this) stopMotion(); return; }
+      try {
+        if (targetAt(point)!=binding) { leaveTargets(session,point); stopMotion(); return; }
+        View scroll=scroller(binding,reply); boolean edge=false,moved=false;
+        if (scroll!=null) {
+          JSONObject box=rect(scroll); float scale=density();
+          boolean horizontal=scroll.canScrollHorizontally(-1) || scroll.canScrollHorizontally(1), vertical=scroll.canScrollVertically(-1) || scroll.canScrollVertically(1);
+          double dx=horizontal?CUIDragMotion.edgeDelta(point[0]/scale-box.getDouble("x"),box.getDouble("width")):0;
+          double dy=vertical?CUIDragMotion.edgeDelta(point[1]/scale-box.getDouble("y"),box.getDouble("height")):0;
+          edge=dx!=0 || dy!=0;
+          int beforeX=scroll.getScrollX(),beforeY=scroll.getScrollY();
+          boolean external=viewport.get()==scroll && hasOffset && (offsetX!=beforeX || offsetY!=beforeY);
+          viewport=new WeakReference<>(scroll); hasOffset=true;
+          if (external) moved=true;
+          else { boolean requested=(dx<0 && scroll.canScrollHorizontally(-1)) || (dx>0 && scroll.canScrollHorizontally(1)) || (dy<0 && scroll.canScrollVertically(-1)) || (dy>0 && scroll.canScrollVertically(1)); scroll.scrollBy((int)Math.round(dx*scale),(int)Math.round(dy*scale)); moved=requested || beforeX!=scroll.getScrollX() || beforeY!=scroll.getScrollY(); }
+          offsetX=scroll.getScrollX(); offsetY=scroll.getScrollY();
+        } else { viewport.clear(); hasOffset=false; }
+        double now=SystemClock.uptimeMillis(); boolean due=hover.initialized && !hover.fired && now>=hover.due;
+        if (moved || dirty || due) {
+          dirty=false;
+          JSONObject next=action(binding,"target",session,null,point,types,()->currentSession());
+          if (next.getString("operation").equals("cancel")) { stopMotion(); return; }
+          update(point,types,next);
+        }
+        if (hover.ready(now)) {
+          JSONObject target=reply.optJSONObject("target"); Member member=target==null?null:binding.members.get(target.getString("instanceId"));
+          if (member!=null && member.view.get()!=null && target.getInt("targetTag")==member.tag)
+            action(binding,"activate",session,member,point,new JSONObject().put("expectedTarget",target),()->currentSession());
+        }
+        if (edge || (hover.initialized && !hover.fired) || dirty) schedule();
+      } catch (Exception error) { stopMotion(); status(binding,false,error.toString(),"binding"); }
+    }
   }
   private android.app.Activity activity() {
     android.content.Context context=scope.getContext(); Set<android.content.Context> seen=new HashSet<>();

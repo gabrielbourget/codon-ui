@@ -225,7 +225,14 @@ it("uses root-relative pointer coordinates while retaining original window-space
       fixture.packet("target", { x: 110, y: 245, types: ["text/plain"], operations: ["copy"] }),
     )
   })
-  expect(response).toEqual({ operation: "copy" })
+  expect(response).toEqual({
+    operation: "copy",
+    target: {
+      ...fixture.metadata().members.find((member: TNativeDragMemberBinding) => member.key === "string:"),
+      position: "on",
+      activate: false,
+    },
+  })
   expect(fixture.rendered.result.current.dropState.target).toEqual({ type: "item", key: "", dropPosition: "on" })
   await fixture.rendered.unmount()
   fixture.actions.dispose()
@@ -466,6 +473,75 @@ it("routes an original accessibility activation through its target before anothe
     } as never),
   ).toBe(false)
   nativeVirtualDrag.endpoint(owner, null)
+  await fixture.rendered.unmount()
+  fixture.actions.dispose()
+})
+
+it("returns the actual hover target identity, avoids duplicate entry work and refuses a stale activation target", async () => {
+  const onDropActivate = jest.fn(),
+    onDropEnter = jest.fn(),
+    fixture = await setup({
+      getItems: () => [{ "text/plain": "zero" }],
+      onItemDrop: () => {},
+      onDropActivate,
+      onDropEnter,
+    })
+  await fixture.row(0)
+  await fixture.row("")
+  await fixture.row("folder")
+  await fixture.row("child")
+  let response:
+    | { operation: string; target: TNativeDragMemberBinding & { position: string; activate: boolean } }
+    | undefined
+  await act(() => {
+    fixture.actions.dispatch(fixture.packet("lift"))
+  })
+  await act(() => {
+    response = fixture.actions.dispatch(
+      fixture.packet("target", { x: 110, y: 245, types: ["text/plain"], operations: ["copy"] }),
+    ) as typeof response
+  })
+  expect(response!.target).toMatchObject({
+    key: "string:",
+    targetTag: fixture.metadata().members.find((member: TNativeDragMemberBinding) => member.key === "string:")
+      .targetTag,
+    position: "on",
+    activate: true,
+  })
+  const revision = fixture.rendered.result.current.binding.controller.snapshot()
+  await act(() => {
+    fixture.actions.dispatch(fixture.packet("target", { x: 110, y: 245, types: ["text/plain"], operations: ["copy"] }))
+  })
+  expect(fixture.rendered.result.current.binding.controller.snapshot()).toBe(revision)
+  expect(onDropEnter).toHaveBeenCalledTimes(1)
+  await act(() => {
+    expect(
+      fixture.actions.dispatch(
+        fixture.packet("activate", { expectedTarget: { ...response!.target, key: "number:0" } }),
+      ),
+    ).toEqual({ activated: false })
+  })
+  expect(onDropActivate).not.toHaveBeenCalled()
+  await act(() => {
+    fixture.actions.dispatch(fixture.packet("activate", { expectedTarget: response!.target }))
+  })
+  expect(onDropActivate).toHaveBeenCalledTimes(1)
+  expect(onDropActivate.mock.calls[0][0].target).toEqual({ type: "item", key: "", dropPosition: "on" })
+  await fixture.rendered.unmount()
+  fixture.actions.dispose()
+})
+it("retains the source root fallback when a custom point target rejects an external drop", async () => {
+  const fixture = await setup({
+    onRootDrop: () => {},
+    dropTargetDelegate: { getDropTargetFromPoint: () => ({ type: "item", key: "folder", dropPosition: "on" }) },
+  })
+  await fixture.row(0)
+  let response: unknown
+  await act(() => {
+    response = fixture.actions.dispatch(fixture.packet("target", { types: ["text/plain"], operations: ["copy"] }))
+  })
+  expect(response).toEqual({ operation: "copy", target: null })
+  expect(fixture.rendered.result.current.dropState.target).toEqual({ type: "root" })
   await fixture.rendered.unmount()
   fixture.actions.dispose()
 })
