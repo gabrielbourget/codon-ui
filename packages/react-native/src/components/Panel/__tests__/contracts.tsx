@@ -1,8 +1,8 @@
 import { createRef } from "react"
 import type { TextInput, View } from "react-native"
 
-import { Panel } from "../Panel"
-import type { TNativePanelProps } from "../types"
+import { Panel } from ".."
+import type { TNativePanelProps } from ".."
 
 const props: TNativePanelProps = {
   "aria-label": "Side panel",

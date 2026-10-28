@@ -15,6 +15,7 @@ import type { TNativePaginationProps } from "../Pagination/types"
 
 import type { TPartialNativeTableFilteringLabels } from "./filterLabels"
 import type { TAvailableListItem } from "./filterMetadata"
+import type { TPartialNativeTableLabels } from "./labels"
 import type {
   TTableSortInstruction,
   TTableFilterGroup,
@@ -52,11 +53,12 @@ export type TNativeTableFilteringControls = {
 )
 
 export type TNativeTableColumnSortMetadata = { enabled?: boolean; criteriaID: string; queryKey?: string }
+export type TNativeTableColumnResizeDetails = { columnID: string; width: number }
 export type TNativeTableColumnResizingControls = {
   enabled?: boolean
   minWidth?: number
   maxWidth?: number
-  onColumnResize: (details: { columnID: string; width: number }) => void
+  onColumnResize: (details: TNativeTableColumnResizeDetails) => void
 }
 export type TNativeTableSortingControls = {
   activeSorts: TTableSortInstruction[]
@@ -153,7 +155,7 @@ export type TNativeTableProps<T extends object = object> = Omit<
     hoverColor?: ColorValue
     zebra?: boolean
     zebraColor?: ColorValue
-    labels?: { selection?: Partial<{ selectAllRowsAriaLabel: string; selectRowAriaLabel: string }> }
+    labels?: TPartialNativeTableLabels
     clickableRows?: boolean
     columns?: TNativeTableColumnMetadata<T>[]
     queryControls?: TNativeTableQueryControls

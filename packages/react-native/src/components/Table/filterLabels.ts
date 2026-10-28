@@ -79,3 +79,5 @@ export const resolveNativeTableFilteringLabels = (labels?: TPartialNativeTableFi
     closeConditionType: labels?.native?.closeConditionType ?? "Close filter condition type",
   },
 })
+
+export type TNativeTableFilteringLabels = ReturnType<typeof resolveNativeTableFilteringLabels>

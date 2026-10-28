@@ -27,6 +27,8 @@ export const createSortDragFixture = (views: Map<string, View>) => {
     liveToken = 0,
     latestToken = 0,
     session = "sort-session"
+  let selectedRoot: number | undefined
+  let sourceBinding: string | undefined
   const transfers = new Map<string, { handle: string; kind: "text"; types: string[] }[]>()
   keyboard.acceptNativeStatus({
     ownerId: keyboard.ownerId,
@@ -49,8 +51,13 @@ export const createSortDragFixture = (views: Map<string, View>) => {
       canDrop: true,
     }),
   )
-  const metadata = (): TMetadata => {
-    const value = JSON.parse(actions.bindings())[0] as TMetadata | undefined
+  const metadata = (bindingId?: string): TMetadata => {
+    const bindings = JSON.parse(actions.bindings()) as TMetadata[]
+    const value = bindingId
+      ? bindings.find((binding) => binding.bindingId === bindingId)
+      : selectedRoot === undefined
+        ? bindings[0]
+        : bindings.find((binding) => binding.rootTarget === selectedRoot)
     if (!value) throw new Error("Original Sort drag owner is unavailable")
     return value
   }
@@ -84,8 +91,8 @@ export const createSortDragFixture = (views: Map<string, View>) => {
       scrollHeight: { configurable: true, get: () => rectangle(view).height },
     })
   }
-  const geometry = () => {
-    const data = metadata()
+  const geometry = (bindingId?: string) => {
+    const data = metadata(bindingId)
     return {
       revision: ++geometryRevision,
       root: rectangle(viewFor(data.rootTarget)),
@@ -115,7 +122,7 @@ export const createSortDragFixture = (views: Map<string, View>) => {
   native.settleAction.mockReturnValue(true)
   native.readGeometry.mockImplementation(async (encoded) => {
     const request = JSON.parse(encoded)
-    return JSON.stringify({ ...request, geometry: geometry() })
+    return JSON.stringify({ ...request, geometry: geometry(request.bindingId) })
   })
   native.readItems.mockImplementation(async (encoded) =>
     JSON.stringify(transfers.get(JSON.parse(encoded).handle) ?? []),
@@ -127,11 +134,15 @@ export const createSortDragFixture = (views: Map<string, View>) => {
     y: number,
     key = "",
     extra: object = {},
+    bindingId?: string,
   ): TFrame => {
     ready()
-    const data = metadata(),
+    const data = metadata(bindingId),
       member = data.members.find((member) => member.key === `string:${key}` && member.role !== "target")
-    if (kind === "lift") session = `sort-session:${++serial}`
+    if (kind === "lift") {
+      session = `sort-session:${++serial}`
+      sourceBinding = data.bindingId
+    }
     const token = ++serial
     latestToken = token
     return {
@@ -159,7 +170,7 @@ export const createSortDragFixture = (views: Map<string, View>) => {
           y,
           key: member?.key,
           instanceId: member?.instanceId,
-          geometry: geometry(),
+          geometry: geometry(bindingId),
           types: ["text/plain"],
           operations: ["copy", "move", "link"],
           ...extra,
@@ -168,7 +179,9 @@ export const createSortDragFixture = (views: Map<string, View>) => {
     }
   }
   const dispatch = (value: TFrame) => {
-    liveToken = value.token === latestToken && value.binding === JSON.stringify(metadata()) ? value.token : 0
+    const binding = JSON.parse(value.binding) as TMetadata
+    liveToken =
+      value.token === latestToken && value.binding === JSON.stringify(metadata(binding.bindingId)) ? value.token : 0
     try {
       return actions.dispatch(value.encoded) as Record<string, unknown>
     } finally {
@@ -187,7 +200,7 @@ export const createSortDragFixture = (views: Map<string, View>) => {
     transfers.set(handle, [{ kind: "text", handle: `${handle}:item`, types: ["text/plain"] }])
     const response = send("drop", x, y, "", { dataHandle: handle, ...extra })
     if (!response.accepted) native.releaseData(JSON.stringify({ moduleId: "sort-native-module", handle }))
-    send("end", x, y, "", { operation: response.accepted ? response.operation : "cancel" })
+    dispatch(frame("end", x, y, "", { operation: response.accepted ? response.operation : "cancel" }, sourceBinding))
     return response
   }
   return {
@@ -198,6 +211,9 @@ export const createSortDragFixture = (views: Map<string, View>) => {
     ready,
     geometry,
     metadata,
+    selectRoot: (view: View) => {
+      selectedRoot = findNodeHandle(view) ?? undefined
+    },
     rectangle,
     rectangleFallback,
     frame,

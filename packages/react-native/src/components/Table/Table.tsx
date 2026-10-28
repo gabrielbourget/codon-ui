@@ -45,6 +45,7 @@ import {
   NativeTableStateContext,
 } from "./context"
 import { resolveNativeTableFilteringLabels } from "./filterLabels"
+import { resolveNativeTableLabels } from "./labels"
 import {
   NativeResizableTableContainerContext,
   NativeTableColumnResizeStateContext,
@@ -516,10 +517,7 @@ export const Table = <T extends object = object>(authored: TNativeTableProps<T>)
     columnResizing: authored.columnResizing,
   }
   const selection = useMultipleSelectionState(props)
-  const labels = useMemo(
-    () => ({ selectAllRowsAriaLabel: "Select All", selectRowAriaLabel: "Select Row", ...props.labels?.selection }),
-    [props.labels],
-  )
+  const labels = useMemo(() => resolveNativeTableLabels(props.labels).selection, [props.labels])
   const options = useMemo(
     () => ({
       mode: selection.selectionMode,

@@ -14,7 +14,17 @@ const paths = {
   close: "M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z",
 } satisfies Record<TQueryGlyphKind, string>
 
-export const QueryGlyph = ({ kind, size = 15, color }: { kind: TQueryGlyphKind; size?: number; color: ColorValue }) => (
+export const QueryGlyph = ({
+  kind,
+  size = 15,
+  color,
+  testID,
+}: {
+  kind: TQueryGlyphKind
+  size?: number
+  color: ColorValue
+  testID?: string
+}) => (
   <Svg
     width={size}
     height={size}
@@ -22,7 +32,7 @@ export const QueryGlyph = ({ kind, size = 15, color }: { kind: TQueryGlyphKind; 
     accessible={false}
     accessibilityElementsHidden
     importantForAccessibility="no-hide-descendants"
-    testID={`query-${kind}-glyph`}
+    testID={testID ?? `query-${kind}-glyph`}
   >
     <Path
       d={paths[kind]}
