@@ -118,6 +118,7 @@ final class CUIDialogFocusScopes {
     return result;
   }
   private Binding active() {
+    if (CUIVirtualDragFocus.active(owner)!=null) return null;
     Binding binding=localActive();
     if (binding == null) return null;
     View root=binding.root.get(owner);

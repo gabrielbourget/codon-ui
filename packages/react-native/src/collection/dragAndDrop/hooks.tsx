@@ -22,6 +22,8 @@ import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeDragActions } from "../../input/NativeKeyboardScope"
 import type { TNativeFocusViewProps, TNativeKeyboardEvent, TNativePressEvent } from "../../input/types"
 import { useNativeLocale } from "../../locale/NativeLocaleProvider"
+import { useOptionalNativeFloatingHost } from "../../overlays/floating/NativeFloatingLayerHost"
+import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../overlays/floating/scope"
 import { useNativeTheme } from "../../theme"
 import { useNativeCollectionRefs } from "../context"
 import { NativeCollectionSemanticsContext } from "../semantics"
@@ -141,8 +143,14 @@ const dragKeys = [
 ].flatMap(nativeKeyTokens)
 const useVirtual = () =>
   useSyncExternalStore(nativeVirtualDrag.subscribe, nativeVirtualDrag.snapshot, nativeVirtualDrag.snapshot)
+const subscribeNone = () => () => {}
+const snapshotNone = () => 0
 const useRoot = (ref: RefObject<View | null>) => {
   const scope = useNativeDragActions()
+  const floating = useContext(NativeFloatingScopeContext),
+    window = useContext(NativeFloatingWindowContext)
+  const host = useOptionalNativeFloatingHost()
+  useSyncExternalStore(host?.layers.subscribe ?? subscribeNone, host?.layers.snapshot ?? snapshotNone, snapshotNone)
   const [failure, setFailure] = useState<{ error: unknown } | null>(null)
   let byScope = roots.get(ref)
   if (!byScope) {
@@ -155,6 +163,7 @@ const useRoot = (ref: RefObject<View | null>) => {
     byScope.set(scope, runtime)
   }
   const current = runtime
+  useInsertionEffect(() => current.configureVirtual(() => floating?.canAct() !== false && window?.() !== false))
   useInsertionEffect(() =>
     current.configure(
       () => true,

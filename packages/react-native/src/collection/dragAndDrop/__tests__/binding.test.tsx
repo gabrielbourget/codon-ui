@@ -786,3 +786,93 @@ it("moves an original droppable item ref from zero to the empty key without reta
   await fixture.rendered.unmount()
   fixture.actions.dispose()
 })
+
+it("publishes original virtual focus refs, selects native observations without replaying focus and retires covered owners", async () => {
+  const fixture = await setup({ getItems: () => [{ "text/plain": "zero" }], onItemDrop: () => {} })
+  await fixture.row(0)
+  const binding = fixture.rendered.result.current.binding,
+    endpoint = view(),
+    second = view(),
+    firstOwner = {},
+    secondOwner = {}
+  nativeVirtualDrag.endpoint(firstOwner, {
+    root: binding,
+    target: { type: "item", key: "", dropPosition: "on" },
+    view: () => endpoint,
+    activate: () => null,
+  })
+  nativeVirtualDrag.endpoint(secondOwner, {
+    root: binding,
+    target: { type: "item", key: "folder", dropPosition: "on" },
+    view: () => second,
+    activate: () => null,
+  })
+  jest.spyOn(binding, "measure").mockResolvedValue({ x: 10, y: 20, width: 100, height: 80 })
+  let visible = true
+  binding.configureVirtual(() => visible)
+  await act(async () => nativeVirtualDrag.start(binding, 0, nativeDragFormatter("en-US"), "virtual"))
+  await act(() => nativeVirtualDrag.choose(binding, { type: "item", key: "", dropPosition: "on" }))
+  const manifest = fixture.metadata().virtualFocus
+  expect(manifest).toMatchObject({
+    sessionId: nativeVirtualDrag.active()!.id,
+    windowId: "window",
+    epoch: 1,
+    nativeSelection: true,
+    source: { tag: findNodeHandle(binding.rowView(0)) },
+    selected: { tag: findNodeHandle(endpoint) },
+  })
+  expect(manifest.targets.map((entry: { tag: number }) => entry.tag)).toEqual(
+    expect.arrayContaining([findNodeHandle(endpoint), findNodeHandle(second)]),
+  )
+  const focus = jest.spyOn(
+    jest.requireActual<typeof import("../../../input/focus")>("../../../input/focus"),
+    "focusNativeTarget",
+  )
+  await act(() =>
+    nativeVirtualDrag.observeNativeFocus(binding, nativeVirtualDrag.active()!.id, findNodeHandle(second)!),
+  )
+  expect(nativeVirtualDrag.active()!.target).toEqual({ type: "item", key: "folder", dropPosition: "on" })
+  expect(focus).not.toHaveBeenCalled()
+  await act(() => {
+    visible = false
+    binding.configureVirtual(() => visible)
+    nativeVirtualDrag.reconcile(binding)
+  })
+  expect(nativeVirtualDrag.isDragging()).toBe(false)
+  nativeVirtualDrag.endpoint(firstOwner, null)
+  nativeVirtualDrag.endpoint(secondOwner, null)
+  await fixture.rendered.unmount()
+  fixture.actions.dispose()
+})
+
+it("issues one owned focus intent while its original endpoint awaits native observation", async () => {
+  const fixture = await setup({ getItems: () => [{ "text/plain": "zero" }], onItemDrop: () => {} })
+  await fixture.row(0)
+  const binding = fixture.rendered.result.current.binding,
+    endpoint = view(),
+    owner = {},
+    focus = jest.fn()
+  const unregister = registerNativeFocusTarget(endpoint, { focus, blur: () => {}, canFocus: () => true })
+  nativeVirtualDrag.endpoint(owner, {
+    root: binding,
+    target: { type: "item", key: "", dropPosition: "on" },
+    view: () => endpoint,
+    activate: () => null,
+  })
+  jest.spyOn(binding, "measure").mockResolvedValue({ x: 10, y: 20, width: 100, height: 80 })
+  await act(async () => nativeVirtualDrag.start(binding, 0, nativeDragFormatter("en-US"), "virtual"))
+  await act(() => nativeVirtualDrag.choose(binding, { type: "item", key: "", dropPosition: "on" }))
+  await act(() => {
+    for (let index = 0; index < 4; index++) {
+      nativeVirtualDrag.focus(nativeVirtualDrag.active()!)
+      binding.publish()
+    }
+  })
+  expect(focus).toHaveBeenCalledTimes(1)
+  expect(fixture.metadata().virtualFocus.nativeSelection).toBe(false)
+  await act(async () => nativeVirtualDrag.cancel())
+  unregister()
+  nativeVirtualDrag.endpoint(owner, null)
+  await fixture.rendered.unmount()
+  fixture.actions.dispose()
+})

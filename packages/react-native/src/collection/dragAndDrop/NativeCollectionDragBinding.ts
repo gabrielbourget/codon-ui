@@ -96,6 +96,7 @@ export class NativeCollectionDragBinding {
   private roles = new Set<object>()
   private data: NativeDragDataBinding | null = null
   private currentOwner: () => boolean = () => true
+  private virtualOwner: () => boolean = () => true
   private failure: (error: unknown) => void = () => {}
   private nativeSource: TNativeDragSourceOwner
   private nativeTarget: TNativeDragTargetOwner
@@ -136,6 +137,10 @@ export class NativeCollectionDragBinding {
     this.currentOwner = current
     this.failure = failure
   }
+  configureVirtual(current: () => boolean) {
+    this.virtualOwner = current
+  }
+  canVirtualAct = () => this.virtualOwner()
   acquire(owner: object) {
     this.roles.add(owner)
     return () => {
@@ -253,6 +258,7 @@ export class NativeCollectionDragBinding {
       previewInstanceId: this.preview?.id ?? "",
       previewX: this.preview?.x ?? 0,
       previewY: this.preview?.y ?? 0,
+      virtualFocus: nativeVirtualDrag.focusManifest(this),
     }
   }
   publish = () => {
@@ -294,6 +300,7 @@ export class NativeCollectionDragBinding {
         current: () => this.logicalCurrent() && this.root.current === view,
         retire: this.retire,
         dispatch: this.dispatch,
+        observeFocus: (sessionId, tag) => nativeVirtualDrag.observeNativeFocus(this, sessionId, tag),
       })
     else this.lease.updateNative(metadata)
     nativeVirtualDrag.reconcile(this)

@@ -239,6 +239,8 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
   }
   @Override public View focusSearch(View focused, int direction) {
     View next=super.focusSearch(focused, direction);
+    View projected=CUIVirtualDragFocus.redirect(this,focused,next);
+    if (projected!=null) return projected;
     View wrapped=dialogs.redirect(focused, next, direction);
     return wrapped == null ? next : wrapped;
   }

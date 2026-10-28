@@ -1,5 +1,6 @@
 #import "CUIKeyboardScope.h"
 #import "CUIDialogFocusScopes.h"
+#import "CUIVirtualDragFocus.h"
 #import "CUIDragInteractions.h"
 #import "CUIInputWindow.h"
 #import "CUIMenuPointerPolicies.h"
@@ -281,9 +282,11 @@ static UIView *CUIFirstResponder(UIView *root)
 }
 - (CUIMenuPointerPolicies *)menuPointers { return _menuPointers; }
 - (CUIDialogFocusScopes *)dialogFocusScopes { return _dialogs; }
+- (CUIVirtualDragFocus *)virtualDragFocus { return [_dragInteractions virtualFocus]; }
 - (BOOL)shouldUpdateFocusInContext:(UIFocusUpdateContext *)context
 {
-  return [super shouldUpdateFocusInContext:context] && [_dialogs shouldAllowFocusUpdate:context];
+  CUIVirtualDragFocus *drag=CUIActiveVirtualDragFocus(self.window);
+  return [super shouldUpdateFocusInContext:context] && [_dialogs shouldAllowFocusUpdate:context] && (!drag || [drag allowsFocus:context]);
 }
 - (void)emitMenuPointer:(NSDictionary *)packet
 {

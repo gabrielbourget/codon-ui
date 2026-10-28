@@ -4,6 +4,7 @@ import type { View } from "react-native"
 
 import { registerNativeActivationPolicy } from "../../input/activation"
 import { containsNativeView, focusNativeTarget, getNativeFocusedTarget, subscribeNativeFocus } from "../../input/focus"
+import type { TNativeVirtualDragFocus, TNativeVirtualDragFocusTarget } from "../../input/nativeDragActions"
 import type { TNativeKeyboardEvent } from "../../input/types"
 import type { TNativeCollectionKey } from "../snapshot"
 
@@ -39,11 +40,27 @@ type TSession = {
   firstAnnounced: boolean
   unsubscribeFocus: () => void
   unsubscribeActivation: () => void
+  focusRevision: number
+  focusSignature: string
+  focusRequest: View | null
+  nativeFocusView: View | null
 }
 const roots = new Set<NativeCollectionDragBinding>(),
   endpoints = new Map<object, TEndpoint>(),
   listeners = new Set<() => void>()
 const handled = new WeakMap<object, Set<boolean>>()
+const focusIdentities = new WeakMap<View, string>()
+let focusSerial = 0
+const focusTarget = (view: View, descendants: boolean): TNativeVirtualDragFocusTarget => {
+  const tag = findNodeHandle(view)
+  if (!tag) throw new Error("Native virtual focus requires an original native target")
+  let id = focusIdentities.get(view)
+  if (!id) {
+    id = `native-drag-focus:${++focusSerial}`
+    focusIdentities.set(view, id)
+  }
+  return { id, tag, descendants }
+}
 let session: TSession | null = null,
   revision = 0,
   serial = 0,
@@ -62,6 +79,8 @@ const equal = (a: TNativeDropTarget | null, b: TNativeDropTarget | null) =>
   (a?.type !== "item" || (b?.type === "item" && a.key === b.key && a.dropPosition === b.dropPosition))
 const originalSource = (current: TSession) =>
   current.source.current() &&
+  current.source.canVirtualAct() &&
+  current.source.scope?.window().canLift === true &&
   (current.sourceKind === "handle" ? current.source.handleView(current.key) : current.source.rowView(current.key)) ===
     current.sourceView
 const delegate = (root: NativeCollectionDragBinding): TNativeDropKeyboardDelegate => {
@@ -86,19 +105,22 @@ const validNext = (
       )
     : null
 const eligible = (current: TSession) =>
-  [...roots].filter((root) => {
-    const window = root.scope?.window(),
-      sourceWindow = current.source.scope?.window()
-    return (
-      root.current() &&
-      !!root.target &&
-      !root.target.isDisabled &&
-      window?.available === true &&
-      window?.canDrop === true &&
-      window.windowId === sourceWindow?.windowId &&
-      !!validNext(current, root, null)
-    )
-  })
+  !originalSource(current)
+    ? []
+    : [...roots].filter((root) => {
+        const window = root.scope?.window(),
+          sourceWindow = current.source.scope?.window()
+        return (
+          root.current() &&
+          root.canVirtualAct() &&
+          !!root.target &&
+          !root.target.isDisabled &&
+          window?.available === true &&
+          window?.canDrop === true &&
+          window.windowId === sourceWindow?.windowId &&
+          !!validNext(current, root, null)
+        )
+      })
 // RN's original ReadOnlyElement reads transformed native geometry synchronously.
 // Keep the pinned nearest-origin rotation, including registration-order ties.
 const orderedRoots = (current: TSession) => {
@@ -145,18 +167,26 @@ const selectedEndpoint = (current: TSession) =>
     (entry) => entry.root === current.root && equal(entry.target, current.target) && entry.view(),
   )
 const requestFocus = (view: View | null) => {
-  if (!view || getNativeFocusedTarget() === view) return
+  if (!view) return false
+  if (getNativeFocusedTarget() === view) return true
   restoring = true
   try {
-    focusNativeTarget(view)
+    return focusNativeTarget(view)
   } finally {
     restoring = false
   }
 }
+const focusOnce = (current: TSession, view: View) => {
+  if (current.focusRequest === view) return
+  current.focusRequest = view
+  const previous = current.nativeFocusView
+  current.nativeFocusView = requestFocus(view) ? null : view
+  if (previous !== current.nativeFocusView) changed()
+}
 const focus = (current: TSession) => {
   if (session !== current || !originalSource(current)) return
   if (!current.root || !current.target) {
-    requestFocus(current.sourceView)
+    focusOnce(current, current.sourceView)
     return
   }
   const root = current.root,
@@ -165,7 +195,7 @@ const focus = (current: TSession) => {
   const view = endpoint?.view() ?? (target.type === "root" ? root.root.current : null)
   if (view) {
     current.requested = null
-    requestFocus(view)
+    focusOnce(current, view)
     if (!current.firstAnnounced && endpoint?.label?.()) {
       current.firstAnnounced = true
       const label = endpoint.label()
@@ -185,7 +215,12 @@ const focus = (current: TSession) => {
       })
   }
 }
-const select = (current: TSession, root: NativeCollectionDragBinding | null, target: TNativeDropTarget | null) => {
+const select = (
+  current: TSession,
+  root: NativeCollectionDragBinding | null,
+  target: TNativeDropTarget | null,
+  request = true,
+) => {
   if (session !== current || current.pending || (current.root === root && equal(current.target, target))) return
   if (current.root && current.root !== root)
     current.root.virtualTarget(current.id, null, current.types, current.operations)
@@ -193,9 +228,13 @@ const select = (current: TSession, root: NativeCollectionDragBinding | null, tar
   current.target = target
   current.generation++
   current.requested = null
+  current.focusRequest = request
+    ? null
+    : (selectedEndpoint(current)?.view() ?? (target?.type === "root" ? (root?.root.current ?? null) : null))
+  current.nativeFocusView = null
   if (root) root.virtualTarget(current.id, target, current.types, current.operations)
   changed()
-  focus(current)
+  if (request) focus(current)
 }
 const observeFocus = (current: TSession) => {
   if (session !== current || restoring || current.pending || !originalSource(current)) return
@@ -215,7 +254,10 @@ const observeFocus = (current: TSession) => {
       : selected
   }, null)
   if (endpoint) select(current, endpoint.root, endpoint.target)
-  else focus(current)
+  else {
+    current.focusRequest = null
+    focus(current)
+  }
 }
 const initial = (current: TSession, root: NativeCollectionDragBinding) => {
   const state = root.target!,
@@ -259,6 +301,93 @@ const failure = (current: TSession, error: unknown) => {
   current.source.fail(error)
 }
 export const nativeVirtualDrag = {
+  focusManifest: (root: NativeCollectionDragBinding): TNativeVirtualDragFocus | null => {
+    const current = session
+    if (
+      !current ||
+      current.source !== root ||
+      !originalSource(current) ||
+      !root.canVirtualAct() ||
+      !root.scope?.window().canLift
+    )
+      return null
+    const targets = new Map<number, TNativeVirtualDragFocusTarget>()
+    const add = (view: View | null, descendants: boolean) => {
+      if (!view) return null
+      const target = focusTarget(view, descendants)
+      if (!targets.has(target.tag)) targets.set(target.tag, target)
+      return targets.get(target.tag)!
+    }
+    const source = add(current.sourceView, false)!
+    const valid = eligible(current)
+    for (const entry of endpoints.values())
+      if (
+        valid.includes(entry.root) &&
+        entry.root.operation(entry.target, current.types, current.operations, current.source) !== "cancel"
+      ) {
+        add(entry.view(), true)
+        add(entry.activate(), true)
+      }
+    for (const candidate of valid)
+      if (
+        ![...endpoints.values()].some(
+          (entry) =>
+            entry.root === candidate &&
+            entry.view() &&
+            candidate.operation(entry.target, current.types, current.operations, current.source) !== "cancel",
+        )
+      )
+        add(candidate.root.current, true)
+    const selected =
+      current.root && current.target
+        ? add(
+            selectedEndpoint(current)?.view() ?? (current.target.type === "root" ? current.root.root.current : null),
+            true,
+          )
+        : source
+    const nativeSelection = !!current.nativeFocusView && selected?.tag === findNodeHandle(current.nativeFocusView)
+    const signature = JSON.stringify([source, selected, [...targets.values()], nativeSelection])
+    if (signature !== current.focusSignature) {
+      current.focusSignature = signature
+      current.focusRevision++
+    }
+    const window = root.scope!.window()
+    return {
+      sessionId: current.id,
+      windowId: window.windowId,
+      epoch: window.epoch,
+      revision: current.focusRevision,
+      source,
+      selected,
+      nativeSelection,
+      targets: [...targets.values()],
+    }
+  },
+  observeNativeFocus: (source: NativeCollectionDragBinding, id: string, tag: number) => {
+    const current = session
+    if (
+      !current ||
+      current.source !== source ||
+      current.id !== id ||
+      current.pending ||
+      !originalSource(current) ||
+      !source.canVirtualAct()
+    )
+      return
+    if (findNodeHandle(current.sourceView) === tag) return
+    const valid = eligible(current)
+    const endpoint = [...endpoints.values()].find(
+      (entry) =>
+        valid.includes(entry.root) &&
+        (findNodeHandle(entry.view()) === tag || findNodeHandle(entry.activate()) === tag) &&
+        entry.root.operation(entry.target, current.types, current.operations, current.source) !== "cancel",
+    )
+    if (endpoint) select(current, endpoint.root, endpoint.target, false)
+    else {
+      const root = valid.find((entry) => findNodeHandle(entry.root.current) === tag)
+      if (root) select(current, root, initial(current, root), false)
+    }
+  },
   subscribe: (listener: () => void) => {
     listeners.add(listener)
     return () => {
@@ -288,7 +417,12 @@ export const nativeVirtualDrag = {
   },
   reconcile: (root: NativeCollectionDragBinding) => {
     const current = session
-    if (!current || current.pending) return
+    if (!current) return
+    if (!current.source.canVirtualAct() || current.source.scope?.window().canLift !== true) {
+      current.source.retire()
+      return
+    }
+    if (current.pending) return
     if (!originalSource(current)) {
       nativeVirtualDrag.retire(current.source)
       if (current.source.current()) current.source.controller.endSourceOnUnmount(current.source.identity)
@@ -326,7 +460,13 @@ export const nativeVirtualDrag = {
     sourceKind: "source" | "handle" = "source",
   ) => {
     if (session) throw new Error("Cannot begin dragging while already dragging")
-    if (!source.source || source.source.isDisabled || source.source.selectionManager.isDisabled(key) || !source.ready())
+    if (
+      !source.source ||
+      source.source.isDisabled ||
+      source.source.selectionManager.isDisabled(key) ||
+      !source.ready() ||
+      !source.canVirtualAct()
+    )
       return
     const view = sourceKind === "handle" ? source.handleView(key) : source.rowView(key)
     if (!view) throw new Error("Native virtual drag requires its original source view")
@@ -336,6 +476,7 @@ export const nativeVirtualDrag = {
     if (
       intent !== start ||
       !source.ready() ||
+      !source.canVirtualAct() ||
       nativeDragRuntime.performance.now() >= deadline ||
       (sourceKind === "handle" ? source.handleView(key) : source.rowView(key)) !== view
     )
@@ -366,6 +507,10 @@ export const nativeVirtualDrag = {
       firstAnnounced: false,
       unsubscribeFocus: () => {},
       unsubscribeActivation: () => {},
+      focusRevision: 0,
+      focusSignature: "",
+      focusRequest: null,
+      nativeFocusView: null,
     }
     session = current
     current.unsubscribeFocus = subscribeNativeFocus(() => observeFocus(current))
@@ -525,6 +670,10 @@ export const nativeVirtualDrag = {
   key: (event: TNativeKeyboardEvent, up = false) => {
     const current = session
     if (!current) return false
+    if (!originalSource(current)) {
+      nativeVirtualDrag.reconcile(current.source)
+      return false
+    }
     const phases = handled.get(event) ?? new Set<boolean>()
     if (phases.has(up)) return true
     phases.add(up)

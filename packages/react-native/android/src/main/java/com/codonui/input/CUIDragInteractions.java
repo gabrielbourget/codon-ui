@@ -95,6 +95,7 @@ final class CUIDragInteractions {
     }
   }
   private final CUIKeyboardScope scope;
+  final CUIVirtualDragFocus virtualFocus;
   private final Handler main = new Handler(Looper.getMainLooper());
   private final Map<String, Binding> bindings = new LinkedHashMap<>();
   private final Map<String, String> statuses = new HashMap<>();
@@ -108,7 +109,7 @@ final class CUIDragInteractions {
   private boolean dragActive;
   private String activeDragId;
 
-  CUIDragInteractions(CUIKeyboardScope scope) { this.scope = scope; }
+  CUIDragInteractions(CUIKeyboardScope scope) { this.scope = scope; virtualFocus=new CUIVirtualDragFocus(scope); }
   private static int tag(Object value, boolean zero) {
     if (!(value instanceof Number)) throw new IllegalArgumentException("native-drag-original-target-invalid");
     double number = ((Number)value).doubleValue();
@@ -120,6 +121,7 @@ final class CUIDragInteractions {
     UIManager manager = UIManagerHelper.getUIManagerForReactTag((ThemedReactContext)scope.getContext(), scope.getId());
     return manager == null ? null : manager.resolveView(tag);
   }
+  View resolveFocusTarget(int tag) { try { return resolve(tag); } catch (RuntimeException missing) { return null; } }
   boolean available() { return !closed && scope.isAttachedToWindow() && scope.dragEnabled() && UIManagerHelper.getSurfaceId(scope)>0; }
   boolean canLift() { return available() && scope.hasWindowFocus() && scope.getWindowVisibility()==View.VISIBLE; }
   boolean canDrop() { return available() && scope.getWindowVisibility()==View.VISIBLE; }
@@ -151,7 +153,7 @@ final class CUIDragInteractions {
     }
     if (nextSurface>0) lastSurface=nextSurface;
     int surface=lastSurface; if (surface<=0 || epoch==0) return;
-    if (!canLift()) cancelPointer();
+    if (!canLift()) { cancelPointer(); virtualFocus.refresh(); }
     if (!canDrop()) stopMotion();
     try {
       JSONObject status=new JSONObject().put("kind","window").put("ownerId",owner).put("windowId",window).put("epoch",epoch).put("surfaceId",surface).put("scopeTarget",scope.getId())
@@ -160,7 +162,7 @@ final class CUIDragInteractions {
     } catch (Exception error) { throw new IllegalStateException("native-drag-window-status-invalid",error); }
   }
   void refresh() {
-    refreshWindow(); if (!available()) return;
+    refreshWindow(); if (!available()) { virtualFocus.refresh(); return; }
     for (Binding binding:bindings.values()) {
       binding.ready=false;
       try {
@@ -201,6 +203,13 @@ final class CUIDragInteractions {
         status(binding,true,"","binding");
       } catch (Exception error) { status(binding,false,error.toString(),"binding"); }
     }
+    JSONObject focus=null,data=null;
+    for (Binding binding:bindings.values()) if (binding.ready && !binding.retired && binding.data.optJSONObject("virtualFocus")!=null) {
+      if (focus!=null) { status(binding,false,"native-virtual-focus-owners-ambiguous","binding"); virtualFocus.invalidate(); return; }
+      focus=binding.data.optJSONObject("virtualFocus"); data=binding.data;
+    }
+    virtualFocus.update(focus,data);
+
   }
   private boolean current(Binding binding) {
     View root=binding.root.get();
@@ -505,5 +514,5 @@ final class CUIDragInteractions {
     return new JSONObject().put("requestId",request.getString("requestId")).put("windowId",window).put("epoch",epoch)
       .put("geometry",new JSONObject().put("revision",++geometryRevision).put("root",rect(binding.root.get())).put("items",items));
   }
-  void dispose() { if (closed) return; cancelPointer(); for (Binding binding:bindings.values()) retire(binding); bindings.clear(); entered.clear(); closed=true; }
+  void dispose() { if (closed) return; virtualFocus.invalidate(); cancelPointer(); for (Binding binding:bindings.values()) retire(binding); bindings.clear(); entered.clear(); closed=true; }
 }
