@@ -7,6 +7,7 @@ import type { TNativeDragAndDropHooks } from "../src/collection/dragAndDrop/hook
 import type { TNativeCollectionLayoutDelegate } from "../src/collection/renderer"
 import { Table } from "../src/components/Table/Table"
 import { TableRow } from "../src/components/Table/TableRow"
+import type { TNativeTableRowProps } from "../src/components/Table/types"
 
 type TRow = { name: string }
 export const dragContracts = () => {
@@ -59,3 +60,7 @@ export const rejectNonNativeLayoutKeys: TNativeCollectionLayoutDelegate = {
   getKeyLeftOf: () => ({ nodeType: 1 }),
 }
 export const nativeRowDragIconColor = <TableRow item={{}} columns={[]} iconColor="orchid" />
+
+export const authoredRawRowValue: TNativeTableRowProps<TRow>["value"] = { name: "caller value" }
+// @ts-expect-error Raw rows retain the canonical typed value, independently from their rendered item.
+export const rejectRawRowValue: TNativeTableRowProps<TRow>["value"] = 1

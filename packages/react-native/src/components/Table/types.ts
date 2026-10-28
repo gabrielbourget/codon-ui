@@ -240,6 +240,7 @@ export type TNativeTableRowProps<T extends object> = Omit<TNativeFocusViewProps,
     hasChildItems?: boolean
     iconColor?: ColorValue
     item: T
+    value?: T
     columns: TNativeTableColumnMetadata<T>[]
     geometry?: TCornerGeometry
     renderCell?: (context: { row: T; column: TNativeTableColumnMetadata<T> }) => ReactNode

@@ -152,6 +152,7 @@ const setup = async ({
               key={row.id}
               id={row.id}
               item={row}
+              value={row}
               textValue={row.name}
               hasChildItems
               iconColor="orchid"
@@ -220,6 +221,10 @@ it("keeps original rows/editors and native target rectangles while exposing sepa
   const source = fixture.binding.rowView(0),
     target = fixture.binding.targetView(""),
     editor = fixture.editor.current
+  expect(
+    fixture.metadata().members.find((member: TNativeDragMemberBinding) => member.key === "number:0").handleTag,
+  ).toBe(findNodeHandle(fixture.binding.handleView(0)))
+  expect(fixture.binding.handleView(0)).not.toBeNull()
   const grips = glyph.mock.calls.filter(([props]) => props.kind === "grip")
   expect(grips.length).toBeGreaterThan(0)
   expect(grips.every(([props]) => props.color === "orchid")).toBe(true)

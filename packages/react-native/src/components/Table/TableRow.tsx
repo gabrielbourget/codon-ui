@@ -20,7 +20,7 @@ import { nativeViewProps } from "../../input/nativeViewProps"
 import type { TNativePressEvent } from "../../input/types"
 import { NativeMotionOwnerHost } from "../../motion/owner/NativeMotionOwnerHost"
 import { useNativeTheme } from "../../theme"
-import { NativeButton } from "../Button/Button"
+import { Button, NativeButton } from "../Button/Button"
 import { NativeButtonContext } from "../Button/context"
 import { encodeCollectionKey } from "../collection"
 import { resolveNativeStyle } from "../colors"
@@ -58,6 +58,7 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
     id: _id,
     textValue: _textValue,
     item: _item,
+    value: _value,
     hasChildItems: _hasChildItems,
     iconColor: _iconColor,
     columns: _columns,
@@ -448,9 +449,9 @@ export const TableRow = createNativeCollectionBranch<object, TNativeTableRowProp
             columnID="__drag"
             style={{ width: 30, padding: 0 }}
           >
-            <NativeButton slot="drag" raised={false} style={{ padding: 4 }}>
+            <Button slot="drag" raised={false} style={{ padding: 4 }}>
               <DragIcon color={props.iconColor} />
-            </NativeButton>
+            </Button>
           </TableCell>
         )}
         {options.behavior === "toggle" && (
