@@ -182,10 +182,10 @@ export const createSortDragFixture = (views: Map<string, View>) => {
     send("move", x, y)
     return send("target", x, y)
   }
-  const drop = (x: number, y: number) => {
+  const drop = (x: number, y: number, extra: object = {}) => {
     const handle = `sort-native-module:transfer:${++serial}`
     transfers.set(handle, [{ kind: "text", handle: `${handle}:item`, types: ["text/plain"] }])
-    const response = send("drop", x, y, "", { dataHandle: handle })
+    const response = send("drop", x, y, "", { dataHandle: handle, ...extra })
     if (!response.accepted) native.releaseData(JSON.stringify({ moduleId: "sort-native-module", handle }))
     send("end", x, y, "", { operation: response.accepted ? response.operation : "cancel" })
     return response

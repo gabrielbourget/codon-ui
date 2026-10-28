@@ -9,7 +9,9 @@ import {
   renderWithNativeCollections as render,
   screen,
 } from "../../../collection/__tests__/nativeReceipts"
+import { nativeVirtualDrag } from "../../../collection/dragAndDrop/virtualDrag"
 import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
+import NativeDragModule from "../../../input/specs/NativeCUIDragAndDrop"
 import { NativeBackdropHost } from "../../../overlays/backdrop/NativeBackdropHost"
 import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
 import { NativeThemeProvider } from "../../../theme"
@@ -26,6 +28,13 @@ jest.unmock("react-native/Libraries/Components/TextInput/TextInput")
 jest.mock("react-native-safe-area-context", () => ({
   SafeAreaProvider: jest.requireActual("react-native").View,
   SafeAreaView: jest.requireActual("react-native").View,
+}))
+jest.mock("../../../input/specs/NativeCUIDragAndDrop", () => ({
+  __esModule: true,
+  default: {
+    getLease: jest.fn(() => "sort-panel-module"),
+    readGeometry: jest.fn(),
+  },
 }))
 const sorts = [
   { id: "city", name: "City", queryKey: "event.city" },
@@ -63,7 +72,7 @@ const tree = (props: Partial<TNativeSortAndFilterPanelProps> = {}) => (
 )
 const host = (id: string) => screen.getByTestId(id, { includeHiddenElements: true })
 const acknowledge = async (identity = "sort-filter-panel-floating-host") => {
-  for (const ready of [false, true]) {
+  for (const ready of host(identity).props.acceptedWindowId ? [true] : [false, true]) {
     const props = host(identity).props
     await act(() =>
       props.onNativeScopeStatus({
@@ -78,6 +87,25 @@ const acknowledge = async (identity = "sort-filter-panel-floating-host") => {
       }),
     )
   }
+  const receive = (packet: object) =>
+    host(identity).props.onNativeDragStatus({ nativeEvent: { packet: JSON.stringify(packet) } })
+  const scope = host(identity).props
+  const window = { ownerId: scope.ownerId, windowId: "source-model-window", epoch: 1 }
+  await act(() =>
+    receive({
+      ...window,
+      kind: "window",
+      surfaceId: 11,
+      scopeTarget: 10,
+      available: true,
+      canLift: true,
+      canDrop: true,
+    }),
+  )
+  for (const binding of JSON.parse(host(identity).props.dragBindings))
+    await act(() =>
+      receive({ ...window, ...binding, kind: "binding", moduleId: "sort-panel-module", ready: true, error: "" }),
+    )
 }
 const present = async () => {
   await fireEvent(host("sort-filter-panel-window"), "show")
@@ -119,8 +147,26 @@ const choose = async (field: string, option: string) => {
 beforeEach(() => {
   jest.useFakeTimers()
   jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
+  jest.mocked(NativeDragModule!.readGeometry).mockImplementation(async (encoded) => {
+    const request = JSON.parse(encoded)
+    const binding = JSON.parse(host("sort-filter-panel-floating-host").props.dragBindings).find(
+      (value: { bindingId: string }) => value.bindingId === request.bindingId,
+    )
+    if (!binding) throw new Error("Original composed Sort binding is unavailable")
+    return JSON.stringify({
+      ...request,
+      geometry: {
+        root: { x: 0, y: 0, width: 200, height: 400 },
+        items: binding.members.map((member: object, index: number) => ({
+          ...member,
+          rect: { x: 0, y: index * 100, width: 200, height: 80 },
+        })),
+      },
+    })
+  })
 })
 afterEach(async () => {
+  await act(() => nativeVirtualDrag.cancel())
   await cleanup()
   jest.restoreAllMocks()
   jest.clearAllTimers()
@@ -293,7 +339,9 @@ it("reorders the visible draft, applies its exact order, and restores the owner'
   )
   await acknowledge()
   await act(() =>
-    host("query-sort-option-name").props.onAccessibilityAction({ nativeEvent: { actionName: "dropAfter" } }),
+    screen
+      .getByRole("button", { name: "Insert after Sort Parameter - Name - Descending" })
+      .props.onAccessibilityAction({ nativeEvent: { actionName: "activate" } }),
   )
   await acknowledge()
   expect(JSON.parse(host("query-sort-option-name").props.nativeCollectionSemantics).ordinal).toBe(0)

@@ -30,6 +30,7 @@ import { createSortDragFixture } from "./fixtures/SortDragFixture"
 
 let mockDragFixture: ReturnType<typeof createSortDragFixture>
 const mockViews = new Map<string, RN.View>()
+const mockFocusReceivers = new Map<string, () => Record<string, unknown>>()
 const mockAttachments: { ownerId: string; attached: boolean }[] = []
 jest.mock("../../../input/specs/CUIFocusViewNativeComponent", () => {
   const React = jest.requireActual<typeof import("react")>("react"),
@@ -44,8 +45,12 @@ jest.mock("../../../input/specs/CUIFocusViewNativeComponent", () => {
           mockAttachments.push({ ownerId: props.ownerId, attached: view !== null })
           if (view) {
             mockViews.set(props.ownerId, view)
+            mockFocusReceivers.set(props.ownerId, () => latest.current as unknown as Record<string, unknown>)
             mockDragFixture.bind(view, () => latest.current)
-          } else mockViews.delete(props.ownerId)
+          } else {
+            mockViews.delete(props.ownerId)
+            mockFocusReceivers.delete(props.ownerId)
+          }
           if (typeof ref === "function") ref(view)
           else if (ref) ref.current = view
         },
@@ -128,7 +133,14 @@ const observe = async (host: THost) =>
       nativeEvent: { ownerId: host.props.ownerId, target: tag(host), isFocused: true, isFocusVisible: true },
     }),
   )
-const key = async (host: THost, value: string, target = tag(host), settle = true, phase: "down" | "up" = "down") => {
+const key = async (
+  host: THost,
+  value: string,
+  target = tag(host),
+  settle = true,
+  phase: "down" | "up" = "down",
+  shiftKey = false,
+) => {
   let prevented = false
   const event = {
     get defaultPrevented() {
@@ -150,7 +162,7 @@ const key = async (host: THost, value: string, target = tag(host), settle = true
       phase,
       repeat: false,
       cancelled: false,
-      shiftKey: false,
+      shiftKey,
       altKey: false,
       ctrlKey: false,
       metaKey: false,
@@ -164,13 +176,33 @@ const key = async (host: THost, value: string, target = tag(host), settle = true
   if (settle && value === "Enter" && phase === "up") await act(() => jest.advanceTimersByTime(16))
   return event
 }
-const expectFocus = (host: THost) =>
-  expect(Commands.requestKeyboardFocus).toHaveBeenLastCalledWith(mockViews.get(host.props.ownerId), host.props.ownerId)
+const expectFocus = (host: THost) => {
+  const call = jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)
+  expect(call?.[0] === mockViews.get(host.props.ownerId)).toBe(true)
+  expect(call?.[1]).toBe(host.props.ownerId)
+}
+const acknowledgeRequestedFocus = async () => {
+  const call = jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)
+  expect(call).toBeDefined()
+  const [view, ownerId] = call!
+  const receiver = mockFocusReceivers.get(ownerId)!()
+  await act(() =>
+    (receiver.onNativeFocusChange as (event: object) => void)({
+      nativeEvent: {
+        ownerId,
+        target: jest.requireActual<typeof RN>("react-native").findNodeHandle(view),
+        isFocused: true,
+        isFocusVisible: true,
+      },
+    }),
+  )
+}
 beforeEach(() => {
   jest.useFakeTimers()
   jest.clearAllMocks()
   jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
   mockViews.clear()
+  mockFocusReceivers.clear()
   mockAttachments.length = 0
   mockDragFixture = createSortDragFixture(mockViews)
   const native = jest.requireActual<typeof RN>("react-native"),
@@ -274,7 +306,7 @@ it("preserves original option refs and owner order through reorder and label upd
     view = await render(tree(value))
   const original = mockViews.get(option().props.ownerId)
   await view.rerender(tree({ ...value, sortParameterList: [rows[1], { ...rows[0], sortDirection: "Descending" }] }))
-  expect(mockViews.get(option().props.ownerId)).toBe(original)
+  expect(mockViews.get(option().props.ownerId) === original).toBe(true)
   expect(JSON.parse(option().props.nativeCollectionSemantics).ordinal).toBe(1)
   expect(option().props.accessibilityLabel).toBe("Sort Parameter - City - Descending")
   expect(rows[0].sortDirection).toBe("Ascending")
@@ -301,7 +333,7 @@ it("keeps unselectable sort options free of hover state and changes only the act
   await observe(option("name"))
   expect(processColor(background())).toBe(processColor("transparent"))
   expect(first.props.accessibilityState?.selected).toBeUndefined()
-  expect(mockViews.get(option().props.ownerId)).toBe(original)
+  expect(mockViews.get(option().props.ownerId) === original).toBe(true)
 })
 it("uses the source 250ms ease-in-out focus transition and interrupts it at the current core Animated color", async () => {
   jest.mocked(AccessibilityInfo.isReduceMotionEnabled).mockResolvedValue(false)
@@ -339,7 +371,7 @@ it("uses current theme colors and opaque native colors without replacing the sor
   await view.rerender(node("dark", nativeColor))
   expect(background()).toEqual(nativeColor)
   expect(Commands.requestKeyboardFocus).toHaveBeenCalledTimes(commands)
-  expect(mockViews.get(option().props.ownerId)).toBe(original)
+  expect(mockViews.get(option().props.ownerId) === original).toBe(true)
 })
 
 it("keeps a physical sort option attached across current metadata updates and detaches on actual removal", async () => {
@@ -369,30 +401,38 @@ it("reorders on Enter release through the native collection admission while a he
   expect(screen.getAllByTestId("query-sort-drop-indicator")).toHaveLength(3)
   expect(screen.queryByTestId("query-sort-option-")).toBeNull()
   await key(option(), "End")
+  await acknowledgeRequestedFocus()
   expect(onReorder).not.toHaveBeenCalled()
   await key(option(), "Enter", tag(option()), true, "up")
   expect(onReorder).toHaveBeenCalledTimes(1)
   expect(onReorder).toHaveBeenCalledWith("", "name", "after")
   expect(JSON.parse(option().props.nativeCollectionSemantics).ordinal).toBe(0)
-  expect(mockViews.get(option().props.ownerId)).toBe(original)
+  expect(mockViews.get(option().props.ownerId) === original).toBe(true)
+  await act(() => jest.advanceTimersByTime(50))
   expectFocus(option())
   expect(screen.queryByTestId("query-sort-drop-indicator")).toBeNull()
 })
 
-it("navigates valid insertion positions, holds Tab in the single collection and cancels with Escape", async () => {
+it("navigates valid insertion positions, cycles Tab through the source and collection, and cancels with Escape", async () => {
   const onReorder = jest.fn()
   const third = { ...rows[1], id: "third", criteriaID: "third", criteriaName: "Third" }
   await render(tree({ ...props(), onReorder, sortParameterList: [...rows, third] }))
   await observe(option("name"))
   await key(option("name"), "Enter", tag(option("name")), true, "up")
   await key(option("name"), "Home")
+  await acknowledgeRequestedFocus()
   expect(screen.getByRole("button", { name: "Insert before Sort Parameter - City - Ascending" })).toBeOnTheScreen()
-  await key(option("name"), "Tab")
+  const tab = await key(option("name"), "Tab")
+  expect(tab.defaultPrevented).toBe(true)
+  expectFocus(option("name"))
+  await key(option("name"), "Tab", tag(option("name")), true, "down", true)
+  await key(option("name"), "Home")
   await key(option("name"), "Enter", tag(option("name")), true, "up")
   expect(onReorder).toHaveBeenCalledWith("name", "", "before")
   await key(option("name"), "Enter", tag(option("name")), true, "up")
   await key(option("name"), "ArrowDown")
   await key(option("name"), "ArrowUp")
+  await acknowledgeRequestedFocus()
   await key(option("name"), "Escape")
   expect(onReorder).toHaveBeenCalledTimes(1)
   expect(screen.queryByTestId("query-sort-drop-indicator")).toBeNull()
@@ -555,7 +595,7 @@ it("persists dragged and logical target keys and waits for an original virtual t
   await act(() => materialize("name"))
   expect(onReorder).toHaveBeenCalledTimes(1)
   expect(onReorder).toHaveBeenCalledWith("", "name", "after")
-  expect(mockViews.get(option().props.ownerId)).toBe(original)
+  expect(mockViews.get(option().props.ownerId) === original).toBe(true)
 })
 
 it.each(["on", "root", "foreign"])("rejects a renderer delegate's inadmissible %s target", async (kind) => {
@@ -626,7 +666,7 @@ it("retires a pending renderer measurement when its original drop delegate is re
   const frame = mockDragFixture.frame("target", 10, 170),
     originalView = mockViews.get(option().props.ownerId)
   await view.rerender(withDelegate(next))
-  expect(mockViews.get(option().props.ownerId)).toBe(originalView)
+  expect(mockViews.get(option().props.ownerId) === originalView).toBe(true)
   expect(() => mockDragFixture.dispatch(frame)).toThrow("authority")
   expect(original).not.toHaveBeenCalled()
   expect(next).not.toHaveBeenCalled()
@@ -684,16 +724,15 @@ it("waits for the latest complete release measurements and rejects an older poin
   expect(onReorder).toHaveBeenCalledWith("", "name", "after")
 })
 
-it("cancels a release with invalid current geometry instead of using the old complete rectangles", async () => {
+it("cancels a release with missing current geometry instead of using the old complete rectangles", async () => {
   const onReorder = jest.fn()
   await render(tree({ ...props(), onReorder }))
   measureRows()
   await source()
   await act(() => mockDragFixture.move(10, 170))
   expect(screen.getByTestId("query-sort-drop-indicator", { includeHiddenElements: true })).toBeTruthy()
-  for (const [index, id] of ["", "name"].entries())
-    rect(`query-sort-option-${id}`, { x: 0, y: index * 100, width: 200, height: 0 })
-  await release()
+  const current = mockDragFixture.geometry()
+  await act(() => mockDragFixture.drop(10, 170, { geometry: { ...current, items: [] } }))
   expect(onReorder).not.toHaveBeenCalled()
   expect(screen.queryByTestId("query-sort-drop-indicator")).toBeNull()
 })
