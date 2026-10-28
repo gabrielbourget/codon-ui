@@ -72,7 +72,7 @@ static void RCTAddContourEffectToLayer(
       curves.bottomLeft == BorderCurve::Circular && curves.bottomRight == BorderCurve::Circular;
   UIImage *image = circular
       ? RCTGetBorderImage(contourStyle, layer.bounds.size, cornerRadii, contourInsets, contourColors, [UIColor clearColor], NO)
-      : CUIGetBorderImage(contourStyle, layer.bounds.size, cornerRadii, contourInsets, contourColors, [UIColor clearColor], NO, curves);
+      : CUIGetBorderImage(contourStyle, layer.bounds.size, cornerRadii, contourInsets, contourColors, [UIColor clearColor], NO, curves, YES);
 
   if (image == nil) {
     layer.contents = nil;
@@ -860,7 +860,7 @@ static CUIMotionCornerCurves CUIUniformCornerCurve(BorderCurve curve) {
           reason:@"Native continuous mask parameters unavailable" userInfo:nil];
     return mask;
   }
-  CGPathRef path = CUIPathCreateWithRoundedRect(bounds, cornerInsets, curves);
+  CGPathRef path = CUIPathCreateWithRoundedRect(bounds, cornerInsets, curves, NO, YES);
   CAShapeLayer *maskLayer = CUICreateOwnedShapeMask(path);
   CGPathRelease(path);
   return maskLayer;

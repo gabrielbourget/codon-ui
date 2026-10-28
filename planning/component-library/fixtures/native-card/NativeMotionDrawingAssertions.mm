@@ -130,6 +130,34 @@ void CUIAssertOwnedMotionDrawing() {
     CGPathRelease(unsupported);
   } @catch (NSException *) { mixedOverlapRejected = YES; }
   NSCAssert(mixedOverlapRejected, @"Unproved mixed continuous overlap must reject instead of fitting a substitute curve");
+  const RCTCornerRadii nativeFallbackRadii{70, 40, 40, 20, 20, 20, 10, 10};
+  const auto nativeFallbackInsets = RCTGetCornerInsets(nativeFallbackRadii, UIEdgeInsetsZero);
+  CGPathRef acceptedNativePath = CUIPathCreateWithRoundedRect(view.bounds, nativeFallbackInsets,
+      elliptical.borderCurves, NO, YES);
+  CGPathRef actualNativePath = RCTPathCreateWithRoundedRect(view.bounds, nativeFallbackInsets, nil, NO);
+  NSCAssert(CGPathEqualToPath(acceptedNativePath, actualNativePath),
+      @"The opted-in unavailable contour uses the exact pinned native circular path");
+  CGPathRelease(acceptedNativePath);
+  CGPathRelease(actualNativePath);
+  CGPathRef supportedStrictPath = CUIPathCreateWithRoundedRect(view.bounds, cornerInsets, elliptical.borderCurves);
+  CGPathRef supportedPolicyPath = CUIPathCreateWithRoundedRect(view.bounds, cornerInsets, elliptical.borderCurves, NO, YES);
+  NSCAssert(CGPathEqualToPath(supportedStrictPath, supportedPolicyPath),
+      @"The explicit policy preserves every available exact continuous contour");
+  CGPathRelease(supportedStrictPath);
+  CGPathRelease(supportedPolicyPath);
+  BOOL invalidPolicyRejected = NO;
+  @try {
+    CGPathRef invalid = CUIPathCreateWithRoundedRect(CGRectMake(0, 0, -1, 80), nativeFallbackInsets,
+        elliptical.borderCurves, NO, YES);
+    CGPathRelease(invalid);
+  } @catch (NSException *) { invalidPolicyRejected = YES; }
+  NSCAssert(invalidPolicyRejected, @"The native contour policy cannot admit invalid geometry");
+  [view setCuiProjectionRadii:@"{\"topLeft\":{\"x\":70,\"y\":40},\"topRight\":{\"x\":40,\"y\":20},\"bottomLeft\":{\"x\":20,\"y\":20},\"bottomRight\":{\"x\":10,\"y\":10}}"];
+  [view finalizeUpdates:RNComponentViewUpdateMaskProps];
+  NSCAssert([editor isDescendantOfView:view] && [editor.text isEqualToString:@"original dirty value"] &&
+      [editor offsetFromPosition:editor.beginningOfDocument toPosition:editor.selectedTextRange.start] == selectionStart &&
+      [editor offsetFromPosition:editor.beginningOfDocument toPosition:editor.selectedTextRange.end] == selectionEnd,
+      @"Opted-in native painting retains the original dirty editor, ref and selection");
   UIImage *borderImage = CUIGetBorderImage(RCTBorderStyleSolid, view.bounds.size, cornerRadii,
       UIEdgeInsetsMake(3, 7, 2, 5), RCTBorderColors{UIColor.redColor, UIColor.blueColor, UIColor.greenColor, UIColor.yellowColor},
       UIColor.clearColor, NO, elliptical.borderCurves);
