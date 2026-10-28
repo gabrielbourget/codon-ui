@@ -80,15 +80,19 @@ final class CUIClampHost extends ReactViewGroup {
     offsetDescendantRectToMyCoords(child, target);
     target.offset(getScrollX(), getScrollY());
     double contentHeight = PixelUtil.toPixelFromDIP(plan.getDouble("contentHeight"));
+    double originY = PixelUtil.toPixelFromDIP(plan.getDouble("contentOriginY"));
     int offset = getScrollY();
     if (target.height() > getHeight() || target.top < offset) offset = target.top;
     else if (target.bottom > offset + getHeight()) offset = target.bottom - getHeight();
-    offset = Math.max(0, Math.min(offset, (int)Math.ceil(Math.max(0,contentHeight-getHeight()))));
+    offset = Math.max((int)Math.floor(originY), Math.min(offset,
+        (int)Math.ceil(Math.max(originY,originY+contentHeight-getHeight()))));
     double contentWidth = PixelUtil.toPixelFromDIP(plan.getDouble("contentWidth"));
+    double originX = PixelUtil.toPixelFromDIP(plan.getDouble("contentOriginX"));
     int x = getScrollX();
     if (target.width() > getWidth() || target.left < x) x = target.left;
     else if (target.right > x + getWidth()) x = target.right - getWidth();
-    x = Math.max(0, Math.min(x, (int)Math.ceil(Math.max(0,contentWidth-getWidth()))));
+    x = Math.max((int)Math.floor(originX), Math.min(x,
+        (int)Math.ceil(Math.max(originX,originX+contentWidth-getWidth()))));
     scrollTo(x,offset);
     present();
   }

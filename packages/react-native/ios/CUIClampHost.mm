@@ -94,7 +94,7 @@ using namespace codon::table;
       if (![view isKindOfClass:RCTParagraphComponentView.class] || view.window != self.window)
         throw std::runtime_error("Table clamp lost its original paragraph/window");
       auto target = (RCTParagraphComponentView *)view;
-      const int lines = paragraph.noWrap ? 1 : offset.x <= 0 && offset.y <= 0 ? paragraph.lines : 0;
+      const int lines = paragraph.noWrap ? 1 : offset.x == 0 && offset.y == 0 ? paragraph.lines : 0;
       if (![target cuiSetClampOwner:_plan->owner lines:lines
           props:reinterpret_cast<uintptr_t>(paragraph.props.get())
           state:paragraph.stateIdentity])
@@ -118,11 +118,14 @@ using namespace codon::table;
   _viewport.frame = self.bounds;
   _viewport.clipsToBounds = _hasClamp;
   if (!_plan) return;
-  _viewport.contentSize = CGSizeMake(_plan->contentSize.width, _plan->contentSize.height);
-  const auto offset = revealClampRect(_viewport.contentOffset.y, _viewport.bounds.size.height,
-      _plan->contentSize.height, _viewport.contentOffset.y, _viewport.contentOffset.y);
-  const auto x = revealClampRect(_viewport.contentOffset.x, _viewport.bounds.size.width,
-      _plan->contentSize.width, _viewport.contentOffset.x, _viewport.contentOffset.x);
+  CGPoint previousOffset = _viewport.contentOffset;
+  _viewport.contentInset = UIEdgeInsetsMake(-_plan->contentOrigin.y,-_plan->contentOrigin.x,0,0);
+  _viewport.contentSize = CGSizeMake(_plan->contentOrigin.x + _plan->contentSize.width,
+      _plan->contentOrigin.y + _plan->contentSize.height);
+  const auto offset = revealClampRect(previousOffset.y, _viewport.bounds.size.height,
+      _plan->contentSize.height, previousOffset.y, previousOffset.y, _plan->contentOrigin.y);
+  const auto x = revealClampRect(previousOffset.x, _viewport.bounds.size.width,
+      _plan->contentSize.width, previousOffset.x, previousOffset.x, _plan->contentOrigin.x);
   if (_viewport.contentOffset.y != offset || _viewport.contentOffset.x != x) _viewport.contentOffset = CGPointMake(x, offset);
   [self applyPresentation];
   UIView *focused = [self firstResponderInView:_viewport];
@@ -141,9 +144,9 @@ using namespace codon::table;
   CGRect rect = [view convertRect:view.bounds toView:_viewport];
   // UIScrollView coordinates include its current bounds origin; these are full-content coordinates.
   const double offset = revealClampRect(_viewport.contentOffset.y, _viewport.bounds.size.height,
-      _plan->contentSize.height, CGRectGetMinY(rect), CGRectGetMaxY(rect));
+      _plan->contentSize.height, CGRectGetMinY(rect), CGRectGetMaxY(rect),_plan->contentOrigin.y);
   const double x = revealClampRect(_viewport.contentOffset.x, _viewport.bounds.size.width,
-      _plan->contentSize.width, CGRectGetMinX(rect), CGRectGetMaxX(rect));
+      _plan->contentSize.width, CGRectGetMinX(rect), CGRectGetMaxX(rect),_plan->contentOrigin.x);
   [_viewport setContentOffset:CGPointMake(x, offset) animated:NO];
   [self applyPresentation];
 }
@@ -167,6 +170,7 @@ using namespace codon::table;
   _plan.reset();
   _viewport.contentOffset = CGPointZero;
   _viewport.contentSize = CGSizeZero;
+  _viewport.contentInset = UIEdgeInsetsZero;
   _hasClamp = NO;
   [super prepareForRecycle];
 }

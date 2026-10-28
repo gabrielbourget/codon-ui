@@ -23,6 +23,7 @@ class JSI_EXPORT CUIClampPlan {
  public:
   uint64_t owner{0};
   facebook::react::Size contentSize;
+  facebook::react::Point contentOrigin;
   facebook::react::Size viewportSize;
   TClampViewport viewport;
   bool clipsContents{false};

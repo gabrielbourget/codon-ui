@@ -29,6 +29,6 @@ struct TClampViewport {
 TClampViewport resolveClampViewport(const std::vector<TClampFragment> &fragments,
     double contentHeight, int maximumLines, double pointScaleFactor);
 double revealClampRect(double offset, double viewportHeight, double contentHeight,
-    double targetTop, double targetBottom);
+    double targetTop, double targetBottom, double contentOrigin = 0);
 
 } // namespace codon::table

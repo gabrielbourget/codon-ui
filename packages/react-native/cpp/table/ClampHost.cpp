@@ -23,7 +23,7 @@ std::unordered_map<uint64_t, std::shared_ptr<CUIClampPlan>> presentedPlans;
 
 void CUIClampPlan::present(Point offset) {
   if (!std::isfinite(offset.x) || !std::isfinite(offset.y)) throw std::runtime_error("Table clamp requires a finite original scroll position");
-  const auto clipped = viewport.clipped && offset.x <= 0 && offset.y <= 0;
+  const auto clipped = viewport.clipped && offset.x == 0 && offset.y == 0;
   for (const auto &participant : participants) {
     auto lastLine = clipped ? viewport.lastLine : std::vector<TClampFragment>{};
     for (auto &fragment : lastLine) {
@@ -76,6 +76,7 @@ folly::dynamic TClampHostState::getDynamic() const {
   }
   return folly::dynamic::object("owner", std::to_string(plan->owner))
       ("contentWidth", plan->contentSize.width)("contentHeight", plan->contentSize.height)
+      ("contentOriginX", plan->contentOrigin.x)("contentOriginY", plan->contentOrigin.y)
       ("viewportHeight", plan->viewportSize.height)("clipped", plan->viewport.clipped)
       ("paragraphs", std::move(paragraphs));
 }
@@ -220,9 +221,10 @@ CUIOwnedClampHostShadowNode::TContent CUIOwnedClampHostShadowNode::resolveConten
   auto plan = std::make_shared<CUIClampPlan>();
   plan->owner = codon::table::nextOwner.fetch_add(1);
   const auto naturalSize = metrics.frame.size;
+  plan->contentOrigin = {std::min(Float{0}, metrics.overflowInset.left),std::min(Float{0}, metrics.overflowInset.top)};
   plan->contentSize = {
-      std::max(naturalSize.width, naturalSize.width - metrics.overflowInset.right),
-      std::max(naturalSize.height, naturalSize.height - metrics.overflowInset.bottom)};
+      std::max(naturalSize.width, naturalSize.width - metrics.overflowInset.right) - plan->contentOrigin.x,
+      std::max(naturalSize.height, naturalSize.height - metrics.overflowInset.bottom) - plan->contentOrigin.y};
   plan->clipsContents = props.hasClamp;
   std::vector<TClampFragment> fragments;
   if (active) collectContent(*child, {}, props, context, *plan, fragments);

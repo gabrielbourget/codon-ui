@@ -45,6 +45,10 @@ int main() {
   assert(revealClampRect(150,48,192,180,200) == 144);
   assert(revealClampRect(0,48,192,24,104) == 24);
   assert(revealClampRect(116,192,192,0,24) == 0);
+  // An RTL/end-aligned oversized original control can extend before the content origin.
+  assert(revealClampRect(0,180,300,-120,-20,-120) == -120);
+  assert(revealClampRect(-120,180,300,140,180,-120) == 0);
+  assert(revealClampRect(0,180,360,200,240,-120) == 60);
   bool rejected = false;
   try { resolveClampViewport(paragraph,144,2,0); } catch (const std::runtime_error &) { rejected = true; }
   assert(rejected);

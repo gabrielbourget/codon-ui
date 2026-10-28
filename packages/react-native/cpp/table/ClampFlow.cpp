@@ -68,16 +68,16 @@ TClampViewport resolveClampViewport(const std::vector<TClampFragment> &fragments
 }
 
 double revealClampRect(double offset, double viewportHeight, double contentHeight,
-    double targetTop, double targetBottom) {
+    double targetTop, double targetBottom, double contentOrigin) {
   finite(offset); dimension(viewportHeight); dimension(contentHeight);
-  finite(targetTop); finite(targetBottom);
+  finite(targetTop); finite(targetBottom); finite(contentOrigin);
   if (targetBottom < targetTop) throw std::runtime_error("Table clamp requires an ordered focus rectangle");
-  const auto maximum = std::max(0.0, contentHeight - viewportHeight);
-  offset = std::clamp(offset, 0.0, maximum);
+  const auto maximum = std::max(contentOrigin, contentOrigin + contentHeight - viewportHeight);
+  offset = std::clamp(offset, contentOrigin, maximum);
   if (targetBottom - targetTop > viewportHeight) offset = targetTop;
   else if (targetTop < offset) offset = targetTop;
   else if (targetBottom > offset + viewportHeight) offset = targetBottom - viewportHeight;
-  return std::clamp(offset, 0.0, maximum);
+  return std::clamp(offset, contentOrigin, maximum);
 }
 
 } // namespace codon::table
