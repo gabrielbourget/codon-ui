@@ -136,6 +136,7 @@ it("keeps constraints inside the originating window and clears them at a nested 
       </>,
     ),
   )
+  await act(() => {})
   const hosts = screen.container.queryAll((host) => host.type === "CUIClampHost")
   expect(hosts.map((host) => host.props.noWrap)).toEqual([true, false])
   expect(screen.getByTestId("current-window").props.numberOfLines).toBeUndefined()

@@ -101,8 +101,12 @@ const tree = ({
         </ColumnFixtureHeader>
         <CellFixtureBody>
           <CellFixtureRow id="row">
-            <TableCell columnID="name">Alpha</TableCell>
-            <TableCell columnID="other">Beta</TableCell>
+            <TableCell columnID="name" testID="sizing-name-cell">
+              Alpha
+            </TableCell>
+            <TableCell columnID="other" testID="sizing-other-cell">
+              Beta
+            </TableCell>
           </CellFixtureRow>
         </CellFixtureBody>
       </Table>
@@ -250,8 +254,8 @@ it("retains the complete sizing state, controlled widths and original Table iden
     ["name", 200],
     ["other", 300],
   ])
-  expect(screen.getByText("Alpha").parent).toHaveStyle({ width: 200 })
-  expect(screen.getByText("Beta").parent).toHaveStyle({ width: 300 })
+  expect(screen.getByTestId("sizing-name-cell")).toHaveStyle({ width: 200 })
+  expect(screen.getByTestId("sizing-other-cell")).toHaveStyle({ width: 300 })
   expect(layout!.getColumnMinWidth("name")).toBe(75)
   expect(layout!.getColumnMaxWidth("name")).toBe(Number.MAX_SAFE_INTEGER)
   await act(() => layout!.updateResizedColumns("name", 240))
@@ -403,8 +407,12 @@ it("keeps the resize input when caller children and a custom renderer supply vis
           </ColumnFixtureHeader>
           <CellFixtureBody>
             <CellFixtureRow id="row">
-              <TableCell columnID="name">Alpha</TableCell>
-              <TableCell columnID="other">Beta</TableCell>
+              <TableCell columnID="name" testID="sizing-name-cell">
+                Alpha
+              </TableCell>
+              <TableCell columnID="other" testID="sizing-other-cell">
+                Beta
+              </TableCell>
             </CellFixtureRow>
           </CellFixtureBody>
         </Table>
