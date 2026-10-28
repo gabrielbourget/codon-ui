@@ -15,6 +15,7 @@ import {
 } from "../../../../packages/react-native/src/components/Table"
 
 import { TableDragScene } from "./TableDragScene"
+import { TableVirtualizedScene } from "./TableVirtualizedScene"
 
 type TPerson = { id: string; name: string; active: boolean }
 const people: TPerson[] = Array.from({ length: 20 }, (_, index) => ({
@@ -34,6 +35,12 @@ export const TableScene = () => {
   const [reversed, setReversed] = useState(false)
   const [sticky, setSticky] = useState(true)
   const [showDrag, setShowDrag] = useState(false)
+  const [showVirtual, setShowVirtual] = useState(false)
+  const [rtl, setRtl] = useState(false)
+  const [lineChoice, setLineChoice] = useState(0)
+  const [truncate, setTruncate] = useState(false)
+  const lineChoices = [undefined, 1, 2, 3, 0, -1, 1.5]
+  const maxLines = lineChoices[lineChoice]
   const [draft, setDraft] = useState("Original editor")
   const [selected, setSelected] = useState<"all" | Set<string | number>>(new Set())
   const [sorts, setSorts] = useState<TableSortInstruction[]>([])
@@ -59,9 +66,19 @@ export const TableScene = () => {
       id: "draft",
       name: "Original editor",
       width: widths.draft,
+      maxLines,
+      truncate,
       cellRenderer: ({ row }) =>
         row.id === "person-0" ? (
-          <Input ref={editor} accessibilityLabel="Original Table editor" value={draft} onChangeText={setDraft} />
+          <View style={{ gap: 4 }}>
+            <Text>
+              First paragraph with <Text style={{ fontWeight: "bold" }}>inline text</Text>
+              {"\nand a hard break."}
+            </Text>
+            <Button onPress={() => record("widget", row.id)}>Original Table widget</Button>
+            <Input ref={editor} accessibilityLabel="Original Table editor" value={draft} onChangeText={setDraft} />
+            <Text>Final paragraph remains in the complete original content.</Text>
+          </View>
         ) : (
           ""
         ),
@@ -76,14 +93,24 @@ export const TableScene = () => {
         <Button onPress={() => setReversed((value) => !value)}>Reverse Table rows</Button>
         <Button onPress={() => setSticky((value) => !value)}>Toggle sticky Table header</Button>
         <Button onPress={() => setShowDrag((value) => !value)}>Toggle Table drag and drop</Button>
+        <Button onPress={() => setShowVirtual((value) => !value)}>Toggle virtualized Table</Button>
+        <Button onPress={() => setRtl((value) => !value)}>Toggle Table RTL</Button>
+        <Button onPress={() => setLineChoice((value) => (value + 1) % lineChoices.length)}>
+          Cycle mixed-content line limit
+        </Button>
+        <Button onPress={() => setTruncate((value) => !value)}>Toggle mixed-content truncation</Button>
+        <Button onPress={() => editor.current?.focus()}>Focus original Table editor</Button>
+        <Button onPress={() => setDraft("")}>Clear original Table editor</Button>
       </View>
       <Text>
-        Owner holds requests: {String(held)}. Original editor value: {draft}
+        Owner holds requests: {String(held)}. Original editor value: {draft}. Lines: {String(maxLines)}. Truncate:{" "}
+        {String(truncate)}. RTL: {String(rtl)}.
       </Text>
       <ScrollView horizontal style={{ maxHeight: 380 }}>
         <ScrollView style={{ width: 520, maxHeight: 360 }} nestedScrollEnabled>
           <Table
             accessibilityLabel="Public people Table"
+            style={{ direction: rtl ? "rtl" : "ltr" }}
             columns={columns}
             stickyHeader={sticky}
             zebra
@@ -164,6 +191,7 @@ export const TableScene = () => {
         }}
       />
       {showDrag && <TableDragScene />}
+      {showVirtual && <TableVirtualizedScene />}
     </View>
   )
 }
