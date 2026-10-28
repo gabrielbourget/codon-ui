@@ -25,7 +25,7 @@ bool separateWindow(const ShadowNode &node) {
   return name == "PortalView" || name == "ModalHostView" || name == "InputAccessoryView";
 }
 }
-Size measureClampContent(std::shared_ptr<const ShadowNode> root, const CUIClampHostProps &props,
+facebook::react::Size measureClampContent(std::shared_ptr<const ShadowNode> root, const CUIClampHostProps &props,
     const LayoutContext &context, const LayoutConstraints &constraints,
     const std::shared_ptr<CUIClampTextScope> &textScope) {
   if (!root || !textScope) throw std::runtime_error("Table clamp requires its original content/text owner");
@@ -125,7 +125,7 @@ Size measureClampContent(std::shared_ptr<const ShadowNode> root, const CUIClampH
   std::unordered_map<int, facebook::react::Point> positions;
   std::unordered_map<int, bool> excluded;
   std::vector<TClampFragment> fragments;
-  Size natural;
+  facebook::react::Size natural;
   for (const auto &result : measured) {
     check();
     const auto &layout = result.layout;
@@ -138,7 +138,7 @@ Size measureClampContent(std::shared_ptr<const ShadowNode> root, const CUIClampH
     excluded.emplace(result.tag, hidden);
     if (!result.parentTag) natural = {layout.frame[2], layout.frame[3]};
     if (hidden) continue;
-    const Size size{layout.frame[2], layout.frame[3]};
+    const facebook::react::Size size{layout.frame[2], layout.frame[3]};
     if (hasClampContentSource(node.getFamily())) {
       auto supplied = capture(node)->fragments(size);
       for (auto &fragment : supplied) {
@@ -148,7 +148,7 @@ Size measureClampContent(std::shared_ptr<const ShadowNode> root, const CUIClampH
       }
     } else if (dynamic_cast<const ParagraphShadowNode *>(&node)) {
       const float left = layout.border[0] + layout.padding[0], top = layout.border[1] + layout.padding[1];
-      const Size contentSize{std::max(Float{0},size.width-left-layout.border[2]-layout.padding[2]),
+      const facebook::react::Size contentSize{std::max(Float{0},size.width-left-layout.border[2]-layout.padding[2]),
           std::max(Float{0},size.height-top-layout.border[3]-layout.padding[3])};
       const auto lines = intrinsic.paragraphLines(node, context, contentSize, layout.direction);
       for (size_t index=0;index<lines.size();index++) {

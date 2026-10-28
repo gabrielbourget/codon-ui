@@ -94,7 +94,7 @@ codon::motion::TNativeScratchIntrinsic CUIClampCapture::callbacks() const {
     }
   };
 }
-std::vector<TClampFragment> CUIClampCapture::fragments(Size selectedSize) const {
+std::vector<TClampFragment> CUIClampCapture::fragments(facebook::react::Size selectedSize) const {
   check();
   auto result = session_->fragments(selectedSize);
   check();

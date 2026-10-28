@@ -3312,11 +3312,20 @@ index 0d1910b442b67da7453506410363d7fad28c22e9..6514ae38758379bd7d39c97424ce8cc4
 diff --git a/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm b/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
 --- a/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
 +++ b/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
-@@ -730,6 +730,7 @@
+@@ -9,6 +9,7 @@
+
+ #import <react/featureflags/ReactNativeFeatureFlags.h>
+ #import <react/renderer/components/iostextinput/TextInputComponentDescriptor.h>
++#import <react/utils/ManagedObjectWrapper.h>
+ #import <react/renderer/textlayoutmanager/RCTAttributedTextUtils.h>
+ #import <react/renderer/textlayoutmanager/TextLayoutManager.h>
+
+@@ -730,6 +731,8 @@
    auto data = _state->getData();
    _lastStringStateWasUpdatedWith = attributedString;
    data.attributedStringBox = RCTAttributedStringBoxFromNSAttributedString(attributedString);
-+  data.cuiTextSnapshotSource = captureCuiTextSnapshot(self.tag, wrapManagedObject(attributedString));
++  if (findCuiTextSnapshotSource(self.tag))
++    data.cuiTextSnapshotSource = captureCuiTextSnapshot(self.tag, wrapManagedObject(attributedString));
    _mostRecentEventCount += _comingFromJS ? 0 : 1;
    data.mostRecentEventCount = _mostRecentEventCount;
    _state->updateState(std::move(data));

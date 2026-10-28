@@ -176,7 +176,8 @@ void collectContent(const ShadowNode &node, Point offset, const CUIClampHostProp
     if (node.getTraits().check(ShadowNodeTraits::BaselineYogaNode)) {
       const auto callbacks = intrinsics.resolve(node, context, node.getProps());
       baseline = callbacks.baseline(metrics.frame.size.width, metrics.frame.size.height, {},
-          {metrics.contentInsets.left,metrics.contentInsets.top,metrics.contentInsets.right,metrics.contentInsets.bottom},
+          {static_cast<float>(metrics.contentInsets.left),static_cast<float>(metrics.contentInsets.top),
+           static_cast<float>(metrics.contentInsets.right),static_cast<float>(metrics.contentInsets.bottom)},
           metrics.layoutDirection == LayoutDirection::RightToLeft ? YGDirectionRTL : YGDirectionLTR);
     }
     fragments.push_back({{offset, metrics.frame.size}, offset.y + baseline, node.getTag(), 0,
