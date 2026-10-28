@@ -874,10 +874,10 @@ index 3c1cbe917d11bf817e854e2006bfd31c8595d2a1..7c5ed0001535a4d0711ce5fff637c98e
      }
 diff --git a/ReactAndroid/src/main/java/com/facebook/react/uimanager/ReactAccessibilityProjection.java b/ReactAndroid/src/main/java/com/facebook/react/uimanager/ReactAccessibilityProjection.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..510183ae58ae55b7576bc4d41f308f74c48b0bc2
+index 0000000000000000000000000000000000000000..eafb0364d5575ce94ee9f12746f751ecb98720be
 --- /dev/null
 +++ b/ReactAndroid/src/main/java/com/facebook/react/uimanager/ReactAccessibilityProjection.java
-@@ -0,0 +1,41 @@
+@@ -0,0 +1,43 @@
 +/* Copyright (c) Meta Platforms, Inc. and affiliates. MIT; see LICENSE. */
 +package com.facebook.react.uimanager;
 +
@@ -895,7 +895,9 @@ index 0000000000000000000000000000000000000000..510183ae58ae55b7576bc4d41f308f74
 +    void projectChildren(View host,ArrayList<View> original,int start);
 +  }
 +  private static WeakReference<Receiver> receiver=new WeakReference<>(null);
-+  private static final ThreadLocal<Integer> originalDepth=ThreadLocal.withInitial(()->0);
++  private static final ThreadLocal<Integer> originalDepth=new ThreadLocal<Integer>() {
++    @Override protected Integer initialValue() { return 0; }
++  };
 +  private ReactAccessibilityProjection() {}
 +  public static void beginOriginalMetadata() { originalDepth.set(originalDepth.get()+1); }
 +  public static void endOriginalMetadata() {
