@@ -157,3 +157,15 @@ it("rejects duplicate transfer handles without releasing the original live value
   expect(await item.getText("text/plain")).toBe("")
   f.owner.dispose()
 })
+
+it("preserves formatless source records and authored empty format names", async () => {
+  const f = setup()
+  f.driver.readText = jest.fn(async () => "original empty-format value")
+  const empty = f.owner.item({ kind: "text", handle: "empty", types: [] })
+  const item = f.owner.item({ kind: "text", handle: "empty-format", types: [""] })
+  if (empty.kind !== "text" || item.kind !== "text") throw new Error("Expected original text items")
+  expect(empty.types.size).toBe(0)
+  expect(await item.getText("")).toBe("original empty-format value")
+  await expect(empty.getText("")).rejects.toThrow("unavailable text type")
+  f.owner.dispose()
+})

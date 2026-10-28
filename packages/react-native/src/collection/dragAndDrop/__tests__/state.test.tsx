@@ -6,7 +6,7 @@ import type { TNativeCollectionKey } from "../../snapshot"
 import { SelectionManager } from "../../state/SelectionManager"
 import { useMultipleSelectionState } from "../../state/useMultipleSelectionState"
 import { NativeDragController } from "../controller"
-import type { TNativeDropTarget, TNativeTextDropItem } from "../types"
+import type { TNativeDragItem, TNativeDropTarget, TNativeTextDropItem } from "../types"
 import { useNativeDraggableCollectionState } from "../useNativeDraggableCollectionState"
 import type { TNativeDraggableCollectionStateOptions } from "../useNativeDraggableCollectionState"
 import { useNativeDroppableCollectionState } from "../useNativeDroppableCollectionState"
@@ -269,5 +269,72 @@ it.each([false, true])(
     expect(trace).toEqual(
       retire ? ["item-start", ["end", true], "item-end"] : ["item-start", ["end", true], "item-end", ["move", [0]]],
     )
+  },
+)
+
+it.each([false, true])(
+  "retains pending OS transfer admission after drag end with owner retirement=%s",
+  async (retire) => {
+    let live = true,
+      finishData!: (items: TNativeTextDropItem[]) => void
+    const onDrop = jest.fn(),
+      identity = {}
+    const view = await renderHook(() => {
+      const manager = useManager(new Set([0]))
+      return {
+        drag: useNativeDraggableCollectionState({
+          collection,
+          selectionManager: manager,
+          getItems: (): TNativeDragItem[] => [{ "": "" }, {}],
+        }),
+        drop: useNativeDroppableCollectionState({ collection, selectionManager: manager, onDrop }),
+      }
+    })
+    const controller = new NativeDragController()
+    const source = {
+      identity,
+      current: () => live,
+      get state() {
+        return view.result.current.drag
+      },
+    }
+    const target = {
+      identity,
+      current: () => live,
+      props: { onDrop },
+      get state() {
+        return view.result.current.drop
+      },
+    }
+    await act(() => {
+      const lifted = controller.lift("original-pending", source, 0, { type: "dragstart", x: 0, y: 0 })
+      expect(lifted.transferItems).toEqual([{ "": "" }, {}])
+      controller.targetAt("original-pending", target, { type: "root" }, new Set([""]), ["copy"])
+    })
+    const item: TNativeTextDropItem = {
+      kind: "text",
+      types: new Set([""]),
+      getText: async () => "",
+      release: jest.fn(),
+    }
+    let pending!: Promise<void>
+    await act(() => {
+      pending = controller.drop(
+        "original-pending",
+        new Promise<TNativeTextDropItem[]>((done) => {
+          finishData = done
+        }),
+        { x: 0, y: 0 },
+      )
+      controller.end("original-pending", { x: 0, y: 0 }, "copy")
+    })
+    live = !retire
+    finishData([item])
+    await act(async () => {
+      await pending
+    })
+    expect(onDrop).toHaveBeenCalledTimes(retire ? 0 : 1)
+    expect(item.release).toHaveBeenCalledTimes(retire ? 1 : 0)
+    await view.unmount()
   },
 )

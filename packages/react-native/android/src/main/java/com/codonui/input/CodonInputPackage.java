@@ -14,6 +14,7 @@ public final class CodonInputPackage extends BaseReactPackage {
   @Override
   public NativeModule getModule(String name, ReactApplicationContext context) {
     if (CUIEditorKeyboardDefaultsModule.NAME.equals(name)) return new CUIEditorKeyboardDefaultsModule(context);
+    if (CUIDragAndDropModule.NAME.equals(name)) return new CUIDragAndDropModule(context);
     if (CUIFormDocumentModule.NAME.equals(name)) return new CUIFormDocumentModule(context);
     return CUIMotionSnapshotModule.NAME.equals(name) ? new CUIMotionSnapshotModule(context) : null;
   }
@@ -28,6 +29,8 @@ public final class CodonInputPackage extends BaseReactPackage {
         CUIFormDocumentModule.class.getName(), false, false, false, true));
       modules.put(CUIEditorKeyboardDefaultsModule.NAME, new ReactModuleInfo(CUIEditorKeyboardDefaultsModule.NAME,
         CUIEditorKeyboardDefaultsModule.class.getName(), false, false, false, true));
+      modules.put(CUIDragAndDropModule.NAME, new ReactModuleInfo(CUIDragAndDropModule.NAME,
+        CUIDragAndDropModule.class.getName(), false, false, false, true));
       return modules;
     };
   }

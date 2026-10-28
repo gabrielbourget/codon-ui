@@ -195,7 +195,7 @@ export class NativeDropDataOwner {
         case "text": {
           const available = new Set(descriptor.types)
           const types = new Set(available)
-          if (types.size === 0 || [...types].some((type) => typeof type !== "string" || !type))
+          if ([...types].some((type) => typeof type !== "string"))
             throw new Error("Native drag data: missing original text representations")
           return this.attach(
             {

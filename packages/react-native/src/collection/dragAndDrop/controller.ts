@@ -53,7 +53,7 @@ const items = (values: TNativeDragItem[]) => {
     if (!value || typeof value !== "object" || Array.isArray(value))
       throw new Error("Native drag action: getItems must return representation maps")
     const entries = Object.entries(value)
-    if (entries.some(([type, data]) => !type || typeof data !== "string"))
+    if (entries.some(([, data]) => typeof data !== "string"))
       throw new Error("Native drag action: each original representation must be a string")
     // Read each authored representation only at lift, exactly once, after start.
     return Object.fromEntries(entries)
@@ -211,13 +211,18 @@ export class NativeDragController {
     this.changed()
   }
 
-  async drop(id: string, data: TNativeDropItem[], event: TNativeDragPoint) {
+  async drop(id: string, data: TNativeDropItem[] | Promise<TNativeDropItem[]>, event: TNativeDragPoint) {
     const session = this.session
     const target = this.target
     if (!session || session.id !== id || !this.current(session) || !target?.owner.current() || !point(event))
       throw new Error("Native drop action: original target authority is unavailable")
     this.lastDrop = { session, identity: target.owner.identity }
     try {
+      const resolved = Array.isArray(data) ? data : await data
+      if (!target.owner.current()) {
+        for (const item of resolved) item.release()
+        return
+      }
       // Async business callbacks and retained transfer values outlive OS drag
       // end. Original collection/window authority, rather than drag visibility,
       // guards subsequent specialized callbacks after each awaited handler.
@@ -228,7 +233,7 @@ export class NativeDragController {
           type: "drop",
           target: target.target,
           dropOperation: target.operation,
-          items: data,
+          items: resolved,
         },
         session.source?.identity === target.owner.identity,
         session.keys,
