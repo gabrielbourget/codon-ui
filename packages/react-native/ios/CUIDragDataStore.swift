@@ -1,9 +1,15 @@
 import Foundation
+import UIKit
 import UniformTypeIdentifiers
 
 @objc(CUIDragDataStore)
 final class CUIDragDataStore: NSObject {
   static let stringMapType = "app.codon-ui.drag-string-map"
+  private final class CleanupJournal {
+    private let lock = NSLock()
+    private var errors: [NSError] = []
+    func record(_ error: Error) { lock.lock(); errors.append(error as NSError); lock.unlock() }
+  }
   private final class WeakStore {
     weak var value: CUIDragDataStore?
     init(_ value: CUIDragDataStore) { self.value = value }
@@ -60,7 +66,7 @@ final class CUIDragDataStore: NSObject {
   @objc let moduleId: String
   private let lock = NSRecursiveLock()
   private let cleanup = DispatchQueue(label: "codon.drag.data.cleanup", qos: .utility)
-  private var cleanupErrors: [NSError] = []
+  private let cleanupJournal = CleanupJournal()
   private let worker: DispatchQueue
   private let root: URL
   private let writer: (Data, String) -> [String: Any]?
@@ -111,9 +117,11 @@ final class CUIDragDataStore: NSObject {
     return result
   }
   private func discard(_ url: URL) {
-    cleanup.async { [self] in
+    let journal = cleanupJournal
+    // Cleanup may be queued by deinit; it must not resurrect the retiring store.
+    cleanup.async {
       do { if FileManager.default.fileExists(atPath: url.path) { try FileManager.default.removeItem(at: url) } }
-      catch { state { cleanupErrors.append(error as NSError) } }
+      catch { journal.record(error) }
     }
   }
   private func unpin(_ backing: Backing?) {

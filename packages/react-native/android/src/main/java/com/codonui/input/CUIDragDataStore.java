@@ -329,9 +329,13 @@ final class CUIDragDataStore {
               if (type.equals(STRING_MAP_TYPE)) throw failure("missing original string-map representation");
               String data = type.equals("text/html") ? item.html : type.equals("text/vnd.android.intent") ? item.intent
                 : type.equals("text/plain") ? item.text : null;
-              if (data == null) throw failure("missing original text representation");
-              values.put(type, data);
+              if (!type.equals("text/html") && !type.equals("text/vnd.android.intent") && !type.equals("text/plain"))
+                throw failure("original text representation is unavailable");
+              // ClipDescription describes the entire clip. Other original items
+              // may supply its HTML/Intent types; this item owns only its fields.
+              if (data != null) values.put(type, data);
             }
+            if (values.isEmpty()) throw failure("missing original text representation");
             entry = new Entry("text", null, null, values);
           }
           boolean retained;
