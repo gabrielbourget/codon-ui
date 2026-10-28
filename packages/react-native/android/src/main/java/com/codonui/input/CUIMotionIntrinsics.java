@@ -233,7 +233,7 @@ final class CUIMotionIntrinsics {
       };
       Spannable original = TextLayoutManager.INSTANCE.getOrCreateSpannableForText(assets, attributed, isolated);
       requireContainer(original);
-      TextAttributeProps base = cached ? null : TextAttributeProps.fromMapBuffer(
+      TextAttributeProps base = cached ? null : TextAttributeProps.Companion.fromMapBuffer(
         attributed.getMapBuffer(TextLayoutManager.AS_KEY_BASE_ATTRIBUTES));
       CUIMotionFontSnapshot.Snapshot fonts = CUIMotionFontSnapshot.capture(
         original.getSpans(0, original.length(), CustomStyleSpan.class), base == null ? null : base.getFontFamily());

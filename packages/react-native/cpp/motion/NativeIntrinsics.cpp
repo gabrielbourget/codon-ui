@@ -274,12 +274,12 @@ class TIntrinsicState : public std::enable_shared_from_this<TIntrinsicState> {
           auto constraints = constraintsFor(width, widthMode, height, heightMode);
           auto content = self->paragraphText(*paragraph, *props, context, constraints, direction);
           const auto &attributes = props->paragraphAttributes;
-          TextLayoutContext layout{.pointScaleFactor = context.pointScaleFactor, .surfaceId = paragraph->getSurfaceId()};
           facebook::react::Size size;
 #if defined(__ANDROID__)
           if (!self->services.textMeasure) throw std::runtime_error("Native motion: isolated Android text service unavailable");
           size = self->services.textMeasure(*paragraph, AttributedStringBox(content), attributes, context, constraints);
 #else
+          TextLayoutContext layout{.pointScaleFactor = context.pointScaleFactor, .surfaceId = paragraph->getSurfaceId()};
           if constexpr (TextLayoutManagerExtended::supportsPreparedTextLayout()) {
             if (ReactNativeFeatureFlags::enablePreparedTextLayout()) {
               TextLayoutManagerExtended extended(*self->text);
