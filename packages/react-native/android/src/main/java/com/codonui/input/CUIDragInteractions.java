@@ -11,9 +11,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.view.Choreographer;
-import com.facebook.react.views.scroll.ReactScrollView;
-import com.facebook.react.views.scroll.ReactNestedScrollView;
-import com.facebook.react.views.scroll.ReactHorizontalScrollView;
+import com.facebook.react.views.scroll.ReactAccessibleScrollView;
 import android.view.DragEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -419,9 +417,7 @@ final class CUIDragInteractions {
   }
   private boolean scrollEnabled(View view) {
     if (!view.isEnabled()) return false;
-    if (view instanceof ReactScrollView) return ((ReactScrollView)view).getScrollEnabled();
-    if (view instanceof ReactNestedScrollView) return ((ReactNestedScrollView)view).getScrollEnabled();
-    if (view instanceof ReactHorizontalScrollView) return ((ReactHorizontalScrollView)view).getScrollEnabled();
+    if (view instanceof ReactAccessibleScrollView) return ((ReactAccessibleScrollView)view).getScrollEnabled();
     return true;
   }
   private View scroller(Binding binding,JSONObject reply) throws Exception {
