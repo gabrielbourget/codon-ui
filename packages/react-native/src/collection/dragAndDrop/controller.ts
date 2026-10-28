@@ -7,6 +7,7 @@ import type {
   TNativeDragItem,
   TNativeDragMoveEvent,
   TNativeDragPoint,
+  TNativeDropEvent,
   TNativeDragStartEvent,
   TNativeDragTypes,
   TNativeDroppableCollectionProps,
@@ -27,6 +28,7 @@ export type TNativeDragTargetOwner = {
   current: () => boolean
   state: TNativeDroppableCollectionState
   props: TNativeDroppableCollectionProps
+  beginDrop?: (event: TNativeDropEvent, internal: boolean, keys: Set<TNativeCollectionKey>) => () => void
 }
 export type TNativeDragSession = Readonly<{
   id: string
@@ -211,10 +213,10 @@ export class NativeDragController {
     this.changed()
   }
 
-  async drop(id: string, data: TNativeDropItem[] | Promise<TNativeDropItem[]>, event: TNativeDragPoint) {
+  async drop(id: string, data: TNativeDropItem[] | Promise<TNativeDropItem[]>, eventPoint: TNativeDragPoint) {
     const session = this.session
     const target = this.target
-    if (!session || session.id !== id || !this.current(session) || !target?.owner.current() || !point(event))
+    if (!session || session.id !== id || !this.current(session) || !target?.owner.current() || !point(eventPoint))
       throw new Error("Native drop action: original target authority is unavailable")
     this.lastDrop = { session, identity: target.owner.identity, operation: target.operation }
     try {
@@ -226,19 +228,24 @@ export class NativeDragController {
       // Async business callbacks and retained transfer values outlive OS drag
       // end. Original collection/window authority, rather than drag visibility,
       // guards subsequent specialized callbacks after each awaited handler.
-      await dispatchNativeCollectionDrop(
+      const event: TNativeDropEvent = {
+        ...eventPoint,
+        type: "drop",
+        target: target.target,
+        dropOperation: target.operation,
+        items: resolved,
+      }
+      const internal = session.source?.identity === target.owner.identity
+      const dispatched = target.owner.beginDrop?.(event, internal, session.keys)
+      const pending = dispatchNativeCollectionDrop(
         target.owner.props,
-        {
-          ...event,
-          type: "drop",
-          target: target.target,
-          dropOperation: target.operation,
-          items: resolved,
-        },
-        session.source?.identity === target.owner.identity,
+        event,
+        internal,
         session.keys,
         target.owner.current,
       )
+      dispatched?.()
+      await pending
     } finally {
       if (this.target?.generation === target.generation) {
         this.clearTarget()

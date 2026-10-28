@@ -109,6 +109,12 @@ const Option = (props: TItemProps, ref: ForwardedRef<View>, node: TNativeCollect
           testID={`query-sort-option-${node.key}`}
           role="option"
           accessible
+          nativePressable={draggable.dragProps.nativePressable || droppable.dropProps.nativePressable}
+          onNativeActivation={
+            droppable.dropProps.nativePressable
+              ? droppable.dropProps.onNativeActivation
+              : draggable.dragProps.onNativeActivation
+          }
           accessibilityLabel={label}
           focusable
           nativeTabStop={list.manager.focusedKey === node.key}
@@ -117,7 +123,11 @@ const Option = (props: TItemProps, ref: ForwardedRef<View>, node: TNativeCollect
           onKeyDown={onKey}
           onKeyUp={onKey}
           accessibilityHint={draggable.dragProps.accessibilityHint}
-          accessibilityActions={draggable.dragProps.accessibilityActions}
+          accessibilityActions={
+            droppable.dropProps.nativePressable
+              ? droppable.dropProps.accessibilityActions
+              : draggable.dragProps.accessibilityActions
+          }
           onAccessibilityAction={(event) => {
             draggable.dragProps.onAccessibilityAction?.(event)
             droppable.dropProps.onAccessibilityAction?.(event)
@@ -223,6 +233,8 @@ const List = ({
     root,
     current: () => props.canAct?.() !== false,
     layoutDelegate: renderer.layoutDelegate,
+    focusKey: keyboard.requestFocus,
+    rootLabel: props.listLabels.listAriaLabel,
   })
   const focusedKeys = useNativePersistedKeys(
     state.selectionManager.focusedKey,

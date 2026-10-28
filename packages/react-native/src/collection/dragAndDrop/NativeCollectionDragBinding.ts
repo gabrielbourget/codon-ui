@@ -3,6 +3,7 @@ import { findNodeHandle } from "react-native"
 import type { View } from "react-native"
 
 import { encodeCollectionKey } from "../../components/collection"
+import { focusNativeTarget } from "../../input/focus"
 import type { TNativeDragActionPacket, TNativeDragActions, TNativeDragViewBinding } from "../../input/nativeDragActions"
 import NativeModule from "../../input/specs/NativeCUIDragAndDrop"
 import type { TNativeKeyboardEvent } from "../../input/types"
@@ -11,6 +12,8 @@ import type { TNativeCollectionKey } from "../snapshot"
 
 import { NativeDragController } from "./controller"
 import type { TNativeDragSourceOwner, TNativeDragTargetOwner } from "./controller"
+import type { TNativeDropFocusSnapshot } from "./dropFocus"
+import { captureNativeDropFocus, reconcileNativeDropFocus } from "./dropFocus"
 import { publishNativeDragGeometry, readNativeDragGeometry } from "./geometry"
 import type { TNativeDragRect } from "./geometry"
 import type { TNativeDropKeyboardDelegate } from "./keyboardNavigation"
@@ -44,6 +47,8 @@ export type TNativeDropCollectionOptions = TNativeDroppableCollectionProps & {
   direction?: "ltr" | "rtl"
   onKeyDown?: (event: TNativeKeyboardEvent) => void
   keyboardDelegate?: TNativeDropKeyboardDelegate
+  focusKey?: (key: TNativeCollectionKey) => void
+  rootLabel?: string
 }
 const object = (value: unknown): Record<string, unknown> => {
   if (!value || typeof value !== "object" || Array.isArray(value))
@@ -83,6 +88,7 @@ export class NativeCollectionDragBinding {
   private revision = 0
   private rowSerial = 0
   private querySerial = 0
+  private dropFocus: { snapshot: TNativeDropFocusSnapshot; timer?: ReturnType<typeof setTimeout> } | null = null
   private roles = new Set<object>()
   private data: NativeDragDataBinding | null = null
   private currentOwner: () => boolean = () => true
@@ -111,6 +117,7 @@ export class NativeCollectionDragBinding {
       },
     }
     this.nativeTarget = {
+      beginDrop: (event, internal, keys) => this.beginDropFocus(event.target, internal, keys),
       identity: this.identity,
       current: () => this.current() && !!this.target && this.scope?.window().canDrop === true,
       get state() {
@@ -139,6 +146,8 @@ export class NativeCollectionDragBinding {
   ready = () => this.current() && !!this.lease?.ready() && this.scope?.window().canLift === true
   retire = () => {
     this.controller.retire(this.identity)
+    if (this.dropFocus) clearTimeout(this.dropFocus.timer)
+    this.dropFocus = null
     nativeVirtualDrag.retire(this)
   }
   private view(row: TRow, role: "source" | "target" = "target") {
@@ -234,6 +243,8 @@ export class NativeCollectionDragBinding {
     }
   }
   publish = () => {
+    if (this.dropFocus && this.target && this.target.collection !== this.dropFocus.snapshot.collection)
+      this.updateDropFocus()
     if (!this.logicalCurrent()) {
       if (!this.root.current || !this.roles.size)
         nativeDragRuntime.queueMicrotask(() => {
@@ -320,12 +331,17 @@ export class NativeCollectionDragBinding {
       current,
     )
   }
-  async measure(key: TNativeCollectionKey | null, role: "source" | "target" = "target"): Promise<TNativeDragRect> {
+  async measure(
+    key: TNativeCollectionKey | null,
+    role: "source" | "target" | "handle" = "target",
+  ): Promise<TNativeDragRect> {
     const native = NativeModule,
       window = this.scope?.window(),
       lease = this.lease,
       row = key == null ? undefined : this.rows.get(key)
-    const view = row ? this.view(row, role) : this.root.current
+    const memberRole = role === "handle" ? "source" : role
+    const originalRow = row ? this.view(row, memberRole) : this.root.current
+    const view = role === "handle" && key != null ? this.handleView(key) : originalRow
     if (!native || !window || !lease || !this.current() || !view)
       throw new Error("Native drag geometry: original source is unavailable")
     const requestId = `${this.id}:geometry:${++this.querySerial}`,
@@ -345,7 +361,11 @@ export class NativeCollectionDragBinding {
     if (
       !this.current() ||
       (key != null && this.rows.get(key)?.instanceId !== sourceInstance) ||
-      (row ? this.view(row, role) : this.root.current) !== view ||
+      (role === "handle" && key != null
+        ? this.handleView(key)
+        : row
+          ? this.view(row, memberRole)
+          : this.root.current) !== view ||
       this.scope?.window().epoch !== window.epoch ||
       response.requestId !== requestId ||
       response.windowId !== window.windowId ||
@@ -360,15 +380,44 @@ export class NativeCollectionDragBinding {
       .find(
         (item) =>
           item.key === encodeCollectionKey(key) &&
-          [`${sourceInstance}:both`, `${sourceInstance}:${role}`].includes(String(item.instanceId)) &&
-          item.targetTag === findNodeHandle(view),
+          [`${sourceInstance}:both`, `${sourceInstance}:${memberRole}`].includes(String(item.instanceId)) &&
+          item.targetTag === findNodeHandle(originalRow),
       )
     if (!item) throw new Error("Native drag geometry: original source was not materialized")
-    return rect(item.rect)
+    if (role === "handle" && item.handleTag !== findNodeHandle(view))
+      throw new Error("Native drag geometry: original handle retired")
+    return rect(role === "handle" ? item.handleRect : item.rect)
   }
   rowView(key: TNativeCollectionKey) {
     const row = this.rows.get(key)
     return row ? this.view(row, "source") : null
+  }
+  handleView(key: TNativeCollectionKey) {
+    return this.handles.get(key) ?? null
+  }
+  private beginDropFocus(target: TNativeDropTarget, internal: boolean, keys: Set<TNativeCollectionKey>) {
+    if (!this.target) return () => {}
+    if (this.dropFocus) clearTimeout(this.dropFocus.timer)
+    const pending = {
+      snapshot: captureNativeDropFocus(this.target, target, internal, keys),
+      timer: undefined as ReturnType<typeof setTimeout> | undefined,
+    }
+    this.dropFocus = pending
+    return () => {
+      if (this.dropFocus === pending)
+        pending.timer = setTimeout(() => {
+          this.updateDropFocus()
+          if (this.dropFocus === pending) this.dropFocus = null
+        }, 50)
+    }
+  }
+  private updateDropFocus() {
+    if (!this.dropFocus || !this.target || !this.nativeTarget.current()) return
+    const key = reconcileNativeDropFocus(this.dropFocus.snapshot, this.target)
+    if (key != null) {
+      if (this.dropOptions.focusKey) this.dropOptions.focusKey(key)
+      else focusNativeTarget(this.rowView(key))
+    }
   }
   sourceOwner() {
     return this.nativeSource

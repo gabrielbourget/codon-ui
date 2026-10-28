@@ -51,6 +51,7 @@ const Body = (props: TNativeTableBodyProps<object>, ref: ForwardedRef<View>, nod
           textStyle: styles.text,
         }}
       >
+        {table.dragAndDrop.rootDropIndicator}
         {!isLoading && items.length === 0 && renderEmptyState ? (
           getNativeButtonContent(renderEmptyState(renderState), styles.text)
         ) : (

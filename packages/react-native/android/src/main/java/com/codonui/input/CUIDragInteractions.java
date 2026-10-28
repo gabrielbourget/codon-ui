@@ -402,8 +402,12 @@ final class CUIDragInteractions {
         !request.getString("ownerId").equals(owner) || !request.getString("windowId").equals(window) || request.getLong("epoch")!=epoch || request.getInt("scopeTarget")!=scope.getId())
       throw new IllegalStateException("native-drag-original-geometry-owner-retired");
     JSONArray items=new JSONArray();
-    for (Member member:binding.members.values()) if (member.view.get()!=null && member.view.get().isAttachedToWindow() && descendant(member.view.get(),binding.root.get()))
-      items.put(new JSONObject().put("key",member.key).put("instanceId",member.instance).put("targetTag",member.tag).put("role",member.role).put("rect",rect(member.view.get())));
+    for (Member member:binding.members.values()) if (member.view.get()!=null && member.view.get().isAttachedToWindow() && descendant(member.view.get(),binding.root.get())) {
+      JSONObject item=new JSONObject().put("key",member.key).put("instanceId",member.instance).put("targetTag",member.tag).put("role",member.role).put("rect",rect(member.view.get())).put("handleTag",0);
+      View handle=member.handle.get();
+      if (handle!=null && handle.isAttachedToWindow() && descendant(handle,member.view.get())) item.put("handleTag",member.handleTag).put("handleRect",rect(handle));
+      items.put(item);
+    }
     return new JSONObject().put("requestId",request.getString("requestId")).put("windowId",window).put("epoch",epoch)
       .put("geometry",new JSONObject().put("revision",++geometryRevision).put("root",rect(binding.root.get())).put("items",items));
   }

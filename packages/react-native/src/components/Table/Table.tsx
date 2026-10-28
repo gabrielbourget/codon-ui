@@ -247,6 +247,8 @@ const Receiver = <T extends object>({
     // The native drag lease owns window admission while keyboard focus moves.
     current: () => true,
     layoutDelegate: renderer.layoutDelegate,
+    focusKey: sourceKeyboard.requestFocus,
+    rootLabel: props.accessibilityLabel ?? props["aria-label"],
   })
   const keyboard =
     state.isKeyboardNavigationDisabled || dragAndDrop.context.dragAndDropHooks?.isVirtualDragging?.()

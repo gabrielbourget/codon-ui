@@ -18,8 +18,7 @@ import type { StyleProp, ViewStyle } from "react-native"
 
 import type { TNativeButtonProps } from "../../components/Button/types"
 import { nativeKeyTokens } from "../../input/keyScope"
-import type { NativeFocusHost } from "../../input/NativeFocusView"
-import { NativeFocusView } from "../../input/NativeFocusView"
+import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeDragActions } from "../../input/NativeKeyboardScope"
 import type { TNativeFocusViewProps, TNativeKeyboardEvent, TNativePressEvent } from "../../input/types"
 import { useNativeLocale } from "../../locale/NativeLocaleProvider"
@@ -242,8 +241,8 @@ export const useNativeDraggableItem = (
     `${selected ? "dragSelectedKeyboard" : "dragDescriptionKeyboard"}${props.hasAction ? "Alt" : ""}`,
     { count },
   )
-  const begin = (mode: "keyboard" | "virtual") =>
-    nativeVirtualDrag.start(root, key, formatter, mode).catch((error) => root.fail(error))
+  const begin = (mode: "keyboard" | "virtual", source: "source" | "handle" = "source") =>
+    nativeVirtualDrag.start(root, key, formatter, mode, source).catch((error) => root.fail(error))
   const acceptsKey = (event: TNativeKeyboardEvent) => {
     const data = event.nativeEvent
     return (
@@ -276,6 +275,13 @@ export const useNativeDraggableItem = (
       ? {}
       : {
           ref,
+          nativePressable: !props.hasDragButton,
+          onNativeActivation: props.hasDragButton
+            ? undefined
+            : () => {
+                if (nativeVirtualDrag.isDragging()) nativeVirtualDrag.cancel().catch((error) => root.fail(error))
+                else begin("virtual")
+              },
           accessibilityHint: props.hasDragButton ? undefined : description,
           capturedKeys: props.hasDragButton ? undefined : dragKeys,
           onKeyDown: props.hasDragButton ? undefined : down,
@@ -285,7 +291,7 @@ export const useNativeDraggableItem = (
             ? undefined
             : (event) => {
                 if (event.nativeEvent.actionName === "activate") {
-                  if (nativeVirtualDrag.isDragging()) nativeVirtualDrag.cancel()
+                  if (nativeVirtualDrag.isDragging()) nativeVirtualDrag.cancel().catch((error) => root.fail(error))
                   else begin("virtual")
                 }
               },
@@ -297,23 +303,29 @@ export const useNativeDraggableItem = (
       accessibilityHint: description,
       onPress: (event) => {
         if (virtualPress(event)) {
-          if (nativeVirtualDrag.isDragging()) nativeVirtualDrag.cancel()
-          else begin("virtual")
+          if (nativeVirtualDrag.isDragging()) nativeVirtualDrag.cancel().catch((error) => root.fail(error))
+          else
+            begin(
+              "kind" in event.nativeEvent && event.nativeEvent.kind === "keyboard" ? "keyboard" : "virtual",
+              "handle",
+            )
         }
       },
     },
   }
 }
-export const useNativeDroppableItem = (
+const useDroppableItemBinding = (
   options: TNativeDroppableItemOptions,
   state: TNativeDroppableCollectionState,
   ref: RefObject<View | null>,
+  label?: string,
 ): TNativeDroppableItemResult => {
   const root = rootFor(state),
     owner = useRef({}),
-    source = useRef(options)
+    locale = useNativeLocale(),
+    source = useRef({ options, label })
   useInsertionEffect(() => {
-    source.current = options
+    source.current = { options, label }
   })
   useVirtual()
   useLayoutEffect(() => {
@@ -324,12 +336,13 @@ export const useNativeDroppableItem = (
       root,
       target,
       view: () => ref.current,
-      activate: () => source.current.activateButtonRef?.current ?? null,
+      activate: () => source.current.options.activateButtonRef?.current ?? null,
+      label: () => source.current.label ?? "",
     })
   })
   useLayoutEffect(
     () => () => {
-      const target = source.current.target
+      const target = source.current.options.target
       if (target.type === "item" && target.dropPosition === "on") root.member(target.key, owner.current, null, "target")
       nativeVirtualDrag.endpoint(owner.current, null)
     },
@@ -341,6 +354,17 @@ export const useNativeDroppableItem = (
   const isDropTarget = state.isDropTarget(options.target)
   return {
     dropProps: {
+      nativePressable: !!session && valid,
+      onNativeActivation: () => {
+        if (nativeVirtualDrag.choose(root, options.target)) nativeVirtualDrag.drop().catch((error) => root.fail(error))
+      },
+      accessibilityActions:
+        session && valid
+          ? [
+              { name: "activate", label: label ?? nativeDragFormatter(locale.locale).format("dropOnRoot") },
+              { name: "escape", label: nativeDragFormatter(locale.locale).format("dropCanceled") },
+            ]
+          : undefined,
       accessibilityElementsHidden: !valid,
       importantForAccessibility: valid ? "auto" : "no-hide-descendants",
       onKeyDown: (event) => {
@@ -352,31 +376,39 @@ export const useNativeDroppableItem = (
       onAccessibilityAction: (event) => {
         if (event.nativeEvent.actionName === "activate" && nativeVirtualDrag.choose(root, options.target))
           nativeVirtualDrag.drop().catch((error) => root.fail(error))
-        else if (event.nativeEvent.actionName === "escape") nativeVirtualDrag.cancel()
+        else if (event.nativeEvent.actionName === "escape")
+          nativeVirtualDrag.cancel().catch((error) => root.fail(error))
       },
     },
     isDropTarget,
   }
 }
+export const useNativeDroppableItem = (
+  options: TNativeDroppableItemOptions,
+  state: TNativeDroppableCollectionState,
+  ref: RefObject<View | null>,
+) => useDroppableItemBinding(options, state, ref)
 export const useNativeDropIndicator = (
   props: TNativeDroppableItemOptions,
   state: TNativeDroppableCollectionState,
   ref: RefObject<View | null>,
 ): TNativeDropIndicatorAria => {
-  const result = useNativeDroppableItem(props, state, ref),
-    locale = useNativeLocale(),
+  const locale = useNativeLocale(),
     formatter = nativeDragFormatter(locale.locale)
   const target = props.target,
     collection = state.collection
   const text = (key: TNativeCollectionKey | null | undefined) =>
     key == null ? "" : (collection.getTextValue?.(key) ?? collection.getItem(key)?.textValue ?? "")
   let label: string
-  if (target.type === "root") label = formatter.format("dropOnRoot")
+  if (target.type === "root")
+    label = [formatter.format("dropOnRoot"), rootFor(state).dropOptions.rootLabel].filter(Boolean).join(" ")
   else if (target.dropPosition === "on") label = formatter.format("dropOnItem", { itemText: text(target.key) })
   else {
     const node = collection.getItem(target.key)
-    const before = target.dropPosition === "before" ? node?.prevKey : target.key
-    const after = target.dropPosition === "after" ? node?.nextKey : target.key
+    const previous = node?.prevKey != null ? collection.getItem(node.prevKey) : null
+    const next = node?.nextKey != null ? collection.getItem(node.nextKey) : null
+    const before = target.dropPosition === "before" ? (previous?.type === "item" ? previous.key : null) : target.key
+    const after = target.dropPosition === "after" ? (next?.type === "item" ? next.key : null) : target.key
     label =
       before != null && after != null
         ? formatter.format("insertBetween", { beforeItemText: text(before), afterItemText: text(after) })
@@ -384,19 +416,23 @@ export const useNativeDropIndicator = (
           ? formatter.format("insertAfter", { itemText: text(before) })
           : formatter.format("insertBefore", { itemText: text(after) })
   }
+  const result = useDroppableItemBinding(props, state, ref, label)
+  const hidden = !nativeVirtualDrag.isDragging() || !!result.dropProps.accessibilityElementsHidden
   return {
     dropIndicatorProps: {
       ...result.dropProps,
       accessibilityLabel: label,
       focusable: true,
-      accessible: true,
+      accessible: !hidden,
+      accessibilityElementsHidden: hidden,
+      importantForAccessibility: hidden ? "no-hide-descendants" : "auto",
       role: "button",
       accessibilityHint: formatter.format("dropIndicator"),
       capturedKeys: dragKeys,
       nativeTabStop: false,
     },
     isDropTarget: result.isDropTarget,
-    isHidden: !result.isDropTarget && !nativeVirtualDrag.isDragging(),
+    isHidden: !result.isDropTarget && hidden,
   }
 }
 export const NativeDropIndicator = forwardRef<View, TNativeDropIndicatorProps>((props, ref) => {
@@ -418,14 +454,14 @@ export const NativeCollectionDropIndicator = forwardRef<View, TNativeDropIndicat
   const { target: _target, activateButtonRef: _activate, style, children, ...native } = props
   return (
     <NativeCollectionSemanticsContext.Provider value="">
-      <NativeFocusView
+      <NativeFocusHost
         {...native}
         {...aria.dropIndicatorProps}
         ref={merged}
         style={typeof style === "function" ? style({ ...state, defaultStyle: defaults }) : [defaults, style]}
       >
         {typeof children === "function" ? children(state) : children}
-      </NativeFocusView>
+      </NativeFocusHost>
     </NativeCollectionSemanticsContext.Provider>
   )
 })
@@ -513,6 +549,7 @@ export type TNativeCollectionDragAndDropResult = {
   renderDropIndicator?: (target: TNativeDropTarget) => ReactNode
   collectionProps: TNativeDragElementProps
   preview: ReactNode
+  rootDropIndicator: ReactNode
   renderIndicator: (props: TNativeDropIndicatorProps, ref: ForwardedRef<View>) => ReactNode
 }
 export const useNativeCollectionDragAndDrop = <T = object,>({
@@ -522,6 +559,8 @@ export const useNativeCollectionDragAndDrop = <T = object,>({
   root,
   current,
   layoutDelegate,
+  focusKey,
+  rootLabel,
 }: {
   hooks?: TNativeDragAndDropHooks<T>
   collection: TNativeDraggableCollectionStateOptions["collection"]
@@ -529,6 +568,8 @@ export const useNativeCollectionDragAndDrop = <T = object,>({
   root: RefObject<View | null>
   current: () => boolean
   layoutDelegate?: TNativeDropCollectionOptions["layoutDelegate"]
+  focusKey?: TNativeDropCollectionOptions["focusKey"]
+  rootLabel?: string
 }): TNativeCollectionDragAndDropResult => {
   const [failure, setFailure] = useState<{ error: unknown } | null>(null)
   const dragEnabled = !!hooks?.useDraggableCollectionState,
@@ -549,7 +590,7 @@ export const useNativeCollectionDragAndDrop = <T = object,>({
   })
   ;(hooks?.useDraggableCollection ?? useNativeDraggableCollection)({}, drag, root)
   const result = (hooks?.useDroppableCollection ?? useNativeDroppableCollection)(
-    { layoutDelegate, dropTargetDelegate: hooks?.dropTargetDelegate },
+    { layoutDelegate, focusKey, rootLabel, dropTargetDelegate: hooks?.dropTargetDelegate },
     drop,
     root,
   )
@@ -622,6 +663,8 @@ export const useNativeCollectionDragAndDrop = <T = object,>({
     renderDropIndicator: hooks?.useDropIndicator ? renderDropIndicator : undefined,
     collectionProps: result.collectionProps,
     preview: Preview && hooks?.renderDragPreview ? <Preview ref={preview}>{hooks.renderDragPreview}</Preview> : null,
+    rootDropIndicator:
+      hooks?.useDropIndicator && dropEnabled && collection.size === 0 ? renderDropIndicator({ type: "root" }) : null,
     renderIndicator: (props: TNativeDropIndicatorProps, ref: ForwardedRef<View>) => (
       <NativeCollectionDropIndicator {...props} ref={ref} />
     ),

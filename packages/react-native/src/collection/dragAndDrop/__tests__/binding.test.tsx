@@ -2,14 +2,21 @@ import { act, renderHook } from "@testing-library/react-native"
 import { useRef } from "react"
 import { findNodeHandle, type View } from "react-native"
 
+import { dispatchNativeActivationPolicy } from "../../../input/activation"
 import { createNativeKeyScope } from "../../../input/keyScope"
 import { NativeDragActionsContext, createNativeDragActions } from "../../../input/nativeDragActions"
 import type { TNativeDragActionIdentity, TNativeDragMemberBinding } from "../../../input/nativeDragActions"
 import { SelectionManager } from "../../state/SelectionManager"
 import { useMultipleSelectionState } from "../../state/useMultipleSelectionState"
-import { nativeDragRootFor, useNativeCollectionDragAndDrop, useNativeDragAndDrop } from "../hooks"
+import {
+  nativeDragRootFor,
+  useNativeCollectionDragAndDrop,
+  useNativeDragAndDrop,
+  useNativeDraggableItem,
+} from "../hooks"
 import type { TNativeDragAndDropOptions } from "../hooks"
 import { nativeDragFormatter } from "../messages"
+import { nativeDragRuntime } from "../runtime"
 import { nativeVirtualDrag } from "../virtualDrag"
 
 import { dragCollection, dragValues } from "./fixtures"
@@ -20,6 +27,7 @@ jest.mock("../../../input/specs/NativeCUIDragAndDrop", () => ({
     getLease: jest.fn(() => "native-module"),
     acceptsAction: jest.fn(() => true),
     settleAction: jest.fn(() => true),
+    readGeometry: jest.fn(),
   },
 }))
 // Synthetic original-view identities and native packets prove source routing only.
@@ -30,8 +38,8 @@ beforeEach(() => {
     .spyOn(jest.requireActual<typeof import("react-native")>("react-native"), "findNodeHandle")
     .mockImplementation((view: unknown) => (view as { dragTestTag: number } | null)?.dragTestTag ?? null)
 })
-afterEach(() => {
-  nativeVirtualDrag.cancel()
+afterEach(async () => {
+  await nativeVirtualDrag.cancel()
   jest.restoreAllMocks()
 })
 const setup = async (options: TNativeDragAndDropOptions = {}, selected = new Set<string | number>([0])) => {
@@ -67,7 +75,8 @@ const setup = async (options: TNativeDragAndDropOptions = {}, selected = new Set
         root,
         current: () => true,
       })
-      return { ...result, original: root, binding: nativeDragRootFor(root, actions)! }
+      const draggable = useNativeDraggableItem({ key: 0, hasDragButton: true }, result.dragState)
+      return { ...result, draggable, original: root, binding: nativeDragRootFor(root, actions)! }
     },
     {
       wrapper: ({ children }) => (
@@ -328,6 +337,135 @@ it("requires native lift eligibility and quietly retires the virtual session wit
   expect(nativeVirtualDrag.isDragging()).toBe(false)
   expect(fixture.rendered.result.current.dragState.draggingKeys.size).toBe(0)
   expect(end).not.toHaveBeenCalled()
+  await fixture.rendered.unmount()
+  fixture.actions.dispose()
+})
+
+it("starts from the original handle rectangle, preserves keyboard modality and ends cancellation at that handle", async () => {
+  const onDragStart = jest.fn(),
+    onDragEnd = jest.fn()
+  const fixture = await setup({ getItems: () => [{ "text/plain": "zero" }], onDragStart, onDragEnd })
+  await fixture.row(0)
+  const handle = view()
+  await act(() => fixture.rendered.result.current.binding.handle(0, handle))
+  fixture.ready()
+  const info = jest.requireActual<typeof import("react-native")>("react-native").AccessibilityInfo
+  const announce = jest.spyOn(info, "announceForAccessibilityWithOptions").mockImplementation(() => {})
+  const frames: (() => void)[] = []
+  jest.spyOn(nativeDragRuntime, "requestAnimationFrame").mockImplementation((callback) => {
+    frames.push(() => callback(0))
+    return frames.length
+  })
+  const native = jest.requireMock("../../../input/specs/NativeCUIDragAndDrop").default
+  native.readGeometry.mockImplementation(async (request: string) => {
+    const identity = JSON.parse(request),
+      member = fixture.metadata().members[0]
+    return JSON.stringify({
+      requestId: identity.requestId,
+      windowId: "window",
+      epoch: 1,
+      geometry: {
+        root: { x: 100, y: 200, width: 100, height: 100 },
+        items: [
+          {
+            ...member,
+            rect: { x: 100, y: 200, width: 100, height: 30 },
+            handleTag: findNodeHandle(handle),
+            handleRect: { x: 110, y: 210, width: 12, height: 12 },
+          },
+        ],
+      },
+    })
+  })
+  await act(async () => {
+    fixture.rendered.result.current.draggable.dragButtonProps.onPress?.({
+      nativeEvent: { kind: "keyboard", key: "Enter" },
+    } as never)
+    await Promise.resolve()
+    await Promise.resolve()
+  })
+  expect(onDragStart).toHaveBeenCalledWith(expect.objectContaining({ x: 116, y: 216 }))
+  expect(nativeVirtualDrag.active()?.sourceView).toBe(handle)
+  await act(() => {
+    for (const frame of frames.splice(0)) frame()
+  })
+  expect(announce).toHaveBeenCalledWith(nativeDragFormatter("en-US").format("dragStartedKeyboard"), { queue: false })
+  await act(async () => {
+    await nativeVirtualDrag.cancel()
+  })
+  expect(onDragEnd).toHaveBeenCalledWith(expect.objectContaining({ x: 116, y: 216, dropOperation: "cancel" }))
+  await fixture.rendered.unmount()
+  fixture.actions.dispose()
+})
+it("uses collection-centre coordinates for virtual activation/drop and admits one terminal drop", async () => {
+  const onDropActivate = jest.fn(),
+    onItemDrop = jest.fn(),
+    fixture = await setup({ getItems: () => [{ "text/plain": "zero" }], onItemDrop, onDropActivate })
+  await fixture.row(0)
+  await fixture.row("")
+  const binding = fixture.rendered.result.current.binding
+  jest
+    .spyOn(binding, "measure")
+    .mockImplementation(async (key) =>
+      key == null ? { x: 10, y: 20, width: 100, height: 80 } : { x: 100, y: 200, width: 30, height: 30 },
+    )
+  await act(async () => {
+    await nativeVirtualDrag.start(binding, 0, nativeDragFormatter("en-US"), "virtual")
+  })
+  await act(() => {
+    nativeVirtualDrag.choose(binding, { type: "item", key: "", dropPosition: "on" })
+  })
+  await act(async () => {
+    await nativeVirtualDrag.activate()
+  })
+  expect(onDropActivate).toHaveBeenCalledWith(
+    expect.objectContaining({ x: 60, y: 60, target: { type: "item", key: "", dropPosition: "on" } }),
+  )
+  await act(async () => {
+    await Promise.all([nativeVirtualDrag.drop(), nativeVirtualDrag.drop()])
+  })
+  expect(onItemDrop).toHaveBeenCalledTimes(1)
+  expect(onItemDrop.mock.calls[0][0].target.key).toBe("")
+  expect(nativeVirtualDrag.isDragging()).toBe(false)
+  await fixture.rendered.unmount()
+  fixture.actions.dispose()
+})
+it("routes an original accessibility activation through its target before another control's default", async () => {
+  const onItemDrop = jest.fn(),
+    fixture = await setup({ getItems: () => [{ "text/plain": "zero" }], onItemDrop })
+  await fixture.row(0)
+  await fixture.row("")
+  const binding = fixture.rendered.result.current.binding,
+    item = view(),
+    child = view(),
+    owner = {}
+  Object.assign(item, { childNodes: [child] })
+  jest.spyOn(binding, "measure").mockResolvedValue({ x: 10, y: 20, width: 100, height: 80 })
+  nativeVirtualDrag.endpoint(owner, {
+    root: binding,
+    target: { type: "item", key: "", dropPosition: "on" },
+    view: () => item,
+    activate: () => null,
+  })
+  await act(async () => {
+    await nativeVirtualDrag.start(binding, 0, nativeDragFormatter("en-US"), "virtual")
+  })
+  let consumed = false
+  await act(async () => {
+    consumed = dispatchNativeActivationPolicy(child, {
+      nativeEvent: { scopeOwnerId: "owner", windowId: "window", epoch: 1 },
+    } as never)
+    await Promise.resolve()
+    await Promise.resolve()
+  })
+  expect(consumed).toBe(true)
+  expect(onItemDrop).toHaveBeenCalledTimes(1)
+  expect(
+    dispatchNativeActivationPolicy(child, {
+      nativeEvent: { scopeOwnerId: "owner", windowId: "window", epoch: 1 },
+    } as never),
+  ).toBe(false)
+  nativeVirtualDrag.endpoint(owner, null)
   await fixture.rendered.unmount()
   fixture.actions.dispose()
 })

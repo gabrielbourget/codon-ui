@@ -18,6 +18,7 @@ import { serializeNativeTypographyStyle } from "../components/nativeTypographySt
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../overlays/floating/scope"
 
 import { receiveNativeAccessibilityInspection, registerNativeAccessibilityInspector } from "./accessibilityInspection"
+import { dispatchNativeActivationPolicy } from "./activation"
 import {
   NativeFieldInputContext,
   receiveNativeFieldKey,
@@ -428,7 +429,9 @@ export const NativeFocusHost = forwardRef<
           if (!attached.current || data.ownerId !== ownerId || !isActivationEvent(event)) return
           if (!Number.isSafeInteger(data.activationId) || data.activationId <= activationId.current) return
           activationId.current = data.activationId
-          onNativeActivation?.(event)
+          const target = nativeTarget.current
+          if (!target || data.target !== findNodeHandle(target)) return
+          if (!dispatchNativeActivationPolicy(target, event)) onNativeActivation?.(event)
         }}
         onNativeKey={(event) => {
           if (!attached.current || event.nativeEvent.ownerId !== ownerId || !isKeyboardEvent(event)) return

@@ -43,6 +43,7 @@ type TNativeTableKeyboard = {
   onKeyDown: (event: TNativeKeyboardEvent, cellKey?: TNativeCollectionKey) => void
   keysFor: (from: TNativeCollectionKey | null) => string[]
   canAct: () => boolean
+  requestFocus: (key: TNativeCollectionKey) => void
   requestedKey: TNativeCollectionKey | null
   observedKey: TNativeCollectionKey | null
   typeahead: (event: TNativeKeyboardEvent | TNativeObservedKeyboardEvent) => void
@@ -469,6 +470,7 @@ export const useNativeCollectionKeyboard = (owner: TOwner): TNativeTableKeyboard
     onKeyDown,
     keysFor,
     canAct: eligible,
+    requestFocus: focus,
     requestedKey,
     observedKey,
     typeahead,

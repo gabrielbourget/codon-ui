@@ -203,8 +203,11 @@ static BOOL CUIDescendant(UIView *view, UIView *root) { for (UIView *item = view
       ![request[@"epoch"] isEqual:session[@"epoch"]] || [request[@"scopeTarget"] integerValue] != _scope.tag)
     @throw [NSException exceptionWithName:@"CUI.Drag" reason:@"native-drag-original-geometry-owner-retired" userInfo:nil];
   NSMutableArray *items = [NSMutableArray new];
-  for (CUIDragMember *member in binding.members.allValues) if (member.view && member.view.window == _scope.window && CUIDescendant(member.view,binding.root))
-    [items addObject:@{ @"key": member.data[@"key"], @"instanceId": member.data[@"instanceId"], @"targetTag": member.data[@"targetTag"], @"role": member.data[@"role"] ?: @"both", @"rect": CUIRect(member.view,_scope.window) }];
+  for (CUIDragMember *member in binding.members.allValues) if (member.view && member.view.window == _scope.window && CUIDescendant(member.view,binding.root)) {
+    NSMutableDictionary *item = [@{ @"key": member.data[@"key"], @"instanceId": member.data[@"instanceId"], @"targetTag": member.data[@"targetTag"], @"role": member.data[@"role"] ?: @"both", @"rect": CUIRect(member.view,_scope.window), @"handleTag": @0 } mutableCopy];
+    if (member.handle && member.handle.window == _scope.window && CUIDescendant(member.handle,member.view)) { item[@"handleTag"] = member.data[@"handleTag"]; item[@"handleRect"] = CUIRect(member.handle,_scope.window); }
+    [items addObject:item];
+  }
   return @{ @"requestId": CUIString(request[@"requestId"]), @"windowId": session[@"windowId"], @"epoch": session[@"epoch"],
     @"geometry": @{ @"revision": @(++_geometryRevision), @"root": CUIRect(binding.root,_scope.window), @"items": items } };
 }
