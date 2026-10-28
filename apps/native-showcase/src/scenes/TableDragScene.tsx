@@ -2,22 +2,26 @@ import { useRef, useState } from "react"
 import { ScrollView, type TextInput } from "react-native"
 
 import { Button, Input, Text } from "@codon-ui/react-native"
-import { useNativeDragAndDrop, NativeDropIndicator } from "@codon-ui/react-native"
 import {
   DefaultNativeCollectionRenderer,
   NativeCollectionRendererContext,
   type TNativeCollectionRenderer,
 } from "@codon-ui/react-native"
-import { Table } from "@codon-ui/react-native"
-import { TableBody } from "@codon-ui/react-native"
-import { TableHeader } from "@codon-ui/react-native"
 import type {
   TNativeDropEvent,
   TNativeDropItem,
   TNativeReorderDropEvent,
   TNativeInsertDropEvent,
 } from "@codon-ui/react-native"
-import type { TNativeTableColumnMetadata } from "@codon-ui/react-native"
+
+import {
+  useNativeDragAndDrop,
+  NativeDropIndicator,
+} from "../../../../packages/react-native/src/collection/dragAndDrop/hooks"
+import { Table } from "../../../../packages/react-native/src/components/Table"
+import { TableBody } from "../../../../packages/react-native/src/components/Table"
+import { TableHeader } from "../../../../packages/react-native/src/components/Table"
+import type { TNativeTableColumnMetadata } from "../../../../packages/react-native/src/components/Table"
 
 type TRow = { id: string | number; name: string }
 const initialRows: TRow[] = [

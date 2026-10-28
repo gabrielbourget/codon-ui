@@ -912,8 +912,6 @@ export type {
 
 export * from "./components/Panel"
 export * from "./components/SortAndFilterPanel"
-export * from "./components/Table"
-export type { AvailableFilterCriteria } from "./components/Table"
 export * from "./components/Card"
 export { NativeDialogFocusScope } from "./input/NativeDialogFocusScope"
 export {

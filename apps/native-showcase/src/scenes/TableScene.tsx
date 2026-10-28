@@ -1,19 +1,18 @@
 import { useRef, useState } from "react"
 import { ScrollView, View, type TextInput } from "react-native"
 
+import { Button, Input, Text } from "@codon-ui/react-native"
+
 import {
-  Button,
-  Input,
   SortParameterList,
   Table,
   TableBody,
   TableHeader,
-  Text,
   type SortParameter,
   type TableColumnMetadata,
   type TableFilterGroup,
   type TableSortInstruction,
-} from "@codon-ui/react-native"
+} from "../../../../packages/react-native/src/components/Table"
 
 import { TableDragScene } from "./TableDragScene"
 

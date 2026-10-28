@@ -1,6 +1,7 @@
 import { createRef } from "react"
 import { View } from "react-native"
 
+// @ts-expect-error Table retains its complete mixed-content clamp source gate before public adoption.
 import { Table as PublicTable } from "../src"
 import { NativeSelectableCollectionContext } from "../src/collection/context"
 import { FilterClauseRow } from "../src/components/Filtering/FilterClauseRow"
