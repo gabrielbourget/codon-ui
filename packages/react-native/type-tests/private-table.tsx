@@ -1,7 +1,6 @@
 import { createRef } from "react"
 import { View } from "react-native"
 
-// @ts-expect-error Table remains private until its complete component contract is implemented.
 import { Table as PublicTable } from "../src"
 import { NativeSelectableCollectionContext } from "../src/collection/context"
 import { FilterClauseRow } from "../src/components/Filtering/FilterClauseRow"

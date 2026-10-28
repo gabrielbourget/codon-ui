@@ -1,14 +1,14 @@
 import { createRef } from "react"
 import type { ScrollView, View } from "react-native"
 
-import { Card } from ".."
-import type { TNativeCardProps } from ".."
-import { nativeAnimationControls } from "../../../motion/animation"
-import { NativeMotionConfig } from "../../../motion/config"
-import { NativeDragControls } from "../../../motion/interactions/NativeDragControls"
-import { motionValue } from "../../../motion/kernel"
-import { NativeAnimatePresence } from "../../../motion/presence/NativeAnimatePresence"
-import { NativeLayoutGroup } from "../../../motion/projection/NativeLayoutGroup"
+import type { TNativeCardProps } from "../../.."
+import { Card } from "../../.."
+import { nativeAnimationControls } from "../../.."
+import { NativeMotionConfig } from "../../.."
+import { NativeDragControls } from "../../.."
+import { nativeMotionValue as motionValue } from "../../.."
+import { NativeAnimatePresence } from "../../.."
+import { NativeLayoutGroup } from "../../.."
 
 export const card: TNativeCardProps = {
   initial: false,

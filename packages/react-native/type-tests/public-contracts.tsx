@@ -155,25 +155,16 @@ export const InvalidButtonFocusVisible = <Button>{(state) => (state.isFocusVisib
 type TPublicNativeExports = typeof import("../src")
 // @ts-expect-error The private kernel is not a public animation API.
 export type TPrivateCardAnimationKernel = TPublicNativeExports["JSAnimation"]
-// @ts-expect-error Card remains private until the complete native renderer exists.
 export type TPendingNativeCard = TPublicNativeExports["Card"]
-// @ts-expect-error The approved motion context still needs its complete native implementation.
 export type TPendingNativeMotionConfig = TPublicNativeExports["NativeMotionConfig"]
-// @ts-expect-error The approved presence API still needs its complete native implementation.
 export type TPendingNativeAnimatePresence = TPublicNativeExports["NativeAnimatePresence"]
-// @ts-expect-error The approved layout API still needs its complete native implementation.
 export type TPendingNativeLayoutGroup = TPublicNativeExports["NativeLayoutGroup"]
 // @ts-expect-error The visual receiver stays private until the complete Card renderer exists.
 export type TPrivateNativeMotionVisualHost = TPublicNativeExports["NativeMotionVisualHost"]
-// @ts-expect-error Native controls remain private until the complete renderer exists.
 export type TPrivateNativeAnimationControls = TPublicNativeExports["nativeAnimationControls"]
-// @ts-expect-error The controller hook remains private until full native owner/context composition exists.
 export type TPrivateNativeAnimationControlsHook = TPublicNativeExports["useNativeAnimationControls"]
-// @ts-expect-error The native value factory remains private until its complete public contract is verified.
 export type TPrivateNativeMotionValueFactory = TPublicNativeExports["nativeMotionValue"]
-// @ts-expect-error Native value hooks remain private while configuration integration is incomplete.
 export type TPrivateNativeMotionValueHook = TPublicNativeExports["useNativeMotionValue"]
-// @ts-expect-error Native event hooks remain private until the complete native motion contract is delivered.
 export type TPrivateNativeMotionValueEventHook = TPublicNativeExports["useNativeMotionValueEvent"]
 // @ts-expect-error Actual-view color queries stay private until the complete native motion contract is delivered.
 export type TPrivateNativeColorSampler = TPublicNativeExports["sampleNativeMotionColors"]

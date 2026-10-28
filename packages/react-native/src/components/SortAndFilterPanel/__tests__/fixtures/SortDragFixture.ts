@@ -68,7 +68,10 @@ export const createSortDragFixture = (views: Map<string, View>) => {
   }
   const rectangleFallback = (view: View): TNativeDragRect => {
     const props = (properties.get(view)?.() ?? {}) as Record<string, unknown>,
-      semantics = typeof props.nativeCollectionSemantics === "string" ? JSON.parse(props.nativeCollectionSemantics) : {}
+      semantics =
+        typeof props.nativeCollectionSemantics === "string" && props.nativeCollectionSemantics
+          ? JSON.parse(props.nativeCollectionSemantics)
+          : {}
     return {
       x: 0,
       y: semantics.kind === "list-item" ? semantics.ordinal * 100 : 0,

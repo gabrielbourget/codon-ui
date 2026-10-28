@@ -108,11 +108,24 @@ beforeEach(() => {
   jest.clearAllMocks()
   mockViews.clear()
   mockFixture = createSortDragFixture(mockViews)
+  const native = jest.requireActual<typeof RN>("react-native"),
+    base = jest.mocked(native.findNodeHandle).getMockImplementation()!,
+    tags = new WeakMap<object, number>()
+  let next = 700
+  jest.mocked(native.findNodeHandle).mockImplementation((view) => {
+    if (!view || typeof view !== "object") return base(view)
+    if (!tags.has(view)) {
+      const original = base(view)
+      tags.set(view, original && original >= 1000000 ? original : ++next)
+    }
+    return tags.get(view)!
+  })
 })
 afterEach(async () => {
   await rawAct(() => nativeVirtualDrag.cancel())
   await cleanup()
   mockFixture.dispose()
+  jest.restoreAllMocks()
   jest.clearAllTimers()
   jest.useRealTimers()
 })
@@ -161,7 +174,9 @@ it("receives root aliases, native fields, defaults and all three item style owne
   expect(row("name")).toHaveStyle({ backgroundColor: "navy", width: "100%" })
   expect(within(row("name")).getByTestId("sort-parameter-list-item-icon")).toHaveStyle({ marginRight: 5 })
   expect(screen.getByText("Name")).toHaveStyle({ marginLeft: 10 })
-  expect(screen.getAllByTestId("sort-parameter-list-item-default-drag-indicator-icon")).toHaveLength(2)
+  expect(
+    screen.getAllByTestId("sort-parameter-list-item-default-drag-indicator-icon", { includeHiddenElements: true }),
+  ).toHaveLength(2)
 })
 it("reorders locally through the original native source/target roots while the owner holds its array", async () => {
   const changed = jest.fn()

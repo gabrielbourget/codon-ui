@@ -1,10 +1,10 @@
 import { createRef } from "react"
 import type { View } from "react-native"
 
-import { NATIVE_DEFAULT_SLOT } from "../../../collection/context"
-import { NativeFocusView } from "../../../input/NativeFocusView"
-import { NativeTablePropsContext } from "../context"
-import { Table } from "../Table"
+import { NATIVE_DEFAULT_SLOT } from "../../.."
+import { NativeFocusView } from "../../.."
+import { NativeTablePropsContext } from "../../.."
+import { Table } from "../../.."
 
 const root = createRef<View>()
 export const tableRootCalls = [

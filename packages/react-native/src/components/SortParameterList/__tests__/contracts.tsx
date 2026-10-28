@@ -1,4 +1,4 @@
-import { SortParameterList, type SortParameter, type SortParameterListProps } from ".."
+import { SortParameterList, type SortParameter, type SortParameterListProps } from "../../.."
 
 const item: SortParameter = { ID: "", name: "", sortDirection: "Ascending" }
 const props: SortParameterListProps = {

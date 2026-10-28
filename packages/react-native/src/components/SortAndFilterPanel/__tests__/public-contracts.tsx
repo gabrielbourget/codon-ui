@@ -11,7 +11,7 @@ import {
   type SortAndFilterPanelSortInstruction,
   type ApplySortAndFilterParametersArgs,
   type AvailableSortAndFilterPanelListItem,
-} from ".."
+} from "../../.."
 const target: SortAndFilterPanelFocusTarget = SORT_AND_FILTER_PANEL_FOCUS_TARGET__FILTER
 const item: AvailableSortAndFilterPanelListItem = { id: "", name: "", argumentValue: false }
 const sort: SortAndFilterPanelSortInstruction = { id: "", criteriaID: "", criteriaName: "", sortDirection: "Ascending" }

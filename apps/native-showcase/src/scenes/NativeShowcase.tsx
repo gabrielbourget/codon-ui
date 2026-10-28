@@ -14,6 +14,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 import {
+  DefaultNativeBackdropAdapter,
   NativeOverlayProvider,
   NativeFloatingLayerHost,
   NativeThemeProvider,
@@ -26,6 +27,7 @@ import { AVAILABLE_LAYOUT_FIXTURES, LAYOUT_FIXTURE_LABELS, type TLayoutFixture }
 import { AvatarScene } from "./AvatarScene"
 import { BasicControlsScene } from "./BasicControlsScene"
 import { BreadcrumbsScene } from "./BreadcrumbsScene"
+import { CardScene } from "./CardScene"
 import { CarouselScene } from "./CarouselScene"
 import { CircularCounterScene } from "./CircularCounterScene"
 import { ClickPopoverScene } from "./ClickPopoverScene"
@@ -41,11 +43,14 @@ import { MultilineRadioScene } from "./MultilineRadioScene"
 import { NumberInputScene } from "./NumberInputScene"
 import { OverlayScene } from "./OverlayScene"
 import { PaginationScene } from "./PaginationScene"
+import { PanelScene } from "./PanelScene"
 import { RangeScene } from "./RangeScene"
 import { SceneShell } from "./SceneShell"
 import { SelectScene } from "./SelectScene"
 import { SliderScene } from "./SliderScene"
+import { SortAndFilterPanelScene } from "./SortAndFilterPanelScene"
 import { StepperScene } from "./StepperScene"
+import { TableScene } from "./TableScene"
 import { TagComboBoxScene } from "./TagComboBoxScene"
 import { TagGroupScene } from "./TagGroupScene"
 import { TagScene } from "./TagScene"
@@ -184,6 +189,10 @@ export const NativeShowcase = () => {
     | "tag-group"
     | "tag-combo-box"
     | "carousel"
+    | "panel"
+    | "sort-filter"
+    | "table"
+    | "card"
     | "link"
     | "thumbnail"
     | "gallery"
@@ -291,6 +300,14 @@ export const NativeShowcase = () => {
                 selected={scene === "tag-combo-box"}
                 onPress={() => setScene("tag-combo-box")}
               />
+              <FixtureAction label="Panel scene" selected={scene === "panel"} onPress={() => setScene("panel")} />
+              <FixtureAction
+                label="Sort and Filter scene"
+                selected={scene === "sort-filter"}
+                onPress={() => setScene("sort-filter")}
+              />
+              <FixtureAction label="Table scene" selected={scene === "table"} onPress={() => setScene("table")} />
+              <FixtureAction label="Card scene" selected={scene === "card"} onPress={() => setScene("card")} />
               <FixtureAction label="Link scene" selected={scene === "link"} onPress={() => setScene("link")} />
               <FixtureAction
                 label="Carousel scene"
@@ -379,6 +396,14 @@ export const NativeShowcase = () => {
                 <TagGroupScene />
               ) : scene === "tag-combo-box" ? (
                 <TagComboBoxScene />
+              ) : scene === "panel" ? (
+                <PanelScene adapter={DefaultNativeBackdropAdapter} />
+              ) : scene === "sort-filter" ? (
+                <SortAndFilterPanelScene adapter={DefaultNativeBackdropAdapter} />
+              ) : scene === "table" ? (
+                <TableScene />
+              ) : scene === "card" ? (
+                <CardScene />
               ) : scene === "carousel" ? (
                 <CarouselScene />
               ) : scene === "avatar" ? (

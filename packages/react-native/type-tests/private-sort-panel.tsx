@@ -1,4 +1,3 @@
-// @ts-expect-error The complete SortAndFilterPanel contract is still private.
 import { SortAndFilterPanel as PublicPanel } from "../src"
 import {
   SortAndFilterPanel,
