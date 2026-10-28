@@ -15,11 +15,17 @@ class DragActionJSI final : public facebook::react::NativeCUIDragAndDropSpecJSI 
   DragActionJSI(const facebook::react::ObjCTurboModule::InitParams &params, std::shared_ptr<codon::drag::ActionRuntime> action)
       : NativeCUIDragAndDropSpecJSI(params), action_(std::move(action)) {
     action_->install(params.jsInvoker);
+    methodMap_["getLease"] = MethodMetadata{0, lease};
     methodMap_["acceptsAction"] = MethodMetadata{1, accepts};
     methodMap_["settleAction"] = MethodMetadata{1, settle};
   }
  private:
   std::shared_ptr<codon::drag::ActionRuntime> action_;
+  static facebook::jsi::Value lease(facebook::jsi::Runtime &runtime, facebook::react::TurboModule &module,
+      const facebook::jsi::Value *, size_t) {
+    const auto &self = static_cast<DragActionJSI &>(module);
+    return facebook::jsi::String::createFromUtf8(runtime, self.action_->ready() ? self.action_->moduleId : "");
+  }
   static facebook::jsi::Value accepts(facebook::jsi::Runtime &runtime, facebook::react::TurboModule &module,
       const facebook::jsi::Value *args, size_t count) {
     const auto &self = static_cast<DragActionJSI &>(module);
@@ -96,7 +102,7 @@ RCT_EXPORT_MODULE(CUIDragAndDrop)
     }, [scope] { return std::string(scope.dragMountWitness.UTF8String ?: ""); });
   return @(response.c_str());
 }
-- (NSString *)getLease { return _data.moduleId ?: @""; }
+- (NSString *)getLease { return _action->ready() ? @(_action->moduleId.c_str()) : @""; }
 - (NSDictionary *)request:(NSString *)encoded {
   NSError *error;
   id result = [NSJSONSerialization JSONObjectWithData:[encoded dataUsingEncoding:NSUTF8StringEncoding] options:0 error:&error];

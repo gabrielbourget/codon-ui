@@ -56,7 +56,7 @@ inline facebook::react::RootShadowNode::Shared rootFor(facebook::react::UIManage
   manager.getShadowTreeRegistry().visit(surface, [&](const facebook::react::ShadowTree &tree) { result = tree.getCurrentRevision().rootShadowNode; });
   return result;
 }
-inline facebook::react::ShadowNode::Shared nodeFor(const facebook::react::ShadowNode &root, int32_t tag) {
+inline std::shared_ptr<const facebook::react::ShadowNode> nodeFor(const facebook::react::ShadowNode &root, int32_t tag) {
   for (const auto &child : root.getChildren()) {
     if (child->getTag() == tag) return child;
     if (auto result = nodeFor(*child, tag)) return result;

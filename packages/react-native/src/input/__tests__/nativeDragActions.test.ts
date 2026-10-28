@@ -14,14 +14,15 @@ jest.mock("../specs/NativeCUIDragAndDrop", () => ({
 const native = NativeModule as jest.Mocked<NonNullable<typeof NativeModule>>
 const setup = () => {
   const scope = createNativeKeyScope("owner")
-  scope.acceptNativeStatus({
-    ownerId: "owner",
-    windowId: "window",
-    epoch: 1,
-    policyRevision: scope.policyRevision(),
-    ready: true,
-    windowActive: true,
-  })
+  for (const ready of [false, true])
+    scope.acceptNativeStatus({
+      ownerId: "owner",
+      windowId: "window",
+      epoch: 1,
+      policyRevision: scope.policyRevision(),
+      ready,
+      windowActive: true,
+    })
   const actions = createNativeDragActions(scope)
   let live = true
   const dispatch = jest.fn(() => ({ items: [{ "text/plain": "original" }] })),

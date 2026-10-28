@@ -35,7 +35,6 @@ static jni::local_ref<jstring> nativeDispatch(jni::alias_ref<jclass>, jni::alias
     folly::parseJson(payload->toStdString()), pointer, [original] { return current(*original); }, [original] { return witness(*original)->toStdString(); }));
 }
 void registerDragActionNatives() {
-  using jni::makeNativeMethod;
   jni::findClassStatic("com/codonui/input/CUIDragAndDropModule")->registerNatives({
     makeNativeMethod("nativeActionBindings", nativeActionBindings), makeNativeMethod("nativeAcceptsAction", nativeAcceptsAction),
     makeNativeMethod("nativeSettleAction", nativeSettleAction), makeNativeMethod("nativeRetireActions", nativeRetireActions)});
