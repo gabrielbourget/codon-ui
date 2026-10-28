@@ -171,6 +171,7 @@ const useRoot = (ref: RefObject<View | null>) => {
     ),
   )
   useSyncExternalStore(current.controller.subscribe, current.controller.snapshot, current.controller.snapshot)
+  useSyncExternalStore(current.subscribePending, current.pendingSnapshot, current.pendingSnapshot)
   useVirtual()
   if (failure) throw failure.error
   return current
@@ -658,8 +659,10 @@ export const useNativeCollectionDragAndDrop = <T = object,>({
   })
   useVirtual()
   const focused = selectionManager.focusedKey
+  const pendingRevision = binding?.pendingSnapshot() ?? 0
   const persistedKeys = useMemo(() => {
     const keys = new Set<TNativeCollectionKey>(drag.draggingKeys)
+    for (const key of binding?.pendingKeys() ?? []) keys.add(key)
     if (focused != null) keys.add(focused)
     if (drop.target?.type === "item") {
       let key: TNativeCollectionKey = drop.target.key
@@ -683,7 +686,7 @@ export const useNativeCollectionDragAndDrop = <T = object,>({
       keys.add(key)
     }
     return keys
-  }, [drag.draggingKeys, drop.target, focused, collection])
+  }, [drag.draggingKeys, drop.target, focused, collection, binding, pendingRevision])
   const context: TNativeDragAndDropContextValue = {
     dragAndDropHooks: hooks as TNativeDragAndDropHooks,
     dragState: drag,

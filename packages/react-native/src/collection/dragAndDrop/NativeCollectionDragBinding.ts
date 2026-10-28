@@ -100,6 +100,22 @@ export class NativeCollectionDragBinding {
   private failure: (error: unknown) => void = () => {}
   private nativeSource: TNativeDragSourceOwner
   private nativeTarget: TNativeDragTargetOwner
+  private pendingDrops = new Set<{ keys: Set<TNativeCollectionKey>; check: () => void; finish: () => void }>()
+  private pendingRevision = 0
+  private pendingListeners = new Set<() => void>()
+  private renderRequest: { session: string; key: TNativeCollectionKey; layout: unknown } | null = null
+  pendingSnapshot = () => this.pendingRevision
+  subscribePending = (listener: () => void) => {
+    this.pendingListeners.add(listener)
+    return () => {
+      this.pendingListeners.delete(listener)
+    }
+  }
+  pendingKeys = () => new Set([...this.pendingDrops].flatMap((pending) => [...pending.keys]))
+  private pendingChanged() {
+    this.pendingRevision++
+    for (const listener of this.pendingListeners) listener()
+  }
 
   constructor(
     readonly root: RefObject<View | null>,
@@ -122,6 +138,7 @@ export class NativeCollectionDragBinding {
       },
     }
     this.nativeTarget = {
+      prepareDrop: (target, internal, keys) => this.prepareDrop(target, internal, keys),
       beginDrop: (event, internal, keys) => this.beginDropFocus(event.target, internal, keys),
       identity: this.identity,
       current: () => this.current() && !!this.target && this.scope?.window().canDrop === true,
@@ -154,6 +171,8 @@ export class NativeCollectionDragBinding {
   current = () => this.logicalCurrent() && this.root.current === this.bound && !!this.lease?.current()
   ready = () => this.current() && !!this.lease?.ready() && this.scope?.window().canLift === true
   retire = () => {
+    for (const pending of this.pendingDrops) pending.finish()
+    this.renderRequest = null
     this.preview = null
     const session = this.controller.activeSession()
     if (session) this.controller.retireSession(session.id)
@@ -262,6 +281,7 @@ export class NativeCollectionDragBinding {
     }
   }
   publish = () => {
+    for (const pending of this.pendingDrops) pending.check()
     if (this.dropFocus && this.target && this.target.collection !== this.dropFocus.snapshot.collection)
       this.updateDropFocus()
     if (!this.logicalCurrent()) {
@@ -549,7 +569,81 @@ export class NativeCollectionDragBinding {
     const rootRect = readNativeDragGeometry(this.root.current!).root
     let target = delegate.getDropTargetFromPoint(point.x - rootRect.x, point.y - rootRect.y, valid)
     if (target && !valid(target) && valid({ type: "root" })) target = { type: "root" }
-    return this.controller.targetAt(id, this.nativeTarget, target, types, allowed)
+    const operation = this.controller.targetAt(id, this.nativeTarget, target, types, allowed)
+    if (operation !== "cancel" && target?.type === "item" && !this.targetView(target.key)) {
+      const prior = this.renderRequest
+      if (prior?.session !== id || prior.key !== target.key || prior.layout !== this.dropOptions.layoutDelegate) {
+        this.renderRequest = { session: id, key: target.key, layout: this.dropOptions.layoutDelegate }
+        this.dropOptions.layoutDelegate?.requestRendering?.(target.key)
+        const scrolling = this.dropOptions.layoutDelegate?.scrollToKey?.(target.key)
+        if (scrolling && typeof scrolling.then === "function")
+          scrolling.catch((error) => {
+            if (this.nativeTarget.current()) this.failure(error)
+          })
+      }
+    }
+    return operation
+  }
+  private prepareDrop(target: TNativeDropTarget, internal: boolean, sourceKeys: Set<TNativeCollectionKey>) {
+    const root = this.root.current,
+      node = target.type === "item" ? this.target?.collection.getItem(target.key) : null,
+      delegate = this.dropOptions.dropTargetDelegate,
+      layout = this.dropOptions.layoutDelegate,
+      window = this.scope?.window()
+    let view = target.type === "item" ? this.targetView(target.key) : root
+    const needsMount = !view || (target.type === "item" && this.renderRequest?.key === target.key)
+    let done = false,
+      admitted = false,
+      settle: ((value: boolean) => void) | undefined,
+      unsubscribe: (() => void) | undefined
+    const keys = new Set(internal ? sourceKeys : [])
+    if (target.type === "item") keys.add(target.key)
+    const release = () => {
+      if (done) return
+      done = true
+      unsubscribe?.()
+      settle?.(false)
+      this.pendingDrops.delete(pending)
+      this.pendingChanged()
+    }
+    const check = () => {
+      if (done || admitted) return
+      const current = this.scope?.window(),
+        next = target.type === "item" ? this.targetView(target.key) : this.root.current
+      if (
+        !this.nativeTarget.current() ||
+        this.root.current !== root ||
+        current?.windowId !== window?.windowId ||
+        current?.epoch !== window?.epoch ||
+        this.dropOptions.dropTargetDelegate !== delegate ||
+        this.dropOptions.layoutDelegate !== layout ||
+        (target.type === "item" && this.target?.collection.getItem(target.key) !== node) ||
+        (view && next !== view)
+      ) {
+        release()
+        return
+      }
+      view ??= next
+      if (view && (!needsMount || this.lease?.ready())) {
+        admitted = true
+        unsubscribe?.()
+        settle?.(true)
+      }
+    }
+    const pending = { keys, check, finish: release }
+    this.pendingDrops.add(pending)
+    check()
+    const ready = done
+      ? false
+      : admitted
+        ? true
+        : new Promise<boolean>((resolve) => {
+            settle = resolve
+            unsubscribe = this.scope?.subscribe(check)
+            check()
+          })
+    this.pendingChanged()
+    return { ready, finish: release }
   }
   dispatch = (packet: TNativeDragActionPacket, current: () => boolean): object => {
     const { identity, payload } = packet
@@ -653,7 +747,7 @@ export class NativeCollectionDragBinding {
         point,
       )
       pending.catch((error) => {
-        if (this.logicalCurrent()) this.failure(error)
+        if (this.nativeTarget.current()) this.failure(error)
       })
       return { accepted: true, operation }
     } finally {

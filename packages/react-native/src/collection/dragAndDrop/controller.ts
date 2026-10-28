@@ -28,6 +28,11 @@ export type TNativeDragTargetOwner = {
   current: () => boolean
   state: TNativeDroppableCollectionState
   props: TNativeDroppableCollectionProps
+  prepareDrop?: (
+    target: TNativeDropTarget,
+    internal: boolean,
+    keys: Set<TNativeCollectionKey>,
+  ) => { ready: boolean | Promise<boolean>; finish: () => void }
   beginDrop?: (event: TNativeDropEvent, internal: boolean, keys: Set<TNativeCollectionKey>) => () => void
 }
 export type TNativeDragSession = Readonly<{
@@ -229,9 +234,13 @@ export class NativeDragController {
     if (!session || session.id !== id || !this.current(session) || !target?.owner.current() || !point(eventPoint))
       throw new Error("Native drop action: original target authority is unavailable")
     this.lastDrop = { session, identity: target.owner.identity, operation: target.operation }
+    const internal = session.source?.identity === target.owner.identity
+    let admission: ReturnType<NonNullable<TNativeDragTargetOwner["prepareDrop"]>> | undefined
     try {
+      admission = target.owner.prepareDrop?.(target.target, internal, session.keys)
       const resolved = Array.isArray(data) ? data : await data
-      if (!target.owner.current()) {
+      const admitted = !admission || (typeof admission.ready === "boolean" ? admission.ready : await admission.ready)
+      if (!admitted || !target.owner.current()) {
         for (const item of resolved) item.release()
         return
       }
@@ -245,7 +254,6 @@ export class NativeDragController {
         dropOperation: target.operation,
         items: resolved,
       }
-      const internal = session.source?.identity === target.owner.identity
       const dispatched = target.owner.beginDrop?.(event, internal, session.keys)
       const pending = dispatchNativeCollectionDrop(
         target.owner.props,
@@ -257,6 +265,7 @@ export class NativeDragController {
       dispatched?.()
       await pending
     } finally {
+      admission?.finish()
       if (this.target?.generation === target.generation) {
         this.clearTarget()
         this.changed()

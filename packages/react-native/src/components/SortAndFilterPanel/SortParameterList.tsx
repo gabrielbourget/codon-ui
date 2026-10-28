@@ -20,6 +20,7 @@ import {
   useNativeDroppableItem,
 } from "../../collection/dragAndDrop/hooks"
 import type { TNativeInsertDropEvent, TNativeReorderDropEvent } from "../../collection/dragAndDrop/types"
+import { nativeVirtualDrag } from "../../collection/dragAndDrop/virtualDrag"
 import {
   NativeCollectionRendererContext,
   useNativePersistedKeys,
@@ -90,6 +91,40 @@ const Option = (props: TItemProps, ref: ForwardedRef<View>, node: TNativeCollect
     ...(list.dragAndDrop.collectionProps.capturedKeys ?? []),
   ]
   const onKey = (event: Parameters<TKeyboard["onKeyDown"]>[0]) => {
+    const data = event.nativeEvent
+    const startsDrag =
+      !!draggable.dragProps.onKeyDown &&
+      data.key === "Enter" &&
+      data.target === findNodeHandle(target.current) &&
+      !data.repeat &&
+      !data.ctrlKey &&
+      !data.metaKey
+    if (startsDrag || nativeVirtualDrag.isDragging()) {
+      const view = target.current,
+        tag = findNodeHandle(view),
+        input = scope?.lastInput()
+      event.persist?.()
+      event.preventDefault()
+      event.stopPropagation()
+      if (view && tag)
+        actions.request(
+          node,
+          tag,
+          () => {
+            if (target.current !== view || !list.dragAndDrop.binding?.current() || scope?.lastInput() !== input) {
+              nativeVirtualDrag.cancel().catch((error) => list.dragAndDrop.binding?.fail(error))
+              return
+            }
+            if (data.phase === "up") draggable.dragProps.onKeyUp?.(event)
+            else draggable.dragProps.onKeyDown?.(event)
+          },
+          (outcome) => {
+            if (outcome !== "accepted")
+              nativeVirtualDrag.cancel().catch((error) => list.dragAndDrop.binding?.fail(error))
+          },
+        )
+      return
+    }
     if (event.nativeEvent.phase === "up") {
       draggable.dragProps.onKeyUp?.(event)
       if (!event.defaultPrevented) droppable.dropProps.onKeyUp?.(event)
