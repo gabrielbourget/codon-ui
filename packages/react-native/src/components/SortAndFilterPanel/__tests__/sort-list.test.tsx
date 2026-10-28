@@ -119,7 +119,7 @@ const tree = (value: TQuerySortParameterListProps = props()) => (
   </NativeThemeProvider>
 )
 type THost = ReturnType<typeof screen.getByTestId>
-const option = (id = "") => screen.getByTestId(`query-sort-option-${id}`)
+const option = (id = "") => screen.getByTestId(`query-sort-option-${id}`, { includeHiddenElements: true })
 const tag = (host: THost) =>
   jest.requireActual<typeof RN>("react-native").findNodeHandle(mockViews.get(host.props.ownerId)!)!
 const observe = async (host: THost) =>
@@ -366,7 +366,9 @@ it("reorders on Enter release through the native collection admission while a he
   await key(option(), "Enter")
   expect(screen.queryByTestId("query-sort-drop-indicator")).toBeNull()
   await key(option(), "Enter", tag(option()), true, "up")
-  expect(screen.getByTestId("query-sort-drop-indicator")).toBeOnTheScreen()
+  expect(screen.getAllByTestId("query-sort-drop-indicator")).toHaveLength(3)
+  expect(screen.queryByTestId("query-sort-option-")).toBeNull()
+  await key(option(), "End")
   expect(onReorder).not.toHaveBeenCalled()
   await key(option(), "Enter", tag(option()), true, "up")
   expect(onReorder).toHaveBeenCalledTimes(1)
@@ -384,7 +386,7 @@ it("navigates valid insertion positions, holds Tab in the single collection and 
   await observe(option("name"))
   await key(option("name"), "Enter", tag(option("name")), true, "up")
   await key(option("name"), "Home")
-  expect(within(option()).getByTestId("query-sort-drop-indicator")).toBeOnTheScreen()
+  expect(screen.getByRole("button", { name: "Insert before Sort Parameter - City - Ascending" })).toBeOnTheScreen()
   await key(option("name"), "Tab")
   await key(option("name"), "Enter", tag(option("name")), true, "up")
   expect(onReorder).toHaveBeenCalledWith("name", "", "before")
@@ -416,8 +418,8 @@ it("drops before and after current targets through the actual native accessibili
   await render(tree({ ...props(), onReorder }))
   const begin = async (id: string) =>
     act(() => option(id).props.onAccessibilityAction({ nativeEvent: { actionName: "activate" } }))
-  const drop = async () => {
-    const host = screen.getByTestId("query-sort-drop-indicator")
+  const drop = async (label: string) => {
+    const host = screen.getByRole("button", { name: label })
     await act(() =>
       host.props.onNativeActivation({
         nativeEvent: {
@@ -434,10 +436,10 @@ it("drops before and after current targets through the actual native accessibili
     )
   }
   await begin("")
-  await drop()
+  await drop("Insert after Sort Parameter - Name - Descending")
   expect(onReorder).toHaveBeenLastCalledWith("", "name", "after")
   await begin("name")
-  await drop()
+  await drop("Insert before Sort Parameter - City - Ascending")
   expect(onReorder).toHaveBeenLastCalledWith("name", "", "before")
   await begin("")
   await begin("")
@@ -479,7 +481,7 @@ it("uses the renderer drop delegate in current list coordinates without measurin
         _y: number,
         isValid?: (target: TNativeCollectionDropTarget) => boolean,
       ): TNativeCollectionDropTarget => {
-        expect(isValid?.({ type: "item", key: "", dropPosition: "before" })).toBe(false)
+        expect(isValid?.({ type: "item", key: "", dropPosition: "before" })).toBe(true)
         expect(isValid?.({ type: "item", key: "name", dropPosition: "after" })).toBe(true)
         return { type: "item", key: "name", dropPosition: "after" }
       },
@@ -688,7 +690,7 @@ it("cancels a release with invalid current geometry instead of using the old com
   measureRows()
   await source()
   await act(() => mockDragFixture.move(10, 170))
-  expect(screen.getByTestId("query-sort-drop-indicator")).toBeTruthy()
+  expect(screen.getByTestId("query-sort-drop-indicator", { includeHiddenElements: true })).toBeTruthy()
   for (const [index, id] of ["", "name"].entries())
     rect(`query-sort-option-${id}`, { x: 0, y: index * 100, width: 200, height: 0 })
   await release()
@@ -740,12 +742,14 @@ it("retires a queued drop after owner close or original source removal", async (
   const value = { ...props(), onReorder, canAct: () => open },
     view = await render(tree(value))
   await key(option(), "Enter", tag(option()), true, "up")
+  await key(option(), "End")
   await key(option(), "Enter", tag(option()), false, "up")
   open = false
   await act(() => {})
   expect(onReorder).not.toHaveBeenCalled()
   open = true
   await key(option(), "Enter", tag(option()), true, "up")
+  await key(option(), "End")
   await view.rerender(tree({ ...value, sortParameterList: [rows[1]] }))
   await key(option("name"), "Enter", tag(option("name")), true, "up")
   expect(onReorder).not.toHaveBeenCalled()
