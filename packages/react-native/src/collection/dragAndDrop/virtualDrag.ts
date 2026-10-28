@@ -287,11 +287,16 @@ export const nativeVirtualDrag = {
       clear(session)
       changed()
     } else if (session?.root === root) {
-      session.root = null
-      session.target = null
-      session.generation++
-      changed()
-      focus(session)
+      const current = session
+      current.root = null
+      current.target = null
+      current.generation++
+      const replacement = orderedRoots(current).find((candidate) => candidate !== root)
+      if (replacement) select(current, replacement, initial(current, replacement))
+      else {
+        changed()
+        focus(current)
+      }
     }
   },
   reconcile: (root: NativeCollectionDragBinding) => {
@@ -299,6 +304,7 @@ export const nativeVirtualDrag = {
     if (!current || current.pending) return
     if (!originalSource(current)) {
       nativeVirtualDrag.retire(current.source)
+      if (current.source.current()) current.source.controller.endSourceOnUnmount(current.source.identity)
       return
     }
     if (current.root !== root) return

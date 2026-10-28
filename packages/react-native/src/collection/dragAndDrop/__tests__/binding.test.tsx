@@ -595,7 +595,8 @@ it("rotates collection navigation from the nearest original handle, retaining re
   await act(() => nativeVirtualDrag.cycle(-1))
   expect(nativeVirtualDrag.active()?.root).toBe(first.rendered.result.current.binding)
   Object.assign(first.original, { getBoundingClientRect: () => ({ x: 10, y: 25, width: 100, height: 100 }) })
-  await act(() => nativeVirtualDrag.retire(first.rendered.result.current.binding))
+  await act(() => nativeVirtualDrag.cycle(1))
+  await act(() => nativeVirtualDrag.cycle(1))
   await act(() => nativeVirtualDrag.cycle(1))
   // Equal distances keep the first registered target at the start of the ring.
   expect(nativeVirtualDrag.active()?.root).toBe(first.rendered.result.current.binding)
@@ -685,6 +686,12 @@ it("ignores a delayed authored preview from an ended session even when the next 
   await act(() => callbacks[0](original, 100, 100))
   await act(() => callbacks[0](null))
   expect(fixture.metadata()).toMatchObject({ previewTarget: findNodeHandle(current), previewX: 8, previewY: 9 })
+  // The imperative preview ref is detached before its layout cleanup runs.
+  fixture.rendered.result.current.dragState.preview!.current = null
+  await act(() => callbacks[1](original, 100, 100))
+  expect(fixture.metadata().previewTarget).toBe(findNodeHandle(current))
+  await act(() => callbacks[1](null))
+  expect(fixture.metadata().previewTarget).toBe(0)
   await act(() => binding.retire())
   await act(() => callbacks[1](current, 1, 1))
   binding.publish()
@@ -731,4 +738,24 @@ it("selects the closest valid original endpoint when a descendant receives owned
     await fixture.rendered.unmount()
     fixture.actions.dispose()
   }
+})
+
+it("ends the original virtual source exactly once when its actual drag handle unmounts", async () => {
+  const onDragEnd = jest.fn(),
+    fixture = await setup({ getItems: () => [{ "text/plain": "zero" }], onDragEnd })
+  await fixture.row(0)
+  const binding = fixture.rendered.result.current.binding,
+    handle = view()
+  await act(() => binding.handle(0, handle))
+  fixture.ready()
+  jest.spyOn(binding, "measure").mockResolvedValue({ x: 100, y: 200, width: 12, height: 12 })
+  await act(async () => nativeVirtualDrag.start(binding, 0, nativeDragFormatter("en-US"), "virtual", "handle"))
+  await act(() => binding.handle(0, null))
+  expect(nativeVirtualDrag.isDragging()).toBe(false)
+  expect(onDragEnd).toHaveBeenCalledTimes(1)
+  expect(onDragEnd.mock.calls[0][0]).toMatchObject({ dropOperation: "cancel", isInternal: false })
+  expect(fixture.rendered.result.current.dragState.draggingKeys.size).toBe(0)
+  await fixture.rendered.unmount()
+  fixture.actions.dispose()
+  expect(onDragEnd).toHaveBeenCalledTimes(1)
 })

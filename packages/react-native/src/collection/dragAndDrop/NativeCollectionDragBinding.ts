@@ -148,7 +148,8 @@ export class NativeCollectionDragBinding {
   ready = () => this.current() && !!this.lease?.ready() && this.scope?.window().canLift === true
   retire = () => {
     this.preview = null
-    this.controller.retire(this.identity)
+    const session = this.controller.activeSession()
+    if (session) this.controller.retireSession(session.id)
     if (this.dropFocus) clearTimeout(this.dropFocus.timer)
     this.dropFocus = null
     nativeVirtualDrag.retire(this)
@@ -543,7 +544,7 @@ export class NativeCollectionDragBinding {
         preview?.(lifted.items, (view, x, y) => {
           if (
             this.current() &&
-            this.source?.preview?.current === preview &&
+            (view === null || this.source?.preview?.current === preview) &&
             this.controller.activeSession() === lifted.session
           )
             this.setPreview(view, x, y)
