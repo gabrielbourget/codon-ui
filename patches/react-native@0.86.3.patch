@@ -305,8 +305,21 @@ index 60dfc922f9e9ac2aef450b9bf8a87b654658d226..bc7fad941fdbe0ae981df1cf1cef3be3
  - (CGRect)accessibilityFrame
  {
    UIView *container = (UIView *)self.accessibilityContainer;
+diff --git a/React/Fabric/Mounting/ComponentViews/Text/RCTParagraphComponentView.h b/React/Fabric/Mounting/ComponentViews/Text/RCTParagraphComponentView.h
+--- a/React/Fabric/Mounting/ComponentViews/Text/RCTParagraphComponentView.h
++++ b/React/Fabric/Mounting/ComponentViews/Text/RCTParagraphComponentView.h
+@@ -22,6 +22,10 @@
+  */
+ @property (nonatomic, nullable, readonly) NSAttributedString *attributedText;
+
++// Opt-in paint only. Layout, full attributed text, refs, selection and AT stay original.
++- (BOOL)cuiSetClampOwner:(uint64_t)owner lines:(NSInteger)lines props:(uintptr_t)props state:(uintptr_t)state;
++- (void)cuiClearClampOwner:(uint64_t)owner;
++
+ @end
+
+ NS_ASSUME_NONNULL_END
 diff --git a/React/Fabric/Mounting/ComponentViews/Text/RCTParagraphComponentView.mm b/React/Fabric/Mounting/ComponentViews/Text/RCTParagraphComponentView.mm
-index 07fb9c4e7b674182a40d57b7ad5f70fc71503d34..832218c72014a40cab103b02685d6e3e74c9db3d 100644
 --- a/React/Fabric/Mounting/ComponentViews/Text/RCTParagraphComponentView.mm
 +++ b/React/Fabric/Mounting/ComponentViews/Text/RCTParagraphComponentView.mm
 @@ -1,3 +1,4 @@
@@ -314,28 +327,112 @@ index 07fb9c4e7b674182a40d57b7ad5f70fc71503d34..832218c72014a40cab103b02685d6e3e
  /*
   * Copyright (c) Meta Platforms, Inc. and affiliates.
   *
-@@ -176,7 +177,7 @@ using namespace facebook::react;
+@@ -31,6 +32,7 @@
+ @property (nonatomic) ParagraphShadowNode::ConcreteState::Shared state;
+ @property (nonatomic) ParagraphAttributes paragraphAttributes;
+ @property (nonatomic) LayoutMetrics layoutMetrics;
++@property (nonatomic) NSInteger cuiClampLines;
+
+ @end
+
+@@ -47,6 +49,7 @@
+
+ @implementation RCTParagraphComponentView {
+   ParagraphAttributes _paragraphAttributes;
++  uint64_t _cuiClampOwner;
+   RCTParagraphComponentAccessibilityProvider *_accessibilityProvider;
+   UILongPressGestureRecognizer *_longPressGestureRecognizer;
+   RCTParagraphTextView *_textView;
+@@ -120,8 +123,26 @@
+   [super updateProps:props oldProps:oldProps];
+ }
+
++- (BOOL)cuiSetClampOwner:(uint64_t)owner lines:(NSInteger)lines props:(uintptr_t)props state:(uintptr_t)state
++{
++  if (!_textView.state || reinterpret_cast<uintptr_t>(_props.get()) != props ||
++      reinterpret_cast<uintptr_t>(&_textView.state->getData()) != state) return NO;
++  _cuiClampOwner = owner;
++  _textView.cuiClampLines = lines;
++  [_textView setNeedsDisplay];
++  return YES;
++}
++- (void)cuiClearClampOwner:(uint64_t)owner
++{
++  if (_cuiClampOwner != owner) return;
++  _cuiClampOwner = 0;
++  _textView.cuiClampLines = 0;
++  [_textView setNeedsDisplay];
++}
+ - (void)updateState:(const State::Shared &)state oldState:(const State::Shared &)oldState
+ {
++  _cuiClampOwner = 0;
++  _textView.cuiClampLines = 0;
+   _textView.state = std::static_pointer_cast<const ParagraphShadowNode::ConcreteState>(state);
+   [_textView setNeedsDisplay];
+   [self setNeedsLayout];
+@@ -141,6 +162,8 @@
+ - (void)prepareForRecycle
+ {
+   [super prepareForRecycle];
++  _cuiClampOwner = 0;
++  _textView.cuiClampLines = 0;
+   _textView.state = nullptr;
+   _accessibilityProvider = nil;
+ }
+@@ -176,7 +199,7 @@
    return NO;
  }
- 
+
 -- (NSArray *)accessibilityElements
 +- (NSArray *)rctOriginalAccessibilityElements
  {
    const auto &paragraphProps = static_cast<const ParagraphProps &>(*_props);
- 
-@@ -212,6 +213,12 @@ using namespace facebook::react;
+
+@@ -210,6 +233,12 @@
+         elements[0].accessibilityTraits & UIAccessibilityTraitLink || ![self isAccessibilityCoopted];
+   }
    return elements;
- }
- 
++}
++
 +- (NSArray *)accessibilityElements
 +{
 +  NSArray *original = RCTReadOriginalAccessibilityValue(^id { return [self rctOriginalAccessibilityElements]; });
 +  return RCTProjectAccessibilityChildren(self, self, original);
-+}
-+
+ }
+
  - (BOOL)isAccessibilityCoopted
- {
-   UIView *ancestor = self.superview;
+@@ -270,8 +299,14 @@
+       (RCTTextLayoutManager *)unwrapManagedObject(textLayoutManager->getNativeTextLayoutManager());
+   CGRect frame = RCTCGRectFromRect(_layoutMetrics.getContentFrame());
+
++  auto presentation = _paragraphAttributes;
++  if (_textView.cuiClampLines > 0) {
++    if (presentation.maximumNumberOfLines == 0 || presentation.maximumNumberOfLines > _textView.cuiClampLines)
++      presentation.maximumNumberOfLines = static_cast<int>(_textView.cuiClampLines);
++    presentation.ellipsizeMode = EllipsizeMode::Tail;
++  }
+   auto eventEmitter = [nativeTextLayoutManager getEventEmitterWithAttributeString:stateData.attributedString
+-                                                              paragraphAttributes:_paragraphAttributes
++                                                              paragraphAttributes:presentation
+                                                                             frame:frame
+                                                                           atPoint:point];
+
+@@ -406,8 +441,14 @@
+
+   CGRect frame = RCTCGRectFromRect(_layoutMetrics.getContentFrame());
+
++  auto presentation = _paragraphAttributes;
++  if (_cuiClampLines > 0) {
++    if (presentation.maximumNumberOfLines == 0 || presentation.maximumNumberOfLines > _cuiClampLines)
++      presentation.maximumNumberOfLines = static_cast<int>(_cuiClampLines);
++    presentation.ellipsizeMode = EllipsizeMode::Tail;
++  }
+   [nativeTextLayoutManager drawAttributedString:stateData.attributedString
+-                            paragraphAttributes:_paragraphAttributes
++                            paragraphAttributes:presentation
+                                           frame:frame
+                               drawHighlightPath:^(UIBezierPath *highlightPath) {
+                                 if (highlightPath) {
 diff --git a/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm b/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
 index b033b7c71914d287470b7b86bd6bf39d311294ba..28fb5349ce77226d3a1976ad8adefb866f9f05cd 100644
 --- a/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
@@ -983,6 +1080,131 @@ index 0000000000000000000000000000000000000000..a282cce3626f087da5d3eeb125eb4204
 +    }
 +  }
 +}
+diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextView.java b/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextView.java
+--- a/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextView.java
++++ b/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextView.java
+@@ -12,6 +12,12 @@
+ import android.graphics.Rect;
+ import android.os.Build;
+ import android.text.Layout;
++import android.text.StaticLayout;
++import android.text.TextPaint;
++import android.text.TextDirectionHeuristic;
++import android.text.TextDirectionHeuristics;
++import android.graphics.Path;
++import android.graphics.Paint;
+ import android.text.Spannable;
+ import android.text.SpannableString;
+ import android.text.Spanned;
+@@ -60,6 +66,71 @@
+   private static final int DEFAULT_GRAVITY = Gravity.TOP | Gravity.START;
+
+   private int mNumberOfLines;
++  private String mCuiProps = "", mCuiState = "", mCuiOwner = "";
++  private int mCuiLines;
++  private boolean mCuiRequiresSource;
++
++  public void setCuiClampIdentity(String props, String state) {
++    if (!props.equals(mCuiProps) || !state.equals(mCuiState)) {
++      mCuiOwner = ""; mCuiLines = 0;
++      mCuiProps = props; mCuiState = state;
++      invalidate();
++    }
++  }
++  public void setCuiClampRequiresSource(boolean value) { mCuiRequiresSource = value; }
++  public boolean setCuiClamp(String owner, int lines, String props, String state) {
++    if (mCuiRequiresSource)
++      throw new IllegalStateException("Table clamp custom text callbacks require their registered native content source");
++    if (!props.equals(mCuiProps) || !state.equals(mCuiState)) return false;
++    mCuiOwner = owner; mCuiLines = lines; invalidate(); return true;
++  }
++  public void clearCuiClamp(String owner) {
++    if (!owner.equals(mCuiOwner)) return;
++    mCuiOwner = ""; mCuiLines = 0; invalidate();
++  }
++  private TextDirectionHeuristic cuiTextDirection() {
++    switch (getTextDirection()) {
++      case View.TEXT_DIRECTION_ANY_RTL: return TextDirectionHeuristics.ANYRTL_LTR;
++      case View.TEXT_DIRECTION_LTR: return TextDirectionHeuristics.LTR;
++      case View.TEXT_DIRECTION_RTL: return TextDirectionHeuristics.RTL;
++      case View.TEXT_DIRECTION_LOCALE: return TextDirectionHeuristics.LOCALE;
++      case View.TEXT_DIRECTION_FIRST_STRONG_LTR: return TextDirectionHeuristics.FIRSTSTRONG_LTR;
++      case View.TEXT_DIRECTION_FIRST_STRONG_RTL: return TextDirectionHeuristics.FIRSTSTRONG_RTL;
++      default: return getLayoutDirection() == View.LAYOUT_DIRECTION_RTL
++          ? TextDirectionHeuristics.FIRSTSTRONG_RTL : TextDirectionHeuristics.FIRSTSTRONG_LTR;
++    }
++  }
++  private @Nullable Layout cuiClampLayout() {
++    Layout original = getLayout();
++    if (mCuiLines <= 0 || original == null || original.getWidth() <= 0) return null;
++    CharSequence text = original.getText();
++    TextPaint paint = new TextPaint(getPaint());
++    StaticLayout.Builder builder = StaticLayout.Builder.obtain(text,0,text.length(),paint,original.getWidth())
++        .setAlignment(original.getAlignment()).setTextDirection(cuiTextDirection())
++        .setLineSpacing(original.getSpacingAdd(),original.getSpacingMultiplier())
++        .setIncludePad(getIncludeFontPadding()).setBreakStrategy(getBreakStrategy())
++        .setHyphenationFrequency(getHyphenationFrequency())
++        .setMaxLines(Math.min(mCuiLines,mNumberOfLines))
++        .setEllipsize(TextUtils.TruncateAt.END).setEllipsizedWidth(original.getWidth());
++    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) builder.setJustificationMode(getJustificationMode());
++    return builder.build();
++  }
++  private boolean drawCuiClamp(Canvas canvas) {
++    Layout layout = cuiClampLayout();
++    if (layout == null) return false;
++    Path selection = null;
++    Paint highlight = null;
++    int start = getSelectionStart(), end = getSelectionEnd();
++    if (start >= 0 && end > start) {
++      selection = new Path(); layout.getSelectionPath(start,end,selection);
++      highlight = new Paint(); highlight.setColor(getHighlightColor());
++    }
++    int save = canvas.save();
++    canvas.translate(getCompoundPaddingLeft(),getTotalPaddingTop());
++    layout.draw(canvas,selection,highlight,0);
++    canvas.restoreToCount(save);
++    return true;
++  }
+   private @Nullable TextUtils.TruncateAt mEllipsizeLocation;
+   private boolean mAdjustsFontSizeToFit;
+   private float mFontSize;
+@@ -84,6 +155,7 @@
+    * ReactTextView is recycled.
+    */
+   private void initView() {
++    mCuiProps = ""; mCuiState = ""; mCuiOwner = ""; mCuiLines = 0; mCuiRequiresSource = false;
+     mNumberOfLines = ViewDefaults.NUMBER_OF_LINES;
+     mAdjustsFontSizeToFit = false;
+     mLinkifyMaskType = 0;
+@@ -212,7 +284,7 @@
+         BackgroundStyleApplicator.clipToPaddingBox(this, canvas);
+       }
+
+-      super.onDraw(canvas);
++      if (!drawCuiClamp(canvas)) super.onDraw(canvas);
+     }
+   }
+
+@@ -267,7 +339,8 @@
+     int x = (int) touchX;
+     int y = (int) touchY;
+
+-    Layout layout = getLayout();
++    Layout projected = cuiClampLayout();
++    Layout layout = projected == null ? getLayout() : projected;
+     if (layout == null) {
+       // If the layout is null, the view hasn't been properly laid out yet. Therefore, we can't find
+       // the exact text tag that has been touched, and the correct tag to return is the default one.
+@@ -289,6 +362,9 @@
+         FLog.e(ReactConstants.TAG, "Crash in HorizontalMeasurementProvider: " + e.getMessage());
+         return target;
+       }
++
++      if (projected != null && layout.getEllipsisCount(line) > 0 &&
++          index >= layout.getLineStart(line) + layout.getEllipsisStart(line)) return target;
+
+       // We choose the most inner span (shortest) containing character at the given index
+       // if no such span can be found we will send the textview's react id as a touch handler
 diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextViewAccessibilityDelegate.kt b/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextViewAccessibilityDelegate.kt
 index 6834a329ac6ce13dfe222fe43cee957afe4150a1..0e2a0c97225e73e9d2398b0d3914b08929b5a7bb 100644
 --- a/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextViewAccessibilityDelegate.kt
@@ -1094,6 +1316,22 @@ index 6834a329ac6ce13dfe222fe43cee957afe4150a1..0e2a0c97225e73e9d2398b0d3914b089
    }
  
    private fun getBoundsInParent(accessibleLink: AccessibilityLinks.AccessibleLink): Rect? {
+diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextViewManager.kt b/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextViewManager.kt
+--- a/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextViewManager.kt
++++ b/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextViewManager.kt
+@@ -133,6 +133,12 @@
+       stateWrapper: StateWrapper,
+   ): Any? {
+     SystraceSection("ReactTextViewManager.updateState").use { s ->
++      view.setCuiClampRequiresSource(reactTextViewManagerCallback != null)
++      val clampState = stateWrapper.stateDataMapBuffer
++      view.setCuiClampIdentity(
++          if (clampState != null && clampState.contains(4)) clampState.getString(4) else "",
++          if (clampState != null && clampState.contains(5)) clampState.getString(5) else "",
++      )
+       val refState = (stateWrapper as? ReferenceStateWrapper)?.stateDataReference
+       if (refState is PreparedLayout) {
+         return getReactTextUpdateFromPreparedLayout(view, refState)
 diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTypefaceUtils.kt b/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTypefaceUtils.kt
 index e33daa691f3174e611ccb93ad511582365d3b51f..e87c7b0b05f4c845d50a1c370ff982b769b4f807 100644
 --- a/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTypefaceUtils.kt
@@ -1769,6 +2007,164 @@ index 732288d87c4494269848c27d132d564068414cf5..fbf923cdb702d7ba1402248523178307
  
  #pragma mark - DebugStringConvertible (partially)
  
+diff --git a/ReactCommon/react/renderer/components/text/ParagraphShadowNode.cpp b/ReactCommon/react/renderer/components/text/ParagraphShadowNode.cpp
+--- a/ReactCommon/react/renderer/components/text/ParagraphShadowNode.cpp
++++ b/ReactCommon/react/renderer/components/text/ParagraphShadowNode.cpp
+@@ -57,7 +57,9 @@
+ ParagraphShadowNode::ParagraphShadowNode(
+     const ShadowNode& sourceShadowNode,
+     const ShadowNodeFragment& fragment)
+-    : ConcreteViewShadowNode(sourceShadowNode, fragment) {
++    : ConcreteViewShadowNode(sourceShadowNode, fragment),
++      cuiClampFlow_(static_cast<const ParagraphShadowNode &>(sourceShadowNode).cuiClampFlow_),
++      cuiClampNoWrap_(static_cast<const ParagraphShadowNode &>(sourceShadowNode).cuiClampNoWrap_) {
+   initialize();
+ }
+
+@@ -87,8 +89,9 @@
+   buildAttributedString(textAttributes, *this, attributedString, attachments);
+   attributedString.setBaseTextAttributes(textAttributes);
+
+-  content_ = Content{
+-      attributedString, getConcreteProps().paragraphAttributes, attachments};
++  auto paragraphAttributes = getConcreteProps().paragraphAttributes;
++  if (cuiClampNoWrap_) paragraphAttributes.maximumNumberOfLines = 1;
++  content_ = Content{attributedString, paragraphAttributes, attachments};
+
+   return content_.value();
+ }
+@@ -135,6 +138,24 @@
+   return content;
+ }
+
++void ParagraphShadowNode::cuiPrepareClampFlow(bool noWrap) {
++  ensureUnsealed();
++  cuiClampFlow_ = true;
++  cuiClampNoWrap_ = noWrap;
++  content_.reset();
++  measuredLayouts_.clear();
++  dirtyLayout();
++}
++
++LinesMeasurements ParagraphShadowNode::cuiClampFlowLines(const LayoutContext &context) const {
++  const auto metrics = getLayoutMetrics();
++  const auto size = metrics.getContentFrame().size;
++  auto content = getContentWithMeasuredAttachments(context,
++      LayoutConstraints{.minimumSize = size, .maximumSize = size, .layoutDirection = metrics.layoutDirection});
++  return TextLayoutManagerExtended(*textLayoutManager_).measureLines(
++      AttributedStringBox{content.attributedString}, content.paragraphAttributes, size);
++}
++
+ void ParagraphShadowNode::setTextLayoutManager(
+     std::shared_ptr<const TextLayoutManager> textLayoutManager) {
+   ensureUnsealed();
+@@ -153,16 +174,14 @@
+
+   if (state.measuredLayout.measurement.size == layout.measurement.size &&
+       state.attributedString == content.attributedString &&
+-      state.paragraphAttributes == content.paragraphAttributes) {
++      state.paragraphAttributes == content.paragraphAttributes &&
++      (!cuiClampFlow_ || state.cuiPropsIdentity == reinterpret_cast<uintptr_t>(getProps().get()))) {
+     return;
+   }
+
+-  setStateData(
+-      ParagraphStateT{
+-          content.attributedString,
+-          content.paragraphAttributes,
+-          textLayoutManager_,
+-          layout});
++  auto nextState = ParagraphStateT{content.attributedString, content.paragraphAttributes, textLayoutManager_, layout};
++  if (cuiClampFlow_) nextState.cuiPropsIdentity = reinterpret_cast<uintptr_t>(getProps().get());
++  setStateData(std::move(nextState));
+ }
+
+ void ParagraphShadowNode::updateStateIfNeeded(const Content& content) {
+@@ -171,15 +190,15 @@
+   auto& state = getStateData();
+
+   react_native_assert(textLayoutManager_);
+-  if (state.attributedString == content.attributedString) {
++  if (state.attributedString == content.attributedString &&
++      (!cuiClampFlow_ || (state.paragraphAttributes == content.paragraphAttributes &&
++          state.cuiPropsIdentity == reinterpret_cast<uintptr_t>(getProps().get())))) {
+     return;
+   }
+
+-  setStateData(
+-      ParagraphState{
+-          content.attributedString,
+-          content.paragraphAttributes,
+-          textLayoutManager_});
++  auto nextState = ParagraphState{content.attributedString, content.paragraphAttributes, textLayoutManager_};
++  if (cuiClampFlow_) nextState.cuiPropsIdentity = reinterpret_cast<uintptr_t>(getProps().get());
++  setStateData(std::move(nextState));
+ }
+
+ MeasuredPreparedTextLayout* ParagraphShadowNode::findUsableLayout() {
+diff --git a/ReactCommon/react/renderer/components/text/ParagraphShadowNode.h b/ReactCommon/react/renderer/components/text/ParagraphShadowNode.h
+--- a/ReactCommon/react/renderer/components/text/ParagraphShadowNode.h
++++ b/ReactCommon/react/renderer/components/text/ParagraphShadowNode.h
+@@ -68,6 +68,10 @@
+
+   void layout(LayoutContext layoutContext) override;
+
++  // Native-owned Cell flow. The original props, text and editor tree stay intact.
++  void cuiPrepareClampFlow(bool noWrap);
++  LinesMeasurements cuiClampFlowLines(const LayoutContext &context) const;
++
+   Size measureContent(const LayoutContext &layoutContext, const LayoutConstraints &layoutConstraints) const override;
+
+   Float baseline(const LayoutContext &layoutContext, Size size) const override;
+@@ -131,6 +135,8 @@
+    * Cached content of the subtree started from the node.
+    */
+   mutable std::optional<Content> content_{};
++  bool cuiClampFlow_{false};
++  bool cuiClampNoWrap_{false};
+
+   /*
+    * Intermediate layout results generated during measurement, that may be
+diff --git a/ReactCommon/react/renderer/components/text/platform/android/react/renderer/components/text/ParagraphState.h b/ReactCommon/react/renderer/components/text/platform/android/react/renderer/components/text/ParagraphState.h
+--- a/ReactCommon/react/renderer/components/text/platform/android/react/renderer/components/text/ParagraphState.h
++++ b/ReactCommon/react/renderer/components/text/platform/android/react/renderer/components/text/ParagraphState.h
+@@ -52,6 +52,9 @@
+    */
+   std::weak_ptr<const TextLayoutManager> layoutManager;
+
++  // Private native presentation custody; zero for ordinary paragraphs.
++  uintptr_t cuiPropsIdentity{0};
++
+   /**
+    * A fully prepared representation of a text layout to mount
+    */
+diff --git a/ReactCommon/react/renderer/components/text/platform/cxx/react/renderer/components/text/ParagraphState.h b/ReactCommon/react/renderer/components/text/platform/cxx/react/renderer/components/text/ParagraphState.h
+--- a/ReactCommon/react/renderer/components/text/platform/cxx/react/renderer/components/text/ParagraphState.h
++++ b/ReactCommon/react/renderer/components/text/platform/cxx/react/renderer/components/text/ParagraphState.h
+@@ -37,6 +37,9 @@
+    * `AttributedString`.
+    */
+   std::weak_ptr<const TextLayoutManager> layoutManager;
++
++  // Private native presentation custody; zero for ordinary paragraphs.
++  uintptr_t cuiPropsIdentity{0};
+ };
+
+ } // namespace facebook::react
+diff --git a/ReactCommon/react/renderer/components/text/stateConversions.h b/ReactCommon/react/renderer/components/text/stateConversions.h
+--- a/ReactCommon/react/renderer/components/text/stateConversions.h
++++ b/ReactCommon/react/renderer/components/text/stateConversions.h
+@@ -25,6 +25,10 @@
+   auto paMapBuffer = toMapBuffer(paragraphState.paragraphAttributes);
+   builder.putMapBuffer(TX_STATE_KEY_PARAGRAPH_ATTRIBUTES, paMapBuffer);
+   builder.putInt(TX_STATE_KEY_HASH, attStringMapBuffer.getInt(AS_KEY_HASH));
++  if (paragraphState.cuiPropsIdentity != 0) {
++    builder.putString(4, std::to_string(paragraphState.cuiPropsIdentity));
++    builder.putString(5, std::to_string(reinterpret_cast<uintptr_t>(&paragraphState)));
++  }
+   return builder.build();
+ }
+ #endif
 diff --git a/ReactCommon/react/renderer/components/view/YogaStylableProps.cpp b/ReactCommon/react/renderer/components/view/YogaStylableProps.cpp
 index ae2da15fc0a4b265f48bfb6b6aff80800bbe2e79..b50266748e9fce2bc6516cc5fc26acd1b214e1cf 100644
 --- a/ReactCommon/react/renderer/components/view/YogaStylableProps.cpp

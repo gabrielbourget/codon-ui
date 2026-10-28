@@ -119,9 +119,19 @@ it("adds and removes the Cell renderer without replacing its original held edito
   await press("Toggle cell renderer")
   expect(editor.current).toBe(input)
   await press("Toggle cell line limit")
-  expect(screen.getByTestId("table-custom-cell-text").props.numberOfLines).toBe(2)
+  expect(
+    screen.container
+      .queryAll((host) => host.type === "CUIClampHost")
+      .some((host) => host.props.maximumLines === 2 && host.props.hasClamp),
+  ).toBe(true)
+  expect(screen.getByTestId("table-custom-cell-text").props.numberOfLines).toBeUndefined()
   await press("Toggle cell truncation")
-  expect(screen.getByTestId("table-custom-cell-text").props.numberOfLines).toBe(1)
+  expect(
+    screen.container
+      .queryAll((host) => host.type === "CUIClampHost")
+      .some((host) => host.props.maximumLines === 2 && host.props.noWrap),
+  ).toBe(true)
+  expect(screen.getByTestId("table-custom-cell-text").props.numberOfLines).toBeUndefined()
   expect(editor.current).toBe(input)
   await fireEvent(screen.getByTestId("table-custom-cell"), "pointerEnter", {
     nativeEvent: { pointerType: "mouse" },

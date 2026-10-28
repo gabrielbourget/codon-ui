@@ -25,6 +25,7 @@ import { splitNativeTextStyle } from "../nativeTextStyle"
 
 import { NativeTableCellContext, useNativeTable } from "./context"
 import { NativeTableColumnResizeStateContext } from "./NativeResizableTableContainer"
+import { TableCellContent } from "./TableCellContent"
 import { TableCellKeys } from "./TableCellKeys"
 import type { TNativeTableCellProps, TNativeTableCellRenderState } from "./types"
 import { useTableAction } from "./useTableAction"
@@ -54,7 +55,6 @@ const Cell = (props: TNativeTableCellProps, ref: ForwardedRef<View>, node: TNati
   const [focusVisible, setFocusVisible] = useState(false)
   const content = useNativeContentContext()
   const windowId = useContext(NativeFloatingScopeContext)?.id ?? null
-  const lineLimit = truncate ? 1 : maxLines && Number.isInteger(maxLines) && maxLines > 0 ? maxLines : undefined
   const theme = useNativeTheme()
   const actions = useContext(NativeCollectionActionsContext)
   const isRowHeader = table.rowHeaderColumns.has(columnID)
@@ -146,10 +146,10 @@ const Cell = (props: TNativeTableCellProps, ref: ForwardedRef<View>, node: TNati
         }}
       >
         <NativeCollectionRendererContext.Provider value={DefaultNativeCollectionRenderer}>
-          <NativeTextLayoutContext.Provider
-            value={{ numberOfLines: lineLimit, ellipsizeMode: lineLimit ? "tail" : undefined, windowId }}
-          >
-            {getNativeButtonContent(typeof children === "function" ? children(renderState) : children, styles.text)}
+          <NativeTextLayoutContext.Provider value={undefined}>
+            <TableCellContent maxLines={maxLines} truncate={truncate} windowId={windowId}>
+              {getNativeButtonContent(typeof children === "function" ? children(renderState) : children, styles.text)}
+            </TableCellContent>
           </NativeTextLayoutContext.Provider>
         </NativeCollectionRendererContext.Provider>
       </NativeContentContext.Provider>
