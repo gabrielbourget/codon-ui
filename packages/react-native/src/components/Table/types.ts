@@ -4,6 +4,7 @@ import type { TableStateProps } from "react-stately/useTableState"
 import type { ColumnSize } from "react-stately/useTableState"
 
 import type { TNativeSlotProps } from "../../collection/context"
+import type { TNativeDragAndDropHooks } from "../../collection/dragAndDrop/hooks"
 import type { TNativeCollectionKey } from "../../collection/snapshot"
 import type { MultipleSelectionStateProps } from "../../collection/state/useMultipleSelectionState"
 import type { TNativeFocusViewProps } from "../../input/types"
@@ -147,6 +148,7 @@ export type TNativeTableProps<T extends object = object> = Omit<
   "style" | "sortDescriptor" | "onSortChange"
 > &
   TStyleProps & {
+    dragAndDropHooks?: TNativeDragAndDropHooks<T>
     geometry?: TCornerGeometry
     hoverColor?: ColorValue
     zebra?: boolean

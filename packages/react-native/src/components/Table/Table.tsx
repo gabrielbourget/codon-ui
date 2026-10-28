@@ -10,6 +10,11 @@ import {
   useNativeCollectionRefs,
 } from "../../collection/context"
 import {
+  NativeDragAndDropContext,
+  NativeDropIndicatorContext,
+  useNativeCollectionDragAndDrop,
+} from "../../collection/dragAndDrop/hooks"
+import {
   NativeCollectionRendererContext,
   useNativePersistedKeys,
   type TNativeCollectionRootProps,
@@ -79,6 +84,7 @@ const Receiver = <T extends object>({
     ref: _consumerRef,
     children: _children,
     geometry: _geometry,
+    dragAndDropHooks,
     style,
     render,
     customStyles: _customStyles,
@@ -233,20 +239,35 @@ const Receiver = <T extends object>({
     receipt,
     rowHeaderColumns,
   })
-  const keyboard = state.isKeyboardNavigationDisabled
-    ? {
-        ...sourceKeyboard,
-        keysFor: () => [],
-        onKeyDown: () => {},
-        typeahead: () => {},
-        captureTypeahead: () => {},
-        typeaheadEnabled: false,
-      }
-    : sourceKeyboard
-  const persistedKeys = useNativePersistedKeys(manager.focusedKey, keyboard.requestedKey, keyboard.observedKey)
+  const dragAndDrop = useNativeCollectionDragAndDrop({
+    hooks: dragAndDropHooks,
+    collection,
+    selectionManager: manager,
+    root,
+    current: sourceKeyboard.canAct,
+    layoutDelegate: renderer.layoutDelegate,
+  })
+  const keyboard =
+    state.isKeyboardNavigationDisabled || dragAndDrop.context.dragAndDropHooks?.isVirtualDragging?.()
+      ? {
+          ...sourceKeyboard,
+          keysFor: () => [],
+          onKeyDown: () => {},
+          typeahead: () => {},
+          captureTypeahead: () => {},
+          typeaheadEnabled: false,
+        }
+      : sourceKeyboard
+  const focusKeys = useNativePersistedKeys(manager.focusedKey, keyboard.requestedKey, keyboard.observedKey)
+  const persistedKeys = new Set([...(focusKeys ?? []), ...dragAndDrop.persistedKeys])
   if (receipt.status === "confirmed" && columnCount > 0 && rowHeaderColumns.size === 0)
     throw new Error("A table must have at least one Column with the isRowHeader prop set to true")
-  const renderState: TNativeTableRenderState = { isFocused, isFocusVisible, isDropTarget: false, state }
+  const renderState: TNativeTableRenderState = {
+    isFocused,
+    isFocusVisible,
+    isDropTarget: dragAndDrop.isDropTarget,
+    state,
+  }
   const authoredStyle = typeof style === "function" ? style({ ...renderState, defaultStyle: {} }) : style
   const styles = splitNativeTextStyle(
     resolveNativeStyle([parentContent?.textStyle, { width: "100%", flexShrink: 0 }, authoredStyle], "Table", "style"),
@@ -269,8 +290,12 @@ const Receiver = <T extends object>({
     accessible: false,
     focusable: true,
     nativeTabStop: manager.focusedKey == null,
-    capturedKeys: keyboard.keysFor(null),
-    onKeyDown: keyboard.onKeyDown,
+    capturedKeys: [...keyboard.keysFor(null), ...(dragAndDrop.collectionProps.capturedKeys ?? [])],
+    onKeyDown: (event: Parameters<typeof keyboard.onKeyDown>[0]) => {
+      dragAndDrop.collectionProps.onKeyDown?.(event)
+      if (!event.defaultPrevented) keyboard.onKeyDown(event)
+    },
+    onKeyUp: dragAndDrop.collectionProps.onKeyUp,
     onFocus: (event: TNativeFocusEvent) => {
       if (event.nativeEvent.target !== findNodeHandle(root.current)) return
       observedFocus.current = true
@@ -319,6 +344,7 @@ const Receiver = <T extends object>({
         <NativeSelectableCollectionContext.Provider value={null}>
           <NativeTableContext.Provider
             value={{
+              dragAndDrop,
               state,
               collection,
               target,
@@ -365,34 +391,39 @@ const Receiver = <T extends object>({
               sortColumn: (key) => state.sort(key),
             }}
           >
-            <View
-              testID={`${rootTestID}-shell`}
-              style={{ width: "100%", height: "100%", minHeight: 0, flexDirection: "column" }}
-            >
-              <NativeCollectionSemanticsContext.Provider
-                value={JSON.stringify({
-                  kind: "root",
-                  rowCount: rows.length + headerCount,
-                  columnCount,
-                  hierarchical: state.treeColumn != null,
-                  selectionMode: manager.selectionMode,
-                })}
-              >
-                <NativeCollectionItemBindingContext.Provider value={actions.bindingFor(null)}>
-                  {render ? render(hostProps, renderState) : <NativeFocusView {...hostProps} />}
-                </NativeCollectionItemBindingContext.Provider>
-              </NativeCollectionSemanticsContext.Provider>
-              {queryControls?.pagination && (
-                <View style={{ flexShrink: 0, flexDirection: "row", justifyContent: "flex-end", paddingTop: 5 }}>
-                  <Pagination
-                    maxVisiblePages={4}
-                    showIncrementButtonsWithOnePage={false}
-                    chosenPaginationSubcomponents={["items-per-page", "primary-controls"]}
-                    {...queryControls.pagination}
-                  />
+            <NativeDragAndDropContext.Provider value={dragAndDrop.context}>
+              <NativeDropIndicatorContext.Provider value={{ render: dragAndDrop.renderIndicator }}>
+                <View
+                  testID={`${rootTestID}-shell`}
+                  style={{ width: "100%", height: "100%", minHeight: 0, flexDirection: "column" }}
+                >
+                  <NativeCollectionSemanticsContext.Provider
+                    value={JSON.stringify({
+                      kind: "root",
+                      rowCount: rows.length + headerCount,
+                      columnCount,
+                      hierarchical: state.treeColumn != null,
+                      selectionMode: manager.selectionMode,
+                    })}
+                  >
+                    <NativeCollectionItemBindingContext.Provider value={actions.bindingFor(null)}>
+                      {render ? render(hostProps, renderState) : <NativeFocusView {...hostProps} />}
+                    </NativeCollectionItemBindingContext.Provider>
+                  </NativeCollectionSemanticsContext.Provider>
+                  {queryControls?.pagination && (
+                    <View style={{ flexShrink: 0, flexDirection: "row", justifyContent: "flex-end", paddingTop: 5 }}>
+                      <Pagination
+                        maxVisiblePages={4}
+                        showIncrementButtonsWithOnePage={false}
+                        chosenPaginationSubcomponents={["items-per-page", "primary-controls"]}
+                        {...queryControls.pagination}
+                      />
+                    </View>
+                  )}
+                  {dragAndDrop.preview}
                 </View>
-              )}
-            </View>
+              </NativeDropIndicatorContext.Provider>
+            </NativeDragAndDropContext.Provider>
           </NativeTableContext.Provider>
         </NativeSelectableCollectionContext.Provider>
       </NativeTableStateContext.Provider>
@@ -459,6 +490,7 @@ export const Table = <T extends object = object>(authored: TNativeTableProps<T>)
       labels,
       sortingEnabled: !!props.queryControls?.sorting,
       resizingEnabled: !!props.columnResizing?.enabled,
+      draggingEnabled: !!props.dragAndDropHooks?.useDraggableCollectionState,
     }),
     [
       selection.selectionMode,
@@ -466,6 +498,7 @@ export const Table = <T extends object = object>(authored: TNativeTableProps<T>)
       labels,
       !!props.queryControls?.sorting,
       !!props.columnResizing?.enabled,
+      !!props.dragAndDropHooks?.useDraggableCollectionState,
     ],
   )
   return (

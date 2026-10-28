@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference -- Isolated consumers need this ambient Flow-only SDK script; it has no runtime module to import.
+/// <reference path="./nativeBlob.d.ts" />
 import SDKBlobManager from "react-native/Libraries/Blob/BlobManager"
 
 import NativeModule from "../../input/specs/NativeCUIDragAndDrop"

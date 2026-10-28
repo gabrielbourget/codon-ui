@@ -3,6 +3,8 @@ import { Platform, type PointerEvent, type View } from "react-native"
 
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
 import { createNativeCollectionBranch } from "../../collection/CollectionBuilder"
+import { NATIVE_DEFAULT_SLOT, useNativeCollectionRefs } from "../../collection/context"
+import { useNativeDraggableItem, useNativeDroppableItem } from "../../collection/dragAndDrop/hooks"
 import { NativeCollectionCellFocusContext, NativeCollectionRendererContext } from "../../collection/renderer"
 import type { TNativeCollectionNode } from "../../collection/snapshot"
 import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
@@ -14,6 +16,7 @@ import type { TNativePressEvent } from "../../input/types"
 import { NativeMotionOwnerHost } from "../../motion/owner/NativeMotionOwnerHost"
 import { useNativeTheme } from "../../theme"
 import { NativeButton } from "../Button/Button"
+import { NativeButtonContext } from "../Button/context"
 import { encodeCollectionKey } from "../collection"
 import { resolveNativeStyle } from "../colors"
 import { openNativeLink } from "../Link/navigation"
@@ -26,6 +29,7 @@ import {
   getNativeTagGroupSelectionOperation,
   NATIVE_TAG_GROUP_POINTER_TYPES,
 } from "../TagGroup/intent"
+import { Text } from "../Text/Text"
 
 import { NativeTableOptionsContext, useNativeTable } from "./context"
 import { getNativeTableColumns, renderNativeTableValue } from "./rendering"
@@ -106,6 +110,17 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
     isLink: table.manager.isLink(node.key),
     linkBehavior: "action",
   })
+  const dnd = table.dragAndDrop
+  const draggable = (dnd.context.dragAndDropHooks?.useDraggableItem ?? useNativeDraggableItem)(
+    { key: node.key, hasDragButton: dnd.dragEnabled, hasAction: state.hasAction },
+    dnd.dragState,
+  )
+  const droppable = (dnd.context.dragAndDropHooks?.useDroppableItem ?? useNativeDroppableItem)(
+    { target: { type: "item", key: node.key, dropPosition: "on" } },
+    dnd.dropState,
+    original,
+  )
+  const rowRef = useNativeCollectionRefs(boundRef, draggable.dragProps.ref)
   const paint = useTableHover(original, action.isActive, {
     onPointerEnter: native.onPointerEnter,
     onPointerLeave: native.onPointerLeave,
@@ -235,7 +250,7 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
     <NativeCollectionItemBindingContext.Provider value={action.binding}>
       <NativeButton
         {...nativeViewProps(native)}
-        ref={boundRef}
+        ref={rowRef}
         testID={native.testID ?? aliasID ?? `table-row-${encodeCollectionKey(node.key)}`}
         nativeRole="row"
         nativeAccessible={false}
@@ -243,9 +258,27 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
         nativeProgrammaticFocusable
         onKeyDown={(event) => {
           onKeyDown?.(event)
-          table.keyboard.captureTypeahead(event)
+          draggable.dragProps.onKeyDown?.(event)
+          if (!event.defaultPrevented) droppable.dropProps.onKeyDown?.(event)
+          if (!event.defaultPrevented) table.keyboard.captureTypeahead(event)
         }}
-        onKeyUp={onKeyUp}
+        onKeyUp={(event) => {
+          onKeyUp?.(event)
+          draggable.dragProps.onKeyUp?.(event)
+          if (!event.defaultPrevented) droppable.dropProps.onKeyUp?.(event)
+        }}
+        accessibilityHint={native.accessibilityHint ?? draggable.dragProps.accessibilityHint}
+        accessibilityElementsHidden={droppable.dropProps.accessibilityElementsHidden}
+        importantForAccessibility={droppable.dropProps.importantForAccessibility}
+        accessibilityActions={[
+          ...(native.accessibilityActions ?? []),
+          ...(draggable.dragProps.accessibilityActions ?? []),
+        ]}
+        onAccessibilityAction={(event) => {
+          native.onAccessibilityAction?.(event)
+          draggable.dragProps.onAccessibilityAction?.(event)
+          droppable.dropProps.onAccessibilityAction?.(event)
+        }}
         nativeRender={(props, flags) => {
           const hasChildItems = !!(
             node.props.hasChildItems || table.collection.getItem(node.lastChildKey!)?.type !== "cell"
@@ -261,8 +294,8 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
             isFocusVisible: flags.isFocusVisible,
             selectionMode: table.manager.selectionMode,
             selectionBehavior: table.manager.selectionBehavior,
-            isDragging: undefined,
-            isDropTarget: undefined,
+            isDragging: dnd.dragEnabled ? dnd.dragState.isDragging(node.key) : undefined,
+            isDropTarget: dnd.dropEnabled ? droppable.isDropTarget : undefined,
             isFocusVisibleWithin:
               focusWithin.within &&
               action.isActive() &&
@@ -286,11 +319,13 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
               nativeDetailsBy={nativeAccessibilityIDs(details ?? ariaDetails)}
               capturedKeys={[
                 ...table.keyboard.keysFor(node.key),
+                ...(draggable.dragProps.capturedKeys ?? []),
+                ...(dnd.collectionProps.capturedKeys ?? []),
                 ...(state.allowsSelection || state.hasAction ? ["Enter", " "].flatMap(nativeKeyTokens) : []),
               ]}
               onKeyDown={(event) => {
                 props.onKeyDown?.(event)
-                table.keyboard.onKeyDown(event)
+                if (!event.defaultPrevented) table.keyboard.onKeyDown(event)
               }}
             />
           )
@@ -363,7 +398,11 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
         }}
       >
         <NativeContentContext.Provider value={{ foregroundColor, isButton: false, textStyle: styles.text }}>
-          <renderer.CollectionBranch collection={table.collection} parent={node} />
+          <NativeButtonContext.Provider
+            value={{ slots: { [NATIVE_DEFAULT_SLOT]: {}, drag: draggable.dragButtonProps } }}
+          >
+            <renderer.CollectionBranch collection={table.collection} parent={node} />
+          </NativeButtonContext.Provider>
         </NativeContentContext.Provider>
       </NativeButton>
     </NativeCollectionItemBindingContext.Provider>
@@ -380,6 +419,17 @@ export const TableRow = createNativeCollectionBranch<object, TNativeTableRowProp
     const radius = props.geometry === "orthogonal" ? 0 : props.geometry === "round" ? 10000 : theme.radius.rounded
     return (
       <>
+        {options.draggingEnabled && (
+          <TableCell
+            id={`${encodeCollectionKey(props.id ?? generated)}:__drag`}
+            columnID="__drag"
+            style={{ width: 30, padding: 0 }}
+          >
+            <NativeButton slot="drag" style={{ padding: 4 }}>
+              <Text>⠿</Text>
+            </NativeButton>
+          </TableCell>
+        )}
         {options.behavior === "toggle" && (
           <TableCell
             id={`${encodeCollectionKey(props.id ?? generated)}:__selection`}

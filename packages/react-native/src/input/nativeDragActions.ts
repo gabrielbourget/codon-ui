@@ -28,6 +28,7 @@ export type TNativeDragMemberBinding = Readonly<{
   instanceId: string
   targetTag: number
   handleTag: number
+  role?: "source" | "target" | "both"
 }>
 export type TNativeDragViewBinding = Readonly<{
   draggable: boolean
@@ -144,11 +145,12 @@ export const createNativeDragActions = (scope: TNativeKeyScope) => {
         !member.instanceId ||
         !target(member.targetTag) ||
         (member.handleTag !== 0 && !target(member.handleTag)) ||
-        keys.has(member.key) ||
+        (member.role !== undefined && !["both", "source", "target"].includes(member.role)) ||
+        keys.has(`${member.key}:${member.role ?? "both"}`) ||
         instances.has(member.instanceId)
       )
         throw new Error("Native drag action: duplicate or invalid original member metadata")
-      keys.add(member.key)
+      keys.add(`${member.key}:${member.role ?? "both"}`)
       instances.add(member.instanceId)
     }
     return { ...value, members: value.members.map((member) => ({ ...member })) }
@@ -160,6 +162,7 @@ export const createNativeDragActions = (scope: TNativeKeyScope) => {
         listeners.delete(listener)
       }
     },
+    ownerId: scope.ownerId,
     snapshot: () => revision,
     flush,
     window: () => ({ ...window }),

@@ -44,11 +44,12 @@ final class CUIDragInteractions {
   static void beginDispatch() { if (dispatchDepth++ == 0) currentDispatch = ++dispatchSerial; }
   static void endDispatch() { dispatchDepth--; }
   private static final class Member {
-    final String key, instance;
-    final int tag, handleTag;
+    final String key, instance, role;
+    final int tag;
+    int handleTag;
     WeakReference<View> view = new WeakReference<>(null), handle = new WeakReference<>(null);
     boolean resolved, handleResolved;
-    Member(JSONObject row) throws Exception { key = row.getString("key"); instance = row.getString("instanceId"); tag = tag(row.get("targetTag"), false); handleTag = tag(row.get("handleTag"), true); }
+    Member(JSONObject row) throws Exception { key = row.getString("key"); role = row.optString("role", "both"); if (!java.util.Arrays.asList("source", "target", "both").contains(role)) throw new IllegalStateException("native-drag-member-role-invalid"); instance = row.getString("instanceId"); tag = tag(row.get("targetTag"), false); handleTag = tag(row.get("handleTag"), true); }
   }
   private static final class Binding {
     JSONObject data;
@@ -161,9 +162,11 @@ final class CUIDragInteractions {
         JSONArray rows=binding.data.getJSONArray("members"); Set<String> keep=new HashSet<>(), keys=new HashSet<>();
         for (int i=0;i<rows.length();i++) {
           JSONObject row=rows.getJSONObject(i); String instance=row.getString("instanceId");
-          if (instance.isEmpty() || !keep.add(instance) || !keys.add(row.getString("key"))) throw new IllegalStateException("native-drag-members-ambiguous");
+          if (instance.isEmpty() || !keep.add(instance) || !keys.add(row.getString("key")+":"+row.optString("role","both"))) throw new IllegalStateException("native-drag-members-ambiguous");
           Member member=binding.members.get(instance); if (member==null) { member=new Member(row); binding.members.put(instance,member); }
-          if (!member.key.equals(row.getString("key")) || member.tag!=tag(row.get("targetTag"),false) || member.handleTag!=tag(row.get("handleTag"),true)) throw new IllegalStateException("native-drag-original-member-retargeted");
+          if (!member.key.equals(row.getString("key")) || member.tag!=tag(row.get("targetTag"),false) || !member.role.equals(row.optString("role","both"))) throw new IllegalStateException("native-drag-original-member-retargeted");
+          int handleTag=tag(row.get("handleTag"),true);
+          if (member.handleTag!=handleTag) { member.handleTag=handleTag; member.handleResolved=false; member.handle.clear(); }
           View view=resolve(member.tag); if (view==null || !view.isAttachedToWindow() || !descendant(view,root) || (member.resolved && member.view.get()!=view)) throw new IllegalStateException("native-drag-original-member-unavailable");
           member.view=new WeakReference<>(view); member.resolved=true;
           if (member.handleTag!=0) {
@@ -224,7 +227,7 @@ final class CUIDragInteractions {
       .put("surfaceId",UIManagerHelper.getSurfaceId(scope)).put("scopeTarget",scope.getId()).put("rootTarget",binding.data.getInt("rootTarget")).put("itemTarget",member==null?0:member.tag);
     JSONArray items=new JSONArray();
     for (Member item:binding.members.values()) if (item.view.get()!=null && item.view.get().isAttachedToWindow() && descendant(item.view.get(),binding.root.get()))
-      items.put(new JSONObject().put("key",item.key).put("instanceId",item.instance).put("targetTag",item.tag).put("rect",rect(item.view.get())));
+      items.put(new JSONObject().put("key",item.key).put("instanceId",item.instance).put("targetTag",item.tag).put("role",item.role).put("rect",rect(item.view.get())));
     JSONObject payload=new JSONObject(values.toString()).put("x",point[0]/density()).put("y",point[1]/density())
       .put("geometry",new JSONObject().put("revision",++geometryRevision).put("root",rect(binding.root.get())).put("items",items));
     if (member!=null) payload.put("key",member.key).put("instanceId",member.instance);
@@ -238,7 +241,7 @@ final class CUIDragInteractions {
     if (!transform(scope,scope.getRootView()).invert(inverse)) return null; inverse.mapPoints(local);
     List<TouchTargetHelper.ViewTarget> path=TouchTargetHelper.findTargetPathAndCoordinatesForTouch(local[0],local[1],scope,new float[2]);
     Member selected=null; int depth=Integer.MAX_VALUE;
-    for (Member member:binding.members.values()) for (int i=0;i<path.size();i++) if (path.get(i).getViewId()==member.tag && i<depth) { selected=member; depth=i; }
+    for (Member member:binding.members.values()) if (!member.role.equals("target")) for (int i=0;i<path.size();i++) if (path.get(i).getViewId()==member.tag && i<depth) { selected=member; depth=i; }
     return selected;
   }
   void touch(MotionEvent event) {
@@ -289,7 +292,10 @@ final class CUIDragInteractions {
       if (maps.length()==0) { status(binding,true,"","retired"); return; }
       transfer=new Source(id,this,binding,candidate.member,original,new JSONArray(maps.toString()),new JSONArray(operations.toString())); source=transfer;
       ClipData data=localData(transfer);
-      View preview=binding.preview.get(); View.DragShadowBuilder shadow=preview==null?new View.DragShadowBuilder(original):new Shadow(preview,(float)binding.data.getDouble("previewX")*density(),(float)binding.data.getDouble("previewY")*density());
+      refresh();
+      View preview=binding.preview.get();
+      if (response.optBoolean("previewExpected",false) && (preview==null || preview.getWidth()<=0 || preview.getHeight()<=0)) throw new IllegalStateException("native-drag-authored-preview-unavailable");
+      View.DragShadowBuilder shadow=preview==null?new View.DragShadowBuilder(original):new Shadow(preview,(float)binding.data.getDouble("previewX")*density(),(float)binding.data.getDouble("previewY")*density());
       boolean started=original.startDragAndDrop(data,shadow,transfer,0); transfer.starting=false; transfer.started=started;
       if (!started) { transfer.ended=true; source=null; status(binding,true,"","retired"); }
     } catch (Exception error) { if (transfer!=null) transfer.ended=true; source=null; status(binding,false,error.toString(),"binding"); }
@@ -397,7 +403,7 @@ final class CUIDragInteractions {
       throw new IllegalStateException("native-drag-original-geometry-owner-retired");
     JSONArray items=new JSONArray();
     for (Member member:binding.members.values()) if (member.view.get()!=null && member.view.get().isAttachedToWindow() && descendant(member.view.get(),binding.root.get()))
-      items.put(new JSONObject().put("key",member.key).put("instanceId",member.instance).put("targetTag",member.tag).put("rect",rect(member.view.get())));
+      items.put(new JSONObject().put("key",member.key).put("instanceId",member.instance).put("targetTag",member.tag).put("role",member.role).put("rect",rect(member.view.get())));
     return new JSONObject().put("requestId",request.getString("requestId")).put("windowId",window).put("epoch",epoch)
       .put("geometry",new JSONObject().put("revision",++geometryRevision).put("root",rect(binding.root.get())).put("items",items));
   }

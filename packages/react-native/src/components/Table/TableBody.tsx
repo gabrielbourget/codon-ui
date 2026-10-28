@@ -38,7 +38,7 @@ const Body = (props: TNativeTableBodyProps<object>, ref: ForwardedRef<View>, nod
   const styles = splitNativeTextStyle(
     resolveNativeStyle([content?.textStyle, customStyles, style], "TableBody", "style"),
   )
-  const renderState = { isEmpty: table.collection.size === 0, isDropTarget: false }
+  const renderState = { isEmpty: table.collection.size === 0, isDropTarget: table.dragAndDrop.isDropTarget }
   const hostProps = {
     ...nativeViewProps(native),
     ref,
@@ -54,7 +54,11 @@ const Body = (props: TNativeTableBodyProps<object>, ref: ForwardedRef<View>, nod
         {!isLoading && items.length === 0 && renderEmptyState ? (
           getNativeButtonContent(renderEmptyState(renderState), styles.text)
         ) : (
-          <renderer.CollectionBranch collection={table.collection} parent={node} />
+          <renderer.CollectionBranch
+            collection={table.collection}
+            parent={node}
+            renderDropIndicator={table.dragAndDrop.renderDropIndicator}
+          />
         )}
       </NativeContentContext.Provider>
     ),
@@ -72,7 +76,7 @@ export const TableBody = createNativeCollectionBranch<object, TNativeTableBodyPr
       dependencies: [items, props.columns, props.rowKey, props.renderCell, ...(props.dependencies ?? [])],
       children: (row) => (
         <TableRow
-          id={props.rowKey ? String(props.rowKey(row)) : undefined}
+          id={props.rowKey ? props.rowKey(row) : undefined}
           item={row}
           columns={props.columns}
           geometry={props.geometry}

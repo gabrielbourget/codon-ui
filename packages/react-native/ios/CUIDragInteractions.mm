@@ -128,8 +128,9 @@ static BOOL CUIDescendant(UIView *view, UIView *root) { for (UIView *item = view
     NSMutableSet *keys = [NSMutableSet new], *instances = [NSMutableSet new];
     for (NSDictionary *member in binding[@"members"]) {
       CUIString(member[@"key"]); NSString *instance = CUIString(member[@"instanceId"]); CUITag(member[@"targetTag"]); CUITag(member[@"handleTag"], YES);
-      if (!instance.length || [keys containsObject:member[@"key"]] || [instances containsObject:instance]) @throw [NSException exceptionWithName:@"CUI.Drag" reason:@"native-drag-members-ambiguous" userInfo:nil];
-      [keys addObject:member[@"key"]]; [instances addObject:instance];
+      if (member[@"role"] && ![@[@"source", @"target", @"both"] containsObject:member[@"role"]]) @throw [NSException exceptionWithName:@"CUI.Drag" reason:@"native-drag-member-role-invalid" userInfo:nil];
+      if (!instance.length || [keys containsObject:[NSString stringWithFormat:@"%@:%@", member[@"key"], member[@"role"] ?: @"both"]] || [instances containsObject:instance]) @throw [NSException exceptionWithName:@"CUI.Drag" reason:@"native-drag-members-ambiguous" userInfo:nil];
+      [keys addObject:[NSString stringWithFormat:@"%@:%@", member[@"key"], member[@"role"] ?: @"both"]]; [instances addObject:instance];
     }
   }
   _configuration = value;
@@ -181,7 +182,7 @@ static BOOL CUIDescendant(UIView *view, UIView *root) { for (UIView *item = view
     @"itemTarget": member ? member.data[@"targetTag"] : @0, @"sessionId": session, @"kind": kind };
   NSMutableArray *rectangles = [NSMutableArray new];
   for (CUIDragMember *item in binding.members.allValues) if (item.view.window == _scope.window && CUIDescendant(item.view, binding.root))
-    [rectangles addObject:@{ @"key": item.data[@"key"], @"instanceId": item.data[@"instanceId"], @"targetTag": item.data[@"targetTag"], @"rect": CUIRect(item.view, _scope.window) }];
+    [rectangles addObject:@{ @"key": item.data[@"key"], @"instanceId": item.data[@"instanceId"], @"targetTag": item.data[@"targetTag"], @"role": item.data[@"role"] ?: @"both", @"rect": CUIRect(item.view, _scope.window) }];
   NSMutableDictionary *payload = [values mutableCopy] ?: [NSMutableDictionary new]; payload[@"x"] = @(point.x); payload[@"y"] = @(point.y);
   payload[@"geometry"] = @{ @"revision": @(++_geometryRevision), @"root": CUIRect(binding.root, _scope.window), @"items": rectangles };
   if (member) { payload[@"key"] = member.data[@"key"]; payload[@"instanceId"] = member.data[@"instanceId"]; }
@@ -203,7 +204,7 @@ static BOOL CUIDescendant(UIView *view, UIView *root) { for (UIView *item = view
     @throw [NSException exceptionWithName:@"CUI.Drag" reason:@"native-drag-original-geometry-owner-retired" userInfo:nil];
   NSMutableArray *items = [NSMutableArray new];
   for (CUIDragMember *member in binding.members.allValues) if (member.view && member.view.window == _scope.window && CUIDescendant(member.view,binding.root))
-    [items addObject:@{ @"key": member.data[@"key"], @"instanceId": member.data[@"instanceId"], @"targetTag": member.data[@"targetTag"], @"rect": CUIRect(member.view,_scope.window) }];
+    [items addObject:@{ @"key": member.data[@"key"], @"instanceId": member.data[@"instanceId"], @"targetTag": member.data[@"targetTag"], @"role": member.data[@"role"] ?: @"both", @"rect": CUIRect(member.view,_scope.window) }];
   return @{ @"requestId": CUIString(request[@"requestId"]), @"windowId": session[@"windowId"], @"epoch": session[@"epoch"],
     @"geometry": @{ @"revision": @(++_geometryRevision), @"root": CUIRect(binding.root,_scope.window), @"items": items } };
 }
@@ -228,7 +229,9 @@ static BOOL CUIDescendant(UIView *view, UIView *root) { for (UIView *item = view
       NSString *identity = descriptor[@"instanceId"]; [keep addObject:identity];
       CUIDragMember *member = _members[identity];
       if (!member) { member = [CUIDragMember new]; member.data = descriptor; _members[identity] = member; }
-      if (![member.data[@"key"] isEqual:descriptor[@"key"]] || ![member.data[@"targetTag"] isEqual:descriptor[@"targetTag"]] || ![member.data[@"handleTag"] isEqual:descriptor[@"handleTag"]]) @throw [NSException exceptionWithName:@"CUI.Drag" reason:@"native-drag-original-member-retargeted" userInfo:nil];
+      if (![member.data[@"key"] isEqual:descriptor[@"key"]] || ![member.data[@"targetTag"] isEqual:descriptor[@"targetTag"]] || ![(member.data[@"role"] ?: @"both") isEqual:(descriptor[@"role"] ?: @"both")]) @throw [NSException exceptionWithName:@"CUI.Drag" reason:@"native-drag-original-member-retargeted" userInfo:nil];
+      if (![member.data[@"handleTag"] isEqual:descriptor[@"handleTag"]]) { member.handleResolved = NO; member.handle = nil; }
+      member.data = descriptor;
       UIView *view = CUIResolveDragView(_data[@"moduleId"], [descriptor[@"targetTag"] integerValue]);
       if (!view || view.window != _root.window || !CUIDescendant(view, _root) || (member.resolved && member.view != view)) @throw [NSException exceptionWithName:@"CUI.Drag" reason:@"native-drag-original-member-unavailable" userInfo:nil];
       member.view = view; member.resolved = YES;
@@ -253,7 +256,7 @@ static BOOL CUIDescendant(UIView *view, UIView *root) { for (UIView *item = view
 - (CUIDragMember *)memberAt:(CGPoint)point {
   UIView *hit = [_root hitTest:[_owner.scope.window convertPoint:point toView:_root] withEvent:nil];
   CUIDragMember *selected = nil;
-  for (CUIDragMember *member in _members.allValues) if (member.view && CUIDescendant(hit, member.view) && (!selected || CUIDescendant(member.view, selected.view))) selected = member;
+  for (CUIDragMember *member in _members.allValues) if (![member.data[@"role"] isEqual:@"target"] && member.view && CUIDescendant(hit, member.view) && (!selected || CUIDescendant(member.view, selected.view))) selected = member;
   return selected;
 }
 - (BOOL)owns:(CUIDragTransfer *)transfer {
@@ -280,6 +283,7 @@ static BOOL CUIDescendant(UIView *view, UIView *root) { for (UIView *item = view
     for (id operation in response[@"operations"]) if (![@[@"copy",@"move",@"link",@"cancel"] containsObject:operation]) @throw [NSException exceptionWithName:@"CUI.Drag" reason:@"native-drag-original-operation-invalid" userInfo:nil];
     transfer.maps = maps; transfer.operations = response[@"operations"]; session.localContext = transfer;
     [self refresh];
+    if ([response[@"previewExpected"] boolValue] && (!_preview || _preview.bounds.size.width <= 0 || _preview.bounds.size.height <= 0)) @throw [NSException exceptionWithName:@"CUI.Drag" reason:@"native-drag-authored-preview-unavailable" userInfo:nil];
     return transfer;
   } @catch (NSException *error) { transfer.ended = YES; [_sources removeObjectForKey:session]; [_owner status:self ready:NO error:error.reason kind:@"binding"]; return nil; }
 }

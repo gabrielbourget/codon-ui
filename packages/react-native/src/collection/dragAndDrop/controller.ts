@@ -63,7 +63,7 @@ const items = (values: TNativeDragItem[]) => {
 export class NativeDragController {
   private session: TNativeDragSession | null = null
   private target: TTarget | null = null
-  private lastDrop: { session: TNativeDragSession; identity: object } | null = null
+  private lastDrop: { session: TNativeDragSession; identity: object; operation: TNativeDropOperation } | null = null
   private generation = 0
   private revision = 0
   private listeners = new Set<() => void>()
@@ -216,7 +216,7 @@ export class NativeDragController {
     const target = this.target
     if (!session || session.id !== id || !this.current(session) || !target?.owner.current() || !point(event))
       throw new Error("Native drop action: original target authority is unavailable")
-    this.lastDrop = { session, identity: target.owner.identity }
+    this.lastDrop = { session, identity: target.owner.identity, operation: target.operation }
     try {
       const resolved = Array.isArray(data) ? data : await data
       if (!target.owner.current()) {
@@ -270,6 +270,35 @@ export class NativeDragController {
       this.changed()
     }
     return true
+  }
+
+  endSourceOnUnmount(identity: object) {
+    const session = this.session
+    if (!session?.source || session.source.identity !== identity) return false
+    const drop = this.lastDrop?.session === session ? this.lastDrop : null
+    try {
+      session.source.state.endDrag({
+        type: "dragend",
+        x: 0,
+        y: 0,
+        keys: session.keys,
+        dropOperation: drop?.operation ?? "cancel",
+        isInternal: !!drop && drop.identity === identity,
+      })
+    } finally {
+      this.retireSession(session.id)
+    }
+    return true
+  }
+
+  retireSession(id: string) {
+    const session = this.session
+    if (!session || session.id !== id) return
+    if (session.source) retireNativeDragState(session.source.state)
+    this.clearTarget(false)
+    this.session = null
+    if (this.lastDrop?.session === session) this.lastDrop = null
+    this.changed()
   }
 
   retire(identity: object) {

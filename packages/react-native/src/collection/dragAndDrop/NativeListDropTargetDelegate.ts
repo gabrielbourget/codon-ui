@@ -2,7 +2,8 @@
 import type { RefObject } from "react"
 import type { View } from "react-native"
 
-import type { TNativeCollectionNode as Node } from "../snapshot"
+import type { TNativeCollectionKey } from "../snapshot"
+type Node<T> = { key: TNativeCollectionKey; type: string } & { readonly __valueType?: T }
 
 import { readNativeDragGeometry } from "./geometry"
 import type { TNativeDragRect } from "./geometry"

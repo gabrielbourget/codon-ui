@@ -1,5 +1,6 @@
-import { createContext, useCallback, useContext, useMemo, useRef, useState, type ForwardedRef } from "react"
-import { findNodeHandle, PanResponder, View } from "react-native"
+import { createContext, useCallback, useContext, useInsertionEffect, useRef, useState, type ForwardedRef } from "react"
+import type { View } from "react-native"
+import { findNodeHandle } from "react-native"
 
 import { NativeCollectionActionsContext } from "../../collection/actions"
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
@@ -8,12 +9,22 @@ import {
   NativeCollectionBuilder,
   createNativeCollectionLeaf,
 } from "../../collection/CollectionBuilder"
+import { useNativeCollectionRefs } from "../../collection/context"
+import {
+  NativeDragAndDropContext,
+  NativeDropIndicatorContext,
+  NativeDropIndicator,
+  useNativeCollectionDragAndDrop,
+  useNativeDragAndDrop,
+  useNativeDraggableItem,
+  useNativeDroppableItem,
+} from "../../collection/dragAndDrop/hooks"
+import type { TNativeInsertDropEvent, TNativeReorderDropEvent } from "../../collection/dragAndDrop/types"
 import { NativeCollectionRendererContext, useNativePersistedKeys } from "../../collection/renderer"
 import { NativeCollectionSemanticsContext } from "../../collection/semantics"
 import type { TNativeCollectionSessionSnapshot } from "../../collection/session"
 import type { TNativeCollectionNode, TNativeCollectionSnapshot } from "../../collection/snapshot"
 import { useListState } from "../../collection/state"
-import { nativeKeyTokens } from "../../input/keyScope"
 import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { useNativeTheme } from "../../theme"
@@ -27,7 +38,7 @@ import { resolveNativeTagTransition, useNativeTagColor, useNativeTagReducedMotio
 
 import type { TQueryControlLabels } from "./controlLabels"
 import { QuerySortEntry, type TQuerySortEntryProps } from "./QueryControls"
-import { useSortReorder, type TSortReorderRequest } from "./useSortReorder"
+import type { TSortReorderRequest } from "./useSortReorder"
 
 export type TQuerySortParameterListProps = Omit<TQuerySortEntryProps, "parameter"> & {
   sortParameterList: TTableSortInstruction[]
@@ -41,7 +52,7 @@ const ListContext = createContext<{
   manager: ReturnType<typeof useListState>["selectionManager"]
   parentTarget: number
   ordinals: ReadonlyMap<string | number, number>
-  reorder: ReturnType<typeof useSortReorder>
+  dragAndDrop: ReturnType<typeof useNativeCollectionDragAndDrop>
   register: TKeyboard["register"]
 } | null>(null)
 type TItemProps = TQuerySortEntryProps & { id: string; textValue: string; label: string }
@@ -50,7 +61,14 @@ const Option = (props: TItemProps, ref: ForwardedRef<View>, node: TNativeCollect
   const actions = useContext(NativeCollectionActionsContext)!
   const theme = useNativeTheme()
   const target = useRef<View | null>(null)
-  const merged = useTableTargetRef(target, ref, { node, register: list.register })
+  const original = useTableTargetRef(target, ref, { node, register: list.register })
+  const draggable = useNativeDraggableItem({ key: node.key, hasAction: false }, list.dragAndDrop.dragState)
+  const droppable = useNativeDroppableItem(
+    { target: { type: "item", key: node.key, dropPosition: "on" } },
+    list.dragAndDrop.dropState,
+    target,
+  )
+  const merged = useNativeCollectionRefs(original, draggable.dragProps.ref)
   const scope = useNativeKeyScope()
   const focused = list.manager.isFocused && list.manager.focusedKey === node.key
   const reduced = useNativeTagReducedMotion()
@@ -64,33 +82,19 @@ const Option = (props: TItemProps, ref: ForwardedRef<View>, node: TNativeCollect
   const binding = actions.bindingFor(node)
   const keys = [
     ...list.keyboard.keysFor(node.key),
-    ...(list.reorder.enabled ? ["Enter", "Escape", "Tab", "PageUp", "PageDown"].flatMap(nativeKeyTokens) : []),
+    ...(draggable.dragProps.capturedKeys ?? []),
+    ...(list.dragAndDrop.collectionProps.capturedKeys ?? []),
   ]
   const onKey = (event: Parameters<TKeyboard["onKeyDown"]>[0]) => {
-    if (!list.reorder.key(String(node.key), event)) list.keyboard.onKeyDown(event, node.key)
+    if (event.nativeEvent.phase === "up") {
+      draggable.dragProps.onKeyUp?.(event)
+      if (!event.defaultPrevented) droppable.dropProps.onKeyUp?.(event)
+    } else {
+      draggable.dragProps.onKeyDown?.(event)
+      if (!event.defaultPrevented) droppable.dropProps.onKeyDown?.(event)
+      if (!event.defaultPrevented) list.keyboard.onKeyDown(event, node.key)
+    }
   }
-  const { begin, move, drop, cancel, enabled } = list.reorder
-  const gesture = useMemo(
-    () =>
-      PanResponder.create({
-        onMoveShouldSetPanResponder: (_event, state) =>
-          enabled && state.numberActiveTouches === 1 && Math.abs(state.dy) > 5,
-        onPanResponderGrant: () => begin(String(node.key), false),
-        onPanResponderMove: (event, state) => {
-          if (state.numberActiveTouches !== 1) cancel()
-          else move(event.nativeEvent.pageX, event.nativeEvent.pageY)
-        },
-        onPanResponderRelease: (event) => {
-          move(event.nativeEvent.pageX, event.nativeEvent.pageY)
-          drop()
-        },
-        onPanResponderTerminate: cancel,
-        onPanResponderTerminationRequest: () => true,
-      }),
-    [enabled, node.key, begin, move, drop, cancel],
-  )
-  const ordinal = list.ordinals.get(node.key) ?? 0
-  const indicator = list.reorder.indicator
   return (
     <NativeCollectionSemanticsContext.Provider
       value={JSON.stringify({
@@ -101,7 +105,6 @@ const Option = (props: TItemProps, ref: ForwardedRef<View>, node: TNativeCollect
     >
       <NativeCollectionItemBindingContext.Provider value={binding}>
         <NativeFocusHost
-          {...gesture.panHandlers}
           ref={merged}
           testID={`query-sort-option-${node.key}`}
           role="option"
@@ -113,22 +116,14 @@ const Option = (props: TItemProps, ref: ForwardedRef<View>, node: TNativeCollect
           onFocus={(event) => list.keyboard.observe(node.key, event)}
           onKeyDown={onKey}
           onKeyUp={onKey}
-          accessibilityActions={
-            enabled
-              ? [
-                  { name: "activate", label: "Drag sort parameter" },
-                  { name: "dropBefore", label: "Drop before this sort parameter" },
-                  { name: "dropAfter", label: "Drop after this sort parameter" },
-                  { name: "escape", label: "Cancel sort parameter drag" },
-                ]
-              : undefined
-          }
+          accessibilityHint={draggable.dragProps.accessibilityHint}
+          accessibilityActions={draggable.dragProps.accessibilityActions}
           onAccessibilityAction={(event) => {
-            if (event.nativeEvent.actionName === "activate") begin(String(node.key), true)
-            else if (event.nativeEvent.actionName === "escape") cancel()
-            else if (event.nativeEvent.actionName === "dropBefore") list.reorder.dropAt(String(node.key), "before")
-            else if (event.nativeEvent.actionName === "dropAfter") list.reorder.dropAt(String(node.key), "after")
+            draggable.dragProps.onAccessibilityAction?.(event)
+            droppable.dropProps.onAccessibilityAction?.(event)
           }}
+          accessibilityElementsHidden={droppable.dropProps.accessibilityElementsHidden}
+          importantForAccessibility={droppable.dropProps.importantForAccessibility}
           style={{
             minHeight: 20,
             width: "100%",
@@ -149,21 +144,6 @@ const Option = (props: TItemProps, ref: ForwardedRef<View>, node: TNativeCollect
             onKey={onKey}
           />
           <QuerySortEntry {...entry} />
-          {(indicator === ordinal || (indicator === list.ordinals.size && ordinal === indicator - 1)) && (
-            <View
-              testID="query-sort-drop-indicator"
-              pointerEvents="none"
-              accessible={false}
-              style={{
-                position: "absolute",
-                left: 0,
-                right: 0,
-                ...(indicator === ordinal ? { top: 0 } : { bottom: 0 }),
-                height: 2,
-                backgroundColor: theme.colors.controlBorder,
-              }}
-            />
-          )}
         </NativeFocusHost>
       </NativeCollectionItemBindingContext.Provider>
     </NativeCollectionSemanticsContext.Provider>
@@ -204,25 +184,52 @@ const List = ({
     allowItemDescendantKeys: true,
     canAct: props.canAct,
   })
-  const reorder = useSortReorder(collection, keyboard.canAct, props.onReorder, root)
+  const owner = useRef({ props, canAct: keyboard.canAct })
+  const dragged = useRef<string | null>(null)
+  useInsertionEffect(() => {
+    owner.current = { props, canAct: keyboard.canAct }
+  })
+  const dropped = (event: TNativeInsertDropEvent | TNativeReorderDropEvent) => {
+    const current = owner.current
+    if (
+      !current.canAct() ||
+      dragged.current === null ||
+      typeof event.target.key !== "string" ||
+      event.target.dropPosition === "on"
+    )
+      return
+    current.props.onReorder?.(dragged.current, event.target.key, event.target.dropPosition)
+  }
+  const { dragAndDropHooks } = useNativeDragAndDrop({
+    isDisabled: !props.onReorder,
+    onDragStart: (event) => {
+      const key = event.keys.values().next().value
+      dragged.current = typeof key === "string" ? key : null
+    },
+    onReorder: dropped,
+    onInsert: dropped,
+    getItems: (keys) =>
+      [...keys].map((key) => {
+        const parameter = owner.current.props.sortParameterList.find((item) => item.id === key)
+        if (!parameter) throw new Error("Sort drag source is no longer in the original query")
+        return { "text/plain": parameter.criteriaName }
+      }),
+    renderDropIndicator: (target) => <NativeDropIndicator target={target} testID="query-sort-drop-indicator" />,
+  })
+  const dragAndDrop = useNativeCollectionDragAndDrop({
+    hooks: dragAndDropHooks,
+    collection,
+    selectionManager: state.selectionManager,
+    root,
+    current: keyboard.canAct,
+    layoutDelegate: renderer.layoutDelegate,
+  })
   const focusedKeys = useNativePersistedKeys(
     state.selectionManager.focusedKey,
     keyboard.requestedKey,
     keyboard.observedKey,
   )
-  const persistedKeys = useMemo(() => {
-    if (reorder.source === null && reorder.targetKey === null && reorder.indicatorKey === null) return focusedKeys
-    const keys = new Set(focusedKeys ?? [])
-    for (const key of [reorder.source, reorder.targetKey, reorder.indicatorKey]) if (key !== null) keys.add(key)
-    return keys
-  }, [focusedKeys, reorder.source, reorder.targetKey, reorder.indicatorKey])
-  const register = useCallback<TKeyboard["register"]>(
-    (node, view) => {
-      keyboard.register(node, view)
-      reorder.register(node, view)
-    },
-    [keyboard.register, reorder.register],
-  )
+  const persistedKeys = new Set([...(focusedKeys ?? []), ...dragAndDrop.persistedKeys])
   return (
     <ListContext.Provider
       value={{
@@ -230,36 +237,51 @@ const List = ({
         manager: state.selectionManager,
         parentTarget: target,
         ordinals: new Map(rows.map((row, index) => [row.key, index])),
-        reorder,
-        register,
+        dragAndDrop,
+        register: keyboard.register,
       }}
     >
-      <NativeCollectionSemanticsContext.Provider value={JSON.stringify({ kind: "list-root", count: rows.length })}>
-        <NativeCollectionItemBindingContext.Provider value={actions.bindingFor(null)}>
-          <NativeFocusHost
-            ref={bind}
-            testID="query-sort-list"
-            role="list"
-            accessible={false}
-            accessibilityLabel={props.listLabels.listAriaLabel}
-            focusable
-            nativeTabStop={state.selectionManager.focusedKey == null}
-            capturedKeys={keyboard.keysFor(null)}
-            onFocus={keyboard.onFocus}
-            onKeyDown={keyboard.onKeyDown}
-            style={{ width: "100%", gap: theme.spacing.unit }}
-          >
-            <NativeCollectionTypeahead
-              keyboard={{ ...keyboard, typeaheadEnabled: keyboard.typeaheadEnabled && reorder.source === null }}
-              target={root}
-              tag={target}
-            />
-            <NativeContentContext.Provider value={{ foregroundColor: theme.colors.foreground, isButton: false }}>
-              <renderer.CollectionRoot collection={collection} persistedKeys={persistedKeys} />
-            </NativeContentContext.Provider>
-          </NativeFocusHost>
-        </NativeCollectionItemBindingContext.Provider>
-      </NativeCollectionSemanticsContext.Provider>
+      <NativeDragAndDropContext.Provider value={dragAndDrop.context}>
+        <NativeDropIndicatorContext.Provider value={{ render: dragAndDrop.renderIndicator }}>
+          <NativeCollectionSemanticsContext.Provider value={JSON.stringify({ kind: "list-root", count: rows.length })}>
+            <NativeCollectionItemBindingContext.Provider value={actions.bindingFor(null)}>
+              <NativeFocusHost
+                ref={bind}
+                testID="query-sort-list"
+                role="list"
+                accessible={false}
+                accessibilityLabel={props.listLabels.listAriaLabel}
+                focusable
+                nativeTabStop={state.selectionManager.focusedKey == null}
+                capturedKeys={[...keyboard.keysFor(null), ...(dragAndDrop.collectionProps.capturedKeys ?? [])]}
+                onFocus={keyboard.onFocus}
+                onKeyDown={(event) => {
+                  dragAndDrop.collectionProps.onKeyDown?.(event)
+                  if (!event.defaultPrevented) keyboard.onKeyDown(event)
+                }}
+                onKeyUp={dragAndDrop.collectionProps.onKeyUp}
+                style={{ width: "100%", gap: theme.spacing.unit }}
+              >
+                <NativeCollectionTypeahead
+                  keyboard={{
+                    ...keyboard,
+                    typeaheadEnabled: keyboard.typeaheadEnabled && !dragAndDrop.dragState.draggingKeys.size,
+                  }}
+                  target={root}
+                  tag={target}
+                />
+                <NativeContentContext.Provider value={{ foregroundColor: theme.colors.foreground, isButton: false }}>
+                  <renderer.CollectionRoot
+                    collection={collection}
+                    persistedKeys={persistedKeys}
+                    renderDropIndicator={dragAndDrop.renderDropIndicator}
+                  />
+                </NativeContentContext.Provider>
+              </NativeFocusHost>
+            </NativeCollectionItemBindingContext.Provider>
+          </NativeCollectionSemanticsContext.Provider>
+        </NativeDropIndicatorContext.Provider>
+      </NativeDragAndDropContext.Provider>
     </ListContext.Provider>
   )
 }
