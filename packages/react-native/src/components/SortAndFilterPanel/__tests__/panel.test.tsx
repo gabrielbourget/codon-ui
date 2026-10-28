@@ -1,6 +1,6 @@
 import "../../../collection/__tests__/nativeReceipts"
 
-import { cleanup } from "@testing-library/react-native"
+import { act as rawAct, cleanup } from "@testing-library/react-native"
 import { AccessibilityInfo, AppState, View } from "react-native"
 
 import {
@@ -166,7 +166,7 @@ beforeEach(() => {
   })
 })
 afterEach(async () => {
-  await act(() => nativeVirtualDrag.cancel())
+  await rawAct(() => nativeVirtualDrag.cancel())
   await cleanup()
   jest.restoreAllMocks()
   jest.clearAllTimers()

@@ -111,7 +111,7 @@ export class NativeCollectionDragBinding {
       this.pendingListeners.delete(listener)
     }
   }
-  pendingKeys = () => new Set([...this.pendingDrops].flatMap((pending) => [...pending.keys]))
+  pendingKeys = (): Set<TNativeCollectionKey> => new Set([...this.pendingDrops].flatMap((pending) => [...pending.keys]))
   private pendingChanged() {
     this.pendingRevision++
     for (const listener of this.pendingListeners) listener()
