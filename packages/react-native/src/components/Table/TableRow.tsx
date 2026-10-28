@@ -1,15 +1,20 @@
 import { useContext, useId, useInsertionEffect, useRef, useState, useSyncExternalStore, type ForwardedRef } from "react"
-import { Platform, type PointerEvent, type View } from "react-native"
+import { Platform, View, type ColorValue, type PointerEvent } from "react-native"
 
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
 import { createNativeCollectionBranch } from "../../collection/CollectionBuilder"
 import { NATIVE_DEFAULT_SLOT, useNativeCollectionRefs } from "../../collection/context"
-import { useNativeDraggableItem, useNativeDroppableItem } from "../../collection/dragAndDrop/hooks"
+import {
+  useNativeCollectionDropTarget,
+  useNativeDraggableItem,
+  useNativeDropIndicator,
+} from "../../collection/dragAndDrop/hooks"
 import { NativeCollectionCellFocusContext, NativeCollectionRendererContext } from "../../collection/renderer"
+import { NativeCollectionSemanticsContext } from "../../collection/semantics"
 import type { TNativeCollectionNode } from "../../collection/snapshot"
 import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
 import { nativeKeyTokens } from "../../input/keyScope"
-import { NativeFocusView } from "../../input/NativeFocusView"
+import { NativeFocusView, NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { nativeViewProps } from "../../input/nativeViewProps"
 import type { TNativePressEvent } from "../../input/types"
@@ -43,9 +48,9 @@ import { useTableTargetRef } from "./useTableTargetRef"
 const BACKGROUND_TRANSITION = resolveNativeTagTransition(250)
 const FOREGROUND_TRANSITION = resolveNativeTagTransition(350)
 const noSubscription = () => () => {}
-const DragIcon = () => {
+const DragIcon = ({ color }: { color?: ColorValue }) => {
   const content = useNativeContentContext()!
-  return <QueryGlyph kind="grip" size={12} color={content.foregroundColor} />
+  return <QueryGlyph kind="grip" size={12} color={color ?? content.foregroundColor} />
 }
 
 const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node: TNativeCollectionNode<object>) => {
@@ -54,6 +59,7 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
     textValue: _textValue,
     item: _item,
     hasChildItems: _hasChildItems,
+    iconColor: _iconColor,
     columns: _columns,
     renderCell: _render,
     geometry: _geometry,
@@ -119,10 +125,12 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
     { key: node.key, hasDragButton: dnd.dragEnabled, hasAction: state.hasAction },
     dnd.dragState,
   )
-  const droppable = (dnd.context.dragAndDropHooks?.useDroppableItem ?? useNativeDroppableItem)(
+  const dropRef = useRef<View | null>(null)
+  useNativeCollectionDropTarget(dnd.dropEnabled ? dnd.binding : null, node.key, original)
+  const droppable = (dnd.context.dragAndDropHooks?.useDropIndicator ?? useNativeDropIndicator)(
     { target: { type: "item", key: node.key, dropPosition: "on" } },
     dnd.dropState,
-    original,
+    dropRef,
   )
   const rowRef = useNativeCollectionRefs(boundRef, draggable.dragProps.ref)
   const paint = useTableHover(original, action.isActive, {
@@ -251,165 +259,176 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
   const foregroundColor =
     useNativeTagColor(targetForeground, FOREGROUND_TRANSITION, reduced, true).rendered ?? targetForeground
   return (
-    <NativeCollectionItemBindingContext.Provider value={action.binding}>
-      <NativeButton
-        {...nativeViewProps(native)}
-        ref={rowRef}
-        testID={native.testID ?? aliasID ?? `table-row-${encodeCollectionKey(node.key)}`}
-        nativeRole="row"
-        nativeAccessible={false}
-        nativeInteraction={state.allowsSelection || state.hasAction}
-        nativeProgrammaticFocusable
-        onKeyDown={(event) => {
-          onKeyDown?.(event)
-          draggable.dragProps.onKeyDown?.(event)
-          if (!event.defaultPrevented) droppable.dropProps.onKeyDown?.(event)
-          if (!event.defaultPrevented) table.keyboard.captureTypeahead(event)
-        }}
-        onKeyUp={(event) => {
-          onKeyUp?.(event)
-          draggable.dragProps.onKeyUp?.(event)
-          if (!event.defaultPrevented) droppable.dropProps.onKeyUp?.(event)
-        }}
-        accessibilityHint={native.accessibilityHint ?? draggable.dragProps.accessibilityHint}
-        accessibilityElementsHidden={droppable.dropProps.accessibilityElementsHidden}
-        importantForAccessibility={droppable.dropProps.importantForAccessibility}
-        accessibilityActions={[
-          ...(native.accessibilityActions ?? []),
-          ...(draggable.dragProps.accessibilityActions ?? []),
-        ]}
-        onAccessibilityAction={(event) => {
-          native.onAccessibilityAction?.(event)
-          draggable.dragProps.onAccessibilityAction?.(event)
-          droppable.dropProps.onAccessibilityAction?.(event)
-        }}
-        nativeRender={(props, flags) => {
-          const hasChildItems = !!(
-            node.props.hasChildItems || table.collection.getItem(node.lastChildKey!)?.type !== "cell"
-          )
-          const values: TNativeTableRowRenderState = {
-            isPressed: flags.isPressed,
-            isSelected: table.manager.isSelected(node.key),
-            isFocused: flags.isFocused,
-            isDisabled: table.manager.isDisabled(node.key),
-            allowsSelection: state.allowsSelection,
-            hasAction: state.hasAction,
-            isHovered: hover.isHovered,
-            isFocusVisible: flags.isFocusVisible,
-            selectionMode: table.manager.selectionMode,
-            selectionBehavior: table.manager.selectionBehavior,
-            isDragging: dnd.dragEnabled ? dnd.dragState.isDragging(node.key) : undefined,
-            isDropTarget: dnd.dropEnabled ? droppable.isDropTarget : undefined,
-            isFocusVisibleWithin:
-              focusWithin.within &&
-              action.isActive() &&
-              (scope?.lastInput()?.origin ?? focusWithin.origin) !== "pointer",
-            id: node.key,
-            hasChildItems,
-            isExpanded: hasChildItems && table.state.expandedKeys.has(node.key),
-            level: node.level + 1,
-          }
-          return (
-            <NativeMotionOwnerHost
-              {...props}
-              motion={{ layout: true }}
-              nativeRender={(host) => (render ? render(host, values) : <NativeFocusView {...host} />)}
-              nativeFocusWithinObservation
-              nativeOnFocusWithin={(event) =>
-                setFocusWithin({ within: event.nativeEvent.within, origin: event.nativeEvent.origin })
-              }
-              nativeOnFocusWithinRetired={() => setFocusWithin({ within: false, origin: "" })}
-              nativeDescribedBy={nativeAccessibilityIDs(describedBy ?? ariaDescribedBy)}
-              nativeDetailsBy={nativeAccessibilityIDs(details ?? ariaDetails)}
-              capturedKeys={[
-                ...table.keyboard.keysFor(node.key),
-                ...(draggable.dragProps.capturedKeys ?? []),
-                ...(dnd.collectionProps.capturedKeys ?? []),
-                ...(state.allowsSelection || state.hasAction ? ["Enter", " "].flatMap(nativeKeyTokens) : []),
-              ]}
-              onKeyDown={(event) => {
-                props.onKeyDown?.(event)
-                if (!event.defaultPrevented) table.keyboard.onKeyDown(event)
-              }}
+    <>
+      {dnd.dropEnabled && !droppable.isHidden && (
+        <NativeCollectionSemanticsContext.Provider value="">
+          <View style={{ height: 0 }} accessible={false} pointerEvents="box-none">
+            <NativeFocusHost
+              {...droppable.dropIndicatorProps}
+              ref={dropRef}
+              testID={`table-row-drop-${encodeCollectionKey(node.key)}`}
+              style={{ position: "absolute", width: 1, height: 1, overflow: "hidden" }}
             />
-          )
-        }}
-        nativeTabStop={table.manager.focusedKey === node.key}
-        isDisabled={table.manager.isDisabled(node.key)}
-        accessibilityState={{
-          ...native.accessibilityState,
-          selected: table.manager.selectionMode === "none" ? undefined : table.manager.isSelected(node.key),
-        }}
-        nativeStyle={(flags, visible) => ({
-          viewStyle: {
-            ...(flags.isFocused ? { outlineWidth: visible ? 2 : 1.5, outlineColor: theme.colors.focusRing } : {}),
-            ...styles.view,
-            backgroundColor,
-          },
-          textStyle: { ...styles.text, color: foregroundColor },
-          foregroundColor,
-          target: 0,
-        })}
-        onFocus={(event) => {
-          if (action.isActive()) nativeCellFocus?.(event)
-          table.keyboard.observe(node.key, event)
-          onFocus?.(event)
-        }}
-        onBlur={onBlur}
-        onPointerEnter={(event) => {
-          paint.onPointerEnter(event)
-          hover.onPointerEnter(event)
-        }}
-        onPointerLeave={(event) => {
-          paint.onPointerLeave(event)
-          hover.onPointerLeave(event)
-        }}
-        onPointerDown={(event: PointerEvent) => {
-          native.onPointerDown?.(event)
-          const data = event.nativeEvent
-          pointer.current = {
-            pointerType: NATIVE_TAG_GROUP_POINTER_TYPES.includes(data.pointerType as TPointer)
-              ? (data.pointerType as TPointer)
-              : "unknown",
-            shiftKey: data.shiftKey,
-            selectionModifier: Platform.OS === "ios" ? data.metaKey : data.ctrlKey,
-            nonContiguousModifier: Platform.OS === "ios" ? data.altKey : data.ctrlKey,
-            suppressed: event.defaultPrevented || event.isDefaultPrevented?.(),
-          }
-        }}
-        onPressStart={(event) => {
-          cycle.current = { binding: action.binding, primary: state.hasPrimaryAction, long: false }
-          press("start", event)
-        }}
-        onPressEnd={(event) => action.request((_current, row) => row.props.onPressEnd?.(event))}
-        onPressUp={(event) => action.request((_current, row) => row.props.onPressUp?.(event))}
-        onPressChange={(pressed) => action.request((_current, row) => row.props.onPressChange?.(pressed))}
-        onPress={(event) => {
-          press("release", event)
-          const data = metadata(event)
-          const time = "timestamp" in event.nativeEvent ? event.nativeEvent.timestamp : undefined
-          if (data.pointerType === "mouse" && typeof time === "number") {
-            if (lastMouse.current != null && time >= lastMouse.current && time - lastMouse.current <= 500) {
-              press("double", event)
-              lastMouse.current = null
-            } else lastMouse.current = time
-          }
-        }}
-        onLongPress={(event) => {
-          if (cycle.current && metadata(event).pointerType === "touch" && state.longPressEnabled)
-            cycle.current.long = true
-          press("long", event)
-        }}
-      >
-        <NativeContentContext.Provider value={{ foregroundColor, isButton: false, textStyle: styles.text }}>
-          <NativeButtonContext.Provider
-            value={{ slots: { [NATIVE_DEFAULT_SLOT]: {}, drag: draggable.dragButtonProps } }}
-          >
-            <renderer.CollectionBranch collection={table.collection} parent={node} />
-          </NativeButtonContext.Provider>
-        </NativeContentContext.Provider>
-      </NativeButton>
-    </NativeCollectionItemBindingContext.Provider>
+          </View>
+        </NativeCollectionSemanticsContext.Provider>
+      )}
+      <NativeCollectionItemBindingContext.Provider value={action.binding}>
+        <NativeButton
+          {...nativeViewProps(native)}
+          ref={rowRef}
+          testID={native.testID ?? aliasID ?? `table-row-${encodeCollectionKey(node.key)}`}
+          nativeRole="row"
+          nativeAccessible={false}
+          nativeInteraction={state.allowsSelection || state.hasAction}
+          nativeProgrammaticFocusable
+          onKeyDown={(event) => {
+            onKeyDown?.(event)
+            draggable.dragProps.onKeyDown?.(event)
+            if (!event.defaultPrevented) dnd.collectionProps.onKeyDown?.(event)
+            if (!event.defaultPrevented) table.keyboard.captureTypeahead(event)
+          }}
+          onKeyUp={(event) => {
+            onKeyUp?.(event)
+            draggable.dragProps.onKeyUp?.(event)
+            if (!event.defaultPrevented) dnd.collectionProps.onKeyUp?.(event)
+          }}
+          accessibilityHint={native.accessibilityHint ?? draggable.dragProps.accessibilityHint}
+          accessibilityActions={[
+            ...(native.accessibilityActions ?? []),
+            ...(draggable.dragProps.accessibilityActions ?? []),
+          ]}
+          onAccessibilityAction={(event) => {
+            native.onAccessibilityAction?.(event)
+            draggable.dragProps.onAccessibilityAction?.(event)
+          }}
+          nativeRender={(props, flags) => {
+            const hasChildItems = !!(
+              node.props.hasChildItems || table.collection.getItem(node.lastChildKey!)?.type !== "cell"
+            )
+            const values: TNativeTableRowRenderState = {
+              isPressed: flags.isPressed,
+              isSelected: table.manager.isSelected(node.key),
+              isFocused: flags.isFocused,
+              isDisabled: table.manager.isDisabled(node.key),
+              allowsSelection: state.allowsSelection,
+              hasAction: state.hasAction,
+              isHovered: hover.isHovered,
+              isFocusVisible: flags.isFocusVisible,
+              selectionMode: table.manager.selectionMode,
+              selectionBehavior: table.manager.selectionBehavior,
+              isDragging: dnd.dragEnabled ? dnd.dragState.isDragging(node.key) : undefined,
+              isDropTarget: dnd.dropEnabled ? droppable.isDropTarget : undefined,
+              isFocusVisibleWithin:
+                focusWithin.within &&
+                action.isActive() &&
+                (scope?.lastInput()?.origin ?? focusWithin.origin) !== "pointer",
+              id: node.key,
+              hasChildItems,
+              isExpanded: hasChildItems && table.state.expandedKeys.has(node.key),
+              level: node.level + 1,
+            }
+            return (
+              <NativeMotionOwnerHost
+                {...props}
+                motion={{ layout: true }}
+                nativeRender={(host) => (render ? render(host, values) : <NativeFocusView {...host} />)}
+                nativeFocusWithinObservation
+                nativeOnFocusWithin={(event) =>
+                  setFocusWithin({ within: event.nativeEvent.within, origin: event.nativeEvent.origin })
+                }
+                nativeOnFocusWithinRetired={() => setFocusWithin({ within: false, origin: "" })}
+                nativeDescribedBy={nativeAccessibilityIDs(describedBy ?? ariaDescribedBy)}
+                nativeDetailsBy={nativeAccessibilityIDs(details ?? ariaDetails)}
+                capturedKeys={[
+                  ...table.keyboard.keysFor(node.key),
+                  ...(draggable.dragProps.capturedKeys ?? []),
+                  ...(dnd.collectionProps.capturedKeys ?? []),
+                  ...(state.allowsSelection || state.hasAction ? ["Enter", " "].flatMap(nativeKeyTokens) : []),
+                ]}
+                onKeyDown={(event) => {
+                  props.onKeyDown?.(event)
+                  if (!event.defaultPrevented) table.keyboard.onKeyDown(event)
+                }}
+              />
+            )
+          }}
+          nativeTabStop={table.manager.focusedKey === node.key}
+          isDisabled={table.manager.isDisabled(node.key)}
+          accessibilityState={{
+            ...native.accessibilityState,
+            selected: table.manager.selectionMode === "none" ? undefined : table.manager.isSelected(node.key),
+          }}
+          nativeStyle={(flags, visible) => ({
+            viewStyle: {
+              ...(flags.isFocused ? { outlineWidth: visible ? 2 : 1.5, outlineColor: theme.colors.focusRing } : {}),
+              ...styles.view,
+              backgroundColor,
+            },
+            textStyle: { ...styles.text, color: foregroundColor },
+            foregroundColor,
+            target: 0,
+          })}
+          onFocus={(event) => {
+            if (action.isActive()) nativeCellFocus?.(event)
+            table.keyboard.observe(node.key, event)
+            onFocus?.(event)
+          }}
+          onBlur={onBlur}
+          onPointerEnter={(event) => {
+            paint.onPointerEnter(event)
+            hover.onPointerEnter(event)
+          }}
+          onPointerLeave={(event) => {
+            paint.onPointerLeave(event)
+            hover.onPointerLeave(event)
+          }}
+          onPointerDown={(event: PointerEvent) => {
+            native.onPointerDown?.(event)
+            const data = event.nativeEvent
+            pointer.current = {
+              pointerType: NATIVE_TAG_GROUP_POINTER_TYPES.includes(data.pointerType as TPointer)
+                ? (data.pointerType as TPointer)
+                : "unknown",
+              shiftKey: data.shiftKey,
+              selectionModifier: Platform.OS === "ios" ? data.metaKey : data.ctrlKey,
+              nonContiguousModifier: Platform.OS === "ios" ? data.altKey : data.ctrlKey,
+              suppressed: event.defaultPrevented || event.isDefaultPrevented?.(),
+            }
+          }}
+          onPressStart={(event) => {
+            cycle.current = { binding: action.binding, primary: state.hasPrimaryAction, long: false }
+            press("start", event)
+          }}
+          onPressEnd={(event) => action.request((_current, row) => row.props.onPressEnd?.(event))}
+          onPressUp={(event) => action.request((_current, row) => row.props.onPressUp?.(event))}
+          onPressChange={(pressed) => action.request((_current, row) => row.props.onPressChange?.(pressed))}
+          onPress={(event) => {
+            press("release", event)
+            const data = metadata(event)
+            const time = "timestamp" in event.nativeEvent ? event.nativeEvent.timestamp : undefined
+            if (data.pointerType === "mouse" && typeof time === "number") {
+              if (lastMouse.current != null && time >= lastMouse.current && time - lastMouse.current <= 500) {
+                press("double", event)
+                lastMouse.current = null
+              } else lastMouse.current = time
+            }
+          }}
+          onLongPress={(event) => {
+            if (cycle.current && metadata(event).pointerType === "touch" && state.longPressEnabled)
+              cycle.current.long = true
+            press("long", event)
+          }}
+        >
+          <NativeContentContext.Provider value={{ foregroundColor, isButton: false, textStyle: styles.text }}>
+            <NativeButtonContext.Provider
+              value={{ slots: { [NATIVE_DEFAULT_SLOT]: {}, drag: draggable.dragButtonProps } }}
+            >
+              <renderer.CollectionBranch collection={table.collection} parent={node} />
+            </NativeButtonContext.Provider>
+          </NativeContentContext.Provider>
+        </NativeButton>
+      </NativeCollectionItemBindingContext.Provider>
+    </>
   )
 }
 export const TableRow = createNativeCollectionBranch<object, TNativeTableRowProps<object>, View>(
@@ -429,8 +448,8 @@ export const TableRow = createNativeCollectionBranch<object, TNativeTableRowProp
             columnID="__drag"
             style={{ width: 30, padding: 0 }}
           >
-            <NativeButton slot="drag" style={{ padding: 4 }}>
-              <DragIcon />
+            <NativeButton slot="drag" raised={false} style={{ padding: 4 }}>
+              <DragIcon color={props.iconColor} />
             </NativeButton>
           </TableCell>
         )}

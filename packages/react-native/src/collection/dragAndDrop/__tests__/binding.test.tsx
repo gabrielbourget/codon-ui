@@ -14,6 +14,7 @@ import {
   useNativeCollectionDragAndDrop,
   useNativeDragAndDrop,
   useNativeDraggableItem,
+  useNativeDroppableItem,
 } from "../hooks"
 import type { TNativeDragAndDropOptions } from "../hooks"
 import { nativeDragFormatter } from "../messages"
@@ -758,4 +759,30 @@ it("ends the original virtual source exactly once when its actual drag handle un
   await fixture.rendered.unmount()
   fixture.actions.dispose()
   expect(onDragEnd).toHaveBeenCalledTimes(1)
+})
+
+it("moves an original droppable item ref from zero to the empty key without retaining a ghost physical target", async () => {
+  const fixture = await setup({ onItemDrop: () => {} }),
+    original = view(),
+    binding = fixture.rendered.result.current.binding
+  const item = await renderHook(
+    ({ itemKey }: { itemKey: string | number }) => {
+      const ref = useRef<View | null>(original)
+      return useNativeDroppableItem(
+        { target: { type: "item", key: itemKey, dropPosition: "on" } },
+        fixture.rendered.result.current.dropState,
+        ref,
+      )
+    },
+    { initialProps: { itemKey: 0 } },
+  )
+  expect(binding.targetView(0)).toBe(original)
+  await item.rerender({ itemKey: "" })
+  expect(binding.targetView(0)).toBeNull()
+  expect(binding.targetView("")).toBe(original)
+  expect(fixture.metadata().members.map((member: TNativeDragMemberBinding) => member.key)).toEqual(["string:"])
+  await item.unmount()
+  expect(binding.targetView("")).toBeNull()
+  await fixture.rendered.unmount()
+  fixture.actions.dispose()
 })

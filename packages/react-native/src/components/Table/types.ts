@@ -238,6 +238,7 @@ export type TNativeTableRowProps<T extends object> = Omit<TNativeFocusViewProps,
     textValue?: string
     id?: TNativeCollectionKey
     hasChildItems?: boolean
+    iconColor?: ColorValue
     item: T
     columns: TNativeTableColumnMetadata<T>[]
     geometry?: TCornerGeometry

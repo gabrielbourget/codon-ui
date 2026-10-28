@@ -17,8 +17,10 @@ import { captureNativeDropFocus, reconcileNativeDropFocus } from "./dropFocus"
 import { publishNativeDragGeometry, readNativeDragGeometry } from "./geometry"
 import type { TNativeDragRect } from "./geometry"
 import type { TNativeDropKeyboardDelegate } from "./keyboardNavigation"
+import { NativeCollectionLayoutDelegate } from "./NativeCollectionLayoutDelegate"
 import { NativeDragDataBinding } from "./nativeData"
 import { NativeListDropTargetDelegate } from "./NativeListDropTargetDelegate"
+import { NativeListKeyboardDelegate } from "./NativeListKeyboardDelegate"
 import { nativeDragRuntime } from "./runtime"
 import { NATIVE_DIRECTORY_DRAG_TYPE, AVAILABLE_NATIVE_DROP_OPERATIONS } from "./types"
 import type {
@@ -403,6 +405,36 @@ export class NativeCollectionDragBinding {
   rowView(key: TNativeCollectionKey) {
     const row = this.rows.get(key)
     return row ? this.view(row, "source") : null
+  }
+  targetView(key: TNativeCollectionKey) {
+    const row = this.rows.get(key)
+    return row ? this.view(row, "target") : null
+  }
+  keyboardDelegate(): TNativeDropKeyboardDelegate {
+    if (this.dropOptions.keyboardDelegate) return this.dropOptions.keyboardDelegate
+    if (!this.target) throw new Error("Native drag keyboard: original collection unavailable")
+    const native = new NativeCollectionLayoutDelegate(
+      this.root,
+      this.targetView.bind(this),
+      () => (this.scroll?.host as View | null) ?? null,
+      this.current,
+    )
+    const layout = this.dropOptions.layoutDelegate ?? native
+    return new NativeListKeyboardDelegate({
+      collection: this.target.collection,
+      ref: this.root,
+      disabledKeys: this.target.selectionManager.disabledKeys,
+      disabledBehavior: this.target.selectionManager.disabledBehavior,
+      direction: this.dropOptions.direction,
+      layoutDelegate: layout,
+      isScrollable: this.dropOptions.layoutDelegate
+        ? () => {
+            const content = layout.getContentSize(),
+              visible = layout.getVisibleRect()
+            return content.width > visible.width || content.height > visible.height
+          }
+        : native.isScrollable,
+    })
   }
   handleView(key: TNativeCollectionKey) {
     return this.handles.get(key) ?? null

@@ -14,6 +14,7 @@ import {
   NativeDropIndicatorContext,
   useNativeCollectionDragAndDrop,
 } from "../../collection/dragAndDrop/hooks"
+import { NativeListDropTargetDelegate } from "../../collection/dragAndDrop/NativeListDropTargetDelegate"
 import {
   NativeCollectionRendererContext,
   useNativePersistedKeys,
@@ -30,6 +31,7 @@ import { NativeFocusView } from "../../input/NativeFocusView"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { nativeViewProps } from "../../input/nativeViewProps"
 import type { TNativeFocusEvent } from "../../input/types"
+import { useNativeLocale } from "../../locale/NativeLocaleProvider"
 import { useNativeTheme } from "../../theme"
 import { resolveNativeStyle } from "../colors"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
@@ -47,6 +49,7 @@ import {
   NativeResizableTableContainerContext,
   NativeTableColumnResizeStateContext,
 } from "./NativeResizableTableContainer"
+import { NativeTreeDropTargetDelegate } from "./NativeTreeDropTargetDelegate"
 import { TABLE_SORT_DIRECTION__ASCENDING } from "./queryTypes"
 import { resizeNativeTableColumn } from "./resizing"
 import { computeNextNativeTableSorts } from "./sorting"
@@ -224,6 +227,16 @@ const Receiver = <T extends object>({
     [],
   )
   const rows = collection.rows.filter((node) => node.type === "item")
+  const { direction } = useNativeLocale()
+  const [treeDropTargetDelegate] = useState(() => new NativeTreeDropTargetDelegate())
+  const ListDelegate = dragAndDropHooks?.ListDropTargetDelegate ?? NativeListDropTargetDelegate
+  treeDropTargetDelegate.setup(
+    dragAndDropHooks?.dropTargetDelegate ??
+      renderer.dropTargetDelegate ??
+      new ListDelegate(collection.rows, root, { direction }),
+    state,
+    direction,
+  )
   const rowHeaderColumns = new Set<string>(
     collection.columns.filter((node) => node.props.isRowHeader).map((node) => node.props.columnID),
   )
@@ -250,6 +263,26 @@ const Receiver = <T extends object>({
     focusKey: sourceKeyboard.requestFocus,
     rootLabel: props.accessibilityLabel ?? props["aria-label"],
     scrollRef,
+    dropTargetDelegate: treeDropTargetDelegate,
+    onDropActivate: (event) => {
+      if (event.target.type !== "item") return
+      const item = state.collection.getItem(event.target.key)
+      if (item?.hasChildNodes && (!state.expandedKeys.has(item.key) || dragAndDropHooks?.isVirtualDragging?.()))
+        state.toggleKey(item.key)
+    },
+    onKeyDown: (event, dropState) => {
+      const target = dropState.target
+      if (target?.type !== "item" || target.dropPosition !== "on") return
+      const item = state.collection.getItem(target.key)
+      if (!item?.hasChildNodes) return
+      const expand = direction === "rtl" ? "ArrowLeft" : "ArrowRight"
+      const collapse = direction === "rtl" ? "ArrowRight" : "ArrowLeft"
+      if (
+        (event.nativeEvent.key === expand && !state.expandedKeys.has(target.key)) ||
+        (event.nativeEvent.key === collapse && state.expandedKeys.has(target.key))
+      )
+        state.toggleKey(target.key)
+    },
   })
   const keyboard =
     state.isKeyboardNavigationDisabled || dragAndDrop.context.dragAndDropHooks?.isVirtualDragging?.()

@@ -123,6 +123,14 @@
       "sourceMapSHA256": "2d825e9796b560df62b7b93b6e0296537a3a2164e2263dca7237bdad2051860f",
       "sourcePath": "packages/react-aria/src/dnd/useAutoScroll.ts",
       "sourceContentSHA256": "de6ecec8a2e7a6077893b28a72cb760d8ad23d2c974374591c93c930021dad06"
+    },
+    {
+      "package": "react-aria",
+      "version": "3.48.0",
+      "distributionPath": "dist/private/selection/ListKeyboardDelegate.js.map",
+      "sourceMapSHA256": "6b0189efa692acb61a8bb66e7293a32841c4d7182b5d4f1a7bb75ea0e7cfc88b",
+      "sourcePath": "packages/react-aria/src/selection/ListKeyboardDelegate.ts",
+      "sourceContentSHA256": "a399d1a4b6df3313444d45765b2c6300c4c4ef1554de15f45370773aa8c19fba"
     }
   ],
   "adaptations": [

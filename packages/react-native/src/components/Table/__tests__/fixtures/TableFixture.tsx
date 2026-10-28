@@ -29,6 +29,7 @@ import type {
 
 import { CellFixtureBody, TableCellFixture } from "./TableCellFixture"
 import { TableColumnFixture } from "./TableColumnFixture"
+import { TableDragFixture } from "./TableDragFixture"
 import { TableStickyFixture } from "./TableStickyFixture"
 import { TableVirtualizedFixture } from "./TableVirtualizedFixture"
 
@@ -88,6 +89,7 @@ export const TableFixture = ({ editorRef, tableRef }: { editorRef?: Ref<TextInpu
         }),
       )
   }
+  const [showDrag, setShowDrag] = useState(false)
   const [headerHovered, setHeaderHovered] = useState(false)
   const [reversed, setReversed] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -278,6 +280,8 @@ export const TableFixture = ({ editorRef, tableRef }: { editorRef?: Ref<TextInpu
             <TableRowFixture />
             <TableCellFixture />
             <Button onPress={() => setShowSticky((value) => !value)}>Toggle sticky header source scene</Button>
+            <Button onPress={() => setShowDrag((value) => !value)}>Toggle drag and drop tables</Button>
+            {showDrag && <TableDragFixture />}
             {showSticky && <TableStickyFixture />}
             <Button onPress={() => setShowVirtual((value) => !value)}>Toggle virtualized Table owner</Button>
             {showVirtual && <TableVirtualizedFixture />}

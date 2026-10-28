@@ -65,20 +65,7 @@ const originalSource = (current: TSession) =>
   (current.sourceKind === "handle" ? current.source.handleView(current.key) : current.source.rowView(current.key)) ===
     current.sourceView
 const delegate = (root: NativeCollectionDragBinding): TNativeDropKeyboardDelegate => {
-  if (root.dropOptions.keyboardDelegate) return root.dropOptions.keyboardDelegate
-  const collection = root.target!.collection,
-    keys: TNativeCollectionKey[] = [],
-    seen = new Set<TNativeCollectionKey>()
-  for (let key = collection.getFirstKey(); key != null && !seen.has(key); key = collection.getKeyAfter(key)) {
-    seen.add(key)
-    if (collection.getItem(key)?.type === "item") keys.push(key)
-  }
-  return {
-    getFirstKey: () => keys[0] ?? null,
-    getLastKey: () => keys.at(-1) ?? null,
-    getKeyAbove: (key) => keys[keys.indexOf(key) - 1] ?? null,
-    getKeyBelow: (key) => keys[keys.indexOf(key) + 1] ?? null,
-  }
+  return root.keyboardDelegate()
 }
 const validNext = (
   current: TSession,

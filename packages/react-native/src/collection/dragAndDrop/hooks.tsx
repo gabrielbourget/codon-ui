@@ -319,6 +319,7 @@ const useDroppableItemBinding = (
   state: TNativeDroppableCollectionState,
   ref: RefObject<View | null>,
   label?: string,
+  physical = true,
 ): TNativeDroppableItemResult => {
   const root = rootFor(state),
     owner = useRef({}),
@@ -328,10 +329,13 @@ const useDroppableItemBinding = (
     source.current = { options, label }
   })
   useVirtual()
+  useNativeCollectionDropTarget(
+    physical ? root : null,
+    options.target.type === "item" && options.target.dropPosition === "on" ? options.target.key : null,
+    ref,
+  )
   useLayoutEffect(() => {
     const target = options.target
-    if (target.type === "item" && target.dropPosition === "on")
-      root.member(target.key, owner.current, ref.current, "target")
     nativeVirtualDrag.endpoint(owner.current, {
       root,
       target,
@@ -342,8 +346,6 @@ const useDroppableItemBinding = (
   })
   useLayoutEffect(
     () => () => {
-      const target = source.current.options.target
-      if (target.type === "item" && target.dropPosition === "on") root.member(target.key, owner.current, null, "target")
       nativeVirtualDrag.endpoint(owner.current, null)
     },
     [root],
@@ -388,6 +390,30 @@ export const useNativeDroppableItem = (
   state: TNativeDroppableCollectionState,
   ref: RefObject<View | null>,
 ) => useDroppableItemBinding(options, state, ref)
+// Physical row geometry belongs to the original row, even when its accessible
+// on-item action is a separate endpoint (as in the received Table structure).
+export const useNativeCollectionDropTarget = (
+  root: NativeCollectionDragBinding | null,
+  key: TNativeCollectionKey | null,
+  ref: RefObject<View | null>,
+) => {
+  const owner = useRef({}),
+    previous = useRef<TNativeCollectionKey | null>(null)
+  useLayoutEffect(() => {
+    if (!root) return
+    if (previous.current != null && previous.current !== key)
+      root.member(previous.current, owner.current, null, "target")
+    previous.current = key
+    if (key != null) root.member(key, owner.current, ref.current, "target")
+  })
+  useLayoutEffect(
+    () => () => {
+      if (previous.current != null) root?.member(previous.current, owner.current, null, "target")
+      previous.current = null
+    },
+    [root],
+  )
+}
 export const useNativeDropIndicator = (
   props: TNativeDroppableItemOptions,
   state: TNativeDroppableCollectionState,
@@ -416,7 +442,7 @@ export const useNativeDropIndicator = (
           ? formatter.format("insertAfter", { itemText: text(before) })
           : formatter.format("insertBefore", { itemText: text(after) })
   }
-  const result = useDroppableItemBinding(props, state, ref, label)
+  const result = useDroppableItemBinding(props, state, ref, label, false)
   const hidden = !nativeVirtualDrag.isDragging() || !!result.dropProps.accessibilityElementsHidden
   return {
     dropIndicatorProps: {
@@ -564,6 +590,9 @@ export const useNativeCollectionDragAndDrop = <T = object,>({
   focusKey,
   rootLabel,
   scrollRef,
+  dropTargetDelegate,
+  onDropActivate,
+  onKeyDown,
 }: {
   hooks?: TNativeDragAndDropHooks<T>
   collection: TNativeDraggableCollectionStateOptions["collection"]
@@ -574,6 +603,9 @@ export const useNativeCollectionDragAndDrop = <T = object,>({
   focusKey?: TNativeDropCollectionOptions["focusKey"]
   rootLabel?: string
   scrollRef?: TNativeDropCollectionOptions["scrollRef"]
+  dropTargetDelegate?: TNativeDropCollectionOptions["dropTargetDelegate"]
+  onDropActivate?: TNativeDropCollectionOptions["onDropActivate"]
+  onKeyDown?: (event: TNativeKeyboardEvent, state: TNativeDroppableCollectionState) => void
 }): TNativeCollectionDragAndDropResult => {
   const [failure, setFailure] = useState<{ error: unknown } | null>(null)
   const dragEnabled = !!hooks?.useDraggableCollectionState,
@@ -594,7 +626,15 @@ export const useNativeCollectionDragAndDrop = <T = object,>({
   })
   ;(hooks?.useDraggableCollection ?? useNativeDraggableCollection)({}, drag, root)
   const result = (hooks?.useDroppableCollection ?? useNativeDroppableCollection)(
-    { layoutDelegate, focusKey, rootLabel, scrollRef, dropTargetDelegate: hooks?.dropTargetDelegate },
+    {
+      layoutDelegate,
+      focusKey,
+      rootLabel,
+      scrollRef,
+      dropTargetDelegate: dropTargetDelegate ?? hooks?.dropTargetDelegate,
+      onDropActivate,
+      onKeyDown: onKeyDown ? (event) => onKeyDown(event, drop) : undefined,
+    },
     drop,
     root,
   )

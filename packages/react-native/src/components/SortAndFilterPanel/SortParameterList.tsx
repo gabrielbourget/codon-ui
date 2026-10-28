@@ -241,6 +241,7 @@ const List = ({
     focusKey: keyboard.requestFocus,
     rootLabel: props.listLabels.listAriaLabel,
     scrollRef,
+    dropTargetDelegate: renderer.dropTargetDelegate,
   })
   const focusedKeys = useNativePersistedKeys(
     state.selectionManager.focusedKey,

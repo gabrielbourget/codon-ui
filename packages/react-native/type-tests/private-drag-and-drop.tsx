@@ -4,7 +4,9 @@ import type { View } from "react-native"
 import type { DragAndDropHooks } from "../../react/node_modules/react-aria-components"
 import { NativeDragPreview, NativeDropIndicator, useNativeDragAndDrop } from "../src/collection/dragAndDrop/hooks"
 import type { TNativeDragAndDropHooks } from "../src/collection/dragAndDrop/hooks"
+import type { TNativeCollectionLayoutDelegate } from "../src/collection/renderer"
 import { Table } from "../src/components/Table/Table"
+import { TableRow } from "../src/components/Table/TableRow"
 
 type TRow = { name: string }
 export const dragContracts = () => {
@@ -43,3 +45,17 @@ export const rejectMissingRepresentations = () => {
   useNativeDragAndDrop({ getItems: () => [{ "text/plain": { name: "invalid" } }] })
 }
 export const retainedPreviewType = NativeDragPreview
+
+export const nativeDirectionalLayout: TNativeCollectionLayoutDelegate = {
+  getItemRect: () => null,
+  getVisibleRect: () => ({ x: 0, y: 0, width: 100, height: 100 }),
+  getContentSize: () => ({ width: 100, height: 200 }),
+  getKeyLeftOf: () => 0,
+  getKeyRightOf: () => "",
+}
+export const rejectNonNativeLayoutKeys: TNativeCollectionLayoutDelegate = {
+  ...nativeDirectionalLayout,
+  // @ts-expect-error Layout navigation retains native collection keys, never DOM/native-view objects.
+  getKeyLeftOf: () => ({ nodeType: 1 }),
+}
+export const nativeRowDragIconColor = <TableRow item={{}} columns={[]} iconColor="orchid" />

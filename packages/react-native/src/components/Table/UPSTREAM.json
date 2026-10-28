@@ -122,6 +122,14 @@
       "sourcePath": "packages/react-aria/src/table/useTableColumnResize.ts",
       "sourceContentSHA256": "189f39e7de8797b656d311655bad459ff93e158fbf168bcd20d5f359cbabb015",
       "sourceRef": "https://github.com/adobe/react-spectrum/blob/a6999bdf494a2e9c0381a5881908328bdd22ddae/packages/react-aria/src/table/useTableColumnResize.ts"
+    },
+    {
+      "package": "react-aria-components",
+      "version": "1.17.0",
+      "distributionPath": "dist/private/TreeDropTargetDelegate.js.map",
+      "sourceMapSHA256": "bf48390d1f56218058d32f429f6be483c95839ad5401cf307be50c61c11b35f1",
+      "sourcePath": "packages/react-aria-components/src/TreeDropTargetDelegate.ts",
+      "sourceContentSHA256": "3c6e0c8dc8f5423ddee9257f43ee07ccc080d8b0cfb8b971b64ad171cf929a8a"
     }
   ],
   "adaptations": [
