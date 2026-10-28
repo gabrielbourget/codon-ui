@@ -280,6 +280,14 @@ final class CUIDragDataStore {
     return new Node(destination, info.name, info.type, info.modified, null);
   }
 
+  CUIDragDataProvider.Exported exportTextMaps(JSONArray maps) throws Exception {
+    UiThreadUtil.assertOnUiThread();
+    synchronized (lock) {
+      if (!live) throw failure("module retired before original export");
+      return CUIDragDataProvider.export(context, moduleId, maps);
+    }
+  }
+
   String beginImport(Activity activity, DragEvent original) throws Exception {
     UiThreadUtil.assertOnUiThread();
     if (original.getAction() != DragEvent.ACTION_DROP || original.getClipData() == null)
@@ -511,6 +519,8 @@ final class CUIDragDataStore {
       worker.shutdown();
       finishCleanup();
     }
+    try { CUIDragDataProvider.releaseModule(context, moduleId); }
+    catch (RuntimeException error) { synchronized (lock) { cleanupErrors.add(error.toString()); } }
     synchronized (stores) { stores.remove(moduleId); }
     for (Transfer transfer : pending) {
       transfer.cancellation.cancel(); List<Reply<JSONArray>> waiters;

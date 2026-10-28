@@ -7,6 +7,7 @@
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 #import <QuartzCore/QuartzCore.h>
 #include "../cpp/drag/Motion.h"
+#include "../cpp/drag/Transport.h"
 #include <cmath>
 #include <climits>
 
@@ -361,14 +362,21 @@ static BOOL CUIDescendant(UIView *view, UIView *root) { for (UIView *item = view
 - (void)dragInteraction:(UIDragInteraction *)interaction session:(id<UIDragSession>)session didEndWithOperation:(UIDropOperation)operation {
   CUIDragTransfer *transfer = [_sources objectForKey:session]; if (!transfer || transfer.ended) return;
   @try {
-    NSString *selected = transfer.attempted ? transfer.accepted ? transfer.selected : @"cancel" : operation == UIDropOperationMove && [transfer.operations containsObject:@"move"] ? @"move" : operation == UIDropOperationCopy && [transfer.operations containsObject:@"copy"] ? @"copy" : @"cancel";
+    const char *business = transfer.selected.UTF8String;
+    auto completed = codon::drag::completedDragOperation(operation == UIDropOperationCopy || operation == UIDropOperationMove,
+      transfer.attempted, transfer.accepted, business ? business : "cancel",
+      [transfer.operations containsObject:transfer.selected ?: @"cancel"],
+      operation == UIDropOperationCopy && [transfer.operations containsObject:@"copy"]);
+    NSString *selected = [NSString stringWithUTF8String:completed.data()];
     if ([self owns:transfer]) [_owner action:self kind:@"end" session:transfer.identifier member:_members[transfer.sourceInstance] point:[session locationInView:_owner.scope.window] values:@{ @"operation": selected, @"nativeOperation": @(operation) } current:^BOOL{ return !transfer.ended && transfer.session == session; }];
   } @catch (NSException *error) { [_owner status:self ready:NO error:error.reason kind:@"binding"]; }
   @finally { transfer.ended = YES; [_sources removeObjectForKey:session]; [self refresh]; }
 }
 - (CUIDragTransfer *)local:(id<UIDropSession>)session {
   id context = session.localDragSession.localContext;
-  return [context isKindOfClass:CUIDragTransfer.class] && ((CUIDragTransfer *)context).session == session.localDragSession && !((CUIDragTransfer *)context).ended ? context : nil;
+  if (![context isKindOfClass:CUIDragTransfer.class]) return nil;
+  CUIDragTransfer *source = context;
+  return source.session == session.localDragSession && !source.ended && [source.source owns:source] ? source : nil;
 }
 - (NSString *)identifier:(id<UIDropSession>)session {
   NSString *value = [_destinations objectForKey:session];
@@ -390,13 +398,25 @@ static BOOL CUIDescendant(UIView *view, UIView *root) { for (UIView *item = view
   if (![self local:session]) for (UIDragItem *item in session.items) if ([item.itemProvider.registeredTypeIdentifiers containsObject:CUILocalType]) return NO;
   return [self current] && [_data[@"droppable"] boolValue] && [_owner canDrop];
 }
+- (UIDropOperation)carrier:(NSString *)operation local:(CUIDragTransfer *)local allowsMove:(BOOL)allowsMove {
+  const char *requested = operation.UTF8String;
+  if (!requested) return UIDropOperationCancel;
+  switch (codon::drag::nativeDragCarrier(requested, local != nil,
+      [local.operations containsObject:@"copy"], [local.operations containsObject:@"move"],
+      [local.operations containsObject:@"link"], allowsMove)) {
+    case codon::drag::NativeDragCarrier::Copy: return UIDropOperationCopy;
+    case codon::drag::NativeDragCarrier::Move: return UIDropOperationMove;
+    default: return UIDropOperationCancel;
+  }
+}
+- (UIDropOperation)carrier:(NSString *)operation session:(id<UIDropSession>)session {
+  return [self carrier:operation local:[self local:session] allowsMove:session.allowsMoveOperation];
+}
 - (UIDropProposal *)dropInteraction:(UIDropInteraction *)interaction sessionDidUpdate:(id<UIDropSession>)session {
   @try {
     NSDictionary *reply = [self updateTarget:session];
-    [self trackMotion:session reply:reply];
-    NSString *operation = CUIString(reply[@"operation"]);
-    if ([operation isEqual:@"link"]) @throw [NSException exceptionWithName:@"CUI.Drag" reason:@"native-drag-link-proposal-unrepresentable" userInfo:nil];
-    UIDropOperation native = [operation isEqual:@"copy"] ? UIDropOperationCopy : [operation isEqual:@"move"] && session.allowsMoveOperation ? UIDropOperationMove : UIDropOperationCancel;
+    UIDropOperation native = [self carrier:CUIString(reply[@"operation"]) session:session];
+    if (native == UIDropOperationCancel) [self stopMotion]; else [self trackMotion:session reply:reply];
     return [[UIDropProposal alloc] initWithDropOperation:native];
   } @catch (NSException *error) { [self stopMotion]; [_owner status:self ready:NO error:error.reason kind:@"binding"]; return [[UIDropProposal alloc] initWithDropOperation:UIDropOperationCancel]; }
 }
@@ -408,6 +428,7 @@ static BOOL CUIDescendant(UIView *view, UIView *root) { for (UIView *item = view
 - (void)dropInteraction:(UIDropInteraction *)interaction performDrop:(id<UIDropSession>)session {
   [self stopMotion];
   CUIDragTransfer *local = [self local:session]; if (local) local.attempted = YES;
+  BOOL allowsMove = session.allowsMoveOperation;
   CUIDragDataStore *store = [CUIDragDataStore storeForModuleId:_data[@"moduleId"]]; NSString *handle = nil;
   @try {
     if (!store) @throw [NSException exceptionWithName:@"CUI.Drag" reason:@"native-drag-data-module-retired" userInfo:nil];
@@ -416,7 +437,12 @@ static BOOL CUIDescendant(UIView *view, UIView *root) { for (UIView *item = view
     NSMutableDictionary *values = [[self types:session] mutableCopy]; values[@"dataHandle"] = handle;
     NSDictionary *reply = [_owner action:self kind:@"drop" session:[self identifier:session] member:nil point:[session locationInView:_owner.scope.window] values:values current:^BOOL{ return [self dropInteraction:interaction canHandleSession:session]; }];
     if (![reply[@"accepted"] isEqual:@YES]) { [store releaseData:@{ @"moduleId": _data[@"moduleId"], @"handle": handle }]; return; }
-    if (local) { local.accepted = YES; local.selected = CUIString(reply[@"operation"]); }
+    NSString *operation = CUIString(reply[@"operation"]);
+    if ([self carrier:operation local:local allowsMove:allowsMove] == UIDropOperationCancel) {
+      [store releaseData:@{ @"moduleId": _data[@"moduleId"], @"handle": handle }];
+      return;
+    }
+    if (local) { local.accepted = YES; local.selected = operation; }
   } @catch (NSException *error) {
     if (handle.length) [store releaseData:@{ @"moduleId": _data[@"moduleId"], @"handle": handle }];
     [_owner status:self ready:NO error:error.reason kind:@"binding"];
@@ -503,7 +529,9 @@ static BOOL CUIDescendant(UIView *view, UIView *root) { for (UIView *item = view
     BOOL due = _hover.initialized && !_hover.fired && now >= _hover.due;
     if (moved || _motionDirty || due || !_hasMotionPoint || !CGPointEqualToPoint(point,_motionPoint)) {
       _motionDirty = NO; NSDictionary *reply = [self updateTarget:session];
-      if ([reply[@"operation"] isEqual:@"link"]) @throw [NSException exceptionWithName:@"CUI.Drag" reason:@"native-drag-link-proposal-unrepresentable" userInfo:nil];
+      if ([self carrier:CUIString(reply[@"operation"]) session:session] == UIDropOperationCancel) {
+        [self stopMotion]; return;
+      }
       [self trackMotion:session reply:reply];
     }
     if (_motionSession == session && _hover.ready(now)) {

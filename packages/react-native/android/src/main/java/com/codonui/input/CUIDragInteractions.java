@@ -74,6 +74,7 @@ final class CUIDragInteractions {
     boolean starting = true, started, ended, attempted, accepted, exportedCopy;
     long moved;
     String selected = "cancel";
+    CUIDragDataProvider.Exported exported;
     Source(String id,CUIDragInteractions owner, Binding binding, Member member, View original, JSONArray maps, JSONArray operations) {
       this.id=id; this.owner = owner; this.binding = binding; this.member = member; this.original = original; this.maps = maps; this.operations = operations; epoch = owner.epoch;
     }
@@ -317,14 +318,33 @@ final class CUIDragInteractions {
       for (int i=0;i<operations.length();i++) if (!java.util.Arrays.asList("copy","move","link","cancel").contains(operations.getString(i))) throw new IllegalStateException("native-drag-original-operation-invalid");
       if (maps.length()==0) { status(binding,true,"","retired"); return; }
       transfer=new Source(id,this,binding,candidate.member,original,new JSONArray(maps.toString()),new JSONArray(operations.toString())); source=transfer;
-      ClipData data=localData(transfer);
+      ClipData data;
+      int flags = 0;
+      if (transfer.allows("copy")) {
+        CUIDragDataStore store = CUIDragDataStore.forModule(binding.data.getString("moduleId"));
+        if (store == null) throw new IllegalStateException("native-drag-export-module-retired");
+        transfer.exported = store.exportTextMaps(transfer.maps);
+        data = transfer.exported.clip;
+        flags = View.DRAG_FLAG_GLOBAL | View.DRAG_FLAG_GLOBAL_URI_READ;
+      } else data = localData(transfer);
       refresh();
       View preview=binding.preview.get();
       if (response.optBoolean("previewExpected",false) && (preview==null || preview.getWidth()<=0 || preview.getHeight()<=0)) throw new IllegalStateException("native-drag-authored-preview-unavailable");
       View.DragShadowBuilder shadow=preview==null?new View.DragShadowBuilder(original):new Shadow(preview,(float)binding.data.getDouble("previewX")*density(),(float)binding.data.getDouble("previewY")*density());
-      boolean started=original.startDragAndDrop(data,shadow,transfer,0); transfer.starting=false; transfer.started=started;
-      if (!started) { transfer.ended=true; source=null; status(binding,true,"","retired"); }
-    } catch (Exception error) { if (transfer!=null) transfer.ended=true; source=null; status(binding,false,error.toString(),"binding"); }
+      boolean started=original.startDragAndDrop(data,shadow,transfer,flags); transfer.starting=false; transfer.started=started; transfer.exportedCopy=started && transfer.exported!=null;
+      if (!started) {
+        if (transfer.exported!=null) transfer.exported.abandon(scope.getContext());
+        transfer.ended=true; source=null; status(binding,true,"","retired");
+      }
+    } catch (Exception error) {
+      if (transfer!=null) {
+        if (!transfer.started && transfer.exported!=null) {
+          try { transfer.exported.abandon(scope.getContext()); } catch (RuntimeException cleanup) { error.addSuppressed(cleanup); }
+        }
+        transfer.ended=true;
+      }
+      source=null; status(binding,false,error.toString(),"binding");
+    }
   }
   private static ClipData localData(Source source) {
     Intent token=new Intent().putExtra("com.codonui.drag.SESSION",source.identifier());
@@ -339,7 +359,12 @@ final class CUIDragInteractions {
     }
     @Override public void onDrawShadow(Canvas canvas) { View view=getView(); if (view==null) return; canvas.save(); canvas.translate(left,top); view.draw(canvas); canvas.restore(); }
   }
-  private static Source local(DragEvent event) { Object state=event.getLocalState(); return state instanceof Source && !((Source)state).ended ? (Source)state : null; }
+  private static Source local(DragEvent event) {
+    Object state=event.getLocalState();
+    if (!(state instanceof Source)) return null;
+    Source source=(Source)state;
+    return !source.ended && source.owner.owns(source) ? source : null;
+  }
   private String identifier(DragEvent event) { Source local=local(event); if (local!=null) return local.identifier(); if (foreignId==null) foreignId=UUID.randomUUID().toString(); return foreignId; }
   private JSONObject types(DragEvent event) throws Exception {
     JSONArray types=new JSONArray(); Set<String> seen=new LinkedHashSet<>(); Source local=local(event);
@@ -404,7 +429,8 @@ final class CUIDragInteractions {
         if (source!=null && event.getLocalState()==source) {
           Source ending=source;
           try { if (owns(ending)) action(ending.binding,"end",ending.identifier(),ending.member,new float[]{0,0},new JSONObject()
-            .put("operation",!event.getResult()?"cancel":ending.attempted?ending.accepted?ending.selected:"cancel":ending.exportedCopy&&ending.allows("copy")?"copy":"cancel")
+            .put("operation",CUIDragOperations.completed(event.getResult(),ending.attempted,ending.accepted,
+              ending.selected,ending.allows(ending.selected),ending.exportedCopy&&ending.allows("copy")))
             .put("nativeResult",event.getResult()),()->owns(ending)); }
           finally { ending.ended=true; source=null; }
         }
