@@ -310,6 +310,7 @@ export const nativeVirtualDrag = {
         event.nativeEvent.windowId !== current.source.scope?.window().windowId
       )
         return false
+      if (event.nativeEvent.target !== findNodeHandle(view)) return true
       const actor = [current.source, ...roots].find((root) => root.scope?.ownerId === event.nativeEvent.scopeOwnerId)
       if (actor && actor.scope?.window().epoch !== event.nativeEvent.epoch) return true
       if (current.pending) return true

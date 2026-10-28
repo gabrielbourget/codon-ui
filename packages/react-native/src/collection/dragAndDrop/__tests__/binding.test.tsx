@@ -453,7 +453,7 @@ it("routes an original accessibility activation through its target before anothe
   let consumed = false
   await act(async () => {
     consumed = dispatchNativeActivationPolicy(child, {
-      nativeEvent: { scopeOwnerId: "owner", windowId: "window", epoch: 1 },
+      nativeEvent: { target: findNodeHandle(child), scopeOwnerId: "owner", windowId: "window", epoch: 1 },
     } as never)
     await Promise.resolve()
     await Promise.resolve()
@@ -462,7 +462,7 @@ it("routes an original accessibility activation through its target before anothe
   expect(onItemDrop).toHaveBeenCalledTimes(1)
   expect(
     dispatchNativeActivationPolicy(child, {
-      nativeEvent: { scopeOwnerId: "owner", windowId: "window", epoch: 1 },
+      nativeEvent: { target: findNodeHandle(child), scopeOwnerId: "owner", windowId: "window", epoch: 1 },
     } as never),
   ).toBe(false)
   nativeVirtualDrag.endpoint(owner, null)

@@ -28,7 +28,7 @@ export const captureNativeDropFocus = (
 export const reconcileNativeDropFocus = (
   previous: TNativeDropFocusSnapshot,
   state: TNativeDroppableCollectionState,
-) => {
+): TNativeCollectionKey | null => {
   const { collection, selectionManager: manager } = state
   const { target, collection: before, selectedKeys, focusedKey, isInternal, draggingKeys } = previous
   const focusedParent = focusedKey != null ? collection.getItem(focusedKey)?.parentKey : null

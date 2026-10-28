@@ -430,8 +430,7 @@ export const NativeFocusHost = forwardRef<
           if (!Number.isSafeInteger(data.activationId) || data.activationId <= activationId.current) return
           activationId.current = data.activationId
           const target = nativeTarget.current
-          if (!target || data.target !== findNodeHandle(target)) return
-          if (!dispatchNativeActivationPolicy(target, event)) onNativeActivation?.(event)
+          if (!target || !dispatchNativeActivationPolicy(target, event)) onNativeActivation?.(event)
         }}
         onNativeKey={(event) => {
           if (!attached.current || event.nativeEvent.ownerId !== ownerId || !isKeyboardEvent(event)) return
