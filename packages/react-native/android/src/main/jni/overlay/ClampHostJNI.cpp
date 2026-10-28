@@ -23,8 +23,8 @@ void failure(JNIEnv *env, const std::exception &error) {
 }
 
 extern "C" JNIEXPORT void JNICALL Java_com_codonui_input_CUIClampHost_nativePresent(
-    JNIEnv *env, jclass, jstring owner, jdouble offset) {
-  try { codon::table::presentClampPlan(ownerId(env,owner),offset); }
+    JNIEnv *env, jclass, jstring owner, jdouble x, jdouble y) {
+  try { codon::table::presentClampPlan(ownerId(env,owner),{static_cast<facebook::react::Float>(x),static_cast<facebook::react::Float>(y)}); }
   catch (const std::exception &error) { failure(env,error); }
 }
 extern "C" JNIEXPORT void JNICALL Java_com_codonui_input_CUIClampHost_nativeRetire(

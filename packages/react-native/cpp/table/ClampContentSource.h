@@ -31,6 +31,7 @@ struct TClampPresentation {
   facebook::react::Point contentOffset;
   std::vector<TClampFragment> lastLine;
   bool clipped{false};
+  bool clipsContents{false};
 };
 
 // An opaque producer owns both its exact flow snapshot and original native paint.

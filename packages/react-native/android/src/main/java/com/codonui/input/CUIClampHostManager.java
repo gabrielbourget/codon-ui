@@ -5,13 +5,26 @@ import com.facebook.react.module.annotations.ReactModule;
 import com.facebook.react.uimanager.ReactStylesDiffMap;
 import com.facebook.react.uimanager.StateWrapper;
 import com.facebook.react.uimanager.ThemedReactContext;
+import com.facebook.react.uimanager.ViewManagerDelegate;
+import com.facebook.react.uimanager.ViewManagerPropertyUpdater;
 import com.facebook.react.uimanager.annotations.ReactProp;
+import com.facebook.react.viewmanagers.CUIClampHostManagerDelegate;
+import com.facebook.react.viewmanagers.CUIClampHostManagerInterface;
 import com.facebook.react.views.view.ReactViewGroup;
 import com.facebook.react.views.view.ReactViewManager;
 
 @ReactModule(name = CUIClampHostManager.NAME)
-public final class CUIClampHostManager extends ReactViewManager {
+public final class CUIClampHostManager extends ReactViewManager implements CUIClampHostManagerInterface<ReactViewGroup> {
   static final String NAME = "CUIClampHost";
+  private final ViewManagerDelegate<ReactViewGroup> inherited = new ViewManagerPropertyUpdater.GenericViewManagerDelegate<>(this);
+  private final CUIClampHostManagerDelegate<ReactViewGroup, CUIClampHostManager> delegate = new CUIClampHostManagerDelegate<>(this) {
+    @Override public void setProperty(ReactViewGroup view, String name, Object value) {
+      if ("hasClamp".equals(name) || "ownerId".equals(name) || "windowId".equals(name) ||
+          "epoch".equals(name) || "maximumLines".equals(name) || "noWrap".equals(name)) super.setProperty(view,name,value);
+      else inherited.setProperty(view,name,value);
+    }
+  };
+  @Override protected ViewManagerDelegate<ReactViewGroup> getDelegate() { return delegate; }
   @Override public String getName() { return NAME; }
   @Override public ReactViewGroup createViewInstance(ThemedReactContext context) { return new CUIClampHost(context); }
   @Override public Object updateState(ReactViewGroup view, ReactStylesDiffMap props, StateWrapper state) {

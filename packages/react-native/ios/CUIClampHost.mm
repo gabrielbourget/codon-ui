@@ -86,7 +86,7 @@ using namespace codon::table;
 }
 - (void)applyPresentation {
   if (!_plan || !self.window || UIApplication.sharedApplication.applicationState != UIApplicationStateActive) return;
-  const auto offset = _viewport.contentOffset.y;
+  const auto offset = _viewport.contentOffset;
   try {
     for (const auto &paragraph : _plan->paragraphs) {
       UIView *view = [self originalView:paragraph.tag inView:_viewport];
@@ -94,14 +94,14 @@ using namespace codon::table;
       if (![view isKindOfClass:RCTParagraphComponentView.class] || view.window != self.window)
         throw std::runtime_error("Table clamp lost its original paragraph/window");
       auto target = (RCTParagraphComponentView *)view;
-      const int lines = paragraph.noWrap ? 1 : offset <= 0 ? paragraph.lines : 0;
+      const int lines = paragraph.noWrap ? 1 : offset.x <= 0 && offset.y <= 0 ? paragraph.lines : 0;
       if (![target cuiSetClampOwner:_plan->owner lines:lines
           props:reinterpret_cast<uintptr_t>(paragraph.props.get())
           state:paragraph.stateIdentity])
         throw std::runtime_error("Table clamp paragraph props/state changed before native presentation");
       [_paragraphs addObject:target];
     }
-    presentClampPlan(_plan->owner, offset);
+    presentClampPlan(_plan->owner, {offset.x,offset.y});
   } catch (const std::exception &error) {
     [self retirePresentation];
     @throw [NSException exceptionWithName:@"CUI.TableClamp" reason:@(error.what()) userInfo:nil];
@@ -121,7 +121,9 @@ using namespace codon::table;
   _viewport.contentSize = CGSizeMake(_plan->contentSize.width, _plan->contentSize.height);
   const auto offset = revealClampRect(_viewport.contentOffset.y, _viewport.bounds.size.height,
       _plan->contentSize.height, _viewport.contentOffset.y, _viewport.contentOffset.y);
-  if (_viewport.contentOffset.y != offset) _viewport.contentOffset = CGPointMake(0, offset);
+  const auto x = revealClampRect(_viewport.contentOffset.x, _viewport.bounds.size.width,
+      _plan->contentSize.width, _viewport.contentOffset.x, _viewport.contentOffset.x);
+  if (_viewport.contentOffset.y != offset || _viewport.contentOffset.x != x) _viewport.contentOffset = CGPointMake(x, offset);
   [self applyPresentation];
   UIView *focused = [self firstResponderInView:_viewport];
   if (focused) [self revealOriginalView:focused];
@@ -140,7 +142,9 @@ using namespace codon::table;
   // UIScrollView coordinates include its current bounds origin; these are full-content coordinates.
   const double offset = revealClampRect(_viewport.contentOffset.y, _viewport.bounds.size.height,
       _plan->contentSize.height, CGRectGetMinY(rect), CGRectGetMaxY(rect));
-  [_viewport setContentOffset:CGPointMake(0, offset) animated:NO];
+  const double x = revealClampRect(_viewport.contentOffset.x, _viewport.bounds.size.width,
+      _plan->contentSize.width, CGRectGetMinX(rect), CGRectGetMaxX(rect));
+  [_viewport setContentOffset:CGPointMake(x, offset) animated:NO];
   [self applyPresentation];
 }
 - (void)editorFocused:(NSNotification *)notification {

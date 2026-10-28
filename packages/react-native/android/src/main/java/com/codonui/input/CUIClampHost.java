@@ -17,7 +17,7 @@ import java.util.ArrayList;
 @DoNotStrip
 final class CUIClampHost extends ReactViewGroup {
   static { System.loadLibrary("react_codegen_CodonNativeOverlay"); }
-  private static native void nativePresent(String owner, double offset);
+  private static native void nativePresent(String owner, double x, double y);
   private static native void nativeRetire(String owner);
   private ReadableMap plan;
   private boolean hasClamp;
@@ -54,14 +54,14 @@ final class CUIClampHost extends ReactViewGroup {
         if (!(view instanceof ReactTextView) || view.getWindowToken() != getWindowToken())
           throw new IllegalStateException("Table clamp lost its original paragraph/window");
         ReactTextView text = (ReactTextView)view;
-        int lines = projection.getBoolean("noWrap") ? 1 : getScrollY() == 0 ? projection.getInt("lines") : 0;
+        int lines = projection.getBoolean("noWrap") ? 1 : getScrollX() == 0 && getScrollY() == 0 ? projection.getInt("lines") : 0;
         if (!text.setCuiClamp(owner, lines, projection.getString("props"), projection.getString("state")))
           throw new IllegalStateException("Table clamp paragraph props/state changed before presentation");
         boolean retained = false;
         for (WeakReference<ReactTextView> previous : paragraphs) if (previous.get() == text) retained = true;
         if (!retained) paragraphs.add(new WeakReference<>(text));
       }
-      nativePresent(owner, PixelUtil.toDIPFromPixel(getScrollY()));
+      nativePresent(owner, PixelUtil.toDIPFromPixel(getScrollX()), PixelUtil.toDIPFromPixel(getScrollY()));
     } catch (RuntimeException error) { retire(); throw error; }
   }
   void retire() {
@@ -78,13 +78,18 @@ final class CUIClampHost extends ReactViewGroup {
     if (!hasClamp || plan == null || child.getWindowToken() != getWindowToken()) return;
     Rect target = new Rect(rectangle);
     offsetDescendantRectToMyCoords(child, target);
-    target.offset(0, getScrollY());
+    target.offset(getScrollX(), getScrollY());
     double contentHeight = PixelUtil.toPixelFromDIP(plan.getDouble("contentHeight"));
     int offset = getScrollY();
     if (target.height() > getHeight() || target.top < offset) offset = target.top;
     else if (target.bottom > offset + getHeight()) offset = target.bottom - getHeight();
     offset = Math.max(0, Math.min(offset, (int)Math.ceil(Math.max(0,contentHeight-getHeight()))));
-    scrollTo(0,offset);
+    double contentWidth = PixelUtil.toPixelFromDIP(plan.getDouble("contentWidth"));
+    int x = getScrollX();
+    if (target.width() > getWidth() || target.left < x) x = target.left;
+    else if (target.right > x + getWidth()) x = target.right - getWidth();
+    x = Math.max(0, Math.min(x, (int)Math.ceil(Math.max(0,contentWidth-getWidth()))));
+    scrollTo(x,offset);
     present();
   }
   @Override public void requestChildFocus(View child, View focused) {
@@ -92,9 +97,9 @@ final class CUIClampHost extends ReactViewGroup {
     if (focused != null) reveal(focused, new Rect(0,0,focused.getWidth(),focused.getHeight()));
   }
   @Override public boolean requestChildRectangleOnScreen(View child, Rect rectangle, boolean immediate) {
-    int before = getScrollY();
+    int before = getScrollY(), beforeX = getScrollX();
     reveal(child, rectangle);
-    return before != getScrollY() || super.requestChildRectangleOnScreen(child,rectangle,immediate);
+    return before != getScrollY() || beforeX != getScrollX() || super.requestChildRectangleOnScreen(child,rectangle,immediate);
   }
   @Override protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
     super.onLayout(changed,left,top,right,bottom);

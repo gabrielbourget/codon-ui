@@ -25,13 +25,14 @@ class JSI_EXPORT CUIClampPlan {
   facebook::react::Size contentSize;
   facebook::react::Size viewportSize;
   TClampViewport viewport;
+  bool clipsContents{false};
   std::vector<TClampParagraph> paragraphs;
   std::vector<TClampParticipant> participants;
-  void present(double offset);
+  void present(facebook::react::Point offset);
   void retire() noexcept;
 };
 
-JSI_EXPORT void presentClampPlan(uint64_t owner, double offset);
+JSI_EXPORT void presentClampPlan(uint64_t owner, facebook::react::Point offset);
 JSI_EXPORT void retireClampPlan(uint64_t owner) noexcept;
 
 struct TClampHostState {

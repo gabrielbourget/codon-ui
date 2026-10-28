@@ -21,9 +21,9 @@ std::unordered_map<uint64_t, std::weak_ptr<CUIClampPlan>> plans;
 std::unordered_map<uint64_t, std::shared_ptr<CUIClampPlan>> presentedPlans;
 }
 
-void CUIClampPlan::present(double offset) {
-  if (!std::isfinite(offset)) throw std::runtime_error("Table clamp requires a finite original scroll position");
-  const auto clipped = viewport.clipped && offset <= 0;
+void CUIClampPlan::present(Point offset) {
+  if (!std::isfinite(offset.x) || !std::isfinite(offset.y)) throw std::runtime_error("Table clamp requires a finite original scroll position");
+  const auto clipped = viewport.clipped && offset.x <= 0 && offset.y <= 0;
   for (const auto &participant : participants) {
     auto lastLine = clipped ? viewport.lastLine : std::vector<TClampFragment>{};
     for (auto &fragment : lastLine) {
@@ -32,15 +32,15 @@ void CUIClampPlan::present(double offset) {
       fragment.baseline -= participant.origin.y;
     }
     participant.capture->present({owner,
-        {{-participant.origin.x, static_cast<Float>(offset) - participant.origin.y}, viewportSize},
-        {0, static_cast<Float>(offset)}, std::move(lastLine), clipped});
+        {{offset.x - participant.origin.x, offset.y - participant.origin.y}, viewportSize},
+        offset, std::move(lastLine), clipped, clipsContents});
   }
 }
 void CUIClampPlan::retire() noexcept {
   for (const auto &participant : participants) participant.capture->retire(owner);
 }
 
-void presentClampPlan(uint64_t owner, double offset) {
+void presentClampPlan(uint64_t owner, Point offset) {
   std::shared_ptr<CUIClampPlan> plan;
   {
     std::lock_guard lock(planMutex);
@@ -219,11 +219,15 @@ CUIOwnedClampHostShadowNode::TContent CUIOwnedClampHostShadowNode::resolveConten
   layout->setLayoutMetrics(metrics);
   auto plan = std::make_shared<CUIClampPlan>();
   plan->owner = codon::table::nextOwner.fetch_add(1);
-  plan->contentSize = metrics.frame.size;
+  const auto naturalSize = metrics.frame.size;
+  plan->contentSize = {
+      std::max(naturalSize.width, naturalSize.width - metrics.overflowInset.right),
+      std::max(naturalSize.height, naturalSize.height - metrics.overflowInset.bottom)};
+  plan->clipsContents = props.hasClamp;
   std::vector<TClampFragment> fragments;
   if (active) collectContent(*child, {}, props, context, *plan, fragments);
-  plan->viewport = resolveClampViewport(fragments, plan->contentSize.height, limit, context.pointScaleFactor);
-  plan->viewportSize = {plan->contentSize.width, static_cast<Float>(plan->viewport.height)};
+  plan->viewport = resolveClampViewport(fragments, naturalSize.height, limit, context.pointScaleFactor);
+  plan->viewportSize = {naturalSize.width, static_cast<Float>(plan->viewport.height)};
   for (auto &paragraph : plan->paragraphs) {
     if (props.noWrap) paragraph.lines = 1;
     if (plan->viewport.clipped) {
