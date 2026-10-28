@@ -11,6 +11,8 @@ import android.view.inputmethod.BaseInputConnection;
 import android.widget.EditText;
 import androidx.core.view.ViewCompat;
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.UIManager;
+import com.facebook.react.bridge.UIManagerListener;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.uimanager.ThemedReactContext;
@@ -24,7 +26,16 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-public final class CUIKeyboardScope extends ReactViewGroup {
+public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerListener {
+  private UIManager dragMountManager;
+  private long dragMountBatch;
+  boolean dragCaptureReady() { return captureReady(); }
+  String dragMountWitness() { return isAttachedToWindow() ? "android-mount:" + dragMountBatch : "unmounted"; }
+  @Override public void didMountItems(UIManager manager) { if (manager == dragMountManager) dragMountBatch++; }
+  @Override public void willDispatchViewUpdates(UIManager manager) {}
+  @Override public void willMountItems(UIManager manager) {}
+  @Override public void didDispatchMountItems(UIManager manager) {}
+  @Override public void didScheduleMountItems(UIManager manager) {}
   final CUIDialogFocusScopes dialogs = new CUIDialogFocusScopes(this);
   boolean dialogFocusReady() { return captureReady(); }
   void emitDialogFocus(String name, WritableMap data) { emit(name, data); }
@@ -397,10 +408,14 @@ public final class CUIKeyboardScope extends ReactViewGroup {
     if (boundRoot != null) { retireHeld(); held.clear(); windowEpoch++; publishStatus(); }
   }
   @Override protected void onAttachedToWindow() {
-    super.onAttachedToWindow(); boundRoot = getRootView(); CUIInputWindow.register(this); policyOrder = CUIInputWindow.nextPolicyOrder(this);
+    super.onAttachedToWindow();
+    dragMountManager = UIManagerHelper.getUIManagerForReactTag((ThemedReactContext)getContext(), getId());
+    if (dragMountManager != null) dragMountManager.addUIManagerEventListener(this);
+    boundRoot = getRootView(); CUIInputWindow.register(this); policyOrder = CUIInputWindow.nextPolicyOrder(this);
     ViewCompat.addOnUnhandledKeyEventListener(boundRoot, unhandled); windowEpoch++; publishStatus(); dialogs.attach();
   }
   @Override protected void onDetachedFromWindow() {
+    if (dragMountManager != null) dragMountManager.removeUIManagerEventListener(this); dragMountManager = null;
     dialogs.detach();
     floating.stop();
     menuPointers.dispose();

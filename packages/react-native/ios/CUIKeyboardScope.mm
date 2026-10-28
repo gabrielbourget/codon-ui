@@ -8,6 +8,7 @@
 #import "CUIFieldInputBinding.h"
 #include "../cpp/CUIEditorKeyboardDefaultRegistry.h"
 #import <UIKit/UIGestureRecognizerSubclass.h>
+#import <React/RCTMountingTransactionObserving.h>
 #import <react/renderer/components/CodonNativeInputSpec/ComponentDescriptors.h>
 #import <react/renderer/components/CodonNativeInputSpec/EventEmitters.h>
 #import <react/renderer/components/CodonNativeInputSpec/Props.h>
@@ -38,7 +39,7 @@ static UIView *CUIFirstResponder(UIView *root)
 @end
 
 @class CUIKeyboardRecognizer;
-@interface CUIKeyboardScope () <UIGestureRecognizerDelegate, CUIKeyboardObservationScope, CUIWindowPointerScope>
+@interface CUIKeyboardScope () <UIGestureRecognizerDelegate, CUIKeyboardObservationScope, CUIWindowPointerScope, RCTMountingTransactionObserving>
 - (NSString *)policyForPress:(UIPress *)press;
 - (BOOL)hasPolicyForPress:(UIPress *)press;
 - (void)recordModality:(NSString *)origin;
@@ -140,6 +141,7 @@ static UIView *CUIFirstResponder(UIView *root)
   double _menuPointerRevision;
   CUIDialogFocusScopes *_dialogs;
   NSString *_ownerId;
+  NSString *_dragMountWitness;
   BOOL _captureEnabled;
   NSArray<NSDictionary *> *_policies;
   CUIKeyboardRecognizer *_keyboard;
@@ -254,6 +256,11 @@ static UIView *CUIFirstResponder(UIView *root)
 - (NSDictionary *)activationSession
 {
   return @{ @"scopeOwnerId": _ownerId, @"windowId": CUIInputWindowIdentity(self.window), @"epoch": @(_windowEpoch) };
+}
+- (BOOL)dragCaptureReady { return [self captureReady]; }
+- (NSString *)dragMountWitness { return _dragMountWitness ?: @"unmounted"; }
+- (void)mountingTransactionDidMount:(const MountingTransaction &)transaction withSurfaceTelemetry:(const SurfaceTelemetry &)surfaceTelemetry {
+  _dragMountWitness = self.window ? [NSString stringWithFormat:@"ios-surface:%d:mount:%lld", transaction.getSurfaceId(), (long long)transaction.getNumber()] : nil;
 }
 - (CUIMenuPointerPolicies *)menuPointers { return _menuPointers; }
 - (CUIDialogFocusScopes *)dialogFocusScopes { return _dialogs; }
@@ -751,6 +758,7 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
 }
 - (void)prepareForRecycle
 {
+  _dragMountWitness = nil;
   [_dialogs invalidate];
   [_menuPointers invalidate]; _menuPointerRegistrations = @[]; _menuPointerRevision = 0;
   [_floating invalidate]; _floatingTargets = @[];
@@ -772,6 +780,7 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
 }
 - (void)dealloc
 {
+  _dragMountWitness = nil;
   [_dialogs invalidate];
   [_menuPointers invalidate];
   [_floating invalidate];

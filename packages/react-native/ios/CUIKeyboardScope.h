@@ -4,6 +4,8 @@
 
 @interface CUIKeyboardScope : RCTViewComponentView
 - (NSDictionary *)activationSession;
+- (NSString *)dragMountWitness;
+- (BOOL)dragCaptureReady;
 - (CUIMenuPointerPolicies *)menuPointers;
 - (CUIDialogFocusScopes *)dialogFocusScopes;
 @end

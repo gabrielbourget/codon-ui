@@ -3,17 +3,28 @@ package com.codonui.input;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.module.annotations.ReactModule;
+import com.facebook.react.turbomodule.core.interfaces.BindingsInstallerHolder;
+import com.facebook.react.turbomodule.core.interfaces.TurboModuleWithJSIBindings;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 @ReactModule(name = CUIDragAndDropModule.NAME)
-public final class CUIDragAndDropModule extends NativeCUIDragAndDropSpec {
+public final class CUIDragAndDropModule extends NativeCUIDragAndDropSpec implements TurboModuleWithJSIBindings {
+  static { System.loadLibrary("codon_motion"); }
   public static final String NAME = "CUIDragAndDrop";
   private final CUIDragDataStore data;
+  private final BindingsInstallerHolder actions;
+  private static native BindingsInstallerHolder nativeActionBindings(String moduleId);
+  private static native boolean nativeAcceptsAction(String moduleId, String request);
+  private static native boolean nativeSettleAction(String moduleId, String request);
+  private static native void nativeRetireActions(String moduleId);
 
   public CUIDragAndDropModule(ReactApplicationContext context) {
-    super(context); data = new CUIDragDataStore(context);
+    super(context); data = new CUIDragDataStore(context); actions = nativeActionBindings(data.moduleId);
   }
+  @Override public BindingsInstallerHolder getBindingsInstaller() { return actions; }
+  @Override public boolean acceptsAction(String request) { return nativeAcceptsAction(data.moduleId, request); }
+  @Override public boolean settleAction(String request) { return nativeSettleAction(data.moduleId, request); }
   @Override public String getName() { return NAME; }
   @Override public String getLease() { return data.moduleId; }
   private <T> CUIDragDataStore.Reply<T> record(Promise promise) {
@@ -53,5 +64,5 @@ public final class CUIDragAndDropModule extends NativeCUIDragAndDropSpec {
     try { data.releaseData(new JSONObject(request)); }
     catch (Exception error) { throw new IllegalStateException("Native drag data: original resource cleanup failed", error); }
   }
-  @Override public void invalidate() { data.invalidate(); super.invalidate(); }
+  @Override public void invalidate() { nativeRetireActions(data.moduleId); data.invalidate(); super.invalidate(); }
 }

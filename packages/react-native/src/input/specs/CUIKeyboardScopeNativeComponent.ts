@@ -1,6 +1,7 @@
 import { codegenNativeComponent, type HostComponent, type ViewProps } from "react-native"
 import type { DirectEventHandler, Double, Int32, WithDefault } from "react-native/Libraries/Types/CodegenTypes"
 
+export type NativeDragActionData = Readonly<{ packet: string }>
 export type NativeScopedKeyData = Readonly<{
   kind: string
   ownerId: string
@@ -252,6 +253,7 @@ export type NativeEditorKeyboardDecision = Readonly<{
 }>
 
 export interface NativeProps extends ViewProps {
+  onNativeDragAction?: DirectEventHandler<NativeDragActionData>
   nativeTypographyWindow?: string
   ownerId: string
   dialogScopes?: ReadonlyArray<NativeDialogBinding>

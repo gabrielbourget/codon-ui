@@ -5,6 +5,7 @@
 #include "SnapshotQuery.h"
 #include "FabricManager.h"
 #include "FormDocumentJNI.h"
+#include "DragActionJNI.h"
 #include "PopFrame.h"
 #include "PopPresentation.h"
 #include "ViewportQuery.h"
@@ -137,6 +138,7 @@ extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *) {
   return jni::initialize(vm, [] {
     codon::motion::registerMotionDrawingNatives(jni::Environment::current());
     registerFormDocumentNatives();
+    registerDragActionNatives();
     registerBackdropNatives(jni::Environment::current());
     registerForegroundNatives(jni::Environment::current());
     jni::findClassStatic("com/codonui/input/CUIMotionSnapshotModule")->registerNatives({

@@ -107,6 +107,7 @@ public final class CUIKeyboardScopeManager extends ReactViewManager implements C
   @Override public Map<String, Object> getExportedCustomDirectEventTypeConstants() {
     Map<String, Object> events = new HashMap<>(); Map<String, Object> existing = super.getExportedCustomDirectEventTypeConstants();
     if (existing != null) events.putAll(existing);
+    events.put("topNativeDragAction", Collections.singletonMap("registrationName", "onNativeDragAction"));
     events.put("topNativeDialogStatus", Collections.singletonMap("registrationName", "onNativeDialogStatus"));
     events.put("topNativeDialogAction", Collections.singletonMap("registrationName", "onNativeDialogAction"));
     events.put("topNativeEditorKey", Collections.singletonMap("registrationName", "onNativeEditorKey"));

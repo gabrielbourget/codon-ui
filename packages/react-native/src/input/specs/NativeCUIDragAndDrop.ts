@@ -3,6 +3,8 @@ import { TurboModuleRegistry } from "react-native"
 
 export interface Spec extends TurboModule {
   getLease(): string
+  acceptsAction(request: string): boolean
+  settleAction(request: string): boolean
   readItems(request: string): Promise<string>
   adoptItems(request: string): boolean
   readText(request: string): Promise<string>

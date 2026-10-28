@@ -10,6 +10,7 @@ set(CODON_MOTION_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../../cpp/motion")
 add_library(codon_motion SHARED
   MotionSnapshotJNI.cpp
   FormDocumentJNI.cpp
+  DragActionJNI.cpp
   "${CMAKE_CURRENT_LIST_DIR}/../../../../cpp/form/FabricFormDocument.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../cpp/form/FormDocumentQuery.cpp"
   MotionIntrinsicsJNI.cpp

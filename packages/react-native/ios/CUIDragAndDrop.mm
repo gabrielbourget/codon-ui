@@ -3,13 +3,50 @@
 #import <React/RCTInvalidating.h>
 #import <React/RCTBridgeModule.h>
 #import "CUIDragDataStore.h"
+#import "CUIDragAction.h"
+#import "CUIKeyboardScope.h"
+#import <React/RCTScheduler.h>
+#import <React/RCTSurfacePresenter.h>
+#include "../cpp/drag/ActionMount.h"
 
+namespace {
+class DragActionJSI final : public facebook::react::NativeCUIDragAndDropSpecJSI {
+ public:
+  DragActionJSI(const facebook::react::ObjCTurboModule::InitParams &params, std::shared_ptr<codon::drag::ActionRuntime> action)
+      : NativeCUIDragAndDropSpecJSI(params), action_(std::move(action)) {
+    action_->install(params.jsInvoker);
+    methodMap_["acceptsAction"] = MethodMetadata{1, accepts};
+    methodMap_["settleAction"] = MethodMetadata{1, settle};
+  }
+ private:
+  std::shared_ptr<codon::drag::ActionRuntime> action_;
+  static facebook::jsi::Value accepts(facebook::jsi::Runtime &runtime, facebook::react::TurboModule &module,
+      const facebook::jsi::Value *args, size_t count) {
+    const auto &self = static_cast<DragActionJSI &>(module);
+    return count == 1 && args[0].isString() && self.action_->accepts(args[0].getString(runtime).utf8(runtime));
+  }
+  static facebook::jsi::Value settle(facebook::jsi::Runtime &runtime, facebook::react::TurboModule &module,
+      const facebook::jsi::Value *args, size_t count) {
+    const auto &self = static_cast<DragActionJSI &>(module);
+    return count == 1 && args[0].isString() && self.action_->settle(args[0].getString(runtime).utf8(runtime));
+  }
+};
+}
+@class CUIDragAndDrop;
+static NSLock *CUIDragModulesLock;
+static NSMapTable<NSString *, CUIDragAndDrop *> *CUIDragModules;
+static void CUIInitializeDragModules() {
+  static dispatch_once_t once; dispatch_once(&once, ^{ CUIDragModulesLock = [NSLock new]; CUIDragModules = NSMapTable.strongToWeakObjectsMapTable; });
+}
 @interface CUIDragAndDrop : NativeCUIDragAndDropSpecBase <NativeCUIDragAndDropSpec, RCTInvalidating>
 @property(nonatomic, weak) RCTModuleRegistry *moduleRegistry;
+- (NSString *)runAction:(CUIKeyboardScope *)scope identity:(NSDictionary *)identity payload:(NSDictionary *)payload pointer:(BOOL)pointer current:(BOOL (^)(void))current;
 @end
 
 @implementation CUIDragAndDrop {
   CUIDragDataStore *_data;
+  std::shared_ptr<codon::drag::ActionRuntime> _action;
+  __weak id<RCTSurfacePresenterStub> _presenter;
 }
 @synthesize moduleRegistry = _moduleRegistry;
 RCT_EXPORT_MODULE(CUIDragAndDrop)
@@ -27,10 +64,38 @@ RCT_EXPORT_MODULE(CUIDragAndDrop)
         RCTBlobManager *blobs = [weakSelf.moduleRegistry moduleForName:"BlobModule"];
         if ([blobs isKindOfClass:RCTBlobManager.class]) [blobs remove:identity];
       }];
+    _action = std::make_shared<codon::drag::ActionRuntime>(_data.moduleId.UTF8String);
+    codon::drag::registerRuntime(_action);
+    CUIInitializeDragModules(); [CUIDragModulesLock lock]; [CUIDragModules setObject:self forKey:_data.moduleId]; [CUIDragModulesLock unlock];
   }
   return self;
 }
-- (void)invalidate { [_data invalidate]; }
+- (void)setSurfacePresenter:(id<RCTSurfacePresenterStub>)presenter { _presenter = presenter; }
+- (void)invalidate {
+  codon::drag::retireRuntime(_data.moduleId.UTF8String);
+  [CUIDragModulesLock lock]; [CUIDragModules removeObjectForKey:_data.moduleId]; [CUIDragModulesLock unlock];
+  [_data invalidate];
+}
+- (NSNumber *)acceptsAction:(NSString *)request { return @(_action->accepts(request.UTF8String)); }
+- (NSNumber *)settleAction:(NSString *)request { return @(_action->settle(request.UTF8String)); }
+- (NSString *)runAction:(CUIKeyboardScope *)scope identity:(NSDictionary *)identity payload:(NSDictionary *)payload pointer:(BOOL)pointer current:(BOOL (^)(void))current {
+  if (!NSThread.isMainThread || !current || !current()) @throw [NSException exceptionWithName:@"CUI.DragAction" reason:@"native-drag-original-main-view-required" userInfo:nil];
+  RCTSurfacePresenter *presenter = (RCTSurfacePresenter *)_presenter;
+  const auto manager = presenter.scheduler.uiManager;
+  NSData *idBytes = [NSJSONSerialization dataWithJSONObject:identity options:0 error:nullptr];
+  NSData *payloadBytes = [NSJSONSerialization dataWithJSONObject:payload options:0 error:nullptr];
+  if (!idBytes || !payloadBytes) @throw [NSException exceptionWithName:@"CUI.DragAction" reason:@"native-drag-original-packet-invalid" userInfo:nil];
+  const auto id = codon::drag::identity(folly::parseJson(std::string((const char *)idBytes.bytes, idBytes.length)));
+  auto data = folly::parseJson(std::string((const char *)payloadBytes.bytes, payloadBytes.length));
+  const auto response = codon::drag::run(_action, manager, id, std::move(data), pointer,
+    [scope, current, id] {
+      NSDictionary *session = scope.activationSession;
+      return NSThread.isMainThread && current() && scope.dragCaptureReady && scope.tag == id.scopeTarget &&
+        [session[@"scopeOwnerId"] isEqual:@(id.ownerId.c_str())] && [session[@"windowId"] isEqual:@(id.windowId.c_str())] &&
+        [session[@"epoch"] longLongValue] == id.epoch;
+    }, [scope] { return std::string(scope.dragMountWitness.UTF8String ?: ""); });
+  return @(response.c_str());
+}
 - (NSString *)getLease { return _data.moduleId ?: @""; }
 - (NSDictionary *)request:(NSString *)encoded {
   NSError *error;
@@ -71,6 +136,12 @@ RCT_EXPORT_MODULE(CUIDragAndDrop)
 - (void)closeDirectory:(NSString *)encoded { [_data closeDirectory:[self request:encoded]]; }
 - (void)releaseData:(NSString *)encoded { [_data releaseData:[self request:encoded]]; }
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:(const facebook::react::ObjCTurboModule::InitParams &)params {
-  return std::make_shared<facebook::react::NativeCUIDragAndDropSpecJSI>(params);
+  return std::make_shared<DragActionJSI>(params, _action);
 }
 @end
+
+NSString *CUIRunDragAction(CUIKeyboardScope *scope, NSDictionary *identity, NSDictionary *payload, BOOL pointer, BOOL (^current)(void)) {
+  CUIInitializeDragModules(); [CUIDragModulesLock lock]; CUIDragAndDrop *module = [CUIDragModules objectForKey:identity[@"moduleId"]]; [CUIDragModulesLock unlock];
+  if (!module) @throw [NSException exceptionWithName:@"CUI.DragAction" reason:@"native-drag-original-module-retired" userInfo:nil];
+  return [module runAction:scope identity:identity payload:payload pointer:pointer current:current];
+}
