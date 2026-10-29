@@ -33,7 +33,7 @@ export const useRangeAnimation = (percentage: number | undefined) => {
     const animation = Animated.timing(fill, {
       toValue: percentage,
       duration: 250,
-      easing: Easing.inOut(Easing.ease),
+      easing: Easing.bezier(0.42, 0, 0.58, 1),
       useNativeDriver: false,
     })
     animation.start()

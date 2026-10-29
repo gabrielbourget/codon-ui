@@ -1,13 +1,15 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native"
-import { createRef } from "react"
+import { createRef, type RefAttributes } from "react"
 import {
   AccessibilityInfo,
   Animated,
+  Easing,
   Platform,
   PlatformColor,
   StyleSheet,
-  type View,
+  View,
   type ViewStyle,
+  type ViewProps,
 } from "react-native"
 
 import { LinearProgress, Meter, NativeThemeProvider } from "../../.."
@@ -27,6 +29,40 @@ describe.each([
   { Component: LinearProgress, identity: "linear-progress", role: "progressbar" },
   { Component: Meter, identity: "meter", role: "meter" },
 ] as const)("$identity native contract", ({ Component, identity, role }) => {
+  it("passes the original native root props/ref and current range state to its inherited renderer", async () => {
+    const ref = createRef<View>()
+    const onLayout = jest.fn()
+    const renderer = jest.fn((props: ViewProps & RefAttributes<View>, state: unknown) => (
+      <View {...props} testID="rendered-range" accessibilityHint={JSON.stringify(state)} />
+    ))
+    const adapter = { render: renderer }
+    const view = await render(<Component {...adapter} ref={ref} value={25} aria-label="Rendered" onLayout={onLayout} />)
+    expect(renderer).toHaveBeenCalled()
+    const original = ref.current
+    expect(original).not.toBeNull()
+    expect(renderer.mock.calls.at(-1)?.[0].ref).toBe(ref)
+    expect(screen.getByRole(role)).toBe(screen.getByTestId("rendered-range"))
+    expect(renderer.mock.calls.at(-1)?.[1]).toEqual(
+      identity === "meter"
+        ? { percentage: 25, valueText: "25%" }
+        : { percentage: 25, valueText: "25%", isIndeterminate: false },
+    )
+    expect(screen.getByTestId(`${identity}-bar`, { includeHiddenElements: true })).toHaveStyle({ width: "25%" })
+    await view.rerender(<Component {...adapter} ref={ref} value={0} aria-label="Updated" onLayout={onLayout} />)
+    expect(ref.current).toBe(original)
+    expect(renderer.mock.calls.at(-1)?.[1]).toEqual(
+      identity === "meter"
+        ? { percentage: 0, valueText: "0%" }
+        : { percentage: 0, valueText: "0%", isIndeterminate: false },
+    )
+    const event = { nativeEvent: { target: 17, layout: { x: 1, y: 2, width: 150, height: 10 } } }
+    await fireEvent(screen.getByTestId("rendered-range"), "layout", event)
+    expect(onLayout.mock.calls).toEqual([[event]])
+    expect(onLayout.mock.calls[0][0]).toBe(event)
+    await view.unmount()
+    expect(ref.current).toBeNull()
+  })
+
   it("keeps deferred values, bounds and callback replacement under caller ownership through removal", async () => {
     const ref = createRef<View>()
     const previousLayout = jest.fn(),
@@ -454,6 +490,10 @@ it("animates only the visual fill and cancels superseded and unmounted transitio
     expect.anything(),
     expect.objectContaining({ toValue: 70, duration: 250, useNativeDriver: false }),
   )
+  const transition = timing.mock.calls.at(-1)?.[1]
+  const canonicalEasing = Easing.bezier(0.42, 0, 0.58, 1)
+  for (const fraction of [0.125, 0.25, 0.5, 0.75, 0.875])
+    expect(transition?.easing?.(fraction)).toBeCloseTo(canonicalEasing(fraction), 6)
   expect(screen.getByRole("progressbar")).toHaveAccessibilityValue({ now: 70, text: "70%" })
   const previous = transitions.at(-1)!
   await rerender(<LinearProgress aria-label="Animated" value={0} />)

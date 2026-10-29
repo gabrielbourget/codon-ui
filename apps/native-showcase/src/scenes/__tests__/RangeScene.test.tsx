@@ -27,6 +27,8 @@ const enterScene = async () => {
 
 it("composes controlled progress/measurement and preserves zero across theme and layout changes", async () => {
   const press = await enterScene()
+  expect(screen.getByRole("progressbar").props.nativeID).toBe("range-progress-rendered-25")
+  expect(screen.getByRole("meter").props.nativeID).toBe("range-meter-rendered-25")
   expect(screen.getByRole("progressbar", { name: "Task progress" })).toHaveAccessibilityValue({ now: 25, text: "25%" })
   expect(screen.getByRole("meter", { name: "Measured capacity" })).toHaveAccessibilityValue({
     min: -50,
@@ -45,6 +47,7 @@ it("composes controlled progress/measurement and preserves zero across theme and
     expect(screen.getByTestId("range-state")).toHaveTextContent(/Progress: 0%\. Measurement: -50\./)
     expect(screen.getByRole("progressbar")).toHaveAccessibilityValue({ now: 0, text: "0%" })
     expect(screen.getByRole("meter")).toHaveAccessibilityValue({ now: -50, text: "-50" })
+    expect(screen.getByRole("meter").props.nativeID).toBe("range-meter-rendered-0")
     expect(screen.getByTestId("range-meter-track")).toHaveStyle({ borderColor: "#474747" })
   } finally {
     await act(() => Dimensions.set({ window }))
@@ -55,6 +58,7 @@ it("isolates unknown progress and changes dimensions, direction, geometry and al
   const press = await enterScene()
   await press("Toggle unknown progress")
   expect(screen.getByRole("progressbar").props.accessibilityValue).toEqual({})
+  expect(screen.getByRole("progressbar").props.nativeID).toBe("range-progress-rendered-unknown")
   expect(screen.getByRole("meter")).toHaveAccessibilityValue({ now: -25 })
   await press("Toggle range orientation")
   await press("Reverse range direction")

@@ -37,6 +37,7 @@ export const RangeIndicator = forwardRef<View, TRangeIndicatorProps>((props, ref
     customTrackStyles,
     customBarStyles,
     style,
+    render: _render,
     accessibilityLabel,
     "aria-label": aliasLabel,
     testID,
@@ -135,7 +136,7 @@ export const RangeIndicator = forwardRef<View, TRangeIndicatorProps>((props, ref
     component,
     "customBarStyles",
   )
-  return (
+  const element = (
     <View
       {...rest}
       ref={ref}
@@ -183,5 +184,13 @@ export const RangeIndicator = forwardRef<View, TRangeIndicatorProps>((props, ref
       </View>
     </View>
   )
+  if (props.component === "LinearProgress") {
+    const renderRoot = props.indicatorProps.render
+    return renderRoot
+      ? renderRoot(element.props, { percentage: visiblePercentage, valueText, isIndeterminate })
+      : element
+  }
+  const renderRoot = props.indicatorProps.render
+  return renderRoot ? renderRoot(element.props, { percentage, valueText: valueText ?? "" }) : element
 })
 RangeIndicator.displayName = "RangeIndicator"
