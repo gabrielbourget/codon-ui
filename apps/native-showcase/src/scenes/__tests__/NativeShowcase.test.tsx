@@ -268,6 +268,7 @@ it("composes basic controls, mixed/group selection, text entry and blocked chang
   expect(screen.getByTestId("basic-group").props.nativeID).toBe("basic-group-first")
   await user.press(screen.getByRole("checkbox", { name: "Group second" }))
   await user.type(screen.getByTestId("basic-input"), "Bonjour", { skipBlur: true })
+  expect(screen.getByTestId("basic-input").props.nativeID).toBe("basic-input-editable")
   await fireEvent(screen.getByTestId("basic-input"), "submitEditing", { nativeEvent: { text: "Bonjour" } })
   expect(screen.getByTestId("basic-control-state")).toHaveTextContent(
     /Switch: on.*Checkbox: on.*Group: first,second.*Input: Bonjour.*Submits: 1/,
@@ -435,6 +436,7 @@ it("composes multiline editing, final native submit text and controlled/uncontro
   await press("Multiline/Radio scene")
   const notes = "Bonjour Montréal\nComplete second line"
   await user.type(screen.getByTestId("multiline-draft"), notes, { skipBlur: true })
+  expect(screen.getByTestId("multiline-draft").props.nativeID).toBe("multiline-draft-editable")
   await fireEvent.changeText(screen.getByTestId("multiline-submit"), "B")
   await fireEvent(screen.getByTestId("multiline-submit"), "submitEditing", { nativeEvent: { text: "Bonjour final" } })
   await user.press(screen.getByRole("radio", { name: "Radio second" }))

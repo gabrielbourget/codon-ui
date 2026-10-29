@@ -250,6 +250,7 @@ export const NativeComboBoxInput = forwardRef<TextInput, TNativeComboBoxInputPro
   return (
     <>
       <NativeInput
+        nativeAnimate={false}
         {...input}
         ref={ref}
         style={typeof style === "function" ? (state) => style({ ...state, ...values(state) }) : style}

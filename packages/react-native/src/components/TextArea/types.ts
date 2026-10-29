@@ -1,3 +1,4 @@
+import type { ReactElement, RefAttributes } from "react"
 import type { StyleProp, TextInput, TextInputProps, TextStyle } from "react-native"
 
 import type { TCornerGeometry } from "../../tokens/geometry"
@@ -35,6 +36,7 @@ export type TNativeTextAreaProps = Omit<
   | "secureTextEntry"
 > &
   TNativeTextAreaLabel & {
+    render?: (props: TextInputProps & RefAttributes<TextInput>, state: TNativeTextAreaRenderState) => ReactElement
     isDisabled?: boolean
     isReadOnly?: boolean
     textSize?: TNativeTextAreaSize

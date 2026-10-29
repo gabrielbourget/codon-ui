@@ -3,12 +3,14 @@ import { TextInput, type TextStyle } from "react-native"
 
 import { useNativeTheme } from "../../theme"
 import { validateNativeColor } from "../colors"
+import { useNativeInputBorder } from "../Input/motion"
 import { getNativeControlRadius, getNativeControlRootStyle } from "../selection"
 
 import type { TNativeTextAreaProps, TNativeTextAreaRef, TNativeTextAreaRenderState } from "./types"
 
 export const TextArea = forwardRef<TNativeTextAreaRef, TNativeTextAreaProps>((props, ref) => {
   const {
+    render,
     isDisabled = false,
     isReadOnly = false,
     textSize = "medium",
@@ -81,8 +83,9 @@ export const TextArea = forwardRef<TNativeTextAreaRef, TNativeTextAreaProps>((pr
       : {}),
   }
   const resolved = getNativeControlRootStyle("TextArea", baseline, customStyles, style, state)
+  const painted = useNativeInputBorder(resolved)
   const blocked = isDisabled || isReadOnly
-  return (
+  const element = (
     <TextInput
       {...rest}
       ref={ref}
@@ -97,7 +100,7 @@ export const TextArea = forwardRef<TNativeTextAreaRef, TNativeTextAreaProps>((pr
       testID={testID ?? aliasTestID ?? "textarea"}
       placeholderTextColor={placeholder}
       underlineColorAndroid={rest.underlineColorAndroid ?? "transparent"}
-      style={resolved}
+      style={painted}
       onChangeText={(value) => {
         if (!blocked) onChangeText?.(value)
       }}
@@ -116,5 +119,6 @@ export const TextArea = forwardRef<TNativeTextAreaRef, TNativeTextAreaProps>((pr
       }}
     />
   )
+  return render ? render(element.props, state) : element
 })
 TextArea.displayName = "TextArea"

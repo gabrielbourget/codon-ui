@@ -197,6 +197,9 @@ export const BasicControlsScene = () => {
       ) : (
         <Input
           ref={inputRef}
+          render={(props, state) => (
+            <CoreInput {...props} nativeID={`basic-input-${state.isReadOnly ? "readonly" : "editable"}`} />
+          )}
           testID="basic-input"
           aria-label="Basic input"
           placeholder="Enter bilingual text"
