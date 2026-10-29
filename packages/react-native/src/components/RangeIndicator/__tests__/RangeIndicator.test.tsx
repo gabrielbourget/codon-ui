@@ -27,6 +27,47 @@ describe.each([
   { Component: LinearProgress, identity: "linear-progress", role: "progressbar" },
   { Component: Meter, identity: "meter", role: "meter" },
 ] as const)("$identity native contract", ({ Component, identity, role }) => {
+  it("keeps deferred values, bounds and callback replacement under caller ownership through removal", async () => {
+    const ref = createRef<View>()
+    const previousLayout = jest.fn(),
+      currentLayout = jest.fn()
+    const view = await render(<Component ref={ref} aria-label="Owned range" value={0} onLayout={previousLayout} />)
+    const original = ref.current
+    expect(original).not.toBeNull()
+    const value = await Promise.resolve(35)
+    await view.rerender(
+      <Component
+        ref={ref}
+        aria-label="Owned range"
+        value={value}
+        minValue={-5}
+        maxValue={75}
+        valueLabel=""
+        onLayout={currentLayout}
+      />,
+    )
+    expect(ref.current).toBe(original)
+    expect(screen.getByRole(role)).toHaveAccessibilityValue({ min: -5, max: 75, now: 35 })
+    expect(screen.getByRole(role).props.accessibilityValue).toEqual({ min: -5, max: 75, now: 35, text: "" })
+    expect(screen.getByTestId(`${identity}-bar`, { includeHiddenElements: true })).toHaveStyle({ width: "50%" })
+    expect(previousLayout).not.toHaveBeenCalled()
+    expect(currentLayout).not.toHaveBeenCalled()
+    const event = { nativeEvent: { layout: { x: 1, y: 2, width: 150, height: 10 } } }
+    await fireEvent(screen.getByRole(role), "layout", event)
+    expect(currentLayout.mock.calls).toEqual([[event]])
+    expect(currentLayout.mock.calls[0][0]).toBe(event)
+    expect(previousLayout).not.toHaveBeenCalled()
+    await view.rerender(<></>)
+    expect(ref.current).toBeNull()
+    await view.rerender(<Component ref={ref} aria-label="Owned range" value={0} onLayout={currentLayout} />)
+    expect(screen.getByRole(role)).toHaveAccessibilityValue({ min: 0, max: 100, now: 0, text: "0%" })
+    expect(ref.current).not.toBeNull()
+    expect(currentLayout).toHaveBeenCalledTimes(1)
+    await view.unmount()
+    expect(ref.current).toBeNull()
+    expect(currentLayout).toHaveBeenCalledTimes(1)
+  })
+
   it("renders one named, bounded accessibility target with a semantic default bar", async () => {
     await render(<Component accessibilityLabel="Completion" value={36} />)
     const root = screen.getByRole(role, { name: "Completion" })

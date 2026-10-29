@@ -6,6 +6,7 @@ import {
   AVAILABLE_FONT_VARIANTS,
   AVAILABLE_FONT_WEIGHTS,
   NativeThemeProvider,
+  PlaceholderText,
   Text,
   type TNativeTextRef,
 } from "../../.."
@@ -14,6 +15,64 @@ beforeEach(() => jest.useFakeTimers())
 afterEach(() => jest.useRealTimers())
 
 describe("Text public native contract", () => {
+  it.each([
+    ["Text", Text],
+    ["PlaceholderText", PlaceholderText],
+  ] as const)(
+    "keeps %s content and callbacks under caller ownership through empty, deferred and removed content",
+    async (_, Component) => {
+      const ref = createRef<TNativeTextRef>()
+      const previousPress = jest.fn(),
+        currentPress = jest.fn()
+      const view = await render(
+        <Component ref={ref} testID="owned-content" onPress={previousPress}>
+          Initial
+        </Component>,
+      )
+      const original = ref.current
+      expect(original).not.toBeNull()
+      for (const content of [0, "", false, null, "Restored"] as const) {
+        await view.rerender(
+          <Component ref={ref} testID="owned-content" onPress={currentPress}>
+            {content}
+          </Component>,
+        )
+        expect(screen.getByTestId("owned-content")).toHaveTextContent(
+          content === 0 ? "0" : typeof content === "string" ? content : "",
+          { exact: true },
+        )
+        expect(ref.current).toBe(original)
+      }
+      const content = await Promise.resolve("Deferred owner content")
+      await view.rerender(
+        <Component ref={ref} testID="owned-content" onPress={currentPress}>
+          {content}
+        </Component>,
+      )
+      expect(screen.getByTestId("owned-content")).toHaveTextContent(content, { exact: true })
+      expect(previousPress).not.toHaveBeenCalled()
+      expect(currentPress).not.toHaveBeenCalled()
+      const event = { nativeEvent: { target: 17, timestamp: 100 } }
+      await fireEvent(screen.getByTestId("owned-content"), "press", event)
+      expect(currentPress.mock.calls).toEqual([[event]])
+      expect(currentPress.mock.calls[0][0]).toBe(event)
+      expect(previousPress).not.toHaveBeenCalled()
+      await view.rerender(<></>)
+      expect(ref.current).toBeNull()
+      await view.rerender(
+        <Component ref={ref} testID="owned-content" onPress={currentPress}>
+          Reinserted
+        </Component>,
+      )
+      expect(ref.current).not.toBeNull()
+      expect(screen.getByTestId("owned-content")).toHaveTextContent("Reinserted", { exact: true })
+      expect(currentPress).toHaveBeenCalledTimes(1)
+      await view.unmount()
+      expect(ref.current).toBeNull()
+      expect(currentPress).toHaveBeenCalledTimes(1)
+    },
+  )
+
   it("retains the original Text ref and exact native events through caller updates and clears it on unmount", async () => {
     const ref = createRef<TNativeTextRef>(),
       onPress = jest.fn(),
