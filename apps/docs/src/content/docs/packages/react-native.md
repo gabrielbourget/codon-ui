@@ -422,6 +422,8 @@ Select accepts readonly items with stable typed getKey and nonempty getTextValue
 
 The native presentation is an opaque full-screen core Modal with its own safe-area provider, heading, Close action and dynamic-height FlatList. Android Back requests closure. Initial selected-row positioning uses bounded measurement-driven attempts; pending focus/scroll work stops after closure or unmount. Public ListBoxItem is a controlled radio row with explicit id/textValue and one owned interactive root. Custom row content must remain decorative. Native minimum targets are 44 points on iOS and 48 dp on Android unless explicitly constrained by the host.
 
+ListBoxItem root rendering retains its original Pressable/ref/events and owned decorative content after style and child evaluation. Child callbacks include defaultChildren as undefined. Root customStyles/final style can supply native color to owned content; authored Text colors retain precedence and color is consumed before native View styles. The final background follows 250ms ease-in-out with interruption, opaque colors, live Reduce Motion and cleanup. Original native selection colors, focus outline, metadata, guard and target contracts remain.
+
 Consumers must install react-native-safe-area-context exactly 5.7.0 alongside the existing React/RN peers and rebuild their native binary. No new palette roles are introduced. Root, trigger, selected text and options list have separate native style owners. DOM/forms, anchored placement, arbitrary child registration, multi-selection, search and hardware typeahead are outside this contract. Physical screen-reader focus and keyboard acceptance remain in the application/device lane.
 
 ## ToggleButton
