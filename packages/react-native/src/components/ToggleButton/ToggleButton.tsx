@@ -1,5 +1,6 @@
 import { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from "react"
 
+import { useControlledState } from "../../collection/state/useControlledState"
 import { focusNativeTarget } from "../../input/focus"
 import { useNativeTheme } from "../../theme"
 import { Button } from "../Button/Button"
@@ -38,20 +39,11 @@ export const ToggleButton = forwardRef<TNativeToggleButtonRef, TNativeToggleButt
   if (height !== undefined) validateNativeDisplayDimension(height, "ToggleButton", "height")
   validateNativeColor(color, "ToggleButton", "color")
   const theme = useNativeTheme()
-  const [local, setLocal] = useState(() => ({ selected: isSelected ?? defaultSelected ?? false }))
-  const [initialSelected] = useState(local.selected)
-  const selected = isSelected ?? local.selected
-  const requested = useRef(selected)
-  useLayoutEffect(() => {
-    requested.current = selected
-  })
+  const [selected, requestSelected] = useControlledState(isSelected, defaultSelected ?? false, onChange)
+  const [initialSelected] = useState(selected)
   const setSelected = (next: boolean) => {
     if (typeof next !== "boolean") throw new TypeError("ToggleButton: selection must be boolean")
-    if (requested.current === next) return
-    requested.current = next
-    // Keep uncontrolled state current; a controlled prop remains the rendered authority.
-    setLocal({ selected: next })
-    onChange?.(next)
+    requestSelected(next)
   }
   const state: TNativeToggleButtonSelectionState = {
     isSelected: selected,

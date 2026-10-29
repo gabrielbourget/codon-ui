@@ -314,3 +314,37 @@ it.each([
 ])("validates names, dimensions and style colors while closed: %p", async (invalid) => {
   await expect(render(<Select {...base} {...invalid} />)).rejects.toThrow(TypeError)
 })
+
+it("retains the initial controlled Select value when the owner hands back control", async () => {
+  jest.spyOn(console, "warn").mockImplementation(() => {})
+  const onChange = jest.fn()
+  const view = await render(<Select {...base} value="0" defaultValue={0} onChange={onChange} />)
+  expect(screen.getByRole("button", { name: "Choose" }).props.accessibilityValue.text).toBe("String zero")
+  await view.rerender(<Select {...base} defaultValue={0} onChange={onChange} />)
+  expect(screen.getByRole("button", { name: "Choose" }).props.accessibilityValue.text).toBe("String zero")
+  expect(onChange).not.toHaveBeenCalled()
+})
+it("retains a declined Select value request when the owner hands back control", async () => {
+  jest.spyOn(console, "warn").mockImplementation(() => {})
+  const onChange = jest.fn(),
+    onOpenChange = jest.fn()
+  const view = await render(<Select {...base} value={0} isOpen onChange={onChange} onOpenChange={onOpenChange} />)
+  await userEvent.setup().press(screen.getByRole("radio", { name: "String zero" }))
+  expect(onChange.mock.calls).toEqual([["0"]])
+  expect(screen.getByRole("button", { name: "Choose" }).props.accessibilityValue.text).toBe("Numeric zero")
+  await view.rerender(<Select {...base} isOpen onChange={onChange} onOpenChange={onOpenChange} />)
+  expect(screen.getByRole("button", { name: "Choose" }).props.accessibilityValue.text).toBe("String zero")
+  expect(onChange).toHaveBeenCalledTimes(1)
+})
+it("retains a declined Select close request when the owner hands back open control", async () => {
+  jest.spyOn(console, "warn").mockImplementation(() => {})
+  const onOpenChange = jest.fn()
+  const view = await render(<Select {...base} value={0} isOpen defaultOpen onOpenChange={onOpenChange} />)
+  await fireEvent(screen.getByTestId("select-window", { includeHiddenElements: true }), "show")
+  await userEvent.setup().press(screen.getByRole("button", { name: "Close choices" }))
+  expect(onOpenChange.mock.calls).toEqual([[false]])
+  expect(screen.getByRole("button", { name: "Close choices" })).toBeOnTheScreen()
+  await view.rerender(<Select {...base} value={0} defaultOpen onOpenChange={onOpenChange} />)
+  expect(screen.queryByRole("radio")).toBeNull()
+  expect(onOpenChange).toHaveBeenCalledTimes(1)
+})
