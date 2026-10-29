@@ -12,6 +12,7 @@ import { useNativeTheme } from "../../theme"
 import { validateNativeColor } from "../colors"
 import { getNativeControlRadius, getNativeControlRootStyle } from "../selection"
 
+import { useNativeInputBorder } from "./motion"
 import type { TNativeInputProps, TNativeInputRef, TNativeInputRenderState } from "./types"
 
 export type TNativeInputHostRender = (
@@ -19,7 +20,7 @@ export type TNativeInputHostRender = (
   state: TNativeInputRenderState,
 ) => ReactElement
 
-type TNativeInputInternalProps = TNativeInputProps & { nativeRender?: TNativeInputHostRender }
+type TNativeInputInternalProps = TNativeInputProps & { nativeRender?: TNativeInputHostRender; nativeAnimate?: boolean }
 
 export const NativeInput = forwardRef<TNativeInputRef, TNativeInputInternalProps>((props, ref) => {
   const {
@@ -45,6 +46,8 @@ export const NativeInput = forwardRef<TNativeInputRef, TNativeInputInternalProps
     onFocus,
     onBlur,
     nativeRender,
+    nativeAnimate = true,
+    render,
     "data-testid": aliasTestID,
     "aria-label": aliasLabel,
     ...rest
@@ -91,6 +94,7 @@ export const NativeInput = forwardRef<TNativeInputRef, TNativeInputInternalProps
       : {}),
   }
   const resolved = getNativeControlRootStyle("Input", baseline, customStyles, style, state)
+  const painted = useNativeInputBorder(resolved, nativeAnimate)
   const blocked = isDisabled || isReadOnly
   const native: TextInputProps & RefAttributes<TNativeInputRef> = {
     ...rest,
@@ -105,7 +109,7 @@ export const NativeInput = forwardRef<TNativeInputRef, TNativeInputInternalProps
     testID: testID ?? aliasTestID ?? "input",
     placeholderTextColor: placeholder,
     underlineColorAndroid: rest.underlineColorAndroid ?? "transparent",
-    style: resolved,
+    style: painted,
     onChangeText: (value) => {
       if (!blocked) onChangeText?.(value)
     },
@@ -123,7 +127,7 @@ export const NativeInput = forwardRef<TNativeInputRef, TNativeInputInternalProps
       onBlur?.(event)
     },
   }
-  return nativeRender ? nativeRender(native, state) : <TextInput {...native} />
+  return nativeRender ? nativeRender(native, state) : render ? render(native, state) : <TextInput {...native} />
 })
 NativeInput.displayName = "NativeInput"
 export const Input: ForwardRefExoticComponent<TNativeInputProps & RefAttributes<TNativeInputRef>> = NativeInput

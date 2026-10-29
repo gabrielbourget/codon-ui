@@ -1,5 +1,5 @@
 import { createRef } from "react"
-import { View } from "react-native"
+import { TextInput, View } from "react-native"
 
 import {
   Checkbox,
@@ -91,3 +91,13 @@ export const InvalidInputType = <Input type="email" />
 export const InvalidInputChange = <Input onChange={(event) => event.target.value} />
 // @ts-expect-error TextInput does not promise a native hover style flag
 export const InvalidInputHover = <Input style={(state) => ({ opacity: state.isHovered ? 1 : 0.5 })} />
+
+export const RenderedInput = (
+  <Input render={(props, state) => <TextInput {...props} accessibilityHint={String(state.isReadOnly)} />} />
+)
+export const InvalidInputDOMRenderer = (
+  // @ts-expect-error Public Input root rendering receives native TextInput props/ref.
+  <Input render={(_props: { ref: HTMLInputElement }) => <TextInput />} />
+)
+// @ts-expect-error The animation switch belongs to the private native editor adapter.
+export const InvalidInputAnimationSwitch = <Input nativeAnimate={false} />

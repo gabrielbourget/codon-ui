@@ -12,7 +12,7 @@ export type TNativeComboBoxInputRenderState = TNativeInputRenderState &
     isHovered: boolean
     isFocusVisible: boolean
   }>
-export type TNativeComboBoxInputProps = Omit<TNativeInputProps, "style"> &
+export type TNativeComboBoxInputProps = Omit<TNativeInputProps, "style" | "render"> &
   TNativeComboBoxKeyboardCallbacks &
   TNativeSlotProps & {
     isInvalid?: boolean

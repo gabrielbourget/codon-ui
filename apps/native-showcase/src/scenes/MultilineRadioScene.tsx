@@ -1,5 +1,5 @@
 import { useRef, useState } from "react"
-import { Keyboard, View } from "react-native"
+import { Keyboard, TextInput, View } from "react-native"
 
 import {
   AVAILABLE_CORNER_GEOMETRY_CODES,
@@ -72,6 +72,9 @@ export const MultilineRadioScene = () => {
       <Text>Default Return inserts a newline. Bonjour Montréal — write complete bilingual notes.</Text>
       <TextArea
         ref={inputRef}
+        render={(props, state) => (
+          <TextInput {...props} nativeID={`multiline-draft-${state.isReadOnly ? "readonly" : "editable"}`} />
+        )}
         testID="multiline-draft"
         aria-label="Multiline notes"
         value={draft}
