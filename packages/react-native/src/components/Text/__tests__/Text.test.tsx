@@ -1,12 +1,51 @@
 import { fireEvent, render, screen, userEvent } from "@testing-library/react-native"
+import { createRef } from "react"
 import { PlatformColor, StyleSheet } from "react-native"
 
-import { AVAILABLE_FONT_VARIANTS, AVAILABLE_FONT_WEIGHTS, NativeThemeProvider, Text } from "../../.."
+import {
+  AVAILABLE_FONT_VARIANTS,
+  AVAILABLE_FONT_WEIGHTS,
+  NativeThemeProvider,
+  Text,
+  type TNativeTextRef,
+} from "../../.."
 
 beforeEach(() => jest.useFakeTimers())
 afterEach(() => jest.useRealTimers())
 
 describe("Text public native contract", () => {
+  it("retains the original Text ref and exact native events through caller updates and clears it on unmount", async () => {
+    const ref = createRef<TNativeTextRef>(),
+      onPress = jest.fn(),
+      onLayout = jest.fn()
+    const view = await render(
+      <Text ref={ref} variant="h1" onPress={onPress} onLayout={onLayout}>
+        Original
+      </Text>,
+    )
+    const original = ref.current
+    expect(original).not.toBeNull()
+    const press = { nativeEvent: { target: 17, timestamp: 100 } }
+    const layout = { nativeEvent: { target: 17, layout: { x: 3, y: 4, width: 160, height: 44 } } }
+    await fireEvent(screen.getByTestId("text"), "press", press)
+    await fireEvent(screen.getByTestId("text"), "layout", layout)
+    expect(onPress.mock.calls).toEqual([[press]])
+    expect(onPress.mock.calls[0][0]).toBe(press)
+    expect(onLayout.mock.calls).toEqual([[layout]])
+    expect(onLayout.mock.calls[0][0]).toBe(layout)
+    await view.rerender(
+      <Text ref={ref} variant="b11" accessibilityLabel="Updated" style={{ color: "tomato" }}>
+        Updated
+      </Text>,
+    )
+    expect(ref.current).toBe(original)
+    expect(screen.getByTestId("text").props.accessibilityLabel).toBe("Updated")
+    expect(onPress).toHaveBeenCalledTimes(1)
+    expect(onLayout).toHaveBeenCalledTimes(1)
+    await view.unmount()
+    expect(ref.current).toBeNull()
+  })
+
   it("uses scalable b10 regular defaults and strips wrapper props", async () => {
     await render(<Text>Default text</Text>)
     const text = screen.getByTestId("text")
