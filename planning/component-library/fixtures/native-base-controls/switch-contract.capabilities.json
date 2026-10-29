@@ -1,0 +1,1695 @@
+{
+  "canonicalSourceRef": "ddc9f066f67af4742e05e04bd870726141c44129",
+  "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged.",
+  "canonicalPropertyCount": 118,
+  "nativePropertyCount": 128,
+  "props": {
+    "aria-controls": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "aria-describedby": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "aria-details": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "aria-label": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "aria-label",
+      "nativeType": "string | undefined",
+      "expected": "Actual native Pressable/View property and platform applicability, native event identity/ref and owned checked/disabled/name/guard precedence remain unchanged.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "aria-labelledby": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "aria-labelledby",
+      "nativeType": "string | undefined",
+      "expected": "Actual native Pressable/View property and platform applicability, native event identity/ref and owned checked/disabled/name/guard precedence remain unchanged.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "autoFocus": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_COORDINATION_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Pressable native View ref/focus observations replace React Aria input/slot/state and browser keyboard/tab coordination. Native input/focus acceptance remains separate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "children": {
+      "canonicalType": "import(\"react-aria-components/dist/types/src/utils\").ChildrenOrFunction<SwitchRenderProps>",
+      "required": false,
+      "capability": "CAP.switch.018",
+      "disposition": "IGNORED_BY_CANONICAL_WRAPPER",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Canonical Switch consumes and ignores children. Native excludes it; leftContent/rightContent/iconOn/iconOff retain the actual slots.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "className": {
+      "canonicalType": "import(\"react-aria-components/dist/types/src/utils\").ClassNameOrFunction<SwitchRenderProps> | undefined",
+      "required": false,
+      "capability": "CAP.switch.015",
+      "disposition": "APPROVED_NATIVE_STYLE",
+      "nativeProp": "customStyles/style",
+      "nativeType": null,
+      "expected": "Computed \u2192 validated part custom \u2192 final root style; callback sees post-custom defaultStyle. Root/track/indicator stay independent, final authored position retained; no CSS class evaluator.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "customIndicatorStyles": {
+      "canonicalType": "CSSProperties | undefined",
+      "required": false,
+      "capability": "CAP.switch.015",
+      "disposition": "APPROVED_NATIVE_STYLE",
+      "nativeProp": "customIndicatorStyles",
+      "nativeType": "StyleProp<ViewStyle>",
+      "expected": "Computed \u2192 validated part custom \u2192 final root style; callback sees post-custom defaultStyle. Root/track/indicator stay independent, final authored position retained; no CSS class evaluator.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "customStyles": {
+      "canonicalType": "CSSProperties | undefined",
+      "required": false,
+      "capability": "CAP.switch.015",
+      "disposition": "APPROVED_NATIVE_STYLE",
+      "nativeProp": "customStyles",
+      "nativeType": "StyleProp<ViewStyle>",
+      "expected": "Computed \u2192 validated part custom \u2192 final root style; callback sees post-custom defaultStyle. Root/track/indicator stay independent, final authored position retained; no CSS class evaluator.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "customTrackStyles": {
+      "canonicalType": "CSSProperties | undefined",
+      "required": false,
+      "capability": "CAP.switch.015",
+      "disposition": "APPROVED_NATIVE_STYLE",
+      "nativeProp": "customTrackStyles",
+      "nativeType": "StyleProp<ViewStyle>",
+      "expected": "Computed \u2192 validated part custom \u2192 final root style; callback sees post-custom defaultStyle. Root/track/indicator stay independent, final authored position retained; no CSS class evaluator.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "data-testid": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "data-testid",
+      "nativeType": "string | undefined",
+      "expected": "Actual native Pressable/View property and platform applicability, native event identity/ref and owned checked/disabled/name/guard precedence remain unchanged.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "defaultSelected": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.switch.019",
+      "disposition": "NATIVE_OWNERSHIP",
+      "nativeProp": "defaultSelected",
+      "nativeType": "boolean | undefined",
+      "expected": "Original Switch outer useState initializer and isSelected-defined control; one boolean request on activation, veto/echo, native flags/guards, local state changes only when uncontrolled.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "dir": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "enableFocusStyle": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.switch.010",
+      "disposition": "APPROVED_NATIVE_VISUAL_STATE",
+      "nativeProp": "enableFocusStyle",
+      "nativeType": "boolean | undefined",
+      "expected": "Original native radius/raised shadow/focus outline/offset defaults and opt-outs remain immediate; only source colour and thumb movement properties have clocks.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "excludeFromTabOrder": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_COORDINATION_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Pressable native View ref/focus observations replace React Aria input/slot/state and browser keyboard/tab coordination. Native input/focus acceptance remains separate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "form": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_HOST_FORM_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native contract excludes DOM form association/submission/value serialization; selected boolean and host-owned explanations remain.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "geometry": {
+      "canonicalType": "\"orthogonal\" | \"rounded\" | \"round\" | undefined",
+      "required": false,
+      "capability": "CAP.switch.010",
+      "disposition": "APPROVED_NATIVE_VISUAL_STATE",
+      "nativeProp": "geometry",
+      "nativeType": "\"orthogonal\" | \"rounded\" | \"round\" | undefined",
+      "expected": "Original native radius/raised shadow/focus outline/offset defaults and opt-outs remain immediate; only source colour and thumb movement properties have clocks.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "height": {
+      "canonicalType": "string | number | undefined",
+      "required": false,
+      "capability": "CAP.switch.002",
+      "disposition": "APPROVED_NATIVE_DIMENSION",
+      "nativeProp": "height",
+      "nativeType": "number | undefined",
+      "expected": "Finite positive native numbers; default height15 and width twice height, visual dimensions separate from root44/48 targets; measured track and indicator own actual translation bounds.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "hidden": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "iconOff": {
+      "canonicalType": "ReactNode",
+      "required": false,
+      "capability": "CAP.switch.013",
+      "disposition": "APPROVED_NATIVE_SLOTS",
+      "nativeProp": "iconOff",
+      "nativeType": "ReactNode",
+      "expected": "Original authored ReactNode slots and primitive/Fragment native Text composition; icon undefined enables default check/cross while explicit null stays absent. No generic children slot.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "iconOn": {
+      "canonicalType": "ReactNode",
+      "required": false,
+      "capability": "CAP.switch.013",
+      "disposition": "APPROVED_NATIVE_SLOTS",
+      "nativeProp": "iconOn",
+      "nativeType": "ReactNode",
+      "expected": "Original authored ReactNode slots and primitive/Fragment native Text composition; icon undefined enables default check/cross while explicit null stays absent. No generic children slot.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "id": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "id",
+      "nativeType": "string | undefined",
+      "expected": "Actual native Pressable/View property and platform applicability, native event identity/ref and owned checked/disabled/name/guard precedence remain unchanged.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "indicatorColor": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.switch.003",
+      "disposition": "APPROVED_NATIVE_COLOR",
+      "nativeProp": "indicatorColor",
+      "nativeType": "ColorValue | undefined",
+      "expected": "Original native semantic control/action/inversion/border/pressed recipe and ColorValue validation, with250ms ease-in-out final track background/border and indicator background; opaque values pass through.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "inert": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "inputRef": {
+      "canonicalType": "import(\"@react-types/shared/src/refs\").RefObject<HTMLInputElement | null> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_COORDINATION_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Pressable native View ref/focus observations replace React Aria input/slot/state and browser keyboard/tab coordination. Native input/focus acceptance remains separate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "invertColorsOnToggle": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.switch.003",
+      "disposition": "APPROVED_NATIVE_COLOR",
+      "nativeProp": "invertColorsOnToggle",
+      "nativeType": "boolean | undefined",
+      "expected": "Original native semantic control/action/inversion/border/pressed recipe and ColorValue validation, with250ms ease-in-out final track background/border and indicator background; opaque values pass through.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "isDisabled": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.switch.008",
+      "disposition": "NATIVE_GUARDS",
+      "nativeProp": "isDisabled",
+      "nativeType": "boolean | undefined",
+      "expected": "Actual native mutation/activation suppression and disabled-only dimming; read-only discovery with host hint, native checked/disabled owned state.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "isReadOnly": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.switch.008",
+      "disposition": "NATIVE_GUARDS",
+      "nativeProp": "isReadOnly",
+      "nativeType": "boolean | undefined",
+      "expected": "Actual native mutation/activation suppression and disabled-only dimming; read-only discovery with host hint, native checked/disabled owned state.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "isSelected": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.switch.019",
+      "disposition": "NATIVE_OWNERSHIP",
+      "nativeProp": "isSelected",
+      "nativeType": "boolean | undefined",
+      "expected": "Original Switch outer useState initializer and isSelected-defined control; one boolean request on activation, veto/echo, native flags/guards, local state changes only when uncontrolled.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "lang": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "leftContent": {
+      "canonicalType": "ReactNode",
+      "required": false,
+      "capability": "CAP.switch.013",
+      "disposition": "APPROVED_NATIVE_SLOTS",
+      "nativeProp": "leftContent",
+      "nativeType": "ReactNode",
+      "expected": "Original authored ReactNode slots and primitive/Fragment native Text composition; icon undefined enables default check/cross while explicit null stays absent. No generic children slot.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "name": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_HOST_FORM_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native contract excludes DOM form association/submission/value serialization; selected boolean and host-owned explanations remain.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "offsetFocusRing": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.switch.010",
+      "disposition": "APPROVED_NATIVE_VISUAL_STATE",
+      "nativeProp": "offsetFocusRing",
+      "nativeType": "boolean | undefined",
+      "expected": "Original native radius/raised shadow/focus outline/offset defaults and opt-outs remain immediate; only source colour and thumb movement properties have clocks.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onAnimationEnd": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onAnimationEndCapture": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onAnimationIteration": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onAnimationIterationCapture": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onAnimationStart": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onAnimationStartCapture": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onAuxClick": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onAuxClickCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onBlur": {
+      "canonicalType": "((e: import(\"@types/react/index\").FocusEvent<Element, Element>) => void) | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onBlur",
+      "nativeType": "((event: import(\"react-native/types/index\").NativeSyntheticEvent<import(\"react-native/types/index\").TargetedEvent>) => void) | null | undefined",
+      "expected": "Actual native Pressable/View property and platform applicability, native event identity/ref and owned checked/disabled/name/guard precedence remain unchanged.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onChange": {
+      "canonicalType": "((isSelected: boolean) => void) | undefined",
+      "required": false,
+      "capability": "CAP.switch.019",
+      "disposition": "NATIVE_OWNERSHIP",
+      "nativeProp": "onChange",
+      "nativeType": "((selected: boolean) => void) | undefined",
+      "expected": "Original Switch outer useState initializer and isSelected-defined control; one boolean request on activation, veto/echo, native flags/guards, local state changes only when uncontrolled.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onClickCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onContextMenu": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onContextMenuCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onDoubleClick": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onDoubleClickCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onFocus": {
+      "canonicalType": "((e: import(\"@types/react/index\").FocusEvent<Element, Element>) => void) | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onFocus",
+      "nativeType": "((event: import(\"react-native/types/index\").NativeSyntheticEvent<import(\"react-native/types/index\").TargetedEvent>) => void) | null | undefined",
+      "expected": "Actual native Pressable/View property and platform applicability, native event identity/ref and owned checked/disabled/name/guard precedence remain unchanged.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onFocusChange": {
+      "canonicalType": "((isFocused: boolean) => void) | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_COORDINATION_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Pressable native View ref/focus observations replace React Aria input/slot/state and browser keyboard/tab coordination. Native input/focus acceptance remains separate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onGotPointerCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onGotPointerCaptureCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onHoverChange": {
+      "canonicalType": "((isHovering: boolean) => void) | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "NATIVE_EVENT_ADAPTATION",
+      "nativeProp": "onHoverIn/onHoverOut",
+      "nativeType": null,
+      "expected": "Native Pressable hover observations and native event payloads replace React Aria hover events; effective state retained without browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onHoverEnd": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").HoverEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "NATIVE_EVENT_ADAPTATION",
+      "nativeProp": "onHoverIn/onHoverOut",
+      "nativeType": null,
+      "expected": "Native Pressable hover observations and native event payloads replace React Aria hover events; effective state retained without browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onHoverStart": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").HoverEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "NATIVE_EVENT_ADAPTATION",
+      "nativeProp": "onHoverIn/onHoverOut",
+      "nativeType": null,
+      "expected": "Native Pressable hover observations and native event payloads replace React Aria hover events; effective state retained without browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onKeyDown": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").KeyboardEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_COORDINATION_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Pressable native View ref/focus observations replace React Aria input/slot/state and browser keyboard/tab coordination. Native input/focus acceptance remains separate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onKeyUp": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").KeyboardEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_COORDINATION_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Pressable native View ref/focus observations replace React Aria input/slot/state and browser keyboard/tab coordination. Native input/focus acceptance remains separate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onLostPointerCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onLostPointerCaptureCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onMouseDown": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onMouseDownCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onMouseEnter": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onMouseLeave": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onMouseMove": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onMouseMoveCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onMouseOut": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onMouseOutCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onMouseOver": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onMouseOverCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onMouseUp": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onMouseUpCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onPointerCancel": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerCancel",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "expected": "Actual native Pressable/View property and platform applicability, native event identity/ref and owned checked/disabled/name/guard precedence remain unchanged.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onPointerCancelCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerCancelCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "expected": "Actual native Pressable/View property and platform applicability, native event identity/ref and owned checked/disabled/name/guard precedence remain unchanged.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onPointerDown": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerDown",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "expected": "Actual native Pressable/View property and platform applicability, native event identity/ref and owned checked/disabled/name/guard precedence remain unchanged.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onPointerDownCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerDownCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "expected": "Actual native Pressable/View property and platform applicability, native event identity/ref and owned checked/disabled/name/guard precedence remain unchanged.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onPointerEnter": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerEnter",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "expected": "Actual native Pressable/View property and platform applicability, native event identity/ref and owned checked/disabled/name/guard precedence remain unchanged.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onPointerLeave": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerLeave",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "expected": "Actual native Pressable/View property and platform applicability, native event identity/ref and owned checked/disabled/name/guard precedence remain unchanged.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onPointerMove": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerMove",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "expected": "Actual native Pressable/View property and platform applicability, native event identity/ref and owned checked/disabled/name/guard precedence remain unchanged.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onPointerMoveCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerMoveCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "expected": "Actual native Pressable/View property and platform applicability, native event identity/ref and owned checked/disabled/name/guard precedence remain unchanged.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onPointerOut": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onPointerOutCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onPointerOver": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onPointerOverCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onPointerUp": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerUp",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "expected": "Actual native Pressable/View property and platform applicability, native event identity/ref and owned checked/disabled/name/guard precedence remain unchanged.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onPointerUpCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerUpCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "expected": "Actual native Pressable/View property and platform applicability, native event identity/ref and owned checked/disabled/name/guard precedence remain unchanged.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onScroll": {
+      "canonicalType": "import(\"@types/react/index\").UIEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onScrollCapture": {
+      "canonicalType": "import(\"@types/react/index\").UIEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onTouchCancel": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchCancel",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "expected": "Actual native Pressable/View property and platform applicability, native event identity/ref and owned checked/disabled/name/guard precedence remain unchanged.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onTouchCancelCapture": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onTouchEnd": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchEnd",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "expected": "Actual native Pressable/View property and platform applicability, native event identity/ref and owned checked/disabled/name/guard precedence remain unchanged.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onTouchEndCapture": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchEndCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "expected": "Actual native Pressable/View property and platform applicability, native event identity/ref and owned checked/disabled/name/guard precedence remain unchanged.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onTouchMove": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchMove",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "expected": "Actual native Pressable/View property and platform applicability, native event identity/ref and owned checked/disabled/name/guard precedence remain unchanged.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onTouchMoveCapture": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onTouchStart": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchStart",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "expected": "Actual native Pressable/View property and platform applicability, native event identity/ref and owned checked/disabled/name/guard precedence remain unchanged.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onTouchStartCapture": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onTransitionCancel": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onTransitionCancelCapture": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onTransitionEnd": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onTransitionEndCapture": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onTransitionRun": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onTransitionRunCapture": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onTransitionStart": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onTransitionStartCapture": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onWheel": {
+      "canonicalType": "import(\"@types/react/index\").WheelEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "onWheelCapture": {
+      "canonicalType": "import(\"@types/react/index\").WheelEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "order": {
+      "canonicalType": "\"primary\" | \"secondary\" | \"tertiary\" | \"quaternary\" | \"quintenary\" | undefined",
+      "required": false,
+      "capability": "CAP.switch.003",
+      "disposition": "APPROVED_NATIVE_COLOR",
+      "nativeProp": "order",
+      "nativeType": "\"primary\" | \"secondary\" | \"tertiary\" | \"quaternary\" | \"quintenary\" | undefined",
+      "expected": "Original native semantic control/action/inversion/border/pressed recipe and ColorValue validation, with250ms ease-in-out final track background/border and indicator background; opaque values pass through.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "raised": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.switch.010",
+      "disposition": "APPROVED_NATIVE_VISUAL_STATE",
+      "nativeProp": "raised",
+      "nativeType": "boolean | undefined",
+      "expected": "Original native radius/raised shadow/focus outline/offset defaults and opt-outs remain immediate; only source colour and thumb movement properties have clocks.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "render": {
+      "canonicalType": "import(\"react-aria-components/dist/types/src/utils\").DOMRenderFunction<\"label\", SwitchRenderProps> | undefined",
+      "required": false,
+      "capability": "CAP.switch.018",
+      "disposition": "NATIVE_ROOT_RENDERER",
+      "nativeProp": "render",
+      "nativeType": "((props: PressableProps & RefAttributes<View>, state: TNativeSwitchRenderState) => ReactElement) | undefined",
+      "expected": "Actual original Pressable props, ref, handlers and owned children with selected/pressed/hovered/focused/disabled/read-only state. Style precedes root renderer; one interactive target and original ref identity/cleanup.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "rightContent": {
+      "canonicalType": "ReactNode",
+      "required": false,
+      "capability": "CAP.switch.013",
+      "disposition": "APPROVED_NATIVE_SLOTS",
+      "nativeProp": "rightContent",
+      "nativeType": "ReactNode",
+      "expected": "Original authored ReactNode slots and primitive/Fragment native Text composition; icon undefined enables default check/cross while explicit null stays absent. No generic children slot.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "showBorder": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.switch.003",
+      "disposition": "APPROVED_NATIVE_COLOR",
+      "nativeProp": "showBorder",
+      "nativeType": "boolean | undefined",
+      "expected": "Original native semantic control/action/inversion/border/pressed recipe and ColorValue validation, with250ms ease-in-out final track background/border and indicator background; opaque values pass through.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "showOnOffIcons": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.switch.013",
+      "disposition": "APPROVED_NATIVE_SLOTS",
+      "nativeProp": "showOnOffIcons",
+      "nativeType": "boolean | undefined",
+      "expected": "Original authored ReactNode slots and primitive/Fragment native Text composition; icon undefined enables default check/cross while explicit null stays absent. No generic children slot.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "slot": {
+      "canonicalType": "string | null | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_COORDINATION_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Pressable native View ref/focus observations replace React Aria input/slot/state and browser keyboard/tab coordination. Native input/focus acceptance remains separate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "style": {
+      "canonicalType": "(CSSProperties | ((values: SwitchRenderProps & { defaultStyle: CSSProperties; }) => CSSProperties | undefined)) | undefined",
+      "required": false,
+      "capability": "CAP.switch.015",
+      "disposition": "APPROVED_NATIVE_STYLE",
+      "nativeProp": "style",
+      "nativeType": "StyleProp<ViewStyle> | ((state: TNativeSwitchStyleState) => StyleProp<ViewStyle>)",
+      "expected": "Computed \u2192 validated part custom \u2192 final root style; callback sees post-custom defaultStyle. Root/track/indicator stay independent, final authored position retained; no CSS class evaluator.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "trackColor": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.switch.003",
+      "disposition": "APPROVED_NATIVE_COLOR",
+      "nativeProp": "trackColor",
+      "nativeType": "ColorValue | undefined",
+      "expected": "Original native semantic control/action/inversion/border/pressed recipe and ColorValue validation, with250ms ease-in-out final track background/border and indicator background; opaque values pass through.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "translate": {
+      "canonicalType": "\"yes\" | \"no\" | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original Shared Native Contract excludes DOM attributes/events/CSS/form protocols; retain native host properties/callbacks without fabricating a DOM producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "value": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.switch.020",
+      "disposition": "APPROVED_HOST_FORM_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native contract excludes DOM form association/submission/value serialization; selected boolean and host-owned explanations remain.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    },
+    "width": {
+      "canonicalType": "string | number | undefined",
+      "required": false,
+      "capability": "CAP.switch.002",
+      "disposition": "APPROVED_NATIVE_DIMENSION",
+      "nativeProp": "width",
+      "nativeType": "number | undefined",
+      "expected": "Finite positive native numbers; default height15 and width twice height, visual dimensions separate from root44/48 targets; measured track and indicator own actual translation bounds.",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Switch; ledger8.17; standing conventional-port3.5. Original native defaults/state/slots/measurement/color/style/ref/event/target and DOM/form/React Aria exclusions remain unchanged."
+    }
+  },
+  "nativeOnlyProps": [
+    {
+      "name": "accessibilityActions",
+      "optional": true,
+      "type": "readonly Readonly<{ name: import(\"react-native/types/index\").AccessibilityActionName | string; label?: string | undefined; }>[] | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityElementsHidden",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityHint",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityIgnoresInvertColors",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityLabel",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityLabelledBy",
+      "optional": true,
+      "type": "string | string[] | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityLanguage",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityLargeContentTitle",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityLiveRegion",
+      "optional": true,
+      "type": "\"none\" | \"polite\" | \"assertive\" | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityRespondsToUserInteraction",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityShowsLargeContentViewer",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityState",
+      "optional": true,
+      "type": "Omit<import(\"react-native/types/index\").AccessibilityState, \"disabled\" | \"checked\" | \"selected\"> | undefined",
+      "declarations": ["packages/react-native/src/components/selection.ts"]
+    },
+    {
+      "name": "accessibilityValue",
+      "optional": true,
+      "type": "import(\"react-native/types/index\").AccessibilityValue | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityViewIsModal",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "android_disableSound",
+      "optional": true,
+      "type": "boolean | null | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    },
+    {
+      "name": "android_ripple",
+      "optional": true,
+      "type": "import(\"react-native/types/index\").PressableAndroidRippleConfig | null | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    },
+    {
+      "name": "aria-busy",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "aria-checked",
+      "optional": true,
+      "type": "undefined",
+      "declarations": ["packages/react-native/src/components/selection.ts"]
+    },
+    {
+      "name": "aria-disabled",
+      "optional": true,
+      "type": "undefined",
+      "declarations": ["packages/react-native/src/components/selection.ts"]
+    },
+    {
+      "name": "aria-expanded",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "aria-hidden",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "aria-live",
+      "optional": true,
+      "type": "\"polite\" | \"assertive\" | \"off\" | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "aria-modal",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "aria-selected",
+      "optional": true,
+      "type": "undefined",
+      "declarations": ["packages/react-native/src/components/selection.ts"]
+    },
+    {
+      "name": "aria-valuemax",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "aria-valuemin",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "aria-valuenow",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "aria-valuetext",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "cancelable",
+      "optional": true,
+      "type": "boolean | null | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    },
+    {
+      "name": "collapsable",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "collapsableChildren",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "delayHoverIn",
+      "optional": true,
+      "type": "number | null | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    },
+    {
+      "name": "delayHoverOut",
+      "optional": true,
+      "type": "number | null | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    },
+    {
+      "name": "delayLongPress",
+      "optional": true,
+      "type": "number | null | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    },
+    {
+      "name": "focusable",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "hasTVPreferredFocus",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "hitSlop",
+      "optional": true,
+      "type": "number | import(\"react-native/types/index\").Insets | null | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    },
+    {
+      "name": "importantForAccessibility",
+      "optional": true,
+      "type": "\"auto\" | \"yes\" | \"no\" | \"no-hide-descendants\" | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "isTVSelectable",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "nativeID",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "needsOffscreenAlphaCompositing",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "onAccessibilityAction",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").AccessibilityActionEvent) => void) | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "onAccessibilityEscape",
+      "optional": true,
+      "type": "(() => void) | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "onAccessibilityTap",
+      "optional": true,
+      "type": "(() => void) | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "onHoverIn",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").MouseEvent) => void) | null | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    },
+    {
+      "name": "onHoverOut",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").MouseEvent) => void) | null | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    },
+    {
+      "name": "onLayout",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").LayoutChangeEvent) => void) | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "onLongPress",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | null | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    },
+    {
+      "name": "onMagicTap",
+      "optional": true,
+      "type": "(() => void) | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "onMoveShouldSetResponder",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onMoveShouldSetResponderCapture",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onPointerEnterCapture",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "declarations": ["react-native/Libraries/Types/CoreEventTypes.d.ts"]
+    },
+    {
+      "name": "onPointerLeaveCapture",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "declarations": ["react-native/Libraries/Types/CoreEventTypes.d.ts"]
+    },
+    {
+      "name": "onPress",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | null | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    },
+    {
+      "name": "onPressIn",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | null | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    },
+    {
+      "name": "onPressMove",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | null | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    },
+    {
+      "name": "onPressOut",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | null | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    },
+    {
+      "name": "onResponderEnd",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onResponderGrant",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onResponderMove",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onResponderReject",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onResponderRelease",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onResponderStart",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onResponderTerminate",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onResponderTerminationRequest",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onStartShouldSetResponder",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onStartShouldSetResponderCapture",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "pointerEvents",
+      "optional": true,
+      "type": "\"box-none\" | \"none\" | \"box-only\" | \"auto\" | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "pressRetentionOffset",
+      "optional": true,
+      "type": "number | import(\"react-native/types/index\").Insets | null | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    },
+    {
+      "name": "removeClippedSubviews",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "renderToHardwareTextureAndroid",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "screenReaderFocusable",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "shouldRasterizeIOS",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "tabIndex",
+      "optional": true,
+      "type": "0 | -1 | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "testID",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "testOnly_pressed",
+      "optional": true,
+      "type": "boolean | null | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    },
+    {
+      "name": "tvParallaxMagnification",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "tvParallaxShiftDistanceX",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "tvParallaxShiftDistanceY",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "tvParallaxTiltAngle",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "unstable_pressDelay",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    }
+  ],
+  "renderStateMapping": {
+    "canonical": ["isSelected", "isPressed", "isHovered", "isFocused", "isFocusVisible", "isDisabled", "isReadOnly"],
+    "native": ["isSelected", "isPressed", "isHovered", "isFocused", "isDisabled", "isReadOnly"],
+    "originalApproval": "Native state and View ref; React Aria state/focus-visible/inputRef remain excluded."
+  },
+  "originalNativeAdaptations": [
+    "Pressable with decorative Views/Text; boolean activation, no OS-native drag promise",
+    "Numeric15x30 defaults and measured custom track/indicator bounds; owned position clamps to bounds, authored position remains caller-owned",
+    "Native token/pill geometry, original control/action/inversion/pressed recipe",
+    "Ignored generic children; explicit left/right/icon slots with undefined versus null distinction",
+    "Native host form/slot/inputRef/state/focus-visible exclusions and44/48 target/parent-clip boundary"
+  ],
+  "motion": {
+    "colors": "250ms cubic-bezier(.42,0,.58,1), track background/border and indicator background",
+    "movement": "225ms cubic-bezier(.42,0,.58,1), current-paint retarget, measured bounds, live Reduce Motion, stop/retired callback cleanup",
+    "immediate": "Radius, dimensions, shadow and outline retain source zero/no-transition behavior",
+    "nativeActions": 0
+  },
+  "scope": "Complete six pinned files and all17 original root cases plus actual renderer/ref/slot/order probe; roadmap3.5.75. Source G01 only."
+}

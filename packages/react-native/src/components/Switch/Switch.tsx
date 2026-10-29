@@ -14,10 +14,12 @@ import {
 } from "../selection"
 import { Text } from "../Text/Text"
 
+import { useNativeSwitchMotion } from "./motion"
 import type { TNativeSwitchProps, TNativeSwitchRef, TNativeSwitchRenderState } from "./types"
 
 export const Switch = forwardRef<TNativeSwitchRef, TNativeSwitchProps>((props, ref) => {
   const {
+    render,
     isSelected,
     defaultSelected = false,
     onChange,
@@ -98,12 +100,14 @@ export const Switch = forwardRef<TNativeSwitchRef, TNativeSwitchProps>((props, r
     "trackStyle",
   )
   const thumbSize = trackBounds?.height ?? Math.max(0, height - (showBorder ? 3 : 0))
+  const customThumb = resolveNativeStyle(customIndicatorStyles, "Switch", "customIndicatorStyles")
+  const maxLeft = Math.max(0, (trackBounds?.width ?? width ?? height * 2) - (indicatorWidth ?? thumbSize))
   const thumbStyle = resolveNativeStyle<ViewStyle>(
     [
       {
         position: "absolute",
         top: 0,
-        left: selected ? Math.max(0, (trackBounds?.width ?? width ?? height * 2) - (indicatorWidth ?? thumbSize)) : 0,
+        left: selected ? maxLeft : 0,
         width: thumbSize,
         height: thumbSize,
         borderRadius: radius,
@@ -125,11 +129,12 @@ export const Switch = forwardRef<TNativeSwitchRef, TNativeSwitchProps>((props, r
           ? { outlineColor: theme.colors.focusRing, outlineWidth: 2, outlineOffset: offsetFocusRing ? 3.5 : 0 }
           : {}),
       },
-      resolveNativeStyle(customIndicatorStyles, "Switch", "customIndicatorStyles"),
+      customThumb,
     ],
     "Switch",
     "indicatorStyle",
   )
+  const painted = useNativeSwitchMotion(trackStyle, thumbStyle, maxLeft, customThumb.left === undefined)
   const rootStyle = getNativeControlRootStyle(
     "Switch",
     {
@@ -138,6 +143,7 @@ export const Switch = forwardRef<TNativeSwitchRef, TNativeSwitchProps>((props, r
       justifyContent: "center",
       gap: theme.spacing.unit,
       opacity: isDisabled ? theme.opacity.disabled : 1,
+      cursor: !isDisabled && state.isHovered ? "pointer" : "auto",
     } as ViewStyle,
     customStyles,
     style,
@@ -145,86 +151,89 @@ export const Switch = forwardRef<TNativeSwitchRef, TNativeSwitchProps>((props, r
   )
   const icons = showOnOffIcons || iconOn !== undefined || iconOff !== undefined
 
+  const element = (
+    <Pressable
+      {...rest}
+      {...handlers}
+      {...hitRegion}
+      ref={ref}
+      accessible
+      role="switch"
+      accessibilityRole="switch"
+      aria-selected={undefined}
+      disabled={isDisabled}
+      focusable={!isDisabled}
+      aria-checked={selected}
+      aria-disabled={isDisabled}
+      accessibilityState={{ ...accessibilityState, checked: selected, disabled: isDisabled }}
+      accessibilityLabel={accessibilityLabel ?? aliasLabel}
+      testID={testID ?? aliasTestID ?? "switch"}
+      style={rootStyle}
+    >
+      {getNativeControlContent(leftContent, { flexShrink: 1 })}
+      <View
+        testID={`${testID ?? aliasTestID ?? "switch"}-track`}
+        style={painted.track}
+        accessible={false}
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+      >
+        <View
+          testID={`${testID ?? aliasTestID ?? "switch"}-track-content`}
+          style={{ flex: 1, position: "relative" }}
+          onLayout={({ nativeEvent: { layout } }) =>
+            setTrackBounds((current) =>
+              current?.width === layout.width && current.height === layout.height
+                ? current
+                : { width: layout.width, height: layout.height },
+            )
+          }
+        >
+          {icons ? (
+            <View style={{ flexDirection: "row", height: "100%" }}>
+              <View style={{ width: "50%", justifyContent: "center", alignItems: "flex-start", paddingLeft: 3 }}>
+                {iconOn === undefined ? (
+                  <Text
+                    selectable={false}
+                    color={theme.colors.controlSelectedForeground}
+                    customStyles={{ fontSize: 10 }}
+                  >
+                    ✓
+                  </Text>
+                ) : (
+                  getNativeControlContent(iconOn)
+                )}
+              </View>
+              <View style={{ width: "50%", justifyContent: "center", alignItems: "flex-end", paddingRight: 3 }}>
+                {iconOff === undefined ? (
+                  <Text
+                    selectable={false}
+                    color={theme.colors.controlSelectedForeground}
+                    customStyles={{ fontSize: 10 }}
+                  >
+                    ×
+                  </Text>
+                ) : (
+                  getNativeControlContent(iconOff)
+                )}
+              </View>
+            </View>
+          ) : null}
+          <View
+            testID={`${testID ?? aliasTestID ?? "switch"}-indicator`}
+            style={painted.indicator}
+            onLayout={({ nativeEvent: { layout } }) =>
+              setIndicatorWidth((current) => (current === layout.width ? current : layout.width))
+            }
+          />
+        </View>
+      </View>
+      {getNativeControlContent(rightContent, { flexShrink: 1 })}
+    </Pressable>
+  )
   return (
     <NativeContentContext.Provider value={{ foregroundColor: theme.colors.foreground, isButton: true }}>
-      <Pressable
-        {...rest}
-        {...handlers}
-        {...hitRegion}
-        ref={ref}
-        accessible
-        role="switch"
-        accessibilityRole="switch"
-        aria-selected={undefined}
-        disabled={isDisabled}
-        focusable={!isDisabled}
-        aria-checked={selected}
-        aria-disabled={isDisabled}
-        accessibilityState={{ ...accessibilityState, checked: selected, disabled: isDisabled }}
-        accessibilityLabel={accessibilityLabel ?? aliasLabel}
-        testID={testID ?? aliasTestID ?? "switch"}
-        style={rootStyle}
-      >
-        {getNativeControlContent(leftContent, { flexShrink: 1 })}
-        <View
-          testID={`${testID ?? aliasTestID ?? "switch"}-track`}
-          style={trackStyle}
-          accessible={false}
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-        >
-          <View
-            testID={`${testID ?? aliasTestID ?? "switch"}-track-content`}
-            style={{ flex: 1, position: "relative" }}
-            onLayout={({ nativeEvent: { layout } }) =>
-              setTrackBounds((current) =>
-                current?.width === layout.width && current.height === layout.height
-                  ? current
-                  : { width: layout.width, height: layout.height },
-              )
-            }
-          >
-            {icons ? (
-              <View style={{ flexDirection: "row", height: "100%" }}>
-                <View style={{ width: "50%", justifyContent: "center", alignItems: "flex-start", paddingLeft: 3 }}>
-                  {iconOn === undefined ? (
-                    <Text
-                      selectable={false}
-                      color={theme.colors.controlSelectedForeground}
-                      customStyles={{ fontSize: 10 }}
-                    >
-                      ✓
-                    </Text>
-                  ) : (
-                    getNativeControlContent(iconOn)
-                  )}
-                </View>
-                <View style={{ width: "50%", justifyContent: "center", alignItems: "flex-end", paddingRight: 3 }}>
-                  {iconOff === undefined ? (
-                    <Text
-                      selectable={false}
-                      color={theme.colors.controlSelectedForeground}
-                      customStyles={{ fontSize: 10 }}
-                    >
-                      ×
-                    </Text>
-                  ) : (
-                    getNativeControlContent(iconOff)
-                  )}
-                </View>
-              </View>
-            ) : null}
-            <View
-              testID={`${testID ?? aliasTestID ?? "switch"}-indicator`}
-              style={thumbStyle}
-              onLayout={({ nativeEvent: { layout } }) =>
-                setIndicatorWidth((current) => (current === layout.width ? current : layout.width))
-              }
-            />
-          </View>
-        </View>
-        {getNativeControlContent(rightContent, { flexShrink: 1 })}
-      </Pressable>
+      {render ? render(element.props, state) : element}
     </NativeContentContext.Provider>
   )
 })

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, userEvent } from "@testing-library/react-native"
+import { act, fireEvent, render, screen, userEvent } from "@testing-library/react-native"
 import { Fragment, createRef } from "react"
 import { Platform, View } from "react-native"
 
@@ -91,6 +91,8 @@ describe("Switch public native contract", () => {
     )
     await fireEvent(part("track-content"), "layout", { nativeEvent: { layout: { width: 90, height: 25 } } })
     await fireEvent(part("indicator"), "layout", { nativeEvent: { layout: { width: 17, height: 25 } } })
+    expect(part("indicator")).toHaveStyle({ left: 15, width: 17, height: 25 })
+    await act(() => jest.advanceTimersByTime(250))
     expect(part("indicator")).toHaveStyle({ left: 73, width: 17, height: 25 })
     expect(part("track")).toHaveStyle({ width: 90, height: 25 })
   })
@@ -135,12 +137,16 @@ describe("Switch public native contract", () => {
     expect(part("track")).toHaveStyle({ backgroundColor: "#2f7d18", borderColor: "#2f7d18" })
     expect(part("indicator")).toHaveStyle({ backgroundColor: "#2563eb" })
     await rerender(<Switch isSelected invertColorsOnToggle showBorder trackColor="#123456" indicatorColor="#abcdef" />)
+    expect(part("track")).toHaveStyle({ backgroundColor: "#2f7d18" })
+    await act(() => jest.advanceTimersByTime(275))
     expect(part("track")).toHaveStyle({ backgroundColor: "#123456" })
     expect(part("indicator")).toHaveStyle({ backgroundColor: "#abcdef" })
     await fireEvent(screen.getByRole("switch"), "pressIn", event)
+    await act(() => jest.advanceTimersByTime(275))
     expect(part("track")).toHaveStyle({ backgroundColor: "#c6c6c6" })
     await rerender(<Switch isSelected invertColorsOnToggle showBorder />)
     await fireEvent(screen.getByRole("switch"), "pressOut", event)
+    await act(() => jest.advanceTimersByTime(275))
     expect(part("track")).toHaveStyle({ backgroundColor: "#2c2c2c" })
   })
 

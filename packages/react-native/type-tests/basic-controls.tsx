@@ -118,3 +118,20 @@ export const InvalidCheckboxRenderValidation = (
     }}
   />
 )
+
+export const RenderedSwitch = (
+  <Switch render={(props, state) => <Pressable {...props} accessibilityHint={String(state.isSelected)} />} />
+)
+export const InvalidSwitchDOMRenderer = (
+  // @ts-expect-error Native Switch rendering receives original Pressable props and a View ref.
+  <Switch render={(_props: { ref: HTMLLabelElement }) => <Pressable />} />
+)
+export const InvalidSwitchRendererFocusVisible = (
+  <Switch
+    render={(props, state) => {
+      // @ts-expect-error The original native switch state has no React Aria focus-visible promise.
+      void state.isFocusVisible
+      return <Pressable {...props} />
+    }}
+  />
+)
