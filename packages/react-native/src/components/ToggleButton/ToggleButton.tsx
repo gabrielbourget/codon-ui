@@ -3,7 +3,7 @@ import { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useRef, us
 import { useControlledState } from "../../collection/state/useControlledState"
 import { focusNativeTarget } from "../../input/focus"
 import { useNativeTheme } from "../../theme"
-import { Button } from "../Button/Button"
+import { NativeButton as Button } from "../Button/Button"
 import type { TNativeButtonRootStyle } from "../Button/types"
 import { resolveNativeStyle, validateNativeColor } from "../colors"
 import { validateNativeDisplayDimension } from "../displayDimensions"
@@ -136,7 +136,7 @@ export const ToggleButton = forwardRef<TNativeToggleButtonRef, TNativeToggleButt
         }
       }}
     >
-      {({ isPending: _pending, ...interaction }) =>
+      {({ isPending: _pending, isFocusVisible: _focusVisible, ...interaction }) =>
         typeof children === "function" ? children({ ...interaction, isSelected: selected, state }) : children
       }
     </Button>

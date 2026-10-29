@@ -2,7 +2,7 @@ import { forwardRef, useLayoutEffect, useRef, useState } from "react"
 import { Platform, View, type ColorValue } from "react-native"
 
 import { useNativeTheme } from "../../theme"
-import { Button } from "../Button/Button"
+import { NativeButton as Button } from "../Button/Button"
 import { Input } from "../Input/Input"
 import { useNumberInputState } from "../NumberInput/state"
 
