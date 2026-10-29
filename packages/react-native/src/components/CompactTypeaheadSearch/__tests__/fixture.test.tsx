@@ -2,7 +2,7 @@ import "../../../collection/__tests__/nativeReceipts"
 
 import { cleanup, screen } from "@testing-library/react-native"
 import { createRef } from "react"
-import { AccessibilityInfo, findNodeHandle, type TextInput } from "react-native"
+import { AccessibilityInfo, Dimensions, findNodeHandle, type TextInput } from "react-native"
 
 import {
   actWithNativeCollections as act,
@@ -121,3 +121,40 @@ it.each(["disabled", "read only"] as const)(
     expect(row("type-ahead-search-input").props.value).toBe("Beta")
   },
 )
+
+it("SCENE.compact.006 retains original search ownership through theme, custom content, direction, window changes and normal reset", async () => {
+  const editor = createRef<TextInput>()
+  const view = await render(<CompactTypeaheadFixture hostRef={fixture.hostRef} inputRef={editor} />)
+  await press("CompactTypeaheadSearch Search Button")
+  await fireEvent.changeText(row("type-ahead-search-input"), "Alpha")
+  await fixture.ready()
+  const originalEditor = editor.current
+  const originalRoot = fixture.target("type-ahead-search")
+  expect(originalEditor).not.toBeNull()
+  const requests = row("compact-fixture-events").props.children
+  await press("Toggle theme")
+  await press("Toggle custom slots")
+  await press("Toggle RTL")
+  const window = Dimensions.get("window")
+  try {
+    await act(() => Dimensions.set({ window: { ...window, width: 844, height: 390, fontScale: 2 } }))
+    await fixture.acknowledge()
+    expect(editor.current).toBe(originalEditor)
+    expect(fixture.target("type-ahead-search")).toBe(originalRoot)
+    expect(row("type-ahead-search-input").props.value).toBe("Alpha")
+    expect(row("type-ahead-search-group")).toHaveStyle({ flexDirection: "row-reverse", borderWidth: 2 })
+    expect(row("type-ahead-search-options")).toHaveStyle({ backgroundColor: "#171717", padding: 7 })
+    expect(row("compact-fixture-events").props.children).toEqual(requests)
+    await press("Reset search")
+    await advance()
+    expect(row("compact-fixture-state")).toHaveTextContent(/Query ""\. Value object:null\. Open false/)
+    expect(row("type-ahead-search-input").props.value).toBe("")
+    expect(editor.current).toBe(originalEditor)
+    expect(fixture.target("type-ahead-search")).toBe(originalRoot)
+    expect(screen.queryByTestId("type-ahead-search-popover", { includeHiddenElements: true })).toBeNull()
+  } finally {
+    await act(() => Dimensions.set({ window }))
+  }
+  await view.unmount()
+  expect(editor.current).toBeNull()
+})
