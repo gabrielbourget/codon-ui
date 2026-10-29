@@ -8,6 +8,7 @@ import {
   AVAILABLE_THEMING_ORDER_CODES,
   Button,
   CarouselCloseButton,
+  PlaceholderText,
   Text,
   useNativeTheme,
 } from "@codon-ui/react-native"
@@ -52,6 +53,8 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
   const [clearTextTypography, setClearTextTypography] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(true)
   const [closeActions, setCloseActions] = useState(0)
+  const [placeholderCentered, setPlaceholderCentered] = useState(false)
+  const [placeholderEmpty, setPlaceholderEmpty] = useState(false)
   const variant = AVAILABLE_FONT_VARIANTS[variantIndex]
   const weight = AVAILABLE_FONT_WEIGHTS[weightIndex]
   const order = AVAILABLE_THEMING_ORDER_CODES[orderIndex]
@@ -121,6 +124,16 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
           selected={constrained}
           onPress={() => setConstrained((value) => !value)}
         />
+        <SceneControl
+          label="Toggle placeholder alignment"
+          selected={placeholderCentered}
+          onPress={() => setPlaceholderCentered((value) => !value)}
+        />
+        <SceneControl
+          label="Toggle empty placeholder"
+          selected={placeholderEmpty}
+          onPress={() => setPlaceholderEmpty((value) => !value)}
+        />
       </View>
       <Text>
         Text variant {variant}; weight {weight}; button geometry {geometry}.
@@ -142,6 +155,9 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
       <Text>
         Parent text with <Text fontWeight="bold">nested bold content</Text> and inherited foreground.
       </Text>
+      <PlaceholderText testID="library-placeholder" align={placeholderCentered ? "center" : "left"} onPress={increment}>
+        {placeholderEmpty ? "" : "Choose an item"}
+      </PlaceholderText>
       <Text testID="library-release">Last release: {lastRelease}</Text>
       <Button
         accessibilityLabel="Library action"
