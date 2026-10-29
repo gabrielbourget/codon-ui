@@ -338,9 +338,10 @@ const CaseOwner = ({ kind }: { kind: TCase }) => {
 export const App = () => {
   const [kind, setKind] = useState<TCase | null>(null)
   const [transport, setTransport] = useState(0)
+  const [mode, setMode] = useState<"light" | "dark">("light")
   return (
     <SafeAreaProvider>
-      <NativeThemeProvider>
+      <NativeThemeProvider mode={mode}>
         <CallerContext.Provider value="caller-form">
           <SafeAreaView style={{ flex: 1 }}>
             <ScrollView
@@ -348,6 +349,21 @@ export const App = () => {
               keyboardShouldPersistTaps="handled"
               contentContainerStyle={{ padding: 16, gap: 8 }}
             >
+              <View style={{ flexDirection: "row", gap: 8 }}>
+                <Button onPress={() => setMode((current) => (current === "light" ? "dark" : "light"))}>
+                  Toggle diagnostic theme
+                </Button>
+                <Button
+                  onPress={() => {
+                    setKind(null)
+                    setMode("light")
+                    setTransport(0)
+                  }}
+                >
+                  Reset query diagnostic
+                </Button>
+              </View>
+              <Text testID="diag-theme">{mode}</Text>
               <Text testID="diag-configuration">{kind ? `Case ${kind}` : "Query delivery diagnostic"}</Text>
               {kind ? (
                 <CaseOwner key={kind} kind={kind} />
