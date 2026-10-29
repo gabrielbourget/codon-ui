@@ -1,4 +1,4 @@
-import type { ReactNode } from "react"
+import type { ReactElement, ReactNode, RefAttributes } from "react"
 import type { StyleProp, View, ViewProps, ViewStyle } from "react-native"
 
 export const RADIO_GROUP_ORIENTATIONS = ["horizontal", "vertical"] as const
@@ -30,6 +30,7 @@ export type TNativeRadioGroupProps = Omit<
 > &
   TNativeRadioGroupLabel & {
     children?: ReactNode
+    render?: (props: ViewProps & RefAttributes<View>, state: TNativeRadioGroupRenderState) => ReactElement
     value?: string | null
     defaultValue?: string | null
     onChange?: (value: string) => void

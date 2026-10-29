@@ -1,8 +1,11 @@
 import { fireEvent, render, screen } from "@testing-library/react-native"
 import { Fragment, useState } from "react"
-import { PlatformColor, StyleSheet } from "react-native"
+import { AccessibilityInfo, PlatformColor, StyleSheet } from "react-native"
 
 import { Button, NativeThemeProvider, Text, type TNativeButtonStyleState } from "../../.."
+
+beforeEach(() => jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true))
+afterEach(() => jest.restoreAllMocks())
 
 it.each([
   ["primitive", "Save 0"],

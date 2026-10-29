@@ -29,6 +29,7 @@ export const Dates = DateClasses.map((value) => (
 ))
 export const Ranges = DateClasses.map((start) => (
   <DateTimeRangePicker
+    ref={createRef<View>()}
     value={{ start, end: start.add({ days: 2 }) }}
     startName="date"
     endName="date"
@@ -88,6 +89,8 @@ export const InvalidCycle = <DateTimePicker hourCycle={13} />
 export const CSSFont = <DateTimePicker customInputStyles={{ fontSize: "1rem" }} />
 // @ts-expect-error The root exposes the actual original View.
 export const FakeRef = <DateTimePicker ref={createRef<{ focus: () => void }>()} />
+// @ts-expect-error Range refs also retain the original native View.
+export const FakeRangeRef = <DateTimeRangePicker ref={createRef<{ focus: () => void }>()} />
 // @ts-expect-error A renderer returns its original host element.
 export const MissingHost = <DateTimePicker render={() => null} />
 // @ts-expect-error Wrapper-owned appearance is calibrated before the base picker context.

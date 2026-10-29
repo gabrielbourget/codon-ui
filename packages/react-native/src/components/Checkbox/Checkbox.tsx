@@ -1,6 +1,7 @@
-import { forwardRef, useContext, useState } from "react"
+import { forwardRef, useContext } from "react"
 import { Pressable, View, type ViewStyle } from "react-native"
 
+import { useControlledState } from "../../collection/state/useControlledState"
 import { useNativeTheme } from "../../theme"
 import { getNativeButtonContent as getNativeControlContent } from "../Button/content"
 import { NativeCheckboxGroupContext } from "../CheckboxGroup/context"
@@ -49,15 +50,16 @@ export const Checkbox = forwardRef<TNativeCheckboxRef, TNativeCheckboxProps>((pr
   validateNativeColor(color, "Checkbox", "color")
   const theme = useNativeTheme()
   const group = useContext(NativeCheckboxGroupContext)
-  const [localSelected, setLocalSelected] = useState(defaultSelected)
+  const [localSelected, setLocalSelected] = useControlledState(isSelected, defaultSelected, onChange)
   const member = group !== undefined && value !== undefined
-  const selected = member ? group.value.includes(value) : (isSelected ?? localSelected)
+  const selected = member ? group.value.includes(value) : localSelected
   const isDisabled = ownDisabled || (group?.isDisabled ?? false)
   const isReadOnly = ownReadOnly || (group?.isReadOnly ?? false)
   const { flags, handlers } = useNativeSelectionInteraction(rest, isDisabled, isReadOnly, () => {
-    if (member) group.change(value, !selected)
-    else if (isSelected === undefined) setLocalSelected(!selected)
-    onChange?.(!selected)
+    if (member) {
+      group.change(value, !selected)
+      onChange?.(!selected)
+    } else setLocalSelected(!selected)
   })
   const state: TNativeCheckboxRenderState = { ...flags, isSelected: selected, isIndeterminate }
   const hitRegion = useNativeControlHitSlop(rest.onLayout, rest.hitSlop)

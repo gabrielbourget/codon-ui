@@ -39,21 +39,25 @@ final class CUIMotionGeometryObserver implements ViewTreeObserver.OnPreDrawListe
   private double lastEpoch;
   private long attachmentRevision;
   private boolean enabled;
+  private boolean observeFrames = true;
   private MountCoordinator coordinator;
   private ViewTreeObserver tree;
 
   CUIMotionGeometryObserver(View view, Consumer<WritableMap> emit) { root = new WeakReference<>(view); this.emit = emit; }
-  void configure(String owner, String binding, String revision) {
+  void configure(String owner, String binding, String revision, boolean observeFrames) {
     boolean changed = !this.owner.equals(owner) || !this.binding.equals(binding);
     if (changed) { disconnect(); attachment = ""; attachmentRevision++; lastFrame = ""; }
     if (changed) { lastWindow = ""; lastScope = ""; lastEpoch = 0; }
+    if (this.observeFrames != observeFrames) lastFrame = "";
+    this.observeFrames = observeFrames;
     this.owner = owner; this.binding = binding; this.revision = revision; enabled = !binding.isEmpty();
     connect();
   }
   private void connect() {
     View view = root.get();
     if (!enabled || view == null || !view.isAttachedToWindow()) return;
-    if (tree == null || !tree.isAlive()) { tree = view.getViewTreeObserver(); tree.addOnPreDrawListener(this); }
+    if (!observeFrames && tree != null) { if (tree.isAlive()) tree.removeOnPreDrawListener(this); tree = null; }
+    if (observeFrames && (tree == null || !tree.isAlive())) { tree = view.getViewTreeObserver(); tree.addOnPreDrawListener(this); }
     if (coordinator == null && view.getContext() instanceof ReactContext) {
       UIManager manager = UIManagerHelper.getUIManagerForReactTag((ReactContext)view.getContext(), view.getId());
       if (manager != null) {
@@ -88,7 +92,7 @@ final class CUIMotionGeometryObserver implements ViewTreeObserver.OnPreDrawListe
       .put("windowId", session.getString("windowId")).put("scopeOwnerId", session.getString("scopeOwnerId"))
       .put("epoch", session.getDouble("epoch")).put("attachmentRevision", attachmentRevision).put("nativeViewRevision", revision);
   }
-  @Override public boolean onPreDraw() { capture("frame", "", ""); return true; }
+  @Override public boolean onPreDraw() { if (observeFrames) capture("frame", "", ""); return true; }
 
   private WritableMap envelope(String kind, String requestId, String transaction, View view, boolean attached) {
     WritableMap data = Arguments.createMap();
@@ -107,7 +111,7 @@ final class CUIMotionGeometryObserver implements ViewTreeObserver.OnPreDrawListe
     return data;
   }
   private void capture(String kind, String requestId, String transaction) {
-    if (!enabled) return;
+    if (!enabled || ("frame".equals(kind) && !observeFrames)) return;
     View view = root.get();
     boolean attached = view != null && view.isAttachedToWindow() && !"detached".equals(kind);
     WritableMap data = envelope(kind, requestId, transaction, view, attached);

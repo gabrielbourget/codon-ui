@@ -14,7 +14,8 @@ namespace {
 TNativeScratchNode copyNode(
     const ShadowNode &source, const LayoutContext &context, bool swap,
     YGErrata inheritedErrata, const TNativeScratchIntrinsicResolver &resolveIntrinsic,
-    const TNativeScratchPropsResolver &resolveProps, const TNativeFabricReadGuard &check) {
+    const TNativeScratchPropsResolver &resolveProps, const TNativeFabricReadGuard &check,
+    const std::function<bool(const ShadowNode &)> &isolatedLeaf = {}) {
   if (check) check();
   const auto selectedProps = resolveProps ? resolveProps(source) : source.getProps();
   const auto layoutState = captureNativeLayoutState(source, check);
@@ -31,7 +32,8 @@ TNativeScratchNode copyNode(
     const auto &view = static_cast<const ViewProps &>(*selectedProps);
     result.formsContainingBlock = view.transform != Transform::Identity() || !view.filter.empty();
   }
-  const bool measures = source.getTraits().check(ShadowNodeTraits::MeasurableYogaNode);
+  const bool isolated = isolatedLeaf && isolatedLeaf(source);
+  const bool measures = isolated || source.getTraits().check(ShadowNodeTraits::MeasurableYogaNode);
   const bool hasBaseline = source.getTraits().check(ShadowNodeTraits::BaselineYogaNode);
   if (measures || hasBaseline) {
     if (!resolveIntrinsic)
@@ -43,10 +45,10 @@ TNativeScratchNode copyNode(
     if (measures) result.measure = std::move(intrinsic.measure);
     if (hasBaseline) result.baseline = std::move(intrinsic.baseline);
   }
-  if (!source.getTraits().check(ShadowNodeTraits::LeafYogaNode)) {
+  if (!isolated && !source.getTraits().check(ShadowNodeTraits::LeafYogaNode)) {
     for (const auto &child : source.getChildren()) {
       if (dynamic_cast<const YogaLayoutableShadowNode *>(child.get()))
-        result.children.push_back(copyNode(*child, context, swap, errata, resolveIntrinsic, resolveProps, check));
+        result.children.push_back(copyNode(*child, context, swap, errata, resolveIntrinsic, resolveProps, check, isolatedLeaf));
     }
   }
   if (check) check();
@@ -58,10 +60,11 @@ TNativeScratchNode copyNativeScratchSubtree(
     const ShadowNode &node, const LayoutContext &context,
     const LayoutConstraints &constraints,
     const TNativeScratchIntrinsicResolver &resolveIntrinsic,
-    const TNativeScratchPropsResolver &resolveProps, const TNativeFabricReadGuard &check) {
+    const TNativeScratchPropsResolver &resolveProps, const TNativeFabricReadGuard &check,
+    const std::function<bool(const ShadowNode &)> &isolatedLeaf) {
   const bool swap = context.swapLeftAndRightInRTL &&
       constraints.layoutDirection == LayoutDirection::RightToLeft;
-  return copyNode(node, context, swap, YGErrataAll, resolveIntrinsic, resolveProps, check);
+  return copyNode(node, context, swap, YGErrataAll, resolveIntrinsic, resolveProps, check, isolatedLeaf);
 }
 
 TNativeScratchInput createNativeScratchInput(

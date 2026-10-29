@@ -80,6 +80,7 @@ export const Stepper = forwardRef<TNativeStepperRef, TNativeStepperProps>((props
     const icon = increment ? PlusIcon : MinusIcon
     return (
       <Button
+        slot={null}
         testID={`${testID}-${increment ? "increment" : "decrement"}`}
         accessibilityLabel={increment ? incrementLabel : decrementLabel}
         isDisabled={isDisabled || isReadOnly || !(increment ? numeric.canIncrement : numeric.canDecrement)}

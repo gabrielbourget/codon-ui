@@ -38,6 +38,7 @@ export const NativeTimeFieldLabel = forwardRef<TNativeTextRef, TTextProps>((auth
       {...text}
       ref={ref}
       nativeRender={render}
+      nativeColorIsAnimated
       onPress={(event) => {
         if (!live.current) return
         const focus = current.current.focusField
@@ -69,7 +70,16 @@ export const NativeTimeFieldText = forwardRef<TNativeTextRef, TTextProps>((autho
   if (text.fontStyle !== undefined) delete inherited.fontStyle
   if (text.color !== undefined) delete inherited.color
   const style = resolveNativeStyle([inherited, text.customStyles, text.style], "TimeFieldText", "style")
-  return <NativeText {...text} ref={ref} nativeRender={render} customStyles={undefined} style={style} />
+  return (
+    <NativeText
+      {...text}
+      ref={ref}
+      nativeRender={render}
+      nativeColorIsAnimated
+      customStyles={undefined}
+      style={style}
+    />
+  )
 })
 NativeTimeFieldText.displayName = "NativeTimeFieldText"
 

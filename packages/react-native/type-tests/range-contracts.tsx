@@ -1,5 +1,5 @@
 import { createRef } from "react"
-import { PlatformColor, type View } from "react-native"
+import { PlatformColor, View } from "react-native"
 
 import { LinearProgress, Meter, type LinearProgressProps, type MeterProps } from "../src"
 
@@ -36,6 +36,28 @@ export const validMeterProps: MeterProps = {
   style: ({ percentage, valueText, defaultStyle }) => [defaultStyle, { opacity: percentage > 0 && valueText ? 1 : 0 }],
 }
 export const ValidMeter = <Meter {...validMeterProps} ref={createRef<View>()} />
+export const RenderedProgress = (
+  <LinearProgress
+    value={0}
+    aria-label="Rendered"
+    render={(props, state) => <View {...props} accessibilityHint={String(state.isIndeterminate)} />}
+  />
+)
+export const RenderedMeter = (
+  <Meter
+    value={0}
+    aria-label="Rendered"
+    render={(props, state) => {
+      // @ts-expect-error Measurement render state has no indeterminate field.
+      void state.isIndeterminate
+      return <View {...props} accessibilityHint={state.valueText} />
+    }}
+  />
+)
+export const DOMRenderedMeter = (
+  // @ts-expect-error Native root adapters receive View props rather than browser refs.
+  <Meter value={0} aria-label="Rendered" render={(_props: { ref: HTMLDivElement }) => <View />} />
+)
 // @ts-expect-error Range displays require an authoritative caller value.
 export const InvalidMissingValue = <Meter aria-label="Missing" />
 // @ts-expect-error Native range displays require an accessible name.

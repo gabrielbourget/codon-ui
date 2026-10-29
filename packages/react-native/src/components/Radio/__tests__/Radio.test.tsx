@@ -17,6 +17,23 @@ const event = { nativeEvent: { timestamp: 100 } }
 const hidden = { includeHiddenElements: true }
 const checked = (name: string) => screen.getByRole("radio", { name }).props.accessibilityState.checked
 
+it("forwards the original native activation object while retaining group-owned selection", async () => {
+  const onPress = jest.fn(),
+    onChange = jest.fn()
+  await render(
+    <RadioGroup aria-label="Choices" value={null} onChange={onChange}>
+      <Radio value="one" aria-label="One" onPress={onPress} />
+    </RadioGroup>,
+  )
+  const control = screen.getByRole("radio")
+  await fireEvent(control, "press", event)
+  expect(onPress.mock.calls).toEqual([[event]])
+  expect(onPress.mock.calls[0][0]).toBe(event)
+  expect(onChange.mock.calls).toEqual([["one"]])
+  expect(control.props.accessibilityState.checked).toBe(false)
+  expect(control.props.value).toBeUndefined()
+})
+
 it("selects one wrapped member, leaves reselection quiet and preserves native press observation", async () => {
   const onChange = jest.fn(),
     onPress = jest.fn()

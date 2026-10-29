@@ -1,7 +1,7 @@
 import { Children, Fragment, isValidElement, type ReactNode } from "react"
 import type { StyleProp, TextStyle } from "react-native"
 
-import { Text } from "../Text/Text"
+import { NativeText as Text } from "../Text/Text"
 
 export const getNativeButtonContent = (children: ReactNode, ownedStyles?: StyleProp<TextStyle>) => {
   const content: ReactNode[] = []
@@ -10,7 +10,7 @@ export const getNativeButtonContent = (children: ReactNode, ownedStyles?: StyleP
   const finishPhrase = () => {
     if (!phrase.length) return
     content.push(
-      <Text key={phraseKey} customStyles={ownedStyles}>
+      <Text key={phraseKey} customStyles={ownedStyles} nativeColorIsAnimated>
         {phrase}
       </Text>,
     )

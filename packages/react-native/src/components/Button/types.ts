@@ -1,4 +1,4 @@
-import type { ReactNode } from "react"
+import type { ReactElement, ReactNode, RefAttributes } from "react"
 import type {
   AccessibilityState,
   ColorValue,
@@ -53,6 +53,7 @@ export type TNativeButtonProps = Omit<
     onPressIn?: (event: TNativeInteractionEvent) => void
     onPressOut?: (event: TNativeInteractionEvent) => void
     children?: ReactNode | ((state: TNativeButtonChildrenState) => ReactNode)
+    render?: (props: TNativeFocusViewProps & RefAttributes<View>, state: TNativeButtonRenderState) => ReactElement
     style?: StyleProp<TNativeButtonRootStyle> | ((state: TNativeButtonStyleState) => StyleProp<TNativeButtonRootStyle>)
     customStyles?: StyleProp<TNativeButtonRootStyle>
     color?: ColorValue

@@ -1,4 +1,5 @@
 import { createRef } from "react"
+import { View } from "react-native"
 
 import {
   Checkbox,
@@ -8,6 +9,7 @@ import {
   type SwitchProps,
   type TNativeSwitchRef,
   type TNativeInputRef,
+  type TNativeCheckboxGroupRef,
 } from "../src"
 
 const switchProps: SwitchProps = {
@@ -29,7 +31,11 @@ export const InvalidSwitchChildren = <Switch>Label</Switch>
 export const InvalidSwitchDisabled = <Switch disabled />
 
 export const ValidCheckboxGroup = (
-  <CheckboxGroup value={["one"]} onChange={(values) => values.includes("one")}>
+  <CheckboxGroup
+    ref={createRef<TNativeCheckboxGroupRef>()}
+    value={["one"]}
+    onChange={(values) => values.includes("one")}
+  >
     <Checkbox value="one" isIndeterminate>
       {({ isSelected }) => <>Selected {isSelected ? 1 : 0}</>}
     </Checkbox>
@@ -39,6 +45,21 @@ export const ValidCheckboxGroup = (
 export const InvalidGroupValue = <CheckboxGroup value={[1]} />
 // @ts-expect-error the group must keep descendants individually accessible
 export const InvalidGroupAccessible = <CheckboxGroup accessible />
+// @ts-expect-error The group ref receives the original native View.
+export const InvalidGroupRef = <CheckboxGroup ref={createRef<{ tagName: string }>()} />
+export const RenderedGroup = (
+  <CheckboxGroup render={(props, state) => <View {...props} accessibilityHint={String(state.isReadOnly)} />}>
+    {(state) => {
+      // @ts-expect-error The approved native group does not expose the React Aria state object.
+      void state.state
+      return <Checkbox value="one">{state.value.length}</Checkbox>
+    }}
+  </CheckboxGroup>
+)
+export const InvalidGroupDOMRenderer = (
+  // @ts-expect-error A native root renderer receives View props and its actual native ref.
+  <CheckboxGroup render={(_props: { ref: HTMLDivElement }) => <View />} />
+)
 // @ts-expect-error Checkbox owns checked state
 export const InvalidCheckboxState = <Checkbox accessibilityState={{ checked: "mixed" }} />
 // @ts-expect-error no DOM form submission contract

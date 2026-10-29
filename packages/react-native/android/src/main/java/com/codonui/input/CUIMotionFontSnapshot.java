@@ -110,7 +110,9 @@ final class CUIMotionFontSnapshot {
     private void apply(TextPaint paint) {
       paint.setFontFeatureSettings(features);
       // Preserve the original layout engine's lookup order, including cache misses across spans.
-      paint.setTypeface(manager.getTypeface(family, style, weight, assets));
+      synchronized (manager) {
+        paint.setTypeface(manager.getTypeface(family, style, weight, assets));
+      }
       com.facebook.react.views.text.ReactFontWeightScalar.apply(paint, scalarWeight);
       paint.setSubpixelText(true);
       paint.setLinearText(true);

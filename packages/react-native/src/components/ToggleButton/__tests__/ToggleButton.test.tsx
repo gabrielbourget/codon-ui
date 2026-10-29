@@ -388,3 +388,27 @@ it("NATIVE.toggle-button.002 rejects unsupported native dimensions and CSS color
   await expect(render(<Example height={NaN} />)).rejects.toThrow(/height/)
   await expect(render(<Example color="var(--bad)" />)).rejects.toThrow(/unsupported native color/)
 })
+
+it("retains the pinned hidden default when a controlled false toggle hands back control", async () => {
+  jest.spyOn(console, "warn").mockImplementation(() => {})
+  const onChange = jest.fn()
+  const view = await render(
+    <ToggleButton isSelected={false} defaultSelected onChange={onChange}>
+      Choice
+    </ToggleButton>,
+  )
+  expect(screen.getByRole("button").props.accessibilityState.checked).toBe(false)
+  await view.rerender(
+    <ToggleButton defaultSelected onChange={onChange}>
+      Choice
+    </ToggleButton>,
+  )
+  expect(screen.getByRole("button").props.accessibilityState.checked).toBe(true)
+  await view.rerender(
+    <ToggleButton defaultSelected={false} onChange={onChange}>
+      Choice
+    </ToggleButton>,
+  )
+  expect(screen.getByRole("button").props.accessibilityState.checked).toBe(true)
+  expect(onChange).not.toHaveBeenCalled()
+})

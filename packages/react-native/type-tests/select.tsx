@@ -2,6 +2,8 @@ import { createRef } from "react"
 
 import { ListBoxItem, Select, type SelectProps, type TNativeListBoxItemRef, type TNativeSelectRef } from "../src"
 
+const browserNodeRef = createRef<{ tagName: string }>()
+
 export const ValidRow = (
   <ListBoxItem id={0} textValue="Choice" ref={createRef<TNativeListBoxItemRef>()} isSelected>
     {({ isSelected }) => <>Choice {isSelected ? 1 : 0}</>}
@@ -32,6 +34,10 @@ export const InvalidSelectKeyAlias = <Select {...ValidSelectProps} selectedKey="
 export const InvalidSelectWrap = <Select {...ValidSelectProps} shouldFocusWrap />
 // @ts-expect-error row checked state is owned
 export const InvalidRowChecked = <ListBoxItem id="one" textValue="One" aria-checked />
+// @ts-expect-error Rows retain their original native View ref.
+export const InvalidRowRef = <ListBoxItem id="one" textValue="One" ref={browserNodeRef} />
+// @ts-expect-error Select retains its original native View ref.
+export const InvalidSelectRef = <Select {...ValidSelectProps} ref={browserNodeRef} />
 // @ts-expect-error row label comes from required text metadata
 export const InvalidRowLabel = <ListBoxItem id="one" textValue="One" accessibilityLabel="Other" />
 // @ts-expect-error metadata is required even when visual content is supplied

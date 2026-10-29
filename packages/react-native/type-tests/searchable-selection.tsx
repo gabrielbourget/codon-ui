@@ -3,6 +3,8 @@ import type { TextInput, View } from "react-native"
 
 import { ComboBox, PlaceholderText, type TNativePlaceholderTextRef, type TNativeComboBoxProps } from "../src"
 
+const browserNodeRef = createRef<{ tagName: string }>()
+
 export const ValidPlaceholder = (
   <PlaceholderText
     ref={createRef<TNativePlaceholderTextRef>()}
@@ -23,6 +25,8 @@ export const InvalidPlaceholderWeight = <PlaceholderText fontWeight="bold" />
 export const InvalidPlaceholderFontStyle = <PlaceholderText fontStyle="italic" />
 // @ts-expect-error only the reviewed alignments are supported
 export const InvalidPlaceholderAlign = <PlaceholderText align="right" />
+// @ts-expect-error PlaceholderText retains the original native Text ref.
+export const InvalidPlaceholderRef = <PlaceholderText ref={browserNodeRef} />
 
 const base: TNativeComboBoxProps<{ key: string | number; label: string }> = {
   items: [
@@ -68,6 +72,10 @@ export const ValidComboBox = (
   />
 )
 const accept = (_props: TNativeComboBoxProps<{ key: string | number; label: string }>) => undefined
+// @ts-expect-error The compound root retains its original native View ref.
+export const InvalidComboBoxRef = <ComboBox {...base} ref={browserNodeRef} />
+// @ts-expect-error The query ref must retain the original TextInput methods.
+accept({ ...base, inputRef: createRef<View>() })
 // @ts-expect-error query name is required
 accept({ items: [], getKey: () => 0, getTextValue: () => "One", accessibilityLabel: "Choose", closeLabel: "Close" })
 // @ts-expect-error trigger name is required

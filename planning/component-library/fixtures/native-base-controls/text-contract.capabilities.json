@@ -1,0 +1,2279 @@
+{
+  "canonicalSourceRef": "ddc9f066f67af4742e05e04bd870726141c44129",
+  "declarationTuple": "@types/react19.2.2; native RN0.86.3/React19.2.3; pinned canonical React19.2.7",
+  "approvedAdaptation": {
+    "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 owner-approved entire M1-B packet, Text Contract and Runtime Color Boundary; approval recorded in original ledger section8.9",
+    "packetSHA256": "67a49227d3551accb704ee65b080a269e54d69f531730eb871ff46731f56fa45",
+    "effect": "Native TextProps replace the inherited HTML public surface. DOM-only members are the original owner-approved exclusions, not new exclusions invented for this reconciliation. Same-name native events retain native payloads. onClick maps to native onPress; class plumbing maps to native styles. Native core platform applicability is retained."
+  },
+  "scope": "Every canonical Text/PlaceholderText public prop, including all inherited HTML/ARIA/event members; native extras retain the approved core TextProps contract. Ref, runtime defaults, CSS, wrapper precedence and all assertions are mapped separately in roadmap3.5.1.1. No installed trait/event/pixel equivalence is inferred.",
+  "optionalAndDefaults": "All enumerated canonical props are optional. Unauthored inherited props remain undefined at the wrapper. Explicit owned defaults and the native host/default/semantic/metrics/ref/event equivalents are mapped in roadmap3.5.1.1; native extras keep their approved core TextProps behavior.",
+  "inheritanceProof": {
+    "canonical": {
+      "TextPropertyCount": 287,
+      "PlaceholderPropertyCount": 284,
+      "sharedPropertiesBidirectionallyAssignable": 283,
+      "omitted": ["color", "variant", "fontWeight", "fontStyle"],
+      "added": ["align"]
+    },
+    "native": {
+      "TextPropertyCount": 74,
+      "PlaceholderPropertyCount": 71,
+      "sharedPropertiesBidirectionallyAssignable": 70,
+      "omitted": ["color", "variant", "fontWeight", "fontStyle"],
+      "added": ["align"]
+    }
+  },
+  "Text": {
+    "canonicalPropertyCount": 287,
+    "ownedDefaults": {
+      "variant": "b10",
+      "fontWeight": "regular",
+      "elementType": "p",
+      "composedInLink": false,
+      "testID": "text",
+      "fontStyle": "inherited, otherwise native normal",
+      "color": "current parent content foreground, otherwise current theme foreground"
+    },
+    "props": {
+      "about": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "accessKey": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-activedescendant": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-atomic": {
+        "canonicalType": "(boolean | \"true\" | \"false\") | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-autocomplete": {
+        "canonicalType": "\"none\" | \"list\" | \"inline\" | \"both\" | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-braillelabel": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-brailleroledescription": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-busy": {
+        "canonicalType": "(boolean | \"true\" | \"false\") | undefined",
+        "nativeProp": "aria-busy",
+        "nativeType": "boolean | undefined",
+        "disposition": "NATIVE_EQUIVALENT",
+        "capability": "CAP.text.009"
+      },
+      "aria-checked": {
+        "canonicalType": "boolean | \"true\" | \"false\" | \"mixed\" | undefined",
+        "nativeProp": "aria-checked",
+        "nativeType": "boolean | \"mixed\" | undefined",
+        "disposition": "NATIVE_EQUIVALENT",
+        "capability": "CAP.text.009"
+      },
+      "aria-colcount": {
+        "canonicalType": "number | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-colindex": {
+        "canonicalType": "number | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-colindextext": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-colspan": {
+        "canonicalType": "number | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-controls": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-current": {
+        "canonicalType": "boolean | \"true\" | \"false\" | \"page\" | \"step\" | \"location\" | \"date\" | \"time\" | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-describedby": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-description": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-details": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-disabled": {
+        "canonicalType": "(boolean | \"true\" | \"false\") | undefined",
+        "nativeProp": "aria-disabled",
+        "nativeType": "boolean | undefined",
+        "disposition": "NATIVE_EQUIVALENT",
+        "capability": "CAP.text.009"
+      },
+      "aria-dropeffect": {
+        "canonicalType": "\"none\" | \"link\" | \"copy\" | \"execute\" | \"move\" | \"popup\" | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-errormessage": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-expanded": {
+        "canonicalType": "(boolean | \"true\" | \"false\") | undefined",
+        "nativeProp": "aria-expanded",
+        "nativeType": "boolean | undefined",
+        "disposition": "NATIVE_EQUIVALENT",
+        "capability": "CAP.text.009"
+      },
+      "aria-flowto": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-grabbed": {
+        "canonicalType": "(boolean | \"true\" | \"false\") | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-haspopup": {
+        "canonicalType": "boolean | \"true\" | \"false\" | \"dialog\" | \"grid\" | \"listbox\" | \"menu\" | \"tree\" | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-hidden": {
+        "canonicalType": "(boolean | \"true\" | \"false\") | undefined",
+        "nativeProp": "aria-hidden",
+        "nativeType": "boolean | undefined",
+        "disposition": "NATIVE_EQUIVALENT",
+        "capability": "CAP.text.009"
+      },
+      "aria-invalid": {
+        "canonicalType": "boolean | \"true\" | \"false\" | \"grammar\" | \"spelling\" | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-keyshortcuts": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-label": {
+        "canonicalType": "string | undefined",
+        "nativeProp": "aria-label",
+        "nativeType": "string | undefined",
+        "disposition": "NATIVE_EQUIVALENT",
+        "capability": "CAP.text.009"
+      },
+      "aria-labelledby": {
+        "canonicalType": "string | undefined",
+        "nativeProp": "aria-labelledby",
+        "nativeType": "string | undefined",
+        "disposition": "NATIVE_EQUIVALENT",
+        "capability": "CAP.text.009"
+      },
+      "aria-level": {
+        "canonicalType": "number | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-live": {
+        "canonicalType": "\"off\" | \"assertive\" | \"polite\" | undefined",
+        "nativeProp": "aria-live",
+        "nativeType": "\"polite\" | \"assertive\" | \"off\" | undefined",
+        "disposition": "NATIVE_EQUIVALENT",
+        "capability": "CAP.text.009"
+      },
+      "aria-modal": {
+        "canonicalType": "(boolean | \"true\" | \"false\") | undefined",
+        "nativeProp": "aria-modal",
+        "nativeType": "boolean | undefined",
+        "disposition": "NATIVE_EQUIVALENT",
+        "capability": "CAP.text.009"
+      },
+      "aria-multiline": {
+        "canonicalType": "(boolean | \"true\" | \"false\") | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-multiselectable": {
+        "canonicalType": "(boolean | \"true\" | \"false\") | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-orientation": {
+        "canonicalType": "\"horizontal\" | \"vertical\" | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-owns": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-placeholder": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-posinset": {
+        "canonicalType": "number | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-pressed": {
+        "canonicalType": "boolean | \"true\" | \"false\" | \"mixed\" | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-readonly": {
+        "canonicalType": "(boolean | \"true\" | \"false\") | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-relevant": {
+        "canonicalType": "\"text\" | \"additions\" | \"additions removals\" | \"additions text\" | \"all\" | \"removals\" | \"removals additions\" | \"removals text\" | \"text additions\" | \"text removals\" | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-required": {
+        "canonicalType": "(boolean | \"true\" | \"false\") | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-roledescription": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-rowcount": {
+        "canonicalType": "number | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-rowindex": {
+        "canonicalType": "number | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-rowindextext": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-rowspan": {
+        "canonicalType": "number | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-selected": {
+        "canonicalType": "(boolean | \"true\" | \"false\") | undefined",
+        "nativeProp": "aria-selected",
+        "nativeType": "boolean | undefined",
+        "disposition": "NATIVE_EQUIVALENT",
+        "capability": "CAP.text.009"
+      },
+      "aria-setsize": {
+        "canonicalType": "number | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-sort": {
+        "canonicalType": "\"none\" | \"ascending\" | \"descending\" | \"other\" | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "aria-valuemax": {
+        "canonicalType": "number | undefined",
+        "nativeProp": "aria-valuemax",
+        "nativeType": "number | undefined",
+        "disposition": "NATIVE_EQUIVALENT",
+        "capability": "CAP.text.009"
+      },
+      "aria-valuemin": {
+        "canonicalType": "number | undefined",
+        "nativeProp": "aria-valuemin",
+        "nativeType": "number | undefined",
+        "disposition": "NATIVE_EQUIVALENT",
+        "capability": "CAP.text.009"
+      },
+      "aria-valuenow": {
+        "canonicalType": "number | undefined",
+        "nativeProp": "aria-valuenow",
+        "nativeType": "number | undefined",
+        "disposition": "NATIVE_EQUIVALENT",
+        "capability": "CAP.text.009"
+      },
+      "aria-valuetext": {
+        "canonicalType": "string | undefined",
+        "nativeProp": "aria-valuetext",
+        "nativeType": "string | undefined",
+        "disposition": "NATIVE_EQUIVALENT",
+        "capability": "CAP.text.009"
+      },
+      "autoCapitalize": {
+        "canonicalType": "\"off\" | \"none\" | \"on\" | \"sentences\" | \"words\" | \"characters\" | (string & {}) | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "autoCorrect": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "autoFocus": {
+        "canonicalType": "boolean | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "autoSave": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "children": {
+        "canonicalType": "import(\"@types/react/index\").ReactNode",
+        "nativeProp": "children",
+        "nativeType": "import(\"@types/react/index\").ReactNode",
+        "disposition": "NATIVE_EQUIVALENT",
+        "capability": "CAP.text.001"
+      },
+      "className": {
+        "canonicalType": "string | undefined",
+        "nativeProp": "customStyles/style",
+        "nativeType": "StyleProp<TextStyle>",
+        "disposition": "APPROVED_NATIVE_STYLE_MAPPING",
+        "capability": "CAP.text.006"
+      },
+      "color": {
+        "canonicalType": "import(\"csstype/index\").Property.Color | undefined",
+        "nativeProp": "color",
+        "nativeType": "ColorValue | undefined",
+        "disposition": "NATIVE_EQUIVALENT",
+        "capability": "CAP.text.006"
+      },
+      "composedInLink": {
+        "canonicalType": "boolean | undefined",
+        "nativeProp": "composedInLink",
+        "nativeType": "boolean | undefined",
+        "disposition": "NATIVE_EQUIVALENT",
+        "capability": "CAP.text.005"
+      },
+      "content": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "contentEditable": {
+        "canonicalType": "(boolean | \"true\" | \"false\") | \"inherit\" | \"plaintext-only\" | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "contextMenu": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "customClassName": {
+        "canonicalType": "string | undefined",
+        "nativeProp": "customStyles/style",
+        "nativeType": "StyleProp<TextStyle>",
+        "disposition": "APPROVED_NATIVE_STYLE_MAPPING",
+        "capability": "CAP.text.006"
+      },
+      "customStyles": {
+        "canonicalType": "CSSProperties | undefined",
+        "nativeProp": "customStyles",
+        "nativeType": "StyleProp<TextStyle>",
+        "disposition": "NATIVE_EQUIVALENT",
+        "capability": "CAP.text.006"
+      },
+      "dangerouslySetInnerHTML": {
+        "canonicalType": "{ __html: string | TrustedHTML; } | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "data-testid": {
+        "canonicalType": "string | undefined",
+        "nativeProp": "data-testid",
+        "nativeType": "string | undefined",
+        "disposition": "NATIVE_EQUIVALENT",
+        "capability": "CAP.text.009"
+      },
+      "datatype": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "defaultChecked": {
+        "canonicalType": "boolean | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "defaultValue": {
+        "canonicalType": "string | number | readonly string[] | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "dir": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "draggable": {
+        "canonicalType": "(boolean | \"true\" | \"false\") | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "elementType": {
+        "canonicalType": "\"h1\" | \"h2\" | \"h3\" | \"h4\" | \"h5\" | \"h6\" | \"p\" | \"section\" | \"span\" | \"strong\" | \"label\" | \"legend\" | undefined",
+        "nativeProp": "elementType",
+        "nativeType": "\"h1\" | \"h2\" | \"h3\" | \"h4\" | \"h5\" | \"h6\" | \"p\" | \"section\" | \"span\" | \"strong\" | \"label\" | \"legend\" | undefined",
+        "disposition": "NATIVE_EQUIVALENT",
+        "capability": "CAP.text.005"
+      },
+      "enterKeyHint": {
+        "canonicalType": "\"enter\" | \"done\" | \"go\" | \"next\" | \"previous\" | \"search\" | \"send\" | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "exportparts": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "fontStyle": {
+        "canonicalType": "\"italic\" | undefined",
+        "nativeProp": "fontStyle",
+        "nativeType": "\"italic\" | undefined",
+        "disposition": "NATIVE_EQUIVALENT",
+        "capability": "CAP.text.003"
+      },
+      "fontWeight": {
+        "canonicalType": "\"light\" | \"regular\" | \"semibold\" | \"medium\" | \"bold\" | \"extrabold\" | undefined",
+        "nativeProp": "fontWeight",
+        "nativeType": "\"light\" | \"regular\" | \"medium\" | \"semibold\" | \"bold\" | \"extrabold\" | undefined",
+        "disposition": "NATIVE_EQUIVALENT",
+        "capability": "CAP.text.003"
+      },
+      "hidden": {
+        "canonicalType": "boolean | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "htmlFor": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "id": {
+        "canonicalType": "string | undefined",
+        "nativeProp": "id",
+        "nativeType": "string | undefined",
+        "disposition": "NATIVE_EQUIVALENT",
+        "capability": "CAP.text.009"
+      },
+      "inert": {
+        "canonicalType": "boolean | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "inlist": {
+        "canonicalType": "any",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "inputMode": {
+        "canonicalType": "\"none\" | \"search\" | \"text\" | \"tel\" | \"url\" | \"email\" | \"numeric\" | \"decimal\" | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "is": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "itemID": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "itemProp": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "itemRef": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "itemScope": {
+        "canonicalType": "boolean | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "itemType": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "lang": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "nonce": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "onAbort": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onAbortCapture": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onAnimationEnd": {
+        "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onAnimationEndCapture": {
+        "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onAnimationIteration": {
+        "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onAnimationIterationCapture": {
+        "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onAnimationStart": {
+        "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onAnimationStartCapture": {
+        "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onAuxClick": {
+        "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onAuxClickCapture": {
+        "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onBeforeInput": {
+        "canonicalType": "import(\"@types/react/index\").InputEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onBeforeInputCapture": {
+        "canonicalType": "import(\"@types/react/index\").FormEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onBeforeToggle": {
+        "canonicalType": "import(\"@types/react/index\").ToggleEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onBlur": {
+        "canonicalType": "import(\"@types/react/index\").FocusEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onBlurCapture": {
+        "canonicalType": "import(\"@types/react/index\").FocusEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onCanPlay": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onCanPlayCapture": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onCanPlayThrough": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onCanPlayThroughCapture": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onChange": {
+        "canonicalType": "import(\"@types/react/index\").FormEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onChangeCapture": {
+        "canonicalType": "import(\"@types/react/index\").FormEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onClick": {
+        "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLElement> | undefined",
+        "nativeProp": "onPress",
+        "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+        "disposition": "NATIVE_EQUIVALENT",
+        "capability": "CAP.text.010"
+      },
+      "onClickCapture": {
+        "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onCompositionEnd": {
+        "canonicalType": "import(\"@types/react/index\").CompositionEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onCompositionEndCapture": {
+        "canonicalType": "import(\"@types/react/index\").CompositionEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onCompositionStart": {
+        "canonicalType": "import(\"@types/react/index\").CompositionEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onCompositionStartCapture": {
+        "canonicalType": "import(\"@types/react/index\").CompositionEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onCompositionUpdate": {
+        "canonicalType": "import(\"@types/react/index\").CompositionEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onCompositionUpdateCapture": {
+        "canonicalType": "import(\"@types/react/index\").CompositionEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onContextMenu": {
+        "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onContextMenuCapture": {
+        "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onCopy": {
+        "canonicalType": "import(\"@types/react/index\").ClipboardEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onCopyCapture": {
+        "canonicalType": "import(\"@types/react/index\").ClipboardEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onCut": {
+        "canonicalType": "import(\"@types/react/index\").ClipboardEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onCutCapture": {
+        "canonicalType": "import(\"@types/react/index\").ClipboardEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onDoubleClick": {
+        "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onDoubleClickCapture": {
+        "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onDrag": {
+        "canonicalType": "import(\"@types/react/index\").DragEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onDragCapture": {
+        "canonicalType": "import(\"@types/react/index\").DragEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onDragEnd": {
+        "canonicalType": "import(\"@types/react/index\").DragEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onDragEndCapture": {
+        "canonicalType": "import(\"@types/react/index\").DragEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onDragEnter": {
+        "canonicalType": "import(\"@types/react/index\").DragEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onDragEnterCapture": {
+        "canonicalType": "import(\"@types/react/index\").DragEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onDragExit": {
+        "canonicalType": "import(\"@types/react/index\").DragEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onDragExitCapture": {
+        "canonicalType": "import(\"@types/react/index\").DragEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onDragLeave": {
+        "canonicalType": "import(\"@types/react/index\").DragEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onDragLeaveCapture": {
+        "canonicalType": "import(\"@types/react/index\").DragEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onDragOver": {
+        "canonicalType": "import(\"@types/react/index\").DragEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onDragOverCapture": {
+        "canonicalType": "import(\"@types/react/index\").DragEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onDragStart": {
+        "canonicalType": "import(\"@types/react/index\").DragEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onDragStartCapture": {
+        "canonicalType": "import(\"@types/react/index\").DragEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onDrop": {
+        "canonicalType": "import(\"@types/react/index\").DragEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onDropCapture": {
+        "canonicalType": "import(\"@types/react/index\").DragEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onDurationChange": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onDurationChangeCapture": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onEmptied": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onEmptiedCapture": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onEncrypted": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onEncryptedCapture": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onEnded": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onEndedCapture": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onError": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onErrorCapture": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onFocus": {
+        "canonicalType": "import(\"@types/react/index\").FocusEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onFocusCapture": {
+        "canonicalType": "import(\"@types/react/index\").FocusEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onGotPointerCapture": {
+        "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onGotPointerCaptureCapture": {
+        "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onInput": {
+        "canonicalType": "import(\"@types/react/index\").FormEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onInputCapture": {
+        "canonicalType": "import(\"@types/react/index\").FormEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onInvalid": {
+        "canonicalType": "import(\"@types/react/index\").FormEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onInvalidCapture": {
+        "canonicalType": "import(\"@types/react/index\").FormEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onKeyDown": {
+        "canonicalType": "import(\"@types/react/index\").KeyboardEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onKeyDownCapture": {
+        "canonicalType": "import(\"@types/react/index\").KeyboardEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onKeyPress": {
+        "canonicalType": "import(\"@types/react/index\").KeyboardEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onKeyPressCapture": {
+        "canonicalType": "import(\"@types/react/index\").KeyboardEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onKeyUp": {
+        "canonicalType": "import(\"@types/react/index\").KeyboardEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onKeyUpCapture": {
+        "canonicalType": "import(\"@types/react/index\").KeyboardEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onLoad": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onLoadCapture": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onLoadedData": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onLoadedDataCapture": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onLoadedMetadata": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onLoadedMetadataCapture": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onLoadStart": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onLoadStartCapture": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onLostPointerCapture": {
+        "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onLostPointerCaptureCapture": {
+        "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onMouseDown": {
+        "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onMouseDownCapture": {
+        "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onMouseEnter": {
+        "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onMouseLeave": {
+        "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onMouseMove": {
+        "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onMouseMoveCapture": {
+        "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onMouseOut": {
+        "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onMouseOutCapture": {
+        "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onMouseOver": {
+        "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onMouseOverCapture": {
+        "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onMouseUp": {
+        "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onMouseUpCapture": {
+        "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onPaste": {
+        "canonicalType": "import(\"@types/react/index\").ClipboardEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onPasteCapture": {
+        "canonicalType": "import(\"@types/react/index\").ClipboardEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onPause": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onPauseCapture": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onPlay": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onPlayCapture": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onPlaying": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onPlayingCapture": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onPointerCancel": {
+        "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onPointerCancelCapture": {
+        "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onPointerDown": {
+        "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onPointerDownCapture": {
+        "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onPointerEnter": {
+        "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onPointerLeave": {
+        "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onPointerMove": {
+        "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onPointerMoveCapture": {
+        "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onPointerOut": {
+        "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onPointerOutCapture": {
+        "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onPointerOver": {
+        "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onPointerOverCapture": {
+        "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onPointerUp": {
+        "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onPointerUpCapture": {
+        "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onProgress": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onProgressCapture": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onRateChange": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onRateChangeCapture": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onReset": {
+        "canonicalType": "import(\"@types/react/index\").FormEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onResetCapture": {
+        "canonicalType": "import(\"@types/react/index\").FormEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onScroll": {
+        "canonicalType": "import(\"@types/react/index\").UIEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onScrollCapture": {
+        "canonicalType": "import(\"@types/react/index\").UIEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onScrollEnd": {
+        "canonicalType": "import(\"@types/react/index\").UIEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onScrollEndCapture": {
+        "canonicalType": "import(\"@types/react/index\").UIEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onSeeked": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onSeekedCapture": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onSeeking": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onSeekingCapture": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onSelect": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onSelectCapture": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onStalled": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onStalledCapture": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onSubmit": {
+        "canonicalType": "import(\"@types/react/index\").FormEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onSubmitCapture": {
+        "canonicalType": "import(\"@types/react/index\").FormEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onSuspend": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onSuspendCapture": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onTimeUpdate": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onTimeUpdateCapture": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onToggle": {
+        "canonicalType": "import(\"@types/react/index\").ToggleEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onTouchCancel": {
+        "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onTouchCancelCapture": {
+        "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onTouchEnd": {
+        "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onTouchEndCapture": {
+        "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onTouchMove": {
+        "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onTouchMoveCapture": {
+        "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onTouchStart": {
+        "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onTouchStartCapture": {
+        "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onTransitionCancel": {
+        "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onTransitionCancelCapture": {
+        "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onTransitionEnd": {
+        "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onTransitionEndCapture": {
+        "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onTransitionRun": {
+        "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onTransitionRunCapture": {
+        "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onTransitionStart": {
+        "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onTransitionStartCapture": {
+        "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onVolumeChange": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onVolumeChangeCapture": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onWaiting": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onWaitingCapture": {
+        "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onWheel": {
+        "canonicalType": "import(\"@types/react/index\").WheelEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "onWheelCapture": {
+        "canonicalType": "import(\"@types/react/index\").WheelEventHandler<HTMLElement> | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.010"
+      },
+      "part": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "popover": {
+        "canonicalType": "\"\" | \"auto\" | \"manual\" | \"hint\" | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "popoverTarget": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "popoverTargetAction": {
+        "canonicalType": "\"toggle\" | \"show\" | \"hide\" | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "prefix": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "property": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "radioGroup": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "rel": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "resource": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "results": {
+        "canonicalType": "number | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "rev": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "role": {
+        "canonicalType": "import(\"@types/react/index\").AriaRole | undefined",
+        "nativeProp": "role",
+        "nativeType": "import(\"react-native/types/index\").Role | undefined",
+        "disposition": "NATIVE_EQUIVALENT",
+        "capability": "CAP.text.009"
+      },
+      "security": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "slot": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "spellCheck": {
+        "canonicalType": "(boolean | \"true\" | \"false\") | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "style": {
+        "canonicalType": "CSSProperties | undefined",
+        "nativeProp": "style",
+        "nativeType": "StyleProp<TextStyle>",
+        "disposition": "NATIVE_EQUIVALENT",
+        "capability": "CAP.text.006"
+      },
+      "suppressContentEditableWarning": {
+        "canonicalType": "boolean | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "suppressHydrationWarning": {
+        "canonicalType": "boolean | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "tabIndex": {
+        "canonicalType": "number | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "title": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "translate": {
+        "canonicalType": "\"yes\" | \"no\" | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "typeof": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "unselectable": {
+        "canonicalType": "\"off\" | \"on\" | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      },
+      "variant": {
+        "canonicalType": "\"d1\" | \"d2\" | \"d3\" | \"d4\" | \"d5\" | \"d6\" | \"h1\" | \"h2\" | \"h3\" | \"h4\" | \"h5\" | \"h6\" | \"h1-sm\" | \"h2-sm\" | \"h3-sm\" | \"h4-sm\" | \"h5-sm\" | \"h6-sm\" | \"b1\" | \"b2\" | \"b3\" | \"b4\" | \"b5\" | \"b6\" | \"b7\" | \"b8\" | \"b9\" | \"b10\" | \"b11\" | \"b12\" | \"b13\" | undefined",
+        "nativeProp": "variant",
+        "nativeType": "\"d1\" | \"d2\" | \"d3\" | \"d4\" | \"d5\" | \"d6\" | \"h1\" | \"h2\" | \"h3\" | \"h4\" | \"h5\" | \"h6\" | \"h1-sm\" | \"h2-sm\" | \"h3-sm\" | \"h4-sm\" | \"h5-sm\" | \"h6-sm\" | \"b1\" | \"b2\" | \"b3\" | \"b4\" | \"b5\" | \"b6\" | \"b7\" | \"b8\" | \"b9\" | \"b10\" | \"b11\" | \"b12\" | \"b13\" | undefined",
+        "disposition": "NATIVE_EQUIVALENT",
+        "capability": "CAP.text.002"
+      },
+      "vocab": {
+        "canonicalType": "string | undefined",
+        "nativeProp": null,
+        "nativeType": null,
+        "disposition": "APPROVED_DOM_EXCLUSION",
+        "capability": "CAP.text.009"
+      }
+    },
+    "nativeOnlyProps": {
+      "accessibilityActions": {
+        "type": "readonly Readonly<{ name: import(\"react-native/types/index\").AccessibilityActionName | string; label?: string | undefined; }>[] | undefined",
+        "optional": true
+      },
+      "accessibilityElementsHidden": {
+        "type": "boolean | undefined",
+        "optional": true
+      },
+      "accessibilityHint": {
+        "type": "string | undefined",
+        "optional": true
+      },
+      "accessibilityIgnoresInvertColors": {
+        "type": "boolean | undefined",
+        "optional": true
+      },
+      "accessibilityLabel": {
+        "type": "string | undefined",
+        "optional": true
+      },
+      "accessibilityLabelledBy": {
+        "type": "string | string[] | undefined",
+        "optional": true
+      },
+      "accessibilityLanguage": {
+        "type": "string | undefined",
+        "optional": true
+      },
+      "accessibilityLargeContentTitle": {
+        "type": "string | undefined",
+        "optional": true
+      },
+      "accessibilityLiveRegion": {
+        "type": "\"none\" | \"polite\" | \"assertive\" | undefined",
+        "optional": true
+      },
+      "accessibilityRespondsToUserInteraction": {
+        "type": "boolean | undefined",
+        "optional": true
+      },
+      "accessibilityRole": {
+        "type": "import(\"react-native/types/index\").AccessibilityRole | undefined",
+        "optional": true
+      },
+      "accessibilityShowsLargeContentViewer": {
+        "type": "boolean | undefined",
+        "optional": true
+      },
+      "accessibilityState": {
+        "type": "import(\"react-native/types/index\").AccessibilityState | undefined",
+        "optional": true
+      },
+      "accessibilityValue": {
+        "type": "import(\"react-native/types/index\").AccessibilityValue | undefined",
+        "optional": true
+      },
+      "accessibilityViewIsModal": {
+        "type": "boolean | undefined",
+        "optional": true
+      },
+      "accessible": {
+        "type": "boolean | undefined",
+        "optional": true
+      },
+      "adjustsFontSizeToFit": {
+        "type": "boolean | undefined",
+        "optional": true
+      },
+      "allowFontScaling": {
+        "type": "boolean | undefined",
+        "optional": true
+      },
+      "android_hyphenationFrequency": {
+        "type": "\"none\" | \"normal\" | \"full\" | undefined",
+        "optional": true
+      },
+      "dataDetectorType": {
+        "type": "\"none\" | \"phoneNumber\" | \"link\" | \"email\" | \"all\" | null | undefined",
+        "optional": true
+      },
+      "disabled": {
+        "type": "boolean | undefined",
+        "optional": true
+      },
+      "dynamicTypeRamp": {
+        "type": "\"caption2\" | \"caption1\" | \"footnote\" | \"subheadline\" | \"callout\" | \"body\" | \"headline\" | \"title3\" | \"title2\" | \"title1\" | \"largeTitle\" | undefined",
+        "optional": true
+      },
+      "ellipsizeMode": {
+        "type": "\"head\" | \"middle\" | \"tail\" | \"clip\" | undefined",
+        "optional": true
+      },
+      "importantForAccessibility": {
+        "type": "\"auto\" | \"yes\" | \"no\" | \"no-hide-descendants\" | undefined",
+        "optional": true
+      },
+      "lineBreakMode": {
+        "type": "\"head\" | \"middle\" | \"tail\" | \"clip\" | undefined",
+        "optional": true
+      },
+      "lineBreakStrategyIOS": {
+        "type": "\"none\" | \"standard\" | \"hangul-word\" | \"push-out\" | undefined",
+        "optional": true
+      },
+      "maxFontSizeMultiplier": {
+        "type": "number | null | undefined",
+        "optional": true
+      },
+      "minimumFontScale": {
+        "type": "number | undefined",
+        "optional": true
+      },
+      "nativeID": {
+        "type": "string | undefined",
+        "optional": true
+      },
+      "numberOfLines": {
+        "type": "number | undefined",
+        "optional": true
+      },
+      "onAccessibilityAction": {
+        "type": "((event: import(\"react-native/types/index\").AccessibilityActionEvent) => void) | undefined",
+        "optional": true
+      },
+      "onAccessibilityEscape": {
+        "type": "(() => void) | undefined",
+        "optional": true
+      },
+      "onAccessibilityTap": {
+        "type": "(() => void) | undefined",
+        "optional": true
+      },
+      "onLayout": {
+        "type": "((event: import(\"react-native/types/index\").LayoutChangeEvent) => void) | undefined",
+        "optional": true
+      },
+      "onLongPress": {
+        "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+        "optional": true
+      },
+      "onMagicTap": {
+        "type": "(() => void) | undefined",
+        "optional": true
+      },
+      "onPress": {
+        "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+        "optional": true
+      },
+      "onPressIn": {
+        "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+        "optional": true
+      },
+      "onPressOut": {
+        "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+        "optional": true
+      },
+      "onTextLayout": {
+        "type": "((event: import(\"react-native/types/index\").TextLayoutEvent) => void) | undefined",
+        "optional": true
+      },
+      "pointerEvents": {
+        "type": "\"box-none\" | \"none\" | \"box-only\" | \"auto\" | undefined",
+        "optional": true
+      },
+      "pressRetentionOffset": {
+        "type": "{ top: number; left: number; bottom: number; right: number; } | undefined",
+        "optional": true
+      },
+      "screenReaderFocusable": {
+        "type": "boolean | undefined",
+        "optional": true
+      },
+      "selectable": {
+        "type": "boolean | undefined",
+        "optional": true
+      },
+      "selectionColor": {
+        "type": "ColorValue | undefined",
+        "optional": true
+      },
+      "suppressHighlighting": {
+        "type": "boolean | undefined",
+        "optional": true
+      },
+      "testID": {
+        "type": "string | undefined",
+        "optional": true
+      },
+      "textBreakStrategy": {
+        "type": "\"simple\" | \"highQuality\" | \"balanced\" | undefined",
+        "optional": true
+      }
+    }
+  },
+  "PlaceholderText": {
+    "canonicalPropertyCount": 284,
+    "inherits": "Text.props, except the four omitted canonical typography/color props below",
+    "omit": ["color", "fontStyle", "fontWeight", "variant"],
+    "additionalProps": {
+      "align": {
+        "canonicalType": "\"left\" | \"center\" | undefined",
+        "nativeProp": "align",
+        "nativeType": "\"left\" | \"center\" | undefined",
+        "disposition": "NATIVE_EQUIVALENT",
+        "capability": "CAP.placeholder-text.001"
+      }
+    },
+    "nativeOnlyProps": "Text.nativeOnlyProps (all48 entries retained)",
+    "ownedDefaults": {
+      "variant": "b11",
+      "fontStyle": "italic",
+      "color": "current theme controlPlaceholder",
+      "align": "left",
+      "testID": "placeholder-text"
+    },
+    "nativeSealedProps": ["color", "fontStyle", "fontWeight", "variant"]
+  },
+  "dispositionCounts": {
+    "Text": {
+      "NATIVE_EQUIVALENT": 27,
+      "APPROVED_NATIVE_STYLE_MAPPING": 2,
+      "APPROVED_DOM_EXCLUSION": 258
+    },
+    "PlaceholderText": {
+      "NATIVE_EQUIVALENT": 24,
+      "APPROVED_NATIVE_STYLE_MAPPING": 2,
+      "APPROVED_DOM_EXCLUSION": 258
+    }
+  }
+}

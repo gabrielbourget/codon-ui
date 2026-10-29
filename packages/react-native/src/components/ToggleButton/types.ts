@@ -24,6 +24,7 @@ export type TNativeToggleButtonStyleState = TNativeToggleButtonRenderState & { d
 export type TNativeToggleButtonChildrenState = TNativeToggleButtonRenderState & { defaultChildren: undefined }
 export type TNativeToggleButtonProps = Omit<
   TNativeButtonProps,
+  | "render"
   | "children"
   | "slot"
   | "style"

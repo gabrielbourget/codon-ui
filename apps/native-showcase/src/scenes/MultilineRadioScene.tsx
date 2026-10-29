@@ -120,6 +120,7 @@ export const MultilineRadioScene = () => {
       </View>
       <Text>Controlled choices</Text>
       <RadioGroup
+        render={(props, state) => <View {...props} nativeID={`multiline-radio-${state.value ?? "empty"}`} />}
         testID="multiline-radio-group"
         aria-label="Controlled radio choices"
         value={value}

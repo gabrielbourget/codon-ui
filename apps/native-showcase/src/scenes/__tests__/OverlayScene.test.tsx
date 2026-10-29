@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, userEvent } from "@testing-library/react-native"
-import { AccessibilityInfo } from "react-native"
+import { AccessibilityInfo, Dimensions } from "react-native"
 
 import { NativeOverlayProvider, NativeThemeProvider } from "@codon-ui/react-native"
 
@@ -78,6 +78,47 @@ beforeEach(() => {
 afterEach(() => {
   jest.restoreAllMocks()
   jest.useRealTimers()
+})
+
+it("retains modal and alert drafts through live theme and window changes without issuing owner requests", async () => {
+  const window = Dimensions.get("window")
+  const content = (mode: "light" | "dark") => (
+    <NativeThemeProvider mode={mode}>
+      <NativeOverlayProvider>
+        <OverlayScene />
+      </NativeOverlayProvider>
+    </NativeThemeProvider>
+  )
+  const view = await render(content("light"))
+  try {
+    await press("Open parent dialog")
+    await show("overlay-parent")
+    await fireEvent.changeText(screen.getByTestId("overlay-draft"), "owner draft")
+    await fireEvent.changeText(screen.getByTestId("overlay-local-input"), "local draft")
+    await press("Increase local overlay count")
+    await view.rerender(content("dark"))
+    await act(() => Dimensions.set({ window: { ...window, width: 844, height: 390, fontScale: 2 } }))
+    expect(screen.getByTestId("overlay-parent")).toHaveStyle({ backgroundColor: "#171717" })
+    expect(screen.getByTestId("overlay-draft")).toHaveDisplayValue("owner draft")
+    expect(screen.getByTestId("overlay-local-input")).toHaveDisplayValue("local draft")
+    expect(screen.getByTestId("overlay-local-state")).toHaveTextContent(/Local body count: 1\./)
+    await press("Open alert confirmation")
+    await show("overlay-alert")
+    await fireEvent.changeText(screen.getByTestId("overlay-alert-note", { includeHiddenElements: true }), "note draft")
+    await view.rerender(content("light"))
+    await act(() => Dimensions.set({ window: { ...window, width: 390, height: 844, fontScale: 1.5 } }))
+    expect(screen.getByTestId("overlay-alert", { includeHiddenElements: true })).toHaveStyle({
+      backgroundColor: "#ffffff",
+    })
+    expect(screen.getByTestId("overlay-alert-note", { includeHiddenElements: true })).toHaveDisplayValue("note draft")
+    expect(screen.getByTestId("overlay-local-input", { includeHiddenElements: true })).toHaveDisplayValue("local draft")
+    expect(screen.getByTestId("overlay-alert-state", { includeHiddenElements: true })).toHaveTextContent(
+      /Confirms: 0.*Cancels: 0.*Requests: 0/,
+    )
+  } finally {
+    await view.unmount()
+    await act(() => Dimensions.set({ window }))
+  }
 })
 
 it("retains parent-local state and uncontrolled native drafts across child windows and resets them after complete closure", async () => {

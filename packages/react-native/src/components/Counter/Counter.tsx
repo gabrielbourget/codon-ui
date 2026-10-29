@@ -1,5 +1,5 @@
 import { forwardRef } from "react"
-import { View } from "react-native"
+import { Easing, View } from "react-native"
 
 import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
 import { NativeFocusHost } from "../../input/NativeFocusView"
@@ -11,10 +11,12 @@ import { resolveNativeStyle, validateNativeColor } from "../colors"
 import { validateNativeDisplayDimension } from "../displayDimensions"
 import { useNativeLinkColor } from "../Link/motion"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
-import { Text } from "../Text/Text"
+import { NativeText as Text } from "../Text/Text"
 
 import { getNativeCounterStatus } from "./model"
 import type { TNativeCounterProps, TNativeCounterRef } from "./types"
+
+const counterColorEasing = Easing.bezier(0.42, 0, 0.58, 1)
 
 export const Counter = forwardRef<TNativeCounterRef, TNativeCounterProps>((props, ref) => {
   const {
@@ -71,7 +73,11 @@ export const Counter = forwardRef<TNativeCounterRef, TNativeCounterProps>((props
     "Counter",
     "style",
   )
-  const foreground = useNativeLinkColor(rootColor ?? context?.foregroundColor ?? theme.colors.foreground)
+  const foreground = useNativeLinkColor(
+    rootColor ?? context?.foregroundColor ?? theme.colors.foreground,
+    250,
+    counterColorEasing,
+  )
   const textStyle = resolveNativeStyle(
     [{ color: statusColor ?? color }, customTextStyles],
     "Counter",
@@ -79,6 +85,8 @@ export const Counter = forwardRef<TNativeCounterRef, TNativeCounterProps>((props
   )
   const ownedTextColor = useNativeLinkColor(
     textStyle.color ?? rootColor ?? context?.foregroundColor ?? theme.colors.foreground,
+    250,
+    counterColorEasing,
   )
   const textColor = textStyle.color === undefined ? foreground : ownedTextColor
   const indicatorStyle = resolveNativeStyle(
@@ -120,11 +128,15 @@ export const Counter = forwardRef<TNativeCounterRef, TNativeCounterProps>((props
           testID={`${identity}-text-row`}
           style={{ height: "100%", flexDirection: "row", justifyContent: "center", alignItems: "center" }}
         >
-          <Text testID={`${identity}-value`} customStyles={{ ...textStyle, color: textColor }}>
+          <Text testID={`${identity}-value`} customStyles={{ ...textStyle, color: textColor }} nativeColorIsAnimated>
             {value}
           </Text>
           {showMaxValue && maxValue ? (
-            <Text testID={`${identity}-max`} customStyles={{ ...textStyle, color: textColor }}>{`/${maxValue}`}</Text>
+            <Text
+              testID={`${identity}-max`}
+              customStyles={{ ...textStyle, color: textColor }}
+              nativeColorIsAnimated
+            >{`/${maxValue}`}</Text>
           ) : null}
         </View>
         {getNativeButtonContent(children)}

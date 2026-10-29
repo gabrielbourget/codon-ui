@@ -1,10 +1,14 @@
 import "../../../collection/__tests__/nativeReceipts"
 
 import { cleanup } from "@testing-library/react-native"
-import { createRef, useContext, type ContextType, type ReactNode } from "react"
+import { createRef, useContext, useEffect, useState, type ContextType, type ReactNode } from "react"
 import { AccessibilityInfo, findNodeHandle, type TextInput, type View } from "react-native"
 
-import { NativeFloatingLayerHost, NativeThemeProvider } from "../../.."
+import {
+  CompactTypeaheadSearch as PublicCompactTypeaheadSearch,
+  NativeFloatingLayerHost,
+  NativeThemeProvider,
+} from "../../.."
 import {
   actWithNativeCollections as act,
   fireEventWithNativeCollections as fireEvent,
@@ -514,4 +518,78 @@ it("reuses query-before-key form reset requests while the owner retains its valu
   expect(row("type-ahead-search-input").props.value).toBe("held")
   expect([...registry.fields.values()][0].data.entries).toEqual([["search", "beta"]])
   expect(editor.current).toBe(original)
+})
+
+it("retains the public compact search's original refs, held query and typed selection through deferred item metadata", async () => {
+  let complete!: (next: typeof items) => void
+  const pending = new Promise<typeof items>((resolve) => {
+    complete = resolve
+  })
+  const root = createRef<View>()
+  const editor = createRef<TextInput>()
+  const selection = jest.fn(),
+    query = jest.fn(),
+    open = jest.fn()
+  const Owner = () => {
+    const [metadata, setMetadata] = useState(items)
+    useEffect(() => {
+      let live = true
+      void pending.then((next) => {
+        if (live) setMetadata(next)
+      })
+      return () => {
+        live = false
+      }
+    }, [])
+    return (
+      <NativeThemeProvider>
+        <NativeFloatingLayerHost ref={fixture.hostRef} testID="host">
+          <PublicCompactTypeaheadSearch
+            ref={root}
+            inputRef={editor}
+            accessibilityLabel="Deferred compact search"
+            items={metadata}
+            getItemKey={(item) => item.id}
+            inputValue="held query"
+            value={0}
+            isOpen
+            minimumInputLength={0}
+            onChange={selection}
+            onInputChange={query}
+            onOpenChange={open}
+          />
+        </NativeFloatingLayerHost>
+      </NativeThemeProvider>
+    )
+  }
+  const view = await render(<Owner />)
+  await pressCompact(row("type-ahead-search-button"))
+  await fixture.ready()
+  const initialOpenRequests = open.mock.calls.map((call) => [...call])
+  expect(initialOpenRequests).toEqual([[true]])
+  const originalRoot = root.current
+  const originalEditor = editor.current
+  expect(originalRoot).not.toBeNull()
+  expect(originalEditor).not.toBeNull()
+  await act(async () => {
+    complete([
+      { id: "beta", name: "Replaced Beta" },
+      { id: 0, name: "Replaced Alpha" },
+    ])
+    await pending
+  })
+  await fixture.ready()
+  expect(root.current).toBe(originalRoot)
+  expect(editor.current).toBe(originalEditor)
+  expect(row("type-ahead-search-input").props.value).toBe("held query")
+  expect(row("type-ahead-search-option-number:0").props.accessibilityState.selected).toBe(true)
+  expect(
+    screen.getAllByRole("option", { includeHiddenElements: true }).map((option) => option.props.accessibilityLabel),
+  ).toEqual(["Replaced Beta", "Replaced Alpha"])
+  expect(selection).not.toHaveBeenCalled()
+  expect(query).not.toHaveBeenCalled()
+  expect(open.mock.calls).toEqual(initialOpenRequests)
+  await view.unmount()
+  expect(root.current).toBeNull()
+  expect(editor.current).toBeNull()
 })

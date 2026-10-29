@@ -152,7 +152,7 @@ export const useNativeComboBoxButtonProps = <T extends object>({
 }
 
 export type TNativeComboBoxButtonRenderState = TNativeButtonRenderState & { isFocusVisible: boolean }
-export type TNativeComboBoxButtonProps = Omit<TNativeButtonProps, "children" | "style"> & {
+export type TNativeComboBoxButtonProps = Omit<TNativeButtonProps, "children" | "render" | "style"> & {
   isPressed?: boolean
   children?: ReactNode | ((state: TNativeComboBoxButtonRenderState & { defaultChildren: undefined }) => ReactNode)
   style?:

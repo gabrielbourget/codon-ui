@@ -16,6 +16,7 @@ it("applies public button typography through mixed/callback content while preser
   const user = userEvent.setup()
   const press = async (name: string) => user.press(screen.getByRole("button", { name }))
   await press("Text/Button scene")
+  expect(screen.getByTestId("library-button").props.nativeID).toBe("library-button-ready")
   expect(screen.getByText("Library action 0")).toHaveStyle({ fontSize: 14, fontWeight: "400" })
   await press("Toggle library styles")
   expect(screen.getByText("Library action 0")).toHaveStyle({
@@ -78,7 +79,9 @@ it("composes native keyboard activation with the maintained scene's pending guar
   expect(screen.getByTestId("library-state")).toHaveTextContent(/count: 1/)
   await send("down", " ")
   await press("Toggle library pending")
+  expect(screen.getByTestId("library-button").props.nativeID).toBe("library-button-pending")
   await press("Toggle library pending")
+  expect(screen.getByTestId("library-button").props.nativeID).toBe("library-button-ready")
   await send("up", " ")
   expect(screen.getByTestId("library-state")).toHaveTextContent(/count: 1/)
   await press("Toggle library keyboard focus")

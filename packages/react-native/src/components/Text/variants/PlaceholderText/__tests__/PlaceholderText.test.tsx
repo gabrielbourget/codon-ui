@@ -9,6 +9,33 @@ import {
   type TNativePlaceholderTextRef,
 } from "../../../../.."
 
+it("retains the original placeholder ref and exact press event through alignment and empty-name updates", async () => {
+  const ref = createRef<TNativePlaceholderTextRef>(),
+    onPress = jest.fn()
+  const view = await render(
+    <PlaceholderText ref={ref} testID="native" data-testid="alias" align="left" onPress={onPress}>
+      Original
+    </PlaceholderText>,
+  )
+  const original = ref.current
+  expect(original).not.toBeNull()
+  const event = { nativeEvent: { target: 17, timestamp: 100 } }
+  await fireEvent(screen.getByTestId("native"), "press", event)
+  expect(onPress.mock.calls).toEqual([[event]])
+  expect(onPress.mock.calls[0][0]).toBe(event)
+  await view.rerender(
+    <PlaceholderText ref={ref} testID="" data-testid="alias" accessibilityLabel="" aria-label="Alias" align="center">
+      Updated
+    </PlaceholderText>,
+  )
+  expect(ref.current).toBe(original)
+  expect(screen.getByTestId("").props.accessibilityLabel).toBe("")
+  expect(screen.getByTestId("")).toHaveStyle({ textAlign: "center" })
+  expect(onPress).toHaveBeenCalledTimes(1)
+  await view.unmount()
+  expect(ref.current).toBeNull()
+})
+
 it("uses scalable italic b11 and the existing placeholder role instead of inherited foreground", async () => {
   await render(
     <NativeThemeProvider

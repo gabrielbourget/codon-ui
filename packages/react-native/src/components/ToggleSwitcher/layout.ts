@@ -5,6 +5,7 @@ import type { TNativeSwitcherFrame } from "./motion"
 type TSize = Readonly<{ width: number; height: number }>
 type TLayout = {
   signature: object
+  intrinsic: ReadonlyMap<string, number>
   natural: ReadonlyMap<string, number>
   labels: ReadonlyMap<string, TSize>
   settledLabels: ReadonlyMap<string, TSize>
@@ -14,6 +15,7 @@ type TLayout = {
 }
 const emptyLayout = (signature: object): TLayout => ({
   signature,
+  intrinsic: new Map(),
   natural: new Map(),
   labels: new Map(),
   settledLabels: new Map(),
@@ -59,7 +61,7 @@ export const useNativeSwitcherLayout = (
   const ready = keys.every((key) => current.natural.has(key) && current.labels.has(key))
   const insetSnapshot = useRef<number | undefined>(undefined)
   if (!ready || stored.signature !== signature) insetSnapshot.current = undefined
-  const widths = keys.map((key) => current.natural.get(key) ?? 0)
+  const widths = keys.map((key) => current.intrinsic.get(key) ?? current.natural.get(key) ?? 0)
   const maximum = Math.max(0, ...widths)
   if (
     (typeof gap === "number" && (!Number.isFinite(gap) || gap < 0)) ||
@@ -108,6 +110,14 @@ export const useNativeSwitcherLayout = (
   }
   return {
     desiredWidth,
+    intrinsic: (key: string, width: number) => {
+      if (!Number.isFinite(width) || width < 0) return
+      update((layout) =>
+        sameLength(layout.intrinsic.get(key), width)
+          ? layout
+          : { ...layout, intrinsic: new Map(layout.intrinsic).set(key, width) },
+      )
+    },
     columnWidth,
     frames: current.frames,
     natural: (key: string, size: TSize, authored = false) => {
@@ -142,6 +152,8 @@ export const useNativeSwitcherLayout = (
       if (!validSize(size)) return
       update((layout) => {
         const natural = layout.labels.get(key)
+        if (layout.intrinsic.has(key))
+          return sameSize(natural, size) ? layout : { ...layout, labels: new Map(layout.labels).set(key, size) }
         if (columnWidth === undefined || !natural)
           return sameSize(natural, size) ? layout : { ...layout, labels: new Map(layout.labels).set(key, size) }
         const settled = layout.settledLabels.get(key)

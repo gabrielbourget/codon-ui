@@ -16,6 +16,7 @@ import org.json.JSONObject;
 @ReactModule(name = CUIMotionSnapshotModule.NAME)
 public final class CUIMotionSnapshotModule extends NativeCUIMotionSnapshotSpec {
   static { System.loadLibrary("codon_motion"); }
+  static native long clampKernel();
   private final AtomicBoolean valid = new AtomicBoolean(true);
   private CUIBackdropRenderer backdrop;
   private static final String[] strings = {"ownerId", "bindingId", "windowId", "scopeOwnerId", "nativeViewRevision"};

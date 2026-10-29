@@ -11,6 +11,11 @@ import {
   type LinearProgressProps,
 } from "@codon-ui/react-native"
 
+const renderRangeRoot = (
+  props: Parameters<NonNullable<LinearProgressProps["render"]>>[0],
+  { percentage }: { percentage: number | undefined },
+) => <View {...props} nativeID={`${props.testID}-rendered-${percentage ?? "unknown"}`} />
+
 export const RangeScene = () => {
   const [value, setValue] = useState(25)
   const [unknown, setUnknown] = useState(false)
@@ -79,6 +84,7 @@ export const RangeScene = () => {
       <Text>Task progress</Text>
       <LinearProgress
         {...presentation}
+        render={renderRangeRoot}
         testID="range-progress"
         accessibilityLabel="Task progress"
         value={value}
@@ -88,6 +94,7 @@ export const RangeScene = () => {
       <Text>Measurement from −50 to 50</Text>
       <Meter
         {...presentation}
+        render={renderRangeRoot}
         testID="range-meter"
         accessibilityLabel="Measured capacity"
         value={value - 50}

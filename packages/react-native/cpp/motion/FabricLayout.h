@@ -36,6 +36,7 @@ TNativeScratchNode copyNativeScratchSubtree(
     const facebook::react::LayoutConstraints &constraints,
     const TNativeScratchIntrinsicResolver &resolveIntrinsic,
     const TNativeScratchPropsResolver &resolveProps = {},
-    const TNativeFabricReadGuard &check = {});
+    const TNativeFabricReadGuard &check = {},
+    const std::function<bool(const facebook::react::ShadowNode &)> &isolatedLeaf = {});
 
 } // namespace codon::motion

@@ -901,7 +901,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
   _nativeMotionVisible = next.nativeMotionVisible;
   _motionProjectionRevision = [NSString stringWithUTF8String:next.nativeMotionProjectionRevision.c_str()];
   [super setHidden:_authoredHidden || !_nativeMotionVisible];
-  [_motionGeometry configureOwner:_ownerId binding:[NSString stringWithUTF8String:next.nativeMotionGeometryBinding.c_str()] revision:[NSString stringWithUTF8String:next.nativeMotionGeometryRevision.c_str()]];
+  [_motionGeometry configureOwner:_ownerId binding:[NSString stringWithUTF8String:next.nativeMotionGeometryBinding.c_str()] revision:[NSString stringWithUTF8String:next.nativeMotionGeometryRevision.c_str()] observeFrames:next.nativeMotionGeometryObserveFrames];
   [_motionColors updateOwner:_ownerId enabled:next.nativeMotionColorObservation];
   [_motionColors synchronize];
   NSString *formActionBinding = [NSString stringWithUTF8String:next.nativeFormActionBinding.c_str()];

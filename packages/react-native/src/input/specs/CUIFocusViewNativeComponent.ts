@@ -176,6 +176,7 @@ export interface NativeProps extends ViewProps {
   nativePressable?: WithDefault<boolean, false>
   nativeMotionGeometryBinding?: string
   nativeMotionGeometryRevision?: string
+  nativeMotionGeometryObserveFrames?: WithDefault<boolean, true>
   nativeMotionColorObservation?: WithDefault<boolean, false>
   nativeMotionVisible?: WithDefault<boolean, true>
   nativeMotionProjectionRevision?: string

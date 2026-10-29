@@ -1,5 +1,5 @@
 import { CalendarDate, CalendarDateTime, parseZonedDateTime } from "@internationalized/date"
-import { useRef, useState, type ComponentProps, type Ref } from "react"
+import { useEffect, useRef, useState, type ComponentProps, type Ref } from "react"
 import { ScrollView, View, type TextInput } from "react-native"
 
 import {
@@ -29,11 +29,35 @@ const interval = (start: TNativeDateTimePickerValue) => ({
   end: "hour" in start ? start.add({ days: 3, hours: 4, minutes: 5 }) : start.add({ days: 3 }),
 })
 
-export const DatePickerFixture = ({ hostRef, inputRef }: { hostRef?: Ref<View>; inputRef?: Ref<TextInput> }) => {
+type TOwnerResponse = {
+  value: TNativeDateTimePickerValue
+  range: { start: TNativeDateTimePickerValue; end: TNativeDateTimePickerValue }
+}
+export const DatePickerFixture = ({
+  hostRef,
+  inputRef,
+  response,
+}: {
+  hostRef?: Ref<View>
+  inputRef?: Ref<TextInput>
+  response?: Promise<TOwnerResponse>
+}) => {
   const [value, setValue] = useState<TNativeDateTimePickerValue | null>(values[0]),
     [range, setRange] = useState<{ start: TNativeDateTimePickerValue; end: TNativeDateTimePickerValue } | null>(() =>
       interval(values[0]),
     )
+  useEffect(() => {
+    let current = true
+    void response?.then((next) => {
+      if (current) {
+        setValue(next.value)
+        setRange(next.range)
+      }
+    })
+    return () => {
+      current = false
+    }
+  }, [response])
   const [sample, setSample] = useState(0),
     [locale, setLocale] = useState(0),
     [veto, setVeto] = useState(false),
@@ -147,7 +171,14 @@ export const DatePickerFixture = ({ hostRef, inputRef }: { hostRef?: Ref<View>; 
                 }}
               />
               <NativeFormAction action="submit">Submit date form</NativeFormAction>
-              <NativeFormAction action="reset">Reset date form</NativeFormAction>
+              <NativeFormAction
+                action="reset"
+                onActionResult={(result) =>
+                  setFormData(JSON.stringify({ status: result.status, reason: result.reason }))
+                }
+              >
+                Reset date form
+              </NativeFormAction>
             </NativeForm>
             <Input
               ref={inputRef}

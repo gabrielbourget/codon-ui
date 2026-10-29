@@ -55,13 +55,16 @@ static NSDictionary *CUIUntransformed(CALayer *layer, CALayer *window) {
   double _lastEpoch;
   NSUInteger _attachmentRevision;
   CADisplayLink *_displayLink;
+  BOOL _observeFrames;
 }
 - (instancetype)initWithRoot:(UIView *)root emit:(void (^)(NSDictionary *))emit {
-  if (self = [super init]) { _root = root; _emit = [emit copy]; _owner = @""; _binding = @""; _revision = @""; _attachment = @""; }
+  if (self = [super init]) { _root = root; _emit = [emit copy]; _owner = @""; _binding = @""; _revision = @""; _attachment = @""; _observeFrames = YES; }
   return self;
 }
-- (void)configureOwner:(NSString *)owner binding:(NSString *)binding revision:(NSString *)revision {
+- (void)configureOwner:(NSString *)owner binding:(NSString *)binding revision:(NSString *)revision observeFrames:(BOOL)observeFrames {
   if (![_owner isEqual:owner] || ![_binding isEqual:binding]) { _attachmentRevision++; _attachment = @""; _lastFrame = nil; _lastWindow = @""; _lastScope = @""; _lastEpoch = 0; }
+  if (_observeFrames != observeFrames) _lastFrame = nil;
+  _observeFrames = observeFrames;
   _owner = [owner copy]; _binding = [binding copy]; _revision = [revision copy];
   [self synchronizeDisplayLink];
 }
@@ -101,7 +104,7 @@ static NSDictionary *CUIUntransformed(CALayer *layer, CALayer *window) {
   return value;
 }
 - (void)captureKind:(NSString *)kind requestId:(NSString *)requestId transaction:(NSString *)transaction {
-  if (!_binding.length) return;
+  if (!_binding.length || ([kind isEqual:@"frame"] && !_observeFrames)) return;
   NSMutableDictionary *data = [self envelope:kind requestId:requestId transaction:transaction];
   NSString *snapshot = @"", *error = @"";
   if (![data[@"attached"] boolValue]) error = @"native-geometry-view-detached";
@@ -136,7 +139,7 @@ static NSDictionary *CUIUntransformed(CALayer *layer, CALayer *window) {
   [self captureKind:_root.window ? @"sample" : @"detached" requestId:@"" transaction:@""];
 }
 - (void)synchronizeDisplayLink {
-  if (!_binding.length || !_root.window) { [_displayLink invalidate]; _displayLink = nil; return; }
+  if (!_observeFrames || !_binding.length || !_root.window) { [_displayLink invalidate]; _displayLink = nil; return; }
   if (!_displayLink) {
     CUIMotionGeometryDisplayTarget *target = [CUIMotionGeometryDisplayTarget new]; target.observer = self;
     _displayLink = [CADisplayLink displayLinkWithTarget:target selector:@selector(tick:)];

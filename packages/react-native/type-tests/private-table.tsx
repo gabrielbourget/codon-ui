@@ -1,7 +1,6 @@
 import { createRef } from "react"
 import { View } from "react-native"
 
-// @ts-expect-error Table retains its complete mixed-content clamp source gate before public adoption.
 import { Table as PublicTable } from "../src"
 import { NativeSelectableCollectionContext } from "../src/collection/context"
 import { FilterClauseRow } from "../src/components/Filtering/FilterClauseRow"
@@ -28,6 +27,7 @@ const columns: TNativeTableColumnMetadata<(typeof rows)[number]>[] = [
   { id: "action", role: "structural", structuralKind: "action", structuralPosition: "right", width: 0 },
 ]
 const view = createRef<View>()
+export const publicTableRef = <PublicTable ref={view} />
 export const tableRef = <Table ref={view} />
 export const tableCallbackRef = (
   <Table
@@ -269,3 +269,6 @@ void [
   css,
   ref,
 ]
+
+// @ts-expect-error The component-owned Fabric clamp host remains private.
+export type TPrivateTableClampHost = (typeof import("../src"))["CUIClampHost"]

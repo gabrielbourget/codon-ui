@@ -1,9 +1,10 @@
 import { forwardRef, useContext, type ForwardRefExoticComponent, type ReactElement, type RefAttributes } from "react"
-import { Text as RNText, type TextProps, type TextStyle } from "react-native"
+import { Easing, Text as RNText, type TextProps, type TextStyle } from "react-native"
 
 import { NativeFloatingScopeContext } from "../../overlays/floating/scope"
 import { useNativeTheme } from "../../theme"
 import { resolveNativeStyle, validateNativeColor } from "../colors"
+import { useNativeLinkColor } from "../Link/motion"
 import { NativeContentContext, NativeTextLayoutContext, useNativeContentContext } from "../NativeContentContext"
 import { splitNativeTextStyle } from "../nativeTextStyle"
 import { useNativeInheritedTextStyle } from "../NativeTextStyleProvider"
@@ -11,11 +12,16 @@ import { useNativeInheritedTextStyle } from "../NativeTextStyleProvider"
 import type { TNativeTextProps, TNativeTextRef } from "./types"
 
 export type TNativeTextRender = (props: TextProps & RefAttributes<TNativeTextRef>) => ReactElement
-export const NativeText = forwardRef<TNativeTextRef, TNativeTextProps & { nativeRender?: TNativeTextRender }>(
+const textColorEasing = Easing.bezier(0.42, 0, 0.58, 1)
+export const NativeText = forwardRef<
+  TNativeTextRef,
+  TNativeTextProps & { nativeRender?: TNativeTextRender; nativeColorIsAnimated?: boolean }
+>(
   (
     {
       children,
       nativeRender,
+      nativeColorIsAnimated = false,
       variant = "b10",
       fontWeight = "regular",
       fontStyle,
@@ -50,8 +56,11 @@ export const NativeText = forwardRef<TNativeTextRef, TNativeTextProps & { native
       color: foreground,
       fontSize: theme.typography.fontSizes[variant],
       fontWeight: theme.typography.fontWeights[fontWeight],
-      fontStyle: fontStyle ?? inherited?.fontStyle ?? "normal",
-      fontFamily: theme.typography.fontFamilies[family] ?? theme.typography.fontFamilies.body,
+      fontStyle: fontStyle ?? content?.textStyle?.fontStyle ?? inherited?.fontStyle ?? "normal",
+      fontFamily:
+        theme.typography.fontFamilies[family] ??
+        (family === "display" ? theme.typography.fontFamilies.heading : undefined) ??
+        theme.typography.fontFamilies.body,
       lineHeight: theme.typography.lineHeight,
     }
     const computed = { ...inherited, ...defaultStyle }
@@ -60,6 +69,15 @@ export const NativeText = forwardRef<TNativeTextRef, TNativeTextProps & { native
       ...merged,
       ...Object.fromEntries(Object.entries(computed).filter(([key]) => merged[key as keyof TextStyle] === undefined)),
     }
+    const authoredColor = resolveNativeStyle([custom, final], "Text", "authoredStyle").color ?? color
+    // Content providers carry the current parent paint, including each animated frame.
+    const inheritedAnimation = authoredColor === undefined && content !== undefined
+    const renderedColor = useNativeLinkColor(
+      resolved.color ?? foreground,
+      250,
+      textColorEasing,
+      !nativeColorIsAnimated && !inheritedAnimation,
+    )
     const semanticRole: TextProps["role"] =
       role ??
       (accessibilityRole !== undefined
@@ -80,13 +98,13 @@ export const NativeText = forwardRef<TNativeTextRef, TNativeTextProps & { native
       accessibilityLabel: accessibilityLabel ?? aliasLabel,
       testID: testID ?? aliasTestID ?? "text",
       selectable: selectable ?? (elementType !== "label" && !content?.isButton),
-      style: { ...resolved, color: resolved.color ?? foreground },
+      style: { ...resolved, color: renderedColor },
       children,
     }
     return (
       <NativeContentContext.Provider
         value={{
-          foregroundColor: resolved.color ?? foreground,
+          foregroundColor: renderedColor,
           isButton: content?.isButton ?? false,
           textStyle: splitNativeTextStyle(resolved).text,
         }}

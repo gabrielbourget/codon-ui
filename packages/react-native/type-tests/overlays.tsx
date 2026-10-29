@@ -17,6 +17,8 @@ export const ValidOverlay = (
 )
 // @ts-expect-error an explicit native name is required
 export const InvalidUnnamedModal = <Modal />
+// @ts-expect-error Modal refs retain the original native View.
+export const InvalidModalRef = <Modal aria-label="Dialog" ref={createRef<{ tagName: string }>()} />
 export const AdapterBackedBlur = <Modal aria-label="Dialog" overlayBlur />
 // @ts-expect-error DOM role forwarding is excluded
 export const InvalidDialogRole = <Modal aria-label="Dialog" dialogRole="alertdialog" />
