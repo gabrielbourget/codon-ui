@@ -14,6 +14,19 @@ import {
   type TNativeToggleSwitcherStyleState,
 } from "../../.."
 
+jest.mock("../../../input/specs/CUIFocusViewNativeComponent", () => ({
+  __esModule: true,
+  default: jest.requireActual("react-native").View,
+  Commands: {
+    requestKeyboardFocus: jest.fn(),
+    requestContainerFocus: jest.fn(),
+    requestKeyboardBlur: jest.fn(),
+    inspectAccessibility: jest.fn(),
+    queryMotionGeometry: jest.fn(),
+    sampleMotionColors: jest.fn(),
+  },
+}))
+
 const items: readonly ToggleSwitcherItem[] = [
   { id: "and", label: "Match all" },
   { id: "or", label: "Match any" },

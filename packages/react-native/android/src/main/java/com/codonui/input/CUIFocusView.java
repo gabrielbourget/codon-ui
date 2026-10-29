@@ -52,6 +52,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   private final CUIMotionGeometryObserver motionGeometry;
   private final CUIMotionDrawing motionDrawing;
   private String motionGeometryBinding = "", motionGeometryRevision = "";
+  private boolean motionGeometryObserveFrames = true;
   private boolean nativeMotionColorObservation;
   private Boolean nativeMotionVisible = true;
   private int authoredVisibility = View.VISIBLE;
@@ -182,7 +183,8 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
 
   void setNativeMotionGeometryBinding(String value) { motionGeometryBinding = value == null ? "" : value; }
   void setNativeMotionGeometryRevision(String value) { motionGeometryRevision = value == null ? "" : value; }
-  void synchronizeMotionGeometry() { motionGeometry.configure(ownerId, motionGeometryBinding, motionGeometryRevision); }
+  void setNativeMotionGeometryObserveFrames(boolean value) { motionGeometryObserveFrames = value; }
+  void synchronizeMotionGeometry() { motionGeometry.configure(ownerId, motionGeometryBinding, motionGeometryRevision, motionGeometryObserveFrames); }
   void invalidateMotionGeometry() { motionGeometry.invalidate(); }
   void queryMotionGeometry(String owner, String binding, String request) { synchronizeMotionGeometry(); motionGeometry.query(owner, binding, request); }
   org.json.JSONObject motionSnapshotIdentity() throws org.json.JSONException { return motionGeometry.snapshotIdentity(); }

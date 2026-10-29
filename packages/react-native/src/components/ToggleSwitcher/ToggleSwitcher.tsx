@@ -1,18 +1,14 @@
 import { forwardRef, useEffect, useMemo, useRef, useState } from "react"
-import { Pressable, View, useWindowDimensions, type TextStyle, type ViewStyle } from "react-native"
+import { View, useWindowDimensions, type TextStyle, type ViewStyle } from "react-native"
 
+import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeTheme } from "../../theme"
+import { NativeButton } from "../Button/Button"
 import { getNativeButtonContent } from "../Button/content"
+import type { TNativeButtonRenderState } from "../Button/types"
 import { resolveNativeStyle, validateNativeColor } from "../colors"
 import { validateNativeDisplayDimension } from "../displayDimensions"
-import { NativeContentContext } from "../NativeContentContext"
-import {
-  getNativeControlRadius,
-  getNativeControlRootStyle,
-  nativeControlTarget,
-  useNativeControlHitSlop,
-  useNativeSelectionInteraction,
-} from "../selection"
+import { getNativeControlRadius, getNativeControlRootStyle, nativeControlTarget } from "../selection"
 
 import { useNativeSwitcherLayout } from "./layout"
 import {
@@ -30,6 +26,7 @@ import type {
   TNativeToggleSwitcherRef,
   TNativeToggleSwitcherRootStyle,
 } from "./types"
+import { useNativeSwitcherIntrinsicWidth } from "./useIntrinsicWidth"
 
 const SwitcherOption = ({
   item,
@@ -50,6 +47,7 @@ const SwitcherOption = ({
   onFrame,
   onLabel,
   onNaturalSize,
+  onIntrinsicWidth,
   measurementSignature,
 }: {
   item: TNativeToggleSwitcherItem
@@ -70,48 +68,55 @@ const SwitcherOption = ({
   onFrame: (frame: TNativeSwitcherFrame) => void
   onLabel: (size: { width: number; height: number }) => void
   onNaturalSize: (size: { width: number; height: number }) => void
+  onIntrinsicWidth: (width: number) => void
   measurementSignature: object
 }) => {
   const theme = useNativeTheme()
-  const { flags, handlers } = useNativeSelectionInteraction({}, disabled, readOnly, onPress)
-  const hitRegion = useNativeControlHitSlop((event) => onFrame(event.nativeEvent.layout), undefined)
   const split = splitNativeSwitcherOptionStyle(optionStyle)
-  const rootStyle = getNativeControlRootStyle(
-    "ToggleSwitcher",
-    {
-      width: columnWidth,
-      height: constrainedHeight ? "100%" : undefined,
-      minHeight: constrainedHeight ? undefined : nativeControlTarget(),
-      flexShrink: 0,
-      alignSelf: "stretch",
-      alignItems: "center",
-      justifyContent: "center",
-      flexDirection: "row",
-      paddingHorizontal: theme.spacing.unit,
-      paddingVertical: 2,
-      overflow: "hidden",
-      borderRadius: getNativeControlRadius(theme, geometry),
-      backgroundColor: selected
-        ? theme.colors.controlBackground
-        : flags.isHovered
-          ? theme.colors.controlHoverBackground
-          : "transparent",
-      ...(enableFocusStyle && flags.isFocused
-        ? { outlineColor: theme.colors.focusRing, outlineWidth: 1.5, outlineOffset: offsetFocusRing ? 1.5 : 0 }
-        : {}),
-    } as ViewStyle,
-    split.view,
-    undefined,
-    { ...flags, isSelected: selected },
-  )
+  const rootStyle = (flags: Omit<TNativeButtonRenderState, "foregroundColor">) =>
+    getNativeControlRootStyle(
+      "ToggleSwitcher",
+      {
+        width: columnWidth,
+        height: constrainedHeight ? "100%" : undefined,
+        minHeight: constrainedHeight ? undefined : nativeControlTarget(),
+        flexShrink: 0,
+        alignSelf: "stretch",
+        alignItems: "center",
+        justifyContent: "center",
+        flexDirection: "row",
+        paddingHorizontal: theme.spacing.unit,
+        paddingVertical: 2,
+        overflow: "hidden",
+        borderRadius: getNativeControlRadius(theme, geometry),
+        backgroundColor: selected
+          ? theme.colors.controlBackground
+          : flags.isHovered
+            ? theme.colors.controlHoverBackground
+            : "transparent",
+        ...(enableFocusStyle && flags.isFocused
+          ? { outlineColor: theme.colors.focusRing, outlineWidth: 1.5, outlineOffset: offsetFocusRing ? 1.5 : 0 }
+          : {}),
+      } as ViewStyle,
+      split.view,
+      undefined,
+      { ...flags, isSelected: selected },
+    )
   const foreground = split.text.color ?? theme.colors.controlForeground
   const optionRef = useRef<View>(null)
   const labelRef = useRef<View>(null)
+  useNativeSwitcherIntrinsicWidth(
+    optionRef,
+    measurementSignature,
+    split.view.width,
+    split.view.width == null && split.view.minWidth === undefined ? nativeControlTarget() : undefined,
+    onIntrinsicWidth,
+  )
   useEffect(() => {
     let active = true
     const pending = requestAnimationFrame(() => {
       optionRef.current?.measure((_x, _y, width, height) => {
-        if (active && (width > 0 || rootStyle.width === 0 || rootStyle.minWidth === 0)) onNaturalSize({ width, height })
+        if (active && (width > 0 || split.view.width === 0 || columnWidth === 0)) onNaturalSize({ width, height })
       })
       labelRef.current?.measure((_x, _y, width, height) => {
         if (active) onLabel({ width, height })
@@ -122,58 +127,74 @@ const SwitcherOption = ({
       cancelAnimationFrame(pending)
     }
   }, [measurementSignature, columnWidth])
-  const surfaceStyle: ViewStyle = {
-    backgroundColor: rootStyle.backgroundColor,
-    borderRadius: rootStyle.borderRadius,
-    borderTopLeftRadius: rootStyle.borderTopLeftRadius,
-    borderTopRightRadius: rootStyle.borderTopRightRadius,
-    borderBottomLeftRadius: rootStyle.borderBottomLeftRadius,
-    borderBottomRightRadius: rootStyle.borderBottomRightRadius,
-    experimental_backgroundImage: rootStyle.experimental_backgroundImage,
-    experimental_backgroundSize: rootStyle.experimental_backgroundSize,
-    experimental_backgroundPosition: rootStyle.experimental_backgroundPosition,
-    experimental_backgroundRepeat: rootStyle.experimental_backgroundRepeat,
-  }
   return (
-    <NativeContentContext.Provider value={{ foregroundColor: foreground, isButton: true }}>
-      <Pressable
-        ref={optionRef}
-        {...handlers}
-        {...hitRegion}
-        accessible
-        role="button"
-        accessibilityRole="button"
-        accessibilityState={{ checked: selected, disabled }}
-        aria-checked={selected}
-        aria-disabled={disabled}
-        disabled={disabled}
-        focusable={!disabled}
-        accessibilityLabel={item.accessibilityLabel}
-        testID={identity + "-option"}
-        style={rootStyle}
-      >
-        {selected ? (
-          <NativeSwitcherSurface
-            frame={frame}
-            motion={motion}
-            reduced={reduced}
-            style={surfaceStyle}
-            identity={identity}
-          />
-        ) : null}
-        <View
-          ref={labelRef}
-          collapsable={false}
-          testID={identity + "-label"}
-          accessible={false}
-          pointerEvents="none"
-          onLayout={(event) => onLabel(event.nativeEvent.layout)}
-          style={{ flexShrink: 1, zIndex: 1 }}
-        >
-          {getNativeButtonContent(item.label, split.text)}
-        </View>
-      </Pressable>
-    </NativeContentContext.Provider>
+    <NativeButton
+      ref={optionRef}
+      slot={null}
+      isDisabled={disabled}
+      nativeInteraction={!readOnly}
+      accessibilityLabel={item.accessibilityLabel}
+      accessibilityState={{ checked: selected }}
+      aria-checked={selected}
+      testID={identity + "-option"}
+      onLayout={(event) => onFrame(event.nativeEvent.layout)}
+      onPress={onPress}
+      nativeRender={(props) => (
+        <NativeFocusHost
+          {...props}
+          nativeMotionGeometryObservation
+          nativeMotionGeometryObserveFrames={false}
+          accessibilityState={{ checked: selected, disabled }}
+          aria-busy={undefined}
+        />
+      )}
+      nativeStyle={(flags) => ({
+        viewStyle: rootStyle(flags),
+        textStyle: split.text,
+        foregroundColor: foreground,
+        target: nativeControlTarget(),
+      })}
+    >
+      {(flags) => {
+        const root = rootStyle(flags)
+        const surfaceStyle: ViewStyle = {
+          backgroundColor: root.backgroundColor,
+          borderRadius: root.borderRadius,
+          borderTopLeftRadius: root.borderTopLeftRadius,
+          borderTopRightRadius: root.borderTopRightRadius,
+          borderBottomLeftRadius: root.borderBottomLeftRadius,
+          borderBottomRightRadius: root.borderBottomRightRadius,
+          experimental_backgroundImage: root.experimental_backgroundImage,
+          experimental_backgroundSize: root.experimental_backgroundSize,
+          experimental_backgroundPosition: root.experimental_backgroundPosition,
+          experimental_backgroundRepeat: root.experimental_backgroundRepeat,
+        }
+        return (
+          <>
+            {selected ? (
+              <NativeSwitcherSurface
+                frame={frame}
+                motion={motion}
+                reduced={reduced}
+                style={surfaceStyle}
+                identity={identity}
+              />
+            ) : null}
+            <View
+              ref={labelRef}
+              collapsable={false}
+              testID={identity + "-label"}
+              accessible={false}
+              pointerEvents="none"
+              onLayout={(event) => onLabel(event.nativeEvent.layout)}
+              style={{ flexShrink: 1, zIndex: 1 }}
+            >
+              {getNativeButtonContent(item.label, split.text)}
+            </View>
+          </>
+        )
+      }}
+    </NativeButton>
   )
 }
 
@@ -389,6 +410,7 @@ export const ToggleSwitcher = forwardRef<TNativeToggleSwitcherRef, TNativeToggle
               }}
               onLabel={(size) => layout.label(item.id, size)}
               onNaturalSize={(size) => layout.natural(item.id, size)}
+              onIntrinsicWidth={(width) => layout.intrinsic(item.id, width)}
               measurementSignature={signature}
               onPress={() => {
                 if (isDisabled || isReadOnly || item.disabled || item.id === selected) return

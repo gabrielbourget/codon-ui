@@ -68,6 +68,7 @@ export const NativeFocusHost = forwardRef<
     nativeTabStop?: boolean
     nativeMotionColorObservation?: boolean
     nativeMotionGeometryObservation?: boolean
+    nativeMotionGeometryObserveFrames?: boolean
     nativeMotionGeometryRevision?: string
     nativeMotionVisible?: boolean
     nativeMotionProjectionRevision?: string
@@ -111,6 +112,7 @@ export const NativeFocusHost = forwardRef<
     onNativeAccessibilitySnapshot,
     nativeMotionColorObservation = false,
     nativeMotionGeometryObservation = false,
+    nativeMotionGeometryObserveFrames = true,
     nativeMotionGeometryRevision = "",
     nativeMotionVisible = true,
     nativeMotionProjectionRevision = "",
@@ -383,6 +385,7 @@ export const NativeFocusHost = forwardRef<
         nativeMotionColorObservation={nativeMotionColorObservation}
         nativeMotionGeometryBinding={nativeMotionGeometryObservation ? geometryBinding : ""}
         nativeMotionGeometryRevision={nativeMotionGeometryRevision}
+        nativeMotionGeometryObserveFrames={nativeMotionGeometryObserveFrames}
         nativeMotionVisible={nativeMotionVisible}
         nativeMotionProjectionRevision={nativeMotionProjectionRevision}
         onNativeMotionGeometry={
