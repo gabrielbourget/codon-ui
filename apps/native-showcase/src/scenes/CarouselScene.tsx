@@ -42,7 +42,8 @@ export const CarouselScene = () => {
       </Text>
       <Text testID="carousel-scene-state">
         Selected: {selected + 1}. Items: {items.length}. Selection reports: {requests}. Viewport:{" "}
-        {viewport ? "attached" : "detached"}.
+        {viewport ? "attached" : "detached"}. Requested: {initialIndex + 1}. Snaps:{" "}
+        {context.current?.emblaApi?.scrollSnapList().length ?? 0}.
       </Text>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 5 }}>
         <Button onPress={() => setOpen((value) => !value)}>{open ? "Hide carousel" : "Show carousel"}</Button>
