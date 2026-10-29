@@ -195,6 +195,7 @@ export const NumberInput = forwardRef<TNativeNumberInputRef, TNativeNumberInputP
           return (
             <Button
               key={direction}
+              slot={null}
               testID={`${testID}-${increment ? "increment" : "decrement"}`}
               accessibilityLabel={increment ? incrementLabel : decrementLabel}
               isDisabled={isDisabled || !(increment ? numeric.canIncrement : numeric.canDecrement)}
