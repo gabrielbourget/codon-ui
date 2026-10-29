@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, userEvent } from "@testing-library/react-native"
-import { createRef, useState } from "react"
+import { createRef, useEffect, useState } from "react"
 import { AccessibilityInfo, FlatList, Platform } from "react-native"
 
 import { Select, type TNativeSelectProps, type TNativeSelectRef } from "../../.."
@@ -29,6 +29,43 @@ beforeEach(() => {
 afterEach(() => {
   jest.restoreAllMocks()
   jest.useRealTimers()
+})
+
+it("applies an asynchronous owner collection response without replacing its selected trigger or issuing requests", async () => {
+  const ref = createRef<TNativeSelectRef>(),
+    onChange = jest.fn(),
+    onOpenChange = jest.fn()
+  let receive!: (next: typeof items) => void
+  const response = new Promise<typeof items>((resolve) => {
+    receive = resolve
+  })
+  const Owner = () => {
+    const [current, setCurrent] = useState(items)
+    useEffect(() => {
+      let mounted = true
+      void response.then((next) => {
+        if (mounted) setCurrent(next)
+      })
+      return () => {
+        mounted = false
+      }
+    }, [])
+    return <Select {...base} items={current} ref={ref} value={0} isOpen {...{ onChange, onOpenChange }} />
+  }
+  const view = await render(<Owner />)
+  const original = ref.current
+  expect(original).not.toBeNull()
+  await act(async () => {
+    receive([...items].reverse().map((item) => (item.id === 0 ? { ...item, name: "Resolved zero" } : item)))
+    await response
+  })
+  expect(ref.current).toBe(original)
+  expect(screen.getByRole("radio", { name: "Resolved zero" }).props.accessibilityState.checked).toBe(true)
+  expect(screen.getByRole("button", { name: "Choose" }).props.accessibilityValue.text).toBe("Resolved zero")
+  expect(onChange).not.toHaveBeenCalled()
+  expect(onOpenChange).not.toHaveBeenCalled()
+  await view.unmount()
+  expect(ref.current).toBeNull()
 })
 
 // Allow the first native modal render to initialize on shared CI workers.
