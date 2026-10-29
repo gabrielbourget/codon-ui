@@ -57,6 +57,9 @@ it("uses the scene's actual disabled/pending guards and custom style owner", asy
   expect(screen.getByTestId("carousel-close-receipt")).toHaveTextContent(/open\. Close actions: 0/)
   await press("Toggle library pending")
   await press("Toggle library styles")
+  expect(screen.getByRole("button", { name: "Close Carousel" })).toHaveStyle({ padding: 10, borderWidth: 2 })
+  expect(screen.getByRole("button", { name: "Close Carousel" })).not.toHaveStyle({ borderColor: "#087f8c" })
+  await act(() => jest.advanceTimersByTime(275))
   expect(screen.getByRole("button", { name: "Close Carousel" })).toHaveStyle({
     padding: 10,
     borderWidth: 2,
