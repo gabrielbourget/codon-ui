@@ -53,3 +53,17 @@ it("preserves canonical Checkbox root/ref/style-child-root order and group mixed
   view.unmount()
   expect(ref.current).toBeNull()
 })
+
+it("preserves authored Checkbox root foreground and explicit child color precedence", () => {
+  render(
+    <Checkbox customStyles={{ color: "#123456" }} style={{ color: "#abcdef" }}>
+      <span data-testid="inherited-label">Inherited</span>
+      <span data-testid="authored-label" style={{ color: "#654321" }}>
+        Authored
+      </span>
+    </Checkbox>,
+  )
+  expect(screen.getByTestId("checkbox")).toHaveStyle({ color: "#abcdef" })
+  expect(getComputedStyle(screen.getByTestId("inherited-label")).color).toBe("rgb(171, 205, 239)")
+  expect(getComputedStyle(screen.getByTestId("authored-label")).color).toBe("rgb(101, 67, 33)")
+})

@@ -16,7 +16,12 @@ import {
 } from "../selection"
 
 import { useNativeCheckboxMotion } from "./motion"
-import type { TNativeCheckboxProps, TNativeCheckboxRef, TNativeCheckboxRenderState } from "./types"
+import type {
+  TNativeCheckboxProps,
+  TNativeCheckboxRef,
+  TNativeCheckboxRenderState,
+  TNativeCheckboxRootStyle,
+} from "./types"
 
 export const Checkbox = forwardRef<TNativeCheckboxRef, TNativeCheckboxProps>((props, ref) => {
   const {
@@ -122,11 +127,13 @@ export const Checkbox = forwardRef<TNativeCheckboxRef, TNativeCheckboxProps>((pr
       alignItems: "center",
       gap: theme.spacing.unit,
       opacity: isDisabled ? theme.opacity.disabled : 1,
-    } as ViewStyle,
+      color: theme.colors.foreground,
+    } as TNativeCheckboxRootStyle,
     customStyles,
     style,
     state,
   )
+  const { color: labelForeground = theme.colors.foreground, ...viewStyle } = rootStyle
   const rendered = typeof children === "function" ? children({ ...state, defaultChildren: undefined }) : children
   const identity = testID ?? aliasTestID ?? "checkbox"
   const element = (
@@ -150,7 +157,7 @@ export const Checkbox = forwardRef<TNativeCheckboxRef, TNativeCheckboxProps>((pr
       }}
       accessibilityLabel={accessibilityLabel ?? aliasLabel}
       testID={identity}
-      style={rootStyle}
+      style={viewStyle}
     >
       <View
         testID={`${identity}-shape`}
@@ -207,7 +214,7 @@ export const Checkbox = forwardRef<TNativeCheckboxRef, TNativeCheckboxProps>((pr
     </Pressable>
   )
   return (
-    <NativeContentContext.Provider value={{ foregroundColor: theme.colors.foreground, isButton: true }}>
+    <NativeContentContext.Provider value={{ foregroundColor: labelForeground, isButton: true }}>
       {render ? render(element.props, state) : element}
     </NativeContentContext.Provider>
   )

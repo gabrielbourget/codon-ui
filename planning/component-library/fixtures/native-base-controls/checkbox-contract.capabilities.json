@@ -108,11 +108,11 @@
       "canonicalType": "CSSProperties | undefined",
       "required": false,
       "capability": "CAP.checkbox.014",
-      "disposition": "NATIVE_EQUIVALENT",
+      "disposition": "NATIVE_STYLE_AND_OWNED_FOREGROUND",
       "nativeProp": "customStyles",
-      "nativeType": "StyleProp<ViewStyle>",
+      "nativeType": "StyleProp<TNativeCheckboxRootStyle>",
       "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
-      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+      "expected": "Original root layout/style ownership plus native ColorValue foreground under full-customization policy3.5. Computed/custom/final label color reaches owned Text, explicit authored Text colors win, color is consumed before native View style and mark color/geometry/motion remain independent."
     },
     "data-testid": {
       "canonicalType": "string | undefined",
@@ -1158,11 +1158,11 @@
       "canonicalType": "(CSSProperties | ((values: CheckboxRenderProps & { defaultStyle: CSSProperties; }) => CSSProperties | undefined)) | undefined",
       "required": false,
       "capability": "CAP.checkbox.015",
-      "disposition": "NATIVE_EQUIVALENT",
+      "disposition": "NATIVE_STYLE_AND_OWNED_FOREGROUND",
       "nativeProp": "style",
-      "nativeType": "StyleProp<ViewStyle> | ((state: TNativeCheckboxStyleState) => StyleProp<ViewStyle>)",
+      "nativeType": "StyleProp<TNativeCheckboxRootStyle> | ((state: TNativeCheckboxStyleState) => StyleProp<TNativeCheckboxRootStyle>)",
       "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
-      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+      "expected": "Original root layout/style ownership plus native ColorValue foreground under full-customization policy3.5. Computed/custom/final label color reaches owned Text, explicit authored Text colors win, color is consumed before native View style and mark color/geometry/motion remain independent."
     },
     "translate": {
       "canonicalType": "\"yes\" | \"no\" | undefined",
@@ -1878,5 +1878,5 @@
     "sourceSVG": "Complete pinnedSVG/check path,dash22/offset66\u219244 and mixed/showIcon assertions remain mapped to the original native glyph primitives, not advertised as a native SVG protocol",
     "nativeActions": 0
   },
-  "scope": "Complete six pinned files and every original root case plus actual renderer/ref/group probe, road map3.5.74. Only sourceG01; appearance/native/default/accessibility/performance/profiles/closure remain separate."
+  "scope": "Complete six pinned files and every original root case plus actual renderer/ref/group probe, road map3.5.74. Only sourceG01; appearance/native/default/accessibility/performance/profiles/closure remain separate. FIN-CHECK01R in3.31.241 adds the paired authored-foreground assertion and current full-CI/source identity reconciliation; original requirements and failed evidence remain."
 }

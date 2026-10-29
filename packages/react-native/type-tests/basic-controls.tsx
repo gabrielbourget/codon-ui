@@ -135,3 +135,9 @@ export const InvalidSwitchRendererFocusVisible = (
     }}
   />
 )
+
+export const CheckboxForeground = (
+  <Checkbox customStyles={{ color: "#123456" }} style={({ defaultStyle }) => ({ ...defaultStyle, color: "#abcdef" })}>
+    Native foreground
+  </Checkbox>
+)
