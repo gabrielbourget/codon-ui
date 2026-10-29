@@ -15,11 +15,13 @@ import {
   validateNativeControlDimension,
 } from "../selection"
 
+import { useNativeCheckboxMotion } from "./motion"
 import type { TNativeCheckboxProps, TNativeCheckboxRef, TNativeCheckboxRenderState } from "./types"
 
 export const Checkbox = forwardRef<TNativeCheckboxRef, TNativeCheckboxProps>((props, ref) => {
   const {
     children,
+    render,
     value,
     isSelected,
     defaultSelected = false,
@@ -82,6 +84,7 @@ export const Checkbox = forwardRef<TNativeCheckboxRef, TNativeCheckboxProps>((pr
     {
       width,
       height,
+      cursor: "pointer",
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: background,
@@ -105,6 +108,13 @@ export const Checkbox = forwardRef<TNativeCheckboxRef, TNativeCheckboxProps>((pr
     "Checkbox",
     "shapeStyle",
   )
+  const motion = useNativeCheckboxMotion(shapeStyle, foreground, filled)
+  const paintedWidth = typeof motion.shape.width === "number" ? motion.shape.width : width
+  const paintedHeight = typeof motion.shape.height === "number" ? motion.shape.height : height
+  const checkWidth = paintedWidth * 0.3
+  const checkHeight = paintedHeight * 0.55
+  const checkBounds = (checkWidth + checkHeight) * Math.SQRT1_2
+  const checkInset = (paintedWidth - checkBounds) / 2
   const rootStyle = getNativeControlRootStyle(
     "Checkbox",
     {
@@ -119,56 +129,86 @@ export const Checkbox = forwardRef<TNativeCheckboxRef, TNativeCheckboxProps>((pr
   )
   const rendered = typeof children === "function" ? children({ ...state, defaultChildren: undefined }) : children
   const identity = testID ?? aliasTestID ?? "checkbox"
+  const element = (
+    <Pressable
+      {...rest}
+      {...handlers}
+      {...hitRegion}
+      ref={ref}
+      accessible
+      role="checkbox"
+      accessibilityRole="checkbox"
+      aria-selected={undefined}
+      disabled={isDisabled}
+      focusable={!isDisabled}
+      aria-disabled={isDisabled}
+      aria-checked={isIndeterminate ? "mixed" : selected}
+      accessibilityState={{
+        ...accessibilityState,
+        checked: isIndeterminate ? "mixed" : selected,
+        disabled: isDisabled,
+      }}
+      accessibilityLabel={accessibilityLabel ?? aliasLabel}
+      testID={identity}
+      style={rootStyle}
+    >
+      <View
+        testID={`${identity}-shape`}
+        style={motion.shape}
+        accessible={false}
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+      >
+        {isIndeterminate ? (
+          <View
+            testID={`${identity}-mixed`}
+            style={{ width: "70%", height: 3, backgroundColor: motion.glyphForeground }}
+          />
+        ) : showIcon && (selected || motion.ink > 0) ? (
+          <View pointerEvents="none" style={{ width: paintedWidth, height: paintedHeight }}>
+            <View
+              testID={`${identity}-ink`}
+              style={{
+                position: "absolute",
+                left: checkInset,
+                width: checkBounds * Math.max(0, Math.min(1, motion.ink)),
+                height: paintedHeight,
+                overflow: "hidden",
+              }}
+            >
+              <View
+                style={{
+                  position: "absolute",
+                  left: -checkInset,
+                  width: paintedWidth,
+                  height: paintedHeight,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <View
+                  testID={`${identity}-check`}
+                  style={{
+                    width: checkWidth,
+                    height: checkHeight,
+                    borderRightWidth: 2,
+                    borderBottomWidth: 2,
+                    borderColor: motion.glyphForeground,
+                    transform: [{ rotate: "45deg" }],
+                    marginTop: -paintedHeight * 0.15,
+                  }}
+                />
+              </View>
+            </View>
+          </View>
+        ) : null}
+      </View>
+      {getNativeControlContent(rendered, { flexShrink: 1 })}
+    </Pressable>
+  )
   return (
     <NativeContentContext.Provider value={{ foregroundColor: theme.colors.foreground, isButton: true }}>
-      <Pressable
-        {...rest}
-        {...handlers}
-        {...hitRegion}
-        ref={ref}
-        accessible
-        role="checkbox"
-        accessibilityRole="checkbox"
-        aria-selected={undefined}
-        disabled={isDisabled}
-        focusable={!isDisabled}
-        aria-disabled={isDisabled}
-        aria-checked={isIndeterminate ? "mixed" : selected}
-        accessibilityState={{
-          ...accessibilityState,
-          checked: isIndeterminate ? "mixed" : selected,
-          disabled: isDisabled,
-        }}
-        accessibilityLabel={accessibilityLabel ?? aliasLabel}
-        testID={identity}
-        style={rootStyle}
-      >
-        <View
-          testID={`${identity}-shape`}
-          style={shapeStyle}
-          accessible={false}
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-        >
-          {isIndeterminate ? (
-            <View testID={`${identity}-mixed`} style={{ width: "70%", height: 3, backgroundColor: foreground }} />
-          ) : selected && showIcon ? (
-            <View
-              testID={`${identity}-check`}
-              style={{
-                width: width * 0.3,
-                height: height * 0.55,
-                borderRightWidth: 2,
-                borderBottomWidth: 2,
-                borderColor: foreground,
-                transform: [{ rotate: "45deg" }],
-                marginTop: -height * 0.15,
-              }}
-            />
-          ) : null}
-        </View>
-        {getNativeControlContent(rendered, { flexShrink: 1 })}
-      </Pressable>
+      {render ? render(element.props, state) : element}
     </NativeContentContext.Provider>
   )
 })

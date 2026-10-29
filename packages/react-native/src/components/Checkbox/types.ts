@@ -1,5 +1,5 @@
-import type { ReactNode } from "react"
-import type { ColorValue, StyleProp, View, ViewStyle } from "react-native"
+import type { ReactElement, ReactNode, RefAttributes } from "react"
+import type { ColorValue, PressableProps, StyleProp, View, ViewStyle } from "react-native"
 
 import type { TCornerGeometry } from "../../tokens/geometry"
 import type { TThemingOrderCode } from "../../tokens/theme-order"
@@ -10,6 +10,7 @@ export type TNativeCheckboxRenderState = TNativeSelectionState & Readonly<{ isIn
 export type TNativeCheckboxStyleState = TNativeCheckboxRenderState & { defaultStyle: ViewStyle }
 export type TNativeCheckboxChildrenState = TNativeCheckboxRenderState & { defaultChildren: undefined }
 export type TNativeCheckboxProps = TNativeSelectionHostProps & {
+  render?: (props: PressableProps & RefAttributes<View>, state: TNativeCheckboxRenderState) => ReactElement
   children?: ReactNode | ((state: TNativeCheckboxChildrenState) => ReactNode)
   value?: string
   isSelected?: boolean

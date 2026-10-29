@@ -264,6 +264,7 @@ it("composes basic controls, mixed/group selection, text entry and blocked chang
   await press("Basic controls scene")
   await user.press(screen.getByRole("switch", { name: "Controlled switch" }))
   await user.press(screen.getByRole("checkbox", { name: "Controlled checkbox" }))
+  expect(screen.getByTestId("basic-checkbox").props.nativeID).toBe("basic-checkbox-selected")
   await user.press(screen.getByRole("checkbox", { name: "Group first" }))
   expect(screen.getByTestId("basic-group").props.nativeID).toBe("basic-group-first")
   await user.press(screen.getByRole("checkbox", { name: "Group second" }))

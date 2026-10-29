@@ -3,11 +3,12 @@ import type { ViewStyle } from "react-native"
 import { useNativeLinkColor } from "../Link/motion"
 import { resolveNativeTagTransition, useNativeTagNumberValue, useNativeTagReducedMotion } from "../Tag/motion"
 
-const shapeTiming = resolveNativeTagTransition(250)
+const defaultShapeTiming = resolveNativeTagTransition(250)
 
-export const useNativeRadioShape = (style: ViewStyle): ViewStyle => {
+export const useNativeRadioShape = (style: ViewStyle, duration = 250): ViewStyle => {
+  const shapeTiming = duration === 250 ? defaultShapeTiming : resolveNativeTagTransition(duration)
   const reduced = useNativeTagReducedMotion()
-  const backgroundColor = useNativeLinkColor(style.backgroundColor ?? "transparent", 250, shapeTiming.easing)
+  const backgroundColor = useNativeLinkColor(style.backgroundColor ?? "transparent", duration, shapeTiming.easing)
   const width = useNativeTagNumberValue(typeof style.width === "number" ? style.width : 0, shapeTiming, reduced)
   const height = useNativeTagNumberValue(typeof style.height === "number" ? style.height : 0, shapeTiming, reduced)
   const radius = useNativeTagNumberValue(
