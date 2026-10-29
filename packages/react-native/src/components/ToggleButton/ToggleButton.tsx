@@ -69,6 +69,7 @@ export const ToggleButton = forwardRef<TNativeToggleButtonRef, TNativeToggleButt
   return (
     <Button
       {...rest}
+      slot={null}
       ref={root}
       aria-checked={undefined}
       aria-selected={undefined}
