@@ -1,6 +1,7 @@
-import { forwardRef, useState } from "react"
+import { forwardRef } from "react"
 import { View, type ViewStyle } from "react-native"
 
+import { useControlledState } from "../../collection/state/useControlledState"
 import { useNativeTheme } from "../../theme"
 import { resolveNativeStyle } from "../colors"
 
@@ -32,8 +33,7 @@ export const RadioGroup = forwardRef<TNativeRadioGroupRef, TNativeRadioGroupProp
     if (typeof label !== "string" || !label.trim())
       throw new TypeError("RadioGroup: a nonempty accessibilityLabel or aria-label is required")
     const theme = useNativeTheme()
-    const [localValue, setLocalValue] = useState(defaultValue)
-    const selected = value !== undefined ? value : localValue
+    const [selected, setSelected] = useControlledState<string | null, string>(value, defaultValue, onChange)
     const custom = resolveNativeStyle(customStyles, "RadioGroup", "customStyles")
     const baseline: ViewStyle = {
       flexDirection: orientation === "horizontal" ? "row" : "column",
@@ -60,8 +60,7 @@ export const RadioGroup = forwardRef<TNativeRadioGroupRef, TNativeRadioGroupProp
           isReadOnly,
           change: (member) => {
             if (isDisabled || isReadOnly || member === selected) return
-            if (value === undefined) setLocalValue(member)
-            onChange?.(member)
+            setSelected(member)
           },
         }}
       >

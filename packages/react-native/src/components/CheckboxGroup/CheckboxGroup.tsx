@@ -1,6 +1,7 @@
-import { forwardRef, useState } from "react"
+import { forwardRef } from "react"
 import { View, type ViewStyle } from "react-native"
 
+import { useControlledState } from "../../collection/state/useControlledState"
 import { useNativeTheme } from "../../theme"
 import { resolveNativeStyle } from "../colors"
 
@@ -28,8 +29,7 @@ export const CheckboxGroup = forwardRef<TNativeCheckboxGroupRef, TNativeCheckbox
     ref,
   ) => {
     const theme = useNativeTheme()
-    const [localValue, setLocalValue] = useState(() => [...defaultValue])
-    const selected = value ?? localValue
+    const [selected, setSelected] = useControlledState<readonly string[], string[]>(value, [...defaultValue], onChange)
     const custom = resolveNativeStyle(customStyles, "CheckboxGroup", "customStyles")
     const baseline: ViewStyle = {
       flexDirection: orientation === "horizontal" ? "row" : "column",
@@ -65,8 +65,7 @@ export const CheckboxGroup = forwardRef<TNativeCheckboxGroupRef, TNativeCheckbox
                 ? [...selected]
                 : [...selected, member]
               : selected.filter((entry) => entry !== member)
-            if (value === undefined) setLocalValue(next)
-            onChange?.(next)
+            setSelected(next)
           },
         }}
       >
