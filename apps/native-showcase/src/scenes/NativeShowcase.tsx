@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar"
-import { useRef, useState, type PropsWithChildren } from "react"
+import { Fragment, useRef, useState, type PropsWithChildren } from "react"
 import {
   KeyboardAvoidingView,
   Platform,
@@ -216,13 +216,17 @@ export const NativeShowcase = () => {
     setScene("foundation")
   }
 
+  // Standalone Panel and query scenes already own their overlay and floating roots.
+  const sceneOwnsOverlay = scene === "panel" || scene === "sort-filter"
+  const OverlayScope = sceneOwnsOverlay ? Fragment : NativeOverlayProvider
+  const FloatingScope = sceneOwnsOverlay ? Fragment : NativeFloatingLayerHost
   return (
     <NativeThemeProvider
       mode={mode}
       overrides={customized ? { colors: { foreground: "#087f8c" }, typography: { fontSizes: { b10: 18 } } } : undefined}
     >
-      <NativeOverlayProvider>
-        <NativeFloatingLayerHost testID="showcase-floating-host">
+      <OverlayScope>
+        <FloatingScope {...(sceneOwnsOverlay ? {} : { testID: "showcase-floating-host" })}>
           <ShowcaseSurface>
             <ThemeHeading />
             <WindowMetadata width={dimensions.width} height={dimensions.height} fontScale={dimensions.fontScale} />
@@ -433,8 +437,8 @@ export const NativeShowcase = () => {
               )}
             </SceneShell>
           </ShowcaseSurface>
-        </NativeFloatingLayerHost>
-      </NativeOverlayProvider>
+        </FloatingScope>
+      </OverlayScope>
     </NativeThemeProvider>
   )
 }
