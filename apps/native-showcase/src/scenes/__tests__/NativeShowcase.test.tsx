@@ -206,6 +206,8 @@ it("composes library controls, blocks disabled/pending activation and resets sce
   await press("Toggle button outline")
   await press("Toggle library styles")
   await press("Toggle render children")
+  expect(screen.getByText("Rendered library action 1")).not.toHaveStyle({ color: "#ffffff" })
+  await act(() => jest.advanceTimersByTime(250))
   expect(screen.getByText("Rendered library action 1")).toHaveStyle({ color: "#ffffff" })
   expect(screen.getByTestId("library-button")).toHaveStyle({ backgroundColor: "#123456" })
   await press("Dark theme")

@@ -89,6 +89,7 @@ export const getNativeButtonStyle = (
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    cursor: state.isDisabled ? "auto" : "pointer",
     gap: theme.spacing.unit,
     padding: theme.spacing.unit,
     paddingHorizontal: geometry === "round" ? 7 : theme.spacing.unit,

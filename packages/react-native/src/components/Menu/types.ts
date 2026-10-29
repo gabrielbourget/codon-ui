@@ -73,6 +73,7 @@ export type TNativeMenuItemState = Readonly<{
 }>
 export type TNativeMenuItemProps = Omit<
   TNativeButtonProps,
+  | "render"
   | "children"
   | "style"
   | "customStyles"

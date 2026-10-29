@@ -71,6 +71,7 @@ export type TNativeTagGroupProps<T extends object = object> = Omit<
   }
 export type TNativeGroupedTagProps = Omit<
   TNativeButtonProps,
+  | "render"
   | "children"
   | "slot"
   | "style"

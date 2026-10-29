@@ -4,6 +4,7 @@ import type { Text as RNText, View } from "react-native"
 import {
   Button,
   NativeFocusView,
+  NativeFormAction,
   NativeThemeProvider,
   Text,
   useNativeTheme,
@@ -111,6 +112,23 @@ export const TypographyButton = (
     Save
   </Button>
 )
+export const RenderedButton = (
+  <Button
+    render={(props, state) => {
+      // @ts-expect-error The existing public native state does not expose private modality metadata.
+      void state.isFocusVisible
+      return <NativeFocusView {...props} accessibilityHint={String(state.isPending)} />
+    }}
+  />
+)
+export const InvalidDOMButtonRenderer = (
+  // @ts-expect-error A native root renderer receives the focus host props and native ref.
+  <Button render={(_props: { ref: HTMLButtonElement }) => <NativeFocusView />} />
+)
+// @ts-expect-error The private composition switch is not a public Button prop.
+export const InvalidButtonMotionSwitch = <Button nativeAnimate={false} />
+// @ts-expect-error NativeFormAction retains its fixed owned native root contract.
+export const InvalidFormActionRenderer = <NativeFormAction render={() => <NativeFocusView />} />
 // @ts-expect-error Native button typography uses logical numeric units.
 export const InvalidButtonFontUnit = <Button customStyles={{ fontSize: "1.4rem" }} />
 // @ts-expect-error Native text decoration uses the native field/value contract.

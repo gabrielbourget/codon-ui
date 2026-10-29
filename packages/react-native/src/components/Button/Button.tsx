@@ -18,6 +18,7 @@ import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
 
 import { getNativeButtonContent } from "./content"
 import { NativeButtonContext } from "./context"
+import { useNativeButtonMotion } from "./motion"
 import { getNativeButtonStyle } from "./styles"
 import type { TNativeButtonProps, TNativeButtonRef, TNativeButtonRenderState } from "./types"
 
@@ -52,6 +53,7 @@ type TNativeButtonInternalProps = Omit<TNativeButtonProps, "accessibilityState" 
       state: Omit<TNativeButtonRenderState, "foregroundColor">,
       focusVisible: boolean,
     ) => ReturnType<typeof getNativeButtonStyle>
+    nativeAnimate?: boolean
   }
 
 export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalProps>((props, ref) => {
@@ -64,6 +66,8 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
     nativeIsPressed,
     nativeStyle,
     nativeRender,
+    nativeAnimate = false,
+    render: _render,
     nativeProgrammaticFocusable,
     nativeOnFocusObserved,
     color,
@@ -152,9 +156,15 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
   const resolved = nativeStyle
     ? nativeStyle(flags, focusVisible)
     : getNativeButtonStyle(theme, props, flags, focusVisible)
+  const { foregroundColor, viewStyle } = useNativeButtonMotion(
+    resolved.viewStyle,
+    resolved.foregroundColor,
+    nativeAnimate,
+  )
+  const textStyle = nativeAnimate ? { ...resolved.textStyle, color: foregroundColor } : resolved.textStyle
   const state = { ...flags, foregroundColor: resolved.foregroundColor, isFocusVisible: focusVisible }
   const rendered = typeof children === "function" ? children({ ...state, defaultChildren: undefined }) : children
-  const content = getNativeButtonContent(rendered, resolved.textStyle)
+  const content = getNativeButtonContent(rendered, textStyle)
   const automaticHitSlop = bounds
     ? {
         left: Math.max(0, (resolved.target - bounds.width) / 2),
@@ -165,9 +175,7 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
     : undefined
 
   const control = (
-    <NativeContentContext.Provider
-      value={{ foregroundColor: resolved.foregroundColor, isButton: true, textStyle: resolved.textStyle }}
-    >
+    <NativeContentContext.Provider value={{ foregroundColor, isButton: true, textStyle }}>
       <NativePressable
         {...rest}
         nativeRender={
@@ -199,7 +207,7 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
         }}
         accessibilityLabel={accessibilityLabel ?? aliasLabel}
         testID={testID ?? aliasTestID ?? "button"}
-        style={resolved.viewStyle}
+        style={viewStyle}
         hitSlop={hitSlop ?? automaticHitSlop}
         onLayout={(event) => {
           const { width: nextWidth, height: nextHeight } = event.nativeEvent.layout
@@ -316,10 +324,7 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
     </NativeContentContext.Provider>
   )
   return (
-    <NativeTextStyleProvider
-      reset
-      style={{ fontStyle: "normal", letterSpacing: 0, textAlign: "center", ...resolved.textStyle }}
-    >
+    <NativeTextStyleProvider reset style={{ fontStyle: "normal", letterSpacing: 0, textAlign: "center", ...textStyle }}>
       {control}
     </NativeTextStyleProvider>
   )
@@ -329,8 +334,8 @@ NativeButton.displayName = "Button"
 export const Button: ForwardRefExoticComponent<TNativeButtonProps & RefAttributes<TNativeButtonRef>> = forwardRef(
   (props, ref) => {
     const [merged, mergedRef] = useNativeContextProps(props, ref, NativeButtonContext)
-    const { slot: _slot, ...native } = merged
-    return <NativeButton {...native} ref={mergedRef} />
+    const { slot: _slot, render, ...native } = merged
+    return <NativeButton {...native} nativeAnimate nativeRender={render} ref={mergedRef} />
   },
 )
 Button.displayName = "Button"

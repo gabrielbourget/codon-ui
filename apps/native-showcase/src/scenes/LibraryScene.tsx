@@ -8,6 +8,7 @@ import {
   AVAILABLE_THEMING_ORDER_CODES,
   Button,
   CarouselCloseButton,
+  NativeFocusView,
   PlaceholderText,
   Text,
   useNativeTheme,
@@ -162,6 +163,9 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
       <Button
         accessibilityLabel="Library action"
         testID="library-button"
+        render={(props, state) => (
+          <NativeFocusView {...props} nativeID={`library-button-${state.isPending ? "pending" : "ready"}`} />
+        )}
         order={order}
         colorMode={outlined ? "outline" : "fill"}
         geometry={geometry}

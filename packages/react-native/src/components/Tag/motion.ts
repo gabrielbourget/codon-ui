@@ -36,9 +36,10 @@ export const resolveNativeTagTransition = (value: TNativeTagTransition = 250) =>
 }
 type TTiming = ReturnType<typeof resolveNativeTagTransition>
 
-export const useNativeTagReducedMotion = () => {
+export const useNativeTagReducedMotion = (enabled = true) => {
   const [reduced, setReduced] = useState(true)
   useEffect(() => {
+    if (!enabled) return
     let active = true
     let changed = false
     const subscription = AccessibilityInfo.addEventListener("reduceMotionChanged", (value) => {
@@ -55,8 +56,8 @@ export const useNativeTagReducedMotion = () => {
       active = false
       subscription.remove()
     }
-  }, [])
-  return reduced
+  }, [enabled])
+  return !enabled || reduced
 }
 
 const rgba = (value: number) => ({

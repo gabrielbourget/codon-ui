@@ -64,7 +64,7 @@ export type TNativeComboBoxItemRenderState = TNativeButtonRenderState & {
 }
 export const NATIVE_COMBO_BOX_ITEM_TEXT_SIZES = ["small", "medium", "large"] as const
 export type TNativeComboBoxItemTextSize = (typeof NATIVE_COMBO_BOX_ITEM_TEXT_SIZES)[number]
-export type TNativeComboBoxItemProps = Omit<TNativeButtonProps, "children" | "id" | "onPressUp" | "style"> &
+export type TNativeComboBoxItemProps = Omit<TNativeButtonProps, "children" | "id" | "onPressUp" | "render" | "style"> &
   TNativeComboBoxItemActionProps & {
     onPressUp?: (event: TNativePressEvent | TNativeWindowPointerEvent) => void
     id?: string | number

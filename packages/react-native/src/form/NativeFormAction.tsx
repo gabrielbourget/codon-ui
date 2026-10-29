@@ -13,7 +13,7 @@ import { nativeFormControllerFor } from "./actions"
 import { NativeFormRegistryContext } from "./context"
 import type { TNativeFormAction, TNativeFormResult } from "./types"
 
-export type TNativeFormActionProps = TNativeButtonProps & {
+export type TNativeFormActionProps = Omit<TNativeButtonProps, "render"> & {
   action?: TNativeFormAction
   form?: string
   onActionResult?: (result: TNativeFormResult) => void
