@@ -441,6 +441,7 @@ it("composes multiline editing, final native submit text and controlled/uncontro
   await fireEvent(screen.getByTestId("multiline-submit"), "submitEditing", { nativeEvent: { text: "Bonjour final" } })
   await user.press(screen.getByRole("radio", { name: "Radio second" }))
   expect(screen.getByTestId("multiline-radio-group").props.nativeID).toBe("multiline-radio-second")
+  expect(screen.getByTestId("multiline-radio-second").props.nativeID).toBe("multiline-radio-selected")
   await user.press(screen.getByRole("radio", { name: "Radio second" }))
   await user.press(screen.getByRole("radio", { name: "Radio unavailable" }))
   await user.press(screen.getByRole("radio", { name: "Uncontrolled second" }))

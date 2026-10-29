@@ -155,3 +155,14 @@ export const useNativeTagNumber = (target: number | undefined, timing: TTiming, 
   }, [value, target, timing.duration, timing.delay, timing.easing, reduced])
   return target === undefined || reduced || (timing.duration === 0 && timing.delay === 0) ? target : value
 }
+
+export const useNativeTagNumberValue = (target: number, timing: TTiming, reduced: boolean): number => {
+  const value = useNativeTagNumber(target, timing, reduced)
+  const [rendered, setRendered] = useState(target)
+  useEffect(() => {
+    if (typeof value !== "object") return
+    const listener = value.addListener(({ value: current }) => setRendered(current))
+    return () => value.removeListener(listener)
+  }, [value])
+  return typeof value === "number" ? value : rendered
+}

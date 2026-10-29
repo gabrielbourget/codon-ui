@@ -1,0 +1,1730 @@
+{
+  "canonicalSourceRef": "ddc9f066f67af4742e05e04bd870726141c44129",
+  "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+  "canonicalPropertyCount": 106,
+  "nativePropertyCount": 116,
+  "props": {
+    "aria-describedby": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "aria-details": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "aria-label": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "aria-label",
+      "nativeType": "string | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "aria-labelledby": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "aria-labelledby",
+      "nativeType": "string | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "autoFocus": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_COORDINATION_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original private native group owns member selection; React Aria slots/state and browser Arrow/Home/End/typeahead/automatic focus coordination are excluded. Native focus/ref/host integration retain separate requirements."
+    },
+    "children": {
+      "canonicalType": "import(\"react-aria-components/dist/types/src/utils\").ChildrenOrFunction<RadioRenderProps>",
+      "required": false,
+      "capability": "CAP.radio.014",
+      "disposition": "NATIVE_RENDER_CHILDREN",
+      "nativeProp": "children",
+      "nativeType": "ReactNode | ((state: TNativeRadioChildrenState) => ReactNode)",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "ReactNode or current selected/pressed/hovered/focused/disabled/read-only data plus defaultChildren undefined. Primitive/array/Fragment output uses existing owned Text without cloning authored content; decorative content remains within one interactive root."
+    },
+    "className": {
+      "canonicalType": "import(\"react-aria-components/dist/types/src/utils\").ClassNameOrFunction<RadioRenderProps> | undefined",
+      "required": false,
+      "capability": "CAP.radio.009",
+      "disposition": "APPROVED_NATIVE_STYLE",
+      "nativeProp": "customStyles/style",
+      "nativeType": "StyleProp<ViewStyle> or native style-state callback",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Root native computed/custom/final target styles with post-custom defaultStyle; label content/mark owners stay separate, without CSS class promises."
+    },
+    "color": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.radio.004",
+      "disposition": "APPROVED_NATIVE_COLOR_RECIPE",
+      "nativeProp": "color",
+      "nativeType": "ColorValue | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original native ColorValue overrides mark border/selected fill, not label color; selected fill stays stable during hover/press and existing native action roles replace web CSS class/color-mix behavior."
+    },
+    "customShapeStyles": {
+      "canonicalType": "CSSProperties | undefined",
+      "required": false,
+      "capability": "CAP.radio.010",
+      "disposition": "NATIVE_SHAPE_STYLE",
+      "nativeProp": "customShapeStyles",
+      "nativeType": "StyleProp<ViewStyle>",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Native mark-only ViewStyle override after computed20-unit shape/radius/colors; numeric width/height/radius/opacity and background paint use250ms ease-in-out, border/outline immediate. Native opaque colors/percentage/animated values keep their actual native type/applicability."
+    },
+    "customStyles": {
+      "canonicalType": "CSSProperties | undefined",
+      "required": false,
+      "capability": "CAP.radio.008",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "customStyles",
+      "nativeType": "StyleProp<ViewStyle>",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "data-testid": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.radio.011",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "data-testid",
+      "nativeType": "string | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "dir": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "enableFocusStyle": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.radio.006",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "enableFocusStyle",
+      "nativeType": "boolean | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "geometry": {
+      "canonicalType": "\"orthogonal\" | \"rounded\" | \"round\" | undefined",
+      "required": false,
+      "capability": "CAP.radio.003",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "geometry",
+      "nativeType": "\"orthogonal\" | \"rounded\" | \"round\" | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "height": {
+      "canonicalType": "string | number | undefined",
+      "required": false,
+      "capability": "CAP.radio.002",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "height",
+      "nativeType": "import(\"react-native/types/index\").DimensionValue | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "hidden": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "id": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "id",
+      "nativeType": "string | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "inert": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "inputRef": {
+      "canonicalType": "import(\"@react-types/shared/src/refs\").RefObject<HTMLInputElement | null> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_REF",
+      "nativeProp": "ref",
+      "nativeType": "React.Ref<View>",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original native counterpart has one View-backed Pressable ref and no hidden HTML input or React Aria inputRef object. Actual original ref survives renderer/state updates and clears on teardown."
+    },
+    "isDisabled": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.radio.007",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "isDisabled",
+      "nativeType": "boolean | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "lang": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "offsetFocusRing": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.radio.006",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "offsetFocusRing",
+      "nativeType": "boolean | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "onAnimationEnd": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onAnimationEndCapture": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onAnimationIteration": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onAnimationIterationCapture": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onAnimationStart": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onAnimationStartCapture": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onAuxClick": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onAuxClickCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onBlur": {
+      "canonicalType": "((e: import(\"@types/react/index\").FocusEvent<Element, Element>) => void) | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_EVENT_MAPPING",
+      "nativeProp": "onBlur",
+      "nativeType": "Original native Pressable event callbacks and native owned flags",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approval preserves core Pressable observations with native payloads and guard/order. It does not translate React Aria PressEvent/HoverEvent phases or add boolean observation APIs; suppressed native activation and group changes remain exact."
+    },
+    "onClick": {
+      "canonicalType": "((e: import(\"@types/react/index\").MouseEvent<import(\"@react-types/shared/src/dom\").FocusableElement>) => void) | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onClickCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onContextMenu": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onContextMenuCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onDoubleClick": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onDoubleClickCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onFocus": {
+      "canonicalType": "((e: import(\"@types/react/index\").FocusEvent<Element, Element>) => void) | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_EVENT_MAPPING",
+      "nativeProp": "onFocus",
+      "nativeType": "Original native Pressable event callbacks and native owned flags",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approval preserves core Pressable observations with native payloads and guard/order. It does not translate React Aria PressEvent/HoverEvent phases or add boolean observation APIs; suppressed native activation and group changes remain exact."
+    },
+    "onFocusChange": {
+      "canonicalType": "((isFocused: boolean) => void) | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_EVENT_MAPPING",
+      "nativeProp": "onFocus/onBlur",
+      "nativeType": "Original native Pressable event callbacks and native owned flags",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approval preserves core Pressable observations with native payloads and guard/order. It does not translate React Aria PressEvent/HoverEvent phases or add boolean observation APIs; suppressed native activation and group changes remain exact."
+    },
+    "onGotPointerCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onGotPointerCaptureCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onHoverChange": {
+      "canonicalType": "((isHovering: boolean) => void) | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_EVENT_MAPPING",
+      "nativeProp": "style/children native isHovered data",
+      "nativeType": "Original native Pressable event callbacks and native owned flags",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approval preserves core Pressable observations with native payloads and guard/order. It does not translate React Aria PressEvent/HoverEvent phases or add boolean observation APIs; suppressed native activation and group changes remain exact."
+    },
+    "onHoverEnd": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").HoverEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_EVENT_MAPPING",
+      "nativeProp": "onHoverOut",
+      "nativeType": "Original native Pressable event callbacks and native owned flags",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approval preserves core Pressable observations with native payloads and guard/order. It does not translate React Aria PressEvent/HoverEvent phases or add boolean observation APIs; suppressed native activation and group changes remain exact."
+    },
+    "onHoverStart": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").HoverEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_EVENT_MAPPING",
+      "nativeProp": "onHoverIn",
+      "nativeType": "Original native Pressable event callbacks and native owned flags",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approval preserves core Pressable observations with native payloads and guard/order. It does not translate React Aria PressEvent/HoverEvent phases or add boolean observation APIs; suppressed native activation and group changes remain exact."
+    },
+    "onKeyDown": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").KeyboardEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onKeyUp": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").KeyboardEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onLostPointerCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onLostPointerCaptureCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onMouseDown": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onMouseDownCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onMouseEnter": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onMouseLeave": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onMouseMove": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onMouseMoveCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onMouseOut": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onMouseOutCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onMouseOver": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onMouseOverCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onMouseUp": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onMouseUpCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onPointerCancel": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerCancel",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "onPointerCancelCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerCancelCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "onPointerDown": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerDown",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "onPointerDownCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerDownCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "onPointerEnter": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerEnter",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "onPointerLeave": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerLeave",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "onPointerMove": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerMove",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "onPointerMoveCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerMoveCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "onPointerOut": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onPointerOutCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onPointerOver": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onPointerOverCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onPointerUp": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerUp",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "onPointerUpCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerUpCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "onPress": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").PressEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_EVENT_MAPPING",
+      "nativeProp": "onPress",
+      "nativeType": "Original native Pressable event callbacks and native owned flags",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approval preserves core Pressable observations with native payloads and guard/order. It does not translate React Aria PressEvent/HoverEvent phases or add boolean observation APIs; suppressed native activation and group changes remain exact."
+    },
+    "onPressChange": {
+      "canonicalType": "((isPressed: boolean) => void) | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_EVENT_MAPPING",
+      "nativeProp": "style/children native isPressed data",
+      "nativeType": "Original native Pressable event callbacks and native owned flags",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approval preserves core Pressable observations with native payloads and guard/order. It does not translate React Aria PressEvent/HoverEvent phases or add boolean observation APIs; suppressed native activation and group changes remain exact."
+    },
+    "onPressEnd": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").PressEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_EVENT_MAPPING",
+      "nativeProp": "onPressOut",
+      "nativeType": "Original native Pressable event callbacks and native owned flags",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approval preserves core Pressable observations with native payloads and guard/order. It does not translate React Aria PressEvent/HoverEvent phases or add boolean observation APIs; suppressed native activation and group changes remain exact."
+    },
+    "onPressStart": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").PressEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_EVENT_MAPPING",
+      "nativeProp": "onPressIn",
+      "nativeType": "Original native Pressable event callbacks and native owned flags",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approval preserves core Pressable observations with native payloads and guard/order. It does not translate React Aria PressEvent/HoverEvent phases or add boolean observation APIs; suppressed native activation and group changes remain exact."
+    },
+    "onPressUp": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").PressEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_EVENT_MAPPING",
+      "nativeProp": "onPressOut",
+      "nativeType": "Original native Pressable event callbacks and native owned flags",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approval preserves core Pressable observations with native payloads and guard/order. It does not translate React Aria PressEvent/HoverEvent phases or add boolean observation APIs; suppressed native activation and group changes remain exact."
+    },
+    "onScroll": {
+      "canonicalType": "import(\"@types/react/index\").UIEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onScrollCapture": {
+      "canonicalType": "import(\"@types/react/index\").UIEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onTouchCancel": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchCancel",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "onTouchCancelCapture": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onTouchEnd": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchEnd",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "onTouchEndCapture": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchEndCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "onTouchMove": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchMove",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "onTouchMoveCapture": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onTouchStart": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchStart",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "onTouchStartCapture": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onTransitionCancel": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onTransitionCancelCapture": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onTransitionEnd": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onTransitionEndCapture": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onTransitionRun": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onTransitionRunCapture": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onTransitionStart": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onTransitionStartCapture": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onWheel": {
+      "canonicalType": "import(\"@types/react/index\").WheelEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onWheelCapture": {
+      "canonicalType": "import(\"@types/react/index\").WheelEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "order": {
+      "canonicalType": "\"primary\" | \"secondary\" | \"tertiary\" | \"quaternary\" | \"quintenary\" | undefined",
+      "required": false,
+      "capability": "CAP.radio.004",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "order",
+      "nativeType": "\"primary\" | \"secondary\" | \"tertiary\" | \"quaternary\" | \"quintenary\" | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "render": {
+      "canonicalType": "import(\"react-aria-components/dist/types/src/utils\").DOMRenderFunction<\"label\", RadioRenderProps> | undefined",
+      "required": false,
+      "capability": "CAP.radio.014",
+      "disposition": "NATIVE_ROOT_RENDERER",
+      "nativeProp": "render",
+      "nativeType": "((props: PressableProps & RefAttributes<View>, state: TNativeRadioRenderState) => ReactElement) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Actual Pressable props/ref/owned shape-and-label children/current native data, style \u2192 children \u2192 root order, original root/ref/event identity and private group ownership."
+    },
+    "slot": {
+      "canonicalType": "string | null | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_COORDINATION_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original private native group owns member selection; React Aria slots/state and browser Arrow/Home/End/typeahead/automatic focus coordination are excluded. Native focus/ref/host integration retain separate requirements."
+    },
+    "style": {
+      "canonicalType": "(CSSProperties | ((values: RadioRenderProps & { defaultStyle: CSSProperties; }) => CSSProperties | undefined)) | undefined",
+      "required": false,
+      "capability": "CAP.radio.009",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "style",
+      "nativeType": "StyleProp<ViewStyle> | ((state: TNativeRadioStyleState) => StyleProp<ViewStyle>)",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "translate": {
+      "canonicalType": "\"yes\" | \"no\" | undefined",
+      "required": false,
+      "capability": "CAP.radio.016",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "value": {
+      "canonicalType": "string",
+      "required": true,
+      "capability": "CAP.radio.015",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "value",
+      "nativeType": "string",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "width": {
+      "canonicalType": "string | number | undefined",
+      "required": false,
+      "capability": "CAP.radio.002",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "width",
+      "nativeType": "import(\"react-native/types/index\").DimensionValue | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md Radio And RadioGroup / Approved Execution Boundary; ledger8.22 and standing conventional-port policy roadmap3.5. Required group/name/value/native traits, private context, native events/style/radius/color/targets, selected stable fill, explicit host validation/read-only hints and DOM form/state/slots/web navigation exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    }
+  },
+  "nativeOnlyProps": [
+    {
+      "name": "accessibilityActions",
+      "optional": true,
+      "type": "readonly Readonly<{ name: import(\"react-native/types/index\").AccessibilityActionName | string; label?: string | undefined; }>[] | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityElementsHidden",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityHint",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityIgnoresInvertColors",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityLabel",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": [
+        "packages/react-native/src/components/Radio/types.ts",
+        "packages/react-native/src/components/Radio/types.ts"
+      ]
+    },
+    {
+      "name": "accessibilityLabelledBy",
+      "optional": true,
+      "type": "string | string[] | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityLanguage",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityLargeContentTitle",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityLiveRegion",
+      "optional": true,
+      "type": "\"none\" | \"polite\" | \"assertive\" | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityRespondsToUserInteraction",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityShowsLargeContentViewer",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityState",
+      "optional": true,
+      "type": "Omit<import(\"react-native/types/index\").AccessibilityState, \"disabled\" | \"checked\" | \"selected\"> | undefined",
+      "declarations": ["packages/react-native/src/components/selection.ts"]
+    },
+    {
+      "name": "accessibilityValue",
+      "optional": true,
+      "type": "import(\"react-native/types/index\").AccessibilityValue | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityViewIsModal",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "android_disableSound",
+      "optional": true,
+      "type": "boolean | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "android_ripple",
+      "optional": true,
+      "type": "import(\"react-native/types/index\").PressableAndroidRippleConfig | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "aria-busy",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-checked",
+      "optional": true,
+      "type": "undefined",
+      "declarations": ["packages/react-native/src/components/selection.ts"]
+    },
+    {
+      "name": "aria-disabled",
+      "optional": true,
+      "type": "undefined",
+      "declarations": ["packages/react-native/src/components/selection.ts"]
+    },
+    {
+      "name": "aria-expanded",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-hidden",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-live",
+      "optional": true,
+      "type": "\"polite\" | \"assertive\" | \"off\" | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-modal",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-selected",
+      "optional": true,
+      "type": "undefined",
+      "declarations": ["packages/react-native/src/components/selection.ts"]
+    },
+    {
+      "name": "aria-valuemax",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-valuemin",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-valuenow",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-valuetext",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "cancelable",
+      "optional": true,
+      "type": "boolean | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "collapsable",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "collapsableChildren",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "delayHoverIn",
+      "optional": true,
+      "type": "number | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "delayHoverOut",
+      "optional": true,
+      "type": "number | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "delayLongPress",
+      "optional": true,
+      "type": "number | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "focusable",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "hasTVPreferredFocus",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "hitSlop",
+      "optional": true,
+      "type": "number | import(\"react-native/types/index\").Insets | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "importantForAccessibility",
+      "optional": true,
+      "type": "\"auto\" | \"yes\" | \"no\" | \"no-hide-descendants\" | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "isTVSelectable",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "nativeID",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "needsOffscreenAlphaCompositing",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "onAccessibilityAction",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").AccessibilityActionEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "onAccessibilityEscape",
+      "optional": true,
+      "type": "(() => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "onAccessibilityTap",
+      "optional": true,
+      "type": "(() => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "onHoverIn",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").MouseEvent) => void) | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "onHoverOut",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").MouseEvent) => void) | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "onLayout",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").LayoutChangeEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "onLongPress",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "onMagicTap",
+      "optional": true,
+      "type": "(() => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "onMoveShouldSetResponder",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onMoveShouldSetResponderCapture",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onPointerEnterCapture",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Types/CoreEventTypes.d.ts"
+      ]
+    },
+    {
+      "name": "onPointerLeaveCapture",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Types/CoreEventTypes.d.ts"
+      ]
+    },
+    {
+      "name": "onPressIn",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "onPressMove",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "onPressOut",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "onResponderEnd",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onResponderGrant",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onResponderMove",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onResponderReject",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onResponderRelease",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onResponderStart",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onResponderTerminate",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onResponderTerminationRequest",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onStartShouldSetResponder",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onStartShouldSetResponderCapture",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "pointerEvents",
+      "optional": true,
+      "type": "\"box-none\" | \"none\" | \"box-only\" | \"auto\" | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "pressRetentionOffset",
+      "optional": true,
+      "type": "number | import(\"react-native/types/index\").Insets | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "removeClippedSubviews",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "renderToHardwareTextureAndroid",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "screenReaderFocusable",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "shouldRasterizeIOS",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "tabIndex",
+      "optional": true,
+      "type": "0 | -1 | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "testID",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "testOnly_pressed",
+      "optional": true,
+      "type": "boolean | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "tvParallaxMagnification",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "tvParallaxShiftDistanceX",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "tvParallaxShiftDistanceY",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "tvParallaxTiltAngle",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "unstable_pressDelay",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    }
+  ],
+  "renderStateMapping": {
+    "canonical": [
+      "isSelected",
+      "isHovered",
+      "isPressed",
+      "isFocused",
+      "isFocusVisible",
+      "isDisabled",
+      "isReadOnly",
+      "isRequired",
+      "isInvalid"
+    ],
+    "native": ["isSelected", "isHovered", "isPressed", "isFocused", "isDisabled", "isReadOnly"],
+    "originalApproval": "Original member callbacks omit React Aria state/focus-visible promises and hosts own required/validation/read-only explanations."
+  },
+  "ownedDefaults": {
+    "shapeSize": 20,
+    "geometry": "rounded",
+    "focusStyle": true,
+    "offsetFocusRing": true,
+    "groupRequired": true,
+    "value": "required string; empty allowed",
+    "accessibleName": "required nonempty native label or aria-label",
+    "rootOpacity": "disabled0.4 once per member",
+    "shapeTransition": "250ms cubic-bezier(.42,0,.58,1), border/outline0; native geometry/style/opaque color adaptations remain"
+  },
+  "scope": "Complete six pinned Radio files and all13 root cases plus actual renderer/context/ref/phase probe; source-only G01 roadmap3.5.73. Native behavior/appearance/AT/performance/profile/closure remain independent."
+}

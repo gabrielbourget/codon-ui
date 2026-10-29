@@ -1,5 +1,5 @@
-import type { ReactNode } from "react"
-import type { ColorValue, StyleProp, View, ViewStyle } from "react-native"
+import type { ReactElement, ReactNode, RefAttributes } from "react"
+import type { ColorValue, PressableProps, StyleProp, View, ViewStyle } from "react-native"
 
 import type { TCornerGeometry } from "../../tokens/geometry"
 import type { TThemingOrderCode } from "../../tokens/theme-order"
@@ -15,6 +15,7 @@ type TNativeRadioLabel =
 
 export type TNativeRadioProps = Omit<TNativeSelectionHostProps, "accessibilityLabel" | "aria-label"> &
   TNativeRadioLabel & {
+    render?: (props: PressableProps & RefAttributes<View>, state: TNativeRadioRenderState) => ReactElement
     children?: ReactNode | ((state: TNativeRadioChildrenState) => ReactNode)
     value: string
     isDisabled?: boolean

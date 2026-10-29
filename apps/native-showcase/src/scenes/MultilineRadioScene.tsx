@@ -1,5 +1,5 @@
 import { useRef, useState } from "react"
-import { Keyboard, TextInput, View } from "react-native"
+import { Keyboard, Pressable, TextInput, View } from "react-native"
 
 import {
   AVAILABLE_CORNER_GEOMETRY_CODES,
@@ -152,6 +152,9 @@ export const MultilineRadioScene = () => {
               key={item.value}
               value={item.value}
               accessibilityLabel={item.name}
+              render={(props, state) => (
+                <Pressable {...props} nativeID={`multiline-radio-${state.isSelected ? "selected" : "idle"}`} />
+              )}
               testID={`multiline-radio-${item.value}`}
               isDisabled={item.value === "unavailable"}
               order={order}
