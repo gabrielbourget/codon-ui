@@ -8,6 +8,7 @@ import {
   type SwitchProps,
   type TNativeSwitchRef,
   type TNativeInputRef,
+  type TNativeCheckboxGroupRef,
 } from "../src"
 
 const switchProps: SwitchProps = {
@@ -29,7 +30,11 @@ export const InvalidSwitchChildren = <Switch>Label</Switch>
 export const InvalidSwitchDisabled = <Switch disabled />
 
 export const ValidCheckboxGroup = (
-  <CheckboxGroup value={["one"]} onChange={(values) => values.includes("one")}>
+  <CheckboxGroup
+    ref={createRef<TNativeCheckboxGroupRef>()}
+    value={["one"]}
+    onChange={(values) => values.includes("one")}
+  >
     <Checkbox value="one" isIndeterminate>
       {({ isSelected }) => <>Selected {isSelected ? 1 : 0}</>}
     </Checkbox>
@@ -39,6 +44,8 @@ export const ValidCheckboxGroup = (
 export const InvalidGroupValue = <CheckboxGroup value={[1]} />
 // @ts-expect-error the group must keep descendants individually accessible
 export const InvalidGroupAccessible = <CheckboxGroup accessible />
+// @ts-expect-error The group ref receives the original native View.
+export const InvalidGroupRef = <CheckboxGroup ref={createRef<{ tagName: string }>()} />
 // @ts-expect-error Checkbox owns checked state
 export const InvalidCheckboxState = <Checkbox accessibilityState={{ checked: "mixed" }} />
 // @ts-expect-error no DOM form submission contract

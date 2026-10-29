@@ -10,6 +10,21 @@ const event = { nativeEvent: { timestamp: 100 } }
 const part = (name: string) => screen.getByTestId(`switch-${name}`, { includeHiddenElements: true })
 
 describe("Switch public native contract", () => {
+  it("forwards the original native activation object while retaining owned selection", async () => {
+    const onPress = jest.fn(),
+      onChange = jest.fn()
+    await render(<Switch isSelected={false} onPress={onPress} onChange={onChange} aria-label="Setting" />)
+    const control = screen.getByRole("switch")
+    await fireEvent(control, "press", event)
+    expect(onPress.mock.calls).toEqual([[event]])
+    expect(onPress.mock.calls[0][0]).toBe(event)
+    expect(onChange.mock.calls).toEqual([[true]])
+    expect(control.props.accessibilityState.checked).toBe(false)
+    for (const prop of ["isSelected", "defaultSelected", "onChange", "isDisabled", "isReadOnly"]) {
+      expect(control.props[prop]).toBeUndefined()
+    }
+  })
+
   it("keeps a small decorative track inside a single full-size target with grouped labels", async () => {
     await render(<Switch leftContent={["Enable ", <Fragment key="label">3</Fragment>]} rightContent="items" />)
     const control = screen.getByRole("switch", { name: "Enable 3 items" })

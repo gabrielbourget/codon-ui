@@ -2,7 +2,13 @@ import { fireEvent, render, screen, userEvent } from "@testing-library/react-nat
 import { Fragment, createRef } from "react"
 import { View } from "react-native"
 
-import { Checkbox, CheckboxGroup, NativeThemeProvider, type TNativeCheckboxRef } from "../../.."
+import {
+  Checkbox,
+  CheckboxGroup,
+  NativeThemeProvider,
+  type TNativeCheckboxRef,
+  type TNativeCheckboxGroupRef,
+} from "../../.."
 
 beforeEach(() => jest.useFakeTimers())
 afterEach(() => jest.useRealTimers())
@@ -10,6 +16,21 @@ const event = { nativeEvent: { timestamp: 100 } }
 const hidden = { includeHiddenElements: true }
 
 describe("Checkbox public native contract", () => {
+  it("forwards the original native activation object while retaining owned selection", async () => {
+    const onPress = jest.fn(),
+      onChange = jest.fn()
+    await render(<Checkbox isSelected={false} onPress={onPress} onChange={onChange} aria-label="Choice" />)
+    const control = screen.getByRole("checkbox")
+    await fireEvent(control, "press", event)
+    expect(onPress.mock.calls).toEqual([[event]])
+    expect(onPress.mock.calls[0][0]).toBe(event)
+    expect(onChange.mock.calls).toEqual([[true]])
+    expect(control.props.accessibilityState.checked).toBe(false)
+    for (const prop of ["isSelected", "defaultSelected", "onChange", "isDisabled", "isReadOnly"]) {
+      expect(control.props[prop]).toBeUndefined()
+    }
+  })
+
   it("renders one full-size control and wraps composed labels", async () => {
     await render(<Checkbox>{["Choose ", <Fragment key="count">{3}</Fragment>]}</Checkbox>)
     const checkbox = screen.getByRole("checkbox", { name: "Choose 3" })
@@ -161,6 +182,45 @@ describe("Checkbox public native contract", () => {
 })
 
 describe("CheckboxGroup actual member composition", () => {
+  it("retains the original group ref and layout event through native identity precedence and clears it on unmount", async () => {
+    const ref = createRef<TNativeCheckboxGroupRef>(),
+      onLayout = jest.fn()
+    const content = (selected: readonly string[], name: string, label: string) => (
+      <CheckboxGroup
+        ref={ref}
+        value={selected}
+        testID={name}
+        data-testid="alias-group"
+        accessibilityLabel={label}
+        aria-label="Alias group"
+        onLayout={onLayout}
+        orientation="horizontal"
+        isReadOnly
+      >
+        <Checkbox value="one">One</Checkbox>
+      </CheckboxGroup>
+    )
+    const view = await render(content([], "native-group", "Native group"))
+    const original = ref.current
+    expect(original).not.toBeNull()
+    const group = screen.getByTestId("native-group")
+    expect(group.props.accessibilityLabel).toBe("Native group")
+    expect(group.props.accessible).toBe(false)
+    expect(screen.queryByTestId("alias-group")).toBeNull()
+    for (const prop of ["value", "defaultValue", "onChange", "orientation", "isReadOnly", "isDisabled"]) {
+      expect(group.props[prop]).toBeUndefined()
+    }
+    const event = { nativeEvent: { layout: { x: 3, y: 4, width: 160, height: 44 }, target: 17 } }
+    await fireEvent(group, "layout", event)
+    expect(onLayout.mock.calls).toEqual([[event]])
+    expect(onLayout.mock.calls[0][0]).toBe(event)
+    await view.rerender(content(["one"], "", ""))
+    expect(ref.current).toBe(original)
+    expect(screen.getByTestId("").props.accessibilityLabel).toBe("")
+    await view.unmount()
+    expect(ref.current).toBeNull()
+  })
+
   it("preserves array order and immutability through nested wrappers and reports group before member", async () => {
     const source = Object.freeze(["unrendered", "first"])
     const calls: unknown[] = []
