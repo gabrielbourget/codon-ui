@@ -31,6 +31,19 @@ afterEach(() => {
   jest.useRealTimers()
 })
 
+it("retains the original alert ref through content and tone updates and clears it on unmount", async () => {
+  const ref = createRef<View>()
+  const view = await render(wrap(<AlertDialog {...base} ref={ref} isOpen />))
+  await show()
+  const original = ref.current
+  expect(original).not.toBeNull()
+  await view.rerender(wrap(<AlertDialog {...base} ref={ref} isOpen type="warning" titleText="Updated" />))
+  expect(ref.current).toBe(original)
+  expect(screen.getByRole("heading", { name: "Updated" })).toBeOnTheScreen()
+  await view.unmount()
+  expect(ref.current).toBeNull()
+})
+
 it.each(AVAILABLE_ALERT_DIALOG_TYPES)(
   "renders the %s native mark, ribbon and separately accessible content",
   async (type) => {

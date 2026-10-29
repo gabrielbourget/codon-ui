@@ -1,3 +1,6 @@
+import { createRef } from "react"
+import type { View } from "react-native"
+
 import {
   SortAndFilterPanel,
   DEFAULT_SORT_AND_FILTER_PANEL_LABELS,
@@ -39,4 +42,6 @@ const props: SortAndFilterPanelProps = {
   },
 }
 export const complete = <SortAndFilterPanel {...props} />
+// @ts-expect-error The wrapper exposes criteria focus targets rather than a public root ref.
+export const invalidRootRef = <SortAndFilterPanel {...props} ref={createRef<View>()} />
 void [item, title, fallback, AVAILABLE_SORT_AND_FILTER_PANEL_FOCUS_TARGETS]

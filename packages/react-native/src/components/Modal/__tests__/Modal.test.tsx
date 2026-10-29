@@ -31,6 +31,23 @@ afterEach(() => {
   jest.useRealTimers()
 })
 
+it("retains the original modal ref through caller metadata updates and clears it on unmount", async () => {
+  const ref = createRef<View>()
+  const view = await render(wrap(<Modal ref={ref} accessibilityLabel="Original" isOpen titleText="Original" />))
+  await show()
+  const original = ref.current
+  expect(original).not.toBeNull()
+  await view.rerender(
+    wrap(
+      <Modal ref={ref} accessibilityLabel="Updated" isOpen titleText="Updated" style={{ backgroundColor: "gold" }} />,
+    ),
+  )
+  expect(ref.current).toBe(original)
+  expect(screen.getByTestId("modal")).toHaveStyle({ backgroundColor: "gold" })
+  await view.unmount()
+  expect(ref.current).toBeNull()
+})
+
 it("requires a single provider, accessible name and supported native values", async () => {
   await expect(render(<Modal accessibilityLabel="Dialog" />)).rejects.toThrow("NativeOverlayProvider is required")
   await expect(render(wrap(<NativeOverlayProvider />))).rejects.toThrow("nested providers")

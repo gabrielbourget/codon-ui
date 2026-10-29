@@ -63,6 +63,7 @@ it.each([
     </NativeThemeProvider>,
   )
   const original = ref.current
+  expect(original).not.toBeNull()
   expect(screen.getAllByTestId(/^datetime-picker-input-segment-/).some((segment) => segment.props.ownerId)).toBe(true)
   expect(screen.getByText("2024")).toBeTruthy()
   await view.rerender(
@@ -75,13 +76,13 @@ it.each([
   expect(ref.current === original).toBe(true)
 })
 
-it("renders independent start/end groups and complete leading-zero/24-hour defaults", async () => {
-  await render(
+it("retains the original range ref through renderer updates with independent start/end groups", async () => {
+  const ref = createRef<View>()
+  const value = { start: new CalendarDateTime(2024, 10, 1, 3, 5), end: new CalendarDateTime(2024, 10, 3, 18, 20) }
+  const view = await render(
     <NativeThemeProvider>
       <NativeLocaleProvider locale="en-US">
-        <DateTimeRangePicker
-          value={{ start: new CalendarDateTime(2024, 10, 1, 3, 5), end: new CalendarDateTime(2024, 10, 3, 18, 20) }}
-        />
+        <DateTimeRangePicker ref={ref} value={value} />
       </NativeLocaleProvider>
     </NativeThemeProvider>,
   )
@@ -89,6 +90,24 @@ it("renders independent start/end groups and complete leading-zero/24-hour defau
   expect(screen.getByTestId("datetime-range-picker-input-end")).toBeTruthy()
   expect(screen.getAllByText("2024")).toHaveLength(2)
   expect(screen.getByText("18")).toBeTruthy()
+  const original = ref.current
+  expect(original).not.toBeNull()
+  await view.rerender(
+    <NativeThemeProvider>
+      <NativeLocaleProvider locale="en-US">
+        <DateTimeRangePicker
+          ref={ref}
+          value={value}
+          render={(props) => <NativeFocusView {...props} focusable={false} />}
+        />
+      </NativeLocaleProvider>
+    </NativeThemeProvider>,
+  )
+  expect(ref.current).toBe(original)
+  expect(screen.getByTestId("datetime-range-picker-input-start")).toBeTruthy()
+  expect(screen.getByTestId("datetime-range-picker-input-end")).toBeTruthy()
+  await view.unmount()
+  expect(ref.current).toBeNull()
 })
 
 it("renders two locale weeks grids by default for single and one for range", async () => {

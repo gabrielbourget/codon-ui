@@ -34,6 +34,8 @@ export const ValidAlert = (
 )
 // @ts-expect-error native dialog names are explicit and required
 export const InvalidUnnamedAlert = <AlertDialog titleText="Title" bodyText="Body" />
+// @ts-expect-error AlertDialog refs retain the original native View.
+export const InvalidAlertRef = <AlertDialog {...ValidAlertProps} ref={createRef<{ tagName: string }>()} />
 // @ts-expect-error title/body text are required strings
 export const InvalidAlertTitle = <AlertDialog {...ValidAlertProps} titleText={<></>} />
 // @ts-expect-error the six canonical tones are closed
