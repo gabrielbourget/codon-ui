@@ -363,6 +363,20 @@ const nativeWindowUser = () => {
   }
 }
 
+it("renders the standalone ListBoxItem with actual parent selection and guard ownership", async () => {
+  await renderShowcase()
+  const user = userEvent.setup()
+  await user.press(screen.getByRole("button", { name: "Select scene" }))
+  const row = () => screen.getByRole("radio", { name: "Standalone choice zero" })
+  expect(row().props.nativeID).toBe("standalone-available")
+  await user.press(row())
+  expect(row().props.nativeID).toBe("standalone-selected")
+  expect(screen.getByTestId("select-state")).toHaveTextContent(/Value: number:0.*Changes: 1/)
+  await user.press(screen.getByRole("button", { name: "Toggle Select read-only" }))
+  await user.press(row())
+  expect(screen.getByTestId("select-state")).toHaveTextContent(/Changes: 1.*read-only/)
+})
+
 it("composes controlled and uncontrolled Select flows and blocks disabled/read-only changes", async () => {
   await renderShowcase()
   const user = nativeWindowUser()

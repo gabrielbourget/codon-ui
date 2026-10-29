@@ -1,4 +1,5 @@
 import { createRef } from "react"
+import { Pressable } from "react-native"
 
 import { ListBoxItem, Select, type SelectProps, type TNativeListBoxItemRef, type TNativeSelectRef } from "../src"
 
@@ -53,3 +54,30 @@ export const InvalidSelectLabel: SelectProps<{ id: string; name: string }> = {
 }
 // @ts-expect-error CSS lengths are not native dimensions
 export const InvalidSelectWidth: SelectProps<{ id: string; name: string }> = { ...ValidSelectProps, width: "10px" }
+
+export const RenderedRow = (
+  <ListBoxItem
+    id={0}
+    textValue="Choice"
+    customStyles={{ color: "#123456" }}
+    style={({ defaultStyle }) => ({ ...defaultStyle, color: "#abcdef" })}
+    render={(props, state) => <Pressable {...props} nativeID={String(state.isSelected)} />}
+  >
+    {({ defaultChildren, isSelected }) => defaultChildren ?? String(isSelected)}
+  </ListBoxItem>
+)
+export const InvalidRowDOMRenderer = (
+  // @ts-expect-error Row renderer receives native Pressable props and View ref.
+  <ListBoxItem id={0} textValue="Choice" render={(_props: { ref: HTMLDivElement }) => <Pressable />} />
+)
+export const InvalidRowCollectionState = (
+  <ListBoxItem
+    id={0}
+    textValue="Choice"
+    render={(props, state) => {
+      // @ts-expect-error The original standalone row has no React Aria collection/drag state.
+      void state.selectionBehavior
+      return <Pressable {...props} />
+    }}
+  />
+)
