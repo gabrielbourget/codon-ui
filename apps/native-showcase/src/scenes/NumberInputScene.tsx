@@ -94,6 +94,7 @@ const NumberExamples = () => {
         {...common}
         ref={input}
         testID="number-fraction"
+        render={(props, state) => <View {...props} nativeID={`number-value-${String(state.value)}`} />}
         accessibilityLabel="Fractional quantity"
         incrementLabel="Increase fractional quantity"
         decrementLabel="Decrease fractional quantity"

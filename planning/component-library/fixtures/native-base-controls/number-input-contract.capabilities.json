@@ -1,0 +1,1416 @@
+{
+  "canonicalSourceRef": "ddc9f066f67af4742e05e04bd870726141c44129",
+  "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions.",
+  "canonicalPropertyCount": 131,
+  "nativePropertyCount": 41,
+  "props": {
+    "aria-describedby": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "aria-details": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "aria-label": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.number-input.011",
+      "disposition": "APPROVED_NATIVE_NAMES",
+      "nativeProp": "aria-label",
+      "nativeType": "string | undefined",
+      "expected": "Original nonempty native editor name plus two explicit contextual increment/decrement labels. Native alias precedence retained; no accessible composite parent or React Aria internal group label/relationship producer. Host owns labels/hints.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "aria-labelledby": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.number-input.011",
+      "disposition": "APPROVED_NATIVE_NAMES",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original nonempty native editor name plus two explicit contextual increment/decrement labels. Native alias precedence retained; no accessible composite parent or React Aria internal group label/relationship producer. Host owns labels/hints.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "autoFocus": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.number-input.018",
+      "disposition": "APPROVED_NATIVE_EDITOR_EVENT",
+      "nativeProp": "inputProps.autoFocus",
+      "nativeType": null,
+      "expected": "Original explicit TextInput allowlist owns native focus/blur/autoFocus; original native observer objects run after numeric ownership. Public ref remains actual TextInput while renderer owns root View.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "children": {
+      "canonicalType": "import(\"react-aria-components/dist/types/src/utils\").ChildrenOrFunction<NumberFieldRenderProps>",
+      "required": false,
+      "capability": "CAP.number-input.015",
+      "disposition": "OWNED_CANONICAL_CHILDREN",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Canonical wrapper supplies its own Group/Input/two Buttons, replacing inherited children. Native retains owned editor/two buttons and excludes arbitrary children.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "className": {
+      "canonicalType": "import(\"react-aria-components/dist/types/src/utils\").ClassNameOrFunction<NumberFieldRenderProps> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.010",
+      "disposition": "APPROVED_NATIVE_STYLE",
+      "nativeProp": "customStyles/style",
+      "nativeType": null,
+      "expected": "Original root ViewStyle \u2192 group ViewStyle \u2192 editor TextStyle \u2192 button native style owners; final root callback sees post-custom defaultStyle/native numeric state. CSS root foreground is authored through native input/button foreground owners, with no arbitrary CSS inheritance. Root border alone follows250ms ease-in-out; background/radius/outline are immediate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "commitBehavior": {
+      "canonicalType": "\"validate\" | \"snap\" | undefined",
+      "required": false,
+      "capability": "CAP.number-input.019",
+      "disposition": "APPROVED_HOST_VALIDATION_AND_COMMIT_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approval excludes web form/schema/required/validate/commitBehavior APIs. Host error/warning/success presentation and explanations remain; one explicit native final-event normalization policy is implemented.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "customButtonStyles": {
+      "canonicalType": "CSSProperties | undefined",
+      "required": false,
+      "capability": "CAP.number-input.010",
+      "disposition": "APPROVED_NATIVE_STYLE",
+      "nativeProp": "customButtonStyles",
+      "nativeType": "StyleProp<TextStyle>",
+      "expected": "Original root ViewStyle \u2192 group ViewStyle \u2192 editor TextStyle \u2192 button native style owners; final root callback sees post-custom defaultStyle/native numeric state. CSS root foreground is authored through native input/button foreground owners, with no arbitrary CSS inheritance. Root border alone follows250ms ease-in-out; background/radius/outline are immediate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "customGroupStyles": {
+      "canonicalType": "CSSProperties | undefined",
+      "required": false,
+      "capability": "CAP.number-input.010",
+      "disposition": "APPROVED_NATIVE_STYLE",
+      "nativeProp": "customGroupStyles",
+      "nativeType": "StyleProp<ViewStyle>",
+      "expected": "Original root ViewStyle \u2192 group ViewStyle \u2192 editor TextStyle \u2192 button native style owners; final root callback sees post-custom defaultStyle/native numeric state. CSS root foreground is authored through native input/button foreground owners, with no arbitrary CSS inheritance. Root border alone follows250ms ease-in-out; background/radius/outline are immediate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "customInputStyles": {
+      "canonicalType": "CSSProperties | undefined",
+      "required": false,
+      "capability": "CAP.number-input.010",
+      "disposition": "APPROVED_NATIVE_STYLE",
+      "nativeProp": "customInputStyles",
+      "nativeType": "StyleProp<TextStyle>",
+      "expected": "Original root ViewStyle \u2192 group ViewStyle \u2192 editor TextStyle \u2192 button native style owners; final root callback sees post-custom defaultStyle/native numeric state. CSS root foreground is authored through native input/button foreground owners, with no arbitrary CSS inheritance. Root border alone follows250ms ease-in-out; background/radius/outline are immediate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "customStyles": {
+      "canonicalType": "CSSProperties | undefined",
+      "required": false,
+      "capability": "CAP.number-input.010",
+      "disposition": "APPROVED_NATIVE_STYLE",
+      "nativeProp": "customStyles",
+      "nativeType": "StyleProp<ViewStyle>",
+      "expected": "Original root ViewStyle \u2192 group ViewStyle \u2192 editor TextStyle \u2192 button native style owners; final root callback sees post-custom defaultStyle/native numeric state. CSS root foreground is authored through native input/button foreground owners, with no arbitrary CSS inheritance. Root border alone follows250ms ease-in-out; background/radius/outline are immediate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "data-testid": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "data-testid",
+      "nativeType": "string | undefined",
+      "expected": "Original supported native property and platform applicability, root/editor owner and native name/identity/guard precedence remain exact.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "decrementAriaLabel": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.number-input.011",
+      "disposition": "APPROVED_NATIVE_NAMES",
+      "nativeProp": "decrementLabel",
+      "nativeType": "string",
+      "expected": "Original nonempty native editor name plus two explicit contextual increment/decrement labels. Native alias precedence retained; no accessible composite parent or React Aria internal group label/relationship producer. Host owns labels/hints.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "DecrementIcon": {
+      "canonicalType": "ReactNode",
+      "required": false,
+      "capability": "CAP.number-input.012",
+      "disposition": "APPROVED_NATIVE_GLYPHS",
+      "nativeProp": "DecrementIcon",
+      "nativeType": "ReactNode",
+      "expected": "Original native15-unit View plus/minus; undefined defaults, explicit null hides while preserving named target. Authored icon nodes remain decorative. Canonical chevron SVG/falsy fallback is retained as source evidence, not promised native glyph semantics.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "defaultValue": {
+      "canonicalType": "number | undefined",
+      "required": false,
+      "capability": "CAP.number-input.016",
+      "disposition": "APPROVED_NULLABLE_NATIVE_OWNERSHIP",
+      "nativeProp": "defaultValue",
+      "nativeType": "number | null | undefined",
+      "expected": "Undefined selects uncontrolled at mount; null is empty; default initializes once. Preserve explicit ownership-mode rejection, raw draft versus authoritative numeric value, final-event commit/step, controlled veto/echo, dedup and no eager prop normalization.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "dir": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "enableFocusStyle": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.number-input.003",
+      "disposition": "APPROVED_NATIVE_PRESENTATION",
+      "nativeProp": "enableFocusStyle",
+      "nativeType": "boolean | undefined",
+      "expected": "Original native dimensions/radius/text-size tokens, wrapping three-target layout and each44/48 target, group focus-within outline/offset and opt-outs. Explicit constraints/clipping remain host-owned.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "errorState": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.number-input.008",
+      "disposition": "NATIVE_VALIDATION_PRESENTATION",
+      "nativeProp": "errorState",
+      "nativeType": "boolean | undefined",
+      "expected": "Original error\u2192warning\u2192success\u2192normal border priority; isInvalid reflects host errorState, no inferred schema validation.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "form": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.number-input.019",
+      "disposition": "APPROVED_HOST_VALIDATION_AND_COMMIT_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approval excludes web form/schema/required/validate/commitBehavior APIs. Host error/warning/success presentation and explanations remain; one explicit native final-event normalization policy is implemented.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "formatOptions": {
+      "canonicalType": "Intl.NumberFormatOptions | undefined",
+      "required": false,
+      "capability": "CAP.number-input.017",
+      "disposition": "APPROVED_DECIMAL_MODEL",
+      "nativeProp": "formatOptions",
+      "nativeType": "TNativeNumberInputFormatOptions | undefined",
+      "expected": "Original decimal-only format, precision0..6/defaultmax3, grouping/defaulttrue, optional positive step, fixed integer units/safe arithmetic, lexical parser and bound/grid/tie policies. Full web Intl/commit options remain explicitly excluded.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "geometry": {
+      "canonicalType": "\"orthogonal\" | \"rounded\" | \"round\" | undefined",
+      "required": false,
+      "capability": "CAP.number-input.003",
+      "disposition": "APPROVED_NATIVE_PRESENTATION",
+      "nativeProp": "geometry",
+      "nativeType": "\"orthogonal\" | \"rounded\" | \"round\" | undefined",
+      "expected": "Original native dimensions/radius/text-size tokens, wrapping three-target layout and each44/48 target, group focus-within outline/offset and opt-outs. Explicit constraints/clipping remain host-owned.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "height": {
+      "canonicalType": "number | undefined",
+      "required": false,
+      "capability": "CAP.number-input.003",
+      "disposition": "APPROVED_NATIVE_PRESENTATION",
+      "nativeProp": "height",
+      "nativeType": "import(\"react-native/types/index\").DimensionValue | undefined",
+      "expected": "Original native dimensions/radius/text-size tokens, wrapping three-target layout and each44/48 target, group focus-within outline/offset and opt-outs. Explicit constraints/clipping remain host-owned.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "hidden": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "id": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "id",
+      "nativeType": "string | undefined",
+      "expected": "Original supported native property and platform applicability, root/editor owner and native name/identity/guard precedence remain exact.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "incrementAriaLabel": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.number-input.011",
+      "disposition": "APPROVED_NATIVE_NAMES",
+      "nativeProp": "incrementLabel",
+      "nativeType": "string",
+      "expected": "Original nonempty native editor name plus two explicit contextual increment/decrement labels. Native alias precedence retained; no accessible composite parent or React Aria internal group label/relationship producer. Host owns labels/hints.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "IncrementIcon": {
+      "canonicalType": "ReactNode",
+      "required": false,
+      "capability": "CAP.number-input.012",
+      "disposition": "APPROVED_NATIVE_GLYPHS",
+      "nativeProp": "IncrementIcon",
+      "nativeType": "ReactNode",
+      "expected": "Original native15-unit View plus/minus; undefined defaults, explicit null hides while preserving named target. Authored icon nodes remain decorative. Canonical chevron SVG/falsy fallback is retained as source evidence, not promised native glyph semantics.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "inert": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "isDisabled": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.number-input.007",
+      "disposition": "NATIVE_GUARDS",
+      "nativeProp": "isDisabled",
+      "nativeType": "boolean | undefined",
+      "expected": "Guard takeover cancels draft/press/commit/actions. Disabled opacity once per branch; read-only permits discovery/focus and disables mutation without disabling its button solely for read-only.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "isInvalid": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.number-input.019",
+      "disposition": "APPROVED_HOST_VALIDATION_AND_COMMIT_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approval excludes web form/schema/required/validate/commitBehavior APIs. Host error/warning/success presentation and explanations remain; one explicit native final-event normalization policy is implemented.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "isReadOnly": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.number-input.007",
+      "disposition": "NATIVE_GUARDS",
+      "nativeProp": "isReadOnly",
+      "nativeType": "boolean | undefined",
+      "expected": "Guard takeover cancels draft/press/commit/actions. Disabled opacity once per branch; read-only permits discovery/focus and disables mutation without disabling its button solely for read-only.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "isRequired": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.number-input.019",
+      "disposition": "APPROVED_HOST_VALIDATION_AND_COMMIT_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approval excludes web form/schema/required/validate/commitBehavior APIs. Host error/warning/success presentation and explanations remain; one explicit native final-event normalization policy is implemented.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "isWheelDisabled": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.number-input.019",
+      "disposition": "APPROVED_NATIVE_COORDINATION_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original NumberInput excludes React Aria slot/state, wheel/Arrow/Home/End interception and hold-repeat; native keyboard hints/focus/editor event allowlist stay original.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "labels": {
+      "canonicalType": "Partial<import(\"packages/react/src/components/NumberInput/labels\").TNumberInputLabels> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.011",
+      "disposition": "APPROVED_NATIVE_NAMES",
+      "nativeProp": "accessibilityLabel/incrementLabel/decrementLabel",
+      "nativeType": null,
+      "expected": "Original nonempty native editor name plus two explicit contextual increment/decrement labels. Native alias precedence retained; no accessible composite parent or React Aria internal group label/relationship producer. Host owns labels/hints.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "lang": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "maxValue": {
+      "canonicalType": "number | undefined",
+      "required": false,
+      "capability": "CAP.number-input.017",
+      "disposition": "APPROVED_DECIMAL_MODEL",
+      "nativeProp": "maxValue",
+      "nativeType": "number | undefined",
+      "expected": "Original decimal-only format, precision0..6/defaultmax3, grouping/defaulttrue, optional positive step, fixed integer units/safe arithmetic, lexical parser and bound/grid/tie policies. Full web Intl/commit options remain explicitly excluded.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "minValue": {
+      "canonicalType": "number | undefined",
+      "required": false,
+      "capability": "CAP.number-input.017",
+      "disposition": "APPROVED_DECIMAL_MODEL",
+      "nativeProp": "minValue",
+      "nativeType": "number | undefined",
+      "expected": "Original decimal-only format, precision0..6/defaultmax3, grouping/defaulttrue, optional positive step, fixed integer units/safe arithmetic, lexical parser and bound/grid/tie policies. Full web Intl/commit options remain explicitly excluded.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "name": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.number-input.019",
+      "disposition": "APPROVED_HOST_VALIDATION_AND_COMMIT_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approval excludes web form/schema/required/validate/commitBehavior APIs. Host error/warning/success presentation and explanations remain; one explicit native final-event normalization policy is implemented.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "offsetFocusRing": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.number-input.003",
+      "disposition": "APPROVED_NATIVE_PRESENTATION",
+      "nativeProp": "offsetFocusRing",
+      "nativeType": "boolean | undefined",
+      "expected": "Original native dimensions/radius/text-size tokens, wrapping three-target layout and each44/48 target, group focus-within outline/offset and opt-outs. Explicit constraints/clipping remain host-owned.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onAnimationEnd": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onAnimationEndCapture": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onAnimationIteration": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onAnimationIterationCapture": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onAnimationStart": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onAnimationStartCapture": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onAuxClick": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onAuxClickCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onBeforeInput": {
+      "canonicalType": "import(\"@types/react/index\").FormEventHandler<HTMLInputElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onBlur": {
+      "canonicalType": "((e: import(\"@types/react/index\").FocusEvent<Element, Element>) => void) | undefined",
+      "required": false,
+      "capability": "CAP.number-input.018",
+      "disposition": "APPROVED_NATIVE_EDITOR_EVENT",
+      "nativeProp": "inputProps.onBlur",
+      "nativeType": null,
+      "expected": "Original explicit TextInput allowlist owns native focus/blur/autoFocus; original native observer objects run after numeric ownership. Public ref remains actual TextInput while renderer owns root View.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onChange": {
+      "canonicalType": "((value: number) => void) | undefined",
+      "required": false,
+      "capability": "CAP.number-input.016",
+      "disposition": "APPROVED_NULLABLE_NATIVE_OWNERSHIP",
+      "nativeProp": "onChange",
+      "nativeType": "((value: number | null) => void) | undefined",
+      "expected": "Undefined selects uncontrolled at mount; null is empty; default initializes once. Preserve explicit ownership-mode rejection, raw draft versus authoritative numeric value, final-event commit/step, controlled veto/echo, dedup and no eager prop normalization.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onClick": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onClickCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onCompositionEnd": {
+      "canonicalType": "import(\"@types/react/index\").CompositionEventHandler<HTMLInputElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onCompositionStart": {
+      "canonicalType": "import(\"@types/react/index\").CompositionEventHandler<HTMLInputElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onCompositionUpdate": {
+      "canonicalType": "import(\"@types/react/index\").CompositionEventHandler<HTMLInputElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onContextMenu": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onContextMenuCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onCopy": {
+      "canonicalType": "import(\"@types/react/index\").ClipboardEventHandler<HTMLInputElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onCut": {
+      "canonicalType": "import(\"@types/react/index\").ClipboardEventHandler<HTMLInputElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onDoubleClick": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onDoubleClickCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onFocus": {
+      "canonicalType": "((e: import(\"@types/react/index\").FocusEvent<Element, Element>) => void) | undefined",
+      "required": false,
+      "capability": "CAP.number-input.018",
+      "disposition": "APPROVED_NATIVE_EDITOR_EVENT",
+      "nativeProp": "inputProps.onFocus",
+      "nativeType": null,
+      "expected": "Original explicit TextInput allowlist owns native focus/blur/autoFocus; original native observer objects run after numeric ownership. Public ref remains actual TextInput while renderer owns root View.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onFocusChange": {
+      "canonicalType": "((isFocused: boolean) => void) | undefined",
+      "required": false,
+      "capability": "CAP.number-input.019",
+      "disposition": "APPROVED_NATIVE_COORDINATION_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original NumberInput excludes React Aria slot/state, wheel/Arrow/Home/End interception and hold-repeat; native keyboard hints/focus/editor event allowlist stay original.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onGotPointerCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onGotPointerCaptureCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onInput": {
+      "canonicalType": "import(\"@types/react/index\").FormEventHandler<HTMLInputElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onKeyDown": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").KeyboardEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.number-input.019",
+      "disposition": "APPROVED_NATIVE_COORDINATION_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original NumberInput excludes React Aria slot/state, wheel/Arrow/Home/End interception and hold-repeat; native keyboard hints/focus/editor event allowlist stay original.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onKeyUp": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").KeyboardEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.number-input.019",
+      "disposition": "APPROVED_NATIVE_COORDINATION_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original NumberInput excludes React Aria slot/state, wheel/Arrow/Home/End interception and hold-repeat; native keyboard hints/focus/editor event allowlist stay original.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onLostPointerCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onLostPointerCaptureCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onMouseDown": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onMouseDownCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onMouseEnter": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onMouseLeave": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onMouseMove": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onMouseMoveCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onMouseOut": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onMouseOutCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onMouseOver": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onMouseOverCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onMouseUp": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onMouseUpCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onPaste": {
+      "canonicalType": "import(\"@types/react/index\").ClipboardEventHandler<HTMLInputElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onPointerCancel": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onPointerCancelCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onPointerDown": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onPointerDownCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onPointerEnter": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onPointerLeave": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onPointerMove": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onPointerMoveCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onPointerOut": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onPointerOutCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onPointerOver": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onPointerOverCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onPointerUp": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onPointerUpCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onScroll": {
+      "canonicalType": "import(\"@types/react/index\").UIEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onScrollCapture": {
+      "canonicalType": "import(\"@types/react/index\").UIEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onSelect": {
+      "canonicalType": "import(\"@types/react/index\").ReactEventHandler<HTMLInputElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onTouchCancel": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onTouchCancelCapture": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onTouchEnd": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onTouchEndCapture": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onTouchMove": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onTouchMoveCapture": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onTouchStart": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onTouchStartCapture": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onTransitionCancel": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onTransitionCancelCapture": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onTransitionEnd": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onTransitionEndCapture": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onTransitionRun": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onTransitionRunCapture": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onTransitionStart": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onTransitionStartCapture": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onWheel": {
+      "canonicalType": "import(\"@types/react/index\").WheelEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.019",
+      "disposition": "APPROVED_NATIVE_COORDINATION_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original NumberInput excludes React Aria slot/state, wheel/Arrow/Home/End interception and hold-repeat; native keyboard hints/focus/editor event allowlist stay original.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "onWheelCapture": {
+      "canonicalType": "import(\"@types/react/index\").WheelEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.019",
+      "disposition": "APPROVED_NATIVE_COORDINATION_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original NumberInput excludes React Aria slot/state, wheel/Arrow/Home/End interception and hold-repeat; native keyboard hints/focus/editor event allowlist stay original.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "placeholder": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "placeholder",
+      "nativeType": "string | undefined",
+      "expected": "Original supported native property and platform applicability, root/editor owner and native name/identity/guard precedence remain exact.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "render": {
+      "canonicalType": "import(\"react-aria-components/dist/types/src/utils\").DOMRenderFunction<\"div\", NumberFieldRenderProps> | undefined",
+      "required": false,
+      "capability": "CAP.number-input.015",
+      "disposition": "NATIVE_ROOT_RENDERER",
+      "nativeProp": "render",
+      "nativeType": "((props: ViewProps, state: TNativeNumberInputRenderState) => ReactElement) | undefined",
+      "expected": "Original root View props and owned editor/button children, current native numeric/render state after style. Renderer preserves original editor ref and field ownership, without React Aria state object or DOM root ref.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "slot": {
+      "canonicalType": "string | null | undefined",
+      "required": false,
+      "capability": "CAP.number-input.019",
+      "disposition": "APPROVED_NATIVE_COORDINATION_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original NumberInput excludes React Aria slot/state, wheel/Arrow/Home/End interception and hold-repeat; native keyboard hints/focus/editor event allowlist stay original.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "step": {
+      "canonicalType": "number | undefined",
+      "required": false,
+      "capability": "CAP.number-input.017",
+      "disposition": "APPROVED_DECIMAL_MODEL",
+      "nativeProp": "step",
+      "nativeType": "number | undefined",
+      "expected": "Original decimal-only format, precision0..6/defaultmax3, grouping/defaulttrue, optional positive step, fixed integer units/safe arithmetic, lexical parser and bound/grid/tie policies. Full web Intl/commit options remain explicitly excluded.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "style": {
+      "canonicalType": "(CSSProperties | ((values: NumberFieldRenderProps & { defaultStyle: CSSProperties; }) => CSSProperties | undefined)) | undefined",
+      "required": false,
+      "capability": "CAP.number-input.010",
+      "disposition": "APPROVED_NATIVE_STYLE",
+      "nativeProp": "style",
+      "nativeType": "StyleProp<ViewStyle> | ((state: TNativeNumberInputStyleState) => StyleProp<ViewStyle>)",
+      "expected": "Original root ViewStyle \u2192 group ViewStyle \u2192 editor TextStyle \u2192 button native style owners; final root callback sees post-custom defaultStyle/native numeric state. CSS root foreground is authored through native input/button foreground owners, with no arbitrary CSS inheritance. Root border alone follows250ms ease-in-out; background/radius/outline are immediate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "successState": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.number-input.008",
+      "disposition": "NATIVE_VALIDATION_PRESENTATION",
+      "nativeProp": "successState",
+      "nativeType": "boolean | undefined",
+      "expected": "Original error\u2192warning\u2192success\u2192normal border priority; isInvalid reflects host errorState, no inferred schema validation.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "textSize": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.number-input.003",
+      "disposition": "APPROVED_NATIVE_PRESENTATION",
+      "nativeProp": "textSize",
+      "nativeType": "\"small\" | \"medium\" | \"large\" | undefined",
+      "expected": "Original native dimensions/radius/text-size tokens, wrapping three-target layout and each44/48 target, group focus-within outline/offset and opt-outs. Explicit constraints/clipping remain host-owned.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "translate": {
+      "canonicalType": "\"yes\" | \"no\" | undefined",
+      "required": false,
+      "capability": "CAP.number-input.020",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved explicit root/View and inputProps/TextInput allowlists exclude DOM attributes/events/form/CSS/React Aria protocols. Native event observers remain available only at their original named native surface.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "validate": {
+      "canonicalType": "((value: number) => import(\"@react-types/shared/src/inputs\").ValidationError | true | null | undefined) | undefined",
+      "required": false,
+      "capability": "CAP.number-input.019",
+      "disposition": "APPROVED_HOST_VALIDATION_AND_COMMIT_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approval excludes web form/schema/required/validate/commitBehavior APIs. Host error/warning/success presentation and explanations remain; one explicit native final-event normalization policy is implemented.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "validationBehavior": {
+      "canonicalType": "\"native\" | \"aria\" | undefined",
+      "required": false,
+      "capability": "CAP.number-input.019",
+      "disposition": "APPROVED_HOST_VALIDATION_AND_COMMIT_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approval excludes web form/schema/required/validate/commitBehavior APIs. Host error/warning/success presentation and explanations remain; one explicit native final-event normalization policy is implemented.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "value": {
+      "canonicalType": "number | undefined",
+      "required": false,
+      "capability": "CAP.number-input.016",
+      "disposition": "APPROVED_NULLABLE_NATIVE_OWNERSHIP",
+      "nativeProp": "value",
+      "nativeType": "number | null | undefined",
+      "expected": "Undefined selects uncontrolled at mount; null is empty; default initializes once. Preserve explicit ownership-mode rejection, raw draft versus authoritative numeric value, final-event commit/step, controlled veto/echo, dedup and no eager prop normalization.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "warningState": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.number-input.008",
+      "disposition": "NATIVE_VALIDATION_PRESENTATION",
+      "nativeProp": "warningState",
+      "nativeType": "boolean | undefined",
+      "expected": "Original error\u2192warning\u2192success\u2192normal border priority; isInvalid reflects host errorState, no inferred schema validation.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    },
+    "width": {
+      "canonicalType": "number | undefined",
+      "required": false,
+      "capability": "CAP.number-input.003",
+      "disposition": "APPROVED_NATIVE_PRESENTATION",
+      "nativeProp": "width",
+      "nativeType": "import(\"react-native/types/index\").DimensionValue | undefined",
+      "expected": "Original native dimensions/radius/text-size tokens, wrapping three-target layout and each44/48 target, group focus-within outline/offset and opt-outs. Explicit constraints/clipping remain host-owned.",
+      "authority": "db54a8a:docs/roadmaps/react-native-number-input-pass.md approved four passes and ledger8.24/8.25; explicit consumer-owned Intl follow-up; standing conventional-port3.5. Preserve nullable decimal/raw draft/final native commits, bounded precision/configuration, editor ref, native event allowlist/names/layout/styles and original DOM/form/React Aria/keyboard exclusions."
+    }
+  },
+  "nativeOnlyProps": [
+    {
+      "name": "accessibilityLabel",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": [
+        "packages/react-native/src/components/NumberInput/types.ts",
+        "packages/react-native/src/components/NumberInput/types.ts"
+      ]
+    },
+    {
+      "name": "collapsable",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "decrementLabel",
+      "optional": false,
+      "type": "string",
+      "declarations": ["packages/react-native/src/components/NumberInput/types.ts"]
+    },
+    {
+      "name": "incrementLabel",
+      "optional": false,
+      "type": "string",
+      "declarations": ["packages/react-native/src/components/NumberInput/types.ts"]
+    },
+    {
+      "name": "inputProps",
+      "optional": true,
+      "type": "TNativeNumberInputInputProps | undefined",
+      "declarations": ["packages/react-native/src/components/NumberInput/types.ts"]
+    },
+    {
+      "name": "locale",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": ["packages/react-native/src/components/NumberInput/types.ts"]
+    },
+    {
+      "name": "nativeID",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "onChangeText",
+      "optional": true,
+      "type": "((text: string) => void) | undefined",
+      "declarations": ["packages/react-native/src/components/NumberInput/types.ts"]
+    },
+    {
+      "name": "onLayout",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").LayoutChangeEvent) => void) | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "pointerEvents",
+      "optional": true,
+      "type": "\"box-none\" | \"none\" | \"box-only\" | \"auto\" | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "testID",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    }
+  ],
+  "renderStateMapping": {
+    "canonical": ["isDisabled", "isReadOnly", "isInvalid", "isRequired", "state:NumberFieldState"],
+    "native": [
+      "value:number|null",
+      "inputValue:string",
+      "isFocused",
+      "isDisabled",
+      "isReadOnly",
+      "isInvalid",
+      "canIncrement",
+      "canDecrement"
+    ],
+    "originalApproval": "isInvalid follows host errorState; no required/schema/React Aria state producer; public ref is native TextInput."
+  },
+  "originalNativeAdaptations": [
+    "Nullable numeric values and tolerant raw drafts, original final-event commit/step/dedup/veto policies",
+    "Bounded decimal0..6 precision, original pinned number parser/formatter and explicit consumer Intl preparation",
+    "Nonaccessible wrapping root with native editor/two named targets and own custom accessibility actions",
+    "Native View plus/minus glyphs, undefined differs from null; native sizes/geometry/color/style owners",
+    "Explicit native event/option allowlist and original form/React Aria/keyboard/hold exclusions"
+  ],
+  "motion": {
+    "rootBorder": "250ms cubic-bezier(.42,0,.58,1), final-style target, current-paint retarget, opaque passthrough, live Reduce Motion and cleanup",
+    "otherProperties": "No new root background/radius/outline clock. Root CSS text color maps to original native editor/button style owners; private Input/Button retain existing own contracts.",
+    "nativeActions": 0
+  },
+  "scope": "Complete8canonicalfiles,14originalrootcases plus actual root/ref/ownedchildren/style-order oracle; roadmap3.5.76. SourceG01 only."
+}
