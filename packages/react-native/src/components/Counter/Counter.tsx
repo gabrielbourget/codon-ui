@@ -11,7 +11,7 @@ import { resolveNativeStyle, validateNativeColor } from "../colors"
 import { validateNativeDisplayDimension } from "../displayDimensions"
 import { useNativeLinkColor } from "../Link/motion"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
-import { Text } from "../Text/Text"
+import { NativeText as Text } from "../Text/Text"
 
 import { getNativeCounterStatus } from "./model"
 import type { TNativeCounterProps, TNativeCounterRef } from "./types"
@@ -128,11 +128,15 @@ export const Counter = forwardRef<TNativeCounterRef, TNativeCounterProps>((props
           testID={`${identity}-text-row`}
           style={{ height: "100%", flexDirection: "row", justifyContent: "center", alignItems: "center" }}
         >
-          <Text testID={`${identity}-value`} customStyles={{ ...textStyle, color: textColor }}>
+          <Text testID={`${identity}-value`} customStyles={{ ...textStyle, color: textColor }} nativeColorIsAnimated>
             {value}
           </Text>
           {showMaxValue && maxValue ? (
-            <Text testID={`${identity}-max`} customStyles={{ ...textStyle, color: textColor }}>{`/${maxValue}`}</Text>
+            <Text
+              testID={`${identity}-max`}
+              customStyles={{ ...textStyle, color: textColor }}
+              nativeColorIsAnimated
+            >{`/${maxValue}`}</Text>
           ) : null}
         </View>
         {getNativeButtonContent(children)}

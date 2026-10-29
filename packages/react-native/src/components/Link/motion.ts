@@ -3,12 +3,13 @@ import { AccessibilityInfo, Animated, Easing, processColor, type ColorValue } fr
 
 const linkColorEasing = Easing.bezier(0, 0, 0.58, 1)
 
-export const useNativeLinkColor = (target: ColorValue, duration = 125, easing = linkColorEasing) => {
+export const useNativeLinkColor = (target: ColorValue, duration = 125, easing = linkColorEasing, enabled = true) => {
   const [reduced, setReduced] = useState(true)
   const [rendered, setRendered] = useState(target)
   const current = useRef(target)
   const [progress] = useState(() => new Animated.Value(0))
   useEffect(() => {
+    if (!enabled) return
     let active = true
     let changed = false
     const subscription = AccessibilityInfo.addEventListener("reduceMotionChanged", (value) => {
@@ -25,11 +26,11 @@ export const useNativeLinkColor = (target: ColorValue, duration = 125, easing = 
       active = false
       subscription.remove()
     }
-  }, [])
+  }, [enabled])
   useEffect(() => {
     const from = processColor(current.current)
     const to = processColor(target)
-    if (reduced || typeof from !== "number" || typeof to !== "number" || from === to) {
+    if (!enabled || reduced || typeof from !== "number" || typeof to !== "number" || from === to) {
       current.current = target
       setRendered(target)
       return
@@ -60,6 +61,6 @@ export const useNativeLinkColor = (target: ColorValue, duration = 125, easing = 
       animation.stop()
       progress.removeListener(listener)
     }
-  }, [target, reduced, progress, duration, easing])
-  return reduced || typeof processColor(target) !== "number" ? target : rendered
+  }, [target, reduced, progress, duration, easing, enabled])
+  return !enabled || reduced || typeof processColor(target) !== "number" ? target : rendered
 }

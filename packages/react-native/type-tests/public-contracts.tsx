@@ -33,6 +33,8 @@ export const InvalidTextClick = <Text onClick={() => undefined} />
 export const InvalidTextUnit = <Text style={{ fontSize: "1.4rem" }} />
 // @ts-expect-error Only reviewed variant names are public.
 export const InvalidTextVariant = <Text variant="caption" />
+// @ts-expect-error Existing native owners alone can suppress a duplicate color clock.
+export const InvalidTextColorOwner = <Text nativeColorIsAnimated />
 // @ts-expect-error A browser-shaped node is not an RN Text instance.
 export const InvalidTextRef = <Text ref={createRef<{ tagName: string; focus: () => void }>()} />
 export const ResetTextTypography = (

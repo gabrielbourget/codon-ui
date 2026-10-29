@@ -165,6 +165,32 @@ describe("Text public native contract", () => {
     expect(screen.getByText("Strong intent")).toHaveStyle({ fontWeight: "400" })
   })
 
+  it.each([
+    ["d1", { body: "Body", heading: "Heading" }, "Heading"],
+    ["d1", { body: "Body", heading: "Heading", display: "Display" }, "Display"],
+    ["h1", { body: "Body" }, "Body"],
+  ] as const)("preserves the canonical %s font-family fallback chain", async (variant, fontFamilies, expected) => {
+    await render(
+      <NativeThemeProvider overrides={{ typography: { fontFamilies } }}>
+        <Text variant={variant}>Family</Text>
+      </NativeThemeProvider>,
+    )
+    expect(screen.getByText("Family")).toHaveStyle({ fontFamily: expected })
+  })
+
+  it("inherits an authored parent italic style while keeping the child variant and weight defaults", async () => {
+    await render(
+      <Text fontStyle="italic" fontWeight="bold" variant="h1">
+        <Text testID="inherited-italic">Inherited</Text>
+        <Text testID="normal-override" style={{ fontStyle: "normal" }}>
+          Override
+        </Text>
+      </Text>,
+    )
+    expect(screen.getByTestId("inherited-italic")).toHaveStyle({ fontStyle: "italic", fontWeight: "400", fontSize: 14 })
+    expect(screen.getByTestId("normal-override")).toHaveStyle({ fontStyle: "normal", fontWeight: "400", fontSize: 14 })
+  })
+
   it("gives native labels/IDs precedence over aliases, including empty values", async () => {
     await render(
       <>

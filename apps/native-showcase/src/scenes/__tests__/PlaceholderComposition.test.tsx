@@ -22,6 +22,8 @@ it("retains the public placeholder and owner count through alignment, empty cont
   await press("Toggle placeholder alignment")
   await press("Toggle empty placeholder")
   await press("Dark theme")
+  expect(placeholder).toHaveStyle({ color: "#707070" })
+  await act(async () => jest.advanceTimersByTime(250))
   await press("Compact width")
   const window = Dimensions.get("window")
   try {
