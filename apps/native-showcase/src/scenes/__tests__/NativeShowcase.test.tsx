@@ -99,6 +99,7 @@ it("composes NumberInput locale/draft/commit/step fixtures and preserves state a
   await fireEvent(input, "submitEditing", { nativeEvent: { text: "0.25" } })
   await fireEvent(input, "endEditing", { nativeEvent: { text: "0.25" } })
   expect(screen.getByTestId("number-state")).toHaveTextContent(/Value: 0.3.*Changes: 1/)
+  expect(screen.getByTestId("number-fraction").props.nativeID).toBe("number-value-0.3")
   await press("Next page number")
   const french = screen.getByTestId("number-french-input")
   await fireEvent.changeText(french, "2\u00a0345,75")

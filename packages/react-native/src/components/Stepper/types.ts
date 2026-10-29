@@ -22,7 +22,10 @@ export type TNativeStepperStyleState = TNativeStepperRenderState & { defaultStyl
 export type TNativeStepperLabels = { inputButtonGroupAriaLabel: string }
 
 type TStepperBase<T> = T extends unknown
-  ? Omit<T, "style" | "customStyles" | "customGroupStyles" | "IncrementIcon" | "DecrementIcon" | "width" | "height">
+  ? Omit<
+      T,
+      "style" | "customStyles" | "customGroupStyles" | "IncrementIcon" | "DecrementIcon" | "width" | "height" | "render"
+    >
   : never
 
 export type TNativeStepperProps = TStepperBase<TNativeNumberInputProps> & {
