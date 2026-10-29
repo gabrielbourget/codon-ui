@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native"
 import { createRef } from "react"
 import type { View } from "react-native"
-import { AccessibilityInfo, Animated, processColor, StyleSheet } from "react-native"
+import { AccessibilityInfo, Animated, Easing, processColor, StyleSheet } from "react-native"
 
 import { Counter, NativeThemeProvider, Text } from "../../.."
 
@@ -195,14 +195,23 @@ it("retains original bubbling core focus and blur callbacks on its native relati
 it("inherits the canonical color transition once, interrupts at current color and cleans up", async () => {
   jest.mocked(AccessibilityInfo.isReduceMotionEnabled).mockResolvedValue(false)
   const remove = jest.spyOn(Animated.Value.prototype, "removeListener")
+  const timing = jest.spyOn(Animated, "timing")
   const { rerender, unmount } = await render(<Counter value={0} style={{ color: "black" }} />)
   await rerender(<Counter value={0} style={{ color: "white" }} />)
+  const transition = timing.mock.calls.at(-1)?.[1]
+  expect(transition?.duration).toBe(250)
+  const ease = Easing.bezier(0.42, 0, 0.58, 1)
+  for (const fraction of [0.25, 0.5, 0.75]) expect(transition?.easing?.(fraction)).toBeCloseTo(ease(fraction), 6)
   await act(async () => jest.advanceTimersByTime(64))
   const current = processColor(StyleSheet.flatten(screen.getByTestId("counter-value").props.style).color) as number
-  expect(current & 255).toBeGreaterThan(128)
-  expect(current & 255).toBeLessThan(255)
+  expect(current & 255).toBeGreaterThan(0)
+  expect(current & 255).toBeLessThan(128)
   await rerender(<Counter value={0} style={{ color: "red" }} />)
   expect(processColor(StyleSheet.flatten(screen.getByTestId("counter-value").props.style).color)).toBe(current)
+  await act(async () => jest.advanceTimersByTime(150))
+  expect(processColor(StyleSheet.flatten(screen.getByTestId("counter-value").props.style).color)).not.toBe(
+    processColor("red"),
+  )
   await act(async () => jest.advanceTimersByTime(150))
   expect(screen.getByTestId("counter-value")).toHaveStyle({ color: "red" })
   await unmount()
