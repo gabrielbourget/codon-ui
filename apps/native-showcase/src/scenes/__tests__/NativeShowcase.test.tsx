@@ -265,6 +265,7 @@ it("composes basic controls, mixed/group selection, text entry and blocked chang
   await user.press(screen.getByRole("switch", { name: "Controlled switch" }))
   await user.press(screen.getByRole("checkbox", { name: "Controlled checkbox" }))
   await user.press(screen.getByRole("checkbox", { name: "Group first" }))
+  expect(screen.getByTestId("basic-group").props.nativeID).toBe("basic-group-first")
   await user.press(screen.getByRole("checkbox", { name: "Group second" }))
   await user.type(screen.getByTestId("basic-input"), "Bonjour", { skipBlur: true })
   await fireEvent(screen.getByTestId("basic-input"), "submitEditing", { nativeEvent: { text: "Bonjour" } })

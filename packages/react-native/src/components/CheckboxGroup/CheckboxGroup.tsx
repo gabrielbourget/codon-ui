@@ -3,6 +3,7 @@ import { View, type ViewStyle } from "react-native"
 
 import { useControlledState } from "../../collection/state/useControlledState"
 import { useNativeTheme } from "../../theme"
+import { getNativeButtonContent } from "../Button/content"
 import { resolveNativeStyle } from "../colors"
 
 import { NativeCheckboxGroupContext } from "./context"
@@ -12,6 +13,7 @@ export const CheckboxGroup = forwardRef<TNativeCheckboxGroupRef, TNativeCheckbox
   (
     {
       children,
+      render,
       value,
       defaultValue = [],
       onChange,
@@ -33,7 +35,7 @@ export const CheckboxGroup = forwardRef<TNativeCheckboxGroupRef, TNativeCheckbox
     const custom = resolveNativeStyle(customStyles, "CheckboxGroup", "customStyles")
     const baseline: ViewStyle = {
       flexDirection: orientation === "horizontal" ? "row" : "column",
-      alignItems: "flex-start",
+      alignItems: "center",
       flexWrap: "wrap",
       gap: theme.spacing.unit * 2,
       ...custom,
@@ -52,6 +54,21 @@ export const CheckboxGroup = forwardRef<TNativeCheckboxGroupRef, TNativeCheckbox
       "CheckboxGroup",
       "resolvedStyle",
     )
+    const state = { value: selected, isDisabled, isReadOnly }
+    const renderedChildren =
+      typeof children === "function" ? children({ ...state, defaultChildren: undefined }) : children
+    const element = (
+      <View
+        {...rest}
+        ref={ref}
+        accessible={false}
+        testID={testID ?? aliasTestID ?? "checkbox-group"}
+        accessibilityLabel={accessibilityLabel ?? aliasLabel}
+        style={resolved}
+      >
+        {getNativeButtonContent(renderedChildren)}
+      </View>
+    )
     return (
       <NativeCheckboxGroupContext.Provider
         value={{
@@ -69,16 +86,7 @@ export const CheckboxGroup = forwardRef<TNativeCheckboxGroupRef, TNativeCheckbox
           },
         }}
       >
-        <View
-          {...rest}
-          ref={ref}
-          accessible={false}
-          testID={testID ?? aliasTestID ?? "checkbox-group"}
-          accessibilityLabel={accessibilityLabel ?? aliasLabel}
-          style={resolved}
-        >
-          {children}
-        </View>
+        {render ? render(element.props, state) : element}
       </NativeCheckboxGroupContext.Provider>
     )
   },
