@@ -1,4 +1,5 @@
 import { createRef } from "react"
+import { View } from "react-native"
 
 import {
   Radio,
@@ -86,3 +87,14 @@ export const InvalidRadioGroupArray = <RadioGroup {...ValidRadioGroupProps} valu
 export const InvalidRadioGroupRole = <RadioGroup {...ValidRadioGroupProps} role="group" />
 // @ts-expect-error group children render normally, without a render callback contract
 export const InvalidRadioGroupChildren = <RadioGroup {...ValidRadioGroupProps}>{() => null}</RadioGroup>
+
+export const RenderedRadioGroup = (
+  <RadioGroup
+    {...ValidRadioGroupProps}
+    render={(props, state) => <View {...props} accessibilityHint={state.value ?? "empty"} />}
+  />
+)
+export const InvalidRadioGroupDOMRenderer = (
+  // @ts-expect-error The inherited renderer receives native View props and its actual View ref.
+  <RadioGroup {...ValidRadioGroupProps} render={(_props: { ref: HTMLDivElement }) => <View />} />
+)

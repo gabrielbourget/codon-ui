@@ -12,6 +12,7 @@ export const RadioGroup = forwardRef<TNativeRadioGroupRef, TNativeRadioGroupProp
   (
     {
       children,
+      render,
       value,
       defaultValue = null,
       onChange,
@@ -37,7 +38,7 @@ export const RadioGroup = forwardRef<TNativeRadioGroupRef, TNativeRadioGroupProp
     const custom = resolveNativeStyle(customStyles, "RadioGroup", "customStyles")
     const baseline: ViewStyle = {
       flexDirection: orientation === "horizontal" ? "row" : "column",
-      alignItems: "flex-start",
+      alignItems: "center",
       flexWrap: "wrap",
       gap: theme.spacing.unit * 2,
       ...custom,
@@ -52,6 +53,23 @@ export const RadioGroup = forwardRef<TNativeRadioGroupRef, TNativeRadioGroupProp
       "RadioGroup",
       "style",
     )
+    const state = { value: selected, isDisabled, isReadOnly }
+    const element = (
+      <View
+        {...rest}
+        ref={ref}
+        accessible={false}
+        role="radiogroup"
+        accessibilityRole="radiogroup"
+        accessibilityState={{ ...accessibilityState, disabled: isDisabled }}
+        aria-disabled={isDisabled}
+        testID={testID ?? aliasTestID ?? "radio-group"}
+        accessibilityLabel={label}
+        style={resolved}
+      >
+        {children}
+      </View>
+    )
     return (
       <NativeRadioGroupContext.Provider
         value={{
@@ -64,20 +82,7 @@ export const RadioGroup = forwardRef<TNativeRadioGroupRef, TNativeRadioGroupProp
           },
         }}
       >
-        <View
-          {...rest}
-          ref={ref}
-          accessible={false}
-          role="radiogroup"
-          accessibilityRole="radiogroup"
-          accessibilityState={{ ...accessibilityState, disabled: isDisabled }}
-          aria-disabled={isDisabled}
-          testID={testID ?? aliasTestID ?? "radio-group"}
-          accessibilityLabel={label}
-          style={resolved}
-        >
-          {children}
-        </View>
+        {render ? render(element.props, state) : element}
       </NativeRadioGroupContext.Provider>
     )
   },
