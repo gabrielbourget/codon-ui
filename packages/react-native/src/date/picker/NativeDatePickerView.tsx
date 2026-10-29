@@ -344,7 +344,7 @@ export const NativeDatePickerView = (
       readOnly: !!props.isReadOnly,
       required: !!props.isRequired,
       invalid: state.isInvalid,
-      expanded: state.isOpen,
+      expanded: false,
     },
     labels: props.nativeAccessibilityLabels,
     activeDescendant: null,
