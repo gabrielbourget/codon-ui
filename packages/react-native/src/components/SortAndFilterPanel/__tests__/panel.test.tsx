@@ -1,6 +1,7 @@
 import "../../../collection/__tests__/nativeReceipts"
 
 import { act as rawAct, cleanup } from "@testing-library/react-native"
+import { useEffect, useState } from "react"
 import { AccessibilityInfo, AppState, View } from "react-native"
 
 import {
@@ -506,4 +507,53 @@ it("runs the maintained panel scene through held Apply, reopen and owner echo", 
   expect(owner().confirmed.sortInstructions[0].criteriaID).toBe("count")
   expect(owner().requests).toHaveLength(2)
   expect(owner().closeRequests).toBe(3)
+})
+
+it("retains the public panel's original editor and dirty draft when owner metadata arrives asynchronously", async () => {
+  let complete!: (metadata: TAvailableFilterCriteria[]) => void
+  const pending = new Promise<TAvailableFilterCriteria[]>((resolve) => {
+    complete = resolve
+  })
+  const apply = jest.fn()
+  const Owner = () => {
+    const [metadata, setMetadata] = useState(criteria)
+    useEffect(() => {
+      let live = true
+      void pending.then((next) => {
+        if (live) setMetadata(next)
+      })
+      return () => {
+        live = false
+      }
+    }, [])
+    return tree({ possibleFilterCriteria: metadata, activeFilters: applied, applyPendingSortAndFilterChanges: apply })
+  }
+  await render(<Owner />)
+  await present()
+  const editor = screen.getByLabelText("Filter Name by contained text")
+  const dialog = host("query-panel-dialog")
+  await fireEvent.changeText(editor, " pending async ")
+  expect(apply).not.toHaveBeenCalled()
+  await act(async () => {
+    complete(
+      criteria.map((criterion) =>
+        criterion.id === "name" ? { ...criterion, name: "Arrived", queryKey: "events.arrived" } : criterion,
+      ),
+    )
+    await pending
+  })
+  await acknowledge()
+  expect(screen.getByLabelText("Filter Arrived by contained text")).toBe(editor)
+  expect(host("query-panel-dialog")).toBe(dialog)
+  expect(editor.props.value).toBe(" pending async ")
+  expect(apply).not.toHaveBeenCalled()
+  await press("Apply")
+  expect(apply).toHaveBeenCalledTimes(1)
+  expect(apply.mock.calls[0][0].filterGroups[0]).toMatchObject({
+    criteriaID: "name",
+    criteriaName: "Arrived",
+    queryKey: "events.arrived",
+    clauses: [{ id: "name-clause", operationCode: "like", argument: "pending async" }],
+  })
+  expect(editor.props.value).toBe(" pending async ")
 })
