@@ -1,5 +1,5 @@
 import { createRef } from "react"
-import { Pressable } from "react-native"
+import { Pressable, View } from "react-native"
 
 import { ListBoxItem, Select, type SelectProps, type TNativeListBoxItemRef, type TNativeSelectRef } from "../src"
 
@@ -78,6 +78,29 @@ export const InvalidRowCollectionState = (
       // @ts-expect-error The original standalone row has no React Aria collection/drag state.
       void state.selectionBehavior
       return <Pressable {...props} />
+    }}
+  />
+)
+
+export const RenderedSelect = (
+  <Select
+    {...ValidSelectProps}
+    customStyles={{ color: "#123456" }}
+    customSelectedItemStyles={{ color: "#abcdef" }}
+    render={(props, state) => <View {...props} nativeID={String(state.isOpen)} />}
+  />
+)
+export const InvalidSelectRootDOMRef = (
+  // @ts-expect-error Native root rendering receives View props; public ref remains the native trigger.
+  <Select {...ValidSelectProps} render={(_props: { ref: HTMLDivElement }) => <View />} />
+)
+export const InvalidSelectRootState = (
+  <Select
+    {...ValidSelectProps}
+    render={(props, state) => {
+      // @ts-expect-error Original native Select state has no React Stately object or required-form state.
+      void state.state
+      return <View {...props} />
     }}
   />
 )

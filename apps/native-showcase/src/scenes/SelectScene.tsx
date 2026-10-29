@@ -79,6 +79,7 @@ export const SelectScene = () => {
       </ListBoxItem>
       <Select
         testID="showcase-select"
+        render={(props, state) => <View {...props} nativeID={state.isOpen ? "showcase-open" : "showcase-closed"} />}
         accessibilityLabel="Showcase choice"
         closeLabel="Close choices"
         placeholder="Choose a value"
