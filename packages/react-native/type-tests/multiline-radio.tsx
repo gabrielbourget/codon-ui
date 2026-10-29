@@ -1,5 +1,5 @@
 import { createRef } from "react"
-import { TextInput, View } from "react-native"
+import { Pressable, TextInput, View } from "react-native"
 
 import {
   Radio,
@@ -108,4 +108,25 @@ export const RenderedTextArea = (
 export const InvalidTextAreaDOMRenderer = (
   // @ts-expect-error Public TextArea root rendering receives native TextInput props/ref.
   <TextArea aria-label="Notes" render={(_props: { ref: HTMLTextAreaElement }) => <TextInput />} />
+)
+
+export const RenderedRadio = (
+  <Radio
+    {...ValidRadioProps}
+    render={(props, state) => <Pressable {...props} accessibilityHint={String(state.isSelected)} />}
+  />
+)
+export const InvalidRadioDOMRenderer = (
+  // @ts-expect-error The native radio renderer receives Pressable props and its original View ref.
+  <Radio {...ValidRadioProps} render={(_props: { ref: HTMLLabelElement }) => <Pressable />} />
+)
+export const InvalidRadioRenderFocusVisible = (
+  <Radio
+    {...ValidRadioProps}
+    render={(props, state) => {
+      // @ts-expect-error The original approved native radio state has no React Aria focus-visible flag.
+      void state.isFocusVisible
+      return <Pressable {...props} />
+    }}
+  />
 )

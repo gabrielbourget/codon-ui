@@ -1,22 +1,12 @@
-import { useEffect, useState } from "react"
 import type { ColorValue, ViewStyle } from "react-native"
 
 import { useNativeLinkColor } from "../Link/motion"
-import { resolveNativeTagTransition, useNativeTagNumber, useNativeTagReducedMotion } from "../Tag/motion"
+import { resolveNativeTagTransition, useNativeTagNumberValue, useNativeTagReducedMotion } from "../Tag/motion"
 
 const colorTiming = resolveNativeTagTransition(250)
 const shadowTiming = resolveNativeTagTransition(450)
 
-const useShadowNumber = (target: number, reduced: boolean) => {
-  const value = useNativeTagNumber(target, shadowTiming, reduced)
-  const [rendered, setRendered] = useState(target)
-  useEffect(() => {
-    if (typeof value !== "object") return
-    const listener = value.addListener(({ value: current }) => setRendered(current))
-    return () => value.removeListener(listener)
-  }, [value])
-  return typeof value === "number" ? value : rendered
-}
+const useShadowNumber = (target: number, reduced: boolean) => useNativeTagNumberValue(target, shadowTiming, reduced)
 
 export const useNativeButtonMotion = (style: ViewStyle, foreground: ColorValue, enabled: boolean) => {
   const reduced = useNativeTagReducedMotion(enabled)

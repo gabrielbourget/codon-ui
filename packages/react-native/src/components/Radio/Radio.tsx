@@ -13,11 +13,13 @@ import {
   useNativeSelectionInteraction,
 } from "../selection"
 
+import { useNativeRadioShape } from "./motion"
 import type { TNativeRadioProps, TNativeRadioRef, TNativeRadioRenderState } from "./types"
 
 export const Radio = forwardRef<TNativeRadioRef, TNativeRadioProps>((props, ref) => {
   const {
     children,
+    render,
     value,
     isDisabled: ownDisabled = false,
     width,
@@ -77,6 +79,7 @@ export const Radio = forwardRef<TNativeRadioRef, TNativeRadioProps>((props, ref)
     "Radio",
     "customShapeStyles",
   )
+  const paintedShape = useNativeRadioShape(shapeStyle)
   const rootStyle = getNativeControlRootStyle(
     "Radio",
     {
@@ -93,35 +96,38 @@ export const Radio = forwardRef<TNativeRadioRef, TNativeRadioProps>((props, ref)
   )
   const rendered = typeof children === "function" ? children({ ...state, defaultChildren: undefined }) : children
   const identity = testID ?? aliasTestID ?? "radio"
+  const element = (
+    <Pressable
+      {...rest}
+      {...handlers}
+      {...hitRegion}
+      ref={ref}
+      accessible
+      role="radio"
+      accessibilityRole="radio"
+      aria-selected={undefined}
+      disabled={isDisabled}
+      focusable={!isDisabled}
+      aria-disabled={isDisabled}
+      aria-checked={state.isSelected}
+      accessibilityState={{ ...accessibilityState, checked: state.isSelected, disabled: isDisabled }}
+      accessibilityLabel={label}
+      testID={identity}
+      style={rootStyle}
+    >
+      <View
+        testID={`${identity}-shape`}
+        style={paintedShape}
+        accessible={false}
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+      />
+      {getNativeControlContent(rendered, { flexShrink: 1 })}
+    </Pressable>
+  )
   return (
     <NativeContentContext.Provider value={{ foregroundColor: theme.colors.foreground, isButton: true }}>
-      <Pressable
-        {...rest}
-        {...handlers}
-        {...hitRegion}
-        ref={ref}
-        accessible
-        role="radio"
-        accessibilityRole="radio"
-        aria-selected={undefined}
-        disabled={isDisabled}
-        focusable={!isDisabled}
-        aria-disabled={isDisabled}
-        aria-checked={state.isSelected}
-        accessibilityState={{ ...accessibilityState, checked: state.isSelected, disabled: isDisabled }}
-        accessibilityLabel={label}
-        testID={identity}
-        style={rootStyle}
-      >
-        <View
-          testID={`${identity}-shape`}
-          style={shapeStyle}
-          accessible={false}
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-        />
-        {getNativeControlContent(rendered, { flexShrink: 1 })}
-      </Pressable>
+      {render ? render(element.props, state) : element}
     </NativeContentContext.Provider>
   )
 })

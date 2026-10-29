@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, userEvent } from "@testing-library/react-native"
+import { act, fireEvent, render, screen, userEvent } from "@testing-library/react-native"
 import { createRef, Fragment } from "react"
 import { Platform, View } from "react-native"
 
@@ -282,9 +282,13 @@ it("uses pressed before hover for unselected marks, stable selected action roles
     </NativeThemeProvider>,
   )
   await fireEvent(screen.getByRole("radio"), "hoverIn", event)
+  expect(screen.getByTestId("radio-shape", hidden)).toHaveStyle({ backgroundColor: "#171717" })
+  await act(() => jest.advanceTimersByTime(250))
   expect(screen.getByTestId("radio-shape", hidden)).toHaveStyle({ backgroundColor: "#192237" })
   await fireEvent(screen.getByRole("radio"), "pressIn", event)
   await fireEvent(screen.getByRole("radio"), "focus", event)
+  expect(screen.getByTestId("radio-shape", hidden)).toHaveStyle({ outlineWidth: 1.5, outlineOffset: 0 })
+  await act(() => jest.advanceTimersByTime(250))
   expect(screen.getByTestId("radio-shape", hidden)).toHaveStyle({
     backgroundColor: "#1b2e57",
     borderRadius: 10000,
@@ -298,6 +302,7 @@ it("uses pressed before hover for unselected marks, stable selected action roles
       </RadioGroup>
     </NativeThemeProvider>,
   )
+  await act(() => jest.advanceTimersByTime(250))
   expect(screen.getByTestId("radio-shape", hidden)).toHaveStyle({ backgroundColor: "#2563eb" })
   await rerender(
     <RadioGroup aria-label="Choices">
