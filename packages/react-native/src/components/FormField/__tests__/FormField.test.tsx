@@ -371,6 +371,7 @@ it("retains arbitrary keyed right content and primitive caller children", async 
 })
 
 it("updates severity, marker, inherited foreground, spacing and shadow from the live provider", async () => {
+  jest.useFakeTimers()
   const fixture = (dark: boolean) => (
     <NativeThemeProvider
       mode={dark ? "dark" : "light"}
@@ -388,27 +389,34 @@ it("updates severity, marker, inherited foreground, spacing and shadow from the 
       />
     </NativeThemeProvider>
   )
-  const { rerender } = await render(fixture(false))
-  expect(screen.getByTestId("form-field")).toHaveStyle({
-    boxShadow: [
-      { offsetX: 0, offsetY: 2, blurRadius: 3, color: "rgba(0,0,0,0.12)" },
-      { offsetX: 0, offsetY: 2, blurRadius: 2, color: "rgba(0,0,0,0.24)" },
-    ],
-  })
-  await rerender(fixture(true))
-  expect(screen.getByTestId("form-field")).toHaveStyle({
-    gap: 8,
-    boxShadow: [
-      { offsetX: 0, offsetY: 2, blurRadius: 3, color: "rgba(0,0,0,0.35)" },
-      { offsetX: 0, offsetY: 2, blurRadius: 2, color: "rgba(0,0,0,0.28)" },
-    ],
-  })
-  expect(screen.getByTestId("form-field-label")).toHaveStyle({ color: "purple" })
-  expect(screen.getByText("Hint")).toHaveStyle({ color: "purple" })
-  expect(screen.getByTestId("form-field-required-indicator")).toHaveStyle({ color: "orange" })
-  expect(screen.getByTestId("form-field-error-messages")).toHaveStyle({ color: "orange" })
-  expect(screen.getByTestId("form-field-warning-messages")).toHaveStyle({ color: "#f0b429" })
-  expect(screen.getByTestId("form-field-success-messages")).toHaveStyle({ color: "#6ad060" })
+  const { rerender, unmount } = await render(fixture(false))
+  try {
+    expect(screen.getByTestId("form-field")).toHaveStyle({
+      boxShadow: [
+        { offsetX: 0, offsetY: 2, blurRadius: 3, color: "rgba(0,0,0,0.12)" },
+        { offsetX: 0, offsetY: 2, blurRadius: 2, color: "rgba(0,0,0,0.24)" },
+      ],
+    })
+    await rerender(fixture(true))
+    expect(screen.getByTestId("form-field")).toHaveStyle({
+      gap: 8,
+      boxShadow: [
+        { offsetX: 0, offsetY: 2, blurRadius: 3, color: "rgba(0,0,0,0.35)" },
+        { offsetX: 0, offsetY: 2, blurRadius: 2, color: "rgba(0,0,0,0.28)" },
+      ],
+    })
+    expect(screen.getByTestId("form-field-error-messages").props.style.color).not.toBe("orange")
+    await act(() => jest.advanceTimersByTime(275))
+    expect(screen.getByTestId("form-field-label")).toHaveStyle({ color: "purple" })
+    expect(screen.getByText("Hint")).toHaveStyle({ color: "purple" })
+    expect(screen.getByTestId("form-field-required-indicator")).toHaveStyle({ color: "orange" })
+    expect(screen.getByTestId("form-field-error-messages")).toHaveStyle({ color: "orange" })
+    expect(screen.getByTestId("form-field-warning-messages")).toHaveStyle({ color: "#f0b429" })
+    expect(screen.getByTestId("form-field-success-messages")).toHaveStyle({ color: "#6ad060" })
+  } finally {
+    await unmount()
+    jest.useRealTimers()
+  }
 })
 
 it("lets explicit root/text and final shadow styles win without overwriting an authored child", async () => {

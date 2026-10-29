@@ -1,5 +1,5 @@
 import { createRef } from "react"
-import { TextInput, View } from "react-native"
+import { Pressable, TextInput, View } from "react-native"
 
 import {
   Checkbox,
@@ -101,3 +101,20 @@ export const InvalidInputDOMRenderer = (
 )
 // @ts-expect-error The animation switch belongs to the private native editor adapter.
 export const InvalidInputAnimationSwitch = <Input nativeAnimate={false} />
+
+export const RenderedCheckbox = (
+  <Checkbox render={(props, state) => <Pressable {...props} accessibilityHint={String(state.isIndeterminate)} />} />
+)
+export const InvalidCheckboxDOMRenderer = (
+  // @ts-expect-error Checkbox root rendering receives native Pressable props/ref.
+  <Checkbox render={(_props: { ref: HTMLLabelElement }) => <Pressable />} />
+)
+export const InvalidCheckboxRenderValidation = (
+  <Checkbox
+    render={(props, state) => {
+      // @ts-expect-error The original native checkbox state has no DOM validation state.
+      void state.isInvalid
+      return <Pressable {...props} />
+    }}
+  />
+)

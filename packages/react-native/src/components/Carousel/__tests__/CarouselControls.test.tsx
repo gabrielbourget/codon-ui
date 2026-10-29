@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react-native"
+import { act, fireEvent, render, screen } from "@testing-library/react-native"
 import { createRef, type ReactNode } from "react"
 import type { View } from "react-native"
 import { Platform, StyleSheet } from "react-native"
@@ -25,7 +25,10 @@ const withContext = (children: ReactNode, value = contextValue()) => (
   <NativeCarouselControlsContext.Provider value={value}>{children}</NativeCarouselControlsContext.Provider>
 )
 
-afterEach(() => jest.restoreAllMocks())
+afterEach(() => {
+  jest.restoreAllMocks()
+  jest.useRealTimers()
+})
 
 describe.each([
   { Component: CarouselCloseButton, name: "Close Carousel", icon: "close" },
@@ -165,8 +168,11 @@ describe.each([
   })
 
   it("updates actual provider foreground/round geometry without remounting the native ref", async () => {
+    jest.useFakeTimers()
     const ref = createRef<View>()
-    const { rerender } = await render(<NativeThemeProvider>{withContext(<Component ref={ref} />)}</NativeThemeProvider>)
+    const { rerender, unmount } = await render(
+      <NativeThemeProvider>{withContext(<Component ref={ref} />)}</NativeThemeProvider>,
+    )
     const current = ref.current
     await rerender(
       <NativeThemeProvider mode="dark" overrides={{ colors: { foreground: "orange" }, radius: { round: 79 } }}>
@@ -175,7 +181,11 @@ describe.each([
     )
     expect(ref.current).toBe(current)
     expect(screen.getByRole("button")).toHaveStyle({ borderRadius: 79 })
+    expect(screen.getByTestId(`carousel-${icon}-icon`, hidden).props.color).not.toBe("orange")
+    await act(() => jest.advanceTimersByTime(275))
     expect(screen.getByTestId(`carousel-${icon}-icon`, hidden).props.color).toBe("orange")
+    await unmount()
+    jest.useRealTimers()
   })
 })
 

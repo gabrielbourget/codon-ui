@@ -172,3 +172,23 @@ it("requests closure once on disabling even if controlled open is held, then all
   await rerender({ ...base, isOpen: true, isDisabled: true, onOpenChange })
   expect(onOpenChange.mock.calls).toEqual([[false], [false]])
 })
+
+it("keeps uncontrolled duplicate requests quiet while controlled requests remain owner-observed", async () => {
+  const onChange = jest.fn()
+  const onOpenChange = jest.fn()
+  const { result } = await renderHook(() => useSelectState({ ...base, onChange, onOpenChange }))
+  await act(() => {
+    result.current.requestOpen(true)
+    result.current.requestOpen(true)
+  })
+  expect(result.current.open).toBe(true)
+  expect(onOpenChange.mock.calls).toEqual([[true]])
+  await act(() => {
+    result.current.activate(0)
+    result.current.activate(0)
+  })
+  expect(result.current.selectedKey).toBe(0)
+  expect(result.current.open).toBe(false)
+  expect(onChange.mock.calls).toEqual([[0]])
+  expect(onOpenChange.mock.calls).toEqual([[true], [false]])
+})

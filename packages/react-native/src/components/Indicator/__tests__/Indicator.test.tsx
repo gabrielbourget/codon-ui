@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react-native"
+import { act, fireEvent, render, screen } from "@testing-library/react-native"
 import { createRef } from "react"
 import { PlatformColor, StyleSheet } from "react-native"
 
@@ -153,7 +153,8 @@ it.each(AVAILABLE_INDICATOR_SHAPES)(
 )
 
 it("NATIVE.display.001 inherits the public Button's owned foreground and live theme updates", async () => {
-  const { rerender } = await render(
+  jest.useFakeTimers()
+  const { rerender, unmount } = await render(
     <NativeThemeProvider>
       <Button order="primary">
         <Indicator />
@@ -168,7 +169,11 @@ it("NATIVE.display.001 inherits the public Button's owned foreground and live th
       </Button>
     </NativeThemeProvider>,
   )
+  expect(screen.getByTestId("indicator")).toHaveStyle({ backgroundColor: "#ffffff", borderColor: "#ffffff" })
+  await act(() => jest.advanceTimersByTime(275))
   expect(screen.getByTestId("indicator")).toHaveStyle({ backgroundColor: "orange", borderColor: "orange" })
+  await unmount()
+  jest.useRealTimers()
 })
 
 it("NATIVE.display.001 supplies current controlled state and post-custom defaultStyle to callbacks", async () => {

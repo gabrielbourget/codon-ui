@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, userEvent } from "@testing-library/react-native"
+import { act, fireEvent, render, screen, userEvent } from "@testing-library/react-native"
 import { Fragment, createRef } from "react"
 import { View } from "react-native"
 
@@ -131,14 +131,18 @@ describe("Checkbox public native contract", () => {
       </NativeThemeProvider>,
     )
     await fireEvent(screen.getByRole("checkbox"), "hoverIn", event)
+    expect(screen.getByTestId("checkbox-shape", hidden)).toHaveStyle({ backgroundColor: "#171717" })
+    await act(() => jest.advanceTimersByTime(175))
     expect(screen.getByTestId("checkbox-shape", hidden)).toHaveStyle({ backgroundColor: "#192237" })
     await fireEvent(screen.getByRole("checkbox"), "pressIn", event)
+    await act(() => jest.advanceTimersByTime(175))
     expect(screen.getByTestId("checkbox-shape", hidden)).toHaveStyle({ backgroundColor: "#1b2e57" })
     await rerender(
       <NativeThemeProvider mode="dark">
         <Checkbox order="primary" isSelected />
       </NativeThemeProvider>,
     )
+    await act(() => jest.advanceTimersByTime(175))
     expect(screen.getByTestId("checkbox-shape", hidden)).toHaveStyle({ backgroundColor: "#5c8af0" })
   })
 

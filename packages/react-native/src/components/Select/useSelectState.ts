@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react"
+import { useCallback, useEffect, useRef } from "react"
 
 import { useControlledState } from "../../collection/state/useControlledState"
 
@@ -25,14 +25,26 @@ export const useSelectState = <T>(props: TNativeSelectProps<T>) => {
       return encodeSelectKey(key)
     }),
   )
-  const [selectedKey, setSelectedKey] = useControlledState<TNativeSelectKey | null>(value, defaultValue, onChange)
-  const [open, setOpen] = useControlledState(isOpen, defaultOpen && !isDisabled, onOpenChange)
+  const [selectedKey, setSelectedKey] = useControlledState<TNativeSelectKey | null>(
+    value,
+    defaultValue,
+    value === undefined ? onChange : undefined,
+  )
+  const [open, setOpen] = useControlledState(
+    isOpen,
+    defaultOpen && !isDisabled,
+    isOpen === undefined ? onOpenChange : undefined,
+  )
   const selectedEntry = entries.find((entry) => entry.key === selectedKey)
   const requestedDisabledClose = useRef(false)
-  const requestOpen = (next: boolean) => {
-    if ((next && isDisabled) || next === open) return
-    setOpen(next)
-  }
+  const requestOpen = useCallback(
+    (next: boolean) => {
+      if ((next && isDisabled) || next === open) return
+      setOpen(next)
+      if (isOpen !== undefined) onOpenChange?.(next)
+    },
+    [isDisabled, open, setOpen, isOpen, onOpenChange],
+  )
   useEffect(() => {
     if (!isDisabled || !open) {
       requestedDisabledClose.current = false
@@ -40,13 +52,14 @@ export const useSelectState = <T>(props: TNativeSelectProps<T>) => {
     }
     if (requestedDisabledClose.current) return
     requestedDisabledClose.current = true
-    setOpen(false)
-  }, [isDisabled, open, setOpen])
+    requestOpen(false)
+  }, [isDisabled, open, requestOpen])
   const activate = (key: TNativeSelectKey) => {
     if (!open || isDisabled || isReadOnly || disabledKeys.has(encodeSelectKey(key))) return
     if (!entries.some((entry) => entry.key === key)) return
     if (selectedKey !== key) {
       setSelectedKey(key)
+      if (value !== undefined) onChange?.(key)
     }
     requestOpen(false)
   }

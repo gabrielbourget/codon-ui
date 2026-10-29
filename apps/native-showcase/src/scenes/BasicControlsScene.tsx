@@ -1,5 +1,5 @@
 import { useRef, useState } from "react"
-import { Keyboard, StyleSheet, TextInput as CoreInput, View } from "react-native"
+import { Keyboard, Pressable, StyleSheet, TextInput as CoreInput, View } from "react-native"
 
 import {
   AVAILABLE_CORNER_GEOMETRY_CODES,
@@ -91,6 +91,12 @@ export const BasicControlsScene = () => {
         geometry={geometry}
       />
       <Checkbox
+        render={(props, state) => (
+          <Pressable
+            {...props}
+            nativeID={`basic-checkbox-${state.isIndeterminate ? "mixed" : state.isSelected ? "selected" : "empty"}`}
+          />
+        )}
         testID="basic-checkbox"
         aria-label="Controlled checkbox"
         {...controlState}
