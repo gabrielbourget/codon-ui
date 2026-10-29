@@ -1,5 +1,5 @@
-import type { ReactNode } from "react"
-import type { ColorValue, StyleProp, View, ViewStyle } from "react-native"
+import type { ReactElement, ReactNode, RefAttributes } from "react"
+import type { ColorValue, PressableProps, StyleProp, View, ViewStyle } from "react-native"
 
 import type { TCornerGeometry } from "../../tokens/geometry"
 import type { TThemingOrderCode } from "../../tokens/theme-order"
@@ -9,6 +9,7 @@ export type TNativeSwitchRef = View
 export type TNativeSwitchRenderState = TNativeSelectionState
 export type TNativeSwitchStyleState = TNativeSwitchRenderState & { defaultStyle: ViewStyle }
 export type TNativeSwitchProps = TNativeSelectionHostProps & {
+  render?: (props: PressableProps & RefAttributes<View>, state: TNativeSwitchRenderState) => ReactElement
   isSelected?: boolean
   defaultSelected?: boolean
   onChange?: (selected: boolean) => void

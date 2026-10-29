@@ -67,6 +67,7 @@ export const BasicControlsScene = () => {
         checkbox: {uncontrolledCheckbox ? "on" : "off"}.
       </Text>
       <Switch
+        render={(props, state) => <Pressable {...props} nativeID={`basic-switch-${state.isSelected ? "on" : "off"}`} />}
         testID="basic-switch"
         aria-label="Controlled switch"
         rightContent="Controlled switch"
