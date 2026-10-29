@@ -25,7 +25,6 @@ import {
   type TNativeCollectionKey,
   type TNativeCollectionNode,
 } from "@codon-ui/react-native"
-
 import {
   NativeTableStateContext,
   NativeResizableTableContainer,
@@ -33,7 +32,7 @@ import {
   TableBody,
   TableHeader,
   type TNativeTableState,
-} from "../../../../packages/react-native/src/components/Table"
+} from "@codon-ui/react-native"
 
 const useSceneTableState = () => {
   const state = useContext(NativeTableStateContext)

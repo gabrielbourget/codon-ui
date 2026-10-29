@@ -913,6 +913,7 @@ export type {
 export * from "./components/Panel"
 export * from "./components/SortAndFilterPanel"
 export * from "./components/Card"
+export * from "./components/Table"
 export { NativeDialogFocusScope } from "./input/NativeDialogFocusScope"
 export {
   useNativeDragAndDrop,

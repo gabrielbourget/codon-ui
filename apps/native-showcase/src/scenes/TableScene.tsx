@@ -2,7 +2,6 @@ import { useRef, useState } from "react"
 import { ScrollView, View, type TextInput } from "react-native"
 
 import { Button, Input, Text } from "@codon-ui/react-native"
-
 import {
   SortParameterList,
   Table,
@@ -12,7 +11,7 @@ import {
   type TableColumnMetadata,
   type TableFilterGroup,
   type TableSortInstruction,
-} from "../../../../packages/react-native/src/components/Table"
+} from "@codon-ui/react-native"
 
 import { TableDragScene } from "./TableDragScene"
 import { TableVirtualizedScene } from "./TableVirtualizedScene"

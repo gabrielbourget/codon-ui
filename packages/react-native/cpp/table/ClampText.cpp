@@ -7,6 +7,7 @@
 #endif
 #include <stdexcept>
 #include <vector>
+#include <string_view>
 #include <unordered_set>
 
 namespace codon::table {
@@ -42,7 +43,9 @@ void CUIClampTextScope::prepare(const ShadowNode &root) {
   std::lock_guard lock(mutex_);
   std::unordered_set<int> visited;
   const auto visit = [&](const auto &self, const ShadowNode &node) -> void {
-    if (hasClampContentSource(node.getFamily())) return;
+    const auto name = std::string_view(node.getComponentName());
+    if (name == "PortalView" || name == "ModalHostView" || name == "InputAccessoryView" ||
+        hasClampContentSource(node.getFamily())) return;
     if (editor(node)) {
       visited.insert(node.getTag());
       auto &entry = entries_[node.getTag()];
