@@ -406,6 +406,7 @@ it("updates severity, marker, inherited foreground, spacing and shadow from the 
       ],
     })
     expect(screen.getByTestId("form-field-error-messages").props.style.color).not.toBe("orange")
+    expect(screen.getByTestId("form-field-label").props.style.color).not.toBe("purple")
     await act(() => jest.advanceTimersByTime(275))
     expect(screen.getByTestId("form-field-label")).toHaveStyle({ color: "purple" })
     expect(screen.getByText("Hint")).toHaveStyle({ color: "purple" })
@@ -453,6 +454,33 @@ it("accepts registered/array styles, native opaque colors and explicit zero dime
   )
   expect(screen.getByTestId("form-field")).toHaveStyle({ width: 0, height: 0, opacity: 0 })
   expect(screen.getByTestId("form-field-label")).toHaveStyle({ color, fontSize: 18 })
+})
+
+it("inherits root typography through owned text and preserves explicit slot and child overrides", async () => {
+  const fixture = (spacing: number) => (
+    <FormField
+      label="Label"
+      description="Description"
+      errorMessages={["Error"]}
+      topRightContent="Hint"
+      customStyles={{ fontStyle: "italic", letterSpacing: 1 }}
+      style={{ letterSpacing: spacing }}
+      customLabelStyles={{ fontStyle: "normal" }}
+    >
+      <Text testID="authored-field-child" customStyles={{ letterSpacing: 7, fontStyle: "normal" }}>
+        Child
+      </Text>
+    </FormField>
+  )
+  const view = await render(fixture(3))
+  expect(screen.getByTestId("form-field-label")).toHaveStyle({ fontStyle: "normal", letterSpacing: 3 })
+  expect(screen.getByTestId("form-field-error-messages")).toHaveStyle({ fontStyle: "italic", letterSpacing: 3 })
+  expect(screen.getByText("Hint")).toHaveStyle({ fontStyle: "italic", letterSpacing: 3 })
+  expect(screen.getByTestId("form-field-description")).toHaveStyle({ fontStyle: "italic", letterSpacing: 3 })
+  expect(screen.getByTestId("authored-field-child")).toHaveStyle({ fontStyle: "normal", letterSpacing: 7 })
+  await view.rerender(fixture(0))
+  expect(screen.getByTestId("form-field-error-messages")).toHaveStyle({ fontStyle: "italic", letterSpacing: 0 })
+  expect(screen.getByTestId("authored-field-child")).toHaveStyle({ fontStyle: "normal", letterSpacing: 7 })
 })
 
 it.each([

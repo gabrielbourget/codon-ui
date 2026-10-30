@@ -19,7 +19,7 @@ export const fieldProps: FormFieldProps = {
   topRightContent: 0,
   bottomRightContent: false,
   customStyles: [{ color: PlatformColor("labelColor") }, { width: 0 }],
-  style: [{ opacity: 0 }],
+  style: [{ opacity: 0, fontStyle: "italic", letterSpacing: 0 }],
   customTopRowStyles: styles.row,
   customLabelStyles: styles.label,
   customTopRightStyles: [false, styles.row],

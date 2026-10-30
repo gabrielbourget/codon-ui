@@ -1,15 +1,20 @@
 import { forwardRef, useEffect, useRef } from "react"
-import { Text as NativeText, View } from "react-native"
+import { Easing, Text as NativeText, View } from "react-native"
 
 import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
 import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeTheme } from "../../theme"
 import { getNativeButtonContent } from "../Button/content"
+import { useNativeLinkColor } from "../Link/motion"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
+import { splitNativeTextStyle } from "../nativeTextStyle"
+import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
 import { Text } from "../Text/Text"
 
 import { getNativeFormFieldStyles } from "./styles"
 import type { TNativeFormFieldProps, TNativeFormFieldRef } from "./types"
+
+const textColorEasing = Easing.bezier(0.42, 0, 0.58, 1)
 
 export const FormField = forwardRef<TNativeFormFieldRef, TNativeFormFieldProps>((props, ref) => {
   const {
@@ -58,6 +63,9 @@ export const FormField = forwardRef<TNativeFormFieldRef, TNativeFormFieldProps>(
   const theme = useNativeTheme()
   const context = useNativeContentContext()
   const styles = getNativeFormFieldStyles(theme, props)
+  const rootStyle = splitNativeTextStyle(styles.root)
+  const animatedForeground = useNativeLinkColor(styles.root.color ?? theme.colors.foreground, 250, textColorEasing)
+  const foreground = styles.root.color === undefined && context ? context.foregroundColor : animatedForeground
   const mounted = useRef(true)
   const labelLifetime = useRef({ label, labelFor, generation: 0 })
   if (labelLifetime.current.label !== label || labelLifetime.current.labelFor !== labelFor)
@@ -78,10 +86,10 @@ export const FormField = forwardRef<TNativeFormFieldRef, TNativeFormFieldProps>(
     { kind: "warning", messages: warningMessages, color: theme.colors.statusWarning },
     { kind: "success", messages: successMessages, color: theme.colors.statusSuccess },
   ] as const
-  return (
+  const content = (
     <NativeContentContext.Provider
       value={{
-        foregroundColor: styles.root.color ?? context?.foregroundColor ?? theme.colors.foreground,
+        foregroundColor: foreground,
         isButton: context?.isButton ?? false,
       }}
     >
@@ -100,7 +108,7 @@ export const FormField = forwardRef<TNativeFormFieldRef, TNativeFormFieldProps>(
         accessibilityLabel={accessibilityLabel ?? nativeLabel ?? ariaLabel}
         accessibilityLabelledBy={accessibilityLabelledBy ?? nativeLabelledBy ?? ariaLabelledBy}
         testID={testID ?? aliasID ?? "form-field"}
-        style={styles.root}
+        style={rootStyle.view}
       >
         <View testID="form-field-top-row" style={styles.top}>
           {label ? (
@@ -153,6 +161,7 @@ export const FormField = forwardRef<TNativeFormFieldRef, TNativeFormFieldProps>(
       </NativeFocusHost>
     </NativeContentContext.Provider>
   )
+  return <NativeTextStyleProvider style={rootStyle.text}>{content}</NativeTextStyleProvider>
 })
 
 FormField.displayName = "FormField"

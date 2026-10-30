@@ -291,6 +291,8 @@ height, width, textSize, geometry, enableFocusStyle and offsetFocusRing control 
 
 FormField arranges a caller-owned control with a label/required marker, top/bottom right content, ordered error/warning/success messages and an italic description. It owns no control value, validation state, submission or child ref. An explicit empty message array still renders the bottom row. Zero/false bottom-right content alone does not create that row; zero is preserved when a message array creates it.
 
+Root text styles such as `fontStyle` and `letterSpacing` inherit through the field's text content. The existing Text variant defaults and explicit label, message, description and child styles keep their precedence. Final root styles retain authored zero values. Inherited text foreground follows the existing250ms color transition and system Reduce Motion; explicit child colors remain independently owned.
+
 ```tsx
 import { useRef, useState } from "react"
 import type { TextInput } from "react-native"
