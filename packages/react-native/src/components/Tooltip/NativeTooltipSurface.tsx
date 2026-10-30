@@ -15,7 +15,7 @@ import type { PathProps } from "react-native-svg"
 
 import { useNativeContextProps } from "../../collection/context"
 import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
-import { NativeFocusHost } from "../../input/NativeFocusView"
+import { NativeFocusView, type NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { useNativeFloatingMotion } from "../../overlays/floating/motion"
 import { NativeFloatingArrow } from "../../overlays/floating/NativeFloatingArrow"
@@ -47,7 +47,7 @@ const DescriptionHost = forwardRef<
     nativeRenderState: TNativeTooltipRenderState
   }
 >(({ nativeRender, nativeRenderState, ...props }, ref) =>
-  nativeRender ? nativeRender({ ...props, ref }, nativeRenderState) : <NativeFocusHost {...props} ref={ref} />,
+  nativeRender ? nativeRender({ ...props, ref }, nativeRenderState) : <NativeFocusView {...props} ref={ref} />,
 )
 const AnimatedDescriptionHost = Animated.createAnimatedComponent(DescriptionHost)
 

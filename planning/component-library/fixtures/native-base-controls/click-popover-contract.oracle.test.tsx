@@ -14,6 +14,53 @@ import { expect, it, vi } from "vitest"
 
 import ClickPopover from "../../../../packages/react/src/components/ClickPopover/ClickPopover"
 
+it.each(["popover", "dialog"])(
+  "retains the original %s host/editor when a compatible renderer changes",
+  async (kind) => {
+    const root = createRef<HTMLElement>()
+    const editor = createRef<HTMLInputElement>()
+    const trigger = createRef<HTMLButtonElement>()
+    const child = <input ref={editor} value="" readOnly />
+    const node = (custom: boolean) => (
+      <DialogTrigger defaultOpen>
+        <Button ref={trigger}>Trigger</Button>
+        {kind === "popover" ? (
+          <PopoverContext.Provider
+            value={{ ref: root, triggerRef: trigger, render: custom ? (props) => <div {...props} /> : undefined }}
+          >
+            <ClickPopover childIsDialog={false}>{child}</ClickPopover>
+          </PopoverContext.Provider>
+        ) : (
+          <DialogContext.Provider
+            value={{
+              ref: root,
+              "aria-label": "Dialog",
+              render: custom ? (props) => <section {...props} /> : undefined,
+            }}
+          >
+            <ClickPopover>{child}</ClickPopover>
+          </DialogContext.Provider>
+        )}
+      </DialogTrigger>
+    )
+    const view = render(node(false))
+    await screen.findByTestId("click-popover")
+    const originalRoot = root.current
+    const originalEditor = editor.current
+    expect(originalRoot).not.toBeNull()
+    expect(originalEditor).not.toBeNull()
+    view.rerender(node(true))
+    expect(root.current === originalRoot).toBe(true)
+    expect(editor.current === originalEditor).toBe(true)
+    view.rerender(node(false))
+    expect(root.current === originalRoot).toBe(true)
+    expect(editor.current === originalEditor).toBe(true)
+    view.unmount()
+    expect(root.current).toBeNull()
+    expect(editor.current).toBeNull()
+  },
+)
+
 it("preserves the four-field renderer, context styles, original host refs and clearContexts", async () => {
   const triggerRef = createRef<HTMLButtonElement>()
   const rootRef = createRef<HTMLDivElement>()

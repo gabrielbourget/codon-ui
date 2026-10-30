@@ -1,10 +1,11 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native"
 import { createContext, createRef, useContext, type ReactNode } from "react"
-import { View } from "react-native"
+import { TextInput, View } from "react-native"
 
 import {
   Button,
   ClickPopover,
+  HoverPopover,
   NativeDialogContext,
   NativeDialogTrigger,
   NativeFloatingLayerHost,
@@ -12,6 +13,7 @@ import {
   NativeOverlayTriggerStateContext,
   NativePopoverContext,
   Text,
+  Tooltip,
 } from "../../.."
 import { NATIVE_DEFAULT_SLOT } from "../../../collection/context"
 import type { OverlayTriggerState } from "../../ComboBox/state/useOverlayTriggerState"
@@ -35,6 +37,68 @@ const dialog = (children: ReactNode, context: TNativeDialogContextProps = {}) =>
       {children}
     </NativePopoverDialog>
   </NativeDialogContext.Provider>
+)
+
+it.each(["popover", "dialog", "tooltip", "hover"])(
+  "keeps the original %s host and controlled editor when a compatible renderer is added and removed",
+  async (kind) => {
+    const root = createRef<View>()
+    const editor = createRef<TextInput>()
+    const trigger = createRef<View>()
+    const onChangeText = jest.fn()
+    const child = <TextInput ref={editor} value="" onChangeText={onChangeText} />
+    const Description = kind === "tooltip" ? Tooltip : HoverPopover
+    const node = (custom: boolean) =>
+      kind === "tooltip" || kind === "hover" ? (
+        <NativeFloatingLayerHost>
+          <View ref={trigger} />
+          <Description
+            ref={root}
+            triggerRef={trigger}
+            isOpen
+            render={custom ? (props) => <NativeFocusView {...props} /> : undefined}
+          >
+            {child}
+          </Description>
+        </NativeFloatingLayerHost>
+      ) : kind === "popover" ? (
+        <NativeFloatingLayerHost>
+          <View ref={trigger} />
+          <ClickPopover
+            ref={root}
+            triggerRef={trigger}
+            defaultOpen
+            childIsDialog={false}
+            render={custom ? (props) => <NativeFocusView {...props} /> : undefined}
+          >
+            {child}
+          </ClickPopover>
+        </NativeFloatingLayerHost>
+      ) : (
+        <NativeDialogContext.Provider
+          value={{ render: custom ? (props) => <NativeFocusView {...props} /> : undefined }}
+        >
+          <NativePopoverDialog ref={root} nativeBaselineStyle={{}} nativeFocusable>
+            {child}
+          </NativePopoverDialog>
+        </NativeDialogContext.Provider>
+      )
+    const view = await render(node(false))
+    const originalRoot = root.current
+    const originalEditor = editor.current
+    expect(originalRoot).not.toBeNull()
+    expect(originalEditor).not.toBeNull()
+    await view.rerender(node(true))
+    expect(root.current === originalRoot).toBe(true)
+    expect(editor.current === originalEditor).toBe(true)
+    await view.rerender(node(false))
+    expect(root.current === originalRoot).toBe(true)
+    expect(editor.current === originalEditor).toBe(true)
+    expect(onChangeText).not.toHaveBeenCalled()
+    await view.unmount()
+    expect(root.current).toBeNull()
+    expect(editor.current).toBeNull()
+  },
 )
 
 it("names the original dialog from its title slot, preserving explicit labels, own IDs and null slots", async () => {

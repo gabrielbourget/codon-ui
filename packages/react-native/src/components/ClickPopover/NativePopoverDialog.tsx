@@ -3,7 +3,7 @@ import { Easing, type StyleProp, type TextStyle, type View } from "react-native"
 
 import { NATIVE_DEFAULT_SLOT, useNativeContextProps } from "../../collection/context"
 import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
-import { NativeFocusHost } from "../../input/NativeFocusView"
+import { NativeFocusView } from "../../input/NativeFocusView"
 import { useNativeTheme } from "../../theme"
 import { getNativeButtonContent } from "../Button/content"
 import { NativeButtonContext } from "../Button/context"
@@ -113,5 +113,5 @@ export const NativePopoverDialog = forwardRef<
       </NativeHeadingContext.Provider>
     ),
   }
-  return render ? render(host, undefined) : <NativeFocusHost {...host} />
+  return render ? render(host, undefined) : <NativeFocusView {...host} />
 })

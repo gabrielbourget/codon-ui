@@ -32,7 +32,7 @@ import { useNativeContextProps } from "../../collection/context"
 import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
 import { focusNativeContainer, focusNativeTarget } from "../../input/focus"
 import { NativeDialogOverlayFocusOwner, useNativeDialogFocusMembership } from "../../input/NativeDialogFocusScope"
-import { NativeFocusHost } from "../../input/NativeFocusView"
+import { NativeFocusView, type NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { useNativeFloatingMotion } from "../../overlays/floating/motion"
 import { useNativeDialogTrigger } from "../../overlays/floating/NativeDialogTrigger"
@@ -70,7 +70,7 @@ const FloatingHost = forwardRef<
     nativeRenderState: TNativeFloatingRenderState
   }
 >(({ nativeRender, nativeRenderState, ...props }, ref) =>
-  nativeRender ? nativeRender({ ...props, ref }, nativeRenderState) : <NativeFocusHost {...props} ref={ref} />,
+  nativeRender ? nativeRender({ ...props, ref }, nativeRenderState) : <NativeFocusView {...props} ref={ref} />,
 )
 const AnimatedFocusView = Animated.createAnimatedComponent(FloatingHost)
 const textColorEasing = Easing.bezier(0.42, 0, 0.58, 1)

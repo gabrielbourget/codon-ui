@@ -3,7 +3,7 @@
   "authority": "Complete approved native floating/description foundation3.5.17 and3.5.46. Preserve original explicitnative portal/trigger/ref/event/style boundary and nonfocusable/nonmodal/retained descriptions. No newnative/backend/SDK scope.",
   "renderStateFields": ["placement", "isEntering", "isExiting", "state"],
   "tooltipStateMembers": ["isOpen", "open", "close"],
-  "contextContract": "NativeTooltipContext: default/named/null props and original refs; static/dynamic native contextstyles merge before authoredcustom/finalstyles. Trigger supplies a new own prop/state context. NativeTooltipTriggerStateContext retains original3-member state; explicit isOpen/defaultOpen chooses visibility, and originalcontext state identity reachesrendering. Publiccomponent children remain ReactNode and ownstyle remains static.",
+  "contextContract": "NativeTooltipContext: default/named/null props and original refs; static/dynamic native contextstyles merge before authoredcustom/finalstyles. Trigger supplies a new own prop/state context. NativeTooltipTriggerStateContext retains original3-member state; explicit isOpen/defaultOpen chooses visibility, and originalcontext state identity reachesrendering. Publiccomponent children remain ReactNode and ownstyle remains static. Adding/removing a compatible NativeFocusView renderer retains the same original native host/editor and ref cleanup; the shared four-family continuity cases in ClickPopover.context.test.tsx verify this without a new renderer API or host.",
   "families": {
     "tooltip": {
       "canonicalPropertyCount": 100,
