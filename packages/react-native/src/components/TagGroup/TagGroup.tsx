@@ -756,7 +756,7 @@ const NativeTagGroup = <T extends object>({
         render={render}
         ref={ref}
         accessible={false}
-        focusable={false}
+        focusable={props.focusable ?? false}
         testID={testID ?? aliasTestID ?? "tag-group"}
         style={styles.root}
       >

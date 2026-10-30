@@ -595,7 +595,7 @@ fallbackDelay controls eligibility once per mounted Avatar lifetime, matching th
 
 ## TagGroup
 
-TagGroup and TagGroupItem own collection selection and removal independently of the standalone Tag. Caller-owned selected keys and collections remain authoritative after declined requests. Root, list and item styles keep separate owners, and custom item renderers retain the original native host props/ref and current state.
+TagGroup and TagGroupItem own collection selection and removal independently of the standalone Tag. Caller-owned selected keys and collections remain authoritative after declined requests. Root, list and item styles keep separate owners, and custom item renderers retain the original native host props/ref and current state. The outer root defaults to non-focusable and honors an explicit native `focusable` boolean.
 
 Grouped tags transition background, border and foreground colors over250ms with ease-in-out timing. Interrupted changes continue from the current paint, and system Reduce Motion keeps updates immediate. Raised-shadow changes apply immediately; the standalone Tag's shadow-transition contract remains separate. These source behaviors do not establish installed input, rendering or accessibility acceptance.
 

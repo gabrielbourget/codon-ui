@@ -1170,7 +1170,7 @@
         },
         "focusable": {
           "type": "boolean | undefined",
-          "expected": "Existing explicit native host/event/style/navigation/context capability; native payloads and platform boundaries are retained.",
+          "expected": "Default false; explicit true and false reach the original native root without replacing its ref. The before/after regression covers this existing public prop; native focus completion remains separate.",
           "id": "CAP.tag-group.153"
         },
         "getKey": {
@@ -3466,7 +3466,8 @@
     "canonicalOriginalCases": 21,
     "canonicalSupplementalKeyboardCases": 27,
     "baseline": "Successful goal144 FULL CI40973010152, with161 exact unchanged relevant inputs; current goal148 FULL remains mandatory before adoption.",
-    "scope": "G01 correspondence only. Native input/metadata/paint/virtualization/profile/full qualification remain required. No guest/product/SDK attempt."
+    "scope": "G01 correspondence only. Native input/metadata/paint/virtualization/profile/full qualification remain required. No guest/product/SDK attempt.",
+    "rootFocusCorrection": "Initial83e388bf candidate forced the public native focusable prop false. Correct forwarding and exact new-head FULL CI are required before adoption."
   },
   "nativeEvidenceCases": [
     {
@@ -3859,41 +3860,46 @@
       "cases": [
         {
           "ordinal": 1,
-          "title": "uses TagList's authoring phase for original dynamic values without mounting a second visible list",
+          "title": "preserves authored root focusability with an unchanged original native ref",
           "status": "passed"
         },
         {
           "ordinal": 2,
-          "title": "retains original list ref/events and observes empty render focus independently from logical state",
+          "title": "uses TagList's authoring phase for original dynamic values without mounting a second visible list",
           "status": "passed"
         },
         {
           "ordinal": 3,
-          "title": "inherits root/list native typography while item styles retain final precedence",
+          "title": "retains original list ref/events and observes empty render focus independently from logical state",
           "status": "passed"
         },
         {
           "ordinal": 4,
-          "title": "publishes the current original selection indicator state inside grouped item content",
+          "title": "inherits root/list native typography while item styles retain final precedence",
           "status": "passed"
         },
         {
           "ordinal": 5,
-          "title": "retains every logical item through a committed branch and reports its real row position",
+          "title": "publishes the current original selection indicator state inside grouped item content",
           "status": "passed"
         },
         {
           "ordinal": 6,
-          "title": "merges default and named slots with caller precedence, original native refs/events and custom root rendering",
+          "title": "retains every logical item through a committed branch and reports its real row position",
           "status": "passed"
         },
         {
           "ordinal": 7,
-          "title": "exposes the actual filtered state and native list props while preserving original item values",
+          "title": "merges default and named slots with caller precedence, original native refs/events and custom root rendering",
           "status": "passed"
         },
         {
           "ordinal": 8,
+          "title": "exposes the actual filtered state and native list props while preserving original item values",
+          "status": "passed"
+        },
+        {
+          "ordinal": 9,
           "title": "keeps numeric and string keys separate through authored reorder without replacing native refs",
           "status": "passed"
         }

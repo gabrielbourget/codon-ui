@@ -173,3 +173,7 @@ export const invalidGroupedRender = <Tag render={<NativeFocusView />} />
 
 // @ts-expect-error Localized selection-count callbacks receive a number.
 export const invalidAnnouncementCount = <TagGroup labels={{ selectedCount: (count: string) => count }} />
+
+export const AuthoredRootFocusability = <TagGroup focusable />
+// @ts-expect-error Native focusability remains a boolean.
+export const InvalidRootFocusability = <TagGroup focusable="true" />
