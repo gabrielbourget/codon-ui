@@ -581,6 +581,44 @@ it.each([
   expect(f.page).not.toHaveBeenCalled()
 })
 
+it("inherits root typography into passive counter content without replacing the root or requesting owner changes", async () => {
+  const f = fixture({
+    chosenPaginationSubcomponents: ["page-counter"],
+    customComponentStyles: { fontStyle: "italic", letterSpacing: 7 },
+  })
+  const view = await render(f.node())
+  const root = f.ref.current
+  expect(screen.getByText("Pages")).toHaveStyle({ fontStyle: "italic", letterSpacing: 7 })
+  expect(screen.getByTestId("counter-value")).toHaveStyle({ fontStyle: "italic", letterSpacing: 7 })
+  await view.rerender(
+    f.node({
+      chosenPaginationSubcomponents: ["page-counter"],
+      customComponentStyles: { fontStyle: "italic", letterSpacing: 0 },
+      customPageCounterProps: { customTextStyles: { fontStyle: "normal" } },
+    }),
+  )
+  expect(f.ref.current === root).toBe(true)
+  expect(screen.getByText("Pages")).toHaveStyle({ fontStyle: "italic", letterSpacing: 0 })
+  expect(screen.getByTestId("counter-value")).toHaveStyle({ fontStyle: "normal", letterSpacing: 0 })
+  await view.rerender(
+    f.node({
+      chosenPaginationSubcomponents: ["page-counter"],
+      customComponentStyles: { color: "red", fontStyle: "italic", letterSpacing: 7 },
+      customPageCounterProps: {
+        customStyles: { color: "green" },
+        customTextStyles: { fontStyle: "normal" },
+      },
+    }),
+  )
+  expect(f.ref.current === root).toBe(true)
+  expect(screen.getByText("Pages")).toHaveStyle({ color: "green", fontStyle: "italic", letterSpacing: 7 })
+  expect(screen.getByTestId("counter-value")).toHaveStyle({ color: "green", fontStyle: "normal", letterSpacing: 7 })
+  expect(f.page).not.toHaveBeenCalled()
+  expect(f.size).not.toHaveBeenCalled()
+  await view.unmount()
+  expect(f.ref.current).toBeNull()
+})
+
 it("keeps counter, numeric editor, select and both field style owners independent", async () => {
   const f = fixture({
     chosenPaginationSubcomponents: ["page-counter", "page-input", "items-per-page"],

@@ -19,7 +19,7 @@ type TProps = {
   labels: TNativePaginationLabels
   styles: ReturnType<typeof getNativePaginationStyles>
 }
-export const NativePaginationCounter = ({ props, count, labels, styles }: TProps) => {
+export const NativePaginationCounter = ({ props, count, labels }: TProps) => {
   const authored = props.customPageCounterProps ?? {}
   return (
     <View testID="page-counter" style={{ alignSelf: "flex-end" }}>
@@ -32,7 +32,7 @@ export const NativePaginationCounter = ({ props, count, labels, styles }: TProps
           authored.accessibilityLabel ?? authored["aria-label"] ?? authored.ariaLabel ?? labels.pageCounter.ariaLabel
         }
         customStyles={[authored.customStyles, props.customPageCounterStyles]}
-        customTextStyles={[styles.root.text, authored.customTextStyles]}
+        customTextStyles={authored.customTextStyles}
       >
         {labels.pageCounter.counterText}
       </Counter>

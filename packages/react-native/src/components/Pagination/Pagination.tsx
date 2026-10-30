@@ -6,6 +6,7 @@ import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeTheme } from "../../theme"
 import { LineSegment } from "../LineSegment/LineSegment"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
+import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
 
 import { NativePaginationCounter, NativePaginationInput, NativePaginationPageSize } from "./Fields"
 import { resolveNativePaginationLabels } from "./labels"
@@ -209,19 +210,21 @@ export const Pagination = forwardRef<TNativePaginationRef, TNativePaginationProp
         style={styles.root.view}
         testID={props.testID ?? props["data-testid"] ?? "pagination"}
       >
-        {groups.map((group, index) => (
-          <Fragment key={group}>
-            {nodes[group]}
-            {index < groups.length - 1 && (
-              <LineSegment
-                direction="vertical"
-                color={theme.colors.controlBorder}
-                customStyles={styles.separator}
-                testID={`pagination-separator-${index}`}
-              />
-            )}
-          </Fragment>
-        ))}
+        <NativeTextStyleProvider style={styles.root.text}>
+          {groups.map((group, index) => (
+            <Fragment key={group}>
+              {nodes[group]}
+              {index < groups.length - 1 && (
+                <LineSegment
+                  direction="vertical"
+                  color={theme.colors.controlBorder}
+                  customStyles={styles.separator}
+                  testID={`pagination-separator-${index}`}
+                />
+              )}
+            </Fragment>
+          ))}
+        </NativeTextStyleProvider>
       </NativeFocusHost>
     </NativeContentContext.Provider>
   )

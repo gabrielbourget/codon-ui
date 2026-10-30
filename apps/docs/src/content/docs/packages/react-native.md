@@ -59,7 +59,7 @@ export const Pager = () => (
 )
 ```
 
-Mount NativeFloatingLayerHost around overflow presentations. Chosen groups retain caller order with duplicates removed; an empty group list selects the canonical primary default. RTL, both consolidation sides, geometry, independent native style/prop slots, grouped/legacy labels, custom icons and the actual root/editor/popup refs remain supported. The overflow shell defaults unraised and uses physical bottom-right placement. Explicit initial-focus ownership and slot=null popup control retain the ClickPopover contracts. Native keyboard/pointer/focus completion, measured rendering and accessibility profiles remain acceptance work.
+Mount NativeFloatingLayerHost around overflow presentations. Chosen groups retain caller order with duplicates removed; an empty group list selects the canonical primary default. RTL, both consolidation sides, geometry, independent native style/prop slots, grouped/legacy labels, custom icons and the actual root/editor/popup refs remain supported. Root typography reaches the passive counter label and controls; custom counter text styles retain precedence for its numeric text. Pagination owns counter value/maxValue, editor draft/range and the page-size collection; nested props cannot replace them. The overflow shell defaults unraised and uses physical bottom-right placement. Explicit initial-focus ownership and slot=null popup control retain the ClickPopover contracts. Native keyboard/pointer/focus completion, measured rendering and accessibility profiles remain acceptance work.
 
 ## Breadcrumbs
 
