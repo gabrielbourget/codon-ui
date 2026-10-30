@@ -2,7 +2,15 @@ import { act, fireEvent, render, screen } from "@testing-library/react-native"
 import { createRef, type ReactNode } from "react"
 import { AccessibilityInfo, TextInput, View } from "react-native"
 
-import { Button, Input, NativeFloatingLayerHost, NativeThemeProvider } from "../../.."
+import {
+  Button,
+  Input,
+  NativeFloatingLayerHost,
+  NativeFocusView,
+  NativeThemeProvider,
+  NativeTooltipContext,
+  Text,
+} from "../../.."
 import { NativeDialogTrigger } from "../../../overlays/floating/NativeDialogTrigger"
 import { useNativeFloatingHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import {
@@ -60,7 +68,11 @@ describe.each(variants)("$name measured native surface", ({ name, Component, arr
     const onOpenChange = jest.fn(),
       background = jest.fn()
     let trigger: TNativeTooltipTriggerRenderState
-    const node = (props = initial, mode: "light" | "dark" = "light") => (
+    const node = (
+      props = initial,
+      mode: "light" | "dark" = "light",
+      context?: React.ComponentProps<typeof NativeTooltipContext.Provider>["value"],
+    ) => (
       <NativeThemeProvider mode={mode}>
         <NativeFloatingLayerHost ref={host} testID="host">
           <Button onPress={background}>Background action</Button>
@@ -72,9 +84,17 @@ describe.each(variants)("$name measured native surface", ({ name, Component, arr
               return <Button {...state.triggerProps}>Trigger</Button>
             }}
           >
-            <Component {...props} ref={root}>
-              {body}
-            </Component>
+            {context === undefined ? (
+              <Component {...props} ref={root}>
+                {body}
+              </Component>
+            ) : (
+              <NativeTooltipContext.Provider value={context}>
+                <Component {...props} ref={root}>
+                  {body}
+                </Component>
+              </NativeTooltipContext.Provider>
+            )}
           </NativeTooltipTrigger>
         </NativeFloatingLayerHost>
       </NativeThemeProvider>
@@ -91,6 +111,83 @@ describe.each(variants)("$name measured native surface", ({ name, Component, arr
     }
     return { node, ready, root, host, onOpenChange, background, trigger: () => trigger! }
   }
+
+  it("routes the original description through its caller renderer with complete state", async () => {
+    const renderer = jest.fn((props: React.ComponentProps<typeof NativeFocusView>) => <NativeFocusView {...props} />)
+    const f = setup({ render: renderer } as TNativeTooltipProps)
+    await render(f.node())
+    expect(renderer).toHaveBeenCalled()
+    const original = f.root.current
+    expect(original).not.toBeNull()
+    await f.ready()
+    await tick()
+    expect(f.root.current).toBe(original)
+    const call = renderer.mock.calls.at(-1) as unknown as [
+      unknown,
+      { state: { isOpen: boolean; open: unknown; close: unknown } },
+    ]
+    expect(call[1].state.isOpen).toBe(true)
+    expect(call[1].state.open).toEqual(expect.any(Function))
+    expect(call[1].state.close).toEqual(expect.any(Function))
+  })
+
+  it("inherits authored Text typography without replacing the description or held editor", async () => {
+    const editor = createRef<TextInput>()
+    const f = setup(
+      { customStyles: { fontStyle: "italic", letterSpacing: 3 } },
+      <>
+        <Text testID="description-text">Authored</Text>
+        <TextInput ref={editor} value="" />
+      </>,
+    )
+    const view = await render(f.node())
+    const original = f.root.current
+    const originalEditor = editor.current
+    expect(screen.getByTestId("description-text", hidden)).toHaveStyle({ fontStyle: "italic", letterSpacing: 3 })
+    await view.rerender(f.node({ customStyles: { fontStyle: "normal", letterSpacing: 0 } }))
+    expect(screen.getByTestId("description-text", hidden)).toHaveStyle({ fontStyle: "normal", letterSpacing: 0 })
+    expect(f.root.current).toBe(original)
+    expect(editor.current).toBe(originalEditor)
+  })
+
+  it("retains the authored Text foreground transition through root color changes", async () => {
+    jest.mocked(AccessibilityInfo.isReduceMotionEnabled).mockResolvedValue(false)
+    const f = setup({ customStyles: { color: "blue" } }, <Text testID="transition-text">Color</Text>)
+    const view = await render(f.node())
+    await view.rerender(f.node({ customStyles: { color: "red" } }))
+    expect(screen.getByTestId("transition-text", hidden).props.style.color).not.toBe("red")
+    await act(() => new Promise<void>((resolve) => setTimeout(resolve, 275)))
+    await tick()
+    expect(screen.getByTestId("transition-text", hidden)).toHaveStyle({ color: "red" })
+  })
+
+  it("merges the public prop context and original ref while keeping caller typography last", async () => {
+    const contextRef = createRef<View>()
+    const f = setup({ customStyles: { letterSpacing: 3 } }, <Text testID="context-text">Context</Text>)
+    const view = await render(
+      f.node(undefined, "light", { ref: contextRef, style: () => ({ fontStyle: "italic", letterSpacing: 8 }) }),
+    )
+    expect(contextRef.current).toBe(f.root.current)
+    expect(contextRef.current).not.toBeNull()
+    expect(screen.getByTestId("context-text", hidden)).toHaveStyle({ fontStyle: "italic", letterSpacing: 3 })
+    await view.rerender(f.node({ slot: null }, "light", { ref: contextRef, style: { fontStyle: "italic" } }))
+    expect(contextRef.current).toBeNull()
+    expect(screen.getByTestId("context-text", hidden)).toHaveStyle({ fontStyle: "normal" })
+  })
+
+  it("delivers the original touch capture callbacks after preserving layer ownership", async () => {
+    const start = jest.fn(),
+      end = jest.fn()
+    const f = setup({ onTouchStartCapture: start, onTouchEndCapture: end })
+    await render(f.node())
+    await f.ready()
+    await tick()
+    const event = { nativeEvent: { identifier: 1, target: 1, touches: [], changedTouches: [] } }
+    await fireEvent(screen.getByTestId(name, hidden), "touchStartCapture", event)
+    await fireEvent(screen.getByTestId(name, hidden), "touchEndCapture", event)
+    expect(start).toHaveBeenCalledWith(event)
+    expect(end).toHaveBeenCalledWith(event)
+  })
 
   it("binds the measured description to the actual owned trigger only while ready/open, preserving an empty caption", async () => {
     jest.spyOn(ReactNative, "findNodeHandle").mockReturnValue(91)

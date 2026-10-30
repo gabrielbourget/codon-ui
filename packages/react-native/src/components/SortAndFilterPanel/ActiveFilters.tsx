@@ -87,7 +87,7 @@ export const QueryActiveFilters = (props: TNativeQueryActiveFiltersProps) => {
                 gap: theme.spacing.unit * 2,
                 padding: theme.spacing.unit,
                 backgroundColor: theme.colors.background,
-                borderColor: theme.colors.controlBorder,
+                borderColor: theme.colors.borderMuted,
                 borderWidth: 1,
                 borderRadius: theme.radius.rounded,
               }}

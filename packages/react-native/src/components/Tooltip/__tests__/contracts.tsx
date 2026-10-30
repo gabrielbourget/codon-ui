@@ -1,9 +1,11 @@
 import { createRef } from "react"
 import type { View } from "react-native"
 
+import { NativeFocusView } from "../../../input/NativeFocusView"
 import { NativeTooltipTrigger } from "../../../overlays/floating/NativeTooltipTrigger"
 import { Button } from "../../Button/Button"
 import { HoverPopover } from "../../HoverPopover/HoverPopover"
+import { NativeTooltipContext } from "../context"
 import { Tooltip } from "../Tooltip"
 
 const nativeRef = createRef<View>()
@@ -54,3 +56,26 @@ export const noScrollRef = <Tooltip scrollRef={nativeRef} />
 export const noStyleCallback = <Tooltip style={() => ({ padding: 0 })} />
 // @ts-expect-error Native anchors must support actual native measurement.
 export const noDOMAnchor = <Tooltip triggerRef={createRef<{ getBoundingClientRect: () => void }>()} />
+
+export const renderedTooltip = (
+  <Tooltip
+    render={(props, state) => {
+      state.state.open(true)
+      state.state.close(false)
+      return <NativeFocusView {...props} />
+    }}
+  />
+)
+export const inheritedTooltip = (
+  <NativeTooltipContext.Provider value={{ placement: "bottom", style: { opacity: 0 } }}>
+    <HoverPopover slot={null} />
+  </NativeTooltipContext.Provider>
+)
+// @ts-expect-error the approved description root cannot become a keyboard focus target
+export const noFocusableTooltip = <Tooltip focusable />
+// @ts-expect-error the original description host must remain retained for measurement and metadata
+export const noCollapsedTooltip = <Tooltip collapsable />
+// @ts-expect-error the wrapper retains ReactNode children rather than calling a child renderer
+export const noChildRenderer = <Tooltip>{() => "Content"}</Tooltip>
+// @ts-expect-error the native renderer returns an actual host element
+export const noMissingTooltipHost = <Tooltip render={() => null} />

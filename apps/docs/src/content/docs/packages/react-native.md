@@ -101,6 +101,8 @@ Use scrollRef with the actual core ScrollView and initialFocusRef/restoreFocusRe
 
 ## Tooltip And HoverPopover
 
+Both descriptions accept `render(props, state)` with the original native root props/ref and current placement, entry/exit flags, and tooltip state (`isOpen`, `open`, `close`). Return the actual native host and forward its props/ref. `NativeTooltipContext` supplies default or slotted native props, refs, and static or state-based styles; authored custom/final styles retain precedence. `NativeTooltipTriggerStateContext` exposes the same three-member state boundary. A trigger supplies its own contexts. Description roots remain nonfocusable, nonmodal, and retained for measurement. Authored Text inherits typography and its foreground transition.
+
 Mount NativeFloatingLayerHost once at the native window root, outside clipping/scrolled app content. NativeTooltipTrigger uses an explicit trigger render function so the caller attaches the original trigger props/ref without cloning children. Button or NativeFocusView supplies portable keyboard focus; plain core Views retain upstream focus behavior. A standalone controlled surface can instead receive an actual triggerRef, including a core TextInput ref. The ref exposed by each description remains its actual nonfocusable native root.
 
 ```tsx
@@ -120,6 +122,8 @@ The default trigger opens after1500ms of non-touch hover or immediately on obser
 The approved backend reads actual window/keyboard/host bounds and observes only the anchor's native scroll ancestors. An ancestor scroll requests closure even with shouldUpdatePosition=false; internal description scrolling is independent. Descriptions never acquire/restore keyboard focus or make the parent modal. Live supplementary metadata preserves caller label/hint/value and follows current native description text; close, target replacement, window deactivation and unmount retire the lease. descriptionLabel/detailsLabel localize supplementary captions, including empty strings. Source/compiler checks establish implementation only; matching consumer/Release and installed/profile/accessibility evidence remain separate acceptance gates.
 
 ## Theme Contract
+
+`colors.borderMuted` is independent of `colors.controlBorder`. Its defaults match the canonical muted-border role: `#c6c6c6` in light mode and `#3d3d3d` in dark mode. Override it for Tag’s inactive default border, Menu separators, and SortAndFilterPanel’s muted separators/filter borders. Explicit component styles and borders retain precedence.
 
 ```tsx
 import { NativeThemeProvider, type NativeThemeOverrides } from "@codon-ui/react-native"

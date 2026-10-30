@@ -79,13 +79,23 @@ it("uses the latest callback for a pending delayed request and cancels it on win
   }
 })
 
-it.each(["controlled", "uncontrolled"] as const)("rejects a change away from %s ownership", async (mode) => {
-  const f = setup()
-  const result = await render(f.node(mode === "controlled" ? { isOpen: false } : {}))
-  await expect(result.rerender(f.node(mode === "controlled" ? {} : { isOpen: false }))).rejects.toThrow(
-    "controlled/uncontrolled",
-  )
-})
+it.each(["controlled", "uncontrolled"] as const)(
+  "preserves source warnings and requests when leaving %s ownership",
+  async (mode) => {
+    const warning = jest.spyOn(console, "warn").mockImplementation(() => {})
+    const f = setup()
+    const result = await render(f.node(mode === "controlled" ? { isOpen: false } : {}))
+    const changed = jest.fn()
+    await result.rerender(
+      f.node(mode === "controlled" ? { onOpenChange: changed } : { isOpen: false, onOpenChange: changed }),
+    )
+    expect(warning).toHaveBeenCalledWith(expect.stringContaining("changed from"))
+    await act(() => f.state().open(true))
+    expect(changed).toHaveBeenCalledWith(true)
+    expect(f.state().isOpen).toBe(mode === "controlled")
+    warning.mockRestore()
+  },
+)
 
 it("rejects nonfinite delays before native events can schedule work", async () => {
   const f = setup()

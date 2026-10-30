@@ -1125,7 +1125,7 @@ it("CAP.menu.029–.032 keeps separator computed/custom/final/native semantics i
     height: 0,
     marginTop: 5,
     marginBottom: 0,
-    backgroundColor: resolveNativeTheme("light").colors.controlBorder,
+    backgroundColor: "#c6c6c6",
   })
   expect(row("menu-separator").props.role).toBe("separator")
   expect(row("menu-separator").props.customStyles).toBeUndefined()

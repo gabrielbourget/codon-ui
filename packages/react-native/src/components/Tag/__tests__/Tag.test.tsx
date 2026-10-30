@@ -240,7 +240,7 @@ it("CAP.tag.011 preserves independent active/inactive and static native colors/b
   expect(screen.getByTestId("tag")).toHaveStyle({ backgroundColor: "green", borderWidth: 0 })
 })
 
-it("CAP.tag.012 keeps live semantic/provider/foreground ownership and the explicit muted-role gap", async () => {
+it("CAP.tag.012 keeps the live muted-border role independent of control borders and foreground", async () => {
   const { rerender } = await render(
     <NativeThemeProvider>
       <Tag pressable isPressed={false} onPress={() => undefined}>
@@ -252,7 +252,7 @@ it("CAP.tag.012 keeps live semantic/provider/foreground ownership and the explic
     <NativeThemeProvider
       mode="dark"
       overrides={{
-        colors: { controlBackground: "navy", foreground: "orange", controlBorder: "red" },
+        colors: { controlBackground: "navy", foreground: "orange", controlBorder: "red", borderMuted: "purple" },
         radius: { rounded: 9 },
       }}
     >
@@ -261,7 +261,7 @@ it("CAP.tag.012 keeps live semantic/provider/foreground ownership and the explic
       </Tag>
     </NativeThemeProvider>,
   )
-  expect(screen.getByTestId("tag")).toHaveStyle({ backgroundColor: "navy", borderColor: "#3d3d3d", borderRadius: 9 })
+  expect(screen.getByTestId("tag")).toHaveStyle({ backgroundColor: "navy", borderColor: "purple", borderRadius: 9 })
   expect(screen.getByText("Value")).toHaveStyle({ color: "orange" })
   await rerender(
     <NativeThemeProvider>

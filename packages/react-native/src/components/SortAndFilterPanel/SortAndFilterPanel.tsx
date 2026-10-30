@@ -59,7 +59,7 @@ const QueryPanelBody = ({
   const controller = useNativeQueryDraftController(props)
   const request = useFilterRequest({ ...props, canAct: () => props.isOpen })
   const style = resolveQueryDialogStyle(props.customDialogStyles, theme)
-  const separator = <LineSegment color={theme.colors.controlBorder} height={1} size="100%" />
+  const separator = <LineSegment color={theme.colors.borderMuted} height={1} size="100%" />
   const content = (
     <NativeContentContext.Provider
       value={{ foregroundColor: style.text.color ?? theme.colors.foreground, isButton: false }}

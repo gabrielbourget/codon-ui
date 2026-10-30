@@ -713,6 +713,8 @@ export type {
   TNativeTooltipTriggerMode,
 } from "./overlays/floating/NativeTooltipTrigger"
 export { Tooltip } from "./components/Tooltip/Tooltip"
+export { NativeTooltipContext, NativeTooltipTriggerStateContext } from "./components/Tooltip/context"
+export type { TNativeTooltipState, TNativeTooltipRenderState } from "./components/Tooltip/types"
 export { ClickPopover } from "./components/ClickPopover/ClickPopover"
 export { Breadcrumbs } from "./components/Breadcrumbs/Breadcrumbs"
 export { Toaster } from "./components/Toaster/Toaster"

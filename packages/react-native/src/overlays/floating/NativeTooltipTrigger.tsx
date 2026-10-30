@@ -1,6 +1,8 @@
 import { createContext, useContext, useId, useInsertionEffect, useRef, type ReactNode, type RefObject } from "react"
 import type { PressableProps, View, ViewProps } from "react-native"
 
+import { NativeTooltipContext, NativeTooltipTriggerStateContext } from "../../components/Tooltip/context"
+import type { TNativeTooltipState } from "../../components/Tooltip/types"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import type { TNativeInteractionEvent, TNativePressEvent, TNativeKeyboardEvent } from "../../input/types"
 
@@ -44,6 +46,7 @@ export type TNativeTooltipTriggerProps = Parameters<typeof useNativeTooltipTrigg
 
 const NativeTooltipTriggerContext = createContext<
   | (TNativeTooltipTriggerRenderState & {
+      sourceState: TNativeTooltipState
       openFromNative: (immediate: boolean, eligible: () => boolean) => void
       closeFromNative: (immediate: boolean, eligible: () => boolean) => void
     })
@@ -162,14 +165,19 @@ export const NativeTooltipTrigger = (props: TNativeTooltipTriggerProps) => {
     <NativeTooltipTriggerContext.Provider
       value={{
         ...rendered,
+        sourceState: state,
         openFromNative: (immediate, childEligible) =>
           current.current.state.open(immediate, () => eligible() && childEligible()),
         closeFromNative: (immediate, childEligible) =>
           current.current.state.close(immediate, () => eligible() && childEligible()),
       }}
     >
-      {props.trigger(rendered)}
-      {typeof props.children === "function" ? props.children(rendered) : props.children}
+      <NativeTooltipTriggerStateContext.Provider value={state}>
+        <NativeTooltipContext.Provider value={{ nativeID: rendered.tooltipProps.nativeID, triggerRef }}>
+          {props.trigger(rendered)}
+          {typeof props.children === "function" ? props.children(rendered) : props.children}
+        </NativeTooltipContext.Provider>
+      </NativeTooltipTriggerStateContext.Provider>
     </NativeTooltipTriggerContext.Provider>
   )
 }
