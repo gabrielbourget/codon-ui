@@ -54,6 +54,10 @@ const NativeDialogTriggerContext = createContext<{
 export const useNativeDialogTrigger = () => useContext(NativeDialogTriggerContext)
 
 export const NativeDialogTrigger = (props: TNativeDialogTriggerProps) => {
+  const controlled = props.isOpen !== undefined
+  const initialOwnership = useRef(controlled)
+  if (initialOwnership.current !== controlled)
+    throw new TypeError("NativeDialogTrigger: changing controlled/uncontrolled ownership is unsupported")
   const overlayState = useNativeMenuTriggerState(props)
   const isOpen = overlayState.isOpen
   const isDisabled = props.isDisabled ?? false

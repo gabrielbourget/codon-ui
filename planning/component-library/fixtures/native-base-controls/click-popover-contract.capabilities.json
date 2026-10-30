@@ -4607,7 +4607,7 @@
     "Root context style may be static/dynamic; own root style is static. Computed, context, custom and final native styles preserve zero/false/empty values.",
     "clearContexts clears only descendants, in source nesting order, without changing original root ownership.",
     "Dialog context static style, actual host renderer with undefined state and fallback children receive the actual current overlay close identity.",
-    "NativeDialogTrigger shares the same complete nine-member menu-state object through both overlay and root-menu contexts; setOpen does not clear submenu state, close clears it, open/toggle retain focusStrategy. Retained native trigger methods cannot mutate after unmount.",
+    "NativeDialogTrigger shares the same complete nine-member menu-state object through both overlay and root-menu contexts; setOpen does not clear submenu state, close clears it, open/toggle retain focusStrategy. Retained native trigger methods cannot mutate after unmount. The original native controlled-ownership guard remains fixed for the trigger lifetime under roadmap3.5.17.9; both original switch-rejection assertions remain unchanged.",
     "Dialog title uses existing Text slot=title with native h2 semantics and actual committed nativeID; own labels/relationships take priority, mounted title beats trigger context fallback, and title removal restores the fallback. Default and null slots remain independent.",
     "Close Button slot uses existing context merging, close-before-caller order, same normalized native event and current overlay close; default/null Buttons do not close.",
     "Existing focus/scroll/window/position/arrow/250ms motion/default/style/relationship gates remain; no native products or installed acceptance follow from this source audit."
@@ -4619,7 +4619,8 @@
     "styles.test.ts",
     "TooltipSurface.test.tsx",
     "Text.test.tsx",
-    "Button/context.test.tsx"
+    "Button/context.test.tsx",
+    "overlays/floating/NativeDialogTrigger.test.tsx"
   ],
   "originalAssertions": [
     {
