@@ -20,6 +20,26 @@ const renderTheme = async (props: TNativeThemeProviderProps = {}) =>
   )
 
 describe("NativeThemeProvider public contract", () => {
+  it.each(["light", "dark"] as const)("keeps the muted border independent in %s mode", async (mode) => {
+    const view = await renderTheme({ mode })
+    expect(readTheme().colors.borderMuted).toBe(mode === "light" ? "#c6c6c6" : "#3d3d3d")
+    const overrides = Object.freeze({ colors: Object.freeze({ borderMuted: "purple", controlBorder: "orange" }) })
+    await view.rerender(
+      <NativeThemeProvider mode={mode} overrides={overrides}>
+        <ThemeProbe />
+      </NativeThemeProvider>,
+    )
+    expect(readTheme().colors).toMatchObject({ borderMuted: "purple", controlBorder: "orange" })
+    await view.rerender(
+      <NativeThemeProvider mode={mode} overrides={{ colors: { borderMuted: undefined, controlBorder: "orange" } }}>
+        <ThemeProbe />
+      </NativeThemeProvider>,
+    )
+    expect(readTheme().colors.borderMuted).toBe(mode === "light" ? "#c6c6c6" : "#3d3d3d")
+    expect(readTheme().colors.controlBorder).toBe("orange")
+    expect(overrides.colors).toEqual({ borderMuted: "purple", controlBorder: "orange" })
+  })
+
   it("retains defaults for explicitly undefined partial overrides", async () => {
     await renderTheme({
       overrides: {

@@ -1,7 +1,7 @@
 import "../../../collection/__tests__/nativeReceipts"
 
 import { act as rawAct, cleanup } from "@testing-library/react-native"
-import { useEffect, useState } from "react"
+import { useEffect, useState, type ComponentProps } from "react"
 import { AccessibilityInfo, AppState, View } from "react-native"
 
 import {
@@ -55,8 +55,11 @@ const applied: TTableFilterGroup[] = [
     clauses: [{ id: "name-clause", operationCode: "like", argument: "held" }],
   },
 ]
-const tree = (props: Partial<TNativeSortAndFilterPanelProps> = {}) => (
-  <NativeThemeProvider>
+const tree = (
+  props: Partial<TNativeSortAndFilterPanelProps> = {},
+  theme: ComponentProps<typeof NativeThemeProvider> = {},
+) => (
+  <NativeThemeProvider {...theme}>
     <NativeOverlayProvider backdropAdapter={{ Target: View, Effect: () => <View testID="modeled-backdrop" /> }}>
       <NativeBackdropHost>
         <SortAndFilterPanel
@@ -556,4 +559,29 @@ it("retains the public panel's original editor and dirty draft when owner metada
     clauses: [{ id: "name-clause", operationCode: "like", argument: "pending async" }],
   })
   expect(editor.props.value).toBe(" pending async ")
+})
+
+it("keeps muted separators and filter borders independent while retaining the original draft", async () => {
+  const apply = jest.fn(),
+    close = jest.fn()
+  const props = { activeFilters: applied, applyPendingSortAndFilterChanges: apply, onOpenChange: close }
+  const view = await render(tree(props, { overrides: { colors: { borderMuted: "purple", controlBorder: "orange" } } }))
+  const group = screen.getByLabelText("Name filter group", { includeHiddenElements: true })
+  const editor = screen.getByLabelText("Filter Name by contained text", { includeHiddenElements: true })
+  expect(editor.props.value).toBe("held")
+  expect(group).toHaveStyle({ borderColor: "purple" })
+  const separators = screen.getAllByTestId("line-segment", { includeHiddenElements: true })
+  expect(separators).toHaveLength(4)
+  for (const separator of separators) expect(separator).toHaveStyle({ backgroundColor: "purple" })
+  await view.rerender(
+    tree(props, { mode: "dark", overrides: { colors: { borderMuted: "lime", controlBorder: "orange" } } }),
+  )
+  expect(screen.getByLabelText("Name filter group", { includeHiddenElements: true })).toBe(group)
+  expect(group).toHaveStyle({ borderColor: "lime" })
+  for (const separator of screen.getAllByTestId("line-segment", { includeHiddenElements: true }))
+    expect(separator).toHaveStyle({ backgroundColor: "lime" })
+  expect(screen.getByLabelText("Filter Name by contained text", { includeHiddenElements: true })).toBe(editor)
+  expect(editor.props.value).toBe("held")
+  expect(apply).not.toHaveBeenCalled()
+  expect(close).not.toHaveBeenCalled()
 })

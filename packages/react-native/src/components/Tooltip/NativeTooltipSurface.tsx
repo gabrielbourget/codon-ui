@@ -3,14 +3,17 @@ import {
   useContext,
   useId,
   useImperativeHandle,
+  useInsertionEffect,
   useLayoutEffect,
   useRef,
   useState,
   useSyncExternalStore,
+  type ComponentPropsWithoutRef,
 } from "react"
-import { Animated, I18nManager, StyleSheet, View } from "react-native"
+import { Animated, Easing, I18nManager, StyleSheet, View } from "react-native"
 import type { PathProps } from "react-native-svg"
 
+import { useNativeContextProps } from "../../collection/context"
 import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
 import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
@@ -26,21 +29,43 @@ import { useNativeTooltipDescription } from "../../overlays/floating/useTooltipD
 import { useNativeTooltipTriggerState } from "../../overlays/floating/useTooltipTriggerState"
 import { useNativeTheme } from "../../theme"
 import { getNativeButtonContent } from "../Button/content"
+import { useNativeLinkColor } from "../Link/motion"
 import { NativeContentContext } from "../NativeContentContext"
+import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
 
-import type { TNativeTooltipProps, TNativeTooltipRef } from "./types"
+import { NativeTooltipContext, NativeTooltipTriggerStateContext } from "./context"
+import type { TNativeTooltipContextStyle } from "./context"
+import type { TNativeTooltipProps, TNativeTooltipRef, TNativeTooltipRenderState } from "./types"
 
 const noSubscription = () => () => undefined
 const noRevision = () => 0
-const AnimatedDescriptionHost = Animated.createAnimatedComponent(NativeFocusHost)
+const textColorEasing = Easing.bezier(0.42, 0, 0.58, 1)
+const DescriptionHost = forwardRef<
+  View,
+  ComponentPropsWithoutRef<typeof NativeFocusHost> & {
+    nativeRender?: TNativeTooltipProps["render"]
+    nativeRenderState: TNativeTooltipRenderState
+  }
+>(({ nativeRender, nativeRenderState, ...props }, ref) =>
+  nativeRender ? nativeRender({ ...props, ref }, nativeRenderState) : <NativeFocusHost {...props} ref={ref} />,
+)
+const AnimatedDescriptionHost = Animated.createAnimatedComponent(DescriptionHost)
 
 export const NativeTooltipSurface = forwardRef<
   TNativeTooltipRef,
   TNativeTooltipProps & { profile: "tooltip" | "hover-popover" }
->((props, ref) => {
+>((authored, forwardedRef) => {
+  const [mergedProps, ref] = useNativeContextProps(
+    { ...authored, style: [authored.customStyles, authored.style] },
+    forwardedRef,
+    NativeTooltipContext,
+  )
+  const props = mergedProps as Omit<typeof mergedProps, "style"> & { style?: TNativeTooltipContextStyle }
   const {
     profile,
     children,
+    render: renderRoot,
+    slot: _slot,
     isOpen,
     defaultOpen,
     onOpenChange,
@@ -94,13 +119,14 @@ export const NativeTooltipSurface = forwardRef<
   const parent = useContext(NativeFloatingScopeContext)
   const windowActive = useContext(NativeFloatingWindowContext)
   const trigger = useNativeTooltipTrigger()
-  const contextOwned = isOpen === undefined && defaultOpen === undefined && trigger !== null
+  const contextState = useContext(NativeTooltipTriggerStateContext)
+  const contextOwned = isOpen === undefined && defaultOpen === undefined && contextState !== null
   const localState = useNativeTooltipTriggerState({
-    isOpen: contextOwned ? trigger.isOpen : isOpen,
+    isOpen: contextOwned ? contextState.isOpen : isOpen,
     defaultOpen,
     onOpenChange,
   })
-  const owner = contextOwned ? trigger : localState
+  const owner = contextOwned ? contextState : localState
   const open = owner.isOpen
   const currentOwner = useRef(owner)
   currentOwner.current = owner
@@ -118,7 +144,16 @@ export const NativeTooltipSurface = forwardRef<
   })
   const [layoutRevision, setLayoutRevision] = useState(0)
   const [arrowLayout, setArrowLayout] = useState<{ width: number; height: number } | null>(null)
-  const calibrated = getNativeFloatingSurfaceStyles(theme, props, side, direction, host.layout?.width ?? 0, profile)
+  const committedStyle = useRef<TNativeTooltipProps["style"]>(undefined)
+  const measurementProps = { ...props, style: typeof props.style === "function" ? committedStyle.current : props.style }
+  const calibrated = getNativeFloatingSurfaceStyles(
+    theme,
+    measurementProps,
+    side,
+    direction,
+    host.layout?.width ?? 0,
+    profile,
+  )
   const layer = useNativeFloatingLayer({
     registry: host.layers,
     parent: parent?.id ?? null,
@@ -153,19 +188,35 @@ export const NativeTooltipSurface = forwardRef<
   useLayoutEffect(() => {
     if (position) setSide(position.placement)
   }, [position?.placement])
-  const painted = getNativeFloatingSurfaceStyles(
-    theme,
-    props,
-    position?.placement ?? side,
-    direction,
-    host.layout?.width ?? 0,
-    profile,
-  )
   const geometryReady = position !== null && (!showOverlayArrow || arrowLayout?.width === position.arrowSize)
   const positionedGeneration = useRef<number | null>(null)
   if (geometryReady) positionedGeneration.current = layer.generation
   const transitionReady = geometryReady || positionedGeneration.current === layer.generation || (!open && isExiting)
   const motion = useNativeFloatingMotion(layer, transitionReady, open, isEntering, isExiting)
+  const renderState: TNativeTooltipRenderState = {
+    placement: position?.placement ?? null,
+    isEntering: motion.isEntering,
+    isExiting: motion.isExiting,
+    state: contextState ?? owner,
+  }
+  const resolvedStyle =
+    typeof props.style === "function" ? props.style({ ...renderState, defaultStyle: {} }) : props.style
+  const painted = getNativeFloatingSurfaceStyles(
+    theme,
+    { ...props, style: resolvedStyle },
+    position?.placement ?? side,
+    direction,
+    host.layout?.width ?? 0,
+    profile,
+  )
+  useInsertionEffect(() => {
+    committedStyle.current = resolvedStyle
+  }, [resolvedStyle])
+  const margins = JSON.stringify(painted.margins)
+  const measuredMargins = JSON.stringify(calibrated.margins)
+  useLayoutEffect(() => {
+    if (margins !== measuredMargins) setLayoutRevision((value) => value + 1)
+  }, [margins, measuredMargins])
   const ready =
     geometryReady && motion.preferenceReady && windowActive?.() !== false && keyScope?.isWindowActive() !== false
   useLayoutEffect(() => {
@@ -173,6 +224,7 @@ export const NativeTooltipSurface = forwardRef<
   }, [ready, layer.phase, layer.generation])
   useNativeTooltipDescription(open && ready && layer.active, anchor, root, descriptionLabel)
   const contentHovered = useRef(false)
+  const currentForeground = useNativeLinkColor(painted.rootText.color ?? theme.colors.foreground, 250, textColorEasing)
   useLayoutEffect(() => {
     contentHovered.current = false
   }, [layer.generation])
@@ -191,6 +243,8 @@ export const NativeTooltipSurface = forwardRef<
           <AnimatedDescriptionHost
             {...nativeProps}
             ref={root}
+            nativeRender={renderRoot}
+            nativeRenderState={renderState}
             testID={identity}
             nativeID={nativeProps.nativeID ?? trigger?.tooltipProps.nativeID ?? `codon-tooltip-${standaloneId}`}
             collapsable={false}
@@ -225,23 +279,29 @@ export const NativeTooltipSurface = forwardRef<
               onPointerEnter?.(event)
               if (event.nativeEvent.pointerType === "touch" || contentHovered.current) return
               contentHovered.current = true
-              if (contextOwned) trigger.openFromNative(true, layer.canAct)
-              else localState.open(true, layer.canAct)
+              if (contextOwned && trigger?.sourceState === owner) trigger.openFromNative(true, layer.canAct)
+              else owner.open(true)
             }}
             onPointerLeave={(event) => {
               if (!layer.canAct()) return
               onPointerLeave?.(event)
               if (event.nativeEvent.pointerType === "touch" || !contentHovered.current) return
               contentHovered.current = false
-              if (contextOwned) trigger.closeFromNative(false, layer.canAct)
-              else localState.close(false, layer.canAct)
+              if (contextOwned && trigger?.sourceState === owner) trigger.closeFromNative(false, layer.canAct)
+              else owner.close(false)
             }}
             {...{
               onTouchStartCapture: (event: Parameters<NonNullable<TNativeTooltipProps["onTouchStart"]>>[0]) => {
-                if (layer.canAct()) host.interactions.mark(layer.id, event)
+                if (layer.canAct()) {
+                  host.interactions.mark(layer.id, event)
+                  nativeProps.onTouchStartCapture?.(event)
+                }
               },
               onTouchEndCapture: (event: Parameters<NonNullable<TNativeTooltipProps["onTouchEnd"]>>[0]) => {
-                if (layer.canAct()) host.interactions.mark(layer.id, event)
+                if (layer.canAct()) {
+                  host.interactions.mark(layer.id, event)
+                  nativeProps.onTouchEndCapture?.(event)
+                }
               },
             }}
             onLayout={(event) => {
@@ -253,30 +313,30 @@ export const NativeTooltipSurface = forwardRef<
               if (layer.canAct()) host.layers.requestDismiss("accessibilityEscape")
             }}
           >
-            <NativeContentContext.Provider
-              value={{ foregroundColor: painted.rootText.color ?? theme.colors.foreground, isButton: false }}
-            >
-              {showOverlayArrow && (
-                <NativeFloatingArrow
-                  position={position}
-                  side={side}
-                  layout={arrowLayout}
-                  style={painted.arrow}
-                  graphicStyle={painted.arrowGraphic}
-                  paint={painted.arrowPaint as PathProps}
-                  color={painted.arrowColor}
-                  testID={`${identity}-overlay-arrow`}
-                  onLayout={({ nativeEvent }) => {
-                    if (!layer.canMeasure()) return
-                    const { width, height } = nativeEvent.layout
-                    setArrowLayout((value) =>
-                      value?.width === width && value.height === height ? value : { width, height },
-                    )
-                  }}
-                />
-              )}
-              {getNativeButtonContent(children, painted.rootText)}
-            </NativeContentContext.Provider>
+            <NativeTextStyleProvider style={painted.rootText}>
+              <NativeContentContext.Provider value={{ foregroundColor: currentForeground, isButton: false }}>
+                {showOverlayArrow && (
+                  <NativeFloatingArrow
+                    position={position}
+                    side={side}
+                    layout={arrowLayout}
+                    style={painted.arrow}
+                    graphicStyle={painted.arrowGraphic}
+                    paint={painted.arrowPaint as PathProps}
+                    color={painted.arrowColor}
+                    testID={`${identity}-overlay-arrow`}
+                    onLayout={({ nativeEvent }) => {
+                      if (!layer.canMeasure()) return
+                      const { width, height } = nativeEvent.layout
+                      setArrowLayout((value) =>
+                        value?.width === width && value.height === height ? value : { width, height },
+                      )
+                    }}
+                  />
+                )}
+                {getNativeButtonContent(children, painted.rootText)}
+              </NativeContentContext.Provider>
+            </NativeTextStyleProvider>
           </AnimatedDescriptionHost>
         </NativeFloatingScopeContext.Provider>
       </View>

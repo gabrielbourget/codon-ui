@@ -65,6 +65,7 @@ export type TNativeTheme = Readonly<{
     controlBackground: ColorValue
     controlForeground: ColorValue
     controlBorder: ColorValue
+    borderMuted: ColorValue
     focusRing: ColorValue
     controlPlaceholder: ColorValue
     controlHoverBackground: ColorValue

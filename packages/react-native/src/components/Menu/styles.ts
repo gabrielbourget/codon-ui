@@ -68,7 +68,7 @@ export const getNativeMenuItemStyles = (
 export const getNativeMenuSeparatorStyle = (theme: TNativeTheme, props: TNativeMenuSeparatorProps) =>
   resolveNativeStyle<ViewStyle>(
     [
-      { height: 1, backgroundColor: theme.colors.controlBorder, marginVertical: Math.max(0, theme.spacing.unit - 2) },
+      { height: 1, backgroundColor: theme.colors.borderMuted, marginVertical: Math.max(0, theme.spacing.unit - 2) },
       props.customStyles,
       props.style,
     ],

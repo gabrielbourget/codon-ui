@@ -80,7 +80,7 @@ export const getNativeTagStyle = (
   const border = props.pressable
     ? active
       ? (props.activeBorder ?? "none")
-      : (props.inactiveBorder ?? { borderWidth: 2, borderColor: theme.mode === "dark" ? "#3d3d3d" : "#c6c6c6" })
+      : (props.inactiveBorder ?? { borderWidth: 2, borderColor: theme.colors.borderMuted })
     : (props.border ?? "none")
   validateNativeColor(background, "Tag", "background")
   const outline =
