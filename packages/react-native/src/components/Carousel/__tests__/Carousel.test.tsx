@@ -405,3 +405,21 @@ it("keeps chrome typography and Counter wrapper foreground in their own native o
   expect(screen.getByTestId("carousel-counter").props.style.color).toBeUndefined()
   expect(screen.getByTestId("carousel-chrome").props.style.fontSize).toBeUndefined()
 })
+
+it("binds root and viewport keyboard policies to their original host identities", async () => {
+  const native = jest.requireActual<typeof RN>("react-native")
+  const observed: View[] = []
+  jest.spyOn(native, "findNodeHandle").mockImplementation((node) => {
+    if (!node || typeof node !== "object" || !("props" in node)) return null
+    observed.push(node as View)
+    return (node as View).props.testID === "carousel" ? 27 : 33
+  })
+  const props = base()
+  const view = await render(tree(props))
+  const policy = () => [...mockPolicies.values()].find(({ excludeEditable }) => excludeEditable)!
+  expect(policy().targetTag).toBe(33)
+  expect(observed.some((node) => node === context.emblaApi?.rootNode())).toBe(true)
+  await view.rerender(tree({ ...props, keyboardNavigationTarget: "root" }))
+  expect(policy().targetTag).toBe(27)
+  expect(observed.some((node) => node.props.testID === "carousel")).toBe(true)
+})
