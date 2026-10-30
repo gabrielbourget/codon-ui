@@ -2,7 +2,13 @@ import { render, screen } from "@testing-library/react-native"
 import { createRef, type ReactNode } from "react"
 import { AccessibilityInfo, type View } from "react-native"
 
-import { CircularProgress, Text, type TNativeCircularProgressStyleState } from "../../.."
+import {
+  CircularProgress,
+  NativeFocusView,
+  Text,
+  type TNativeCircularProgressRootRender,
+  type TNativeCircularProgressStyleState,
+} from "../../.."
 
 const UnmountedLabel = jest.fn(() => <Text>Value label content must stay unmounted</Text>)
 const element = <UnmountedLabel />
@@ -43,10 +49,18 @@ describe("CircularProgress inherited valueLabel contract", () => {
       const style = jest.fn((state: TNativeCircularProgressStyleState) => ({
         opacity: state.isIndeterminate ? 0.5 : 1,
       }))
-      await render(<CircularProgress aria-label="Task" value={25} valueLabel={testCase.label} style={style} />)
+      const renderer = jest.fn(
+        (
+          props: Parameters<TNativeCircularProgressRootRender>[0],
+          _state: Parameters<TNativeCircularProgressRootRender>[1],
+        ) => <NativeFocusView {...props} />,
+      )
+      await render(
+        <CircularProgress aria-label="Task" value={25} valueLabel={testCase.label} style={style} render={renderer} />,
+      )
       const progress = screen.getByRole("progressbar", { name: "Task" })
       expect(progress).toHaveAccessibilityValue({ now: 25, text: testCase.expectedText })
-      expect(progress.props["aria-valuetext"]).toBe(testCase.expectedText)
+      expect(renderer.mock.calls.at(-1)?.[0]["aria-valuetext"]).toBe(testCase.expectedText)
       expect(style.mock.calls.at(-1)?.[0].valueText).toBe(testCase.expectedState)
       expect(screen.queryByText("Value label content must stay unmounted")).toBeNull()
       expect(screen.queryByTestId("circular-progress-text", { includeHiddenElements: true })).toBeNull()

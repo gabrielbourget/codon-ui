@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { cloneElement, useState, type PropsWithChildren, type ReactElement } from "react"
 import { StyleSheet, View } from "react-native"
 
 import {
@@ -7,6 +7,9 @@ import {
   Button,
   CircularProgress,
   Counter,
+  NativeCircularProgressContext,
+  NativeCircularProgressLabel,
+  NativeFocusView,
   Text,
 } from "@codon-ui/react-native"
 
@@ -28,6 +31,26 @@ const valueLabels = [
   { name: "promise", value: Promise.resolve("One quarter") },
 ] as const
 
+const CounterLayoutChild = () => {
+  const [content, setContent] = useState(0)
+  const [explicitDisplay, setExplicitDisplay] = useState(false)
+  return (
+    <>
+      <View
+        testID="counter-layout-child"
+        style={{ height: 20, width: 20, backgroundColor: "purple", display: explicitDisplay ? "flex" : undefined }}
+      >
+        {content === 1 ? <Text> </Text> : content === 2 ? <View testID="counter-layout-nested" /> : null}
+      </View>
+      <Button onPress={() => setContent((current) => (current + 1) % 3)}>Next counter child content</Button>
+      <Button onPress={() => setExplicitDisplay((current) => !current)}>Toggle counter child display</Button>
+      <Text testID="counter-layout-state">
+        Child: {content}. Explicit display: {String(explicitDisplay)}.
+      </Text>
+    </>
+  )
+}
+
 export const CircularCounterScene = () => {
   const [value, setValue] = useState(25)
   const [raw, setRaw] = useState(false)
@@ -41,6 +64,7 @@ export const CircularCounterScene = () => {
   const [showMax, setShowMax] = useState(true)
   const [showRing, setShowRing] = useState(true)
   const [valueLabelIndex, setValueLabelIndex] = useState(0)
+  const [composition, setComposition] = useState(false)
   const max = [100, 0, "0"] as const
   const cap = AVAILABLE_NATIVE_STROKE_LINECAPS[capIndex]
   const order = orderIndex < 0 ? undefined : AVAILABLE_THEMING_ORDER_CODES[orderIndex]
@@ -82,6 +106,7 @@ export const CircularCounterScene = () => {
         </Button>
         <Button onPress={() => setShowMax((current) => !current)}>Toggle counter max suffix</Button>
         <Button onPress={() => setShowRing((current) => !current)}>Toggle counter ring</Button>
+        <Button onPress={() => setComposition((current) => !current)}>Toggle circular composition</Button>
       </View>
       <CircularProgress
         testID="circular-demo"
@@ -120,6 +145,38 @@ export const CircularCounterScene = () => {
       >
         <Text>Caller-owned count</Text>
       </Counter>
+      {composition ? (
+        <>
+          <NativeCircularProgressContext.Provider value={{ slots: { task: { maxValue: 200 } } }}>
+            <CircularProgress
+              testID="circular-context-demo"
+              slot="task"
+              value={value}
+              render={(props) => {
+                const provider = props.children as ReactElement<PropsWithChildren>
+                return (
+                  <NativeFocusView {...props}>
+                    {cloneElement(
+                      provider,
+                      undefined,
+                      <>
+                        <NativeCircularProgressLabel testID="circular-context-label">
+                          Scoped task progress
+                        </NativeCircularProgressLabel>
+                        {provider.props.children}
+                      </>,
+                    )}
+                  </NativeFocusView>
+                )
+              }}
+            />
+          </NativeCircularProgressContext.Provider>
+          <Counter value={value} testID="counter-layout-demo" customStyles={{ fontStyle: "italic", letterSpacing: 2 }}>
+            <CounterLayoutChild />
+          </Counter>
+          <Text>Native layout check: the empty purple box is hidden until it has content or explicit display.</Text>
+        </>
+      ) : null}
       <Text>
         Named vector colors retain the canonical color/stroke distinction. Explicit slot stroke/fill styles own paint.
         Numeric max zero hides optional parts; string zero retains them.

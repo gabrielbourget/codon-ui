@@ -6,15 +6,16 @@ import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeTheme } from "../../theme"
 import { getNativeButtonContent } from "../Button/content"
 import { CircularProgress } from "../CircularProgress/CircularProgress"
-import type { TNativeCircularProgressRootStyle } from "../CircularProgress/types"
 import { resolveNativeStyle, validateNativeColor } from "../colors"
 import { validateNativeDisplayDimension } from "../displayDimensions"
 import { useNativeLinkColor } from "../Link/motion"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
+import { splitNativeTextStyle } from "../nativeTextStyle"
+import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
 import { NativeText as Text } from "../Text/Text"
 
 import { getNativeCounterStatus } from "./model"
-import type { TNativeCounterProps, TNativeCounterRef } from "./types"
+import type { TNativeCounterProps, TNativeCounterRef, TNativeCounterRootStyle } from "./types"
 
 const counterColorEasing = Easing.bezier(0.42, 0, 0.58, 1)
 
@@ -56,13 +57,14 @@ export const Counter = forwardRef<TNativeCounterRef, TNativeCounterProps>((props
   const status = getNativeCounterStatus(props)
   const statusColor =
     status === "danger" ? theme.colors.statusDanger : status === "warning" ? theme.colors.statusWarning : undefined
-  const { color: rootColor, ...viewStyle } = resolveNativeStyle<TNativeCircularProgressRootStyle>(
+  const { color: rootColor, ...viewStyle } = resolveNativeStyle<TNativeCounterRootStyle>(
     [
       {
         flexDirection: "row",
         gap: theme.spacing.unit,
         alignItems: "center",
         justifyContent: "center",
+        textAlign: "center",
         height,
         width,
         color,
@@ -99,48 +101,51 @@ export const Counter = forwardRef<TNativeCounterRef, TNativeCounterProps>((props
   const identity = testID ?? aliasID ?? "counter"
   return (
     <NativeContentContext.Provider value={{ foregroundColor: foreground, isButton: context?.isButton ?? false }}>
-      <NativeFocusHost
-        {...rootProps}
-        ref={ref}
-        focusable={rootProps.tabIndex !== undefined ? rootProps.tabIndex === 0 : (rootProps.focusable ?? false)}
-        onBubbledFocus={rootProps.onFocus}
-        onBubbledBlur={rootProps.onBlur}
-        accessibilityLabel={label}
-        nativeLabelledBy={nativeAccessibilityIDs(labelledBy)}
-        nativeDescribedBy={nativeAccessibilityIDs(nativeDescribedBy ?? ariaDescribedBy)}
-        nativeDetailsBy={nativeAccessibilityIDs(nativeDetails ?? ariaDetails)}
-        testID={identity}
-        style={viewStyle}
-      >
-        {showProgressIndicator && maxValue ? (
-          <CircularProgress
-            width={12}
-            height={12}
-            value={(Number(value) / Number(maxValue)) * 100}
-            pathColor={statusColor}
-            customStyles={indicatorStyle}
-            accessibilityLabel={label ? `${label} Progress` : "Progress"}
-            accessibilityLabelledBy={labelledBy}
-            testID={`${identity}-progress`}
-          />
-        ) : null}
-        <View
-          testID={`${identity}-text-row`}
-          style={{ height: "100%", flexDirection: "row", justifyContent: "center", alignItems: "center" }}
+      <NativeTextStyleProvider style={{ ...splitNativeTextStyle(viewStyle).text, color: foreground }}>
+        <NativeFocusHost
+          {...rootProps}
+          nativeCounterEmptyChildren
+          ref={ref}
+          focusable={rootProps.tabIndex !== undefined ? rootProps.tabIndex === 0 : (rootProps.focusable ?? false)}
+          onBubbledFocus={rootProps.onFocus}
+          onBubbledBlur={rootProps.onBlur}
+          accessibilityLabel={label}
+          nativeLabelledBy={nativeAccessibilityIDs(labelledBy)}
+          nativeDescribedBy={nativeAccessibilityIDs(nativeDescribedBy ?? ariaDescribedBy)}
+          nativeDetailsBy={nativeAccessibilityIDs(nativeDetails ?? ariaDetails)}
+          testID={identity}
+          style={viewStyle}
         >
-          <Text testID={`${identity}-value`} customStyles={{ ...textStyle, color: textColor }} nativeColorIsAnimated>
-            {value}
-          </Text>
-          {showMaxValue && maxValue ? (
-            <Text
-              testID={`${identity}-max`}
-              customStyles={{ ...textStyle, color: textColor }}
-              nativeColorIsAnimated
-            >{`/${maxValue}`}</Text>
+          {showProgressIndicator && maxValue ? (
+            <CircularProgress
+              width={12}
+              height={12}
+              value={(Number(value) / Number(maxValue)) * 100}
+              pathColor={statusColor}
+              customStyles={indicatorStyle}
+              accessibilityLabel={label ? `${label} Progress` : "Progress"}
+              accessibilityLabelledBy={labelledBy}
+              testID={`${identity}-progress`}
+            />
           ) : null}
-        </View>
-        {getNativeButtonContent(children)}
-      </NativeFocusHost>
+          <View
+            testID={`${identity}-text-row`}
+            style={{ height: "100%", flexDirection: "row", justifyContent: "center", alignItems: "center" }}
+          >
+            <Text testID={`${identity}-value`} customStyles={{ ...textStyle, color: textColor }} nativeColorIsAnimated>
+              {value}
+            </Text>
+            {showMaxValue && maxValue ? (
+              <Text
+                testID={`${identity}-max`}
+                customStyles={{ ...textStyle, color: textColor }}
+                nativeColorIsAnimated
+              >{`/${maxValue}`}</Text>
+            ) : null}
+          </View>
+          {getNativeButtonContent(children)}
+        </NativeFocusHost>
+      </NativeTextStyleProvider>
     </NativeContentContext.Provider>
   )
 })

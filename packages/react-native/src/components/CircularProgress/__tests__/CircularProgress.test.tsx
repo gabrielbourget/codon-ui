@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen } from "@testing-library/react-native"
 import { createRef } from "react"
 import { AccessibilityInfo, Animated, PlatformColor, StyleSheet, type View } from "react-native"
 
-import { CircularProgress, NativeThemeProvider, type CircularProgressProps } from "../../.."
+import { CircularProgress, Counter, NativeThemeProvider } from "../../.."
 import { getNativeCircularGeometry } from "../model"
 
 const hidden = { includeHiddenElements: true }
@@ -234,21 +234,13 @@ it.each([NaN, Infinity, -Infinity])("never sends nonfinite native drawing data f
   )
 })
 
-it("rejects unsupported CSS color/relationships and invalid authored drawing numbers", async () => {
+it("rejects unsupported CSS color and invalid authored drawing numbers", async () => {
   await expect(
     render(<CircularProgress value={0} customPathStyles={{ stroke: "var(--cui-control-selected-background)" }} />),
   ).rejects.toThrow(/unsupported native color/)
   await expect(render(<CircularProgress value={0} customTrackStyles={{ strokeWidth: NaN }} />)).rejects.toThrow(
     /nonfinite/,
   )
-  await expect(
-    render(
-      <CircularProgress
-        value={0}
-        {...({ "aria-describedby": "other" } as unknown as Partial<CircularProgressProps>)}
-      />,
-    ),
-  ).rejects.toThrow(/relationships/)
 })
 
 it("accepts native dynamic paint objects and consumes wrapper props at the root", async () => {
@@ -299,6 +291,52 @@ it("preserves authored SVG dimensions and currentColor inheritance", async () =>
   expect(part("svg").props.bbWidth).toBe("75%")
   expect(part("svg").props.bbHeight).toBe(42)
   expect(part("path").props.stroke).toEqual({ type: 2 })
+})
+
+it("delivers authored SVG font inheritance while retaining the text slot's own font defaults", async () => {
+  await render(
+    <CircularProgress
+      value={25}
+      text="Quarter"
+      customSVGStyles={{ fontFamily: "OuterFamily", fontStyle: "italic", letterSpacing: 3 }}
+    />,
+  )
+  const group = part("svg").children[0]
+  if (typeof group === "string") throw new Error("The SVG must retain its native group")
+  expect(group.props.font).toMatchObject({ fontFamily: "OuterFamily", fontStyle: "italic", letterSpacing: 3 })
+  expect(part("text").props.font.fontSize).toBe(24)
+  expect(part("text").props.font.fontFamily).not.toBe("OuterFamily")
+})
+
+it("inherits current Counter typography into SVG while retaining explicit SVG overrides", async () => {
+  const node = (override: boolean | undefined) => (
+    <Counter value={0} customStyles={{ fontStyle: "italic", letterSpacing: 7 }}>
+      <CircularProgress
+        value={25}
+        text="Quarter"
+        customSVGStyles={
+          override ? { fontStyle: "normal", letterSpacing: 0 } : { fontStyle: undefined, letterSpacing: undefined }
+        }
+      />
+    </Counter>
+  )
+  const view = await render(node(false))
+  const group = part("svg").children[0]
+  if (typeof group === "string") throw new Error("The SVG must retain its native group")
+  expect(group.props.font).toMatchObject({ fontStyle: "italic", letterSpacing: 7 })
+  await view.rerender(node(true))
+  const updated = part("svg").children[0]
+  if (typeof updated === "string") throw new Error("The SVG must retain its native group")
+  expect(updated.props.font).toMatchObject({ fontStyle: "normal", letterSpacing: 0 })
+  expect(part("text").props.font.fontSize).toBe(24)
+  await view.rerender(node(undefined))
+  const restored = part("svg").children[0]
+  if (typeof restored === "string") throw new Error("The SVG must retain its native group")
+  expect(restored.props.font).toMatchObject({ fontStyle: "italic", letterSpacing: 7 })
+  await view.rerender(<CircularProgress value={25} text="Quarter" />)
+  const standalone = part("svg").children[0]
+  if (typeof standalone === "string") throw new Error("The SVG must retain its native group")
+  expect(standalone.props.font).toMatchObject({ fontStyle: undefined, letterSpacing: undefined })
 })
 
 it("lets current reduced-motion events beat a stale initial request and retires callbacks", async () => {

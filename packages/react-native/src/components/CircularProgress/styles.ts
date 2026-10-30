@@ -1,4 +1,5 @@
 import type { StyleProp, ViewStyle } from "react-native"
+import type { SvgProps } from "react-native-svg"
 
 import type { TNativeTheme } from "../../theme/types"
 import { AVAILABLE_THEMING_ORDER_CODES } from "../../tokens/theme-order"
@@ -8,7 +9,7 @@ import { validateNativeDisplayDimension } from "../displayDimensions"
 import {
   AVAILABLE_NATIVE_STROKE_LINECAPS,
   type TNativeCircularProgressProps,
-  type TNativeCircularProgressRenderState,
+  type TNativeCircularProgressStyleState,
   type TNativeCircularProgressRootStyle,
   type TNativeCircularProgressSVGStyle,
   type TNativeCircularProgressPathStyle,
@@ -38,11 +39,24 @@ export const resolveNativeCircularStyle = <T extends ViewStyle>(style: StyleProp
   return resolved
 }
 
-export const getNativeCircularStyles = (
-  theme: TNativeTheme,
+export const getNativeCircularRootStyle = (
   props: TNativeCircularProgressProps,
-  state: TNativeCircularProgressRenderState,
+  state: TNativeCircularProgressStyleState,
 ) => {
+  const baseline: TNativeCircularProgressRootStyle = {
+    ...state.defaultStyle,
+    ...(props.width !== undefined ? { width: props.width } : {}),
+    ...(props.height !== undefined ? { height: props.height } : {}),
+    ...resolveNativeStyle(props.customStyles, "CircularProgress", "customStyles"),
+  }
+  return resolveNativeStyle(
+    [baseline, typeof props.style === "function" ? props.style({ ...state, defaultStyle: baseline }) : props.style],
+    "CircularProgress",
+    "style",
+  )
+}
+
+export const getNativeCircularStyles = (theme: TNativeTheme, props: TNativeCircularProgressProps) => {
   const { height, width, pathColor, trackColor, backgroundColor, order, strokeLineCap = "butt" } = props
   validateNativeDisplayDimension(height, "CircularProgress", "height")
   validateNativeDisplayDimension(width, "CircularProgress", "width")
@@ -52,16 +66,6 @@ export const getNativeCircularStyles = (
     throw new TypeError("CircularProgress: unsupported strokeLineCap")
   if (order !== undefined && !AVAILABLE_THEMING_ORDER_CODES.includes(order))
     throw new TypeError("CircularProgress: unsupported order")
-  const baseline: TNativeCircularProgressRootStyle = {
-    width: width ?? 100,
-    height: height ?? 100,
-    ...resolveNativeStyle(props.customStyles, "CircularProgress", "customStyles"),
-  }
-  const root = resolveNativeStyle(
-    [baseline, typeof props.style === "function" ? props.style({ ...state, defaultStyle: baseline }) : props.style],
-    "CircularProgress",
-    "style",
-  )
   const orderColors = {
     primary: theme.colors.controlSelectedBackground,
     secondary: theme.colors.controlPressedBackground,
@@ -73,7 +77,6 @@ export const getNativeCircularStyles = (
   validateNativeDisplayDimension(svg.width, "CircularProgress", "customSVGStyles.width")
   validateNativeDisplayDimension(svg.height, "CircularProgress", "customSVGStyles.height")
   return {
-    root,
     svg,
     path: resolveNativeCircularStyle<TNativeCircularProgressPathStyle>(
       [
@@ -158,4 +161,18 @@ export const nativeCircularPresentation = (style: ViewStyle) => {
   }
   return { ...presentation, style: view } as import("react-native-svg").TextProps &
     import("react-native-svg").CircleProps
+}
+
+export const nativeCircularSVGPresentation = (style: TNativeCircularProgressSVGStyle) => {
+  const font: SvgProps["font"] = {
+    fontFamily: style.fontFamily,
+    fontSize: style.fontSize,
+    fontWeight: style.fontWeight,
+    fontStyle: style.fontStyle,
+    fontVariant: style.fontVariant,
+    fontStretch: style.fontStretch,
+    letterSpacing: style.letterSpacing,
+    wordSpacing: style.wordSpacing,
+  }
+  return { ...nativeCircularPresentation(style), font }
 }

@@ -5,6 +5,8 @@ import type { CircleProps, PathProps, SvgProps, TextProps } from "react-native-s
 import type { TThemingOrderCode } from "../../tokens/theme-order"
 import type { TNativeDisplayDimension } from "../displayDimensions"
 
+import type { TNativeCircularProgressRootRender } from "./context"
+
 export const AVAILABLE_NATIVE_STROKE_LINECAPS = ["butt", "round", "square"] as const
 export type TNativeStrokeLinecap = (typeof AVAILABLE_NATIVE_STROKE_LINECAPS)[number]
 export type TNativeCircularProgressRef = View
@@ -24,7 +26,18 @@ type TPaintFields =
   | "strokeDashoffset"
   | "vectorEffect"
 export type TNativeCircularProgressSVGStyle = Omit<ViewStyle, "width" | "height"> &
-  Pick<SvgProps, TPaintFields> & { width?: TNativeDisplayDimension; height?: TNativeDisplayDimension }
+  Pick<
+    SvgProps,
+    | TPaintFields
+    | "fontFamily"
+    | "fontSize"
+    | "fontWeight"
+    | "fontStyle"
+    | "fontVariant"
+    | "fontStretch"
+    | "letterSpacing"
+    | "wordSpacing"
+  > & { width?: TNativeDisplayDimension; height?: TNativeDisplayDimension }
 export type TNativeCircularProgressPathStyle = ViewStyle & Pick<PathProps, TPaintFields>
 export type TNativeCircularProgressBackgroundStyle = ViewStyle & Pick<CircleProps, TPaintFields | "cx" | "cy" | "r">
 export type TNativeCircularProgressTextStyle = ViewStyle &
@@ -72,6 +85,8 @@ export type TNativeCircularProgressProps = Omit<
   | "aria-valuetext"
 > & {
   value: number
+  slot?: string | null
+  render?: TNativeCircularProgressRootRender
   minValue?: number
   maxValue?: number
   valueLabel?: ReactNode
@@ -100,9 +115,14 @@ export type TNativeCircularProgressProps = Omit<
   customTextStyles?: StyleProp<TNativeCircularProgressTextStyle>
   customBackgroundStyles?: StyleProp<TNativeCircularProgressBackgroundStyle>
   children?: never
+  ariaLabel?: string
+  ariaLabelledBy?: string
+  ariaDescribedBy?: string
+  ariaDetails?: string
+  labels?: { descriptionLabel?: string; detailsLabel?: string }
   "data-testid"?: string
-  "aria-describedby"?: never
-  "aria-details"?: never
+  "aria-describedby"?: string
+  "aria-details"?: string
   "aria-valuemin"?: never
   "aria-valuemax"?: never
   "aria-valuenow"?: never

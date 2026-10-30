@@ -34,6 +34,16 @@ export type {
 } from "./components/Carousel/types"
 
 export { CircularProgress } from "./components/CircularProgress/CircularProgress"
+export {
+  NativeCircularProgressContext,
+  NativeCircularProgressLabelContext,
+} from "./components/CircularProgress/context"
+export type {
+  TNativeCircularProgressContextProps,
+  TNativeCircularProgressLabelProps,
+  TNativeCircularProgressRootRender,
+} from "./components/CircularProgress/context"
+export { NativeCircularProgressLabel } from "./components/CircularProgress/NativeCircularProgressLabel"
 export { AVAILABLE_NATIVE_STROKE_LINECAPS } from "./components/CircularProgress/types"
 export type {
   TNativeCircularProgressProps,
@@ -53,6 +63,7 @@ export type {
   TNativeCounterProps,
   TNativeCounterProps as CounterProps,
   TNativeCounterRef,
+  TNativeCounterRootStyle,
 } from "./components/Counter/types"
 
 export { TypeaheadSearch } from "./components/TypeaheadSearch/TypeaheadSearch"

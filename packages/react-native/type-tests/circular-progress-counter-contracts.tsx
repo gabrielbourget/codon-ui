@@ -1,7 +1,18 @@
 import { createRef } from "react"
-import { PlatformColor, StyleSheet, type View } from "react-native"
+import { PlatformColor, StyleSheet, Text as RNText, type View } from "react-native"
 
-import { CircularProgress, Counter, Text, type CircularProgressProps, type CounterProps } from "../src"
+import {
+  CircularProgress,
+  Counter,
+  Text,
+  NativeCircularProgressContext,
+  NativeCircularProgressLabel,
+  NativeCircularProgressLabelContext,
+  NativeFocusView,
+  type TNativeTextRef,
+  type CircularProgressProps,
+  type CounterProps,
+} from "../src"
 
 const styles = StyleSheet.create({ root: { opacity: 0.9 }, text: { color: "purple", fontWeight: "bold" as const } })
 export const circularProps: CircularProgressProps = {
@@ -67,8 +78,16 @@ export const OwnedChildren = <CircularProgress value={0} children={<Text>Child</
 export const CssPath = <CircularProgress value={0} customPathStyles="stroke: red" />
 // @ts-expect-error Native roots require native View refs.
 export const DomRef = <CircularProgress value={0} ref={createRef<HTMLDivElement>()} />
-// @ts-expect-error Browser description relationships remain an explicit open native capability.
-export const DomDescription = <CircularProgress value={0} aria-describedby="description" />
+export const NativeDescription = (
+  <CircularProgress
+    value={0}
+    aria-describedby="description"
+    ariaDetails="details"
+    labels={{ descriptionLabel: "Description", detailsLabel: "Détails" }}
+  />
+)
+// @ts-expect-error Native relationships take ID strings, not DOM nodes.
+export const DomDescription = <CircularProgress value={0} aria-describedby={document.body} />
 const richLabel = <Text>Progress</Text>
 export const RichLabel = (
   <CircularProgress
@@ -113,3 +132,54 @@ export const DomEvent = <Counter value={0} onLayout={(event: React.MouseEvent<HT
 export const CounterRelationships = <Counter value={0} ariaDetails="details" ariaDescribedBy="first second" />
 // @ts-expect-error Native relationship targets use ID strings, never DOM objects.
 export const DomCounterDetails = <Counter value={0} ariaDetails={{ id: "details" }} />
+
+export const ScopedCircular = (
+  <NativeCircularProgressContext.Provider
+    value={{
+      slots: {
+        task: {
+          ref: createRef<View>(),
+          maxValue: 200,
+          style: ({ percentage, valueText, isIndeterminate, defaultStyle }) => [
+            defaultStyle,
+            { opacity: percentage === 0 || isIndeterminate || !valueText ? 0 : 1 },
+          ],
+          render: (props, state) => {
+            const percentage: number | undefined = state.percentage
+            void percentage
+            return <NativeFocusView {...props} />
+          },
+        },
+      },
+    }}
+  >
+    <CircularProgress value={0} slot="task" />
+    <CircularProgress value={0} slot={null} />
+  </NativeCircularProgressContext.Provider>
+)
+export const ProgressLabel = (
+  <NativeCircularProgressLabelContext.Provider
+    value={{
+      ref: createRef<TNativeTextRef>(),
+      style: { letterSpacing: 0 },
+      render: (props, state) => {
+        const empty: undefined = state
+        void empty
+        return <RNText {...props} />
+      },
+    }}
+  >
+    <NativeCircularProgressLabel slot={null}>Transfer</NativeCircularProgressLabel>
+  </NativeCircularProgressLabelContext.Provider>
+)
+export const CounterTypography = <Counter value={0} customStyles={{ fontStyle: "italic", letterSpacing: 0 }} />
+// @ts-expect-error The Counter layout protocol is private to its owned host.
+export const PrivateCounterLayout = <Counter value={0} nativeCounterEmptyChildren />
+// @ts-expect-error The layout protocol is not part of the public focus host API.
+export const PrivateFocusLayout = <NativeFocusView nativeCounterEmptyChildren />
+// @ts-expect-error Label refs must expose actual native Text methods.
+export const DOMProgressLabelRef = <NativeCircularProgressLabel ref={createRef<HTMLLabelElement>()} />
+export const IncorrectLabelState = (
+  // @ts-expect-error The label renderer receives no invented progress state.
+  <NativeCircularProgressLabel render={(props, _state: { percentage: number }) => <RNText {...props} />} />
+)

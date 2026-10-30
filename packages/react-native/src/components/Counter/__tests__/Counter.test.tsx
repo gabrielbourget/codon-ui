@@ -1,11 +1,99 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native"
 import { createRef } from "react"
 import type { View } from "react-native"
-import { AccessibilityInfo, Animated, Easing, processColor, StyleSheet } from "react-native"
+import {
+  AccessibilityInfo,
+  Animated,
+  Easing,
+  processColor,
+  StyleSheet,
+  Text as RawText,
+  TextInput,
+  View as NativeView,
+} from "react-native"
 
 import { Counter, NativeThemeProvider, Text } from "../../.."
 
 const hidden = { includeHiddenElements: true }
+
+it("supplies its current root typography to the original native host while preserving raw children and editor ownership", async () => {
+  const rootRef = createRef<View>()
+  const editorRef = createRef<TextInput>()
+  const changed = jest.fn()
+  const node = (updated: boolean) => (
+    <Counter
+      ref={rootRef}
+      value={0}
+      customStyles={{
+        fontStyle: updated ? "normal" : "italic",
+        letterSpacing: updated ? 0 : 7,
+        color: updated ? "green" : "purple",
+      }}
+    >
+      <NativeView>
+        <RawText>Original raw content</RawText>
+        <TextInput
+          ref={editorRef}
+          testID="held-editor"
+          value="held"
+          selection={{ start: 1, end: 1 }}
+          onChangeText={changed}
+        />
+      </NativeView>
+    </Counter>
+  )
+  const view = await render(node(false))
+  const root = rootRef.current
+  const editor = editorRef.current
+  expect(JSON.parse(screen.getByTestId("counter").props.nativeTypographyStyle ?? "{}")).toMatchObject({
+    fontStyle: "italic",
+    letterSpacing: 7,
+    textAlign: "center",
+    color: processColor("purple"),
+  })
+  await fireEvent.changeText(screen.getByTestId("held-editor"), "request")
+  expect(changed).toHaveBeenCalledTimes(1)
+  expect(changed).toHaveBeenCalledWith("request")
+  expect(screen.getByTestId("held-editor").props.value).toBe("held")
+  await view.rerender(node(true))
+  expect(rootRef.current === root).toBe(true)
+  expect(editorRef.current === editor).toBe(true)
+  expect(screen.getByTestId("held-editor").props.selection).toEqual({ start: 1, end: 1 })
+  expect(JSON.parse(screen.getByTestId("counter").props.nativeTypographyStyle ?? "{}")).toMatchObject({
+    fontStyle: "normal",
+    letterSpacing: 0,
+    color: processColor("green"),
+  })
+  await view.unmount()
+  expect(rootRef.current).toBeNull()
+  expect(editorRef.current).toBeNull()
+})
+
+it("requests the owned native empty-child layout rule while retaining original child refs and props", async () => {
+  const ref = createRef<View>()
+  const childRef = createRef<View>()
+  const view = await render(
+    <Counter ref={ref} value={0}>
+      <NativeView ref={childRef} testID="empty-child" style={{ height: 20, width: 20 }} />
+    </Counter>,
+  )
+  const original = ref.current
+  const originalChild = childRef.current
+  expect(screen.getByTestId("counter").props.nativeCounterEmptyChildren).toBe(true)
+  expect(screen.getByTestId("empty-child", hidden)).toHaveStyle({ height: 20, width: 20 })
+  await view.rerender(
+    <Counter ref={ref} value={0}>
+      <NativeView ref={childRef} testID="empty-child" style={{ display: "flex", height: 20, width: 20 }} />
+    </Counter>,
+  )
+  expect(ref.current === original).toBe(true)
+  expect(childRef.current === originalChild).toBe(true)
+  expect(screen.getByTestId("empty-child")).toHaveStyle({ display: "flex", height: 20, width: 20 })
+  await view.unmount()
+  expect(ref.current).toBeNull()
+  expect(childRef.current).toBeNull()
+})
+
 beforeEach(() => {
   jest.useFakeTimers()
   jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
@@ -13,6 +101,35 @@ beforeEach(() => {
 afterEach(() => {
   jest.restoreAllMocks()
   jest.useRealTimers()
+})
+
+it("inherits root typography into content while numeric text keeps its own style precedence", async () => {
+  const ref = createRef<View>()
+  const view = await render(
+    <Counter ref={ref} value="0" customStyles={{ fontStyle: "italic", letterSpacing: 7 }}>
+      Caption
+    </Counter>,
+  )
+  const original = ref.current
+  expect(screen.getByText("Caption")).toHaveStyle({ textAlign: "center" })
+  expect(screen.getByText("Caption")).toHaveStyle({ fontStyle: "italic", letterSpacing: 7 })
+  expect(screen.getByTestId("counter-value")).toHaveStyle({ fontStyle: "italic", letterSpacing: 7 })
+  await view.rerender(
+    <Counter
+      ref={ref}
+      value="0"
+      customStyles={{ fontStyle: "italic", letterSpacing: 7 }}
+      style={{ fontStyle: "normal", letterSpacing: 0 }}
+      customTextStyles={{ fontStyle: "italic" }}
+    >
+      Caption
+    </Counter>,
+  )
+  expect(ref.current === original).toBe(true)
+  expect(screen.getByText("Caption")).toHaveStyle({ fontStyle: "normal", letterSpacing: 0 })
+  expect(screen.getByTestId("counter-value")).toHaveStyle({ fontStyle: "italic", letterSpacing: 0 })
+  await view.unmount()
+  expect(ref.current).toBeNull()
 })
 
 it("maps canonical render/dimensions/color/ref and optional raw max text", async () => {

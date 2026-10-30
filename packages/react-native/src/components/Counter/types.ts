@@ -5,6 +5,7 @@ import type { TNativeCircularProgressRootStyle } from "../CircularProgress/types
 import type { TNativeDisplayDimension } from "../displayDimensions"
 
 export type TNativeCounterRef = View
+export type TNativeCounterRootStyle = TextStyle
 export type TNativeCounterProps = Omit<ViewProps, "style" | "children"> & {
   value: string | number
   maxValue?: string | number
@@ -16,8 +17,8 @@ export type TNativeCounterProps = Omit<ViewProps, "style" | "children"> & {
   height?: TNativeDisplayDimension
   width?: TNativeDisplayDimension
   color?: ColorValue
-  customStyles?: StyleProp<TNativeCircularProgressRootStyle>
-  style?: StyleProp<TNativeCircularProgressRootStyle>
+  customStyles?: StyleProp<TNativeCounterRootStyle>
+  style?: StyleProp<TNativeCounterRootStyle>
   customTextStyles?: StyleProp<TextStyle>
   customProgressIndicatorStyles?: StyleProp<TNativeCircularProgressRootStyle>
   ariaLabel?: string
