@@ -1,0 +1,499 @@
+{
+  "canonicalSourceRef": "ddc9f066f67af4742e05e04bd870726141c44129",
+  "authority": "Complete approved roadmap3.5.38/.39; original public-source/product ordering3.5.39.7; approved native contour3.5.68.2. All native qualification requirements unchanged.",
+  "declaredCanonicalPropertyCount": 19,
+  "canonicalComposedChildren": {
+    "symbol": "PropsWithChildren<TPanelProps>",
+    "native": "TNativePanelProps.children",
+    "expected": "Original authored ReactNode subtree; no fallback controls, forced scroll container, padding, clone or replacement editor."
+  },
+  "nativePropertyCount": 22,
+  "props": [
+    {
+      "id": "CAP.panel.prop.001",
+      "canonical": {
+        "name": "backgroundColor",
+        "optional": true,
+        "type": "string | undefined"
+      },
+      "nativeProp": "backgroundColor",
+      "nativeType": "ColorValue | undefined",
+      "nativeCallSite": "packages/react-native/src/components/Panel/styles.ts",
+      "expected": "Native ColorValue override before custom/final styles; opaque colors use existing native appearance sampling.",
+      "authority": "roadmap3.5.38/.39 and approved complete source integration3.5.39.7;3.5.68.2 contour policy"
+    },
+    {
+      "id": "CAP.panel.prop.002",
+      "canonical": {
+        "name": "className",
+        "optional": true,
+        "type": "string | undefined"
+      },
+      "nativeProp": "style",
+      "nativeType": "StyleProp<TextStyle>",
+      "nativeCallSite": "packages/react-native/src/components/Panel/styles.ts",
+      "expected": "Approved native registered/array style replaces a CSS class; final root style wins.",
+      "authority": "roadmap3.5.38/.39 and approved complete source integration3.5.39.7;3.5.68.2 contour policy"
+    },
+    {
+      "id": "CAP.panel.prop.003",
+      "canonical": {
+        "name": "customClassName",
+        "optional": true,
+        "type": "string | undefined"
+      },
+      "nativeProp": "customStyles",
+      "nativeType": "StyleProp<TextStyle>",
+      "nativeCallSite": "packages/react-native/src/components/Panel/styles.ts",
+      "expected": "Approved native root style replaces CSS custom class; final style remains last.",
+      "authority": "roadmap3.5.38/.39 and approved complete source integration3.5.39.7;3.5.68.2 contour policy"
+    },
+    {
+      "id": "CAP.panel.prop.004",
+      "canonical": {
+        "name": "customOverlayClassName",
+        "optional": true,
+        "type": "string | undefined"
+      },
+      "nativeProp": "customOverlayStyles",
+      "nativeType": "StyleProp<ViewStyle>",
+      "nativeCallSite": "packages/react-native/src/components/Panel/overlayLayout.ts",
+      "expected": "Approved separate native overlay style replaces CSS class; preserve complete owned overlay layout/compositing/hit contract.",
+      "authority": "roadmap3.5.38/.39 and approved complete source integration3.5.39.7;3.5.68.2 contour policy"
+    },
+    {
+      "id": "CAP.panel.prop.005",
+      "canonical": {
+        "name": "customOverlayStyles",
+        "optional": true,
+        "type": "CSSProperties | undefined"
+      },
+      "nativeProp": "customOverlayStyles",
+      "nativeType": "StyleProp<ViewStyle>",
+      "nativeCallSite": "packages/react-native/src/components/Panel/overlayLayout.ts",
+      "expected": "Separate original overlay owner keeps native transform/origin/filter/blend/isolation/clipping/opacity/containing block and fixed/flow layout under approved3.5.38.3; background cannot cover original controls.",
+      "authority": "roadmap3.5.38/.39 and approved complete source integration3.5.39.7;3.5.68.2 contour policy"
+    },
+    {
+      "id": "CAP.panel.prop.006",
+      "canonical": {
+        "name": "customStyles",
+        "optional": true,
+        "type": "CSSProperties | undefined"
+      },
+      "nativeProp": "customStyles",
+      "nativeType": "StyleProp<TextStyle>",
+      "nativeCallSite": "packages/react-native/src/components/Panel/styles.ts",
+      "expected": "Computed root then customStyles then final style; split text/view styles, preserve original editor and native root.",
+      "authority": "roadmap3.5.38/.39 and approved complete source integration3.5.39.7;3.5.68.2 contour policy"
+    },
+    {
+      "id": "CAP.panel.prop.007",
+      "canonical": {
+        "name": "data-testid",
+        "optional": true,
+        "type": "string | undefined"
+      },
+      "nativeProp": "data-testid",
+      "nativeType": "string | undefined",
+      "nativeCallSite": "packages/react-native/src/components/Panel/Panel.tsx",
+      "expected": "Native testID alias; explicit testID wins, default panel and stable derived host identities.",
+      "authority": "roadmap3.5.38/.39 and approved complete source integration3.5.39.7;3.5.68.2 contour policy"
+    },
+    {
+      "id": "CAP.panel.prop.008",
+      "canonical": {
+        "name": "height",
+        "optional": true,
+        "type": "string | number | undefined"
+      },
+      "nativeProp": "height",
+      "nativeType": "TNativeDisplayDimension | undefined",
+      "nativeCallSite": "packages/react-native/src/components/Panel/styles.ts",
+      "expected": "Native numeric/percentage/auto/zero dimensions; omitted100% viewport differs from authored containing-block percentages.",
+      "authority": "roadmap3.5.38/.39 and approved complete source integration3.5.39.7;3.5.68.2 contour policy"
+    },
+    {
+      "id": "CAP.panel.prop.009",
+      "canonical": {
+        "name": "horizontalGap",
+        "optional": true,
+        "type": "number | undefined"
+      },
+      "nativeProp": "horizontalGap",
+      "nativeType": "number | undefined",
+      "nativeCallSite": "packages/react-native/src/components/Panel/styles.ts",
+      "expected": "Finite signed offset including explicit0, applies to physical side before root overrides.",
+      "authority": "roadmap3.5.38/.39 and approved complete source integration3.5.39.7;3.5.68.2 contour policy"
+    },
+    {
+      "id": "CAP.panel.prop.010",
+      "canonical": {
+        "name": "isDismissable",
+        "optional": true,
+        "type": "boolean | undefined"
+      },
+      "nativeProp": "isDismissable",
+      "nativeType": "boolean | undefined",
+      "nativeCallSite": "packages/react-native/src/components/Panel/Panel.tsx",
+      "expected": "Default true; only original backdrop requests false; explicit false guards independently of keyboard.",
+      "authority": "roadmap3.5.38/.39 and approved complete source integration3.5.39.7;3.5.68.2 contour policy"
+    },
+    {
+      "id": "CAP.panel.prop.011",
+      "canonical": {
+        "name": "isKeyboardDismissDisabled",
+        "optional": true,
+        "type": "boolean | undefined"
+      },
+      "nativeProp": "isKeyboardDismissDisabled",
+      "nativeType": "boolean | undefined",
+      "nativeCallSite": "packages/react-native/src/components/Panel/PanelSurface.tsx",
+      "expected": "Default false; original scoped Escape/system/accessibility dismiss obeys guard, active window and deepest child ownership.",
+      "authority": "roadmap3.5.38/.39 and approved complete source integration3.5.39.7;3.5.68.2 contour policy"
+    },
+    {
+      "id": "CAP.panel.prop.012",
+      "canonical": {
+        "name": "isOpen",
+        "optional": true,
+        "type": "boolean | undefined"
+      },
+      "nativeProp": "isOpen",
+      "nativeType": "boolean | undefined",
+      "nativeCallSite": "packages/react-native/src/components/Panel/motion.ts",
+      "expected": "Caller-controlled; undefined/false closed; exit retention is lifecycle only. Width/presence interruption, current generation and Reduce Motion preserve original host/editor.",
+      "authority": "roadmap3.5.38/.39 and approved complete source integration3.5.39.7;3.5.68.2 contour policy"
+    },
+    {
+      "id": "CAP.panel.prop.013",
+      "canonical": {
+        "name": "onOpenChange",
+        "optional": true,
+        "type": "((open: boolean) => void) | undefined"
+      },
+      "nativeProp": "onOpenChange",
+      "nativeType": "((open: boolean) => void) | undefined",
+      "nativeCallSite": "packages/react-native/src/components/Panel/Panel.tsx",
+      "expected": "Current callback receives false on an admitted dismissal; absence is no-op; held true never becomes local closed state.",
+      "authority": "roadmap3.5.38/.39 and approved complete source integration3.5.39.7;3.5.68.2 contour policy"
+    },
+    {
+      "id": "CAP.panel.prop.014",
+      "canonical": {
+        "name": "overlayBlur",
+        "optional": true,
+        "type": "boolean | undefined"
+      },
+      "nativeProp": "overlayBlur",
+      "nativeType": "boolean | undefined",
+      "nativeCallSite": "packages/react-native/src/components/Panel/Panel.tsx",
+      "expected": "Default false; native parent-target Gaussian radius10 via existing backdrop effect. Approved complete-frame cooperative source required for opaque producers, no guessed pixels or foreground blur.",
+      "authority": "roadmap3.5.38/.39 and approved complete source integration3.5.39.7;3.5.68.2 contour policy"
+    },
+    {
+      "id": "CAP.panel.prop.015",
+      "canonical": {
+        "name": "panelGeometry",
+        "optional": true,
+        "type": "\"orthogonal\" | \"rounded\" | \"round\" | undefined"
+      },
+      "nativeProp": "panelGeometry",
+      "nativeType": "\"orthogonal\" | \"rounded\" | \"round\" | undefined",
+      "nativeCallSite": "packages/react-native/src/components/Panel/radii.ts",
+      "expected": "Orthogonal/rounded/round native geometry and explicit authored radius; native contour policy3.5.68.2 preserved.",
+      "authority": "roadmap3.5.38/.39 and approved complete source integration3.5.39.7;3.5.68.2 contour policy"
+    },
+    {
+      "id": "CAP.panel.prop.016",
+      "canonical": {
+        "name": "position",
+        "optional": true,
+        "type": "TPanelPosition | undefined"
+      },
+      "nativeProp": "position",
+      "nativeType": "\"left\" | \"right\" | undefined",
+      "nativeCallSite": "packages/react-native/src/components/Panel/styles.ts",
+      "expected": "Physical left default/right; measured350ms ease-in-out side-slide and live side/width changes retain actual refs.",
+      "authority": "roadmap3.5.38/.39 and approved complete source integration3.5.39.7;3.5.68.2 contour policy"
+    },
+    {
+      "id": "CAP.panel.prop.017",
+      "canonical": {
+        "name": "raised",
+        "optional": true,
+        "type": "boolean | undefined"
+      },
+      "nativeProp": "raised",
+      "nativeType": "boolean | undefined",
+      "nativeCallSite": "packages/react-native/src/components/Panel/styles.ts",
+      "expected": "Default false; existing semantic native shadow, current theme and explicit authored style precedence.",
+      "authority": "roadmap3.5.38/.39 and approved complete source integration3.5.39.7;3.5.68.2 contour policy"
+    },
+    {
+      "id": "CAP.panel.prop.018",
+      "canonical": {
+        "name": "style",
+        "optional": true,
+        "type": "CSSProperties | undefined"
+      },
+      "nativeProp": "style",
+      "nativeType": "StyleProp<TextStyle>",
+      "nativeCallSite": "packages/react-native/src/components/Panel/appearance.ts",
+      "expected": "Final native root view/text style and complete350ms appearance engine; actual current geometry/opaque values use approved native services, not copied editor state.",
+      "authority": "roadmap3.5.38/.39 and approved complete source integration3.5.39.7;3.5.68.2 contour policy"
+    },
+    {
+      "id": "CAP.panel.prop.019",
+      "canonical": {
+        "name": "width",
+        "optional": true,
+        "type": "string | number | undefined"
+      },
+      "nativeProp": "width",
+      "nativeType": "TNativeDisplayDimension | undefined",
+      "nativeCallSite": "packages/react-native/src/components/Panel/styles.ts",
+      "expected": "Native numeric/percentage/auto/zero; default300 above/equal500 viewport,80% below500, authored percentage retains containing-block ownership.",
+      "authority": "roadmap3.5.38/.39 and approved complete source integration3.5.39.7;3.5.68.2 contour policy"
+    }
+  ],
+  "nativeAdditional": {
+    "accessibilityLabel/aria-label": "Existing required nonempty native dialog name; native alias precedence.",
+    "testID": "Preferred native identity; data-testid alias remains.",
+    "initialFocusRef/restoreFocusRef": "Actual native targets, admission/lifetime/window checks and explicit initial/return focus under3.5.39; no fake focus object or editor replacement.",
+    "ref": "Public actual native View root and React cleanup; canonical FC has no forwarded root ref."
+  },
+  "ownedAssertions": [
+    {
+      "id": "CAP.panel.001",
+      "canonicalAssertion": "does not render when the panel is closed.",
+      "nativeEvidence": ["CAP.panel.001 preserves default/controlled false without constructing children"],
+      "expected": "Original roadmap3.5.38 CAP.panel.001 outcome unchanged"
+    },
+    {
+      "id": "CAP.panel.002",
+      "canonicalAssertion": "renders the dialog and overlay when the panel is open.",
+      "nativeEvidence": ["CAP.panel.002 admits the body/backdrop with no Modal starter controls, padding or scroller"],
+      "expected": "Original roadmap3.5.38 CAP.panel.002 outcome unchanged"
+    },
+    {
+      "id": "CAP.panel.003",
+      "canonicalAssertion": "applies geometry, raised, and overlay blur classes.",
+      "nativeEvidence": ["CAP.panel.003 routes enabled blur through the reviewed adapter and keeps shadow/geometry"],
+      "expected": "Original roadmap3.5.38 CAP.panel.003 outcome unchanged"
+    },
+    {
+      "id": "CAP.panel.004",
+      "canonicalAssertion": "does not apply rounded or raised classes when those props are disabled.",
+      "nativeEvidence": ["CAP.panel.004 defaults to orthogonal, unraised, unblurred presentation"],
+      "expected": "Original roadmap3.5.38 CAP.panel.004 outcome unchanged"
+    },
+    {
+      "id": "CAP.panel.005",
+      "canonicalAssertion": "merges root and overlay style props.",
+      "nativeEvidence": ["CAP.panel.005 keeps computed/custom/final and independent overlay/text owners"],
+      "expected": "Original roadmap3.5.38 CAP.panel.005 outcome unchanged"
+    },
+    {
+      "id": "CAP.panel.006",
+      "canonicalAssertion": "applies panel sizing, background, and right-side placement props.",
+      "nativeEvidence": ["CAP.panel.006 preserves explicit dimensions/background and physical right-side placement"],
+      "expected": "Original roadmap3.5.38 CAP.panel.006 outcome unchanged"
+    },
+    {
+      "id": "CAP.panel.007",
+      "canonicalAssertion": "applies the round geometry class when requested.",
+      "nativeEvidence": ["CAP.panel.007 retains round geometry"],
+      "expected": "Original roadmap3.5.38 CAP.panel.007 outcome unchanged"
+    },
+    {
+      "id": "CAP.panel.008",
+      "canonicalAssertion": "calls the canonical open change handler when the overlay closes.",
+      "nativeEvidence": ["CAP.panel.008/.010 repeatedly requests false while an owner holds true"],
+      "expected": "Original roadmap3.5.38 CAP.panel.008 outcome unchanged"
+    },
+    {
+      "id": "CAP.panel.009",
+      "canonicalAssertion": "does not leak wrapper props to the panel root.",
+      "nativeEvidence": ["CAP.panel.009 consumes every wrapper prop and honors test identity aliases"],
+      "expected": "Original roadmap3.5.38 CAP.panel.009 outcome unchanged"
+    },
+    {
+      "id": "CAP.panel.010",
+      "canonicalAssertion": "closes when the overlay is clicked by default.",
+      "nativeEvidence": ["CAP.panel.008/.010 repeatedly requests false while an owner holds true"],
+      "expected": "Original roadmap3.5.38 CAP.panel.010 outcome unchanged"
+    },
+    {
+      "id": "CAP.panel.011",
+      "canonicalAssertion": "keeps pointer dismissal disabled when requested.",
+      "nativeEvidence": [
+        "CAP.panel.011/.012/.013 keeps pointer and keyboard guards independent, with current callbacks"
+      ],
+      "expected": "Original roadmap3.5.38 CAP.panel.011 outcome unchanged"
+    },
+    {
+      "id": "CAP.panel.012",
+      "canonicalAssertion": "closes when Escape is pressed by default.",
+      "nativeEvidence": [
+        "CAP.panel.011/.012/.013 keeps pointer and keyboard guards independent, with current callbacks"
+      ],
+      "expected": "Original roadmap3.5.38 CAP.panel.012 outcome unchanged"
+    },
+    {
+      "id": "CAP.panel.013",
+      "canonicalAssertion": "keeps keyboard dismissal disabled when requested.",
+      "nativeEvidence": [
+        "CAP.panel.011/.012/.013 keeps pointer and keyboard guards independent, with current callbacks"
+      ],
+      "expected": "Original roadmap3.5.38 CAP.panel.013 outcome unchanged"
+    }
+  ],
+  "inheritedImplementation": "Owned native Modal/window/floating/backdrop and typography protocol under complete approved component foundation; no inherited public DOM/RAC prop is introduced by canonical TPanelProps. Native methods and installed behavior remain separate gates.",
+  "defaults": {
+    "isOpen": false,
+    "isDismissable": true,
+    "isKeyboardDismissDisabled": false,
+    "overlayBlur": false,
+    "raised": false,
+    "position": "left",
+    "width": "300 or80% below500",
+    "height": "100% viewport",
+    "durationMs": 350
+  },
+  "scope": "G01 complete capability correspondence only; no installed pixel/input/focus/product/profile closure.",
+  "nativeEvidenceCases": [
+    {
+      "suite": "packages/react-native/src/components/Panel/__tests__/Panel.test.tsx",
+      "cases": [
+        "inherits Panel text styles through owned descendants within the original window and retains explicit resets",
+        "CAP.panel.001 preserves default/controlled false without constructing children",
+        "CAP.panel.002 admits the body/backdrop with no Modal starter controls, padding or scroller",
+        "CAP.panel.003 routes enabled blur through the reviewed adapter and keeps shadow/geometry",
+        "CAP.panel.004 defaults to orthogonal, unraised, unblurred presentation",
+        "CAP.panel.005 keeps computed/custom/final and independent overlay/text owners",
+        "CAP.panel.006 preserves explicit dimensions/background and physical right-side placement",
+        "CAP.panel.007 retains round geometry",
+        "CAP.panel.008/.010 repeatedly requests false while an owner holds true",
+        "CAP.panel.009 consumes every wrapper prop and honors test identity aliases",
+        "CAP.panel.011/.012/.013 keeps pointer and keyboard guards independent, with current callbacks",
+        "uses the actual native viewport breakpoint at 499",
+        "uses the actual native viewport breakpoint at 500",
+        "uses the actual native viewport breakpoint at 800",
+        "uses the actual native viewport breakpoint at 0",
+        "keeps explicit undefined style resets at the canonical CSS/default layer",
+        "retains controlled children through closure requests and retires old handlers on actual closure/unmount",
+        "rejects unsupported native values {\"width\": -1}",
+        "rejects unsupported native values {\"horizontalGap\": Infinity}",
+        "rejects unsupported native values {\"position\": \"top\"}",
+        "rejects unsupported native values {\"backgroundColor\": \"var(--bad)\"}",
+        "rejects unsupported native values {\"overlayBlur\": \"true\"}",
+        "requires real blur capability rather than silently accepting an unblurred fallback",
+        "uses measured signed translation and retires an interrupted exit callback",
+        "retains dark theme surface/shadow values without altering the palette",
+        "SCENE.panel.001 keeps the maintained owner veto, physical side and held editor",
+        "SCENE.panel.002 routes configured blur to the root source without supplying a fake renderer",
+        "preserves canonical box sizing defaults, explicit overrides and the original Panel/editor"
+      ]
+    },
+    {
+      "suite": "packages/react-native/src/components/Panel/__tests__/appearance.test.tsx",
+      "cases": [
+        "restores the overlay stylesheet backdrop after clearing inline paint while retaining original hosts and editor",
+        "retargets ratio strings without extending the independent opacity deadline and restores the authored ratio",
+        "applies overlay transforms around the original Panel and backdrop while preserving the portal host",
+        "groups overlay opacity across the original Panel and backdrop without dimming the window portal host",
+        "runs Panel-owned paint and numeric layout changes for350ms on the original root/editor",
+        "does not restart an unchanged layout deadline when paint is retargeted",
+        "finishes current appearance when Reduce Motion becomes enabled",
+        "transitions mixed percentage dimensions in the actual modal viewport and keeps auto discrete",
+        "transitions authored spacing, borders, opacity and scalar typography on the existing hosts",
+        "adds and removes the complete raised shadow list without jumping to the destination",
+        "retargets an interrupted property without restarting unrelated nested-shadow and spacing deadlines",
+        "transitions removed overrides to their current shorthand defaults then restores the original style shape",
+        "shortens a rapid reversal while preserving an independent transition's original deadline",
+        "retargets a removed longhand when its shorthand changes during the running transition",
+        "uses live viewport measurements during a mixed-unit transition without extending its deadline",
+        "resolves omitted border, outline and shadow colors from the same Panel foreground",
+        "interpolates font weight continuously with metrics and restores the authored final value",
+        "retargets fractional and named font weights from the current style and clears back to the original default",
+        "retires the appearance clock and its listeners when the original Panel unmounts",
+        "does not animate changed appearance or construct children while closed",
+        "keeps the maintained scene's held editor through a complete appearance toggle"
+      ]
+    },
+    {
+      "suite": "packages/react-native/src/components/Panel/__tests__/focus.test.tsx",
+      "cases": [
+        "keeps the Panel boundary programmatically focusable without adding it to native Tab traversal",
+        "CAP.panel.focus.002 waits for native presentation, measurement and scope readiness before requesting its actual root",
+        "CAP.panel.focus.002 uses the current explicit target without replacing the native root ref",
+        "CAP.panel.focus.004 keeps an explicit null target and rejects an ineligible native target without a fallback",
+        "CAP.panel.focus.004 retires queued entry after native loss/return in one batch and acquires only from the new epoch",
+        "CAP.panel.focus.003 blocks covered parent acquisition and current/stale dismissal while a child window is active",
+        "CAP.panel.focus.004 cancels old entry on close/reopen and never runs after unmount",
+        "CAP.panel.focus.001 restores an observed parent target after the ios dismissal barrier",
+        "CAP.panel.focus.001 restores an observed parent target after the android dismissal barrier",
+        "CAP.panel.focus.001 waits for the parent scope to acknowledge readiness after dismissal",
+        "CAP.panel.focus.004 retires the old return request when removed",
+        "CAP.panel.focus.004 retires the old return request when ref-replaced",
+        "CAP.panel.focus.004 retires the old return request when target-replaced",
+        "CAP.panel.focus.004 retires the old return request when epoch",
+        "CAP.panel.focus.004 retires the old return request when background",
+        "CAP.panel.focus.004 retires the old return request when reopened",
+        "CAP.panel.focus.004 does not capture a later target for an explicit initially empty return ref",
+        "CAP.panel.focus.005 sends repeated real scoped Escape requests through the current callback while an owner vetoes",
+        "CAP.panel.focus.005 rejects invalid native key delivery {\"repeat\": true}",
+        "CAP.panel.focus.005 rejects invalid native key delivery {\"cancelled\": true}",
+        "CAP.panel.focus.005 rejects invalid native key delivery {\"phase\": \"up\"}",
+        "CAP.panel.focus.005 rejects invalid native key delivery {\"nativeDefaultHandled\": false}",
+        "CAP.panel.focus.005 removes keyboard policy under its independent guard and rejects a retained old packet",
+        "CAP.panel.focus.004 retires queued entry across background/active in one batch",
+        "CAP.panel.focus.005 delegates scoped Escape to a floating child through its exit barrier before closing Panel",
+        "SCENE.panel.003 retains current owner/editor/theme values while explicit native focus returns after a vetoed close",
+        "binds explicit Dialog entry to the original root and the enclosing Panel without a JavaScript focus request",
+        "keeps the enclosing native containment lease after removing its requesting Dialog without replacing sibling targets",
+        "keeps explicit parent entry authoritative through its actual native observation",
+        "keeps an authored raw portal outside the enclosing Dialog boundary"
+      ]
+    },
+    {
+      "suite": "packages/react-native/src/components/Panel/__tests__/overlay-composition.test.tsx",
+      "cases": [
+        "retains the original custom-adapter source and Effect under the stable underlay plane through paint updates",
+        "retains authored animated opacity including derived nodes (false) on native paint instead of View alpha",
+        "retains authored animated opacity including derived nodes (true) on native paint instead of View alpha",
+        "routes overlay zero opacity through native paint while retaining the original control and separate body plane",
+        "hides the complete original Panel subtree when the overlay display is none and restores it without resetting the editor",
+        "owns overlay filter, blend, isolation and stacking around the original Panel instead of only its backdrop"
+      ]
+    },
+    {
+      "suite": "packages/react-native/src/components/Panel/__tests__/motion.test.tsx",
+      "cases": [
+        "lets a live Reduce Motion change beat a late initial query and finish exit without animation",
+        "fails a missing preference query toward static presentation",
+        "waits for a measured entry, retires callbacks on unmount and never starts from an invented width"
+      ]
+    },
+    {
+      "suite": "packages/react-native/src/components/Panel/__tests__/overlay-layout.test.ts",
+      "cases": [
+        "keeps default viewport-fixed and viewport-height ownership distinct from authored native absolute and percentage values",
+        "retains an explicitly authored identity transform/filter as a containing block ({\"transform\":[{\"translateX\":0}]})",
+        "retains an explicitly authored identity transform/filter as a containing block ({\"filter\":\"brightness(100%)\"})",
+        "retains an explicitly authored identity transform/filter as a containing block ({\"filter\":\"opacity(100%)\"})",
+        "keeps fixed descendants outside ordinary overlay clipping ({\"opacity\":0})",
+        "keeps fixed descendants outside ordinary overlay clipping ({\"isolation\":\"isolate\"})",
+        "keeps fixed descendants outside ordinary overlay clipping ({\"mixBlendMode\":\"multiply\"})",
+        "keeps fixed descendants outside ordinary overlay clipping ({\"transform\":[],\"filter\":\"none\"})",
+        "keeps clipping for authored flow and absolute children and includes the existing blur in containing-block ownership",
+        "gives the host real box geometry while preserving original backdrop ink and excluding geometry from that paint leaf",
+        "removes the overlay compositing box for contents without changing the original body position ownership",
+        "leaves intermediate numeric appearance dimensions on the original property clock",
+        "keeps default CSS block flow distinct from an explicitly authored flex container"
+      ]
+    }
+  ],
+  "reactIdentity": "React-managed key on both public components; native forwarded ref resolves the original View and retires normally."
+}
