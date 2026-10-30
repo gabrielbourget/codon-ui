@@ -160,6 +160,17 @@ const setup = (
   return { dialogRoot, node, ready, acknowledge, outside, onOpenChange, root, trigger: () => trigger! }
 }
 
+it("passes the original popover through its public root renderer", async () => {
+  const renderer = jest.fn((props: React.ComponentProps<typeof NativeFocusView>) => <NativeFocusView {...props} />)
+  const f = setup({ render: renderer } as TNativeClickPopoverProps)
+  await render(f.node())
+  expect(renderer).toHaveBeenCalled()
+  expect(f.root.current).not.toBeNull()
+  const original = f.root.current
+  await screen.rerender(f.node({ render: renderer, customStyles: { padding: 0 } } as TNativeClickPopoverProps))
+  expect(f.root.current).toBe(original)
+})
+
 it("composes a measured native dialog, real root ref and original onLayout event", async () => {
   const onLayout = jest.fn()
   const f = setup({ onLayout })
@@ -687,6 +698,37 @@ it("rejects retained outside and trigger handlers while the physical input windo
   await act(() => trigger(touch()))
   expect(f.onOpenChange).not.toHaveBeenCalled()
   expect(veto).not.toHaveBeenCalled()
+})
+
+it("forwards original root capture events only while its native window is active", async () => {
+  const onTouchStartCapture = jest.fn()
+  const onTouchEndCapture = jest.fn()
+  const f = setup({ onTouchStartCapture, onTouchEndCapture })
+  await render(f.node())
+  await f.ready()
+  const root = screen.getByTestId("click-popover", hidden)
+  const start = touch(),
+    end = touch()
+  await act(() => root.props.onTouchStartCapture(start))
+  await act(() => root.props.onTouchEndCapture(end))
+  expect(onTouchStartCapture.mock.calls[0][0]).toBe(start)
+  expect(onTouchEndCapture.mock.calls[0][0]).toBe(end)
+  await f.acknowledge(2, false)
+  await act(() => root.props.onTouchEndCapture(touch()))
+  expect(onTouchEndCapture).toHaveBeenCalledTimes(1)
+})
+
+it.each([false, true])("retains the authored Text foreground clock for childIsDialog=%s", async (childIsDialog) => {
+  jest.mocked(AccessibilityInfo.isReduceMotionEnabled).mockResolvedValue(false)
+  const props = (color: string) =>
+    childIsDialog ? { childIsDialog, customDialogStyles: { color } } : { childIsDialog, customStyles: { color } }
+  const f = setup(props("blue"), <Text testID="transition-text">Color</Text>)
+  const view = await render(f.node())
+  await view.rerender(f.node(props("red")))
+  expect(screen.getByTestId("transition-text", hidden).props.style.color).not.toBe("red")
+  await act(() => new Promise<void>((resolve) => setTimeout(resolve, 275)))
+  await tick()
+  expect(screen.getByTestId("transition-text", hidden)).toHaveStyle({ color: "red" })
 })
 
 it.each([

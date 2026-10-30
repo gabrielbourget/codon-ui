@@ -716,6 +716,12 @@ export { Tooltip } from "./components/Tooltip/Tooltip"
 export { NativeTooltipContext, NativeTooltipTriggerStateContext } from "./components/Tooltip/context"
 export type { TNativeTooltipState, TNativeTooltipRenderState } from "./components/Tooltip/types"
 export { ClickPopover } from "./components/ClickPopover/ClickPopover"
+export {
+  NativePopoverContext,
+  NativeDialogContext,
+  NativeOverlayTriggerStateContext,
+} from "./components/ClickPopover/context"
+export type { TNativePopoverContextProps, TNativeDialogContextProps } from "./components/ClickPopover/context"
 export { Breadcrumbs } from "./components/Breadcrumbs/Breadcrumbs"
 export { Toaster } from "./components/Toaster/Toaster"
 export { toast } from "./components/Toaster/stateManagement"

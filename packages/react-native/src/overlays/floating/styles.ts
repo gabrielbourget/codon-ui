@@ -99,7 +99,7 @@ export type TNativeFloatingStyleProfile = (typeof NATIVE_FLOATING_STYLE_PROFILES
 
 export const getNativeFloatingSurfaceStyles = (
   theme: TNativeTheme,
-  props: TNativeClickPopoverProps,
+  props: Omit<TNativeClickPopoverProps, "render">,
   side: "top" | "bottom" | "left" | "right",
   direction: "ltr" | "rtl",
   hostWidth: number,

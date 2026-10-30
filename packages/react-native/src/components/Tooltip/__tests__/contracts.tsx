@@ -62,6 +62,8 @@ export const renderedTooltip = (
     render={(props, state) => {
       state.state.open(true)
       state.state.close(false)
+      // @ts-expect-error Tooltip state does not expose Popover's trigger name.
+      void state.trigger
       return <NativeFocusView {...props} />
     }}
   />

@@ -19,6 +19,7 @@ export type TNativeTooltipRenderState = Readonly<{
 export type TNativeTooltipRef = View
 export type TNativeTooltipProps = Omit<
   TNativeClickPopoverProps,
+  | "render"
   | "childIsDialog"
   | "customDialogStyles"
   | "isNonModal"

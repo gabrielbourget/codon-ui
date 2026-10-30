@@ -8,6 +8,8 @@ import type { TNativeFloatingScrollHost } from "../../overlays/floating/useFloat
 import type { TThemingOrderCode } from "../../tokens/theme-order"
 import type { TNativeDisplayDimension } from "../displayDimensions"
 
+import type { TNativeFloatingHostRender } from "./ClickPopover"
+
 export type TNativeClickPopoverRef = View
 export type TNativeClickPopoverRootStyle = TextStyle
 export type TNativeClickPopoverArrowStyle = ViewStyle &
@@ -31,6 +33,10 @@ export type TNativeClickPopoverProps = Omit<
   "children" | "style" | "role" | "accessibilityRole" | "accessible" | "onAccessibilityEscape"
 > & {
   children?: ReactNode
+  render?: TNativeFloatingHostRender
+  onTouchStartCapture?: ViewProps["onTouchStart"]
+  onTouchMoveCapture?: ViewProps["onTouchMove"]
+  onTouchCancelCapture?: ViewProps["onTouchCancel"]
   isOpen?: boolean
   defaultOpen?: boolean
   onOpenChange?: (open: boolean) => void
