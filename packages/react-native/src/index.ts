@@ -723,6 +723,8 @@ export {
 } from "./components/ClickPopover/context"
 export type { TNativePopoverContextProps, TNativeDialogContextProps } from "./components/ClickPopover/context"
 export { Breadcrumbs } from "./components/Breadcrumbs/Breadcrumbs"
+export { NativeBreadcrumbsContext } from "./components/Breadcrumbs/context"
+export type { TNativeBreadcrumbsContextProps } from "./components/Breadcrumbs/context"
 export { Toaster } from "./components/Toaster/Toaster"
 export { toast } from "./components/Toaster/stateManagement"
 export { DEFAULT_TOAST_LABELS, resolveToastLabels } from "./components/Toaster/model"

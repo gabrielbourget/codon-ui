@@ -65,6 +65,8 @@ Mount NativeFloatingLayerHost around overflow presentations. Chosen groups retai
 
 Breadcrumbs accepts caller-owned string IDs, hrefs, content and disabled flags. It preserves first/current entries and consolidates the middle of long trails; maxVisibleItems ranges from3 through8, with left/right placement. Mount NativeFloatingLayerHost around trails that can overflow. The root exposes its actual native View ref; names, ordered label/description IDs, navigation and current-page metadata use the owned native adapters.
 
+`NativeBreadcrumbsContext` supplies default or named root props/ref and static styles; `slot={null}` opts out. Its `render(props, state)` receives the original native host props/ref and `undefined` state. Forward those props/ref to `NativeFocusView` to preserve the actual host. Default root layout precedes context styles, followed by authored custom/final styles. Root typography inherits into breadcrumb content; explicit item/link styles retain precedence. Descendants, including popup content, read the current merged root scope. Context `items`, `dependencies` and `children` defaults do not replace the wrapper's fixed collection rendering, and the visible Link does not invoke context `onAction`.
+
 ```tsx
 import { Breadcrumbs, NativeFloatingLayerHost } from "@codon-ui/react-native"
 
@@ -82,7 +84,7 @@ export const Trail = () => (
 )
 ```
 
-Visible entries retain Link's native URL behavior. Overflow closes before one onNavigate request with the original item, href and target; omitted handling uses Linking. The browser target string is callback metadata for the native host to interpret. Popup ownership and native popup style/ref/event props remain available through customClickPopoverProps. Root, breadcrumb/link, overflow button, popup and options-list styles retain independent owners. Linked rows ignore Space selection; empty-href rows keep the canonical selection/action distinction. Native focus/keyboard/pointer completion, spoken relationships and exact rendering remain required acceptance work.
+Visible entries currently hand the original URI to Link's native URL handler. Overflow closes before one onNavigate request with the original item, href and target; omitted handling uses Linking. The target string is retained in that callback's metadata. Under the approved native OS URL contract, Link hands the URI to the OS unchanged after the original native press callback and veto/admission checks; empty, relative and fragment strings are not resolved against a document base. Errors retain their originating URI and are suppressed after unmount. Browser window/target contexts, history lookup, downloads, rel/referrer behavior and hyperlink resource hints are explicit native-platform exclusions. The native API rejects those browser attributes; installed OS handoff still needs actual platform evidence. Popup ownership and native popup style/ref/event props remain available through customClickPopoverProps. Root, breadcrumb/link, overflow button, popup and options-list styles retain independent owners. Linked rows ignore Space selection; empty-href rows keep the canonical selection/action distinction. Native focus/keyboard/pointer completion, spoken relationships and exact rendering remain required acceptance work.
 
 ## ClickPopover
 

@@ -9,8 +9,6 @@ import {
 } from "react"
 import { Linking, View } from "react-native"
 
-import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
-import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { NativeDialogTrigger } from "../../overlays/floating/NativeDialogTrigger"
 import { useNativeFloatingHost } from "../../overlays/floating/NativeFloatingLayerHost"
@@ -19,11 +17,12 @@ import { useNativeTheme } from "../../theme"
 import { Button } from "../Button/Button"
 import { ClickPopover } from "../ClickPopover/ClickPopover"
 import { Link } from "../Link/Link"
-import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
+import { useNativeContentContext } from "../NativeContentContext"
 import { Text } from "../Text/Text"
 
 import { NativeBreadcrumbChevron, NativeBreadcrumbOverflowGlyph } from "./icons"
 import { createNativeBreadcrumbNodes, type TNativeBreadcrumbItem } from "./model"
+import { NativeBreadcrumbsRoot } from "./NativeBreadcrumbsRoot"
 import { NativeBreadcrumbOverflow } from "./Overflow"
 import { getNativeBreadcrumbStyles } from "./styles"
 import {
@@ -64,6 +63,7 @@ export const Breadcrumbs = forwardRef<TNativeBreadcrumbsRef, TNativeBreadcrumbsP
     "aria-details": nativeDetails,
     "data-testid": aliasID,
     testID,
+    slot,
     ...rest
   } = props
   const theme = useNativeTheme()
@@ -74,63 +74,61 @@ export const Breadcrumbs = forwardRef<TNativeBreadcrumbsRef, TNativeBreadcrumbsP
   const [internalOpen, setInternalOpen] = useState(false)
   const { customStyles: linkCustom, style: linkStyle, ...linkProps } = customBreadcrumbLinkProps
   return (
-    <NativeContentContext.Provider
-      value={{ foregroundColor: styles.root.text.color ?? theme.colors.foreground, isButton: false }}
+    <NativeBreadcrumbsRoot
+      {...rest}
+      ref={ref}
+      slot={slot}
+      id={rest.id ?? rest.nativeID}
+      nativeID={undefined}
+      nativeNavigation={!isDisabled}
+      nativeNavigationLabel={labels.navigationRoleDescription}
+      nativeIsDisabled={isDisabled}
+      accessibilityLabel={rest.accessibilityLabel ?? nativeLabel ?? ariaLabel ?? labels.navAriaLabel}
+      accessibilityLabelledBy={rest.accessibilityLabelledBy ?? nativeLabelledBy ?? ariaLabelledBy}
+      aria-describedby={nativeDescription ?? ariaDescribedBy}
+      aria-details={nativeDetails ?? ariaDetails}
+      nativeDescriptionLabel={labels.descriptionLabel}
+      nativeDetailsLabel={labels.detailsLabel}
+      isDisabled={isDisabled || undefined}
+      nativeBaselineStyle={styles.rootDefaults}
+      style={styles.rootInline}
+      testID={testID ?? aliasID ?? "breadcrumbs"}
     >
-      <NativeFocusHost
-        {...rest}
-        ref={ref}
-        role="list"
-        nativeNavigation={!isDisabled}
-        nativeNavigationLabel={labels.navigationRoleDescription}
-        accessible={false}
-        focusable={false}
-        accessibilityLabel={rest.accessibilityLabel ?? nativeLabel ?? ariaLabel ?? labels.navAriaLabel}
-        nativeLabelledBy={nativeAccessibilityIDs(rest.accessibilityLabelledBy ?? nativeLabelledBy ?? ariaLabelledBy)}
-        nativeDescribedBy={nativeAccessibilityIDs(nativeDescription ?? ariaDescribedBy)}
-        nativeDetailsBy={nativeAccessibilityIDs(nativeDetails ?? ariaDetails)}
-        nativeDescriptionLabel={labels.descriptionLabel}
-        nativeDetailsLabel={labels.detailsLabel}
-        accessibilityState={{ ...rest.accessibilityState, disabled: isDisabled }}
-        style={styles.root.view}
-        testID={testID ?? aliasID ?? "breadcrumbs"}
-      >
-        {nodes.map((node) =>
-          node.kind === "overflow" ? (
-            <NativeBreadcrumbCollapsed
-              key="overflow"
-              {...{ props, items: node.items, labels, internalOpen, setInternalOpen }}
-            />
-          ) : (
-            <View key={`item:${node.item.id}`} style={styles.item.view} testID={`breadcrumb-${node.item.id}`}>
-              {node.item === items[items.length - 1] ? (
-                <Text
-                  style={[styles.item.text, { fontWeight: "700", opacity: 1 }]}
-                  accessibilityState={{ selected: true }}
-                  accessibilityValue={{ text: labels.currentPageValue }}
-                  testID="breadcrumb-current"
-                >
-                  {node.item.content}
-                </Text>
-              ) : (
-                <Link
-                  {...linkProps}
-                  href={node.item.href}
-                  order={order}
-                  isDisabled={isDisabled || node.item.disabled}
-                  customStyles={[styles.itemStyle, linkCustom]}
-                  style={linkStyle}
-                  testID={linkProps.testID ?? `breadcrumb-link-${node.item.id}`}
-                >
-                  {node.item.content}
-                  <NativeBreadcrumbChevron />
-                </Link>
-              )}
-            </View>
-          ),
-        )}
-      </NativeFocusHost>
-    </NativeContentContext.Provider>
+      {nodes.map((node) =>
+        node.kind === "overflow" ? (
+          <NativeBreadcrumbCollapsed
+            key="overflow"
+            {...{ props, items: node.items, labels, internalOpen, setInternalOpen }}
+          />
+        ) : (
+          <View key={`item:${node.item.id}`} style={styles.item.view} testID={`breadcrumb-${node.item.id}`}>
+            {node.item === items[items.length - 1] ? (
+              <Text
+                style={[styles.item.text, { fontWeight: "700", opacity: 1 }]}
+                accessibilityState={{ selected: true }}
+                accessibilityValue={{ text: labels.currentPageValue }}
+                testID="breadcrumb-current"
+              >
+                {node.item.content}
+              </Text>
+            ) : (
+              <Link
+                {...linkProps}
+                href={node.item.href}
+                order={order}
+                isDisabled={isDisabled || node.item.disabled}
+                customStyles={[styles.itemStyle, linkCustom]}
+                style={linkStyle}
+                testID={linkProps.testID ?? `breadcrumb-link-${node.item.id}`}
+              >
+                {node.item.content}
+                <NativeBreadcrumbChevron />
+              </Link>
+            )}
+          </View>
+        ),
+      )}
+    </NativeBreadcrumbsRoot>
   )
 })
 Breadcrumbs.displayName = "Breadcrumbs"

@@ -1,14 +1,17 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native"
-import { createRef, type RefObject } from "react"
-import { AccessibilityInfo, Linking, StyleSheet, View } from "react-native"
+import { createRef, useContext, type RefObject } from "react"
+import { AccessibilityInfo, Linking, StyleSheet, TextInput, View } from "react-native"
 
 import {
   Breadcrumbs,
+  NativeBreadcrumbsContext,
   NativeFloatingLayerHost,
+  NativeFocusView,
   NativeThemeProvider,
   type TNativeBreadcrumbItem,
   type TNativeBreadcrumbsProps,
 } from "../../.."
+import { NATIVE_DEFAULT_SLOT } from "../../../collection/context"
 import { useNativeFloatingHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import { resolveNativeTheme } from "../../../theme/defaults"
 import type { TNativeClickPopoverProps } from "../../ClickPopover/types"
@@ -206,6 +209,199 @@ it("CAP.breadcrumbs merges root/custom/final and computed link props without los
   await fireEvent(link, "press", event())
   expect(Linking.openURL).toHaveBeenCalledWith("#A")
 })
+it("inherits root typography while preserving item overrides, zero spacing and the original root ref", async () => {
+  const f = fixture({ items: items.slice(0, 2), customStyles: { fontStyle: "italic", letterSpacing: 7 } })
+  const view = await render(f.node())
+  const root = f.root.current
+  expect(screen.getByText("A")).toHaveStyle({ fontStyle: "italic", letterSpacing: 7 })
+  expect(screen.getByTestId("breadcrumb-current")).toHaveStyle({ fontStyle: "italic", letterSpacing: 7 })
+  await view.rerender(
+    f.node({
+      items: items.slice(0, 2),
+      customStyles: { fontStyle: "italic", letterSpacing: 0 },
+      customBreadcrumbStyles: { fontStyle: "normal" },
+    }),
+  )
+  expect(f.root.current).toBe(root)
+  expect(screen.getByText("A")).toHaveStyle({ fontStyle: "normal", letterSpacing: 0 })
+  expect(screen.getByTestId("breadcrumb-current")).toHaveStyle({ fontStyle: "normal", letterSpacing: 0 })
+  await view.unmount()
+  expect(f.root.current).toBeNull()
+})
+it("merges default/named/null root context props, refs, layout styles and original pointer events", async () => {
+  const f = fixture()
+  const contextRef = createRef<View>()
+  const events: unknown[] = []
+  const states: unknown[] = []
+  const node = (slot: string | null | undefined) => (
+    <NativeBreadcrumbsContext.Provider
+      value={{
+        slots: {
+          [NATIVE_DEFAULT_SLOT]: { nativeID: "default-context", style: { padding: 3 } },
+          trail: {
+            ref: contextRef,
+            id: "context-root",
+            style: { gap: 2, padding: 4, letterSpacing: 7, fontStyle: "italic" },
+            onPointerDown: (event) => events.push(event),
+            render: (props, state) => {
+              states.push(state)
+              return <NativeFocusView {...props} />
+            },
+          },
+        },
+      }}
+    >
+      {f.node({
+        items: items.slice(0, 2),
+        slot,
+        nativeID: slot === "trail" ? "own-root" : undefined,
+        style: slot === "trail" ? { padding: 0 } : undefined,
+        onPointerDown: (event) => events.push(event),
+      })}
+    </NativeBreadcrumbsContext.Provider>
+  )
+  const view = await render(node("trail"))
+  const root = f.root.current
+  expect(contextRef.current === root).toBe(true)
+  expect(screen.getByTestId("breadcrumbs").props.nativeID).toBe("own-root")
+  expect(screen.getByTestId("breadcrumbs")).toHaveStyle({ gap: 2, padding: 0 })
+  expect(screen.getByTestId("breadcrumb-current")).toHaveStyle({ letterSpacing: 7, fontStyle: "italic" })
+  expect(states.length).toBeGreaterThan(0)
+  expect(states.every((state) => state === undefined)).toBe(true)
+  const pointer = { nativeEvent: { pointerType: "mouse", pointerId: 1 } }
+  await fireEvent(screen.getByTestId("breadcrumbs"), "pointerDown", pointer)
+  expect(events).toEqual([pointer, pointer])
+  await view.rerender(node(undefined))
+  expect(f.root.current === root).toBe(true)
+  expect(contextRef.current).toBeNull()
+  expect(screen.getByTestId("breadcrumbs").props.nativeID).toBe("default-context")
+  expect(screen.getByTestId("breadcrumbs")).toHaveStyle({ padding: 3 })
+  await view.rerender(node(null))
+  expect(f.root.current === root).toBe(true)
+  expect(screen.getByTestId("breadcrumbs").props.nativeID).toBeUndefined()
+  await view.unmount()
+  expect(f.root.current).toBeNull()
+})
+
+it("republishes current root scope through the popup while source-inert collection/action defaults remain inert", async () => {
+  const f = fixture()
+  const onAction = jest.fn()
+  const ignoredChildren = jest.fn(() => null)
+  const unused = [{ id: "unused", content: "Unused", href: "#unused", disabled: false }]
+  let inherited: unknown
+  const Probe = () => {
+    inherited = useContext(NativeBreadcrumbsContext)
+    return null
+  }
+  await render(
+    <NativeBreadcrumbsContext.Provider
+      value={{ id: "context-root", isDisabled: true, items: unused, children: ignoredChildren, onAction }}
+    >
+      {f.node({
+        nativeID: "own-root",
+        customClickPopoverProps: {
+          isOpen: true,
+          render: (props) => (
+            <NativeFocusView {...props}>
+              <Probe />
+              {props.children}
+            </NativeFocusView>
+          ),
+        },
+      })}
+    </NativeBreadcrumbsContext.Provider>,
+  )
+  expect(inherited).toMatchObject({ id: "own-root", isDisabled: true, items: unused, onAction })
+  expect(ignoredChildren).not.toHaveBeenCalled()
+  expect(screen.queryByText("Unused", hidden)).toBeNull()
+  expect(screen.getByTestId("breadcrumb-link-A", hidden)).not.toBeDisabled()
+  expect(onAction).not.toHaveBeenCalled()
+})
+
+it("keeps visible URI handoff and veto separate from overflow navigation and context action", async () => {
+  const onAction = jest.fn()
+  const onNavigate = jest.fn()
+  const onPress = jest.fn()
+  const f = fixture({ items: items.slice(0, 2), linkTarget: "named-target", onNavigate })
+  const node = (veto: boolean) => (
+    <NativeBreadcrumbsContext.Provider value={{ isDisabled: true, onAction }}>
+      {f.node({
+        customBreadcrumbLinkProps: {
+          onPress: (payload) => {
+            onPress(payload)
+            if (veto) payload.preventDefault()
+          },
+        },
+      })}
+    </NativeBreadcrumbsContext.Provider>
+  )
+  const view = await render(node(false))
+  const originalEvent = event()
+  await fireEvent(screen.getByTestId("breadcrumb-link-A"), "press", originalEvent)
+  expect(onPress.mock.calls[0][0]).toBe(originalEvent)
+  expect(jest.mocked(Linking.openURL).mock.calls).toEqual([["#A"]])
+  await view.rerender(node(true))
+  await fireEvent(screen.getByTestId("breadcrumb-link-A"), "press", event())
+  expect(onPress).toHaveBeenCalledTimes(2)
+  expect(Linking.openURL).toHaveBeenCalledTimes(1)
+  expect(onAction).not.toHaveBeenCalled()
+  expect(onNavigate).not.toHaveBeenCalled()
+})
+
+it("preserves the original root and portaled controlled editor through compatible context renderer changes", async () => {
+  const f = fixture()
+  const editor = createRef<TextInput>()
+  const onChangeText = jest.fn()
+  const popup: TNativeClickPopoverProps["render"] = (props) => (
+    <NativeFocusView {...props}>
+      <TextInput ref={editor} value="" onChangeText={onChangeText} />
+      {props.children}
+    </NativeFocusView>
+  )
+  const node = (custom: boolean) => (
+    <NativeBreadcrumbsContext.Provider
+      value={{ render: custom ? (props) => <NativeFocusView {...props} /> : undefined }}
+    >
+      {f.node({ customClickPopoverProps: { isOpen: true, render: popup } })}
+    </NativeBreadcrumbsContext.Provider>
+  )
+  const view = await render(node(false))
+  const root = f.root.current
+  const originalEditor = editor.current
+  expect(root).not.toBeNull()
+  expect(originalEditor).not.toBeNull()
+  await view.rerender(node(true))
+  expect(f.root.current === root).toBe(true)
+  expect(editor.current === originalEditor).toBe(true)
+  await view.rerender(node(false))
+  expect(f.root.current === root).toBe(true)
+  expect(editor.current === originalEditor).toBe(true)
+  expect(onChangeText).not.toHaveBeenCalled()
+  await view.unmount()
+  expect(f.root.current).toBeNull()
+  expect(editor.current).toBeNull()
+})
+
+it.each(["touchStartCapture", "touchMoveCapture", "touchCancelCapture"])(
+  "forwards original %s events independently to root and custom Link owners",
+  async (phase) => {
+    const rootCallback = jest.fn()
+    const linkCallback = jest.fn()
+    const name = `on${phase[0].toUpperCase()}${phase.slice(1)}`
+    const f = fixture({
+      items: items.slice(0, 2),
+      [name]: rootCallback,
+      customBreadcrumbLinkProps: { [name]: linkCallback },
+    })
+    await render(f.node())
+    const original = { nativeEvent: { target: 17, timestamp: 0 } }
+    await fireEvent(screen.getByTestId("breadcrumbs"), phase, original)
+    expect(rootCallback).toHaveBeenCalledWith(original)
+    await fireEvent(screen.getByTestId("breadcrumb-link-A"), phase, original)
+    expect(linkCallback).toHaveBeenCalledWith(original)
+  },
+)
+
 it("CAP.breadcrumbs preserves localized/empty labels and consumes wrapper props", async () => {
   const f = fixture({ ariaLabel: "Trail", labels: { overflowButtonAriaLabel: "Show levels" }, maxVisibleItems: 3 })
   await render(f.node())

@@ -47,15 +47,19 @@ export const getNativeBreadcrumbStyles = (
     throw new TypeError("Breadcrumbs: unsupported order")
   validateNativeColor(props.color, "Breadcrumbs", "color")
   const color = props.order === undefined ? (props.color ?? inherited) : theme.actions[props.order].background
-  const root = {
+  const rootDefaults = {
     color,
     flexDirection: "row" as const,
     alignItems: "center" as const,
     flexWrap: "wrap" as const,
     gap: theme.spacing.unit,
+  }
+  const rootInline = {
+    color,
     ...resolveNativeStyle(props.customStyles, "Breadcrumbs", "customStyles"),
     ...resolveNativeStyle(props.style, "Breadcrumbs", "style"),
   }
+  const root = { ...rootDefaults, ...rootInline }
   const item = {
     color: props.order === undefined && props.color === undefined ? (root.color ?? inherited) : color,
     ...resolveNativeStyle(props.customBreadcrumbStyles, "Breadcrumbs", "customBreadcrumbStyles"),
@@ -63,6 +67,8 @@ export const getNativeBreadcrumbStyles = (
   validateNativeColor(root.color, "Breadcrumbs", "root color")
   validateNativeColor(item.color, "Breadcrumbs", "breadcrumb color")
   return {
+    rootDefaults,
+    rootInline,
     root: splitNativeBreadcrumbStyle(root),
     item: splitNativeBreadcrumbStyle(item),
     itemStyle: item,
