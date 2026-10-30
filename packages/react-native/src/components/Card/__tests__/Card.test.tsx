@@ -9,6 +9,7 @@ import { MotionGlobalConfig, frameData, motionValue, time } from "../../../motio
 import * as MotionOwnerModule from "../../../motion/owner/NativeMotionOwner"
 import { NativeThemeProvider } from "../../../theme"
 import { resolveNativeTheme } from "../../../theme/defaults"
+import { Text } from "../../Text/Text"
 import { Card } from "../Card"
 import { getNativeCardStyle } from "../styles"
 import type { TNativeCardProps } from "../types"
@@ -52,6 +53,57 @@ afterEach(async () => {
   jest.restoreAllMocks()
 })
 const rootStyle = (identity = "card") => StyleSheet.flatten(screen.getByTestId(identity).props.style)
+
+it("inherits Card typography through authored Text without replacing its root or editor", async () => {
+  const ref = createRef<View>()
+  const editor = createRef<TextInput>()
+  const node = (spacing: number) => (
+    <Card
+      ref={ref}
+      testID="card"
+      focusable
+      pointerEvents="box-none"
+      customStyles={{ fontStyle: "italic", letterSpacing: 1 }}
+      style={{ letterSpacing: spacing }}
+    >
+      <Text testID="inherited-card-text">Inherited</Text>
+      <Text testID="authored-card-text" customStyles={{ fontStyle: "normal", letterSpacing: 7 }}>
+        Authored
+      </Text>
+      <TextInput ref={editor} value="" accessibilityLabel="Held editor" />
+    </Card>
+  )
+  const view = await render(node(3))
+  const original = ref.current
+  const originalEditor = editor.current
+  expect(original).not.toBeNull()
+  expect(originalEditor).not.toBeNull()
+  expect(screen.getByTestId("card").props).toMatchObject({ focusable: true, pointerEvents: "box-none" })
+  expect(screen.getByTestId("inherited-card-text")).toHaveStyle({ fontStyle: "italic", letterSpacing: 3 })
+  expect(screen.getByTestId("authored-card-text")).toHaveStyle({ fontStyle: "normal", letterSpacing: 7 })
+  await view.rerender(node(0))
+  expect(screen.getByTestId("inherited-card-text")).toHaveStyle({ fontStyle: "italic", letterSpacing: 0 })
+  expect(ref.current).toBe(original)
+  expect(editor.current).toBe(originalEditor)
+  expect(screen.getByLabelText("Held editor").props.value).toBe("")
+  await view.unmount()
+  expect(ref.current).toBeNull()
+  expect(editor.current).toBeNull()
+})
+
+it("transitions a static Card foreground change through its authored Text", async () => {
+  const node = (color: string) => (
+    <Card customStyles={{ color }}>
+      <Text testID="card-foreground">Content</Text>
+    </Card>
+  )
+  const view = await render(node("blue"))
+  await view.rerender(node("red"))
+  expect(screen.getByTestId("card-foreground").props.style.color).not.toBe("red")
+  await act(() => new Promise<void>((resolve) => setTimeout(resolve, 275)))
+  await flush(1300)
+  expect(screen.getByTestId("card-foreground")).toHaveStyle({ color: "red" })
+})
 const observeOwners = () => {
   const OriginalOwner = MotionOwnerModule.NativeMotionOwner
   const owners: MotionOwnerModule.NativeMotionOwner[] = []

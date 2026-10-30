@@ -7,9 +7,12 @@ import {
   useState,
   useSyncExternalStore,
 } from "react"
+import { Easing } from "react-native"
 
 import { getNativeButtonContent } from "../../components/Button/content"
+import { useNativeLinkColor } from "../../components/Link/motion"
 import { NativeContentContext, useNativeContentContext } from "../../components/NativeContentContext"
+import { NativeTextStyleProvider } from "../../components/NativeTextStyleProvider"
 import { NativeFocusHost } from "../../input/NativeFocusView"
 import type { TNativeFocusViewRef } from "../../input/types"
 import { useNativeTheme } from "../../theme"
@@ -28,6 +31,7 @@ const NO_PROJECTION: Readonly<{ style: NativeProjectionStyle; visible: boolean; 
   radii: "",
 })
 const emptyProjection = () => NO_PROJECTION
+const textColorEasing = Easing.bezier(0.42, 0, 0.58, 1)
 
 export const NativeMotionVisualHost = forwardRef<TNativeFocusViewRef, TNativeMotionVisualHostProps>(
   (
@@ -179,16 +183,24 @@ export const NativeMotionVisualHost = forwardRef<TNativeFocusViewRef, TNativeMot
       style: [resolved.view, projected.style],
       children: getNativeButtonContent(children, resolved.text),
     }
-    return (
+    const foreground = resolved.text.color ?? inherited?.foregroundColor ?? theme.colors.foreground
+    const currentForeground = useNativeLinkColor(
+      foreground,
+      250,
+      textColorEasing,
+      bindings?.color === undefined && (resolved.text.color !== undefined || inherited === undefined),
+    )
+    const content = (
       <NativeContentContext.Provider
         value={{
-          foregroundColor: resolved.text.color ?? inherited?.foregroundColor ?? theme.colors.foreground,
+          foregroundColor: currentForeground,
           isButton: inherited?.isButton ?? false,
         }}
       >
         {nativeRender ? nativeRender(host) : <NativeFocusHost {...host} />}
       </NativeContentContext.Provider>
     )
+    return <NativeTextStyleProvider style={resolved.text}>{content}</NativeTextStyleProvider>
   },
 )
 NativeMotionVisualHost.displayName = "NativeMotionVisualHost"

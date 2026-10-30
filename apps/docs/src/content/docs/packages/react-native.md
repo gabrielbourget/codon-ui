@@ -18,6 +18,12 @@ pnpm -F @codon-ui/react-native typecheck:contracts
 pnpm -F @codon-ui/react-native test --runInBand
 ```
 
+## Card
+
+Card owns one native focus root and exposes its actual View ref. Width and height default to auto, radius to10, raised to true, and padding/gap to three theme units. Computed styles precede customStyles and final style. Typography reaches authored Codon Text descendants; explicit child typography wins. Static foreground changes retain the250ms transition, while live motion color and inherited current paint retain their existing clocks.
+
+Use layoutMode for the Card layout contract; it takes precedence over the inherited layout option. Native motion values, controls, variants, gestures, viewport refs, presence and projection use native style/event/ref types. NativeThemeProvider supplies theme values. Matching native products, actual gesture/geometry/drawing fidelity and platform/profile qualification remain separately tracked in the acceptance ledger.
+
 ## Native Keyboard Focus
 
 NativeFocusView provides a source-owned native View root with ordinary native props/styles and the actual View ref. It adds no layout wrapper. focusable defaults to true; focusable=false or tabIndex=-1 blocks keyboard focus requests. Use focusNativeTarget(target) and blurNativeTarget(target) for this host or a live registered core TextInput. A true return means request admission; onFocus/onBlur acknowledge actual native focus and include native origin metadata. Plain core Views retain upstream focus behavior. The helpers preserve editor values and do not move screen-reader focus.
