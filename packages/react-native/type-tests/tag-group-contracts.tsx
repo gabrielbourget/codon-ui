@@ -166,8 +166,14 @@ export const NativeSameCompleteListState = () => {
 export const invalidGroupedNativePolicy = <Tag nativeTabStop />
 // @ts-expect-error Collection metadata identities remain private native construction fields.
 export const invalidGroupedNativeIdentity = <Tag descriptorId="invented" />
+// @ts-expect-error Paint timing remains an owned implementation detail, not a grouped-item prop.
+export const invalidGroupedNativeMotion = <Tag nativeAnimate="colors" />
 // @ts-expect-error Canonical grouped item render accepts a function, not an element shorthand.
 export const invalidGroupedRender = <Tag render={<NativeFocusView />} />
 
 // @ts-expect-error Localized selection-count callbacks receive a number.
 export const invalidAnnouncementCount = <TagGroup labels={{ selectedCount: (count: string) => count }} />
+
+export const AuthoredRootFocusability = <TagGroup focusable />
+// @ts-expect-error Native focusability remains a boolean.
+export const InvalidRootFocusability = <TagGroup focusable="true" />

@@ -593,6 +593,12 @@ Only clickable plus onPress enables activation; native disabled guards it and ca
 
 fallbackDelay controls eligibility once per mounted Avatar lifetime, matching the inherited Radix behavior: omitted delay is immediate; a defined delay, including zero, schedules eligibility. URI/name/theme changes preserve that lifetime. A changed pending delay cancels its old timer; removing it before eligibility leaves the fallback pending until another defined delay or a remount. Eligibility stays true once reached. Unmount cancels work. The maintained Avatar scene provides local valid/invalid PNG data, a deliberate lifetime restart and live controls for these behaviors.
 
+## TagGroup
+
+TagGroup and TagGroupItem own collection selection and removal independently of the standalone Tag. Caller-owned selected keys and collections remain authoritative after declined requests. Root, list and item styles keep separate owners, and custom item renderers retain the original native host props/ref and current state. The outer root defaults to non-focusable and honors an explicit native `focusable` boolean.
+
+Grouped tags transition background, border and foreground colors over250ms with ease-in-out timing. Interrupted changes continue from the current paint, and system Reduce Motion keeps updates immediate. Raised-shadow changes apply immediately; the standalone Tag's shadow-transition contract remains separate. These source behaviors do not establish installed input, rendering or accessibility acceptance.
+
 ## Tag
 
 Tag is the standalone status/pressable component, distinct from TagGroup's collection item. Static mode renders a native text container with live-region off by default. pressable=true requires caller-owned isPressed and onPress(id); the callback retains numeric 0, string "0", empty string and undefined without creating a selection mirror. A caller may repeatedly decline. Programmatic owner changes still render while disabled, while isDisabled blocks/cancels user activation. aria-pressed can explicitly override the exposed checked state, including false and mixed, without changing the visual owner value.

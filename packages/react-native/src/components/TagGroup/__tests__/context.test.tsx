@@ -32,6 +32,29 @@ beforeEach(() => jest.spyOn(RN.AccessibilityInfo, "isReduceMotionEnabled").mockR
 afterEach(() => jest.restoreAllMocks())
 const hidden = { includeHiddenElements: true }
 
+it("preserves authored root focusability with an unchanged original native ref", async () => {
+  const ref = createRef<RN.View>()
+  const node = (focusable?: boolean) => (
+    <NativeThemeProvider>
+      <TagGroup ref={ref} focusable={focusable}>
+        <Tag id="a">Alpha</Tag>
+      </TagGroup>
+    </NativeThemeProvider>
+  )
+  const view = await render(node())
+  const original = ref.current
+  expect(original).not.toBeNull()
+  expect(screen.getByTestId("tag-group", hidden).props.focusable).toBe(false)
+  await view.rerender(node(true))
+  expect(screen.getByTestId("tag-group", hidden).props.focusable).toBe(true)
+  expect(ref.current).toBe(original)
+  await view.rerender(node(false))
+  expect(screen.getByTestId("tag-group", hidden).props.focusable).toBe(false)
+  expect(ref.current).toBe(original)
+  await view.unmount()
+  expect(ref.current).toBeNull()
+})
+
 it("uses TagList's authoring phase for original dynamic values without mounting a second visible list", async () => {
   const values = [
     { id: 0, label: "Zero" },

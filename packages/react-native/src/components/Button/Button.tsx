@@ -53,7 +53,7 @@ type TNativeButtonInternalProps = Omit<TNativeButtonProps, "accessibilityState" 
       state: Omit<TNativeButtonRenderState, "foregroundColor">,
       focusVisible: boolean,
     ) => ReturnType<typeof getNativeButtonStyle>
-    nativeAnimate?: boolean
+    nativeAnimate?: boolean | "colors"
   }
 
 export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalProps>((props, ref) => {
@@ -159,7 +159,8 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
   const { foregroundColor, viewStyle } = useNativeButtonMotion(
     resolved.viewStyle,
     resolved.foregroundColor,
-    nativeAnimate,
+    !!nativeAnimate,
+    nativeAnimate === true,
   )
   const textStyle = nativeAnimate ? { ...resolved.textStyle, color: foregroundColor } : resolved.textStyle
   const state = { ...flags, foregroundColor: resolved.foregroundColor, isFocusVisible: focusVisible }
