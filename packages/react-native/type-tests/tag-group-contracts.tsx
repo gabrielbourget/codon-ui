@@ -166,6 +166,8 @@ export const NativeSameCompleteListState = () => {
 export const invalidGroupedNativePolicy = <Tag nativeTabStop />
 // @ts-expect-error Collection metadata identities remain private native construction fields.
 export const invalidGroupedNativeIdentity = <Tag descriptorId="invented" />
+// @ts-expect-error Paint timing remains an owned implementation detail, not a grouped-item prop.
+export const invalidGroupedNativeMotion = <Tag nativeAnimate="colors" />
 // @ts-expect-error Canonical grouped item render accepts a function, not an element shorthand.
 export const invalidGroupedRender = <Tag render={<NativeFocusView />} />
 

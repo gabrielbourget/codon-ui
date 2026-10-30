@@ -247,7 +247,7 @@ const TagReceiver = forwardRef<
                   accessible={false}
                   style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.unit }}
                 >
-                  {getNativeButtonContent(rendered, textStyle.current)}
+                  {getNativeButtonContent(rendered, { ...textStyle.current, color: foreground })}
                   {group.allowsRemoving ? (
                     <Button
                       slot="remove"
@@ -300,6 +300,7 @@ const TagReceiver = forwardRef<
   return (
     <NativeCollectionSemanticsContext.Provider value={group.semantics(row)}>
       <NativeButton
+        nativeAnimate="colors"
         {...native}
         {...owned}
         key={lifetime}
@@ -399,7 +400,11 @@ const TagReceiver = forwardRef<
         onHoverIn={onHoverIn}
         onHoverOut={onHoverOut}
       >
-        {(flags) => content(stateFor(flags), flags.foregroundColor)}
+        {(flags) => (
+          <NativeContentContext.Consumer>
+            {(paint) => content(stateFor(flags), paint?.foregroundColor ?? flags.foregroundColor)}
+          </NativeContentContext.Consumer>
+        )}
       </NativeButton>
     </NativeCollectionSemanticsContext.Provider>
   )
