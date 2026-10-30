@@ -5,13 +5,19 @@ import {
   useId,
   useInsertionEffect,
   useRef,
-  useState,
   type ReactNode,
   type RefObject,
 } from "react"
 import type { View } from "react-native"
 
 import type { TNativeButtonProps } from "../../components/Button/types"
+import {
+  NativeDialogContext,
+  NativeOverlayTriggerStateContext,
+  NativePopoverContext,
+} from "../../components/ClickPopover/context"
+import { NativeRootMenuTriggerStateContext } from "../../components/Menu/context"
+import { useNativeMenuTriggerState } from "../../components/Menu/triggerState"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "./scope"
@@ -50,10 +56,10 @@ export const useNativeDialogTrigger = () => useContext(NativeDialogTriggerContex
 export const NativeDialogTrigger = (props: TNativeDialogTriggerProps) => {
   const controlled = props.isOpen !== undefined
   const initialOwnership = useRef(controlled)
-  const [local, setLocal] = useState(() => props.defaultOpen ?? false)
   if (initialOwnership.current !== controlled)
     throw new TypeError("NativeDialogTrigger: changing controlled/uncontrolled ownership is unsupported")
-  const isOpen = controlled ? props.isOpen! : local
+  const overlayState = useNativeMenuTriggerState(props)
+  const isOpen = overlayState.isOpen
   const isDisabled = props.isDisabled ?? false
   const scope = useContext(NativeFloatingScopeContext)
   const windowActive = useContext(NativeFloatingWindowContext)
@@ -64,13 +70,13 @@ export const NativeDialogTrigger = (props: TNativeDialogTriggerProps) => {
   const current = useRef({
     isOpen,
     isDisabled,
-    controlled,
+    overlayState,
     scope,
     windowActive,
     input,
     onOpenChange: props.onOpenChange,
   })
-  current.current = { isOpen, isDisabled, controlled, scope, windowActive, input, onOpenChange: props.onOpenChange }
+  current.current = { isOpen, isDisabled, overlayState, scope, windowActive, input, onOpenChange: props.onOpenChange }
   useInsertionEffect(() => {
     live.current = true
     return () => {
@@ -80,8 +86,8 @@ export const NativeDialogTrigger = (props: TNativeDialogTriggerProps) => {
   const request = useCallback((next: boolean) => {
     const latest = current.current
     if (!live.current || next === latest.isOpen) return
-    if (!latest.controlled) setLocal(next)
-    latest.onOpenChange?.(next)
+    if (next) latest.overlayState.open()
+    else latest.overlayState.close()
   }, [])
   const state: TNativeDialogTriggerRenderState = {
     isOpen,
@@ -108,10 +114,41 @@ export const NativeDialogTrigger = (props: TNativeDialogTriggerProps) => {
       },
     },
   }
+  const sharedState: typeof overlayState = {
+    ...overlayState,
+    setOpen: (next) => {
+      if (live.current) current.current.overlayState.setOpen(next)
+    },
+    open: (strategy) => {
+      if (live.current) current.current.overlayState.open(strategy)
+    },
+    close: () => {
+      if (live.current) current.current.overlayState.close()
+    },
+    toggle: (strategy) => {
+      if (live.current) current.current.overlayState.toggle(strategy)
+    },
+    openSubmenu: (key, level) => {
+      if (live.current) current.current.overlayState.openSubmenu(key, level)
+    },
+    closeSubmenu: (key, level) => {
+      if (live.current) current.current.overlayState.closeSubmenu(key, level)
+    },
+  }
   return (
     <NativeDialogTriggerContext.Provider value={{ isOpen, triggerRef, request }}>
-      {props.trigger(state)}
-      {typeof props.children === "function" ? props.children(state) : props.children}
+      <NativeOverlayTriggerStateContext.Provider value={sharedState}>
+        <NativeRootMenuTriggerStateContext.Provider value={sharedState}>
+          <NativeDialogContext.Provider value={{ accessibilityLabelledBy: state.triggerProps.nativeID }}>
+            <NativePopoverContext.Provider
+              value={{ triggerRef, trigger: "DialogTrigger", accessibilityLabelledBy: state.triggerProps.nativeID }}
+            >
+              {props.trigger(state)}
+              {typeof props.children === "function" ? props.children(state) : props.children}
+            </NativePopoverContext.Provider>
+          </NativeDialogContext.Provider>
+        </NativeRootMenuTriggerStateContext.Provider>
+      </NativeOverlayTriggerStateContext.Provider>
     </NativeDialogTriggerContext.Provider>
   )
 }

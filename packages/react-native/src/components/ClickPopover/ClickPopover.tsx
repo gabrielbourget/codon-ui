@@ -5,6 +5,7 @@ import {
   type ComponentPropsWithoutRef,
   type ReactElement,
   type ReactNode,
+  type Provider,
   useContext,
   useImperativeHandle,
   useInsertionEffect,
@@ -15,6 +16,7 @@ import {
 } from "react"
 import {
   Animated,
+  Easing,
   findNodeHandle,
   I18nManager,
   StyleSheet,
@@ -26,10 +28,11 @@ import {
 } from "react-native"
 import type { PathProps } from "react-native-svg"
 
+import { useNativeContextProps } from "../../collection/context"
 import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
 import { focusNativeContainer, focusNativeTarget } from "../../input/focus"
 import { NativeDialogOverlayFocusOwner, useNativeDialogFocusMembership } from "../../input/NativeDialogFocusScope"
-import { NativeFocusHost, NativeFocusView } from "../../input/NativeFocusView"
+import { NativeFocusView, type NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { useNativeFloatingMotion } from "../../overlays/floating/motion"
 import { useNativeDialogTrigger } from "../../overlays/floating/NativeDialogTrigger"
@@ -41,8 +44,14 @@ import { useNativeFloatingPosition } from "../../overlays/floating/useFloatingPo
 import { useNativeFloatingScrollAnchor } from "../../overlays/floating/useFloatingScrollAnchor"
 import { useNativeTheme } from "../../theme"
 import { getNativeButtonContent } from "../Button/content"
+import { useOverlayTriggerState } from "../ComboBox/state/useOverlayTriggerState"
+import { useNativeLinkColor } from "../Link/motion"
 import { NativeContentContext } from "../NativeContentContext"
+import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
 
+import { NativePopoverContext, NativeOverlayTriggerStateContext } from "./context"
+import type { TNativeClearContext } from "./context"
+import { NativePopoverDialog } from "./NativePopoverDialog"
 import { getNativeClickPopoverStyles } from "./styles"
 import type { TNativeClickPopoverProps, TNativeClickPopoverRef, TNativeClickPopoverRootStyle } from "./types"
 
@@ -61,11 +70,17 @@ const FloatingHost = forwardRef<
     nativeRenderState: TNativeFloatingRenderState
   }
 >(({ nativeRender, nativeRenderState, ...props }, ref) =>
-  nativeRender ? nativeRender({ ...props, ref }, nativeRenderState) : <NativeFocusHost {...props} ref={ref} />,
+  nativeRender ? nativeRender({ ...props, ref }, nativeRenderState) : <NativeFocusView {...props} ref={ref} />,
 )
 const AnimatedFocusView = Animated.createAnimatedComponent(FloatingHost)
+const textColorEasing = Easing.bezier(0.42, 0, 0.58, 1)
 const subscribeNone = () => () => {}
 const zero = () => 0
+const ClearedContexts = ({ contexts, children }: { contexts?: readonly TNativeClearContext[]; children: ReactNode }) =>
+  contexts?.reduce((content, context) => {
+    const ContextProvider = context.Provider as unknown as Provider<null>
+    return <ContextProvider value={null}>{content}</ContextProvider>
+  }, children) ?? children
 const getFocusSessionKey = (scope: ReturnType<typeof useNativeKeyScope>) => {
   const session = scope?.acknowledgedSession()
   return JSON.stringify([session?.windowId, session?.epoch])
@@ -80,14 +95,17 @@ export const NativeFloatingSurface = forwardRef<
       state: TNativeFloatingRenderState & { defaultStyle: TNativeClickPopoverRootStyle },
     ) => StyleProp<TNativeClickPopoverRootStyle>
     nativeChildren?: (state: TNativeFloatingRenderState & { defaultChildren: undefined }) => ReactNode
+    nativeClearContexts?: readonly TNativeClearContext[]
   }
 >((props, ref) => {
   const {
     children,
+    render: _publicRender,
     nativeRootRole,
     nativeRender,
     nativeStyle,
     nativeChildren,
+    nativeClearContexts,
     isOpen,
     defaultOpen,
     onOpenChange,
@@ -148,13 +166,12 @@ export const NativeFloatingSurface = forwardRef<
   const inputReady = input?.isNativeReady() ?? true
   const trigger = useNativeDialogTrigger()
   const boundTrigger = slot === null ? null : trigger
-  const contextOwned = isOpen === undefined && defaultOpen === undefined && boundTrigger !== null
-  const mode = contextOwned ? "trigger" : isOpen !== undefined ? "controlled" : "local"
-  const ownership = useRef(mode)
-  if ((mode === "local") !== (ownership.current === "local"))
-    throw new TypeError("ClickPopover: changing controlled/uncontrolled ownership is unsupported")
-  const [local, setLocal] = useState(() => defaultOpen ?? false)
-  const open = contextOwned ? boundTrigger!.isOpen : (isOpen ?? local)
+  const inheritedState = useContext(NativeOverlayTriggerStateContext)
+  const localState = useOverlayTriggerState({ isOpen, defaultOpen, onOpenChange })
+  const contextState = slot === null ? null : inheritedState
+  const contextOwned =
+    isOpen === undefined && defaultOpen === undefined && (contextState !== null || boundTrigger !== null)
+  const open = contextOwned ? (contextState?.isOpen ?? boundTrigger!.isOpen) : localState.isOpen
   const submenu = triggerName === "SubmenuTrigger"
   const fallbackTrigger = useRef<View>(null)
   const anchor = authoredTrigger ?? boundTrigger?.triggerRef ?? fallbackTrigger
@@ -170,8 +187,22 @@ export const NativeFloatingSurface = forwardRef<
       live.current = false
     }
   }, [])
-  const current = useRef({ open, contextOwned, trigger, onOpenChange, shouldCloseOnInteractOutside })
-  current.current = { open, contextOwned, trigger, onOpenChange, shouldCloseOnInteractOutside }
+  const current = useRef({
+    open,
+    contextOwned,
+    trigger: boundTrigger,
+    contextState,
+    localState,
+    shouldCloseOnInteractOutside,
+  })
+  current.current = {
+    open,
+    contextOwned,
+    trigger: boundTrigger,
+    contextState,
+    localState,
+    shouldCloseOnInteractOutside,
+  }
   const suppressRestore = useRef(false)
   const priorOpen = useRef(open)
   if (open && !priorOpen.current) suppressRestore.current = false
@@ -179,11 +210,10 @@ export const NativeFloatingSurface = forwardRef<
   const close = () => {
     const owner = current.current
     if (!live.current || !owner.open || input?.isWindowActive() === false || windowActive?.() === false) return
-    if (owner.contextOwned) owner.trigger!.request(false)
-    else {
-      if (ownership.current === "local") setLocal(false)
-      owner.onOpenChange?.(false)
-    }
+    if (owner.contextOwned) {
+      if (owner.contextState) owner.contextState.close()
+      else owner.trigger!.request(false)
+    } else owner.localState.close()
   }
   type TSide = "top" | "bottom" | "left" | "right"
   const requested = placement.split(" ")[0]
@@ -272,7 +302,9 @@ export const NativeFloatingSurface = forwardRef<
     isExiting: motion.isExiting,
   }
   const dynamicStyle =
-    layer.mounted || isExiting ? nativeStyle?.({ ...renderState, defaultStyle: baseline.root }) : undefined
+    layer.mounted || isExiting
+      ? nativeStyle?.({ ...renderState, defaultStyle: { ...baseline.root, ...baseline.rootText } })
+      : undefined
   const painted = nativeStyle
     ? getNativeClickPopoverStyles(
         theme,
@@ -389,6 +421,7 @@ export const NativeFloatingSurface = forwardRef<
     [host.focusReturns, layer.id],
   )
   const [dialogFocused, setDialogFocused] = useState(false)
+  const currentForeground = useNativeLinkColor(painted.rootText.color ?? theme.colors.foreground, 250, textColorEasing)
   if (!layer.mounted && !isExiting) return null
   const identity = testID ?? aliasTestID ?? "click-popover"
   const mark = (event: GestureResponderEvent) => {
@@ -400,7 +433,14 @@ export const NativeFloatingSurface = forwardRef<
     onLayout?.(event)
   }
   const renderedChildren = nativeChildren ? nativeChildren({ ...renderState, defaultChildren: undefined }) : children
-  const body = getNativeButtonContent(renderedChildren, childIsDialog ? painted.dialogText : painted.rootText)
+  const body = getNativeButtonContent(renderedChildren, { ...painted.rootText, color: currentForeground })
+  const defaultDialog = getNativeClickPopoverStyles(
+    theme,
+    { ...props, customDialogStyles: undefined },
+    position?.placement ?? side,
+    direction,
+    host.layout?.width ?? 0,
+  )
   return (
     <NativeFloatingPortal layerId={layer.mounted ? layer.id : undefined}>
       <View
@@ -464,8 +504,18 @@ export const NativeFloatingSurface = forwardRef<
                   motion.style,
                 ]}
                 {...{
-                  onTouchStartCapture: mark,
-                  onTouchEndCapture: mark,
+                  onTouchStartCapture: (event: GestureResponderEvent) => {
+                    if (live.current && layer.canAct() && input?.isWindowActive() !== false) {
+                      mark(event)
+                      nativeProps.onTouchStartCapture?.(event)
+                    }
+                  },
+                  onTouchEndCapture: (event: GestureResponderEvent) => {
+                    if (live.current && layer.canAct() && input?.isWindowActive() !== false) {
+                      mark(event)
+                      nativeProps.onTouchEndCapture?.(event)
+                    }
+                  },
                   onFocusCapture: (event: Parameters<NonNullable<TNativeClickPopoverProps["onFocus"]>>[0]) => {
                     if (layer.canAct()) {
                       suppressRestore.current = false
@@ -484,70 +534,66 @@ export const NativeFloatingSurface = forwardRef<
                   if (layer.canAct()) host.layers.requestDismiss("accessibilityEscape")
                 }}
               >
-                <NativeContentContext.Provider
-                  value={{
-                    foregroundColor: painted.rootText.color ?? theme.colors.foreground,
-                    isButton: false,
-                    textStyle: painted.rootText,
-                  }}
-                >
-                  {showOverlayArrow && (
-                    <NativeFloatingArrow
-                      position={position}
-                      side={side}
-                      layout={arrowLayout}
-                      style={painted.arrow}
-                      graphicStyle={painted.arrowGraphic}
-                      paint={painted.arrowPaint as PathProps}
-                      color={painted.arrowColor}
-                      testID={`${identity}-overlay-arrow`}
-                      onLayout={({ nativeEvent }) => {
-                        if (!live.current || !layer.canMeasure()) return
-                        const { width, height } = nativeEvent.layout
-                        setArrowLayout((value) =>
-                          value?.width === width && value.height === height ? value : { width, height },
-                        )
+                <ClearedContexts contexts={nativeClearContexts}>
+                  <NativeTextStyleProvider style={painted.rootText}>
+                    <NativeContentContext.Provider
+                      value={{
+                        foregroundColor: currentForeground,
+                        isButton: false,
+                        textStyle: painted.rootText,
                       }}
-                    />
-                  )}
-                  {childIsDialog ? (
-                    <NativeFocusView
-                      ref={dialog}
-                      testID={`${identity}-dialog`}
-                      role="dialog"
-                      accessible={false}
-                      focusable={ready && layer.active}
-                      accessibilityLabel={accessibilityLabel ?? aliasLabel}
-                      style={[
-                        dialogFocused
-                          ? {
-                              outlineWidth: 1.5,
-                              outlineOffset: theme.spacing.unit,
-                              outlineColor: theme.colors.focusRing,
-                            }
-                          : undefined,
-                        painted.dialog,
-                      ]}
-                      onFocus={(event) => {
-                        if (layer.canAct())
-                          setDialogFocused(event.nativeEvent.target === findNodeHandle(dialog.current))
-                      }}
-                      onBlur={() => setDialogFocused(false)}
                     >
-                      <NativeContentContext.Provider
-                        value={{
-                          foregroundColor: painted.dialogText.color ?? theme.colors.foreground,
-                          isButton: false,
-                          textStyle: painted.dialogText,
-                        }}
-                      >
-                        {body}
-                      </NativeContentContext.Provider>
-                    </NativeFocusView>
-                  ) : (
-                    body
-                  )}
-                </NativeContentContext.Provider>
+                      {showOverlayArrow && (
+                        <NativeFloatingArrow
+                          position={position}
+                          side={side}
+                          layout={arrowLayout}
+                          style={painted.arrow}
+                          graphicStyle={painted.arrowGraphic}
+                          paint={painted.arrowPaint as PathProps}
+                          color={painted.arrowColor}
+                          testID={`${identity}-overlay-arrow`}
+                          onLayout={({ nativeEvent }) => {
+                            if (!live.current || !layer.canMeasure()) return
+                            const { width, height } = nativeEvent.layout
+                            setArrowLayout((value) =>
+                              value?.width === width && value.height === height ? value : { width, height },
+                            )
+                          }}
+                        />
+                      )}
+                      {childIsDialog ? (
+                        <NativePopoverDialog
+                          ref={dialog}
+                          testID={`${identity}-dialog`}
+                          nativeFocusable={ready && layer.active}
+                          nativeFallbackLabel={accessibilityLabel ?? aliasLabel}
+                          style={props.customDialogStyles}
+                          nativeBaselineStyle={[
+                            dialogFocused
+                              ? {
+                                  outlineWidth: 1.5,
+                                  outlineOffset: theme.spacing.unit,
+                                  outlineColor: theme.colors.focusRing,
+                                }
+                              : undefined,
+                            defaultDialog.dialog,
+                            defaultDialog.dialogText,
+                          ]}
+                          onFocus={(event) => {
+                            if (layer.canAct())
+                              setDialogFocused(event.nativeEvent.target === findNodeHandle(dialog.current))
+                          }}
+                          onBlur={() => setDialogFocused(false)}
+                        >
+                          {renderedChildren}
+                        </NativePopoverDialog>
+                      ) : (
+                        body
+                      )}
+                    </NativeContentContext.Provider>
+                  </NativeTextStyleProvider>
+                </ClearedContexts>
               </AnimatedFocusView>
             </NativeDialogOverlayFocusOwner>
           </NativeFloatingScopeContext.Provider>
@@ -558,4 +604,32 @@ export const NativeFloatingSurface = forwardRef<
 })
 NativeFloatingSurface.displayName = "ClickPopover"
 export const ClickPopover: ForwardRefExoticComponent<TNativeClickPopoverProps & RefAttributes<TNativeClickPopoverRef>> =
-  NativeFloatingSurface
+  forwardRef((authored, forwardedRef) => {
+    const [props, ref] = useNativeContextProps(
+      {
+        ...authored,
+        accessibilityLabel: authored.accessibilityLabel ?? authored["aria-label"],
+        "aria-label": undefined,
+        accessibilityLabelledBy: authored.accessibilityLabelledBy ?? authored["aria-labelledby"],
+        "aria-labelledby": undefined,
+        style: [authored.customStyles, authored.style],
+      },
+      forwardedRef,
+      NativePopoverContext,
+    )
+    const style = props.style as TNativePopoverContextStyle
+    const { clearContexts, ...native } = props as typeof props &
+      Pick<import("./context").TNativePopoverContextProps, "clearContexts">
+    return (
+      <NativeFloatingSurface
+        {...native}
+        ref={ref}
+        style={typeof style === "function" ? undefined : style}
+        nativeStyle={typeof style === "function" ? style : undefined}
+        nativeRender={props.render}
+        nativeClearContexts={clearContexts}
+      />
+    )
+  })
+
+type TNativePopoverContextStyle = NonNullable<import("./context").TNativePopoverContextProps["style"]>

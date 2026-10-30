@@ -88,6 +88,10 @@ Visible entries retain Link's native URL behavior. Overflow closes before one on
 
 Mount NativeFloatingLayerHost at the native window root. NativeDialogTrigger exposes an explicit trigger render function; attach its original triggerProps/ref to a Button or supported native target. ClickPopover also accepts a real triggerRef for independent controlled ownership. Controlled isOpen/onOpenChange waits for owner echo, including declined close requests. Root, dialog and arrow each retain separate native style slots; childIsDialog=false keeps authored content directly under the root.
 
+`render(props, state)` receives the original native root props/ref and exactly `trigger`, `placement`, `isEntering`, and `isExiting`. Forward the supplied props/ref to the actual native host. `NativePopoverContext` supplies default or named native props/refs and static or state-based styles, including `clearContexts` for descendants; authored custom/final styles retain precedence. Own ClickPopover style stays static and children stay ReactNode. `slot={null}` retains the native trigger-context opt-out.
+
+`NativeDialogContext` supplies the optional original dialog's native props/ref, static style, renderer with undefined state, and fallback children receiving `{ close }`. A `<Text slot="title">` provides heading semantics and names that dialog ahead of the trigger fallback; explicit dialog labels/relationships retain precedence. `<Button slot="close">` requests the current overlay close before its caller handler. Default/null slots remain independent. `NativeOverlayTriggerStateContext` supplies `isOpen`, `setOpen`, `open`, `close`, and `toggle`; DialogTrigger shares its complete existing menu state through both overlay and menu contexts. Source and consumer proof do not establish installed focus, accessibility, appearance or profile acceptance.
+
 ```tsx
 import { Button, ClickPopover, NativeDialogTrigger } from "@codon-ui/react-native"
 ;<NativeDialogTrigger trigger={(state) => <Button {...state.triggerProps}>Edit</Button>}>

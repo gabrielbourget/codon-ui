@@ -1,6 +1,14 @@
-import { forwardRef, useContext, type ForwardRefExoticComponent, type ReactElement, type RefAttributes } from "react"
+import {
+  forwardRef,
+  useContext,
+  useLayoutEffect,
+  type ForwardRefExoticComponent,
+  type ReactElement,
+  type RefAttributes,
+} from "react"
 import { Easing, Text as RNText, type TextProps, type TextStyle } from "react-native"
 
+import { useNativeContextProps } from "../../collection/context"
 import { NativeFloatingScopeContext } from "../../overlays/floating/scope"
 import { useNativeTheme } from "../../theme"
 import { resolveNativeStyle, validateNativeColor } from "../colors"
@@ -9,6 +17,7 @@ import { NativeContentContext, NativeTextLayoutContext, useNativeContentContext 
 import { splitNativeTextStyle } from "../nativeTextStyle"
 import { useNativeInheritedTextStyle } from "../NativeTextStyleProvider"
 
+import { NativeHeadingBindingContext, NativeHeadingContext } from "./context"
 import type { TNativeTextProps, TNativeTextRef } from "./types"
 
 export type TNativeTextRender = (props: TextProps & RefAttributes<TNativeTextRef>) => ReactElement
@@ -20,6 +29,7 @@ export const NativeText = forwardRef<
   (
     {
       children,
+      slot: _slot,
       nativeRender,
       nativeColorIsAnimated = false,
       variant = "b10",
@@ -116,4 +126,15 @@ export const NativeText = forwardRef<
 )
 
 NativeText.displayName = "Text"
-export const Text: ForwardRefExoticComponent<TNativeTextProps & RefAttributes<TNativeTextRef>> = NativeText
+export const Text: ForwardRefExoticComponent<TNativeTextProps & RefAttributes<TNativeTextRef>> = forwardRef(
+  (authored, ref) => {
+    const [props, mergedRef] = useNativeContextProps(authored, ref, NativeHeadingContext)
+    const bindTitle = useContext(NativeHeadingBindingContext)
+    const nativeID = props.id ?? props.nativeID
+    useLayoutEffect(
+      () => (props.slot === "title" && nativeID ? bindTitle?.(nativeID) : undefined),
+      [props.slot, nativeID, bindTitle],
+    )
+    return <NativeText {...props} ref={mergedRef} />
+  },
+)
