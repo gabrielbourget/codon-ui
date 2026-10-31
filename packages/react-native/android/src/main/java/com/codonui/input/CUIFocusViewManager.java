@@ -80,7 +80,6 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
 
   @Override @ReactProp(name = "nativeTypographyStyle") public void setNativeTypographyStyle(ReactViewGroup view, String value) {}
   @Override @ReactProp(name = "nativeTypographyWindow") public void setNativeTypographyWindow(ReactViewGroup view, String value) {}
-  @Override @ReactProp(name = "nativeCounterEmptyChildren") public void setNativeCounterEmptyChildren(ReactViewGroup view, boolean value) {}
   @Override @ReactProp(name = "nativeForegroundComposition", defaultBoolean = false)
   public void setNativeForegroundComposition(ReactViewGroup view, boolean value) { ((CUIFocusView)view).setNativeForegroundComposition(value); }
   @Override @ReactProp(name = "filter", customType = "Filter")

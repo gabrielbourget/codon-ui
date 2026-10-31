@@ -15,7 +15,6 @@ class JSI_EXPORT CUIOwnedTypographyFocusShadowNode final : public ConcreteViewSh
   std::string appliedStyle_;
   std::string appliedWindow_;
   bool prepared_{false};
-  bool appliedCounterEmptyChildren_{false};
   uint64_t sourceRevision_{0};
 };
 class CUIOwnedTypographyFocusComponentDescriptor final : public ConcreteComponentDescriptor<CUIOwnedTypographyFocusShadowNode> {

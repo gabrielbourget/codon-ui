@@ -73,7 +73,6 @@ export const NativeFocusHost = forwardRef<
     nativeMotionVisible?: boolean
     nativeMotionProjectionRevision?: string
     nativeTypographyStyle?: string
-    nativeCounterEmptyChildren?: boolean
     nativeForegroundComposition?: boolean
     nativeMotionDrawingOwner?: boolean
     nativeMotionProjectionRadii?: string

@@ -164,7 +164,6 @@ export type NativeFormActionStatus = Readonly<{
 }>
 
 export interface NativeProps extends ViewProps {
-  nativeCounterEmptyChildren?: WithDefault<boolean, false>
   ownerId: string
   nativeFocusWithinBinding?: string
   onNativeFocusWithin?: DirectEventHandler<NativeFocusWithinData>

@@ -1,6 +1,5 @@
 #include "NativeTypographyScope.h"
 #include "NativeTypographySource.h"
-#include "CounterEmptyLayout.h"
 #include <react/renderer/components/text/BaseParagraphProps.h>
 #include <react/renderer/components/text/BaseTextProps.h>
 #include <react/renderer/components/textinput/BaseTextInputProps.h>
@@ -96,7 +95,6 @@ CUIOwnedTypographyFocusShadowNode::CUIOwnedTypographyFocusShadowNode(const Shado
   const auto &old = static_cast<const CUIOwnedTypographyFocusShadowNode &>(source);
   authoredChildren_ = fragment.children ? *fragment.children : old.authoredChildren_;
   if (!fragment.children) { prepared_ = old.prepared_; appliedStyle_ = old.appliedStyle_; appliedWindow_ = old.appliedWindow_; sourceRevision_ = old.sourceRevision_; }
-  appliedCounterEmptyChildren_ = old.appliedCounterEmptyChildren_;
 }
 void CUIOwnedTypographyFocusShadowNode::appendChild(const std::shared_ptr<const ShadowNode> &child) {
   authoredChildren_.push_back(child);
@@ -107,7 +105,7 @@ void CUIOwnedTypographyFocusShadowNode::appendChild(const std::shared_ptr<const 
 void CUIOwnedTypographyFocusShadowNode::prepareTypography() {
   const auto &props = getConcreteProps();
   const auto revision = codon::typography::nativeTypographyRevision();
-  if (!prepared_ || sourceRevision_ != revision || props.nativeTypographyStyle != appliedStyle_ || props.nativeTypographyWindow != appliedWindow_ || props.nativeCounterEmptyChildren != appliedCounterEmptyChildren_) {
+  if (!prepared_ || sourceRevision_ != revision || props.nativeTypographyStyle != appliedStyle_ || props.nativeTypographyWindow != appliedWindow_) {
     std::vector<std::shared_ptr<const ShadowNode>> children = authoredChildren_;
     if (!props.nativeTypographyStyle.empty()) {
       const auto raw = folly::parseJson(props.nativeTypographyStyle);
@@ -126,18 +124,12 @@ void CUIOwnedTypographyFocusShadowNode::prepareTypography() {
       children.clear();
       for (const auto &child : authoredChildren_)
         children.push_back(materialize(*child, text.textAttributes, paragraph, *this, props.nativeTypographyWindow, revision));
-    } else if (props.nativeCounterEmptyChildren || appliedCounterEmptyChildren_) {
-      children.clear();
-      for (const auto &child : authoredChildren_) children.push_back(child->clone({}));
     }
     if (revision != codon::typography::nativeTypographyRevision()) throw std::runtime_error("Native typography authority changed during the original commit");
     // Prepare before the enclosing Yoga pass measures these original text nodes.
     const auto current = getChildren();
     for (size_t index=0;index<children.size();index++) replaceChild(*current.at(index), children[index], index);
-    if (props.nativeCounterEmptyChildren || appliedCounterEmptyChildren_)
-      codon::counter::applyNativeCounterEmptyLayout(yogaNode_, getChildren(), props.nativeCounterEmptyChildren);
     prepared_ = true; sourceRevision_ = revision; appliedStyle_ = props.nativeTypographyStyle; appliedWindow_ = props.nativeTypographyWindow;
-    appliedCounterEmptyChildren_ = props.nativeCounterEmptyChildren;
   }
 }
 }

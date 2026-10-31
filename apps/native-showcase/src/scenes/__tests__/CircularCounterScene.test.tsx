@@ -175,7 +175,7 @@ it("exercises scoped progress labels and independently updating Counter children
   const label = screen.getByTestId("circular-context-label")
   expect(progress).toHaveAccessibilityValue({ max: 200, now: 25, text: "13%" })
   expect(progress.props.nativeLabelledBy).toEqual([label.props.nativeID])
-  expect(screen.getByTestId("counter-layout-demo").props.nativeCounterEmptyChildren).toBe(true)
+  expect(screen.getByTestId("counter-layout-demo").props.nativeCounterEmptyChildren).toBeUndefined()
   expect(screen.getByTestId("counter-layout-child")).toHaveStyle({ height: 20, width: 20 })
   await press("Next counter child content")
   expect(screen.getByTestId("counter-layout-state")).toHaveTextContent("Child: 1. Explicit display: false.")

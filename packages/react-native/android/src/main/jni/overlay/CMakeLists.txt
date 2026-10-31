@@ -19,7 +19,6 @@ add_library(${CUI_OVERLAY_TARGET} SHARED
   "${CUI_OVERLAY_ANDROID_DIR}/../cpp/table/ClampText.cpp"
   "${CUI_OVERLAY_CPP_DIR}/NativeOverlayLayout.cpp"
   "${CUI_OVERLAY_CPP_DIR}/NativeTypographyScope.cpp"
-  "${CUI_OVERLAY_CPP_DIR}/CounterEmptyLayout.cpp"
   "${CUI_OVERLAY_CPP_DIR}/NativeTypographySource.cpp"
   "${CUI_OVERLAY_CPP_DIR}/OwnedYogaLayout.cpp"
   ${CUI_OVERLAY_GENERATED_SOURCES})

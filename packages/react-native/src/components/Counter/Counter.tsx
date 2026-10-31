@@ -104,7 +104,6 @@ export const Counter = forwardRef<TNativeCounterRef, TNativeCounterProps>((props
       <NativeTextStyleProvider style={{ ...splitNativeTextStyle(viewStyle).text, color: foreground }}>
         <NativeFocusHost
           {...rootProps}
-          nativeCounterEmptyChildren
           ref={ref}
           focusable={rootProps.tabIndex !== undefined ? rootProps.tabIndex === 0 : (rootProps.focusable ?? false)}
           onBubbledFocus={rootProps.onFocus}

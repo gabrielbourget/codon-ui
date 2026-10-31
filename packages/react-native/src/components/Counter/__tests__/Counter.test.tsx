@@ -69,7 +69,7 @@ it("supplies its current root typography to the original native host while prese
   expect(editorRef.current).toBeNull()
 })
 
-it("requests the owned native empty-child layout rule while retaining original child refs and props", async () => {
+it("preserves ordinary native empty-child props and original refs without requesting automatic hiding", async () => {
   const ref = createRef<View>()
   const childRef = createRef<View>()
   const view = await render(
@@ -79,7 +79,7 @@ it("requests the owned native empty-child layout rule while retaining original c
   )
   const original = ref.current
   const originalChild = childRef.current
-  expect(screen.getByTestId("counter").props.nativeCounterEmptyChildren).toBe(true)
+  expect(screen.getByTestId("counter").props.nativeCounterEmptyChildren).toBeUndefined()
   expect(screen.getByTestId("empty-child", hidden)).toHaveStyle({ height: 20, width: 20 })
   await view.rerender(
     <Counter ref={ref} value={0}>

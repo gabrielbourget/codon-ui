@@ -331,6 +331,21 @@ it("CAP.pagination.018/.019 preserves grouped function labels and explicit empty
   expect(screen.queryByText("Pages")).toBeNull()
   expect(screen.getByLabelText("Page number")).toBeOnTheScreen()
 })
+it("omits an empty localized counter label while retaining its count, root and owner", async () => {
+  const f = fixture({ chosenPaginationSubcomponents: ["page-counter"], counterText: "" })
+  await render(f.node())
+  const root = screen.getByTestId("counter")
+  expect(root.children).toHaveLength(1)
+  expect(screen.getByTestId("counter-value")).toHaveTextContent("3")
+  expect(screen.getByTestId("counter-max")).toHaveTextContent("/20")
+  await screen.rerender(f.node({ chosenPaginationSubcomponents: ["page-counter"], counterText: "Pages locales" }))
+  expect(screen.getByText("Pages locales")).toBeOnTheScreen()
+  await screen.rerender(f.node({ chosenPaginationSubcomponents: ["page-counter"], counterText: "" }))
+  expect(screen.getByTestId("counter")).toBe(root)
+  expect(screen.getByTestId("counter").children).toHaveLength(1)
+  expect(f.page).not.toHaveBeenCalled()
+  expect(f.size).not.toHaveBeenCalled()
+})
 it("CAP.pagination.020 preserves custom icon nodes and explicit null suppression", async () => {
   const f = fixture({
     showFirstPageButton: true,

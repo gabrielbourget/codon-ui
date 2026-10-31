@@ -34,7 +34,7 @@ export const NativePaginationCounter = ({ props, count, labels }: TProps) => {
         customStyles={[authored.customStyles, props.customPageCounterStyles]}
         customTextStyles={authored.customTextStyles}
       >
-        {labels.pageCounter.counterText}
+        {labels.pageCounter.counterText || null}
       </Counter>
     </View>
   )

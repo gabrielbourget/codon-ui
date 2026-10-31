@@ -173,9 +173,9 @@ export const ProgressLabel = (
   </NativeCircularProgressLabelContext.Provider>
 )
 export const CounterTypography = <Counter value={0} customStyles={{ fontStyle: "italic", letterSpacing: 0 }} />
-// @ts-expect-error The Counter layout protocol is private to its owned host.
+// @ts-expect-error Counter exposes no automatic empty-child layout flag.
 export const PrivateCounterLayout = <Counter value={0} nativeCounterEmptyChildren />
-// @ts-expect-error The layout protocol is not part of the public focus host API.
+// @ts-expect-error The retired Counter flag is not part of the public focus host API.
 export const PrivateFocusLayout = <NativeFocusView nativeCounterEmptyChildren />
 // @ts-expect-error Label refs must expose actual native Text methods.
 export const DOMProgressLabelRef = <NativeCircularProgressLabel ref={createRef<HTMLLabelElement>()} />
