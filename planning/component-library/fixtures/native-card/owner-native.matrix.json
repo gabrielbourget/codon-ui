@@ -1,0 +1,406 @@
+{
+  "scope": "Supplemental actual-native renderer-owner obligations. Source/RNTL/window/order/geometry models and DOM oracles close no native or original catalogue/profile/closure cells.",
+  "nativeActions": 0,
+  "rows": [
+    {
+      "id": "CARD.OWNER.P01.android.01",
+      "case": "first genuine scoped window acknowledgment and pre-ready control ordering",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.android.02",
+      "case": "fixed initial-window deadline, removal and no late replacement-root action",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.android.03",
+      "case": "actual root/editor/ref identity through animation and caller ref handoff",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.android.04",
+      "case": "controlled empty/dirty focused editor text/selection/native callbacks during root animation",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.android.05",
+      "case": "native scoped transitions and animation definition/callback identities",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.android.06",
+      "case": "live system reduction during positional motion and explicit false override",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.android.07",
+      "case": "live scoped skip completes owned work without global/shared-signal changes",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.android.08",
+      "case": "metadata-only key policy changes preserve ongoing motion and editor state",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.android.09",
+      "case": "scope/epoch/window loss cancels queued frames and native resolution",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.android.10",
+      "case": "actual native document ordering, dynamic child entry and stagger",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.android.11",
+      "case": "cross-window/portaled parent context and eligible variant registration",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.android.12",
+      "case": "missing/retired initial/geometry/color inputs reject without a visible hydration/probe",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.android.13",
+      "case": "coupled geometry failure/cancellation/replacement and fresh owner recovery",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.android.14",
+      "case": "caller-shared values/external animation ownership and explicit initial replay",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.android.15",
+      "case": "original interaction/default keyboard/focus delivery during animation and teardown",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.android.16",
+      "case": "layout/viewport/projection/presence integration with retained native content",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.android.17",
+      "case": "matched current outside-consumer graphs/app products and complete runtime equivalence",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.android.18",
+      "case": "actual frame/large-tree/interruption costs and native presentation completion",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.ios.01",
+      "case": "first genuine scoped window acknowledgment and pre-ready control ordering",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.ios.02",
+      "case": "fixed initial-window deadline, removal and no late replacement-root action",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.ios.03",
+      "case": "actual root/editor/ref identity through animation and caller ref handoff",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.ios.04",
+      "case": "controlled empty/dirty focused editor text/selection/native callbacks during root animation",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.ios.05",
+      "case": "native scoped transitions and animation definition/callback identities",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.ios.06",
+      "case": "live system reduction during positional motion and explicit false override",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.ios.07",
+      "case": "live scoped skip completes owned work without global/shared-signal changes",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.ios.08",
+      "case": "metadata-only key policy changes preserve ongoing motion and editor state",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.ios.09",
+      "case": "scope/epoch/window loss cancels queued frames and native resolution",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.ios.10",
+      "case": "actual native document ordering, dynamic child entry and stagger",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.ios.11",
+      "case": "cross-window/portaled parent context and eligible variant registration",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.ios.12",
+      "case": "missing/retired initial/geometry/color inputs reject without a visible hydration/probe",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.ios.13",
+      "case": "coupled geometry failure/cancellation/replacement and fresh owner recovery",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.ios.14",
+      "case": "caller-shared values/external animation ownership and explicit initial replay",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.ios.15",
+      "case": "original interaction/default keyboard/focus delivery during animation and teardown",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.ios.16",
+      "case": "layout/viewport/projection/presence integration with retained native content",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.ios.17",
+      "case": "matched current outside-consumer graphs/app products and complete runtime equivalence",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.ios.18",
+      "case": "actual frame/large-tree/interruption costs and native presentation completion",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.android.19",
+      "case": "Actual initial-value authority: immutable/imperative family props, layout and unanimous direct Paragraph state, aliases/matrix/unsupported fields, current trait/native color and original empty/dirty editors",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.android.20",
+      "case": "Actual initial-value delivery and ref/tag/window/epoch/revision/color cancellation, late replies/timeouts, module teardown, current consumer/products and frame/large-tree costs",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.ios.19",
+      "case": "Actual initial-value authority: immutable/imperative family props, layout and unanimous direct Paragraph state, aliases/matrix/unsupported fields, current trait/native color and original empty/dirty editors",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.ios.20",
+      "case": "Actual initial-value delivery and ref/tag/window/epoch/revision/color cancellation, late replies/timeouts, module teardown, current consumer/products and frame/large-tree costs",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    }
+  ]
+}

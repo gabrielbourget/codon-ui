@@ -1,3 +1,4 @@
+import type { ReactElement, RefAttributes } from "react"
 import type { StyleProp, TextInput, TextInputProps, TextStyle } from "react-native"
 
 import type { TCornerGeometry } from "../../tokens/geometry"
@@ -19,6 +20,7 @@ export type TNativeInputProps = Omit<
   TextInputProps,
   "style" | "editable" | "readOnly" | "multiline" | "children" | "aria-disabled" | "aria-label" | "accessibilityState"
 > & {
+  render?: (props: TextInputProps & RefAttributes<TextInput>, state: TNativeInputRenderState) => ReactElement
   isDisabled?: boolean
   isReadOnly?: boolean
   textSize?: TNativeInputSize

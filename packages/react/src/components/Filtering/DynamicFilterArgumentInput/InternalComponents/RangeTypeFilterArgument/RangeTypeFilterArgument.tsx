@@ -1,4 +1,3 @@
-import { parseDate, parseTime } from "@internationalized/date"
 import classNames from "classnames"
 import { type FC } from "react"
 
@@ -9,10 +8,17 @@ import NumberInput from "../../../../NumberInput/NumberInput"
 import TimePicker from "../../../../TimePicker/TimePicker"
 import { DEFAULT_TABLE_FILTERING_LABELS } from "../../../labels"
 import type { TFilterArgumentInputContext } from "../../helpers"
+import { parseFilterDateArgument, parseFilterDateTimeArgument, parseFilterTimeArgument } from "../temporalValues"
 
 import styles from "./RangeTypeFilterArgumentStyles.module.css"
 
 const { rangeTypeFilterArgument, rangeTypeFilterArgument__row, rangeTypeFilterArgument__column } = styles
+
+const getFilterArrayArgument = (argument: TFilterArgumentInputContext["argument"]) => {
+  if (argument == null) return []
+  if (!Array.isArray(argument)) throw new TypeError("Filter range/list argument must be an array or nullish")
+  return argument
+}
 
 export type TRangeTypeFilterArgumentProps = TFilterArgumentInputContext
 
@@ -33,7 +39,7 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
   let ComputedFilterArgumentInput: React.ReactElement | undefined = undefined
 
   if (dataType === "text") {
-    const rangeArgument = argument as string[]
+    const rangeArgument = getFilterArrayArgument(argument)
 
     ComputedFilterArgumentInput = (
       <div
@@ -49,7 +55,7 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
           <Input
             aria-labelledby="filter-argument-input--minimum"
             className={customInputClassName}
-            value={rangeArgument[0]}
+            value={rangeArgument[0] == null ? "" : String(rangeArgument[0])}
             placeholder={resolvedLabels.minValuePlaceholder}
             customStyles={{ flex: 1, display: "flex", ...customInputStyles }}
             onChange={(event) => {
@@ -69,7 +75,7 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
           <Input
             aria-labelledby="filter-argument-input--maximum"
             className={customInputClassName}
-            value={rangeArgument[1]}
+            value={rangeArgument[1] == null ? "" : String(rangeArgument[1])}
             placeholder={resolvedLabels.maxValuePlaceholder}
             customStyles={{ flex: 1, display: "flex", ...customInputStyles }}
             onChange={(event) => {
@@ -82,7 +88,7 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
       </div>
     )
   } else if (dataType === "number") {
-    const rangeArgument = argument as number[]
+    const rangeArgument = getFilterArrayArgument(argument)
 
     ComputedFilterArgumentInput = (
       <div
@@ -98,12 +104,12 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
           <NumberInput
             aria-labelledby="filter-argument-input--minimum"
             className={customInputClassName}
-            value={rangeArgument[0]}
+            value={rangeArgument[0] == null || rangeArgument[0] === "" ? NaN : (rangeArgument[0] as number)}
             placeholder={resolvedLabels.minValuePlaceholder}
             labels={resolvedLabels.numberInput}
             customStyles={{ flex: 1, display: "flex", ...customInputStyles }}
             onChange={(value) => {
-              onArgumentChange({ argument: [value, rangeArgument[1]] })
+              onArgumentChange({ argument: [Number.isNaN(value) ? null : value, rangeArgument[1]] })
             }}
           />
         </FormField>
@@ -117,19 +123,19 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
           <NumberInput
             aria-labelledby="filter-argument-input--maximum"
             className={customInputClassName}
-            value={rangeArgument[1]}
+            value={rangeArgument[1] == null || rangeArgument[1] === "" ? NaN : (rangeArgument[1] as number)}
             placeholder={resolvedLabels.maxValuePlaceholder}
             labels={resolvedLabels.numberInput}
             customStyles={{ flex: 1, display: "flex", ...customInputStyles }}
             onChange={(value) => {
-              onArgumentChange({ argument: [rangeArgument[0], value] })
+              onArgumentChange({ argument: [rangeArgument[0], Number.isNaN(value) ? null : value] })
             }}
           />
         </FormField>
       </div>
     )
   } else if (dataType === "date") {
-    const rangeArgument = argument as string[]
+    const rangeArgument = getFilterArrayArgument(argument)
 
     ComputedFilterArgumentInput = (
       <div
@@ -147,14 +153,12 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
             multiMonth
             aria-labelledby="filter-argument-input--minimum"
             className={customInputClassName}
-            value={parseDate(rangeArgument[0])}
+            value={parseFilterDateArgument(rangeArgument[0])}
             labels={resolvedLabels.dateTimePicker}
             customStyles={{ width: "100%", ...customInputStyles }}
             onChange={(value) => {
-              if (!value) return
-              // - TODO: -> Probably need to convert date from date picker back to a ms-since-epoch string.
               onArgumentChange({
-                argument: [value.toString(), rangeArgument[1]],
+                argument: [value?.toString() ?? null, rangeArgument[1]],
               })
             }}
           />
@@ -171,14 +175,12 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
             multiMonth
             aria-labelledby="filter-argument-input--maximum"
             className={customInputClassName}
-            value={parseDate(rangeArgument[1])}
+            value={parseFilterDateArgument(rangeArgument[1])}
             labels={resolvedLabels.dateTimePicker}
             customStyles={{ width: "100%", ...customInputStyles }}
             onChange={(value) => {
-              if (!value) return
-              // - TODO: -> Probably need to convert date from date picker back to a ms-since-epoch string.
               onArgumentChange({
-                argument: [rangeArgument[0], value.toString()],
+                argument: [rangeArgument[0], value?.toString() ?? null],
               })
             }}
           />
@@ -186,7 +188,7 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
       </div>
     )
   } else if (dataType === "date-time") {
-    const rangeArgument = argument as string[]
+    const rangeArgument = getFilterArrayArgument(argument)
 
     ComputedFilterArgumentInput = (
       <div
@@ -204,14 +206,12 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
             multiMonth
             aria-labelledby="filter-argument-input--minimum"
             className={customInputClassName}
-            value={parseDate(rangeArgument[0])}
+            value={parseFilterDateTimeArgument(rangeArgument[0])}
             labels={resolvedLabels.dateTimePicker}
             customStyles={{ width: "100%", ...customInputStyles }}
             onChange={(value) => {
-              if (!value) return
-              // - TODO: -> Probably need to convert date from date picker back to a ms-since-epoch string.
               onArgumentChange({
-                argument: [value.toString(), rangeArgument[1]],
+                argument: [value?.toString() ?? null, rangeArgument[1]],
               })
             }}
           />
@@ -228,14 +228,12 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
             multiMonth
             aria-labelledby="filter-argument-input--maximum"
             className={customInputClassName}
-            value={parseDate(rangeArgument[1])}
+            value={parseFilterDateTimeArgument(rangeArgument[1])}
             labels={resolvedLabels.dateTimePicker}
             customStyles={{ width: "100%", ...customInputStyles }}
             onChange={(value) => {
-              if (!value) return
-              // - TODO: -> Probably need to convert date from date picker back to a ms-since-epoch string.
               onArgumentChange({
-                argument: [rangeArgument[0], value.toString()],
+                argument: [rangeArgument[0], value?.toString() ?? null],
               })
             }}
           />
@@ -243,7 +241,7 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
       </div>
     )
   } else if (dataType === "time") {
-    const rangeArgument = argument as string[]
+    const rangeArgument = getFilterArrayArgument(argument)
 
     ComputedFilterArgumentInput = (
       <div
@@ -260,14 +258,12 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
             granularity="second"
             aria-labelledby="filter-argument-input--minimum"
             className={customInputClassName}
-            value={parseTime(rangeArgument[0])}
+            value={parseFilterTimeArgument(rangeArgument[0])}
             labels={resolvedLabels.timePicker}
             customStyles={{ width: "100%", ...customInputStyles }}
             onChange={(value) => {
-              if (!value) return
-              // - TODO: -> Probably need to convert time from time picker back to a ms-since-midnight string.
               onArgumentChange({
-                argument: [value.toString(), rangeArgument[1]],
+                argument: [value?.toString() ?? null, rangeArgument[1]],
               })
             }}
           />
@@ -283,14 +279,12 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
             granularity="second"
             aria-labelledby="filter-argument-input--maximum"
             className={customInputClassName}
-            value={parseTime(rangeArgument[1])}
+            value={parseFilterTimeArgument(rangeArgument[1])}
             labels={resolvedLabels.timePicker}
             customStyles={{ width: "100%", ...customInputStyles }}
             onChange={(value) => {
-              if (!value) return
-              // - TODO: -> Probably need to convert time from time picker back to a ms-since-midnight string.
               onArgumentChange({
-                argument: [rangeArgument[0], value.toString()],
+                argument: [rangeArgument[0], value?.toString() ?? null],
               })
             }}
           />

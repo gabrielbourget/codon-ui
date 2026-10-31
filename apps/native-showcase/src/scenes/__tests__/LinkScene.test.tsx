@@ -1,0 +1,234 @@
+import { act, fireEvent, render, screen, userEvent } from "@testing-library/react-native"
+import { AccessibilityInfo, Dimensions, Linking } from "react-native"
+import { SafeAreaInsetsContext } from "react-native-safe-area-context"
+
+import { NativeShowcase } from "../NativeShowcase"
+
+beforeEach(() => {
+  jest.useFakeTimers()
+  jest.clearAllMocks()
+  jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
+  jest.spyOn(Linking, "openURL").mockResolvedValue(undefined)
+})
+afterEach(() => {
+  jest.restoreAllMocks()
+  jest.clearAllTimers()
+  jest.useRealTimers()
+})
+const enter = async () => {
+  await render(
+    <SafeAreaInsetsContext.Provider value={{ top: 20, bottom: 10, left: 0, right: 0 }}>
+      <NativeShowcase />
+    </SafeAreaInsetsContext.Provider>,
+  )
+  const user = userEvent.setup()
+  const press = async (name: string) => user.press(screen.getByRole("button", { name }))
+  await press("Link scene")
+  // RNTL 14 userEvent supplies a no-op preventDefault; use a stateful native event for navigation veto.
+  const activate = async () => {
+    let prevented = false
+    await fireEvent(screen.getByTestId("link-example"), "press", {
+      nativeEvent: { timestamp: Date.now() },
+      preventDefault: () => {
+        prevented = true
+      },
+      isDefaultPrevented: () => prevented,
+    })
+  }
+  return { press, activate, heldPress: () => user.press(screen.getByTestId("link-example")) }
+}
+
+it("keeps repeated navigation vetoes and controlled false/empty values through theme/window/fixture changes and reset", async () => {
+  const { press, activate } = await enter()
+  await activate()
+  await activate()
+  expect(screen.getByTestId("link-state")).toHaveTextContent(/Visited: false.*Requests: 2/)
+  expect(Linking.openURL).not.toHaveBeenCalled()
+  await press("Next link destination")
+  await activate()
+  expect(screen.getByTestId("link-state")).toHaveTextContent(/Requests: 3\. Last: ""/)
+  await press("Dark theme")
+  await press("Vertical blocked region")
+  await act(() =>
+    Dimensions.set({
+      window: { width: 844, height: 390, scale: 1, fontScale: 1 },
+      screen: { width: 844, height: 390, scale: 1, fontScale: 1 },
+    }),
+  )
+  expect(screen.getByTestId("link-state")).toHaveTextContent(/Visited: false.*Requests: 3\. Last: ""/)
+  await press("Toggle link owner visited")
+  await press("Toggle link disabled")
+  await activate()
+  expect(screen.getByTestId("link-state")).toHaveTextContent(/Visited: true.*Disabled: true.*Requests: 3/)
+  await press("Reset scene")
+  await press("Link scene")
+  expect(screen.getByTestId("link-state")).toHaveTextContent(/Visited: false.*Echo: false.*Requests: 0\. Last: none/)
+})
+
+it("demonstrates owner visited echo, URL error reporting and an armed guard without a fabricated request", async () => {
+  const { press, activate, heldPress } = await enter()
+  await press("Toggle link visited echo")
+  await activate()
+  expect(screen.getByTestId("link-state")).toHaveTextContent(/Visited: true.*Requests: 1/)
+  await press("Toggle native URL handoff")
+  jest.mocked(Linking.openURL).mockRejectedValue(new Error("No installed handler"))
+  await activate()
+  expect(Linking.openURL).toHaveBeenCalledTimes(1)
+  expect(Linking.openURL).toHaveBeenCalledWith("codon-lab-unhandled://destination?value=0&empty=")
+  expect(screen.getByTestId("link-state")).toHaveTextContent(/Requests: 2.*Errors: 1.*No installed handler/)
+  await press("Arm link disable during press")
+  await heldPress()
+  expect(screen.getByTestId("link-state")).toHaveTextContent(/Disabled: true.*Requests: 2/)
+  expect(Linking.openURL).toHaveBeenCalledTimes(1)
+})
+
+it("exposes all orders, native text/custom/final controls and native zero layout receipts", async () => {
+  const { press } = await enter()
+  for (const order of ["secondary", "tertiary", "quaternary", "quintenary", "primary"]) {
+    await press("Next link order")
+    expect(screen.getByTestId("link-state")).toHaveTextContent(new RegExp(`Order: ${order}`))
+  }
+  await press("Toggle link styles")
+  await press("Toggle link colors")
+  await press("Toggle link underline")
+  await press("Toggle link focus ring")
+  await press("Toggle link width constraint")
+  await press("Toggle long link label")
+  expect(screen.getByTestId("link-example")).toHaveStyle({ width: 140, borderColor: "#b73434" })
+  expect(screen.getByText(/^Lien long/)).toHaveStyle({
+    color: "#2f7d18",
+    fontSize: 20,
+    textDecorationLine: "underline",
+  })
+  await press("Toggle link styles")
+  await press("Toggle link zero dimensions")
+  await fireEvent(screen.getByTestId("link-example"), "layout", {
+    nativeEvent: { layout: { x: 0, y: 0, width: 0, height: 0 } },
+  })
+  expect(screen.getByTestId("link-example")).toHaveStyle({ width: 0, height: 0 })
+  expect(screen.getByTestId("link-state")).toHaveTextContent(/Requests: 0.*Frame: 0 x 0/)
+})
+
+it("keeps native key/activation requests caller-owned through empty URLs, disabled guards and scene retirement", async () => {
+  const { press } = await enter()
+  const root = () => screen.getByTestId("link-example")
+  const sendKey = async (phase: "down" | "up") => {
+    let prevented = false
+    return act(() =>
+      root().props.onNativeKey({
+        persist: jest.fn(),
+        isDefaultPrevented: () => prevented,
+        preventDefault: () => {
+          prevented = true
+        },
+        nativeEvent: {
+          kind: "keyboard",
+          ownerId: root().props.ownerId,
+          target: 17,
+          key: "Enter",
+          nativeCode: 40,
+          phase,
+          nativeDefaultHandled: true,
+          repeat: false,
+          cancelled: false,
+        },
+      }),
+    )
+  }
+  let scope = root().parent
+  while (scope && !scope.props.onNativeScopeStatus) scope = scope.parent
+  if (!scope) throw new Error("Expected the link's native keyboard scope in this source-model fixture")
+  const scopeHost = scope
+  const activation = (activationId: number, scoped = true) => {
+    let prevented = false
+    return {
+      preventDefault: () => {
+        prevented = true
+      },
+      isDefaultPrevented: () => prevented,
+      nativeEvent: {
+        kind: "activation",
+        ownerId: root().props.ownerId,
+        target: 17,
+        source: "android-click",
+        observedAt: 0,
+        activationId,
+        scopeOwnerId: scoped ? scopeHost.props.ownerId : "",
+        windowId: scoped ? "link-scene-window" : "window",
+        epoch: scoped ? 1 : 0,
+      },
+    }
+  }
+  await sendKey("down")
+  await sendKey("up")
+  expect(screen.getByTestId("link-state")).toHaveTextContent(/Visited: false.*Requests: 1/)
+  await press("Next link destination")
+  const unscoped = activation(1, false)
+  await act(() => root().props.onNativeActivation(unscoped))
+  expect(screen.getByTestId("link-state")).toHaveTextContent(/Requests: 1/)
+  // Source-model handshake only; actual installed acknowledgments remain a separate acceptance tier.
+  await act(() =>
+    scopeHost.props.onNativeScopeStatus({
+      nativeEvent: {
+        ownerId: scopeHost.props.ownerId,
+        windowId: "link-scene-window",
+        epoch: 1,
+        policyRevision: scopeHost.props.policyRevision,
+        ready: true,
+        windowActive: true,
+      },
+    }),
+  )
+  const first = activation(2)
+  await act(() => root().props.onNativeActivation(first))
+  expect(screen.getByTestId("link-state")).toHaveTextContent(/Visited: false.*Requests: 2\. Last: ""/)
+  expect(Linking.openURL).not.toHaveBeenCalled()
+  await press("Toggle link disabled")
+  const blocked = activation(3)
+  await act(() => root().props.onNativeActivation(blocked))
+  await press("Toggle link disabled")
+  await act(() => root().props.onNativeActivation(blocked))
+  expect(screen.getByTestId("link-state")).toHaveTextContent(/Requests: 2/)
+  const retired = activation(4),
+    retained = root().props.onNativeActivation
+  await press("Reset scene")
+  await act(() => retained(retired))
+  await press("Link scene")
+  expect(screen.getByTestId("link-state")).toHaveTextContent(/Visited: false.*Requests: 0\. Last: none/)
+})
+
+it("changes live relationship targets and precedence without adding a navigation request or replacing the link", async () => {
+  const { press, activate } = await enter()
+  const original = screen.getByTestId("link-example")
+  await press("Next link relationships")
+  expect(screen.getByTestId("link-example").props).toMatchObject({
+    nativeLabelledBy: ["link-related-name"],
+    nativeDescribedBy: ["link-related-description"],
+    nativeDetailsBy: ["link-related-details"],
+    nativeDescriptionLabel: "Description du lien",
+    nativeDetailsLabel: "Renseignements",
+  })
+  await activate()
+  await press("Toggle link relationship text")
+  expect(screen.getByText(/^Description française longue/)).toBeOnTheScreen()
+  await press("Toggle link description target")
+  expect(screen.queryByText(/^Description française longue/)).toBeNull()
+  expect(screen.getByTestId("link-example").props.nativeDescribedBy).toEqual(["link-related-description"])
+  await press("Next link relationships")
+  expect(screen.getByTestId("link-example").props).toMatchObject({
+    nativeLabelledBy: ["link-native-name"],
+    nativeDescribedBy: ["link-native-description"],
+    nativeDetailsBy: ["link-native-details"],
+  })
+  await press("Next link relationships")
+  expect(screen.getByTestId("link-example").props).toMatchObject({
+    nativeLabelledBy: [],
+    nativeDescribedBy: [],
+    nativeDetailsBy: [],
+  })
+  await press("Next link relationships")
+  expect(screen.getByTestId("link-example").props.nativeDescribedBy).toBeUndefined()
+  expect(screen.getByTestId("link-example")).toBe(original)
+  expect(screen.getByTestId("link-state")).toHaveTextContent(/Visited: false.*Requests: 1/)
+  expect(Linking.openURL).not.toHaveBeenCalled()
+})

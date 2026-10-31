@@ -1,0 +1,289 @@
+{
+  "status": "Private orchestration only; full native owner/keyframe/backend/composition and Card acceptance remain required",
+  "inputs": [
+    {
+      "file": "animation-state.ts",
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/render/utils/animation-state.ts",
+      "upstreamSha256": "6ee0ff1bde54d6d63a35a8433335638682746d60cc30b8228925d30ee4152de8",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "receivedSha256": "aa92b47c5ec22e3ae32e578687fc64f476d50dc3c4fa0ff83325924f6de7f83b"
+    },
+    {
+      "file": "get-variant-context.ts",
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/render/utils/get-variant-context.ts",
+      "upstreamSha256": "82ba33057cdb9f4a2aeb723fef4d3092ee700b9626aed1f51b55b165eeba35af",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "receivedSha256": "b9e1dcfbe7f8a26342a589f741f56da5fd32f190da52cf4b5104f286dfc0d4a2"
+    },
+    {
+      "file": "is-animation-controls.ts",
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/render/utils/is-animation-controls.ts",
+      "upstreamSha256": "421a4ad1651c3e1e77e84b885fed9602bcabd7893b92cfec994d848be449803c",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "receivedSha256": "b9e8348aa5f1341c16f1bb72dd9ee5c7ff2b31f94c1a2839c09480bc61c1dc49"
+    },
+    {
+      "file": "is-keyframes-target.ts",
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/render/utils/is-keyframes-target.ts",
+      "upstreamSha256": "c995cf71d83841ba3827c1c7eaa125c273bbce4105f9998c727dd21bb4d3c9a5",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "receivedSha256": "47a5f9209a38b3418f55bfea67bd293a89733372be8dad611fb72a98bb36b2b0"
+    },
+    {
+      "file": "is-variant-label.ts",
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/render/utils/is-variant-label.ts",
+      "upstreamSha256": "bdf7114db538f3108d66237fde40fd739fcef88ea0af35fbc35fb2d05e9f6543",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "receivedSha256": "ed7041a9398a5843246a83d595e77769eb7e1f2523660db5fa833e1d926704f4"
+    },
+    {
+      "file": "resolve-dynamic-variants.ts",
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/render/utils/resolve-dynamic-variants.ts",
+      "upstreamSha256": "2dea480fb92a169197a73292f6206452c1e09b17766b804de253583cce617b66",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "receivedSha256": "742854bdfcb4d14a71bf0f02fc835ec2aded6b6a5c53437f94594a3eba64300d"
+    },
+    {
+      "file": "resolve-variants.ts",
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/render/utils/resolve-variants.ts",
+      "upstreamSha256": "6bc4c16ee8ee04f2a1e8ea49e7cd7951afbc68c528acbbfce623ac5f12b914d0",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "receivedSha256": "c10846b7c6640948c755d7eec4999421480e3949677ca8f33866ba17e8f6d6e4"
+    },
+    {
+      "file": "shallow-compare.ts",
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/render/utils/shallow-compare.ts",
+      "upstreamSha256": "732f77941aaef467703ffa0eb5418e0491238c53a99c3c690f4a46d369a5a1fa",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "receivedSha256": "c02a982e512a9c30f94abca87ac32e820fe8396088bed18ec71e9cb9c2429192"
+    },
+    {
+      "file": "variant-props.ts",
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/render/utils/variant-props.ts",
+      "upstreamSha256": "c5eab5f5e27c279e0527c41f21ca1b902691589957bcc1446dd7c217629f1396",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "receivedSha256": "eb13717cd8e6af5e90fe52b5f5b16e03964c560d22e54bd55b151f5261c46d8d"
+    },
+    {
+      "file": "setters.ts",
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/render/utils/setters.ts",
+      "upstreamSha256": "cf272569d7b927cb03e0bc635e6041f86a57a85b4c7d41556aad7499b5eda3dd",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "receivedSha256": "fe790bfd8a1ab292410bb242f01c768feb7b497aad5081b8452d1f25ab4d0903"
+    },
+    {
+      "file": "is-controlling-variants.ts",
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/render/utils/is-controlling-variants.ts",
+      "upstreamSha256": "3b28bb625373dd19c19f220cd2e4fb35e3ad3a4fb47c4e34d61000b2e3321929",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "receivedSha256": "e9f11481dd0c1583821e7853e0b73f0fdb7b51505931a66eaee66a74c6a5139f"
+    },
+    {
+      "file": "visual-element.ts",
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/interfaces/visual-element.ts",
+      "upstreamSha256": "4dcf75748c75d55d4961dabaa2c8bf07b8f4c8fa17971ded817449ed89e3b889",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "receivedSha256": "9d9212bf93c0c2c8e65dcc557911a232444f8474fb15e44e71c224da87e232d1"
+    },
+    {
+      "file": "visual-element-variant.ts",
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/interfaces/visual-element-variant.ts",
+      "upstreamSha256": "f99df6684bf6ddd9acf7f95314b4e5879425263a203f96ab868dbc27256694a6",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "receivedSha256": "e46c6d173bdf349caee2414c5ec7d2da63c6e1d41492ea44715ca92640a4381a"
+    },
+    {
+      "file": "calc-child-stagger.ts",
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/utils/calc-child-stagger.ts",
+      "upstreamSha256": "098df41bc2f8ec699cf050ad1f662021d33bbce7851515de705bb014ba9e9d03",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "receivedSha256": "7e06fbec6b95bfa69ff282391ddf83c17cb9e32949884d069b8cff486d4d18a3"
+    },
+    {
+      "file": "get-value-transition.ts",
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/utils/get-value-transition.ts",
+      "upstreamSha256": "eab0b77fde0b9a8ae3a8cd5dbbd1d9a06669123faed25b50b49c74fc819ad038",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "receivedSha256": "dd8235b4aa1de67adca9f42451f718d7e2e6c65081cdd6570d521f80c136b419"
+    },
+    {
+      "file": "resolve-transition.ts",
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/utils/resolve-transition.ts",
+      "upstreamSha256": "5cd7aaa6d57a690936da1867d578959206e730fe1c20df938dff409d43fb1435",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "receivedSha256": "2448c316742e2742354cb081ec2ca0dd359748a5fea2dc2fce3d91dbfd06fade"
+    },
+    {
+      "file": "is-transition-defined.ts",
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/utils/is-transition-defined.ts",
+      "upstreamSha256": "cf9adb6374b3b5beb343d4b024f6569d5171c7f5e7a80469191d8a900a7bdf18",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "receivedSha256": "4f48bcd7fffca843a6d01805a5dd35fee2616ae32fb4dde472f9746744f26041"
+    },
+    {
+      "file": "default-transitions.ts",
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/utils/default-transitions.ts",
+      "upstreamSha256": "ef74388ad5753bddb63df4aa6c94586907f820be85be8c5145bff9b6bbc6d8ec",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "receivedSha256": "cff068febe282b0e171c8104abdac1b3fef834cbe8f5727a25e26a90d26af759"
+    },
+    {
+      "file": "animation-controls.ts",
+      "package": "framer-motion",
+      "version": "12.40.0",
+      "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/animation/hooks/animation-controls.ts",
+      "upstreamSha256": "8cd924113575d7aa06b2463f713179f1b4f030a9bbec2e8cc9ee274ad96df58b",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "receivedSha256": "cc758f76b40e2587a46fddad900480f87d5c82292375cd1ef96432649687069a"
+    }
+  ],
+  "nativeBoundary": "Received source algorithms use an explicit native owner/value-animation protocol. Production imports are local; no DOM/window/WAAPI/CSS-will-change or package-private import.",
+  "licenses": ["../kernel/LICENSE.motion-dom.md", "../kernel/LICENSE.motion-utils.md", "LICENSE.framer-motion.md"],
+  "hookInputs": [
+    {
+      "package": "framer-motion",
+      "version": "12.40.0",
+      "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/value/use-motion-value.ts",
+      "upstreamSha256": "d14944e822984d8e7c05b06bc60de1cd27abc24ebfbb96ecf244f0d0c8b112f1",
+      "scope": "private native normal/static-preview lifetime; function data remains untouched and complete owner/native integration is still required"
+    },
+    {
+      "package": "framer-motion",
+      "version": "12.40.0",
+      "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/utils/use-motion-value-event.ts",
+      "upstreamSha256": "283cf9a176448656481fdc07aa91f2fed74767692bbbae47a6ffb6ffd253d0da",
+      "scope": "native hook adaptation"
+    },
+    {
+      "package": "framer-motion",
+      "version": "12.40.0",
+      "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/animation/hooks/use-animation.ts",
+      "upstreamSha256": "256bbd6a0fb3cc5b9526d3b1a9a6e7ba98bc2959c9a4173fcf386e5864d5b36a",
+      "scope": "native hook adaptation"
+    },
+    {
+      "package": "framer-motion",
+      "version": "12.40.0",
+      "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/utils/use-constant.ts",
+      "upstreamSha256": "1dc81096ed37773f5019000ad2cfbc525ba8964e425e80455e0d380352875147",
+      "scope": "native hook adaptation"
+    }
+  ],
+  "nativeLifetimeAdaptations": [
+    "Capture the actual native owner lease for queued target/reassert/transition-end/sequence completion; reject retired owner work",
+    "No browser optimized-appear handoff or CSS will-change import; native value backend, geometry, color and native tree order remain mandatory",
+    "Normal/static-preview native hook lifetimes and scoped configuration context are implemented privately; complete owner/transition/skip/reduction binding and all public/native Card acceptance remain required",
+    "A private owner can await a genuine initial source-window acknowledgment; returned leases prevent retired/ref-replaced requests starting later. An optional authored-reduction-policy hook does not add synthetic transition fields."
+  ],
+  "nativeAdapterInputs": [
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/interfaces/visual-element-target.ts",
+      "upstreamSha256": "1b294a4c830cb001045fc3ee4f8571f21b513955d9e21356ed4152b2bdba3956",
+      "scope": "native target/lifetime/positional adapter; no browser handoff or CSS will-change"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/render/utils/keys-position.ts",
+      "upstreamSha256": "e62303ad7fe1b2fc95f765fa85f557878d28ea9275c35e8daa34dfb7ef13138f",
+      "scope": "native target/lifetime/positional adapter; no browser handoff or CSS will-change"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/render/utils/keys-transform.ts",
+      "upstreamSha256": "01fab321464304dfd8147b705f2f70e0b07d357105ad3e759d329d50110e91ab",
+      "scope": "native target/lifetime/positional adapter; no browser handoff or CSS will-change"
+    }
+  ],
+  "remaining": [
+    "native owner/keyframe/color/unit/geometry backend",
+    "actual native tree ordering",
+    "Full native renderer/gesture/projection/presence composition and admission; the private owner now links controller/value/visual/config source paths",
+    "Actual native scoped transition/skip/live-reduction fidelity; private owner/config source integration is implemented",
+    "all gestures/viewport/layout/presence",
+    "full public Card/types/scene/consumer/products/native adaptive/performance acceptance"
+  ],
+  "authoredAdapters": [
+    {
+      "file": "hooks.ts",
+      "sha256": "cc058a6ce29ff4436282ba62981a6c4d956aa5e44e5300641f00694f08f830e7"
+    },
+    {
+      "file": "index.ts",
+      "sha256": "4566b7855ffd9779446eabaa62c4c095045294a471ed65e3b9b14c4e65166740"
+    },
+    {
+      "file": "transform-keys.ts",
+      "sha256": "3a9e9037e610326158823aa79c72bb3fc8997496ede048bec587f483fbe3945f"
+    },
+    {
+      "file": "types.ts",
+      "sha256": "a87c72ec43f0021981c4f7274c32207da9c6352ba2cb7e2d038eff0feb763523"
+    },
+    {
+      "file": "visual-element-target.ts",
+      "sha256": "318c6a06553219e8816a60ead158d85c867c35f3ff535488f631b0e47e07c529"
+    },
+    {
+      "file": "visual-element.ts",
+      "sha256": "9d9212bf93c0c2c8e65dcc557911a232444f8474fb15e44e71c224da87e232d1"
+    }
+  ],
+  "framerLicenseSha256": "5ff46083b88563822b0560dd6221ab89d2f74bc97a52d4c97a75020fd62c6f32"
+}

@@ -1,0 +1,86 @@
+import { nativeMotionRuntime } from "../../nativeRuntime"
+// Received from motion-dom 12.40.0. See UPSTREAM.json and LICENSE.motion-dom.md.
+import { MotionGlobalConfig } from "../../utils/index"
+
+import { stepsOrder } from "./order"
+import { createRenderStep } from "./render-step"
+import type { Batcher, FrameData, Process, Steps } from "./types"
+
+const maxElapsed = 40
+
+export function createRenderBatcher(scheduleNextBatch: (callback: () => void) => void, allowKeepAlive: boolean) {
+  let runNextFrame = false
+  let useDefaultElapsed = true
+
+  const state: FrameData = {
+    delta: 0.0,
+    timestamp: 0.0,
+    isProcessing: false,
+  }
+
+  const flagRunNextFrame = () => (runNextFrame = true)
+
+  const steps = stepsOrder.reduce((acc, key) => {
+    acc[key] = createRenderStep(flagRunNextFrame, allowKeepAlive ? key : undefined)
+    return acc
+  }, {} as Steps)
+
+  const { setup, read, resolveKeyframes, preUpdate, update, preRender, render, postRender } = steps
+
+  const processBatch = () => {
+    const useManualTiming = MotionGlobalConfig.useManualTiming
+    const timestamp = useManualTiming ? state.timestamp : nativeMotionRuntime.performance.now()
+    runNextFrame = false
+
+    if (!useManualTiming) {
+      state.delta = useDefaultElapsed ? 1000 / 60 : Math.max(Math.min(timestamp - state.timestamp, maxElapsed), 1)
+    }
+
+    state.timestamp = timestamp
+    state.isProcessing = true
+
+    // Unrolled render loop for better per-frame performance
+    setup.process(state)
+    read.process(state)
+    resolveKeyframes.process(state)
+    preUpdate.process(state)
+    update.process(state)
+    preRender.process(state)
+    render.process(state)
+    postRender.process(state)
+
+    state.isProcessing = false
+
+    if (runNextFrame && allowKeepAlive) {
+      useDefaultElapsed = false
+      scheduleNextBatch(processBatch)
+    }
+  }
+
+  const wake = () => {
+    runNextFrame = true
+    useDefaultElapsed = true
+
+    if (!state.isProcessing) {
+      scheduleNextBatch(processBatch)
+    }
+  }
+
+  const schedule = stepsOrder.reduce((acc, key) => {
+    const step = steps[key]
+    acc[key] = (process: Process, keepAlive = false, immediate = false) => {
+      if (!runNextFrame) wake()
+
+      return step.schedule(process, keepAlive, immediate)
+    }
+    return acc
+  }, {} as Batcher)
+
+  const cancel = (process: Process) => {
+    for (let i = 0; i < stepsOrder.length; i++) {
+      steps[stepsOrder[i]].cancel(process)
+    }
+  }
+
+  return { schedule, cancel, state, steps }
+}

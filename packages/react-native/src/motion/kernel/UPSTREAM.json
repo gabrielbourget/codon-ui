@@ -1,0 +1,675 @@
+{
+  "status": "Private source-owned kernel; no complete Card or native acceptance claim",
+  "packages": {
+    "motion-dom": {
+      "version": "12.40.0",
+      "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60"
+    },
+    "motion-utils": {
+      "version": "12.39.0",
+      "gitHead": "e1cad4e8c401b3bbfb3f5378a150f1270b86ea11"
+    }
+  },
+  "nativeBoundary": "All runtime imports are local. Native requestAnimationFrame, performance.now and queueMicrotask only. No browser renderer, global shim or runtime dependency.",
+  "files": [
+    {
+      "file": "utils/array.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/e1cad4e8c401b3bbfb3f5378a150f1270b86ea11/packages/motion-utils/src/array.ts",
+      "upstreamSha256": "2eb2eb8ee626bdabba94291878c018278ebd370c77742032be93ff9dec9e58ee",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "f390e2c1e1bc10bb581247ba61e6ac75cc9f3062761b10d1f15c3f8183d058ba"
+    },
+    {
+      "file": "utils/clamp.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/e1cad4e8c401b3bbfb3f5378a150f1270b86ea11/packages/motion-utils/src/clamp.ts",
+      "upstreamSha256": "6b5a25c5bc8baf16859f9c0ef7cef9cd71141628ca2628f0da1dfeb901a7e454",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "93879b66e3739488b698d259e073e141b83f79833b2b1d6b9ef231f3b618d3b1"
+    },
+    {
+      "file": "utils/format-error-message.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/e1cad4e8c401b3bbfb3f5378a150f1270b86ea11/packages/motion-utils/src/format-error-message.ts",
+      "upstreamSha256": "b327fb2c273505b82052a61992b597e41694ca49c3482d94145f8f5cd590851b",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "619713b5182b537c503f173a3e58090f5f24eee5399f5d18c55f194bf116092a"
+    },
+    {
+      "file": "utils/errors.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/e1cad4e8c401b3bbfb3f5378a150f1270b86ea11/packages/motion-utils/src/errors.ts",
+      "upstreamSha256": "fd234def5466f0f96edeec7e5504398da845f08e4980051df4909d1c084d745d",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": [
+        "local imports; repository formatting and type-only imports; native-safe strict types",
+        "React Native __DEV__ replaces Node environment access"
+      ],
+      "receivedSha256": "8aea6567afedde3f26db0911cc3886d0305e01d9e420aa259e27b436aa2bf9e7"
+    },
+    {
+      "file": "utils/global-config.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/e1cad4e8c401b3bbfb3f5378a150f1270b86ea11/packages/motion-utils/src/global-config.ts",
+      "upstreamSha256": "4312cfbc4aeed2d650603daf939d0fa8c56423be3bca72db0c0b7bd322a6f35a",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "f309b96dcdd864d8619566f31e15d489337df1541b5ab7a7f194a684e8061dbf"
+    },
+    {
+      "file": "utils/noop.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/e1cad4e8c401b3bbfb3f5378a150f1270b86ea11/packages/motion-utils/src/noop.ts",
+      "upstreamSha256": "25e590942b4dd5d50af9149a1e5619dd4ac4b18967117b8d32e558927e3cf122",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "1f218632c451e034a50adb6f7d3c4eb88149bdcac02c52b2e4f92d2c3cbdfac2"
+    },
+    {
+      "file": "utils/pipe.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/e1cad4e8c401b3bbfb3f5378a150f1270b86ea11/packages/motion-utils/src/pipe.ts",
+      "upstreamSha256": "82c052b2527683aa8e78866ea1711fd65cdf7ac71cee3fea8e671d526586bed0",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "c3febd576bb7a61a85518bcdcb4dead44aadfe9c66efbb7f5af76e222b8200ac"
+    },
+    {
+      "file": "utils/progress.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/e1cad4e8c401b3bbfb3f5378a150f1270b86ea11/packages/motion-utils/src/progress.ts",
+      "upstreamSha256": "6f5d79648803cb6d673b0d74fb6fd764936b8b2876e107ec135f6dc869f6018a",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "314c6e2aebb134905b8a5b844dac3ff21db270e0d7100eed1053f69e7502d16c"
+    },
+    {
+      "file": "utils/subscription-manager.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/e1cad4e8c401b3bbfb3f5378a150f1270b86ea11/packages/motion-utils/src/subscription-manager.ts",
+      "upstreamSha256": "bc52cd1b22d445378d341141efd13b36cb4cc0e57b95f0ecff92955dfe10c449",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "467357215cb615ec24f03bf9b648e6757a41c706d456a88ff62cae16ac61c48c"
+    },
+    {
+      "file": "utils/time-conversion.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/e1cad4e8c401b3bbfb3f5378a150f1270b86ea11/packages/motion-utils/src/time-conversion.ts",
+      "upstreamSha256": "13e16d991b9c609279d87c52295daf0fe797f85c517f5a59c11e0d7e9947d3c7",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "69db705fabb6445af1270a11617b31b4913d7dd5942d1d81425d295356699ca1"
+    },
+    {
+      "file": "utils/velocity-per-second.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/e1cad4e8c401b3bbfb3f5378a150f1270b86ea11/packages/motion-utils/src/velocity-per-second.ts",
+      "upstreamSha256": "426b45a00050e3e6d1a89b8fcb1bb6b9f5ffae434e67b519f7e32e63a5f4388b",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "407de34b154a5b93b753ea2223bd4b07d6dc7a5623bc30b76dfdd6be28593543"
+    },
+    {
+      "file": "utils/warn-once.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/e1cad4e8c401b3bbfb3f5378a150f1270b86ea11/packages/motion-utils/src/warn-once.ts",
+      "upstreamSha256": "fe7ec5966347aca9c18cd882deacc94d7fd7a75678598ae7a3fd68b110b80362",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "7713a06a86bd6619a1c14cfeee0d8542e5d8c2cd10430ecf2b06d34b374bcd8e"
+    },
+    {
+      "file": "utils/easing/cubic-bezier.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/e1cad4e8c401b3bbfb3f5378a150f1270b86ea11/packages/motion-utils/src/easing/cubic-bezier.ts",
+      "upstreamSha256": "ec20f6490c9821b1f55f86828ee63ce6fcd9976fba89947f0f2ab52968e7a1c5",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "5a39fa3dc92c4c67651324204ac3f046c298b654731761aa4fde9ec82c2fad11"
+    },
+    {
+      "file": "utils/easing/modifiers/mirror.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/e1cad4e8c401b3bbfb3f5378a150f1270b86ea11/packages/motion-utils/src/easing/modifiers/mirror.ts",
+      "upstreamSha256": "c5a31f36bf78d573c657b5d93e5280aea319831be63cf17b87fe3c3692b194f3",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "bcf92123aa4f285272692d3aa5d0863d3eed7e6d9a1de373d30dafd449962496"
+    },
+    {
+      "file": "utils/easing/modifiers/reverse.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/e1cad4e8c401b3bbfb3f5378a150f1270b86ea11/packages/motion-utils/src/easing/modifiers/reverse.ts",
+      "upstreamSha256": "9248310dafde463571744a7b901dcc4089623a62d51394bc01f33fc5e565880d",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "f3da1c52de46ae2dbae7303d049e6f9f08315e52edf33cec89fa3b404629ccaf"
+    },
+    {
+      "file": "utils/easing/back.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/e1cad4e8c401b3bbfb3f5378a150f1270b86ea11/packages/motion-utils/src/easing/back.ts",
+      "upstreamSha256": "2583118ad17bd21f1a9c70df35ec0242a9282f5b93eb77fefde15fdc188f9b9d",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "e0e2a24552b87cb5431e63a99439f073f18ec32cbd9cc4bef9eb4e0adda1efca"
+    },
+    {
+      "file": "utils/easing/anticipate.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/e1cad4e8c401b3bbfb3f5378a150f1270b86ea11/packages/motion-utils/src/easing/anticipate.ts",
+      "upstreamSha256": "3ea502e258114b5d577df91055b41d259d2db9b7dd7553b73e4f0d2674f89479",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "17c908ed221cbb3dda77fd5fff744e1b622ce7508fb3b57dffae55ef2a1eba77"
+    },
+    {
+      "file": "utils/easing/circ.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/e1cad4e8c401b3bbfb3f5378a150f1270b86ea11/packages/motion-utils/src/easing/circ.ts",
+      "upstreamSha256": "171e7ee23b42b94e24bd697c73dee1c3a143a0e0d39836c6d424c8a5ea0caef2",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "de13ccb0aca116829c8763f8419c8eefe99bda000639b648a81d68505c02cb62"
+    },
+    {
+      "file": "utils/easing/ease.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/e1cad4e8c401b3bbfb3f5378a150f1270b86ea11/packages/motion-utils/src/easing/ease.ts",
+      "upstreamSha256": "2191c95e58932ad0778ef07b58ba2da027720491b031696137a3487a9ec3d14c",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "759fa719889829ddd80d7d6711c3c9e9f2a4783fb9e76e8a3d5b0a279b72e457"
+    },
+    {
+      "file": "utils/easing/utils/is-easing-array.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/e1cad4e8c401b3bbfb3f5378a150f1270b86ea11/packages/motion-utils/src/easing/utils/is-easing-array.ts",
+      "upstreamSha256": "864b443c24a787d6825a5917757aea6a6d271fc09e60674491f09d050fe8eb4a",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "84b317837ba69331c28c59b4a3e18c35dadace86c01326f2857debd38fe78d32"
+    },
+    {
+      "file": "utils/easing/utils/is-bezier-definition.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/e1cad4e8c401b3bbfb3f5378a150f1270b86ea11/packages/motion-utils/src/easing/utils/is-bezier-definition.ts",
+      "upstreamSha256": "a2af0267f35aba7dd6ba31b139a468352d2462f1821e229fefdf8fc3bdcbb4a0",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "4dff16a2e49a7fe7f39fff1674578238e03795ee7a3dc7c01d4989055bf35031"
+    },
+    {
+      "file": "utils/easing/utils/map.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/e1cad4e8c401b3bbfb3f5378a150f1270b86ea11/packages/motion-utils/src/easing/utils/map.ts",
+      "upstreamSha256": "c4deecd4dc198d0f0f9236b73a83860ce82a79ae5177ab14fe90b69a9a6f7ba9",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "b0a81b9490ceb75e40aa3c2bf5dbbe8fa3e3f792e9cb987fb4f2ef1e9762b641"
+    },
+    {
+      "file": "engine/frameloop/order.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/frameloop/order.ts",
+      "upstreamSha256": "2c673c4ebbb3b0cc0f232516928b4277bd06bb60c056ba92a9ac77dd3fae573c",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "b948adbfb7b4f625867e128e5279c4e5d1230653d96744eb299d47d2f114e9f2"
+    },
+    {
+      "file": "engine/stats/buffer.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/stats/buffer.ts",
+      "upstreamSha256": "c7d040076499c75f3d231775b61e0136c15144748d2189374159f69c9fa0bdc6",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "312ab0b2a4c51ed08826826b7d3d72beebd510ce60d684a9441a9f8f167e39b3"
+    },
+    {
+      "file": "engine/frameloop/render-step.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/frameloop/render-step.ts",
+      "upstreamSha256": "1d9b91ba7a4bfa319daa241ad0c39078ff790ca6f370f54200e87b3ebe59eca4",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "88e426de7b9b3fe5cd078a4ffc3ee0a08373dc39b89b30908d086c34c73a5c15"
+    },
+    {
+      "file": "engine/frameloop/batcher.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/frameloop/batcher.ts",
+      "upstreamSha256": "707313e3d65899b362ae8b5b9b0147f1ee067713fa3b42d389480be5695edc61",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": [
+        "local imports; repository formatting and type-only imports; native-safe strict types",
+        "native runtime clock/microtask types; no fallback or global shim"
+      ],
+      "receivedSha256": "da1ec0830039b199bc2132394dcfc9f2c79dd080ded92e6867ffa3e94ef02137"
+    },
+    {
+      "file": "engine/frameloop/frame.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/frameloop/frame.ts",
+      "upstreamSha256": "ece601eb8ae5876bd4a435b37ae8584032cee6ae0ee6ccc4860c9bb91052549f",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": [
+        "local imports; repository formatting and type-only imports; native-safe strict types",
+        "native requestAnimationFrame; no browser/no-op fallback"
+      ],
+      "receivedSha256": "d368355126283a28b8a97495841a1334253aac8ffe33964815695622d6e80be8"
+    },
+    {
+      "file": "engine/frameloop/sync-time.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/frameloop/sync-time.ts",
+      "upstreamSha256": "7a571c197a14b8ee62d7e4465a407ab3af9f3227a5a46db51c1361444fde61b2",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": [
+        "local imports; repository formatting and type-only imports; native-safe strict types",
+        "native runtime clock/microtask types; no fallback or global shim"
+      ],
+      "receivedSha256": "62e1be14e3d58fc58a6090cd4d363038281d52f9da56fbb1b775029c69c09060"
+    },
+    {
+      "file": "engine/stats/animation-count.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/stats/animation-count.ts",
+      "upstreamSha256": "76c930022e04d189f7cb60d9a71bac126fd6c7aae29c802e0ad95f8d8d897515",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "0bfa9b17d8fcfce7a3158a7b0a2d13b847099e58168be005577a477dc37427d9"
+    },
+    {
+      "file": "engine/animation/utils/is-css-variable.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/utils/is-css-variable.ts",
+      "upstreamSha256": "bc0d77508c0a07ed6bb30af7d2bdf6883ce7d6401c9c40fedf6ae3c662d83190",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "e5ad3b1befc7a620539fb6ed37670d10a5c632f27279c3d84bb2cdb60c8d235f"
+    },
+    {
+      "file": "engine/value/types/numbers/index.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/value/types/numbers/index.ts",
+      "upstreamSha256": "0c65801c4363bae1f58b12507a4081e0a896cb453313cad1adb7b28ccf524597",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "b330c0d5230da72e8fc9f9365d414e781384d87ff1ae14c54224380fd2269b46"
+    },
+    {
+      "file": "engine/value/types/utils/sanitize.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/value/types/utils/sanitize.ts",
+      "upstreamSha256": "b0331e54feaf67b06ada13547b510a9d77443c14480cab918c0547b757a8097f",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "ebd2ecda9f11a10901e10d45a42e8efe052c91686959e9edbec119e753c7a832"
+    },
+    {
+      "file": "engine/value/types/utils/float-regex.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/value/types/utils/float-regex.ts",
+      "upstreamSha256": "c7204637a180c3a2e89070936e9459cefe7a24e84658f8f42da9834b1d9ccbd8",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "1747b55afdeef937251a6f9f5a4821183707ea9e62c09e0d04f8edcbdb6646f4"
+    },
+    {
+      "file": "engine/value/types/utils/is-nullish.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/value/types/utils/is-nullish.ts",
+      "upstreamSha256": "05f956d8dd3fbe1066e06b85637c1be7aeb015afde8ecd4982c3f2463bfddebe",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "cf21b1bc19e50b687c3955bc0c367be4683b684c9ef00b466eb9cc4d07486714"
+    },
+    {
+      "file": "engine/value/types/utils/single-color-regex.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/value/types/utils/single-color-regex.ts",
+      "upstreamSha256": "3acbde8cfb27a236e2789850c0545022c310aeb39e5b287455735424f719f51b",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "8feb59cf823a986d8f61823282768bb5526becd9dd6b9c30fb54404dd740fdb5"
+    },
+    {
+      "file": "engine/value/types/color/utils.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/value/types/color/utils.ts",
+      "upstreamSha256": "19f2e33bf36874bef57d7c870ee15e426a995e8a976b5e82e557cb092195dcce",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "359bc683fb5081590f32692e5a5fbae4bbc2d6c409bf8813f4bd4cf2a7c14755"
+    },
+    {
+      "file": "engine/value/types/color/rgba.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/value/types/color/rgba.ts",
+      "upstreamSha256": "972aa8658da8401a15ae7ed67b8824027147367bd954639489394473433e4022",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "921405f3c655486de6c4dd7d70c4d45cb0028eb150db44130d8f54381f42cfac"
+    },
+    {
+      "file": "engine/value/types/color/hex.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/value/types/color/hex.ts",
+      "upstreamSha256": "dbcf4bb5f058f71d5978febe2412aac42d05b1cc896cb3f25b5ce21441b12438",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "93eea2c91b1474ffe003dcf717a66c96881e3acca52ae6009e8517acfb87b642"
+    },
+    {
+      "file": "engine/value/types/numbers/units.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/value/types/numbers/units.ts",
+      "upstreamSha256": "f0806360ea4913c76712e1948256278d7b8552a0111f781894f1f85192e0fcf1",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "1fff00c1e7cea9ebe1c9d1ca90dcff8aa88dd667f48b54d494d7d65d79021183"
+    },
+    {
+      "file": "engine/value/types/color/hsla.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/value/types/color/hsla.ts",
+      "upstreamSha256": "c619acd6e11a62c17bfba9a6c15883934045a22987f72dac16f7efdbf200fe2d",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "6e9acb4eedd767be9025e48166ed06363496aed8aa690746eda0f9ebfacc49b7"
+    },
+    {
+      "file": "engine/value/types/color/index.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/value/types/color/index.ts",
+      "upstreamSha256": "484d583305c1aad34b0d3fe0b857eac36bf88ec836bd86938608ff4b05e3cf3c",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "e70c0d7b7295ffdf8774400dec02d5cbfb8922b5ab4863c1b3cd474cda2c868a"
+    },
+    {
+      "file": "engine/value/types/utils/color-regex.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/value/types/utils/color-regex.ts",
+      "upstreamSha256": "03d0f43d16d7c80c1886832091f8e97d422357830864864573ee63add2436ac4",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "a9bee7de3faf2be60938a9d3412ce241dfc70938a709e2ab2467594a48d509e3"
+    },
+    {
+      "file": "engine/value/types/complex/index.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/value/types/complex/index.ts",
+      "upstreamSha256": "441db455cc09086959fef52fde952b518ee90731ee937a367df151a737262392",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "2f0d2c33a5b13397e24d0e0199d5b3573f29517d4ffbbd6904d8723690d41d3a"
+    },
+    {
+      "file": "engine/value/types/color/hsla-to-rgba.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/value/types/color/hsla-to-rgba.ts",
+      "upstreamSha256": "741cb756b09b1f4296b4a217e98a875f0cb4a9648debb48f3b7b9f4329245e2c",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "ced33bc87329a22d494b8a74e0f0a00d220f580d803ce25e6a09b94546ef330a"
+    },
+    {
+      "file": "engine/utils/mix/immediate.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/utils/mix/immediate.ts",
+      "upstreamSha256": "afabd8d2aeab9f0fc4b5a522e65c31d1283aba959aebbd353d2bf0c8c43c1139",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "d60126d755737a70b5ccd588695656549bf70348e5ba84a318d6ef6d2e8ce78f"
+    },
+    {
+      "file": "engine/utils/mix/number.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/utils/mix/number.ts",
+      "upstreamSha256": "a6584ef91dd2f68b380fced14f165c8a2bc9211eb870634693c407aeccbf7f99",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "097fd3a3d6cfb5f5566b1fab3314c3727db9503edc21935b16308c5c818916e9"
+    },
+    {
+      "file": "engine/utils/mix/color.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/utils/mix/color.ts",
+      "upstreamSha256": "a2fdfc02c19ff7325aeefe5ecd2c8406765f050a106a05358ded50286abfe23d",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "d4ad438a922bc42db64f385d34d491daac86a05cb2922eeeb9d7ff0e73b7ae5e"
+    },
+    {
+      "file": "engine/utils/mix/visibility.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/utils/mix/visibility.ts",
+      "upstreamSha256": "77ce7a861486ad63c87fcc55e61ed789e2e69b5b4e7b7f1a3e7f3a455c590159",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "137ee95c5ab4597c700c6a33902e86a22c0b4b10d06d554628c79a8718b77f71"
+    },
+    {
+      "file": "engine/utils/mix/complex.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/utils/mix/complex.ts",
+      "upstreamSha256": "709c82a762dab62f1226161e0924076dab901db0be591189ffa39ac61e7302d1",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "0ef5cf85af98ecf08c7ff9dc4e1bc1e4db24e4c45689b8ddd64e1b19831385b1"
+    },
+    {
+      "file": "engine/utils/mix/index.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/utils/mix/index.ts",
+      "upstreamSha256": "82e454fecbb021795c4c8bf6927aff1af3a884e6a38ec1a9350cb1ba2430403f",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "badc9140b88de6b42dd4949b6934fae0e7931a294abefea70d4e9c395a4a12e7"
+    },
+    {
+      "file": "engine/animation/drivers/frame.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/drivers/frame.ts",
+      "upstreamSha256": "b5c25d6c5394d2850fa9eb158f925ff5bc0eeca42ae7d1bd3110deaaf71a142b",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": [
+        "local imports; repository formatting and type-only imports; native-safe strict types",
+        "native frame-run identity retires selected callbacks after stop/restart; no driver callback from an earlier run can update its replacement"
+      ],
+      "receivedSha256": "6becd5d9d164cb8c1cdd26e379cb0ab958ed3cb839898b8cb6ea6cb30f929c5e"
+    },
+    {
+      "file": "engine/animation/waapi/utils/linear.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/waapi/utils/linear.ts",
+      "upstreamSha256": "13f769074c3e6e89cd540b087fd20ea5eb2177aa98f736dba68b43fb8404e55b",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "7296f7653aef5cee59de1cc76cb7c3eb4f50b1b3fc746cdd202a1cf639617bd4"
+    },
+    {
+      "file": "engine/animation/generators/utils/calc-duration.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/generators/utils/calc-duration.ts",
+      "upstreamSha256": "21e86797cfa1e0fb33543ceeae4e22bec8830e3018f935bd698d17089ee737b4",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "570beb312b68a5e4304ef39803284c07c6ff6e2e2c82c9f2437eac9983a6d682"
+    },
+    {
+      "file": "engine/animation/generators/utils/create-generator-easing.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/generators/utils/create-generator-easing.ts",
+      "upstreamSha256": "048b5368636405617be55ec1f43e19f769fd096d246a4c93f2850d528556815e",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "0960741cc9b90846f810974b0f380e56f2470c65b77dfa4d51b8b1d57caa28a3"
+    },
+    {
+      "file": "engine/animation/generators/spring.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/generators/spring.ts",
+      "upstreamSha256": "939462e805d2cb402ec6be3b1d69ea3119e0bb22b79c3c6ac869f497f632ea0f",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "5dfb7adeac1eed552583b15c66395edc438e9d496fc384feffa245dc20ea9562"
+    },
+    {
+      "file": "engine/animation/generators/utils/velocity.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/generators/utils/velocity.ts",
+      "upstreamSha256": "bbc0bed8bfd238568b0de6d3e86e86453dd3801eb4f25da5d1a3de843aab1296",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "49ad8d418f2defed7ffb1f709fef9a1e9df42804aa3acc02807f82bb69e58ad1"
+    },
+    {
+      "file": "engine/animation/generators/inertia.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/generators/inertia.ts",
+      "upstreamSha256": "d4b5f548cb1cc5b647615180f19d0172df0186db9e73635f287513bf14bbc1ab",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "9ba452f1852def2c798987d4a935fe7cf9d0f82b2396115d3b5c8ec0e9293f6f"
+    },
+    {
+      "file": "engine/utils/interpolate.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/utils/interpolate.ts",
+      "upstreamSha256": "71e06c4328e74c1bcb8ece0c0b4df9eb9704597cd7f6420b15938a53a487bd1d",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "15f79a9ad7901b83f746ad77680fa31eba8ffe659206957621ab72c096d3715c"
+    },
+    {
+      "file": "engine/animation/keyframes/offsets/fill.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/keyframes/offsets/fill.ts",
+      "upstreamSha256": "9141ebc5492724226e2e162b1e6167e3fc332ff737127cd92ba0e78b7dc456bc",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "05342b8062584200ec8a9299c7db7fc5045473be55511f7a5d8b06de193fb253"
+    },
+    {
+      "file": "engine/animation/keyframes/offsets/default.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/keyframes/offsets/default.ts",
+      "upstreamSha256": "ab95b708d97b810e8177524e4281eaf915070e0b467b64bb1a4a0ebc5d845623",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "8bb1d402d2593da64ba91a2aba7128ab23c63f0242dd1110312d15b672dbba90"
+    },
+    {
+      "file": "engine/animation/keyframes/offsets/time.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/keyframes/offsets/time.ts",
+      "upstreamSha256": "097a442947ee235fcf79e39fcaf02f0a6d8fe13bf214e97dde4dd66fd25b066e",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "767b1a6140ee04a38dcabaa89083584f125f80c66b28f7a25593c806dd17a3c8"
+    },
+    {
+      "file": "engine/animation/generators/keyframes.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/generators/keyframes.ts",
+      "upstreamSha256": "39b65630420197905543ec20cb658114fadafaf7562c0947b584bf508c0cfd13",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": [
+        "local imports; repository formatting and type-only imports; native-safe strict types",
+        "Type-only generic widening for native recursive array/object values; pinned runtime algorithms unchanged"
+      ],
+      "receivedSha256": "c034bac64843f743e24fae3981fe1ced8cb9a9608766d5f7727aaa23c9fa75d4"
+    },
+    {
+      "file": "engine/animation/keyframes/get-final.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/keyframes/get-final.ts",
+      "upstreamSha256": "6770dea0405c3e91f4172cfd1dec42370cbd5e84158741c011ac5497025a8c80",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "4e182af9e51bf5f83433623ca099f9338baa5b9da71de9b4f51534a16f56f2c4"
+    },
+    {
+      "file": "engine/animation/utils/replace-transition-type.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/utils/replace-transition-type.ts",
+      "upstreamSha256": "b8a77f08d9137bcd7889dacd0340db1326088c5791dc257c5fb296510df0aa07",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "fa45c7d329d45c130c773eeb6a43896ac53f248d45aa1d9c77def62ae029e708"
+    },
+    {
+      "file": "engine/animation/utils/WithPromise.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/utils/WithPromise.ts",
+      "upstreamSha256": "e46fa059280e3a0d6bb7085ad2acfb993eea613257a634914abcf67f15d7ad4d",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "28db0740c47e633d33afde39274e9cfbfb081ee789446db033476a2aa49e085f"
+    },
+    {
+      "file": "engine/animation/JSAnimation.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/JSAnimation.ts",
+      "upstreamSha256": "985f2145b734fcc87c436c929ac012d3277843d4cc1b832911c7eac6b87a71d8",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": [
+        "local imports; repository formatting and type-only imports; native-safe strict types",
+        "React Native __DEV__ replaces Node environment access",
+        "Type-only generic widening for native recursive array/object values; pinned runtime algorithms unchanged"
+      ],
+      "receivedSha256": "520b7b0ed10dba46989722ff827da435043ea80c71b58f0d9bcfffd9c1145910"
+    },
+    {
+      "file": "engine/value/index.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/value/index.ts",
+      "upstreamSha256": "6edffa9f7a6985ad29fbb9dcc7e3537082fd133f3b5825e0839cac57e0b95423",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "adaptations": [
+        "local imports; repository formatting and type-only imports; native-safe strict types",
+        "native View transform array owner contract",
+        "unknown replaces erased any; heterogeneous dependency methods remain generic and preserve identity",
+        "React Native __DEV__ replaces Node environment access"
+      ],
+      "receivedSha256": "09f352740952e7cc820bd2deaa0a7e6755d54043c2ade62a5a3278fb1e5d1f04"
+    },
+    {
+      "file": "utils/easing/types.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/e1cad4e8c401b3bbfb3f5378a150f1270b86ea11/packages/motion-utils/src/easing/types.ts",
+      "upstreamSha256": "7308d1f875b29c58e0967557c57d947bb95a5e76dee8e86ba10d90e4a35b8df6",
+      "sourceKind": "immutable-git-type-source",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "61a9cca07e7d46bd8fa3a6a85a77b2ecaa0674bf8df63f248c46b3a3a3a5065c"
+    },
+    {
+      "file": "engine/frameloop/types.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/frameloop/types.ts",
+      "upstreamSha256": "ed6d7b6e333d2b222e79c1dda19a9cb8253920683046864d5853e963fdfae028",
+      "sourceKind": "immutable-git-type-source",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "32934e74efb423c7fe45515cef4b4d4c27cefe455347368dd564f35326c550d0"
+    },
+    {
+      "file": "engine/stats/types.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/stats/types.ts",
+      "upstreamSha256": "d69be446fc7ec9705a35442aa4066069dd46b24e9081a0561f4f7489689d012a",
+      "sourceKind": "immutable-git-type-source",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "2d45adac38db7946342a652b06e6cfdd98f7e2775a059e5c631725c609e9a13c"
+    },
+    {
+      "file": "engine/animation/types.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/types.ts",
+      "upstreamSha256": "7af009ece025ec6beb43cd7284a0d2d0e6e95688af45a0338923447d96923535",
+      "sourceKind": "immutable-git-type-source",
+      "adaptations": [
+        "local imports; repository formatting and type-only imports; native-safe strict types",
+        "pure kernel declarations only; DOM render declarations belong to the native renderer",
+        "Type-only generic widening for native recursive array/object values; pinned runtime algorithms unchanged"
+      ],
+      "receivedSha256": "93fb8a6d68ffe8d41941dbbebd9d580bd5c966e6494e8b7d3c4965454c83e16d"
+    },
+    {
+      "file": "engine/value/types/types.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/value/types/types.ts",
+      "upstreamSha256": "79cf78bbccf7cf0de529b566b3902ebaaa1ca67aaf814ced729a19aea63f884c",
+      "sourceKind": "immutable-git-type-source",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "83f21806c6fd61ba28ba0f35aa649012c528006586a290e10e6a81b8a3d5fd81"
+    },
+    {
+      "file": "engine/utils/mix/types.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/utils/mix/types.ts",
+      "upstreamSha256": "e7a16e7ad00f779e21b56f94795fd050cd22aae3bfcf803044808399d0d36229",
+      "sourceKind": "immutable-git-type-source",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "1f789a4748adf52fcf5f75ea4ddd94669472fb573fc8b247b4b4b3dce7f411d1"
+    },
+    {
+      "file": "engine/animation/drivers/types.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/drivers/types.ts",
+      "upstreamSha256": "b07780e365df1520c7b3115412f86f1bee2858aaf6a66ba2209d1658a2eedf99",
+      "sourceKind": "immutable-git-type-source",
+      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
+      "receivedSha256": "7cbbe8edae534c7bb13f07d7329fc6e32c4a414d1e10f79442f097b7a3d3d29c"
+    }
+  ],
+  "nativeFiles": [
+    {
+      "file": "index.ts",
+      "sha256": "ce666b763a09062125e64415c58e42ae3c83990b367ca5c81f0eee1b744bb03c"
+    },
+    {
+      "file": "nativeRuntime.ts",
+      "sha256": "63e3b7a3e3dab965d50ce5286637754042245c00bf9219919d508fe95450a33b"
+    },
+    {
+      "file": "utils/index.ts",
+      "sha256": "3bf3a82ab73b846286e75ed199b13a06f2ee8b2931b94123ae4885e6e8036c45"
+    }
+  ],
+  "licenses": [
+    {
+      "file": "LICENSE.bezier-easing.md",
+      "sha256": "32bfd1097d45b41ca6792bf07b389b26ee4045e7f7db28349f4199eef889c516"
+    },
+    {
+      "file": "LICENSE.motion-dom.md",
+      "sha256": "1bf0dc3f7727723e5a032ed12164a47cf92c05204cb1a3485f123c24e2833ed1"
+    },
+    {
+      "file": "LICENSE.motion-utils.md",
+      "sha256": "1bf0dc3f7727723e5a032ed12164a47cf92c05204cb1a3485f123c24e2833ed1"
+    }
+  ],
+  "additionalNotices": [
+    {
+      "file": "LICENSE.bezier-easing.md",
+      "sourceRef": "https://raw.githubusercontent.com/gre/bezier-easing/3f59526ae6c18363654b374419e34ad95ce80381/LICENSE",
+      "upstreamSha256": "32bfd1097d45b41ca6792bf07b389b26ee4045e7f7db28349f4199eef889c516",
+      "purpose": "Preserve the additional MIT notice linked by pinned Motion-utils cubic-bezier source; no dependency or algorithm upgrade"
+    }
+  ]
+}

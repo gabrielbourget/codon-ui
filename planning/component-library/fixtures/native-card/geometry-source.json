@@ -1,0 +1,84 @@
+{
+  "evidenceKey": "CARD-GEOMETRY-01",
+  "scope": "Private actual-view geometry capture/receipt protocol; no native measurement transaction, viewport/projection/Card or installed acceptance claim",
+  "runtime": "React Native0.86.3; Android36; iPhoneSimulator26.5; peers and SDK flags unchanged",
+  "sourceReferences": [
+    {
+      "sourceRef": "react-native@0.86.3:React/Fabric/Mounting/RCTMountingTransactionObserving.h",
+      "sha256": "8e20c7203ae4f90e9bd41f6aedde35f63236f3f6158a5e500a8e610b04c4fdcc"
+    },
+    {
+      "sourceRef": "react-native@0.86.3:React/Fabric/Mounting/RCTMountingTransactionObserverCoordinator.mm",
+      "sha256": "937db7649bf31c38a8ef983b1bcc2dd8532e2f6cf8dbd2b12106149c92d9f2d4"
+    },
+    {
+      "sourceRef": "react-native@0.86.3:ReactCommon/react/renderer/mounting/MountingTransaction.h",
+      "sha256": "224edd9ed8d2bd27a63151df0f702bc9f02eac3784deea70b68fb1a6c4003788"
+    },
+    {
+      "sourceRef": "react-native@0.86.3:ReactAndroid/src/main/java/com/facebook/react/bridge/UIManagerListener.kt",
+      "sha256": "4e21cd25982b45f465309b0125cff076542ed02bc818610b65b5831724e9da92"
+    },
+    {
+      "sourceRef": "react-native@0.86.3:ReactAndroid/src/main/java/com/facebook/react/fabric/FabricUIManager.java",
+      "sha256": "7d2de088ca63afa0d38764dee2667a6bd64818b65c5c153fc5cf1270adb60829"
+    },
+    {
+      "sourceRef": "react-native@0.86.3:ReactAndroid/src/main/java/com/facebook/react/uimanager/UIManagerHelper.kt",
+      "sha256": "a0b9f0231247f705a0ca65ed5593aa4d4725eca3bdb7767531c5a7603a56de1f"
+    },
+    {
+      "sourceRef": "react-native@0.86.3:src/private/webapis/dom/nodes/ReadOnlyElement.js",
+      "sha256": "6719aee0b73b1574fcb8ad0574769d51471f11ce1cf1ebadffe2b70c0d984caf"
+    }
+  ],
+  "androidCoordinateReference": "https://raw.githubusercontent.com/aosp-mirror/platform_frameworks_base/android-16.0.0_r1/core/java/android/view/View.java",
+  "nativeRecords": [
+    "Real UIKit surface/transaction will/did mounting hooks",
+    "Real Android UIManager mount-batch will/did hooks; no invented Fabric commit number",
+    "Native frame-phase View/RenderNode matrices or actual optional CALayer presentation data",
+    "Actual native root/window/scope/epoch, weak object identities, attachment/geometry/owned commit revisions",
+    "Native local/untransformed/window quadrilaterals and boxes, per-ancestor matrices/scroll/clipping and UIKit layer transforms including zPosition",
+    "Explicit partial-clipping and absent-presentation capabilities; no synthetic initial/pre-mount box"
+  ],
+  "limits": [
+    "UIKit class registration invokes disabled hooks which return before capture; actual observer/bridge/large-tree cost remains unproven",
+    "Current CUI-owned continuous/path mask model descriptions pass scoped native assertions and CPU raster proof at0c37cb4; full observer/window/clipping fidelity remains required. Foreign/modified masks and Android RN rounded padding/overflow paths remain unaccepted; pathAvailable=false explicitly omits unknown mask paths.",
+    "Android presentation provenance is actual View/RenderNode matrix state, not GPU display timestamps",
+    "A React-owned keyframe measurement/restore transaction still needs composition; the new sampler does not implement auto or mixed-unit animation by itself",
+    "All38 installed probe cells and all full Card native/profile/performance/closure obligations remain OPEN"
+  ],
+  "files": [
+    {
+      "path": "packages/react-native/android/src/main/java/com/codonui/input/CUIMotionGeometryObserver.java",
+      "sha256": "33a19312ad8f755ac5f7fc079856a3e05e04c19669f7c5e580551e8caf65e9f4"
+    },
+    {
+      "path": "packages/react-native/ios/CUIMotionGeometryObserver.h",
+      "sha256": "114dbdf2db62d25bc62fe941e8401be0dc8dcab9775a31a2e59e6985ed491f49"
+    },
+    {
+      "path": "packages/react-native/ios/CUIMotionGeometryObserver.mm",
+      "sha256": "299519f3072808d6216962ab31f6d0fbfcfc2a5080e048051faf43da9561274d"
+    },
+    {
+      "path": "packages/react-native/src/input/motionGeometry.ts",
+      "sha256": "dded3651e2fd779f8404e0780f87e339b163509b7ecac0bb362ddb7729169056"
+    },
+    {
+      "path": "packages/react-native/ios/CUIMotionMaskGeometry.h",
+      "sha256": "059a5bd255982f6c4fea3ca1e28e46fce0026070152ea4bf571256c0bfef980f"
+    },
+    {
+      "path": "packages/react-native/ios/CUIMotionMaskGeometry.mm",
+      "sha256": "3105b8f7bdee738bf4dbf298e49b2e5c139dbcb470f6a62e25281d6c14f3d4c8"
+    }
+  ],
+  "actualNativeActions": 0,
+  "ownedMaskProof": {
+    "producer": "0c37cb40d41ea95fdf3be02bc1cca8985ab45e04",
+    "manifestSHA256": "45118b56ffb5c00d7a060b8eca1278276e697bd0043937b6c40ad6b9d1ebd99c",
+    "scope": "Three unmounted native fixtures,24 owned mask assertions and exact CPU bytes; no actual observer/window/frame/consumer/Card acceptance",
+    "observerNativeActions": 0
+  }
+}

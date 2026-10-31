@@ -1,0 +1,1082 @@
+{
+  "scope": "Private immutable Fabric isolated-layout query with independently owned Yoga stages, state-adopted layouts and audited intrinsic callbacks; scoped authored/presentation separation, CUI drawing and actual initial values. No mounted measurement styles or editor/ref replacement. Complete native fidelity, unsupported authority, continuous overlap, current consumers/products and full Card remain required.",
+  "reactNative": "0.86.3",
+  "sourceInputs": [
+    {
+      "path": "ReactCommon/react/renderer/components/view/YogaLayoutableShadowNode.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/view/YogaLayoutableShadowNode.cpp",
+      "sha256": "d60fa1ac40ea32692554f842567a9b85f98abe649f9a59d6b4604426db2ee030",
+      "adaptation": "Pure alias precedence and Yoga layout-edge RTL conversion; never mutate original props or original Yoga nodes. Configuration/root-constraint behavior follows the same source. Props access follows the actual Yoga node/type pairing used by updateYogaProps; reject mismatched source/captured/selected props before the cast rather than relying on duplicated Android props-base RTTI."
+    },
+    {
+      "path": "ReactCommon/react/renderer/uimanager/UIManager.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/uimanager/UIManager.h",
+      "sha256": "a6a21f5646aa3c51678a65787b2f83c2992dcf4ff9ce449ab699ea28216586c7",
+      "adaptation": "Read-only Fabric revision/props/context and copied Yoga conformance inputs; no original node layout or state mutation."
+    },
+    {
+      "path": "ReactCommon/react/renderer/mounting/ShadowTreeRegistry.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/mounting/ShadowTreeRegistry.h",
+      "sha256": "300686335def506318cd237b37eda23812db66b8c64fc1d5a94a7bea7e336677",
+      "adaptation": "Read-only Fabric revision/props/context and copied Yoga conformance inputs; no original node layout or state mutation."
+    },
+    {
+      "path": "ReactCommon/react/renderer/mounting/ShadowTree.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/mounting/ShadowTree.cpp",
+      "sha256": "9ecd16bc4180abecb3b04900458bfe14306ccc576a2b1e3b5cc69ce1185ecf2e",
+      "adaptation": "Read-only Fabric revision/props/context and copied Yoga conformance inputs; no original node layout or state mutation."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/root/RootProps.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/root/RootProps.h",
+      "sha256": "1d93121898133e5c5fc00b57bcb71e1be3b12ba2825616af90fc7a9113c32dd8",
+      "adaptation": "Read-only Fabric revision/props/context and copied Yoga conformance inputs; no original node layout or state mutation."
+    },
+    {
+      "path": "ReactCommon/react/renderer/core/LayoutContext.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/core/LayoutContext.h",
+      "sha256": "89c372c6dc5a325bc35eca1f01f795e96057398cbf19260dca5d828d00e6936e",
+      "adaptation": "Read-only Fabric revision/props/context and copied Yoga conformance inputs; no original node layout or state mutation."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/view/LayoutConformanceShadowNode.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/view/LayoutConformanceShadowNode.h",
+      "sha256": "272ca06bd9fc379b8db4918f47c2503afac1afcfcb4628d1c8d6b503607c8cf2",
+      "adaptation": "Read-only Fabric revision/props/context and copied Yoga conformance inputs; no original node layout or state mutation."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/fabric/FabricUIManager.java",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/FabricUIManager.java",
+      "sha256": "7d2de088ca63afa0d38764dee2667a6bd64818b65c5c153fc5cf1270adb60829",
+      "adaptation": "Locked native manager/scheduler access; Android JNI reads retained mBinding; mount transaction counters are not treated as Fabric revision numbers."
+    },
+    {
+      "path": "ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.h",
+      "sha256": "be864948e9cca7b0034777d15d1c2ab12900b40f757500b1f3e0eef507bade79",
+      "adaptation": "Locked native manager/scheduler access; Android JNI reads retained mBinding; mount transaction counters are not treated as Fabric revision numbers."
+    },
+    {
+      "path": "React/Fabric/RCTSurfacePresenter.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/React/Fabric/RCTSurfacePresenter.h",
+      "sha256": "fd812d2b38e2c997750d1114cf2215a8e4e3e7d1fc60301f4e50544f374567bd",
+      "adaptation": "Locked native manager/scheduler access; Android JNI reads retained mBinding; mount transaction counters are not treated as Fabric revision numbers."
+    },
+    {
+      "path": "React/Fabric/RCTScheduler.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/React/Fabric/RCTScheduler.h",
+      "sha256": "a1d581b33de850bc6bccc7a0ecc75beb97927438ccd1fc0cd4b9c1e974349beb",
+      "adaptation": "Locked native manager/scheduler access; Android JNI reads retained mBinding; mount transaction counters are not treated as Fabric revision numbers."
+    },
+    {
+      "path": "ReactCommon/react/renderer/mounting/MountingCoordinator.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/mounting/MountingCoordinator.cpp",
+      "sha256": "650b1f53b85676244bf26c4611447fc1e0fa69d9bbef9de1924f9dddde477e0a",
+      "adaptation": "Locked native manager/scheduler access; Android JNI reads retained mBinding; mount transaction counters are not treated as Fabric revision numbers."
+    },
+    {
+      "path": "ReactCommon/cmake-utils/react-native-flags.cmake",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/cmake-utils/react-native-flags.cmake",
+      "sha256": "66065e755145ef94067b5d5169ca80b1cda6e5fa5d136c2095967452685f13ee",
+      "adaptation": "Use the existing Android peer ABI definitions through target_compile_reactnative_options; do not change RN feature selection."
+    },
+    {
+      "path": "ReactCommon/react/renderer/core/Props.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/core/Props.h",
+      "sha256": "18b783d1a6219d0b012f3aa1b34313c918ef7ec367488932f2880682aab2ee01",
+      "adaptation": "RN_SERIALIZABLE_STATE changes Android Props layout; every owned props reader must compile with the pinned peer definition."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/text/BaseTextShadowNode.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/text/BaseTextShadowNode.cpp",
+      "sha256": "a8478a32f7806b8f3890d58704bd8d7e113c2a8c971a364fa5d0e5ddfab8125d",
+      "adaptation": "Read-only public builder fills owned attributed-string/fragments/attachments without original node caches."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/text/ParagraphShadowNode.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/text/ParagraphShadowNode.cpp",
+      "sha256": "22053df9c418b4580c546d3c9db7fe09ff7db39fb6def658ee8806fce5dbf849",
+      "adaptation": "Rebuild owned content and independently measure Yoga attachments; preserve rounding/prepared-layout/baseline semantics without original caches/layout/state/events."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/textinput/BaseTextInputShadowNode.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputShadowNode.h",
+      "sha256": "a8dc0d9636c148c053697f19239d14579842a209bc12f9824f93f06db4797b72",
+      "adaptation": "Retain state/props/placeholder/opaque input choice, single-line constraints and border-box baseline adjustment."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp",
+      "sha256": "1b378b01eaacd46adebee15606262776d93505418db5bb2245669a5793587134",
+      "adaptation": "Retain text attribute/state choice and cache-ID distinction; cached native editor spans require an isolated callback."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputComponentDescriptor.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputComponentDescriptor.h",
+      "sha256": "5711c23eac50b005eb21387e990ed723181e7b1eab7e66431da8bfca3000fc65",
+      "adaptation": "Adoption stores native theme padding into committed props; original adopted state is not mutated by the factory."
+    },
+    {
+      "path": "ReactCommon/react/renderer/textlayoutmanager/TextMeasureCache.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/textlayoutmanager/TextMeasureCache.h",
+      "sha256": "14b83cc352edc47b40c9973ff29966f52aab6fa9916d1696ea6a97fb34390a66",
+      "adaptation": "Do not reuse an original node text manager or its mutable measured/line caches; instantiate a request-owned manager."
+    },
+    {
+      "path": "ReactCommon/react/renderer/textlayoutmanager/platform/android/react/renderer/textlayoutmanager/TextLayoutManager.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/android/react/renderer/textlayoutmanager/TextLayoutManager.cpp",
+      "sha256": "3a78f86cdcbce8d7662a3858aab35ce54cb06505f3083c3df5d792d45bb3fa82",
+      "adaptation": "Use actual platform text measurement APIs through a request-owned manager; cached editor service is separately isolated."
+    },
+    {
+      "path": "ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/TextLayoutManager.mm",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/TextLayoutManager.mm",
+      "sha256": "6b0d91977e0a199246b4de60c6f3ce5c3207b54ab8eb12d4af2d8795d7777437",
+      "adaptation": "Value/opaque text forwards to fresh native text-storage/layout measurement; preserve actual input state."
+    },
+    {
+      "path": "ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm",
+      "sha256": "54afce45131efb07e62032a294dc7adf1efc62148261241c02fc4c9af2a30321",
+      "adaptation": "Opaque attributed text initializes owned NSTextStorage before font fitting; actual native non-mutation/fidelity remains unproved."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt",
+      "sha256": "6dd95802eae01819bc96c64f920eab119c3dbac20a659e3ad8ef602eba47caf8",
+      "adaptation": "Non-cache-ID text constructs an owned Spannable; cached-ID retrieves original spans/paint and font fitting mutates them, so never use that original path."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt",
+      "sha256": "999d57fb8ce6713c88f0f8022c30fe877b319df65277d5b2939c18e2ab34d003",
+      "adaptation": "Native cached editor text/paint source ownership; preserve actual editor methods/ref/text/selection and cache lifetime."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactTextPaintHolderSpan.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactTextPaintHolderSpan.kt",
+      "sha256": "5de1b42dd0b0c1e72c565e0e486850398c297eb1bdbd10d17991737b76de3d0e",
+      "adaptation": "Exact-class cached span audit: immutable data/paint-argument-only measurement or draw-only metadata. Copy TextPaint and drawable state; reject CustomStyleSpan named-family cache access and unknown callbacks. Native equivalence is not proved by source/SDK checks."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/views/progressbar/ReactProgressBarViewManager.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/views/progressbar/ReactProgressBarViewManager.kt",
+      "sha256": "ccfe7581a7d213520baa688e8d00be64ea5e768a3fa837237cff8ffd62f4a4cb",
+      "adaptation": "Shared WeakHashMap measurement cache is not an isolated service; approved request-owned replacement remains to be implemented."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/views/switchview/ReactSwitchManager.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/views/switchview/ReactSwitchManager.kt",
+      "sha256": "afef5aab22c90f2bff20355738f22a8a3ce825ba5c0e82424c7bdede03d2d155",
+      "adaptation": "Audited switch measurement creates an unmounted temporary switch rather than changing the original view."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/switch/iosswitch/react/renderer/components/switch/IOSSwitchShadowNode.mm",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/switch/iosswitch/react/renderer/components/switch/IOSSwitchShadowNode.mm",
+      "sha256": "4c71d739abcdf6b316135fc03692503232b8cc8c513cf95d41c43796ff2d1d5c",
+      "adaptation": "Switch intrinsic size reads the native size helper without original node state/layout mutation."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactAbsoluteSizeSpan.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactAbsoluteSizeSpan.kt",
+      "sha256": "6c0a0f6f90ba6f633068c75442231e51dbf833980b31e98d98887bfd86627455",
+      "adaptation": "Exact-class cached span audit: immutable data/paint-argument-only measurement or draw-only metadata. Copy TextPaint and drawable state; reject CustomStyleSpan named-family cache access and unknown callbacks. Native equivalence is not proved by source/SDK checks."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/CustomLetterSpacingSpan.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/CustomLetterSpacingSpan.kt",
+      "sha256": "d9ef3a7db53244c493f125da5b0944459888252163fbe6cae8fdc8c174ae33db",
+      "adaptation": "Exact-class cached span audit: immutable data/paint-argument-only measurement or draw-only metadata. Copy TextPaint and drawable state; reject CustomStyleSpan named-family cache access and unknown callbacks. Native equivalence is not proved by source/SDK checks."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/CustomLineHeightSpan.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/CustomLineHeightSpan.kt",
+      "sha256": "e1d8e9d6df9be11b9231597e63ae07eb2d45c95bcfd626ef4c5746c15b09026d",
+      "adaptation": "Exact-class cached span audit: immutable data/paint-argument-only measurement or draw-only metadata. Copy TextPaint and drawable state; reject CustomStyleSpan named-family cache access and unknown callbacks. Native equivalence is not proved by source/SDK checks."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/CustomStyleSpan.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/CustomStyleSpan.kt",
+      "sha256": "eb7944b1a97a2325ec37d4656f8e415ca1feb2900e651208d6c600b5c1e7280c",
+      "adaptation": "Approved six-descriptor RN0.86.3 font snapshot reads original asset manager/raw constructor style/weight. Named spans use an owned metric span and request-owned actual pinned font manager; preserve span flags/order/features and null-family behavior. Native proof is separate."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/TextInlineViewPlaceholderSpan.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/TextInlineViewPlaceholderSpan.kt",
+      "sha256": "87771411a19159943b47d92dd6c302ae77bfde41f2ea616701095aa78aa2e393",
+      "adaptation": "Exact-class cached span audit: immutable data/paint-argument-only measurement or draw-only metadata. Copy TextPaint and drawable state; reject CustomStyleSpan named-family cache access and unknown callbacks. Native equivalence is not proved by source/SDK checks."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundColorSpan.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactBackgroundColorSpan.kt",
+      "sha256": "bbca7c8256cdd5002a3f1cf66b2f47a55bbb371eef90a5ed5fc186a364f69325",
+      "adaptation": "Exact-class cached span audit: immutable data/paint-argument-only measurement or draw-only metadata. Copy TextPaint and drawable state; reject CustomStyleSpan named-family cache access and unknown callbacks. Native equivalence is not proved by source/SDK checks."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactForegroundColorSpan.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactForegroundColorSpan.kt",
+      "sha256": "893a00e0dda8add532ba6bcf4ba8305e78d66841108f8cda48af8ef7617a486f",
+      "adaptation": "Exact-class cached span audit: immutable data/paint-argument-only measurement or draw-only metadata. Copy TextPaint and drawable state; reject CustomStyleSpan named-family cache access and unknown callbacks. Native equivalence is not proved by source/SDK checks."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactUnderlineSpan.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactUnderlineSpan.kt",
+      "sha256": "26f057c4d8401c1ffc1d2f02466d7bbd9b9fb19cf96de17f115550ee092b964d",
+      "adaptation": "Exact-class cached span audit: immutable data/paint-argument-only measurement or draw-only metadata. Copy TextPaint and drawable state; reject CustomStyleSpan named-family cache access and unknown callbacks. Native equivalence is not proved by source/SDK checks."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactStrikethroughSpan.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactStrikethroughSpan.kt",
+      "sha256": "26d34204c9998e0e3b171fe6044248aa434d00c911174d48aebd8f90fc63b6bc",
+      "adaptation": "Exact-class cached span audit: immutable data/paint-argument-only measurement or draw-only metadata. Copy TextPaint and drawable state; reject CustomStyleSpan named-family cache access and unknown callbacks. Native equivalence is not proved by source/SDK checks."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactOpacitySpan.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactOpacitySpan.kt",
+      "sha256": "ab6bfc48ae86a27b9e3341190c3c24286c5c3e2ae79187083eebb32c379d70f9",
+      "adaptation": "Exact-class cached span audit: immutable data/paint-argument-only measurement or draw-only metadata. Copy TextPaint and drawable state; reject CustomStyleSpan named-family cache access and unknown callbacks. Native equivalence is not proved by source/SDK checks."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ShadowStyleSpan.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ShadowStyleSpan.kt",
+      "sha256": "93b9e542a3188cb8ee7a4dae77d63746180b432dd3fe56f3e327ab76b40f0f88",
+      "adaptation": "Exact-class cached span audit: immutable data/paint-argument-only measurement or draw-only metadata. Copy TextPaint and drawable state; reject CustomStyleSpan named-family cache access and unknown callbacks. Native equivalence is not proved by source/SDK checks."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactTagSpan.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactTagSpan.kt",
+      "sha256": "9e58bf1f93429be38ef3be080cfaf16e633d917cf204f3375a1fecfcf039ac5d",
+      "adaptation": "Exact-class cached span audit: immutable data/paint-argument-only measurement or draw-only metadata. Copy TextPaint and drawable state; reject CustomStyleSpan named-family cache access and unknown callbacks. Native equivalence is not proved by source/SDK checks."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactFragmentIndexSpan.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactFragmentIndexSpan.kt",
+      "sha256": "bccd3d5781589f8adf59a75ed159e31ee33789511874794ee387145663dbf095",
+      "adaptation": "Exact-class cached span audit: immutable data/paint-argument-only measurement or draw-only metadata. Copy TextPaint and drawable state; reject CustomStyleSpan named-family cache access and unknown callbacks. Native equivalence is not proved by source/SDK checks."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactLinkSpan.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactLinkSpan.kt",
+      "sha256": "3f9dfc1493d5abffa12ab87f70c6d3e02240738315df5cf19c3b61e85d5bf559",
+      "adaptation": "Exact-class cached span audit: immutable data/paint-argument-only measurement or draw-only metadata. Copy TextPaint and drawable state; reject CustomStyleSpan named-family cache access and unknown callbacks. Native equivalence is not proved by source/SDK checks."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactClickableSpan.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactClickableSpan.kt",
+      "sha256": "1d9b79e5d8185448141f1eec96d13f23c96c4b6b76ada8fa89bcce93f41e8db4",
+      "adaptation": "Exact-class cached span audit: immutable data/paint-argument-only measurement or draw-only metadata. Copy TextPaint and drawable state; reject CustomStyleSpan named-family cache access and unknown callbacks. Native equivalence is not proved by source/SDK checks."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/common/assets/ReactFontManager.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/common/assets/ReactFontManager.kt",
+      "sha256": "38abb17464b9e6b7a214a002d6e144e6fed391cdb0134773a5abf336aa21efaf",
+      "adaptation": "Read only the approved fontCache/customTypefaceCache/AssetFontFamily.typefaceSparseArray descriptors on the UI thread. Copy immutable registration handles, reject an observed capture race, seed only a request-owned pinned manager and keep lookup/cache-miss order with the layout engine. Never populate the original manager."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTypefaceUtils.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTypefaceUtils.kt",
+      "sha256": "a48f82ec8c8cc72233e3d8720934ffc04350876293b10770f9c02fc9861da8aa",
+      "adaptation": "Null-family spans retain source immutable Typeface conversion. Named-family replacements pass exact original privateStyle/privateWeight to the request-owned actual manager; public getters lose UNSET weight information."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/LayoutMetricsConversions.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/LayoutMetricsConversions.kt",
+      "sha256": "fa0325574796aee8ffa5876b70e9535190fdf0456b019ae5b7d07a5aef53bd0a",
+      "adaptation": "Use exact existing DIP/physical-pixel measure size/mode conversion."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextViewManager.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextViewManager.kt",
+      "sha256": "d724532208681904c7cc11326859e10ecd4482c5ba14a1fc0ab9d70d2c5895e0",
+      "adaptation": "Custom onPostProcessSpannable remains an actual-manager admission audit; no unknown callback behavior is accepted by the private factory."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/progressbar/android/react/renderer/components/progressbar/AndroidProgressBarMeasurementsManager.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/progressbar/android/react/renderer/components/progressbar/AndroidProgressBarMeasurementsManager.cpp",
+      "sha256": "c1aebaa25715065f1183ad7c2ff2733daa19b33224e457bb750ea436b899f5d0",
+      "adaptation": "Serialize actual native progress props and decode Yoga packed size in the isolated service adapter."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/progressbar/android/react/renderer/components/progressbar/conversions.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/progressbar/android/react/renderer/components/progressbar/conversions.h",
+      "sha256": "e2c078eb159f9d5b326339ba6ef3d1c666996fc5c5853a106cbca7b690c9d9f2",
+      "adaptation": "Use pinned progress prop conversion rather than inventing defaults."
+    },
+    {
+      "path": "ReactAndroid/src/main/jni/react/mapbuffer/react/common/mapbuffer/JReadableMapBuffer.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/jni/react/mapbuffer/react/common/mapbuffer/JReadableMapBuffer.h",
+      "sha256": "b63739d035b63df31e9e614ca9731dfb76c9e053ec3e64edb0291e203604c4d0",
+      "adaptation": "Use existing request-local JNI map-buffer wrappers and RAII references."
+    },
+    {
+      "path": "ReactCommon/react/renderer/dom/DOM.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/dom/DOM.h",
+      "sha256": "57ad6d70ac3e65136840aac10bf3516f6d9aa637087a068904688df3ee776b53",
+      "adaptation": "Already-computed immutable Fabric metrics, positioned ancestor/inner-border offsets and serialized calling-runtime binding. No mounted view/Yoga/intrinsic callback is invoked."
+    },
+    {
+      "path": "ReactCommon/react/renderer/dom/DOM.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/dom/DOM.cpp",
+      "sha256": "6772e346e5c8c6b882150ff68bd81f660064f1777aff2922cb108cc51ac40077",
+      "adaptation": "Already-computed immutable Fabric metrics, positioned ancestor/inner-border offsets and serialized calling-runtime binding. No mounted view/Yoga/intrinsic callback is invoked."
+    },
+    {
+      "path": "ReactCommon/react/renderer/uimanager/UIManagerBinding.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/uimanager/UIManagerBinding.h",
+      "sha256": "8fb51ebce77ff24658cd722e2f9c700aaaf9aeb8ae25dddf0047ad1b79b9524b",
+      "adaptation": "Already-computed immutable Fabric metrics, positioned ancestor/inner-border offsets and serialized calling-runtime binding. No mounted view/Yoga/intrinsic callback is invoked."
+    },
+    {
+      "path": "ReactCommon/react/renderer/uimanager/UIManagerBinding.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/uimanager/UIManagerBinding.cpp",
+      "sha256": "c9b31e0dacfce08c985dd4ecefa0bde29ec8b1acc6041e1e28b4aebe79687e4b",
+      "adaptation": "Already-computed immutable Fabric metrics, positioned ancestor/inner-border offsets and serialized calling-runtime binding. No mounted view/Yoga/intrinsic callback is invoked."
+    },
+    {
+      "path": "src/private/webapis/dom/nodes/ReadOnlyNode.js",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/src/private/webapis/dom/nodes/ReadOnlyNode.js",
+      "sha256": "8ac69647304c4e91eb363384b015f309fe0ab4f38a929dd14e782a7a04416feb",
+      "adaptation": "Already-computed immutable Fabric metrics, positioned ancestor/inner-border offsets and serialized calling-runtime binding. No mounted view/Yoga/intrinsic callback is invoked."
+    },
+    {
+      "path": "ReactCommon/react/renderer/uimanager/UIManagerCommitHook.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/uimanager/UIManagerCommitHook.h",
+      "sha256": "a66ab1e4b3c462cf1952e03130f302945d8ba45f9f4b993626da97d762b70389",
+      "adaptation": "Approved explicit-family commit hook, typed concrete props/style cloning, read-only imperative style keys and restoration across retained Fabric branches. Original families/state/children/events/editor values are never reconstructed."
+    },
+    {
+      "path": "ReactCommon/react/renderer/uimanager/UIManager.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/uimanager/UIManager.cpp",
+      "sha256": "3c4434b7e31ea3b14d3e69439b926dcf7a990aad2b40fbdfa1ca96d8788f3e19",
+      "adaptation": "Approved explicit-family commit hook, typed concrete props/style cloning, read-only imperative style keys and restoration across retained Fabric branches. Original families/state/children/events/editor values are never reconstructed."
+    },
+    {
+      "path": "ReactCommon/react/renderer/core/ComponentDescriptor.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/core/ComponentDescriptor.h",
+      "sha256": "c789542ab461fa8f17163cc8896b48a8a8545e79e3802c0bcac8a653966aa455",
+      "adaptation": "Approved explicit-family commit hook, typed concrete props/style cloning, read-only imperative style keys and restoration across retained Fabric branches. Original families/state/children/events/editor values are never reconstructed."
+    },
+    {
+      "path": "ReactCommon/react/renderer/core/ConcreteComponentDescriptor.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/core/ConcreteComponentDescriptor.h",
+      "sha256": "658e0cb47155d56eb54e60abad71b216f96b28c12a995671e771997b32a95764",
+      "adaptation": "Approved explicit-family commit hook, typed concrete props/style cloning, read-only imperative style keys and restoration across retained Fabric branches. Original families/state/children/events/editor values are never reconstructed."
+    },
+    {
+      "path": "ReactCommon/react/renderer/core/ShadowNode.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/core/ShadowNode.cpp",
+      "sha256": "4f14cde7e4f6639f36342adcea5c8f551fe6cfca442ab748108f28ea5f878174",
+      "adaptation": "Approved explicit-family commit hook, typed concrete props/style cloning, read-only imperative style keys and restoration across retained Fabric branches. Original families/state/children/events/editor values are never reconstructed."
+    },
+    {
+      "path": "ReactCommon/react/renderer/core/ShadowNodeFamily.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/core/ShadowNodeFamily.h",
+      "sha256": "9a5ffe7ed4971167b434a766c46a9bf1afbeb8c8a7caa2760bc00265610f8569",
+      "adaptation": "Approved explicit-family commit hook, typed concrete props/style cloning, read-only imperative style keys and restoration across retained Fabric branches. Original families/state/children/events/editor values are never reconstructed."
+    },
+    {
+      "path": "ReactCommon/react/renderer/core/Props.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/core/Props.cpp",
+      "sha256": "bb0a2436f530c626ea12556efcc8958abe9f0d56b7840ea5f481e2f15c54ee89",
+      "adaptation": "Approved explicit-family commit hook, typed concrete props/style cloning, read-only imperative style keys and restoration across retained Fabric branches. Original families/state/children/events/editor values are never reconstructed."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/view/YogaStylableProps.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/view/YogaStylableProps.cpp",
+      "sha256": "f77808c2f742e91589662cd6e1a0b6c91fd9870eae66d8670afe9118a21dc65a",
+      "adaptation": "Approved explicit-family commit hook, typed concrete props/style cloning, read-only imperative style keys and restoration across retained Fabric branches. Original families/state/children/events/editor values are never reconstructed."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/view/YogaStylableProps.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/view/YogaStylableProps.h",
+      "sha256": "5684dd39a8308811f23b3cc2497b365fbc790898efd05ac3a690dfa5f707215c",
+      "adaptation": "Approved explicit-family commit hook, typed concrete props/style cloning, read-only imperative style keys and restoration across retained Fabric branches. Original families/state/children/events/editor values are never reconstructed."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/view/conversions.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/view/conversions.h",
+      "sha256": "5014fa79e018d2a3a4f82a50189c37a3a1d9c67bc584188d05f9cdbe50651acb",
+      "adaptation": "Approved explicit-family commit hook, typed concrete props/style cloning, read-only imperative style keys and restoration across retained Fabric branches. Original families/state/children/events/editor values are never reconstructed."
+    },
+    {
+      "path": "ReactCommon/react/renderer/core/LayoutableShadowNode.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/core/LayoutableShadowNode.cpp",
+      "sha256": "79fd3d48a39acd6680710a505c87ec151a6db38b7ec9d5dc071e7578e6e56e60",
+      "adaptation": "Readonly Fabric viewport/scroll/transform traversal and existing observer audit; coupled native drawing/default clipping remains an unimplemented required receiver, with no private-field mutation or renderer fork."
+    },
+    {
+      "path": "ReactCommon/react/renderer/observers/intersection/IntersectionObserver.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/observers/intersection/IntersectionObserver.cpp",
+      "sha256": "95667f1bc941aa2b28fc4f59e470fa16f6358e46c872bc7c35ffd4defcae3dad",
+      "adaptation": "Readonly Fabric viewport/scroll/transform traversal and existing observer audit; coupled native drawing/default clipping remains an unimplemented required receiver, with no private-field mutation or renderer fork."
+    },
+    {
+      "path": "ReactCommon/react/nativemodule/defaults/DefaultTurboModules.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/nativemodule/defaults/DefaultTurboModules.cpp",
+      "sha256": "969b2e4756db054a45a9109bf5be7887153685a39ff4f9c26d78f6aa48417a1f",
+      "adaptation": "Readonly Fabric viewport/scroll/transform traversal and existing observer audit; coupled native drawing/default clipping remains an unimplemented required receiver, with no private-field mutation or renderer fork."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/view/BaseViewProps.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/view/BaseViewProps.cpp",
+      "sha256": "040d7c7be7ace403677e771a3bbfe6411303ec16b02bc46e686daef5d90f4a64",
+      "adaptation": "Readonly Fabric viewport/scroll/transform traversal and existing observer audit; coupled native drawing/default clipping remains an unimplemented required receiver, with no private-field mutation or renderer fork."
+    },
+    {
+      "path": "React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.h",
+      "sha256": "a882fba0cf16bc908580563ce938d56f0dc21d2db1612e2ceb4a279a42e678a5",
+      "adaptation": "Readonly Fabric viewport/scroll/transform traversal and existing observer audit; coupled native drawing/default clipping remains an unimplemented required receiver, with no private-field mutation or renderer fork."
+    },
+    {
+      "path": "React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm",
+      "sha256": "cbdbe8224168362cd14c2065691cb2548b873c5e51988f64ade50fa0173e51fa",
+      "adaptation": "Readonly Fabric viewport/scroll/transform traversal and existing observer audit; coupled native drawing/default clipping remains an unimplemented required receiver, with no private-field mutation or renderer fork."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/uimanager/style/BorderRadiusStyle.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/uimanager/style/BorderRadiusStyle.kt",
+      "sha256": "817334cedc07bc4c7a442fa7c8fad089c2bd2711b5a59c2902bf86dd005b6dd7",
+      "adaptation": "Readonly Fabric viewport/scroll/transform traversal and existing observer audit; coupled native drawing/default clipping remains an unimplemented required receiver, with no private-field mutation or renderer fork."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/BorderDrawable.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/BorderDrawable.kt",
+      "sha256": "ba54e3aed46ea330b8c9ff8cc5d05ba4c59330c12acd22aa77c509eab156cb1a",
+      "adaptation": "Readonly Fabric viewport/scroll/transform traversal and existing observer audit; coupled native drawing/default clipping remains an unimplemented required receiver, with no private-field mutation or renderer fork."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/BackgroundDrawable.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/BackgroundDrawable.kt",
+      "sha256": "fd24c337d541b2f80477eb7a7ce5a959bf3826e5e6a46ab143316f0b8b8dc978",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/BackgroundImageDrawable.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/BackgroundImageDrawable.kt",
+      "sha256": "ba39cec25c71f6c7da1f3ed88bb943e03220bb9a0967d8c2d35ca2c5a3da1cbc",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/OutlineDrawable.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/OutlineDrawable.kt",
+      "sha256": "5a930e020ac72f3db180605e0564effdadc3ae98179a408baf02a8f49e3908ba",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/InsetBoxShadowDrawable.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/InsetBoxShadowDrawable.kt",
+      "sha256": "f5bbed454d28a5e939771994e249b6862410880427067c37b7c16489525422c7",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/OutsetBoxShadowDrawable.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/OutsetBoxShadowDrawable.kt",
+      "sha256": "6168badcc4cdd8de0caf421d3c2746a65f50893c220cd98e3ec942fbb75ec472",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/BoxShadowBorderRadius.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/BoxShadowBorderRadius.kt",
+      "sha256": "e69ae31f034d084ffb34312e1f5d12172682b67c87e53129f03e6bcbfc3623a1",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/CompositeBackgroundDrawable.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/CompositeBackgroundDrawable.kt",
+      "sha256": "0e46efe6fcf2e7340c039e200facd03ed85744d189e3f4886081930aa92b9cd1",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/uimanager/style/BorderColors.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/uimanager/style/BorderColors.kt",
+      "sha256": "a1cabf0f54b0b0b282802b5d4ecf54e76935d3ab4f78e8910fe5c5c9dec9ea05",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/uimanager/BackgroundStyleApplicator.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/uimanager/BackgroundStyleApplicator.kt",
+      "sha256": "4101897ef1cc41b8b64b7ef5e1a9407bf538a62b01defff4598bd8330f899ff1",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/uimanager/FilterHelper.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/uimanager/FilterHelper.kt",
+      "sha256": "6434f1052e9805e27f3d925b30c55f97397b3d2df09c763e79c6a23f9b7ba4b2",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/views/view/ReactViewGroup.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/views/view/ReactViewGroup.kt",
+      "sha256": "2b363babe6afd375b8317a4e12c122b761e00629699a70cb08359fcb561ac243",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "React/Views/RCTBorderDrawing.m",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/React/Views/RCTBorderDrawing.m",
+      "sha256": "9f2ee813a3c0fbb7bf8e5d3d45601933f935ee59128c748460bc1291a6cc01d0",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "React/Fabric/Utils/RCTBoxShadow.mm",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/React/Fabric/Utils/RCTBoxShadow.mm",
+      "sha256": "90a749d484a831eb6bcbf91bb0bda3d0a94fca2735ca362c323adc65d08d4de8",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/view/primitives.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/view/primitives.h",
+      "sha256": "2814441f318b3328029cc124bf436de5e487fc5ad2565268b4af4b2e4e6d301d",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/view/BaseViewProps.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/view/BaseViewProps.h",
+      "sha256": "e208193ef8c6bfcaa2616aca1819c5d7c7774bfe33ad83f5adae7ef8555e2036",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/text/ParagraphShadowNode.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/text/ParagraphShadowNode.h",
+      "sha256": "4e0ff7d33892d63438e2f2791ad95ffe1dc046f4f7d29cf2308e401098bb17d1",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/text/platform/cxx/react/renderer/components/text/ParagraphState.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/text/platform/cxx/react/renderer/components/text/ParagraphState.h",
+      "sha256": "cf46a0cdea725a26157d989d315fae7c10f6aa3acab9e6aaa3cc2e3e4fe2704c",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/text/platform/android/react/renderer/components/text/ParagraphState.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/text/platform/android/react/renderer/components/text/ParagraphState.h",
+      "sha256": "bb6e15660d5c8be8fe5f033b605c649282012c693e096fbf77ee1ff8eab8ce4b",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/text/BaseParagraphProps.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/text/BaseParagraphProps.h",
+      "sha256": "f3170f1a1c08364f65e74a15ac3651c4045a86fb37e13dafcdde87cb3c8590e6",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactCommon/react/renderer/attributedstring/TextAttributes.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.h",
+      "sha256": "ea17d04df275c541ef95ade3201b71cdd9603ad5e9be15dc4d322574e0fcd75e",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactCommon/react/renderer/attributedstring/TextAttributes.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp",
+      "sha256": "8a462eac4a9800d9ee3f769e82d883ef4f9d8541161f19ddbed28195b6bd82ff",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactCommon/react/renderer/graphics/Transform.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/graphics/Transform.h",
+      "sha256": "5c27dbee77cee4f2c0bd9398295e7af693e89581f15a0f67be2804313aad3cc4",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactCommon/react/renderer/graphics/Transform.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/graphics/Transform.cpp",
+      "sha256": "ae7718e1702be80d6d5075e7291ab21a355f67d6afdaeef02f9fbbb03732b00b",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactCommon/react/renderer/graphics/platform/ios/react/renderer/graphics/HostPlatformColor.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/graphics/platform/ios/react/renderer/graphics/HostPlatformColor.h",
+      "sha256": "b47dbbd6e6073f78308a1b38970ef3ef11906b7bd1aece00ed32248315f8359e",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactCommon/react/renderer/graphics/platform/android/react/renderer/graphics/HostPlatformColor.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/graphics/platform/android/react/renderer/graphics/HostPlatformColor.h",
+      "sha256": "3b6df50db13da1a12c12cc942912648295ecee14e3af504f88da321e46545b81",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactCommon/yoga/yoga/style/Style.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/yoga/yoga/style/Style.h",
+      "sha256": "9dbd735f6ecd1d8cfdf25a9fffaaa23f87d6114664828b6109b9b5bf979c7026",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/view/YogaLayoutableShadowNode.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/view/YogaLayoutableShadowNode.h",
+      "sha256": "7a024060c09c1d36fccf9570731eb0b39e34b2dcf6c05823e4fb69f57a79a89a",
+      "adaptation": "Read-only actual state adoption and isolated stage style port; no original Yoga nodes or mutable global registry."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/safeareaview/SafeAreaViewComponentDescriptor.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/safeareaview/SafeAreaViewComponentDescriptor.h",
+      "sha256": "bf8b143497bff1cca8080a704d23bb9ad82aacac9b837b413dc399a6d80bc19c",
+      "adaptation": "Read-only actual state adoption and isolated stage style port; no original Yoga nodes or mutable global registry."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/safeareaview/SafeAreaViewState.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/safeareaview/SafeAreaViewState.h",
+      "sha256": "9e2aae6927f8d6246069b4f55e895e67f6ffe8f9b6eaa5e09478759f2544bead",
+      "adaptation": "Read-only actual state adoption and isolated stage style port; no original Yoga nodes or mutable global registry."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/modal/ModalHostViewComponentDescriptor.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/modal/ModalHostViewComponentDescriptor.h",
+      "sha256": "257eb658668d0c4f6d4036df47cb22de18392183c315c5aa39a823fac4bd26be",
+      "adaptation": "Read-only actual state adoption and isolated stage style port; no original Yoga nodes or mutable global registry."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/modal/ModalHostViewState.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/modal/ModalHostViewState.h",
+      "sha256": "df6e7067e9f52df811850b2ae5f28bc70a7c201b087df6368aff5cd370eb7716",
+      "adaptation": "Read-only actual state adoption and isolated stage style port; no original Yoga nodes or mutable global registry."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/inputaccessory/InputAccessoryComponentDescriptor.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/inputaccessory/InputAccessoryComponentDescriptor.h",
+      "sha256": "bff7996cf34e6904af346acd87c550485d8bbf4e622c54f211a09b68c3cf978a",
+      "adaptation": "Read-only actual state adoption and isolated stage style port; no original Yoga nodes or mutable global registry."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/inputaccessory/InputAccessoryState.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/inputaccessory/InputAccessoryState.h",
+      "sha256": "aee44e113bf70d1ce46f887e3db1c8f906968980eff9f291c581a9c3c76a5883",
+      "adaptation": "Read-only actual state adoption and isolated stage style port; no original Yoga nodes or mutable global registry."
+    },
+    {
+      "path": "ReactCommon/yoga/yoga/YGEnums.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/yoga/yoga/YGEnums.cpp",
+      "sha256": "54faf384700ec973c8c213bd2cf56a55bb916d5606e16ad55965737b40e38079",
+      "adaptation": "Readable eight-enum string port avoids symbols not exported by the pinned Android Release library. Host checks compare all valid enum spellings with this exact source."
+    },
+    {
+      "path": "ReactCommon/yoga/yoga/style/StyleLength.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/yoga/yoga/style/StyleLength.h",
+      "sha256": "66024c4515836c7254a6bd301e021583114d9bb6a2769caa4cec84eee05b7445",
+      "adaptation": "Pinned public position-length resolution and existing pod config merge; no new dependency, SDK flag, renderer mutation or unexported Yoga symbol."
+    },
+    {
+      "path": "scripts/cocoapods/new_architecture.rb",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/scripts/cocoapods/new_architecture.rb",
+      "sha256": "4a0b5aeb3fac4924474b758e581f44a15370aba5a16ab94a1dce182e8af5bd28",
+      "adaptation": "Pinned public position-length resolution and existing pod config merge; no new dependency, SDK flag, renderer mutation or unexported Yoga symbol."
+    },
+    {
+      "path": "ReactCommon/yoga/yoga/YGNodeLayout.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/yoga/yoga/YGNodeLayout.cpp",
+      "sha256": "c4645e1ebbaa4c607ba92dd53bf8bb18ec1ed289e7dfdc7c5de9968d8b981487",
+      "adaptation": "Read separately evaluated physical margins; original Yoga nodes are never accessed. Native edge spelling follows reported child RTL metadata independently from root configuration."
+    }
+  ],
+  "license": "LICENSE.react-native.md",
+  "remaining": [
+    "Installed actual UIKit/Android owner/ref/window/revision delivery, lazy registration and shrinker proof",
+    "Actual cached-editor/progress service delivery, native span/paint non-mutation, named-family registry/cache isolation, actual text-manager custom callback audit and full native intrinsic/attachment/baseline fidelity",
+    "Actual native adopted-state/constructor/RTL layout correspondence, zero-size named Teleport registry authority and editor themed-layout override authority remain required after source ports",
+    "Full style/keyframe/value adapter and source-equivalent MotionValue notifications",
+    "Matching consumer/products, actual mounted/presentation fidelity, large-tree and frame performance",
+    "Actual general-pop family/generation/window/ref restoration and pending-branch/module teardown proof; exact owned elliptical/shadow drawing and actual frame costs remain required after the private source integration"
+  ],
+  "authoredFiles": [
+    {
+      "file": "FabricLayout.cpp",
+      "sha256": "d5a070ec9ce82e2d248acdcf2cfbfb9389e49cb82771405a5464c688525b4905"
+    },
+    {
+      "file": "FabricLayout.h",
+      "sha256": "1875ab01b5f4b5e67e9637b8ce434548ff76bc16f1954b6d69e7d8dcd207372c"
+    },
+    {
+      "file": "FabricSnapshot.cpp",
+      "sha256": "d00a9e3849673dbf0316ec9f6023a300657159e73b3bc47e91b4b7eb4f9afa71"
+    },
+    {
+      "file": "FabricSnapshot.h",
+      "sha256": "16774822cecb23362449c2b6d0d7940679eada99e074a709a02c813a18f3db92"
+    },
+    {
+      "file": "NativeABI.h",
+      "sha256": "0f05827a1672dc097ca67f6685c02d61bc95e29f6bef732d1ef614b567fcc33d"
+    },
+    {
+      "file": "NativeIntrinsics.cpp",
+      "sha256": "4b619e56cae3b3062fef3446f9458b1301184feafc09ef59e8ac7ec3f9a9f5fe"
+    },
+    {
+      "file": "NativeIntrinsics.h",
+      "sha256": "2bac2439662bf631277b08c2032afa59468a4d590e2d79083e28b732290558f7"
+    },
+    {
+      "file": "NativeStyle.cpp",
+      "sha256": "07464b5711b4b8725706ccd6b5271b2820fb43462a0741164d6b4cc63f027cb4"
+    },
+    {
+      "file": "NativeStyle.h",
+      "sha256": "495b738d6db3e85efcf248d3bfdbd4d4068cc39809b4a403fecfb5153683e8e7"
+    },
+    {
+      "file": "ScratchYoga.cpp",
+      "sha256": "0abf678e399afdb24cda6ead61102ebdf7f5b76b98ef805e7ee191549baee39a"
+    },
+    {
+      "file": "ScratchYoga.h",
+      "sha256": "8678da9e00ccaf6c90de2f862998db95bbe6d7d5c4390261406cd21aef394846"
+    },
+    {
+      "file": "SnapshotQuery.cpp",
+      "sha256": "b45229fd0786930319e537fb6a5fdde92912768b71bbe0e70c7a886906cfcb15"
+    },
+    {
+      "file": "SnapshotQuery.h",
+      "sha256": "b9bb3b4c0fc7d0720c8f3384db610315920a60e2f9da3863ce0f01319c887833"
+    },
+    {
+      "file": "PopFrame.cpp",
+      "sha256": "2c0253a6a6ce264e1544923be6d4d9ef1a3e0fbcebd1791f8f0db4030f05bc1d"
+    },
+    {
+      "file": "PopFrame.h",
+      "sha256": "6ef4b5c826d7d0711a06bab1a96d72126ed428a73023b5269b9de574292f21ad"
+    },
+    {
+      "file": "PopStyle.cpp",
+      "sha256": "86ab0edac1499ce86f94729f26a511f81b89cdcd1aa7d04b22e305753ed9b7c9"
+    },
+    {
+      "file": "PopStyle.h",
+      "sha256": "f566b29ad791edcebf1289d441aa38e11e1877cd2c7a38d61e48e7896ba3597f"
+    },
+    {
+      "file": "PopPresentation.cpp",
+      "sha256": "80952e1fbffe37bd5afd62c5d6d5678f396efadb6a79c55f3af3d463b0ab5323"
+    },
+    {
+      "file": "PopPresentation.h",
+      "sha256": "66a0fccf4c87a98547bc2cb9c9304a5006d166acdef70cb4ffa2e01a6cecdcd8"
+    },
+    {
+      "file": "ViewportQuery.cpp",
+      "sha256": "77d64fcf4d6191e485c6c872e0932f3da8c8c8a3e7c407f5e48d366aee24ded4"
+    },
+    {
+      "file": "ViewportQuery.h",
+      "sha256": "e3e705e4d138e5a9205b2bfe2dd818155ca088a916b58a0dcccb1b4161e651f8"
+    },
+    {
+      "file": "InitialValueQuery.cpp",
+      "sha256": "b55679c0f8c780d0880070d5c2ad1907ef2ee5fa64cd09b2b6bc1981d036a5e1"
+    },
+    {
+      "file": "InitialValueQuery.h",
+      "sha256": "a6f92efcdf00d574b2bb4d011fb813d5fa4dc23569f3e1cc7c0d9ac2db67328d"
+    },
+    {
+      "file": "InitialValueStyle.cpp",
+      "sha256": "a749a239a85ff5ac570b986708f55177d887c92b46f1ccbd83af608e14971d36"
+    },
+    {
+      "file": "NativeLayoutState.cpp",
+      "sha256": "a376823e107e7a789f036d2c886e90accad26a792dce55168f6e928e167aa550"
+    },
+    {
+      "file": "NativeLayoutState.h",
+      "sha256": "08f7ac5a01742d1a1e08efe67d6580517fdd97a173ee948fde8503677cd3876b"
+    },
+    {
+      "file": "GeometryQuery.cpp",
+      "sha256": "0092c87b2f8e47d4f7c6f3afe608244464de00b80691a63fb495b4b444b0aa98"
+    },
+    {
+      "file": "GeometryQuery.h",
+      "sha256": "402fb6354c467b2a24997e3776a238ab55e4ccf73786cbcc5d396e39ec04e433"
+    },
+    {
+      "file": "NativeYogaNames.h",
+      "sha256": "6b068f2e95f8ea27a301ee89634789d06ec6e91bedaace5ee892faf02be27fb3"
+    },
+    {
+      "file": "NativeMeasuredEdges.h",
+      "sha256": "5a9a1c6ce8242810e7f081228dd5dc3245cab48ccff9f30b437bfc5155d7cac3"
+    },
+    {
+      "file": "NativeTransformValue.h",
+      "sha256": "99665f3ffd8a7afb658240e1ec755a008f399c30447e27604f2d4cf02c61bf63"
+    }
+  ],
+  "licenseSha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93",
+  "androidAuthoredFiles": [
+    {
+      "file": "android/src/main/java/com/codonui/input/CUIMotionIntrinsics.java",
+      "sha256": "2038b51d9345491690645e2780408e5555fd48ce78ba2b5af72ab2c625e53019"
+    },
+    {
+      "file": "android/src/main/jni/MotionIntrinsicsJNI.cpp",
+      "sha256": "cecdf658f38c2293a4f1d47e129b4dc19ed6cf651d2649efcb8acfb688ae98da"
+    },
+    {
+      "file": "android/src/main/jni/MotionIntrinsicsJNI.h",
+      "sha256": "57bd097049066a8f1e48fa63b6165fe9837d4eefe1d79eb942d4857a44c06d49"
+    },
+    {
+      "file": "android/src/main/jni/CMakeLists.txt",
+      "sha256": "3f483bf3645db9b27fa25f7fe8fbb45cbe937a9318ed19dc4fab41223ef6297b"
+    },
+    {
+      "file": "android/src/main/consumer-rules.pro",
+      "sha256": "6ce8ffc472dd1292431c63cbab62ce199eeb3516bde28d67b8a62c14495f0bae"
+    },
+    {
+      "file": "android/src/main/java/com/codonui/input/CUIMotionGeometryObserver.java",
+      "sha256": "dc92fd3cc56e33435e3d295ad7c62ffa11b86058ff5bbd6ef430905eee0e93f2",
+      "scope": "Private actual native geometry/mount observation. Capture retains its actual View/attached bit outside WritableNativeMap; no read of a late-appended attached key after the bridge read cache materializes."
+    },
+    {
+      "file": "android/src/main/jni/MotionSnapshotJNI.cpp",
+      "sha256": "73da6357a49618531bdac13c471852f273b3eddcfcf8c8ae6221e61ba072712d"
+    },
+    {
+      "file": "android/src/main/java/com/codonui/input/CUIMotionSnapshotModule.java",
+      "sha256": "e5adb10d11d08c70313cd5d24f1585f93396435c569dd505ef51d36fca4c984c"
+    },
+    {
+      "file": "android/build.gradle",
+      "sha256": "48a0e840e33b981e3f21500b750e6b02d7cce114ddef9109d9e65eda788f5249"
+    },
+    {
+      "file": "android/src/main/java/com/codonui/input/CUIMotionFontSnapshot.java",
+      "sha256": "b4c7c194b2724891219fee04d2de75c6952d292cbfdc3e71f588d7b43d77627d"
+    }
+  ],
+  "cachedSpanPolicy": {
+    "exactAuditedClasses": [
+      "ReactAbsoluteSizeSpan",
+      "CustomLetterSpacingSpan",
+      "CustomLineHeightSpan",
+      "CustomStyleSpan",
+      "TextInlineViewPlaceholderSpan",
+      "ReactBackgroundColorSpan",
+      "ReactForegroundColorSpan",
+      "ReactUnderlineSpan",
+      "ReactStrikethroughSpan",
+      "ReactOpacitySpan",
+      "ShadowStyleSpan",
+      "ReactTagSpan",
+      "ReactFragmentIndexSpan",
+      "ReactLinkSpan",
+      "ReactClickableSpan"
+    ],
+    "copiedMutableData": [
+      "TextPaint native/base and extended fields",
+      "drawableState array",
+      "Spannable container and characters"
+    ],
+    "excludedMonitoring": ["non-measuring SpanWatcher", "non-measuring TextWatcher", "non-measuring NoCopySpan"],
+    "unknownCallbacks": "Explicit error, never a silent style fallback",
+    "namedFamilyCache": "Approved six-descriptor read-only font capture seeds a request-owned pinned manager; named copied spans use only that cache. Full mounted cached-editor, retirement, named-asset and API<28 proof remain required",
+    "installedProof": false
+  },
+  "popFrameFiles": [
+    {
+      "file": "ios/CUIMotionSnapshot.mm",
+      "sha256": "51ca1be6e1ee2d79d5388106bb52ecf4245e12cfe8990bdfbc5c99c25d7c30a9"
+    },
+    {
+      "file": "src/input/specs/NativeCUIMotionSnapshot.ts",
+      "sha256": "5f5133d0396e988629d2b54e59f2c3156e46ebb693e116951f6d0bc451224f80"
+    }
+  ],
+  "drawingAuthoredFiles": [
+    {
+      "file": "ios/CUIMotionDrawingView.h",
+      "sha256": "8d1fe9e866fc495fe033ccc8652f8218c3e9b54c0a40c30d92a6d0f504e0babb"
+    },
+    {
+      "file": "ios/CUIMotionDrawingView.mm",
+      "sha256": "66ce9030a3afd29a62961e635f3ad3d2dd2cd38fba2440ba4b5a8e4b6ef93efd"
+    },
+    {
+      "file": "ios/CUIFocusView.h",
+      "sha256": "963a3fd541f46f4b67fdfef5c68d69a31515b5c48d3f90e7daa69954251f0cd6"
+    },
+    {
+      "file": "ios/CUIFocusView.mm",
+      "sha256": "7967ff467f83bca5da209c509e4ba07aae649b788a582339df9af6b8fc9e1aac"
+    },
+    {
+      "file": "android/src/main/java/com/codonui/input/CUIFocusViewManager.java",
+      "sha256": "ffe255b46c7eaf7948334aa2ecaa0a86e51478b2d3f3b651621635da8a7d7c55"
+    },
+    {
+      "file": "src/input/NativeFocusView.tsx",
+      "sha256": "b95c4b12d32c3c29a8911944498dc92283c1bf94a482f922b1ed4b4e2fdd1bf7"
+    },
+    {
+      "file": "src/input/specs/CUIFocusViewNativeComponent.ts",
+      "sha256": "7b6c1e95872aaa6d70db0a9f4b485405c5364d4daeac77fa51d21388f4d757e0"
+    },
+    {
+      "file": "android/src/main/java/com/codonui/input/CUIFocusView.java",
+      "sha256": "67119c0985566c5374780ec1eb5e97a47cd01c41b3476cfa7d2305b45d301fae"
+    },
+    {
+      "file": "android/src/main/java/com/codonui/input/CUIMotionDrawing.java",
+      "sha256": "bbd0ffe68a185c80fdc0b5c139f4b9005dba63a5577834bfb7d888a9fd0d0830"
+    },
+    {
+      "file": "android/src/main/java/com/codonui/input/CUIMotionDrawingDispatch.java",
+      "sha256": "09a0a673d9c06def0627fc42788e0e48e799ee1e0a413e99bf9d9e816dff6808"
+    },
+    {
+      "file": "android/src/main/jni/MotionDrawingJNI.cpp",
+      "sha256": "a6e0eb7568796cda24eeef4010b76509b285ff5e05e3df10f9374c1a4de2471b"
+    },
+    {
+      "file": "android/src/main/jni/MotionDrawingJNI.h",
+      "sha256": "0bdf931cf052cdac90b844aeca75ff526b8edb39dc7c548e5b9a523fadfb38ac"
+    },
+    {
+      "file": "ios/CUIMotionDrawingGeometry.h",
+      "sha256": "5c0d6385d6123ef07b6e2b8a70a4cbd178ade904bfe1d63a1640e035c48cd567"
+    },
+    {
+      "file": "ios/CUIMotionDrawingGeometry.mm",
+      "sha256": "3c3cba9fc9c52ec86eb8b1e5910f9c7e6470fe8ed85991945c65950d37477251"
+    },
+    {
+      "file": "ios/CUIMotionContinuousCorners.swift",
+      "sha256": "9e2cbdbfab82a36faee3f4f93f5bb42ccbf9e7c0c8a5db1286a8a1a6e0072dc8"
+    },
+    {
+      "file": "CodonNativeInput.podspec",
+      "sha256": "cbfef0472dd05abacb2b9cfe246a633b4f839ec1c4e8b62edb84765a6d24493f"
+    },
+    {
+      "file": "ios/CUIMotionContinuousCorners.h",
+      "sha256": "ad70f51f1dad97e529ba7a70df5670447a359744ddb3f44da793a72f1ced0d52"
+    },
+    {
+      "file": "ios/CUIMotionMaskGeometry.h",
+      "sha256": "059a5bd255982f6c4fea3ca1e28e46fce0026070152ea4bf571256c0bfef980f"
+    },
+    {
+      "file": "ios/CUIMotionMaskGeometry.mm",
+      "sha256": "3105b8f7bdee738bf4dbf298e49b2e5c139dbcb470f6a62e25281d6c14f3d4c8"
+    }
+  ],
+  "drawingSourceBoundary": {
+    "platform": "ios and android",
+    "nativeMode": "private immutable opt-in; ordinary hosts delegate to RN",
+    "ownedState": "Only CUI paint layers/containers/wrappers; no peer private ivar mutation",
+    "sourcePort": "RN0.86.3 native background/border/outline/box-shadow/filter/gradient/mask/overflow receivers and raw percent/RTL/corner overlap resolution",
+    "continuousEllipses": "Public SwiftUI Path bridge supports uniform and non-overlapping mixed corners. Mixed-span overlap explicitly rejects; full fidelity remains required.",
+    "android": "CUI adapters retain RN Composite style holders and scoped JNI framework child traversal; target runtime fidelity remains unproved",
+    "motionProjectionBinding": true,
+    "nativeAssertionsExecuted": false,
+    "nativePixelsAccepted": false,
+    "swiftIntegration": "Existing system Swift compiler via ios source glob only; no dependency, version, SDK flag or compiler setting changes",
+    "nativeMaskFactory": "Private continuous/path mask factories retain exact drawing defaults and strict closed public-layer descriptors. Owned path commands are immutable and identity guarded; foreign/modified masks remain incomplete and unknown paths explicitly unavailable. Three unmounted iOS fixtures,24 mask assertions and byte-exact CPU shape/reference raster pass at0c37cb4; full observer/window/GPU/mixed/fidelity/performance/current consumer/profile/closure proof remains required."
+  },
+  "peerStateInputs": [
+    {
+      "package": "react-native-safe-area-context",
+      "version": "5.7.0",
+      "path": "common/cpp/react/renderer/components/safeareacontext/RNCSafeAreaViewShadowNode.cpp",
+      "sourceRef": "npm:react-native-safe-area-context@5.7.0/common/cpp/react/renderer/components/safeareacontext/RNCSafeAreaViewShadowNode.cpp",
+      "sha256": "0bd31bad405554d89c6a5cceac5cf224a76b667b7fdb0e8a0c782aab8bfcf66b"
+    },
+    {
+      "package": "react-native-safe-area-context",
+      "version": "5.7.0",
+      "path": "common/cpp/react/renderer/components/safeareacontext/RNCSafeAreaViewState.h",
+      "sourceRef": "npm:react-native-safe-area-context@5.7.0/common/cpp/react/renderer/components/safeareacontext/RNCSafeAreaViewState.h",
+      "sha256": "4f18e086699d2be4aa58d67eb30cdb2ba09e44d53dae8459c012d5ac9399adb2"
+    },
+    {
+      "package": "react-native-svg",
+      "version": "15.15.4",
+      "path": "common/cpp/react/renderer/components/rnsvg/RNSVGLayoutableShadowNode.cpp",
+      "sourceRef": "npm:react-native-svg@15.15.4/common/cpp/react/renderer/components/rnsvg/RNSVGLayoutableShadowNode.cpp",
+      "sha256": "e8a5b35520647e5576f120ddae6da8db3c0b9ffd7dd06ee8d0c4b35fff27b435"
+    },
+    {
+      "package": "react-native-svg",
+      "version": "15.15.4",
+      "path": "common/cpp/react/renderer/components/rnsvg/RNSVGShadowNodes.h",
+      "sourceRef": "npm:react-native-svg@15.15.4/common/cpp/react/renderer/components/rnsvg/RNSVGShadowNodes.h",
+      "sha256": "785e9e36176c470003ad3b5e11b274d40bfb20ff5c3ced59035cd5eb88ab5efd"
+    },
+    {
+      "package": "react-native-svg",
+      "version": "15.15.4",
+      "path": "common/cpp/react/renderer/components/rnsvg/RNSVGConcreteShadowNode.h",
+      "sourceRef": "npm:react-native-svg@15.15.4/common/cpp/react/renderer/components/rnsvg/RNSVGConcreteShadowNode.h",
+      "sha256": "e8eeae9864f8829f4144bbf495dfc1386d77d6ef0abc3ca396869444eaa1cb1f"
+    },
+    {
+      "package": "react-native-teleport",
+      "version": "1.2.2",
+      "path": "common/cpp/react/renderer/components/TeleportViewSpec/RNTPortalViewComponentDescriptor.h",
+      "sourceRef": "npm:react-native-teleport@1.2.2/common/cpp/react/renderer/components/TeleportViewSpec/RNTPortalViewComponentDescriptor.h",
+      "sha256": "98a248e191fc8d13e556ced67555eb810bfad258fcbff6a23b51dcaafde93478"
+    },
+    {
+      "package": "react-native-teleport",
+      "version": "1.2.2",
+      "path": "common/cpp/react/renderer/components/TeleportViewSpec/RNTPortalViewState.h",
+      "sourceRef": "npm:react-native-teleport@1.2.2/common/cpp/react/renderer/components/TeleportViewSpec/RNTPortalViewState.h",
+      "sha256": "09044f400229f59a58c27047d015cc0afe7c010c90c151327395b7ab7c9bd1c1"
+    },
+    {
+      "package": "react-native-teleport",
+      "version": "1.2.2",
+      "path": "common/cpp/react/renderer/components/TeleportViewSpec/RNTPortalViewShadowNode.h",
+      "sourceRef": "npm:react-native-teleport@1.2.2/common/cpp/react/renderer/components/TeleportViewSpec/RNTPortalViewShadowNode.h",
+      "sha256": "69be2b399d6257317ac949e6c87bf18c4982459a214574348eddf6441fb59e74"
+    }
+  ],
+  "peerStateLicenses": [
+    {
+      "file": "LICENSE.native-layout-peers.md",
+      "sha256": "dd69fc5f603ce780eadf088650696b4812bb67f4a114036a8ab3478fffeb7f3d"
+    }
+  ],
+  "isolatedGeometryBoundary": {
+    "immutableActualInputs": true,
+    "independentYogaStages": true,
+    "actualEditorCallbacks": false,
+    "mountedProbeWrites": false,
+    "hostGeometryTests": "synthetic trees against actual pinned Yoga",
+    "AndroidReleaseLibraryBuilt": true,
+    "installedNativeFidelityAccepted": false,
+    "fullCard": false
+  },
+  "motionSourceInputs": [
+    {
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/render/dom/parse-transform.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "upstreamSha256": "c0e21cc5d0151a3f0d5e76c762c6eee24a659d74b5ede1be04133562f721714c",
+      "executedModuleSha256": "73ce14c6622f4aa9d039bc8a7563862000f5ee2d57eef61106ce86d49395cde7"
+    }
+  ],
+  "motionLicense": {
+    "file": "../../src/motion/kernel/LICENSE.motion-dom.md",
+    "sha256": "1bf0dc3f7727723e5a032ed12164a47cf92c05204cb1a3485f123c24e2833ed1"
+  },
+  "computedValuesBoundary": {
+    "nativeTransformInput": "resolved4x4; explicit matrix3d formulas",
+    "authoredMatrixScalarAmbiguityRemoved": true,
+    "evaluatedMargins": true,
+    "autoMargins": "explicit unsupported distributed-value authority",
+    "initialMarginRead": "same guarded independent evaluator, no mounted probe",
+    "nativeAcceptance": false
+  },
+  "bridgeReadCacheInput": {
+    "packageArtifactRef": "react-native@0.86.3/ReactAndroid/src/main/java/com/facebook/react/bridge/ReadableNativeMap.kt",
+    "sha256": "4c80db0b298f8cdad23bc0eff746100118351c109ee90fccb2d7b7b232bfef0b",
+    "behavior": "First Java read memoizes keys/local values; later native writes do not invalidate that Java cache. Actual original Card crash in evidence3.31.103."
+  }
+}

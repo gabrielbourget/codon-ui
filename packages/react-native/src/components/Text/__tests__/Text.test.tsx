@@ -1,12 +1,110 @@
 import { fireEvent, render, screen, userEvent } from "@testing-library/react-native"
+import { createRef } from "react"
 import { PlatformColor, StyleSheet } from "react-native"
 
-import { AVAILABLE_FONT_VARIANTS, AVAILABLE_FONT_WEIGHTS, NativeThemeProvider, Text } from "../../.."
+import {
+  AVAILABLE_FONT_VARIANTS,
+  AVAILABLE_FONT_WEIGHTS,
+  NativeThemeProvider,
+  PlaceholderText,
+  Text,
+  type TNativeTextRef,
+} from "../../.."
 
 beforeEach(() => jest.useFakeTimers())
 afterEach(() => jest.useRealTimers())
 
 describe("Text public native contract", () => {
+  it.each([
+    ["Text", Text],
+    ["PlaceholderText", PlaceholderText],
+  ] as const)(
+    "keeps %s content and callbacks under caller ownership through empty, deferred and removed content",
+    async (_, Component) => {
+      const ref = createRef<TNativeTextRef>()
+      const previousPress = jest.fn(),
+        currentPress = jest.fn()
+      const view = await render(
+        <Component ref={ref} testID="owned-content" onPress={previousPress}>
+          Initial
+        </Component>,
+      )
+      const original = ref.current
+      expect(original).not.toBeNull()
+      for (const content of [0, "", false, null, "Restored"] as const) {
+        await view.rerender(
+          <Component ref={ref} testID="owned-content" onPress={currentPress}>
+            {content}
+          </Component>,
+        )
+        expect(screen.getByTestId("owned-content")).toHaveTextContent(
+          content === 0 ? "0" : typeof content === "string" ? content : "",
+          { exact: true },
+        )
+        expect(ref.current).toBe(original)
+      }
+      const content = await Promise.resolve("Deferred owner content")
+      await view.rerender(
+        <Component ref={ref} testID="owned-content" onPress={currentPress}>
+          {content}
+        </Component>,
+      )
+      expect(screen.getByTestId("owned-content")).toHaveTextContent(content, { exact: true })
+      expect(previousPress).not.toHaveBeenCalled()
+      expect(currentPress).not.toHaveBeenCalled()
+      const event = { nativeEvent: { target: 17, timestamp: 100 } }
+      await fireEvent(screen.getByTestId("owned-content"), "press", event)
+      expect(currentPress.mock.calls).toEqual([[event]])
+      expect(currentPress.mock.calls[0][0]).toBe(event)
+      expect(previousPress).not.toHaveBeenCalled()
+      await view.rerender(<></>)
+      expect(ref.current).toBeNull()
+      await view.rerender(
+        <Component ref={ref} testID="owned-content" onPress={currentPress}>
+          Reinserted
+        </Component>,
+      )
+      expect(ref.current).not.toBeNull()
+      expect(screen.getByTestId("owned-content")).toHaveTextContent("Reinserted", { exact: true })
+      expect(currentPress).toHaveBeenCalledTimes(1)
+      await view.unmount()
+      expect(ref.current).toBeNull()
+      expect(currentPress).toHaveBeenCalledTimes(1)
+    },
+  )
+
+  it("retains the original Text ref and exact native events through caller updates and clears it on unmount", async () => {
+    const ref = createRef<TNativeTextRef>(),
+      onPress = jest.fn(),
+      onLayout = jest.fn()
+    const view = await render(
+      <Text ref={ref} variant="h1" onPress={onPress} onLayout={onLayout}>
+        Original
+      </Text>,
+    )
+    const original = ref.current
+    expect(original).not.toBeNull()
+    const press = { nativeEvent: { target: 17, timestamp: 100 } }
+    const layout = { nativeEvent: { target: 17, layout: { x: 3, y: 4, width: 160, height: 44 } } }
+    await fireEvent(screen.getByTestId("text"), "press", press)
+    await fireEvent(screen.getByTestId("text"), "layout", layout)
+    expect(onPress.mock.calls).toEqual([[press]])
+    expect(onPress.mock.calls[0][0]).toBe(press)
+    expect(onLayout.mock.calls).toEqual([[layout]])
+    expect(onLayout.mock.calls[0][0]).toBe(layout)
+    await view.rerender(
+      <Text ref={ref} variant="b11" accessibilityLabel="Updated" style={{ color: "tomato" }}>
+        Updated
+      </Text>,
+    )
+    expect(ref.current).toBe(original)
+    expect(screen.getByTestId("text").props.accessibilityLabel).toBe("Updated")
+    expect(onPress).toHaveBeenCalledTimes(1)
+    expect(onLayout).toHaveBeenCalledTimes(1)
+    await view.unmount()
+    expect(ref.current).toBeNull()
+  })
+
   it("uses scalable b10 regular defaults and strips wrapper props", async () => {
     await render(<Text>Default text</Text>)
     const text = screen.getByTestId("text")
@@ -65,6 +163,32 @@ describe("Text public native contract", () => {
     expect(screen.getByRole("button", { name: "Explicit role" })).toBeOnTheScreen()
     expect(screen.getByRole("link", { name: "Explicit native role" })).toBeOnTheScreen()
     expect(screen.getByText("Strong intent")).toHaveStyle({ fontWeight: "400" })
+  })
+
+  it.each([
+    ["d1", { body: "Body", heading: "Heading" }, "Heading"],
+    ["d1", { body: "Body", heading: "Heading", display: "Display" }, "Display"],
+    ["h1", { body: "Body" }, "Body"],
+  ] as const)("preserves the canonical %s font-family fallback chain", async (variant, fontFamilies, expected) => {
+    await render(
+      <NativeThemeProvider overrides={{ typography: { fontFamilies } }}>
+        <Text variant={variant}>Family</Text>
+      </NativeThemeProvider>,
+    )
+    expect(screen.getByText("Family")).toHaveStyle({ fontFamily: expected })
+  })
+
+  it("inherits an authored parent italic style while keeping the child variant and weight defaults", async () => {
+    await render(
+      <Text fontStyle="italic" fontWeight="bold" variant="h1">
+        <Text testID="inherited-italic">Inherited</Text>
+        <Text testID="normal-override" style={{ fontStyle: "normal" }}>
+          Override
+        </Text>
+      </Text>,
+    )
+    expect(screen.getByTestId("inherited-italic")).toHaveStyle({ fontStyle: "italic", fontWeight: "400", fontSize: 14 })
+    expect(screen.getByTestId("normal-override")).toHaveStyle({ fontStyle: "normal", fontWeight: "400", fontSize: 14 })
   })
 
   it("gives native labels/IDs precedence over aliases, including empty values", async () => {

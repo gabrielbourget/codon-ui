@@ -1,5 +1,5 @@
-import type { ReactNode } from "react"
-import type { StyleProp, TextStyle, View, ViewProps, ViewStyle } from "react-native"
+import type { ReactElement, ReactNode } from "react"
+import type { ColorValue, StyleProp, TextStyle, View, ViewProps, ViewStyle } from "react-native"
 
 import type { TCornerGeometry } from "../../tokens/geometry"
 import type { TNativeSelectionState } from "../selection"
@@ -19,7 +19,8 @@ export type TNativeSelectRenderState = Readonly<{
   isReadOnly: boolean
   isInvalid: boolean
 }>
-export type TNativeSelectStyleState = TNativeSelectRenderState & { defaultStyle: ViewStyle }
+export type TNativeSelectRootStyle = ViewStyle & { color?: ColorValue }
+export type TNativeSelectStyleState = TNativeSelectRenderState & { defaultStyle: TNativeSelectRootStyle }
 export type TNativeSelectItemRenderState = TNativeSelectionState
 export type TNativeSelectValueRenderState<T> = Readonly<{
   selectedItem: T | null
@@ -47,6 +48,7 @@ export type TNativeSelectProps<T> = Omit<
   | "aria-checked"
 > &
   TNativeSelectLabel & {
+    render?: (props: ViewProps, state: TNativeSelectRenderState) => ReactElement
     items: readonly T[]
     getKey: (item: T) => TNativeSelectKey
     getTextValue: (item: T) => string
@@ -74,9 +76,9 @@ export type TNativeSelectProps<T> = Omit<
     successState?: boolean
     ComponentIcon?: ReactNode
     renderSelectedValue?: (state: TNativeSelectValueRenderState<T>) => ReactNode
-    customStyles?: StyleProp<ViewStyle>
-    style?: StyleProp<ViewStyle> | ((state: TNativeSelectStyleState) => StyleProp<ViewStyle>)
-    customSelectedItemStyles?: StyleProp<ViewStyle>
+    customStyles?: StyleProp<TNativeSelectRootStyle>
+    style?: StyleProp<TNativeSelectRootStyle> | ((state: TNativeSelectStyleState) => StyleProp<TNativeSelectRootStyle>)
+    customSelectedItemStyles?: StyleProp<TNativeSelectRootStyle>
     customSelectedItemTextStyles?: StyleProp<TextStyle>
     customOptionsListStyles?: StyleProp<ViewStyle>
     "data-testid"?: string

@@ -66,6 +66,7 @@ const requiredPackageFileSources = [
   "packages/react/src/components/Filtering/labels.ts",
   "packages/react/src/components/Filtering/FilterClauseRow/FilterClauseRow.tsx",
   "packages/react/src/components/Filtering/DynamicFilterArgumentInput/DynamicFilterArgumentInput.tsx",
+  "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/temporalValues.ts",
   "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/InputTypeFilterArgument/InputTypeFilterArgument.tsx",
   "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/RangeTypeFilterArgument/RangeTypeFilterArgument.tsx",
   "packages/react/src/components/SortParameterList/SortParameterList.tsx",

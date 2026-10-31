@@ -21,6 +21,7 @@ export type TNativeTextElementType = (typeof AVAILABLE_NATIVE_TEXT_ELEMENT_TYPES
 export type TNativeTextRef = ComponentRef<typeof NativeText>
 
 export type TNativeTextProps = Omit<TextProps, "style" | "aria-label"> & {
+  slot?: string | null
   variant?: TNativeFontVariant
   fontWeight?: TNativeFontWeight
   fontStyle?: "italic"

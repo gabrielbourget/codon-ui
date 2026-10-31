@@ -1,0 +1,27 @@
+import type { NativeDateSegmentData } from "../../../input/specs/CUIDateSegmentNativeComponent"
+
+export const packet = (extra: Partial<NativeDateSegmentData> = {}): NativeDateSegmentData => ({
+  kind: "status",
+  ownerId: "owner",
+  segmentId: "hour",
+  bindingRevision: "binding",
+  target: 71,
+  nativeInstance: "native-instance",
+  surfaceId: 1,
+  windowId: "window",
+  epoch: 4,
+  sequence: 1,
+  timestamp: 123,
+  text: "",
+  nativeData: "{}",
+  document: "",
+  replacementStart: 0,
+  replacementEnd: 0,
+  selectionStart: 0,
+  selectionEnd: 0,
+  composingStart: -1,
+  composingEnd: -1,
+  focused: false,
+  active: true,
+  ...extra,
+})

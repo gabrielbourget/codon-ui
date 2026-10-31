@@ -56,11 +56,16 @@ export type TNativeActionTheme = Readonly<{
 export type TNativeTheme = Readonly<{
   mode: TNativeThemeMode
   colors: Readonly<{
+    statusDanger: ColorValue
+    statusWarning: ColorValue
+    statusSuccess: ColorValue
+    overlayBackdrop: ColorValue
     background: ColorValue
     foreground: ColorValue
     controlBackground: ColorValue
     controlForeground: ColorValue
     controlBorder: ColorValue
+    borderMuted: ColorValue
     focusRing: ColorValue
     controlPlaceholder: ColorValue
     controlHoverBackground: ColorValue

@@ -1,0 +1,1563 @@
+{
+  "canonicalSourceRef": "ddc9f066f67af4742e05e04bd870726141c44129",
+  "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions.",
+  "canonicalPropertyCount": 103,
+  "nativePropertyCount": 109,
+  "props": {
+    "aria-label": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.008",
+      "disposition": "APPROVED_EXPLICIT_METADATA",
+      "nativeProp": "textValue",
+      "nativeType": "string",
+      "expected": "Original required typed string/finite-number id and nonempty textValue; numeric0 differs string0, empty string key remains valid. Metadata owns accessible name, aliases cannot override it, id is consumed rather than becoming native host id.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "children": {
+      "canonicalType": "import(\"react-aria-components/dist/types/src/utils\").ChildrenOrFunction<ListBoxItemRenderProps>",
+      "required": false,
+      "capability": "CAP.list-box-item.005",
+      "disposition": "NATIVE_RENDER_CHILDREN",
+      "nativeProp": "children",
+      "nativeType": "ReactNode | ((state: TNativeListBoxItemRenderState & { defaultChildren: undefined; }) => ReactNode)",
+      "expected": "Original ReactNode or native selected/pressed/hovered/focused/disabled/read-only callback; include inherited defaultChildren undefined. Primitive/array/Fragment results use owned Text; nullish static children retain original textValue fallback; authored content stays decorative.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "className": {
+      "canonicalType": "import(\"react-aria-components/dist/types/src/utils\").ClassNameOrFunction<ListBoxItemRenderProps> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.004",
+      "disposition": "APPROVED_NATIVE_STYLE",
+      "nativeProp": "customStyles/style",
+      "nativeType": null,
+      "expected": "Computed/custom/final native root style and post-custom defaultStyle; native color reaches owned Text through existing content context, is consumed before View style and preserves explicit authored Text color. Classes/CSS units use original native equivalents.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "customStyles": {
+      "canonicalType": "CSSProperties | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.004",
+      "disposition": "APPROVED_NATIVE_STYLE",
+      "nativeProp": "customStyles",
+      "nativeType": "StyleProp<TNativeListBoxItemRootStyle>",
+      "expected": "Computed/custom/final native root style and post-custom defaultStyle; native color reaches owned Text through existing content context, is consumed before View style and preserves explicit authored Text color. Classes/CSS units use original native equivalents.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "data-testid": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "data-testid",
+      "nativeType": "string | undefined",
+      "expected": "Original supported Pressable/View property/platform applicability and native event identity; owned role/name/checked/disabled/guard precedence remains.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "dir": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "download": {
+      "canonicalType": "string | boolean | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.011",
+      "disposition": "OWNER_EXCLUDED_LINKS",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved Select/ListBoxItem scope explicitly excludes links. No anchor/router/navigation/download contract is advertised by native Pressable.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "hidden": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "href": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.011",
+      "disposition": "OWNER_EXCLUDED_LINKS",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved Select/ListBoxItem scope explicitly excludes links. No anchor/router/navigation/download contract is advertised by native Pressable.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "hrefLang": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.011",
+      "disposition": "OWNER_EXCLUDED_LINKS",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved Select/ListBoxItem scope explicitly excludes links. No anchor/router/navigation/download contract is advertised by native Pressable.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "id": {
+      "canonicalType": "string | number",
+      "required": true,
+      "capability": "CAP.list-box-item.008",
+      "disposition": "APPROVED_EXPLICIT_METADATA",
+      "nativeProp": "id",
+      "nativeType": "TNativeSelectKey",
+      "expected": "Original required typed string/finite-number id and nonempty textValue; numeric0 differs string0, empty string key remains valid. Metadata owns accessible name, aliases cannot override it, id is consumed rather than becoming native host id.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "inert": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "isDisabled": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.009",
+      "disposition": "NATIVE_GUARD",
+      "nativeProp": "isDisabled",
+      "nativeType": "boolean | undefined",
+      "expected": "Native activation guard and accessible disabled state; only disabled dims/disables focus. Native-only read-only keeps discovery and blocks callbacks without disabled semantics.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "lang": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onAction": {
+      "canonicalType": "(() => void) | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.009",
+      "disposition": "APPROVED_NATIVE_ACTIVATION",
+      "nativeProp": "onPress",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | null | undefined",
+      "expected": "Original native Pressable onPress receives the original native event once; parent owns selection. React Aria collection/modality action branching and DOM click events are excluded by the original standalone row contract.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onAnimationEnd": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onAnimationEndCapture": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onAnimationIteration": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onAnimationIterationCapture": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onAnimationStart": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onAnimationStartCapture": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onAuxClick": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onAuxClickCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onBlur": {
+      "canonicalType": "((e: import(\"@types/react/index\").FocusEvent<HTMLDivElement, Element>) => void) | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onBlur",
+      "nativeType": "((event: import(\"react-native/types/index\").NativeSyntheticEvent<import(\"react-native/types/index\").TargetedEvent>) => void) | null | undefined",
+      "expected": "Original supported Pressable/View property/platform applicability and native event identity; owned role/name/checked/disabled/guard precedence remains.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onClick": {
+      "canonicalType": "((e: import(\"@types/react/index\").MouseEvent<import(\"@react-types/shared/src/dom\").FocusableElement>) => void) | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.009",
+      "disposition": "APPROVED_NATIVE_ACTIVATION",
+      "nativeProp": "onPress",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | null | undefined",
+      "expected": "Original native Pressable onPress receives the original native event once; parent owns selection. React Aria collection/modality action branching and DOM click events are excluded by the original standalone row contract.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onClickCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onContextMenu": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onContextMenuCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onDoubleClick": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onDoubleClickCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onFocus": {
+      "canonicalType": "((e: import(\"@types/react/index\").FocusEvent<HTMLDivElement, Element>) => void) | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onFocus",
+      "nativeType": "((event: import(\"react-native/types/index\").NativeSyntheticEvent<import(\"react-native/types/index\").TargetedEvent>) => void) | null | undefined",
+      "expected": "Original supported Pressable/View property/platform applicability and native event identity; owned role/name/checked/disabled/guard precedence remains.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onFocusChange": {
+      "canonicalType": "((isFocused: boolean) => void) | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.012",
+      "disposition": "OWNER_EXCLUDED_COLLECTION_COORDINATION",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original explicit data collection and standalone controlled row replace arbitrary child-registration/object values/RAC state; web Arrow/Home/End/Escape/typeahead require separate supported native strategy. Native focus/blur observations remain.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onGotPointerCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onGotPointerCaptureCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onHoverChange": {
+      "canonicalType": "((isHovering: boolean) => void) | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.010",
+      "disposition": "APPROVED_NATIVE_HOVER_EVENTS",
+      "nativeProp": "onHoverIn/onHoverOut",
+      "nativeType": null,
+      "expected": "Original native hover observations and native payloads drive current state; supported pointer cursor updates immediately, no installed pointer inference.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onHoverEnd": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").HoverEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.010",
+      "disposition": "APPROVED_NATIVE_HOVER_EVENTS",
+      "nativeProp": "onHoverIn/onHoverOut",
+      "nativeType": null,
+      "expected": "Original native hover observations and native payloads drive current state; supported pointer cursor updates immediately, no installed pointer inference.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onHoverStart": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").HoverEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.010",
+      "disposition": "APPROVED_NATIVE_HOVER_EVENTS",
+      "nativeProp": "onHoverIn/onHoverOut",
+      "nativeType": null,
+      "expected": "Original native hover observations and native payloads drive current state; supported pointer cursor updates immediately, no installed pointer inference.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onKeyDown": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").KeyboardEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.012",
+      "disposition": "OWNER_EXCLUDED_COLLECTION_COORDINATION",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original explicit data collection and standalone controlled row replace arbitrary child-registration/object values/RAC state; web Arrow/Home/End/Escape/typeahead require separate supported native strategy. Native focus/blur observations remain.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onKeyUp": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").KeyboardEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.012",
+      "disposition": "OWNER_EXCLUDED_COLLECTION_COORDINATION",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original explicit data collection and standalone controlled row replace arbitrary child-registration/object values/RAC state; web Arrow/Home/End/Escape/typeahead require separate supported native strategy. Native focus/blur observations remain.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onLostPointerCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onLostPointerCaptureCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onMouseDown": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onMouseDownCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onMouseEnter": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onMouseLeave": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onMouseMove": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onMouseMoveCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onMouseOut": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onMouseOutCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onMouseOver": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onMouseOverCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onMouseUp": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onMouseUpCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onPointerCancel": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerCancel",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "expected": "Original supported Pressable/View property/platform applicability and native event identity; owned role/name/checked/disabled/guard precedence remains.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onPointerCancelCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerCancelCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "expected": "Original supported Pressable/View property/platform applicability and native event identity; owned role/name/checked/disabled/guard precedence remains.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onPointerDown": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerDown",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "expected": "Original supported Pressable/View property/platform applicability and native event identity; owned role/name/checked/disabled/guard precedence remains.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onPointerDownCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerDownCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "expected": "Original supported Pressable/View property/platform applicability and native event identity; owned role/name/checked/disabled/guard precedence remains.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onPointerEnter": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerEnter",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "expected": "Original supported Pressable/View property/platform applicability and native event identity; owned role/name/checked/disabled/guard precedence remains.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onPointerLeave": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerLeave",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "expected": "Original supported Pressable/View property/platform applicability and native event identity; owned role/name/checked/disabled/guard precedence remains.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onPointerMove": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerMove",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "expected": "Original supported Pressable/View property/platform applicability and native event identity; owned role/name/checked/disabled/guard precedence remains.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onPointerMoveCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerMoveCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "expected": "Original supported Pressable/View property/platform applicability and native event identity; owned role/name/checked/disabled/guard precedence remains.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onPointerOut": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onPointerOutCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onPointerOver": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onPointerOverCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onPointerUp": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerUp",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "expected": "Original supported Pressable/View property/platform applicability and native event identity; owned role/name/checked/disabled/guard precedence remains.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onPointerUpCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerUpCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "expected": "Original supported Pressable/View property/platform applicability and native event identity; owned role/name/checked/disabled/guard precedence remains.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onPress": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").PressEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.009",
+      "disposition": "APPROVED_NATIVE_ACTIVATION",
+      "nativeProp": "onPress",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | null | undefined",
+      "expected": "Original native Pressable onPress receives the original native event once; parent owns selection. React Aria collection/modality action branching and DOM click events are excluded by the original standalone row contract.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onPressChange": {
+      "canonicalType": "((isPressed: boolean) => void) | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.009",
+      "disposition": "APPROVED_NATIVE_PRESS_EVENTS",
+      "nativeProp": "onPressIn/onPressOut",
+      "nativeType": null,
+      "expected": "Original native Pressable begin/end events and cancellation/guard state replace React Aria press phases; do not invent DOM/keyboard release or generic press-state callback aliases.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onPressEnd": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").PressEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.009",
+      "disposition": "APPROVED_NATIVE_PRESS_EVENTS",
+      "nativeProp": "onPressIn/onPressOut",
+      "nativeType": null,
+      "expected": "Original native Pressable begin/end events and cancellation/guard state replace React Aria press phases; do not invent DOM/keyboard release or generic press-state callback aliases.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onPressStart": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").PressEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.009",
+      "disposition": "APPROVED_NATIVE_PRESS_EVENTS",
+      "nativeProp": "onPressIn/onPressOut",
+      "nativeType": null,
+      "expected": "Original native Pressable begin/end events and cancellation/guard state replace React Aria press phases; do not invent DOM/keyboard release or generic press-state callback aliases.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onPressUp": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").PressEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.009",
+      "disposition": "APPROVED_NATIVE_PRESS_EVENTS",
+      "nativeProp": "onPressIn/onPressOut",
+      "nativeType": null,
+      "expected": "Original native Pressable begin/end events and cancellation/guard state replace React Aria press phases; do not invent DOM/keyboard release or generic press-state callback aliases.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onScroll": {
+      "canonicalType": "import(\"@types/react/index\").UIEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onScrollCapture": {
+      "canonicalType": "import(\"@types/react/index\").UIEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onTouchCancel": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchCancel",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "expected": "Original supported Pressable/View property/platform applicability and native event identity; owned role/name/checked/disabled/guard precedence remains.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onTouchCancelCapture": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onTouchEnd": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchEnd",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "expected": "Original supported Pressable/View property/platform applicability and native event identity; owned role/name/checked/disabled/guard precedence remains.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onTouchEndCapture": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchEndCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "expected": "Original supported Pressable/View property/platform applicability and native event identity; owned role/name/checked/disabled/guard precedence remains.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onTouchMove": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchMove",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "expected": "Original supported Pressable/View property/platform applicability and native event identity; owned role/name/checked/disabled/guard precedence remains.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onTouchMoveCapture": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onTouchStart": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchStart",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "expected": "Original supported Pressable/View property/platform applicability and native event identity; owned role/name/checked/disabled/guard precedence remains.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onTouchStartCapture": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onTransitionCancel": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onTransitionCancelCapture": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onTransitionEnd": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onTransitionEndCapture": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onTransitionRun": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onTransitionRunCapture": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onTransitionStart": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onTransitionStartCapture": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onWheel": {
+      "canonicalType": "import(\"@types/react/index\").WheelEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "onWheelCapture": {
+      "canonicalType": "import(\"@types/react/index\").WheelEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "ping": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.011",
+      "disposition": "OWNER_EXCLUDED_LINKS",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved Select/ListBoxItem scope explicitly excludes links. No anchor/router/navigation/download contract is advertised by native Pressable.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "referrerPolicy": {
+      "canonicalType": "import(\"@types/react/index\").HTMLAttributeReferrerPolicy | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.011",
+      "disposition": "OWNER_EXCLUDED_LINKS",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved Select/ListBoxItem scope explicitly excludes links. No anchor/router/navigation/download contract is advertised by native Pressable.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "rel": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.011",
+      "disposition": "OWNER_EXCLUDED_LINKS",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved Select/ListBoxItem scope explicitly excludes links. No anchor/router/navigation/download contract is advertised by native Pressable.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "render": {
+      "canonicalType": "((props: import(\"@types/react/index\").DetailedHTMLProps<Required<Pick<import(\"@types/react/index\").AnchorHTMLAttributes<HTMLAnchorElement>, \"href\">> & Omit<import(\"@types/react/index\").AnchorHTMLAttributes<HTMLAnchorElement>, \"href\">, HTMLAnchorElement> | import(\"@types/react/index\").DetailedHTMLProps<import(\"@types/react/index\").HTMLAttributes<HTMLDivElement>, HTMLDivElement>, renderProps: ListBoxItemRenderProps) => import(\"@types/react/index\").ReactElement) | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.007",
+      "disposition": "NATIVE_ROOT_RENDERER",
+      "nativeProp": "render",
+      "nativeType": "((props: PressableProps & RefAttributes<View>, state: TNativeListBoxItemRenderState) => ReactElement) | undefined",
+      "expected": "Original Pressable props/ref/owned content/current native state after style and child evaluation; same root/native event identity, controlled veto/echo/guards and teardown. Link-root variants remain explicitly excluded.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "routerOptions": {
+      "canonicalType": "undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.011",
+      "disposition": "OWNER_EXCLUDED_LINKS",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved Select/ListBoxItem scope explicitly excludes links. No anchor/router/navigation/download contract is advertised by native Pressable.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "style": {
+      "canonicalType": "(CSSProperties | ((values: ListBoxItemRenderProps & { defaultStyle: CSSProperties; }) => CSSProperties | undefined)) | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.004",
+      "disposition": "APPROVED_NATIVE_STYLE",
+      "nativeProp": "style",
+      "nativeType": "StyleProp<TNativeListBoxItemRootStyle> | ((state: TNativeListBoxItemStyleState) => StyleProp<TNativeListBoxItemRootStyle>)",
+      "expected": "Computed/custom/final native root style and post-custom defaultStyle; native color reaches owned Text through existing content context, is consumed before View style and preserves explicit authored Text color. Classes/CSS units use original native equivalents.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "target": {
+      "canonicalType": "import(\"@types/react/index\").HTMLAttributeAnchorTarget | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.011",
+      "disposition": "OWNER_EXCLUDED_LINKS",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved Select/ListBoxItem scope explicitly excludes links. No anchor/router/navigation/download contract is advertised by native Pressable.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "textSize": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.002",
+      "disposition": "NATIVE_TYPOGRAPHY",
+      "nativeProp": "textSize",
+      "nativeType": "\"small\" | \"medium\" | \"large\" | undefined",
+      "expected": "Original small/medium/large map to native b11/b10/b9, default medium; native Text scaling/primitive composition remains without cloning authored nodes.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "textValue": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.008",
+      "disposition": "APPROVED_EXPLICIT_METADATA",
+      "nativeProp": "textValue",
+      "nativeType": "string",
+      "expected": "Original required typed string/finite-number id and nonempty textValue; numeric0 differs string0, empty string key remains valid. Metadata owns accessible name, aliases cannot override it, id is consumed rather than becoming native host id.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "translate": {
+      "canonicalType": "\"yes\" | \"no\" | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.013",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary excludes DOM attributes/events/CSS/form protocols; native prop/event equivalents remain on the original native surface without a browser producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    },
+    "value": {
+      "canonicalType": "T | undefined",
+      "required": false,
+      "capability": "CAP.list-box-item.012",
+      "disposition": "OWNER_EXCLUDED_COLLECTION_COORDINATION",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original explicit data collection and standalone controlled row replace arbitrary child-registration/object values/RAC state; web Arrow/Home/End/Escape/typeahead require separate supported native strategy. Native focus/blur observations remain.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved public contracts, Labels Styling And Native Exceptions and ledger8.19; standing conventional-port3.5 retains full customization via native ColorValue/style/content/ref/events. Preserve standalone controlled Pressable/radio row, required typed id/textValue, native selected/hover/pressed colors and explicit links/forms/RACslots/generalcollection/keyboard exclusions."
+    }
+  },
+  "nativeOnlyProps": [
+    {
+      "name": "accessibilityActions",
+      "optional": true,
+      "type": "readonly Readonly<{ name: import(\"react-native/types/index\").AccessibilityActionName | string; label?: string | undefined; }>[] | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityElementsHidden",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityHint",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityIgnoresInvertColors",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityLabelledBy",
+      "optional": true,
+      "type": "string | string[] | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityLanguage",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityLargeContentTitle",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityLiveRegion",
+      "optional": true,
+      "type": "\"none\" | \"polite\" | \"assertive\" | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityRespondsToUserInteraction",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityShowsLargeContentViewer",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityState",
+      "optional": true,
+      "type": "Omit<import(\"react-native/types/index\").AccessibilityState, \"disabled\" | \"checked\" | \"selected\"> | undefined",
+      "declarations": ["packages/react-native/src/components/selection.ts"]
+    },
+    {
+      "name": "accessibilityValue",
+      "optional": true,
+      "type": "import(\"react-native/types/index\").AccessibilityValue | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityViewIsModal",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "android_disableSound",
+      "optional": true,
+      "type": "boolean | null | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    },
+    {
+      "name": "android_ripple",
+      "optional": true,
+      "type": "import(\"react-native/types/index\").PressableAndroidRippleConfig | null | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    },
+    {
+      "name": "aria-busy",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "aria-checked",
+      "optional": true,
+      "type": "undefined",
+      "declarations": ["packages/react-native/src/components/selection.ts"]
+    },
+    {
+      "name": "aria-disabled",
+      "optional": true,
+      "type": "undefined",
+      "declarations": ["packages/react-native/src/components/selection.ts"]
+    },
+    {
+      "name": "aria-expanded",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "aria-hidden",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "aria-labelledby",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "aria-live",
+      "optional": true,
+      "type": "\"polite\" | \"assertive\" | \"off\" | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "aria-modal",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "aria-selected",
+      "optional": true,
+      "type": "undefined",
+      "declarations": ["packages/react-native/src/components/selection.ts"]
+    },
+    {
+      "name": "aria-valuemax",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "aria-valuemin",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "aria-valuenow",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "aria-valuetext",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "cancelable",
+      "optional": true,
+      "type": "boolean | null | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    },
+    {
+      "name": "collapsable",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "collapsableChildren",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "delayHoverIn",
+      "optional": true,
+      "type": "number | null | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    },
+    {
+      "name": "delayHoverOut",
+      "optional": true,
+      "type": "number | null | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    },
+    {
+      "name": "delayLongPress",
+      "optional": true,
+      "type": "number | null | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    },
+    {
+      "name": "focusable",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "hasTVPreferredFocus",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "hitSlop",
+      "optional": true,
+      "type": "number | import(\"react-native/types/index\").Insets | null | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    },
+    {
+      "name": "importantForAccessibility",
+      "optional": true,
+      "type": "\"auto\" | \"yes\" | \"no\" | \"no-hide-descendants\" | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "isReadOnly",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["packages/react-native/src/components/ListBoxItem/types.ts"]
+    },
+    {
+      "name": "isSelected",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["packages/react-native/src/components/ListBoxItem/types.ts"]
+    },
+    {
+      "name": "isTVSelectable",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "nativeID",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "needsOffscreenAlphaCompositing",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "onAccessibilityAction",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").AccessibilityActionEvent) => void) | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "onAccessibilityEscape",
+      "optional": true,
+      "type": "(() => void) | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "onAccessibilityTap",
+      "optional": true,
+      "type": "(() => void) | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "onHoverIn",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").MouseEvent) => void) | null | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    },
+    {
+      "name": "onHoverOut",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").MouseEvent) => void) | null | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    },
+    {
+      "name": "onLayout",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").LayoutChangeEvent) => void) | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "onLongPress",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | null | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    },
+    {
+      "name": "onMagicTap",
+      "optional": true,
+      "type": "(() => void) | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "onMoveShouldSetResponder",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onMoveShouldSetResponderCapture",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onPointerEnterCapture",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "declarations": ["react-native/Libraries/Types/CoreEventTypes.d.ts"]
+    },
+    {
+      "name": "onPointerLeaveCapture",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "declarations": ["react-native/Libraries/Types/CoreEventTypes.d.ts"]
+    },
+    {
+      "name": "onPressIn",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | null | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    },
+    {
+      "name": "onPressMove",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | null | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    },
+    {
+      "name": "onPressOut",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | null | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    },
+    {
+      "name": "onResponderEnd",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onResponderGrant",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onResponderMove",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onResponderReject",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onResponderRelease",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onResponderStart",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onResponderTerminate",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onResponderTerminationRequest",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onStartShouldSetResponder",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onStartShouldSetResponderCapture",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "pointerEvents",
+      "optional": true,
+      "type": "\"box-none\" | \"none\" | \"box-only\" | \"auto\" | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "pressRetentionOffset",
+      "optional": true,
+      "type": "number | import(\"react-native/types/index\").Insets | null | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    },
+    {
+      "name": "removeClippedSubviews",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "renderToHardwareTextureAndroid",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "screenReaderFocusable",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "shouldRasterizeIOS",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "tabIndex",
+      "optional": true,
+      "type": "0 | -1 | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "testID",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "testOnly_pressed",
+      "optional": true,
+      "type": "boolean | null | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    },
+    {
+      "name": "tvParallaxMagnification",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "tvParallaxShiftDistanceX",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "tvParallaxShiftDistanceY",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "tvParallaxTiltAngle",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "unstable_pressDelay",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": ["react-native/Libraries/Components/Pressable/Pressable.d.ts"]
+    }
+  ],
+  "renderStateMapping": {
+    "canonical": [
+      "isSelected",
+      "isPressed",
+      "isHovered",
+      "isFocused",
+      "isFocusVisible",
+      "isDisabled",
+      "selectionMode",
+      "selectionBehavior",
+      "allowsDragging",
+      "isDragging",
+      "isDropTarget"
+    ],
+    "native": ["isSelected", "isPressed", "isHovered", "isFocused", "isDisabled", "isReadOnly"],
+    "childrenAdditional": "defaultChildren:undefined",
+    "originalApproval": "Standalone caller-owned row; links/general collection registration/multiple selection/drag-drop/RAC slot-state and web keyboard strategy excluded by original approval. Native focus/hover flags and required metadata remain."
+  },
+  "originalNativeAdaptations": [
+    "Controlled Pressable with owned radio semantics/native ref/event identity; no local selected state",
+    "Required typed key and nonempty textValue; metadata overrides visual labels and owns name",
+    "Original native control selected/hover/pressed palettes, focus outline and44/48 target minima/host constraints",
+    "Native owned Text composition/size/scaling and ColorValue customization preserve authored child overrides",
+    "Original explicit links/form/collection/RACslot/browserkeyboard exclusions"
+  ],
+  "motion": {
+    "rootBackground": "250ms cubic-bezier(.42,0,.58,1), final-style target/current-paint interruption/opaque colors/live Reduce Motion/cleanup",
+    "otherProperties": "Root radius/outline/cursor immediate; owned native Text retains its existing foreground behavior. Canonical link-only125ms rule is excluded with links.",
+    "nativeActions": 0
+  },
+  "scope": "Complete5pinnedfiles,all6rootcases and actual option root/ref/style-child-render/foreground oracle;roadmap3.5.77. SourceG01 only."
+}

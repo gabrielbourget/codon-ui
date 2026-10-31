@@ -14,6 +14,77 @@ const renderShowcase = async () =>
     </SafeAreaInsetsContext.Provider>,
   )
 
+it("opens the public ClickPopover scene and returns to the foundation on reset", async () => {
+  await renderShowcase()
+  const user = userEvent.setup()
+  await user.press(screen.getByRole("button", { name: "ClickPopover scene" }))
+  expect(screen.getByTestId("popover-scene-state")).toHaveTextContent(/Open: false.*Requests: 0/)
+  await user.press(screen.getByRole("button", { name: "Reset scene" }))
+  expect(screen.queryByTestId("popover-scene-state")).toBeNull()
+  expect(screen.getByTestId("theme-preview")).toBeOnTheScreen()
+})
+
+it("opens the public Breadcrumbs scene through the normal navigation", async () => {
+  await renderShowcase()
+  const user = userEvent.setup()
+  await user.press(screen.getByRole("button", { name: "Breadcrumbs scene" }))
+  expect(screen.getByTestId("breadcrumbs-scene-state")).toHaveTextContent(/Navigations: 0/)
+})
+
+it("opens the private TagComboBox owner scene through normal navigation", async () => {
+  await renderShowcase()
+  await userEvent.setup().press(screen.getByRole("button", { name: "TagComboBox scene" }))
+  expect(screen.getByTestId("tag-combo-owner-state")).toHaveTextContent(/Selected: empty.*Open: false/)
+})
+
+it("opens the public Carousel family and retains its owner while hiding and restoring the viewport", async () => {
+  await renderShowcase()
+  const user = userEvent.setup()
+  await user.press(screen.getByRole("button", { name: "Carousel scene" }))
+  expect(screen.getByTestId("carousel-scene-state")).toHaveTextContent(/Selected: 1.*Items: 9/)
+  expect(screen.getByTestId("carousel")).toBeOnTheScreen()
+  await user.press(screen.getByRole("button", { name: "Hide carousel" }))
+  expect(screen.queryByTestId("carousel")).toBeNull()
+  await user.press(screen.getByRole("button", { name: "Show carousel" }))
+  expect(screen.getByTestId("carousel")).toBeOnTheScreen()
+  await user.press(screen.getByRole("button", { name: "Add item" }))
+  expect(screen.getByTestId("carousel-scene-state")).toHaveTextContent(/Items: 10/)
+})
+
+it("opens the public Pagination scene through the normal navigation", async () => {
+  await renderShowcase()
+  await userEvent.setup().press(screen.getByRole("button", { name: "Pagination scene" }))
+  expect(screen.getByTestId("pagination-scene-state")).toHaveTextContent(/Page: 3.*Size: 10/)
+})
+
+it("hands off a modal closed by body layout before native readiness", async () => {
+  await renderShowcase()
+  const user = userEvent.setup()
+  await user.press(screen.getByRole("button", { name: "Overlay scene" }))
+  await user.press(screen.getByRole("button", { name: "Replace pending presentation" }))
+  const pending = screen.getByTestId("overlay-pending-window")
+  const onDismiss = pending.props.onDismiss
+  expect(screen.queryByTestId("overlay-parent-window")).toBeNull()
+  await fireEvent(pending, "show")
+  await act(() => onDismiss())
+  await fireEvent(screen.getByTestId("overlay-parent-window"), "show")
+  expect(screen.getByTestId("overlay-handoffs")).toHaveTextContent("Pending handoffs: 1.")
+  expect(screen.getByTestId("overlay-draft")).toHaveDisplayValue("retained draft")
+  expect(screen.getByTestId("overlay-context")).toHaveTextContent("Context: local caller context")
+})
+
+it("updates the active overlay theme while preserving its local body state", async () => {
+  await renderShowcase()
+  const user = userEvent.setup()
+  await user.press(screen.getByRole("button", { name: "Overlay scene" }))
+  await user.press(screen.getByRole("button", { name: "Open parent dialog" }))
+  await fireEvent(screen.getByTestId("overlay-parent-window"), "show")
+  await user.press(screen.getByRole("button", { name: "Increase local overlay count" }))
+  await user.press(screen.getByRole("button", { name: "Toggle overlay theme" }))
+  expect(screen.getByTestId("overlay-parent")).toHaveStyle({ backgroundColor: "#171717" })
+  expect(screen.getByTestId("overlay-local-state")).toHaveTextContent(/Local body count: 1\./)
+})
+
 it("composes NumberInput locale/draft/commit/step fixtures and preserves state across theme/window changes", async () => {
   await renderShowcase()
   const user = userEvent.setup()
@@ -28,6 +99,7 @@ it("composes NumberInput locale/draft/commit/step fixtures and preserves state a
   await fireEvent(input, "submitEditing", { nativeEvent: { text: "0.25" } })
   await fireEvent(input, "endEditing", { nativeEvent: { text: "0.25" } })
   expect(screen.getByTestId("number-state")).toHaveTextContent(/Value: 0.3.*Changes: 1/)
+  expect(screen.getByTestId("number-fraction").props.nativeID).toBe("number-value-0.3")
   await press("Next page number")
   const french = screen.getByTestId("number-french-input")
   await fireEvent.changeText(french, "2\u00a0345,75")
@@ -135,6 +207,8 @@ it("composes library controls, blocks disabled/pending activation and resets sce
   await press("Toggle button outline")
   await press("Toggle library styles")
   await press("Toggle render children")
+  expect(screen.getByText("Rendered library action 1")).not.toHaveStyle({ color: "#ffffff" })
+  await act(() => jest.advanceTimersByTime(250))
   expect(screen.getByText("Rendered library action 1")).toHaveStyle({ color: "#ffffff" })
   expect(screen.getByTestId("library-button")).toHaveStyle({ backgroundColor: "#123456" })
   await press("Dark theme")
@@ -190,10 +264,14 @@ it("composes basic controls, mixed/group selection, text entry and blocked chang
   const press = async (name: string) => user.press(screen.getByRole("button", { name }))
   await press("Basic controls scene")
   await user.press(screen.getByRole("switch", { name: "Controlled switch" }))
+  expect(screen.getByTestId("basic-switch").props.nativeID).toBe("basic-switch-on")
   await user.press(screen.getByRole("checkbox", { name: "Controlled checkbox" }))
+  expect(screen.getByTestId("basic-checkbox").props.nativeID).toBe("basic-checkbox-selected")
   await user.press(screen.getByRole("checkbox", { name: "Group first" }))
+  expect(screen.getByTestId("basic-group").props.nativeID).toBe("basic-group-first")
   await user.press(screen.getByRole("checkbox", { name: "Group second" }))
   await user.type(screen.getByTestId("basic-input"), "Bonjour", { skipBlur: true })
+  expect(screen.getByTestId("basic-input").props.nativeID).toBe("basic-input-editable")
   await fireEvent(screen.getByTestId("basic-input"), "submitEditing", { nativeEvent: { text: "Bonjour" } })
   expect(screen.getByTestId("basic-control-state")).toHaveTextContent(
     /Switch: on.*Checkbox: on.*Group: first,second.*Input: Bonjour.*Submits: 1/,
@@ -266,14 +344,49 @@ it("uses native submitted text when the final edit precedes a rendered controlle
   expect(screen.getByTestId("basic-control-state")).toHaveTextContent(/Input: Salut.*Submits: 1/)
 })
 
-it("composes controlled and uncontrolled Select flows and blocks disabled/read-only changes", async () => {
+// The renderer does not produce platform Modal lifecycle events.
+const nativeWindowUser = () => {
+  const user = userEvent.setup()
+  return {
+    ...user,
+    press: async (...args: Parameters<typeof user.press>) => {
+      const before = screen.queryAllByTestId(/-window$/, { includeHiddenElements: true })
+      await user.press(...args)
+      for (const window of before) {
+        if (!screen.queryByTestId(window.props.testID, { includeHiddenElements: true }))
+          await act(() => window.props.onDismiss?.())
+      }
+      for (const window of screen.queryAllByTestId(/-window$/, { includeHiddenElements: true })) {
+        if (!before.some((prior) => prior.props.testID === window.props.testID)) await fireEvent(window, "show")
+      }
+    },
+  }
+}
+
+it("renders the standalone ListBoxItem with actual parent selection and guard ownership", async () => {
   await renderShowcase()
   const user = userEvent.setup()
+  await user.press(screen.getByRole("button", { name: "Select scene" }))
+  const row = () => screen.getByRole("radio", { name: "Standalone choice zero" })
+  expect(row().props.nativeID).toBe("standalone-available")
+  await user.press(row())
+  expect(row().props.nativeID).toBe("standalone-selected")
+  expect(screen.getByTestId("select-state")).toHaveTextContent(/Value: number:0.*Changes: 1/)
+  await user.press(screen.getByRole("button", { name: "Toggle Select read-only" }))
+  await user.press(row())
+  expect(screen.getByTestId("select-state")).toHaveTextContent(/Changes: 1.*read-only/)
+})
+
+it("composes controlled and uncontrolled Select flows and blocks disabled/read-only changes", async () => {
+  await renderShowcase()
+  const user = nativeWindowUser()
   const press = async (name: string) => user.press(screen.getByRole("button", { name }))
   await press("Select scene")
   await press("Showcase choice")
+  expect(screen.getByTestId("showcase-select", { includeHiddenElements: true }).props.nativeID).toBe("showcase-open")
   await user.press(screen.getByRole("radio", { name: "String zero" }))
   expect(screen.getByTestId("select-state")).toHaveTextContent(/Value: string:0.*Changes: 1.*Open: no.*Open events: 2/)
+  expect(screen.getByTestId("showcase-select").props.nativeID).toBe("showcase-closed")
   await press("Showcase choice")
   await press("Close choices")
   expect(screen.getByTestId("select-state")).toHaveTextContent(/Changes: 1.*Open events: 4/)
@@ -294,7 +407,7 @@ it("composes controlled and uncontrolled Select flows and blocks disabled/read-o
 
 it("retains Select identity through removal, empty collections, themes and fixtures and resets explicitly", async () => {
   await renderShowcase()
-  const user = userEvent.setup()
+  const user = nativeWindowUser()
   const press = async (name: string) => user.press(screen.getByRole("button", { name }))
   await press("Select scene")
   await press("Showcase choice")
@@ -323,7 +436,7 @@ it("retains Select identity through removal, empty collections, themes and fixtu
 
 it("uses custom Select visuals while preserving explicit row names and selected state", async () => {
   await renderShowcase()
-  const user = userEvent.setup()
+  const user = nativeWindowUser()
   await user.press(screen.getByRole("button", { name: "Select scene" }))
   await user.press(screen.getByRole("button", { name: "Toggle Select custom content" }))
   expect(screen.getByText("Picked none")).toBeOnTheScreen()
@@ -342,9 +455,12 @@ it("composes multiline editing, final native submit text and controlled/uncontro
   await press("Multiline/Radio scene")
   const notes = "Bonjour Montréal\nComplete second line"
   await user.type(screen.getByTestId("multiline-draft"), notes, { skipBlur: true })
+  expect(screen.getByTestId("multiline-draft").props.nativeID).toBe("multiline-draft-editable")
   await fireEvent.changeText(screen.getByTestId("multiline-submit"), "B")
   await fireEvent(screen.getByTestId("multiline-submit"), "submitEditing", { nativeEvent: { text: "Bonjour final" } })
   await user.press(screen.getByRole("radio", { name: "Radio second" }))
+  expect(screen.getByTestId("multiline-radio-group").props.nativeID).toBe("multiline-radio-second")
+  expect(screen.getByTestId("multiline-radio-second").props.nativeID).toBe("multiline-radio-selected")
   await user.press(screen.getByRole("radio", { name: "Radio second" }))
   await user.press(screen.getByRole("radio", { name: "Radio unavailable" }))
   await user.press(screen.getByRole("radio", { name: "Uncontrolled second" }))
@@ -407,4 +523,10 @@ it("retains radio values through removal, themes, fixtures and rotation and rese
   } finally {
     await act(() => Dimensions.set(previous))
   }
+})
+
+it("opens the public Toaster scene through normal navigation", async () => {
+  await renderShowcase()
+  await userEvent.setup().press(screen.getByRole("button", { name: "Toaster scene" }))
+  expect(screen.getByTestId("toaster-fixture-state")).toHaveTextContent(/ID number:0.*Position top-right/)
 })

@@ -1,0 +1,206 @@
+{
+  "source": {
+    "path": "packages/react/src/components/Panel/PanelStyles.module.css",
+    "sha256": "df3658550291bd80a57e7b1137d4bbd2ac38e1843ba558d9760b02651aa65d9e",
+    "fixture": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/planning/component-library/fixtures/native-panel/filter-reference.mjs"
+  },
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+  "results": [
+    {
+      "id": "prefix",
+      "from": "brightness(50%) blur(4px)",
+      "to": "brightness(150%) blur(12px) opacity(25%)",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": [
+        "brightness(0.5) blur(4px) opacity(1)",
+        "brightness(0.629162) blur(5.0333px) opacity(0.903129)",
+        "brightness(1) blur(8px) opacity(0.625)",
+        "brightness(1.37084) blur(10.9667px) opacity(0.346871)",
+        "brightness(1.5) blur(12px) opacity(0.25)"
+      ]
+    },
+    {
+      "id": "none",
+      "from": "none",
+      "to": "brightness(.4) contrast(2) grayscale(.8) hue-rotate(180deg) invert(.6) opacity(.2) saturate(2) sepia(.9) blur(10px)",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": [
+        "brightness(1) contrast(1) grayscale(0) hue-rotate(0deg) invert(0) opacity(1) saturate(1) sepia(0) blur(0px)",
+        "brightness(0.922503) contrast(1.12916) grayscale(0.10333) hue-rotate(23.2491deg) invert(0.0774972) opacity(0.89667) saturate(1.12916) sepia(0.116246) blur(1.29162px)",
+        "brightness(0.7) contrast(1.5) grayscale(0.4) hue-rotate(90deg) invert(0.3) opacity(0.6) saturate(1.5) sepia(0.45) blur(5px)",
+        "brightness(0.477497) contrast(1.87084) grayscale(0.69667) hue-rotate(156.751deg) invert(0.522503) opacity(0.30333) saturate(1.87084) sepia(0.783754) blur(8.70838px)",
+        "brightness(0.4) contrast(2) grayscale(0.8) hue-rotate(180deg) invert(0.6) opacity(0.2) saturate(2) sepia(0.9) blur(10px)"
+      ]
+    },
+    {
+      "id": "removal",
+      "from": "blur(10px)",
+      "to": "none",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": ["blur(10px)", "blur(8.70838px)", "blur(5px)", "blur(1.29162px)", "blur(0px)"]
+    },
+    {
+      "id": "long-angle",
+      "from": "hue-rotate(400deg)",
+      "to": "hue-rotate(20deg)",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": [
+        "hue-rotate(400deg)",
+        "hue-rotate(350.918deg)",
+        "hue-rotate(210deg)",
+        "hue-rotate(69.0815deg)",
+        "hue-rotate(20deg)"
+      ]
+    },
+    {
+      "id": "radians",
+      "from": "hue-rotate(1rad)",
+      "to": "hue-rotate(-1rad)",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": [
+        "hue-rotate(57.2958deg)",
+        "hue-rotate(42.4949deg)",
+        "hue-rotate(0deg)",
+        "hue-rotate(-42.4949deg)",
+        "hue-rotate(-57.2958deg)"
+      ]
+    },
+    {
+      "id": "grayscale-clamp",
+      "from": "grayscale(200%)",
+      "to": "grayscale(0%)",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": ["grayscale(1)", "grayscale(0.870838)", "grayscale(0.5)", "grayscale(0.129162)", "grayscale(0)"]
+    },
+    {
+      "id": "opacity-clamp",
+      "from": "opacity(200%)",
+      "to": "opacity(0%)",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": ["opacity(1)", "opacity(0.870838)", "opacity(0.5)", "opacity(0.129162)", "opacity(0)"]
+    },
+    {
+      "id": "invert-clamp",
+      "from": "invert(200%)",
+      "to": "invert(0%)",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": ["invert(1)", "invert(0.870838)", "invert(0.5)", "invert(0.129162)", "invert(0)"]
+    },
+    {
+      "id": "sepia-clamp",
+      "from": "sepia(200%)",
+      "to": "sepia(0%)",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": ["sepia(1)", "sepia(0.870838)", "sepia(0.5)", "sepia(0.129162)", "sepia(0)"]
+    },
+    {
+      "id": "shadow-colors",
+      "from": "drop-shadow(2px 4px 6px rgba(255, 0, 0, .5))",
+      "to": "drop-shadow(10px -8px 2px rgba(0, 0, 255, .25))",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": [
+        "drop-shadow(rgba(255, 0, 0, 0.5) 2px 4px 6px)",
+        "drop-shadow(rgba(237, 0, 18, 0.47) 3.0333px 2.45006px 5.48335px)",
+        "drop-shadow(rgba(170, 0, 85, 0.376) 6px -2px 4px)",
+        "drop-shadow(rgba(58, 0, 197, 0.282) 8.9667px -6.45006px 2.51665px)",
+        "drop-shadow(rgba(0, 0, 255, 0.25) 10px -8px 2px)"
+      ]
+    },
+    {
+      "id": "shadow-default-color",
+      "from": "drop-shadow(2px 4px)",
+      "to": "drop-shadow(6px 8px 2px)",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": [
+        "drop-shadow(rgb(32, 64, 128) 2px 4px 0px)",
+        "drop-shadow(rgb(32, 64, 128) 2.51665px 4.51665px 0.258324px)",
+        "drop-shadow(rgb(32, 64, 128) 4px 6px 1px)",
+        "drop-shadow(rgb(32, 64, 128) 5.48335px 7.48335px 1.74168px)",
+        "drop-shadow(rgb(32, 64, 128) 6px 8px 2px)"
+      ]
+    },
+    {
+      "id": "shadow-addition",
+      "from": "none",
+      "to": "drop-shadow(8px -4px 6px rgba(64, 128, 192, .6))",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": [
+        "drop-shadow(rgba(0, 0, 0, 0) 0px 0px 0px)",
+        "drop-shadow(rgba(64, 128, 192, 0.08) 1.0333px -0.516648px 0.774972px)",
+        "drop-shadow(rgba(64, 128, 192, 0.3) 4px -2px 3px)",
+        "drop-shadow(rgba(64, 128, 192, 0.52) 6.9667px -3.48335px 5.22503px)",
+        "drop-shadow(rgba(64, 128, 192, 0.6) 8px -4px 6px)"
+      ]
+    },
+    {
+      "id": "shadow-removal",
+      "from": "drop-shadow(8px -4px 6px rgba(64, 128, 192, .6))",
+      "to": "none",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": [
+        "drop-shadow(rgba(64, 128, 192, 0.6) 8px -4px 6px)",
+        "drop-shadow(rgba(64, 128, 192, 0.52) 6.9667px -3.48335px 5.22503px)",
+        "drop-shadow(rgba(64, 128, 192, 0.3) 4px -2px 3px)",
+        "drop-shadow(rgba(64, 128, 192, 0.08) 1.0333px -0.516648px 0.774972px)",
+        "drop-shadow(rgba(0, 0, 0, 0) 0px 0px 0px)"
+      ]
+    },
+    {
+      "id": "repeat",
+      "from": "blur(2px) blur(6px)",
+      "to": "blur(4px) blur(10px)",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": [
+        "blur(2px) blur(6px)",
+        "blur(2.25832px) blur(6.51665px)",
+        "blur(3px) blur(8px)",
+        "blur(3.74168px) blur(9.48335px)",
+        "blur(4px) blur(10px)"
+      ]
+    },
+    {
+      "id": "mismatch",
+      "from": "brightness(.5) blur(4px)",
+      "to": "blur(8px) brightness(1.5)",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": [
+        "brightness(0.5) blur(4px)",
+        "brightness(0.5) blur(4px)",
+        "blur(8px) brightness(1.5)",
+        "blur(8px) brightness(1.5)",
+        "blur(8px) brightness(1.5)"
+      ]
+    },
+    {
+      "id": "empty-brightness",
+      "from": "brightness()",
+      "to": "brightness(2)",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": ["brightness(1)", "brightness(1.12916)", "brightness(1.5)", "brightness(1.87084)", "brightness(2)"]
+    },
+    {
+      "id": "empty-opacity",
+      "from": "opacity()",
+      "to": "opacity(.4)",
+      "duration": 350,
+      "easing": "ease-in-out",
+      "values": ["opacity(1)", "opacity(0.922503)", "opacity(0.7)", "opacity(0.477497)", "opacity(0.4)"]
+    }
+  ]
+}

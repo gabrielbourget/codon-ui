@@ -1,16 +1,16 @@
 import { Children, Fragment, isValidElement, type ReactNode } from "react"
 import type { StyleProp, TextStyle } from "react-native"
 
-import { Text } from "../Text/Text"
+import { NativeText as Text } from "../Text/Text"
 
 export const getNativeButtonContent = (children: ReactNode, ownedStyles?: StyleProp<TextStyle>) => {
   const content: ReactNode[] = []
-  let phrase: (string | number)[] = []
+  let phrase: (string | number | bigint)[] = []
   let phraseKey: string
   const finishPhrase = () => {
     if (!phrase.length) return
     content.push(
-      <Text key={phraseKey} customStyles={ownedStyles}>
+      <Text key={phraseKey} customStyles={ownedStyles} nativeColorIsAnimated>
         {phrase}
       </Text>,
     )
@@ -22,7 +22,7 @@ export const getNativeButtonContent = (children: ReactNode, ownedStyles?: StyleP
       const key = [...scope, element?.key ?? index]
       if (Array.isArray(child)) {
         visit(child, key)
-      } else if (typeof child === "string" || typeof child === "number") {
+      } else if (typeof child === "string" || typeof child === "number" || typeof child === "bigint") {
         if (!phrase.length) phraseKey = JSON.stringify(key)
         phrase.push(child)
       } else if (element?.type === Fragment) {

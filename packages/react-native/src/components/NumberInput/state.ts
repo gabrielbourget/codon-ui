@@ -68,6 +68,7 @@ export const useNumberInputState = (props: TNativeNumberInputProps) => {
   const increment = model.step(draft, 1)
   const decrement = model.step(draft, -1)
   return {
+    configurationKey: model.key,
     value: authoritative === 0 ? 0 : authoritative,
     inputValue: draft,
     canIncrement: increment !== undefined,
@@ -95,6 +96,9 @@ export const useNumberInputState = (props: TNativeNumberInputProps) => {
     },
     pressStart: () => {
       press.current = { pending: true, cancelled: blocked }
+    },
+    pressEnd: () => {
+      press.current.pending = false
     },
     step: (direction: -1 | 1, fromPress = false) => {
       const cancelled = fromPress && press.current.cancelled

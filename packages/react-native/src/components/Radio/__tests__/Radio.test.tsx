@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, userEvent } from "@testing-library/react-native"
+import { act, fireEvent, render, screen, userEvent } from "@testing-library/react-native"
 import { createRef, Fragment } from "react"
 import { Platform, View } from "react-native"
 
@@ -16,6 +16,23 @@ afterEach(() => jest.useRealTimers())
 const event = { nativeEvent: { timestamp: 100 } }
 const hidden = { includeHiddenElements: true }
 const checked = (name: string) => screen.getByRole("radio", { name }).props.accessibilityState.checked
+
+it("forwards the original native activation object while retaining group-owned selection", async () => {
+  const onPress = jest.fn(),
+    onChange = jest.fn()
+  await render(
+    <RadioGroup aria-label="Choices" value={null} onChange={onChange}>
+      <Radio value="one" aria-label="One" onPress={onPress} />
+    </RadioGroup>,
+  )
+  const control = screen.getByRole("radio")
+  await fireEvent(control, "press", event)
+  expect(onPress.mock.calls).toEqual([[event]])
+  expect(onPress.mock.calls[0][0]).toBe(event)
+  expect(onChange.mock.calls).toEqual([["one"]])
+  expect(control.props.accessibilityState.checked).toBe(false)
+  expect(control.props.value).toBeUndefined()
+})
 
 it("selects one wrapped member, leaves reselection quiet and preserves native press observation", async () => {
   const onChange = jest.fn(),
@@ -265,9 +282,13 @@ it("uses pressed before hover for unselected marks, stable selected action roles
     </NativeThemeProvider>,
   )
   await fireEvent(screen.getByRole("radio"), "hoverIn", event)
+  expect(screen.getByTestId("radio-shape", hidden)).toHaveStyle({ backgroundColor: "#171717" })
+  await act(() => jest.advanceTimersByTime(250))
   expect(screen.getByTestId("radio-shape", hidden)).toHaveStyle({ backgroundColor: "#192237" })
   await fireEvent(screen.getByRole("radio"), "pressIn", event)
   await fireEvent(screen.getByRole("radio"), "focus", event)
+  expect(screen.getByTestId("radio-shape", hidden)).toHaveStyle({ outlineWidth: 1.5, outlineOffset: 0 })
+  await act(() => jest.advanceTimersByTime(250))
   expect(screen.getByTestId("radio-shape", hidden)).toHaveStyle({
     backgroundColor: "#1b2e57",
     borderRadius: 10000,
@@ -281,6 +302,7 @@ it("uses pressed before hover for unselected marks, stable selected action roles
       </RadioGroup>
     </NativeThemeProvider>,
   )
+  await act(() => jest.advanceTimersByTime(250))
   expect(screen.getByTestId("radio-shape", hidden)).toHaveStyle({ backgroundColor: "#2563eb" })
   await rerender(
     <RadioGroup aria-label="Choices">

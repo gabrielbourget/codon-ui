@@ -1,5 +1,5 @@
 import { useRef, useState } from "react"
-import { Keyboard, View } from "react-native"
+import { Keyboard, Pressable, TextInput, View } from "react-native"
 
 import {
   AVAILABLE_CORNER_GEOMETRY_CODES,
@@ -72,6 +72,9 @@ export const MultilineRadioScene = () => {
       <Text>Default Return inserts a newline. Bonjour Montréal — write complete bilingual notes.</Text>
       <TextArea
         ref={inputRef}
+        render={(props, state) => (
+          <TextInput {...props} nativeID={`multiline-draft-${state.isReadOnly ? "readonly" : "editable"}`} />
+        )}
         testID="multiline-draft"
         aria-label="Multiline notes"
         value={draft}
@@ -120,6 +123,7 @@ export const MultilineRadioScene = () => {
       </View>
       <Text>Controlled choices</Text>
       <RadioGroup
+        render={(props, state) => <View {...props} nativeID={`multiline-radio-${state.value ?? "empty"}`} />}
         testID="multiline-radio-group"
         aria-label="Controlled radio choices"
         value={value}
@@ -148,6 +152,9 @@ export const MultilineRadioScene = () => {
               key={item.value}
               value={item.value}
               accessibilityLabel={item.name}
+              render={(props, state) => (
+                <Pressable {...props} nativeID={`multiline-radio-${state.isSelected ? "selected" : "idle"}`} />
+              )}
               testID={`multiline-radio-${item.value}`}
               isDisabled={item.value === "unavailable"}
               order={order}

@@ -1,0 +1,1491 @@
+{
+  "canonicalSourceRef": "ddc9f066f67af4742e05e04bd870726141c44129",
+  "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+  "canonicalPropertyCount": 98,
+  "nativePropertyCount": 93,
+  "props": {
+    "aria-describedby": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Native host labels/hints remain explicit under the approved group contract; no DOM description/details ID association or browser validation producer is claimed."
+    },
+    "aria-details": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Native host labels/hints remain explicit under the approved group contract; no DOM description/details ID association or browser validation producer is claimed."
+    },
+    "aria-errormessage": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_FORM_VALIDATION_EXCLUSION",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The exact approved group contract excludes DOM form submission/validation; host validation/names/hints remain explicit and no fake form or required-state protocol is introduced."
+    },
+    "aria-label": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "aria-label",
+      "nativeType": "string | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Consume or forward the actual native property with its native type, caller identity/precedence and platform applicability; installed output remains separate."
+    },
+    "aria-labelledby": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "aria-labelledby",
+      "nativeType": "string | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Consume or forward the actual native property with its native type, caller identity/precedence and platform applicability; installed output remains separate."
+    },
+    "children": {
+      "canonicalType": "import(\"react-aria-components/dist/types/src/utils\").ChildrenOrFunction<RadioGroupRenderProps>",
+      "required": false,
+      "capability": "CAP.radio-group.008",
+      "disposition": "APPROVED_REACT_NODE_CHILDREN",
+      "nativeProp": "children",
+      "nativeType": "ReactNode",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Original Radio And RadioGroup packet explicitly keeps group children as ReactNode without a function-children contract. Render authored nodes normally through private context, without walking/cloning; member callbacks remain independent."
+    },
+    "className": {
+      "canonicalType": "import(\"react-aria-components/dist/types/src/utils\").ClassNameOrFunction<RadioGroupRenderProps> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.005",
+      "disposition": "APPROVED_NATIVE_STYLE",
+      "nativeProp": "customStyles/style",
+      "nativeType": "StyleProp<ViewStyle> or native state style callback",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Both browser class hooks map to computed/custom/final native style ownership with post-custom defaultStyle."
+    },
+    "customClassName": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.005",
+      "disposition": "APPROVED_NATIVE_STYLE",
+      "nativeProp": "customStyles/style",
+      "nativeType": "StyleProp<ViewStyle> or native state style callback",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Both browser class hooks map to computed/custom/final native style ownership with post-custom defaultStyle."
+    },
+    "customStyles": {
+      "canonicalType": "CSSProperties | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.004",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "customStyles",
+      "nativeType": "StyleProp<ViewStyle>",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Consume or forward the actual native property with its native type, caller identity/precedence and platform applicability; installed output remains separate."
+    },
+    "data-testid": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.007",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "data-testid",
+      "nativeType": "string | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Consume or forward the actual native property with its native type, caller identity/precedence and platform applicability; installed output remains separate."
+    },
+    "defaultValue": {
+      "canonicalType": "string | null | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.009",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "defaultValue",
+      "nativeType": "string | null | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Native group owns string/null controlled selection, one initial default, string change requests and quiet reselection. Preserve undefined handoff, null clearing, owner veto/echo, removal/reinsertion and nested context boundaries."
+    },
+    "dir": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "form": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_FORM_VALIDATION_EXCLUSION",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The exact approved group contract excludes DOM form submission/validation; host validation/names/hints remain explicit and no fake form or required-state protocol is introduced."
+    },
+    "hidden": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "id": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "id",
+      "nativeType": "string | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Consume or forward the actual native property with its native type, caller identity/precedence and platform applicability; installed output remains separate."
+    },
+    "inert": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "isDisabled": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.003",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "isDisabled",
+      "nativeType": "boolean | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Consume or forward the actual native property with its native type, caller identity/precedence and platform applicability; installed output remains separate."
+    },
+    "isInvalid": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_FORM_VALIDATION_EXCLUSION",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The exact approved group contract excludes DOM form submission/validation; host validation/names/hints remain explicit and no fake form or required-state protocol is introduced."
+    },
+    "isReadOnly": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.003",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "isReadOnly",
+      "nativeType": "boolean | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Consume or forward the actual native property with its native type, caller identity/precedence and platform applicability; installed output remains separate."
+    },
+    "isRequired": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_FORM_VALIDATION_EXCLUSION",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The exact approved group contract excludes DOM form submission/validation; host validation/names/hints remain explicit and no fake form or required-state protocol is introduced."
+    },
+    "lang": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "name": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_FORM_VALIDATION_EXCLUSION",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The exact approved group contract excludes DOM form submission/validation; host validation/names/hints remain explicit and no fake form or required-state protocol is introduced."
+    },
+    "onAnimationEnd": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onAnimationEndCapture": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onAnimationIteration": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onAnimationIterationCapture": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onAnimationStart": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onAnimationStartCapture": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onAuxClick": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onAuxClickCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onBlur": {
+      "canonicalType": "((e: import(\"@types/react/index\").FocusEvent<Element, Element>) => void) | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onBlur",
+      "nativeType": "((e: import(\"react-native/types/index\").BlurEvent) => void) | null | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Consume or forward the actual native property with its native type, caller identity/precedence and platform applicability; installed output remains separate."
+    },
+    "onChange": {
+      "canonicalType": "((value: string) => void) | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.009",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onChange",
+      "nativeType": "((value: string) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Native group owns string/null controlled selection, one initial default, string change requests and quiet reselection. Preserve undefined handoff, null clearing, owner veto/echo, removal/reinsertion and nested context boundaries."
+    },
+    "onClick": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onClickCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onContextMenu": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onContextMenuCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onDoubleClick": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onDoubleClickCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onFocus": {
+      "canonicalType": "((e: import(\"@types/react/index\").FocusEvent<Element, Element>) => void) | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onFocus",
+      "nativeType": "((e: import(\"react-native/types/index\").FocusEvent) => void) | null | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Consume or forward the actual native property with its native type, caller identity/precedence and platform applicability; installed output remains separate."
+    },
+    "onFocusChange": {
+      "canonicalType": "((isFocused: boolean) => void) | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_EVENT_MAPPING",
+      "nativeProp": "onFocus/onBlur",
+      "nativeType": "core View native focus event callbacks",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Use the approved actual native focus/blur callbacks; browser focus-within/event propagation is not fabricated."
+    },
+    "onGotPointerCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onGotPointerCaptureCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onLostPointerCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onLostPointerCaptureCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onMouseDown": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onMouseDownCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onMouseEnter": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onMouseLeave": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onMouseMove": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onMouseMoveCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onMouseOut": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onMouseOutCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onMouseOver": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onMouseOverCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onMouseUp": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onMouseUpCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onPointerCancel": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerCancel",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Consume or forward the actual native property with its native type, caller identity/precedence and platform applicability; installed output remains separate."
+    },
+    "onPointerCancelCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerCancelCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Consume or forward the actual native property with its native type, caller identity/precedence and platform applicability; installed output remains separate."
+    },
+    "onPointerDown": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerDown",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Consume or forward the actual native property with its native type, caller identity/precedence and platform applicability; installed output remains separate."
+    },
+    "onPointerDownCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerDownCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Consume or forward the actual native property with its native type, caller identity/precedence and platform applicability; installed output remains separate."
+    },
+    "onPointerEnter": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerEnter",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Consume or forward the actual native property with its native type, caller identity/precedence and platform applicability; installed output remains separate."
+    },
+    "onPointerLeave": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerLeave",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Consume or forward the actual native property with its native type, caller identity/precedence and platform applicability; installed output remains separate."
+    },
+    "onPointerMove": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerMove",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Consume or forward the actual native property with its native type, caller identity/precedence and platform applicability; installed output remains separate."
+    },
+    "onPointerMoveCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerMoveCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Consume or forward the actual native property with its native type, caller identity/precedence and platform applicability; installed output remains separate."
+    },
+    "onPointerOut": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onPointerOutCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onPointerOver": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onPointerOverCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onPointerUp": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerUp",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Consume or forward the actual native property with its native type, caller identity/precedence and platform applicability; installed output remains separate."
+    },
+    "onPointerUpCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerUpCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Consume or forward the actual native property with its native type, caller identity/precedence and platform applicability; installed output remains separate."
+    },
+    "onScroll": {
+      "canonicalType": "import(\"@types/react/index\").UIEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onScrollCapture": {
+      "canonicalType": "import(\"@types/react/index\").UIEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onTouchCancel": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchCancel",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Consume or forward the actual native property with its native type, caller identity/precedence and platform applicability; installed output remains separate."
+    },
+    "onTouchCancelCapture": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onTouchEnd": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchEnd",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Consume or forward the actual native property with its native type, caller identity/precedence and platform applicability; installed output remains separate."
+    },
+    "onTouchEndCapture": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchEndCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Consume or forward the actual native property with its native type, caller identity/precedence and platform applicability; installed output remains separate."
+    },
+    "onTouchMove": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchMove",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Consume or forward the actual native property with its native type, caller identity/precedence and platform applicability; installed output remains separate."
+    },
+    "onTouchMoveCapture": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onTouchStart": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchStart",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Consume or forward the actual native property with its native type, caller identity/precedence and platform applicability; installed output remains separate."
+    },
+    "onTouchStartCapture": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onTransitionCancel": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onTransitionCancelCapture": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onTransitionEnd": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onTransitionEndCapture": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onTransitionRun": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onTransitionRunCapture": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onTransitionStart": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onTransitionStartCapture": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onWheel": {
+      "canonicalType": "import(\"@types/react/index\").WheelEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "onWheelCapture": {
+      "canonicalType": "import(\"@types/react/index\").WheelEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "orientation": {
+      "canonicalType": "\"horizontal\" | \"vertical\" | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.002",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "orientation",
+      "nativeType": "\"horizontal\" | \"vertical\" | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Consume or forward the actual native property with its native type, caller identity/precedence and platform applicability; installed output remains separate."
+    },
+    "render": {
+      "canonicalType": "import(\"react-aria-components/dist/types/src/utils\").DOMRenderFunction<\"div\", RadioGroupRenderProps> | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.008",
+      "disposition": "NATIVE_ROOT_RENDERER",
+      "nativeProp": "render",
+      "nativeType": "((props: ViewProps & RefAttributes<View>, state: TNativeRadioGroupRenderState) => ReactElement) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Pass actual native View props/ref/original ReactNode children and the existing native readonly value/isDisabled/isReadOnly data. Style \u2192 root order matches the independent canonical probe; the private provider preserves member selection and native event/ref lifetime."
+    },
+    "slot": {
+      "canonicalType": "string | null | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_REACT_ARIA_EXCLUSION",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The exact original shared contract excludes React Aria slot/inputRef/state-object APIs; private native member context remains supported without a new public generic context."
+    },
+    "style": {
+      "canonicalType": "(CSSProperties | ((values: RadioGroupRenderProps & { defaultStyle: CSSProperties; }) => CSSProperties | undefined)) | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.005",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "style",
+      "nativeType": "StyleProp<ViewStyle> | ((state: TNativeRadioGroupStyleState) => StyleProp<ViewStyle>)",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Consume or forward the actual native property with its native type, caller identity/precedence and platform applicability; installed output remains separate."
+    },
+    "translate": {
+      "canonicalType": "\"yes\" | \"no\" | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The approved native core View host excludes DOM event/form/attribute APIs; native props/events/labels/hints retain their own actual contracts rather than fabricating a DOM producer."
+    },
+    "validate": {
+      "canonicalType": "((value: string) => import(\"@react-types/shared/src/inputs\").ValidationError | true | null | undefined) | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_FORM_VALIDATION_EXCLUSION",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The exact approved group contract excludes DOM form submission/validation; host validation/names/hints remain explicit and no fake form or required-state protocol is introduced."
+    },
+    "validationBehavior": {
+      "canonicalType": "\"native\" | \"aria\" | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.010",
+      "disposition": "APPROVED_FORM_VALIDATION_EXCLUSION",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "The exact approved group contract excludes DOM form submission/validation; host validation/names/hints remain explicit and no fake form or required-state protocol is introduced."
+    },
+    "value": {
+      "canonicalType": "string | null | undefined",
+      "required": false,
+      "capability": "CAP.radio-group.009",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "value",
+      "nativeType": "string | null | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-multiline-radio-pass.md \u2014 original owner-approved Radio And RadioGroup contract, approved boundary and ledger8.22; standing conventional-port authority roadmap3.5. Native string/null ownership, explicit names/traits, member-only opacity, ordinary ReactNode group children, native style state and DOM form/validation/React Aria state/slots/web keyboard exclusions remain.",
+      "expected": "Native group owns string/null controlled selection, one initial default, string change requests and quiet reselection. Preserve undefined handoff, null clearing, owner veto/echo, removal/reinsertion and nested context boundaries."
+    }
+  },
+  "nativeOnlyProps": [
+    {
+      "name": "accessibilityActions",
+      "optional": true,
+      "type": "readonly Readonly<{ name: import(\"react-native/types/index\").AccessibilityActionName | string; label?: string | undefined; }>[] | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityElementsHidden",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityHint",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityIgnoresInvertColors",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityLabel",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": [
+        "packages/react-native/src/components/RadioGroup/types.ts",
+        "packages/react-native/src/components/RadioGroup/types.ts"
+      ]
+    },
+    {
+      "name": "accessibilityLabelledBy",
+      "optional": true,
+      "type": "string | string[] | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityLanguage",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityLargeContentTitle",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityLiveRegion",
+      "optional": true,
+      "type": "\"none\" | \"polite\" | \"assertive\" | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityRespondsToUserInteraction",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityShowsLargeContentViewer",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityState",
+      "optional": true,
+      "type": "Omit<import(\"react-native/types/index\").AccessibilityState, \"disabled\" | \"checked\" | \"selected\"> | undefined",
+      "declarations": ["packages/react-native/src/components/RadioGroup/types.ts"]
+    },
+    {
+      "name": "accessibilityValue",
+      "optional": true,
+      "type": "import(\"react-native/types/index\").AccessibilityValue | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityViewIsModal",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-busy",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-expanded",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-hidden",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-live",
+      "optional": true,
+      "type": "\"polite\" | \"assertive\" | \"off\" | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-modal",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-valuemax",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-valuemin",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-valuenow",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-valuetext",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "collapsable",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "collapsableChildren",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "focusable",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "hasTVPreferredFocus",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "hitSlop",
+      "optional": true,
+      "type": "number | import(\"react-native/types/index\").Insets | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "importantForAccessibility",
+      "optional": true,
+      "type": "\"auto\" | \"yes\" | \"no\" | \"no-hide-descendants\" | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "isTVSelectable",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "nativeID",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "needsOffscreenAlphaCompositing",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "onAccessibilityAction",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").AccessibilityActionEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "onAccessibilityEscape",
+      "optional": true,
+      "type": "(() => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "onAccessibilityTap",
+      "optional": true,
+      "type": "(() => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "onLayout",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").LayoutChangeEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "onMagicTap",
+      "optional": true,
+      "type": "(() => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "onMoveShouldSetResponder",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onMoveShouldSetResponderCapture",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onPointerEnterCapture",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Types/CoreEventTypes.d.ts"
+      ]
+    },
+    {
+      "name": "onPointerLeaveCapture",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Types/CoreEventTypes.d.ts"
+      ]
+    },
+    {
+      "name": "onResponderEnd",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onResponderGrant",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onResponderMove",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onResponderReject",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onResponderRelease",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onResponderStart",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onResponderTerminate",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onResponderTerminationRequest",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onStartShouldSetResponder",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onStartShouldSetResponderCapture",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "pointerEvents",
+      "optional": true,
+      "type": "\"box-none\" | \"none\" | \"box-only\" | \"auto\" | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "removeClippedSubviews",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "renderToHardwareTextureAndroid",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "screenReaderFocusable",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "shouldRasterizeIOS",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "tabIndex",
+      "optional": true,
+      "type": "0 | -1 | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "testID",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "tvParallaxMagnification",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "tvParallaxShiftDistanceX",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "tvParallaxShiftDistanceY",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "tvParallaxTiltAngle",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    }
+  ],
+  "renderStateMapping": {
+    "canonical": ["orientation", "isDisabled", "isReadOnly", "isRequired", "isInvalid", "state"],
+    "native": ["value", "isDisabled", "isReadOnly"],
+    "approvedDifferences": "Original group style state is value/disabled/read-only plus post-custom defaultStyle; root rendering uses that existing native data. Orientation is the native group prop/layout, required/invalid messages remain host-owned, React Aria state excluded. Ordinary ReactNode-only group children is an explicit original approval."
+  },
+  "scope": "All seven pinned root cases, all six complete canonical group files, complete native counterpart map, actual inherited renderer/context/ref/order probe. Source-only G01; native/appearance/profile/closure remain independent. Roadmap3.5.71."
+}

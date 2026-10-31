@@ -1,0 +1,1899 @@
+{
+  "canonicalSourceRef": "ddc9f066f67af4742e05e04bd870726141c44129",
+  "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+  "scope": "All128 declared canonical Button properties, all23 complete root cases, inherited callback/render-state/native-host boundary and complete CSS/default/style/ref/event/context/motion dispositions. Native G01 is evaluated against the original complete owner-approved M1-B counterpart, not a claim of browser semantics or installed output. Exact CAP table in roadmap3.5.69.",
+  "props": {
+    "aria-controls": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Original M1-B native accessibility props/state/hint/value replace DOM-only host metadata and document-ID/browser relationships. This property is outside that accepted native host API; no DOM relationship, HTML state token or invented native metadata is claimed."
+    },
+    "aria-current": {
+      "canonicalType": "boolean | \"true\" | \"false\" | \"page\" | \"step\" | \"location\" | \"date\" | \"time\" | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Original M1-B native accessibility props/state/hint/value replace DOM-only host metadata and document-ID/browser relationships. This property is outside that accepted native host API; no DOM relationship, HTML state token or invented native metadata is claimed."
+    },
+    "aria-describedby": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Original M1-B native accessibility props/state/hint/value replace DOM-only host metadata and document-ID/browser relationships. This property is outside that accepted native host API; no DOM relationship, HTML state token or invented native metadata is claimed."
+    },
+    "aria-details": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Original M1-B native accessibility props/state/hint/value replace DOM-only host metadata and document-ID/browser relationships. This property is outside that accepted native host API; no DOM relationship, HTML state token or invented native metadata is claimed."
+    },
+    "aria-disabled": {
+      "canonicalType": "boolean | \"true\" | \"false\" | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_EQUIVALENT",
+      "nativeProp": "isDisabled",
+      "nativeType": "boolean | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "native disabled/busy semantics remain component-owned under the accepted M1-B contract"
+    },
+    "aria-expanded": {
+      "canonicalType": "boolean | \"true\" | \"false\" | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "aria-expanded",
+      "nativeType": "boolean | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "aria-haspopup": {
+      "canonicalType": "boolean | \"true\" | \"false\" | \"menu\" | \"listbox\" | \"tree\" | \"grid\" | \"dialog\" | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Original M1-B native accessibility props/state/hint/value replace DOM-only host metadata and document-ID/browser relationships. This property is outside that accepted native host API; no DOM relationship, HTML state token or invented native metadata is claimed."
+    },
+    "aria-label": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "aria-label",
+      "nativeType": "string | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "aria-labelledby": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "aria-labelledby",
+      "nativeType": "string | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "aria-pressed": {
+      "canonicalType": "boolean | \"true\" | \"false\" | \"mixed\" | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_EQUIVALENT",
+      "nativeProp": "accessibilityState.checked",
+      "nativeType": "native core prop/event combination",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "caller-authored native checked trait through the accepted native accessibility-state surface"
+    },
+    "autoFocus": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "children": {
+      "canonicalType": "import(\"react-aria-components/dist/types/src/utils\").ChildrenOrFunction<ButtonRenderProps>",
+      "required": false,
+      "capability": "CAP.button.001",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "children",
+      "nativeType": "ReactNode | ((state: TNativeButtonChildrenState) => ReactNode)",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Primitive/array/Fragment/bigint phrases use owned Text without cloning authored elements. Render children retain the approved six-field native state plus defaultChildren undefined; explicit authored Text owns its own color clock."
+    },
+    "className": {
+      "canonicalType": "import(\"react-aria-components/dist/types/src/utils\").ClassNameOrFunction<ButtonRenderProps> | undefined",
+      "required": false,
+      "capability": "CAP.button.014",
+      "disposition": "APPROVED_NATIVE_STYLE",
+      "nativeProp": "customStyles/style",
+      "nativeType": "StyleProp<TextStyle> or native state style callback",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Native style layers and state callbacks replace DOM class/className callback plumbing; preserve computed/custom/final ownership."
+    },
+    "color": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.button.017",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "color",
+      "nativeType": "ColorValue | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "colorMode": {
+      "canonicalType": "\"fill\" | \"outline\" | undefined",
+      "required": false,
+      "capability": "CAP.button.003",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "colorMode",
+      "nativeType": "\"fill\" | \"outline\" | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "customClassName": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.button.014",
+      "disposition": "APPROVED_NATIVE_STYLE",
+      "nativeProp": "customStyles/style",
+      "nativeType": "StyleProp<TextStyle> or native state style callback",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Native style layers and state callbacks replace DOM class/className callback plumbing; preserve computed/custom/final ownership."
+    },
+    "customStyles": {
+      "canonicalType": "CSSProperties | undefined",
+      "required": false,
+      "capability": "CAP.button.013",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "customStyles",
+      "nativeType": "StyleProp<TextStyle>",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "data-testid": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.button.020",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "data-testid",
+      "nativeType": "string | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "dir": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Native style.direction/writingDirection own layout/text direction; no DOM dir attribute is forwarded."
+    },
+    "enableFocusStyle": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.button.010",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "enableFocusStyle",
+      "nativeType": "boolean | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "excludeFromTabOrder": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_EQUIVALENT",
+      "nativeProp": "focusable/tabIndex",
+      "nativeType": "native core prop/event combination",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "explicit false/-1 excludes keyboard entry while retaining independent pointer activation"
+    },
+    "form": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "formAction": {
+      "canonicalType": "string | ((formData: FormData) => void | Promise<void>) | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "formEncType": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "formMethod": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "formNoValidate": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "formTarget": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "geometry": {
+      "canonicalType": "\"orthogonal\" | \"rounded\" | \"round\" | undefined",
+      "required": false,
+      "capability": "CAP.button.004",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "geometry",
+      "nativeType": "\"orthogonal\" | \"rounded\" | \"round\" | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "height": {
+      "canonicalType": "string | number | undefined",
+      "required": false,
+      "capability": "CAP.button.002",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "height",
+      "nativeType": "import(\"react-native/types/index\").DimensionValue | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "hidden": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Native display and accessibility visibility props replace the DOM hidden attribute under the approved native host boundary."
+    },
+    "hoverColor": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.button.017",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "hoverColor",
+      "nativeType": "ColorValue | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "id": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "id",
+      "nativeType": "string | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "inert": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Native pointer/focus/accessibility eligibility uses the approved host/control APIs; no browser inert subtree is fabricated."
+    },
+    "isDisabled": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.button.012",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "isDisabled",
+      "nativeType": "boolean | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "isPending": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.button.025",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "isPending",
+      "nativeType": "boolean | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "key": {
+      "canonicalType": "import(\"@types/react/index\").Key | null | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "REACT_ELEMENT_IDENTITY",
+      "nativeProp": "JSX key",
+      "nativeType": "React.Key",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "React owns element reconciliation identity on both platforms; key is not a forwarded host attribute."
+    },
+    "lang": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Native accessibilityLanguage governs speech and the host owns localization; no browser lang attribute is claimed."
+    },
+    "name": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "offsetFocusRing": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.button.010",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "offsetFocusRing",
+      "nativeType": "boolean | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "onAnimationEnd": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onAnimationEndCapture": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onAnimationIteration": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onAnimationIterationCapture": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onAnimationStart": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onAnimationStartCapture": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onAuxClick": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onAuxClickCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onBlur": {
+      "canonicalType": "((e: import(\"@types/react/index\").FocusEvent<Element, Element>) => void) | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onBlur",
+      "nativeType": "((event: import(\"/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/packages/react-native/src/input/types\").TNativeFocusEvent) => void) | null | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "onClick": {
+      "canonicalType": "((e: import(\"@types/react/index\").MouseEvent<import(\"@react-types/shared/src/dom\").FocusableElement>) => void) | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_EQUIVALENT",
+      "nativeProp": "onPress",
+      "nativeType": "((event: TNativePressEvent) => void) | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "semantic native activation callback; preserve original native event and accepted ordering rather than fabricate a browser MouseEvent"
+    },
+    "onClickCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onContextMenu": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_EQUIVALENT",
+      "nativeProp": "onLongPress",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | null | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "authored native long press owns its native event/action; no browser context menu is fabricated"
+    },
+    "onContextMenuCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onDoubleClick": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onDoubleClickCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onFocus": {
+      "canonicalType": "((e: import(\"@types/react/index\").FocusEvent<Element, Element>) => void) | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onFocus",
+      "nativeType": "((event: import(\"/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/packages/react-native/src/input/types\").TNativeFocusEvent) => void) | null | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "onFocusChange": {
+      "canonicalType": "((isFocused: boolean) => void) | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onFocusChange",
+      "nativeType": "((focused: boolean) => void) | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "onGotPointerCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onGotPointerCaptureCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onHoverChange": {
+      "canonicalType": "((isHovering: boolean) => void) | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onHoverChange",
+      "nativeType": "((hovered: boolean) => void) | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "onHoverEnd": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").HoverEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onHoverEnd",
+      "nativeType": "((event: import(\"react-native/types/index\").MouseEvent) => void) | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "onHoverStart": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").HoverEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onHoverStart",
+      "nativeType": "((event: import(\"react-native/types/index\").MouseEvent) => void) | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "onKeyDown": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").KeyboardEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onKeyDown",
+      "nativeType": "((event: import(\"/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/packages/react-native/src/input/types\").TNativeKeyboardEvent) => void) | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "onKeyUp": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").KeyboardEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onKeyUp",
+      "nativeType": "((event: import(\"/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/packages/react-native/src/input/types\").TNativeKeyboardEvent) => void) | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "onLostPointerCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onLostPointerCaptureCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onMouseDown": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onMouseDownCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onMouseEnter": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_EQUIVALENT",
+      "nativeProp": "onHoverStart",
+      "nativeType": "((event: import(\"react-native/types/index\").MouseEvent) => void) | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "native hover-entry callback and its actual native pointer payload/platform eligibility"
+    },
+    "onMouseLeave": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_EQUIVALENT",
+      "nativeProp": "onHoverEnd",
+      "nativeType": "((event: import(\"react-native/types/index\").MouseEvent) => void) | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "native hover-exit callback and its actual native pointer payload/platform eligibility"
+    },
+    "onMouseMove": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onMouseMoveCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onMouseOut": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onMouseOutCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onMouseOver": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onMouseOverCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onMouseUp": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onMouseUpCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onPointerCancel": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerCancel",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "onPointerCancelCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerCancelCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "onPointerDown": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerDown",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "onPointerDownCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerDownCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "onPointerEnter": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerEnter",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "onPointerLeave": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerLeave",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "onPointerMove": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerMove",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "onPointerMoveCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerMoveCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "onPointerOut": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onPointerOutCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onPointerOver": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onPointerOverCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onPointerUp": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerUp",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "onPointerUpCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerUpCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "onPress": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").PressEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPress",
+      "nativeType": "((event: TNativePressEvent) => void) | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "onPressChange": {
+      "canonicalType": "((isPressed: boolean) => void) | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPressChange",
+      "nativeType": "((pressed: boolean) => void) | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "onPressEnd": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").PressEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPressEnd",
+      "nativeType": "((event: TNativePressEvent) => void) | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "onPressStart": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").PressEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPressStart",
+      "nativeType": "((event: TNativePressEvent) => void) | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "onPressUp": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").PressEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPressUp",
+      "nativeType": "((event: TNativePressEvent) => void) | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "onScroll": {
+      "canonicalType": "import(\"@types/react/index\").UIEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onScrollCapture": {
+      "canonicalType": "import(\"@types/react/index\").UIEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onTouchCancel": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchCancel",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "onTouchCancelCapture": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onTouchEnd": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchEnd",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "onTouchEndCapture": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchEndCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "onTouchMove": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchMove",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "onTouchMoveCapture": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onTouchStart": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchStart",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "onTouchStartCapture": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onTransitionCancel": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onTransitionCancelCapture": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onTransitionEnd": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onTransitionEndCapture": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onTransitionRun": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onTransitionRunCapture": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onTransitionStart": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onTransitionStartCapture": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onWheel": {
+      "canonicalType": "import(\"@types/react/index\").WheelEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "onWheelCapture": {
+      "canonicalType": "import(\"@types/react/index\").WheelEventHandler<HTMLButtonElement> | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "order": {
+      "canonicalType": "\"primary\" | \"secondary\" | \"tertiary\" | \"quaternary\" | \"quintenary\" | undefined",
+      "required": false,
+      "capability": "CAP.button.005",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "order",
+      "nativeType": "\"primary\" | \"secondary\" | \"tertiary\" | \"quaternary\" | \"quintenary\" | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "preventFocusOnPress": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "raised": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.button.011",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "raised",
+      "nativeType": "boolean | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "raisedOnHover": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.button.011",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "raisedOnHover",
+      "nativeType": "boolean | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "render": {
+      "canonicalType": "import(\"react-aria-components/dist/types/src/utils\").DOMRenderFunction<\"button\", ButtonRenderProps> | undefined",
+      "required": false,
+      "capability": "CAP.button.024",
+      "disposition": "NATIVE_RENDERER",
+      "nativeProp": "render",
+      "nativeType": "((props: TNativeFocusViewProps & RefAttributes<View>, state: TNativeButtonRenderState) => ReactElement) | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Actual focus-host props/ref and original children pass to render(props,state); current public native state preserves the approved flag/foreground contract and original root lifetime."
+    },
+    "slot": {
+      "canonicalType": "string | null | undefined",
+      "required": false,
+      "capability": "CAP.button.026",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "slot",
+      "nativeType": "string | null | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The existing NativeButtonContext supports default/named/null context slots, caller precedence, original merged refs and event identity; source context cases retain exact outcomes."
+    },
+    "style": {
+      "canonicalType": "(CSSProperties | ((values: ButtonRenderProps & { defaultStyle: CSSProperties; }) => CSSProperties | undefined)) | undefined",
+      "required": false,
+      "capability": "CAP.button.015",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "style",
+      "nativeType": "StyleProp<TextStyle> | ((state: TNativeButtonStyleState) => StyleProp<TNativeButtonRootStyle>)",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "translate": {
+      "canonicalType": "\"yes\" | \"no\" | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "transparent": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.button.019",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "transparent",
+      "nativeType": "boolean | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    },
+    "type": {
+      "canonicalType": "\"button\" | \"submit\" | \"reset\" | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "value": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.button.027",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "The original approved M1-B native host contract uses native props/events/accessibility and rejects the browser-only DOM/form/focus surface; this named DOM property is not silently forwarded or treated as a browser implementation."
+    },
+    "width": {
+      "canonicalType": "string | number | undefined",
+      "required": false,
+      "capability": "CAP.button.002",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "width",
+      "nativeType": "import(\"react-native/types/index\").DimensionValue | undefined",
+      "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 complete owner-approved M1-B packet, Button Contract, native event/state/style/host/DOM exceptions and ten-value theme correction; original approval ledger8.9. Standing conventional-port grant roadmap3.5 (2026-10-17) and later native input/context approvals remain applicable.",
+      "expected": "Consume or forward the declared native property with its actual native type, precedence, owner identity and platform applicability; no installed outcome is inferred."
+    }
+  },
+  "nativeOnlyProps": [
+    {
+      "name": "accessibilityActions",
+      "optional": true,
+      "type": "readonly Readonly<{ name: import(\"react-native/types/index\").AccessibilityActionName | string; label?: string | undefined; }>[] | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityElementsHidden",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityHint",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityIgnoresInvertColors",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityLabel",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityLabelledBy",
+      "optional": true,
+      "type": "string | string[] | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityLanguage",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityLargeContentTitle",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityLiveRegion",
+      "optional": true,
+      "type": "\"none\" | \"polite\" | \"assertive\" | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityRespondsToUserInteraction",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityShowsLargeContentViewer",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityState",
+      "optional": true,
+      "type": "Omit<AccessibilityState, \"disabled\" | \"busy\"> | undefined",
+      "declarations": ["packages/react-native/src/components/Button/types.ts"]
+    },
+    {
+      "name": "accessibilityValue",
+      "optional": true,
+      "type": "import(\"react-native/types/index\").AccessibilityValue | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityViewIsModal",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "android_disableSound",
+      "optional": true,
+      "type": "boolean | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "android_ripple",
+      "optional": true,
+      "type": "import(\"react-native/types/index\").PressableAndroidRippleConfig | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "aria-checked",
+      "optional": true,
+      "type": "boolean | \"mixed\" | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-hidden",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-live",
+      "optional": true,
+      "type": "\"polite\" | \"assertive\" | \"off\" | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-modal",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-selected",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-valuemax",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-valuemin",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-valuenow",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-valuetext",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "cancelable",
+      "optional": true,
+      "type": "boolean | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "collapsable",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "collapsableChildren",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "delayHoverIn",
+      "optional": true,
+      "type": "number | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "delayHoverOut",
+      "optional": true,
+      "type": "number | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "delayLongPress",
+      "optional": true,
+      "type": "number | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "focusable",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "hasTVPreferredFocus",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "hitSlop",
+      "optional": true,
+      "type": "number | import(\"react-native/types/index\").Insets | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "importantForAccessibility",
+      "optional": true,
+      "type": "\"auto\" | \"yes\" | \"no\" | \"no-hide-descendants\" | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "isTVSelectable",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "nativeID",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "needsOffscreenAlphaCompositing",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "onAccessibilityAction",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").AccessibilityActionEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "onAccessibilityEscape",
+      "optional": true,
+      "type": "(() => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "onAccessibilityTap",
+      "optional": true,
+      "type": "(() => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "onHoverIn",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").MouseEvent) => void) | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "onHoverOut",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").MouseEvent) => void) | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "onLayout",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").LayoutChangeEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "onLongPress",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "onMagicTap",
+      "optional": true,
+      "type": "(() => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "onMoveShouldSetResponder",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onMoveShouldSetResponderCapture",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onPointerEnterCapture",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Types/CoreEventTypes.d.ts"
+      ]
+    },
+    {
+      "name": "onPointerLeaveCapture",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Types/CoreEventTypes.d.ts"
+      ]
+    },
+    {
+      "name": "onPressIn",
+      "optional": true,
+      "type": "((event: TNativeInteractionEvent) => void) | undefined",
+      "declarations": ["packages/react-native/src/components/Button/types.ts"]
+    },
+    {
+      "name": "onPressMove",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "onPressOut",
+      "optional": true,
+      "type": "((event: TNativeInteractionEvent) => void) | undefined",
+      "declarations": ["packages/react-native/src/components/Button/types.ts"]
+    },
+    {
+      "name": "onResponderEnd",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onResponderGrant",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onResponderMove",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onResponderReject",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onResponderRelease",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onResponderStart",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onResponderTerminate",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onResponderTerminationRequest",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onStartShouldSetResponder",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onStartShouldSetResponderCapture",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "pointerEvents",
+      "optional": true,
+      "type": "\"box-none\" | \"none\" | \"box-only\" | \"auto\" | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "pressRetentionOffset",
+      "optional": true,
+      "type": "number | import(\"react-native/types/index\").Insets | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "removeClippedSubviews",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "renderToHardwareTextureAndroid",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "screenReaderFocusable",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "shouldRasterizeIOS",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "tabIndex",
+      "optional": true,
+      "type": "0 | -1 | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "testID",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "testOnly_pressed",
+      "optional": true,
+      "type": "boolean | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "tvParallaxMagnification",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "tvParallaxShiftDistanceX",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "tvParallaxShiftDistanceY",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "tvParallaxTiltAngle",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "unstable_pressDelay",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    }
+  ]
+}

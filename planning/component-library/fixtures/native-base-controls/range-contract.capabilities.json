@@ -1,0 +1,2427 @@
+{
+  "canonicalSourceRef": "ddc9f066f67af4742e05e04bd870726141c44129",
+  "approvalSourceRef": "e28c761f:planning/component-library/roadmap.md#36-linearprogress-and-meter-contract",
+  "approvalSHA256": "449274286379516b5d51e228f3b95649ccd36a4a29a143b29929a4c0f9ad4d83",
+  "authority": "Gabriel approved the complete paired native contract on2026-10-17; roadmap3.6. Native dimensions/root-role/name/value/Intl/indeterminate/render-style/core host substitutions and explicit DOM/context/value-label exclusions remain the accepted contract. No new exclusions are introduced.",
+  "scope": "Every declared owned/inherited canonical prop is individually dispositioned. Runtime defaults, all26 original assertions, CSS/layout/motion/style/ref/event/formatting and the two actual canonical renderer probes are mapped in roadmap3.6.1. Native-only props retain the approved core View contract and platform applicability; forbidden owned semantic overrides remain rejected. Installed behavior/pixels/AT/performance are not inferred.",
+  "components": {
+    "LinearProgress": {
+      "canonicalPropertyCount": 99,
+      "nativeDeclaredPropertyCount": 106,
+      "props": {
+        "aria-describedby": {
+          "canonicalType": "string | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "native View accessibility/hint contracts replace browser ID/form associations under the approved native boundary",
+          "capability": "CAP.linear-progress.018"
+        },
+        "aria-details": {
+          "canonicalType": "string | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "native View accessibility/hint contracts replace browser ID/form associations under the approved native boundary",
+          "capability": "CAP.linear-progress.018"
+        },
+        "aria-label": {
+          "canonicalType": "string | undefined",
+          "required": false,
+          "nativeProp": "aria-label",
+          "nativeType": "string | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.015"
+        },
+        "aria-labelledby": {
+          "canonicalType": "string | undefined",
+          "required": false,
+          "nativeProp": "accessibilityLabel/aria-label",
+          "nativeType": "string (required accessibilityLabel or aria-label)",
+          "disposition": "APPROVED_NATIVE_NAME",
+          "expected": "the approved paired contract requires an explicit nonempty native accessibilityLabel/aria-label, rather than DOM label associations",
+          "capability": "CAP.linear-progress.015"
+        },
+        "barColor": {
+          "canonicalType": "string | undefined",
+          "required": false,
+          "nativeProp": "barColor",
+          "nativeType": "import(\"react-native/types/index\").ColorValue | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.004"
+        },
+        "barGeometry": {
+          "canonicalType": "\"orthogonal\" | \"rounded\" | \"round\" | undefined",
+          "required": false,
+          "nativeProp": "barGeometry",
+          "nativeType": "\"orthogonal\" | \"rounded\" | \"round\" | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.005"
+        },
+        "children": {
+          "canonicalType": "import(\"react-aria-components/dist/types/src/utils\").ChildrenOrFunction<ProgressBarRenderProps>",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "CANONICAL_WRAPPER_OWNED",
+          "expected": "canonical JSX replaces caller children with its track/bar tree; native rejects caller replacement",
+          "capability": "CAP.linear-progress.013"
+        },
+        "className": {
+          "canonicalType": "import(\"react-aria-components/dist/types/src/utils\").ClassNameOrFunction<ProgressBarRenderProps> | undefined",
+          "required": false,
+          "nativeProp": "customStyles/style",
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_STYLE",
+          "expected": "native customStyles/style and post-custom style callback replace CSS class plumbing",
+          "capability": "CAP.linear-progress.012"
+        },
+        "customBarStyles": {
+          "canonicalType": "CSSProperties | undefined",
+          "required": false,
+          "nativeProp": "customBarStyles",
+          "nativeType": "StyleProp<ViewStyle>",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.011"
+        },
+        "customStyles": {
+          "canonicalType": "CSSProperties | undefined",
+          "required": false,
+          "nativeProp": "customStyles",
+          "nativeType": "StyleProp<ViewStyle>",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.011"
+        },
+        "customTrackStyles": {
+          "canonicalType": "CSSProperties | undefined",
+          "required": false,
+          "nativeProp": "customTrackStyles",
+          "nativeType": "StyleProp<ViewStyle>",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.011"
+        },
+        "data-testid": {
+          "canonicalType": "string | undefined",
+          "required": false,
+          "nativeProp": "data-testid",
+          "nativeType": "string | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.013"
+        },
+        "dir": {
+          "canonicalType": "string | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "native layout direction is authored through style.direction; the approved bar direction remains a separate physical axis",
+          "capability": "CAP.linear-progress.018"
+        },
+        "direction": {
+          "canonicalType": "string | undefined",
+          "required": false,
+          "nativeProp": "direction",
+          "nativeType": "\"left\" | \"right\" | \"up\" | \"down\" | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.009"
+        },
+        "formatOptions": {
+          "canonicalType": "Intl.NumberFormatOptions | undefined",
+          "required": false,
+          "nativeProp": "formatOptions",
+          "nativeType": "Intl.NumberFormatOptions | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.014"
+        },
+        "height": {
+          "canonicalType": "string | number | undefined",
+          "required": false,
+          "nativeProp": "height",
+          "nativeType": "import(\"react-native/types/index\").DimensionValue | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.003"
+        },
+        "hidden": {
+          "canonicalType": "boolean | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "native display/accessibility visibility is authored through core View styles and accessibility props",
+          "capability": "CAP.linear-progress.018"
+        },
+        "id": {
+          "canonicalType": "string | undefined",
+          "required": false,
+          "nativeProp": "id",
+          "nativeType": "string | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.018"
+        },
+        "inert": {
+          "canonicalType": "boolean | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "native pointerEvents and accessibility visibility replace browser subtree inertness; no DOM inert producer is claimed",
+          "capability": "CAP.linear-progress.018"
+        },
+        "isIndeterminate": {
+          "canonicalType": "boolean | undefined",
+          "required": false,
+          "nativeProp": "isIndeterminate",
+          "nativeType": "boolean | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.015"
+        },
+        "lang": {
+          "canonicalType": "string | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "native accessibilityLanguage and explicit locale govern their respective speech and value-formatting surfaces",
+          "capability": "CAP.linear-progress.018"
+        },
+        "maxValue": {
+          "canonicalType": "number | undefined",
+          "required": false,
+          "nativeProp": "maxValue",
+          "nativeType": "number | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.014"
+        },
+        "minValue": {
+          "canonicalType": "number | undefined",
+          "required": false,
+          "nativeProp": "minValue",
+          "nativeType": "number | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.014"
+        },
+        "onAnimationEnd": {
+          "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onAnimationEndCapture": {
+          "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onAnimationIteration": {
+          "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onAnimationIterationCapture": {
+          "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onAnimationStart": {
+          "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onAnimationStartCapture": {
+          "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onAuxClick": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onAuxClickCapture": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onClick": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onClickCapture": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onContextMenu": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onContextMenuCapture": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onDoubleClick": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onDoubleClickCapture": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onGotPointerCapture": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onGotPointerCaptureCapture": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onLostPointerCapture": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onLostPointerCaptureCapture": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onMouseDown": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onMouseDownCapture": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onMouseEnter": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onMouseLeave": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onMouseMove": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onMouseMoveCapture": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onMouseOut": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onMouseOutCapture": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onMouseOver": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onMouseOverCapture": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onMouseUp": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onMouseUpCapture": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onPointerCancel": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": "onPointerCancel",
+          "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onPointerCancelCapture": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": "onPointerCancelCapture",
+          "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onPointerDown": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": "onPointerDown",
+          "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onPointerDownCapture": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": "onPointerDownCapture",
+          "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onPointerEnter": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": "onPointerEnter",
+          "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onPointerLeave": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": "onPointerLeave",
+          "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onPointerMove": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": "onPointerMove",
+          "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onPointerMoveCapture": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": "onPointerMoveCapture",
+          "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onPointerOut": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onPointerOutCapture": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onPointerOver": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onPointerOverCapture": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onPointerUp": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": "onPointerUp",
+          "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onPointerUpCapture": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": "onPointerUpCapture",
+          "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onScroll": {
+          "canonicalType": "import(\"@types/react/index\").UIEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onScrollCapture": {
+          "canonicalType": "import(\"@types/react/index\").UIEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onTouchCancel": {
+          "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": "onTouchCancel",
+          "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onTouchCancelCapture": {
+          "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onTouchEnd": {
+          "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": "onTouchEnd",
+          "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onTouchEndCapture": {
+          "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": "onTouchEndCapture",
+          "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onTouchMove": {
+          "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": "onTouchMove",
+          "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onTouchMoveCapture": {
+          "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onTouchStart": {
+          "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": "onTouchStart",
+          "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onTouchStartCapture": {
+          "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onTransitionCancel": {
+          "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onTransitionCancelCapture": {
+          "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onTransitionEnd": {
+          "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onTransitionEndCapture": {
+          "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onTransitionRun": {
+          "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onTransitionRunCapture": {
+          "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onTransitionStart": {
+          "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onTransitionStartCapture": {
+          "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onWheel": {
+          "canonicalType": "import(\"@types/react/index\").WheelEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "onWheelCapture": {
+          "canonicalType": "import(\"@types/react/index\").WheelEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.linear-progress.018"
+        },
+        "order": {
+          "canonicalType": "\"primary\" | \"secondary\" | \"tertiary\" | \"quaternary\" | \"quintenary\" | undefined",
+          "required": false,
+          "nativeProp": "order",
+          "nativeType": "\"primary\" | \"secondary\" | \"tertiary\" | \"quaternary\" | \"quintenary\" | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.006"
+        },
+        "orientation": {
+          "canonicalType": "string | undefined",
+          "required": false,
+          "nativeProp": "orientation",
+          "nativeType": "\"horizontal\" | \"vertical\" | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.010"
+        },
+        "raised": {
+          "canonicalType": "boolean | undefined",
+          "required": false,
+          "nativeProp": "raised",
+          "nativeType": "boolean | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.008"
+        },
+        "render": {
+          "canonicalType": "import(\"react-aria-components/dist/types/src/utils\").DOMRenderFunction<\"div\", ProgressBarRenderProps> | undefined",
+          "required": false,
+          "nativeProp": "render",
+          "nativeType": "((props: ViewProps & RefAttributes<View>, state: TNativeLinearProgressRenderState) => ReactElement) | undefined",
+          "disposition": "NATIVE_RENDERER",
+          "expected": "native render(props,state), original View ref and owned track/bar children; positive canonical/native/ref/state/event cases",
+          "capability": "CAP.linear-progress.016"
+        },
+        "slot": {
+          "canonicalType": "string | null | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_CONTEXT_SUBSTITUTION",
+          "expected": "the approved paired contract explicitly substitutes native APIs for React Aria slot/context interop",
+          "capability": "CAP.linear-progress.018"
+        },
+        "style": {
+          "canonicalType": "(CSSProperties | ((values: ProgressBarRenderProps & { defaultStyle: CSSProperties; }) => CSSProperties | undefined)) | undefined",
+          "required": false,
+          "nativeProp": "style",
+          "nativeType": "StyleProp<ViewStyle> | ((state: TNativeLinearProgressStyleState) => StyleProp<ViewStyle>)",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.012"
+        },
+        "trackColor": {
+          "canonicalType": "string | undefined",
+          "required": false,
+          "nativeProp": "trackColor",
+          "nativeType": "import(\"react-native/types/index\").ColorValue | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.004"
+        },
+        "trackGeometry": {
+          "canonicalType": "\"orthogonal\" | \"rounded\" | \"round\" | undefined",
+          "required": false,
+          "nativeProp": "trackGeometry",
+          "nativeType": "\"orthogonal\" | \"rounded\" | \"round\" | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.005"
+        },
+        "translate": {
+          "canonicalType": "\"yes\" | \"no\" | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "browser automatic translation is outside the approved native View host boundary",
+          "capability": "CAP.linear-progress.018"
+        },
+        "value": {
+          "canonicalType": "number",
+          "required": true,
+          "nativeProp": "value",
+          "nativeType": "number",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.014"
+        },
+        "valueLabel": {
+          "canonicalType": "import(\"@types/react/index\").ReactNode",
+          "required": false,
+          "nativeProp": "valueLabel",
+          "nativeType": "string | undefined",
+          "disposition": "APPROVED_STRING_LABEL",
+          "expected": "the approved paired contract accepts strings including empty and explicitly excludes arbitrary ReactNode labels",
+          "capability": "CAP.linear-progress.014"
+        },
+        "width": {
+          "canonicalType": "string | number | undefined",
+          "required": false,
+          "nativeProp": "width",
+          "nativeType": "import(\"react-native/types/index\").DimensionValue | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.linear-progress.003"
+        }
+      },
+      "nativeOnlyProps": {
+        "accessibilityActions": {
+          "type": "readonly Readonly<{ name: import(\"react-native/types/index\").AccessibilityActionName | string; label?: string | undefined; }>[] | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "accessibilityElementsHidden": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "accessibilityHint": {
+          "type": "string | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "accessibilityIgnoresInvertColors": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "accessibilityLabel": {
+          "type": "string | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "accessibilityLanguage": {
+          "type": "string | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "accessibilityLargeContentTitle": {
+          "type": "string | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "accessibilityLiveRegion": {
+          "type": "\"none\" | \"polite\" | \"assertive\" | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "accessibilityRespondsToUserInteraction": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "accessibilityShowsLargeContentViewer": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "accessibilityState": {
+          "type": "import(\"react-native/types/index\").AccessibilityState | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "accessibilityViewIsModal": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "aria-busy": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "aria-checked": {
+          "type": "boolean | \"mixed\" | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "aria-disabled": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "aria-expanded": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "aria-hidden": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "aria-live": {
+          "type": "\"polite\" | \"assertive\" | \"off\" | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "aria-modal": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "aria-selected": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "aria-valuemax": { "type": "undefined", "optional": true, "availability": "rejected owned surface" },
+        "aria-valuemin": { "type": "undefined", "optional": true, "availability": "rejected owned surface" },
+        "aria-valuenow": { "type": "undefined", "optional": true, "availability": "rejected owned surface" },
+        "aria-valuetext": { "type": "undefined", "optional": true, "availability": "rejected owned surface" },
+        "collapsable": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "collapsableChildren": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "focusable": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "hasTVPreferredFocus": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "hitSlop": {
+          "type": "number | import(\"react-native/types/index\").Insets | null | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "importantForAccessibility": {
+          "type": "\"auto\" | \"yes\" | \"no\" | \"no-hide-descendants\" | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "isTVSelectable": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "locale": {
+          "type": "string | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "nativeID": {
+          "type": "string | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "needsOffscreenAlphaCompositing": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onAccessibilityAction": {
+          "type": "((event: import(\"react-native/types/index\").AccessibilityActionEvent) => void) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onAccessibilityEscape": {
+          "type": "(() => void) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onAccessibilityTap": {
+          "type": "(() => void) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onBlur": {
+          "type": "((e: import(\"react-native/types/index\").BlurEvent) => void) | null | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onFocus": {
+          "type": "((e: import(\"react-native/types/index\").FocusEvent) => void) | null | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onLayout": {
+          "type": "((event: import(\"react-native/types/index\").LayoutChangeEvent) => void) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onMagicTap": {
+          "type": "(() => void) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onMoveShouldSetResponder": {
+          "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onMoveShouldSetResponderCapture": {
+          "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onPointerEnterCapture": {
+          "type": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onPointerLeaveCapture": {
+          "type": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onResponderEnd": {
+          "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onResponderGrant": {
+          "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onResponderMove": {
+          "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onResponderReject": {
+          "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onResponderRelease": {
+          "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onResponderStart": {
+          "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onResponderTerminate": {
+          "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onResponderTerminationRequest": {
+          "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onStartShouldSetResponder": {
+          "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onStartShouldSetResponderCapture": {
+          "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "pointerEvents": {
+          "type": "\"box-none\" | \"none\" | \"box-only\" | \"auto\" | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "removeClippedSubviews": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "renderToHardwareTextureAndroid": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "screenReaderFocusable": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "shouldRasterizeIOS": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "tabIndex": {
+          "type": "0 | -1 | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "testID": {
+          "type": "string | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "tvParallaxMagnification": {
+          "type": "number | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "tvParallaxShiftDistanceX": {
+          "type": "number | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "tvParallaxShiftDistanceY": {
+          "type": "number | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "tvParallaxTiltAngle": {
+          "type": "number | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        }
+      }
+    },
+    "Meter": {
+      "canonicalPropertyCount": 98,
+      "nativeDeclaredPropertyCount": 106,
+      "props": {
+        "aria-describedby": {
+          "canonicalType": "string | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "native View accessibility/hint contracts replace browser ID/form associations under the approved native boundary",
+          "capability": "CAP.meter.018"
+        },
+        "aria-details": {
+          "canonicalType": "string | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "native View accessibility/hint contracts replace browser ID/form associations under the approved native boundary",
+          "capability": "CAP.meter.018"
+        },
+        "aria-label": {
+          "canonicalType": "string | undefined",
+          "required": false,
+          "nativeProp": "aria-label",
+          "nativeType": "string | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.015"
+        },
+        "aria-labelledby": {
+          "canonicalType": "string | undefined",
+          "required": false,
+          "nativeProp": "accessibilityLabel/aria-label",
+          "nativeType": "string (required accessibilityLabel or aria-label)",
+          "disposition": "APPROVED_NATIVE_NAME",
+          "expected": "the approved paired contract requires an explicit nonempty native accessibilityLabel/aria-label, rather than DOM label associations",
+          "capability": "CAP.meter.015"
+        },
+        "barColor": {
+          "canonicalType": "string | undefined",
+          "required": false,
+          "nativeProp": "barColor",
+          "nativeType": "import(\"react-native/types/index\").ColorValue | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.004"
+        },
+        "barGeometry": {
+          "canonicalType": "\"orthogonal\" | \"rounded\" | \"round\" | undefined",
+          "required": false,
+          "nativeProp": "barGeometry",
+          "nativeType": "\"orthogonal\" | \"rounded\" | \"round\" | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.005"
+        },
+        "children": {
+          "canonicalType": "import(\"react-aria-components/dist/types/src/utils\").ChildrenOrFunction<MeterRenderProps>",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "CANONICAL_WRAPPER_OWNED",
+          "expected": "canonical JSX replaces caller children with its track/bar tree; native rejects caller replacement",
+          "capability": "CAP.meter.013"
+        },
+        "className": {
+          "canonicalType": "import(\"react-aria-components/dist/types/src/utils\").ClassNameOrFunction<MeterRenderProps> | undefined",
+          "required": false,
+          "nativeProp": "customStyles/style",
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_STYLE",
+          "expected": "native customStyles/style and post-custom style callback replace CSS class plumbing",
+          "capability": "CAP.meter.012"
+        },
+        "customBarStyles": {
+          "canonicalType": "CSSProperties | undefined",
+          "required": false,
+          "nativeProp": "customBarStyles",
+          "nativeType": "StyleProp<ViewStyle>",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.011"
+        },
+        "customStyles": {
+          "canonicalType": "CSSProperties | undefined",
+          "required": false,
+          "nativeProp": "customStyles",
+          "nativeType": "StyleProp<ViewStyle>",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.011"
+        },
+        "customTrackStyles": {
+          "canonicalType": "CSSProperties | undefined",
+          "required": false,
+          "nativeProp": "customTrackStyles",
+          "nativeType": "StyleProp<ViewStyle>",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.011"
+        },
+        "data-testid": {
+          "canonicalType": "string | undefined",
+          "required": false,
+          "nativeProp": "data-testid",
+          "nativeType": "string | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.013"
+        },
+        "dir": {
+          "canonicalType": "string | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "native layout direction is authored through style.direction; the approved bar direction remains a separate physical axis",
+          "capability": "CAP.meter.018"
+        },
+        "direction": {
+          "canonicalType": "string | undefined",
+          "required": false,
+          "nativeProp": "direction",
+          "nativeType": "\"left\" | \"right\" | \"up\" | \"down\" | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.009"
+        },
+        "formatOptions": {
+          "canonicalType": "Intl.NumberFormatOptions | undefined",
+          "required": false,
+          "nativeProp": "formatOptions",
+          "nativeType": "Intl.NumberFormatOptions | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.014"
+        },
+        "height": {
+          "canonicalType": "string | number | undefined",
+          "required": false,
+          "nativeProp": "height",
+          "nativeType": "import(\"react-native/types/index\").DimensionValue | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.003"
+        },
+        "hidden": {
+          "canonicalType": "boolean | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "native display/accessibility visibility is authored through core View styles and accessibility props",
+          "capability": "CAP.meter.018"
+        },
+        "id": {
+          "canonicalType": "string | undefined",
+          "required": false,
+          "nativeProp": "id",
+          "nativeType": "string | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.018"
+        },
+        "inert": {
+          "canonicalType": "boolean | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "native pointerEvents and accessibility visibility replace browser subtree inertness; no DOM inert producer is claimed",
+          "capability": "CAP.meter.018"
+        },
+        "lang": {
+          "canonicalType": "string | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "native accessibilityLanguage and explicit locale govern their respective speech and value-formatting surfaces",
+          "capability": "CAP.meter.018"
+        },
+        "maxValue": {
+          "canonicalType": "number | undefined",
+          "required": false,
+          "nativeProp": "maxValue",
+          "nativeType": "number | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.014"
+        },
+        "minValue": {
+          "canonicalType": "number | undefined",
+          "required": false,
+          "nativeProp": "minValue",
+          "nativeType": "number | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.014"
+        },
+        "onAnimationEnd": {
+          "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onAnimationEndCapture": {
+          "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onAnimationIteration": {
+          "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onAnimationIterationCapture": {
+          "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onAnimationStart": {
+          "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onAnimationStartCapture": {
+          "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onAuxClick": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onAuxClickCapture": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onClick": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onClickCapture": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onContextMenu": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onContextMenuCapture": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onDoubleClick": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onDoubleClickCapture": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onGotPointerCapture": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onGotPointerCaptureCapture": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onLostPointerCapture": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onLostPointerCaptureCapture": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onMouseDown": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onMouseDownCapture": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onMouseEnter": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onMouseLeave": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onMouseMove": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onMouseMoveCapture": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onMouseOut": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onMouseOutCapture": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onMouseOver": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onMouseOverCapture": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onMouseUp": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onMouseUpCapture": {
+          "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onPointerCancel": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": "onPointerCancel",
+          "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.018"
+        },
+        "onPointerCancelCapture": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": "onPointerCancelCapture",
+          "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.018"
+        },
+        "onPointerDown": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": "onPointerDown",
+          "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.018"
+        },
+        "onPointerDownCapture": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": "onPointerDownCapture",
+          "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.018"
+        },
+        "onPointerEnter": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": "onPointerEnter",
+          "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.018"
+        },
+        "onPointerLeave": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": "onPointerLeave",
+          "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.018"
+        },
+        "onPointerMove": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": "onPointerMove",
+          "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.018"
+        },
+        "onPointerMoveCapture": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": "onPointerMoveCapture",
+          "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.018"
+        },
+        "onPointerOut": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onPointerOutCapture": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onPointerOver": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onPointerOverCapture": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onPointerUp": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": "onPointerUp",
+          "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.018"
+        },
+        "onPointerUpCapture": {
+          "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": "onPointerUpCapture",
+          "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.018"
+        },
+        "onScroll": {
+          "canonicalType": "import(\"@types/react/index\").UIEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onScrollCapture": {
+          "canonicalType": "import(\"@types/react/index\").UIEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onTouchCancel": {
+          "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": "onTouchCancel",
+          "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.018"
+        },
+        "onTouchCancelCapture": {
+          "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onTouchEnd": {
+          "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": "onTouchEnd",
+          "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.018"
+        },
+        "onTouchEndCapture": {
+          "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": "onTouchEndCapture",
+          "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.018"
+        },
+        "onTouchMove": {
+          "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": "onTouchMove",
+          "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.018"
+        },
+        "onTouchMoveCapture": {
+          "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onTouchStart": {
+          "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": "onTouchStart",
+          "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.018"
+        },
+        "onTouchStartCapture": {
+          "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onTransitionCancel": {
+          "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onTransitionCancelCapture": {
+          "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onTransitionEnd": {
+          "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onTransitionEndCapture": {
+          "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onTransitionRun": {
+          "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onTransitionRunCapture": {
+          "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onTransitionStart": {
+          "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onTransitionStartCapture": {
+          "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onWheel": {
+          "canonicalType": "import(\"@types/react/index\").WheelEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "onWheelCapture": {
+          "canonicalType": "import(\"@types/react/index\").WheelEventHandler<HTMLDivElement> | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "approved core View props/styles/native events replace the DOM-only attribute/event/browser rendering surface; no DOM node, callback or form association is fabricated",
+          "capability": "CAP.meter.018"
+        },
+        "order": {
+          "canonicalType": "\"primary\" | \"secondary\" | \"tertiary\" | \"quaternary\" | \"quintenary\" | undefined",
+          "required": false,
+          "nativeProp": "order",
+          "nativeType": "\"primary\" | \"secondary\" | \"tertiary\" | \"quaternary\" | \"quintenary\" | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.006"
+        },
+        "orientation": {
+          "canonicalType": "string | undefined",
+          "required": false,
+          "nativeProp": "orientation",
+          "nativeType": "\"horizontal\" | \"vertical\" | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.010"
+        },
+        "raised": {
+          "canonicalType": "boolean | undefined",
+          "required": false,
+          "nativeProp": "raised",
+          "nativeType": "boolean | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.008"
+        },
+        "render": {
+          "canonicalType": "import(\"react-aria-components/dist/types/src/utils\").DOMRenderFunction<\"div\", MeterRenderProps> | undefined",
+          "required": false,
+          "nativeProp": "render",
+          "nativeType": "((props: ViewProps & RefAttributes<View>, state: TNativeMeterRenderState) => ReactElement) | undefined",
+          "disposition": "NATIVE_RENDERER",
+          "expected": "native render(props,state), original View ref and owned track/bar children; positive canonical/native/ref/state/event cases",
+          "capability": "CAP.meter.016"
+        },
+        "slot": {
+          "canonicalType": "string | null | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_CONTEXT_SUBSTITUTION",
+          "expected": "the approved paired contract explicitly substitutes native APIs for React Aria slot/context interop",
+          "capability": "CAP.meter.018"
+        },
+        "style": {
+          "canonicalType": "(CSSProperties | ((values: MeterRenderProps & { defaultStyle: CSSProperties; }) => CSSProperties | undefined)) | undefined",
+          "required": false,
+          "nativeProp": "style",
+          "nativeType": "StyleProp<ViewStyle> | ((state: TNativeMeterStyleState) => StyleProp<ViewStyle>)",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.012"
+        },
+        "trackColor": {
+          "canonicalType": "string | undefined",
+          "required": false,
+          "nativeProp": "trackColor",
+          "nativeType": "import(\"react-native/types/index\").ColorValue | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.004"
+        },
+        "trackGeometry": {
+          "canonicalType": "\"orthogonal\" | \"rounded\" | \"round\" | undefined",
+          "required": false,
+          "nativeProp": "trackGeometry",
+          "nativeType": "\"orthogonal\" | \"rounded\" | \"round\" | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.005"
+        },
+        "translate": {
+          "canonicalType": "\"yes\" | \"no\" | undefined",
+          "required": false,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "expected": "browser automatic translation is outside the approved native View host boundary",
+          "capability": "CAP.meter.018"
+        },
+        "value": {
+          "canonicalType": "number",
+          "required": true,
+          "nativeProp": "value",
+          "nativeType": "number",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.014"
+        },
+        "valueLabel": {
+          "canonicalType": "import(\"@types/react/index\").ReactNode",
+          "required": false,
+          "nativeProp": "valueLabel",
+          "nativeType": "string | undefined",
+          "disposition": "APPROVED_STRING_LABEL",
+          "expected": "the approved paired contract accepts strings including empty and explicitly excludes arbitrary ReactNode labels",
+          "capability": "CAP.meter.014"
+        },
+        "width": {
+          "canonicalType": "string | number | undefined",
+          "required": false,
+          "nativeProp": "width",
+          "nativeType": "import(\"react-native/types/index\").DimensionValue | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "expected": "actual native prop/style/ref/event contract and explicit approved native calibration/precedence; native payload/platform applicability retained",
+          "capability": "CAP.meter.003"
+        }
+      },
+      "nativeOnlyProps": {
+        "accessibilityActions": {
+          "type": "readonly Readonly<{ name: import(\"react-native/types/index\").AccessibilityActionName | string; label?: string | undefined; }>[] | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "accessibilityElementsHidden": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "accessibilityHint": {
+          "type": "string | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "accessibilityIgnoresInvertColors": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "accessibilityLabel": {
+          "type": "string | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "accessibilityLanguage": {
+          "type": "string | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "accessibilityLargeContentTitle": {
+          "type": "string | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "accessibilityLiveRegion": {
+          "type": "\"none\" | \"polite\" | \"assertive\" | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "accessibilityRespondsToUserInteraction": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "accessibilityShowsLargeContentViewer": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "accessibilityState": {
+          "type": "import(\"react-native/types/index\").AccessibilityState | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "accessibilityViewIsModal": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "aria-busy": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "aria-checked": {
+          "type": "boolean | \"mixed\" | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "aria-disabled": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "aria-expanded": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "aria-hidden": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "aria-live": {
+          "type": "\"polite\" | \"assertive\" | \"off\" | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "aria-modal": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "aria-selected": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "aria-valuemax": { "type": "undefined", "optional": true, "availability": "rejected owned surface" },
+        "aria-valuemin": { "type": "undefined", "optional": true, "availability": "rejected owned surface" },
+        "aria-valuenow": { "type": "undefined", "optional": true, "availability": "rejected owned surface" },
+        "aria-valuetext": { "type": "undefined", "optional": true, "availability": "rejected owned surface" },
+        "collapsable": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "collapsableChildren": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "focusable": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "hasTVPreferredFocus": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "hitSlop": {
+          "type": "number | import(\"react-native/types/index\").Insets | null | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "importantForAccessibility": {
+          "type": "\"auto\" | \"yes\" | \"no\" | \"no-hide-descendants\" | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "isIndeterminate": { "type": "undefined", "optional": true, "availability": "rejected owned surface" },
+        "isTVSelectable": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "locale": {
+          "type": "string | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "nativeID": {
+          "type": "string | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "needsOffscreenAlphaCompositing": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onAccessibilityAction": {
+          "type": "((event: import(\"react-native/types/index\").AccessibilityActionEvent) => void) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onAccessibilityEscape": {
+          "type": "(() => void) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onAccessibilityTap": {
+          "type": "(() => void) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onBlur": {
+          "type": "((e: import(\"react-native/types/index\").BlurEvent) => void) | null | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onFocus": {
+          "type": "((e: import(\"react-native/types/index\").FocusEvent) => void) | null | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onLayout": {
+          "type": "((event: import(\"react-native/types/index\").LayoutChangeEvent) => void) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onMagicTap": {
+          "type": "(() => void) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onMoveShouldSetResponder": {
+          "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onMoveShouldSetResponderCapture": {
+          "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onPointerEnterCapture": {
+          "type": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onPointerLeaveCapture": {
+          "type": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onResponderEnd": {
+          "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onResponderGrant": {
+          "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onResponderMove": {
+          "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onResponderReject": {
+          "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onResponderRelease": {
+          "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onResponderStart": {
+          "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onResponderTerminate": {
+          "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onResponderTerminationRequest": {
+          "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onStartShouldSetResponder": {
+          "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "onStartShouldSetResponderCapture": {
+          "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "pointerEvents": {
+          "type": "\"box-none\" | \"none\" | \"box-only\" | \"auto\" | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "removeClippedSubviews": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "renderToHardwareTextureAndroid": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "screenReaderFocusable": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "shouldRasterizeIOS": {
+          "type": "boolean | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "tabIndex": {
+          "type": "0 | -1 | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "testID": {
+          "type": "string | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "tvParallaxMagnification": {
+          "type": "number | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "tvParallaxShiftDistanceX": {
+          "type": "number | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "tvParallaxShiftDistanceY": {
+          "type": "number | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        },
+        "tvParallaxTiltAngle": {
+          "type": "number | undefined",
+          "optional": true,
+          "availability": "approved native core/formatting/name host equivalent"
+        }
+      }
+    }
+  }
+}

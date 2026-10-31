@@ -6,11 +6,16 @@ import type { TNativeTheme, TNativeThemeMode, TNativeThemeOverrides } from "./ty
 const lightTheme: TNativeTheme = {
   mode: "light",
   colors: {
+    statusDanger: "#b73434",
+    statusWarning: "#a66b00",
+    statusSuccess: "#2f7d18",
+    overlayBackdrop: "rgba(0, 0, 0, 0.3)",
     background: "#ffffff",
     foreground: "#171717",
     controlBackground: "#ffffff",
     controlForeground: "#171717",
     controlBorder: "#9e9e9e",
+    borderMuted: "#c6c6c6",
     focusRing: "#2563eb",
     controlPlaceholder: "#707070",
     controlHoverBackground: "#efefef",
@@ -136,11 +141,16 @@ const lightTheme: TNativeTheme = {
 const darkTheme: TNativeTheme = {
   mode: "dark",
   colors: {
+    statusDanger: "#ff6b5f",
+    statusWarning: "#f0b429",
+    statusSuccess: "#6ad060",
+    overlayBackdrop: "rgba(0, 0, 0, 0.3)",
     background: "#171717",
     foreground: "#ffffff",
     controlBackground: "#171717",
     controlForeground: "#ffffff",
     controlBorder: "#474747",
+    borderMuted: "#3d3d3d",
     focusRing: "#2563eb",
     controlPlaceholder: "#878787",
     controlHoverBackground: "#2c2c2c",

@@ -1,0 +1,40 @@
+{
+  "scope": "Private actual-host visual/value composition with stable drawing ownership and projection-corner publication. Original host/editor refs and public primitive payloads remain intact; target native fidelity/performance and full Card remain required.",
+  "package": "motion-dom",
+  "version": "12.40.0",
+  "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+  "license": "../kernel/LICENSE.motion-dom.md",
+  "sourceInputs": [
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/render/html/utils/build-transform.ts",
+      "sha256": "f998f3d5dd204dcdecad6f9fadaa8008847ff666c7f60e7b133421f13ec99f7a"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/render/html/utils/build-styles.ts",
+      "sha256": "0439b0ef2ac0ca367245a47598919c877c33460160189317e7f659aa2def826d"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/render/utils/keys-transform.ts",
+      "sha256": "01fab321464304dfd8147b705f2f70e0b07d357105ad3e759d329d50110e91ab"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/render/VisualElement.ts",
+      "sha256": "e88474ad37ee3a64d5ffe94f51697e506afde4818973cbf2cb3c7c7497771208"
+    }
+  ],
+  "nativeBoundary": "Actual NativeFocusHost/React19 refs and source-owned MotionValue subscriptions; local runtime imports only. No upstream renderer or private package import in production. Opaque native color interpolation and complete Card remain required.",
+  "ownerAdapterInputs": [
+    {
+      "file": "NativeMotionVisualHost.tsx",
+      "sha256": "29d960227b196030fd674309843e30c8ba37f7b100eaaee3b0291868746778d8"
+    },
+    {
+      "file": "state.ts",
+      "sha256": "116026aace77831cc0142fe607ccf7e04d442f4debc5e23328e7ab59ea941c17"
+    },
+    {
+      "file": "types.ts",
+      "sha256": "504af89fa96206fd6905a2fa879e82a917b300cb4f1404d04d6e93f6faee0951"
+    }
+  ]
+}

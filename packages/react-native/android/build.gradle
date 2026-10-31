@@ -1,0 +1,52 @@
+apply plugin: "com.android.library"
+apply plugin: "com.facebook.react"
+
+def cuiSafeAreaProject = rootProject.subprojects.find { it.projectDir.parentFile.name == "react-native-safe-area-context" }
+def cuiTeleportProject = rootProject.subprojects.find { it.projectDir.parentFile.name == "react-native-teleport" }
+if (cuiSafeAreaProject == null || cuiTeleportProject == null) {
+  throw new GradleException("Codon native measurement requires its pinned safe-area-context and teleport peers to be autolinked")
+}
+
+android {
+  namespace "com.codonui.input"
+  compileSdk rootProject.ext.compileSdkVersion
+  defaultConfig {
+    minSdk rootProject.ext.minSdkVersion
+    targetSdk rootProject.ext.targetSdkVersion
+    ndk {
+      abiFilters.addAll((findProperty("reactNativeArchitectures") ?: "armeabi-v7a,x86,x86_64,arm64-v8a").split(","))
+    }
+    consumerProguardFiles "src/main/consumer-rules.pro"
+    externalNativeBuild {
+      cmake {
+        arguments "-DREACT_NATIVE_DIR=${react.reactNativeDir.get().asFile.absolutePath}",
+          "-DCODEGEN_DIR=${layout.buildDirectory.get().asFile}/generated/source/codegen/jni",
+          "-DCUI_SAFE_AREA_CPP_DIR=${cuiSafeAreaProject.projectDir.parentFile}/common/cpp",
+          "-DCUI_SAFE_AREA_CODEGEN_DIR=${cuiSafeAreaProject.layout.buildDirectory.get().asFile}/generated/source/codegen/jni",
+          "-DCUI_TELEPORT_CPP_DIR=${cuiTeleportProject.projectDir.parentFile}/common/cpp",
+          "-DCUI_TELEPORT_CODEGEN_DIR=${cuiTeleportProject.layout.buildDirectory.get().asFile}/generated/source/codegen/jni",
+          "-DANDROID_STL=c++_shared"
+      }
+    }
+  }
+  ndkVersion rootProject.ext.ndkVersion
+  buildFeatures { prefab true }
+  externalNativeBuild { cmake { path "src/main/jni/CMakeLists.txt" } }
+  packagingOptions {
+    jniLibs {
+      excludes += ["**/libreactnative.so", "**/libjsi.so", "**/libfbjni.so", "**/libc++_shared.so"]
+    }
+  }
+}
+
+tasks.configureEach { task ->
+  if (task.name.startsWith("configureCMake")) {
+    task.dependsOn("generateCodegenArtifactsFromSchema",
+      "${cuiSafeAreaProject.path}:generateCodegenArtifactsFromSchema",
+      "${cuiTeleportProject.path}:generateCodegenArtifactsFromSchema")
+  }
+}
+
+dependencies {
+  implementation "com.facebook.react:react-android"
+}

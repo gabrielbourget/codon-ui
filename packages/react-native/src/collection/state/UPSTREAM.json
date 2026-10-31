@@ -1,0 +1,75 @@
+{
+  "package": "react-stately",
+  "version": "3.46.0",
+  "license": "Apache-2.0; ../LICENSE.react-aria.md",
+  "approval": "Gabriel2026-10-20-complete-native-state-backend-amendment-3.5.54",
+  "runtimeChanges": [
+    "Use native React commit effects for controlled-owner resets when document is absent",
+    "Require the already committed complete collection; never evaluate a React collection authoring tree in the state backend"
+  ],
+  "typeChanges": [
+    "Derive collection/state/selection/layout types from the three approved public react-stately subpaths",
+    "Use explicitly native pointer metadata for selection events and a structural complete native manager surface"
+  ],
+  "sources": {
+    "useControlledState.ts": {
+      "package": "react-stately",
+      "version": "3.46.0",
+      "sourcePath": "packages/react-stately/src/utils/useControlledState.ts",
+      "sourceSHA256": "6555fd0521aa5b7b6ada6603dfbf8566358be9b62ce248aa235aba93df6f7b9a",
+      "sourceMapSHA256": "1d8de0ff8d7a68f4b6f7a0213c8ec6e01a9531894c493d851f132c062bdce2d0"
+    },
+    "Selection.ts": {
+      "package": "react-stately",
+      "version": "3.46.0",
+      "sourcePath": "packages/react-stately/src/selection/Selection.ts",
+      "sourceSHA256": "8a3264ec9935175d4def88856cc875169381550be386c1328478f11db3cf7bf3",
+      "sourceMapSHA256": "7184b743995a7ccc9cbe833865c20852e80ac78c1e7dde5d31616e0c40c3037b"
+    },
+    "useMultipleSelectionState.ts": {
+      "package": "react-stately",
+      "version": "3.46.0",
+      "sourcePath": "packages/react-stately/src/selection/useMultipleSelectionState.ts",
+      "sourceSHA256": "22589994be3c3bebc6ba5d84244e88ac967923e0f669e42dda518c32921927cb",
+      "sourceMapSHA256": "5e18f48e88e932b99be3e7fe5f8983e2b9ce38dc5c9638ec9222f25e58932d90"
+    },
+    "SelectionManager.ts": {
+      "package": "react-stately",
+      "version": "3.46.0",
+      "sourcePath": "packages/react-stately/src/selection/SelectionManager.ts",
+      "sourceSHA256": "710803ae3bb3fff242414ab23debb2d7217302e065f722c8222ad6928a39b3fe",
+      "sourceMapSHA256": "4be940fefbc2fea241d323c8123e10cb8ae754d40c0c7cc16ad3de3a2cc7650e"
+    },
+    "getChildNodes.ts": {
+      "package": "react-stately",
+      "version": "3.46.0",
+      "sourcePath": "packages/react-stately/src/collections/getChildNodes.ts",
+      "sourceSHA256": "bd25b576186a54a9a1c187927d4dd0fd0f69458ad45c3f3d1413439f598f0ab9",
+      "sourceMapSHA256": "7a0184588de2a380d34fd1976b1652bddad5892d1fb26f4ee8fb8cd9bb027d76"
+    },
+    "useListState.ts": {
+      "package": "react-stately",
+      "version": "3.46.0",
+      "sourcePath": "packages/react-stately/src/list/useListState.ts",
+      "sourceSHA256": "083b30071c3eb1bbb990bf86a156eb81ae7a2d5371b46ca047f59b3ec99bfffe",
+      "sourceMapSHA256": "59b477e9eeea40205a0ad84de52cdac4050539a0053a0e47939ad1bb7c6e4b27"
+    },
+    "useTreeState.ts": {
+      "package": "react-stately",
+      "version": "3.46.0",
+      "sourcePath": "packages/react-stately/src/tree/useTreeState.ts",
+      "sourceSHA256": "dfaf29e61d6aa9b6cc3899acc576483a0cba7d38754ef4035c3741e83d0f8dc4",
+      "sourceMapSHA256": "816efaea786d6dcdc09ad5321fe17ee51a14eeeb114aab6f6a97bd8fa4a771c8"
+    }
+  },
+  "ownedSHA256": {
+    "Selection.ts": "3ee3899b6f8220c725cb01d5c4724ae41993c37217527e937052887bd93b2365",
+    "SelectionManager.ts": "26ed0f5c4ef8219a3c55581b471409f4fdfc910cbcde928deaa212cb0caabcab",
+    "getChildNodes.ts": "5bb3885c59af07005b50a2757c500f52dd265e76825ee6377456f7c040e93644",
+    "types.ts": "0bf159b65c3e9252cdcdd918c46c2bdae61379b4a6dececb80951bb4df53de9b",
+    "useControlledState.ts": "f2e07fa657ec08798969a452b255c1bf3c39a8af1a605dc6d316d0f7fc739b34",
+    "useListState.ts": "77a653ef1b1e713f475ba37363cf29d3a75c099acd4ff1cd65e85d0fc0c50b90",
+    "useMultipleSelectionState.ts": "b7937841d09fb6cfc06987578d7cb8d7d3f0ae616da68bc7c00337a29557eb93",
+    "useTreeState.ts": "743089db338e4781b7a7a21b5505bbfee4e785044260f52160e9ba2c30738f1f"
+  }
+}

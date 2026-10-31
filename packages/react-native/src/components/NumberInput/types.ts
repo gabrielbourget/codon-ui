@@ -1,4 +1,4 @@
-import type { ReactNode } from "react"
+import type { ReactElement, ReactNode } from "react"
 import type { StyleProp, TextInput, TextInputProps, TextStyle, ViewProps, ViewStyle } from "react-native"
 
 import type { TCornerGeometry } from "../../tokens/geometry"
@@ -62,6 +62,7 @@ export type TNativeNumberInputProps = Pick<
   "testID" | "nativeID" | "id" | "onLayout" | "pointerEvents" | "collapsable"
 > &
   TNativeNumberInputLabel & {
+    render?: (props: ViewProps, state: TNativeNumberInputRenderState) => ReactElement
     value?: number | null
     defaultValue?: number | null
     onChange?: (value: number | null) => void

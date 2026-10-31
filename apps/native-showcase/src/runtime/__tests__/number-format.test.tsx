@@ -32,6 +32,42 @@ it("preserves an adequate formatter and existing number prototype methods", () =
   expect(BigInt.prototype.toLocaleString).toBe(bigintLocaleString.value)
 })
 
+it("prepares exact Egyptian Arabic data when otherwise adequate native support omits that locale", () => {
+  class MissingArabicNumberFormat extends originalNumberFormat {
+    static supportedLocalesOf(...args: Parameters<typeof originalNumberFormat.supportedLocalesOf>) {
+      return originalNumberFormat.supportedLocalesOf(...args).filter((locale) => locale !== "ar-EG")
+    }
+  }
+  Intl.NumberFormat = MissingArabicNumberFormat as typeof Intl.NumberFormat
+  jest.isolateModules(() => {
+    expect(jest.requireActual("../number-format").NUMBER_INTL_PREPARATION).toBe("polyfilled")
+  })
+  expect(Intl.NumberFormat.supportedLocalesOf(["en-US", "fr-CA", "fr-FR", "ar-EG"])).toEqual([
+    "en-US",
+    "fr-CA",
+    "fr-FR",
+    "ar-EG",
+  ])
+  expect(new Intl.NumberFormat("ar-EG").resolvedOptions().numberingSystem).toBe("arab")
+  expect(new Intl.NumberFormat("ar-EG").format(12.5)).toBe("١٢٫٥")
+})
+
+it("prepares regional data when reported Egyptian Arabic support falls back to generic Arabic digits", () => {
+  class RegionalFallbackNumberFormat extends originalNumberFormat {
+    constructor(...[locales, options]: ConstructorParameters<typeof originalNumberFormat>) {
+      super(locales === "ar-EG" ? "ar" : locales, options)
+    }
+  }
+  Intl.NumberFormat = RegionalFallbackNumberFormat as typeof Intl.NumberFormat
+  expect(Intl.NumberFormat.supportedLocalesOf(["ar-EG"])).toEqual(["ar-EG"])
+  expect(new Intl.NumberFormat("ar-EG").resolvedOptions().numberingSystem).toBe("latn")
+  jest.isolateModules(() => {
+    expect(jest.requireActual("../number-format").NUMBER_INTL_PREPARATION).toBe("polyfilled")
+  })
+  expect(new Intl.NumberFormat("ar-EG").resolvedOptions().numberingSystem).toBe("arab")
+  expect(new Intl.NumberFormat("ar-EG").format(12.5)).toBe("١٢٫٥")
+})
+
 it("prepares the observed missing-instance operation before App evaluation and supports public numeric commits", async () => {
   class IncompleteNumberFormat extends originalNumberFormat {
     constructor(...args: ConstructorParameters<typeof Intl.NumberFormat>) {

@@ -1,0 +1,154 @@
+{
+  "package": "motion-dom",
+  "version": "12.40.0",
+  "sourceSha256": "eec966af20266e1907d5701768d0ca70a77a6ae3801826914db2102347fc866b",
+  "results": [
+    {
+      "id": "shadow-0/0.5-1",
+      "value": "2px 4px 8px 2px rgba(0,0,0,0.5)",
+      "x": 0.5,
+      "y": 1,
+      "expected": "4px 4px 10.66667px 2.66667px rgba(0, 0, 0, 0.5)"
+    },
+    {
+      "id": "shadow-0/2-3",
+      "value": "2px 4px 8px 2px rgba(0,0,0,0.5)",
+      "x": 2,
+      "y": 3,
+      "expected": "1px 1.33333px 3.2px 0.8px rgba(0, 0, 0, 0.5)"
+    },
+    {
+      "id": "shadow-0/0.75-1.25",
+      "value": "2px 4px 8px 2px rgba(0,0,0,0.5)",
+      "x": 0.75,
+      "y": 1.25,
+      "expected": "2.66667px 3.2px 8px 2px rgba(0, 0, 0, 0.5)"
+    },
+    {
+      "id": "shadow-1/0.5-1",
+      "value": "navy 2px 4px",
+      "x": 0.5,
+      "y": 1,
+      "expected": "navy 4px 4px"
+    },
+    {
+      "id": "shadow-1/2-3",
+      "value": "navy 2px 4px",
+      "x": 2,
+      "y": 3,
+      "expected": "navy 1px 1.33333px"
+    },
+    {
+      "id": "shadow-1/0.75-1.25",
+      "value": "navy 2px 4px",
+      "x": 0.75,
+      "y": 1.25,
+      "expected": "navy 2.66667px 3.2px"
+    },
+    {
+      "id": "shadow-2/0.5-1",
+      "value": "inset -2px 4px 8px -1px #123456",
+      "x": 0.5,
+      "y": 1,
+      "expected": "inset -4px 4px 10.66667px -1.33333px rgba(18, 52, 86, 1)"
+    },
+    {
+      "id": "shadow-2/2-3",
+      "value": "inset -2px 4px 8px -1px #123456",
+      "x": 2,
+      "y": 3,
+      "expected": "inset -1px 1.33333px 3.2px -0.4px rgba(18, 52, 86, 1)"
+    },
+    {
+      "id": "shadow-2/0.75-1.25",
+      "value": "inset -2px 4px 8px -1px #123456",
+      "x": 0.75,
+      "y": 1.25,
+      "expected": "inset -2.66667px 3.2px 8px -1px rgba(18, 52, 86, 1)"
+    },
+    {
+      "id": "shadow-3/0.5-1",
+      "value": "2px -3px",
+      "x": 0.5,
+      "y": 1,
+      "expected": "4px -3px"
+    },
+    {
+      "id": "shadow-3/2-3",
+      "value": "2px -3px",
+      "x": 2,
+      "y": 3,
+      "expected": "1px -1px"
+    },
+    {
+      "id": "shadow-3/0.75-1.25",
+      "value": "2px -3px",
+      "x": 0.75,
+      "y": 1.25,
+      "expected": "2.66667px -2.4px"
+    },
+    {
+      "id": "shadow-4/0.5-1",
+      "value": "none",
+      "x": 0.5,
+      "y": 1,
+      "expected": "none"
+    },
+    {
+      "id": "shadow-4/2-3",
+      "value": "none",
+      "x": 2,
+      "y": 3,
+      "expected": "none"
+    },
+    {
+      "id": "shadow-4/0.75-1.25",
+      "value": "none",
+      "x": 0.75,
+      "y": 1.25,
+      "expected": "none"
+    },
+    {
+      "id": "shadow-5/0.5-1",
+      "value": "0px 2px 3px black, 0px 4px 8px blue",
+      "x": 0.5,
+      "y": 1,
+      "expected": "0px 2px 3px black, 0px 4px 8px blue"
+    },
+    {
+      "id": "shadow-5/2-3",
+      "value": "0px 2px 3px black, 0px 4px 8px blue",
+      "x": 2,
+      "y": 3,
+      "expected": "0px 2px 3px black, 0px 4px 8px blue"
+    },
+    {
+      "id": "shadow-5/0.75-1.25",
+      "value": "0px 2px 3px black, 0px 4px 8px blue",
+      "x": 0.75,
+      "y": 1.25,
+      "expected": "0px 2px 3px black, 0px 4px 8px blue"
+    },
+    {
+      "id": "shadow-6/0.5-1",
+      "value": "2px 4px, 4px 8px",
+      "x": 0.5,
+      "y": 1,
+      "expected": "4px 4px, 5.33333px 10.66667px"
+    },
+    {
+      "id": "shadow-6/2-3",
+      "value": "2px 4px, 4px 8px",
+      "x": 2,
+      "y": 3,
+      "expected": "1px 1.33333px, 1.6px 3.2px"
+    },
+    {
+      "id": "shadow-6/0.75-1.25",
+      "value": "2px 4px, 4px 8px",
+      "x": 0.75,
+      "y": 1.25,
+      "expected": "2.66667px 3.2px, 4px 8px"
+    }
+  ]
+}

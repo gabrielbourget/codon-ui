@@ -1,0 +1,107 @@
+package com.codonui.input;
+
+import android.view.KeyEvent;
+import android.view.View;
+import android.view.MotionEvent;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.WeakHashMap;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
+
+final class CUIInputWindow {
+  private static final WeakHashMap<View, State> states = new WeakHashMap<>();
+  private static final AtomicLong identities = new AtomicLong();
+
+  private static final class State {
+    final String identity = "native-window-" + identities.incrementAndGet();
+    String modality = "unknown";
+    long policyOrder;
+    int pointerDispatches;
+    int keyDispatches;
+    long observedEventId;
+    long windowPointerSequence;
+    long scopeOrder;
+    long inputRevision;
+    final Set<Integer> pointers = new HashSet<>();
+    final WeakHashMap<CUIKeyboardScope, Long> scopes = new WeakHashMap<>();
+  }
+
+  private static State state(View view) {
+    View root = view.getRootView();
+    State value = states.get(root);
+    if (value == null) { value = new State(); states.put(root, value); }
+    return value;
+  }
+
+  static String identity(View view) { return state(view).identity; }
+  static String modality(View view) { return state(view).modality; }
+  static void record(View view, String origin) { state(view).modality = origin; interacted(view); }
+  static long revision(View view) { return state(view).inputRevision; }
+  static void interacted(View view) { state(view).inputRevision++; }
+  static boolean pointerActive(View view) { return !state(view).pointers.isEmpty(); }
+  static void clearPointers(View view) { state(view).pointers.clear(); }
+  static void pointerEvent(View view, MotionEvent event) {
+    State state = state(view); state.inputRevision++;
+    int action = event.getActionMasked(), pointer = event.getPointerId(event.getActionIndex());
+    if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_POINTER_DOWN) state.pointers.add(pointer);
+    else if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_POINTER_UP) state.pointers.remove(pointer);
+    else if (action == MotionEvent.ACTION_CANCEL) state.pointers.clear();
+  }
+  static void register(CUIKeyboardScope scope) { State value = state(scope); value.scopes.put(scope, ++value.scopeOrder); }
+  static void unregister(View root, CUIKeyboardScope scope) { State value = states.get(root); if (value != null) value.scopes.remove(scope); }
+  static List<CUIKeyboardScope> scopes(View view) {
+    State value = state(view);
+    List<CUIKeyboardScope> result = new ArrayList<>(value.scopes.keySet());
+    result.sort((left, right) -> Long.compare(value.scopes.get(left), value.scopes.get(right)));
+    return result;
+  }
+  static boolean beginKey(View view) { return state(view).keyDispatches++ == 0; }
+  static void endKey(View view) { State value = state(view); value.keyDispatches = Math.max(0, value.keyDispatches - 1); }
+  static long nextWindowPointer(View view) { return ++state(view).windowPointerSequence; }
+  static long nextObservedEvent(View view) { return ++state(view).observedEventId; }
+  static long nextPolicyOrder(View view) { return ++state(view).policyOrder; }
+  static void beginPointer(View view) { state(view).pointerDispatches++; }
+  static void endPointer(View view) { State value = state(view); value.pointerDispatches = Math.max(0, value.pointerDispatches - 1); }
+  static boolean dispatchingPointer(View view) { return state(view).pointerDispatches > 0; }
+
+  static String keyName(KeyEvent event) {
+    switch (event.getKeyCode()) {
+      case KeyEvent.KEYCODE_ENTER:
+      case KeyEvent.KEYCODE_NUMPAD_ENTER: return "Enter";
+      case KeyEvent.KEYCODE_ESCAPE: return "Escape";
+      case KeyEvent.KEYCODE_TAB: return "Tab";
+      case KeyEvent.KEYCODE_DEL: return "Backspace";
+      case KeyEvent.KEYCODE_FORWARD_DEL: return "Delete";
+      case KeyEvent.KEYCODE_DPAD_RIGHT: return "ArrowRight";
+      case KeyEvent.KEYCODE_DPAD_LEFT: return "ArrowLeft";
+      case KeyEvent.KEYCODE_DPAD_DOWN: return "ArrowDown";
+      case KeyEvent.KEYCODE_DPAD_UP: return "ArrowUp";
+      case KeyEvent.KEYCODE_MOVE_HOME: return "Home";
+      case KeyEvent.KEYCODE_MOVE_END: return "End";
+      case KeyEvent.KEYCODE_PAGE_UP: return "PageUp";
+      case KeyEvent.KEYCODE_PAGE_DOWN: return "PageDown";
+      case KeyEvent.KEYCODE_SPACE: return " ";
+      case KeyEvent.KEYCODE_SHIFT_LEFT:
+      case KeyEvent.KEYCODE_SHIFT_RIGHT: return "Shift";
+      case KeyEvent.KEYCODE_CTRL_LEFT:
+      case KeyEvent.KEYCODE_CTRL_RIGHT: return "Control";
+      case KeyEvent.KEYCODE_ALT_LEFT:
+      case KeyEvent.KEYCODE_ALT_RIGHT: return "Alt";
+      case KeyEvent.KEYCODE_META_LEFT:
+      case KeyEvent.KEYCODE_META_RIGHT: return "Meta";
+      case KeyEvent.KEYCODE_CAPS_LOCK: return "CapsLock";
+      default:
+        int unicode = event.getUnicodeChar();
+        if (unicode != 0 && Character.isValidCodePoint(unicode)) return new String(Character.toChars(unicode));
+        if (event.getKeyCode() >= KeyEvent.KEYCODE_F1 && event.getKeyCode() <= KeyEvent.KEYCODE_F12) return "F" + (event.getKeyCode() - KeyEvent.KEYCODE_F1 + 1);
+        return "Unidentified";
+    }
+  }
+
+  static String keyToken(KeyEvent event) {
+    return (event.isShiftPressed() ? "1" : "0") + (event.isAltPressed() ? "1" : "0")
+        + (event.isCtrlPressed() ? "1" : "0") + (event.isMetaPressed() ? "1" : "0") + ":" + keyName(event);
+  }
+}

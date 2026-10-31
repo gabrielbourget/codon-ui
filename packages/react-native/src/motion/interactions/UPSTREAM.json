@@ -1,0 +1,254 @@
+{
+  "scope": "Private native tap/hover/focus/pan and drag source binding. Full Card, projection, installed native routing/geometry/rendering/performance acceptance remain incomplete.",
+  "inputs": [
+    {
+      "package": "framer-motion",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/gestures/press.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "8123b3fb3c065883ed48e036206ac6b2ad760d6ae0842bce330ce89e4ef74f96"
+    },
+    {
+      "package": "framer-motion",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/gestures/hover.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "02a3ab8e9f7df1935b8f607a128958cca5471053755cc10b04c5f2d55ec09d48"
+    },
+    {
+      "package": "framer-motion",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/gestures/focus.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "48a883106b807454c7df7e37104495dfbcc74578c80730eb69eeb1275ba6ed6e"
+    },
+    {
+      "package": "framer-motion",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/events/event-info.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "964fe89202c00596aada84f36b184401383e0ba24d196c5c29efc903ad552dac"
+    },
+    {
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/gestures/press/index.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "6269900899e4f9d17b49a2a49f44ec23a037ddfc7ebbc447db410213d180b81a"
+    },
+    {
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/gestures/press/utils/keyboard.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "9c4b753a1e8357e7b610baaaa96292b420c066c65a5b53c5cb74b1565299c649"
+    },
+    {
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/gestures/hover.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "a718703c13329931571ce04fe67a220f6dfeb848f891a8b4ec1adde706006891"
+    },
+    {
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/gestures/utils/is-primary-pointer.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "b5150c1c4ad259de034608e344b307ccc8376f2d314bfb54a94b3cd246362b57"
+    },
+    {
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/gestures/drag/state/is-active.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "8f30a57516ca8661b5bdbeeace1bf9da9a35de897faad6a4e2ff0860246e7bf1"
+    },
+    {
+      "package": "framer-motion",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/gestures/pan/PanSession.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "6f449ee251010db4032b3b3d9b59522da3be5098009c68050b0dba7c046e7ea0"
+    },
+    {
+      "package": "framer-motion",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/gestures/pan/index.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "e48dc50d46ba5ba68e486bb57d98b3223618d60899c4ef12ba27053198c71cbf"
+    },
+    {
+      "package": "framer-motion",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/gestures/drag/VisualElementDragControls.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "e408bf5e02898e3c1c6e9858299aca5c6c95fa86db9eda6132a55362f7ccd0b2"
+    },
+    {
+      "package": "framer-motion",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/gestures/drag/utils/constraints.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "ba11bb480277617acb41485e1c41054d16fd4dc04a1fce7018a039cbd928d310"
+    },
+    {
+      "package": "framer-motion",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/gestures/drag/use-drag-controls.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "8ceeaf2f3bab482697fe2934ec109a4bdfa262ad71b68295b9af04d0056c4860"
+    },
+    {
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/gestures/drag/state/set-active.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "e4eb9004a9dbd650f8d9892dff9ee7f44dbda60c551de2cc9900fde87e4e62f9"
+    }
+  ],
+  "reactNativeInputs": [
+    {
+      "path": "Libraries/Pressability/Pressability.js",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/Libraries/Pressability/Pressability.js",
+      "sha256": "5f6bf8351cdcc3434312ca3aeb9859d37ac588284926524f4437b4433fcf8933"
+    },
+    {
+      "path": "Libraries/Pressability/usePressability.js",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/Libraries/Pressability/usePressability.js",
+      "sha256": "6ea47170258ee32adc3b66216c4ed31c09ebf42c07b4b403a3f9d02d82091a2a"
+    },
+    {
+      "path": "Libraries/Types/CoreEventTypes.d.ts",
+      "packageArtifactRef": "react-native@0.86.3/Libraries/Types/CoreEventTypes.d.ts",
+      "sha256": "cf1e23408bb2e38cb90d109cf8027c829f19424ad7a611c74edf39e1f195fe22"
+    },
+    {
+      "path": "React/Base/RCTConstants.m",
+      "packageArtifactRef": "react-native@0.86.3/React/Base/RCTConstants.m",
+      "sha256": "de12480a527e7319141c3414854e972ffaae84c8d880d4a18bbabd23fd88d37c"
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/config/ReactFeatureFlags.kt",
+      "packageArtifactRef": "react-native@0.86.3/ReactAndroid/src/main/java/com/facebook/react/config/ReactFeatureFlags.kt",
+      "sha256": "a7a507ec9aabdc95fd0bd605fcf6c36e3bc133fad4f1128b1ed5f735d416c1a2"
+    },
+    {
+      "path": "Libraries/Types/CoreEventTypes.js",
+      "packageArtifactRef": "react-native@0.86.3/Libraries/Types/CoreEventTypes.js",
+      "sha256": "e956142dfe27be7175d7676efebb036f01c0ff90c1d724ce366459db29c1d8b4"
+    },
+    {
+      "path": "React/Fabric/RCTSurfaceTouchHandler.mm",
+      "packageArtifactRef": "react-native@0.86.3/React/Fabric/RCTSurfaceTouchHandler.mm",
+      "sha256": "7326c79d3cbd91762a18e0d6e21744bd7520521ded318a8f8411391e336e5dd3"
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/uimanager/events/TouchesHelper.kt",
+      "packageArtifactRef": "react-native@0.86.3/ReactAndroid/src/main/java/com/facebook/react/uimanager/events/TouchesHelper.kt",
+      "sha256": "c23f4cecd710c5083d27f3c14fe166b1a7ade4879b9bf90a4065b17b51be20fb"
+    },
+    {
+      "path": "src/private/webapis/dom/nodes/ReadOnlyElement.js",
+      "packageArtifactRef": "react-native@0.86.3/src/private/webapis/dom/nodes/ReadOnlyElement.js",
+      "sha256": "6719aee0b73b1574fcb8ad0574769d51471f11ce1cf1ebadffe2b70c0d984caf"
+    },
+    {
+      "path": "ReactCommon/react/renderer/dom/DOM.cpp",
+      "packageArtifactRef": "react-native@0.86.3/ReactCommon/react/renderer/dom/DOM.cpp",
+      "sha256": "6772e346e5c8c6b882150ff68bd81f660064f1777aff2922cb108cc51ac40077"
+    },
+    {
+      "path": "Libraries/Components/TextInput/TextInput.js",
+      "packageArtifactRef": "react-native@0.86.3/Libraries/Components/TextInput/TextInput.js",
+      "sha256": "838bb51aceb434f32ea03db428fe50e9e31cd5c6dfa66d248f2e4238d11303de"
+    }
+  ],
+  "licenses": ["../kernel/LICENSE.motion-dom.md", "../animation/LICENSE.framer-motion.md"],
+  "authoredFiles": [
+    {
+      "file": "NativeDragControls.ts",
+      "sha256": "86f737b4a5af7d1536d61a45294c14456eaae1c0d5493a7af76de6fbe4a93742"
+    },
+    {
+      "file": "NativeMotionDrag.ts",
+      "sha256": "937fddce51336215ce8cd479cfb2b6ac31dbc546d1219a97909c970d16c6fbe4"
+    },
+    {
+      "file": "NativeMotionInteractions.ts",
+      "sha256": "13e513744bb1eadbda66fd6c61cfddd6faf38e177e802a9ae10d8c9df65584f3"
+    },
+    {
+      "file": "NativeMotionPan.ts",
+      "sha256": "1d135001f5abe911401bed480be41cdc7730facd1cea63c4794e3f57a184eafa"
+    },
+    {
+      "file": "NativePanSession.ts",
+      "sha256": "cc0e90b7cdc0bd8ade9786752b1077102419164a430f63ec9880778beb7ab4bd"
+    },
+    {
+      "file": "dragConstraints.ts",
+      "sha256": "c1b38bd9eda2f8fd160f0f80bc5756c31b42af0b4bd3ad2b0f630a681bb14d4c"
+    },
+    {
+      "file": "dragLock.ts",
+      "sha256": "5c8b7e9e676fe155d8bbf34caf56d534082d32d4b52b044e47e3174c296a127a"
+    },
+    {
+      "file": "dragTypes.ts",
+      "sha256": "c8af3b23033ab2109a95d95b1feb05f8a8ec705a07c3bb7073390783bb0792e5"
+    },
+    {
+      "file": "types.ts",
+      "sha256": "da4568437890548b6f132a13e0288e21014950e666bf74997a98fde801b70688"
+    },
+    {
+      "file": "useNativeMotionInteractions.ts",
+      "sha256": "cb32f581c07b01defaf3197e3a11a6f0780994c5153c848a09613bc1d43d208d"
+    },
+    {
+      "file": "../../input/nativeGestureObservation.ts",
+      "sha256": "4ee1086d5c2dd4583ca402e01f15264b57d91705b199737dc45b1daa3ca08e1c"
+    },
+    {
+      "file": "../../input/NativeKeyboardScope.tsx",
+      "sha256": "3f7815702570705b23b189dbc946a5df1a699970fa0342b3f055e35d6d2c4796"
+    },
+    {
+      "file": "useNativeMotionWindowTap.ts",
+      "sha256": "8db959a2bf683138531eda7ac63ab7467bf1ee1dc85732c696c1da32cc4c96fc"
+    },
+    {
+      "file": "../../input/nativeWindowPointers.ts",
+      "sha256": "35da10cbc055a46dc4afc6a21d23eafd859e0f61b78d3f00a78616704abb58cf"
+    }
+  ],
+  "nativeAdaptations": [
+    "No synthetic PointerEvent or browser import: pointer/key/native activation retain original event objects; point metadata uses finite native page coordinates or requests the actual public native-ref rectangle for coordinate-free activation",
+    "Existing native Enter/Space capture/default-handled policy replaces browser Enter-to-synthetic-pointer dispatch. Actual key defaults, focus modality, bounds and native fidelity still require proof",
+    "Current source priority state drives the real value backend; callbacks run postRender and carry attachment/window/epoch leases; original native responder negotiation and caller callbacks are preserved",
+    "Held hover leave is deferred until native pointer release/cancel; reentry starts again and clears the deferral, matching the inspected pinned source",
+    "Same native root/ref/editor survives interaction prop changes; no accessible grouping, editor methods/values/selection changes or SDK flag changes are introduced",
+    "Pan retains the pinned 3-unit threshold, frame-coalesced/retransformed movement, 100ms recent-history velocity, stale hold-origin handling, update/postRender callback phases and original cancel-event/last-point semantics",
+    "Locked RN0.86.3 defaults W3C pointer dispatch off on both platforms. Existing bubbling touch events supply native pan without responder capture or SDK flag changes; an available pointer stream and touch stream share one source-owned session without timing heuristics",
+    "Native admission keys source plus actual pointerId/touch identifier. Secondary starts/foreign IDs do not retire the original session. Source comparisons cover matching physical-pointer traces; native admission/deduplication guards are separate source assertions and still require actual native proof",
+    "The pan callbacks truthfully accept original native pointer or touch events. Pointer-only buttons/modifiers remain on their real event variant; no absent touch fields are fabricated",
+    "Pinned RN public declarations use string touch IDs while Flow and native emitters use numbers. The owned pan event type preserves string or number IDs; admission distinguishes their types without coercion or event mutation",
+    "Drag uses existing bubbling touch/available pointer events on the original owner and passive same-window scope observation for manual handles; original event objects, caller order, responder negotiation and defaults are preserved",
+    "Actual native query latency retains the session history and buffers the latest move until layout is available; retired leases discard pending work. Queries never strip or temporarily write mounted styles",
+    "Axis locks are owned per actual native window and always released on retirement. Global drag admission/revision prevents a tap after an intervening drag; propagated drag also cancels its own tap cycle",
+    "Native public nodeName/parentElement reads identify RN:TextInput descendants. The locked native DOM implementation normalizes AndroidTextInput to that name; TextInput.State intentionally does not export its private isTextInput helper",
+    "Native geometry streams and actual ref rectangle reads trigger layout/scroll compensation and constraint resize progress without resetting editor values, refs or methods",
+    "Cursor snapping preserves the pinned raw event point even when configured page transforms apply to pan points and measured boxes; an actual source differential caught and corrected the initial transformed-cursor divergence",
+    "Private actual-window packets replace tap Pressability: Android delegates the matching Activity/RN-modal Window.Callback and observes captured hit paths after original dispatch; UIKit uses a non-delaying, non-cancelling, non-preventing passive window recognizer",
+    "Exact same-window host registrations, native per-window sequence and scope/ref/epoch/revision leases order local descendants before ancestors and global registration order. propagate.tap=false claims only motion delivery; globalTapTarget and propagation are captured at feature mount while callbacks remain current",
+    "Genuine Android accessibility ACTION_CLICK and UIKit accessibilityActivate emit explicit virtual activation packets. Physical Android onClick remains on the unchanged standalone public path and cannot complete a second motion tap; keyboard capture uses its existing original native key path",
+    "Committed feature lifetime is distinct from current rendered focus defaults: mounted tap/hover/pan sessions and claims survive absent props with current callbacks; static previews retain source tab-order defaults without an observer or captured activation keys."
+  ],
+  "remaining": [
+    "Full native projection/shared-layout/presence integration, including transformed ancestor coordinate fidelity and projection animation blocking",
+    "Actual native touch/pointer/multitouch/manual-handle/outside-root/window/default routing, editor invariants, cancellation and held hover/drag/tap arbitration",
+    "Actual constraint measurement/resize/scroll/inertia/snap/Reduce Motion/skip/frame/load fidelity on both native platforms and required profiles",
+    "Actual global tap/propagation/default/activation/performance fidelity, complete inherited types/renderer/Card/public APIs, fresh consumers/products and full catalogue/profile/closure acceptance"
+  ]
+}

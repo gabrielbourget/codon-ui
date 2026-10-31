@@ -1,14 +1,39 @@
-import { Platform, type ColorValue } from "react-native"
+import { Platform, type ColorValue, type TextStyle, type ViewStyle } from "react-native"
 
 import type { TNativeTheme } from "../../theme/types"
 import { resolveNativeStyle, validateNativeColor } from "../colors"
 
 import type { TNativeButtonProps, TNativeButtonRenderState, TNativeButtonRootStyle } from "./types"
 
+const TEXT_FIELDS = [
+  "color",
+  "fontFamily",
+  "fontSize",
+  "fontStyle",
+  "fontWeight",
+  "fontVariant",
+  "letterSpacing",
+  "lineHeight",
+  "textAlign",
+  "textAlignVertical",
+  "verticalAlign",
+  "includeFontPadding",
+  "textDecorationLine",
+  "textDecorationStyle",
+  "textDecorationColor",
+  "textShadowColor",
+  "textShadowOffset",
+  "textShadowRadius",
+  "textTransform",
+  "writingDirection",
+  "userSelect",
+] as const
+
 export const getNativeButtonStyle = (
   theme: TNativeTheme,
-  props: TNativeButtonProps,
+  props: Omit<TNativeButtonProps, "children">,
   state: Omit<TNativeButtonRenderState, "foregroundColor">,
+  isFocusVisible = true,
 ) => {
   const {
     color,
@@ -64,6 +89,7 @@ export const getNativeButtonStyle = (
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    cursor: state.isDisabled ? "auto" : "pointer",
     gap: theme.spacing.unit,
     padding: theme.spacing.unit,
     paddingHorizontal: geometry === "round" ? 7 : theme.spacing.unit,
@@ -86,7 +112,7 @@ export const getNativeButtonStyle = (
           elevation: 2,
         }
       : {}),
-    ...(enableFocusStyle && state.isFocused
+    ...(enableFocusStyle && state.isFocused && isFocusVisible
       ? { outlineColor: theme.colors.focusRing, outlineWidth: 1.5, outlineOffset: offsetFocusRing ? 1.5 : 0 }
       : {}),
   }
@@ -119,6 +145,13 @@ export const getNativeButtonStyle = (
     "Button",
     "resolvedStyle",
   )
-  const { color: resolvedForeground, ...viewStyle } = resolved
-  return { viewStyle, foregroundColor: resolvedForeground ?? foreground, target }
+  const textStyle = Object.fromEntries(
+    Object.entries(resolved).filter(
+      ([key, value]) => value !== undefined && TEXT_FIELDS.some((field) => field === key),
+    ),
+  ) as TextStyle
+  const viewStyle = Object.fromEntries(
+    Object.entries(resolved).filter(([key]) => !TEXT_FIELDS.some((field) => field === key)),
+  ) as ViewStyle
+  return { viewStyle, textStyle, foregroundColor: textStyle.color ?? foreground, target }
 }

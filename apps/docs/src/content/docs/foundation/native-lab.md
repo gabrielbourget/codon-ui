@@ -3,7 +3,7 @@ title: Native Lab
 description: SDK 57 lab requirements, generated project boundaries and reference capture.
 ---
 
-The native laboratory uses Expo SDK 57, React Native 0.86.3, React 19.2.3 and the approved TypeScript/React-type pins. Its source/type/unit and two-platform JS proof are complete. The 2026-10-12 Android and iOS x86_64 labs produced development and local release binaries and inspected foundation states, scrolling viewports, larger text and rotation. Physical-device accessibility and owner visual acceptance remain open. The canonical execution ledger is docs/roadmaps/react-native-library-first-pass.md and owns observed host availability and proof receipts.
+The native laboratory uses Expo SDK 57, React Native 0.86.3, React 19.2.3 and the approved TypeScript/React-type pins. Its source/type/unit and two-platform JS proof are complete. The 2026-10-12 Android and iOS x86_64 labs produced development and local release binaries and inspected foundation states, scrolling viewports, larger text and rotation. Physical-device accessibility and owner visual acceptance remain open. The canonical execution ledger is planning/component-library/roadmap.md and owns observed host availability and proof receipts.
 
 ## Select A Compatible Host
 
@@ -30,7 +30,16 @@ CODON_NATIVE_LAB_ROOT="$HOME/.local/share/codon-native-lab"
 env DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer GEM_HOME="$CODON_NATIVE_LAB_ROOT/ios-gems" GEM_PATH="$CODON_NATIVE_LAB_ROOT/ios-gems:$CODON_NATIVE_LAB_ROOT/ruby-3.4.11/lib/ruby/gems/3.4.0" PATH="$CODON_NATIVE_LAB_ROOT/ruby-3.4.11/bin:$CODON_NATIVE_LAB_ROOT/ios-gems/bin:$PATH" CP_HOME_DIR="$CODON_NATIVE_LAB_ROOT/cocoapods" COCOAPODS_DISABLE_STATS=true pnpm -F @codon-ui/native-showcase ios
 ```
 
-The receipt's unsigned local-release check used Xcode's Release configuration for `CodonNativeShowcase` in the generated workspace, x86_64/active architecture, a selected task-owned Simulator destination and separate derived data. Reuse the recorded private reproduction helper for that exact lane; the normal Expo command above starts development use and does not reproduce the unsigned release receipt by itself.
+The receipt's unsigned local-release check used Xcode's Release configuration for `CodonNativeShowcase` in the generated workspace, x86_64/active architecture, a selected task-owned Simulator destination and separate derived data. Copy/re-root the recorded private reproduction helper into a fresh writable directory for that exact lane; never execute it inside a sealed cohort. The normal Expo command above starts development use and does not reproduce the unsigned release receipt by itself.
+
+A compile/link check can use the generic Simulator destination without booting a task guest. From the repository root, after native generation and the pinned Pod installation, the selected Intel lane can build unsigned Release output as follows:
+
+```sh
+CODON_NATIVE_LAB_ROOT="$HOME/.local/share/codon-native-lab"
+env DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer NODE_ENV=production CI=1 EXPO_OFFLINE=1 EXPO_NO_TELEMETRY=1 FORCE_BUNDLING=1 EXTRA_PACKAGER_ARGS="--max-workers 2" PATH="$CODON_NATIVE_LAB_ROOT/ruby-3.4.11/bin:$CODON_NATIVE_LAB_ROOT/ios-gems/bin:$PATH" xcodebuild -jobs 2 -workspace apps/native-showcase/ios/CodonNativeShowcase.xcworkspace -scheme CodonNativeShowcase -configuration Release -sdk iphonesimulator -destination "generic/platform=iOS Simulator" -derivedDataPath "$CODON_NATIVE_LAB_ROOT/ios-app-derived-data" ARCHS=x86_64 ONLY_ACTIVE_ARCH=YES CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO SOURCEMAP_FILE="$CODON_NATIVE_LAB_ROOT/ios-release.map" build
+```
+
+Verify the actual executable architecture/native classes and embedded Hermes bundle against its composed map and committed source. Copy completed artifacts to a fresh evidence directory before sealing; a sealed directory must never be reused as a build or source-map destination. Compilation/linkage does not establish app launch, rendering, accessibility or interaction acceptance.
 
 Keep native compilation and Simulator inspection sequential on this host. Cold runtime migration and Apple's asset compiler stalled during initial attempts; sampled waits and interrupted logs are preserved. After task-device shutdown and a scoped CoreSimulator service restart with no other booted devices, both builds completed. The owner also explicitly approved `DevToolsSecurity -enable` for debugger/test diagnostics; this is a system authorization change recorded separately from isolated tools. Do not treat either recovery step as an established root cause or a routine setup requirement.
 
@@ -55,6 +64,8 @@ pnpm -F @codon-ui/native-showcase exec expo prebuild --platform android --no-ins
 git diff -- apps/native-showcase/package.json pnpm-lock.yaml
 ```
 
+When refreshing an existing laboratory, save the generated iOS Podfile.lock outside the platform directory before prebuild. Restore those exact bytes before running the isolated CocoaPods command with install --no-repo-update. Compare every previous Pod version after installation; only the separately approved native module may add versions. CNG can clear the ignored platform directory even when dependency installation is disabled, so an absent old lock must not silently trigger a fresh resolution.
+
 Both skeletons were generated successfully during lab preparation; that is configuration evidence. Generation is [documented by Expo](https://docs.expo.dev/workflow/continuous-native-generation/) and may clear/recreate native directories. Keep native edits in app config/plugins, not hand-edited generated files. Check for unexpected package/config diffs before installation or build.
 
 After the selected host has suitable Xcode/CocoaPods or Android SDK/JDK tooling:
@@ -77,6 +88,8 @@ CODON_NATIVE_LAB_ROOT="$HOME/.local/share/codon-native-lab"
 env JAVA_HOME="$CODON_NATIVE_LAB_ROOT/jdk/Contents/Home" ANDROID_HOME="$CODON_NATIVE_LAB_ROOT/sdk" GRADLE_USER_HOME="$CODON_NATIVE_LAB_ROOT/gradle" pnpm -F @codon-ui/native-showcase exec sh -c 'cd android && ./gradlew :app:assembleDebug -PreactNativeArchitectures=x86_64 --no-daemon --max-workers=2 --console=plain'
 env NODE_ENV=production JAVA_HOME="$CODON_NATIVE_LAB_ROOT/jdk/Contents/Home" ANDROID_HOME="$CODON_NATIVE_LAB_ROOT/sdk" GRADLE_USER_HOME="$CODON_NATIVE_LAB_ROOT/gradle" pnpm -F @codon-ui/native-showcase exec sh -c 'cd android && ./gradlew :app:assembleRelease -PreactNativeArchitectures=x86_64 --no-daemon --max-workers=2 --console=plain'
 ```
+
+A recorded workspace-library change can leave the app bundle task up-to-date even though the library source changed. For a matched Release verification, run `:app:createBundleReleaseJsAndAssets --rerun :app:assembleRelease` with the same environment/ABI/offline settings, then compare the generated map and APK-embedded bundle against the intended committed source. This forces the JS task without rerunning every native compile. A successful Gradle exit or a new APK timestamp alone does not establish the JS producer identity.
 
 Use this ABI selection only for the recorded x86_64 emulator lane; it does not verify ARM devices. Keep Gradle and emulator work sequential when the host is constrained. The task-owned Pixel 7 profile can use a lower framebuffer resolution with proportionally lower density (720×1600 at 280 dpi versus 1080×2400 at 420 dpi) to retain its logical window dimensions; record the actual app window, font scale and bounds after startup. This is a configured emulator, not physical Pixel hardware evidence. Keep emulator metrics collection disabled and private build/capture logs outside curated docs.
 

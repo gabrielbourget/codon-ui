@@ -1,0 +1,126 @@
+{
+  "status": "Private native value/keyframe backend; actual geometry, complete owner/renderer/Card and installed acceptance remain required",
+  "package": {
+    "name": "motion-dom",
+    "version": "12.40.0",
+    "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60"
+  },
+  "sources": [
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/AsyncMotionValueAnimation.ts",
+      "upstreamSha256": "53bc533ac7678ec48a22430ea26b6e97fcc833f159912a0cafe49f7c0073c9b3",
+      "sourceKind": "npm-source-map-sourcesContent"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/interfaces/motion-value.ts",
+      "upstreamSha256": "37ad21753cb52dd63f42ba5912c7e7569c35f499cf3be697f0e952c1b883dea1",
+      "sourceKind": "npm-source-map-sourcesContent"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/keyframes/KeyframesResolver.ts",
+      "upstreamSha256": "18a7c8b507ec3fc25c6359c5c13085b2394e91eca780132a8c3a318990fb144d",
+      "sourceKind": "npm-source-map-sourcesContent"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/utils/can-animate.ts",
+      "upstreamSha256": "5539f4e2bb4b9cd8b7d3d3f405669ef7872e1b66c3766322d54f8b1507a441a1",
+      "sourceKind": "npm-source-map-sourcesContent"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/utils/is-animatable.ts",
+      "upstreamSha256": "e276250232e5b15c52e347833890b04fd7a82c9ad43d6c9d192bdd9ff7a73e03",
+      "sourceKind": "npm-source-map-sourcesContent"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/keyframes/DOMKeyframesResolver.ts",
+      "upstreamSha256": "5e0bd63209faf4991a35ff55ce1df027f3cf001a3d11fe3a1ef3896c299ccd43",
+      "sourceKind": "npm-source-map-sourcesContent"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/keyframes/utils/unit-conversion.ts",
+      "upstreamSha256": "6551fa122528dc8e00caaddfb24baa3e32156778c9723a7a7bf61ae22c4aa4d7",
+      "sourceKind": "npm-source-map-sourcesContent"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/render/utils/keys-transform.ts",
+      "upstreamSha256": "01fab321464304dfd8147b705f2f70e0b07d357105ad3e759d329d50110e91ab",
+      "sourceKind": "npm-source-map-sourcesContent"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/value/index.ts",
+      "upstreamSha256": "6edffa9f7a6985ad29fbb9dcc7e3537082fd133f3b5825e0839cac57e0b95423",
+      "sourceKind": "npm-source-map-sourcesContent"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/keyframes/utils/make-none-animatable.ts",
+      "upstreamSha256": "d3c396a9661ec802ba33fac6bdd6006abec9c220f02b1e29630fb9c19d250387",
+      "sourceKind": "npm-source-map-sourcesContent"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/keyframes/utils/is-none.ts",
+      "upstreamSha256": "a220bc5c1ddbca5e8990863ab20007a58fb52e896317cecf0d33ec4885d23475",
+      "sourceKind": "npm-source-map-sourcesContent"
+    }
+  ],
+  "files": [
+    {
+      "file": "NativeValueAnimation.ts",
+      "receivedSha256": "adf9b18a048304fc1fcfee96d833cce7a8768d66bb513314c1f554a92c3e2a60",
+      "kind": "authored-native-adapter"
+    },
+    {
+      "file": "animateValue.ts",
+      "receivedSha256": "ed46d69f244a880ef2013e17353dabf588356bcdace63814ae2794c81e64af33",
+      "kind": "authored-native-adapter"
+    },
+    {
+      "file": "index.ts",
+      "receivedSha256": "17b0b823e3e4889b0048179f6c980d6d9aebef081ee8060b1860d8720f2251e7",
+      "kind": "authored-native-adapter"
+    },
+    {
+      "file": "keyframes.ts",
+      "receivedSha256": "4675ef466e571dad9bd134222deb551d09406c1bba84cf109167059298863e48",
+      "kind": "authored-native-adapter"
+    },
+    {
+      "file": "nativeContext.ts",
+      "receivedSha256": "7050223685d9c33bf0846a1af3e2ee331e6135c86573325cc193b0c846e4112c",
+      "kind": "authored-native-adapter"
+    },
+    {
+      "file": "types.ts",
+      "receivedSha256": "711b8071a39b8a2c3697b535a04e4aab7024caecc52338aa0c2e386016720d06",
+      "kind": "authored-native-adapter"
+    },
+    {
+      "file": "isolated-probe.ts",
+      "receivedSha256": "51135fdb0512c1d5dd4c6d01c0d8304c5bb8405df8e8d6a665f8281c4c5ee41b",
+      "kind": "authored-native-adapter"
+    },
+    {
+      "file": "resolution-batch.ts",
+      "receivedSha256": "43a89c47e501cae0a40e054f1be1c44a185bb861bcad9638080cd0320e95df58",
+      "kind": "authored-native-adapter"
+    },
+    {
+      "file": "targetKeyframes.ts",
+      "receivedSha256": "5f2908983a2758f8dd5e8b6d1f21fbde48c83e4b6923a49bcc0bed36a94d6122",
+      "kind": "authored-native-adapter"
+    }
+  ],
+  "adaptations": [
+    "Reuse the received JSAnimation driver and source transition/default/repeat/fast-path/playback semantics; no browser acceleration/handoff/DOM imports",
+    "Native transform/origin/shadow/filter/font-variant arrays are scalar native values; nested arrays represent their keyframe sequences",
+    "Native asynchronous initial reads, actual color samplers and required geometry providers are cancellation/owner-generation guarded; no guessed initial bounds or native color fallback",
+    "Static/single/instant endpoints retain original native representation; interpolated color/geometry results restore authored final values",
+    "Pending native measurement cannot be synchronously flushed as browser geometry can: private ready resolves before duration/iterationDuration/generator velocity are available, with explicit pending errors instead of invented metadata; time/speed/startTime/play/pause/complete requests queue in order",
+    "Resolution failures reject ready/early finished and retire only their currently owned value control; stopped/cancelled source promises remain pending",
+    "Actual native color queries release their timeout and cancellation listener on every terminal path; protocol/schema and public primitive APIs unchanged",
+    "Cohort registration before asynchronous initial/color resolution holds animation start until every reserved live member is normalized and settled; cancellation invalidates captures without resetting the original deadline",
+    "Original MotionValue public probes retain source callbacks and zero-velocity jumps while private render bindings mask temporary probe values; no cloned MotionValue or mounted target style",
+    "Before geometry detection, numeric zero uses the existing pinned complex none-template algorithm only for valid native percentage fields and equivalent native translation/origin array leaves. Source-normalized zero endpoints remain normalized rather than restoring authored numeric zero; unsupported strings, CSS units, colors and unrelated structured fields retain their existing native authority guards.",
+    "Native scalar-array/keyframe classification is shared by the resolver and imperative/final setters through a pure module, retaining frozen array identity while keeping the orchestration graph free of React Native and DOM imports."
+  ],
+  "verificationBoundary": "Pinned executable source models plus source-only bridge packets; no installed native color/geometry/sample/frame or complete Card acceptance claim"
+}

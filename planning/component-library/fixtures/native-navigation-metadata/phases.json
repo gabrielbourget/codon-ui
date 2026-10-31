@@ -1,0 +1,24 @@
+{
+  "probe": "codon-native-navigation-v2",
+  "libraryProducer": "f86d8a60d71e8c549080fac0f2e3a1a690a58224",
+  "phases": [
+    { "id": "initial", "page": 1 },
+    { "id": "owner-echo", "page": 2 },
+    { "id": "value-alias", "page": 2, "valueAlias": "Author alias", "selectedAlias": true },
+    { "id": "empty", "page": 2, "currentText": "", "role": "", "paginationLabel": "", "breadcrumbLabel": "" },
+    {
+      "id": "localized",
+      "page": 2,
+      "currentText": "Aktuelle Seite",
+      "role": "Navigation locale",
+      "paginationLabel": "ページ移動",
+      "breadcrumbLabel": "Fil d’Ariane"
+    },
+    { "id": "disabled", "page": 2, "breadcrumbDisabled": true, "paginationDisabled": true },
+    { "id": "ordered-labels", "page": 2, "referenceMode": "initial" },
+    { "id": "relabel", "page": 2, "referenceMode": "changed" },
+    { "id": "remove-targets", "page": 2, "referenceMode": "removed" },
+    { "id": "reinsert-targets", "page": 2, "referenceMode": "returned" },
+    { "id": "relationship-cleared", "page": 2 }
+  ]
+}

@@ -1,5 +1,5 @@
 import { useRef, useState } from "react"
-import { Keyboard, StyleSheet, TextInput as CoreInput, View } from "react-native"
+import { Keyboard, Pressable, StyleSheet, TextInput as CoreInput, View } from "react-native"
 
 import {
   AVAILABLE_CORNER_GEOMETRY_CODES,
@@ -67,6 +67,7 @@ export const BasicControlsScene = () => {
         checkbox: {uncontrolledCheckbox ? "on" : "off"}.
       </Text>
       <Switch
+        render={(props, state) => <Pressable {...props} nativeID={`basic-switch-${state.isSelected ? "on" : "off"}`} />}
         testID="basic-switch"
         aria-label="Controlled switch"
         rightContent="Controlled switch"
@@ -91,6 +92,12 @@ export const BasicControlsScene = () => {
         geometry={geometry}
       />
       <Checkbox
+        render={(props, state) => (
+          <Pressable
+            {...props}
+            nativeID={`basic-checkbox-${state.isIndeterminate ? "mixed" : state.isSelected ? "selected" : "empty"}`}
+          />
+        )}
         testID="basic-checkbox"
         aria-label="Controlled checkbox"
         {...controlState}
@@ -114,23 +121,42 @@ export const BasicControlsScene = () => {
       >
         Uncontrolled checkbox
       </Checkbox>
-      <CheckboxGroup testID="basic-group" value={group} onChange={setGroup} {...controlState} orientation="horizontal">
-        <View>
-          <Checkbox testID="basic-group-first" aria-label="Group first" value="first" order={order} geometry={geometry}>
-            First choice
-          </Checkbox>
-        </View>
-        <View>
-          <Checkbox
-            testID="basic-group-second"
-            aria-label="Group second"
-            value="second"
-            order={order}
-            geometry={geometry}
-          >
-            Second choice
-          </Checkbox>
-        </View>
+      <CheckboxGroup
+        render={(props, state) => <View {...props} nativeID={`basic-group-${state.value.join("-") || "empty"}`} />}
+        testID="basic-group"
+        value={group}
+        onChange={setGroup}
+        {...controlState}
+        orientation="horizontal"
+      >
+        {({ isDisabled, isReadOnly }) => (
+          <>
+            <View>
+              <Checkbox
+                isDisabled={isDisabled}
+                isReadOnly={isReadOnly}
+                testID="basic-group-first"
+                aria-label="Group first"
+                value="first"
+                order={order}
+                geometry={geometry}
+              >
+                First choice
+              </Checkbox>
+            </View>
+            <View>
+              <Checkbox
+                testID="basic-group-second"
+                aria-label="Group second"
+                value="second"
+                order={order}
+                geometry={geometry}
+              >
+                Second choice
+              </Checkbox>
+            </View>
+          </>
+        )}
       </CheckboxGroup>
       <Checkbox
         testID="basic-long-checkbox"
@@ -178,6 +204,9 @@ export const BasicControlsScene = () => {
       ) : (
         <Input
           ref={inputRef}
+          render={(props, state) => (
+            <CoreInput {...props} nativeID={`basic-input-${state.isReadOnly ? "readonly" : "editable"}`} />
+          )}
           testID="basic-input"
           aria-label="Basic input"
           placeholder="Enter bilingual text"

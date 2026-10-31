@@ -1,0 +1,79 @@
+{
+  "scope": "Private native presence/exit/group sequencing and forwarded native pop family presentation. Actual native drawing, timing, restoration, module teardown and fidelity/performance acceptance remain incomplete.",
+  "package": "framer-motion",
+  "version": "12.40.0",
+  "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+  "license": "../animation/LICENSE.framer-motion.md",
+  "inputs": [
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/components/AnimatePresence/index.tsx",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "ee98cb375ce3cc9d07c90036c90007e51d80980ba1e58f29e6e497180bc0ed64"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/components/AnimatePresence/PresenceChild.tsx",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "08f5efcc2a6c69922af4bab4b4c41ee979f771311b55fdf39551d4a7f2cf3070"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/components/AnimatePresence/PopChild.tsx",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "482f26f68618e69a2bdd103ae17568df14c3ea31cd5d65fa4ab93c5841c67a55"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/components/AnimatePresence/use-presence.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "262a02f2d4cb4312e1d86ff2a81c3ea089f6664350db6d8f0f73fdbb0f8ff9c5"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/components/AnimatePresence/use-presence-data.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "dbd425d8bc97f776a76ec3a58c6851b796ce2d840e96f513efc9305c0b839d41"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/components/AnimatePresence/utils.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "5165f54ccf6869cf99c8d0f438ea1fd080494db43ac4e824c574e8975d3db996"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/components/LayoutGroup/index.tsx",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "541a30a0c537be5947458822b544dd2952e55fa318a32e133e39a9d05410da41"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/motion/features/animation/exit.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "d02832f05fdab76bfb1c6346779d6cd68eac6318d405cc4b04508369de09b54d"
+    }
+  ],
+  "authoredFiles": [
+    {
+      "file": "NativeAnimatePresence.tsx",
+      "sha256": "49e374f6d10fd15b6529d87ba6574c009a229cd24b5603f7bf23fda5209bcb73"
+    },
+    {
+      "file": "context.ts",
+      "sha256": "e7fc2c300ecc2e666142eb1aa2faac0c0a1a384f01d2261405b1e1084cc6e1eb"
+    },
+    {
+      "file": "useNativeMotionPresence.ts",
+      "sha256": "75573d13cdada2169697e52d83e81a5c8a3769b6b77c9bdd487770e8dd02e2f4"
+    },
+    {
+      "file": "nativePopFrame.ts",
+      "sha256": "ae1aa8094bc55c99fefd5291f70707477c1d43707857a9b9a49199bb4983a898"
+    }
+  ],
+  "nativeAdaptations": [
+    "Unconditional presence hooks and committed exit-generation guards retire stale safeToRemove/animation completions while preserving live custom zero and original React state/refs",
+    "Owned native pop frame snapshots use actual layout, parent dimensions, native direction and optional ancestor-ref membership; no CSS stylesheet, element mirror or editor mutation",
+    "Native projection/pop styles publish only to the original owned root and clear removed native properties explicitly",
+    "Static previews complete without claiming native animation. Scope/ref interruption retires old exit generations; source restart/re-entry retains source state sequencing",
+    "Private synchronous nativePopFrame input reader validates connected original refs/documents/tags and native response identity. It does not activate a pop style layer or claim mounted publication.",
+    "Stable React19 forwarded-ref composition and exact per-frame opaque family leases use the approved native commit layer, preserving authored React/imperative positioning and original ref/state/editor ownership; no one-time JS pop style write remains on owned roots."
+  ],
+  "remaining": [
+    "General non-motion native pop roots and exact native before-paint/RTL/ref/keyboard/selection/pop/layout/performance evidence",
+    "Full viewport/projection/drawing/value-provider integration and complete Card/53-ID acceptance"
+  ]
+}

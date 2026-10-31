@@ -1,0 +1,293 @@
+{
+  "scope": "Private pinned projection/geometry/shared-stack source with native owner/cohort/visibility/pop and independent-corner drawing publication. Platform logical/RTL radius precedence and null native fallthrough are retained. Drawing fidelity, mixed continuous overlap, isolated value geometry, current products and full Card remain required.",
+  "package": "motion-dom",
+  "version": "12.40.0",
+  "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+  "license": "../kernel/LICENSE.motion-dom.md",
+  "inputs": [
+    {
+      "file": "animation/mix-values.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/projection/animation/mix-values.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sourceSha256": "2724a7e52ec91fead72c85227a8c224ed9199e6944742827dc3e38d229dea260"
+    },
+    {
+      "file": "geometry/conversion.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/projection/geometry/conversion.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sourceSha256": "7230f311fb8ac5b82eee493bb560f2378a895315b20a6ba24dc08a1574a100bb"
+    },
+    {
+      "file": "geometry/copy.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/projection/geometry/copy.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sourceSha256": "0a44710fe4c74e69ff9fbc6868b1700e10009d42eaebff85d5d328ade351d7af"
+    },
+    {
+      "file": "geometry/delta-apply.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/projection/geometry/delta-apply.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sourceSha256": "9847bc92de1f023b7ba46a46cb322f3e19709a08b070cd2004acb5ca69472a20"
+    },
+    {
+      "file": "geometry/delta-calc.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/projection/geometry/delta-calc.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sourceSha256": "7b2c3889f5cf3abab633081d690d052e0c871d24cdc442a88037c93222b606ac"
+    },
+    {
+      "file": "geometry/delta-remove.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/projection/geometry/delta-remove.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sourceSha256": "453209ad35807ae760e0f9e9dec4178d09ffcefd5c2e8bb004a695cbf65f0d1f"
+    },
+    {
+      "file": "geometry/models.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/projection/geometry/models.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sourceSha256": "f9ceaf592839bba1a1919e30f2540dde576c3f1c20d13a42cbf6a656ac5abd89"
+    },
+    {
+      "file": "geometry/utils.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/projection/geometry/utils.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sourceSha256": "1d1b68c87c3d70c6dc56fe4eb089903d0c6a026d34cc109821d46afaebe3d596"
+    },
+    {
+      "file": "node/create-projection-node.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/projection/node/create-projection-node.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sourceSha256": "3e413fd44f063fc72405ca1b8f2a6f5e0b1a3e83e8ba3513065485bc2a10a10e"
+    },
+    {
+      "file": "node/group.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/projection/node/group.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sourceSha256": "7550df9b15e5e8feb0aca8d24d9c012e9d8e22b2e0099b27ad29ff420958276d"
+    },
+    {
+      "file": "node/state.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/projection/node/state.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sourceSha256": "542d7a8660cf2b34d4ff0a96c92e6caec26757197711e320fb0fc74928e8a4db"
+    },
+    {
+      "file": "shared/stack.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/projection/shared/stack.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sourceSha256": "f744176aec9f1cc8a7a4ca3005b00c5143ff13593311e6da862ff6b16ba308ae"
+    },
+    {
+      "file": "utils/compare-by-depth.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/projection/utils/compare-by-depth.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sourceSha256": "c2496f5c5d5c3ea1ea77741172b0cbcbd5262289ddeda6fb932919bd9be1bd13"
+    },
+    {
+      "file": "utils/each-axis.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/projection/utils/each-axis.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sourceSha256": "eae4c443929b662cd1c00a3422eec54172ff1a739c55fa705cf05754414aff7f"
+    },
+    {
+      "file": "utils/flat-tree.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/projection/utils/flat-tree.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sourceSha256": "478806c73cdb1024bbca43df5ce874c74f85ae53e2a1f6eb63ee7d9547474ac1"
+    },
+    {
+      "file": "utils/has-transform.ts",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/projection/utils/has-transform.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sourceSha256": "e585413408a85c9dc92a97045040d42c11aa3947a25d5187c8671229692a9d6d"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/utils/delay.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sourceSha256": "3b5c4adcd2aff336f61f61bb53fc76c793d8ef20f815669eaa6c73b399360e58"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/frameloop/microtask.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sourceSha256": "0badad706c455d319dc17fb0a599d21fca194fae9177a383be79ac8c0d2796cf"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/animate/single-value.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sourceSha256": "3308bc7d56f43f3ada8efdbec4c5670823a963aa113ef99efbed3a317f723661"
+    }
+  ],
+  "nativeAdaptations": [
+    "Actual immutable native before/after records supply model and untransformed window boxes; no mounted transform reset, skew reset, CSS template or browser optimized-appear hook runs",
+    "Actual native window/root identities own projection trees and same-window node-group membership. Matching React projection revisions/cohorts gate updates; unavailable/stale geometry fails instead of accepting caller rectangles",
+    "Native transform arrays preserve pinned projection composition; an actual differential caught additive path rotation ordering. Numeric negative zero is normalized only when comparing native arrays with serialized CSS output",
+    "The native value wrapper drives real numeric projection animation and scoped skip/reduced policies. Queued starts/frames retire with their actual native owner",
+    "Source events use an explicit typed event map. Null native style resets release removed projection/pop fields. Actual platform visibility is separate from authored hidden/visibility state",
+    "Native point/dp geometry is not WebKit-rounded. Browser SVG/WAAPI/style-variable paths are absent from the native View backend",
+    "Scalar native radii cannot express general two-axis correction. An exact receiver is required and deliberately unavailable until implemented; a test recorder is not a native drawing acknowledgment",
+    "Layout lifecycle public box signatures retain the pinned declarations; actual VisualElement/SubscriptionManager delivery keeps three argument slots and original/undefined boxes, including the source before-measure declaration/runtime discrepancy. Retired projection receivers cannot dispatch through a replacement node."
+  ],
+  "authoredFiles": [
+    {
+      "file": "NativeLayoutGroup.tsx",
+      "sha256": "3759c368ac4cb80f8e70ccd3d33211f947199c27aafc619ce27e0f62bfc2a9cc"
+    },
+    {
+      "file": "NativeProjectionState.ts",
+      "sha256": "4fd3b6a6376b64fccb2fd0ed79fb586b0f20819f1137d7bff4d266e3f7b37687"
+    },
+    {
+      "file": "animation/mix-values.ts",
+      "sha256": "2cc220b265e988ee755d7cb03dbf7cfdfb5ec1806400f9649cde81c74b4f1276"
+    },
+    {
+      "file": "geometry/conversion.ts",
+      "sha256": "c8685bad9bd6942c6dcfc2d0b91fa12e535e3647813a5a9c9e842165d6c5d4c9"
+    },
+    {
+      "file": "geometry/copy.ts",
+      "sha256": "203f5817042511e55d1ba10eaac052a66420c5eef955cb8e1551ec063e9a1678"
+    },
+    {
+      "file": "geometry/delta-apply.ts",
+      "sha256": "0fe84a5229d381022aa446aa27e8f9ffc387906571c1d764581063ef82729fb4"
+    },
+    {
+      "file": "geometry/delta-calc.ts",
+      "sha256": "26d3bda1528c459913cf64e7e512a8c67713ad97f006cd13fc09507af3bfdf0b"
+    },
+    {
+      "file": "geometry/delta-remove.ts",
+      "sha256": "0af8e8837970108731150d0e8b00863f48f5ea1140c0e500dbaf1dab313fd53a"
+    },
+    {
+      "file": "geometry/models.ts",
+      "sha256": "ada6a7463200b2290551c36246057b8e2137b61eafdaaebbafe4227d6d00ad1c"
+    },
+    {
+      "file": "geometry/utils.ts",
+      "sha256": "147936f5841e9dd760ce183fa4a94f350703ab9bd1eed77304c9dbef1ecbd57b"
+    },
+    {
+      "file": "layoutTypes.ts",
+      "sha256": "70aa92bb2e9f7da78d6bd51c0a5389de8a15058d7fd734571ea935c91a83ceaa"
+    },
+    {
+      "file": "native-transition.ts",
+      "sha256": "29714e161bb76017bdd848258632bf97c7c7f88c6ebd28acaf1356cac1cc0f89"
+    },
+    {
+      "file": "nativeRuntime.ts",
+      "sha256": "c5481be5def731a8ef59745567d425dbf196759db6cde7f842b50c54ae1a68ad"
+    },
+    {
+      "file": "nativeStyles.ts",
+      "sha256": "cddd81bdda41744b6c9f0234d08e4977200f40c472558aa00cf9b3bf068237cc"
+    },
+    {
+      "file": "node/create-projection-node.ts",
+      "sha256": "22f1e50636e7c4d497ec05c2569b955c505eaa35e1171d6bffd1671ba2851653"
+    },
+    {
+      "file": "node/group.ts",
+      "sha256": "bd9efb96906709fab3274473a789e943b72e46a15afe50d91dc0afd72df1f1bc"
+    },
+    {
+      "file": "node/state.ts",
+      "sha256": "de837df220f78715d0dcfe16a1f236b2bc857b36c72ac8b1e5a685d6625b97d4"
+    },
+    {
+      "file": "node/types.ts",
+      "sha256": "35eea68d1b2d7f9445becf516d7d0ac033286afd006ba9ff9a342aa41ac974fc"
+    },
+    {
+      "file": "shared/stack.ts",
+      "sha256": "216038cf7ef1d65bb07eb3a587309a198d237a3bf9bdb87c36ab3e1c76705a5c"
+    },
+    {
+      "file": "types.ts",
+      "sha256": "2c88e2c609418df6c52f6f478d6a7ab687d5a41727193bb9b68781f1f8b1a923"
+    },
+    {
+      "file": "utils/compare-by-depth.ts",
+      "sha256": "e6091fee6f38e03ccde16ab1b4749196f245ff96f7fb9a2392289e08dc1d37d3"
+    },
+    {
+      "file": "utils/each-axis.ts",
+      "sha256": "0dcade99e810b869e64859c95c1c09c6b27895084f45f10b05d0d5f5cd159273"
+    },
+    {
+      "file": "utils/flat-tree.ts",
+      "sha256": "3f3f9dc5cd234edc77f48a9283a490880ab444bfc1fde78d6dc495e7c57c092b"
+    },
+    {
+      "file": "utils/has-transform.ts",
+      "sha256": "e09fb4460186c33737c4e6b2c6279cea2be811b407d5321d59810288daad9135"
+    },
+    {
+      "file": "windowGroup.ts",
+      "sha256": "eb39cbaacdbb463d2a9d2b948c4531862e61614c35ddf86ac6af537d43e007f9"
+    },
+    {
+      "file": "layoutCallbacks.ts",
+      "sha256": "773b3a3b7ce30808316c8c498bd10afc7a9ef95a679c3505c597374861cc8e72"
+    }
+  ],
+  "remaining": [
+    "Complete mixed continuous overlap and actual native corner/shadow/default/dispatch/editor fidelity; private platform receivers and transport alone do not establish it",
+    "Actual before-paint/native-cohort/scroll/ancestor/rotation/viewport/shared-layout/presence/editor/focus/performance proof",
+    "General native popLayout root support and current consumer/app products",
+    "Complete Card/API and every original catalogue/profile/closure obligation"
+  ],
+  "reactNativeInputs": [
+    {
+      "path": "React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm",
+      "packageArtifactRef": "react-native@0.86.3/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm",
+      "sha256": "cbdbe8224168362cd14c2065691cb2548b873c5e51988f64ade50fa0173e51fa"
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/view/primitives.h",
+      "packageArtifactRef": "react-native@0.86.3/ReactCommon/react/renderer/components/view/primitives.h",
+      "sha256": "2814441f318b3328029cc124bf436de5e487fc5ad2565268b4af4b2e4e6d301d"
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/view/BaseViewProps.h",
+      "packageArtifactRef": "react-native@0.86.3/ReactCommon/react/renderer/components/view/BaseViewProps.h",
+      "sha256": "e208193ef8c6bfcaa2616aca1819c5d7c7774bfe33ad83f5adae7ef8555e2036"
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/view/BaseViewProps.cpp",
+      "packageArtifactRef": "react-native@0.86.3/ReactCommon/react/renderer/components/view/BaseViewProps.cpp",
+      "sha256": "040d7c7be7ace403677e771a3bbfe6411303ec16b02bc46e686daef5d90f4a64"
+    },
+    {
+      "path": "Libraries/StyleSheet/processBoxShadow.js",
+      "packageArtifactRef": "react-native@0.86.3/Libraries/StyleSheet/processBoxShadow.js",
+      "sha256": "c3fa39d82e2b3566144db039f1297e889b8486858c0208cc2c5f2ecec62fa7db"
+    }
+  ],
+  "declarationInput": {
+    "packageArtifactRef": "motion-dom@12.40.0/dist/index.d.ts",
+    "sourceKind": "npm-declaration",
+    "sha256": "06b9fcb4e529bfa1e604002324923329ba760aabfe975baf72ea7bf5749079a7",
+    "scope": "Measurements, scroll/layout/projection configuration and native-adapted node protocol"
+  },
+  "callbackInputs": [
+    {
+      "packageArtifactRef": "motion-dom/dist/es/render/VisualElement.mjs",
+      "sha256": "7ac53c2cedf6c214d62b115a084255a69cd300eca619c99e6fb24f3c9ea0bcc5"
+    },
+    {
+      "packageArtifactRef": "motion-utils/dist/es/subscription-manager.mjs",
+      "sha256": "463917e7f9ec5fc58495bf20eb697d8e1912b84a5deae55f0e374c534228b4a8"
+    }
+  ],
+  "shadowCorrectionInput": {
+    "packageArtifactRef": "motion-dom@12.40.0/dist/es/projection/styles/scale-box-shadow.mjs.map",
+    "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/projection/styles/scale-box-shadow.ts",
+    "sourceKind": "npm-source-map-sourcesContent",
+    "sourceSha256": "5e7ec95824f28decc20f7a85c85d6881fd7a85b081d5e3d6483d1dfd25c8c850",
+    "adapter": "nativeStyles.ts",
+    "scope": "Pinned string shadow correction and fallthrough; native object lists retain original color identities, optional field presence and supported pixel lengths."
+  }
+}

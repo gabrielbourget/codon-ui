@@ -1,4 +1,6 @@
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef } from "react"
+
+import { useControlledState } from "../../collection/state/useControlledState"
 
 import { encodeSelectKey, normalizeSelectCollection, validateSelectKey, type TNativeSelectKey } from "./collection"
 import type { TNativeSelectProps } from "./types"
@@ -23,17 +25,26 @@ export const useSelectState = <T>(props: TNativeSelectProps<T>) => {
       return encodeSelectKey(key)
     }),
   )
-  const [localValue, setLocalValue] = useState(defaultValue)
-  const [localOpen, setLocalOpen] = useState(() => defaultOpen && !isDisabled)
-  const selectedKey = value === undefined ? localValue : value
-  const open = isOpen ?? localOpen
+  const [selectedKey, setSelectedKey] = useControlledState<TNativeSelectKey | null>(
+    value,
+    defaultValue,
+    value === undefined ? onChange : undefined,
+  )
+  const [open, setOpen] = useControlledState(
+    isOpen,
+    defaultOpen && !isDisabled,
+    isOpen === undefined ? onOpenChange : undefined,
+  )
   const selectedEntry = entries.find((entry) => entry.key === selectedKey)
   const requestedDisabledClose = useRef(false)
-  const requestOpen = (next: boolean) => {
-    if ((next && isDisabled) || next === open) return
-    if (isOpen === undefined) setLocalOpen(next)
-    onOpenChange?.(next)
-  }
+  const requestOpen = useCallback(
+    (next: boolean) => {
+      if ((next && isDisabled) || next === open) return
+      setOpen(next)
+      if (isOpen !== undefined) onOpenChange?.(next)
+    },
+    [isDisabled, open, setOpen, isOpen, onOpenChange],
+  )
   useEffect(() => {
     if (!isDisabled || !open) {
       requestedDisabledClose.current = false
@@ -41,15 +52,14 @@ export const useSelectState = <T>(props: TNativeSelectProps<T>) => {
     }
     if (requestedDisabledClose.current) return
     requestedDisabledClose.current = true
-    if (isOpen === undefined) setLocalOpen(false)
-    onOpenChange?.(false)
-  }, [isDisabled, open, isOpen, onOpenChange])
+    requestOpen(false)
+  }, [isDisabled, open, requestOpen])
   const activate = (key: TNativeSelectKey) => {
     if (!open || isDisabled || isReadOnly || disabledKeys.has(encodeSelectKey(key))) return
     if (!entries.some((entry) => entry.key === key)) return
     if (selectedKey !== key) {
-      if (value === undefined) setLocalValue(key)
-      onChange?.(key)
+      setSelectedKey(key)
+      if (value !== undefined) onChange?.(key)
     }
     requestOpen(false)
   }

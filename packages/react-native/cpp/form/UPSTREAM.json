@@ -1,0 +1,70 @@
+{
+  "package": "react-native",
+  "version": "0.86.3",
+  "scope": "Private immutable form document reader and original-editor custom-content adapter under approved roadmap3.5.54.11; compilation/model proof only, committed SDK/installed behavior remains OPEN",
+  "license": "../motion/LICENSE.react-native.md",
+  "sources": [
+    {
+      "path": "ReactCommon/react/renderer/core/ShadowNode.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/core/ShadowNode.h",
+      "SHA256": "979827eb3ffc5a67d9481ceaada3f0f5baa6bc12bf734261b68ae0e4797627f2"
+    },
+    {
+      "path": "ReactCommon/react/renderer/core/ShadowNodeFamily.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/core/ShadowNodeFamily.h",
+      "SHA256": "9a5ffe7ed4971167b434a766c46a9bf1afbeb8c8a7caa2760bc00265610f8569"
+    },
+    {
+      "path": "ReactCommon/react/renderer/core/ShadowNodeTraits.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/core/ShadowNodeTraits.h",
+      "SHA256": "abb9b3e9f7d9083d1a83addb933c6b4371c43473838e75fd7d45d94920550fab"
+    },
+    {
+      "path": "ReactCommon/react/renderer/mounting/ShadowTree.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/mounting/ShadowTree.h",
+      "SHA256": "5a50338019dd9c51a2fc06d30d32cc8f52a7323568c05c086169368b5c354cd3"
+    },
+    {
+      "path": "ReactCommon/react/renderer/mounting/ShadowTreeRevision.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/mounting/ShadowTreeRevision.h",
+      "SHA256": "7f296d8a9e564328ad830ee61c4423d63839d2137cd4becfa3e6d5e8381f8105"
+    },
+    {
+      "path": "ReactCommon/react/renderer/mounting/ShadowTreeRegistry.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/mounting/ShadowTreeRegistry.h",
+      "SHA256": "300686335def506318cd237b37eda23812db66b8c64fc1d5a94a7bea7e336677"
+    },
+    {
+      "path": "ReactCommon/react/renderer/uimanager/UIManager.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/uimanager/UIManager.h",
+      "SHA256": "a6a21f5646aa3c51678a65787b2f83c2992dcf4ff9ce449ab699ea28216586c7"
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/modal/ModalHostViewShadowNode.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/modal/ModalHostViewShadowNode.h",
+      "SHA256": "22308b41ebd2077b725c628dbf6130f5d0d93258e7059cb14ec797c7e6115d43"
+    },
+    {
+      "path": "React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm",
+      "SHA256": "7c81348ba39bceabdca979fd11ae6eba88edbebc11db9551f71ccfb61a2b10dc"
+    },
+    {
+      "path": "Libraries/Text/TextInput/Singleline/RCTUITextField.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.h",
+      "SHA256": "1a55a1dcb88b3b7aa48ebec7a4a18da244ffcafceaf7a8b4dbe6a3a609d2c5c9"
+    },
+    {
+      "path": "Libraries/Text/TextInput/Multiline/RCTUITextView.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.h",
+      "SHA256": "568da51d9ae1890d2b704624420dd8315e5630652e5af9f527824b5fb03fd658"
+    }
+  ],
+  "adaptations": [
+    "Read request-owned retained root/revision/preorder/family identities without any original tree or Yoga mutation",
+    "Include Modal root-kind and hidden/display-none retained descendants; physical visibility and native window admission remain separate",
+    "Validate generated metadata and original core editor identities without copying field values or selection into native metadata",
+    "Reuse the already approved and retained Android mBinding descriptor, without adding private renderer fields",
+    "Gate only accessibilityCustomContent getter/conformance on exact registered RCTUITextField/RCTUITextView classes; unregistered/retired editors fall through to the original getter"
+  ]
+}

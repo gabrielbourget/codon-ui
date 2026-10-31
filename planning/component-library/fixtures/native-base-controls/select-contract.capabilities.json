@@ -1,0 +1,1678 @@
+{
+  "canonicalSourceRef": "ddc9f066f67af4742e05e04bd870726141c44129",
+  "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions.",
+  "canonicalPropertyCount": 124,
+  "nativePropertyCount": 113,
+  "props": {
+    "allowsEmptyCollection": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.select.015",
+      "disposition": "APPROVED_FIXED_NATIVE_SELECTION_POLICY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved single-selection model always requests closure on enabled row activation; empty collections may open and retain reachable Close/message. Multiple selection and alternate browser collection/closing policies are outside that explicit original contract.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "aria-describedby": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "aria-details": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "aria-label": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "aria-label",
+      "nativeType": "string | undefined",
+      "expected": "Original actual native View/root or trigger prop scope, platform applicability and native payload identity; nonempty native name/alias precedence and owned semantic flags cannot be overridden.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "aria-labelledby": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "aria-labelledby",
+      "nativeType": "string | undefined",
+      "expected": "Original actual native View/root or trigger prop scope, platform applicability and native payload identity; nonempty native name/alias precedence and owned semantic flags cannot be overridden.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "autoComplete": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.select.018",
+      "disposition": "APPROVED_HOST_FORM_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native contract excludes browser form submission/validation/required/hidden-input protocols; native host owns schema/messages/hints and error/warning/success are presentation flags.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "autoFocus": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.select.017",
+      "disposition": "APPROVED_NATIVE_FOCUS_AND_POPUP_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved full-screen native modal/selected-row accessibility-focus/trigger-restoration strategy replaces browser anchored popup/tab/automatic keyboard focus/RAC slots. Web navigation requires its separately supported native keyboard strategy; original native trigger ref/focus observations and existing native activation path remain.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "children": {
+      "canonicalType": "ReactNode | ((item: T) => ReactNode)",
+      "required": true,
+      "capability": "CAP.select.015",
+      "disposition": "APPROVED_EXPLICIT_NATIVE_COLLECTION",
+      "nativeProp": "items/getKey/getTextValue/renderItem",
+      "nativeType": null,
+      "expected": "Required readonly array, typed stable keys and nonempty text metadata replace arbitrary children/one-shot Iterable/RAC collection discovery. Owned ListBoxItem roots receive decorative renderItem(item,nativeState) content; preserve typed0/string0, snapshots/reorder/removal/disabled metadata and safe virtualization.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "className": {
+      "canonicalType": "import(\"react-aria-components/dist/types/src/utils\").ClassNameOrFunction<SelectRenderProps> | undefined",
+      "required": false,
+      "capability": "CAP.select.009",
+      "disposition": "APPROVED_NATIVE_STYLE",
+      "nativeProp": "customStyles/style",
+      "nativeType": null,
+      "expected": "Original root/trigger/text/list native owners, computed/custom/final order and post-custom defaultStyle. Native root/trigger ColorValue foreground reaches owned content while selected text styles retain precedence. Root background/geometry are immediate; existing trigger Button clocks remain250ms colors/450ms shadow.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "ComponentIcon": {
+      "canonicalType": "ReactNode",
+      "required": false,
+      "capability": "CAP.select.010",
+      "disposition": "APPROVED_NATIVE_ICON",
+      "nativeProp": "ComponentIcon",
+      "nativeType": "ReactNode",
+      "expected": "Original decorative native View chevron/undefined-default versus explicitnull, authored ReactNode content. Complete original400ms ease-in-out rotateX wrapper for both authored/default icons; native glyph keeps its45-degree base, no dependency or public motion API.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "customClassName": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.select.009",
+      "disposition": "APPROVED_NATIVE_STYLE",
+      "nativeProp": "customStyles/style",
+      "nativeType": null,
+      "expected": "Original root/trigger/text/list native owners, computed/custom/final order and post-custom defaultStyle. Native root/trigger ColorValue foreground reaches owned content while selected text styles retain precedence. Root background/geometry are immediate; existing trigger Button clocks remain250ms colors/450ms shadow.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "customOptionsListStyles": {
+      "canonicalType": "CSSProperties | undefined",
+      "required": false,
+      "capability": "CAP.select.009",
+      "disposition": "APPROVED_NATIVE_STYLE",
+      "nativeProp": "customOptionsListStyles",
+      "nativeType": "StyleProp<ViewStyle>",
+      "expected": "Original root/trigger/text/list native owners, computed/custom/final order and post-custom defaultStyle. Native root/trigger ColorValue foreground reaches owned content while selected text styles retain precedence. Root background/geometry are immediate; existing trigger Button clocks remain250ms colors/450ms shadow.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "customSelectedItemStyles": {
+      "canonicalType": "CSSProperties | undefined",
+      "required": false,
+      "capability": "CAP.select.009",
+      "disposition": "APPROVED_NATIVE_STYLE",
+      "nativeProp": "customSelectedItemStyles",
+      "nativeType": "StyleProp<TNativeSelectRootStyle>",
+      "expected": "Original root/trigger/text/list native owners, computed/custom/final order and post-custom defaultStyle. Native root/trigger ColorValue foreground reaches owned content while selected text styles retain precedence. Root background/geometry are immediate; existing trigger Button clocks remain250ms colors/450ms shadow.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "customSelectedItemTextStyles": {
+      "canonicalType": "CSSProperties | undefined",
+      "required": false,
+      "capability": "CAP.select.009",
+      "disposition": "APPROVED_NATIVE_STYLE",
+      "nativeProp": "customSelectedItemTextStyles",
+      "nativeType": "StyleProp<TextStyle>",
+      "expected": "Original root/trigger/text/list native owners, computed/custom/final order and post-custom defaultStyle. Native root/trigger ColorValue foreground reaches owned content while selected text styles retain precedence. Root background/geometry are immediate; existing trigger Button clocks remain250ms colors/450ms shadow.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "customStyles": {
+      "canonicalType": "CSSProperties | undefined",
+      "required": false,
+      "capability": "CAP.select.009",
+      "disposition": "APPROVED_NATIVE_STYLE",
+      "nativeProp": "customStyles",
+      "nativeType": "StyleProp<TNativeSelectRootStyle>",
+      "expected": "Original root/trigger/text/list native owners, computed/custom/final order and post-custom defaultStyle. Native root/trigger ColorValue foreground reaches owned content while selected text styles retain precedence. Root background/geometry are immediate; existing trigger Button clocks remain250ms colors/450ms shadow.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "data-testid": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "data-testid",
+      "nativeType": "string | undefined",
+      "expected": "Original actual native View/root or trigger prop scope, platform applicability and native payload identity; nonempty native name/alias precedence and owned semantic flags cannot be overridden.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "defaultOpen": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.select.016",
+      "disposition": "NATIVE_OPEN_OWNERSHIP",
+      "nativeProp": "defaultOpen",
+      "nativeType": "boolean | undefined",
+      "expected": "Independent native open requests, defaultfalse, disabled initial suppression and once-per-cycle takeover close, owner veto/echo and selection-before-close callback order. Cancellation preserves selection.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "defaultValue": {
+      "canonicalType": "import(\"@react-types/shared/src/key\").Key | null | undefined",
+      "required": false,
+      "capability": "CAP.select.016",
+      "disposition": "APPROVED_SINGLE_KEY_OWNERSHIP",
+      "nativeProp": "defaultValue",
+      "nativeType": "TNativeSelectKey | null | undefined",
+      "expected": "Original single string/finite-number key or contract-defined null, default once, missing/disabled selected label retention, owner echo/veto/repeated requests, no caller mutation and original handoff behavior. Only enabled existing rows request a new key, then closure.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "dir": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "disabledKeys": {
+      "canonicalType": "Iterable<import(\"@react-types/shared/src/key\").Key> | undefined",
+      "required": false,
+      "capability": "CAP.select.016",
+      "disposition": "APPROVED_SINGLE_KEY_OWNERSHIP",
+      "nativeProp": "disabledKeys",
+      "nativeType": "readonly TNativeSelectKey[] | undefined",
+      "expected": "Original single string/finite-number key or contract-defined null, default once, missing/disabled selected label retention, owner echo/veto/repeated requests, no caller mutation and original handoff behavior. Only enabled existing rows request a new key, then closure.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "emptyListMessage": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.select.011",
+      "disposition": "NATIVE_CONTENT_DEFAULT",
+      "nativeProp": "emptyListMessage",
+      "nativeType": "string | undefined",
+      "expected": "Original native placeholder emptydefault and empty-list message No items remaining to select; explicit empty strings retained, placeholder italic/controlPlaceholder and custom selected text content remain.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "errorState": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.select.007",
+      "disposition": "NATIVE_HOST_VALIDATION_PRESENTATION",
+      "nativeProp": "errorState",
+      "nativeType": "boolean | undefined",
+      "expected": "Original error\u2192warning\u2192success border priority on owned trigger; native isInvalid follows errorState only. No automatic schema/form/required producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "excludeFromTabOrder": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.select.017",
+      "disposition": "APPROVED_NATIVE_FOCUS_AND_POPUP_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved full-screen native modal/selected-row accessibility-focus/trigger-restoration strategy replaces browser anchored popup/tab/automatic keyboard focus/RAC slots. Web navigation requires its separately supported native keyboard strategy; original native trigger ref/focus observations and existing native activation path remain.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "form": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.select.018",
+      "disposition": "APPROVED_HOST_FORM_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native contract excludes browser form submission/validation/required/hidden-input protocols; native host owns schema/messages/hints and error/warning/success are presentation flags.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "geometry": {
+      "canonicalType": "\"orthogonal\" | \"rounded\" | \"round\" | undefined",
+      "required": false,
+      "capability": "CAP.select.002",
+      "disposition": "APPROVED_NATIVE_PRESENTATION",
+      "nativeProp": "geometry",
+      "nativeType": "\"orthogonal\" | \"rounded\" | \"round\" | undefined",
+      "expected": "Original finite native dimensions/percentages/auto including explicitzero, native radius/pill geometry and small/medium/large b11/b10/b9; independent target minima and authored constraints remain.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "height": {
+      "canonicalType": "string | number | undefined",
+      "required": false,
+      "capability": "CAP.select.002",
+      "disposition": "APPROVED_NATIVE_PRESENTATION",
+      "nativeProp": "height",
+      "nativeType": "import(\"react-native/types/index\").DimensionValue | undefined",
+      "expected": "Original finite native dimensions/percentages/auto including explicitzero, native radius/pill geometry and small/medium/large b11/b10/b9; independent target minima and authored constraints remain.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "hidden": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "id": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "id",
+      "nativeType": "string | undefined",
+      "expected": "Original actual native View/root or trigger prop scope, platform applicability and native payload identity; nonempty native name/alias precedence and owned semantic flags cannot be overridden.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "inert": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "isDisabled": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.select.005",
+      "disposition": "NATIVE_GUARDS",
+      "nativeProp": "isDisabled",
+      "nativeType": "boolean | undefined",
+      "expected": "Disabled blocks opening/selection and requests one close even if owner holds modal; read-only permits inspection/Close and suppresses row mutation. Owned native names/expanded/checked/disabled semantics and explanatory host hints remain.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "isInvalid": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.select.018",
+      "disposition": "APPROVED_HOST_FORM_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native contract excludes browser form submission/validation/required/hidden-input protocols; native host owns schema/messages/hints and error/warning/success are presentation flags.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "isOpen": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.select.016",
+      "disposition": "NATIVE_OPEN_OWNERSHIP",
+      "nativeProp": "isOpen",
+      "nativeType": "boolean | undefined",
+      "expected": "Independent native open requests, defaultfalse, disabled initial suppression and once-per-cycle takeover close, owner veto/echo and selection-before-close callback order. Cancellation preserves selection.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "isRequired": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.select.018",
+      "disposition": "APPROVED_HOST_FORM_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native contract excludes browser form submission/validation/required/hidden-input protocols; native host owns schema/messages/hints and error/warning/success are presentation flags.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "items": {
+      "canonicalType": "Iterable<T> | undefined",
+      "required": false,
+      "capability": "CAP.select.015",
+      "disposition": "APPROVED_EXPLICIT_NATIVE_COLLECTION",
+      "nativeProp": "items/getKey/getTextValue/renderItem",
+      "nativeType": null,
+      "expected": "Required readonly array, typed stable keys and nonempty text metadata replace arbitrary children/one-shot Iterable/RAC collection discovery. Owned ListBoxItem roots receive decorative renderItem(item,nativeState) content; preserve typed0/string0, snapshots/reorder/removal/disabled metadata and safe virtualization.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "lang": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "name": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.select.018",
+      "disposition": "APPROVED_HOST_FORM_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native contract excludes browser form submission/validation/required/hidden-input protocols; native host owns schema/messages/hints and error/warning/success are presentation flags.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onAnimationEnd": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onAnimationEndCapture": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onAnimationIteration": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onAnimationIterationCapture": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onAnimationStart": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onAnimationStartCapture": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onAuxClick": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onAuxClickCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onBlur": {
+      "canonicalType": "((e: import(\"@types/react/index\").FocusEvent<Element, Element>) => void) | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onBlur",
+      "nativeType": "((e: import(\"react-native/types/index\").BlurEvent) => void) | null | undefined",
+      "expected": "Original actual native View/root or trigger prop scope, platform applicability and native payload identity; nonempty native name/alias precedence and owned semantic flags cannot be overridden.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onChange": {
+      "canonicalType": "((value: import(\"@react-types/shared/src/key\").Key | null) => void) | undefined",
+      "required": false,
+      "capability": "CAP.select.016",
+      "disposition": "APPROVED_SINGLE_KEY_OWNERSHIP",
+      "nativeProp": "onChange",
+      "nativeType": "((key: TNativeSelectKey | null) => void) | undefined",
+      "expected": "Original single string/finite-number key or contract-defined null, default once, missing/disabled selected label retention, owner echo/veto/repeated requests, no caller mutation and original handoff behavior. Only enabled existing rows request a new key, then closure.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onClick": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onClickCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onContextMenu": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onContextMenuCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onDoubleClick": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onDoubleClickCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onFocus": {
+      "canonicalType": "((e: import(\"@types/react/index\").FocusEvent<Element, Element>) => void) | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onFocus",
+      "nativeType": "((e: import(\"react-native/types/index\").FocusEvent) => void) | null | undefined",
+      "expected": "Original actual native View/root or trigger prop scope, platform applicability and native payload identity; nonempty native name/alias precedence and owned semantic flags cannot be overridden.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onFocusChange": {
+      "canonicalType": "((isFocused: boolean) => void) | undefined",
+      "required": false,
+      "capability": "CAP.select.017",
+      "disposition": "APPROVED_NATIVE_FOCUS_AND_POPUP_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved full-screen native modal/selected-row accessibility-focus/trigger-restoration strategy replaces browser anchored popup/tab/automatic keyboard focus/RAC slots. Web navigation requires its separately supported native keyboard strategy; original native trigger ref/focus observations and existing native activation path remain.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onGotPointerCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onGotPointerCaptureCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onKeyDown": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").KeyboardEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.select.017",
+      "disposition": "APPROVED_NATIVE_FOCUS_AND_POPUP_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved full-screen native modal/selected-row accessibility-focus/trigger-restoration strategy replaces browser anchored popup/tab/automatic keyboard focus/RAC slots. Web navigation requires its separately supported native keyboard strategy; original native trigger ref/focus observations and existing native activation path remain.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onKeyUp": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").KeyboardEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.select.017",
+      "disposition": "APPROVED_NATIVE_FOCUS_AND_POPUP_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved full-screen native modal/selected-row accessibility-focus/trigger-restoration strategy replaces browser anchored popup/tab/automatic keyboard focus/RAC slots. Web navigation requires its separately supported native keyboard strategy; original native trigger ref/focus observations and existing native activation path remain.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onLostPointerCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onLostPointerCaptureCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onMouseDown": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onMouseDownCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onMouseEnter": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onMouseLeave": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onMouseMove": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onMouseMoveCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onMouseOut": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onMouseOutCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onMouseOver": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onMouseOverCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onMouseUp": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onMouseUpCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onOpenChange": {
+      "canonicalType": "((isOpen: boolean) => void) | undefined",
+      "required": false,
+      "capability": "CAP.select.016",
+      "disposition": "NATIVE_OPEN_OWNERSHIP",
+      "nativeProp": "onOpenChange",
+      "nativeType": "((open: boolean) => void) | undefined",
+      "expected": "Independent native open requests, defaultfalse, disabled initial suppression and once-per-cycle takeover close, owner veto/echo and selection-before-close callback order. Cancellation preserves selection.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onPointerCancel": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerCancel",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "expected": "Original actual native View/root or trigger prop scope, platform applicability and native payload identity; nonempty native name/alias precedence and owned semantic flags cannot be overridden.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onPointerCancelCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerCancelCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "expected": "Original actual native View/root or trigger prop scope, platform applicability and native payload identity; nonempty native name/alias precedence and owned semantic flags cannot be overridden.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onPointerDown": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerDown",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "expected": "Original actual native View/root or trigger prop scope, platform applicability and native payload identity; nonempty native name/alias precedence and owned semantic flags cannot be overridden.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onPointerDownCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerDownCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "expected": "Original actual native View/root or trigger prop scope, platform applicability and native payload identity; nonempty native name/alias precedence and owned semantic flags cannot be overridden.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onPointerEnter": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerEnter",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "expected": "Original actual native View/root or trigger prop scope, platform applicability and native payload identity; nonempty native name/alias precedence and owned semantic flags cannot be overridden.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onPointerLeave": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerLeave",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "expected": "Original actual native View/root or trigger prop scope, platform applicability and native payload identity; nonempty native name/alias precedence and owned semantic flags cannot be overridden.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onPointerMove": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerMove",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "expected": "Original actual native View/root or trigger prop scope, platform applicability and native payload identity; nonempty native name/alias precedence and owned semantic flags cannot be overridden.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onPointerMoveCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerMoveCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "expected": "Original actual native View/root or trigger prop scope, platform applicability and native payload identity; nonempty native name/alias precedence and owned semantic flags cannot be overridden.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onPointerOut": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onPointerOutCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onPointerOver": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onPointerOverCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onPointerUp": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerUp",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "expected": "Original actual native View/root or trigger prop scope, platform applicability and native payload identity; nonempty native name/alias precedence and owned semantic flags cannot be overridden.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onPointerUpCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerUpCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "expected": "Original actual native View/root or trigger prop scope, platform applicability and native payload identity; nonempty native name/alias precedence and owned semantic flags cannot be overridden.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onScroll": {
+      "canonicalType": "import(\"@types/react/index\").UIEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onScrollCapture": {
+      "canonicalType": "import(\"@types/react/index\").UIEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onTouchCancel": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchCancel",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "expected": "Original actual native View/root or trigger prop scope, platform applicability and native payload identity; nonempty native name/alias precedence and owned semantic flags cannot be overridden.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onTouchCancelCapture": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onTouchEnd": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchEnd",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "expected": "Original actual native View/root or trigger prop scope, platform applicability and native payload identity; nonempty native name/alias precedence and owned semantic flags cannot be overridden.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onTouchEndCapture": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchEndCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "expected": "Original actual native View/root or trigger prop scope, platform applicability and native payload identity; nonempty native name/alias precedence and owned semantic flags cannot be overridden.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onTouchMove": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchMove",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "expected": "Original actual native View/root or trigger prop scope, platform applicability and native payload identity; nonempty native name/alias precedence and owned semantic flags cannot be overridden.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onTouchMoveCapture": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onTouchStart": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchStart",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "expected": "Original actual native View/root or trigger prop scope, platform applicability and native payload identity; nonempty native name/alias precedence and owned semantic flags cannot be overridden.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onTouchStartCapture": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onTransitionCancel": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onTransitionCancelCapture": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onTransitionEnd": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onTransitionEndCapture": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onTransitionRun": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onTransitionRunCapture": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onTransitionStart": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onTransitionStartCapture": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onWheel": {
+      "canonicalType": "import(\"@types/react/index\").WheelEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "onWheelCapture": {
+      "canonicalType": "import(\"@types/react/index\").WheelEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "placeholder": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.select.011",
+      "disposition": "NATIVE_CONTENT_DEFAULT",
+      "nativeProp": "placeholder",
+      "nativeType": "string | undefined",
+      "expected": "Original native placeholder emptydefault and empty-list message No items remaining to select; explicit empty strings retained, placeholder italic/controlPlaceholder and custom selected text content remain.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "placement": {
+      "canonicalType": "\"bottom\" | \"bottom left\" | \"bottom right\" | \"bottom start\" | \"bottom end\" | \"top\" | \"top left\" | \"top right\" | \"top start\" | \"top end\" | \"left\" | \"left top\" | \"left bottom\" | \"start\" | \"start top\" | \"start bottom\" | \"right\" | \"right top\" | \"right bottom\" | \"end\" | \"end top\" | \"end bottom\" | undefined",
+      "required": false,
+      "capability": "CAP.select.017",
+      "disposition": "APPROVED_NATIVE_FOCUS_AND_POPUP_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved full-screen native modal/selected-row accessibility-focus/trigger-restoration strategy replaces browser anchored popup/tab/automatic keyboard focus/RAC slots. Web navigation requires its separately supported native keyboard strategy; original native trigger ref/focus observations and existing native activation path remain.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "render": {
+      "canonicalType": "import(\"react-aria-components/dist/types/src/utils\").DOMRenderFunction<\"div\", SelectRenderProps> | undefined",
+      "required": false,
+      "capability": "CAP.select.014",
+      "disposition": "NATIVE_RENDERER",
+      "nativeProp": "render",
+      "nativeType": "((props: ViewProps, state: TNativeSelectRenderState) => ReactElement) | undefined",
+      "expected": "Native root View props/owned trigger/window and four native flags after style; selected-value callback runs inside that tree after root rendering. Public ref stays actual registered trigger.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "renderSelectedValue": {
+      "canonicalType": "((props: SelectValueRenderProps<T>) => ReactNode) | undefined",
+      "required": false,
+      "capability": "CAP.select.014",
+      "disposition": "NATIVE_RENDERER",
+      "nativeProp": "renderSelectedValue",
+      "nativeType": "((state: TNativeSelectValueRenderState<T>) => ReactNode) | undefined",
+      "expected": "Original native selectedItem or null, selectedText and isPlaceholder; no React Stately state. Preserve authored ReactNode output and native owned text/custom style precedence.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "selectionMode": {
+      "canonicalType": "\"single\" | undefined",
+      "required": false,
+      "capability": "CAP.select.015",
+      "disposition": "APPROVED_FIXED_NATIVE_SELECTION_POLICY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved single-selection model always requests closure on enabled row activation; empty collections may open and retain reachable Close/message. Multiple selection and alternate browser collection/closing policies are outside that explicit original contract.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "shouldCloseOnSelect": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.select.015",
+      "disposition": "APPROVED_FIXED_NATIVE_SELECTION_POLICY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved single-selection model always requests closure on enabled row activation; empty collections may open and retain reachable Close/message. Multiple selection and alternate browser collection/closing policies are outside that explicit original contract.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "shouldFocusWrap": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.select.017",
+      "disposition": "APPROVED_NATIVE_FOCUS_AND_POPUP_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved full-screen native modal/selected-row accessibility-focus/trigger-restoration strategy replaces browser anchored popup/tab/automatic keyboard focus/RAC slots. Web navigation requires its separately supported native keyboard strategy; original native trigger ref/focus observations and existing native activation path remain.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "slot": {
+      "canonicalType": "string | null | undefined",
+      "required": false,
+      "capability": "CAP.select.017",
+      "disposition": "APPROVED_NATIVE_FOCUS_AND_POPUP_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original approved full-screen native modal/selected-row accessibility-focus/trigger-restoration strategy replaces browser anchored popup/tab/automatic keyboard focus/RAC slots. Web navigation requires its separately supported native keyboard strategy; original native trigger ref/focus observations and existing native activation path remain.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "style": {
+      "canonicalType": "(CSSProperties | ((values: SelectRenderProps & { defaultStyle: CSSProperties; }) => CSSProperties | undefined)) | undefined",
+      "required": false,
+      "capability": "CAP.select.009",
+      "disposition": "APPROVED_NATIVE_STYLE",
+      "nativeProp": "style",
+      "nativeType": "StyleProp<TNativeSelectRootStyle> | ((state: TNativeSelectStyleState) => StyleProp<TNativeSelectRootStyle>)",
+      "expected": "Original root/trigger/text/list native owners, computed/custom/final order and post-custom defaultStyle. Native root/trigger ColorValue foreground reaches owned content while selected text styles retain precedence. Root background/geometry are immediate; existing trigger Button clocks remain250ms colors/450ms shadow.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "successState": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.select.007",
+      "disposition": "NATIVE_HOST_VALIDATION_PRESENTATION",
+      "nativeProp": "successState",
+      "nativeType": "boolean | undefined",
+      "expected": "Original error\u2192warning\u2192success border priority on owned trigger; native isInvalid follows errorState only. No automatic schema/form/required producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "textSize": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.select.002",
+      "disposition": "APPROVED_NATIVE_PRESENTATION",
+      "nativeProp": "textSize",
+      "nativeType": "\"small\" | \"medium\" | \"large\" | undefined",
+      "expected": "Original finite native dimensions/percentages/auto including explicitzero, native radius/pill geometry and small/medium/large b11/b10/b9; independent target minima and authored constraints remain.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "translate": {
+      "canonicalType": "\"yes\" | \"no\" | undefined",
+      "required": false,
+      "capability": "CAP.select.019",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native core host boundary replaces DOM attributes/events/CSS/form protocols with its native props/observers; no fabricated browser producer, source-to-native speech claim or relaxed native gate.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "validate": {
+      "canonicalType": "((value: import(\"@react-types/shared/src/key\").Key) => import(\"@react-types/shared/src/inputs\").ValidationError | true | null | undefined) | undefined",
+      "required": false,
+      "capability": "CAP.select.018",
+      "disposition": "APPROVED_HOST_FORM_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native contract excludes browser form submission/validation/required/hidden-input protocols; native host owns schema/messages/hints and error/warning/success are presentation flags.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "validationBehavior": {
+      "canonicalType": "\"native\" | \"aria\" | undefined",
+      "required": false,
+      "capability": "CAP.select.018",
+      "disposition": "APPROVED_HOST_FORM_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native contract excludes browser form submission/validation/required/hidden-input protocols; native host owns schema/messages/hints and error/warning/success are presentation flags.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "value": {
+      "canonicalType": "import(\"@react-types/shared/src/key\").Key | null | undefined",
+      "required": false,
+      "capability": "CAP.select.016",
+      "disposition": "APPROVED_SINGLE_KEY_OWNERSHIP",
+      "nativeProp": "value",
+      "nativeType": "TNativeSelectKey | null | undefined",
+      "expected": "Original single string/finite-number key or contract-defined null, default once, missing/disabled selected label retention, owner echo/veto/repeated requests, no caller mutation and original handoff behavior. Only enabled existing rows request a new key, then closure.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "warningState": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.select.007",
+      "disposition": "NATIVE_HOST_VALIDATION_PRESENTATION",
+      "nativeProp": "warningState",
+      "nativeType": "boolean | undefined",
+      "expected": "Original error\u2192warning\u2192success border priority on owned trigger; native isInvalid follows errorState only. No automatic schema/form/required producer.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    },
+    "width": {
+      "canonicalType": "string | number | undefined",
+      "required": false,
+      "capability": "CAP.select.002",
+      "disposition": "APPROVED_NATIVE_PRESENTATION",
+      "nativeProp": "width",
+      "nativeType": "import(\"react-native/types/index\").DimensionValue | undefined",
+      "expected": "Original finite native dimensions/percentages/auto including explicitzero, native radius/pill geometry and small/medium/large b11/b10/b9; independent target minima and authored constraints remain.",
+      "authority": "db54a8a:docs/roadmaps/react-native-select-pass.md owner-approved explicit collection/modal/public contracts, Labels Styling And Native Exceptions and ledger8.19; standing full native counterpart/customization policy3.5. Preserve single typed key/null, caller arrays/metadata, independent open ownership, native trigger ref, required names, native4flag state/style owners and original DOM/form/React Aria/anchored-popup/web-keyboard exclusions."
+    }
+  },
+  "nativeOnlyProps": [
+    {
+      "name": "accessibilityActions",
+      "optional": true,
+      "type": "readonly Readonly<{ name: import(\"react-native/types/index\").AccessibilityActionName | string; label?: string | undefined; }>[] | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityElementsHidden",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityHint",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityIgnoresInvertColors",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityLabel",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": [
+        "packages/react-native/src/components/Select/types.ts",
+        "packages/react-native/src/components/Select/types.ts"
+      ]
+    },
+    {
+      "name": "accessibilityLabelledBy",
+      "optional": true,
+      "type": "string | string[] | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityLanguage",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityLargeContentTitle",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityLiveRegion",
+      "optional": true,
+      "type": "\"none\" | \"polite\" | \"assertive\" | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityRespondsToUserInteraction",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityShowsLargeContentViewer",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "accessibilityViewIsModal",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "aria-busy",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "aria-hidden",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "aria-live",
+      "optional": true,
+      "type": "\"polite\" | \"assertive\" | \"off\" | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "aria-modal",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "aria-valuemax",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "aria-valuemin",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "aria-valuenow",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "aria-valuetext",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "closeLabel",
+      "optional": false,
+      "type": "string",
+      "declarations": ["packages/react-native/src/components/Select/types.ts"]
+    },
+    {
+      "name": "collapsable",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "collapsableChildren",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "enableFocusStyle",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["packages/react-native/src/components/Select/types.ts"]
+    },
+    {
+      "name": "focusable",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "getKey",
+      "optional": false,
+      "type": "(item: T) => TNativeSelectKey",
+      "declarations": ["packages/react-native/src/components/Select/types.ts"]
+    },
+    {
+      "name": "getTextValue",
+      "optional": false,
+      "type": "(item: T) => string",
+      "declarations": ["packages/react-native/src/components/Select/types.ts"]
+    },
+    {
+      "name": "hasTVPreferredFocus",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "hitSlop",
+      "optional": true,
+      "type": "number | import(\"react-native/types/index\").Insets | null | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "importantForAccessibility",
+      "optional": true,
+      "type": "\"auto\" | \"yes\" | \"no\" | \"no-hide-descendants\" | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "isReadOnly",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["packages/react-native/src/components/Select/types.ts"]
+    },
+    {
+      "name": "isTVSelectable",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "nativeID",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "needsOffscreenAlphaCompositing",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "offsetFocusRing",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["packages/react-native/src/components/Select/types.ts"]
+    },
+    {
+      "name": "onAccessibilityAction",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").AccessibilityActionEvent) => void) | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "onAccessibilityEscape",
+      "optional": true,
+      "type": "(() => void) | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "onAccessibilityTap",
+      "optional": true,
+      "type": "(() => void) | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "onLayout",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").LayoutChangeEvent) => void) | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "onMagicTap",
+      "optional": true,
+      "type": "(() => void) | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "onMoveShouldSetResponder",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onMoveShouldSetResponderCapture",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onPointerEnterCapture",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "declarations": ["react-native/Libraries/Types/CoreEventTypes.d.ts"]
+    },
+    {
+      "name": "onPointerLeaveCapture",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "declarations": ["react-native/Libraries/Types/CoreEventTypes.d.ts"]
+    },
+    {
+      "name": "onResponderEnd",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onResponderGrant",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onResponderMove",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onResponderReject",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onResponderRelease",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onResponderStart",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onResponderTerminate",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onResponderTerminationRequest",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onStartShouldSetResponder",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "onStartShouldSetResponderCapture",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": ["react-native/types/public/ReactNativeRenderer.d.ts"]
+    },
+    {
+      "name": "pointerEvents",
+      "optional": true,
+      "type": "\"box-none\" | \"none\" | \"box-only\" | \"auto\" | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "removeClippedSubviews",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "renderItem",
+      "optional": true,
+      "type": "((item: T, state: TNativeSelectItemRenderState) => ReactNode) | undefined",
+      "declarations": ["packages/react-native/src/components/Select/types.ts"]
+    },
+    {
+      "name": "renderToHardwareTextureAndroid",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "screenReaderFocusable",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewAccessibility.d.ts"]
+    },
+    {
+      "name": "shouldRasterizeIOS",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "tabIndex",
+      "optional": true,
+      "type": "0 | -1 | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "testID",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "tvParallaxMagnification",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "tvParallaxShiftDistanceX",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "tvParallaxShiftDistanceY",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    },
+    {
+      "name": "tvParallaxTiltAngle",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": ["react-native/Libraries/Components/View/ViewPropTypes.d.ts"]
+    }
+  ],
+  "renderStateMapping": {
+    "canonical": [
+      "isOpen",
+      "isDisabled",
+      "isInvalid",
+      "isRequired",
+      "isFocused",
+      "isFocusVisible",
+      "state:SelectState"
+    ],
+    "native": ["isOpen", "isDisabled", "isReadOnly", "isInvalid"],
+    "selectedValueNative": ["selectedItem:T|null", "selectedText:string", "isPlaceholder:boolean"],
+    "originalApproval": "Native four-flag render/style state and explicit selected-value data; no React Stately/form state or web keyboard strategy."
+  },
+  "originalNativeAdaptations": [
+    "Readonly metadata collection and standalone controlled radio rows, single typed key/null and independent open ownership",
+    "Opaque full-screen core Modal with no animation, safe-area provider, native Close/Back and32-attempt measurement-progress positioning",
+    "Public ref remains actual registered native trigger; selected mounted-row/heading accessibility focus and surviving-trigger restoration retain original ownership",
+    "Native names/selected accessibilityValue, placeholder/empty/default icon null behavior and four style owners",
+    "Original explicit anchored-popup/form/RACslots/generalcollection/webkeyboard boundaries"
+  ],
+  "motion": {
+    "root": "No canonical root transition; native background/geometry immediate",
+    "trigger": "Reuse existing private NativeButton nativeAnimate:250ms color/450ms shadow, original ref/handlers/private context retained",
+    "icon": "400ms cubic-bezier(.42,0,.58,1) rotateX0\u2194180 on authored/default icon wrapper, current-paint interruption/live Reduce Motion/cleanup",
+    "modal": "Original explicitly approved no-animation full-screen counterpart; canonical popover fade/anchored placement remain under that original exception",
+    "nativeActions": 0
+  },
+  "scope": "Complete6pinnedfiles/all13canonicalrootcases+actualroot/ref/selected-value-order probe;roadmap3.5.78. SourceG01 only, mandatorygoal144FULLCI beforeadoption."
+}

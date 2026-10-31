@@ -7,6 +7,9 @@ import {
   AVAILABLE_FONT_WEIGHTS,
   AVAILABLE_THEMING_ORDER_CODES,
   Button,
+  CarouselCloseButton,
+  NativeFocusView,
+  PlaceholderText,
   Text,
   useNativeTheme,
 } from "@codon-ui/react-native"
@@ -42,10 +45,17 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
   const [outlined, setOutlined] = useState(false)
   const [disabled, setDisabled] = useState(false)
   const [pending, setPending] = useState(false)
+  const [keyboardFocusable, setKeyboardFocusable] = useState(true)
+  const [lastRelease, setLastRelease] = useState("none")
   const [custom, setCustom] = useState(false)
   const [renderChildren, setRenderChildren] = useState(false)
   const [constrained, setConstrained] = useState(false)
   const [selectable, setSelectable] = useState(true)
+  const [clearTextTypography, setClearTextTypography] = useState(false)
+  const [previewOpen, setPreviewOpen] = useState(true)
+  const [closeActions, setCloseActions] = useState(0)
+  const [placeholderCentered, setPlaceholderCentered] = useState(false)
+  const [placeholderEmpty, setPlaceholderEmpty] = useState(false)
   const variant = AVAILABLE_FONT_VARIANTS[variantIndex]
   const weight = AVAILABLE_FONT_WEIGHTS[weightIndex]
   const order = AVAILABLE_THEMING_ORDER_CODES[orderIndex]
@@ -58,7 +68,8 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
       </Text>
       <Text testID="library-state">
         Library action count: {count}. Order: {order}. Mode: {outlined ? "outline" : "fill"}. State:{" "}
-        {disabled ? "disabled" : pending ? "pending" : "enabled"}.
+        {disabled ? "disabled" : pending ? "pending" : "enabled"}. Keyboard focus:{" "}
+        {keyboardFocusable ? "enabled" : "excluded"}.
       </Text>
       <View style={styles.controls}>
         <SceneControl
@@ -93,7 +104,17 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
           onPress={() => setDisabled((value) => !value)}
         />
         <SceneControl label="Toggle library pending" selected={pending} onPress={() => setPending((value) => !value)} />
+        <SceneControl
+          label="Toggle library keyboard focus"
+          selected={keyboardFocusable}
+          onPress={() => setKeyboardFocusable((value) => !value)}
+        />
         <SceneControl label="Toggle library styles" selected={custom} onPress={() => setCustom((value) => !value)} />
+        <SceneControl
+          label="Clear text typography"
+          selected={clearTextTypography}
+          onPress={() => setClearTextTypography((value) => !value)}
+        />
         <SceneControl
           label="Toggle render children"
           selected={renderChildren}
@@ -104,31 +125,65 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
           selected={constrained}
           onPress={() => setConstrained((value) => !value)}
         />
+        <SceneControl
+          label="Toggle placeholder alignment"
+          selected={placeholderCentered}
+          onPress={() => setPlaceholderCentered((value) => !value)}
+        />
+        <SceneControl
+          label="Toggle empty placeholder"
+          selected={placeholderEmpty}
+          onPress={() => setPlaceholderEmpty((value) => !value)}
+        />
       </View>
       <Text>
         Text variant {variant}; weight {weight}; button geometry {geometry}.
       </Text>
-      <Text testID="library-text-preview" variant={variant} fontWeight={weight} selectable={selectable}>
+      <Text
+        testID="library-text-preview"
+        variant={variant}
+        fontWeight={weight}
+        selectable={selectable}
+        customStyles={custom ? { fontSize: 18, fontWeight: "700", fontStyle: "italic", lineHeight: 26 } : undefined}
+        style={
+          clearTextTypography
+            ? { fontSize: undefined, fontWeight: undefined, fontStyle: undefined, lineHeight: undefined }
+            : undefined
+        }
+      >
         Native text remains readable: sélectionnez les paramètres et continuez lorsque vous êtes prêt.
       </Text>
       <Text>
         Parent text with <Text fontWeight="bold">nested bold content</Text> and inherited foreground.
       </Text>
+      <PlaceholderText testID="library-placeholder" align={placeholderCentered ? "center" : "left"} onPress={increment}>
+        {placeholderEmpty ? "" : "Choose an item"}
+      </PlaceholderText>
+      <Text testID="library-release">Last release: {lastRelease}</Text>
       <Button
         accessibilityLabel="Library action"
         testID="library-button"
+        render={(props, state) => (
+          <NativeFocusView {...props} nativeID={`library-button-${state.isPending ? "pending" : "ready"}`} />
+        )}
         order={order}
         colorMode={outlined ? "outline" : "fill"}
         geometry={geometry}
         isDisabled={disabled}
         isPending={pending}
+        focusable={keyboardFocusable}
         onPress={increment}
+        onPressUp={(event) => setLastRelease("kind" in event.nativeEvent ? event.nativeEvent.kind : "touch")}
         raised={!custom}
         style={
           custom
             ? (state) => ({
                 backgroundColor: state.isPressed ? "#173f5f" : "#123456",
                 color: "#ffffff",
+                fontSize: 20,
+                fontWeight: "700",
+                letterSpacing: 1,
+                textTransform: "uppercase",
                 boxShadow: renderChildren
                   ? [{ offsetX: 0, offsetY: 2, blurRadius: 3, color: "rgba(0, 0, 0, 0.24)" }]
                   : "0px 2px 3px rgba(0, 0, 0, 0.24)",
@@ -159,6 +214,24 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
       >
         A long action label: continuez lorsque tous les paramètres sont prêts.
       </Button>
+      <Text testID="carousel-close-receipt">
+        Close preview: {previewOpen ? "open" : "closed"}. Close actions: {closeActions}.
+      </Text>
+      {previewOpen && (
+        <View testID="carousel-close-preview" style={styles.closePreview}>
+          <Text>Standalone Carousel close control</Text>
+          <CarouselCloseButton
+            isDisabled={disabled}
+            isPending={pending}
+            onPress={() => {
+              setPreviewOpen(false)
+              setCloseActions((value) => value + 1)
+            }}
+            customStyles={custom ? { padding: 10, borderWidth: 2, borderColor: "#087f8c" } : undefined}
+          />
+        </View>
+      )}
+      <SceneControl label="Restore close preview" onPress={() => setPreviewOpen(true)} />
       {constrained && (
         <View style={styles.constraint}>
           <Text>
@@ -189,4 +262,5 @@ const styles = StyleSheet.create({
   controls: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   control: { minHeight: Platform.OS === "ios" ? 44 : 48, padding: 10, justifyContent: "center", borderRadius: 5 },
   constraint: { gap: 10 },
+  closePreview: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 10 },
 })

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Canonical Menu pointer proof</title>
+    <link rel="stylesheet" href="/browser.css" />
+    <style>
+      body {
+        font: 16px sans-serif;
+        margin: 20px;
+      }
+      [role="menuitem"] {
+        padding: 12px;
+        outline-offset: -2px;
+      }
+      [role="menu"] {
+        pointer-events: auto;
+      }
+      [role="menuitem"][data-focused] {
+        outline: 2px solid blue;
+      }
+      pre {
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/browser.js"></script>
+  </body>
+</html>

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, userEvent } from "@testing-library/react-native"
+import { act, fireEvent, render, screen, userEvent } from "@testing-library/react-native"
 import { Fragment, useState } from "react"
 import { Platform, StyleSheet, View } from "react-native"
 
@@ -55,7 +55,14 @@ describe("Button public native contract", () => {
   it("wraps plain content, preserves defaults and exposes a single button target", async () => {
     await render(<Button>Action</Button>)
     const button = screen.getByRole("button", { name: "Action" })
-    expect(button).toHaveStyle({ minHeight: 44, minWidth: 44, borderRadius: 5, padding: 5, backgroundColor: "#ffffff" })
+    expect(button).toHaveStyle({
+      minHeight: 44,
+      minWidth: 44,
+      borderRadius: 5,
+      padding: 5,
+      backgroundColor: "#ffffff",
+      cursor: "pointer",
+    })
     expect(screen.getByText("Action")).toHaveStyle({ color: "#171717", fontSize: 14 })
     expect(screen.getByText("Action").props.selectable).toBe(false)
     expect(button.props.accessibilityState).toMatchObject({ disabled: false, busy: false })
@@ -202,8 +209,14 @@ describe("Button public native contract", () => {
       </Button>,
     )
     let button = screen.getByRole("button", { name: "States" })
-    await fireEvent(button, "focus", pressEvent)
-    await fireEvent(button, "focus", pressEvent)
+    await fireEvent(button, "focus", {
+      ...pressEvent,
+      nativeEvent: { ...pressEvent.nativeEvent, isFocusVisible: true },
+    })
+    await fireEvent(button, "focus", {
+      ...pressEvent,
+      nativeEvent: { ...pressEvent.nativeEvent, isFocusVisible: true },
+    })
     expect(onFocusChange.mock.calls).toEqual([[true]])
     expect(button).toHaveStyle({ outlineWidth: 1.5, outlineOffset: 1.5 })
     await fireEvent(button, "hoverIn", hoverEvent)
@@ -279,8 +292,12 @@ describe("Button public native contract", () => {
     )
     const button = screen.getByRole("button", { name: "Color" })
     await fireEvent(button, "hoverIn", hoverEvent)
+    expect(button).toHaveStyle({ backgroundColor: "red" })
+    await act(() => jest.advanceTimersByTime(250))
     expect(button).toHaveStyle({ backgroundColor: "green" })
     await fireEvent(button, "pressIn", pressEvent)
+    expect(button).toHaveStyle({ backgroundColor: "green" })
+    await act(() => jest.advanceTimersByTime(250))
     expect(button).toHaveStyle({ backgroundColor: "red" })
   })
 
@@ -293,6 +310,8 @@ describe("Button public native contract", () => {
     let button = screen.getByRole("button", { name: "Transparent" })
     expect(button).toHaveStyle({ backgroundColor: "red" })
     await fireEvent(button, "hoverIn", hoverEvent)
+    expect(button).toHaveStyle({ backgroundColor: "red" })
+    await act(() => jest.advanceTimersByTime(250))
     expect(button).toHaveStyle({ backgroundColor: "transparent" })
     await rerender(
       <Button transparent style={{ backgroundColor: "blue" }}>
@@ -300,6 +319,8 @@ describe("Button public native contract", () => {
       </Button>,
     )
     button = screen.getByRole("button", { name: "Transparent" })
+    expect(button).toHaveStyle({ backgroundColor: "transparent" })
+    await act(() => jest.advanceTimersByTime(250))
     expect(button).toHaveStyle({ backgroundColor: "blue" })
   })
 
@@ -316,7 +337,10 @@ describe("Button public native contract", () => {
     const expected = ["#192237", "#1d1d1d", "#233322", "#382f1a", "#3a2422"]
     for (const [index, order] of AVAILABLE_THEMING_ORDER_CODES.entries()) {
       const button = screen.getByRole("button", { name: order })
+      const previousBackground = StyleSheet.flatten(button.props.style).backgroundColor
       await fireEvent(button, "hoverIn", hoverEvent)
+      expect(button).toHaveStyle({ backgroundColor: previousBackground })
+      await act(() => jest.advanceTimersByTime(250))
       expect(button).toHaveStyle({ backgroundColor: expected[index], borderWidth: 2 })
     }
   })

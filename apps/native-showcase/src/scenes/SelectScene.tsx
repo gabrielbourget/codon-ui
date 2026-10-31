@@ -1,7 +1,7 @@
 import { useState } from "react"
-import { View } from "react-native"
+import { Pressable, View } from "react-native"
 
-import { Button, Select, Text, useNativeTheme, type TNativeSelectKey } from "@codon-ui/react-native"
+import { Button, ListBoxItem, Select, Text, useNativeTheme, type TNativeSelectKey } from "@codon-ui/react-native"
 
 const SHORT_ITEMS = [
   { id: 0, label: "Numeric zero" },
@@ -61,8 +61,25 @@ export const SelectScene = () => {
         {action("Toggle Select custom content", () => setCustom((current) => !current))}
         {action("Toggle selected item removal", () => setHideSelected((current) => !current))}
       </View>
+      <ListBoxItem
+        id={0}
+        textValue="Standalone choice zero"
+        isSelected={value === 0}
+        isDisabled={disabled}
+        isReadOnly={readOnly}
+        onPress={() => {
+          setValue(0)
+          setChanges((count) => count + 1)
+        }}
+        render={(props, state) => (
+          <Pressable {...props} nativeID={state.isSelected ? "standalone-selected" : "standalone-available"} />
+        )}
+      >
+        {({ isSelected }) => (isSelected ? "Standalone selected" : "Standalone available")}
+      </ListBoxItem>
       <Select
         testID="showcase-select"
+        render={(props, state) => <View {...props} nativeID={state.isOpen ? "showcase-open" : "showcase-closed"} />}
         accessibilityLabel="Showcase choice"
         closeLabel="Close choices"
         placeholder="Choose a value"

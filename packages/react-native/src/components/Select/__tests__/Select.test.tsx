@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, userEvent } from "@testing-library/react-native"
-import { createRef, useState } from "react"
+import { createRef, useEffect, useState } from "react"
 import { AccessibilityInfo, FlatList, Platform } from "react-native"
 
 import { Select, type TNativeSelectProps, type TNativeSelectRef } from "../../.."
@@ -29,6 +29,43 @@ beforeEach(() => {
 afterEach(() => {
   jest.restoreAllMocks()
   jest.useRealTimers()
+})
+
+it("applies an asynchronous owner collection response without replacing its selected trigger or issuing requests", async () => {
+  const ref = createRef<TNativeSelectRef>(),
+    onChange = jest.fn(),
+    onOpenChange = jest.fn()
+  let receive!: (next: typeof items) => void
+  const response = new Promise<typeof items>((resolve) => {
+    receive = resolve
+  })
+  const Owner = () => {
+    const [current, setCurrent] = useState(items)
+    useEffect(() => {
+      let mounted = true
+      void response.then((next) => {
+        if (mounted) setCurrent(next)
+      })
+      return () => {
+        mounted = false
+      }
+    }, [])
+    return <Select {...base} items={current} ref={ref} value={0} isOpen {...{ onChange, onOpenChange }} />
+  }
+  const view = await render(<Owner />)
+  const original = ref.current
+  expect(original).not.toBeNull()
+  await act(async () => {
+    receive([...items].reverse().map((item) => (item.id === 0 ? { ...item, name: "Resolved zero" } : item)))
+    await response
+  })
+  expect(ref.current).toBe(original)
+  expect(screen.getByRole("radio", { name: "Resolved zero" }).props.accessibilityState.checked).toBe(true)
+  expect(screen.getByRole("button", { name: "Choose" }).props.accessibilityValue.text).toBe("Resolved zero")
+  expect(onChange).not.toHaveBeenCalled()
+  expect(onOpenChange).not.toHaveBeenCalled()
+  await view.unmount()
+  expect(ref.current).toBeNull()
 })
 
 // Allow the first native modal render to initialize on shared CI workers.
@@ -158,6 +195,7 @@ it("restores focus after iOS dismissal and cancels queued work on unmount", asyn
   const { unmount } = await render(<Select {...base} ref={ref} />)
   const user = userEvent.setup()
   await user.press(screen.getByRole("button", { name: "Choose" }))
+  await fireEvent(screen.getByTestId("select-window"), "show")
   const dismiss = screen.getByTestId("select-window").props.onDismiss
   await user.press(screen.getByRole("button", { name: "Close choices" }))
   await act(() => dismiss())
@@ -210,7 +248,7 @@ it("waits for cell measurements and does not scroll after closing", async () => 
   expect(scroll).toHaveBeenCalledTimes(count)
 })
 
-it("caps retries driven by measured row-layout progress", async () => {
+it("allows small measured batches without spending retries on unchanged row layouts", async () => {
   const offset = jest.spyOn(FlatList.prototype, "scrollToOffset").mockImplementation(() => undefined)
   const scroll = jest.spyOn(FlatList.prototype, "scrollToIndex").mockImplementation(() => {
     screen.getByTestId("select-list").props.onScrollToIndexFailed({
@@ -236,8 +274,8 @@ it("caps retries driven by measured row-layout progress", async () => {
     })
     await act(() => jest.runAllTimers())
   }
-  expect(scroll).toHaveBeenCalledTimes(2)
-  expect(offset).toHaveBeenCalledTimes(2)
+  expect(scroll).toHaveBeenCalledTimes(6)
+  expect(offset).toHaveBeenCalledTimes(6)
 })
 
 it("waits for full row visibility before finishing initial accessibility focus", async () => {
@@ -275,4 +313,38 @@ it.each([
   { customSelectedItemTextStyles: { color: "var(--text)" } },
 ])("validates names, dimensions and style colors while closed: %p", async (invalid) => {
   await expect(render(<Select {...base} {...invalid} />)).rejects.toThrow(TypeError)
+})
+
+it("retains the initial controlled Select value when the owner hands back control", async () => {
+  jest.spyOn(console, "warn").mockImplementation(() => {})
+  const onChange = jest.fn()
+  const view = await render(<Select {...base} value="0" defaultValue={0} onChange={onChange} />)
+  expect(screen.getByRole("button", { name: "Choose" }).props.accessibilityValue.text).toBe("String zero")
+  await view.rerender(<Select {...base} defaultValue={0} onChange={onChange} />)
+  expect(screen.getByRole("button", { name: "Choose" }).props.accessibilityValue.text).toBe("String zero")
+  expect(onChange).not.toHaveBeenCalled()
+})
+it("retains a declined Select value request when the owner hands back control", async () => {
+  jest.spyOn(console, "warn").mockImplementation(() => {})
+  const onChange = jest.fn(),
+    onOpenChange = jest.fn()
+  const view = await render(<Select {...base} value={0} isOpen onChange={onChange} onOpenChange={onOpenChange} />)
+  await userEvent.setup().press(screen.getByRole("radio", { name: "String zero" }))
+  expect(onChange.mock.calls).toEqual([["0"]])
+  expect(screen.getByRole("button", { name: "Choose" }).props.accessibilityValue.text).toBe("Numeric zero")
+  await view.rerender(<Select {...base} isOpen onChange={onChange} onOpenChange={onOpenChange} />)
+  expect(screen.getByRole("button", { name: "Choose" }).props.accessibilityValue.text).toBe("String zero")
+  expect(onChange).toHaveBeenCalledTimes(1)
+})
+it("retains a declined Select close request when the owner hands back open control", async () => {
+  jest.spyOn(console, "warn").mockImplementation(() => {})
+  const onOpenChange = jest.fn()
+  const view = await render(<Select {...base} value={0} isOpen defaultOpen onOpenChange={onOpenChange} />)
+  await fireEvent(screen.getByTestId("select-window", { includeHiddenElements: true }), "show")
+  await userEvent.setup().press(screen.getByRole("button", { name: "Close choices" }))
+  expect(onOpenChange.mock.calls).toEqual([[false]])
+  expect(screen.getByRole("button", { name: "Close choices" })).toBeOnTheScreen()
+  await view.rerender(<Select {...base} value={0} defaultOpen onOpenChange={onOpenChange} />)
+  expect(screen.queryByRole("radio")).toBeNull()
+  expect(onOpenChange).toHaveBeenCalledTimes(1)
 })

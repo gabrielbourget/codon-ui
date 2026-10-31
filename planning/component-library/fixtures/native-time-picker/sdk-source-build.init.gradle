@@ -1,0 +1,21 @@
+// Opt-in RN0.86.3 source-build output layout for pnpm patch_hash= paths and Prefab2.1.
+def codonModulesPath = System.getenv('CODON_NATIVE_NODE_MODULES_ROOT')
+def codonOutputPath = System.getenv('CODON_NATIVE_BUILD_OUTPUT_ROOT')
+if (!codonModulesPath || !codonOutputPath) {
+  throw new GradleException('Set CODON_NATIVE_NODE_MODULES_ROOT and CODON_NATIVE_BUILD_OUTPUT_ROOT for the private source-SDK build')
+}
+def codonConsumerModules = new File(codonModulesPath).canonicalPath
+def codonOutputRoot = new File(codonOutputPath).canonicalFile
+def codonReactAndroid = new File(codonConsumerModules, 'react-native/ReactAndroid').canonicalPath
+if (!new File(codonConsumerModules).isDirectory() || codonOutputRoot.path.contains('=')) {
+  throw new GradleException('The module root must exist and the source-SDK build output path must not contain =')
+}
+gradle.beforeProject { project ->
+  def directory = project.projectDir.canonicalPath
+  if (directory == codonReactAndroid && directory.contains('=')) {
+    def identity = (project.rootProject.name + '__' + project.path).replaceAll('[^A-Za-z0-9._-]', '_')
+    def destination = new File(codonOutputRoot, identity)
+    println('CODON_PREFAB_OUTPUT ' + project.path + ': ' + project.layout.buildDirectory.get().asFile + ' -> ' + destination)
+    project.layout.buildDirectory.set(destination)
+  }
+}

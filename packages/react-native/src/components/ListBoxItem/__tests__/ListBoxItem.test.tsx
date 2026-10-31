@@ -1,9 +1,38 @@
 import { fireEvent, render, screen, userEvent } from "@testing-library/react-native"
+import { createRef } from "react"
 
-import { ListBoxItem } from "../../.."
+import { ListBoxItem, type TNativeListBoxItemRef } from "../../.."
 
 beforeEach(() => jest.useFakeTimers())
 afterEach(() => jest.useRealTimers())
+
+it("retains the original row ref and activation object while metadata owns its name and selection", async () => {
+  const ref = createRef<TNativeListBoxItemRef>(),
+    onPress = jest.fn()
+  const view = await render(
+    <ListBoxItem ref={ref} id={0} textValue="Choice zero" testID="native" data-testid="alias" onPress={onPress} />,
+  )
+  const original = ref.current
+  expect(original).not.toBeNull()
+  const row = screen.getByRole("radio", { name: "Choice zero" })
+  expect(screen.getByTestId("native")).toBe(row)
+  expect(screen.queryByTestId("alias")).toBeNull()
+  for (const prop of ["id", "textValue", "isSelected", "isDisabled", "isReadOnly", "textSize", "customStyles"]) {
+    expect(row.props[prop]).toBeUndefined()
+  }
+  const event = { nativeEvent: { target: 17, timestamp: 100 } }
+  await fireEvent(row, "press", event)
+  expect(onPress.mock.calls).toEqual([[event]])
+  expect(onPress.mock.calls[0][0]).toBe(event)
+  expect(row.props.accessibilityState.checked).toBe(false)
+  await view.rerender(<ListBoxItem ref={ref} id="" textValue="Empty key" isSelected testID="" data-testid="alias" />)
+  expect(ref.current).toBe(original)
+  expect(screen.getByTestId("")).toBe(screen.getByRole("radio", { name: "Empty key" }))
+  expect(screen.getByTestId("").props.accessibilityState.checked).toBe(true)
+  expect(onPress).toHaveBeenCalledTimes(1)
+  await view.unmount()
+  expect(ref.current).toBeNull()
+})
 
 it("owns one named radio root, preserves controlled state and wraps composed labels", async () => {
   const onPress = jest.fn()

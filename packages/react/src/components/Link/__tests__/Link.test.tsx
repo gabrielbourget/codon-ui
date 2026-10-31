@@ -164,6 +164,46 @@ describe("<Link />", () => {
       expect(link).toHaveAttribute("aria-details", "alias-details-id")
     })
 
+    it("keeps native ARIA relationship attributes ahead of their aliases.", () => {
+      render(
+        <Link
+          href=""
+          aria-labelledby="first second"
+          ariaLabelledBy="alias-name"
+          aria-describedby="description"
+          ariaDescribedBy="alias-description"
+          aria-details="details"
+          ariaDetails="alias-details"
+        >
+          Link
+        </Link>,
+      )
+      const link = screen.getByTestId("link")
+      expect(link).toHaveAttribute("aria-labelledby", "first second")
+      expect(link).toHaveAttribute("aria-describedby", "description")
+      expect(link).toHaveAttribute("aria-details", "details")
+    })
+
+    it("preserves empty native ARIA relationships instead of selecting nonempty aliases.", () => {
+      render(
+        <Link
+          href=""
+          aria-labelledby=""
+          ariaLabelledBy="alias-name"
+          aria-describedby=""
+          ariaDescribedBy="alias-description"
+          aria-details=""
+          ariaDetails="alias-details"
+        >
+          Link
+        </Link>,
+      )
+      const link = screen.getByTestId("link")
+      expect(link).toHaveAttribute("aria-labelledby", "")
+      expect(link).toHaveAttribute("aria-describedby", "")
+      expect(link).toHaveAttribute("aria-details", "")
+    })
+
     it("does not leak wrapper props onto the root element.", () => {
       render(
         <Link

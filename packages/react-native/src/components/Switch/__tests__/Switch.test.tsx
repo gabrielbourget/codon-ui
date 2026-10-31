@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, userEvent } from "@testing-library/react-native"
+import { act, fireEvent, render, screen, userEvent } from "@testing-library/react-native"
 import { Fragment, createRef } from "react"
 import { Platform, View } from "react-native"
 
@@ -10,6 +10,21 @@ const event = { nativeEvent: { timestamp: 100 } }
 const part = (name: string) => screen.getByTestId(`switch-${name}`, { includeHiddenElements: true })
 
 describe("Switch public native contract", () => {
+  it("forwards the original native activation object while retaining owned selection", async () => {
+    const onPress = jest.fn(),
+      onChange = jest.fn()
+    await render(<Switch isSelected={false} onPress={onPress} onChange={onChange} aria-label="Setting" />)
+    const control = screen.getByRole("switch")
+    await fireEvent(control, "press", event)
+    expect(onPress.mock.calls).toEqual([[event]])
+    expect(onPress.mock.calls[0][0]).toBe(event)
+    expect(onChange.mock.calls).toEqual([[true]])
+    expect(control.props.accessibilityState.checked).toBe(false)
+    for (const prop of ["isSelected", "defaultSelected", "onChange", "isDisabled", "isReadOnly"]) {
+      expect(control.props[prop]).toBeUndefined()
+    }
+  })
+
   it("keeps a small decorative track inside a single full-size target with grouped labels", async () => {
     await render(<Switch leftContent={["Enable ", <Fragment key="label">3</Fragment>]} rightContent="items" />)
     const control = screen.getByRole("switch", { name: "Enable 3 items" })
@@ -76,6 +91,8 @@ describe("Switch public native contract", () => {
     )
     await fireEvent(part("track-content"), "layout", { nativeEvent: { layout: { width: 90, height: 25 } } })
     await fireEvent(part("indicator"), "layout", { nativeEvent: { layout: { width: 17, height: 25 } } })
+    expect(part("indicator")).toHaveStyle({ left: 15, width: 17, height: 25 })
+    await act(() => jest.advanceTimersByTime(250))
     expect(part("indicator")).toHaveStyle({ left: 73, width: 17, height: 25 })
     expect(part("track")).toHaveStyle({ width: 90, height: 25 })
   })
@@ -120,12 +137,16 @@ describe("Switch public native contract", () => {
     expect(part("track")).toHaveStyle({ backgroundColor: "#2f7d18", borderColor: "#2f7d18" })
     expect(part("indicator")).toHaveStyle({ backgroundColor: "#2563eb" })
     await rerender(<Switch isSelected invertColorsOnToggle showBorder trackColor="#123456" indicatorColor="#abcdef" />)
+    expect(part("track")).toHaveStyle({ backgroundColor: "#2f7d18" })
+    await act(() => jest.advanceTimersByTime(275))
     expect(part("track")).toHaveStyle({ backgroundColor: "#123456" })
     expect(part("indicator")).toHaveStyle({ backgroundColor: "#abcdef" })
     await fireEvent(screen.getByRole("switch"), "pressIn", event)
+    await act(() => jest.advanceTimersByTime(275))
     expect(part("track")).toHaveStyle({ backgroundColor: "#c6c6c6" })
     await rerender(<Switch isSelected invertColorsOnToggle showBorder />)
     await fireEvent(screen.getByRole("switch"), "pressOut", event)
+    await act(() => jest.advanceTimersByTime(275))
     expect(part("track")).toHaveStyle({ backgroundColor: "#2c2c2c" })
   })
 

@@ -1,0 +1,71 @@
+{
+  "scope": "Private source viewport owner binding and immutable native query. Source models and SDK compilation do not prove actual native geometry, clipping, callback timing or performance. Browser comparison remains OPEN.",
+  "package": "framer-motion",
+  "version": "12.40.0",
+  "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+  "license": "../animation/LICENSE.framer-motion.md",
+  "inputs": [
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/motion/features/viewport/index.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "ef968df5ebdeec5de3209dfa633ea682c61c5ac642fc5df4d80292511698fae2"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/motion/features/viewport/observers.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "b0de46976abe4d41795f13a6dd66127f09370bb324def33e3e6fef7fd9412dfe"
+    }
+  ],
+  "authoredFiles": [
+    {
+      "file": "NativeMotionViewport.ts",
+      "sha256": "161ea4d91394368da08cf4ef9b9106d00660be29345b82708dc4efa7953e65fc"
+    },
+    {
+      "file": "nativeViewport.ts",
+      "sha256": "9ab6ae0ac4caf9afdbb4a527a7d3fef3114f6376a41d94cb76c919ecf38f2d3b"
+    },
+    {
+      "file": "types.ts",
+      "sha256": "4709c5c0ca3293fb4dbe34bba0b11abe1e82e027845d4953689f8c6a5f2dd5f4"
+    }
+  ],
+  "sourceOracle": {
+    "comparisons": 126,
+    "modeledRecords": 756,
+    "actualBrowser": false,
+    "actualNative": false
+  },
+  "adaptations": [
+    "Retain pinned isIntersecting/once/options/current-handler lifecycle; amount is an observer threshold and does not independently filter Motion isIntersecting transitions",
+    "Resolve root-margin percentages against actual root width, retain edge adjacency and zero-area ratios, and return native logical rectangle fields with original View targets",
+    "Private scoped module uses current immutable Fabric revision/family/props and existing native frame notifications; no RN global observer manager, SDK flag, mounted probe or editor write",
+    "Actual ancestor/default/window/ref/scroll/transform/first-frame/large-tree and installed fidelity remains required; existing native drawing receiver remains incomplete",
+    "Resolve actual ScrollView hosts once with the existing public accessor, preserve pinned root capture and View/default-window behavior, and reject unavailable or retired native hosts"
+  ],
+  "specification": "https://www.w3.org/TR/intersection-observer/",
+  "nativeRootAccessor": {
+    "package": "react-native",
+    "version": "0.86.3",
+    "accessor": "ScrollView.getNativeScrollRef",
+    "inputs": [
+      {
+        "path": "Libraries/Components/ScrollView/ScrollView.js",
+        "sha256": "8c6abb530799ce37215f1c49590d6dbe7c0ed0184c41025560f5c3f679f847fa"
+      },
+      {
+        "path": "Libraries/Components/ScrollView/ScrollView.d.ts",
+        "sha256": "71ea55d90792c303eb5d653a5d11ffb9b887ec9735d64f466ad64d0509cde883"
+      },
+      {
+        "path": "types/public/ReactNativeTypes.d.ts",
+        "sha256": "2d31b150324b256cc50654ee6c7d59c1762f60bdcc50e779e2fcd447e620cb6a"
+      },
+      {
+        "path": "Libraries/ReactNative/RendererProxy.d.ts",
+        "sha256": "cd2156bc8e4d54d52a2817d1b6f4629a5dd3173b1d8bb0fc893ee678d6a78ecd"
+      }
+    ],
+    "nativeProof": false
+  }
+}

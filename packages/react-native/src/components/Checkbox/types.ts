@@ -1,5 +1,5 @@
-import type { ReactNode } from "react"
-import type { ColorValue, StyleProp, View, ViewStyle } from "react-native"
+import type { ReactElement, ReactNode, RefAttributes } from "react"
+import type { ColorValue, PressableProps, StyleProp, View, ViewStyle } from "react-native"
 
 import type { TCornerGeometry } from "../../tokens/geometry"
 import type { TThemingOrderCode } from "../../tokens/theme-order"
@@ -7,9 +7,11 @@ import type { TNativeSelectionHostProps, TNativeSelectionState } from "../select
 
 export type TNativeCheckboxRef = View
 export type TNativeCheckboxRenderState = TNativeSelectionState & Readonly<{ isIndeterminate: boolean }>
-export type TNativeCheckboxStyleState = TNativeCheckboxRenderState & { defaultStyle: ViewStyle }
+export type TNativeCheckboxRootStyle = ViewStyle & { color?: ColorValue }
+export type TNativeCheckboxStyleState = TNativeCheckboxRenderState & { defaultStyle: TNativeCheckboxRootStyle }
 export type TNativeCheckboxChildrenState = TNativeCheckboxRenderState & { defaultChildren: undefined }
 export type TNativeCheckboxProps = TNativeSelectionHostProps & {
+  render?: (props: PressableProps & RefAttributes<View>, state: TNativeCheckboxRenderState) => ReactElement
   children?: ReactNode | ((state: TNativeCheckboxChildrenState) => ReactNode)
   value?: string
   isSelected?: boolean
@@ -27,6 +29,8 @@ export type TNativeCheckboxProps = TNativeSelectionHostProps & {
   raised?: boolean
   enableFocusStyle?: boolean
   offsetFocusRing?: boolean
-  customStyles?: StyleProp<ViewStyle>
-  style?: StyleProp<ViewStyle> | ((state: TNativeCheckboxStyleState) => StyleProp<ViewStyle>)
+  customStyles?: StyleProp<TNativeCheckboxRootStyle>
+  style?:
+    | StyleProp<TNativeCheckboxRootStyle>
+    | ((state: TNativeCheckboxStyleState) => StyleProp<TNativeCheckboxRootStyle>)
 }

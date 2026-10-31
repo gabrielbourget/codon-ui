@@ -81,7 +81,15 @@ export const AVAILABLE_TABLE_FILTER_CONDITION_TYPES = [
 
 export type TTableFilterConditionType = (typeof AVAILABLE_TABLE_FILTER_CONDITION_TYPES)[number]
 
-export type TTableFilterArgumentValue = string | string[] | number | number[] | boolean | null | undefined
+export type TTableFilterArgumentValue = string | number | boolean | (string | number)[] | null | undefined
+
+export type TTableFilterDraftArgumentValue =
+  | string
+  | number
+  | boolean
+  | (string | number | null | undefined)[]
+  | null
+  | undefined
 
 export type TTableFilterClause = {
   id: string

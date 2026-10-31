@@ -1,13 +1,28 @@
-import { forwardRef, useEffect, useState } from "react"
-import { TextInput, type TextStyle } from "react-native"
+import {
+  forwardRef,
+  useEffect,
+  useState,
+  type ForwardRefExoticComponent,
+  type ReactElement,
+  type RefAttributes,
+} from "react"
+import { TextInput, type TextInputProps, type TextStyle } from "react-native"
 
 import { useNativeTheme } from "../../theme"
 import { validateNativeColor } from "../colors"
 import { getNativeControlRadius, getNativeControlRootStyle } from "../selection"
 
+import { useNativeInputBorder } from "./motion"
 import type { TNativeInputProps, TNativeInputRef, TNativeInputRenderState } from "./types"
 
-export const Input = forwardRef<TNativeInputRef, TNativeInputProps>((props, ref) => {
+export type TNativeInputHostRender = (
+  props: TextInputProps & RefAttributes<TNativeInputRef>,
+  state: TNativeInputRenderState,
+) => ReactElement
+
+type TNativeInputInternalProps = TNativeInputProps & { nativeRender?: TNativeInputHostRender; nativeAnimate?: boolean }
+
+export const NativeInput = forwardRef<TNativeInputRef, TNativeInputInternalProps>((props, ref) => {
   const {
     isDisabled = false,
     isReadOnly = false,
@@ -30,6 +45,9 @@ export const Input = forwardRef<TNativeInputRef, TNativeInputProps>((props, ref)
     onChange,
     onFocus,
     onBlur,
+    nativeRender,
+    nativeAnimate = true,
+    render,
     "data-testid": aliasTestID,
     "aria-label": aliasLabel,
     ...rest
@@ -76,39 +94,41 @@ export const Input = forwardRef<TNativeInputRef, TNativeInputProps>((props, ref)
       : {}),
   }
   const resolved = getNativeControlRootStyle("Input", baseline, customStyles, style, state)
+  const painted = useNativeInputBorder(resolved, nativeAnimate)
   const blocked = isDisabled || isReadOnly
-  return (
-    <TextInput
-      {...rest}
-      ref={ref}
-      multiline={false}
-      editable={!blocked}
-      readOnly={blocked}
-      focusable={!isDisabled}
-      aria-disabled={isDisabled}
-      accessibilityState={{ ...accessibilityState, disabled: isDisabled }}
-      accessibilityLabel={accessibilityLabel ?? aliasLabel}
-      testID={testID ?? aliasTestID ?? "input"}
-      placeholderTextColor={placeholder}
-      underlineColorAndroid={rest.underlineColorAndroid ?? "transparent"}
-      style={resolved}
-      onChangeText={(value) => {
-        if (!blocked) onChangeText?.(value)
-      }}
-      onChange={(event) => {
-        if (!blocked) onChange?.(event)
-      }}
-      onFocus={(event) => {
-        if (!isDisabled) {
-          setFocused(true)
-          onFocus?.(event)
-        }
-      }}
-      onBlur={(event) => {
-        setFocused(false)
-        onBlur?.(event)
-      }}
-    />
-  )
+  const native: TextInputProps & RefAttributes<TNativeInputRef> = {
+    ...rest,
+    ref,
+    multiline: false,
+    editable: !blocked,
+    readOnly: blocked,
+    focusable: !isDisabled,
+    "aria-disabled": isDisabled,
+    accessibilityState: { ...accessibilityState, disabled: isDisabled },
+    accessibilityLabel: accessibilityLabel ?? aliasLabel,
+    testID: testID ?? aliasTestID ?? "input",
+    placeholderTextColor: placeholder,
+    underlineColorAndroid: rest.underlineColorAndroid ?? "transparent",
+    style: painted,
+    onChangeText: (value) => {
+      if (!blocked) onChangeText?.(value)
+    },
+    onChange: (event) => {
+      if (!blocked) onChange?.(event)
+    },
+    onFocus: (event) => {
+      if (!isDisabled) {
+        setFocused(true)
+        onFocus?.(event)
+      }
+    },
+    onBlur: (event) => {
+      setFocused(false)
+      onBlur?.(event)
+    },
+  }
+  return nativeRender ? nativeRender(native, state) : render ? render(native, state) : <TextInput {...native} />
 })
+NativeInput.displayName = "NativeInput"
+export const Input: ForwardRefExoticComponent<TNativeInputProps & RefAttributes<TNativeInputRef>> = NativeInput
 Input.displayName = "Input"

@@ -1,4 +1,6 @@
-import type { TNativeNumberInputProps } from "../src"
+import { View } from "react-native"
+
+import type { TNativeNumberInputProps, TNativeStepperProps } from "../src"
 
 const base = { accessibilityLabel: "Quantity", incrementLabel: "Add quantity", decrementLabel: "Reduce quantity" }
 const accept = (_props: TNativeNumberInputProps) => undefined
@@ -34,3 +36,24 @@ accept({ ...base, role: "spinbutton" })
 accept({ ...base, name: "quantity" })
 // @ts-expect-error no React Aria state
 accept({ ...base, style: (state) => ({ opacity: state.isFocusVisible ? 1 : 0 }) })
+
+accept({
+  ...base,
+  render: (props, state) => <View {...props} nativeID={String(state.value)} />,
+})
+// @ts-expect-error Root rendering does not receive a DOM root ref; the public ref remains the native editor.
+accept({ ...base, render: (_props: { ref: HTMLDivElement }) => <View /> })
+// @ts-expect-error Canonical NumberInput owns its children; arbitrary children remain excluded.
+accept({ ...base, children: <View /> })
+accept({
+  ...base,
+  render: (props, state) => {
+    // @ts-expect-error Native numeric state has no React Aria NumberFieldState object.
+    void state.state
+    return <View {...props} />
+  },
+})
+
+// @ts-expect-error Stepper does not inherit NumberInput root rendering without its own implementation.
+const unsupportedStepperRender: TNativeStepperProps = { ...base, render: () => <View /> }
+void unsupportedStepperRender

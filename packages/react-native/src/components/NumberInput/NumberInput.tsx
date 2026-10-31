@@ -5,6 +5,7 @@ import { useNativeTheme } from "../../theme"
 import { Button } from "../Button/Button"
 import { resolveNativeStyle } from "../colors"
 import { Input } from "../Input/Input"
+import { useNativeInputBorder } from "../Input/motion"
 import { getNativeControlRadius } from "../selection"
 
 import { useNumberInputState } from "./state"
@@ -25,6 +26,7 @@ export const NumberInput = forwardRef<TNativeNumberInputRef, TNativeNumberInputP
   const theme = useNativeTheme()
   const numeric = useNumberInputState(props)
   const {
+    render,
     isDisabled = false,
     isReadOnly = false,
     errorState = false,
@@ -103,6 +105,7 @@ export const NumberInput = forwardRef<TNativeNumberInputRef, TNativeNumberInputP
     "NumberInput",
     "style",
   )
+  const paintedRootStyle = useNativeInputBorder(rootStyle)
   const groupStyle = resolveNativeStyle(
     [{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: theme.spacing.unit }, customGroupStyles],
     "NumberInput",
@@ -125,7 +128,7 @@ export const NumberInput = forwardRef<TNativeNumberInputRef, TNativeNumberInputP
           ...(numeric.canIncrement ? [{ name: "incrementValue", label: incrementLabel }] : []),
           ...(numeric.canDecrement ? [{ name: "decrementValue", label: decrementLabel }] : []),
         ]
-  return (
+  const element = (
     <View
       testID={testID}
       nativeID={props.nativeID}
@@ -134,7 +137,7 @@ export const NumberInput = forwardRef<TNativeNumberInputRef, TNativeNumberInputP
       pointerEvents={props.pointerEvents}
       collapsable={props.collapsable}
       accessible={false}
-      style={rootStyle}
+      style={paintedRootStyle}
     >
       <View accessible={false} style={groupStyle}>
         <Input
@@ -195,6 +198,7 @@ export const NumberInput = forwardRef<TNativeNumberInputRef, TNativeNumberInputP
           return (
             <Button
               key={direction}
+              slot={null}
               testID={`${testID}-${increment ? "increment" : "decrement"}`}
               accessibilityLabel={increment ? incrementLabel : decrementLabel}
               isDisabled={isDisabled || !(increment ? numeric.canIncrement : numeric.canDecrement)}
@@ -223,5 +227,6 @@ export const NumberInput = forwardRef<TNativeNumberInputRef, TNativeNumberInputP
       </View>
     </View>
   )
+  return render ? render(element.props, state) : element
 })
 NumberInput.displayName = "NumberInput"

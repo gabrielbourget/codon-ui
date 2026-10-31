@@ -1,0 +1,3173 @@
+{
+  "canonicalHelperSHA256": "aec6f8a7dd34972cc65c2acc912ebd1a50243057554328fdc41e8aacdc7e6c18",
+  "vectors": [
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "ArrowLeft",
+      "modifiers": false,
+      "trace": [["prevent"], ["stop"], ["setFocus", 0], ["focus", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "ArrowLeft",
+      "modifiers": true,
+      "trace": [["prevent"], ["stop"], ["setFocus", 0], ["focus", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "ArrowRight",
+      "modifiers": false,
+      "trace": [["prevent"], ["stop"], ["setFocus", 1], ["focus", 1]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "ArrowRight",
+      "modifiers": true,
+      "trace": [["prevent"], ["stop"], ["setFocus", 1], ["focus", 1]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "Home",
+      "modifiers": false,
+      "trace": [["prevent"], ["stop"], ["setFocus", 0], ["focus", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "Home",
+      "modifiers": true,
+      "trace": [["prevent"], ["stop"], ["setFocus", 0], ["focus", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "End",
+      "modifiers": false,
+      "trace": [["prevent"], ["stop"], ["setFocus", 4], ["focus", 4]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "End",
+      "modifiers": true,
+      "trace": [["prevent"], ["stop"], ["setFocus", 4], ["focus", 4]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "Enter",
+      "modifiers": false,
+      "trace": [["prevent"], ["scroll", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "Enter",
+      "modifiers": true,
+      "trace": [["prevent"], ["scroll", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": " ",
+      "modifiers": false,
+      "trace": [["prevent"], ["scroll", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": " ",
+      "modifiers": true,
+      "trace": [["prevent"], ["scroll", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "Spacebar",
+      "modifiers": false,
+      "trace": [["prevent"], ["scroll", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "Spacebar",
+      "modifiers": true,
+      "trace": [["prevent"], ["scroll", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "ArrowUp",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "ArrowUp",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "ArrowDown",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "ArrowDown",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "Tab",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "Tab",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "x",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "x",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "ArrowLeft",
+      "modifiers": false,
+      "trace": [["prevent"], ["stop"], ["setFocus", 0], ["focus", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "ArrowLeft",
+      "modifiers": true,
+      "trace": [["prevent"], ["stop"], ["setFocus", 0], ["focus", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "ArrowRight",
+      "modifiers": false,
+      "trace": [["prevent"], ["stop"], ["setFocus", 2], ["focus", 2]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "ArrowRight",
+      "modifiers": true,
+      "trace": [["prevent"], ["stop"], ["setFocus", 2], ["focus", 2]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "Home",
+      "modifiers": false,
+      "trace": [["prevent"], ["stop"], ["setFocus", 0], ["focus", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "Home",
+      "modifiers": true,
+      "trace": [["prevent"], ["stop"], ["setFocus", 0], ["focus", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "End",
+      "modifiers": false,
+      "trace": [["prevent"], ["stop"], ["setFocus", 4], ["focus", 4]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "End",
+      "modifiers": true,
+      "trace": [["prevent"], ["stop"], ["setFocus", 4], ["focus", 4]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "Enter",
+      "modifiers": false,
+      "trace": [["prevent"], ["scroll", 1]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "Enter",
+      "modifiers": true,
+      "trace": [["prevent"], ["scroll", 1]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": " ",
+      "modifiers": false,
+      "trace": [["prevent"], ["scroll", 1]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": " ",
+      "modifiers": true,
+      "trace": [["prevent"], ["scroll", 1]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "Spacebar",
+      "modifiers": false,
+      "trace": [["prevent"], ["scroll", 1]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "Spacebar",
+      "modifiers": true,
+      "trace": [["prevent"], ["scroll", 1]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "ArrowUp",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "ArrowUp",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "ArrowDown",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "ArrowDown",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "Tab",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "Tab",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "x",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "x",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "ArrowLeft",
+      "modifiers": false,
+      "trace": [["prevent"], ["stop"], ["setFocus", 1], ["focus", 1]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "ArrowLeft",
+      "modifiers": true,
+      "trace": [["prevent"], ["stop"], ["setFocus", 1], ["focus", 1]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "ArrowRight",
+      "modifiers": false,
+      "trace": [["prevent"], ["stop"], ["setFocus", 3], ["focus", 3]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "ArrowRight",
+      "modifiers": true,
+      "trace": [["prevent"], ["stop"], ["setFocus", 3], ["focus", 3]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "Home",
+      "modifiers": false,
+      "trace": [["prevent"], ["stop"], ["setFocus", 0], ["focus", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "Home",
+      "modifiers": true,
+      "trace": [["prevent"], ["stop"], ["setFocus", 0], ["focus", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "End",
+      "modifiers": false,
+      "trace": [["prevent"], ["stop"], ["setFocus", 4], ["focus", 4]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "End",
+      "modifiers": true,
+      "trace": [["prevent"], ["stop"], ["setFocus", 4], ["focus", 4]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "Enter",
+      "modifiers": false,
+      "trace": [["prevent"], ["scroll", 2]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "Enter",
+      "modifiers": true,
+      "trace": [["prevent"], ["scroll", 2]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": " ",
+      "modifiers": false,
+      "trace": [["prevent"], ["scroll", 2]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": " ",
+      "modifiers": true,
+      "trace": [["prevent"], ["scroll", 2]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "Spacebar",
+      "modifiers": false,
+      "trace": [["prevent"], ["scroll", 2]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "Spacebar",
+      "modifiers": true,
+      "trace": [["prevent"], ["scroll", 2]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "ArrowUp",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "ArrowUp",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "ArrowDown",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "ArrowDown",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "Tab",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "Tab",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "x",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "x",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "ArrowLeft",
+      "modifiers": false,
+      "trace": [["prevent"], ["stop"], ["setFocus", 3], ["focus", 3]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "ArrowLeft",
+      "modifiers": true,
+      "trace": [["prevent"], ["stop"], ["setFocus", 3], ["focus", 3]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "ArrowRight",
+      "modifiers": false,
+      "trace": [["prevent"], ["stop"], ["setFocus", 4], ["focus", 4]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "ArrowRight",
+      "modifiers": true,
+      "trace": [["prevent"], ["stop"], ["setFocus", 4], ["focus", 4]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "Home",
+      "modifiers": false,
+      "trace": [["prevent"], ["stop"], ["setFocus", 0], ["focus", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "Home",
+      "modifiers": true,
+      "trace": [["prevent"], ["stop"], ["setFocus", 0], ["focus", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "End",
+      "modifiers": false,
+      "trace": [["prevent"], ["stop"], ["setFocus", 4], ["focus", 4]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "End",
+      "modifiers": true,
+      "trace": [["prevent"], ["stop"], ["setFocus", 4], ["focus", 4]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "Enter",
+      "modifiers": false,
+      "trace": [["prevent"], ["scroll", 4]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "Enter",
+      "modifiers": true,
+      "trace": [["prevent"], ["scroll", 4]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": " ",
+      "modifiers": false,
+      "trace": [["prevent"], ["scroll", 4]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": " ",
+      "modifiers": true,
+      "trace": [["prevent"], ["scroll", 4]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "Spacebar",
+      "modifiers": false,
+      "trace": [["prevent"], ["scroll", 4]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "Spacebar",
+      "modifiers": true,
+      "trace": [["prevent"], ["scroll", 4]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "ArrowUp",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "ArrowUp",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "ArrowDown",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "ArrowDown",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "Tab",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "Tab",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "x",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "x",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "ArrowLeft",
+      "modifiers": false,
+      "trace": [["prevent"], ["stop"], ["setFocus", 0], ["focus", 0], ["scroll", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "ArrowLeft",
+      "modifiers": true,
+      "trace": [["prevent"], ["stop"], ["setFocus", 0], ["focus", 0], ["scroll", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "ArrowRight",
+      "modifiers": false,
+      "trace": [["prevent"], ["stop"], ["setFocus", 1], ["focus", 1], ["scroll", 1]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "ArrowRight",
+      "modifiers": true,
+      "trace": [["prevent"], ["stop"], ["setFocus", 1], ["focus", 1], ["scroll", 1]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "Home",
+      "modifiers": false,
+      "trace": [["prevent"], ["stop"], ["setFocus", 0], ["focus", 0], ["scroll", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "Home",
+      "modifiers": true,
+      "trace": [["prevent"], ["stop"], ["setFocus", 0], ["focus", 0], ["scroll", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "End",
+      "modifiers": false,
+      "trace": [["prevent"], ["stop"], ["setFocus", 4], ["focus", 4], ["scroll", 4]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "End",
+      "modifiers": true,
+      "trace": [["prevent"], ["stop"], ["setFocus", 4], ["focus", 4], ["scroll", 4]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "Enter",
+      "modifiers": false,
+      "trace": [["prevent"], ["scroll", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "Enter",
+      "modifiers": true,
+      "trace": [["prevent"], ["scroll", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": " ",
+      "modifiers": false,
+      "trace": [["prevent"], ["scroll", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": " ",
+      "modifiers": true,
+      "trace": [["prevent"], ["scroll", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "Spacebar",
+      "modifiers": false,
+      "trace": [["prevent"], ["scroll", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "Spacebar",
+      "modifiers": true,
+      "trace": [["prevent"], ["scroll", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "ArrowUp",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "ArrowUp",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "ArrowDown",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "ArrowDown",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "Tab",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "Tab",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "x",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "x",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "ArrowLeft",
+      "modifiers": false,
+      "trace": [["prevent"], ["stop"], ["setFocus", 0], ["focus", 0], ["scroll", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "ArrowLeft",
+      "modifiers": true,
+      "trace": [["prevent"], ["stop"], ["setFocus", 0], ["focus", 0], ["scroll", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "ArrowRight",
+      "modifiers": false,
+      "trace": [["prevent"], ["stop"], ["setFocus", 2], ["focus", 2], ["scroll", 2]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "ArrowRight",
+      "modifiers": true,
+      "trace": [["prevent"], ["stop"], ["setFocus", 2], ["focus", 2], ["scroll", 2]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "Home",
+      "modifiers": false,
+      "trace": [["prevent"], ["stop"], ["setFocus", 0], ["focus", 0], ["scroll", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "Home",
+      "modifiers": true,
+      "trace": [["prevent"], ["stop"], ["setFocus", 0], ["focus", 0], ["scroll", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "End",
+      "modifiers": false,
+      "trace": [["prevent"], ["stop"], ["setFocus", 4], ["focus", 4], ["scroll", 4]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "End",
+      "modifiers": true,
+      "trace": [["prevent"], ["stop"], ["setFocus", 4], ["focus", 4], ["scroll", 4]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "Enter",
+      "modifiers": false,
+      "trace": [["prevent"], ["scroll", 1]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "Enter",
+      "modifiers": true,
+      "trace": [["prevent"], ["scroll", 1]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": " ",
+      "modifiers": false,
+      "trace": [["prevent"], ["scroll", 1]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": " ",
+      "modifiers": true,
+      "trace": [["prevent"], ["scroll", 1]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "Spacebar",
+      "modifiers": false,
+      "trace": [["prevent"], ["scroll", 1]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "Spacebar",
+      "modifiers": true,
+      "trace": [["prevent"], ["scroll", 1]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "ArrowUp",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "ArrowUp",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "ArrowDown",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "ArrowDown",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "Tab",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "Tab",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "x",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "x",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "ArrowLeft",
+      "modifiers": false,
+      "trace": [["prevent"], ["stop"], ["setFocus", 1], ["focus", 1], ["scroll", 1]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "ArrowLeft",
+      "modifiers": true,
+      "trace": [["prevent"], ["stop"], ["setFocus", 1], ["focus", 1], ["scroll", 1]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "ArrowRight",
+      "modifiers": false,
+      "trace": [["prevent"], ["stop"], ["setFocus", 3], ["focus", 3], ["scroll", 3]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "ArrowRight",
+      "modifiers": true,
+      "trace": [["prevent"], ["stop"], ["setFocus", 3], ["focus", 3], ["scroll", 3]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "Home",
+      "modifiers": false,
+      "trace": [["prevent"], ["stop"], ["setFocus", 0], ["focus", 0], ["scroll", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "Home",
+      "modifiers": true,
+      "trace": [["prevent"], ["stop"], ["setFocus", 0], ["focus", 0], ["scroll", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "End",
+      "modifiers": false,
+      "trace": [["prevent"], ["stop"], ["setFocus", 4], ["focus", 4], ["scroll", 4]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "End",
+      "modifiers": true,
+      "trace": [["prevent"], ["stop"], ["setFocus", 4], ["focus", 4], ["scroll", 4]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "Enter",
+      "modifiers": false,
+      "trace": [["prevent"], ["scroll", 2]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "Enter",
+      "modifiers": true,
+      "trace": [["prevent"], ["scroll", 2]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": " ",
+      "modifiers": false,
+      "trace": [["prevent"], ["scroll", 2]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": " ",
+      "modifiers": true,
+      "trace": [["prevent"], ["scroll", 2]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "Spacebar",
+      "modifiers": false,
+      "trace": [["prevent"], ["scroll", 2]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "Spacebar",
+      "modifiers": true,
+      "trace": [["prevent"], ["scroll", 2]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "ArrowUp",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "ArrowUp",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "ArrowDown",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "ArrowDown",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "Tab",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "Tab",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "x",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "x",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "ArrowLeft",
+      "modifiers": false,
+      "trace": [["prevent"], ["stop"], ["setFocus", 3], ["focus", 3], ["scroll", 3]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "ArrowLeft",
+      "modifiers": true,
+      "trace": [["prevent"], ["stop"], ["setFocus", 3], ["focus", 3], ["scroll", 3]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "ArrowRight",
+      "modifiers": false,
+      "trace": [["prevent"], ["stop"], ["setFocus", 4], ["focus", 4], ["scroll", 4]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "ArrowRight",
+      "modifiers": true,
+      "trace": [["prevent"], ["stop"], ["setFocus", 4], ["focus", 4], ["scroll", 4]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "Home",
+      "modifiers": false,
+      "trace": [["prevent"], ["stop"], ["setFocus", 0], ["focus", 0], ["scroll", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "Home",
+      "modifiers": true,
+      "trace": [["prevent"], ["stop"], ["setFocus", 0], ["focus", 0], ["scroll", 0]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "End",
+      "modifiers": false,
+      "trace": [["prevent"], ["stop"], ["setFocus", 4], ["focus", 4], ["scroll", 4]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "End",
+      "modifiers": true,
+      "trace": [["prevent"], ["stop"], ["setFocus", 4], ["focus", 4], ["scroll", 4]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "Enter",
+      "modifiers": false,
+      "trace": [["prevent"], ["scroll", 4]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "Enter",
+      "modifiers": true,
+      "trace": [["prevent"], ["scroll", 4]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": " ",
+      "modifiers": false,
+      "trace": [["prevent"], ["scroll", 4]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": " ",
+      "modifiers": true,
+      "trace": [["prevent"], ["scroll", 4]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "Spacebar",
+      "modifiers": false,
+      "trace": [["prevent"], ["scroll", 4]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "Spacebar",
+      "modifiers": true,
+      "trace": [["prevent"], ["scroll", 4]]
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "ArrowUp",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "ArrowUp",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "ArrowDown",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "ArrowDown",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "Tab",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "Tab",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "x",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": true,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "x",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "ArrowLeft",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "ArrowLeft",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "ArrowRight",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "ArrowRight",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "Home",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "Home",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "End",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "End",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "Enter",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "Enter",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": " ",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": " ",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "Spacebar",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "Spacebar",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "ArrowUp",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "ArrowUp",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "ArrowDown",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "ArrowDown",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "Tab",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "Tab",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "x",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "x",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "ArrowLeft",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "ArrowLeft",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "ArrowRight",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "ArrowRight",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "Home",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "Home",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "End",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "End",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "Enter",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "Enter",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": " ",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": " ",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "Spacebar",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "Spacebar",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "ArrowUp",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "ArrowUp",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "ArrowDown",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "ArrowDown",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "Tab",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "Tab",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "x",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "x",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "ArrowLeft",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "ArrowLeft",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "ArrowRight",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "ArrowRight",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "Home",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "Home",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "End",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "End",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "Enter",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "Enter",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": " ",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": " ",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "Spacebar",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "Spacebar",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "ArrowUp",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "ArrowUp",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "ArrowDown",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "ArrowDown",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "Tab",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "Tab",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "x",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "x",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "ArrowLeft",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "ArrowLeft",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "ArrowRight",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "ArrowRight",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "Home",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "Home",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "End",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "End",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "Enter",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "Enter",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": " ",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": " ",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "Spacebar",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "Spacebar",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "ArrowUp",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "ArrowUp",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "ArrowDown",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "ArrowDown",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "Tab",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "Tab",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "x",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "manual",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "x",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "ArrowLeft",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "ArrowLeft",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "ArrowRight",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "ArrowRight",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "Home",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "Home",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "End",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "End",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "Enter",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "Enter",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": " ",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": " ",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "Spacebar",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "Spacebar",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "ArrowUp",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "ArrowUp",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "ArrowDown",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "ArrowDown",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "Tab",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "Tab",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "x",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 0,
+      "itemCount": 5,
+      "key": "x",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "ArrowLeft",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "ArrowLeft",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "ArrowRight",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "ArrowRight",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "Home",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "Home",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "End",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "End",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "Enter",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "Enter",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": " ",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": " ",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "Spacebar",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "Spacebar",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "ArrowUp",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "ArrowUp",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "ArrowDown",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "ArrowDown",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "Tab",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "Tab",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "x",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 1,
+      "itemCount": 5,
+      "key": "x",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "ArrowLeft",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "ArrowLeft",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "ArrowRight",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "ArrowRight",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "Home",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "Home",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "End",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "End",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "Enter",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "Enter",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": " ",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": " ",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "Spacebar",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "Spacebar",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "ArrowUp",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "ArrowUp",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "ArrowDown",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "ArrowDown",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "Tab",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "Tab",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "x",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 2,
+      "itemCount": 5,
+      "key": "x",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "ArrowLeft",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "ArrowLeft",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "ArrowRight",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "ArrowRight",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "Home",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "Home",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "End",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "End",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "Enter",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "Enter",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": " ",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": " ",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "Spacebar",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "Spacebar",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "ArrowUp",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "ArrowUp",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "ArrowDown",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "ArrowDown",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "Tab",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "Tab",
+      "modifiers": true,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "x",
+      "modifiers": false,
+      "trace": []
+    },
+    {
+      "interactive": false,
+      "activationMode": "auto",
+      "focusIndex": 4,
+      "itemCount": 5,
+      "key": "x",
+      "modifiers": true,
+      "trace": []
+    }
+  ]
+}

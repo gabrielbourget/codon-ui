@@ -1,0 +1,1882 @@
+{
+  "canonicalSourceRef": "ddc9f066f67af4742e05e04bd870726141c44129",
+  "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+  "canonicalPropertyCount": 121,
+  "nativePropertyCount": 122,
+  "props": {
+    "aria-controls": {
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "The original native core host boundary excludes DOM attributes/events/form protocols; native counterparts retain actual native props/events without a fabricated DOM producer.",
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original."
+    },
+    "aria-describedby": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "aria-details": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "aria-errormessage": {
+      "disposition": "APPROVED_HOST_FORM_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native contract excludes DOM form submission/validation/required state; hosts own explicit names/hints/schema/messages. No fake validation state is added.",
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original."
+    },
+    "aria-label": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "aria-label",
+      "nativeType": "string | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "aria-labelledby": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "aria-labelledby",
+      "nativeType": "string | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "autoFocus": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_COORDINATION_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original private native group owns member selection; React Aria slots/state and browser Arrow/Home/End/typeahead/automatic focus coordination are excluded. Native focus/ref/host integration retain separate requirements."
+    },
+    "children": {
+      "canonicalType": "import(\"react-aria-components/dist/types/src/utils\").ChildrenOrFunction<CheckboxRenderProps>",
+      "required": false,
+      "capability": "CAP.checkbox.019",
+      "disposition": "NATIVE_RENDER_CHILDREN",
+      "nativeProp": "children",
+      "nativeType": "ReactNode | ((state: TNativeCheckboxChildrenState) => ReactNode)",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "ReactNode or current selected/pressed/hovered/focused/disabled/read-only data plus defaultChildren undefined. Primitive/array/Fragment output uses existing owned Text without cloning authored content; decorative content remains within one interactive root."
+    },
+    "className": {
+      "canonicalType": "import(\"react-aria-components/dist/types/src/utils\").ClassNameOrFunction<CheckboxRenderProps> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.015",
+      "disposition": "APPROVED_NATIVE_STYLE",
+      "nativeProp": "customStyles/style",
+      "nativeType": "StyleProp<ViewStyle> or native style-state callback",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Root native computed/custom/final target styles with post-custom defaultStyle; label content/mark owners stay separate, without CSS class promises."
+    },
+    "color": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.003",
+      "disposition": "APPROVED_NATIVE_COLOR_RECIPE",
+      "nativeProp": "color",
+      "nativeType": "ColorValue | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original native ColorValue owns mark border/selected-or-mixed fill, while selected control/action pair owns glyph foreground. Preserve original selected/hover/pressed and dark outline-role recipe, with175ms shape/250ms glyph clocks."
+    },
+    "customStyles": {
+      "canonicalType": "CSSProperties | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.014",
+      "disposition": "NATIVE_STYLE_AND_OWNED_FOREGROUND",
+      "nativeProp": "customStyles",
+      "nativeType": "StyleProp<TNativeCheckboxRootStyle>",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original root layout/style ownership plus native ColorValue foreground under full-customization policy3.5. Computed/custom/final label color reaches owned Text, explicit authored Text colors win, color is consumed before native View style and mark color/geometry/motion remain independent."
+    },
+    "data-testid": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.016",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "data-testid",
+      "nativeType": "string | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "defaultSelected": {
+      "disposition": "NATIVE_SELECTION_OWNERSHIP",
+      "nativeProp": "defaultSelected",
+      "nativeType": "boolean | undefined",
+      "expected": "Standalone selected/default/onChange(boolean), initialfalse and owner veto/echo; nearest private CheckboxGroup with a string member value owns selection instead. Preserve array order, group-before-member observation, nested isolation and value-less standalone behavior.",
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.020",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original."
+    },
+    "dir": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "enableFocusStyle": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.008",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "enableFocusStyle",
+      "nativeType": "boolean | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "excludeFromTabOrder": {
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "The original native core host boundary excludes DOM attributes/events/form protocols; native counterparts retain actual native props/events without a fabricated DOM producer.",
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original."
+    },
+    "form": {
+      "disposition": "APPROVED_HOST_FORM_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native contract excludes DOM form submission/validation/required state; hosts own explicit names/hints/schema/messages. No fake validation state is added.",
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original."
+    },
+    "geometry": {
+      "canonicalType": "\"orthogonal\" | \"rounded\" | \"round\" | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.004",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "geometry",
+      "nativeType": "\"orthogonal\" | \"rounded\" | \"round\" | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "height": {
+      "canonicalType": "string | number | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.002",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "height",
+      "nativeType": "number | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original native positive finite numeric shape dimensions, default20; root custom/final dimensions do not silently resize mark. CSS unit strings are explicitly excluded; native target minimum/clip exceptions remain."
+    },
+    "hidden": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "id": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "id",
+      "nativeType": "string | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "inert": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "inputRef": {
+      "canonicalType": "import(\"@react-types/shared/src/refs\").RefObject<HTMLInputElement | null> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_REF",
+      "nativeProp": "ref",
+      "nativeType": "React.Ref<View>",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original native counterpart has one View-backed Pressable ref and no hidden HTML input or React Aria inputRef object. Actual original ref survives renderer/state updates and clears on teardown."
+    },
+    "isDisabled": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.010",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "isDisabled",
+      "nativeType": "boolean | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "isIndeterminate": {
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "isIndeterminate",
+      "nativeType": "boolean | undefined",
+      "expected": "Native explicit mixed presentation/trait remains independent from selected state; activation requests inverse selection without clearing authored mixed, and mixed line remains even when showIcon isfalse.",
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.011",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original."
+    },
+    "isInvalid": {
+      "disposition": "APPROVED_HOST_FORM_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native contract excludes DOM form submission/validation/required state; hosts own explicit names/hints/schema/messages. No fake validation state is added.",
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original."
+    },
+    "isReadOnly": {
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "isReadOnly",
+      "nativeType": "boolean | undefined",
+      "expected": "Actual native Checkbox property and owned native state/host contract.",
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.010",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original."
+    },
+    "isRequired": {
+      "disposition": "APPROVED_HOST_FORM_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native contract excludes DOM form submission/validation/required state; hosts own explicit names/hints/schema/messages. No fake validation state is added.",
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original."
+    },
+    "isSelected": {
+      "disposition": "NATIVE_SELECTION_OWNERSHIP",
+      "nativeProp": "isSelected",
+      "nativeType": "boolean | undefined",
+      "expected": "Standalone selected/default/onChange(boolean), initialfalse and owner veto/echo; nearest private CheckboxGroup with a string member value owns selection instead. Preserve array order, group-before-member observation, nested isolation and value-less standalone behavior.",
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.020",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original."
+    },
+    "lang": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "name": {
+      "disposition": "APPROVED_HOST_FORM_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native contract excludes DOM form submission/validation/required state; hosts own explicit names/hints/schema/messages. No fake validation state is added.",
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original."
+    },
+    "offsetFocusRing": {
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.008",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "offsetFocusRing",
+      "nativeType": "boolean | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "onAnimationEnd": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onAnimationEndCapture": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onAnimationIteration": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onAnimationIterationCapture": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onAnimationStart": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onAnimationStartCapture": {
+      "canonicalType": "import(\"@types/react/index\").AnimationEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onAuxClick": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onAuxClickCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onBlur": {
+      "canonicalType": "((e: import(\"@types/react/index\").FocusEvent<Element, Element>) => void) | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_EVENT_MAPPING",
+      "nativeProp": "onBlur",
+      "nativeType": "((event: import(\"react-native/types/index\").NativeSyntheticEvent<import(\"react-native/types/index\").TargetedEvent>) => void) | null | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approval preserves core Pressable observations with native payloads and guard/order. It does not translate React Aria PressEvent/HoverEvent phases or add boolean observation APIs; suppressed native activation and group changes remain exact."
+    },
+    "onChange": {
+      "disposition": "NATIVE_SELECTION_OWNERSHIP",
+      "nativeProp": "onChange",
+      "nativeType": "((selected: boolean) => void) | undefined",
+      "expected": "Standalone selected/default/onChange(boolean), initialfalse and owner veto/echo; nearest private CheckboxGroup with a string member value owns selection instead. Preserve array order, group-before-member observation, nested isolation and value-less standalone behavior.",
+      "canonicalType": "((isSelected: boolean) => void) | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.020",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original."
+    },
+    "onClick": {
+      "canonicalType": "((e: import(\"@types/react/index\").MouseEvent<import(\"@react-types/shared/src/dom\").FocusableElement>) => void) | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onClickCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onContextMenu": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onContextMenuCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onDoubleClick": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onDoubleClickCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onFocus": {
+      "canonicalType": "((e: import(\"@types/react/index\").FocusEvent<Element, Element>) => void) | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_EVENT_MAPPING",
+      "nativeProp": "onFocus",
+      "nativeType": "((event: import(\"react-native/types/index\").NativeSyntheticEvent<import(\"react-native/types/index\").TargetedEvent>) => void) | null | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approval preserves core Pressable observations with native payloads and guard/order. It does not translate React Aria PressEvent/HoverEvent phases or add boolean observation APIs; suppressed native activation and group changes remain exact."
+    },
+    "onFocusChange": {
+      "canonicalType": "((isFocused: boolean) => void) | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_EVENT_MAPPING",
+      "nativeProp": "onFocus/onBlur",
+      "nativeType": "Original native Pressable event callbacks and native owned flags",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approval preserves core Pressable observations with native payloads and guard/order. It does not translate React Aria PressEvent/HoverEvent phases or add boolean observation APIs; suppressed native activation and group changes remain exact."
+    },
+    "onGotPointerCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onGotPointerCaptureCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onHoverChange": {
+      "canonicalType": "((isHovering: boolean) => void) | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_EVENT_MAPPING",
+      "nativeProp": "style/children native isHovered data",
+      "nativeType": "Original native Pressable event callbacks and native owned flags",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approval preserves core Pressable observations with native payloads and guard/order. It does not translate React Aria PressEvent/HoverEvent phases or add boolean observation APIs; suppressed native activation and group changes remain exact."
+    },
+    "onHoverEnd": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").HoverEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_EVENT_MAPPING",
+      "nativeProp": "onHoverOut",
+      "nativeType": "Original native Pressable event callbacks and native owned flags",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approval preserves core Pressable observations with native payloads and guard/order. It does not translate React Aria PressEvent/HoverEvent phases or add boolean observation APIs; suppressed native activation and group changes remain exact."
+    },
+    "onHoverStart": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").HoverEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_EVENT_MAPPING",
+      "nativeProp": "onHoverIn",
+      "nativeType": "Original native Pressable event callbacks and native owned flags",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approval preserves core Pressable observations with native payloads and guard/order. It does not translate React Aria PressEvent/HoverEvent phases or add boolean observation APIs; suppressed native activation and group changes remain exact."
+    },
+    "onKeyDown": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").KeyboardEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onKeyUp": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").KeyboardEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onLostPointerCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onLostPointerCaptureCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onMouseDown": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onMouseDownCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onMouseEnter": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onMouseLeave": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onMouseMove": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onMouseMoveCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onMouseOut": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onMouseOutCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onMouseOver": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onMouseOverCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onMouseUp": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onMouseUpCapture": {
+      "canonicalType": "import(\"@types/react/index\").MouseEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onPointerCancel": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerCancel",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "onPointerCancelCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerCancelCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "onPointerDown": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerDown",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "onPointerDownCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerDownCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "onPointerEnter": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerEnter",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "onPointerLeave": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerLeave",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "onPointerMove": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerMove",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "onPointerMoveCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerMoveCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "onPointerOut": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onPointerOutCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onPointerOver": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onPointerOverCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onPointerUp": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerUp",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "onPointerUpCapture": {
+      "canonicalType": "import(\"@types/react/index\").PointerEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onPointerUpCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "onPress": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").PressEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_EVENT_MAPPING",
+      "nativeProp": "onPress",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | null | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approval preserves core Pressable observations with native payloads and guard/order. It does not translate React Aria PressEvent/HoverEvent phases or add boolean observation APIs; suppressed native activation and group changes remain exact."
+    },
+    "onPressChange": {
+      "canonicalType": "((isPressed: boolean) => void) | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_EVENT_MAPPING",
+      "nativeProp": "style/children native isPressed data",
+      "nativeType": "Original native Pressable event callbacks and native owned flags",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approval preserves core Pressable observations with native payloads and guard/order. It does not translate React Aria PressEvent/HoverEvent phases or add boolean observation APIs; suppressed native activation and group changes remain exact."
+    },
+    "onPressEnd": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").PressEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_EVENT_MAPPING",
+      "nativeProp": "onPressOut",
+      "nativeType": "Original native Pressable event callbacks and native owned flags",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approval preserves core Pressable observations with native payloads and guard/order. It does not translate React Aria PressEvent/HoverEvent phases or add boolean observation APIs; suppressed native activation and group changes remain exact."
+    },
+    "onPressStart": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").PressEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_EVENT_MAPPING",
+      "nativeProp": "onPressIn",
+      "nativeType": "Original native Pressable event callbacks and native owned flags",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approval preserves core Pressable observations with native payloads and guard/order. It does not translate React Aria PressEvent/HoverEvent phases or add boolean observation APIs; suppressed native activation and group changes remain exact."
+    },
+    "onPressUp": {
+      "canonicalType": "((e: import(\"@react-types/shared/src/events\").PressEvent) => void) | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_EVENT_MAPPING",
+      "nativeProp": "onPressOut",
+      "nativeType": "Original native Pressable event callbacks and native owned flags",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approval preserves core Pressable observations with native payloads and guard/order. It does not translate React Aria PressEvent/HoverEvent phases or add boolean observation APIs; suppressed native activation and group changes remain exact."
+    },
+    "onScroll": {
+      "canonicalType": "import(\"@types/react/index\").UIEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onScrollCapture": {
+      "canonicalType": "import(\"@types/react/index\").UIEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onTouchCancel": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchCancel",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "onTouchCancelCapture": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onTouchEnd": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchEnd",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "onTouchEndCapture": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchEndCapture",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "onTouchMove": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchMove",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "onTouchMoveCapture": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onTouchStart": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "onTouchStart",
+      "nativeType": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "onTouchStartCapture": {
+      "canonicalType": "import(\"@types/react/index\").TouchEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onTransitionCancel": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onTransitionCancelCapture": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onTransitionEnd": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onTransitionEndCapture": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onTransitionRun": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onTransitionRunCapture": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onTransitionStart": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onTransitionStartCapture": {
+      "canonicalType": "import(\"@types/react/index\").TransitionEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onWheel": {
+      "canonicalType": "import(\"@types/react/index\").WheelEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "onWheelCapture": {
+      "canonicalType": "import(\"@types/react/index\").WheelEventHandler<HTMLLabelElement> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "order": {
+      "canonicalType": "\"primary\" | \"secondary\" | \"tertiary\" | \"quaternary\" | \"quintenary\" | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.005",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "order",
+      "nativeType": "\"primary\" | \"secondary\" | \"tertiary\" | \"quaternary\" | \"quintenary\" | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Actual native Pressable/View property type, platform applicability and forwarding, with owned role/checked/disabled/name/guards and unchanged native payload identity."
+    },
+    "raised": {
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "raised",
+      "nativeType": "boolean | undefined",
+      "expected": "Original native mark shadow recipe0.24 opacity/radius3/offset2/elevation2 follows175ms ease-in-out, with interruption/reducedmotion/cleanup; root and mark styling remain separate.",
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.009",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original."
+    },
+    "render": {
+      "canonicalType": "import(\"react-aria-components/dist/types/src/utils\").DOMRenderFunction<\"label\", CheckboxRenderProps> | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.019",
+      "disposition": "NATIVE_ROOT_RENDERER",
+      "nativeProp": "render",
+      "nativeType": "((props: PressableProps & RefAttributes<View>, state: TNativeCheckboxRenderState) => ReactElement) | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original Pressable props/ref/owned mark-and-label children/current selected/mixed/pressed/hovered/focused/disabled/read-only data, style \u2192 children \u2192 root order, unchanged private group/guard/event/root lifetime."
+    },
+    "showIcon": {
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "showIcon",
+      "nativeType": "boolean | undefined",
+      "expected": "Only the check is conditionally authored; mixed line persists. Filled selected-or-mixed state owns the independent250ms ease ink/foreground clock; toggling glyph mode/showIcon without changing filled state does not restart progress.",
+      "canonicalType": "boolean | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.012",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original."
+    },
+    "slot": {
+      "canonicalType": "string | null | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_REACT_ARIA_EXCLUSION",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original shared scope excludes React Aria slot/inputRef/state objects and table-discovered mixed slots; native explicit mixed and private group membership remain."
+    },
+    "style": {
+      "canonicalType": "(CSSProperties | ((values: CheckboxRenderProps & { defaultStyle: CSSProperties; }) => CSSProperties | undefined)) | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.015",
+      "disposition": "NATIVE_STYLE_AND_OWNED_FOREGROUND",
+      "nativeProp": "style",
+      "nativeType": "StyleProp<TNativeCheckboxRootStyle> | ((state: TNativeCheckboxStyleState) => StyleProp<TNativeCheckboxRootStyle>)",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original root layout/style ownership plus native ColorValue foreground under full-customization policy3.5. Computed/custom/final label color reaches owned Text, explicit authored Text colors win, color is consumed before native View style and mark color/geometry/motion remain independent."
+    },
+    "translate": {
+      "canonicalType": "\"yes\" | \"no\" | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original approved core native host surface replaces DOM attributes/events/forms; native callbacks/labels/hints retain their own actual contracts without a DOM producer."
+    },
+    "validate": {
+      "disposition": "APPROVED_HOST_FORM_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native contract excludes DOM form submission/validation/required state; hosts own explicit names/hints/schema/messages. No fake validation state is added.",
+      "canonicalType": "((value: boolean) => import(\"@react-types/shared/src/inputs\").ValidationError | true | null | undefined) | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original."
+    },
+    "validationBehavior": {
+      "disposition": "APPROVED_HOST_FORM_BOUNDARY",
+      "nativeProp": null,
+      "nativeType": null,
+      "expected": "Original native contract excludes DOM form submission/validation/required state; hosts own explicit names/hints/schema/messages. No fake validation state is added.",
+      "canonicalType": "\"native\" | \"aria\" | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.021",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original."
+    },
+    "value": {
+      "canonicalType": "string | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.020",
+      "disposition": "NATIVE_SELECTION_OWNERSHIP",
+      "nativeProp": "value",
+      "nativeType": "string | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Standalone selected/default/onChange(boolean), initialfalse and owner veto/echo; nearest private CheckboxGroup with a string member value owns selection instead. Preserve array order, group-before-member observation, nested isolation and value-less standalone behavior."
+    },
+    "width": {
+      "canonicalType": "string | number | undefined",
+      "required": false,
+      "capability": "CAP.checkbox.002",
+      "disposition": "NATIVE_EQUIVALENT",
+      "nativeProp": "width",
+      "nativeType": "number | undefined",
+      "authority": "db54a8a:docs/roadmaps/react-native-basic-controls-pass.md Shared Native Contract / Checkbox And CheckboxGroup; original approved passes and ledger8.17, standing conventional-port3.5. Native dimensions/geometry/roles/color/primitive glyphs/style ownership/state/events, private group membership and DOM form/React Aria slot/inputRef/state/focus-visible exclusions remain original.",
+      "expected": "Original native positive finite numeric shape dimensions, default20; root custom/final dimensions do not silently resize mark. CSS unit strings are explicitly excluded; native target minimum/clip exceptions remain."
+    }
+  },
+  "nativeOnlyProps": [
+    {
+      "name": "accessibilityActions",
+      "optional": true,
+      "type": "readonly Readonly<{ name: import(\"react-native/types/index\").AccessibilityActionName | string; label?: string | undefined; }>[] | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityElementsHidden",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityHint",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityIgnoresInvertColors",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityLabel",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityLabelledBy",
+      "optional": true,
+      "type": "string | string[] | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityLanguage",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityLargeContentTitle",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityLiveRegion",
+      "optional": true,
+      "type": "\"none\" | \"polite\" | \"assertive\" | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityRespondsToUserInteraction",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityShowsLargeContentViewer",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityState",
+      "optional": true,
+      "type": "Omit<import(\"react-native/types/index\").AccessibilityState, \"disabled\" | \"checked\" | \"selected\"> | undefined",
+      "declarations": ["packages/react-native/src/components/selection.ts"]
+    },
+    {
+      "name": "accessibilityValue",
+      "optional": true,
+      "type": "import(\"react-native/types/index\").AccessibilityValue | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "accessibilityViewIsModal",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "android_disableSound",
+      "optional": true,
+      "type": "boolean | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "android_ripple",
+      "optional": true,
+      "type": "import(\"react-native/types/index\").PressableAndroidRippleConfig | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "aria-busy",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-checked",
+      "optional": true,
+      "type": "undefined",
+      "declarations": ["packages/react-native/src/components/selection.ts"]
+    },
+    {
+      "name": "aria-disabled",
+      "optional": true,
+      "type": "undefined",
+      "declarations": ["packages/react-native/src/components/selection.ts"]
+    },
+    {
+      "name": "aria-expanded",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-hidden",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-live",
+      "optional": true,
+      "type": "\"polite\" | \"assertive\" | \"off\" | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-modal",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-selected",
+      "optional": true,
+      "type": "undefined",
+      "declarations": ["packages/react-native/src/components/selection.ts"]
+    },
+    {
+      "name": "aria-valuemax",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-valuemin",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-valuenow",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "aria-valuetext",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "cancelable",
+      "optional": true,
+      "type": "boolean | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "collapsable",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "collapsableChildren",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "delayHoverIn",
+      "optional": true,
+      "type": "number | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "delayHoverOut",
+      "optional": true,
+      "type": "number | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "delayLongPress",
+      "optional": true,
+      "type": "number | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "focusable",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "hasTVPreferredFocus",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "hitSlop",
+      "optional": true,
+      "type": "number | import(\"react-native/types/index\").Insets | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "importantForAccessibility",
+      "optional": true,
+      "type": "\"auto\" | \"yes\" | \"no\" | \"no-hide-descendants\" | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "isTVSelectable",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "nativeID",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "needsOffscreenAlphaCompositing",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "onAccessibilityAction",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").AccessibilityActionEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "onAccessibilityEscape",
+      "optional": true,
+      "type": "(() => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "onAccessibilityTap",
+      "optional": true,
+      "type": "(() => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "onHoverIn",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").MouseEvent) => void) | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "onHoverOut",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").MouseEvent) => void) | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "onLayout",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").LayoutChangeEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "onLongPress",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "onMagicTap",
+      "optional": true,
+      "type": "(() => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "onMoveShouldSetResponder",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onMoveShouldSetResponderCapture",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onPointerEnterCapture",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Types/CoreEventTypes.d.ts"
+      ]
+    },
+    {
+      "name": "onPointerLeaveCapture",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").PointerEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Types/CoreEventTypes.d.ts"
+      ]
+    },
+    {
+      "name": "onPressIn",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "onPressMove",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "onPressOut",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "onResponderEnd",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onResponderGrant",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onResponderMove",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onResponderReject",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onResponderRelease",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onResponderStart",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onResponderTerminate",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => void) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onResponderTerminationRequest",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onStartShouldSetResponder",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "onStartShouldSetResponderCapture",
+      "optional": true,
+      "type": "((event: import(\"react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/types/public/ReactNativeRenderer.d.ts"
+      ]
+    },
+    {
+      "name": "pointerEvents",
+      "optional": true,
+      "type": "\"box-none\" | \"none\" | \"box-only\" | \"auto\" | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "pressRetentionOffset",
+      "optional": true,
+      "type": "number | import(\"react-native/types/index\").Insets | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "removeClippedSubviews",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "renderToHardwareTextureAndroid",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "screenReaderFocusable",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewAccessibility.d.ts"
+      ]
+    },
+    {
+      "name": "shouldRasterizeIOS",
+      "optional": true,
+      "type": "boolean | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "tabIndex",
+      "optional": true,
+      "type": "0 | -1 | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "testID",
+      "optional": true,
+      "type": "string | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "testOnly_pressed",
+      "optional": true,
+      "type": "boolean | null | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    },
+    {
+      "name": "tvParallaxMagnification",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "tvParallaxShiftDistanceX",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "tvParallaxShiftDistanceY",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "tvParallaxTiltAngle",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/View/ViewPropTypes.d.ts"
+      ]
+    },
+    {
+      "name": "unstable_pressDelay",
+      "optional": true,
+      "type": "number | undefined",
+      "declarations": [
+        "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
+      ]
+    }
+  ],
+  "renderStateMapping": {
+    "canonical": [
+      "isSelected",
+      "isIndeterminate",
+      "isPressed",
+      "isHovered",
+      "isFocused",
+      "isFocusVisible",
+      "isDisabled",
+      "isReadOnly",
+      "isInvalid",
+      "isRequired"
+    ],
+    "native": ["isSelected", "isIndeterminate", "isPressed", "isHovered", "isFocused", "isDisabled", "isReadOnly"],
+    "originalApproval": "No React Aria state/focus-visible or DOM validation producer; explicit mixed/selection/native guards and host hints remain."
+  },
+  "originalNativeAdaptations": [
+    "Core Pressable/View/Text and existing native check/mixed View primitives, no SVG dependency or public SVG protocol",
+    "Positive numeric mark dimensions,20default; root native custom/final style independent",
+    "Native token/pill geometry, semantic control/action colors and explicit ColorValue recipe",
+    "Group-owned native membership, once-per-member opacity and native event/ref types",
+    "Native host form/slots/inputRef/state/focus-visible exclusions remain original"
+  ],
+  "motion": {
+    "shape": "175ms cubic-bezier(.42,0,.58,1), border/outline0",
+    "glyph": "250ms ease cubic-bezier(.25,.1,.25,1), filled selected-or-mixed progress, native ink clip and foreground",
+    "sourceSVG": "Complete pinnedSVG/check path,dash22/offset66\u219244 and mixed/showIcon assertions remain mapped to the original native glyph primitives, not advertised as a native SVG protocol",
+    "nativeActions": 0
+  },
+  "scope": "Complete six pinned files and every original root case plus actual renderer/ref/group probe, road map3.5.74. Only sourceG01; appearance/native/default/accessibility/performance/profiles/closure remain separate. FIN-CHECK01R in3.31.241 adds the paired authored-foreground assertion and current full-CI/source identity reconciliation; original requirements and failed evidence remain."
+}

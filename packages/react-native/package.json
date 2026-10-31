@@ -18,7 +18,14 @@
   "files": [
     "dist",
     "src",
-    "!src/**/__tests__/**"
+    "!src/**/__tests__/**",
+    "ios",
+    "!ios/build",
+    "android/src",
+    "android/build.gradle",
+    "cpp",
+    "*.podspec",
+    "react-native.config.js"
   ],
   "scripts": {
     "build": "node clean-dist.mjs && tsc -p tsconfig.build.json",
@@ -34,7 +41,9 @@
   "peerDependencies": {
     "react": "19.2.3",
     "react-native": "0.86.3",
-    "react-native-safe-area-context": "5.7.0"
+    "react-native-safe-area-context": "5.7.0",
+    "react-native-svg": "15.15.4",
+    "react-native-teleport": "1.2.2"
   },
   "devDependencies": {
     "@babel/core": "7.29.0",
@@ -51,9 +60,43 @@
     "@react-native/babel-preset": "0.86.3",
     "react": "19.2.3",
     "react-native": "0.86.3",
-    "react-native-safe-area-context": "5.7.0"
+    "react-native-safe-area-context": "5.7.0",
+    "react-native-svg": "15.15.4",
+    "react-native-teleport": "1.2.2",
+    "react-dom": "19.2.3"
   },
   "dependencies": {
-    "@internationalized/number": "3.6.6"
+    "@internationalized/date": "3.12.1",
+    "@internationalized/number": "3.6.6",
+    "react-stately": "3.46.0"
+  },
+  "codegenConfig": {
+    "name": "CodonNativeInputSpec",
+    "type": "all",
+    "jsSrcsDir": "src/input/specs",
+    "android": {
+      "javaPackageName": "com.codonui.input"
+    },
+    "ios": {
+      "modulesProvider": {
+        "CUIMotionSnapshot": "CUIMotionSnapshot",
+        "CUIFormDocument": "CUIFormDocument",
+        "CUIEditorKeyboardDefaults": "CUIEditorKeyboardDefaults",
+        "CUIDragAndDrop": "CUIDragAndDrop"
+      },
+      "componentProvider": {
+        "CUIOverlaySlot": "CUIOverlaySlot",
+        "CUIOverlayViewport": "CUIOverlayViewport",
+        "CUIOverlayHost": "CUIOverlayHost",
+        "CUIFocusView": "CUIFocusView",
+        "CUIKeyboardScope": "CUIKeyboardScope",
+        "CUICollectionRoot": "CUICollectionRoot",
+        "CUICollectionNode": "CUICollectionNode",
+        "CUIFormRoot": "CUIFormRoot",
+        "CUIFieldBinding": "CUIFieldBinding",
+        "CUIDateSegment": "CUIDateSegment",
+        "CUIClampHost": "CUIClampHost"
+      }
+    }
   }
 }

@@ -10,7 +10,7 @@ Current boundaries:
 - Component source belongs under `src/components`.
 - Package-facing exports belong in `src/index.ts`.
 - Default package CSS is exported as `@codon-ui/react/theme.css`.
-- The default CSS contract is tracked in `../../docs/roadmaps/react-theme-css-contract.md`.
+- The default CSS contract is tracked in `../../planning/component-library/roadmap.md#ownership-and-accepted-contracts`.
 - Internal registry manifest skeletons belong under `src/registry`.
 - The CLI local support registry snapshot must match the support/theme subset of `src/registry/manifest.ts`.
 - The CLI full local React registry snapshot must match all active entries in `src/registry/manifest.ts`.

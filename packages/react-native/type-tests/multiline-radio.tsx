@@ -1,4 +1,5 @@
 import { createRef } from "react"
+import { Pressable, TextInput, View } from "react-native"
 
 import {
   Radio,
@@ -86,3 +87,46 @@ export const InvalidRadioGroupArray = <RadioGroup {...ValidRadioGroupProps} valu
 export const InvalidRadioGroupRole = <RadioGroup {...ValidRadioGroupProps} role="group" />
 // @ts-expect-error group children render normally, without a render callback contract
 export const InvalidRadioGroupChildren = <RadioGroup {...ValidRadioGroupProps}>{() => null}</RadioGroup>
+
+export const RenderedRadioGroup = (
+  <RadioGroup
+    {...ValidRadioGroupProps}
+    render={(props, state) => <View {...props} accessibilityHint={state.value ?? "empty"} />}
+  />
+)
+export const InvalidRadioGroupDOMRenderer = (
+  // @ts-expect-error The inherited renderer receives native View props and its actual View ref.
+  <RadioGroup {...ValidRadioGroupProps} render={(_props: { ref: HTMLDivElement }) => <View />} />
+)
+
+export const RenderedTextArea = (
+  <TextArea
+    aria-label="Notes"
+    render={(props, state) => <TextInput {...props} accessibilityHint={String(state.isInvalid)} />}
+  />
+)
+export const InvalidTextAreaDOMRenderer = (
+  // @ts-expect-error Public TextArea root rendering receives native TextInput props/ref.
+  <TextArea aria-label="Notes" render={(_props: { ref: HTMLTextAreaElement }) => <TextInput />} />
+)
+
+export const RenderedRadio = (
+  <Radio
+    {...ValidRadioProps}
+    render={(props, state) => <Pressable {...props} accessibilityHint={String(state.isSelected)} />}
+  />
+)
+export const InvalidRadioDOMRenderer = (
+  // @ts-expect-error The native radio renderer receives Pressable props and its original View ref.
+  <Radio {...ValidRadioProps} render={(_props: { ref: HTMLLabelElement }) => <Pressable />} />
+)
+export const InvalidRadioRenderFocusVisible = (
+  <Radio
+    {...ValidRadioProps}
+    render={(props, state) => {
+      // @ts-expect-error The original approved native radio state has no React Aria focus-visible flag.
+      void state.isFocusVisible
+      return <Pressable {...props} />
+    }}
+  />
+)

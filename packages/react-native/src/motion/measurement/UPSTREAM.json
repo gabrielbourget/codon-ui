@@ -1,0 +1,39 @@
+{
+  "scope": "Private guarded actual-host initial values and isolated geometry. Initial margin scalars use the same immutable-input evaluator because mounted LayoutMetrics omits margin; unresolved/auto/ambiguous values reject. Original refs and native packet identities are retained. Source/compiler checks do not admit native fidelity or full Card.",
+  "package": "motion-dom",
+  "version": "12.40.0",
+  "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+  "license": "../kernel/LICENSE.motion-dom.md",
+  "sourceInputs": [
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/keyframes/DOMKeyframesResolver.ts",
+      "sha256": "5e0bd63209faf4991a35ff55ce1df027f3cf001a3d11fe3a1ef3896c299ccd43",
+      "sourceKind": "npm-source-map-sourcesContent"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/keyframes/KeyframesResolver.ts",
+      "sha256": "18a7c8b507ec3fc25c6359c5c13085b2394e91eca780132a8c3a318990fb144d",
+      "sourceKind": "npm-source-map-sourcesContent"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/keyframes/utils/unit-conversion.ts",
+      "sha256": "6551fa122528dc8e00caaddfb24baa3e32156778c9723a7a7bf61ae22c4aa4d7",
+      "sourceKind": "npm-source-map-sourcesContent"
+    }
+  ],
+  "remaining": [
+    "Actual installed geometry/probe/velocity/passive-effect scheduling and native presentation correspondence",
+    "Full native style-to-metric mapping, coupled intrinsic content, named-font/cache/custom callbacks and every unsupported authority gate",
+    "Matching current consumers/products and actual layout/drawing/presentation/performance acceptance"
+  ],
+  "authoredFiles": [
+    {
+      "file": "initialValue.ts",
+      "sha256": "26344165e780f4984eab66a29158c84dd3ff0b58fea948a12ae26ee1e2db425f"
+    },
+    {
+      "file": "isolatedGeometry.ts",
+      "sha256": "5396a5806be4e0d6260542c6b204f81da165375dc0d507b61bbe708862165c1d"
+    }
+  ]
+}
