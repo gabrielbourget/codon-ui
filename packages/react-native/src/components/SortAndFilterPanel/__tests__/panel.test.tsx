@@ -194,6 +194,8 @@ it("retains both filter scroll owners and the same editor through dialog style a
   await present()
   const editor = screen.getByLabelText("Filter Name by contained text")
   const dialog = host("query-panel-dialog")
+  expect(host("sort-filter-panel").props.nativeTypographyStyle).toBeUndefined()
+  expect(dialog.props.nativeTypographyStyle).toBeUndefined()
   const scrollers = () =>
     screen.container.queryAll(
       (node) =>

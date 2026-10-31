@@ -1,6 +1,7 @@
-import { Easing } from "react-native"
+import { Easing, type TextStyle } from "react-native"
 
 import { resolveNativeTheme } from "../../../theme/defaults"
+import { resolveQueryDialogStyle } from "../../SortAndFilterPanel/QueryDialog"
 import { arePanelAppearanceValuesEqual, createPanelAppearanceMixer } from "../appearanceValues"
 import { getNativePanelStyles } from "../styles"
 
@@ -18,6 +19,36 @@ type TReference = {
 }
 const reference = jest.requireActual<TReference>("./fixtures/numeric-browser-reference.json")
 const theme = resolveNativeTheme("light")
+
+it.each(["300", "400", "500", "600", "700", "800", "normal", "bold", 100, 900] as const)(
+  "keeps the supported authored weight %s without creating a fractional animation",
+  (fontWeight) => {
+    const styles = getNativePanelStyles({ accessibilityLabel: "Typography", customStyles: { fontWeight } }, theme, 300)
+    expect(styles.text.fontWeight).toBe(fontWeight)
+    expect(
+      createPanelAppearanceMixer("fontWeight", "400", fontWeight, { width: 300, height: 500 }, "navy"),
+    ).toBeUndefined()
+  },
+)
+
+it.each([750, 750.5, 0, 1000, NaN, Infinity, "750"])(
+  "requires an explicit migration for unsupported authored font weight %s",
+  (fontWeight) => {
+    expect(() =>
+      getNativePanelStyles(
+        {
+          accessibilityLabel: "Typography",
+          customStyles: { fontWeight: fontWeight as TextStyle["fontWeight"] },
+        },
+        theme,
+        300,
+      ),
+    ).toThrow("migrate custom scalar weights explicitly")
+    expect(() => resolveQueryDialogStyle({ fontWeight: fontWeight as TextStyle["fontWeight"] }, theme)).toThrow(
+      "migrate custom scalar weights explicitly",
+    )
+  },
+)
 
 it.each([
   [1, 4, 2],

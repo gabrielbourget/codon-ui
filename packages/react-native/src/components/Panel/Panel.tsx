@@ -27,7 +27,6 @@ import { useNativeTheme } from "../../theme"
 import { getNativeButtonContent } from "../Button/content"
 import { NativeContentContext } from "../NativeContentContext"
 import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
-import { serializeNativeTypographyStyle } from "../nativeTypographyStyle"
 
 import { useNativePanelAppearance } from "./appearance"
 import { useNativePanelReturnFocus } from "./focus"
@@ -210,66 +209,68 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
                       pointerEvents="box-none"
                       style={StyleSheet.absoluteFill}
                     >
-                      <NativePanelSurface
-                        ref={ref}
-                        open={open}
-                        ready={width !== null && overlay.active}
-                        isActive={isActive}
-                        systemClose={systemClose}
-                        keyboardDisabled={props.isKeyboardDismissDisabled ?? false}
-                        observeContentBox={appearance.needsContentObservation}
-                        onContentBox={contentMeasured}
-                        observeRadii={appearance.needsRadiusObservation}
-                        onBorderBox={borderMeasured}
-                        appearanceHost={appearanceHost}
-                        appearanceScope={appearanceScope}
-                        nativeMotionDrawingOwner
-                        nativeForegroundComposition
-                        nativeTypographyStyle={serializeNativeTypographyStyle(appearance.text)}
-                        nativeMotionProjectionRadii={appearance.radii}
-                        initialFocusRef={props.initialFocusRef}
-                        testID={identity}
-                        collapsable={false}
-                        accessible={false}
-                        accessibilityLabel={label}
-                        accessibilityElementsHidden={overlay.covered || !open}
-                        importantForAccessibility={overlay.covered || !open ? "no-hide-descendants" : "auto"}
-                        pointerEvents={open && overlay.active ? "auto" : "none"}
-                        onLayout={({ nativeEvent }) => {
-                          const next = nativeEvent.layout.width
-                          if (
-                            current.current.live &&
-                            current.current.props === props &&
-                            Number.isFinite(next) &&
-                            next >= 0
-                          )
-                            setWidth(next)
-                        }}
-                        style={[
-                          appearance.view,
-                          {
-                            transform: [
-                              {
-                                translateX: motion.progress.interpolate({
-                                  inputRange: [0, 1],
-                                  outputRange: [
-                                    0,
-                                    (styles.side === "left" ? -1 : 1) * (width ?? viewport?.width ?? window.width),
-                                  ],
-                                }),
-                              },
-                            ],
-                          },
-                        ]}
-                      >
-                        <NativeContentContext.Provider
-                          value={{ foregroundColor: appearance.text.color ?? theme.colors.foreground, isButton: false }}
+                      <NativeTextStyleProvider style={appearance.text} nativeInheritance={false}>
+                        <NativePanelSurface
+                          ref={ref}
+                          open={open}
+                          ready={width !== null && overlay.active}
+                          isActive={isActive}
+                          systemClose={systemClose}
+                          keyboardDisabled={props.isKeyboardDismissDisabled ?? false}
+                          observeContentBox={appearance.needsContentObservation}
+                          onContentBox={contentMeasured}
+                          observeRadii={appearance.needsRadiusObservation}
+                          onBorderBox={borderMeasured}
+                          appearanceHost={appearanceHost}
+                          appearanceScope={appearanceScope}
+                          nativeMotionDrawingOwner
+                          nativeForegroundComposition
+                          nativeMotionProjectionRadii={appearance.radii}
+                          initialFocusRef={props.initialFocusRef}
+                          testID={identity}
+                          collapsable={false}
+                          accessible={false}
+                          accessibilityLabel={label}
+                          accessibilityElementsHidden={overlay.covered || !open}
+                          importantForAccessibility={overlay.covered || !open ? "no-hide-descendants" : "auto"}
+                          pointerEvents={open && overlay.active ? "auto" : "none"}
+                          onLayout={({ nativeEvent }) => {
+                            const next = nativeEvent.layout.width
+                            if (
+                              current.current.live &&
+                              current.current.props === props &&
+                              Number.isFinite(next) &&
+                              next >= 0
+                            )
+                              setWidth(next)
+                          }}
+                          style={[
+                            appearance.view,
+                            {
+                              transform: [
+                                {
+                                  translateX: motion.progress.interpolate({
+                                    inputRange: [0, 1],
+                                    outputRange: [
+                                      0,
+                                      (styles.side === "left" ? -1 : 1) * (width ?? viewport?.width ?? window.width),
+                                    ],
+                                  }),
+                                },
+                              ],
+                            },
+                          ]}
                         >
-                          <NativeTextStyleProvider style={appearance.text}>
+                          <NativeContentContext.Provider
+                            value={{
+                              foregroundColor: appearance.text.color ?? theme.colors.foreground,
+                              isButton: false,
+                            }}
+                          >
                             {getNativeButtonContent(props.children, appearance.text)}
-                          </NativeTextStyleProvider>
-                        </NativeContentContext.Provider>
-                      </NativePanelSurface>
+                          </NativeContentContext.Provider>
+                        </NativePanelSurface>
+                      </NativeTextStyleProvider>
                     </CUIOverlaySlot>
                   </AnimatedOverlayHost>
                 </CUIOverlayViewport>

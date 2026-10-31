@@ -13,7 +13,7 @@ import { findNodeHandle, type GestureResponderEvent, type NativeSyntheticEvent, 
 
 import { NativeCollectionItemBindingContext } from "../collection/binding"
 import { NativeCollectionSemanticsContext } from "../collection/semantics"
-import { useNativeInheritedTextStyle } from "../components/NativeTextStyleProvider"
+import { useNativeRawTextStyle } from "../components/NativeTextStyleProvider"
 import { serializeNativeTypographyStyle } from "../components/nativeTypographyStyle"
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../overlays/floating/scope"
 
@@ -162,7 +162,7 @@ export const NativeFocusHost = forwardRef<
   const keyboardFocusable = tabIndex === -1 && !fieldInput ? false : (focusable ?? true)
   const inputScope = useNativeKeyScope()
   const floatingScope = useContext(NativeFloatingScopeContext)
-  const inheritedTypography = useNativeInheritedTextStyle()
+  const inheritedTypography = useNativeRawTextStyle()
   const windowActive = useContext(NativeFloatingWindowContext)
   const focusEligibility = useRef({ keyboardFocusable, inputScope, floatingScope, windowActive })
   useInsertionEffect(() => {

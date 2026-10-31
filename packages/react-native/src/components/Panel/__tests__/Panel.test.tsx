@@ -58,11 +58,7 @@ it("inherits Panel text styles through owned descendants within the original win
   const view = await render(tree(2, true))
   const originalRoot = root.current,
     originalEditor = editor.current
-  expect(JSON.parse(row().props.nativeTypographyStyle)).toMatchObject({
-    letterSpacing: 2,
-    textAlign: "right",
-    fontStyle: "italic",
-  })
+  expect(row().props.nativeTypographyStyle).toBeUndefined()
   expect(row().props.nativeTypographyWindow).toBe("")
   expect(row("panel-floating-host").props.nativeTypographyWindow).toMatch(/^codon-floating-/)
   expect(row("inherited-style")).toHaveStyle({
@@ -83,7 +79,7 @@ it("inherits Panel text styles through owned descendants within the original win
   expect(StyleSheet.flatten(row("other-window-text").props.style).letterSpacing).toBeUndefined()
   await view.rerender(tree(0, false))
   expect(row("inherited-style")).toHaveStyle({ letterSpacing: 0, fontStyle: "normal" })
-  expect(JSON.parse(row().props.nativeTypographyStyle)).toMatchObject({ letterSpacing: 0, fontStyle: "normal" })
+  expect(row().props.nativeTypographyStyle).toBeUndefined()
   expect(root.current).toBe(originalRoot)
   expect(editor.current).toBe(originalEditor)
   expect(row("inherited-held").props.value).toBe("held")
