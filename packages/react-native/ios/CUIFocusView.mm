@@ -1,5 +1,4 @@
 #import "CUIFocusView.h"
-#include "../cpp/overlay/NativeTypographyScope.h"
 #import "CUIDialogFocusScopes.h"
 #import "CUIAccessibilityReferences.h"
 #import "CUICollectionRoot.h"
@@ -140,7 +139,7 @@ using namespace facebook::react;
 
 + (ComponentDescriptorProvider)componentDescriptorProvider
 {
-  return concreteComponentDescriptorProvider<CUIOwnedTypographyFocusComponentDescriptor>();
+  return concreteComponentDescriptorProvider<CUIFocusViewComponentDescriptor>();
 }
 
 - (instancetype)initWithFrame:(CGRect)frame

@@ -11,7 +11,7 @@ import { resolveNativeStyle } from "../colors"
 import { useNativeLinkColor } from "../Link/motion"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
 import { splitNativeTextStyle, validateNativeFontWeight } from "../nativeTextStyle"
-import { NativeTextStyleProvider, useNativeRawTextStyle } from "../NativeTextStyleProvider"
+import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
 import { NativeHeadingBindingContext, NativeHeadingContext } from "../Text/context"
 
 import { NativeDialogContext, NativeOverlayTriggerStateContext, type TNativeDialogContextProps } from "./context"
@@ -51,7 +51,6 @@ export const NativePopoverDialog = forwardRef<
     ...native
   } = props
   const inherited = useNativeContentContext()
-  const inheritedNativeTextStyle = useNativeRawTextStyle()
   const theme = useNativeTheme()
   const overlayState = useContext(NativeOverlayTriggerStateContext)
   const close = overlayState?.close ?? closeNothing
@@ -99,7 +98,7 @@ export const NativePopoverDialog = forwardRef<
           <NativeButtonContext.Provider
             value={{ slots: { [NATIVE_DEFAULT_SLOT]: {}, close: { onPress: () => close() } } }}
           >
-            <NativeTextStyleProvider style={resolved.text} nativeInheritance={inheritedNativeTextStyle !== undefined}>
+            <NativeTextStyleProvider style={resolved.text}>
               <NativeContentContext.Provider
                 value={{
                   foregroundColor: currentForeground,

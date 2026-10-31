@@ -8,7 +8,7 @@ import { useNativeLocale } from "../../locale/NativeLocaleProvider"
 import { useNativeTheme } from "../../theme"
 import { resolveNativeStyle, validateNativeColor } from "../colors"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
-import { NativeTextStyleProvider, useNativeRawTextStyle } from "../NativeTextStyleProvider"
+import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
 import type { TNativeTextRef } from "../Text/types"
 
 import {
@@ -52,7 +52,6 @@ export const NativeCircularProgressRoot = forwardRef<
   const inheritedLocale = useNativeLocale()
   const theme = useNativeTheme()
   const content = useNativeContentContext()
-  const inheritedNativeTextStyle = useNativeRawTextStyle()
   const bounded = Math.min(Math.max(value, minValue), maxValue)
   const percentage = isIndeterminate ? undefined : ((bounded - minValue) / (maxValue - minValue)) * 100
   const valueText = isIndeterminate
@@ -141,7 +140,7 @@ export const NativeCircularProgressRoot = forwardRef<
   const foreground = color ?? content?.foregroundColor ?? theme.colors.foreground
   return (
     <NativeContentContext.Provider value={{ foregroundColor: foreground, isButton: false }}>
-      <NativeTextStyleProvider style={{ color: foreground }} nativeInheritance={inheritedNativeTextStyle !== undefined}>
+      <NativeTextStyleProvider style={{ color: foreground }}>
         <NativeCircularProgressLabelBindingContext.Provider value={labelBindingContext}>
           {render ? render(host, state) : <NativeFocusView {...host} />}
         </NativeCircularProgressLabelBindingContext.Provider>

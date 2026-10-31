@@ -15,7 +15,7 @@ import type { TNativeFocusEvent, TNativePressEvent, TNativeFocusViewProps } from
 import { useNativeTheme } from "../../theme"
 import { NativeContentContext } from "../NativeContentContext"
 import { validateNativeFontWeight } from "../nativeTextStyle"
-import { NativeTextStyleProvider, useNativeRawTextStyle } from "../NativeTextStyleProvider"
+import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
 
 import { getNativeButtonContent } from "./content"
 import { NativeButtonContext } from "./context"
@@ -115,7 +115,6 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
   } = props
   const theme = useNativeTheme()
   // A legacy ancestor still needs this reset boundary to preserve independent Button text defaults.
-  const inheritedNativeTextStyle = useNativeRawTextStyle()
   const blocked = isDisabled || isPending || !nativeInteraction
   const [pressed, setPressed] = useState(false)
   const [hovered, setHovered] = useState(false)
@@ -329,11 +328,7 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
     </NativeContentContext.Provider>
   )
   return (
-    <NativeTextStyleProvider
-      reset
-      nativeInheritance={inheritedNativeTextStyle !== undefined}
-      style={{ fontStyle: "normal", letterSpacing: 0, textAlign: "center", ...textStyle }}
-    >
+    <NativeTextStyleProvider reset style={{ fontStyle: "normal", letterSpacing: 0, textAlign: "center", ...textStyle }}>
       {control}
     </NativeTextStyleProvider>
   )

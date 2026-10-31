@@ -23,29 +23,30 @@ beforeEach(() => jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockReso
 afterEach(() => jest.restoreAllMocks())
 
 it.each([false, true])(
-  "carries otherwise undeclared family and line height explicitly without changing owned defaults (legacy: %s)",
-  async (nativeInheritance) => {
+  "carries otherwise undeclared family and line height explicitly without changing owned defaults (reset: %s)",
+  async (reset) => {
     const ref = createRef<TNativeTextRef>()
     const node = (fontFamily: string, lineHeight: number, themeDefaults: boolean) => (
-      <NativeThemeProvider
-        overrides={themeDefaults ? { typography: { fontFamilies: { body: "ThemeBody" }, lineHeight: 24 } } : undefined}
-      >
-        <NativeTextStyleProvider
-          nativeInheritance={nativeInheritance}
-          style={{ fontFamily, lineHeight, fontSize: 38, fontWeight: "900" }}
+      <NativeTextStyleProvider style={{ fontStyle: "italic" }}>
+        <NativeThemeProvider
+          overrides={
+            themeDefaults ? { typography: { fontFamilies: { body: "ThemeBody" }, lineHeight: 24 } } : undefined
+          }
         >
-          <View>
-            <Text ref={ref}>Inherited metrics</Text>
-            <Text customStyles={{ fontFamily: "Owned", lineHeight: 17 }}>Owned metrics</Text>
-            <Text
-              customStyles={{ fontFamily: "Cleared", lineHeight: 13 }}
-              style={{ fontFamily: undefined, lineHeight: undefined }}
-            >
-              Restored metrics
-            </Text>
-          </View>
-        </NativeTextStyleProvider>
-      </NativeThemeProvider>
+          <NativeTextStyleProvider reset={reset} style={{ fontFamily, lineHeight, fontSize: 38, fontWeight: "900" }}>
+            <View>
+              <Text ref={ref}>Inherited metrics</Text>
+              <Text customStyles={{ fontFamily: "Owned", lineHeight: 17 }}>Owned metrics</Text>
+              <Text
+                customStyles={{ fontFamily: "Cleared", lineHeight: 13 }}
+                style={{ fontFamily: undefined, lineHeight: undefined }}
+              >
+                Restored metrics
+              </Text>
+            </View>
+          </NativeTextStyleProvider>
+        </NativeThemeProvider>
+      </NativeTextStyleProvider>
     )
     const view = await render(node("InheritedBody", 28, false))
     const original = ref.current
@@ -55,6 +56,7 @@ it.each([false, true])(
       lineHeight: 28,
       fontSize: 14,
       fontWeight: "400",
+      fontStyle: reset ? "normal" : "italic",
     })
     expect(screen.getByText("Owned metrics")).toHaveStyle({ fontFamily: "Owned", lineHeight: 17 })
     expect(screen.getByText("Restored metrics")).toHaveStyle({ fontFamily: "InheritedBody", lineHeight: 28 })

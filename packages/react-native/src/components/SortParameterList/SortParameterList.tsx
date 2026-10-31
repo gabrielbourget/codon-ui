@@ -39,7 +39,7 @@ import { useNativeTheme } from "../../theme"
 import { getNativeCardStyle } from "../Card/styles"
 import { resolveNativeStyle } from "../colors"
 import { splitNativeTextStyle, validateNativeFontWeight } from "../nativeTextStyle"
-import { NativeTextStyleProvider, useNativeRawTextStyle } from "../NativeTextStyleProvider"
+import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
 import { QueryGlyph } from "../SortAndFilterPanel/glyphs"
 import { Text } from "../Text/Text"
 
@@ -80,7 +80,6 @@ const RowContent = ({
   forwarded: ForwardedRef<View>
 }) => {
   const theme = useNativeTheme()
-  const inheritedNativeTextStyle = useNativeRawTextStyle()
   const actions = useContext(NativeCollectionActionsContext)!
   const scope = useNativeKeyScope()
   const draggable = useNativeDraggableItem({ key: node.key }, dragAndDrop.dragState)
@@ -146,7 +145,7 @@ const RowContent = ({
   }
   return (
     <NativeCollectionItemBindingContext.Provider value={binding}>
-      <NativeTextStyleProvider style={row.text} nativeInheritance={inheritedNativeTextStyle !== undefined}>
+      <NativeTextStyleProvider style={row.text}>
         <NativeMotionOwnerHost
           {...draggable.dragProps}
           {...drop}
@@ -276,7 +275,6 @@ export const SortParameterList = (props: TNativeSortParameterListProps) => {
   )
   const owner = useMemo(() => ({ props, start, drop: dropped, end }), [props, start, dropped, end])
   const theme = useNativeTheme()
-  const inheritedNativeTextStyle = useNativeRawTextStyle()
   const root = calibrated(
     {
       ...getNativeCardStyle({ width: 250, height: 200, borderRadius: theme.radius.rounded }, theme),
@@ -296,7 +294,7 @@ export const SortParameterList = (props: TNativeSortParameterListProps) => {
     >
       {(collection) => (
         <SortCollectionContext.Provider value={collection}>
-          <NativeTextStyleProvider style={root.text} nativeInheritance={inheritedNativeTextStyle !== undefined}>
+          <NativeTextStyleProvider style={root.text}>
             <NativeFocusHost
               {...native}
               style={root.view}

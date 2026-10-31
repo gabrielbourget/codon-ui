@@ -2,7 +2,7 @@
   "canonicalSourceRef": "ddc9f066f67af4742e05e04bd870726141c44129",
   "declarationTuple": "@types/react19.2.2; native RN0.86.3/React19.2.3; pinned canonical React19.2.7",
   "approvedAdaptation": {
-    "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md \u2014 owner-approved entire M1-B packet, Text Contract and Runtime Color Boundary; approval recorded in original ledger section8.9",
+    "authority": "2e630024:docs/roadmaps/react-native-text-button-pass.md — owner-approved entire M1-B packet, Text Contract and Runtime Color Boundary; approval recorded in original ledger section8.9",
     "packetSHA256": "67a49227d3551accb704ee65b080a269e54d69f531730eb871ff46731f56fa45",
     "effect": "Native TextProps replace the inherited HTML public surface. DOM-only members are the original owner-approved exclusions, not new exclusions invented for this reconciliation. Same-name native events retain native payloads. onClick maps to native onPress; class plumbing maps to native styles. Native core platform applicability is retained."
   },
@@ -2302,6 +2302,14 @@
       ],
       "canonicalEvidence": "Canonical sourceRef, Text287/PlaceholderText284 property inventories and all native/exclusion dispositions remain unchanged.",
       "acceptance": "Affected G01/G03/G04/G05 source correspondence only. No ledger verdict promotion or native glyph/layout/scaling/AT/input/profile/closure claim."
+    },
+    {
+      "id": "DEC.PHONE.TYPOGRAPHY.NATIVE_RETIREMENT.01",
+      "authority": "Gabriel selected Retire the native inheritance API (Recommended) on2026-10-31; roadmap3.4.1.3.2 PHONE-TYPE08",
+      "sourceBaseline": "63ae7187b2b539da7dd61a66810dd507d71476b0",
+      "scope": "Retire the shared native inheritance/registration/transport and temporary conditional JS bridge after all built-in owners have explicit style paths.",
+      "supersedes": "Only earlier D2 temporary legacy-boundary/wire expectations. Current controls assert explicit styles and metric updates, reset/window barriers, original refs/editors/events and absence of native transport. Shared control mapping and receipts are recorded in roadmap3.4.1.3.2 and experiments.",
+      "preserved": "Original canonical source refs, property/native-only counts, historical assertions/receipts and all platform verdicts. Native compiler, glyph/layout/scaling/input/AT/profile qualification remains OPEN."
     }
   ]
 }

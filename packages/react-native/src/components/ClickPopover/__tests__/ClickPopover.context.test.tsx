@@ -285,11 +285,11 @@ it("keeps inherited direct-child typography on the popover root", async () => {
   expect(editor.current).toBe(originalEditor)
 })
 
-it("retires a legacy dialog boundary only with its ancestor while preserving owned metrics and original refs", async () => {
+it("preserves explicit dialog metrics and original refs through ancestor updates without native transport", async () => {
   const root = createRef<View>()
   const child = createRef<View>()
-  const node = (migrated: boolean) => (
-    <NativeTextStyleProvider nativeInheritance={!migrated} style={{ fontFamily: "LegacyBody", lineHeight: 38 }}>
+  const node = (fontFamily: string) => (
+    <NativeTextStyleProvider style={{ fontFamily, lineHeight: 38 }}>
       <NativeFocusView testID="legacy-owner">
         <NativePopoverDialog
           ref={root}
@@ -304,17 +304,14 @@ it("retires a legacy dialog boundary only with its ancestor while preserving own
       </NativeFocusView>
     </NativeTextStyleProvider>
   )
-  const view = await render(node(false))
+  const view = await render(node("OuterBody"))
   const original = root.current
   const originalChild = child.current
   expect(original).not.toBeNull()
   expect(originalChild).not.toBeNull()
-  expect(JSON.parse(screen.getByTestId("dialog-child").props.nativeTypographyStyle)).toMatchObject({
-    fontFamily: "DialogBody",
-    lineHeight: 24,
-  })
+  expect(screen.getByTestId("dialog-child").props.nativeTypographyStyle).toBeUndefined()
   expect(screen.getByTestId("dialog-text")).toHaveStyle({ fontFamily: "DialogBody", lineHeight: 24 })
-  await view.rerender(node(true))
+  await view.rerender(node("NextOuterBody"))
   expect(screen.getByTestId("dialog").props.nativeTypographyStyle).toBeUndefined()
   expect(screen.getByTestId("dialog-child").props.nativeTypographyStyle).toBeUndefined()
   expect(screen.getByTestId("dialog-text")).toHaveStyle({ fontFamily: "DialogBody", lineHeight: 24 })

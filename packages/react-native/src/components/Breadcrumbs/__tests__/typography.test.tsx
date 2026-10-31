@@ -18,15 +18,15 @@ const breadcrumbMetadata = {
 } as const
 
 it.each(["Breadcrumbs", "Pagination"] as const)(
-  "preserves explicit %s descendants while the enclosing legacy boundary retires",
+  "preserves explicit %s descendants and metric updates without native typography transport",
   async (owner) => {
     const ref = createRef<View>()
     const page = jest.fn()
     const size = jest.fn()
-    const node = (migrated: boolean, updated = false) => {
+    const node = (updated = false) => {
       const metrics = { fontFamily: updated ? "NextNav" : "NavBody", lineHeight: updated ? 30 : 26 }
       return (
-        <NativeTextStyleProvider nativeInheritance={!migrated} style={{ fontFamily: "LegacyBody", lineHeight: 38 }}>
+        <NativeTextStyleProvider style={{ fontFamily: "LegacyBody", lineHeight: 38 }}>
           <NativeFocusView testID="legacy-owner">
             {owner === "Breadcrumbs" ? (
               <NativeBreadcrumbsRoot {...breadcrumbMetadata} ref={ref} testID="nav" nativeBaselineStyle={metrics}>
@@ -54,22 +54,16 @@ it.each(["Breadcrumbs", "Pagination"] as const)(
     expect(original).not.toBeNull()
     const descendant = () => (owner === "Breadcrumbs" ? screen.getByRole("link") : screen.getByTestId("counter"))
     const label = () => screen.getByText(owner === "Breadcrumbs" ? "Owned trail" : "Pages")
-    expect(JSON.parse(screen.getByTestId("nav").props.nativeTypographyStyle)).toMatchObject({
-      fontFamily: "LegacyBody",
-      lineHeight: 38,
-    })
-    expect(JSON.parse(descendant().props.nativeTypographyStyle)).toMatchObject({
-      fontFamily: "NavBody",
-      lineHeight: 26,
-    })
+    expect(screen.getByTestId("nav").props.nativeTypographyStyle).toBeUndefined()
+    expect(descendant().props.nativeTypographyStyle).toBeUndefined()
     expect(label()).toHaveStyle({ fontFamily: "NavBody", lineHeight: 26 })
-    await view.rerender(node(true))
+    await view.rerender(node(false))
     expect(screen.getByTestId("legacy-owner").props.nativeTypographyStyle).toBeUndefined()
     expect(screen.getByTestId("nav").props.nativeTypographyStyle).toBeUndefined()
     expect(descendant().props.nativeTypographyStyle).toBeUndefined()
     expect(label()).toHaveStyle({ fontFamily: "NavBody", lineHeight: 26 })
     expect(ref.current).toBe(original)
-    await view.rerender(node(true, true))
+    await view.rerender(node(true))
     expect(ref.current).toBe(original)
     expect(label()).toHaveStyle({ fontFamily: "NextNav", lineHeight: 30 })
     expect(page).not.toHaveBeenCalled()

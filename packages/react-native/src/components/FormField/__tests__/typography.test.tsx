@@ -83,7 +83,7 @@ it("keeps explicit family metrics, independent Button defaults and original held
 })
 
 it.each(["FormField", "Counter", "CircularProgress"] as const)(
-  "keeps the legacy %s boundary until the ancestor migrates, retaining explicit text and refs",
+  "keeps explicit %s metrics and refs through ancestor updates without native transport",
   async (owner) => {
     const rootRef = createRef<View>()
     const textRef = createRef<TNativeTextRef>()
@@ -115,12 +115,12 @@ it.each(["FormField", "Counter", "CircularProgress"] as const)(
       ) : (
         <CircularProgress ref={rootRef} value={25} render={renderProgress} />
       )
-    const node = (migrated: boolean) => (
-      <NativeTextStyleProvider nativeInheritance={!migrated} style={{ fontFamily: "LegacyBody", lineHeight: 38 }}>
+    const node = (fontFamily: string, lineHeight: number) => (
+      <NativeTextStyleProvider style={{ fontFamily, lineHeight }}>
         <NativeFocusView testID="legacy-owner">{child}</NativeFocusView>
       </NativeTextStyleProvider>
     )
-    const view = await render(node(false))
+    const view = await render(node("LegacyBody", 38))
     const root = rootRef.current
     const text = textRef.current
     expect(root).not.toBeNull()
@@ -133,12 +133,16 @@ it.each(["FormField", "Counter", "CircularProgress"] as const)(
       owner === "CircularProgress"
         ? { fontFamily: "LegacyBody", lineHeight: 38 }
         : { fontFamily: "OwnedBody", lineHeight: 24 }
-    expect(JSON.parse(host().props.nativeTypographyStyle)).toMatchObject(metrics)
-    expect(screen.getByText("Owned phrase")).toHaveStyle({ ...metrics, fontWeight: "400", fontSize: 14 })
-    await view.rerender(node(true))
-    expect(screen.getByTestId("legacy-owner").props.nativeTypographyStyle).toBeUndefined()
     expect(host().props.nativeTypographyStyle).toBeUndefined()
     expect(screen.getByText("Owned phrase")).toHaveStyle({ ...metrics, fontWeight: "400", fontSize: 14 })
+    await view.rerender(node("NextBody", 42))
+    expect(screen.getByTestId("legacy-owner").props.nativeTypographyStyle).toBeUndefined()
+    expect(host().props.nativeTypographyStyle).toBeUndefined()
+    expect(screen.getByText("Owned phrase")).toHaveStyle({
+      ...(owner === "CircularProgress" ? { fontFamily: "NextBody", lineHeight: 42 } : metrics),
+      fontWeight: "400",
+      fontSize: 14,
+    })
     expect(rootRef.current).toBe(root)
     expect(textRef.current).toBe(text)
     await view.unmount()

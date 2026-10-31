@@ -8,7 +8,7 @@ import { getNativeButtonContent } from "../Button/content"
 import { useNativeLinkColor } from "../Link/motion"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
 import { splitNativeTextStyle, validateNativeFontWeight } from "../nativeTextStyle"
-import { NativeTextStyleProvider, useNativeRawTextStyle } from "../NativeTextStyleProvider"
+import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
 import { Text } from "../Text/Text"
 
 import { getNativeFormFieldStyles } from "./styles"
@@ -62,7 +62,6 @@ export const FormField = forwardRef<TNativeFormFieldRef, TNativeFormFieldProps>(
     throw new TypeError("FormField: labelFor must be a native focus ref")
   const theme = useNativeTheme()
   const context = useNativeContentContext()
-  const inheritedNativeTextStyle = useNativeRawTextStyle()
   const styles = getNativeFormFieldStyles(theme, props)
   const rootStyle = splitNativeTextStyle(styles.root)
   validateNativeFontWeight(rootStyle.text.fontWeight, "FormField")
@@ -163,11 +162,7 @@ export const FormField = forwardRef<TNativeFormFieldRef, TNativeFormFieldProps>(
       </NativeFocusHost>
     </NativeContentContext.Provider>
   )
-  return (
-    <NativeTextStyleProvider style={rootStyle.text} nativeInheritance={inheritedNativeTextStyle !== undefined}>
-      {content}
-    </NativeTextStyleProvider>
-  )
+  return <NativeTextStyleProvider style={rootStyle.text}>{content}</NativeTextStyleProvider>
 })
 
 FormField.displayName = "FormField"

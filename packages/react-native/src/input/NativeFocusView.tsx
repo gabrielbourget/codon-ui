@@ -13,8 +13,6 @@ import { findNodeHandle, type GestureResponderEvent, type NativeSyntheticEvent, 
 
 import { NativeCollectionItemBindingContext } from "../collection/binding"
 import { NativeCollectionSemanticsContext } from "../collection/semantics"
-import { useNativeRawTextStyle } from "../components/NativeTextStyleProvider"
-import { serializeNativeTypographyStyle } from "../components/nativeTypographyStyle"
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../overlays/floating/scope"
 
 import { receiveNativeAccessibilityInspection, registerNativeAccessibilityInspector } from "./accessibilityInspection"
@@ -72,7 +70,6 @@ export const NativeFocusHost = forwardRef<
     nativeMotionGeometryRevision?: string
     nativeMotionVisible?: boolean
     nativeMotionProjectionRevision?: string
-    nativeTypographyStyle?: string
     nativeForegroundComposition?: boolean
     nativeMotionDrawingOwner?: boolean
     nativeMotionProjectionRadii?: string
@@ -162,7 +159,6 @@ export const NativeFocusHost = forwardRef<
   const keyboardFocusable = tabIndex === -1 && !fieldInput ? false : (focusable ?? true)
   const inputScope = useNativeKeyScope()
   const floatingScope = useContext(NativeFloatingScopeContext)
-  const inheritedTypography = useNativeRawTextStyle()
   const windowActive = useContext(NativeFloatingWindowContext)
   const focusEligibility = useRef({ keyboardFocusable, inputScope, floatingScope, windowActive })
   useInsertionEffect(() => {
@@ -361,8 +357,6 @@ export const NativeFocusHost = forwardRef<
     <NativeViewContextBoundary>
       <FocusHost
         {...normalized}
-        nativeTypographyStyle={rest.nativeTypographyStyle ?? serializeNativeTypographyStyle(inheritedTypography)}
-        nativeTypographyWindow={floatingScope?.id ?? ""}
         onPointerDown={pointerHandler("pointer-start", rest.onPointerDown)}
         onPointerUp={pointerHandler("pointer-end", rest.onPointerUp)}
         onPointerCancel={pointerHandler("pointer-cancel", rest.onPointerCancel)}

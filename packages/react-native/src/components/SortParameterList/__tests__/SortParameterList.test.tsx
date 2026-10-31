@@ -131,9 +131,9 @@ afterEach(async () => {
   jest.useRealTimers()
 })
 
-it("keeps explicit row metrics and actual row identity when a legacy ancestor migrates", async () => {
-  const node = (migrated: boolean) => (
-    <NativeTextStyleProvider nativeInheritance={!migrated} style={{ fontFamily: "LegacyBody", lineHeight: 38 }}>
+it("keeps explicit row metrics and actual row identity through ancestor updates without native transport", async () => {
+  const node = (fontFamily: string) => (
+    <NativeTextStyleProvider style={{ fontFamily, lineHeight: 38 }}>
       {tree({
         customStyles: { fontFamily: "ListBody", lineHeight: 24 },
         customItemStyles: { fontFamily: "RowBody", lineHeight: 28 },
@@ -141,15 +141,15 @@ it("keeps explicit row metrics and actual row identity when a legacy ancestor mi
       })}
     </NativeTextStyleProvider>
   )
-  const view = await render(node(false))
+  const view = await render(node("OuterBody"))
   const original = select("name")
-  expect(JSON.parse(row("name").props.nativeTypographyStyle)).toMatchObject({ fontFamily: "RowBody", lineHeight: 28 })
+  expect(row("name").props.nativeTypographyStyle).toBeUndefined()
   expect(within(row("name")).getByText("Name")).toHaveStyle({
     fontFamily: "RowBody",
     lineHeight: 28,
     fontWeight: "600",
   })
-  await view.rerender(node(true))
+  await view.rerender(node("NextOuterBody"))
   expect(screen.getByTestId("sort-parameter-list").props.nativeTypographyStyle).toBeUndefined()
   expect(row("name").props.nativeTypographyStyle).toBeUndefined()
   expect(within(row("name")).getByText("Name")).toHaveStyle({

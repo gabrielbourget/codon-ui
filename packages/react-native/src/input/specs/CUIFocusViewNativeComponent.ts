@@ -180,8 +180,6 @@ export interface NativeProps extends ViewProps {
   nativeMotionColorObservation?: WithDefault<boolean, false>
   nativeMotionVisible?: WithDefault<boolean, true>
   nativeMotionProjectionRevision?: string
-  nativeTypographyStyle?: string
-  nativeTypographyWindow?: string
   nativeForegroundComposition?: WithDefault<boolean, false>
   nativeMotionDrawingOwner?: WithDefault<boolean, false>
   nativeMotionProjectionRadii?: string

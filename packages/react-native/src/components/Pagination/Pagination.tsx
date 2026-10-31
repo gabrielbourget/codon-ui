@@ -7,7 +7,7 @@ import { useNativeTheme } from "../../theme"
 import { LineSegment } from "../LineSegment/LineSegment"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
 import { validateNativeFontWeight } from "../nativeTextStyle"
-import { NativeTextStyleProvider, useNativeRawTextStyle } from "../NativeTextStyleProvider"
+import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
 
 import { NativePaginationCounter, NativePaginationInput, NativePaginationPageSize } from "./Fields"
 import { resolveNativePaginationLabels } from "./labels"
@@ -125,7 +125,6 @@ export const Pagination = forwardRef<TNativePaginationRef, TNativePaginationProp
     throw new TypeError("Pagination: page-size options must be unique")
   const theme = useNativeTheme(),
     context = useNativeContentContext(),
-    inheritedNativeTextStyle = useNativeRawTextStyle(),
     labels = resolveNativePaginationLabels(props),
     styles = getNativePaginationStyles(theme, props, context?.foregroundColor)
   validateNativeFontWeight(styles.root.text.fontWeight, "Pagination")
@@ -213,7 +212,7 @@ export const Pagination = forwardRef<TNativePaginationRef, TNativePaginationProp
         style={styles.root.view}
         testID={props.testID ?? props["data-testid"] ?? "pagination"}
       >
-        <NativeTextStyleProvider style={styles.root.text} nativeInheritance={inheritedNativeTextStyle !== undefined}>
+        <NativeTextStyleProvider style={styles.root.text}>
           {groups.map((group, index) => (
             <Fragment key={group}>
               {nodes[group]}

@@ -616,13 +616,18 @@ it("keeps explicit raw and owned text styles without exporting a native descenda
   expect(row("raw-custom")).toHaveStyle({ fontWeight: "500", color: "green" })
 })
 
-it("retains native typography for unmigrated owners outside the Panel scope", async () => {
+it("keeps explicitly styled raw text outside Panel without native typography transport", async () => {
   await render(
     <NativeTextStyleProvider style={{ fontWeight: "600" }}>
-      <NativeFocusView testID="unmigrated-owner" />
+      <NativeFocusView testID="independent-owner">
+        <RNText testID="standalone-explicit" style={{ fontWeight: "600" }}>
+          Explicit outside Panel
+        </RNText>
+      </NativeFocusView>
     </NativeTextStyleProvider>,
   )
-  expect(JSON.parse(row("unmigrated-owner").props.nativeTypographyStyle).fontWeight).toBe("600")
+  expect(row("independent-owner").props.nativeTypographyStyle).toBeUndefined()
+  expect(row("standalone-explicit")).toHaveStyle({ fontWeight: "600" })
 })
 
 it("retires the appearance clock and its listeners when the original Panel unmounts", async () => {

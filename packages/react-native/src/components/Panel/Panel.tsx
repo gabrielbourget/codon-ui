@@ -209,7 +209,7 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
                       pointerEvents="box-none"
                       style={StyleSheet.absoluteFill}
                     >
-                      <NativeTextStyleProvider style={appearance.text} nativeInheritance={false}>
+                      <NativeTextStyleProvider style={appearance.text}>
                         <NativePanelSurface
                           ref={ref}
                           open={open}

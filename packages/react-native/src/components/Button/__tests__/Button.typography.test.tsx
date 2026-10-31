@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react-native"
 import { createRef, Fragment, useState } from "react"
-import { AccessibilityInfo, PlatformColor, processColor, StyleSheet, Text as RNText, View } from "react-native"
+import { AccessibilityInfo, PlatformColor, StyleSheet, Text as RNText, View } from "react-native"
 
 import {
   Button,
@@ -226,9 +226,9 @@ it.each([false, true])(
       ? (props) => <NativeFocusView {...props} />
       : undefined
     const node = (fontWeight: "600" | "800") => (
-      <NativeTextStyleProvider nativeInheritance={false} style={{ fontWeight: "900" }}>
-        <NativeTextStyleProvider nativeInheritance style={{ fontWeight: "900" }}>
-          <NativeFocusView testID="unmigrated-owner" />
+      <NativeTextStyleProvider style={{ fontWeight: "900" }}>
+        <NativeTextStyleProvider style={{ fontWeight: "900" }}>
+          <NativeFocusView testID="independent-owner" />
         </NativeTextStyleProvider>
         <Button ref={rootRef} render={renderer} customStyles={{ fontWeight, letterSpacing: 2 }}>
           Owned phrase
@@ -243,7 +243,7 @@ it.each([false, true])(
     expect(originalChild).not.toBeNull()
     expect(screen.getByRole("button").props.nativeTypographyStyle).toBeUndefined()
     expect(screen.getByTestId("nested-explicit").props.nativeTypographyStyle).toBeUndefined()
-    expect(JSON.parse(screen.getByTestId("unmigrated-owner").props.nativeTypographyStyle).fontWeight).toBe("900")
+    expect(screen.getByTestId("independent-owner").props.nativeTypographyStyle).toBeUndefined()
     expect(screen.getByText("Owned phrase")).toHaveStyle({ fontWeight: "800", letterSpacing: 2 })
     expect(screen.getByTestId("owned-custom")).toHaveStyle({ fontWeight: "700", letterSpacing: 2 })
     expect(screen.getByTestId("raw-custom")).toHaveStyle({ fontWeight: "500", color: "green" })
@@ -259,11 +259,11 @@ it.each([false, true])(
   },
 )
 
-it("retains the legacy ancestor boundary until migration without replacing the original Button or Text", async () => {
+it("keeps independent Button defaults through explicit ancestor metric updates without native transport", async () => {
   const rootRef = createRef<View>()
   const childRef = createRef<RNText>()
-  const node = (migrated: boolean, lineHeight: number) => (
-    <NativeTextStyleProvider nativeInheritance={!migrated} style={{ fontWeight: "900", lineHeight }}>
+  const node = (lineHeight: number) => (
+    <NativeTextStyleProvider style={{ fontWeight: "900", lineHeight }}>
       <NativeFocusView testID="ancestor-owner">
         <Button ref={rootRef}>
           Independent defaults
@@ -274,31 +274,36 @@ it("retains the legacy ancestor boundary until migration without replacing the o
       </NativeFocusView>
     </NativeTextStyleProvider>
   )
-  const view = await render(node(false, 38))
+  const view = await render(node(38))
   const root = rootRef.current
   const child = childRef.current
   expect(root).not.toBeNull()
   expect(child).not.toBeNull()
   const inherited = () => screen.getByTestId("ancestor-owner").props.nativeTypographyStyle
   const boundary = () => screen.getByRole("button").props.nativeTypographyStyle
-  expect(JSON.parse(inherited())).toMatchObject({ fontWeight: "900", lineHeight: 38 })
-  expect(JSON.parse(boundary())).toEqual({
-    color: processColor(StyleSheet.flatten(screen.getByText("Independent defaults").props.style).color),
+  expect(inherited()).toBeUndefined()
+  expect(boundary()).toBeUndefined()
+  expect(screen.getByText("Independent defaults")).toHaveStyle({
+    fontWeight: "400",
     fontStyle: "normal",
     letterSpacing: 0,
     textAlign: "center",
   })
-  expect(screen.getByText("Independent defaults")).toHaveStyle({ fontWeight: "400" })
   expect(StyleSheet.flatten(screen.getByText("Independent defaults").props.style).lineHeight).toBeUndefined()
-  await view.rerender(node(false, 42))
-  expect(JSON.parse(inherited()).lineHeight).toBe(42)
-  expect(JSON.parse(boundary()).lineHeight).toBeUndefined()
-  await view.rerender(node(true, 42))
+  await view.rerender(node(42))
+  expect(inherited()).toBeUndefined()
+  expect(boundary()).toBeUndefined()
+  await view.rerender(node(28))
   expect(inherited()).toBeUndefined()
   expect(boundary()).toBeUndefined()
   expect(rootRef.current).toBe(root)
   expect(childRef.current).toBe(child)
-  expect(screen.getByText("Independent defaults")).toHaveStyle({ fontWeight: "400" })
+  expect(screen.getByText("Independent defaults")).toHaveStyle({
+    fontWeight: "400",
+    fontStyle: "normal",
+    letterSpacing: 0,
+    textAlign: "center",
+  })
   expect(StyleSheet.flatten(screen.getByText("Independent defaults").props.style).lineHeight).toBeUndefined()
   expect(screen.getByText("Explicit raw text")).toHaveStyle({ fontWeight: "500", color: "green" })
 })

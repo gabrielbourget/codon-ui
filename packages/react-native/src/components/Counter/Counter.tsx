@@ -11,7 +11,7 @@ import { validateNativeDisplayDimension } from "../displayDimensions"
 import { useNativeLinkColor } from "../Link/motion"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
 import { splitNativeTextStyle, validateNativeFontWeight } from "../nativeTextStyle"
-import { NativeTextStyleProvider, useNativeRawTextStyle } from "../NativeTextStyleProvider"
+import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
 import { NativeText as Text } from "../Text/Text"
 
 import { getNativeCounterStatus } from "./model"
@@ -54,7 +54,6 @@ export const Counter = forwardRef<TNativeCounterRef, TNativeCounterProps>((props
   validateNativeDisplayDimension(width, "Counter", "width")
   const theme = useNativeTheme()
   const context = useNativeContentContext()
-  const inheritedNativeTextStyle = useNativeRawTextStyle()
   const status = getNativeCounterStatus(props)
   const statusColor =
     status === "danger" ? theme.colors.statusDanger : status === "warning" ? theme.colors.statusWarning : undefined
@@ -104,10 +103,7 @@ export const Counter = forwardRef<TNativeCounterRef, TNativeCounterProps>((props
   const identity = testID ?? aliasID ?? "counter"
   return (
     <NativeContentContext.Provider value={{ foregroundColor: foreground, isButton: context?.isButton ?? false }}>
-      <NativeTextStyleProvider
-        style={{ ...rootTypography, color: foreground }}
-        nativeInheritance={inheritedNativeTextStyle !== undefined}
-      >
+      <NativeTextStyleProvider style={{ ...rootTypography, color: foreground }}>
         <NativeFocusHost
           {...rootProps}
           ref={ref}

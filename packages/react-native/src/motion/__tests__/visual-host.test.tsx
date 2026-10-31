@@ -66,8 +66,8 @@ it("renders supported weight endpoints through the real native value driver whil
     get: readWeight,
     on: (event: "change", callback: (weight: number) => void) => fontWeight.on(event, () => callback(readWeight())),
   }
-  const node = (legacy: boolean) => (
-    <NativeTextStyleProvider style={{ fontFamily: "OuterFace" }} nativeInheritance={legacy}>
+  const node = (fontFamily: string) => (
+    <NativeTextStyleProvider style={{ fontFamily }}>
       <NativeMotionVisualHost
         ref={root}
         testID="visual"
@@ -83,11 +83,11 @@ it("renders supported weight endpoints through the real native value driver whil
       </NativeMotionVisualHost>
     </NativeTextStyleProvider>
   )
-  await render(node(true))
+  await render(node("OuterFace"))
   const originalRoot = root.current,
     originalEditor = editor.current
-  expect(screen.getByTestId("visual").props.nativeTypographyStyle).toContain("MotionFace")
-  await screen.rerender(node(false))
+  expect(screen.getByTestId("visual").props.nativeTypographyStyle).toBeUndefined()
+  await screen.rerender(node("NextOuterFace"))
   expect(screen.getByTestId("visual").props.nativeTypographyStyle).toBeUndefined()
   expect(screen.getByTestId("weight-child").props.nativeTypographyStyle).toBeUndefined()
   void fontWeight.start(

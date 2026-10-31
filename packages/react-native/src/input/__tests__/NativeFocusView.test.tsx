@@ -1,13 +1,6 @@
 import { act, render, screen } from "@testing-library/react-native"
 import { createRef } from "react"
-import {
-  processColor,
-  Text as CoreText,
-  TextInput,
-  View,
-  type NativeSyntheticEvent,
-  type TextStyle,
-} from "react-native"
+import { Text as CoreText, TextInput, View, type NativeSyntheticEvent, type TextStyle } from "react-native"
 
 import { NativeTextStyleProvider } from "../../components/NativeTextStyleProvider"
 import { NativeFloatingScopeContext } from "../../overlays/floating/scope"
@@ -442,15 +435,15 @@ it.each(["android", "ios"] as const)(
   },
 )
 
-it("binds full inherited typography to the original generated host and retires it at a different window", async () => {
+it("keeps explicitly styled original text and editor identities without native typography transport across windows", async () => {
   const root = createRef<View>(),
     editor = createRef<TextInput>(),
     changed = jest.fn()
   const fields: TextStyle = {
     color: "red",
-    fontFamily: "Original variable face",
+    fontFamily: "Original supported face",
     fontSize: 19.25,
-    fontWeight: 750.123456789,
+    fontWeight: "700",
     fontStyle: "italic",
     fontVariant: ["tabular-nums"],
     letterSpacing: 0,
@@ -474,7 +467,9 @@ it("binds full inherited typography to the original generated host and retires i
       <NativeTextStyleProvider style={style}>
         <NativeFloatingScopeContext.Provider value={{ id: windowId, canAct: () => true }}>
           <NativeFocusHost ref={root} testID="focus">
-            <CoreText testID="original-core-text">Original text receiver</CoreText>
+            <CoreText testID="original-core-text" style={style}>
+              Original text receiver
+            </CoreText>
             <TextInput ref={editor} testID="original-core-editor" value="" onChangeText={changed} />
           </NativeFocusHost>
         </NativeFloatingScopeContext.Provider>
@@ -487,24 +482,15 @@ it("binds full inherited typography to the original generated host and retires i
     originalText = screen.getByTestId("original-core-text")
   expect(originalRoot).not.toBeNull()
   expect(originalEditor).not.toBeNull()
-  expect(JSON.parse(host().props.nativeTypographyStyle)).toEqual({
-    ...fields,
-    color: processColor("red"),
-    textDecorationColor: processColor("blue"),
-    textShadowColor: processColor("green"),
-    textAlignVertical: "center",
-    selectable: false,
-    verticalAlign: undefined,
-    userSelect: undefined,
-    padding: undefined,
-  })
-  expect(host().props.nativeTypographyWindow).toBe("original-window")
-  expect(originalText.props.style).toBeUndefined()
+  expect(host().props.nativeTypographyStyle).toBeUndefined()
+  expect(host().props.nativeTypographyWindow).toBeUndefined()
+  expect(originalText.props.style).toBe(fields)
   await view.rerender(tree("original-window", { fontWeight: "normal", letterSpacing: 0 }))
-  expect(JSON.parse(host().props.nativeTypographyStyle)).toEqual({ fontWeight: "normal", letterSpacing: 0 })
+  expect(host().props.nativeTypographyStyle).toBeUndefined()
+  expect(originalText.props.style).toEqual({ fontWeight: "normal", letterSpacing: 0 })
   await view.rerender(tree("different-window", fields))
   expect(host().props.nativeTypographyStyle).toBeUndefined()
-  expect(host().props.nativeTypographyWindow).toBe("different-window")
+  expect(host().props.nativeTypographyWindow).toBeUndefined()
   expect(root.current).toBe(originalRoot)
   expect(editor.current).toBe(originalEditor)
   expect(screen.getByTestId("original-core-text")).toBe(originalText)

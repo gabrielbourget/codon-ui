@@ -59,8 +59,8 @@ it("inherits Panel text styles through owned descendants within the original win
   const originalRoot = root.current,
     originalEditor = editor.current
   expect(row().props.nativeTypographyStyle).toBeUndefined()
-  expect(row().props.nativeTypographyWindow).toBe("")
-  expect(row("panel-floating-host").props.nativeTypographyWindow).toMatch(/^codon-floating-/)
+  expect(row().props.nativeTypographyWindow).toBeUndefined()
+  expect(row("panel-floating-host").props.nativeTypographyWindow).toBeUndefined()
   expect(row("inherited-style")).toHaveStyle({
     letterSpacing: 2,
     textAlign: "right",

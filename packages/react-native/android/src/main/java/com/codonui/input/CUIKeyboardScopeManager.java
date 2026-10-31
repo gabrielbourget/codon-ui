@@ -25,7 +25,7 @@ public final class CUIKeyboardScopeManager extends ReactViewManager implements C
   private final ViewManagerDelegate<ReactViewGroup> inherited = new ViewManagerPropertyUpdater.GenericViewManagerDelegate<>(this);
   private final CUIKeyboardScopeManagerDelegate<ReactViewGroup, CUIKeyboardScopeManager> delegate = new CUIKeyboardScopeManagerDelegate<>(this) {
     @Override public void setProperty(ReactViewGroup view, String name, Object value) {
-      if ("dragBindings".equals(name) || "nativeTypographyWindow".equals(name) || "dialogScopes".equals(name) || "dialogRevision".equals(name) || "editorKeyboardBindings".equals(name) || "menuPointerPolicies".equals(name) || "menuPointerRevision".equals(name) || "pointerRegistrations".equals(name) || "pointerRevision".equals(name) || "ownerId".equals(name) || "enabled".equals(name) || "policies".equals(name) || "acceptedWindowId".equals(name) || "acceptedEpoch".equals(name) || "policyRevision".equals(name) || "floatingTargets".equals(name) || "observations".equals(name) || "observationRevision".equals(name)) super.setProperty(view, name, value);
+      if ("dragBindings".equals(name) || "dialogScopes".equals(name) || "dialogRevision".equals(name) || "editorKeyboardBindings".equals(name) || "menuPointerPolicies".equals(name) || "menuPointerRevision".equals(name) || "pointerRegistrations".equals(name) || "pointerRevision".equals(name) || "ownerId".equals(name) || "enabled".equals(name) || "policies".equals(name) || "acceptedWindowId".equals(name) || "acceptedEpoch".equals(name) || "policyRevision".equals(name) || "floatingTargets".equals(name) || "observations".equals(name) || "observationRevision".equals(name)) super.setProperty(view, name, value);
       else inherited.setProperty(view, name, value);
     }
   };
@@ -33,7 +33,6 @@ public final class CUIKeyboardScopeManager extends ReactViewManager implements C
   @Override protected ViewManagerDelegate<ReactViewGroup> getDelegate() { return delegate; }
   @Override public ReactViewGroup createViewInstance(ThemedReactContext context) { return new CUIKeyboardScope(context); }
   @Override @ReactProp(name = "dragBindings") public void setDragBindings(ReactViewGroup view,String value) { ((CUIKeyboardScope)view).dragInteractions.update(value==null?"[]":value); }
-  @Override @ReactProp(name = "nativeTypographyWindow") public void setNativeTypographyWindow(ReactViewGroup view, String value) {}
   @Override @ReactProp(name = "ownerId") public void setOwnerId(ReactViewGroup view, String value) { ((CUIKeyboardScope) view).setOwnerId(value); }
   @Override @ReactProp(name = "enabled", defaultBoolean = true) public void setEnabled(ReactViewGroup view, boolean value) { ((CUIKeyboardScope) view).setCaptureEnabled(value); }
   @Override @ReactProp(name = "acceptedWindowId") public void setAcceptedWindowId(ReactViewGroup view, String value) { ((CUIKeyboardScope) view).setAcceptedWindowId(value); }
