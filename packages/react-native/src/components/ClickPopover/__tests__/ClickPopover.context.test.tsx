@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native"
 import { createContext, createRef, useContext, type ReactNode } from "react"
-import { TextInput, View } from "react-native"
+import { Text as RNText, TextInput, View } from "react-native"
 
 import {
   Button,
@@ -19,6 +19,7 @@ import { NATIVE_DEFAULT_SLOT } from "../../../collection/context"
 import type { OverlayTriggerState } from "../../ComboBox/state/useOverlayTriggerState"
 import { NativeRootMenuTriggerStateContext } from "../../Menu/context"
 import type { TNativeRootMenuTriggerState } from "../../Menu/triggerState"
+import { NativeTextStyleProvider } from "../../NativeTextStyleProvider"
 import type { TNativeFloatingRenderState } from "../ClickPopover"
 import type { TNativeDialogContextProps } from "../context"
 import { NativePopoverDialog } from "../NativePopoverDialog"
@@ -225,20 +226,109 @@ it("keeps explicit own dialog relationships ahead of a title and context fallbac
 
 it("keeps inherited direct-child typography on the popover root", async () => {
   const trigger = createRef<View>()
-  await render(
+  const root = createRef<View>()
+  const child = createRef<View>()
+  const editor = createRef<TextInput>()
+  const content = (
+    <>
+      <Text testID="authored-text">Original</Text>
+      <NativeFocusView ref={child} testID="typography-child" focusable={false}>
+        <Text testID="nested-text">Nested</Text>
+        <RNText testID="raw-text" style={{ fontFamily: "RawBody", lineHeight: 16 }}>
+          Explicit raw
+        </RNText>
+      </NativeFocusView>
+      <TextInput ref={editor} value="" />
+    </>
+  )
+  const node = (updated: boolean) => (
     <NativeFloatingLayerHost>
       <View ref={trigger} />
       <ClickPopover
+        ref={root}
         defaultOpen
         triggerRef={trigger}
         childIsDialog={false}
-        style={{ letterSpacing: 7, fontStyle: "italic" }}
+        style={{
+          letterSpacing: updated ? 0 : 7,
+          fontStyle: updated ? "normal" : "italic",
+          fontFamily: updated ? "NextBody" : "PopoverBody",
+          lineHeight: updated ? 32 : 28,
+        }}
       >
-        <Text testID="authored-text">Original</Text>
+        {content}
       </ClickPopover>
-    </NativeFloatingLayerHost>,
+    </NativeFloatingLayerHost>
   )
-  expect(screen.getByTestId("authored-text", hidden)).toHaveStyle({ letterSpacing: 7, fontStyle: "italic" })
+  const view = await render(node(false))
+  const original = root.current
+  const originalChild = child.current
+  const originalEditor = editor.current
+  expect(screen.getByTestId("authored-text", hidden)).toHaveStyle({
+    letterSpacing: 7,
+    fontStyle: "italic",
+    fontFamily: "PopoverBody",
+    lineHeight: 28,
+  })
+  expect(screen.getByTestId("typography-child", hidden).props.nativeTypographyStyle).toBeUndefined()
+  await view.rerender(node(true))
+  expect(screen.getByTestId("authored-text", hidden)).toHaveStyle({
+    letterSpacing: 0,
+    fontStyle: "normal",
+    fontFamily: "NextBody",
+    lineHeight: 32,
+  })
+  expect(screen.getByTestId("nested-text", hidden)).toHaveStyle({ fontFamily: "NextBody", lineHeight: 32 })
+  expect(screen.getByTestId("raw-text", hidden)).toHaveStyle({ fontFamily: "RawBody", lineHeight: 16 })
+  expect(root.current).toBe(original)
+  expect(child.current).toBe(originalChild)
+  expect(editor.current).toBe(originalEditor)
+})
+
+it("retires a legacy dialog boundary only with its ancestor while preserving owned metrics and original refs", async () => {
+  const root = createRef<View>()
+  const child = createRef<View>()
+  const node = (migrated: boolean) => (
+    <NativeTextStyleProvider nativeInheritance={!migrated} style={{ fontFamily: "LegacyBody", lineHeight: 38 }}>
+      <NativeFocusView testID="legacy-owner">
+        <NativePopoverDialog
+          ref={root}
+          nativeBaselineStyle={{ fontFamily: "DialogBody", lineHeight: 24 }}
+          nativeFocusable
+          testID="dialog"
+        >
+          <NativeFocusView ref={child} testID="dialog-child" focusable={false}>
+            <Text testID="dialog-text">Dialog text</Text>
+          </NativeFocusView>
+        </NativePopoverDialog>
+      </NativeFocusView>
+    </NativeTextStyleProvider>
+  )
+  const view = await render(node(false))
+  const original = root.current
+  const originalChild = child.current
+  expect(original).not.toBeNull()
+  expect(originalChild).not.toBeNull()
+  expect(JSON.parse(screen.getByTestId("dialog-child").props.nativeTypographyStyle)).toMatchObject({
+    fontFamily: "DialogBody",
+    lineHeight: 24,
+  })
+  expect(screen.getByTestId("dialog-text")).toHaveStyle({ fontFamily: "DialogBody", lineHeight: 24 })
+  await view.rerender(node(true))
+  expect(screen.getByTestId("dialog").props.nativeTypographyStyle).toBeUndefined()
+  expect(screen.getByTestId("dialog-child").props.nativeTypographyStyle).toBeUndefined()
+  expect(screen.getByTestId("dialog-text")).toHaveStyle({ fontFamily: "DialogBody", lineHeight: 24 })
+  expect(root.current).toBe(original)
+  expect(child.current).toBe(originalChild)
+})
+
+it("requires explicit scalar migration for an effective private dialog weight while retaining final overrides", async () => {
+  await expect(
+    render(<NativePopoverDialog nativeBaselineStyle={{ fontWeight: 750.5 }} nativeFocusable />),
+  ).rejects.toThrow("fontWeight must use a stock React Native weight")
+  await render(
+    <NativePopoverDialog nativeBaselineStyle={{ fontWeight: 750.5 }} style={{ fontWeight: "700" }} nativeFocusable />,
+  )
 })
 
 it("shares the complete menu/overlay state object and preserves method semantics and owner veto", async () => {

@@ -97,4 +97,19 @@ describe.each(profiles)("%s style contract", (profile) => {
     expect(() => styles(profile, { width: -1 })).toThrow(profile === "tooltip" ? "Tooltip" : "HoverPopover")
     expect(() => styles(profile, { customOverlayArrowStyles: { fill: "var(--invalid)" } })).toThrow("native color")
   })
+
+  it("preserves supported root weights in dialog text and requires explicit scalar migration", () => {
+    expect(
+      styles(profile, {
+        customStyles: { fontWeight: 750.5 },
+        style: { fontWeight: "700" },
+      }),
+    ).toMatchObject({
+      rootText: { fontWeight: "700" },
+      dialogText: { fontWeight: "700" },
+    })
+    expect(() => styles(profile, { style: { fontWeight: 750.5 } })).toThrow(
+      "fontWeight must use a stock React Native weight",
+    )
+  })
 })

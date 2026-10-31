@@ -9,6 +9,23 @@ const styles = (
   direction: "ltr" | "rtl" = "ltr",
 ) => getNativeClickPopoverStyles(theme, props, side, direction, 300)
 
+it("preserves supported root/dialog weight endpoints and requires explicit scalar migration", () => {
+  expect(
+    styles({
+      customStyles: { fontWeight: 750.5 },
+      style: { fontWeight: "700" },
+      customDialogStyles: { fontWeight: 500 },
+    }),
+  ).toMatchObject({
+    rootText: { fontWeight: "700" },
+    dialogText: { fontWeight: 500 },
+  })
+  expect(() => styles({ style: { fontWeight: 750.5 } })).toThrow("fontWeight must use a stock React Native weight")
+  expect(() => styles({ customDialogStyles: { fontWeight: 750.5 } })).toThrow(
+    "fontWeight must use a stock React Native weight",
+  )
+})
+
 it.each(["light", "dark"] as const)("retains the three independent default style owners in %s mode", (mode) => {
   const current = resolveNativeTheme(mode)
   const result = getNativeClickPopoverStyles(current, {}, "bottom", "ltr", 300)

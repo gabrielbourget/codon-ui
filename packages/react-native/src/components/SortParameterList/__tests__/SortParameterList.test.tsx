@@ -12,6 +12,7 @@ import {
 import { nativeVirtualDrag } from "../../../collection/dragAndDrop/virtualDrag"
 import { NativeDragActionsContext } from "../../../input/nativeDragActions"
 import { NativeThemeProvider } from "../../../theme"
+import { NativeTextStyleProvider } from "../../NativeTextStyleProvider"
 import { createSortDragFixture } from "../../SortAndFilterPanel/__tests__/fixtures/SortDragFixture"
 import { reorderNativeSortParameters } from "../reorder"
 
@@ -128,6 +129,42 @@ afterEach(async () => {
   jest.restoreAllMocks()
   jest.clearAllTimers()
   jest.useRealTimers()
+})
+
+it("keeps explicit row metrics and actual row identity when a legacy ancestor migrates", async () => {
+  const node = (migrated: boolean) => (
+    <NativeTextStyleProvider nativeInheritance={!migrated} style={{ fontFamily: "LegacyBody", lineHeight: 38 }}>
+      {tree({
+        customStyles: { fontFamily: "ListBody", lineHeight: 24 },
+        customItemStyles: { fontFamily: "RowBody", lineHeight: 28 },
+        customItemTextStyles: { fontWeight: "600" },
+      })}
+    </NativeTextStyleProvider>
+  )
+  const view = await render(node(false))
+  const original = select("name")
+  expect(JSON.parse(row("name").props.nativeTypographyStyle)).toMatchObject({ fontFamily: "RowBody", lineHeight: 28 })
+  expect(within(row("name")).getByText("Name")).toHaveStyle({
+    fontFamily: "RowBody",
+    lineHeight: 28,
+    fontWeight: "600",
+  })
+  await view.rerender(node(true))
+  expect(screen.getByTestId("sort-parameter-list").props.nativeTypographyStyle).toBeUndefined()
+  expect(row("name").props.nativeTypographyStyle).toBeUndefined()
+  expect(within(row("name")).getByText("Name")).toHaveStyle({
+    fontFamily: "RowBody",
+    lineHeight: 28,
+    fontWeight: "600",
+  })
+  expect(select("name")).toBe(original)
+})
+
+it("requires explicit scalar migration for root weights while retaining supported final overrides", async () => {
+  await expect(render(tree({ style: { fontWeight: 750.5 } }))).rejects.toThrow(
+    "fontWeight must use a stock React Native weight",
+  )
+  await render(tree({ customStyles: { fontWeight: 750.5 }, style: { fontWeight: "700" } }))
 })
 
 it("retains the actual pinned reorder semantics, identities and empty/missing-key outcomes", () => {

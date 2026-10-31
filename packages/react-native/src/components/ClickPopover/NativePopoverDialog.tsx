@@ -10,8 +10,8 @@ import { NativeButtonContext } from "../Button/context"
 import { resolveNativeStyle } from "../colors"
 import { useNativeLinkColor } from "../Link/motion"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
-import { splitNativeTextStyle } from "../nativeTextStyle"
-import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
+import { splitNativeTextStyle, validateNativeFontWeight } from "../nativeTextStyle"
+import { NativeTextStyleProvider, useNativeRawTextStyle } from "../NativeTextStyleProvider"
 import { NativeHeadingBindingContext, NativeHeadingContext } from "../Text/context"
 
 import { NativeDialogContext, NativeOverlayTriggerStateContext, type TNativeDialogContextProps } from "./context"
@@ -51,6 +51,7 @@ export const NativePopoverDialog = forwardRef<
     ...native
   } = props
   const inherited = useNativeContentContext()
+  const inheritedNativeTextStyle = useNativeRawTextStyle()
   const theme = useNativeTheme()
   const overlayState = useContext(NativeOverlayTriggerStateContext)
   const close = overlayState?.close ?? closeNothing
@@ -65,6 +66,7 @@ export const NativePopoverDialog = forwardRef<
   const labelledBy =
     ownLabelledBy ?? (!label && titleID ? titleID : (props["aria-labelledby"] ?? props.accessibilityLabelledBy))
   const resolved = splitNativeTextStyle(resolveNativeStyle([nativeBaselineStyle, style], "ClickPopover", "dialog"))
+  validateNativeFontWeight(resolved.text.fontWeight, "ClickPopover")
   const ownColor = resolveNativeStyle(style, "ClickPopover", "dialogStyle").color
   const currentForeground = useNativeLinkColor(
     ownColor ?? inherited?.foregroundColor ?? resolved.text.color ?? theme.colors.foreground,
@@ -97,7 +99,7 @@ export const NativePopoverDialog = forwardRef<
           <NativeButtonContext.Provider
             value={{ slots: { [NATIVE_DEFAULT_SLOT]: {}, close: { onPress: () => close() } } }}
           >
-            <NativeTextStyleProvider style={resolved.text}>
+            <NativeTextStyleProvider style={resolved.text} nativeInheritance={inheritedNativeTextStyle !== undefined}>
               <NativeContentContext.Provider
                 value={{
                   foregroundColor: currentForeground,

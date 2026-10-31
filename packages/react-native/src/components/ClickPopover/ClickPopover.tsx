@@ -535,7 +535,7 @@ export const NativeFloatingSurface = forwardRef<
                 }}
               >
                 <ClearedContexts contexts={nativeClearContexts}>
-                  <NativeTextStyleProvider style={painted.rootText}>
+                  <NativeTextStyleProvider style={painted.rootText} nativeInheritance={false}>
                     <NativeContentContext.Provider
                       value={{
                         foregroundColor: currentForeground,

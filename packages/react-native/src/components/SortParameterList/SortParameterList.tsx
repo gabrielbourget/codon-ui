@@ -38,8 +38,8 @@ import { NativeMotionOwnerHost } from "../../motion/owner/NativeMotionOwnerHost"
 import { useNativeTheme } from "../../theme"
 import { getNativeCardStyle } from "../Card/styles"
 import { resolveNativeStyle } from "../colors"
-import { splitNativeTextStyle } from "../nativeTextStyle"
-import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
+import { splitNativeTextStyle, validateNativeFontWeight } from "../nativeTextStyle"
+import { NativeTextStyleProvider, useNativeRawTextStyle } from "../NativeTextStyleProvider"
 import { QueryGlyph } from "../SortAndFilterPanel/glyphs"
 import { Text } from "../Text/Text"
 
@@ -80,6 +80,7 @@ const RowContent = ({
   forwarded: ForwardedRef<View>
 }) => {
   const theme = useNativeTheme()
+  const inheritedNativeTextStyle = useNativeRawTextStyle()
   const actions = useContext(NativeCollectionActionsContext)!
   const scope = useNativeKeyScope()
   const draggable = useNativeDraggableItem({ key: node.key }, dragAndDrop.dragState)
@@ -99,6 +100,7 @@ const RowContent = ({
     owner.props.customItemStyles,
   )
   const icon = calibrated({}, owner.props.customItemIconStyles)
+  validateNativeFontWeight(row.text.fontWeight, "SortParameterList")
   const text = calibrated({}, owner.props.customItemTextStyles)
   const drop = droppable.dropProps
   const pressable = nativeVirtualDrag.isDragging() ? drop : draggable.dragProps
@@ -144,7 +146,7 @@ const RowContent = ({
   }
   return (
     <NativeCollectionItemBindingContext.Provider value={binding}>
-      <NativeTextStyleProvider style={row.text}>
+      <NativeTextStyleProvider style={row.text} nativeInheritance={inheritedNativeTextStyle !== undefined}>
         <NativeMotionOwnerHost
           {...draggable.dragProps}
           {...drop}
@@ -274,6 +276,7 @@ export const SortParameterList = (props: TNativeSortParameterListProps) => {
   )
   const owner = useMemo(() => ({ props, start, drop: dropped, end }), [props, start, dropped, end])
   const theme = useNativeTheme()
+  const inheritedNativeTextStyle = useNativeRawTextStyle()
   const root = calibrated(
     {
       ...getNativeCardStyle({ width: 250, height: 200, borderRadius: theme.radius.rounded }, theme),
@@ -282,6 +285,7 @@ export const SortParameterList = (props: TNativeSortParameterListProps) => {
     },
     [customStyles, style],
   )
+  validateNativeFontWeight(root.text.fontWeight, "SortParameterList")
   return (
     <NativeCollectionBuilder<object>
       content={
@@ -292,7 +296,7 @@ export const SortParameterList = (props: TNativeSortParameterListProps) => {
     >
       {(collection) => (
         <SortCollectionContext.Provider value={collection}>
-          <NativeTextStyleProvider style={root.text}>
+          <NativeTextStyleProvider style={root.text} nativeInheritance={inheritedNativeTextStyle !== undefined}>
             <NativeFocusHost
               {...native}
               style={root.view}

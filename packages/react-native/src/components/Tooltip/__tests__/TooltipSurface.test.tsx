@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native"
 import { createRef, type ReactNode } from "react"
-import { AccessibilityInfo, TextInput, View } from "react-native"
+import { AccessibilityInfo, Text as RNText, TextInput, View } from "react-native"
 
 import {
   Button,
@@ -133,21 +133,47 @@ describe.each(variants)("$name measured native surface", ({ name, Component, arr
 
   it("inherits authored Text typography without replacing the description or held editor", async () => {
     const editor = createRef<TextInput>()
+    const child = createRef<View>()
+    const raw = createRef<RNText>()
     const f = setup(
-      { customStyles: { fontStyle: "italic", letterSpacing: 3 } },
+      { customStyles: { fontStyle: "italic", letterSpacing: 3, fontFamily: "FloatingBody", lineHeight: 28 } },
       <>
-        <Text testID="description-text">Authored</Text>
+        <NativeFocusView ref={child} testID="description-child" focusable={false}>
+          <Text testID="description-text">Authored</Text>
+          <RNText ref={raw} testID="description-raw" style={{ fontFamily: "RawBody", lineHeight: 16 }}>
+            Explicit raw
+          </RNText>
+        </NativeFocusView>
         <TextInput ref={editor} value="" />
       </>,
     )
     const view = await render(f.node())
     const original = f.root.current
     const originalEditor = editor.current
-    expect(screen.getByTestId("description-text", hidden)).toHaveStyle({ fontStyle: "italic", letterSpacing: 3 })
-    await view.rerender(f.node({ customStyles: { fontStyle: "normal", letterSpacing: 0 } }))
-    expect(screen.getByTestId("description-text", hidden)).toHaveStyle({ fontStyle: "normal", letterSpacing: 0 })
+    const originalChild = child.current
+    const originalRaw = raw.current
+    expect(screen.getByTestId("description-child", hidden).props.nativeTypographyStyle).toBeUndefined()
+    expect(screen.getByTestId("description-text", hidden)).toHaveStyle({
+      fontStyle: "italic",
+      letterSpacing: 3,
+      fontFamily: "FloatingBody",
+      lineHeight: 28,
+    })
+    await view.rerender(
+      f.node({ customStyles: { fontStyle: "normal", letterSpacing: 0, fontFamily: "NextBody", lineHeight: 32 } }),
+    )
+    expect(screen.getByTestId("description-text", hidden)).toHaveStyle({
+      fontStyle: "normal",
+      letterSpacing: 0,
+      fontFamily: "NextBody",
+      lineHeight: 32,
+    })
+    expect(screen.getByTestId("description-raw", hidden)).toHaveStyle({ fontFamily: "RawBody", lineHeight: 16 })
     expect(f.root.current).toBe(original)
     expect(editor.current).toBe(originalEditor)
+    expect(child.current).toBe(originalChild)
+    expect(raw.current).toBe(originalRaw)
+    expect(f.onOpenChange).not.toHaveBeenCalled()
   })
 
   it("retains the authored Text foreground transition through root color changes", async () => {

@@ -313,7 +313,7 @@ export const NativeTooltipSurface = forwardRef<
               if (layer.canAct()) host.layers.requestDismiss("accessibilityEscape")
             }}
           >
-            <NativeTextStyleProvider style={painted.rootText}>
+            <NativeTextStyleProvider style={painted.rootText} nativeInheritance={false}>
               <NativeContentContext.Provider value={{ foregroundColor: currentForeground, isButton: false }}>
                 {showOverlayArrow && (
                   <NativeFloatingArrow
