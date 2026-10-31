@@ -16,6 +16,7 @@ import {
   Tooltip,
 } from "../../.."
 import { NATIVE_DEFAULT_SLOT } from "../../../collection/context"
+import { untypedFontWeight } from "../../__tests__/untypedFontWeight"
 import type { OverlayTriggerState } from "../../ComboBox/state/useOverlayTriggerState"
 import { NativeRootMenuTriggerStateContext } from "../../Menu/context"
 import type { TNativeRootMenuTriggerState } from "../../Menu/triggerState"
@@ -321,10 +322,14 @@ it("preserves explicit dialog metrics and original refs through ancestor updates
 
 it("requires explicit scalar migration for an effective private dialog weight while retaining final overrides", async () => {
   await expect(
-    render(<NativePopoverDialog nativeBaselineStyle={{ fontWeight: 750.5 }} nativeFocusable />),
+    render(<NativePopoverDialog nativeBaselineStyle={{ fontWeight: untypedFontWeight(750.5) }} nativeFocusable />),
   ).rejects.toThrow("fontWeight must use a stock React Native weight")
   await render(
-    <NativePopoverDialog nativeBaselineStyle={{ fontWeight: 750.5 }} style={{ fontWeight: "700" }} nativeFocusable />,
+    <NativePopoverDialog
+      nativeBaselineStyle={{ fontWeight: untypedFontWeight(750.5) }}
+      style={{ fontWeight: "700" }}
+      nativeFocusable
+    />,
   )
 })
 

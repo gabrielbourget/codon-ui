@@ -3,6 +3,7 @@ import { createRef } from "react"
 import { AccessibilityInfo, type TextStyle, type View } from "react-native"
 
 import { Link, NativeFocusView, Pagination } from "../../.."
+import { untypedFontWeight } from "../../__tests__/untypedFontWeight"
 import { NativeTextStyleProvider } from "../../NativeTextStyleProvider"
 import { NativeBreadcrumbsRoot } from "../NativeBreadcrumbsRoot"
 
@@ -93,9 +94,9 @@ it.each(["Breadcrumbs", "Pagination"] as const)(
           style={style}
         />
       )
-    await expect(render(node({ fontWeight: 750.5 }))).rejects.toThrow(
+    await expect(render(node({ fontWeight: untypedFontWeight(750.5) }))).rejects.toThrow(
       `${owner}: fontWeight must use a stock React Native weight; migrate custom scalar weights explicitly`,
     )
-    await render(node({ fontWeight: 750.5 }, { fontWeight: "700" }))
+    await render(node({ fontWeight: untypedFontWeight(750.5) }, { fontWeight: "700" }))
   },
 )

@@ -10,6 +10,7 @@ import {
   type TNativeButtonProps,
   type TNativeButtonStyleState,
 } from "../../.."
+import { untypedFontWeight } from "../../__tests__/untypedFontWeight"
 import { NativeTextStyleProvider } from "../../NativeTextStyleProvider"
 import { NativeButton } from "../Button"
 
@@ -330,7 +331,7 @@ it("retains exact supported weight endpoints through final style and theme updat
 it.each(["custom", "final", "composed"] as const)(
   "requires an explicit migration for an unsupported %s weight",
   async (owner) => {
-    const fontWeight = 750.5
+    const fontWeight = untypedFontWeight(750.5)
     await expect(
       render(
         owner === "composed" ? (

@@ -13,6 +13,7 @@ import {
   type TNativeCircularProgressRootRender,
   type TNativeTextRef,
 } from "../../.."
+import { untypedFontWeight } from "../../__tests__/untypedFontWeight"
 import { NativeTextStyleProvider } from "../../NativeTextStyleProvider"
 
 beforeEach(() => jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true))
@@ -154,7 +155,7 @@ it.each(["FormField", "Counter", "CircularProgress"] as const)(
 it.each(["FormField", "Counter"] as const)(
   "requires explicit migration of unsupported %s root weights",
   async (owner) => {
-    const scalar = { fontWeight: 750.5 }
+    const scalar = { fontWeight: untypedFontWeight(750.5) }
     await expect(
       render(owner === "Counter" ? <Counter value={0} customStyles={scalar} /> : <FormField customStyles={scalar} />),
     ).rejects.toThrow(

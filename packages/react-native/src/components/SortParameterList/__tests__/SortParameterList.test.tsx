@@ -12,6 +12,7 @@ import {
 import { nativeVirtualDrag } from "../../../collection/dragAndDrop/virtualDrag"
 import { NativeDragActionsContext } from "../../../input/nativeDragActions"
 import { NativeThemeProvider } from "../../../theme"
+import { untypedFontWeight } from "../../__tests__/untypedFontWeight"
 import { NativeTextStyleProvider } from "../../NativeTextStyleProvider"
 import { createSortDragFixture } from "../../SortAndFilterPanel/__tests__/fixtures/SortDragFixture"
 import { reorderNativeSortParameters } from "../reorder"
@@ -161,10 +162,10 @@ it("keeps explicit row metrics and actual row identity through ancestor updates 
 })
 
 it("requires explicit scalar migration for root weights while retaining supported final overrides", async () => {
-  await expect(render(tree({ style: { fontWeight: 750.5 } }))).rejects.toThrow(
+  await expect(render(tree({ style: { fontWeight: untypedFontWeight(750.5) } }))).rejects.toThrow(
     "fontWeight must use a stock React Native weight",
   )
-  await render(tree({ customStyles: { fontWeight: 750.5 }, style: { fontWeight: "700" } }))
+  await render(tree({ customStyles: { fontWeight: untypedFontWeight(750.5) }, style: { fontWeight: "700" } }))
 })
 
 it("retains the actual pinned reorder semantics, identities and empty/missing-key outcomes", () => {

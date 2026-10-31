@@ -64,7 +64,8 @@ it("renders supported weight endpoints through the real native value driver whil
   }
   const weightBinding = {
     get: readWeight,
-    on: (event: "change", callback: (weight: number) => void) => fontWeight.on(event, () => callback(readWeight())),
+    on: (event: "change", callback: (weight: ReturnType<typeof readWeight>) => void) =>
+      fontWeight.on(event, () => callback(readWeight())),
   }
   const node = (fontFamily: string) => (
     <NativeTextStyleProvider style={{ fontFamily }}>

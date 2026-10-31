@@ -32,6 +32,19 @@ export const InvalidTextLabel = <Text htmlFor="input" />
 export const InvalidTextClick = <Text onClick={() => undefined} />
 // @ts-expect-error Native font sizes are numeric logical units.
 export const InvalidTextUnit = <Text style={{ fontSize: "1.4rem" }} />
+export const SupportedStockWeights = <Text customStyles={{ fontWeight: 500 }} style={{ fontWeight: "700" }} />
+// @ts-expect-error Fractional weights require explicit migration to a stock endpoint.
+export const InvalidFractionalWeight = <Text customStyles={{ fontWeight: 750.5 }} />
+// @ts-expect-error Arbitrary numeric weights are not stock native endpoints.
+export const InvalidNumericWeight = <Text style={{ fontWeight: 550 }} />
+export const InvalidThemeWeight: NativeThemeOverrides = {
+  typography: {
+    fontWeights: {
+      // @ts-expect-error Theme weights follow the stock native endpoint contract.
+      regular: 750.5,
+    },
+  },
+}
 // @ts-expect-error Only reviewed variant names are public.
 export const InvalidTextVariant = <Text variant="caption" />
 // @ts-expect-error Existing native owners alone can suppress a duplicate color clock.

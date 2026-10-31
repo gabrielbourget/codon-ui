@@ -1,27 +1,3 @@
-diff --git a/Libraries/StyleSheet/StyleSheetTypes.d.ts b/Libraries/StyleSheet/StyleSheetTypes.d.ts
-index c951a773d0ec00ef8edc10875852255634f84af6..9a6e46d53111c981a303028ffc7e91cc97ba27cf 100644
---- a/Libraries/StyleSheet/StyleSheetTypes.d.ts
-+++ b/Libraries/StyleSheet/StyleSheetTypes.d.ts
-@@ -614,6 +614,7 @@ export interface TextStyle extends TextStyleIOS, TextStyleAndroid, ViewStyle {
-     | 700
-     | 800
-     | 900
-+    | number
-     | 'ultralight'
-     | 'thin'
-     | 'light'
-diff --git a/Libraries/StyleSheet/StyleSheetTypes.js b/Libraries/StyleSheet/StyleSheetTypes.js
-index 1bf46c32b078c62f03f692e8f52e96945ffa0bf9..bdd1e6d6c4d14ba22eaaa4f80a9fd9809506c904 100644
---- a/Libraries/StyleSheet/StyleSheetTypes.js
-+++ b/Libraries/StyleSheet/StyleSheetTypes.js
-@@ -946,6 +946,7 @@ export type ____FontWeight_Internal =
-   | 700
-   | 800
-   | 900
-+  | number
-   | 'ultralight'
-   | 'thin'
-   | 'light'
 diff --git a/Libraries/Text/TextInput/Multiline/RCTUITextView.h b/Libraries/Text/TextInput/Multiline/RCTUITextView.h
 index be946f87bbe3112dbeb7619b3f93e19d86eb6ec2..3038784f13890da03449535e00b8daacda186a3d 100644
 --- a/Libraries/Text/TextInput/Multiline/RCTUITextView.h
@@ -306,20 +282,22 @@ index 60dfc922f9e9ac2aef450b9bf8a87b654658d226..bc7fad941fdbe0ae981df1cf1cef3be3
  {
    UIView *container = (UIView *)self.accessibilityContainer;
 diff --git a/React/Fabric/Mounting/ComponentViews/Text/RCTParagraphComponentView.h b/React/Fabric/Mounting/ComponentViews/Text/RCTParagraphComponentView.h
+index 0744e4a530c86bf1cd9251f3108a311ec3d6d8b7..15fc9787af9a1a0b2d83a0785d56de806ea7aa89 100644
 --- a/React/Fabric/Mounting/ComponentViews/Text/RCTParagraphComponentView.h
 +++ b/React/Fabric/Mounting/ComponentViews/Text/RCTParagraphComponentView.h
-@@ -22,6 +22,10 @@
+@@ -22,6 +22,10 @@ NS_ASSUME_NONNULL_BEGIN
   */
  @property (nonatomic, nullable, readonly) NSAttributedString *attributedText;
-
+ 
 +// Opt-in paint only. Layout, full attributed text, refs, selection and AT stay original.
 +- (BOOL)cuiSetClampOwner:(uint64_t)owner lines:(NSInteger)lines props:(uintptr_t)props state:(uintptr_t)state;
 +- (void)cuiClearClampOwner:(uint64_t)owner;
 +
  @end
-
+ 
  NS_ASSUME_NONNULL_END
 diff --git a/React/Fabric/Mounting/ComponentViews/Text/RCTParagraphComponentView.mm b/React/Fabric/Mounting/ComponentViews/Text/RCTParagraphComponentView.mm
+index 07fb9c4e7b674182a40d57b7ad5f70fc71503d34..b5327d9880a5e945a940f5ce51bec28b235a6d29 100644
 --- a/React/Fabric/Mounting/ComponentViews/Text/RCTParagraphComponentView.mm
 +++ b/React/Fabric/Mounting/ComponentViews/Text/RCTParagraphComponentView.mm
 @@ -1,3 +1,4 @@
@@ -327,26 +305,26 @@ diff --git a/React/Fabric/Mounting/ComponentViews/Text/RCTParagraphComponentView
  /*
   * Copyright (c) Meta Platforms, Inc. and affiliates.
   *
-@@ -31,6 +32,7 @@
+@@ -31,6 +32,7 @@ using namespace facebook::react;
  @property (nonatomic) ParagraphShadowNode::ConcreteState::Shared state;
  @property (nonatomic) ParagraphAttributes paragraphAttributes;
  @property (nonatomic) LayoutMetrics layoutMetrics;
 +@property (nonatomic) NSInteger cuiClampLines;
-
+ 
  @end
-
-@@ -47,6 +49,7 @@
-
+ 
+@@ -47,6 +49,7 @@ using namespace facebook::react;
+ 
  @implementation RCTParagraphComponentView {
    ParagraphAttributes _paragraphAttributes;
 +  uint64_t _cuiClampOwner;
    RCTParagraphComponentAccessibilityProvider *_accessibilityProvider;
    UILongPressGestureRecognizer *_longPressGestureRecognizer;
    RCTParagraphTextView *_textView;
-@@ -120,8 +123,26 @@
+@@ -120,8 +123,26 @@ using namespace facebook::react;
    [super updateProps:props oldProps:oldProps];
  }
-
+ 
 +- (BOOL)cuiSetClampOwner:(uint64_t)owner lines:(NSInteger)lines props:(uintptr_t)props state:(uintptr_t)state
 +{
 +  if (!_textView.state || reinterpret_cast<uintptr_t>(_props.get()) != props ||
@@ -370,7 +348,7 @@ diff --git a/React/Fabric/Mounting/ComponentViews/Text/RCTParagraphComponentView
    _textView.state = std::static_pointer_cast<const ParagraphShadowNode::ConcreteState>(state);
    [_textView setNeedsDisplay];
    [self setNeedsLayout];
-@@ -141,6 +162,8 @@
+@@ -141,6 +162,8 @@ using namespace facebook::react;
  - (void)prepareForRecycle
  {
    [super prepareForRecycle];
@@ -379,32 +357,32 @@ diff --git a/React/Fabric/Mounting/ComponentViews/Text/RCTParagraphComponentView
    _textView.state = nullptr;
    _accessibilityProvider = nil;
  }
-@@ -176,7 +199,7 @@
+@@ -176,7 +199,7 @@ using namespace facebook::react;
    return NO;
  }
-
+ 
 -- (NSArray *)accessibilityElements
 +- (NSArray *)rctOriginalAccessibilityElements
  {
    const auto &paragraphProps = static_cast<const ParagraphProps &>(*_props);
-
-@@ -210,6 +233,12 @@
-         elements[0].accessibilityTraits & UIAccessibilityTraitLink || ![self isAccessibilityCoopted];
-   }
+ 
+@@ -212,6 +235,12 @@ using namespace facebook::react;
    return elements;
-+}
-+
+ }
+ 
 +- (NSArray *)accessibilityElements
 +{
 +  NSArray *original = RCTReadOriginalAccessibilityValue(^id { return [self rctOriginalAccessibilityElements]; });
 +  return RCTProjectAccessibilityChildren(self, self, original);
- }
-
++}
++
  - (BOOL)isAccessibilityCoopted
-@@ -270,8 +299,14 @@
+ {
+   UIView *ancestor = self.superview;
+@@ -270,8 +299,14 @@ using namespace facebook::react;
        (RCTTextLayoutManager *)unwrapManagedObject(textLayoutManager->getNativeTextLayoutManager());
    CGRect frame = RCTCGRectFromRect(_layoutMetrics.getContentFrame());
-
+ 
 +  auto presentation = _paragraphAttributes;
 +  if (_textView.cuiClampLines > 0) {
 +    if (presentation.maximumNumberOfLines == 0 || presentation.maximumNumberOfLines > _textView.cuiClampLines)
@@ -416,11 +394,11 @@ diff --git a/React/Fabric/Mounting/ComponentViews/Text/RCTParagraphComponentView
 +                                                              paragraphAttributes:presentation
                                                                              frame:frame
                                                                            atPoint:point];
-
-@@ -406,8 +441,14 @@
-
+ 
+@@ -406,8 +441,14 @@ Class<RCTComponentViewProtocol> RCTParagraphCls(void)
+ 
    CGRect frame = RCTCGRectFromRect(_layoutMetrics.getContentFrame());
-
+ 
 +  auto presentation = _paragraphAttributes;
 +  if (_cuiClampLines > 0) {
 +    if (presentation.maximumNumberOfLines == 0 || presentation.maximumNumberOfLines > _cuiClampLines)
@@ -433,6 +411,27 @@ diff --git a/React/Fabric/Mounting/ComponentViews/Text/RCTParagraphComponentView
                                            frame:frame
                                drawHighlightPath:^(UIBezierPath *highlightPath) {
                                  if (highlightPath) {
+diff --git a/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm b/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
+index 917dc6d88e2840351f6ca1a3c697ffc467dec933..7f3998b3eecb44949ce265858ba2ed5560d118a7 100644
+--- a/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
++++ b/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
+@@ -9,6 +9,7 @@
+ 
+ #import <react/featureflags/ReactNativeFeatureFlags.h>
+ #import <react/renderer/components/iostextinput/TextInputComponentDescriptor.h>
++#import <react/utils/ManagedObjectWrapper.h>
+ #import <react/renderer/textlayoutmanager/RCTAttributedTextUtils.h>
+ #import <react/renderer/textlayoutmanager/TextLayoutManager.h>
+ 
+@@ -730,6 +731,8 @@ static NSSet<NSNumber *> *returnKeyTypesSet;
+   auto data = _state->getData();
+   _lastStringStateWasUpdatedWith = attributedString;
+   data.attributedStringBox = RCTAttributedStringBoxFromNSAttributedString(attributedString);
++  if (findCuiTextSnapshotSource(self.tag))
++    data.cuiTextSnapshotSource = captureCuiTextSnapshot(self.tag, wrapManagedObject(attributedString));
+   _mostRecentEventCount += _comingFromJS ? 0 : 1;
+   data.mostRecentEventCount = _mostRecentEventCount;
+   _state->updateState(std::move(data));
 diff --git a/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm b/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
 index b033b7c71914d287470b7b86bd6bf39d311294ba..28fb5349ce77226d3a1976ad8adefb866f9f05cd 100644
 --- a/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
@@ -1018,72 +1017,11 @@ index 0000000000000000000000000000000000000000..eafb0364d5575ce94ee9f12746f751ec
 +  }
 +  public static boolean allowsAction(View view) { Receiver current=receiver.get(); int mode=current==null?ORIGINAL:current.mode(view); return mode==ORIGINAL || mode==ALLOWED; }
 +}
-diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactFontWeightScalar.kt b/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactFontWeightScalar.kt
-new file mode 100644
-index 0000000000000000000000000000000000000000..a282cce3626f087da5d3eeb125eb4204be628d5d
---- /dev/null
-+++ b/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactFontWeightScalar.kt
-@@ -0,0 +1,56 @@
-+/*
-+ * Copyright (c) Meta Platforms, Inc. and affiliates.
-+ *
-+ * This source code is licensed under the MIT license found in the
-+ * LICENSE file in the root directory of this source tree.
-+ */
-+
-+package com.facebook.react.views.text
-+
-+import android.graphics.Paint
-+import android.graphics.fonts.FontVariationAxis
-+import android.os.Build
-+import java.util.WeakHashMap
-+
-+/** Scalar transport remains exact; native face matching remains the original peer policy. */
-+public object ReactFontWeightScalar {
-+  private data class Applied(val baseline: String?, val settings: String)
-+  private val applied = WeakHashMap<Paint, Applied>()
-+
-+  @JvmStatic
-+  public fun parse(value: String?): Double {
-+    val scalar = when (value) {
-+      "normal", "regular" -> 400.0
-+      "bold" -> 700.0
-+      else -> value?.toDoubleOrNull() ?: Double.NaN
-+    }
-+    return if (scalar.isFinite() && scalar >= 1 && scalar <= 1000) scalar else Double.NaN
-+  }
-+
-+  /** Replaces only the owned wght entry; removal restores the prior original Paint settings. */
-+  @JvmStatic
-+  public fun apply(paint: Paint, scalar: Double): Boolean {
-+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return false
-+    synchronized(applied) {
-+      val old = applied[paint]
-+      val current = paint.fontVariationSettings
-+      val baseline = if (old != null && current == old.settings) old.baseline else current
-+      if (!scalar.isFinite()) {
-+        if (old != null && current == old.settings) paint.setFontVariationSettings(baseline)
-+        applied.remove(paint)
-+        return false
-+      }
-+      val axes = FontVariationAxis.fromFontVariationSettings(baseline)?.toMutableList() ?: mutableListOf()
-+      axes.removeAll { it.tag == "wght" }
-+      axes.add(FontVariationAxis("wght", scalar.toFloat()))
-+      val settings = FontVariationAxis.toFontVariationSettings(axes.toTypedArray())
-+      val accepted = paint.setFontVariationSettings(settings)
-+      if (accepted) applied[paint] = Applied(baseline, settings)
-+      else {
-+        if (old != null && current == old.settings) paint.setFontVariationSettings(baseline)
-+        applied.remove(paint)
-+      }
-+      return accepted
-+    }
-+  }
-+}
 diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextView.java b/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextView.java
+index 1268eab6e6e5b97bf1bfcf2acd5598623d52318a..9cf976a344a499e35d124f8cec99d3e10c9547bc 100644
 --- a/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextView.java
 +++ b/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextView.java
-@@ -12,6 +12,12 @@
+@@ -12,6 +12,12 @@ import android.graphics.Canvas;
  import android.graphics.Rect;
  import android.os.Build;
  import android.text.Layout;
@@ -1096,9 +1034,9 @@ diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextV
  import android.text.Spannable;
  import android.text.SpannableString;
  import android.text.Spanned;
-@@ -60,6 +66,71 @@
+@@ -60,6 +66,71 @@ public class ReactTextView extends AppCompatTextView implements ReactCompoundVie
    private static final int DEFAULT_GRAVITY = Gravity.TOP | Gravity.START;
-
+ 
    private int mNumberOfLines;
 +  private String mCuiProps = "", mCuiState = "", mCuiOwner = "";
 +  private int mCuiLines;
@@ -1168,7 +1106,7 @@ diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextV
    private @Nullable TextUtils.TruncateAt mEllipsizeLocation;
    private boolean mAdjustsFontSizeToFit;
    private float mFontSize;
-@@ -84,6 +155,7 @@
+@@ -84,6 +155,7 @@ public class ReactTextView extends AppCompatTextView implements ReactCompoundVie
     * ReactTextView is recycled.
     */
    private void initView() {
@@ -1176,35 +1114,35 @@ diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextV
      mNumberOfLines = ViewDefaults.NUMBER_OF_LINES;
      mAdjustsFontSizeToFit = false;
      mLinkifyMaskType = 0;
-@@ -212,7 +284,7 @@
+@@ -212,7 +284,7 @@ public class ReactTextView extends AppCompatTextView implements ReactCompoundVie
          BackgroundStyleApplicator.clipToPaddingBox(this, canvas);
        }
-
+ 
 -      super.onDraw(canvas);
 +      if (!drawCuiClamp(canvas)) super.onDraw(canvas);
      }
    }
-
-@@ -267,7 +339,8 @@
+ 
+@@ -267,7 +339,8 @@ public class ReactTextView extends AppCompatTextView implements ReactCompoundVie
      int x = (int) touchX;
      int y = (int) touchY;
-
+ 
 -    Layout layout = getLayout();
 +    Layout projected = cuiClampLayout();
 +    Layout layout = projected == null ? getLayout() : projected;
      if (layout == null) {
        // If the layout is null, the view hasn't been properly laid out yet. Therefore, we can't find
        // the exact text tag that has been touched, and the correct tag to return is the default one.
-@@ -289,6 +362,9 @@
-         FLog.e(ReactConstants.TAG, "Crash in HorizontalMeasurementProvider: " + e.getMessage());
+@@ -290,6 +363,9 @@ public class ReactTextView extends AppCompatTextView implements ReactCompoundVie
          return target;
        }
-+
+ 
 +      if (projected != null && layout.getEllipsisCount(line) > 0 &&
 +          index >= layout.getLineStart(line) + layout.getEllipsisStart(line)) return target;
-
++
        // We choose the most inner span (shortest) containing character at the given index
        // if no such span can be found we will send the textview's react id as a touch handler
+       // In case when there are more than one spans with same length we choose the last one
 diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextViewAccessibilityDelegate.kt b/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextViewAccessibilityDelegate.kt
 index 6834a329ac6ce13dfe222fe43cee957afe4150a1..0e2a0c97225e73e9d2398b0d3914b08929b5a7bb 100644
 --- a/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextViewAccessibilityDelegate.kt
@@ -1317,9 +1255,10 @@ index 6834a329ac6ce13dfe222fe43cee957afe4150a1..0e2a0c97225e73e9d2398b0d3914b089
  
    private fun getBoundsInParent(accessibleLink: AccessibilityLinks.AccessibleLink): Rect? {
 diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextViewManager.kt b/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextViewManager.kt
+index b5696f22533d80447b1126879a51faf6383ddb24..2562c943d931b27867589d9691a717124791fd69 100644
 --- a/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextViewManager.kt
 +++ b/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextViewManager.kt
-@@ -133,6 +133,12 @@
+@@ -133,6 +133,12 @@ public constructor(
        stateWrapper: StateWrapper,
    ): Any? {
      SystraceSection("ReactTextViewManager.updateState").use { s ->
@@ -1332,65 +1271,14 @@ diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTextV
        val refState = (stateWrapper as? ReferenceStateWrapper)?.stateDataReference
        if (refState is PreparedLayout) {
          return getReactTextUpdateFromPreparedLayout(view, refState)
-diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTypefaceUtils.kt b/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTypefaceUtils.kt
-index e33daa691f3174e611ccb93ad511582365d3b51f..e87c7b0b05f4c845d50a1c370ff982b769b4f807 100644
---- a/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTypefaceUtils.kt
-+++ b/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTypefaceUtils.kt
-@@ -16,21 +16,10 @@ import com.facebook.react.common.assets.ReactFontManager
- public object ReactTypefaceUtils {
- 
-   @JvmStatic
--  public fun parseFontWeight(fontWeightString: String?): Int =
--      when (fontWeightString) {
--        "100" -> 100
--        "200" -> 200
--        "300" -> 300
--        "normal",
--        "400" -> 400
--        "500" -> 500
--        "600" -> 600
--        "bold",
--        "700" -> 700
--        "800" -> 800
--        "900" -> 900
--        else -> ReactConstants.UNSET
--      }
-+  public fun parseFontWeight(fontWeightString: String?): Int {
-+    val scalar = ReactFontWeightScalar.parse(fontWeightString)
-+    return if (scalar.isFinite()) scalar.toInt() else ReactConstants.UNSET
-+  }
- 
-   @JvmStatic
-   public fun parseFontStyle(fontStyleString: String?): Int =
-diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt b/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt
-index 45c8bec4c2b8adf3004edfaa20e52c98e577351b..5371721f9178da273a42243eaba371070aae9a7c 100644
---- a/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt
-+++ b/ReactAndroid/src/main/java/com/facebook/react/views/text/TextAttributeProps.kt
-@@ -106,6 +106,9 @@ public class TextAttributeProps private constructor() {
-   public var fontWeight: Int = ReactConstants.UNSET
-     private set
- 
-+  public var fontWeightScalar: Double = Double.NaN
-+    private set
-+
-   /**
-    * NB: If a font family is used that does not have a style in a certain Android version (ie.
-    * monospace bold pre Android 5.0), that style (ie. bold) will not be inherited by nested Text
-@@ -242,6 +245,7 @@ public class TextAttributeProps private constructor() {
- 
-   private fun setFontWeight(fontWeightString: String?) {
-     fontWeight = parseFontWeight(fontWeightString)
-+    fontWeightScalar = ReactFontWeightScalar.parse(fontWeightString)
-   }
- 
-   private fun setFontStyle(fontStyleString: String?) {
 diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt b/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
+index eacec697670d254229a59813220b594847f1d828..000fa474e8da1875e7303567438257c1f935ed9f 100644
 --- a/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
 +++ b/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt
-@@ -105,6 +105,35 @@
-
+@@ -105,6 +105,35 @@ internal object TextLayoutManager {
+ 
    private val tagToSpannableCache = ConcurrentHashMap<Int, Spannable>()
-
+ 
 +  interface CuiTextSnapshotObserver {
 +    // UI producer copies only; implementations never mutate the supplied native cache.
 +    fun published(original: Spannable)
@@ -1423,8 +1311,8 @@ diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayout
    // Lazily cached Method for StaticLayout.Builder.setUseBoundsForWidth (API 35+).
    // Reflection is needed because some internal targets compile against an SDK older than 35.
    private val setUseBoundsForWidthMethod: java.lang.reflect.Method? by lazy {
-@@ -119,10 +148,16 @@
-
+@@ -119,10 +148,16 @@ internal object TextLayoutManager {
+ 
    fun setCachedSpannableForTag(reactTag: Int, sp: Spannable): Unit {
      tagToSpannableCache[reactTag] = sp
 +    val observer = cuiTextSnapshotObservers[reactTag]?.observer
@@ -1432,111 +1320,19 @@ diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayout
 +      cuiPublishTextSnapshot(observer, sp)
 +    }
    }
-
+ 
    fun deleteCachedSpannableForTag(reactTag: Int): Unit {
      tagToSpannableCache.remove(reactTag)
 +    try { cuiTextSnapshotObservers[reactTag]?.observer?.cleared() }
 +    catch (_: RuntimeException) { /* Observation cannot interrupt original cache retirement. */ }
    }
-
+ 
    fun isRTL(attributedString: MapBuffer): Boolean {
-@@ -310,6 +345,7 @@
-                       textAttributes.fontFeatureSettings,
-                       textAttributes.fontFamily,
-                       assets,
-+                      textAttributes.fontWeightScalar,
-                   ),
-               )
-           )
-@@ -486,6 +522,7 @@
-                   fragment.props.fontFeatureSettings,
-                   fragment.props.fontFamily,
-                   assets,
-+                  fragment.props.fontWeightScalar,
-               ),
-               start,
-               end,
-@@ -731,6 +768,7 @@
-         paint.textSkewX = if ((missingStyle and Typeface.ITALIC) != 0) -0.25f else 0f
-       }
-     }
-+    ReactFontWeightScalar.apply(paint, baseTextAttributes.fontWeightScalar)
-   }
-
-   /**
-diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/CustomStyleSpan.kt b/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/CustomStyleSpan.kt
-index dec85221456093ba1462641cb6843c2a9e146dd5..622574aa231db222690aebe0470a9b47bb409a0d 100644
---- a/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/CustomStyleSpan.kt
-+++ b/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/CustomStyleSpan.kt
-@@ -15,6 +15,7 @@ import android.text.style.MetricAffectingSpan
- import com.facebook.react.common.ReactConstants
- import com.facebook.react.common.assets.ReactFontManager
- import com.facebook.react.views.text.ReactTypefaceUtils
-+import com.facebook.react.views.text.ReactFontWeightScalar
- 
- /**
-  * A [MetricAffectingSpan] that allows to change the style of the displayed font. CustomStyleSpan
-@@ -27,19 +28,20 @@ import com.facebook.react.views.text.ReactTypefaceUtils
-  * appropriate default typeface depending on the style. Fonts are retrieved and cached using the
-  * [ReactFontManager]
-  */
--internal class CustomStyleSpan(
-+internal class CustomStyleSpan @JvmOverloads constructor(
-     private val privateStyle: Int,
-     private val privateWeight: Int,
-     val fontFeatureSettings: String?,
-     val fontFamily: String?,
-     private val assetManager: AssetManager,
-+    val weightScalar: Double = Double.NaN,
- ) : MetricAffectingSpan(), ReactSpan {
-   override fun updateDrawState(ds: TextPaint) {
--    apply(ds, privateStyle, privateWeight, fontFeatureSettings, fontFamily, assetManager)
-+    apply(ds, privateStyle, privateWeight, fontFeatureSettings, fontFamily, assetManager, weightScalar)
-   }
- 
-   override fun updateMeasureState(paint: TextPaint) {
--    apply(paint, privateStyle, privateWeight, fontFeatureSettings, fontFamily, assetManager)
-+    apply(paint, privateStyle, privateWeight, fontFeatureSettings, fontFamily, assetManager, weightScalar)
-   }
- 
-   val style: Int
-@@ -66,6 +68,7 @@ internal class CustomStyleSpan(
-         fontFeatureSettingsParam: String?,
-         family: String?,
-         assetManager: AssetManager,
-+        weightScalar: Double,
-     ) {
-       val typeface =
-           ReactTypefaceUtils.applyStyles(paint.typeface, style, weight, family, assetManager)
-@@ -74,6 +77,7 @@ internal class CustomStyleSpan(
-         setTypeface(typeface)
-         isSubpixelText = true
-         isLinearText = true
-+        ReactFontWeightScalar.apply(this, weightScalar)
-       }
-     }
-   }
 diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt b/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt
-index b8c3b7e1b740af8ea8abffb4a30b56281c02790c..ac746e49e4c281349bc0fa601a47c9ce9b256779 100644
+index b8c3b7e1b740af8ea8abffb4a30b56281c02790c..5b17dd5f879638403b0976ce5be690f791390d63 100644
 --- a/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt
 +++ b/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt
-@@ -10,6 +10,7 @@ package com.facebook.react.views.textinput
- import android.annotation.SuppressLint
- import android.content.Context
- import android.content.res.Configuration
-+import com.facebook.react.views.text.ReactFontWeightScalar
- import android.graphics.Canvas
- import android.graphics.Color
- import android.graphics.Paint
-@@ -130,6 +131,7 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
-   private var typefaceDirty = false
-   private var fontFamily: String? = null
-   private var fontWeight = ReactConstants.UNSET
-+  private var fontWeightScalar = Double.NaN
-   private var fontStyle = ReactConstants.UNSET
-   private var autoFocus = false
-   private var contextMenuHidden = false
-@@ -228,6 +230,7 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
+@@ -228,6 +228,7 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
                  this@ReactEditText.importantForAccessibility,
              ) {
            override fun performAccessibilityAction(host: View, action: Int, args: Bundle?): Boolean {
@@ -1544,45 +1340,6 @@ index b8c3b7e1b740af8ea8abffb4a30b56281c02790c..ac746e49e4c281349bc0fa601a47c9ce
              if (action == AccessibilityNodeInfo.ACTION_CLICK) {
                val length = checkNotNull(text).length
                if (length > 0) {
-@@ -574,8 +577,10 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
- 
-   public fun setFontWeight(fontWeightString: String?) {
-     val fontWeight = parseFontWeight(fontWeightString)
--    if (fontWeight != this.fontWeight) {
-+    val scalar = ReactFontWeightScalar.parse(fontWeightString)
-+    if (fontWeight != this.fontWeight || !(scalar == fontWeightScalar || (scalar.isNaN() && fontWeightScalar.isNaN()))) {
-       this.fontWeight = fontWeight
-+      fontWeightScalar = scalar
-       typefaceDirty = true
-     }
-   }
-@@ -604,6 +609,9 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
- 
-     val newTypeface = applyStyles(typeface, fontStyle, fontWeight, fontFamily, context.assets)
-     typeface = newTypeface
-+    ReactFontWeightScalar.apply(paint, fontWeightScalar)
-+    requestLayout()
-+    invalidate()
- 
-     // Match behavior of CustomStyleSpan and enable SUBPIXEL_TEXT_FLAG when setting anything
-     // nonstandard
-@@ -768,6 +776,7 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
-       span.style == fontStyle &&
-           span.fontFamily == fontFamily &&
-           span.weight == fontWeight &&
-+          (span.weightScalar == fontWeightScalar || (span.weightScalar.isNaN() && fontWeightScalar.isNaN())) &&
-           span.fontFeatureSettings == fontFeatureSettings
-     }
-   }
-@@ -846,7 +855,7 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
-             fontFeatureSettings != null
-     ) {
-       workingText.setSpan(
--          CustomStyleSpan(fontStyle, fontWeight, fontFeatureSettings, fontFamily, context.assets),
-+          CustomStyleSpan(fontStyle, fontWeight, fontFeatureSettings, fontFamily, context.assets, fontWeightScalar),
-           0,
-           workingText.length,
-           spanFlags,
 diff --git a/ReactAndroid/src/main/java/com/facebook/react/views/view/ReactViewGroup.kt b/ReactAndroid/src/main/java/com/facebook/react/views/view/ReactViewGroup.kt
 index 59775241c80bec99ad3ec080f2425aacc8900c24..ba5dc1c3cc8a0afff7fdfe0d52250cf4a6fe37b3 100644
 --- a/ReactAndroid/src/main/java/com/facebook/react/views/view/ReactViewGroup.kt
@@ -1721,348 +1478,11 @@ index 59775241c80bec99ad3ec080f2425aacc8900c24..ba5dc1c3cc8a0afff7fdfe0d52250cf4
      }
    }
  
-diff --git a/ReactCommon/react/renderer/attributedstring/FontWeightScalar.h b/ReactCommon/react/renderer/attributedstring/FontWeightScalar.h
-new file mode 100644
-index 0000000000000000000000000000000000000000..77ebe387c80984230850511f7bedd55fb236afbe
---- /dev/null
-+++ b/ReactCommon/react/renderer/attributedstring/FontWeightScalar.h
-@@ -0,0 +1,31 @@
-+#pragma once
-+#include <algorithm>
-+#include <array>
-+#include <cmath>
-+#include <limits>
-+#include <locale>
-+#include <sstream>
-+#include <string>
-+
-+namespace facebook::react {
-+inline double parseFontWeightScalar(const std::string &value) {
-+  if (value == "normal" || value == "regular") return 400;
-+  if (value == "bold") return 700;
-+  std::istringstream parser(value);
-+  parser.imbue(std::locale::classic());
-+  double scalar = std::numeric_limits<double>::quiet_NaN();
-+  parser >> std::noskipws >> scalar;
-+  return parser && parser.eof() && std::isfinite(scalar) && scalar >= 1 && scalar <= 1000
-+      ? scalar : std::numeric_limits<double>::quiet_NaN();
-+}
-+inline bool fontWeightScalarEqual(double first, double second) {
-+  return first == second || (std::isnan(first) && std::isnan(second));
-+}
-+template <typename TWeight>
-+inline TWeight interpolateFontWeight(double scalar, const std::array<TWeight, 9> &weights) {
-+  const double position = std::clamp((scalar-100)/100,0.0,8.0);
-+  const auto first = static_cast<size_t>(std::floor(position));
-+  const auto last = std::min(first+1,weights.size()-1);
-+  return weights[first]+(weights[last]-weights[first])*(position-first);
-+}
-+}
-diff --git a/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp b/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp
-index 69ea8c82fc3f514cc3121c08231194b1515b7bbe..72609600368cbfb44cf9c65df8330be7318ee3be 100644
---- a/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp
-+++ b/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp
-@@ -6,6 +6,7 @@
-  */
- 
- #include "TextAttributes.h"
-+#include "FontWeightScalar.h"
- 
- #include <react/renderer/attributedstring/conversions.h>
- #include <react/renderer/core/conversions.h>
-@@ -36,8 +37,10 @@ void TextAttributes::apply(TextAttributes textAttributes) {
-   fontSizeMultiplier = !std::isnan(textAttributes.fontSizeMultiplier)
-       ? textAttributes.fontSizeMultiplier
-       : fontSizeMultiplier;
--  fontWeight = textAttributes.fontWeight.has_value() ? textAttributes.fontWeight
--                                                     : fontWeight;
-+  if (textAttributes.fontWeight.has_value() || !std::isnan(textAttributes.fontWeightScalar)) {
-+    fontWeight = textAttributes.fontWeight;
-+    fontWeightScalar = textAttributes.fontWeightScalar;
-+  }
-   fontStyle = textAttributes.fontStyle.has_value() ? textAttributes.fontStyle
-                                                    : fontStyle;
-   fontVariant = textAttributes.fontVariant.has_value()
-@@ -167,6 +170,7 @@ bool TextAttributes::operator==(const TextAttributes& rhs) const {
-              rhs.textTransform) &&
-       floatEquality(maxFontSizeMultiplier, rhs.maxFontSizeMultiplier) &&
-       floatEquality(opacity, rhs.opacity) &&
-+      fontWeightScalarEqual(fontWeightScalar, rhs.fontWeightScalar) &&
-       floatEquality(fontSize, rhs.fontSize) &&
-       floatEquality(fontSizeMultiplier, rhs.fontSizeMultiplier) &&
-       floatEquality(letterSpacing, rhs.letterSpacing) &&
-diff --git a/ReactCommon/react/renderer/attributedstring/TextAttributes.h b/ReactCommon/react/renderer/attributedstring/TextAttributes.h
-index b66452408b75220b3acca0f463eae213317b0a5e..8e87d1c43ae33816db6015c090c572d4da672851 100644
---- a/ReactCommon/react/renderer/attributedstring/TextAttributes.h
-+++ b/ReactCommon/react/renderer/attributedstring/TextAttributes.h
-@@ -8,6 +8,7 @@
- #pragma once
- 
- #include <functional>
-+#include <cmath>
- #include <limits>
- #include <optional>
- 
-@@ -48,6 +49,7 @@ class TextAttributes : public DebugStringConvertible {
-   Float fontSize{std::numeric_limits<Float>::quiet_NaN()};
-   Float fontSizeMultiplier{std::numeric_limits<Float>::quiet_NaN()};
-   std::optional<FontWeight> fontWeight{};
-+  double fontWeightScalar{std::numeric_limits<double>::quiet_NaN()};
-   std::optional<FontStyle> fontStyle{};
-   std::optional<FontVariant> fontVariant{};
-   std::optional<bool> allowFontScaling{};
-@@ -118,6 +120,7 @@ struct hash<facebook::react::TextAttributes> {
-         textAttributes.maxFontSizeMultiplier,
-         textAttributes.fontSizeMultiplier,
-         textAttributes.fontWeight,
-+        std::isnan(textAttributes.fontWeightScalar) ? 0.0 : textAttributes.fontWeightScalar,
-         textAttributes.fontStyle,
-         textAttributes.fontVariant,
-         textAttributes.allowFontScaling,
-diff --git a/ReactCommon/react/renderer/attributedstring/TextStyleFields.h b/ReactCommon/react/renderer/attributedstring/TextStyleFields.h
-new file mode 100644
-index 0000000000000000000000000000000000000000..f3dd2de9cab0a7877c50eed1c1795d2e53202c82
---- /dev/null
-+++ b/ReactCommon/react/renderer/attributedstring/TextStyleFields.h
-@@ -0,0 +1,18 @@
-+#pragma once
-+#include <array>
-+#include <cstdint>
-+#include <string_view>
-+
-+namespace facebook::react {
-+inline constexpr std::array<std::string_view,23> TextStyleFieldNames = {
-+  "color", "fontFamily", "fontSize", "fontWeight", "fontStyle", "fontVariant", "letterSpacing", "lineHeight",
-+  "textAlign", "textAlignVertical", "includeFontPadding", "textDecorationLine", "textDecorationStyle",
-+  "textDecorationColor", "textShadowColor", "textShadowOffset", "textShadowRadius", "textTransform", "writingDirection",
-+  "selectable", "fontSizeMultiplier", "allowFontScaling", "maxFontSizeMultiplier"
-+};
-+inline uint64_t textStyleFieldBit(std::string_view name) {
-+  for (size_t index=0;index<TextStyleFieldNames.size();index++)
-+    if (TextStyleFieldNames[index]==name) return uint64_t{1}<<index;
-+  return 0;
-+}
-+}
-diff --git a/ReactCommon/react/renderer/attributedstring/conversions.h b/ReactCommon/react/renderer/attributedstring/conversions.h
-index 331e2019338aa2eaf4539ba8194cd77020117fff..1ff5e176ccdb072d00961306850ea209ddde22ab 100644
---- a/ReactCommon/react/renderer/attributedstring/conversions.h
-+++ b/ReactCommon/react/renderer/attributedstring/conversions.h
-@@ -12,6 +12,7 @@
- #include <react/renderer/attributedstring/AttributedString.h>
- #include <react/renderer/attributedstring/ParagraphAttributes.h>
- #include <react/renderer/attributedstring/TextAttributes.h>
-+#include <react/renderer/attributedstring/FontWeightScalar.h>
- #include <react/renderer/attributedstring/conversions.h>
- #include <react/renderer/attributedstring/primitives.h>
- #include <react/renderer/components/view/accessibilityPropsConversions.h>
-@@ -24,6 +25,8 @@
- #include <react/renderer/css/CSSFontVariant.h>
- #include <react/renderer/css/CSSValueParser.h>
- #include <unordered_map>
-+#include <cstdlib>
-+#include <cmath>
- 
- #ifdef RN_SERIALIZABLE_STATE
- #include <react/renderer/mapbuffer/MapBuffer.h>
-@@ -201,73 +204,26 @@ inline void fromRawValue(const PropsParserContext &context, const RawValue &valu
-   result = TextBreakStrategy::HighQuality;
- }
- 
--inline void fromRawValue(const PropsParserContext &context, const RawValue &value, FontWeight &result)
-+// Keep the CSS scalar distinct from the legacy integral face-selection enum.
-+inline double fontWeightScalarFromRawValue(const RawValue &value)
- {
--  react_native_expect(value.hasType<std::string>() || value.hasType<int>());
-+  double scalar = std::numeric_limits<double>::quiet_NaN();
-   if (value.hasType<std::string>()) {
--    auto string = (std::string)value;
--    if (string == "normal") {
--      result = FontWeight::Regular;
--    } else if (string == "regular") {
--      result = FontWeight::Regular;
--    } else if (string == "bold") {
--      result = FontWeight::Bold;
--    } else if (string == "100") {
--      result = FontWeight::Weight100;
--    } else if (string == "200") {
--      result = FontWeight::Weight200;
--    } else if (string == "300") {
--      result = FontWeight::Weight300;
--    } else if (string == "400") {
--      result = FontWeight::Weight400;
--    } else if (string == "500") {
--      result = FontWeight::Weight500;
--    } else if (string == "600") {
--      result = FontWeight::Weight600;
--    } else if (string == "700") {
--      result = FontWeight::Weight700;
--    } else if (string == "800") {
--      result = FontWeight::Weight800;
--    } else if (string == "900") {
--      result = FontWeight::Weight900;
--    } else {
--      LOG(ERROR) << "Unsupported FontWeight value: " << string;
--      // sane default for prod
--      result = FontWeight::Regular;
--    }
--    return;
-+    return parseFontWeightScalar(static_cast<std::string>(value));
-+  } else if (value.hasType<double>() || value.hasType<int>()) {
-+    scalar = static_cast<double>(value);
-   }
-+  return std::isfinite(scalar) && scalar >= 1 && scalar <= 1000 ? scalar : std::numeric_limits<double>::quiet_NaN();
-+}
- 
--  if (value.hasType<int>()) {
--    auto numeric = (int)value;
--    if (numeric == 100) {
--      result = FontWeight::Weight100;
--    } else if (numeric == 200) {
--      result = FontWeight::Weight200;
--    } else if (numeric == 300) {
--      result = FontWeight::Weight300;
--    } else if (numeric == 400) {
--      result = FontWeight::Weight400;
--    } else if (numeric == 500) {
--      result = FontWeight::Weight500;
--    } else if (numeric == 600) {
--      result = FontWeight::Weight600;
--    } else if (numeric == 700) {
--      result = FontWeight::Weight700;
--    } else if (numeric == 800) {
--      result = FontWeight::Weight800;
--    } else if (numeric == 900) {
--      result = FontWeight::Weight900;
--    } else {
--      LOG(ERROR) << "Unsupported FontWeight value: " << numeric;
--      // sane default for prod
--      result = FontWeight::Regular;
--    }
-+inline void fromRawValue(const PropsParserContext &context, const RawValue &value, FontWeight &result)
-+{
-+  const auto scalar = fontWeightScalarFromRawValue(value);
-+  if (std::isfinite(scalar)) {
-+    result = static_cast<FontWeight>(static_cast<int>(scalar));
-     return;
-   }
--
--  LOG(ERROR) << "Unsupported FontWeight type";
--  react_native_expect(false);
-+  LOG(ERROR) << "Unsupported FontWeight value";
-   result = FontWeight::Regular;
- }
- 
-@@ -1262,7 +1218,9 @@ inline MapBuffer toMapBuffer(const TextAttributes &textAttributes)
-   if (!std::isnan(textAttributes.fontSizeMultiplier)) {
-     builder.putDouble(TA_KEY_FONT_SIZE_MULTIPLIER, textAttributes.fontSizeMultiplier);
-   }
--  if (textAttributes.fontWeight.has_value()) {
-+  if (std::isfinite(textAttributes.fontWeightScalar)) {
-+    builder.putString(TA_KEY_FONT_WEIGHT, folly::to<std::string>(textAttributes.fontWeightScalar));
-+  } else if (textAttributes.fontWeight.has_value()) {
-     builder.putString(TA_KEY_FONT_WEIGHT, toString(*textAttributes.fontWeight));
-   }
-   if (textAttributes.fontStyle.has_value()) {
-diff --git a/ReactCommon/react/renderer/components/text/BaseTextProps.cpp b/ReactCommon/react/renderer/components/text/BaseTextProps.cpp
-index e2ab6780f96d05b96f3ca26fd560dd2308fd9621..297d98688e2e06054d6e4fb8c5d4ea70c2b01787 100644
---- a/ReactCommon/react/renderer/components/text/BaseTextProps.cpp
-+++ b/ReactCommon/react/renderer/components/text/BaseTextProps.cpp
-@@ -56,6 +56,11 @@ static TextAttributes convertRawProp(
-       "fontWeight",
-       sourceTextAttributes.fontWeight,
-       defaultTextAttributes.fontWeight);
-+  if (const auto *weight = rawProps.at("fontWeight", nullptr, nullptr)) {
-+    textAttributes.fontWeightScalar = weight->hasValue() ? fontWeightScalarFromRawValue(*weight) : defaultTextAttributes.fontWeightScalar;
-+  } else {
-+    textAttributes.fontWeightScalar = sourceTextAttributes.fontWeightScalar;
-+  }
-   textAttributes.fontStyle = convertRawProp(
-       context,
-       rawProps,
-@@ -237,13 +242,28 @@ BaseTextProps::BaseTextProps(
-                     context,
-                     rawProps,
-                     sourceProps.textAttributes,
--                    TextAttributes{})) {};
-+                    TextAttributes{})),
-+      textStyleDeclaredFields(sourceProps.textStyleDeclaredFields) {
-+  if (!ReactNativeFeatureFlags::enableCppPropsIteratorSetter()) {
-+    for (const auto field : TextStyleFieldNames) {
-+      const auto *value = rawProps.at(field.data(), nullptr, nullptr);
-+      if (!value) continue;
-+      const auto bit = textStyleFieldBit(field);
-+      if (value->hasValue()) textStyleDeclaredFields |= bit;
-+      else textStyleDeclaredFields &= ~bit;
-+    }
-+  }
-+};
- 
- void BaseTextProps::setProp(
-     const PropsParserContext& context,
-     RawPropsPropNameHash hash,
--    const char* /*propName*/,
-+    const char* propName,
-     const RawValue& value) {
-+  if (const auto bit = propName ? textStyleFieldBit(propName) : 0) {
-+    if (value.hasValue()) textStyleDeclaredFields |= bit;
-+    else textStyleDeclaredFields &= ~bit;
-+  }
-   static auto defaults = TextAttributes{};
- 
-   switch (hash) {
-@@ -259,8 +279,12 @@ void BaseTextProps::setProp(
-         textAttributes,
-         fontSizeMultiplier,
-         "fontSizeMultiplier");
--    REBUILD_FIELD_SWITCH_CASE(
--        defaults, value, textAttributes, fontWeight, "fontWeight");
-+    case CONSTEXPR_RAW_PROPS_KEY_HASH("fontWeight"): {
-+      textAttributes.fontWeight = value.hasValue() ? std::optional<FontWeight>{} : defaults.fontWeight;
-+      textAttributes.fontWeightScalar = value.hasValue() ? fontWeightScalarFromRawValue(value) : defaults.fontWeightScalar;
-+      if (value.hasValue()) { FontWeight weight; fromRawValue(context, value, weight); textAttributes.fontWeight = weight; }
-+      return;
-+    }
-     REBUILD_FIELD_SWITCH_CASE(
-         defaults, value, textAttributes, fontStyle, "fontStyle");
-     REBUILD_FIELD_SWITCH_CASE(
-@@ -377,8 +401,11 @@ void BaseTextProps::appendTextAttributesProps(
-     result["fontSizeMultiplier"] = textAttributes.fontSizeMultiplier;
-   }
- 
--  if (textAttributes.fontWeight != oldProps->textAttributes.fontWeight) {
--    result["fontWeight"] = textAttributes.fontWeight.has_value()
-+  if (textAttributes.fontWeight != oldProps->textAttributes.fontWeight ||
-+      !fontWeightScalarEqual(textAttributes.fontWeightScalar, oldProps->textAttributes.fontWeightScalar)) {
-+    result["fontWeight"] = std::isfinite(textAttributes.fontWeightScalar)
-+        ? folly::dynamic(folly::to<std::string>(textAttributes.fontWeightScalar))
-+        : textAttributes.fontWeight.has_value()
-         ? toString(textAttributes.fontWeight.value())
-         : folly::dynamic(nullptr);
-   }
-diff --git a/ReactCommon/react/renderer/components/text/BaseTextProps.h b/ReactCommon/react/renderer/components/text/BaseTextProps.h
-index 732288d87c4494269848c27d132d564068414cf5..fbf923cdb702d7ba14022485231783074f4b3fd4 100644
---- a/ReactCommon/react/renderer/components/text/BaseTextProps.h
-+++ b/ReactCommon/react/renderer/components/text/BaseTextProps.h
-@@ -6,6 +6,7 @@
-  */
- 
- #pragma once
-+#include <react/renderer/attributedstring/TextStyleFields.h>
- 
- #include <react/renderer/attributedstring/TextAttributes.h>
- #include <react/renderer/core/Props.h>
-@@ -29,6 +30,7 @@ class BaseTextProps {
- #pragma mark - Props
- 
-   TextAttributes textAttributes{};
-+  uint64_t textStyleDeclaredFields{0};
- 
- #pragma mark - DebugStringConvertible (partially)
- 
 diff --git a/ReactCommon/react/renderer/components/text/ParagraphShadowNode.cpp b/ReactCommon/react/renderer/components/text/ParagraphShadowNode.cpp
+index 17b14c439f16534365c1fb41b3f10a4e12f59001..1504b2a68fdfd8354895dd9edd049368799bca67 100644
 --- a/ReactCommon/react/renderer/components/text/ParagraphShadowNode.cpp
 +++ b/ReactCommon/react/renderer/components/text/ParagraphShadowNode.cpp
-@@ -57,7 +57,9 @@
+@@ -57,7 +57,9 @@ ParagraphShadowNode::ParagraphShadowNode(
  ParagraphShadowNode::ParagraphShadowNode(
      const ShadowNode& sourceShadowNode,
      const ShadowNodeFragment& fragment)
@@ -2072,23 +1492,23 @@ diff --git a/ReactCommon/react/renderer/components/text/ParagraphShadowNode.cpp 
 +      cuiClampNoWrap_(static_cast<const ParagraphShadowNode &>(sourceShadowNode).cuiClampNoWrap_) {
    initialize();
  }
-
-@@ -87,8 +89,9 @@
+ 
+@@ -87,8 +89,9 @@ const Content& ParagraphShadowNode::getContent(
    buildAttributedString(textAttributes, *this, attributedString, attachments);
    attributedString.setBaseTextAttributes(textAttributes);
-
+ 
 -  content_ = Content{
 -      attributedString, getConcreteProps().paragraphAttributes, attachments};
 +  auto paragraphAttributes = getConcreteProps().paragraphAttributes;
 +  if (cuiClampNoWrap_) paragraphAttributes.maximumNumberOfLines = 1;
 +  content_ = Content{attributedString, paragraphAttributes, attachments};
-
+ 
    return content_.value();
  }
-@@ -135,6 +138,25 @@
+@@ -135,6 +138,25 @@ Content ParagraphShadowNode::getContentWithMeasuredAttachments(
    return content;
  }
-
+ 
 +void ParagraphShadowNode::cuiPrepareClampFlow(bool noWrap) {
 +  ensureUnsealed();
 +  cuiClampFlow_ = true;
@@ -2111,8 +1531,8 @@ diff --git a/ReactCommon/react/renderer/components/text/ParagraphShadowNode.cpp 
  void ParagraphShadowNode::setTextLayoutManager(
      std::shared_ptr<const TextLayoutManager> textLayoutManager) {
    ensureUnsealed();
-@@ -153,16 +175,14 @@
-
+@@ -153,16 +175,14 @@ void ParagraphShadowNode::updateStateIfNeeded(
+ 
    if (state.measuredLayout.measurement.size == layout.measurement.size &&
        state.attributedString == content.attributedString &&
 -      state.paragraphAttributes == content.paragraphAttributes) {
@@ -2120,7 +1540,7 @@ diff --git a/ReactCommon/react/renderer/components/text/ParagraphShadowNode.cpp 
 +      (!cuiClampFlow_ || state.cuiPropsIdentity == reinterpret_cast<uintptr_t>(getProps().get()))) {
      return;
    }
-
+ 
 -  setStateData(
 -      ParagraphStateT{
 -          content.attributedString,
@@ -2131,11 +1551,11 @@ diff --git a/ReactCommon/react/renderer/components/text/ParagraphShadowNode.cpp 
 +  if (cuiClampFlow_) nextState.cuiPropsIdentity = reinterpret_cast<uintptr_t>(getProps().get());
 +  setStateData(std::move(nextState));
  }
-
+ 
  void ParagraphShadowNode::updateStateIfNeeded(const Content& content) {
-@@ -171,15 +191,15 @@
+@@ -171,15 +191,15 @@ void ParagraphShadowNode::updateStateIfNeeded(const Content& content) {
    auto& state = getStateData();
-
+ 
    react_native_assert(textLayoutManager_);
 -  if (state.attributedString == content.attributedString) {
 +  if (state.attributedString == content.attributedString &&
@@ -2143,7 +1563,7 @@ diff --git a/ReactCommon/react/renderer/components/text/ParagraphShadowNode.cpp 
 +          state.cuiPropsIdentity == reinterpret_cast<uintptr_t>(getProps().get())))) {
      return;
    }
-
+ 
 -  setStateData(
 -      ParagraphState{
 -          content.attributedString,
@@ -2153,38 +1573,40 @@ diff --git a/ReactCommon/react/renderer/components/text/ParagraphShadowNode.cpp 
 +  if (cuiClampFlow_) nextState.cuiPropsIdentity = reinterpret_cast<uintptr_t>(getProps().get());
 +  setStateData(std::move(nextState));
  }
-
+ 
  MeasuredPreparedTextLayout* ParagraphShadowNode::findUsableLayout() {
 diff --git a/ReactCommon/react/renderer/components/text/ParagraphShadowNode.h b/ReactCommon/react/renderer/components/text/ParagraphShadowNode.h
+index 704088cbaae601f77740420f465933c37d53b2de..57ab07d2af4a7e918eccef3b4e7b425a3ccc3895 100644
 --- a/ReactCommon/react/renderer/components/text/ParagraphShadowNode.h
 +++ b/ReactCommon/react/renderer/components/text/ParagraphShadowNode.h
-@@ -68,6 +68,10 @@
-
+@@ -68,6 +68,10 @@ class ParagraphShadowNode
+ 
    void layout(LayoutContext layoutContext) override;
-
+ 
 +  // Native-owned Cell flow. The original props, text and editor tree stay intact.
 +  void cuiPrepareClampFlow(bool noWrap);
 +  LinesMeasurements cuiClampFlowLines(const LayoutContext &context) const;
 +
    Size measureContent(const LayoutContext &layoutContext, const LayoutConstraints &layoutConstraints) const override;
-
+ 
    Float baseline(const LayoutContext &layoutContext, Size size) const override;
-@@ -131,6 +135,8 @@
+@@ -131,6 +135,8 @@ class ParagraphShadowNode
     * Cached content of the subtree started from the node.
     */
    mutable std::optional<Content> content_{};
 +  bool cuiClampFlow_{false};
 +  bool cuiClampNoWrap_{false};
-
+ 
    /*
     * Intermediate layout results generated during measurement, that may be
 diff --git a/ReactCommon/react/renderer/components/text/platform/android/react/renderer/components/text/ParagraphState.h b/ReactCommon/react/renderer/components/text/platform/android/react/renderer/components/text/ParagraphState.h
+index 6596b55a6acd7497dd970316eadfa184a64e8352..107dd14affb50ac29d0850677a848d0793cc0c36 100644
 --- a/ReactCommon/react/renderer/components/text/platform/android/react/renderer/components/text/ParagraphState.h
 +++ b/ReactCommon/react/renderer/components/text/platform/android/react/renderer/components/text/ParagraphState.h
-@@ -52,6 +52,9 @@
+@@ -52,6 +52,9 @@ class ParagraphState final {
     */
    std::weak_ptr<const TextLayoutManager> layoutManager;
-
+ 
 +  // Private native presentation custody; zero for ordinary paragraphs.
 +  uintptr_t cuiPropsIdentity{0};
 +
@@ -2192,9 +1614,10 @@ diff --git a/ReactCommon/react/renderer/components/text/platform/android/react/r
     * A fully prepared representation of a text layout to mount
     */
 diff --git a/ReactCommon/react/renderer/components/text/platform/cxx/react/renderer/components/text/ParagraphState.h b/ReactCommon/react/renderer/components/text/platform/cxx/react/renderer/components/text/ParagraphState.h
+index 9d0fa0dae8acead1c54d418348a869ffad5938b7..ccff7ba74edc6ec8c01868949c3cf4d0bab09961 100644
 --- a/ReactCommon/react/renderer/components/text/platform/cxx/react/renderer/components/text/ParagraphState.h
 +++ b/ReactCommon/react/renderer/components/text/platform/cxx/react/renderer/components/text/ParagraphState.h
-@@ -37,6 +37,9 @@
+@@ -37,6 +37,9 @@ class ParagraphState final {
     * `AttributedString`.
     */
    std::weak_ptr<const TextLayoutManager> layoutManager;
@@ -2202,12 +1625,13 @@ diff --git a/ReactCommon/react/renderer/components/text/platform/cxx/react/rende
 +  // Private native presentation custody; zero for ordinary paragraphs.
 +  uintptr_t cuiPropsIdentity{0};
  };
-
+ 
  } // namespace facebook::react
 diff --git a/ReactCommon/react/renderer/components/text/stateConversions.h b/ReactCommon/react/renderer/components/text/stateConversions.h
+index 593671dcc928ccd5360b07749f950552f3d1ccf3..710c2712423faf03fa2f55a34be44ca174040def 100644
 --- a/ReactCommon/react/renderer/components/text/stateConversions.h
 +++ b/ReactCommon/react/renderer/components/text/stateConversions.h
-@@ -25,6 +25,10 @@
+@@ -25,6 +25,10 @@ inline MapBuffer toMapBuffer(const ParagraphState &paragraphState)
    auto paMapBuffer = toMapBuffer(paragraphState.paragraphAttributes);
    builder.putMapBuffer(TX_STATE_KEY_PARAGRAPH_ATTRIBUTES, paMapBuffer);
    builder.putInt(TX_STATE_KEY_HASH, attStringMapBuffer.getInt(AS_KEY_HASH));
@@ -2218,6 +1642,199 @@ diff --git a/ReactCommon/react/renderer/components/text/stateConversions.h b/Rea
    return builder.build();
  }
  #endif
+diff --git a/ReactCommon/react/renderer/components/textinput/CuiTextSnapshot.cpp b/ReactCommon/react/renderer/components/textinput/CuiTextSnapshot.cpp
+new file mode 100644
+index 0000000000000000000000000000000000000000..f6f21d3881dfa7407726cb43a3054467e830774d
+--- /dev/null
++++ b/ReactCommon/react/renderer/components/textinput/CuiTextSnapshot.cpp
+@@ -0,0 +1,88 @@
++#include "CuiTextSnapshot.h"
++#include <atomic>
++#include <mutex>
++#include <stdexcept>
++#include <unordered_map>
++
++namespace facebook::react {
++namespace {
++class Source final : public CuiTextSnapshotSource {
++ public:
++  const Tag target;
++  const uint64_t owner;
++  const CuiTextSnapshotCapture capture;
++  std::atomic<bool> active{true};
++  Source(Tag target, uint64_t owner, CuiTextSnapshotCapture capture)
++      : target(target), owner(owner), capture(std::move(capture)) {}
++  std::shared_ptr<const CuiTextSnapshot> read() const override {
++    std::lock_guard lock(mutex_);
++    if (!active.load() || !latest_) throw std::runtime_error("Native text snapshot is unavailable or retired");
++    if (!latest_->failure.empty()) throw std::runtime_error(latest_->failure);
++    return latest_;
++  }
++  bool current(const std::shared_ptr<const CuiTextSnapshot> &snapshot) const override {
++    std::lock_guard lock(mutex_);
++    return active.load() && snapshot && latest_ == snapshot && snapshot->failure.empty();
++  }
++  bool publish(std::shared_ptr<const void> payload, std::string failure) {
++    std::lock_guard lock(mutex_);
++    if (!active.load()) return false;
++    if (!payload && failure.empty()) failure = "Native text snapshot source returned no owned payload";
++    latest_ = std::make_shared<const CuiTextSnapshot>(CuiTextSnapshot{++version_,std::move(payload),std::move(failure)});
++    return true;
++  }
++ private:
++  mutable std::mutex mutex_;
++  uint64_t version_{0};
++  std::shared_ptr<const CuiTextSnapshot> latest_;
++};
++std::mutex registryMutex;
++std::unordered_map<Tag,std::weak_ptr<Source>> registry;
++class Registration final : public CuiTextSnapshotRegistration {
++ public:
++  explicit Registration(std::shared_ptr<Source> source) : source_(std::move(source)) {}
++  ~Registration() override { dispose(); }
++  std::shared_ptr<const CuiTextSnapshotSource> source() const override { return source_; }
++  void dispose() noexcept override { source_->active.store(false); }
++ private:
++  std::shared_ptr<Source> source_;
++};
++std::shared_ptr<Source> findSource(Tag target) {
++  std::lock_guard lock(registryMutex);
++  auto found = registry.find(target);
++  auto result = found == registry.end() ? nullptr : found->second.lock();
++  return result && result->active.load() ? result : nullptr;
++}
++}
++std::shared_ptr<CuiTextSnapshotRegistration> registerCuiTextSnapshotSource(
++    Tag target, uint64_t owner, CuiTextSnapshotCapture capture) {
++  if (target <= 0 || owner == 0) throw std::invalid_argument("Original native text target/owner required");
++  auto source = std::make_shared<Source>(target,owner,std::move(capture));
++  {
++    std::lock_guard lock(registryMutex);
++    for (auto entry=registry.begin();entry!=registry.end();) {
++      if (entry->second.expired()) entry=registry.erase(entry);
++      else ++entry;
++    }
++    auto previous = registry[target].lock();
++    if (previous) previous->active.store(false);
++    registry[target] = source;
++  }
++  return std::make_shared<Registration>(std::move(source));
++}
++std::shared_ptr<const CuiTextSnapshotSource> findCuiTextSnapshotSource(Tag target) { return findSource(target); }
++std::shared_ptr<const CuiTextSnapshotSource> captureCuiTextSnapshot(Tag target, std::shared_ptr<void> original) {
++  auto source = findSource(target);
++  if (!source) return nullptr;
++  try {
++    if (!source->capture) throw std::runtime_error("Native text snapshot producer unavailable");
++    source->publish(source->capture(std::move(original)),{});
++  } catch (const std::exception &failure) { source->publish({},failure.what()); }
++  catch (...) { source->publish({},"Native text snapshot producer failed"); }
++  return source;
++}
++bool publishCuiTextSnapshot(Tag target, uint64_t owner, std::shared_ptr<const void> ownedPayload, std::string failure) {
++  auto source = findSource(target);
++  return source && source->owner == owner && source->publish(std::move(ownedPayload),std::move(failure));
++}
++}
+diff --git a/ReactCommon/react/renderer/components/textinput/CuiTextSnapshot.h b/ReactCommon/react/renderer/components/textinput/CuiTextSnapshot.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..ac804e43b94bdd843b164f119f566a4282832fa5
+--- /dev/null
++++ b/ReactCommon/react/renderer/components/textinput/CuiTextSnapshot.h
+@@ -0,0 +1,37 @@
++#pragma once
++#include <jsi/jsi.h>
++#include <react/renderer/core/ReactPrimitives.h>
++#include <functional>
++#include <memory>
++#include <string>
++
++namespace facebook::react {
++struct CuiTextSnapshot final {
++  uint64_t version;
++  std::shared_ptr<const void> ownedPayload;
++  std::string failure;
++};
++// An exact-family, native-window registration owns this source. State retains only a read handle.
++class JSI_EXPORT CuiTextSnapshotSource {
++ public:
++  virtual ~CuiTextSnapshotSource() = default;
++  virtual std::shared_ptr<const CuiTextSnapshot> read() const = 0;
++  virtual bool current(const std::shared_ptr<const CuiTextSnapshot> &snapshot) const = 0;
++};
++using CuiTextSnapshotCapture = std::function<std::shared_ptr<const void>(std::shared_ptr<void>)>;
++class JSI_EXPORT CuiTextSnapshotRegistration {
++ public:
++  virtual ~CuiTextSnapshotRegistration() = default;
++  virtual std::shared_ptr<const CuiTextSnapshotSource> source() const = 0;
++  virtual void dispose() noexcept = 0;
++};
++JSI_EXPORT std::shared_ptr<CuiTextSnapshotRegistration> registerCuiTextSnapshotSource(
++    Tag target, uint64_t owner, CuiTextSnapshotCapture capture);
++JSI_EXPORT std::shared_ptr<const CuiTextSnapshotSource> findCuiTextSnapshotSource(Tag target);
++// UI producer capture only. Errors are retained as failure snapshots, never thrown through original input.
++JSI_EXPORT std::shared_ptr<const CuiTextSnapshotSource> captureCuiTextSnapshot(
++    Tag target, std::shared_ptr<void> original);
++// Android's opt-in UI cache observer publishes an independently owned payload through its native bridge.
++JSI_EXPORT bool publishCuiTextSnapshot(Tag target, uint64_t owner,
++    std::shared_ptr<const void> ownedPayload, std::string failure = {});
++}
+diff --git a/ReactCommon/react/renderer/components/textinput/TextInputState.h b/ReactCommon/react/renderer/components/textinput/TextInputState.h
+index 9f728d9335f5f8d4b99099497f530477e5c1954b..3d2f4ad2d334a3d84873175117f1a22eb3b5b403 100644
+--- a/ReactCommon/react/renderer/components/textinput/TextInputState.h
++++ b/ReactCommon/react/renderer/components/textinput/TextInputState.h
+@@ -10,6 +10,7 @@
+ #include <react/renderer/attributedstring/AttributedStringBox.h>
+ #include <react/renderer/attributedstring/ParagraphAttributes.h>
+ #include <react/renderer/textlayoutmanager/TextLayoutManager.h>
++#include <react/renderer/components/textinput/CuiTextSnapshot.h>
+ 
+ namespace facebook::react {
+ 
+@@ -53,6 +54,10 @@ class TextInputState final {
+   ParagraphAttributes paragraphAttributes;
+ 
+   int64_t mostRecentEventCount{0};
++
++  // Read-only retained source; original text, selection, event count and cache ID stay unchanged.
++  std::shared_ptr<const CuiTextSnapshotSource> cuiTextSnapshotSource;
++
+ };
+ 
+ } // namespace facebook::react
+diff --git a/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputState.h b/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputState.h
+index 9655ba81a762dfdcda0e0a9a9ebec485515addea..d3b513e975f7b6d19a6a4f4d2784b26ab94a3f85 100644
+--- a/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputState.h
++++ b/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputState.h
+@@ -10,6 +10,7 @@
+ #include <react/renderer/attributedstring/AttributedStringBox.h>
+ #include <react/renderer/attributedstring/ParagraphAttributes.h>
+ #include <react/renderer/textlayoutmanager/TextLayoutManager.h>
++#include <react/renderer/components/textinput/CuiTextSnapshot.h>
+ 
+ #include <folly/dynamic.h>
+ #include <react/renderer/mapbuffer/MapBuffer.h>
+@@ -40,7 +41,8 @@ class AndroidTextInputState final {
+         reactTreeAttributedString(previousState.reactTreeAttributedString),
+         paragraphAttributes(previousState.paragraphAttributes),
+         mostRecentEventCount(data.getDefault("mostRecentEventCount", previousState.mostRecentEventCount).getInt()),
+-        cachedAttributedStringId(data.getDefault("opaqueCacheId", previousState.cachedAttributedStringId).getInt())
++        cachedAttributedStringId(data.getDefault("opaqueCacheId", previousState.cachedAttributedStringId).getInt()),
++        cuiTextSnapshotSource(findCuiTextSnapshotSource(cachedAttributedStringId))
+   {
+   }
+ 
+@@ -74,6 +76,10 @@ class AndroidTextInputState final {
+    * AttributedString for measurement purposes only.
+    */
+   int64_t cachedAttributedStringId{0};
++
++  // Read-only retained source; original text, selection, event count and cache ID stay unchanged.
++  std::shared_ptr<const CuiTextSnapshotSource> cuiTextSnapshotSource;
++
+ };
+ 
+ } // namespace facebook::react
 diff --git a/ReactCommon/react/renderer/components/view/YogaStylableProps.cpp b/ReactCommon/react/renderer/components/view/YogaStylableProps.cpp
 index ae2da15fc0a4b265f48bfb6b6aff80800bbe2e79..b50266748e9fce2bc6516cc5fc26acd1b214e1cf 100644
 --- a/ReactCommon/react/renderer/components/view/YogaStylableProps.cpp
@@ -2807,125 +2424,6 @@ index bd6de832e04d16844fdff28d71d9e05b764e06a2..868f5512dc3b90cc5600c4a060b007a0
    void addEventListener(std::shared_ptr<const EventListener> listener);
    void removeEventListener(const std::shared_ptr<const EventListener> &listener);
  
-diff --git a/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm b/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
-index f96a0494000b37ab4d1fcdad5615613aef30b077..435ffbc3eb5237764de9367cdda9bd00d27caaa8 100644
---- a/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
-+++ b/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTAttributedTextUtils.mm
-@@ -14,14 +14,16 @@
- #include <react/renderer/textlayoutmanager/RCTFontUtils.h>
- #include <react/renderer/textlayoutmanager/RCTTextPrimitivesConversions.h>
- #include <react/utils/ManagedObjectWrapper.h>
-+#include <react/renderer/attributedstring/FontWeightScalar.h>
- #include <array>
-+#include <algorithm>
-+#include <cmath>
- 
- using namespace facebook::react;
- 
--inline static UIFontWeight RCTUIFontWeightFromInteger(NSInteger fontWeight)
-+inline static UIFontWeight RCTUIFontWeightFromScalar(double fontWeight)
- {
--  assert(fontWeight > 50);
--  assert(fontWeight < 950);
-+  assert(std::isfinite(fontWeight) && fontWeight >= 1 && fontWeight <= 1000);
- 
-   static auto weights = std::to_array<UIFontWeight>({/* ~100 */ UIFontWeightUltraLight,
-                                                      /* ~200 */ UIFontWeightThin,
-@@ -32,8 +34,7 @@ inline static UIFontWeight RCTUIFontWeightFromInteger(NSInteger fontWeight)
-                                                      /* ~700 */ UIFontWeightBold,
-                                                      /* ~800 */ UIFontWeightHeavy,
-                                                      /* ~900 */ UIFontWeightBlack});
--  // The expression is designed to convert something like 760 or 830 to 7.
--  return weights[(fontWeight + 50) / 100 - 1];
-+  return interpolateFontWeight(fontWeight, weights);
- }
- 
- inline static UIFontTextStyle RCTUIFontTextStyleForDynamicTypeRamp(const DynamicTypeRamp &dynamicTypeRamp)
-@@ -133,9 +134,11 @@ inline static UIFont *RCTEffectiveFontFromTextAttributes(const TextAttributes &t
-   fontProperties.variant = textAttributes.fontVariant.has_value()
-       ? RCTFontVariantFromFontVariant(textAttributes.fontVariant.value())
-       : RCTFontVariantUndefined;
--  fontProperties.weight = textAttributes.fontWeight.has_value()
--      ? RCTUIFontWeightFromInteger((NSInteger)textAttributes.fontWeight.value())
--      : NAN;
-+  fontProperties.cssWeight = std::isfinite(textAttributes.fontWeightScalar)
-+      ? textAttributes.fontWeightScalar
-+      : textAttributes.fontWeight.has_value() ? static_cast<double>(*textAttributes.fontWeight) : NAN;
-+  fontProperties.weight = std::isfinite(fontProperties.cssWeight)
-+      ? RCTUIFontWeightFromScalar(fontProperties.cssWeight) : NAN;
-   fontProperties.sizeMultiplier = RCTEffectiveFontSizeMultiplierFromTextAttributes(textAttributes);
- 
-   return RCTFontWithFontProperties(fontProperties);
-diff --git a/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTFontProperties.h b/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTFontProperties.h
-index efbfdf0d894e03ec61f63b857c7f5d413da660e6..1eae2c95863d4c707d9cfc767b1908563b9c31ac 100644
---- a/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTFontProperties.h
-+++ b/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTFontProperties.h
-@@ -50,6 +50,7 @@ struct RCTFontProperties {
-   NSString *family = nil;
-   CGFloat size = NAN;
-   UIFontWeight weight = NAN;
-+  double cssWeight = NAN;
-   RCTFontStyle style = RCTFontStyleUndefined;
-   RCTFontVariant variant = RCTFontVariantUndefined;
-   CGFloat sizeMultiplier = NAN;
-diff --git a/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTFontUtils.mm b/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTFontUtils.mm
-index b2b27626edc46625ac2372a13977d700948835b6..5a28fa1a46d60d9f077f8f09e693307eaeb3b2f2 100644
---- a/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTFontUtils.mm
-+++ b/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTFontUtils.mm
-@@ -10,6 +10,7 @@
- #import <CoreText/CoreText.h>
- #import <React/RCTFont+Private.h>
- #import <React/RCTFont.h>
-+#import <CoreText/CoreText.h>
- 
- #import <algorithm>
- #import <cmath>
-@@ -41,6 +42,7 @@ static RCTFontProperties RCTResolveFontProperties(
-   fontProperties.family = (fontProperties.family.length != 0u) ? fontProperties.family : baseFontProperties.family;
-   fontProperties.size = !isnan(fontProperties.size) ? fontProperties.size : baseFontProperties.size;
-   fontProperties.weight = !isnan(fontProperties.weight) ? fontProperties.weight : baseFontProperties.weight;
-+  fontProperties.cssWeight = !isnan(fontProperties.cssWeight) ? fontProperties.cssWeight : baseFontProperties.cssWeight;
-   fontProperties.style =
-       fontProperties.style != RCTFontStyleUndefined ? fontProperties.style : baseFontProperties.style;
-   fontProperties.variant =
-@@ -261,10 +263,11 @@ static UIFont *RCTDefaultFontWithFontProperties(const RCTFontProperties &fontPro
-   static std::mutex fontCacheMutex;
- 
-   CGFloat effectiveFontSize = fontProperties.sizeMultiplier * fontProperties.size;
--  NSString *cacheKey = [NSString stringWithFormat:@"%@/%.1f/%.2f/%ld",
-+  NSString *cacheKey = [NSString stringWithFormat:@"%@/%a/%a/%a/%ld",
-                                                   fontProperties.family,
-                                                   effectiveFontSize,
-                                                   fontProperties.weight,
-+                                                  fontProperties.cssWeight,
-                                                   (long)fontProperties.style];
-   UIFont *font;
- 
-@@ -394,6 +397,24 @@ UIFont *RCTFontWithFontProperties(RCTFontProperties fontProperties)
-     }
-   }
- 
-+  // Retain the actual peer-selected face and all existing variation axes; replace only wght.
-+  if (std::isfinite(fontProperties.cssWeight)) {
-+    NSArray *axes = CFBridgingRelease(CTFontCopyVariationAxes((__bridge CTFontRef)font));
-+    for (NSDictionary *axis in axes) {
-+      NSNumber *identifier = axis[(__bridge NSString *)kCTFontVariationAxisIdentifierKey];
-+      if (identifier.unsignedIntValue != 0x77676874) continue;
-+      const double minimum = [axis[(__bridge NSString *)kCTFontVariationAxisMinimumValueKey] doubleValue];
-+      const double maximum = [axis[(__bridge NSString *)kCTFontVariationAxisMaximumValueKey] doubleValue];
-+      NSMutableDictionary *variation = [CFBridgingRelease(CTFontCopyVariation((__bridge CTFontRef)font)) mutableCopy] ?: [NSMutableDictionary new];
-+      variation[identifier] = @(std::clamp(fontProperties.cssWeight, minimum, maximum));
-+      UIFontDescriptor *descriptor = [font.fontDescriptor fontDescriptorByAddingAttributes:@{(__bridge NSString *)kCTFontVariationAttribute: variation}];
-+      UIFont *weighted = [UIFont fontWithDescriptor:descriptor size:effectiveFontSize];
-+      if (!weighted) @throw [NSException exceptionWithName:@"RCT.FontWeight" reason:@"Original variable font weight authority unavailable" userInfo:nil];
-+      font = weighted;
-+      break;
-+    }
-+  }
-+
-   // Apply font variants to font object.
-   if (fontProperties.variant != RCTFontVariantDefault) {
-     NSArray *fontFeatures = RCTFontFeatures(fontProperties.variant);
 diff --git a/ReactCommon/react/renderer/uimanager/NativeEventCommands.h b/ReactCommon/react/renderer/uimanager/NativeEventCommands.h
 new file mode 100644
 index 0000000000000000000000000000000000000000..ca613b3392d37e892682337ffea41b60ec5f6579
@@ -3309,212 +2807,3 @@ index 0d1910b442b67da7453506410363d7fad28c22e9..6514ae38758379bd7d39c97424ce8cc4
    std::shared_ptr<UIManager> uiManager_;
    std::unique_ptr<jsi::Function> eventHandler_;
    mutable PointerEventsProcessor pointerEventsProcessor_;
-diff --git a/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm b/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
---- a/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
-+++ b/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
-@@ -9,6 +9,7 @@
-
- #import <react/featureflags/ReactNativeFeatureFlags.h>
- #import <react/renderer/components/iostextinput/TextInputComponentDescriptor.h>
-+#import <react/utils/ManagedObjectWrapper.h>
- #import <react/renderer/textlayoutmanager/RCTAttributedTextUtils.h>
- #import <react/renderer/textlayoutmanager/TextLayoutManager.h>
-
-@@ -730,6 +731,8 @@
-   auto data = _state->getData();
-   _lastStringStateWasUpdatedWith = attributedString;
-   data.attributedStringBox = RCTAttributedStringBoxFromNSAttributedString(attributedString);
-+  if (findCuiTextSnapshotSource(self.tag))
-+    data.cuiTextSnapshotSource = captureCuiTextSnapshot(self.tag, wrapManagedObject(attributedString));
-   _mostRecentEventCount += _comingFromJS ? 0 : 1;
-   data.mostRecentEventCount = _mostRecentEventCount;
-   _state->updateState(std::move(data));
-diff --git a/ReactCommon/react/renderer/components/textinput/TextInputState.h b/ReactCommon/react/renderer/components/textinput/TextInputState.h
---- a/ReactCommon/react/renderer/components/textinput/TextInputState.h
-+++ b/ReactCommon/react/renderer/components/textinput/TextInputState.h
-@@ -10,6 +10,7 @@
- #include <react/renderer/attributedstring/AttributedStringBox.h>
- #include <react/renderer/attributedstring/ParagraphAttributes.h>
- #include <react/renderer/textlayoutmanager/TextLayoutManager.h>
-+#include <react/renderer/components/textinput/CuiTextSnapshot.h>
-
- namespace facebook::react {
-
-@@ -53,6 +54,10 @@
-   ParagraphAttributes paragraphAttributes;
-
-   int64_t mostRecentEventCount{0};
-+
-+  // Read-only retained source; original text, selection, event count and cache ID stay unchanged.
-+  std::shared_ptr<const CuiTextSnapshotSource> cuiTextSnapshotSource;
-+
- };
-
- } // namespace facebook::react
-diff --git a/ReactCommon/react/renderer/components/textinput/CuiTextSnapshot.cpp b/ReactCommon/react/renderer/components/textinput/CuiTextSnapshot.cpp
-new file mode 100644
---- /dev/null
-+++ b/ReactCommon/react/renderer/components/textinput/CuiTextSnapshot.cpp
-@@ -0,0 +1,88 @@
-+#include "CuiTextSnapshot.h"
-+#include <atomic>
-+#include <mutex>
-+#include <stdexcept>
-+#include <unordered_map>
-+
-+namespace facebook::react {
-+namespace {
-+class Source final : public CuiTextSnapshotSource {
-+ public:
-+  const Tag target;
-+  const uint64_t owner;
-+  const CuiTextSnapshotCapture capture;
-+  std::atomic<bool> active{true};
-+  Source(Tag target, uint64_t owner, CuiTextSnapshotCapture capture)
-+      : target(target), owner(owner), capture(std::move(capture)) {}
-+  std::shared_ptr<const CuiTextSnapshot> read() const override {
-+    std::lock_guard lock(mutex_);
-+    if (!active.load() || !latest_) throw std::runtime_error("Native text snapshot is unavailable or retired");
-+    if (!latest_->failure.empty()) throw std::runtime_error(latest_->failure);
-+    return latest_;
-+  }
-+  bool current(const std::shared_ptr<const CuiTextSnapshot> &snapshot) const override {
-+    std::lock_guard lock(mutex_);
-+    return active.load() && snapshot && latest_ == snapshot && snapshot->failure.empty();
-+  }
-+  bool publish(std::shared_ptr<const void> payload, std::string failure) {
-+    std::lock_guard lock(mutex_);
-+    if (!active.load()) return false;
-+    if (!payload && failure.empty()) failure = "Native text snapshot source returned no owned payload";
-+    latest_ = std::make_shared<const CuiTextSnapshot>(CuiTextSnapshot{++version_,std::move(payload),std::move(failure)});
-+    return true;
-+  }
-+ private:
-+  mutable std::mutex mutex_;
-+  uint64_t version_{0};
-+  std::shared_ptr<const CuiTextSnapshot> latest_;
-+};
-+std::mutex registryMutex;
-+std::unordered_map<Tag,std::weak_ptr<Source>> registry;
-+class Registration final : public CuiTextSnapshotRegistration {
-+ public:
-+  explicit Registration(std::shared_ptr<Source> source) : source_(std::move(source)) {}
-+  ~Registration() override { dispose(); }
-+  std::shared_ptr<const CuiTextSnapshotSource> source() const override { return source_; }
-+  void dispose() noexcept override { source_->active.store(false); }
-+ private:
-+  std::shared_ptr<Source> source_;
-+};
-+std::shared_ptr<Source> findSource(Tag target) {
-+  std::lock_guard lock(registryMutex);
-+  auto found = registry.find(target);
-+  auto result = found == registry.end() ? nullptr : found->second.lock();
-+  return result && result->active.load() ? result : nullptr;
-+}
-+}
-+std::shared_ptr<CuiTextSnapshotRegistration> registerCuiTextSnapshotSource(
-+    Tag target, uint64_t owner, CuiTextSnapshotCapture capture) {
-+  if (target <= 0 || owner == 0) throw std::invalid_argument("Original native text target/owner required");
-+  auto source = std::make_shared<Source>(target,owner,std::move(capture));
-+  {
-+    std::lock_guard lock(registryMutex);
-+    for (auto entry=registry.begin();entry!=registry.end();) {
-+      if (entry->second.expired()) entry=registry.erase(entry);
-+      else ++entry;
-+    }
-+    auto previous = registry[target].lock();
-+    if (previous) previous->active.store(false);
-+    registry[target] = source;
-+  }
-+  return std::make_shared<Registration>(std::move(source));
-+}
-+std::shared_ptr<const CuiTextSnapshotSource> findCuiTextSnapshotSource(Tag target) { return findSource(target); }
-+std::shared_ptr<const CuiTextSnapshotSource> captureCuiTextSnapshot(Tag target, std::shared_ptr<void> original) {
-+  auto source = findSource(target);
-+  if (!source) return nullptr;
-+  try {
-+    if (!source->capture) throw std::runtime_error("Native text snapshot producer unavailable");
-+    source->publish(source->capture(std::move(original)),{});
-+  } catch (const std::exception &failure) { source->publish({},failure.what()); }
-+  catch (...) { source->publish({},"Native text snapshot producer failed"); }
-+  return source;
-+}
-+bool publishCuiTextSnapshot(Tag target, uint64_t owner, std::shared_ptr<const void> ownedPayload, std::string failure) {
-+  auto source = findSource(target);
-+  return source && source->owner == owner && source->publish(std::move(ownedPayload),std::move(failure));
-+}
-+}
-diff --git a/ReactCommon/react/renderer/components/textinput/CuiTextSnapshot.h b/ReactCommon/react/renderer/components/textinput/CuiTextSnapshot.h
-new file mode 100644
---- /dev/null
-+++ b/ReactCommon/react/renderer/components/textinput/CuiTextSnapshot.h
-@@ -0,0 +1,37 @@
-+#pragma once
-+#include <jsi/jsi.h>
-+#include <react/renderer/core/ReactPrimitives.h>
-+#include <functional>
-+#include <memory>
-+#include <string>
-+
-+namespace facebook::react {
-+struct CuiTextSnapshot final {
-+  uint64_t version;
-+  std::shared_ptr<const void> ownedPayload;
-+  std::string failure;
-+};
-+// An exact-family, native-window registration owns this source. State retains only a read handle.
-+class JSI_EXPORT CuiTextSnapshotSource {
-+ public:
-+  virtual ~CuiTextSnapshotSource() = default;
-+  virtual std::shared_ptr<const CuiTextSnapshot> read() const = 0;
-+  virtual bool current(const std::shared_ptr<const CuiTextSnapshot> &snapshot) const = 0;
-+};
-+using CuiTextSnapshotCapture = std::function<std::shared_ptr<const void>(std::shared_ptr<void>)>;
-+class JSI_EXPORT CuiTextSnapshotRegistration {
-+ public:
-+  virtual ~CuiTextSnapshotRegistration() = default;
-+  virtual std::shared_ptr<const CuiTextSnapshotSource> source() const = 0;
-+  virtual void dispose() noexcept = 0;
-+};
-+JSI_EXPORT std::shared_ptr<CuiTextSnapshotRegistration> registerCuiTextSnapshotSource(
-+    Tag target, uint64_t owner, CuiTextSnapshotCapture capture);
-+JSI_EXPORT std::shared_ptr<const CuiTextSnapshotSource> findCuiTextSnapshotSource(Tag target);
-+// UI producer capture only. Errors are retained as failure snapshots, never thrown through original input.
-+JSI_EXPORT std::shared_ptr<const CuiTextSnapshotSource> captureCuiTextSnapshot(
-+    Tag target, std::shared_ptr<void> original);
-+// Android's opt-in UI cache observer publishes an independently owned payload through its native bridge.
-+JSI_EXPORT bool publishCuiTextSnapshot(Tag target, uint64_t owner,
-+    std::shared_ptr<const void> ownedPayload, std::string failure = {});
-+}
-diff --git a/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputState.h b/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputState.h
---- a/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputState.h
-+++ b/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputState.h
-@@ -10,6 +10,7 @@
- #include <react/renderer/attributedstring/AttributedStringBox.h>
- #include <react/renderer/attributedstring/ParagraphAttributes.h>
- #include <react/renderer/textlayoutmanager/TextLayoutManager.h>
-+#include <react/renderer/components/textinput/CuiTextSnapshot.h>
-
- #include <folly/dynamic.h>
- #include <react/renderer/mapbuffer/MapBuffer.h>
-@@ -40,7 +41,8 @@
-         reactTreeAttributedString(previousState.reactTreeAttributedString),
-         paragraphAttributes(previousState.paragraphAttributes),
-         mostRecentEventCount(data.getDefault("mostRecentEventCount", previousState.mostRecentEventCount).getInt()),
--        cachedAttributedStringId(data.getDefault("opaqueCacheId", previousState.cachedAttributedStringId).getInt())
-+        cachedAttributedStringId(data.getDefault("opaqueCacheId", previousState.cachedAttributedStringId).getInt()),
-+        cuiTextSnapshotSource(findCuiTextSnapshotSource(cachedAttributedStringId))
-   {
-   }
-
-@@ -74,6 +76,10 @@
-    * AttributedString for measurement purposes only.
-    */
-   int64_t cachedAttributedStringId{0};
-+
-+  // Read-only retained source; original text, selection, event count and cache ID stay unchanged.
-+  std::shared_ptr<const CuiTextSnapshotSource> cuiTextSnapshotSource;
-+
- };
-
- } // namespace facebook::react

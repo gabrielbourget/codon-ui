@@ -1,6 +1,7 @@
 import { getNativeFloatingSurfaceStyles } from "../../../overlays/floating/styles"
 import { resolveNativeTheme } from "../../../theme/defaults"
 import { AVAILABLE_THEMING_ORDER_CODES } from "../../../tokens/theme-order"
+import { untypedFontWeight } from "../../__tests__/untypedFontWeight"
 import type { TNativeTooltipProps } from "../types"
 
 const profiles = ["tooltip", "hover-popover"] as const
@@ -101,14 +102,14 @@ describe.each(profiles)("%s style contract", (profile) => {
   it("preserves supported root weights in dialog text and requires explicit scalar migration", () => {
     expect(
       styles(profile, {
-        customStyles: { fontWeight: 750.5 },
+        customStyles: { fontWeight: untypedFontWeight(750.5) },
         style: { fontWeight: "700" },
       }),
     ).toMatchObject({
       rootText: { fontWeight: "700" },
       dialogText: { fontWeight: "700" },
     })
-    expect(() => styles(profile, { style: { fontWeight: 750.5 } })).toThrow(
+    expect(() => styles(profile, { style: { fontWeight: untypedFontWeight(750.5) } })).toThrow(
       "fontWeight must use a stock React Native weight",
     )
   })

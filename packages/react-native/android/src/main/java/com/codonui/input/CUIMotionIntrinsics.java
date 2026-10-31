@@ -36,7 +36,6 @@ import com.facebook.react.uimanager.ViewManagerRegistry;
 import com.facebook.react.views.text.ReactTextViewManager;
 import com.facebook.react.views.text.ReactTextViewManagerCallback;
 import com.facebook.react.views.text.ReactTypefaceUtils;
-import com.facebook.react.views.text.ReactFontWeightScalar;
 import com.facebook.react.views.text.TextAttributeProps;
 import java.util.Map;
 
@@ -229,7 +228,6 @@ final class CUIMotionIntrinsics {
         paint.setTextSkewX((missing & Typeface.ITALIC) != 0 ? -0.25f : 0);
       }
     }
-    ReactFontWeightScalar.apply(paint, attributes.getFontWeightScalar());
     return paint;
   }
 

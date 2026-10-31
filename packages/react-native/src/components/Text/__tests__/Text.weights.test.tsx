@@ -15,6 +15,7 @@ import {
   type TNativeTextRef,
 } from "../../.."
 import { NATIVE_DEFAULT_SLOT } from "../../../collection/context"
+import { untypedFontWeight } from "../../__tests__/untypedFontWeight"
 import { NativeTextStyleProvider } from "../../NativeTextStyleProvider"
 import { NativeHeadingContext } from "../context"
 import { NativeText, type TNativeTextRender } from "../Text"
@@ -97,7 +98,7 @@ it.each(contentOwners)("keeps exact live theme weight endpoints for the owned %s
 it.each(contentOwners)("requires explicit migration of the effective %s theme weight", async (_, content) => {
   await expect(
     render(
-      <NativeThemeProvider overrides={{ typography: { fontWeights: { regular: 750.5 } } }}>
+      <NativeThemeProvider overrides={{ typography: { fontWeights: { regular: untypedFontWeight(750.5) } } }}>
         {content()}
       </NativeThemeProvider>,
     ),
@@ -117,8 +118,8 @@ it.each(["normal", "bold", "semibold", 100, "300", "900"] as const)(
   "retains the exact supported final weight %s over custom and theme values",
   async (fontWeight) => {
     await render(
-      <NativeThemeProvider overrides={{ typography: { fontWeights: { regular: 750.5 } } }}>
-        <Text customStyles={{ fontWeight: 725.5 }} style={{ fontWeight }}>
+      <NativeThemeProvider overrides={{ typography: { fontWeights: { regular: untypedFontWeight(750.5) } } }}>
+        <Text customStyles={{ fontWeight: untypedFontWeight(725.5) }} style={{ fontWeight }}>
           Final weight
         </Text>
       </NativeThemeProvider>,
@@ -133,11 +134,17 @@ it.each(["custom", "final", "restored theme"] as const)(
     await expect(
       render(
         <NativeThemeProvider
-          overrides={owner === "restored theme" ? { typography: { fontWeights: { regular: 750.5 } } } : undefined}
+          overrides={
+            owner === "restored theme"
+              ? { typography: { fontWeights: { regular: untypedFontWeight(750.5) } } }
+              : undefined
+          }
         >
           <Text
-            customStyles={{ fontWeight: owner === "custom" ? 750.5 : "700" }}
-            style={owner === "custom" ? undefined : { fontWeight: owner === "final" ? 750.5 : undefined }}
+            customStyles={{ fontWeight: owner === "custom" ? untypedFontWeight(750.5) : "700" }}
+            style={
+              owner === "custom" ? undefined : { fontWeight: owner === "final" ? untypedFontWeight(750.5) : undefined }
+            }
           >
             Scalar weight
           </Text>
@@ -158,11 +165,11 @@ it("validates only selected context styles while preserving merged refs, events 
       value={{
         slots: {
           [NATIVE_DEFAULT_SLOT]: {
-            customStyles: { fontWeight: 750.5 },
+            customStyles: { fontWeight: untypedFontWeight(750.5) },
             ref: contextRef,
             onPress: contextPress,
           },
-          title: { style: { fontWeight: 750.5 } },
+          title: { style: { fontWeight: untypedFontWeight(750.5) } },
         },
       }}
     >

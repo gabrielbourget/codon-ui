@@ -544,6 +544,14 @@
       "scope": "Retire the shared native inheritance/registration/transport and temporary conditional JS bridge after all built-in owners have explicit style paths.",
       "supersedes": "Only earlier D2 temporary legacy-boundary/wire expectations. Current controls assert explicit styles and metric updates, reset/window barriers, original refs/editors/events and absence of native transport. Shared control mapping and receipts are recorded in roadmap3.4.1.3.2 and experiments.",
       "preserved": "Original canonical source refs, property/native-only counts, historical assertions/receipts and all platform verdicts. Native compiler, glyph/layout/scaling/input/AT/profile qualification remains OPEN."
+    },
+    {
+      "id": "DEC.PHONE.TYPOGRAPHY.STOCK_TYPES.01",
+      "authority": "Gabriel approved stock RN, explicit styling/discrete weights and native inheritance API retirement; roadmap3.4.1.3.2 PHONE-TYPE09",
+      "sourceBaseline": "a2cdaa48f2fb0ee33c26dbfa2c14cdb4d5470ee5",
+      "scope": "Remove only P01/P02 SDK typography hunks and remaining Android scalar adapters; restore stock style/theme fontWeight types for supported named/string/numeric endpoints. Fractional/custom numeric values require explicit migration.",
+      "sourceChecks": "182 cases/11 suites plus source/public types. Invalid untyped-input and overridden-value runtime checks retain their exact values/assertions through a private test helper; positive/negative public declarations cover the restored stock types.",
+      "preserved": "Explicit owned styling, override precedence, original refs/events/identity and other Motion clocks. Original canonical fields, sourceRefs, historical receipts and verdicts remain unchanged; native compiler/products and glyph/layout/scaling/input/AT/profile qualification remain OPEN."
     }
   ]
 }
