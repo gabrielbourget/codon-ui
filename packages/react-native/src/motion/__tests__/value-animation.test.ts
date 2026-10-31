@@ -70,6 +70,134 @@ it("uses the pinned driver and reports actual resolved duration/state", async ()
   expect(value.get()).toBe(100)
   expect(control.state).toBe("finished")
 })
+
+it.each([
+  [400, 700],
+  ["400", "700"],
+  ["normal", "bold"],
+  ["regular", 700],
+])("changes font weight only between authored endpoints %p and %p on the existing timeline", async (from, to) => {
+  const completed = jest.fn(),
+    updated = jest.fn()
+  const { control, value } = animation({
+    name: "fontWeight",
+    keyframes: [from, to],
+    motionValue: motionValue<unknown>(from),
+    onUpdate: (latest) => {
+      value.set(latest)
+      updated(latest)
+    },
+    onComplete: completed,
+  })
+  await control.ready
+  expect(control.duration).toBe(0.1)
+  await flush(1050)
+  expect(value.get()).toBe(to)
+  expect(control.state).toBe("running")
+  expect(completed).not.toHaveBeenCalled()
+  expect(control.getGeneratorVelocity()).toBe(0)
+  await flush(1100)
+  await control.finished
+  expect(completed).toHaveBeenCalledTimes(1)
+  expect(updated.mock.calls.every(([weight]) => weight === from || weight === to)).toBe(true)
+})
+
+it("retains authored font-weight keyframe times, exact representations and seek/cancel/replay", async () => {
+  const { control, value } = animation({
+    name: "fontWeight",
+    keyframes: [400, "700", 500],
+    times: [0, 0.75, 1],
+    motionValue: motionValue<unknown>(400),
+  })
+  await control.ready
+  control.pause()
+  control.time = 0.04
+  await flush(1040)
+  expect(value.get()).toBe("700")
+  control.time = 0.08
+  await flush(1080)
+  expect(value.get()).toBe(500)
+  control.cancel()
+  expect(value.get()).toBe(400)
+  control.play()
+  await flush(1180)
+  await control.finished
+  expect(value.get()).toBe(500)
+})
+
+it.each(["loop", "reverse", "mirror"] as const)(
+  "preserves font-weight delay, completion and %s repetition without fractional frames",
+  async (repeatType) => {
+    const updated: unknown[] = []
+    const { control, value } = animation({
+      name: "fontWeight",
+      keyframes: [400, 700],
+      motionValue: motionValue<unknown>(400),
+      delay: 50,
+      repeat: 1,
+      repeatDelay: 20,
+      repeatType,
+      onUpdate: (latest) => {
+        value.set(latest)
+        updated.push(latest)
+      },
+    })
+    await control.ready
+    await flush(1020)
+    expect(value.get()).toBe(400)
+    expect(control.state).toBe("running")
+    await flush(1090)
+    expect(value.get()).toBe(700)
+    await flush(1300)
+    await control.finished
+    expect(value.get()).toBe(repeatType === "loop" ? 700 : 400)
+    expect(updated.every((weight) => weight === 400 || weight === 700)).toBe(true)
+  },
+)
+
+it("keeps the numeric spring curve and duration while rendering discrete font-weight endpoints", async () => {
+  const options = { keyframes: [400, 700], type: "spring" as const, stiffness: 300, damping: 20, velocity: 50 }
+  const ordinary = animation(options)
+  const discrete = animation({ ...options, name: "fontWeight", motionValue: motionValue<unknown>(400) })
+  await Promise.all([ordinary.control.ready, discrete.control.ready])
+  expect(discrete.control.duration).toBe(ordinary.control.duration)
+  await flush(1040)
+  expect(ordinary.value.get()).not.toBe(400)
+  expect(ordinary.value.get()).not.toBe(700)
+  expect(discrete.value.get()).toBe(700)
+  expect(discrete.control.getGeneratorVelocity()).toBe(0)
+  discrete.control.stop()
+  expect(discrete.value.get()).toBe(700)
+})
+
+it.each([550, 750.5, "450"])("requires explicit migration of authored scalar font weight %p", async (weight) => {
+  const { control } = animation({ name: "fontWeight", keyframes: [400, weight] })
+  await expect(control.ready).rejects.toThrow("fontWeight must use a stock React Native weight")
+  const value = motionValue<unknown>(400)
+  expect(() => animateNativeMotionValue("fontWeight", value, weight, { type: false }, context())(jest.fn())).toThrow(
+    "fontWeight must use a stock React Native weight",
+  )
+  expect(value.get()).toBe(400)
+})
+it.each([true, false])(
+  "keeps exact weight endpoints and one completion on the instant path (reduced=%p)",
+  async (reduced) => {
+    const value = motionValue<unknown>(400),
+      completed = jest.fn()
+    animateNativeMotionValue(
+      "fontWeight",
+      value,
+      "700",
+      reduced ? {} : { type: false },
+      context({ shouldSkipAnimations: reduced }),
+    )(completed)
+    expect(value.get()).toBe(400)
+    await flush(1016)
+    expect(value.get()).toBe("700")
+    expect(completed).toHaveBeenCalledTimes(1)
+  },
+)
+
 it("renews completion after replaying a finished animation", async () => {
   const { control } = animation()
   const first = control.finished

@@ -3,7 +3,7 @@ import { clamp, invariant, millisecondsToSeconds, pipe, secondsToMilliseconds } 
 import { time } from "../frameloop/sync-time"
 import { activeAnimations } from "../stats/animation-count"
 import { mix } from "../utils/mix"
-import type { Mixer } from "../utils/mix/types"
+import type { Mixer, MixerFactory } from "../utils/mix/types"
 
 import { frameloopDriver } from "./drivers/frame"
 import type { DriverControls } from "./drivers/types"
@@ -82,7 +82,10 @@ export class JSAnimation<T> extends WithPromise implements AnimationPlaybackCont
     value: undefined as unknown as T,
   }
 
-  constructor(options: ValueAnimationOptions<T>) {
+  constructor(
+    options: ValueAnimationOptions<T>,
+    private readonly keyframeMixer?: MixerFactory<T>,
+  ) {
     super()
     activeAnimations.mainThread++
 
@@ -113,23 +116,31 @@ export class JSAnimation<T> extends WithPromise implements AnimationPlaybackCont
     }
 
     if (generatorFactory !== keyframesGenerator && typeof keyframes[0] !== "number") {
-      this.mixKeyframes = pipe(percentToProgress, mix(keyframes[0], keyframes[1])) as (t: number) => T
+      this.mixKeyframes = pipe(percentToProgress, (this.keyframeMixer ?? mix)(keyframes[0], keyframes[1])) as (
+        t: number,
+      ) => T
 
       keyframes = [0 as T, 100 as T]
+    } else if (generatorFactory !== keyframesGenerator && this.keyframeMixer) {
+      const [from, to] = keyframes as number[]
+      const mixer = this.keyframeMixer(keyframes[0], keyframes[1])
+      // Keep the numeric generator's curve, duration and velocity; only its rendered value is discrete.
+      this.mixKeyframes = (value) => mixer(from === to ? 0 : (value - from) / (to - from))
     }
 
-    const generator = generatorFactory({ ...options, keyframes })
+    const createGenerator = (selected: ValueAnimationOptions<T>) => {
+      return generatorFactory === keyframesGenerator
+        ? keyframesGenerator(selected, this.keyframeMixer)
+        : generatorFactory(selected)
+    }
+    const generator = createGenerator({ ...options, keyframes })
 
     /**
      * If we have a mirror repeat type we need to create a second generator that outputs the
      * mirrored (not reversed) animation and later ping pong between the two generators.
      */
     if (repeatType === "mirror") {
-      this.mirroredGenerator = generatorFactory({
-        ...options,
-        keyframes: [...keyframes].reverse(),
-        velocity: -velocity,
-      })
+      this.mirroredGenerator = createGenerator({ ...options, keyframes: [...keyframes].reverse(), velocity: -velocity })
     }
 
     /**

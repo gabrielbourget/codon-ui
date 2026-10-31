@@ -12,7 +12,7 @@ import { Easing } from "react-native"
 import { getNativeButtonContent } from "../../components/Button/content"
 import { useNativeLinkColor } from "../../components/Link/motion"
 import { NativeContentContext, useNativeContentContext } from "../../components/NativeContentContext"
-import { NativeTextStyleProvider } from "../../components/NativeTextStyleProvider"
+import { NativeTextStyleProvider, useNativeRawTextStyle } from "../../components/NativeTextStyleProvider"
 import { NativeFocusHost } from "../../input/NativeFocusView"
 import type { TNativeFocusViewRef } from "../../input/types"
 import { useNativeTheme } from "../../theme"
@@ -109,6 +109,7 @@ export const NativeMotionVisualHost = forwardRef<TNativeFocusViewRef, TNativeMot
     }, [forwardedRef, publishCaller])
     const theme = useNativeTheme()
     const inherited = useNativeContentContext()
+    const inheritedNativeTextStyle = useNativeRawTextStyle()
     useLayoutEffect(() => visual.configure(bindings, onUpdate), [visual, bindings, onUpdate])
     const setRef = useCallback(
       (target: TNativeFocusViewRef | null) => {
@@ -200,7 +201,11 @@ export const NativeMotionVisualHost = forwardRef<TNativeFocusViewRef, TNativeMot
         {nativeRender ? nativeRender(host) : <NativeFocusHost {...host} />}
       </NativeContentContext.Provider>
     )
-    return <NativeTextStyleProvider style={resolved.text}>{content}</NativeTextStyleProvider>
+    return (
+      <NativeTextStyleProvider style={resolved.text} nativeInheritance={inheritedNativeTextStyle !== undefined}>
+        {content}
+      </NativeTextStyleProvider>
+    )
   },
 )
 NativeMotionVisualHost.displayName = "NativeMotionVisualHost"

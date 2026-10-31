@@ -2,6 +2,7 @@
 import type { StyleProp, TextStyle, ViewStyle } from "react-native"
 
 import { resolveNativeStyle } from "../../components/colors"
+import { validateNativeFontWeight } from "../../components/nativeTextStyle"
 
 import { buildNativeMotionOrigin, buildNativeMotionTransform } from "./nativeTransform"
 import { NATIVE_MOTION_TRANSFORM_ORDER } from "./types"
@@ -49,6 +50,7 @@ export const resolveNativeMotionVisualStyle = (
     next.transform = buildNativeMotionTransform(latest, template)
   if (Object.keys(latest).some((key) => ORIGIN_FIELDS.has(key))) next.transformOrigin = buildNativeMotionOrigin(latest)
   const resolved = resolveNativeStyle(next as TextStyle, "Card", "motionStyle")
+  validateNativeFontWeight(resolved.fontWeight, "Motion")
   const text: TextStyle = {}
   const view: ViewStyle = {}
   for (const [key, value] of Object.entries(resolved)) {

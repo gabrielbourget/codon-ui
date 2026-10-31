@@ -71,6 +71,19 @@ it("applies computed/custom/final precedence, then resolved motion styles", () =
   expect(resolved.view).toEqual({ width: 0, opacity: 0, transform: [{ translateX: 10 }] })
   expect(resolved.text).toEqual({ color: "blue", fontSize: 0 })
 })
+
+it("validates effective authored font weights without rounding unused overrides or changing other styles", () => {
+  expect(resolveNativeMotionVisualStyle({}, { fontWeight: 750.5 }, { fontWeight: "700" }, { opacity: 0.5 })).toEqual({
+    view: { opacity: 0.5 },
+    text: { fontWeight: "700" },
+  })
+  expect(() => resolveNativeMotionVisualStyle({}, {}, { fontWeight: 750.5 }, {})).toThrow(
+    "fontWeight must use a stock React Native weight",
+  )
+  expect(() => resolveNativeMotionVisualStyle({}, {}, {}, { fontWeight: 550 })).toThrow(
+    "fontWeight must use a stock React Native weight",
+  )
+})
 it("preserves opaque static native colors and lets removed typography restore native defaults", () => {
   const opaque = PlatformColor("labelColor")
   const resolved = resolveNativeMotionVisualStyle(

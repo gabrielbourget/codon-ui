@@ -3,9 +3,12 @@ import { createRef, useEffect, useState } from "react"
 import type { View } from "react-native"
 import { PlatformColor, StyleSheet, Text as NativeText, TextInput } from "react-native"
 
+import { NativeTextStyleProvider } from "../../components/NativeTextStyleProvider"
 import { Text } from "../../components/Text/Text"
+import { NativeFocusHost } from "../../input/NativeFocusView"
 import { NativeThemeProvider } from "../../theme"
 import { JSAnimation, MotionGlobalConfig, frameData, motionValue, time } from "../kernel"
+import { animateNativeMotionValue } from "../value"
 import { NativeMotionVisualHost } from "../visual/NativeMotionVisualHost"
 
 jest.mock("../../input/specs/CUIFocusViewNativeComponent", () => ({
@@ -45,6 +48,76 @@ afterEach(async () => {
   jest.restoreAllMocks()
 })
 const rootStyle = () => StyleSheet.flatten(screen.getByTestId("visual").props.style)
+
+it("renders supported weight endpoints through the real native value driver while retaining editor and root identity", async () => {
+  const fontWeight = motionValue<unknown>(400),
+    opacity = motionValue(1),
+    root = createRef<View>(),
+    editor = createRef<TextInput>(),
+    completed = jest.fn(),
+    changed = jest.fn(),
+    updated = jest.fn()
+  const readWeight = () => {
+    const current = fontWeight.get()
+    if (current !== 400 && current !== 700) throw new Error("expected an exact supported authored weight")
+    return current
+  }
+  const weightBinding = {
+    get: readWeight,
+    on: (event: "change", callback: (weight: number) => void) => fontWeight.on(event, () => callback(readWeight())),
+  }
+  const node = (legacy: boolean) => (
+    <NativeTextStyleProvider style={{ fontFamily: "OuterFace" }} nativeInheritance={legacy}>
+      <NativeMotionVisualHost
+        ref={root}
+        testID="visual"
+        style={{ fontFamily: "MotionFace", lineHeight: 24 }}
+        bindings={{ fontWeight: weightBinding, opacity }}
+        onUpdate={updated}
+      >
+        Owned weight
+        <NativeFocusHost testID="weight-child">
+          <NativeText style={{ fontFamily: "RawFace", fontWeight: "500" }}>Explicit raw</NativeText>
+          <TextInput ref={editor} testID="weight-editor" value="" onChangeText={changed} />
+        </NativeFocusHost>
+      </NativeMotionVisualHost>
+    </NativeTextStyleProvider>
+  )
+  await render(node(true))
+  const originalRoot = root.current,
+    originalEditor = editor.current
+  expect(screen.getByTestId("visual").props.nativeTypographyStyle).toContain("MotionFace")
+  await screen.rerender(node(false))
+  expect(screen.getByTestId("visual").props.nativeTypographyStyle).toBeUndefined()
+  expect(screen.getByTestId("weight-child").props.nativeTypographyStyle).toBeUndefined()
+  void fontWeight.start(
+    animateNativeMotionValue(
+      "fontWeight",
+      fontWeight,
+      700,
+      { duration: 0.1, ease: "linear", onComplete: completed },
+      {
+        isCurrent: () => true,
+        readValue: () => {
+          throw new Error("explicit weight must not require a native read")
+        },
+      },
+    ),
+  )
+  await act(() => opacity.set(0.5))
+  await flush(1050)
+  expect(screen.getByText("Owned weight")).toHaveStyle({ fontWeight: 700, fontFamily: "MotionFace", lineHeight: 24 })
+  expect(screen.getByText("Explicit raw")).toHaveStyle({ fontWeight: "500", fontFamily: "RawFace" })
+  expect(rootStyle()).toMatchObject({ opacity: 0.5 })
+  expect(rootStyle()).not.toHaveProperty("fontWeight")
+  expect(root.current).toBe(originalRoot)
+  expect(editor.current).toBe(originalEditor)
+  expect(changed).not.toHaveBeenCalled()
+  expect(completed).not.toHaveBeenCalled()
+  expect(updated).toHaveBeenCalledWith({ fontWeight: 700, opacity: 0.5 }, undefined, undefined)
+  await flush(1100)
+  expect(completed).toHaveBeenCalledTimes(1)
+})
 
 it("updates only owned visual styles through the source animation and native frame phases", async () => {
   const x = motionValue(0),

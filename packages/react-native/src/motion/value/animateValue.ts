@@ -1,3 +1,4 @@
+import { validateNativeFontWeight } from "../../components/nativeTextStyle"
 import { getDefaultTransition, getValueTransition, isTransitionDefined } from "../animation"
 import type { TNativeMotionTransition } from "../animation"
 import { MotionGlobalConfig, frame } from "../kernel"
@@ -46,6 +47,7 @@ export const animateNativeMotionValue =
     if (options.duration) options.duration *= 1000
     if (options.repeatDelay) options.repeatDelay *= 1000
     if (options.from !== undefined) options.keyframes[0] = options.from
+    if (name === "fontWeight") options.keyframes.forEach((weight) => validateNativeFontWeight(weight, "Motion"))
     let skip = false
     if (options.type === false || (options.duration === 0 && !options.repeatDelay)) {
       options.duration = 0
