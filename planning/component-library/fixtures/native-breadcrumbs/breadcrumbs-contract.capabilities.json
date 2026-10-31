@@ -12083,5 +12083,35 @@
     "date": "2026-10-30",
     "roadmap": "3.5.48.2",
     "acceptance": "Approval resolves the listed mapping boundary only; installed-native gates and whole G01 adoption remain required."
-  }
+  },
+  "nativeContractAmendments": [
+    {
+      "id": "DEC.PHONE.TYPOGRAPHY.01",
+      "authority": "Gabriel approved explicit styling/discrete weights and continued D2 migration; roadmap3.4.1.3.2",
+      "sourceBaseline": "1828720cba6e6c2bb607d99691f87d77176ddc83",
+      "scope": "PHONE-TYPE05: Breadcrumbs/Pagination descendant typography admission. Existing provider placement, root/renderer/ref and native context publication remain unchanged. Omit requests in migrated descendants while preserving legacy enclosing boundaries; validate supported effective root weights.",
+      "supersededRequirement": "Automatic native-tree typography inheritance into arbitrary raw descendants on migrated paths. Explicit owned labels retain their typography; custom raw text supplies its intended styles.",
+      "preserved": "Current item emphasis, item/root/context/overflow style precedence, original keys/actions/URL handoff, labels/relationships, default/named/null contexts, original refs/renderers and controlled page/size state. No navigation or presentation policy is changed.",
+      "sourceChecks": [
+        {
+          "suite": "packages/react-native/src/components/Breadcrumbs/__tests__/typography.test.tsx",
+          "covers": "Original root refs, retained legacy parent/descendant scopes, retirement with the ancestor, explicit family/line metrics and supported effective root-weight migration for both owners."
+        },
+        {
+          "suite": "packages/react-native/src/components/Breadcrumbs/__tests__/Breadcrumbs.test.tsx",
+          "covers": "Existing public renderer/context/root/item/metadata and typography precedence."
+        },
+        {
+          "suite": "packages/react-native/src/components/Breadcrumbs/__tests__/Overflow.test.tsx",
+          "covers": "Existing overflow navigation, focus and original action/ref behavior; no D7 presentation change."
+        },
+        {
+          "suite": "packages/react-native/src/components/Pagination/__tests__/Pagination.test.tsx",
+          "covers": "Controlled values/callbacks, original numeric editor and independent field/counter/select/popup owners."
+        }
+      ],
+      "canonicalEvidence": "Original canonical refs, declarations, assertions, navigation authority/pending records and context requirements are unchanged.",
+      "acceptance": "Source correspondence only. No native glyph/layout/scaling/input/AT/profile qualification or ledger promotion."
+    }
+  ]
 }

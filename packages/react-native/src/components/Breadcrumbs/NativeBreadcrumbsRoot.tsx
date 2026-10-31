@@ -7,7 +7,8 @@ import { NativeFocusView } from "../../input/NativeFocusView"
 import { useNativeTheme } from "../../theme"
 import { resolveNativeStyle, validateNativeColor } from "../colors"
 import { NativeContentContext } from "../NativeContentContext"
-import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
+import { validateNativeFontWeight } from "../nativeTextStyle"
+import { NativeTextStyleProvider, useNativeRawTextStyle } from "../NativeTextStyleProvider"
 
 import { NativeBreadcrumbsContext, type TNativeBreadcrumbsContextProps } from "./context"
 import { splitNativeBreadcrumbStyle } from "./styles"
@@ -37,6 +38,7 @@ export const NativeBreadcrumbsRoot = forwardRef<
     ref,
   ) => {
     const theme = useNativeTheme()
+    const inheritedNativeTextStyle = useNativeRawTextStyle()
     const [props, mergedRef] = useNativeContextProps(authored, ref, NativeBreadcrumbsContext)
     const {
       children,
@@ -57,6 +59,7 @@ export const NativeBreadcrumbsRoot = forwardRef<
       resolveNativeStyle([nativeBaselineStyle, style], "Breadcrumbs", "root context"),
     )
     validateNativeColor(resolved.text.color, "Breadcrumbs", "root context color")
+    validateNativeFontWeight(resolved.text.fontWeight, "Breadcrumbs")
     const host = {
       ...native,
       ref: mergedRef,
@@ -78,7 +81,7 @@ export const NativeBreadcrumbsRoot = forwardRef<
       style: resolved.view,
       children: (
         <NativeBreadcrumbsContext.Provider value={props}>
-          <NativeTextStyleProvider style={resolved.text}>
+          <NativeTextStyleProvider style={resolved.text} nativeInheritance={inheritedNativeTextStyle !== undefined}>
             <NativeContentContext.Provider
               value={{ foregroundColor: resolved.text.color ?? theme.colors.foreground, isButton: false }}
             >
