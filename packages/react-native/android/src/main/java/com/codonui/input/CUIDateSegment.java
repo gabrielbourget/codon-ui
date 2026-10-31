@@ -29,7 +29,7 @@ import java.util.ArrayList;
 @androidx.annotation.OptIn(markerClass = com.facebook.react.common.annotations.UnstableReactNativeAPI.class)
 final class CUIDateSegment extends ReactViewGroup {
   String ownerId = "", segmentId = "", bindingRevision = "", displayText = "", locale = "", keyboardMode = "numeric";
-  boolean segmentDisabled, segmentReadOnly, segmentEditable, segmentPlaceholder;
+  boolean segmentDisabled, segmentReadOnly, segmentEditable, segmentPlaceholder, ordinaryInputEvents;
   private final Editable document = new SpannableStringBuilder();
   private long epoch = 1, sequence;
 
@@ -211,7 +211,7 @@ final class CUIDateSegment extends ReactViewGroup {
     data.putInt("composingStart",BaseInputConnection.getComposingSpanStart(document)); data.putInt("composingEnd",BaseInputConnection.getComposingSpanEnd(document));
     data.putBoolean("focused",hasFocus()); data.putBoolean("active",active());
     Runnable emit = () -> dispatcher.dispatchEvent(new SegmentEvent(surface,getId(),data));
-    if (kind.equals("insert") || kind.equals("delete") || kind.equals("marked") || kind.equals("unmark"))
+    if (!ordinaryInputEvents && (kind.equals("insert") || kind.equals("delete") || kind.equals("marked") || kind.equals("unmark")))
       CUIFieldInputBinding.emitOwnedInput(this, emit);
     else emit.run();
   }

@@ -2,6 +2,7 @@ import { act, render, screen } from "@testing-library/react-native"
 import { createRef } from "react"
 import { Text, TextInput } from "react-native"
 
+import { NativeFieldInputContext, type TNativeFieldInputScope } from "../../../input/fieldInput"
 import { focusNativeTarget, getNativeFocusedTarget } from "../../../input/focus"
 import { Commands } from "../../../input/specs/CUIDateSegmentNativeComponent"
 import { NativeDateSegment, type TNativeDateSegmentRef, type TNativeDateSegmentInput } from "../NativeDateSegment"
@@ -274,4 +275,101 @@ it("drops an admitted private input after its field context is removed, preservi
   const ordinary = await send({ kind: "insert", focused: true, sequence: 3 })
   expect(callback).toHaveBeenCalledTimes(1)
   expect(callback).toHaveBeenCalledWith(ordinary)
+})
+
+it("admits ordinary input/composition events through its own native lease without settling a legacy ancestor", async () => {
+  const callback = jest.fn(),
+    settleField = jest.fn()
+  const scope: TNativeFieldInputScope = {
+    bindingId: "legacy",
+    bindingRevision: "1",
+    current: () => false,
+    native: { getLease: () => "legacy", acceptsField: jest.fn(), settleField, moveFieldFocus: jest.fn() },
+  }
+  const node = (ordinaryInputEvents: boolean) => (
+    <NativeFieldInputContext.Provider value={scope}>
+      <NativeDateSegment
+        {...props}
+        ordinaryInputEvents={ordinaryInputEvents}
+        testID="segment"
+        onNativeSegmentInput={callback}
+      />
+    </NativeFieldInputContext.Provider>
+  )
+  const view = await render(node(true))
+  await send()
+  callback.mockClear()
+  for (const [index, kind] of ["marked", "unmark", "insert", "delete"].entries()) {
+    const event = await send({ kind, sequence: index + 2, focused: true })
+    expect(callback).toHaveBeenLastCalledWith(event)
+    expect(callback.mock.calls.at(-1)![0]).toBe(event)
+  }
+  expect(settleField).not.toHaveBeenCalled()
+  await view.rerender(node(false))
+  await send({ epoch: 5, sequence: 7 })
+  callback.mockClear()
+  await send({ kind: "insert", epoch: 5, sequence: 8, focused: true })
+  expect(callback).not.toHaveBeenCalled()
+  expect(settleField).not.toHaveBeenCalled()
+})
+it("retires the old input-delivery generation without changing the original host or accepting framed ordinary input", async () => {
+  const callback = jest.fn(),
+    ref = createRef<TNativeDateSegmentRef>()
+  const view = await render(<NativeDateSegment {...props} ref={ref} testID="segment" onNativeSegmentInput={callback} />)
+  await send()
+  const original = ref.current,
+    previous = screen.getByTestId("segment").props.bindingRevision
+  await view.rerender(
+    <NativeDateSegment {...props} ordinaryInputEvents ref={ref} testID="segment" onNativeSegmentInput={callback} />,
+  )
+  expect(ref.current).toBe(original)
+  expect(screen.getByTestId("segment").props.bindingRevision).not.toBe(previous)
+  callback.mockClear()
+  await send({ bindingRevision: previous, kind: "insert", sequence: 2, focused: true })
+  expect(callback).not.toHaveBeenCalled()
+  await send({ epoch: 5, sequence: 3 })
+  callback.mockClear()
+  const framed = {
+    nativeEvent: {
+      ...packet({
+        bindingRevision: screen.getByTestId("segment").props.bindingRevision,
+        epoch: 5,
+        sequence: 4,
+        kind: "insert",
+        focused: true,
+      }),
+      fieldDispatch: "legacy-packet",
+    },
+  } as unknown as TNativeDateSegmentInput
+  await act(() => screen.getByTestId("segment").props.onNativeSegmentInput(framed))
+  expect(callback).not.toHaveBeenCalled()
+})
+
+it("retires queued input across a locale change while preserving the original native segment", async () => {
+  const ref = createRef<TNativeDateSegmentRef>(),
+    callback = jest.fn()
+  const view = await render(
+    <NativeDateSegment {...props} ordinaryInputEvents ref={ref} testID="segment" onNativeSegmentInput={callback} />,
+  )
+  await send()
+  const original = ref.current,
+    previous = screen.getByTestId("segment").props.bindingRevision
+  await view.rerender(
+    <NativeDateSegment
+      {...props}
+      locale="ar-EG"
+      ordinaryInputEvents
+      ref={ref}
+      testID="segment"
+      onNativeSegmentInput={callback}
+    />,
+  )
+  expect(ref.current).toBe(original)
+  expect(screen.getByTestId("segment").props.bindingRevision).not.toBe(previous)
+  callback.mockClear()
+  await send({ bindingRevision: previous, kind: "insert", sequence: 2, focused: true })
+  expect(callback).not.toHaveBeenCalled()
+  await send({ epoch: 5, sequence: 3 })
+  const event = await send({ epoch: 5, sequence: 4, kind: "insert", focused: true })
+  expect(callback).toHaveBeenLastCalledWith(event)
 })

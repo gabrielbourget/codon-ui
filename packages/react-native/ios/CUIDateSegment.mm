@@ -41,7 +41,7 @@ using namespace facebook::react;
   NSRange _selection, _marked;
   NSUInteger _epoch, _sequence;
   SurfaceId _surface;
-  BOOL _disabled, _readOnly, _editable, _wasActive;
+  BOOL _disabled, _readOnly, _editable, _wasActive, _ordinaryInputEvents;
   UITextInputStringTokenizer *_tokenizer;
   __weak id<UITextInputDelegate> _inputDelegate;
   NSDictionary<NSAttributedStringKey, id> *_markedTextStyle;
@@ -109,7 +109,8 @@ using namespace facebook::react;
   NSString *keyboardMode = RCTNSStringFromString(next.keyboardMode);
   BOOL modeChanged = ![_keyboardMode isEqual:keyboardMode];
   _keyboardMode = keyboardMode;
-  BOOL traitsChanged = modeChanged || _readOnly != next.segmentReadOnly || _disabled != next.segmentDisabled || _editable != next.segmentEditable;
+  BOOL traitsChanged = modeChanged || _ordinaryInputEvents != next.ordinaryInputEvents || _readOnly != next.segmentReadOnly || _disabled != next.segmentDisabled || _editable != next.segmentEditable;
+  _ordinaryInputEvents = next.ordinaryInputEvents;
   _disabled = next.segmentDisabled; _readOnly = next.segmentReadOnly; _editable = next.segmentEditable;
   // A disabled canonical segment loses tab admission, not an existing responder.
   if (!_editable) [self resignFirstResponder];
@@ -225,7 +226,7 @@ using namespace facebook::react;
   data.composingEnd = _marked.location == NSNotFound ? -1 : (int)NSMaxRange(_marked);
   data.focused = self.isFirstResponder; data.active = [self active];
   const auto emitter = std::static_pointer_cast<const CUIDateSegmentEventEmitter>(_eventEmitter);
-  if ([kind isEqual:@"insert"] || [kind isEqual:@"delete"] || [kind isEqual:@"marked"] || [kind isEqual:@"unmark"])
+  if (!_ordinaryInputEvents && ([kind isEqual:@"insert"] || [kind isEqual:@"delete"] || [kind isEqual:@"marked"] || [kind isEqual:@"unmark"]))
     CUIEmitOwnedFieldInput(self, ^{ emitter->onNativeSegmentInput(data); });
   else emitter->onNativeSegmentInput(data);
 }
@@ -361,7 +362,7 @@ using namespace facebook::react;
 {
   _baseCustomContent = nil;
   [self resignFirstResponder]; _epoch++; [self clearTransientDocument];
-  _ownerId = @""; _segmentId = @""; _bindingRevision = @""; _displayText = @""; _locale = @""; _keyboardMode = @"numeric"; _wasActive = NO; _disabled = YES; _editable = NO;
+  _ownerId = @""; _segmentId = @""; _bindingRevision = @""; _displayText = @""; _locale = @""; _keyboardMode = @"numeric"; _wasActive = NO; _ordinaryInputEvents = NO; _disabled = YES; _editable = NO;
   [super prepareForRecycle];
 }
 @end

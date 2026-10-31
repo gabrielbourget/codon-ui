@@ -351,6 +351,7 @@ export const NativeTimePickerRenderer = forwardRef(
                 locale={locale}
                 direction={direction}
                 hostSet={hosts}
+                inputFocus={focus}
                 appearance={appearance}
                 inheritedText={inheritedText}
                 label={props.accessibilityLabel ?? props["aria-label"]}

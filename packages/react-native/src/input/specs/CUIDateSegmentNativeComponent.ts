@@ -64,6 +64,7 @@ export interface NativeProps extends ViewProps {
   segmentReadOnly: boolean
   segmentEditable: boolean
   segmentPlaceholder?: WithDefault<boolean, false>
+  ordinaryInputEvents?: WithDefault<boolean, false>
   onNativeFieldKey?: BubblingEventHandler<NativeFieldKeyData>
   onNativeSegmentInput?: DirectEventHandler<NativeDateSegmentData>
 }

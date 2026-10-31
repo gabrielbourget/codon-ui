@@ -16,7 +16,9 @@ import type * as RN from "react-native"
 
 import { TimePicker as NativeTimePickerRenderer } from "../../../index"
 import type { TNativeFieldInputScope, TNativeFieldKeyEvent } from "../../../input/fieldInput"
+import { getNativeFocusedTarget, observeNativeFocus } from "../../../input/focus"
 import { NativeFocusHost } from "../../../input/NativeFocusView"
+import { Commands } from "../../../input/specs/CUIDateSegmentNativeComponent"
 import type { TNativeKeyboardEvent } from "../../../input/types"
 import { NativeLocaleProvider } from "../../../locale/NativeLocaleProvider"
 import { NativeThemeProvider } from "../../../theme"
@@ -899,4 +901,140 @@ it("keeps exact native target colors when explicit direction admission changes",
   expect(colorAt("time-picker", "borderLeftColor")).toBeUndefined()
   await act(() => jest.advanceTimersByTime(500))
   expect(screen.getByTestId("time-picker")).toHaveStyle({ borderStartColor: "red", borderEndColor: "blue" })
+})
+
+const prepareOrdinaryTimeInput = async (onChange = jest.fn(), value: TimeValue | null = new Time(13, 45, 7)) => {
+  const native = {
+    getLease: () => "legacy-keys-and-pointer",
+    acceptsField: jest.fn(() => true),
+    settleField: jest.fn(() => true),
+    moveFieldFocus: jest.fn(() => "{}"),
+  }
+  mockFieldScope = { bindingId: "legacy-group", bindingRevision: "1", current: () => true, native }
+  const root = createRef<View>()
+  const result = await render(
+    <NativeTimePickerRenderer ref={root} value={value} onChange={onChange} granularity="second" />,
+  )
+  for (const index of [0, 1, 2]) await send(index)
+  await send(1, { kind: "focus", focused: true, sequence: 2 })
+  const minute = getNativeFocusedTarget()
+  await send(1, { kind: "blur", focused: false, sequence: 3 })
+  await send(0, { kind: "focus", focused: true, sequence: 2 })
+  const hour = getNativeFocusedTarget()
+  expect(hour).not.toBeNull()
+  expect(minute).not.toBeNull()
+  expect(hour).not.toBe(minute)
+  expect(segment().props.ordinaryInputEvents).toBe(true)
+  jest.mocked(Commands.requestSegmentFocus).mockClear()
+  return { ...result, root, hour, minute, native, onChange }
+}
+it("requests ordinary-input auto-advance on the original next segment while preserving owner veto and legacy key/pointer handlers", async () => {
+  const f = await prepareOrdinaryTimeInput()
+  const originalRoot = f.root.current
+  await send(0, {
+    kind: "insert",
+    sequence: 3,
+    focused: true,
+    text: "3",
+    document: "3",
+    selectionStart: 1,
+    selectionEnd: 1,
+  })
+  expect(f.onChange).toHaveBeenCalledWith(new Time(3, 45, 7))
+  expect(segment().props.displayText).toBe("13")
+  expect(f.root.current).toBe(originalRoot)
+  expect(Commands.requestSegmentFocus).toHaveBeenCalledTimes(1)
+  expect(Commands.requestSegmentFocus).toHaveBeenCalledWith(
+    f.minute,
+    segment(1).props.ownerId,
+    segment(1).props.segmentId,
+    segment(1).props.bindingRevision,
+    "window",
+    4,
+  )
+  expect(getNativeFocusedTarget()).toBe(f.hour)
+  expect(f.native.settleField).not.toHaveBeenCalled()
+  expect(f.native.moveFieldFocus).not.toHaveBeenCalled()
+  expect(screen.getByTestId("time-picker-group").props.nativeFieldGroupHandler).toEqual(expect.any(Function))
+  expect(screen.getByTestId("time-picker-group").props.nativeFieldGroupPointerHandler).toEqual(expect.any(Function))
+})
+it("preserves numeric composition and auto-advances only after the original unmark notification", async () => {
+  const f = await prepareOrdinaryTimeInput()
+  await send(0, {
+    kind: "marked",
+    sequence: 3,
+    focused: true,
+    text: "3",
+    document: "3",
+    selectionStart: 1,
+    selectionEnd: 1,
+    composingStart: 0,
+    composingEnd: 1,
+  })
+  expect(f.onChange).not.toHaveBeenCalled()
+  expect(Commands.requestSegmentFocus).not.toHaveBeenCalled()
+  await send(0, {
+    kind: "unmark",
+    sequence: 4,
+    focused: true,
+    text: "3",
+    document: "3",
+    selectionStart: 1,
+    selectionEnd: 1,
+  })
+  expect(f.onChange).toHaveBeenCalledWith(new Time(3, 45, 7))
+  expect(Commands.requestSegmentFocus).toHaveBeenCalledTimes(1)
+  expect(jest.mocked(Commands.requestSegmentFocus).mock.calls[0][0]).toBe(f.minute)
+  expect(f.native.settleField).not.toHaveBeenCalled()
+})
+it("does not redirect an edit's auto-advance from a subsequently observed focus owner", async () => {
+  let minute: View | null = null
+  const f = await prepareOrdinaryTimeInput(
+    jest.fn(() => {
+      if (minute) observeNativeFocus(minute, true)
+    }),
+  )
+  minute = f.minute as View
+  await send(0, {
+    kind: "insert",
+    sequence: 3,
+    focused: true,
+    text: "3",
+    document: "3",
+    selectionStart: 1,
+    selectionEnd: 1,
+  })
+  expect(f.onChange).toHaveBeenCalledTimes(1)
+  expect(getNativeFocusedTarget()).toBe(f.minute)
+  expect(Commands.requestSegmentFocus).not.toHaveBeenCalled()
+  expect(f.native.moveFieldFocus).not.toHaveBeenCalled()
+})
+it("rejects a queued ordinary edit after the original segment window is retired", async () => {
+  const f = await prepareOrdinaryTimeInput()
+  const revision = segment().props.bindingRevision
+  await send(0, { kind: "status", epoch: 5, sequence: 3, active: false })
+  await send(0, {
+    kind: "insert",
+    bindingRevision: revision,
+    epoch: 4,
+    sequence: 4,
+    focused: true,
+    text: "3",
+    document: "3",
+    selectionStart: 1,
+    selectionEnd: 1,
+  })
+  expect(f.onChange).not.toHaveBeenCalled()
+  expect(Commands.requestSegmentFocus).not.toHaveBeenCalled()
+})
+
+it("requests the original previous segment when ordinary deletion reaches an empty placeholder", async () => {
+  const f = await prepareOrdinaryTimeInput(jest.fn(), null)
+  await send(0, { kind: "blur", sequence: 3, focused: false })
+  await send(1, { kind: "focus", sequence: 4, focused: true })
+  await send(1, { kind: "delete", sequence: 5, focused: true })
+  expect(Commands.requestSegmentFocus).toHaveBeenCalledTimes(1)
+  expect(jest.mocked(Commands.requestSegmentFocus).mock.calls[0][0]).toBe(f.hour)
+  expect(getNativeFocusedTarget()).toBe(f.minute)
+  expect(f.native.moveFieldFocus).not.toHaveBeenCalled()
 })

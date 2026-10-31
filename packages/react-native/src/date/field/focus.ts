@@ -105,6 +105,13 @@ export class NativeDateFieldFocusManager {
     const capture = this.#capture()
     return !!capture && this.#focus(capture, 0)
   }
+  focusFromInput = (original: View, kind: "next" | "previous") => {
+    this.#request++
+    const capture = this.#capture()
+    if (!capture || this.native.focused() !== original) return false
+    const index = capture.rows.findIndex((row) => row.original === original)
+    return index >= 0 && this.#focus(capture, index + (kind === "next" ? 1 : -1))
+  }
   focusNext = () => this.#logical(1)
   focusPrevious = () => this.#logical(-1)
   #logical = (direction: -1 | 1) => {

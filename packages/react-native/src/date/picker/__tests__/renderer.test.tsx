@@ -65,6 +65,12 @@ it.each([
   const original = ref.current
   expect(original).not.toBeNull()
   expect(screen.getAllByTestId(/^datetime-picker-input-segment-/).some((segment) => segment.props.ownerId)).toBe(true)
+  expect(
+    screen
+      .getAllByTestId(/^datetime-picker-input-segment-/)
+      .filter((segment) => segment.props.ownerId)
+      .every((segment) => segment.props.ordinaryInputEvents === false),
+  ).toBe(true)
   expect(screen.getByText("2024")).toBeTruthy()
   await view.rerender(
     <NativeThemeProvider>
@@ -88,6 +94,12 @@ it("retains the original range ref through renderer updates with independent sta
   )
   expect(screen.getByTestId("datetime-range-picker-input-start")).toBeTruthy()
   expect(screen.getByTestId("datetime-range-picker-input-end")).toBeTruthy()
+  expect(
+    screen
+      .getAllByTestId(/^datetime-range-picker-input-(start|end)-segment-/)
+      .filter((segment) => segment.props.ownerId)
+      .every((segment) => segment.props.ordinaryInputEvents === false),
+  ).toBe(true)
   expect(screen.getAllByText("2024")).toHaveLength(2)
   expect(screen.getByText("18")).toBeTruthy()
   const original = ref.current

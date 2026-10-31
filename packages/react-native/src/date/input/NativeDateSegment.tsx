@@ -47,12 +47,21 @@ export const NativeDateSegment = forwardRef<TNativeDateSegmentRef, TNativeDateSe
     segmentReadOnly,
     segmentEditable,
     keyboardMode,
+    ordinaryInputEvents = false,
     onNativeSegmentInput,
     ...other
   } = props
   const wireRevision = useMemo(
     () => `${bindingRevision}:native-segment-lease:${++segmentLeaseGenerations}`,
-    [bindingRevision, segmentDisabled, segmentReadOnly, segmentEditable, keyboardMode],
+    [
+      bindingRevision,
+      segmentDisabled,
+      segmentReadOnly,
+      segmentEditable,
+      keyboardMode,
+      ordinaryInputEvents,
+      props.locale,
+    ],
   )
   const fieldScope = useContext(NativeFieldInputContext)
   const committedScope = useRef(fieldScope)
@@ -174,6 +183,11 @@ export const NativeDateSegment = forwardRef<TNativeDateSegmentRef, TNativeDateSe
       (current.current.segmentDisabled || current.current.segmentReadOnly || !current.current.segmentEditable)
     )
       return
+    if (current.current.ordinaryInputEvents && ["insert", "delete", "marked", "unmark"].includes(data.kind)) {
+      if ("fieldDispatch" in data) return
+      current.current.onNativeSegmentInput?.(event)
+      return
+    }
     const scope = committedScope.current
     if (
       scope &&
@@ -201,6 +215,7 @@ export const NativeDateSegment = forwardRef<TNativeDateSegmentRef, TNativeDateSe
         segmentReadOnly={segmentReadOnly}
         segmentEditable={segmentEditable}
         keyboardMode={keyboardMode}
+        ordinaryInputEvents={ordinaryInputEvents}
         onNativeSegmentInput={handleInput}
         collapsable={false}
       />

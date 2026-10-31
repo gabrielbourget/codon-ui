@@ -201,3 +201,30 @@ it("rejects geometry when the renderer mutates the captured root snapshot in pla
   expect(await request).toBe(false)
   expect(value.requests).toEqual([])
 })
+
+it("advances only from the original input focus owner and never treats a request as observed focus", () => {
+  const value = setup()
+  const source = value.rows[0].original
+  expect(value.manager.focusFromInput(source, "next")).toBe(true)
+  expect(value.requests).toEqual([value.rows[1].original])
+  expect(value.native.focused()).toBe(source)
+  value.focused(value.rows[1].original)
+  expect(value.manager.focusFromInput(source, "next")).toBe(false)
+  expect(value.requests).toHaveLength(1)
+  expect(value.manager.focusFromInput(value.rows[1].original, "previous")).toBe(true)
+  expect(value.requests.at(-1)).toBe(source)
+})
+it.each(["replacement", "inactive", "guard", "retired"])("rejects an input focus request after %s", (change) => {
+  const value = setup(),
+    source = value.rows[0].original
+  if (change === "replacement")
+    value.replace({
+      ...value.current()!,
+      rows: value.rows.map((row, index) => (index ? row : { ...row, original: {} as View })),
+    })
+  if (change === "inactive") value.replace(null)
+  if (change === "guard") value.disabled.add(source)
+  if (change === "retired") value.manager.retire()
+  expect(value.manager.focusFromInput(source, "next")).toBe(false)
+  expect(value.requests).toEqual([])
+})
