@@ -13,6 +13,7 @@ import { findNodeHandle, TextInput, type StyleProp, type TextStyle } from "react
 import { useNativeCollectionRefs, useNativeContextProps } from "../../collection/context"
 import { NativeFieldInputContext, receiveNativeFieldKey, type TNativeFieldKeyEvent } from "../../input/fieldInput"
 import { useNativeKeyboardObservation, useNativeKeyScope } from "../../input/NativeKeyboardScope"
+import { useNativeOrdinaryEditorKeys } from "../../input/ordinaryEditorKeys"
 import { NativeInput } from "../Input/Input"
 import type { TNativeInputRenderState } from "../Input/types"
 
@@ -212,7 +213,22 @@ export const NativeComboBoxInput = forwardRef<TextInput, TNativeComboBoxInputPro
       live.current = false
     }
   }, [])
-  const ref = useNativeCollectionRefs(inheritedRef, original)
+  const [ordinaryTarget, setOrdinaryTarget] = useState<TextInput | null>(null)
+  const observedRef = useNativeCollectionRefs(original, setOrdinaryTarget)
+  const ref = useNativeCollectionRefs(inheritedRef, observedRef)
+  const receiveOrdinaryKey = useNativeOrdinaryEditorKeys(
+    ordinaryTarget,
+    hasKeyCallbacks && !fieldInput && !props.isDisabled,
+    `${!!props.isDisabled}:${!!props.isReadOnly}`,
+    {
+      current: () => original.current,
+      canAct: () => live.current && !current.current.isDisabled && scope?.isWindowActive() !== false,
+      receive: (event) => {
+        const callback = event.nativeEvent.phase === "down" ? current.current.onKeyDown : current.current.onKeyUp
+        callback?.(event)
+      },
+    },
+  )
   const active = () => live.current && original.current !== null && scope?.isWindowActive() !== false
   const finishHover = () => {
     const event = hoverEvent.current
@@ -281,7 +297,9 @@ export const NativeComboBoxInput = forwardRef<TextInput, TNativeComboBoxInputPro
                   })
                 },
               }
-            : native
+            : hasKeyCallbacks
+              ? { ...native, onNativeOrdinaryEditorKey: receiveOrdinaryKey }
+              : native
           return render ? render(hostProps, values(state)) : <TextInput {...hostProps} />
         }}
         onPointerEnter={(event) => {

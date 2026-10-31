@@ -10,7 +10,11 @@ import {
   screen,
 } from "../../../collection/__tests__/nativeReceipts"
 import { CompactTypeaheadSearch, TagComboBox, type TNativeComboBoxKeyboardEvent } from "../../../index"
-import type { TNativeFieldInputScope, TNativeFieldKeyEvent } from "../../../input/fieldInput"
+import {
+  NativeFieldInputContext,
+  type TNativeFieldInputScope,
+  type TNativeFieldKeyEvent,
+} from "../../../input/fieldInput"
 import type { TNativeFieldInputPlan } from "../../../input/fieldInputBinding"
 import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
@@ -99,6 +103,12 @@ afterEach(async () => {
   jest.useRealTimers()
 })
 
+const legacyAncestor: TNativeFieldInputScope = {
+  bindingId: "legacy-ancestor",
+  bindingRevision: "1",
+  current: () => true,
+  native: mockNative,
+}
 const setup = async (kind: "compact" | "tags", prevent = true) => {
   const input = createRef<RN.TextInput>()
   const sources: unknown[][] = []
@@ -114,7 +124,9 @@ const setup = async (kind: "compact" | "tags", prevent = true) => {
   const wrap = (child: ReactNode) => (
     <NativeThemeProvider>
       <NativeOverlayProvider>
-        <NativeFloatingLayerHost testID="editor-host">{child}</NativeFloatingLayerHost>
+        <NativeFloatingLayerHost testID="editor-host">
+          <NativeFieldInputContext.Provider value={legacyAncestor}>{child}</NativeFieldInputContext.Provider>
+        </NativeFloatingLayerHost>
       </NativeOverlayProvider>
     </NativeThemeProvider>
   )
@@ -262,7 +274,7 @@ const deliver = async (f: Awaited<ReturnType<typeof setup>>, event: ReturnType<t
   })
 }
 
-describe.each(["compact", "tags"] as const)("%s original editor key contract", (kind) => {
+describe.each(["compact", "tags"] as const)("%s legacy-ancestor editor key contract", (kind) => {
   it("delivers both original phases once and acknowledges the caller's text-default veto", async () => {
     const f = await setup(kind)
     const down = originalKey(f, "down"),

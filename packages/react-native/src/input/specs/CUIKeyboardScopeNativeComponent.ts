@@ -203,6 +203,8 @@ export type NativeEditorKeyboardBinding = Readonly<{
   targetTag: Int32
   moduleLease: string
 }>
+type NativeOrdinaryEditorBinding = Readonly<{ bindingId: string; bindingRevision: string; targetTag: Int32 }>
+
 export type NativeEditorKeyData = Readonly<{
   ownerId: string
   bindingId: string
@@ -262,6 +264,8 @@ export interface NativeProps extends ViewProps {
   onNativeDialogStatus?: DirectEventHandler<NativeDialogStatus>
   onNativeDialogAction?: DirectEventHandler<NativeDialogAction>
   editorKeyboardBindings?: ReadonlyArray<NativeEditorKeyboardBinding>
+  ordinaryEditorBindings?: ReadonlyArray<NativeOrdinaryEditorBinding>
+  onNativeOrdinaryEditorStatus?: DirectEventHandler<NativeEditorKeyboardStatus>
   onNativeEditorKey?: DirectEventHandler<NativeEditorKeyData>
   onNativeEditorKeyboardStatus?: DirectEventHandler<NativeEditorKeyboardStatus>
   onNativeEditorKeyboardDecision?: DirectEventHandler<NativeEditorKeyboardDecision>

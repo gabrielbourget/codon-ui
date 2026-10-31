@@ -1,0 +1,143 @@
+#import "CUIOrdinaryEditorKeys.h"
+#import "CUIInputWindow.h"
+#import "CUIFieldInputBinding.h"
+#import "CUIPhysicalKey.h"
+#include <react/renderer/core/EventEmitter.h>
+#include <react/renderer/mounting/ShadowViewMutation.h>
+#include <unordered_map>
+
+using namespace facebook::react;
+
+@implementation CUIOrdinaryEditorKeys {
+  __weak UIView *_scope;
+  NSDictionary *(^_session)(void);
+  BOOL (^_ready)(void);
+  void (^_status)(NSDictionary *);
+  NSArray<NSDictionary *> *_bindings;
+  NSMapTable<NSString *, UIView *> *_targets;
+  NSMutableSet<NSString *> *_resolved;
+  NSMutableDictionary<NSString *, NSString *> *_published;
+  std::unordered_map<Tag, std::weak_ptr<const EventEmitter>> _emitters;
+  std::unordered_map<std::string, std::weak_ptr<const EventEmitter>> _originalEmitters;
+  NSUInteger _sequence, _eventId;
+  BOOL _awaitingMount;
+}
+- (instancetype)initWithScope:(UIView *)scope session:(NSDictionary *(^)(void))session ready:(BOOL (^)(void))ready status:(void (^)(NSDictionary *))status
+{
+  if ((self = [super init])) {
+    _scope = scope; _session = [session copy]; _ready = [ready copy]; _status = [status copy];
+    _bindings = @[]; _targets = NSMapTable.strongToWeakObjectsMapTable;
+    _resolved = [NSMutableSet new]; _published = [NSMutableDictionary new];
+  }
+  return self;
+}
+- (NSString *)identity:(NSDictionary *)binding { return [NSString stringWithFormat:@"%@/%@", binding[@"bindingId"], binding[@"bindingRevision"]]; }
+- (BOOL)hasBindings { return _bindings.count > 0; }
+- (void)update:(NSArray<NSDictionary *> *)bindings
+{
+  if ([_bindings isEqual:bindings]) return;
+  NSMutableSet *ids = [NSMutableSet new], *targets = [NSMutableSet new], *duplicates = [NSMutableSet new];
+  for (NSDictionary *binding in bindings) {
+    NSString *identifier = binding[@"bindingId"]; NSNumber *target = binding[@"targetTag"];
+    if ([ids containsObject:identifier] || [targets containsObject:target]) {
+      [duplicates addObject:identifier];
+      for (NSDictionary *previous in bindings) if ([previous[@"targetTag"] isEqual:target]) [duplicates addObject:previous[@"bindingId"]];
+    }
+    [ids addObject:identifier]; [targets addObject:target];
+  }
+  NSMutableArray *accepted = [NSMutableArray new]; NSMutableSet *identities = [NSMutableSet new];
+  for (NSDictionary *binding in bindings) if (![duplicates containsObject:binding[@"bindingId"]]) {
+    [accepted addObject:binding]; [identities addObject:[self identity:binding]];
+  }
+  for (NSString *identity in _resolved.copy) if (![identities containsObject:identity]) {
+    [_resolved removeObject:identity]; [_targets removeObjectForKey:identity]; [_published removeObjectForKey:identity];
+    _originalEmitters.erase(identity.UTF8String);
+  }
+  _bindings = accepted; _awaitingMount = YES;
+}
+- (void)didMount:(const MountingTransaction &)transaction
+{
+  for (const auto &mutation : transaction.getMutations()) {
+    if (mutation.type == ShadowViewMutation::Delete) _emitters.erase(mutation.oldChildShadowView.tag);
+    else if (mutation.newChildShadowView.eventEmitter) _emitters[mutation.newChildShadowView.tag] = mutation.newChildShadowView.eventEmitter;
+  }
+  _awaitingMount = NO;
+  [self publish];
+}
+- (UIView *)original:(NSDictionary *)binding
+{
+  UIView *scope = _scope;
+  if (_awaitingMount || !scope.window || ![binding[@"bindingId"] length] || ![binding[@"bindingRevision"] length]) return nil;
+  const Tag tag = [binding[@"targetTag"] intValue];
+  const auto found = _emitters.find(tag);
+  const auto currentEmitter = found == _emitters.end() ? nullptr : found->second.lock();
+  if (!currentEmitter) return nil;
+  NSString *identity = [self identity:binding];
+  if (![_resolved containsObject:identity]) {
+    UIView *target = [scope viewWithTag:tag];
+    if (!target) return nil;
+    [_targets setObject:target forKey:identity]; [_resolved addObject:identity];
+    _originalEmitters[identity.UTF8String] = currentEmitter;
+  }
+  UIView *target = [_targets objectForKey:identity];
+  const auto original = _originalEmitters.find(identity.UTF8String);
+  if (!target || target.tag != tag || target.window != scope.window || ![target isDescendantOfView:scope] ||
+      original == _originalEmitters.end() || original->second.lock() != currentEmitter) return nil;
+  for (UIView *view = target; view; view = view.superview) if (view.hidden) return nil;
+  return target;
+}
+- (NSDictionary *)bindingForPress:(UIPress *)press
+{
+  UIView *scope = _scope;
+  if (!press.key || !scope.window || press.window != scope.window || !_ready() || CUIFieldInputOwnsPress(press, scope.window)) return nil;
+  UIView *focused = [press.responder isKindOfClass:UIView.class] ? (UIView *)press.responder : CUIInputFocusedView(scope.window);
+  NSDictionary *selected = nil;
+  for (NSDictionary *binding in _bindings) {
+    UIView *target = [self original:binding];
+    if (!target || (focused != target && ![focused isDescendantOfView:target])) continue;
+    if (selected) return nil;
+    selected = binding;
+  }
+  return selected;
+}
+- (BOOL)acceptsPress:(UIPress *)press { return [self bindingForPress:press] != nil; }
+- (void)publish
+{
+  NSDictionary *session = _session();
+  for (NSDictionary *binding in _bindings) {
+    UIView *target = [self original:binding]; const BOOL ready = _ready() && target != nil;
+    NSString *identity = [self identity:binding];
+    NSString *signature = [NSString stringWithFormat:@"%@:%@:%@:%d:%p", session[@"scopeOwnerId"], session[@"windowId"], session[@"epoch"], ready, target];
+    if ([_published[identity] isEqual:signature]) continue;
+    _published[identity] = signature;
+    _status(@{@"ownerId":session[@"scopeOwnerId"] ?: @"", @"windowId":session[@"windowId"] ?: @"", @"epoch":session[@"epoch"] ?: @0,
+      @"bindingId":binding[@"bindingId"], @"bindingRevision":binding[@"bindingRevision"], @"target":binding[@"targetTag"],
+      @"sequence":@(++_sequence), @"ready":@(ready), @"windowActive":@(_scope.window.isKeyWindow), @"error":ready ? @"" : @"original-editor-unavailable"});
+  }
+}
+- (void)dispatchPress:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat captured:(BOOL)captured
+{
+  NSDictionary *binding = [self bindingForPress:press];
+  if (!binding || ![@[@"down", @"up", @"cancel"] containsObject:phase]) return;
+  const auto found = _emitters.find([binding[@"targetTag"] intValue]);
+  const auto emitter = found == _emitters.end() ? nullptr : found->second.lock();
+  if (!emitter) return;
+  NSDictionary *session = _session(); UIKey *key = press.key; const auto flags = key.modifierFlags;
+  UIView *focused = [press.responder isKindOfClass:UIView.class] ? (UIView *)press.responder : CUIInputFocusedView(_scope.window);
+  const bool composing = [focused conformsToProtocol:@protocol(UITextInput)] && ((id<UITextInput>)focused).markedTextRange != nil;
+  folly::dynamic data = folly::dynamic::object("kind", "keyboard")("ownerId", [session[@"scopeOwnerId"] UTF8String] ?: "")
+    ("bindingId", [binding[@"bindingId"] UTF8String])("bindingRevision", [binding[@"bindingRevision"] UTF8String])
+    ("target", [binding[@"targetTag"] intValue])("windowId", [session[@"windowId"] UTF8String] ?: "")("epoch", [session[@"epoch"] doubleValue])
+    ("eventId", static_cast<double>(++_eventId))("key", CUIInputKeyName(key).UTF8String ?: "")
+    ("code", CUIPhysicalKeyCode(static_cast<int>(key.keyCode)))("location", CUIPhysicalKeyLocation(static_cast<int>(key.keyCode)))
+    ("nativeCode", static_cast<int>(key.keyCode))("characters", key.characters.UTF8String ?: "")
+    ("phase", [phase isEqual:@"down"] ? "down" : "up")("repeat", static_cast<bool>(repeat))
+    ("cancelled", static_cast<bool>([phase isEqual:@"cancel"]))("isComposing", composing)
+    ("shiftKey", static_cast<bool>(flags & UIKeyModifierShift))("altKey", static_cast<bool>(flags & UIKeyModifierAlternate))
+    ("ctrlKey", static_cast<bool>(flags & UIKeyModifierControl))("metaKey", static_cast<bool>(flags & UIKeyModifierCommand))
+    ("capsLock", static_cast<bool>(flags & UIKeyModifierAlphaShift))("nativeModifierData", std::to_string(static_cast<uint64_t>(flags)))
+    ("nativeDefaultHandled", static_cast<bool>(captured))("timestamp", press.timestamp * 1000);
+  emitter->dispatchEvent("nativeOrdinaryEditorKey", std::move(data), RawEvent::Category::Discrete,
+      HighResTimeStamp::fromDOMHighResTimeStamp(press.timestamp * 1000));
+}
+@end

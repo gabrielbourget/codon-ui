@@ -224,14 +224,16 @@ const Receiver = <T extends object>({
   const inputTarget = originalInput?.target ?? 0
   const [editorKeyListeners, setEditorKeyListeners] = useState(0)
   const editorKeyListenerCount = useRef(0)
-  const originalKeyCallbacks = !!(
-    editorKeyListeners ||
-    props.onKeyDown ||
-    props.onKeyUp ||
-    props.inputProps?.onKeyDown ||
-    props.inputProps?.onKeyUp
-  )
   const inheritedFieldInput = useContext(NativeFieldInputContext)
+  const originalKeyCallbacks =
+    !!inheritedFieldInput &&
+    !!(
+      editorKeyListeners ||
+      props.onKeyDown ||
+      props.onKeyUp ||
+      props.inputProps?.onKeyDown ||
+      props.inputProps?.onKeyUp
+    )
   const editorBindingRevision = useMemo(
     () => `${fieldId}:editor:${++nextEditorBindingRevision}`,
     [fieldId, outerRoot, inputRoot, originalInput, props.isDisabled, props.isReadOnly],
@@ -943,7 +945,7 @@ const Receiver = <T extends object>({
                                                 target={inputTarget}
                                                 open={state.isOpen}
                                                 enabled={!props.isDisabled && !props.isReadOnly}
-                                                lifetime={`${inputTarget}:${state.isOpen}`}
+                                                lifetime={`${editorBindingRevision}:${state.isOpen}`}
                                                 onKey={onKey}
                                                 observe={observeKey}
                                                 capture={!originalKeyCallbacks}

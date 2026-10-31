@@ -27,6 +27,7 @@ export type TNativeComboBoxKeyboardEvent = NativeSyntheticEvent<
   TNativeKeyboardData & Readonly<{ isComposing: boolean }>
 > &
   Readonly<{ target: TextInput; currentTarget: TextInput }>
+/** Original editor observations; JS preventDefault cannot veto an already proceeding native default. */
 export type TNativeComboBoxKeyboardCallbacks = {
   onKeyDown?: (event: TNativeComboBoxKeyboardEvent) => void
   onKeyUp?: (event: TNativeComboBoxKeyboardEvent) => void
