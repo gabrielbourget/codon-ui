@@ -44,8 +44,8 @@ const BaseViewProps &nativeStickyViewProps(const ShadowNode &node, const Props::
   return static_cast<const BaseViewProps &>(*props);
 }
 
-TStickyAuthoredStyle captureNativeStickyStyle(const BaseViewProps &props) {
-  const auto source = codon::motion::captureNativePopStyle(props);
+TStickyAuthoredStyle captureNativeStickyStyle(const BaseViewProps &props, bool authoredPosition) {
+  const auto source = codon::motion::captureNativePopStyle(props, authoredPosition);
   folly::dynamic fields = folly::dynamic::object();
   for (const auto key : insetKeys) fields[key] = source.at(key);
   if (!props.backgroundColor) fields["backgroundColor"] = nullptr;

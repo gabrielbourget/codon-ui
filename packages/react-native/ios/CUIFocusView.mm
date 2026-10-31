@@ -17,6 +17,7 @@
 #import <react/renderer/components/CodonNativeInputSpec/EventEmitters.h>
 #import <react/renderer/components/CodonNativeInputSpec/Props.h>
 #import <react/renderer/components/CodonNativeInputSpec/RCTComponentViewHelpers.h>
+#include "../cpp/input/PositionDescriptor.h"
 
 using namespace facebook::react;
 
@@ -139,7 +140,7 @@ using namespace facebook::react;
 
 + (ComponentDescriptorProvider)componentDescriptorProvider
 {
-  return concreteComponentDescriptorProvider<CUIFocusViewComponentDescriptor>();
+  return concreteComponentDescriptorProvider<CUIOwnedFocusViewComponentDescriptor>();
 }
 
 - (instancetype)initWithFrame:(CGRect)frame

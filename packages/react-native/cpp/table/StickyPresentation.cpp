@@ -1,4 +1,5 @@
 #include "StickyPresentation.h"
+#include "../input/PositionOwnership.h"
 #include "StickyConstraints.h"
 #include "../motion/FabricSnapshot.h"
 #include "../motion/NativeStyle.h"
@@ -89,6 +90,7 @@ std::string NativeTableStickyPresentation::request(const std::string &encoded) {
   auto snapshot = codon::motion::captureNativeFabricSnapshot(*manager_, candidate->getSurfaceId(), target,
       [family](const ShadowNode &node) { return node.getFamilyShared() == family; });
   nativeStickyViewProps(*snapshot.target, snapshot.target->getProps());
+  codon::input::requireNativePositionPresence(snapshot.target->getProps());
   ShadowNodeFamily::Shared rootFamily;
   for (const auto &[ancestor, index] : family->getAncestors(*snapshot.root)) {
     (void)index;
@@ -212,7 +214,7 @@ bool NativeTableStickyPresentation::frame(const std::string &lease, const TStick
   const auto source = authoredProps(*node);
   const auto &props = nativeStickyViewProps(*node, source);
   double x = 0, y = 0;
-  if (!props.cuiHasAuthoredPosition && props.yogaStyle.positionType() == facebook::yoga::PositionType::Relative) {
+  if (!codon::input::requireNativePositionPresence(source) && props.yogaStyle.positionType() == facebook::yoga::PositionType::Relative) {
     const bool rtl = relative.layoutDirection == LayoutDirection::RightToLeft;
     const auto &context = root->getConcreteProps().layoutContext;
     const auto insets = nativeStickyInsets(props, entry.fallback, rtl, context.swapLeftAndRightInRTL,
@@ -306,11 +308,12 @@ RootShadowNode::Unshared NativeTableStickyPresentation::shadowTreeWillCommit(
           {node->getSurfaceId(), *node->getContextContainer()}, source, RawProps(native));
       auto output = source;
       const auto &props = nativeStickyViewProps(*node, source);
-      if (entry.active && !entry.released && !props.cuiHasAuthoredPosition &&
+      const auto authoredPosition = codon::input::requireNativePositionPresence(source);
+      if (entry.active && !entry.released && !authoredPosition &&
           props.yogaStyle.positionType() == facebook::yoga::PositionType::Relative) {
         const auto *layout = dynamic_cast<const LayoutableShadowNode *>(node.get());
         if (!layout) throw std::runtime_error("Table sticky: layout host required");
-        const auto style = captureNativeStickyStyle(props);
+        const auto style = captureNativeStickyStyle(props, authoredPosition);
         output = cloneNativeStickyStyle(*node, source,
             nativeStickyPresentationFields(props, entry.fallback, layout->getLayoutMetrics(), entry.x, entry.y),
             nativeStickyTransform(props.transform, entry.x, entry.y));

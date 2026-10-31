@@ -7,7 +7,7 @@
 namespace codon::motion {
 
 // Only fields owned by the pop presentation. No editor or event data is kept.
-folly::dynamic captureNativePopStyle(const facebook::react::YogaStylableProps &props);
+folly::dynamic captureNativePopStyle(const facebook::react::YogaStylableProps &props, bool authoredPosition);
 folly::dynamic filterNativePopStyle(const folly::dynamic &props);
 folly::dynamic nativePopStyle(double width, double height, double x, double y,
     bool rightToLeft, bool anchorRight, bool anchorBottom);

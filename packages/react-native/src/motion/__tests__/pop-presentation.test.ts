@@ -59,6 +59,21 @@ const setup = () => {
 }
 afterEach(() => jest.restoreAllMocks())
 
+it("surfaces the native root migration error before activation and admits a later valid capture", () => {
+  const test = setup()
+  test.backend.mockImplementationOnce(() => {
+    throw new Error("Motion popLayout: use NativeFocusView as the actual root and forward its original props/ref")
+  })
+  expect(test.read).toThrow("use NativeFocusView as the actual root")
+  expect(test.actions().map((entry) => entry.action)).toEqual(["capture"])
+  const frame = test.read()
+  const release = test.owner.freeze(frame, "left", "top")
+  release()
+  expect(test.actions().map((entry) => entry.action)).toEqual(["capture", "capture", "activate", "release"])
+  expect(test.view.isConnected).toBe(true)
+  test.owner.dispose()
+})
+
 it("activates only the captured lease and sends no caller rectangle or editor data", () => {
   const test = setup(),
     frame = test.read(),

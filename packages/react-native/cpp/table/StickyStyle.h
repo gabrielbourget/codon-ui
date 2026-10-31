@@ -15,7 +15,7 @@ struct TStickyAuthoredStyle {
 
 const facebook::react::BaseViewProps &nativeStickyViewProps(
     const facebook::react::ShadowNode &node, const facebook::react::Props::Shared &props);
-TStickyAuthoredStyle captureNativeStickyStyle(const facebook::react::BaseViewProps &props);
+TStickyAuthoredStyle captureNativeStickyStyle(const facebook::react::BaseViewProps &props, bool authoredPosition);
 facebook::react::Props::Shared cloneNativeStickyStyle(
     const facebook::react::ShadowNode &node, const facebook::react::Props::Shared &source,
     const folly::dynamic &fields, const facebook::react::Transform &transform);

@@ -4285,6 +4285,14 @@
       "scope": "Remove only P01/P02 SDK typography hunks and remaining Android scalar adapters; restore stock style/theme fontWeight types for supported named/string/numeric endpoints. Fractional/custom numeric values require explicit migration.",
       "sourceChecks": "182 cases/11 suites plus source/public types. Invalid untyped-input and overridden-value runtime checks retain their exact values/assertions through a private test helper; positive/negative public declarations cover the restored stock types.",
       "preserved": "Explicit owned styling, override precedence, original refs/events/identity and other Motion clocks. Original canonical fields, sourceRefs, historical receipts and verdicts remain unchanged; native compiler/products and glyph/layout/scaling/input/AT/profile qualification remain OPEN."
+    },
+    {
+      "id": "DEC.PHONE.POSITION_ROOT.01",
+      "authority": "Gabriel approved the proposed sticky/popLayout cooperating NativeFocusView root contract: Proceed, I approve; roadmap3.4.1.3.4 PHONE-POS01",
+      "sourceBaseline": "9cc699a4b50f749a2eebb3f3389a81cb123092a5",
+      "scope": "A custom Card/context root participating in Motion popLayout must ultimately use NativeFocusView and forward original props/ref; Table sticky columns have the same bounded requirement. Custom core View/third-party roots for these features require explicit migration.",
+      "preserved": "Default roots, final native style/imperative precedence, omitted versus explicit relative position, original generated props/children/editor/ref/event identity, lease retirement/restoration and all other Motion/Table APIs. No automatic wrapper or ref proxy.",
+      "validation": "Owned descriptor/metadata controls, focused pop/sticky protocol and renderer controls, source/public types and normal hooks. Original sourceRefs, property inventories, received hashes, historical receipts and platform verdicts remain unchanged; native products and installed qualification remain OPEN."
     }
   ]
 }

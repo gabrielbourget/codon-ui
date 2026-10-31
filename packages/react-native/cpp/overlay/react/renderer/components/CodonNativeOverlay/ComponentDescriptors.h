@@ -4,3 +4,4 @@
 #include "../../../../NativeOverlayLayout.h"
 
 #include "../../../../../table/ClampHost.h"
+#include "../../../../../input/PositionDescriptor.h"
