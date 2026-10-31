@@ -69,7 +69,7 @@ it.each([
     screen
       .getAllByTestId(/^datetime-picker-input-segment-/)
       .filter((segment) => segment.props.ownerId)
-      .every((segment) => segment.props.ordinaryInputEvents === false),
+      .every((segment) => segment.props.ordinaryInputEvents === true),
   ).toBe(true)
   expect(screen.getByText("2024")).toBeTruthy()
   await view.rerender(
@@ -80,6 +80,12 @@ it.each([
     </NativeThemeProvider>,
   )
   expect(ref.current === original).toBe(true)
+  expect(
+    screen
+      .getAllByTestId(/^datetime-picker-input-segment-/)
+      .filter((segment) => segment.props.ownerId)
+      .every((segment) => segment.props.ordinaryInputEvents === false),
+  ).toBe(true)
 })
 
 it("retains the original range ref through renderer updates with independent start/end groups", async () => {
@@ -98,7 +104,7 @@ it("retains the original range ref through renderer updates with independent sta
     screen
       .getAllByTestId(/^datetime-range-picker-input-(start|end)-segment-/)
       .filter((segment) => segment.props.ownerId)
-      .every((segment) => segment.props.ordinaryInputEvents === false),
+      .every((segment) => segment.props.ordinaryInputEvents === true),
   ).toBe(true)
   expect(screen.getAllByText("2024")).toHaveLength(2)
   expect(screen.getByText("18")).toBeTruthy()
@@ -116,6 +122,12 @@ it("retains the original range ref through renderer updates with independent sta
     </NativeThemeProvider>,
   )
   expect(ref.current).toBe(original)
+  expect(
+    screen
+      .getAllByTestId(/^datetime-range-picker-input-(start|end)-segment-/)
+      .filter((segment) => segment.props.ownerId)
+      .every((segment) => segment.props.ordinaryInputEvents === false),
+  ).toBe(true)
   expect(screen.getByTestId("datetime-range-picker-input-start")).toBeTruthy()
   expect(screen.getByTestId("datetime-range-picker-input-end")).toBeTruthy()
   await view.unmount()

@@ -54,7 +54,12 @@ import type { DateRangePickerState } from "../state/useDateRangePickerState"
 import { getNativeDatePickerAppearance, resolveNativeDatePickerLabels } from "./appearance"
 import { NativeDatePickerCalendarIcon } from "./icons"
 import { useNativeDatePickerMotion } from "./motion"
-import { NativeDateInputContext, NativePickerInput, type TNativePickerInputProps } from "./NativePickerInput"
+import {
+  NativeDateInputContext,
+  NativeDateInputOrdinaryEventsContext,
+  NativePickerInput,
+  type TNativePickerInputProps,
+} from "./NativePickerInput"
 import type { TNativeDatePickerAppearance, TNativeDateTimePickerProps, TNativeDateTimeRangePickerProps } from "./types"
 
 type TOptions =
@@ -459,18 +464,22 @@ export const NativeDatePickerView = (
                 nativeFieldGroupHandler={receiveInputKey}
                 nativeFieldGroupPointerHandler={press}
               >
-                <NativePickerInput slot={fields[0].slot} testID={`${testID}-input${range ? "-start" : ""}`} />
-                {range ? (
-                  <>
-                    <Text
-                      accessible={false}
-                      style={{ ...content?.textStyle, ...root.text, ...group.text, color: motion.foreground }}
-                    >
-                      –
-                    </Text>
-                    <NativePickerInput slot="end" testID={`${testID}-input-end`} />
-                  </>
-                ) : null}
+                <NativeDateInputOrdinaryEventsContext.Provider
+                  value={!props.render && !options.appearanceProps.ComponentIcon}
+                >
+                  <NativePickerInput slot={fields[0].slot} testID={`${testID}-input${range ? "-start" : ""}`} />
+                  {range ? (
+                    <>
+                      <Text
+                        accessible={false}
+                        style={{ ...content?.textStyle, ...root.text, ...group.text, color: motion.foreground }}
+                      >
+                        –
+                      </Text>
+                      <NativePickerInput slot="end" testID={`${testID}-input-end`} />
+                    </>
+                  ) : null}
+                </NativeDateInputOrdinaryEventsContext.Provider>
               </NativeFocusHost>
               {metadata}
               {selectedDescription ? (
