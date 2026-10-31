@@ -1,6 +1,7 @@
 import {
   forwardRef,
   useCallback,
+  useContext,
   useId,
   useInsertionEffect,
   useLayoutEffect,
@@ -51,6 +52,7 @@ import { isNativeDateFieldFocusEvent } from "./focusEvent"
 import { NativeDateFieldHostSet, nativeDateFieldSegmentId } from "./hostSet"
 import { useNativeTimePickerMotion } from "./motion"
 import { NativeTimePickerSegment } from "./NativeTimePickerSegment"
+import { useNativeOrdinaryDateGroup } from "./ordinaryGroup"
 import type { TNativeTimeFieldProps } from "./types"
 import { useNativeDateFieldLifecycle } from "./useLifecycle"
 import { useNativeTimeField } from "./useTimeField"
@@ -130,6 +132,8 @@ export const NativeTimePickerRenderer = forwardRef(
     const { props, state, renderState, locale, direction } = field
     // Custom compositions may add native focus targets outside the owned segment registry.
     const ordinaryInputEvents = !props.render && !authored.ComponentIcon
+    const inheritedFieldInput = useContext(NativeFieldInputContext)
+    const ordinaryGroupEvents = ordinaryInputEvents && !inheritedFieldInput
     const ownerId = useId()
     const testID = props.testID ?? props["data-testid"] ?? "time-picker"
     const [hosts] = useState(() => new NativeDateFieldHostSet())
@@ -208,7 +212,7 @@ export const NativeTimePickerRenderer = forwardRef(
           : null,
       [ownerId, groupRevision, outer, inputRoot, outerTarget, inputTarget, originalTarget],
     )
-    const inputBinding = useNativeFieldInputBinding(inputPlan)
+    const inputBinding = useNativeFieldInputBinding(inputPlan, !ordinaryGroupEvents)
     const receiveGroupKey = inputBinding.scope
       ? nativeFieldGroupKeyHandler(inputBinding.scope, {
           direction,
@@ -217,6 +221,14 @@ export const NativeTimePickerRenderer = forwardRef(
         })
       : undefined
     const receiveGroupPointer = useNativeFieldGroupPress({ scope: inputBinding.scope })
+    const ordinary = useNativeOrdinaryDateGroup({
+      enabled: ordinaryGroupEvents,
+      disabled: state.isDisabled,
+      direction,
+      focus,
+      onKeyDown: props.onKeyDown,
+      onKeyUp: props.onKeyUp,
+    })
     const initialAutoFocus = useRef(!!props.autoFocus)
     useLayoutEffect(() => {
       if (initialAutoFocus.current && !state.isDisabled && original && focus.focusFirst())
@@ -302,6 +314,8 @@ export const NativeTimePickerRenderer = forwardRef(
       isReadOnly: state.isReadOnly,
       isInvalid: state.isInvalid,
       nativeFieldGroupHandler: receiveGroupKey,
+      nativeOrdinaryGroupKeyHandler: ordinaryGroupEvents ? ordinary.key : undefined,
+      ...ordinary.pointer,
       nativeFieldGroupPointerHandler: receiveGroupPointer,
     }
     const inheritedText = { ...inheritedRootText, ...group.text, color: motion.groupColor, ...input.text }
@@ -316,6 +330,8 @@ export const NativeTimePickerRenderer = forwardRef(
           accessibilityLabel={groupProps.accessibilityLabel}
           nativeLabelledBy={label.current ? [labelId] : undefined}
           focusable={false}
+          nativeOrdinaryGroupKeyHandler={ordinaryGroupEvents ? ordinary.key : undefined}
+          {...ordinary.pointer}
           nativeFieldGroupHandler={receiveGroupKey}
           nativeFieldGroupPointerHandler={receiveGroupPointer}
           nativeFocusWithinObservation
@@ -335,6 +351,8 @@ export const NativeTimePickerRenderer = forwardRef(
           <NativeFocusHost
             ref={setInputRoot}
             focusable={false}
+            nativeOrdinaryGroupKeyHandler={ordinaryGroupEvents ? ordinary.key : undefined}
+            {...ordinary.pointer}
             nativeFieldGroupHandler={receiveGroupKey}
             nativeFieldGroupPointerHandler={receiveGroupPointer}
             testID={`${testID}-input`}
@@ -354,6 +372,7 @@ export const NativeTimePickerRenderer = forwardRef(
                 direction={direction}
                 hostSet={hosts}
                 inputFocus={ordinaryInputEvents ? focus : undefined}
+                ordinaryGroupEvents={ordinaryGroupEvents}
                 appearance={appearance}
                 inheritedText={inheritedText}
                 label={props.accessibilityLabel ?? props["aria-label"]}

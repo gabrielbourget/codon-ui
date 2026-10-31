@@ -1,4 +1,4 @@
-import type { NativeDateSegmentData } from "../../input/specs/CUIDateSegmentNativeComponent"
+import type { NativeDateSegmentData, NativeDateSegmentKeyData } from "../../input/specs/CUIDateSegmentNativeComponent"
 
 export type TNativeDateSegmentIdentity = Readonly<{
   ownerId: string
@@ -15,6 +15,7 @@ export const createNativeDateSegmentLease = (identity: TNativeDateSegmentIdentit
   let sequence = 0,
     minimumEpoch = 0
   let nativeInstance: string | null = null
+  let surfaceId = 0
   let retired = false
   return {
     accept(data: NativeDateSegmentData) {
@@ -57,6 +58,7 @@ export const createNativeDateSegmentLease = (identity: TNativeDateSegmentIdentit
         if (frame && data.epoch < frame.epoch) return false
         if (frame && data.windowId !== frame.windowId && data.epoch <= frame.epoch) return false
         nativeInstance = data.nativeInstance
+        surfaceId = data.surfaceId
         sequence = data.sequence
         minimumEpoch = Math.max(minimumEpoch, data.epoch)
         frame = data.active && data.windowId ? { windowId: data.windowId, epoch: data.epoch } : null
@@ -65,6 +67,30 @@ export const createNativeDateSegmentLease = (identity: TNativeDateSegmentIdentit
       if (!frame || !data.active || data.windowId !== frame.windowId || data.epoch !== frame.epoch) return false
       if ((data.kind === "focus" && !data.focused) || (data.kind === "blur" && data.focused)) return false
       if (["insert", "delete", "marked", "unmark"].includes(data.kind) && !data.focused) return false
+      sequence = data.sequence
+      return true
+    },
+    acceptKey(data: NativeDateSegmentKeyData) {
+      if (
+        retired ||
+        !frame ||
+        data.kind !== "keyboard" ||
+        data.ownerId !== identity.ownerId ||
+        data.segmentId !== identity.segmentId ||
+        data.bindingRevision !== identity.bindingRevision ||
+        data.target !== identity.target ||
+        data.nativeInstance !== nativeInstance ||
+        data.surfaceId !== surfaceId ||
+        data.windowId !== frame.windowId ||
+        data.epoch !== frame.epoch ||
+        !integer(data.sequence) ||
+        data.sequence <= sequence ||
+        !Number.isFinite(data.timestamp) ||
+        data.timestamp < 0 ||
+        (data.phase !== "down" && data.phase !== "up") ||
+        (data.phase === "down" && data.cancelled)
+      )
+        return false
       sequence = data.sequence
       return true
     },

@@ -9,7 +9,13 @@ import {
   useState,
   type ElementRef,
 } from "react"
-import { findNodeHandle, type GestureResponderEvent, type NativeSyntheticEvent, type ViewProps } from "react-native"
+import {
+  findNodeHandle,
+  type GestureResponderEvent,
+  type NativeSyntheticEvent,
+  type PointerEvent,
+  type ViewProps,
+} from "react-native"
 
 import { NativeCollectionItemBindingContext } from "../collection/binding"
 import { NativeCollectionSemanticsContext } from "../collection/semantics"
@@ -57,6 +63,7 @@ export const NativeFocusHost = forwardRef<
   TNativeFocusViewRef,
   TNativeFocusViewProps & {
     nativePressable?: boolean
+    nativeOrdinaryGroupKeyHandler?: (event: TNativeKeyboardEvent) => void
     nativeFieldGroupHandler?: (event: TNativeFieldKeyEvent, target: number) => void
     nativeFieldGroupPointerHandler?: (
       event: TNativeFieldPointerEvent,
@@ -92,13 +99,14 @@ export const NativeFocusHost = forwardRef<
     onNativeAccessibilitySnapshot?: (event: NativeSyntheticEvent<NativeAccessibilityData>) => void
     onNativeActivation?: (event: TNativeActivationPacket) => void
     capturedKeys?: readonly string[]
-    onClick?: (event: GestureResponderEvent) => void
+    onClick?: { handle(event: PointerEvent | GestureResponderEvent): void }["handle"]
   }
 >((props, forwardedRef) => {
   const {
     onKeyDown,
     onKeyUp,
     nativeFieldGroupHandler,
+    nativeOrdinaryGroupKeyHandler,
     nativeFieldGroupPointerHandler,
     onFocus,
     onBlur,
@@ -434,6 +442,9 @@ export const NativeFocusHost = forwardRef<
           if (event.nativeEvent.phase === "down") {
             if (keyboardFocusable) onKeyDown?.(event)
           } else onKeyUp?.(event)
+        }}
+        onNativeDateKey={(event) => {
+          if (attached.current && isKeyboardEvent(event)) nativeOrdinaryGroupKeyHandler?.(event)
         }}
         onNativeFieldKey={(event) => {
           const original = nativeTarget.current

@@ -10,6 +10,7 @@
 #import "CUIEditorKeyboardRecognizer.h"
 #import "CUIOrdinaryEditorKeys.h"
 #import "CUIFieldInputBinding.h"
+#import "CUIDateSegment.h"
 #include "../cpp/CUIEditorKeyboardDefaultRegistry.h"
 #import <UIKit/UIGestureRecognizerSubclass.h>
 #import <React/RCTMountingTransactionObserving.h>
@@ -64,6 +65,12 @@ static UIView *CUIFirstResponder(UIView *root)
 - (void)retireHeld;
 @end
 
+static void CUIObserveCapturedDatePress(UIPress *press, NSString *phase, BOOL cancelled)
+{
+  UIView *target = [press.responder isKindOfClass:CUIDateSegment.class] ? (UIView *)press.responder : CUIInputFocusedView(press.window);
+  if ([target isKindOfClass:CUIDateSegment.class]) [(CUIDateSegment *)target observeCapturedPress:press phase:phase cancelled:cancelled];
+}
+
 @implementation CUIKeyboardRecognizer
 - (instancetype)init
 {
@@ -105,7 +112,10 @@ static UIView *CUIFirstResponder(UIView *root)
     hold.press = press;
     if (self.state == UIGestureRecognizerStatePossible) self.state = UIGestureRecognizerStateBegan;
     else self.state = UIGestureRecognizerStateChanged;
-    if (!hold.retired) [self.scope emitKey:hold down:YES repeat:repeat cancelled:NO];
+    if (!hold.retired) {
+      [self.scope emitKey:hold down:YES repeat:repeat cancelled:NO];
+      CUIObserveCapturedDatePress(press, @"down", NO);
+    }
   }
 }
 
@@ -118,6 +128,7 @@ static UIView *CUIFirstResponder(UIView *root)
     if (!hold) continue;
     hold.press = press;
     if (!hold.retired) [self.scope emitKey:hold down:NO repeat:NO cancelled:cancelled];
+    CUIObserveCapturedDatePress(press, @"up", cancelled);
     [self.held removeObjectForKey:code];
   }
   if (!self.held.count && !self.suppressed.count && self.state != UIGestureRecognizerStatePossible) self.state = UIGestureRecognizerStateEnded;
@@ -603,6 +614,7 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
   if (CUIFieldInputOwnsPress(press, self.window)) return nil;
   if (![self captureReady] || !press.key || press.window != self.window) return nil;
   UIView *focused = CUIFirstResponder(self.window);
+  if ([focused isKindOfClass:CUIDateSegment.class] && [(CUIDateSegment *)focused capturesOrdinaryKey:press.key]) return nil;
   NSString *policy = [self localPolicyForPress:press focused:focused];
   if (!policy) return nil;
   for (UIView *view in CUIInputScopes(self.window)) {

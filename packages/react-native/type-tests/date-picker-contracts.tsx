@@ -95,3 +95,25 @@ export const FakeRangeRef = <DateTimeRangePicker ref={createRef<{ focus: () => v
 export const MissingHost = <DateTimePicker render={() => null} />
 // @ts-expect-error Wrapper-owned appearance is calibrated before the base picker context.
 export const WrapperContext = <NativeDatePickerContext.Provider value={{ customStyles: { opacity: 0 } }} />
+
+export const DateTimePickerOrdinaryPointer = (
+  <DateTimePicker
+    onClick={(event) => {
+      event.nativeEvent.pointerId.toFixed()
+      event.nativeEvent.pointerType.toUpperCase()
+      // @ts-expect-error The native transaction packet and synchronous veto contract are retired.
+      void event.nativeEvent.fieldDispatch
+    }}
+  />
+)
+
+export const DateTimeRangePickerOrdinaryPointer = (
+  <DateTimeRangePicker
+    onClick={(event) => {
+      event.nativeEvent.pointerId.toFixed()
+      event.nativeEvent.pointerType.toUpperCase()
+      // @ts-expect-error The native transaction packet and synchronous veto contract are retired.
+      void event.nativeEvent.fieldDispatch
+    }}
+  />
+)

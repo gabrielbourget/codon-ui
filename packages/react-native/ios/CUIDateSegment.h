@@ -8,4 +8,6 @@
 - (BOOL)requestFormSegmentFocus:(NSDictionary *)identity;
 - (BOOL)fieldSegmentReadOnly;
 - (NSString *)fieldOwnerId;
+- (BOOL)capturesOrdinaryKey:(UIKey *)key;
+- (void)observeCapturedPress:(UIPress *)press phase:(NSString *)phase cancelled:(BOOL)cancelled;
 @end

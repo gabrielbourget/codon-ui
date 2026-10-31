@@ -1,5 +1,6 @@
 import {
   useCallback,
+  useContext,
   useId,
   useInsertionEffect,
   useLayoutEffect,
@@ -27,7 +28,7 @@ import { useNativeSegmentedFieldForm, type TOriginalDateField } from "../../form
 import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
 import { NativeFieldInputContext, nativeFieldGroupKeyHandler } from "../../input/fieldInput"
 import type { TNativeFieldInputPlan } from "../../input/fieldInputBinding"
-import { getNativeFocusedTarget } from "../../input/focus"
+import { containsNativeView, getNativeFocusedTarget } from "../../input/focus"
 import { NativeFocusHost, NativeFocusView } from "../../input/NativeFocusView"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { nativeViewProps } from "../../input/nativeViewProps"
@@ -46,6 +47,7 @@ import {
 import { NativeDateFieldFocusManager } from "../field/focus"
 import { isNativeDateFieldFocusEvent } from "../field/focusEvent"
 import { NativeDateFieldHostSet } from "../field/hostSet"
+import { useNativeOrdinaryDateGroup } from "../field/ordinaryGroup"
 import { useNativeDateFieldLifecycle } from "../field/useLifecycle"
 import type { DateFieldState } from "../state/useDateFieldState"
 import type { DatePickerState } from "../state/useDatePickerState"
@@ -154,6 +156,9 @@ export const NativeDatePickerView = (
   },
 ) => {
   const { props, state, range, fields, locale, direction } = options
+  const inheritedFieldInput = useContext(NativeFieldInputContext)
+  const ordinaryInputEvents = !props.render && !props.ComponentIcon
+  const ordinaryGroupEvents = ordinaryInputEvents && !inheritedFieldInput
   const keyScope = useNativeKeyScope()
   useSyncExternalStore(keyScope?.subscribe ?? (() => () => {}), keyScope?.snapshot ?? (() => 0), () => 0)
   const [observedOrigin, setObservedOrigin] = useState("unknown")
@@ -244,7 +249,7 @@ export const NativeDatePickerView = (
         : null,
     [ownerId, revision, outerTarget, inputTarget, originalSignature],
   )
-  const binding = useNativeFieldInputBinding(inputPlan)
+  const binding = useNativeFieldInputBinding(inputPlan, !ordinaryGroupEvents)
   const receiveGroupKey = binding.scope
     ? nativeFieldGroupKeyHandler(binding.scope, {
         direction,
@@ -287,6 +292,30 @@ export const NativeDatePickerView = (
           : null
       }),
   )
+  const ordinary = useNativeOrdinaryDateGroup({
+    enabled: ordinaryGroupEvents,
+    disabled: !!props.isDisabled,
+    direction,
+    focus,
+    admitPointer: (target) =>
+      target === outer.current ||
+      (!!input.current && containsNativeView(input.current, target as View)) ||
+      (!!trigger.current && containsNativeView(trigger.current, target as View)),
+    onContainedKeyDown: (event) => {
+      const key = event.nativeEvent
+      if (key.altKey && (key.key === "ArrowDown" || key.key === "ArrowUp")) {
+        event.preventDefault()
+        event.stopPropagation()
+        state.setOpen(true)
+      }
+    },
+    onKeyDown: (event) => {
+      if (!state.isOpen) props.onKeyDown?.(event)
+    },
+    onKeyUp: (event) => {
+      if (!state.isOpen) props.onKeyUp?.(event)
+    },
+  })
   useInsertionEffect(() => () => focus.retire(), [focus])
   const autoFocus = useRef(!!props.autoFocus)
   useLayoutEffect(() => {
@@ -432,6 +461,8 @@ export const NativeDatePickerView = (
             focusable={false}
             role="group"
             accessibilityLabel={labels.inputButtonGroupAriaLabel}
+            nativeOrdinaryGroupKeyHandler={ordinaryGroupEvents ? ordinary.key : undefined}
+            {...ordinary.pointer}
             nativeFieldGroupHandler={receiveGroupKey}
             nativeFieldGroupPointerHandler={press}
             nativeFocusWithinObservation
@@ -465,7 +496,7 @@ export const NativeDatePickerView = (
                 nativeFieldGroupPointerHandler={press}
               >
                 <NativeDateInputOrdinaryEventsContext.Provider
-                  value={!props.render && !options.appearanceProps.ComponentIcon}
+                  value={{ input: ordinaryInputEvents, group: ordinaryGroupEvents }}
                 >
                   <NativePickerInput slot={fields[0].slot} testID={`${testID}-input${range ? "-start" : ""}`} />
                   {range ? (

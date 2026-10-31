@@ -146,6 +146,34 @@ export class NativeDateFieldFocusManager {
     const positions = rectangles.map((rect) => rect.x)
     return this.#focus(capture, nativeDateFieldVisualIndex(positions, positions[index], direction))
   }
+  capturePress = (target: object): (() => boolean) | null => {
+    const request = ++this.#request,
+      capture = this.#capture(),
+      root = this.current()?.root
+    if (!capture || !root) return null
+    let predecessor: View | null = null,
+      found = false
+    const visited = new Set<object>()
+    const walk = (node: object) => {
+      if (visited.has(node) || found) return
+      visited.add(node)
+      if (node === target) {
+        found = true
+        return
+      }
+      const row = capture.rows.find((row) => row.original === node)
+      if (row) predecessor = row.original
+      for (const child of (node as { childNodes?: Iterable<object> }).childNodes ?? []) walk(child)
+    }
+    walk(root)
+    if (!found) return null
+    const before = predecessor ? capture.rows.findIndex((row) => row.original === predecessor) : null
+    const index = nativeDateFieldPressIndex(
+      capture.rows.map((row) => row.isPlaceholder),
+      before,
+    )
+    return () => request === this.#request && this.#focus(capture, index)
+  }
   focusFromPress = (predecessor: View | null) => {
     this.#request++
     const capture = this.#capture()

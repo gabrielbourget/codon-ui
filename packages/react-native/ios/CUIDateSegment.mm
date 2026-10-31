@@ -3,6 +3,8 @@
 #import "CUIFieldSemantics.h"
 #import "CUIInputWindow.h"
 #import "CUIFieldInputBinding.h"
+#import "CUIPhysicalKey.h"
+#include "../cpp/input/DateSegmentKeyPolicy.h"
 #import <React/RCTConversions.h>
 #import <React/RCTMountingTransactionObserving.h>
 #import <react/renderer/components/CodonNativeInputSpec/ComponentDescriptors.h>
@@ -38,10 +40,11 @@ using namespace facebook::react;
   NSArray<AXCustomContent *> *_baseCustomContent;
   NSString *_ownerId, *_segmentId, *_bindingRevision, *_displayText, *_locale, *_keyboardMode;
   NSMutableString *_document;
+  NSMutableSet<NSNumber *> *_ordinaryHeldCodes;
   NSRange _selection, _marked;
   NSUInteger _epoch, _sequence;
   SurfaceId _surface;
-  BOOL _disabled, _readOnly, _editable, _wasActive, _ordinaryInputEvents;
+  BOOL _disabled, _readOnly, _editable, _wasActive, _ordinaryInputEvents, _ordinaryGroupEvents, _pickerKeyboard;
   UITextInputStringTokenizer *_tokenizer;
   __weak id<UITextInputDelegate> _inputDelegate;
   NSDictionary<NSAttributedStringKey, id> *_markedTextStyle;
@@ -60,7 +63,7 @@ using namespace facebook::react;
   if (self = [super initWithFrame:frame]) {
     _props = std::make_shared<const CUIDateSegmentProps>();
     _ownerId = @""; _segmentId = @""; _bindingRevision = @""; _displayText = @""; _locale = @""; _keyboardMode = @"numeric";
-    _document = [NSMutableString new]; _marked = NSMakeRange(NSNotFound, 0);
+    _document = [NSMutableString new]; _ordinaryHeldCodes = [NSMutableSet new]; _marked = NSMakeRange(NSNotFound, 0);
     _surface = -1; _epoch = 1; _tokenizer = [[UITextInputStringTokenizer alloc] initWithTextInput:self];
     _readOnlyKeyboard = [[UIView alloc] initWithFrame:CGRectZero];
     _writingDirection = NSWritingDirectionNatural;
@@ -79,6 +82,7 @@ using namespace facebook::react;
 - (BOOL)canEdit { return [self active] && self.isFirstResponder && !_disabled && !_readOnly && _editable; }
 - (void)clearTransientDocument
 {
+  [_ordinaryHeldCodes removeAllObjects];
   [_inputDelegate textWillChange:self]; [_inputDelegate selectionWillChange:self];
   [_document setString:@""]; _selection = NSMakeRange(0, 0); _marked = NSMakeRange(NSNotFound, 0);
   [_inputDelegate textDidChange:self]; [_inputDelegate selectionDidChange:self];
@@ -109,8 +113,8 @@ using namespace facebook::react;
   NSString *keyboardMode = RCTNSStringFromString(next.keyboardMode);
   BOOL modeChanged = ![_keyboardMode isEqual:keyboardMode];
   _keyboardMode = keyboardMode;
-  BOOL traitsChanged = modeChanged || _ordinaryInputEvents != next.ordinaryInputEvents || _readOnly != next.segmentReadOnly || _disabled != next.segmentDisabled || _editable != next.segmentEditable;
-  _ordinaryInputEvents = next.ordinaryInputEvents;
+  BOOL traitsChanged = modeChanged || _ordinaryGroupEvents != next.ordinaryGroupEvents || _pickerKeyboard != next.pickerKeyboard || _ordinaryInputEvents != next.ordinaryInputEvents || _readOnly != next.segmentReadOnly || _disabled != next.segmentDisabled || _editable != next.segmentEditable;
+  _ordinaryInputEvents = next.ordinaryInputEvents; _ordinaryGroupEvents = next.ordinaryGroupEvents; _pickerKeyboard = next.pickerKeyboard;
   _disabled = next.segmentDisabled; _readOnly = next.segmentReadOnly; _editable = next.segmentEditable;
   // A disabled canonical segment loses tab admission, not an existing responder.
   if (!_editable) [self resignFirstResponder];
@@ -162,19 +166,57 @@ using namespace facebook::react;
   [super touchesEnded:touches withEvent:event];
   if (touches.count == 1 && CGRectContainsPoint(self.bounds, [touches.anyObject locationInView:self])) [self becomeFirstResponder];
 }
+- (BOOL)capturesOrdinaryKey:(UIKey *)key
+{
+  if (!_ordinaryGroupEvents || _disabled || ![self active] || !key) return NO;
+  const auto flags = key.modifierFlags;
+  return codon::input::dateSegmentCapturesKey(CUIInputKeyName(key).UTF8String ?: "", flags & UIKeyModifierShift,
+    flags & UIKeyModifierAlternate, flags & UIKeyModifierControl, flags & UIKeyModifierCommand,
+    _marked.location != NSNotFound, _readOnly, _pickerKeyboard);
+}
+- (BOOL)emitOrdinaryPress:(UIPress *)press phase:(NSString *)phase cancelled:(BOOL)cancelled capturedByScope:(BOOL)capturedByScope
+{
+  if (!_ordinaryGroupEvents || _disabled || ![self active] || !press.key || !self.window || press.window != self.window ||
+      (press.responder != self && !self.isFirstResponder) || !_eventEmitter) return NO;
+  UIKey *key = press.key; const auto flags = key.modifierFlags; const BOOL captured = capturedByScope || [self capturesOrdinaryKey:key];
+  CUIDateSegmentEventEmitter::OnNativeDateKey data{};
+  data.kind="keyboard";data.ownerId=_ownerId.UTF8String;data.segmentId=_segmentId.UTF8String;data.bindingRevision=_bindingRevision.UTF8String;
+  data.target=(int)self.tag;data.nativeInstance=[NSString stringWithFormat:@"uikit-date-segment:%p",self].UTF8String;
+  data.surfaceId=_surface;data.windowId=CUIInputWindowIdentity(self.window).UTF8String;data.epoch=_epoch;data.sequence=++_sequence;
+  data.timestamp=press.timestamp*1000;data.key=CUIInputKeyName(key).UTF8String;data.code=CUIPhysicalKeyCode((int)key.keyCode);data.location=CUIPhysicalKeyLocation((int)key.keyCode);
+  data.nativeCode=(int)key.keyCode;data.characters=key.characters.UTF8String ?: "";
+  data.phase=[phase isEqual:@"down"] ? CUIDateSegmentEventEmitter::OnNativeDateKeyPhase::Down : CUIDateSegmentEventEmitter::OnNativeDateKeyPhase::Up;
+  const BOOL down=[phase isEqual:@"down"]; const BOOL repeated=down && [_ordinaryHeldCodes containsObject:@(key.keyCode)];
+  if (down) [_ordinaryHeldCodes addObject:@(key.keyCode)]; else [_ordinaryHeldCodes removeObject:@(key.keyCode)];
+  data.repeat=repeated;data.cancelled=cancelled;data.isComposing=_marked.location != NSNotFound;
+  data.shiftKey=flags & UIKeyModifierShift;data.altKey=flags & UIKeyModifierAlternate;data.ctrlKey=flags & UIKeyModifierControl;data.metaKey=flags & UIKeyModifierCommand;
+  data.capsLock=flags & UIKeyModifierAlphaShift;data.nativeModifierData=std::to_string((uint64_t)flags);data.nativeDefaultHandled=captured;
+  std::static_pointer_cast<const CUIDateSegmentEventEmitter>(_eventEmitter)->onNativeDateKey(data);
+  return captured;
+}
+- (void)observeCapturedPress:(UIPress *)press phase:(NSString *)phase cancelled:(BOOL)cancelled
+{
+  [self emitOrdinaryPress:press phase:phase cancelled:cancelled capturedByScope:YES];
+}
+- (NSSet<UIPress *> *)ordinaryPresses:(NSSet<UIPress *> *)presses phase:(NSString *)phase cancelled:(BOOL)cancelled
+{
+  NSMutableSet *remaining=[presses mutableCopy];
+  for (UIPress *press in presses) if ([self emitOrdinaryPress:press phase:phase cancelled:cancelled capturedByScope:NO]) [remaining removeObject:press];
+  return remaining;
+}
 - (void)pressesBegan:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event
 {
-  NSSet<UIPress *> *remaining = CUIFieldInputRemainingPresses(self, presses, @"down");
+  NSSet<UIPress *> *remaining = _ordinaryGroupEvents ? [self ordinaryPresses:presses phase:@"down" cancelled:NO] : CUIFieldInputRemainingPresses(self, presses, @"down");
   if (remaining.count) [super pressesBegan:remaining withEvent:event];
 }
 - (void)pressesEnded:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event
 {
-  NSSet<UIPress *> *remaining = CUIFieldInputRemainingPresses(self, presses, @"up");
+  NSSet<UIPress *> *remaining = _ordinaryGroupEvents ? [self ordinaryPresses:presses phase:@"up" cancelled:NO] : CUIFieldInputRemainingPresses(self, presses, @"up");
   if (remaining.count) [super pressesEnded:remaining withEvent:event];
 }
 - (void)pressesCancelled:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event
 {
-  NSSet<UIPress *> *remaining = CUIFieldInputRemainingPresses(self, presses, @"cancel");
+  NSSet<UIPress *> *remaining = _ordinaryGroupEvents ? [self ordinaryPresses:presses phase:@"up" cancelled:YES] : CUIFieldInputRemainingPresses(self, presses, @"cancel");
   if (remaining.count) [super pressesCancelled:remaining withEvent:event];
 }
 - (NSDictionary *)formSegmentIdentity
@@ -362,7 +404,7 @@ using namespace facebook::react;
 {
   _baseCustomContent = nil;
   [self resignFirstResponder]; _epoch++; [self clearTransientDocument];
-  _ownerId = @""; _segmentId = @""; _bindingRevision = @""; _displayText = @""; _locale = @""; _keyboardMode = @"numeric"; _wasActive = NO; _ordinaryInputEvents = NO; _disabled = YES; _editable = NO;
+  _ownerId = @""; _segmentId = @""; _bindingRevision = @""; _displayText = @""; _locale = @""; _keyboardMode = @"numeric"; _wasActive = NO; _ordinaryInputEvents = NO; _ordinaryGroupEvents = NO; _pickerKeyboard = NO; _disabled = YES; _editable = NO;
   [super prepareForRecycle];
 }
 @end

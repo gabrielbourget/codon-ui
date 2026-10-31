@@ -1,4 +1,7 @@
-import type { NativeDateSegmentData } from "../../../input/specs/CUIDateSegmentNativeComponent"
+import type {
+  NativeDateSegmentKeyData,
+  NativeDateSegmentData,
+} from "../../../input/specs/CUIDateSegmentNativeComponent"
 
 export const packet = (extra: Partial<NativeDateSegmentData> = {}): NativeDateSegmentData => ({
   kind: "status",
@@ -23,5 +26,28 @@ export const packet = (extra: Partial<NativeDateSegmentData> = {}): NativeDateSe
   composingEnd: -1,
   focused: false,
   active: true,
+  ...extra,
+})
+
+export const keyPacket = (extra: Partial<NativeDateSegmentKeyData> = {}): NativeDateSegmentKeyData => ({
+  ...packet(),
+  kind: "keyboard",
+  key: "ArrowRight",
+  code: "ArrowRight",
+  location: 0,
+  nativeCode: 79,
+  characters: "",
+  phase: "down",
+  repeat: false,
+  cancelled: false,
+  isComposing: false,
+  shiftKey: false,
+  altKey: false,
+  ctrlKey: false,
+  metaKey: false,
+  capsLock: false,
+  nativeModifierData: "0",
+  nativeDefaultHandled: true,
+  sequence: 2,
   ...extra,
 })

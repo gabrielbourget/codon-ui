@@ -1,9 +1,8 @@
 import type { ReactElement, ReactNode, RefAttributes } from "react"
-import type { StyleProp, TextStyle, View } from "react-native"
+import type { PointerEvent, StyleProp, TextStyle, View } from "react-native"
 
 import type { TNativeSlotProps } from "../../collection/context"
 import type { TNativeFieldSemanticLabels } from "../../form/semantics"
-import type { TNativeFieldPointerEvent } from "../../input/fieldInput"
 import type { TNativeFocusViewProps } from "../../input/types"
 import type { TNativeFloatingPlacement } from "../../overlays/floating/placement"
 import type { TNativeTimePickerAppearanceProps } from "../field/appearance"
@@ -69,7 +68,7 @@ type TCommon<S> = Omit<TNativeFocusViewProps, "style" | "children"> &
     form?: string
     id?: string
     "data-testid"?: string
-    onClick?: (event: TNativeFieldPointerEvent) => void
+    onClick?: (event: PointerEvent) => void
     onFocusChange?: (value: boolean) => void
     autoComplete?: string
     children?: ReactNode | ((state: TNativeDatePickerRenderState<S>) => ReactNode)

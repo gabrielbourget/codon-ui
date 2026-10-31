@@ -52,3 +52,14 @@ export const InvalidStyle = <TimePicker customStyles={{ fontSize: "1rem" }} />
 export const InvalidCycle = <TimePicker hourCycle={13} />
 // @ts-expect-error Native components do not expose DOM class plumbing.
 export const InvalidClass = <TimePicker className="clock" />
+
+export const TimePickerOrdinaryPointer = (
+  <TimePicker
+    onClick={(event) => {
+      event.nativeEvent.pointerId.toFixed()
+      event.nativeEvent.pointerType.toUpperCase()
+      // @ts-expect-error The native transaction packet and synchronous veto contract are retired.
+      void event.nativeEvent.fieldDispatch
+    }}
+  />
+)

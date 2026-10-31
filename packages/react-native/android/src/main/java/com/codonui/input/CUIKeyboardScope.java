@@ -277,8 +277,15 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
           finally { CUIFieldInputBinding.endDefault(event, previous); field.finish(invoked, handled, error); }
         }
       }
+      View focused = getRootView().findFocus();
+      if (outer && focused instanceof CUIDateSegment && ((CUIDateSegment)focused).capturesOrdinaryEvent(event)) {
+        boolean alreadyHeld = false;
+        for (CUIKeyboardScope scope : CUIInputWindow.scopes(this)) alreadyHeld |= scope.held.get(event.getKeyCode()) != null;
+        if (!alreadyHeld) return super.dispatchKeyEvent(event);
+      }
       if (outer && CUIEditorKeyboardBindings.dispatch(CUIInputWindow.scopes(this), event, getRootView().findFocus())) return true;
       boolean captured = dispatchCapturedKey(event);
+      if (outer && captured && focused instanceof CUIDateSegment) ((CUIDateSegment)focused).observeCapturedOrdinaryKey(event);
       if (outer) CUIOrdinaryEditorKeys.dispatch(CUIInputWindow.scopes(this), event, getRootView().findFocus(), captured);
       return captured || super.dispatchKeyEvent(event);
     } finally { CUIInputWindow.endKey(this); }
@@ -316,9 +323,10 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
     View focused = getRootView().findFocus();
     int code = event.getKeyCode();
     CUIKeyboardScope owner = null;
+    boolean segmentOwns = focused instanceof CUIDateSegment && ((CUIDateSegment)focused).capturesOrdinaryEvent(event);
     for (CUIKeyboardScope candidate : CUIInputWindow.scopes(this)) {
       if (candidate.held.get(code) != null) { owner = candidate; break; }
-      if (candidate.localPolicyFor(event, focused) != null && (owner == null || candidate.policyOrder > owner.policyOrder)) owner = candidate;
+      if (!segmentOwns && candidate.localPolicyFor(event, focused) != null && (owner == null || candidate.policyOrder > owner.policyOrder)) owner = candidate;
     }
     return owner != null && owner.capture(event, focused);
   }

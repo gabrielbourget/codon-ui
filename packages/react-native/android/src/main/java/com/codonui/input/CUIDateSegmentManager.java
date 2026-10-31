@@ -20,7 +20,7 @@ public final class CUIDateSegmentManager extends ReactViewManager implements CUI
   private final ViewManagerDelegate<ReactViewGroup> inherited=new ViewManagerPropertyUpdater.GenericViewManagerDelegate<>(this);
   private final CUIDateSegmentManagerDelegate<ReactViewGroup,CUIDateSegmentManager> delegate=new CUIDateSegmentManagerDelegate<>(this) {
     @Override public void setProperty(ReactViewGroup view,String name,Object value) {
-      if ("ownerId".equals(name)||"segmentId".equals(name)||"bindingRevision".equals(name)||"displayText".equals(name)||"locale".equals(name)||"keyboardMode".equals(name)||"segmentDisabled".equals(name)||"segmentReadOnly".equals(name)||"segmentEditable".equals(name)||"segmentPlaceholder".equals(name)||"ordinaryInputEvents".equals(name)) super.setProperty(view,name,value);
+      if ("ownerId".equals(name)||"segmentId".equals(name)||"bindingRevision".equals(name)||"displayText".equals(name)||"locale".equals(name)||"keyboardMode".equals(name)||"segmentDisabled".equals(name)||"segmentReadOnly".equals(name)||"segmentEditable".equals(name)||"segmentPlaceholder".equals(name)||"ordinaryInputEvents".equals(name)||"ordinaryGroupEvents".equals(name)||"pickerKeyboard".equals(name)) super.setProperty(view,name,value);
       else inherited.setProperty(view,name,value);
     }
   };
@@ -39,6 +39,8 @@ public final class CUIDateSegmentManager extends ReactViewManager implements CUI
   @Override @ReactProp(name="segmentEditable") public void setSegmentEditable(ReactViewGroup view,boolean value) { CUIDateSegment v=(CUIDateSegment)view;if(v.segmentEditable!=value){v.segmentEditable=value;v.traitsChanged();} }
   @Override @ReactProp(name="segmentPlaceholder") public void setSegmentPlaceholder(ReactViewGroup view,boolean value) { ((CUIDateSegment)view).segmentPlaceholder=value; }
   @Override @ReactProp(name="ordinaryInputEvents") public void setOrdinaryInputEvents(ReactViewGroup view,boolean value) { CUIDateSegment v=(CUIDateSegment)view;if(v.ordinaryInputEvents!=value){v.ordinaryInputEvents=value;v.traitsChanged();} }
+  @Override @ReactProp(name="ordinaryGroupEvents") public void setOrdinaryGroupEvents(ReactViewGroup view,boolean value) { CUIDateSegment v=(CUIDateSegment)view;if(v.ordinaryGroupEvents!=value){v.ordinaryGroupEvents=value;v.traitsChanged();} }
+  @Override @ReactProp(name="pickerKeyboard") public void setPickerKeyboard(ReactViewGroup view,boolean value) { CUIDateSegment v=(CUIDateSegment)view;if(v.pickerKeyboard!=value){v.pickerKeyboard=value;v.traitsChanged();} }
   @Override protected void onAfterUpdateTransaction(ReactViewGroup view) { super.onAfterUpdateTransaction(view);((CUIDateSegment)view).mounted(); }
   @Override public void onDropViewInstance(ReactViewGroup view) { ((CUIDateSegment)view).retire();super.onDropViewInstance(view); }
   @Override public void requestSegmentFocus(ReactViewGroup view,String owner,String segment,String revision,String window,double epoch) { ((CUIDateSegment)view).requestSegmentFocus(owner,segment,revision,window,epoch); }
@@ -49,7 +51,9 @@ public final class CUIDateSegmentManager extends ReactViewManager implements CUI
   @Override public Map<String,Object> getExportedCustomBubblingEventTypeConstants() {
     Map<String,Object> events=new HashMap<>();Map<String,Object> parent=super.getExportedCustomBubblingEventTypeConstants();if(parent!=null)events.putAll(parent);
     Map<String,String> phases=new HashMap<>();phases.put("bubbled","onNativeFieldKey");phases.put("captured","onNativeFieldKeyCapture");
-    events.put("topNativeFieldKey",Collections.singletonMap("phasedRegistrationNames",phases));return events;
+    events.put("topNativeFieldKey",Collections.singletonMap("phasedRegistrationNames",phases));
+    Map<String,String> ordinary=new HashMap<>();ordinary.put("bubbled","onNativeDateKey");ordinary.put("captured","onNativeDateKeyCapture");
+    events.put("topNativeDateKey",Collections.singletonMap("phasedRegistrationNames",ordinary));return events;
   }
   @Override public Map<String,Object> getExportedCustomDirectEventTypeConstants() {
     Map<String,Object> events=new HashMap<>();Map<String,Object> parent=super.getExportedCustomDirectEventTypeConstants();if(parent!=null)events.putAll(parent);

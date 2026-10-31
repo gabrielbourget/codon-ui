@@ -11,7 +11,7 @@ import { Commands } from "../../../input/specs/CUIDateSegmentNativeComponent"
 import type { TNativeFocusViewProps } from "../../../input/types"
 import { NativeLocaleProvider } from "../../../locale/NativeLocaleProvider"
 import { NativeThemeProvider } from "../../../theme"
-import { packet } from "../../input/__tests__/packet"
+import { packet, keyPacket } from "../../input/__tests__/packet"
 import type { TNativeDateSegmentInput } from "../../input/NativeDateSegment"
 
 const mockSegmentTargets = new Map<string, RN.View>()
@@ -53,8 +53,8 @@ jest.mock("../../../input/NativeFocusView", () => ({
   NativeFocusView: jest.requireActual("react-native").View,
 }))
 jest.mock("../../../input/useFieldInputBinding", () => ({
-  useNativeFieldInputBinding: () => ({
-    scope: mockScope,
+  useNativeFieldInputBinding: (_plan: unknown, enabled = true) => ({
+    scope: enabled ? mockScope : null,
     metadata: { binding: () => "", commit: () => {}, receive: () => {} },
     status: { ready: true },
   }),
@@ -273,3 +273,55 @@ it("does not backspace from the first end placeholder into the start input", asy
   expect(Commands.requestSegmentFocus).not.toHaveBeenCalled()
   expect(getNativeFocusedTarget()).toBe(f.target(source))
 })
+
+it.each(["single", "range"] as const)(
+  "uses ordinary keys within the active %s endpoint and opens its calendar with Alt+Arrow",
+  async (kind) => {
+    const f = await setup(kind),
+      id = f.id("day"),
+      host = row(id),
+      target = f.target(id)
+    await f.send(id, { kind: "focus", focused: true })
+    const make = (key: string, sequence: number, altKey = false) => ({
+      target,
+      currentTarget: target,
+      nativeEvent: keyPacket({
+        ownerId: host.props.ownerId,
+        segmentId: host.props.segmentId,
+        bindingRevision: host.props.bindingRevision,
+        target: jest.requireActual<typeof RN>("react-native").findNodeHandle(target)!,
+        nativeInstance: `original:${id}`,
+        windowId: "picker-window",
+        sequence,
+        key,
+        altKey,
+      }),
+      preventDefault: jest.fn(),
+      stopPropagation: jest.fn(),
+      persist: jest.fn(),
+    })
+    expect(host.props.ordinaryGroupEvents).toBe(true)
+    expect(host.props.pickerKeyboard).toBe(true)
+    const group = screen.getByTestId(
+      `${kind === "single" ? "datetime-picker" : "datetime-range-picker"}-input${kind === "range" ? "-start" : ""}`,
+      hidden,
+    )
+    expect(group.props.nativeFieldGroupHandler).toBeUndefined()
+    expect(group.props.nativeOrdinaryGroupKeyHandler).toEqual(expect.any(Function))
+    const arrow = make("ArrowRight", 3)
+    await act(() => row(id).props.onNativeDateKey(arrow))
+    await act(() => group.props.nativeOrdinaryGroupKeyHandler(arrow))
+    expect(Commands.requestSegmentFocus).toHaveBeenCalled()
+    const request = jest.mocked(Commands.requestSegmentFocus).mock.calls.at(-1)![0]
+    expect(f.segments().some((node) => f.target(node.props.testID) === request)).toBe(true)
+    expect(arrow.target).toBe(target)
+    const open = make("ArrowDown", 4, true)
+    await act(() => row(id).props.onNativeDateKey(open))
+    const outer = screen.getByTestId(`${kind === "single" ? "datetime-picker" : "datetime-range-picker"}-group`, hidden)
+    await act(() => outer.props.nativeOrdinaryGroupKeyHandler(open))
+    expect(open.stopPropagation).toHaveBeenCalled()
+    expect(
+      screen.getByTestId(`${kind === "single" ? "datetime-picker" : "datetime-range-picker"}-calendar`, hidden),
+    ).toBeTruthy()
+  },
+)

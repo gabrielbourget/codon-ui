@@ -500,3 +500,18 @@ it("keeps explicitly styled original text and editor identities without native t
   expect(root.current).toBeNull()
   expect(editor.current).toBeNull()
 })
+
+it("forwards original descendant date-key events without claiming their owner or replaying them after detach", async () => {
+  const receive = jest.fn()
+  const view = await render(
+    <NativeFocusHost testID="focus" focusable={false} nativeOrdinaryGroupKeyHandler={receive} />,
+  )
+  const handle = host().props.onNativeDateKey
+  const original = nativeEvent(keyData("original-segment", { phase: "up", cancelled: true }))
+  await act(() => handle(original))
+  expect(receive).toHaveBeenCalledTimes(1)
+  expect(receive.mock.calls[0][0]).toBe(original)
+  await view.unmount()
+  await act(() => handle(original))
+  expect(receive).toHaveBeenCalledTimes(1)
+})

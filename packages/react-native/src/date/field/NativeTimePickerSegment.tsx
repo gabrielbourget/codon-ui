@@ -28,6 +28,8 @@ type TProps = {
   scope: TNativeFieldInputScope | null
   outerTarget: number
   inputFocus?: Pick<NativeDateFieldFocusManager, "focusFromInput">
+  ordinaryGroupEvents?: boolean
+  pickerKeyboard?: boolean
   appearance: Pick<
     ReturnType<typeof getNativeTimePickerAppearance>,
     "text" | "placeholder" | "segment" | "focusedSegment"
@@ -155,6 +157,17 @@ export const NativeTimePickerSegment = (props: TProps) => {
       segmentEditable
       segmentPlaceholder={segment.isPlaceholder}
       ordinaryInputEvents={!!inputFocus}
+      ordinaryGroupEvents={props.ordinaryGroupEvents}
+      pickerKeyboard={props.pickerKeyboard}
+      onNativeDateKey={(event) => {
+        const previous = inputOrigin.current
+        inputOrigin.current = original.current
+        try {
+          if (event.nativeEvent.phase === "down") entry.keyDown(event, event.nativeEvent.isComposing)
+        } finally {
+          inputOrigin.current = previous
+        }
+      }}
       accessible
       role={semantics.role === "spinbutton" ? "spinbutton" : undefined}
       accessibilityLabel={semantics.label}

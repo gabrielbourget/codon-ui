@@ -9,26 +9,32 @@ import {
   type ComponentRef,
   type Ref,
 } from "react"
-import { findNodeHandle, type NativeSyntheticEvent } from "react-native"
+import { findNodeHandle, type NativeSyntheticEvent, type PointerEvent } from "react-native"
 
 import {
   NativeFieldInputContext,
   receiveNativeFieldOwnedInput,
   type TNativeFieldOwnedInputEvent,
 } from "../../input/fieldInput"
-import { observeNativeFocus, registerNativeFocusTarget } from "../../input/focus"
+import { focusNativeTarget, observeNativeFocus, registerNativeFocusTarget } from "../../input/focus"
 import { nativeViewProps, NativeViewContextBoundary } from "../../input/nativeViewProps"
 import SegmentHost, {
   Commands,
   type NativeProps,
   type NativeDateSegmentData,
+  type NativeDateSegmentKeyData,
 } from "../../input/specs/CUIDateSegmentNativeComponent"
 
 import { createNativeDateSegmentLease } from "./lease"
 
 export type TNativeDateSegmentRef = ComponentRef<typeof SegmentHost>
 export type TNativeDateSegmentInput = NativeSyntheticEvent<NativeDateSegmentData>
-export type TNativeDateSegmentProps = NativeProps
+export type TNativeDateSegmentKeyEvent = NativeSyntheticEvent<
+  Omit<NativeDateSegmentKeyData, "kind"> & { kind: "keyboard" }
+>
+export type TNativeDateSegmentProps = Omit<NativeProps, "onNativeDateKey"> & {
+  onNativeDateKey?: (event: TNativeDateSegmentKeyEvent) => void
+}
 
 const assign = (ref: Ref<TNativeDateSegmentRef> | undefined, target: TNativeDateSegmentRef | null) => {
   if (typeof ref === "function") return ref(target)
@@ -48,6 +54,9 @@ export const NativeDateSegment = forwardRef<TNativeDateSegmentRef, TNativeDateSe
     segmentEditable,
     keyboardMode,
     ordinaryInputEvents = false,
+    ordinaryGroupEvents = false,
+    pickerKeyboard = false,
+    onNativeDateKey,
     onNativeSegmentInput,
     ...other
   } = props
@@ -60,6 +69,8 @@ export const NativeDateSegment = forwardRef<TNativeDateSegmentRef, TNativeDateSe
       segmentEditable,
       keyboardMode,
       ordinaryInputEvents,
+      ordinaryGroupEvents,
+      pickerKeyboard,
       props.locale,
     ],
   )
@@ -203,6 +214,7 @@ export const NativeDateSegment = forwardRef<TNativeDateSegmentRef, TNativeDateSe
     } else current.current.onNativeSegmentInput?.(event)
   }, [])
   void onNativeSegmentInput
+  void onNativeDateKey
   return (
     <NativeViewContextBoundary>
       <SegmentHost
@@ -216,6 +228,37 @@ export const NativeDateSegment = forwardRef<TNativeDateSegmentRef, TNativeDateSe
         segmentEditable={segmentEditable}
         keyboardMode={keyboardMode}
         ordinaryInputEvents={ordinaryInputEvents}
+        ordinaryGroupEvents={ordinaryGroupEvents}
+        pickerKeyboard={pickerKeyboard}
+        onNativeDateKey={(event) => {
+          if (
+            !current.current.ordinaryGroupEvents ||
+            current.current.segmentDisabled ||
+            !targetRef.current ||
+            !lease.current?.acceptKey(event.nativeEvent)
+          ) {
+            event.stopPropagation()
+            return
+          }
+          current.current.onNativeDateKey?.(event as TNativeDateSegmentKeyEvent)
+        }}
+        onPointerDown={
+          ordinaryGroupEvents
+            ? (event) => {
+                if (event.nativeEvent.button !== 0) return
+                if (event.nativeEvent.pointerType === "mouse" && !current.current.segmentDisabled)
+                  focusNativeTarget(targetRef.current)
+                event.stopPropagation()
+              }
+            : other.onPointerDown
+        }
+        {...(ordinaryGroupEvents
+          ? {
+              onClick: (event: PointerEvent) => {
+                if (event.nativeEvent.button === 0) event.stopPropagation()
+              },
+            }
+          : {})}
         onNativeSegmentInput={handleInput}
         collapsable={false}
       />

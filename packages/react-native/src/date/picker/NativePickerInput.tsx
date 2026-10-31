@@ -11,6 +11,7 @@ import type { TNativeFocusViewProps } from "../../input/types"
 import { NativeDateFieldFocusManager } from "../field/focus"
 import type { NativeDateFieldHostSet } from "../field/hostSet"
 import { NativeTimePickerSegment } from "../field/NativeTimePickerSegment"
+import { useNativeOrdinaryDateGroup } from "../field/ordinaryGroup"
 import type { DateFieldState } from "../state/useDateFieldState"
 
 import type { TNativeDatePickerAppearanceResult } from "./appearance"
@@ -27,13 +28,14 @@ export type TNativePickerInputProps = TNativeSlotProps &
     label?: string
   }
 export const NativeDateInputContext = createContext<TNativeContextValue<TNativePickerInputProps, View>>(null)
-export const NativeDateInputOrdinaryEventsContext = createContext(false)
+export const NativeDateInputOrdinaryEventsContext = createContext({ input: false, group: false })
 export const NativeDateFieldStateContext = createContext<DateFieldState | null>(null)
 export const NativePickerInput = forwardRef<View, TNativePickerInputProps>((authored, forwardedRef) => {
   const inherited = useNativeContentContext()
   const [props, ref] = useNativeContextProps(authored, forwardedRef, NativeDateInputContext)
   const { field, ownerId, scope, outerTarget, appearance, locale, direction, label, slot: _slot, ...native } = props
-  const ordinaryInputEvents = useContext(NativeDateInputOrdinaryEventsContext)
+  const ordinaryEvents = useContext(NativeDateInputOrdinaryEventsContext)
+  const ordinaryInputEvents = ordinaryEvents.input
   const currentField = useRef(field)
   useInsertionEffect(() => {
     currentField.current = field
@@ -46,6 +48,12 @@ export const NativePickerInput = forwardRef<View, TNativePickerInputProps>((auth
       }),
   )
   useInsertionEffect(() => () => inputFocus.retire(), [inputFocus])
+  const ordinary = useNativeOrdinaryDateGroup({
+    enabled: ordinaryEvents.group,
+    disabled: !!field?.state.isDisabled,
+    direction: direction ?? "ltr",
+    focus: inputFocus,
+  })
   const hosts = field?.hosts
   const bind = useCallback(
     (target: View | null) => {
@@ -63,6 +71,8 @@ export const NativePickerInput = forwardRef<View, TNativePickerInputProps>((auth
       <NativeFieldInputContext.Provider value={scope ?? null}>
         <NativeFocusHost
           {...native}
+          nativeOrdinaryGroupKeyHandler={ordinaryEvents.group ? ordinary.key : undefined}
+          {...ordinary.pointer}
           ref={bind}
           focusable={false}
           accessible={false}
@@ -81,6 +91,8 @@ export const NativePickerInput = forwardRef<View, TNativePickerInputProps>((auth
               direction={direction}
               hostSet={field.hosts}
               inputFocus={ordinaryInputEvents ? inputFocus : undefined}
+              ordinaryGroupEvents={ordinaryEvents.group}
+              pickerKeyboard
               scope={scope ?? null}
               outerTarget={outerTarget}
               appearance={appearance}

@@ -29,7 +29,7 @@ import java.util.ArrayList;
 @androidx.annotation.OptIn(markerClass = com.facebook.react.common.annotations.UnstableReactNativeAPI.class)
 final class CUIDateSegment extends ReactViewGroup {
   String ownerId = "", segmentId = "", bindingRevision = "", displayText = "", locale = "", keyboardMode = "numeric";
-  boolean segmentDisabled, segmentReadOnly, segmentEditable, segmentPlaceholder, ordinaryInputEvents;
+  boolean segmentDisabled, segmentReadOnly, segmentEditable, segmentPlaceholder, ordinaryInputEvents, ordinaryGroupEvents, pickerKeyboard;
   private final Editable document = new SpannableStringBuilder();
   private long epoch = 1, sequence;
 
@@ -170,7 +170,46 @@ final class CUIDateSegment extends ReactViewGroup {
     }
     @Override public boolean sendKeyEvent(KeyEvent event) { return live() && super.sendKeyEvent(event); }
   }
+  private boolean capturesOrdinaryKey(KeyEvent event) {
+    return CUIDateSegmentKeyPolicy.captures(CUIInputWindow.keyName(event), event.isShiftPressed(), event.isAltPressed(),
+      event.isCtrlPressed(), event.isMetaPressed(), isSegmentComposing(), segmentReadOnly, pickerKeyboard);
+  }
+  boolean capturesOrdinaryEvent(KeyEvent event) {
+    return ordinaryGroupEvents && active() && !segmentDisabled && capturesOrdinaryKey(event);
+  }
+  void observeCapturedOrdinaryKey(KeyEvent event) {
+    emitOrdinaryKey(event, event.getAction() == KeyEvent.ACTION_DOWN, true);
+  }
+  private void emitOrdinaryKey(KeyEvent event, boolean down, boolean captured) {
+    if (!ordinaryGroupEvents || !active() || segmentDisabled || (down && event.isCanceled())) return;
+    ReactContext context = (ReactContext)getContext();
+    EventDispatcher dispatcher = UIManagerHelper.getEventDispatcherForReactTag(context,getId());
+    if (dispatcher == null || ownerId.isEmpty() || segmentId.isEmpty()) return;
+    WritableMap data = Arguments.createMap(); int code = event.getKeyCode(), unicode = event.getUnicodeChar();
+    data.putString("kind","keyboard"); data.putString("ownerId",ownerId); data.putString("segmentId",segmentId); data.putString("bindingRevision",bindingRevision);
+    data.putInt("target",getId()); data.putString("nativeInstance","android-date-segment:"+Integer.toHexString(System.identityHashCode(this)));
+    data.putInt("surfaceId",UIManagerHelper.getSurfaceId(this)); data.putString("windowId",CUIInputWindow.identity(this));
+    data.putDouble("epoch",epoch); data.putDouble("sequence",++sequence); data.putDouble("timestamp",event.getEventTime());
+    data.putString("key",CUIInputWindow.keyName(event)); data.putString("code",CUIPhysicalKey.code(code)); data.putInt("location",CUIPhysicalKey.location(code));
+    data.putInt("nativeCode",code); data.putString("characters",unicode > 0 && Character.isValidCodePoint(unicode) ? new String(Character.toChars(unicode)) : "");
+    data.putString("phase",down ? "down" : "up"); data.putBoolean("repeat",down && event.getRepeatCount() > 0); data.putBoolean("cancelled",event.isCanceled());
+    data.putBoolean("isComposing",isSegmentComposing()); data.putBoolean("shiftKey",event.isShiftPressed()); data.putBoolean("altKey",event.isAltPressed());
+    data.putBoolean("ctrlKey",event.isCtrlPressed()); data.putBoolean("metaKey",event.isMetaPressed()); data.putBoolean("capsLock",event.isCapsLockOn());
+    data.putString("nativeModifierData",Integer.toUnsignedString(event.getMetaState())); data.putBoolean("nativeDefaultHandled",captured);
+    dispatcher.dispatchEvent(new SegmentEvent(UIManagerHelper.getSurfaceId(this),getId(),data,"topNativeDateKey"));
+  }
+  @Override public boolean onKeyUp(int code, KeyEvent event) {
+    if (ordinaryGroupEvents && active() && !segmentDisabled) {
+      boolean captured = capturesOrdinaryKey(event); emitOrdinaryKey(event,false,captured);
+      if (captured) return true;
+    }
+    return super.onKeyUp(code,event);
+  }
   @Override public boolean onKeyDown(int code, KeyEvent event) {
+    if (ordinaryGroupEvents && active() && !segmentDisabled) {
+      boolean captured = capturesOrdinaryKey(event); emitOrdinaryKey(event,true,captured);
+      if (captured) return true;
+    }
     if (!canEdit()) return super.onKeyDown(code,event);
     if (code == KeyEvent.KEYCODE_DEL || code == KeyEvent.KEYCODE_FORWARD_DEL) {
       int a = Selection.getSelectionStart(document), b = Selection.getSelectionEnd(document), start = Math.min(a,b), end = Math.max(a,b);
@@ -217,8 +256,10 @@ final class CUIDateSegment extends ReactViewGroup {
   }
   private static final class SegmentEvent extends Event<SegmentEvent> {
     private final WritableMap data;
-    SegmentEvent(int surface, int target, WritableMap data) { super(surface,target); this.data=data; }
-    @Override public String getEventName() { return "topNativeSegmentInput"; }
+    private final String name;
+    SegmentEvent(int surface, int target, WritableMap data) { this(surface,target,data,"topNativeSegmentInput"); }
+    SegmentEvent(int surface, int target, WritableMap data, String name) { super(surface,target); this.data=data; this.name=name; }
+    @Override public String getEventName() { return name; }
     @Override public boolean canCoalesce() { return false; }
     @Override protected WritableMap getEventData() { return data; }
   }

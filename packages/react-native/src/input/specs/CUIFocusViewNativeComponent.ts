@@ -229,6 +229,7 @@ export interface NativeProps extends ViewProps {
   onNativeActivation?: DirectEventHandler<NativeActivationData>
   onNativeKey?: DirectEventHandler<NativeKeyData>
   onNativeFieldKey?: BubblingEventHandler<NativeFieldKeyData>
+  onNativeDateKey?: BubblingEventHandler<NativeKeyData>
   onNativeOrdinaryEditorKey?: BubblingEventHandler<NativeOrdinaryEditorKeyData>
   onNativeFocusChange?: DirectEventHandler<NativeFocusData>
 }
