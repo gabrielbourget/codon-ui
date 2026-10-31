@@ -16,7 +16,7 @@ import { Counter, NativeThemeProvider, Text } from "../../.."
 
 const hidden = { includeHiddenElements: true }
 
-it("supplies its current root typography to the original native host while preserving raw children and editor ownership", async () => {
+it("supplies explicit owned typography while preserving authored raw styles and editor ownership", async () => {
   const rootRef = createRef<View>()
   const editorRef = createRef<TextInput>()
   const changed = jest.fn()
@@ -31,7 +31,15 @@ it("supplies its current root typography to the original native host while prese
       }}
     >
       <NativeView>
-        <RawText>Original raw content</RawText>
+        <RawText
+          style={{
+            fontStyle: updated ? "normal" : "italic",
+            letterSpacing: updated ? 0 : 7,
+            color: updated ? "green" : "purple",
+          }}
+        >
+          Original raw content
+        </RawText>
         <TextInput
           ref={editorRef}
           testID="held-editor"
@@ -45,11 +53,12 @@ it("supplies its current root typography to the original native host while prese
   const view = await render(node(false))
   const root = rootRef.current
   const editor = editorRef.current
-  expect(JSON.parse(screen.getByTestId("counter").props.nativeTypographyStyle ?? "{}")).toMatchObject({
+  expect(screen.getByTestId("counter").props.nativeTypographyStyle).toBeUndefined()
+  expect(screen.getByTestId("counter-value")).toHaveStyle({
     fontStyle: "italic",
     letterSpacing: 7,
     textAlign: "center",
-    color: processColor("purple"),
+    color: "purple",
   })
   await fireEvent.changeText(screen.getByTestId("held-editor"), "request")
   expect(changed).toHaveBeenCalledTimes(1)
@@ -59,10 +68,16 @@ it("supplies its current root typography to the original native host while prese
   expect(rootRef.current === root).toBe(true)
   expect(editorRef.current === editor).toBe(true)
   expect(screen.getByTestId("held-editor").props.selection).toEqual({ start: 1, end: 1 })
-  expect(JSON.parse(screen.getByTestId("counter").props.nativeTypographyStyle ?? "{}")).toMatchObject({
+  expect(screen.getByTestId("counter").props.nativeTypographyStyle).toBeUndefined()
+  expect(screen.getByTestId("counter-value")).toHaveStyle({
     fontStyle: "normal",
     letterSpacing: 0,
-    color: processColor("green"),
+    color: "green",
+  })
+  expect(screen.getByText("Original raw content")).toHaveStyle({
+    fontStyle: "normal",
+    letterSpacing: 0,
+    color: "green",
   })
   await view.unmount()
   expect(rootRef.current).toBeNull()

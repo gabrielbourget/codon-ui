@@ -10,8 +10,8 @@ import { resolveNativeStyle, validateNativeColor } from "../colors"
 import { validateNativeDisplayDimension } from "../displayDimensions"
 import { useNativeLinkColor } from "../Link/motion"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
-import { splitNativeTextStyle } from "../nativeTextStyle"
-import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
+import { splitNativeTextStyle, validateNativeFontWeight } from "../nativeTextStyle"
+import { NativeTextStyleProvider, useNativeRawTextStyle } from "../NativeTextStyleProvider"
 import { NativeText as Text } from "../Text/Text"
 
 import { getNativeCounterStatus } from "./model"
@@ -54,6 +54,7 @@ export const Counter = forwardRef<TNativeCounterRef, TNativeCounterProps>((props
   validateNativeDisplayDimension(width, "Counter", "width")
   const theme = useNativeTheme()
   const context = useNativeContentContext()
+  const inheritedNativeTextStyle = useNativeRawTextStyle()
   const status = getNativeCounterStatus(props)
   const statusColor =
     status === "danger" ? theme.colors.statusDanger : status === "warning" ? theme.colors.statusWarning : undefined
@@ -75,6 +76,8 @@ export const Counter = forwardRef<TNativeCounterRef, TNativeCounterProps>((props
     "Counter",
     "style",
   )
+  const rootTypography = splitNativeTextStyle(viewStyle).text
+  validateNativeFontWeight(rootTypography.fontWeight, "Counter")
   const foreground = useNativeLinkColor(
     rootColor ?? context?.foregroundColor ?? theme.colors.foreground,
     250,
@@ -101,7 +104,10 @@ export const Counter = forwardRef<TNativeCounterRef, TNativeCounterProps>((props
   const identity = testID ?? aliasID ?? "counter"
   return (
     <NativeContentContext.Provider value={{ foregroundColor: foreground, isButton: context?.isButton ?? false }}>
-      <NativeTextStyleProvider style={{ ...splitNativeTextStyle(viewStyle).text, color: foreground }}>
+      <NativeTextStyleProvider
+        style={{ ...rootTypography, color: foreground }}
+        nativeInheritance={inheritedNativeTextStyle !== undefined}
+      >
         <NativeFocusHost
           {...rootProps}
           ref={ref}

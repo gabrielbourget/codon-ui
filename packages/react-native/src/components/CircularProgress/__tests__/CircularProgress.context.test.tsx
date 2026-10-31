@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native"
 import { cloneElement, createRef, type PropsWithChildren, type ReactElement } from "react"
-import { AccessibilityInfo, processColor, Text as RNText, type View } from "react-native"
+import { AccessibilityInfo, Text as RNText, type View } from "react-native"
 
 import {
   CircularProgress,
@@ -24,21 +24,34 @@ afterEach(() => {
   jest.useRealTimers()
 })
 
-it("supplies its current root foreground to the original native typography receiver", async () => {
+it("supplies its current root foreground explicitly to the owned label without a native typography request", async () => {
   const ref = createRef<View>()
+  const root: TNativeCircularProgressRootRender = (props) => {
+    const provider = props.children as ReactElement<PropsWithChildren>
+    return (
+      <NativeFocusView {...props}>
+        {cloneElement(
+          provider,
+          undefined,
+          <>
+            <NativeCircularProgressLabel testID="foreground-label">Transfer</NativeCircularProgressLabel>
+            {provider.props.children}
+          </>,
+        )}
+      </NativeFocusView>
+    )
+  }
   const node = (updated: boolean) => (
-    <CircularProgress ref={ref} value={25} customStyles={{ color: updated ? "green" : "purple" }} />
+    <CircularProgress ref={ref} render={root} value={25} customStyles={{ color: updated ? "green" : "purple" }} />
   )
   const view = await render(node(false))
   const original = ref.current
-  expect(JSON.parse(screen.getByRole("progressbar").props.nativeTypographyStyle ?? "{}")).toMatchObject({
-    color: processColor("purple"),
-  })
+  expect(screen.getByRole("progressbar").props.nativeTypographyStyle).toBeUndefined()
+  expect(screen.getByTestId("foreground-label")).toHaveStyle({ color: "purple" })
   await view.rerender(node(true))
   expect(ref.current === original).toBe(true)
-  expect(JSON.parse(screen.getByRole("progressbar").props.nativeTypographyStyle ?? "{}")).toMatchObject({
-    color: processColor("green"),
-  })
+  expect(screen.getByRole("progressbar").props.nativeTypographyStyle).toBeUndefined()
+  expect(screen.getByTestId("foreground-label")).toHaveStyle({ color: "green" })
   await view.unmount()
   expect(ref.current).toBeNull()
 })
