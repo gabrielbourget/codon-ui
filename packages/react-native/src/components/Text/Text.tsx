@@ -14,7 +14,7 @@ import { useNativeTheme } from "../../theme"
 import { resolveNativeStyle, validateNativeColor } from "../colors"
 import { useNativeLinkColor } from "../Link/motion"
 import { NativeContentContext, NativeTextLayoutContext, useNativeContentContext } from "../NativeContentContext"
-import { splitNativeTextStyle } from "../nativeTextStyle"
+import { splitNativeTextStyle, validateNativeFontWeight } from "../nativeTextStyle"
 import { useNativeInheritedTextStyle } from "../NativeTextStyleProvider"
 
 import { NativeHeadingBindingContext, NativeHeadingContext } from "./context"
@@ -70,8 +70,9 @@ export const NativeText = forwardRef<
       fontFamily:
         theme.typography.fontFamilies[family] ??
         (family === "display" ? theme.typography.fontFamilies.heading : undefined) ??
-        theme.typography.fontFamilies.body,
-      lineHeight: theme.typography.lineHeight,
+        theme.typography.fontFamilies.body ??
+        inherited?.fontFamily,
+      lineHeight: theme.typography.lineHeight ?? inherited?.lineHeight,
     }
     const computed = { ...inherited, ...defaultStyle }
     const merged = resolveNativeStyle([computed, custom, final], "Text", "resolvedStyle")
@@ -79,6 +80,7 @@ export const NativeText = forwardRef<
       ...merged,
       ...Object.fromEntries(Object.entries(computed).filter(([key]) => merged[key as keyof TextStyle] === undefined)),
     }
+    validateNativeFontWeight(resolved.fontWeight, "Text")
     const authoredColor = resolveNativeStyle([custom, final], "Text", "authoredStyle").color ?? color
     // Content providers carry the current parent paint, including each animated frame.
     const inheritedAnimation = authoredColor === undefined && content !== undefined

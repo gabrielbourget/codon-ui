@@ -2275,5 +2275,33 @@
       "APPROVED_NATIVE_STYLE_MAPPING": 2,
       "APPROVED_DOM_EXCLUSION": 258
     }
-  }
+  },
+  "nativeContractAmendments": [
+    {
+      "id": "DEC.PHONE.TYPOGRAPHY.01",
+      "authority": "Gabriel direct approval of explicit styling and discrete weights, 2026-10-31; roadmap3.4.1.3.2",
+      "sourceBaseline": "dfd1775e9f5a8aba0f8a4d1f587c0cfe10e065ec",
+      "scope": "PHONE-TYPE03: shared NativeText resolution, including PlaceholderText and owned Button/Link/Tag/Counter/FormField phrases. Validate only the final effective weight after theme/context/custom/final precedence. Preserve exact supported string/numeric values; effective unsupported scalars require explicit migration. Public types and theme merge policy remain unchanged.",
+      "affectedCapabilities": ["CAP.text.003", "CAP.text.006", "CAP.placeholder-text.001"],
+      "supersededRequirement": "SDK scalar-weight decoding for effective custom/final/theme weights rendered by the owned NativeText path. Unused or overridden theme weights are not globally restricted. Remaining raw scopes, native metrics and generic Motion consumers are separate live dependencies.",
+      "preservedMetrics": "When the current theme family fallback or lineHeight is undefined, carry the existing same-window provider value explicitly. Legacy NativeTypographyScope previously supplied these otherwise undeclared fields; preserve theme defaults, custom/final overrides and independent font-size/weight defaults ahead of inherited values.",
+      "preserved": "31 variants, six semantic weights, family fallback, native scaling and explicit scaling props, final undefined restoration, zero/empty authored values, primitive/raw child identity, actual Text refs/events, selected heading contexts/slot opt-out, native content renderers and independent color clocks.",
+      "sourceChecks": [
+        {
+          "suite": "packages/react-native/src/components/Text/__tests__/Text.weights.test.tsx",
+          "covers": "Supported theme roles/endpoints, effective-only scalar rejection through seven owned consumers, legacy/migrated explicit metrics, selected context/ref/event ownership and original native renderer/child/scaling identity."
+        },
+        {
+          "suite": "packages/react-native/src/components/Text/__tests__/Text.typography-reset.test.tsx",
+          "covers": "Every variant/weight reset, family fallback, live defaults, zero/empty/final values and Button/Link/Tag inherited behavior."
+        },
+        {
+          "suite": "packages/react-native/src/components/Text/__tests__/Text.motion.test.tsx",
+          "covers": "Original 250ms color clock, interruption, current parent paint and Reduce Motion; weight endpoints introduce no new clock."
+        }
+      ],
+      "canonicalEvidence": "Canonical sourceRef, Text287/PlaceholderText284 property inventories and all native/exclusion dispositions remain unchanged.",
+      "acceptance": "Affected G01/G03/G04/G05 source correspondence only. No ledger verdict promotion or native glyph/layout/scaling/AT/input/profile/closure claim."
+    }
+  ]
 }
