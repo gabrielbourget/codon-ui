@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef __cplusplus
+
 #include <react/renderer/core/ShadowNode.h>
 #include <react/renderer/core/LayoutContext.h>
 #include <react/renderer/mounting/ShadowTreeRevision.h>
@@ -66,3 +68,5 @@ JSI_EXPORT bool hasNativeIntrinsicSource(const facebook::react::ShadowNodeFamily
 JSI_EXPORT TNativeScratchIntrinsic captureNativeIntrinsicSource(const TNativeIntrinsicRequest &request);
 
 } // namespace codon::motion
+
+#endif

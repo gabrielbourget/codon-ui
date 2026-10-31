@@ -1,4 +1,6 @@
 #pragma once
+
+#ifdef __cplusplus
 #include <react/renderer/attributedstring/TextAttributes.h>
 #include <react/renderer/core/ShadowNode.h>
 #include <folly/dynamic.h>
@@ -47,3 +49,5 @@ JSI_EXPORT std::shared_ptr<TNativeTypographyRegistration> registerNativeTypograp
 JSI_EXPORT std::shared_ptr<TNativeTypographyRegistration> nativeTypographySource(facebook::react::ComponentHandle component);
 JSI_EXPORT uint64_t nativeTypographyRevision();
 }
+
+#endif

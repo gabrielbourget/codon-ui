@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef __cplusplus
+
 #include <react/renderer/graphics/Rect.h>
 #include <cstdint>
 #include <vector>
@@ -32,3 +34,5 @@ double revealClampRect(double offset, double viewportHeight, double contentHeigh
     double targetTop, double targetBottom, double contentOrigin = 0);
 
 } // namespace codon::table
+
+#endif

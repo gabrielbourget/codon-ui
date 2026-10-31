@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef __cplusplus
+
 #include "ClampFlow.h"
 #if __has_include("../motion/NativeIntrinsicSource.h")
 #include "../motion/NativeIntrinsicSource.h"
@@ -109,3 +111,5 @@ JSI_EXPORT std::shared_ptr<facebook::react::ShadowNode> prepareClampContent(
     const facebook::react::ShadowNode &original, const facebook::react::LayoutContext &context, bool noWrap);
 
 } // namespace codon::table
+
+#endif
