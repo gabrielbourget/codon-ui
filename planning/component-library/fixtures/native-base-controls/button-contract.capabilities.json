@@ -1895,5 +1895,40 @@
         "node_modules/.pnpm/react-native@0.86.3_patch_hash=1cc89e1950af715185c1dd7989e4f48525f080919027f52457dc1233_a9c73cfe0d291980d48678ff7178a5e8/node_modules/react-native/Libraries/Components/Pressable/Pressable.d.ts"
       ]
     }
+  ],
+  "nativeContractAmendments": [
+    {
+      "id": "DEC.PHONE.TYPOGRAPHY.01",
+      "authority": "Gabriel direct approval of explicit styling and discrete weights, 2026-10-31; roadmap3.4.1.3.2",
+      "sourceBaseline": "d77aebea447037c7fdd68e826a5a954f7851d874",
+      "scope": "PHONE-TYPE02: public Button and private NativeButton compositions use explicit owned content styling and omit automatic native descendant typography on migrated paths. Under an unmigrated native ancestor, retain the original reset boundary until that ancestor migrates. Resolved custom/final/private composed weights retain exact supported endpoints or fail explicitly for scalar migration. The underlying Text/theme owner is a separate remaining migration.",
+      "supersededRequirement": "Automatic undeclared-field typography inheritance through arbitrary raw Text descendants of Button/NativeButton from the shared native typography pass. Custom raw Text must supply intended styles. No continuous Button weight animation is removed: existing Button motion only owns colors and shadows.",
+      "affectedCapabilities": [
+        "CAP.button.001",
+        "CAP.button.013",
+        "CAP.button.015",
+        "CAP.button.024",
+        "CAP.button.026"
+      ],
+      "preserved": "Owned primitive/array/Fragment/bigint/render-function phrases, authored element identity, supported final endpoints and scaling policy, computed/custom/final precedence including zero and undefined, context isolation, original renderer/root/child refs, press/focus callbacks and existing motion clocks.",
+      "sourceChecks": [
+        {
+          "suite": "packages/react-native/src/components/Button/__tests__/Button.typography.test.tsx",
+          "cases": [
+            "keeps explicit content and original refs without a native typography scope (custom renderer: %s)",
+            "retains the legacy ancestor boundary until migration without replacing the original Button or Text",
+            "retains exact supported weight endpoints through final style and theme updates",
+            "requires an explicit migration for an unsupported %s weight"
+          ],
+          "covers": "Both render paths, same-window nested opt-out, unaffected legacy sibling scope, explicitly styled raw children and owned content, stable refs, exact supported weights and explicit root/composed scalar rejection. The legacy-ancestor case preserves the nonempty reset boundary until the ancestor migrates, then removes both scopes without replacing the original Button/Text."
+        },
+        {
+          "suite": "packages/react-native/src/components/Button/__tests__/Button.contract.test.tsx",
+          "covers": "Original inherited renderer, callback/ref lifetime, independent color/shadow clocks and authoritative foreground state remain unchanged."
+        }
+      ],
+      "canonicalEvidence": "Canonical sourceRef, all128 property dispositions, all77 native-only properties and prior evidence remain unchanged historical records.",
+      "acceptance": "Revalidate affected G01/G03/G04/G05 source correspondence and composed controls; no verdict promotion. Native glyph/layout/scaling/AT/input/profile proof and shared SDK/native text-hook retirement remain OPEN."
+    }
   ]
 }

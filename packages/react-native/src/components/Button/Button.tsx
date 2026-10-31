@@ -14,7 +14,8 @@ import { NativePressable, type TNativePressableRender } from "../../input/Native
 import type { TNativeFocusEvent, TNativePressEvent, TNativeFocusViewProps } from "../../input/types"
 import { useNativeTheme } from "../../theme"
 import { NativeContentContext } from "../NativeContentContext"
-import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
+import { validateNativeFontWeight } from "../nativeTextStyle"
+import { NativeTextStyleProvider, useNativeRawTextStyle } from "../NativeTextStyleProvider"
 
 import { getNativeButtonContent } from "./content"
 import { NativeButtonContext } from "./context"
@@ -113,6 +114,8 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
     ...rest
   } = props
   const theme = useNativeTheme()
+  // A legacy ancestor still needs this reset boundary to preserve independent Button text defaults.
+  const inheritedNativeTextStyle = useNativeRawTextStyle()
   const blocked = isDisabled || isPending || !nativeInteraction
   const [pressed, setPressed] = useState(false)
   const [hovered, setHovered] = useState(false)
@@ -156,6 +159,7 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
   const resolved = nativeStyle
     ? nativeStyle(flags, focusVisible)
     : getNativeButtonStyle(theme, props, flags, focusVisible)
+  validateNativeFontWeight(resolved.textStyle.fontWeight, "Button")
   const { foregroundColor, viewStyle } = useNativeButtonMotion(
     resolved.viewStyle,
     resolved.foregroundColor,
@@ -325,7 +329,11 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
     </NativeContentContext.Provider>
   )
   return (
-    <NativeTextStyleProvider reset style={{ fontStyle: "normal", letterSpacing: 0, textAlign: "center", ...textStyle }}>
+    <NativeTextStyleProvider
+      reset
+      nativeInheritance={inheritedNativeTextStyle !== undefined}
+      style={{ fontStyle: "normal", letterSpacing: 0, textAlign: "center", ...textStyle }}
+    >
       {control}
     </NativeTextStyleProvider>
   )
