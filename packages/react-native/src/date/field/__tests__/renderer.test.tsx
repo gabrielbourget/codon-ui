@@ -1,6 +1,6 @@
 import { CalendarDateTime, Time, parseZonedDateTime } from "@internationalized/date"
 import { act, fireEvent, render, screen, within } from "@testing-library/react-native"
-import { createRef, useContext, type Ref } from "react"
+import { cloneElement, createRef, useContext, type ReactElement, type ReactNode, type Ref } from "react"
 import {
   AccessibilityInfo,
   Animated,
@@ -10,6 +10,7 @@ import {
   processColor,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native"
 import type * as RN from "react-native"
@@ -25,9 +26,10 @@ import { NativeThemeProvider } from "../../../theme"
 import { packet } from "../../input/__tests__/packet"
 import type { TNativeDateSegmentInput } from "../../input/NativeDateSegment"
 import type { TimeValue } from "../../state/types"
-import { NativeTimeFieldStateContext } from "../context"
+import { NativeTimeFieldContext, NativeTimeFieldStateContext } from "../context"
 import { NativeTimeFieldInputContext, NativeTimeFieldErrorContext } from "../descendants"
 import { NativeTimeFieldError, NativeTimeFieldLabel, NativeTimeFieldText } from "../parts"
+import type { TNativeTimeFieldProps } from "../types"
 
 jest.mock("../../../input/specs/CUIDateSegmentNativeComponent", () => ({
   __esModule: true,
@@ -230,6 +232,7 @@ it("keeps root, group and input styles separate and forwards the original layout
 it.each([false, null, 0, ""])("preserves canonical falsy icon fallback %j", async (ComponentIcon) => {
   await render(<NativeTimePickerRenderer ComponentIcon={ComponentIcon} />)
   expect(screen.getByTestId("time-picker-clock")).toBeTruthy()
+  expect(segment().props.ordinaryInputEvents).toBe(true)
 })
 
 it("retains complete state and logical form contexts around an owner render override", async () => {
@@ -903,7 +906,11 @@ it("keeps exact native target colors when explicit direction admission changes",
   expect(screen.getByTestId("time-picker")).toHaveStyle({ borderStartColor: "red", borderEndColor: "blue" })
 })
 
-const prepareOrdinaryTimeInput = async (onChange = jest.fn(), value: TimeValue | null = new Time(13, 45, 7)) => {
+const prepareOrdinaryTimeInput = async (
+  onChange = jest.fn(),
+  value: TimeValue | null = new Time(13, 45, 7),
+  composition: "default" | "render" | "icon" = "default",
+) => {
   const native = {
     getLease: () => "legacy-keys-and-pointer",
     acceptsField: jest.fn(() => true),
@@ -911,9 +918,30 @@ const prepareOrdinaryTimeInput = async (onChange = jest.fn(), value: TimeValue |
     moveFieldFocus: jest.fn(() => "{}"),
   }
   mockFieldScope = { bindingId: "legacy-group", bindingRevision: "1", current: () => true, native }
-  const root = createRef<View>()
+  const root = createRef<View>(),
+    customEditor = createRef<RN.TextInput>()
+  const customInput = <TextInput ref={customEditor} testID="custom-composed-editor" value="owned" />
+  const renderRoot = (props: Parameters<NonNullable<TNativeTimeFieldProps["render"]>>[0]) => {
+    const provider = props.children as ReactElement<{ children: ReactElement<{ children: ReactNode }> }>
+    return (
+      <NativeFocusHost {...props}>
+        {cloneElement(
+          provider,
+          undefined,
+          cloneElement(provider.props.children, undefined, provider.props.children.props.children, customInput),
+        )}
+      </NativeFocusHost>
+    )
+  }
   const result = await render(
-    <NativeTimePickerRenderer ref={root} value={value} onChange={onChange} granularity="second" />,
+    <NativeTimePickerRenderer
+      ref={root}
+      value={value}
+      onChange={onChange}
+      granularity="second"
+      render={composition === "render" ? renderRoot : undefined}
+      ComponentIcon={composition === "icon" ? customInput : undefined}
+    />,
   )
   for (const index of [0, 1, 2]) await send(index)
   await send(1, { kind: "focus", focused: true, sequence: 2 })
@@ -924,9 +952,9 @@ const prepareOrdinaryTimeInput = async (onChange = jest.fn(), value: TimeValue |
   expect(hour).not.toBeNull()
   expect(minute).not.toBeNull()
   expect(hour).not.toBe(minute)
-  expect(segment().props.ordinaryInputEvents).toBe(true)
+  expect(segment().props.ordinaryInputEvents).toBe(composition === "default")
   jest.mocked(Commands.requestSegmentFocus).mockClear()
-  return { ...result, root, hour, minute, native, onChange }
+  return { ...result, root, hour, minute, native, onChange, customEditor }
 }
 it("requests ordinary-input auto-advance on the original next segment while preserving owner veto and legacy key/pointer handlers", async () => {
   const f = await prepareOrdinaryTimeInput()
@@ -1037,4 +1065,37 @@ it("requests the original previous segment when ordinary deletion reaches an emp
   expect(jest.mocked(Commands.requestSegmentFocus).mock.calls[0][0]).toBe(f.hour)
   expect(getNativeFocusedTarget()).toBe(f.minute)
   expect(f.native.moveFieldFocus).not.toHaveBeenCalled()
+})
+
+it.each(["render", "icon"] as const)(
+  "preserves the legacy input route for custom %s composition with an original core editor",
+  async (composition) => {
+    const f = await prepareOrdinaryTimeInput(jest.fn(), new Time(13, 45, 7), composition)
+    const original = f.customEditor.current
+    expect(original).not.toBeNull()
+    const write = jest.spyOn(original!, "setNativeProps")
+    await send(0, {
+      kind: "insert",
+      sequence: 3,
+      focused: true,
+      text: "3",
+      document: "3",
+      selectionStart: 1,
+      selectionEnd: 1,
+    })
+    // The legacy route requires the original native frame; an unframed ordinary packet cannot skip the authored editor.
+    expect(f.onChange).not.toHaveBeenCalled()
+    expect(Commands.requestSegmentFocus).not.toHaveBeenCalled()
+    expect(f.customEditor.current).toBe(original)
+    expect(screen.getByTestId("custom-composed-editor").props.value).toBe("owned")
+    expect(write).not.toHaveBeenCalled()
+  },
+)
+it("keeps a context-supplied custom renderer on the legacy input route", async () => {
+  await render(
+    <NativeTimeFieldContext.Provider value={{ render: (props) => <NativeFocusHost {...props} /> }}>
+      <NativeTimePickerRenderer defaultValue={new Time(13, 45)} />
+    </NativeTimeFieldContext.Provider>,
+  )
+  expect(segment().props.ordinaryInputEvents).toBe(false)
 })

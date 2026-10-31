@@ -128,6 +128,8 @@ export const NativeTimePickerRenderer = forwardRef(
       forwardedRef,
     )
     const { props, state, renderState, locale, direction } = field
+    // Custom compositions may add native focus targets outside the owned segment registry.
+    const ordinaryInputEvents = !props.render && !authored.ComponentIcon
     const ownerId = useId()
     const testID = props.testID ?? props["data-testid"] ?? "time-picker"
     const [hosts] = useState(() => new NativeDateFieldHostSet())
@@ -351,7 +353,7 @@ export const NativeTimePickerRenderer = forwardRef(
                 locale={locale}
                 direction={direction}
                 hostSet={hosts}
-                inputFocus={focus}
+                inputFocus={ordinaryInputEvents ? focus : undefined}
                 appearance={appearance}
                 inheritedText={inheritedText}
                 label={props.accessibilityLabel ?? props["aria-label"]}
