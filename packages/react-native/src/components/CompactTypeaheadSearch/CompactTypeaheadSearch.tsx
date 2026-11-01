@@ -499,6 +499,7 @@ const CompactTypeaheadSearchInner = <T extends object>(
         const root = {
           ...nativeViewProps(nativeProps),
           ...native,
+          focusable: props.focusable ?? native.focusable,
           nativeFocusWithinObservation: true,
           nativeOnFocusWithin: (event: TNativeFocusWithinEvent) => {
             rootWithin.current = event.nativeEvent.within

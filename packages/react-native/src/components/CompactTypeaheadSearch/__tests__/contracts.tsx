@@ -88,3 +88,33 @@ void [
   multiple,
   invalidDescription,
 ]
+
+const inheritedRootContract = (
+  <CompactTypeaheadSearch
+    items={source}
+    inputValue=""
+    render={(native, state) => {
+      const flags: boolean[] = [state.isOpen, state.isDisabled, state.isReadOnly, state.isInvalid, state.isRequired]
+      return <NativeFocusHost {...native} accessibilityHint={flags.some(Boolean) ? "Active" : "Idle"} />
+    }}
+  />
+)
+// @ts-expect-error The wrapper owns its scaffold; caller content uses the public item/icon/root channels.
+const replacedScaffold = <CompactTypeaheadSearch>Replacement</CompactTypeaheadSearch>
+// @ts-expect-error A custom native root must return the original host element rather than removing it.
+const missingRenderedHost = <CompactTypeaheadSearch render={() => null} />
+const foreignRenderedRef = (
+  <CompactTypeaheadSearch
+    render={(native) => (
+      // @ts-expect-error Inherited root rendering preserves an actual native View ref.
+      <NativeFocusHost {...native} ref={createRef<HTMLDivElement>()} />
+    )}
+  />
+)
+void [inheritedRootContract, replacedScaffold, missingRenderedHost, foreignRenderedRef]
+
+// @ts-expect-error DOM-only CSS transition observations are replaced by the native style/animation owner.
+const browserTransition = <CompactTypeaheadSearch onTransitionEnd={() => {}} />
+// @ts-expect-error Browser mouse events do not substitute for original native pointer/responder events.
+const browserMouse = <CompactTypeaheadSearch onMouseDown={() => {}} />
+void [browserTransition, browserMouse]
