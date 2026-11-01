@@ -177,3 +177,111 @@ it("composes native activation and press-up with owner state, guards, callback r
   expect(screen.getByTestId("library-state")).toHaveTextContent(/count: 0/)
   expect(screen.getByTestId("library-release")).toHaveTextContent("Last release: none")
 })
+
+it("cycles approved button dimension customizations without replacing the owner host or fabricating actions", async () => {
+  await render(
+    <SafeAreaInsetsContext.Provider value={{ top: 20, bottom: 10, left: 0, right: 0 }}>
+      <NativeShowcase />
+    </SafeAreaInsetsContext.Provider>,
+  )
+  const user = userEvent.setup()
+  const press = async (name: string) => user.press(screen.getByRole("button", { name }))
+  await press("Text/Button scene")
+  await press("Library action")
+  const host = screen.getByTestId("library-button").unstable_fiber?.stateNode
+  expect(host).toBeTruthy()
+  for (const [width, height, label] of [
+    [160, 48, "160 by 48"],
+    ["100%", 56, "full width by 56"],
+    [0, 0, "zero"],
+    ["auto", "auto", "auto"],
+  ] as const) {
+    await press("Next button dimensions")
+    expect(screen.getByTestId("library-button")).toHaveStyle({ width, height })
+    expect(screen.getByTestId("library-button-customization")).toHaveTextContent(
+      new RegExp(`Button dimensions: ${label}[.]`),
+    )
+    expect(screen.getByTestId("library-button").unstable_fiber?.stateNode).toBe(host)
+    expect(screen.getByTestId("library-state")).toHaveTextContent(/count: 1/)
+  }
+  await press("Next button dimensions")
+  expect(screen.getByTestId("library-button")).not.toHaveStyle({ width: 0 })
+  expect(screen.getByTestId("library-button-customization")).toHaveTextContent(/Button dimensions: default\./)
+  await press("Library action")
+  expect(screen.getByTestId("library-state")).toHaveTextContent(/count: 2/)
+  await press("Reset scene")
+  await press("Text/Button scene")
+  expect(screen.getByTestId("library-button-customization")).toHaveTextContent(
+    "Button dimensions: default. Custom style layer: off.",
+  )
+})
+
+it("keeps default-palette button customization independent of fill and outline through theme and owner updates", async () => {
+  await render(
+    <SafeAreaInsetsContext.Provider value={{ top: 20, bottom: 10, left: 0, right: 0 }}>
+      <NativeShowcase />
+    </SafeAreaInsetsContext.Provider>,
+  )
+  const user = userEvent.setup()
+  const press = async (name: string) => {
+    await user.press(screen.getByRole("button", { name }))
+    await act(() => jest.advanceTimersByTime(250))
+  }
+  await press("Text/Button scene")
+  await press("Toggle button default palette")
+  expect(screen.getByTestId("library-state")).toHaveTextContent(/Order: none.*Mode: fill/)
+  expect(screen.getByTestId("library-button")).toHaveStyle({ backgroundColor: "#ffffff" })
+  expect(screen.getByText("Library action 0")).toHaveStyle({ color: "#171717" })
+  await press("Library action")
+  await press("Dark theme")
+  expect(screen.getByTestId("library-button")).toHaveStyle({ backgroundColor: "#171717" })
+  expect(screen.getByText("Library action 1")).toHaveStyle({ color: "#ffffff" })
+  await press("Toggle button outline")
+  expect(screen.getByTestId("library-button")).toHaveStyle({ borderWidth: 2, borderColor: "#474747" })
+  expect(screen.getByTestId("library-state")).toHaveTextContent(/count: 1.*Order: none.*Mode: outline/)
+  await press("Toggle button default palette")
+  expect(screen.getByTestId("library-state")).toHaveTextContent(/count: 1.*Order: primary/)
+  await press("Reset scene")
+  await press("Text/Button scene")
+  expect(screen.getByTestId("library-state")).toHaveTextContent(/count: 0.*Order: primary.*Mode: fill/)
+})
+
+it("preserves button customization layer precedence and the pending guard through owned content changes", async () => {
+  await render(
+    <SafeAreaInsetsContext.Provider value={{ top: 20, bottom: 10, left: 0, right: 0 }}>
+      <NativeShowcase />
+    </SafeAreaInsetsContext.Provider>,
+  )
+  const user = userEvent.setup()
+  const press = async (name: string) => {
+    await user.press(screen.getByRole("button", { name }))
+    await act(() => jest.advanceTimersByTime(250))
+  }
+  await press("Text/Button scene")
+  await press("Toggle button custom styles")
+  expect(screen.getByTestId("library-button")).toHaveStyle({ padding: 11, borderColor: "#087f8c" })
+  expect(screen.getByText("Library action 0")).toHaveStyle({ fontSize: 18, color: "#be123c" })
+  await press("Toggle library styles")
+  expect(screen.getByTestId("library-button")).toHaveStyle({
+    padding: 11,
+    borderColor: "#087f8c",
+    backgroundColor: "#123456",
+  })
+  expect(screen.getByText("Library action 0")).toHaveStyle({ fontSize: 20, color: "#ffffff" })
+  await press("Library action")
+  await press("Toggle render children")
+  await press("Dark theme")
+  expect(screen.getByText("Rendered library action 1")).toHaveStyle({ fontSize: 20, color: "#ffffff" })
+  await press("Toggle library pending")
+  await press("Library action")
+  expect(screen.getByTestId("library-state")).toHaveTextContent(/count: 1.*State: pending/)
+  await press("Toggle library pending")
+  await press("Toggle library styles")
+  expect(screen.getByText("Rendered library action 1")).toHaveStyle({ fontSize: 18, color: "#be123c" })
+  await press("Toggle button custom styles")
+  expect(screen.getByText("Rendered library action 1")).toHaveStyle({ fontSize: 14, color: "#ffffff" })
+  await press("Reset scene")
+  await press("Text/Button scene")
+  expect(screen.getByTestId("library-button-customization")).toHaveTextContent(/Custom style layer: off\./)
+  expect(screen.getByText("Library action 0")).toHaveStyle({ fontSize: 14 })
+})

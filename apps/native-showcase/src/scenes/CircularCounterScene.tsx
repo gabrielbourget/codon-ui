@@ -51,6 +51,12 @@ const CounterLayoutChild = () => {
   )
 }
 
+const DRAWING_PRESETS = [
+  { name: "default", width: 120, height: 120, strokeWidth: undefined, backgroundPadding: undefined },
+  { name: "wide", width: 160, height: 80, strokeWidth: 12, backgroundPadding: 6 },
+  { name: "zero", width: 0, height: 0, strokeWidth: 0, backgroundPadding: 0 },
+] as const
+
 export const CircularCounterScene = () => {
   const [value, setValue] = useState(25)
   const [raw, setRaw] = useState(false)
@@ -65,6 +71,8 @@ export const CircularCounterScene = () => {
   const [showRing, setShowRing] = useState(true)
   const [valueLabelIndex, setValueLabelIndex] = useState(0)
   const [composition, setComposition] = useState(false)
+  const [drawingIndex, setDrawingIndex] = useState(0)
+  const drawing = DRAWING_PRESETS[drawingIndex]
   const max = [100, 0, "0"] as const
   const cap = AVAILABLE_NATIVE_STROKE_LINECAPS[capIndex]
   const order = orderIndex < 0 ? undefined : AVAILABLE_THEMING_ORDER_CODES[orderIndex]
@@ -73,6 +81,11 @@ export const CircularCounterScene = () => {
     <View style={styles.scene}>
       <Text elementType="h2" variant="h3">
         Circular progress and counters
+      </Text>
+      <Text testID="circular-drawing-state">
+        Drawing: {drawing.name}. Authored size: {drawing.width} x {drawing.height}. Stroke:{" "}
+        {drawing.strokeWidth ?? "component default"}. Background padding:{" "}
+        {drawing.backgroundPadding ?? "existing control"}.
       </Text>
       <Text testID="circular-value-label-state">Value label: {valueLabels[valueLabelIndex].name}.</Text>
       <Text testID="circular-counter-state">
@@ -106,6 +119,9 @@ export const CircularCounterScene = () => {
         </Button>
         <Button onPress={() => setShowMax((current) => !current)}>Toggle counter max suffix</Button>
         <Button onPress={() => setShowRing((current) => !current)}>Toggle counter ring</Button>
+        <Button onPress={() => setDrawingIndex((current) => (current + 1) % DRAWING_PRESETS.length)}>
+          Next circular drawing dimensions
+        </Button>
         <Button onPress={() => setComposition((current) => !current)}>Toggle circular composition</Button>
       </View>
       <CircularProgress
@@ -114,14 +130,15 @@ export const CircularCounterScene = () => {
         value={value}
         valueLabel={valueLabels[valueLabelIndex].value}
         text={`${value}%`}
-        width={120}
-        height={120}
+        width={drawing.width}
+        height={drawing.height}
+        strokeWidth={drawing.strokeWidth}
         circleRatio={half ? 0.5 : 1}
         counterClockwise={reverse}
         strokeLineCap={cap}
         order={order}
-        backgroundColor={custom ? "red" : undefined}
-        backgroundPadding={custom ? 4 : 0}
+        backgroundColor={custom ? "red" : drawingIndex === 1 ? "#eff6ff" : undefined}
+        backgroundPadding={drawing.backgroundPadding ?? (custom ? 4 : 0)}
         isIndeterminate={unknown}
         customStyles={custom ? { opacity: 0.85 } : undefined}
         customSVGStyles={custom ? { transform: [{ rotate: "12deg" }] } : undefined}
@@ -174,7 +191,9 @@ export const CircularCounterScene = () => {
           <Counter value={value} testID="counter-layout-demo" customStyles={{ fontStyle: "italic", letterSpacing: 2 }}>
             <CounterLayoutChild />
           </Counter>
-          <Text>Native layout check: the empty purple box is hidden until it has content or explicit display.</Text>
+          <Text>
+            Native layout check: the purple box follows ordinary native child layout, including when it is empty.
+          </Text>
         </>
       ) : null}
       <Text>

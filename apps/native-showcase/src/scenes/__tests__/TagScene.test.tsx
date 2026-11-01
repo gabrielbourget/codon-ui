@@ -141,3 +141,56 @@ it("can arm an owner-disabled takeover during a real press lifecycle without man
   expect(screen.getByTestId("tag-example")).toBeDisabled()
   expect(screen.getByTestId("tag-state")).toHaveTextContent(/Owner: false.*Requests: 0.*Armed guard: false/)
 })
+
+it("exposes independent theme timings and authored shadows while retaining the held owner, label and reset", async () => {
+  const press = await enterTagScene()
+  const original = screen.getByTestId("tag-example")
+  await press("Toggle tag owner echo")
+  await press("Controlled tag")
+  for (const channel of ["backgroundColor", "color", "boxShadow"]) {
+    await press(`Next tag theme ${channel} timing`)
+    await press(`Next tag theme ${channel} timing`)
+  }
+  await press("Next tag theme borderColor timing")
+  expect(screen.getByTestId("tag-theme-timings")).toHaveTextContent(
+    /backgroundColor=1 s linear, delay 100 ms; color=1 s linear, delay 100 ms; borderColor=0 ms; boxShadow=1 s linear, delay 100 ms/,
+  )
+  await press("Next tag transition")
+  await press("Toggle authored tag shadow")
+  await press("Toggle tag styles")
+  await press("Toggle tag colors")
+  await press("Toggle tag borders")
+  await press("Toggle long tag label")
+  await press("Toggle tag width constraint")
+  await press("Dark theme")
+  expect(screen.getByTestId("tag-example")).toHaveStyle({
+    width: 140,
+    backgroundColor: "#a66b00",
+    borderColor: "#2f7d18",
+    boxShadow: [{ offsetX: 6, offsetY: 4, blurRadius: 8, spreadDistance: 2, color: "#3151a6" }],
+  })
+  expect(screen.getByTestId("tag-status")).toHaveStyle({
+    boxShadow: [{ offsetX: 6, offsetY: 4, blurRadius: 8, spreadDistance: 2, color: "#3151a6" }],
+  })
+  expect(screen.getByText(/^Étiquette longue/)).toHaveStyle({ color: "#b73434", fontSize: 20 })
+  expect(screen.getByText(/background immediate/)).toBeOnTheScreen()
+  await press("Next tag theme color timing")
+  expect(screen.getByTestId("tag-theme-timings")).toHaveTextContent(
+    /backgroundColor=1 s linear, delay 100 ms; color=inherit; borderColor=0 ms; boxShadow=1 s linear, delay 100 ms/,
+  )
+  await press("Toggle authored tag shadow")
+  expect(screen.getByTestId("tag-example")).not.toHaveStyle({
+    boxShadow: [{ offsetX: 6, offsetY: 4, blurRadius: 8, spreadDistance: 2, color: "#3151a6" }],
+  })
+  expect(screen.getByTestId("tag-example")).toBe(original)
+  expect(screen.getByTestId("tag-state")).toHaveTextContent(
+    /Owner: false.*Echo: false.*Requests: 1.*ID: number 0.*Size: 140/,
+  )
+  expect(screen.getByTestId("tag-example").props.accessibilityLabel).toBe("Controlled tag")
+  await press("Reset scene")
+  await press("Tag scene")
+  expect(screen.getByTestId("tag-theme-timings")).toHaveTextContent(
+    /backgroundColor=inherit; color=inherit; borderColor=inherit; boxShadow=inherit.*Authored shadow: false/,
+  )
+  expect(screen.getByTestId("tag-state")).toHaveTextContent(/Owner: false.*Echo: true.*Requests: 0/)
+})
