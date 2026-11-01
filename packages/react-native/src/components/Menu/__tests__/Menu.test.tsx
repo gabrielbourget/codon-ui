@@ -233,6 +233,51 @@ it("applies full list context to dynamic authoring, original values and default 
   expect(f.close).not.toHaveBeenCalled()
 })
 
+it("preserves list description/detail order and explicit empty overrides on the original host", async () => {
+  const list = createRef<RN.View>()
+  const f = fixture()
+  const node = (phase: "aliases" | "empty" | "next") => (
+    <NativeMenuListContext.Provider
+      value={{
+        ref: list,
+        ariaDescribedBy: phase === "empty" ? [] : phase === "next" ? undefined : ["description-b", "description-a"],
+        "aria-describedby": phase === "next" ? " current-description  second-description " : "ignored-description",
+        ariaDetails: phase === "empty" ? [] : phase === "next" ? undefined : ["detail-b", "detail-a"],
+        "aria-details": phase === "next" ? " current-detail  second-detail " : "ignored-detail",
+        descriptionLabel: phase === "empty" ? "" : phase === "next" ? "Résumé" : "Description initiale",
+        detailsLabel: phase === "empty" ? "" : phase === "next" ? "Précisions" : "Détails initiaux",
+      }}
+    >
+      {f.node()}
+    </NativeMenuListContext.Provider>
+  )
+  const view = await render(node("aliases"))
+  const original = list.current
+  expect(original).not.toBeNull()
+  expect(row("menu-list").props.nativeDescribedBy).toEqual(["description-b", "description-a"])
+  expect(row("menu-list").props.nativeDetailsBy).toEqual(["detail-b", "detail-a"])
+  expect(row("menu-list").props.nativeDescriptionLabel).toBe("Description initiale")
+  expect(row("menu-list").props.nativeDetailsLabel).toBe("Détails initiaux")
+
+  await view.rerender(node("empty"))
+  expect(list.current === original).toBe(true)
+  expect(row("menu-list").props.nativeDescribedBy).toEqual([])
+  expect(row("menu-list").props.nativeDetailsBy).toEqual([])
+  expect(row("menu-list").props.nativeDescriptionLabel).toBe("")
+  expect(row("menu-list").props.nativeDetailsLabel).toBe("")
+
+  await view.rerender(node("next"))
+  expect(list.current === original).toBe(true)
+  expect(row("menu-list").props.nativeDescribedBy).toEqual(["current-description", "second-description"])
+  expect(row("menu-list").props.nativeDetailsBy).toEqual(["current-detail", "second-detail"])
+  expect(row("menu-list").props.nativeDescriptionLabel).toBe("Résumé")
+  expect(row("menu-list").props.nativeDetailsLabel).toBe("Précisions")
+  expect(f.action).not.toHaveBeenCalled()
+  expect(f.close).not.toHaveBeenCalled()
+  await view.unmount()
+  expect(list.current).toBeNull()
+})
+
 it("separates named/null list slots and actual inner styles/refs from the outer surface", async () => {
   const list = createRef<RN.View>(),
     renderHost = jest.fn((props: React.ComponentProps<typeof NativeFocusHost>, _state: { isEmpty: boolean }) => (

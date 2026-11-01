@@ -14,6 +14,9 @@ export const thumbnailProps: ThumbnailImageProps = {
   tintColor: PlatformColor("systemBlueColor"),
   style: [styles.image, { borderRadius: 5 }],
   resizeMode: "contain",
+  srcSet: "file:///thumbnail.png 1x, file:///thumbnail@2x.png 2x",
+  crossOrigin: "use-credentials",
+  referrerPolicy: "no-referrer",
   onError: (event) => event.nativeEvent.error,
   onLoad: (event) => event.nativeEvent.source.width,
 }
@@ -54,6 +57,14 @@ export const DOMThumbnailClick = <ThumbnailImage fallback={null} onClick={() => 
 export const DOMThumbnailLoading = <ThumbnailImage fallback={null} loading="lazy" />
 // @ts-expect-error Core native Image does not implement browser sizes selection.
 export const DOMThumbnailSizes = <ThumbnailImage fallback={null} sizes="100vw" />
+// @ts-expect-error Native Image owns decoding rather than browser decoding hints.
+export const DOMThumbnailDecoding = <ThumbnailImage fallback={null} decoding="async" />
+// @ts-expect-error Native Image does not expose browser fetch-priority scheduling.
+export const DOMThumbnailFetchPriority = <ThumbnailImage fallback={null} fetchPriority="high" />
+// @ts-expect-error Image-map regions use caller-rendered native controls.
+export const DOMThumbnailUseMap = <ThumbnailImage fallback={null} useMap="#regions" />
+// @ts-expect-error Native activation does not implement server-side image-map coordinates.
+export const DOMThumbnailIsMap = <ThumbnailImage fallback={null} isMap />
 // @ts-expect-error Image children are owned by the candidate/render/fallback model.
 export const ReplacedThumbnailChildren = <ThumbnailImage fallback={null}>Other content</ThumbnailImage>
 // @ts-expect-error Arbitrary injected/fallback content has no universal image ref.

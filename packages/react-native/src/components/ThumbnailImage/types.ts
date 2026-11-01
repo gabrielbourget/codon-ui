@@ -18,6 +18,11 @@ export type TNativeThumbnailImageRenderImageArgs = {
   imageProps: TNativeThumbnailImageRenderImageProps
   onError: TNativeThumbnailImageErrorHandler
 }
+/**
+ * Uses native dimensions, aspect ratio and supported density srcSet values or a caller-selected src.
+ * Native Image owns load/decode scheduling; browser sizing hints and image maps are not implemented.
+ * Callers render native controls for image-map actions, preserving their refs and accessible semantics.
+ */
 export type TNativeThumbnailImageProps = TNativeThumbnailImageHostProps & {
   alt?: string
   fallback: ReactNode
