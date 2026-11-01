@@ -8,6 +8,7 @@ import { inspectNativeAccessibility, registerNativeAccessibilityInspector } from
 import { nativeAccessibilityIDs } from "../accessibilityReferences"
 import { blurNativeTarget, focusNativeTarget, registerNativeFocusTarget } from "../focus"
 import { NativeFocusHost, NativeFocusView } from "../NativeFocusView"
+import { NativeOrdinaryFieldGroupKeysContext } from "../ordinaryEditorKeys"
 import {
   Commands,
   type NativeAccessibilityData,
@@ -514,4 +515,47 @@ it("forwards original descendant date-key events without claiming their owner or
   await view.unmount()
   await act(() => handle(original))
   expect(receive).toHaveBeenCalledTimes(1)
+})
+
+it.each([false, true])("retains original pointer phases with ordinary field keys %s", async (fieldKeys) => {
+  const first = jest.fn(),
+    latest = jest.fn(),
+    ref = createRef<View>()
+  const node = (receive: typeof first) => (
+    <NativeOrdinaryFieldGroupKeysContext.Provider value={fieldKeys}>
+      <NativeFocusHost
+        ref={ref}
+        testID="focus"
+        onPointerDown={receive}
+        onPointerUp={receive}
+        onPointerCancel={receive}
+        onClick={receive}
+      />
+    </NativeOrdinaryFieldGroupKeysContext.Provider>
+  )
+  await render(node(first))
+  const original = ref.current
+  for (const phase of ["onPointerDown", "onPointerUp", "onPointerCancel", "onClick"]) {
+    const event = { target: original, currentTarget: original, nativeEvent: { pointerId: 7, pointerType: "touch" } }
+    await act(() => host().props[phase](event))
+    expect(first.mock.calls.at(-1)![0]).toBe(event)
+  }
+  await screen.rerender(node(latest))
+  const event = { nativeEvent: { pointerId: 8, pointerType: "mouse" } }
+  await act(() => host().props.onPointerDown(event))
+  expect(first).toHaveBeenCalledTimes(4)
+  expect(latest.mock.calls[0][0]).toBe(event)
+  expect(ref.current).toBe(original)
+  expect(host().props.onNativeFieldKey).toBeUndefined()
+})
+it("retains programmatic negative-tab focus within its ordinary field-key boundary", async () => {
+  const ref = createRef<View>()
+  await render(
+    <NativeOrdinaryFieldGroupKeysContext.Provider value>
+      <NativeFocusHost ref={ref} testID="focus" tabIndex={-1} />
+    </NativeOrdinaryFieldGroupKeysContext.Provider>,
+  )
+  expect(host().props.keyboardFocusable).toBe(true)
+  expect(host().props.nativeTabStop).toBe(false)
+  expect(focusNativeTarget(ref.current)).toBe(true)
 })

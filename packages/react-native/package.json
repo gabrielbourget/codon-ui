@@ -81,7 +81,6 @@
       "modulesProvider": {
         "CUIMotionSnapshot": "CUIMotionSnapshot",
         "CUIFormDocument": "CUIFormDocument",
-        "CUIEditorKeyboardDefaults": "CUIEditorKeyboardDefaults",
         "CUIDragAndDrop": "CUIDragAndDrop"
       },
       "componentProvider": {

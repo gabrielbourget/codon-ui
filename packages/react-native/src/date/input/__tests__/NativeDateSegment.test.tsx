@@ -2,7 +2,6 @@ import { act, render, screen } from "@testing-library/react-native"
 import { createRef } from "react"
 import { Text, TextInput } from "react-native"
 
-import { NativeFieldInputContext, type TNativeFieldInputScope } from "../../../input/fieldInput"
 import { focusNativeTarget, getNativeFocusedTarget } from "../../../input/focus"
 import { Commands } from "../../../input/specs/CUIDateSegmentNativeComponent"
 import { NativeDateSegment, type TNativeDateSegmentRef, type TNativeDateSegmentInput } from "../NativeDateSegment"
@@ -277,24 +276,15 @@ it("drops an admitted private input after its field context is removed, preservi
   expect(callback).toHaveBeenCalledWith(ordinary)
 })
 
-it("admits ordinary input/composition events through its own native lease without settling a legacy ancestor", async () => {
-  const callback = jest.fn(),
-    settleField = jest.fn()
-  const scope: TNativeFieldInputScope = {
-    bindingId: "legacy",
-    bindingRevision: "1",
-    current: () => false,
-    native: { getLease: () => "legacy", acceptsField: jest.fn(), settleField, moveFieldFocus: jest.fn() },
-  }
+it("admits input/composition through its original lease across the retired legacy flag", async () => {
+  const callback = jest.fn()
   const node = (ordinaryInputEvents: boolean) => (
-    <NativeFieldInputContext.Provider value={scope}>
-      <NativeDateSegment
-        {...props}
-        ordinaryInputEvents={ordinaryInputEvents}
-        testID="segment"
-        onNativeSegmentInput={callback}
-      />
-    </NativeFieldInputContext.Provider>
+    <NativeDateSegment
+      {...props}
+      ordinaryInputEvents={ordinaryInputEvents}
+      testID="segment"
+      onNativeSegmentInput={callback}
+    />
   )
   const view = await render(node(true))
   await send()
@@ -304,13 +294,11 @@ it("admits ordinary input/composition events through its own native lease withou
     expect(callback).toHaveBeenLastCalledWith(event)
     expect(callback.mock.calls.at(-1)![0]).toBe(event)
   }
-  expect(settleField).not.toHaveBeenCalled()
   await view.rerender(node(false))
   await send({ epoch: 5, sequence: 7 })
   callback.mockClear()
   await send({ kind: "insert", epoch: 5, sequence: 8, focused: true })
-  expect(callback).not.toHaveBeenCalled()
-  expect(settleField).not.toHaveBeenCalled()
+  expect(callback).toHaveBeenCalledTimes(1)
 })
 it("retires the old input-delivery generation without changing the original host or accepting framed ordinary input", async () => {
   const callback = jest.fn(),

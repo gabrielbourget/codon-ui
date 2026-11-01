@@ -13,5 +13,4 @@
 - (NSString *)fieldInputOwnerId;
 - (BOOL)fieldFocusTabStop;
 - (void)requestKeyboardFocus:(NSString *)ownerId;
-- (void)synchronizeFieldInputFocus;
 @end

@@ -10,8 +10,6 @@ import {
   screen,
 } from "../../../collection/__tests__/nativeReceipts"
 import { CompactTypeaheadSearch, TagComboBox, type TNativeComboBoxKeyboardEvent } from "../../../index"
-import { NativeFieldInputContext, type TNativeFieldInputScope } from "../../../input/fieldInput"
-import type { TNativeFieldInputPlan } from "../../../input/fieldInputBinding"
 import type { TNativeOrdinaryEditorKeyEvent } from "../../../input/ordinaryEditorKeys"
 import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
@@ -26,20 +24,13 @@ jest.mock("../../../input/specs/CUIFieldBindingNativeComponent", () => ({
   __esModule: true,
   default: jest.requireActual("react-native").View,
 }))
-const mockFieldEnrollment = jest.fn()
 const mockNative = {
   getLease: () => "original-editor-module",
   acceptsField: jest.fn((_request: string) => true),
   settleField: jest.fn((_request: string) => true),
   moveFieldFocus: jest.fn(),
 }
-// A deliberately retained legacy ancestor cannot switch a migrated editor back to the retired transaction route.
-jest.mock("../../../input/useFieldInputBinding", () => ({
-  useNativeFieldInputBinding: (_plan: TNativeFieldInputPlan | null, enabled = true) => {
-    mockFieldEnrollment(enabled)
-    return { scope: null, metadata: { binding: () => "", commit: () => {}, receive: () => {} } }
-  },
-}))
+// These source controls retain original event/ref custody after native settlement is retired.
 
 const items = [
   { id: "a", label: "Alpha" },
@@ -71,12 +62,6 @@ afterEach(async () => {
   jest.useRealTimers()
 })
 
-const legacyAncestor: TNativeFieldInputScope = {
-  bindingId: "legacy-ancestor",
-  bindingRevision: "1",
-  current: () => true,
-  native: mockNative,
-}
 const setup = async (kind: "compact" | "tags", prevent = true) => {
   const input = createRef<RN.TextInput>()
   const sources: unknown[][] = []
@@ -92,9 +77,7 @@ const setup = async (kind: "compact" | "tags", prevent = true) => {
   const wrap = (child: ReactNode) => (
     <NativeThemeProvider>
       <NativeOverlayProvider>
-        <NativeFloatingLayerHost testID="editor-host">
-          <NativeFieldInputContext.Provider value={legacyAncestor}>{child}</NativeFieldInputContext.Provider>
-        </NativeFloatingLayerHost>
+        <NativeFloatingLayerHost testID="editor-host">{child}</NativeFloatingLayerHost>
       </NativeOverlayProvider>
     </NativeThemeProvider>
   )
@@ -171,7 +154,6 @@ const setup = async (kind: "compact" | "tags", prevent = true) => {
   const inputID = kind === "compact" ? "type-ahead-search-input" : "combo-box-input"
   expect(row(inputID).props.onNativeOrdinaryEditorKey).toEqual(expect.any(Function))
   expect(row(inputID).props.onNativeFieldKey).toBeUndefined()
-  expect(mockFieldEnrollment).not.toHaveBeenCalled()
   expect(mockNative.settleField).not.toHaveBeenCalled()
   return { ...result, input, inputID, node, binding, ownerId: host.ownerId, down, up, query, open, sources }
 }
@@ -223,7 +205,7 @@ const originalKey = (f: Awaited<ReturnType<typeof setup>>, phase: "down" | "up",
 const deliver = async (f: Awaited<ReturnType<typeof setup>>, event: TNativeOrdinaryEditorKeyEvent) =>
   act(() => row(f.inputID).props.onNativeOrdinaryEditorKey(event))
 
-describe.each(["compact", "tags"] as const)("%s migrated editor beneath a legacy ancestor", (kind) => {
+describe.each(["compact", "tags"] as const)("%s original editor ordinary-event contract", (kind) => {
   it("delivers both original phases once without native text-default settlement", async () => {
     const f = await setup(kind)
     const down = originalKey(f, "down"),
@@ -245,7 +227,6 @@ describe.each(["compact", "tags"] as const)("%s migrated editor beneath a legacy
     expect(row(f.inputID).props.value).toBe("held")
     expect(down.defaultPrevented).toBe(true)
     expect(mockNative.settleField).not.toHaveBeenCalled()
-    expect(mockFieldEnrollment).not.toHaveBeenCalled()
   })
   it("rejects a foreign receiver and duplicate delivery of an original event", async () => {
     const f = await setup(kind)

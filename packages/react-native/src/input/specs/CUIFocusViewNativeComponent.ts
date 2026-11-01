@@ -28,27 +28,6 @@ export type NativeKeyData = Readonly<{
   timestamp: Double
 }>
 
-export type NativeFieldKeyData = Readonly<{
-  fieldDispatch: string
-  kind: string
-  ownerId: string
-  target: Int32
-  key: string
-  nativeCode: Int32
-  characters: string
-  phase: "down" | "up"
-  repeat: boolean
-  cancelled: boolean
-  shiftKey: boolean
-  altKey: boolean
-  ctrlKey: boolean
-  metaKey: boolean
-  capsLock: boolean
-  nativeModifierData: string
-  nativeDefaultHandled: boolean
-  timestamp: Double
-}>
-
 export type NativeOrdinaryEditorKeyData = Readonly<{
   observerBindings: string
   bindingId: string
@@ -229,7 +208,6 @@ export interface NativeProps extends ViewProps {
   onNativeMotionColors?: DirectEventHandler<NativeMotionColors>
   onNativeActivation?: DirectEventHandler<NativeActivationData>
   onNativeKey?: DirectEventHandler<NativeKeyData>
-  onNativeFieldKey?: BubblingEventHandler<NativeFieldKeyData>
   onNativeDateKey?: BubblingEventHandler<NativeKeyData>
   onNativeOrdinaryEditorKey?: BubblingEventHandler<NativeOrdinaryEditorKeyData>
   onNativeFocusChange?: DirectEventHandler<NativeFocusData>

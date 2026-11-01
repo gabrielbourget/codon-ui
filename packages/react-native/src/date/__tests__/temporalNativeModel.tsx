@@ -5,13 +5,12 @@ import type { Ref } from "react"
 import type { View } from "react-native"
 
 import { confirmNativeCollections, flushNativeCollectionActions } from "../../collection/__tests__/nativeReceipts"
-import type { TNativeFieldInputPacket, TNativeFieldKeyEvent } from "../../input/fieldInput"
-import { packet } from "../input/__tests__/packet"
+import { packet, keyPacket } from "../input/__tests__/packet"
+import type { TNativeDateSegmentKeyEvent } from "../input/NativeDateSegment"
 
 const mockTargets = new Map<string, { nativeTag: number; focus: () => void; setNativeProps: () => void }>()
 const mockActors = new Map<string, { nativeTag: number; focus: () => void; setNativeProps: () => void }>()
 const mockActionStatuses = new Map<number, Record<string, unknown>>()
-const mockBindingStatuses = new Map<number, Record<string, unknown>>()
 let mockTags = 100
 jest.mock("../../input/specs/CUIFocusViewNativeComponent", () => ({
   __esModule: true,
@@ -51,23 +50,6 @@ jest.mock("../../input/specs/CUIFieldBindingNativeComponent", () => ({
     const [original] = React.useState(() => ({ nativeTag: ++mockTags, focus: jest.fn(), setNativeProps: jest.fn() }))
     React.useImperativeHandle(ref, () => original as unknown as View, [original])
     mockTargets.set(testID, original)
-    React.useLayoutEffect(() => {
-      const previous = mockBindingStatuses.get(original.nativeTag)
-      if (!previous || !props.fieldGroupBinding) return
-      const declaration = JSON.parse(String(props.fieldGroupBinding))
-      const status = {
-        ...previous,
-        bindingRevision: declaration.bindingRevision,
-        generation: Number(previous.generation) + 1,
-        ready: true,
-        error: "",
-      }
-      mockBindingStatuses.set(original.nativeTag, status)
-      const receive = props.onNativeFieldInputRecord as
-        | undefined
-        | ((mockEvent: { nativeEvent: { record: string } }) => void)
-      receive?.({ nativeEvent: { record: JSON.stringify(status) } })
-    }, [props.fieldGroupBinding, original])
     return React.createElement(jest.requireActual("react-native").View, { ...props, testID })
   }),
 }))
@@ -75,16 +57,7 @@ jest.mock("../../input/specs/CUIKeyboardScopeNativeComponent", () => ({
   __esModule: true,
   default: jest.requireActual("react-native").View,
 }))
-jest.mock("../../input/specs/NativeCUIEditorKeyboardDefaults", () => ({
-  __esModule: true,
-  default: {
-    getLease: () => "module:1",
-    acceptsField: jest.fn(() => true),
-    settleField: jest.fn(() => true),
-    moveFieldFocus: jest.fn(),
-    takeFieldRecords: jest.fn(() => JSON.stringify({ records: [], dropped: 0 })),
-  },
-}))
+
 jest.mock("../../input/specs/NativeCUIFormDocument", () => ({
   __esModule: true,
   default: {
@@ -154,31 +127,6 @@ jest.mock("../../input/specs/NativeCUIFormDocument", () => ({
           : {}),
       })
     }),
-    bindFieldInput: jest.fn(async (encoded: string) => {
-      const request = JSON.parse(encoded),
-        declaration = JSON.parse(request.fieldGroupBinding)
-      const status = {
-        kind: "binding-status",
-        requestId: request.requestId,
-        ownerToken: `owner:${request.requestId}`,
-        metadataTarget: request.mount.target,
-        ownerId: request.mount.ownerId,
-        moduleLease: declaration.moduleLease,
-        bindingId: declaration.bindingId,
-        bindingRevision: declaration.bindingRevision,
-        generation: 1,
-        ready: true,
-        error: "",
-      }
-      mockBindingStatuses.set(request.mount.target, status)
-      return JSON.stringify({
-        requestId: request.requestId,
-        ownerToken: status.ownerToken,
-        metadataTarget: request.mount.target,
-        status,
-      })
-    }),
-    unbindFieldInput: jest.fn(async () => true),
     bindField: jest.fn(async (encoded: string) => {
       const request = JSON.parse(encoded)
       return JSON.stringify({
@@ -192,7 +140,6 @@ jest.mock("../../input/specs/NativeCUIFormDocument", () => ({
 }))
 beforeEach(() => {
   jest.clearAllMocks()
-  mockBindingStatuses.clear()
   mockActors.clear()
   mockTargets.clear()
   mockActionStatuses.clear()
@@ -220,7 +167,7 @@ export const temporalTarget = (name: string) => {
 const hidden = { includeHiddenElements: true }
 const nativeSequences = new Map<string, number>()
 let commitSequence = 0
-let nextInput = 1000
+let nextActivation = 1000
 export const admitTemporal = async () => {
   await confirmNativeCollections()
   await flushNativeCollectionActions()
@@ -269,7 +216,7 @@ export const admitTemporal = async () => {
   }
   for (const metadata of screen.queryAllByTestId(/^metadata:/, hidden)) {
     const props = metadata.props
-    if (!props.fieldGroupBinding || !props.onNativeFormCommit) continue
+    if (!props.ownedEditorBinding || !props.onNativeFormCommit) continue
     await act(async () => {
       props.onNativeFormCommit({
         nativeEvent: {
@@ -301,77 +248,28 @@ export const temporalKey = async (fieldID: string, part: string, key = "ArrowUp"
     .getAllByTestId(new RegExp(`^${fieldID}-segment-`), hidden)
     .find((node) => typeof node.props.segmentId === "string" && node.props.segmentId.endsWith(":" + part))
   if (!segment) throw new Error("Missing actual temporal segment " + fieldID + ":" + part)
-  const target = temporalTarget(segment.props.testID).nativeTag
-  const ancestorTargets = new Set<number>()
-  let ancestor = segment.parent
-  while (ancestor) {
-    const original = mockTargets.get(ancestor.props.testID) ?? mockActors.get(ancestor.props.ownerId)
-    if (original) ancestorTargets.add(original.nativeTag)
-    ancestor = ancestor.parent
-  }
-  const metadata = screen.getAllByTestId(/^metadata:/, hidden).find((node) => {
-    if (!node.props.fieldGroupBinding) return false
-    const declaration = JSON.parse(node.props.fieldGroupBinding)
-    return node.props.editorTarget === target || ancestorTargets.has(declaration.inputTarget)
-  })
-  if (!metadata) throw new Error("Missing actual temporal field metadata")
-  const binding = JSON.parse(metadata.props.fieldGroupBinding)
-  const token = ++nextInput
-  const data: TNativeFieldInputPacket = {
-    moduleLease: "module:1",
-    token,
-    eventId: token,
-    phase: "down",
-    groups: [binding.inputTarget, binding.outerTarget].map((tag: number) => ({
-      target: tag,
-      bindingId: binding.bindingId,
-      bindingRevision: binding.bindingRevision,
-      scopeTarget: binding.outerTarget,
-      containsTarget: true,
-    })),
-    identity: {
-      ownerId: metadata.props.ownerId,
-      bindingId: binding.bindingId,
-      bindingRevision: binding.bindingRevision,
-      metadataTarget: temporalTarget(metadata.props.testID).nativeTag,
-      outerTarget: binding.outerTarget,
-      inputTarget: binding.inputTarget,
-      surfaceId: 11,
-      target,
-      documentId: "document:1",
-      documentRevision: "7",
-      windowId: "window:1",
-      mountRevision: "mount:1",
-      outerInstance: fieldID + ":outer",
-      inputInstance: fieldID + ":input",
-      nativeInstance: segment.props.testID,
-      editorInstance: segment.props.testID,
-      epoch: 1,
-    },
-  }
+  const props = segment.props
+  const original = temporalTarget(props.testID)
+  const identity = `${props.ownerId}:${props.bindingRevision}`
+  const sequence = (nativeSequences.get(identity) ?? 0) + 1
+  nativeSequences.set(identity, sequence)
   let prevented = false,
     stopped = false
   const event = {
-    nativeEvent: {
-      kind: "keyboard",
-      ownerId: "original",
-      target,
+    target: original,
+    currentTarget: original,
+    nativeEvent: keyPacket({
+      ownerId: props.ownerId,
+      segmentId: props.segmentId,
+      bindingRevision: props.bindingRevision,
+      target: original.nativeTag,
+      nativeInstance: `segment:${props.testID}`,
+      surfaceId: 11,
+      windowId: "window:1",
+      epoch: 1,
+      sequence,
       key,
-      nativeCode: 82,
-      characters: "",
-      phase: "down",
-      repeat: false,
-      cancelled: false,
-      shiftKey: false,
-      altKey: false,
-      ctrlKey: false,
-      metaKey: false,
-      capsLock: false,
-      nativeModifierData: "0",
-      nativeDefaultHandled: true,
-      timestamp: token,
-      fieldDispatch: JSON.stringify(data),
-    },
+    }),
     persist: jest.fn(),
     stopPropagation: () => {
       stopped = true
@@ -384,30 +282,25 @@ export const temporalKey = async (fieldID: string, part: string, key = "ArrowUp"
     get defaultPrevented() {
       return prevented
     },
-  } as unknown as TNativeFieldKeyEvent
+  } as unknown as TNativeDateSegmentKeyEvent
   if (dispatch) await deliverTemporalKey(event)
   return event
 }
 
-export const deliverTemporalKey = async (event: TNativeFieldKeyEvent) => {
-  const data = JSON.parse(event.nativeEvent.fieldDispatch) as TNativeFieldInputPacket
-  const entry = [...mockTargets].find(([, original]) => original.nativeTag === data.identity.target)
-  if (!entry) throw new Error("Missing original temporal segment")
+export const deliverTemporalKey = async (event: TNativeDateSegmentKeyEvent) => {
+  const entry = [...mockTargets].find(([, original]) => original.nativeTag === event.nativeEvent.target)
+  if (!entry) return
   const segment = screen.getByTestId(entry[0], hidden)
-  await act(() => segment.props.onNativeFieldKey(event))
-  for (const group of data.groups) {
-    const entry = [...mockTargets].find(([, original]) => original.nativeTag === group.target)
-    const actor = [...mockActors].find(([, original]) => original.nativeTag === group.target)
-    const original = entry?.[1] ?? actor?.[1]
-    if (!original) throw new Error("Missing original temporal ancestor")
-    const host = entry
-      ? screen.getByTestId(entry[0], hidden)
-      : screen.container.queryAll(
-          (node) => node.props.ownerId === actor![0] && typeof node.props.onNativeFieldKey === "function",
-        )[0]
-    if (!host) throw new Error("Missing actual temporal ancestor receiver")
-    Object.assign(event, { currentTarget: original })
-    await act(() => host.props.onNativeFieldKey(event))
+  await act(() => segment.props.onNativeDateKey(event))
+  let ancestor = segment.parent
+  while (ancestor && !event.isPropagationStopped()) {
+    const original = mockTargets.get(ancestor.props.testID) ?? mockActors.get(ancestor.props.ownerId)
+    if (ancestor.type === "View" && original && typeof ancestor.props.onNativeDateKey === "function") {
+      Object.assign(event, { currentTarget: original })
+      const receive = ancestor.props.onNativeDateKey
+      await act(() => receive(event))
+    }
+    ancestor = ancestor.parent
   }
 }
 
@@ -463,7 +356,7 @@ export const temporalPress = async (name: string) => {
         ownerId: node.props.ownerId,
         target: original.nativeTag,
         observedAt: 0,
-        activationId: ++nextInput,
+        activationId: ++nextActivation,
         scopeOwnerId: host.ownerId,
         windowId: "window:1",
         epoch: 1,

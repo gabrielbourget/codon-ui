@@ -50,8 +50,6 @@ public final class CUIDateSegmentManager extends ReactViewManager implements CUI
   }
   @Override public Map<String,Object> getExportedCustomBubblingEventTypeConstants() {
     Map<String,Object> events=new HashMap<>();Map<String,Object> parent=super.getExportedCustomBubblingEventTypeConstants();if(parent!=null)events.putAll(parent);
-    Map<String,String> phases=new HashMap<>();phases.put("bubbled","onNativeFieldKey");phases.put("captured","onNativeFieldKeyCapture");
-    events.put("topNativeFieldKey",Collections.singletonMap("phasedRegistrationNames",phases));
     Map<String,String> ordinary=new HashMap<>();ordinary.put("bubbled","onNativeDateKey");ordinary.put("captured","onNativeDateKeyCapture");
     events.put("topNativeDateKey",Collections.singletonMap("phasedRegistrationNames",ordinary));return events;
   }

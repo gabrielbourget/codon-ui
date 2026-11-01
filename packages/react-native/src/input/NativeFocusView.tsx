@@ -23,14 +23,6 @@ import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../over
 
 import { receiveNativeAccessibilityInspection, registerNativeAccessibilityInspector } from "./accessibilityInspection"
 import { dispatchNativeActivationPolicy } from "./activation"
-import {
-  NativeFieldInputContext,
-  receiveNativeFieldKey,
-  receiveNativeFieldPointer,
-  type TNativeFieldKeyEvent,
-  type TNativeFieldPointerEvent,
-  type TNativeFieldPointerPhase,
-} from "./fieldInput"
 import { observeNativeFocus, registerNativeFocusTarget, retireNativeFocusObservation } from "./focus"
 import { NativeFocusWithinSession, type TNativeFocusWithinEvent } from "./focusWithin"
 import { NativeMotionColorSampler, registerNativeMotionColorSampler } from "./motionColors"
@@ -72,12 +64,6 @@ export const NativeFocusHost = forwardRef<
     onNativeOrdinaryEditorKey?: (
       event: NativeSyntheticEvent<import("./specs/CUIFocusViewNativeComponent").NativeOrdinaryEditorKeyData>,
     ) => void
-    nativeFieldGroupHandler?: (event: TNativeFieldKeyEvent, target: number) => void
-    nativeFieldGroupPointerHandler?: (
-      event: TNativeFieldPointerEvent,
-      target: number,
-      phase: TNativeFieldPointerPhase,
-    ) => void
     nativeTabStop?: boolean
     nativeMotionColorObservation?: boolean
     nativeMotionGeometryObservation?: boolean
@@ -113,10 +99,8 @@ export const NativeFocusHost = forwardRef<
   const {
     onKeyDown,
     onKeyUp,
-    nativeFieldGroupHandler,
     nativeOrdinaryGroupKeyHandler,
     onNativeOrdinaryEditorKey,
-    nativeFieldGroupPointerHandler,
     onFocus,
     onBlur,
     focusable,
@@ -138,7 +122,6 @@ export const NativeFocusHost = forwardRef<
     ...rest
   } = props
   const ownerId = useId()
-  const fieldInput = useContext(NativeFieldInputContext)
   const participants = useContext(NativeOrdinaryFocusParticipantsContext)
   const bubbleFieldKeys = useContext(NativeOrdinaryFieldGroupKeysContext)
   const [ordinaryOriginal, setOrdinaryOriginal] = useState<ElementRef<typeof FocusHost> | null>(null)
@@ -176,7 +159,7 @@ export const NativeFocusHost = forwardRef<
   })
   const [description, setDescription] = useState<TNativeDescriptionBinding | null>(null)
   const releaseForwardedRef = useRef<(() => void) | undefined>(undefined)
-  const keyboardFocusable = tabIndex === -1 && !fieldInput && !bubbleFieldKeys ? false : (focusable ?? true)
+  const keyboardFocusable = tabIndex === -1 && !bubbleFieldKeys ? false : (focusable ?? true)
   const inputScope = useNativeKeyScope()
   const floatingScope = useContext(NativeFloatingScopeContext)
   const windowActive = useContext(NativeFloatingWindowContext)
@@ -370,38 +353,10 @@ export const NativeFocusHost = forwardRef<
   }, [participants])
   const normalized = nativeViewProps(rest)
   const labelledBy = normalized.accessibilityLabelledBy
-  const pointerHandler = <TEvent extends NativeSyntheticEvent<object>>(
-    phase: TNativeFieldPointerPhase,
-    caller: ((event: TEvent) => void) | undefined,
-  ) => {
-    if (!fieldInput) return caller
-    return (event: TEvent) => {
-      if (!("fieldDispatch" in event.nativeEvent)) {
-        caller?.(event)
-        return
-      }
-      const original = nativeTarget.current
-      if (!attached.current || !original) return
-      const target = findNodeHandle(original)
-      if (target == null) return
-      if (nativeFieldGroupPointerHandler)
-        nativeFieldGroupPointerHandler(event as unknown as TNativeFieldPointerEvent, target, phase)
-      else
-        receiveNativeFieldPointer(fieldInput, event as unknown as TNativeFieldPointerEvent, phase, {
-          target,
-          group: false,
-          run: () => caller?.(event),
-        })
-    }
-  }
   return (
     <NativeViewContextBoundary>
       <FocusHost
         {...normalized}
-        onPointerDown={pointerHandler("pointer-start", rest.onPointerDown)}
-        onPointerUp={pointerHandler("pointer-end", rest.onPointerUp)}
-        onPointerCancel={pointerHandler("pointer-cancel", rest.onPointerCancel)}
-        {...{ onClick: pointerHandler("pointer-click", rest.onClick) }}
         nativeLabelledBy={rest.nativeLabelledBy ?? (typeof labelledBy === "string" ? [labelledBy] : labelledBy)}
         nativeDescriptionTag={rest.nativeDescriptionTag ?? description?.tag ?? 0}
         nativeDescriptionLabel={rest.nativeDescriptionLabel ?? description?.label}
@@ -439,7 +394,7 @@ export const NativeFocusHost = forwardRef<
         }
         focusable={keyboardFocusable}
         keyboardFocusable={keyboardFocusable}
-        nativeTabStop={fieldInput || bubbleFieldKeys ? (rest.nativeTabStop ?? tabIndex !== -1) : rest.nativeTabStop}
+        nativeTabStop={bubbleFieldKeys ? (rest.nativeTabStop ?? tabIndex !== -1) : rest.nativeTabStop}
         capturedKeys={capturedKeys}
         onFocus={
           onBubbledFocus
@@ -484,22 +439,6 @@ export const NativeFocusHost = forwardRef<
         }}
         onNativeDateKey={(event) => {
           if (attached.current && isKeyboardEvent(event)) nativeOrdinaryGroupKeyHandler?.(event)
-        }}
-        onNativeFieldKey={(event) => {
-          const original = nativeTarget.current
-          if (!attached.current || !original || !isKeyboardEvent(event)) return
-          const target = findNodeHandle(original)
-          if (target == null) return
-          if (nativeFieldGroupHandler) nativeFieldGroupHandler(event as TNativeFieldKeyEvent, target)
-          else if (fieldInput)
-            receiveNativeFieldKey(fieldInput, event as TNativeFieldKeyEvent, {
-              target,
-              group: false,
-              run: () => {
-                if (event.nativeEvent.phase === "down") onKeyDown?.(event)
-                else onKeyUp?.(event)
-              },
-            })
         }}
         onNativeFocusChange={(event) => {
           if (!attached.current || event.nativeEvent.ownerId !== ownerId) return

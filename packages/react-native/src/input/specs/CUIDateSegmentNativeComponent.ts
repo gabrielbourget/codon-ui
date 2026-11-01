@@ -62,27 +62,6 @@ export type NativeDateSegmentKeyData = Readonly<{
   nativeDefaultHandled: boolean
 }>
 
-export type NativeFieldKeyData = Readonly<{
-  fieldDispatch: string
-  kind: string
-  ownerId: string
-  target: Int32
-  key: string
-  nativeCode: Int32
-  characters: string
-  phase: "down" | "up"
-  repeat: boolean
-  cancelled: boolean
-  shiftKey: boolean
-  altKey: boolean
-  ctrlKey: boolean
-  metaKey: boolean
-  capsLock: boolean
-  nativeModifierData: string
-  nativeDefaultHandled: boolean
-  timestamp: Double
-}>
-
 export interface NativeProps extends ViewProps {
   ownerId: string
   segmentId: string
@@ -98,7 +77,6 @@ export interface NativeProps extends ViewProps {
   ordinaryGroupEvents?: WithDefault<boolean, false>
   pickerKeyboard?: WithDefault<boolean, false>
   onNativeDateKey?: BubblingEventHandler<NativeDateSegmentKeyData>
-  onNativeFieldKey?: BubblingEventHandler<NativeFieldKeyData>
   onNativeSegmentInput?: DirectEventHandler<NativeDateSegmentData>
 }
 

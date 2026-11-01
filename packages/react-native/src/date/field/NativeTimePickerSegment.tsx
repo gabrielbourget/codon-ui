@@ -1,13 +1,6 @@
 import { useCallback, useRef, useState } from "react"
-import { findNodeHandle, Platform, Text, type TextStyle } from "react-native"
+import { Platform, Text, type TextStyle } from "react-native"
 
-import {
-  activeNativeFieldInputEvent,
-  moveNativeFieldFocus,
-  receiveNativeFieldKey,
-  type TNativeFieldInputScope,
-  type TNativeFieldKeyEvent,
-} from "../../input/fieldInput"
 import { getNativeDateSegmentSemantics } from "../entry/semantics"
 import { useNativeDateSegmentEntry } from "../entry/useNativeDateSegmentEntry"
 import { NativeDateSegment, type TNativeDateSegmentInput, type TNativeDateSegmentRef } from "../input/NativeDateSegment"
@@ -25,8 +18,6 @@ type TProps = {
   locale: string
   direction: "ltr" | "rtl"
   hostSet: NativeDateFieldHostSet
-  scope: TNativeFieldInputScope | null
-  outerTarget: number
   inputFocus?: Pick<NativeDateFieldFocusManager, "focusFromInput">
   ordinaryGroupEvents?: boolean
   pickerKeyboard?: boolean
@@ -50,8 +41,6 @@ export const NativeTimePickerSegment = (props: TProps) => {
     ownerId,
     segmentId,
     hostSet,
-    scope,
-    outerTarget,
     inputFocus,
     appearance,
     inheritedText,
@@ -66,9 +55,6 @@ export const NativeTimePickerSegment = (props: TProps) => {
       inputFocus.focusFromInput(inputOrigin.current, kind)
       return
     }
-    const event = scope && activeNativeFieldInputEvent(scope)
-    if (!scope || !event) throw new Error("time-field-original-input-dispatch-required")
-    moveNativeFieldFocus(scope, event, { groupTarget: outerTarget, kind })
   }
   const entry = useNativeDateSegmentEntry(segment, state, locale, {
     focusNext: () => navigate("next"),
@@ -195,18 +181,6 @@ export const NativeTimePickerSegment = (props: TProps) => {
         else if (event.nativeEvent.actionName === "decrement") entry.adjust("decrement")
       }}
       onNativeSegmentInput={receive}
-      onNativeFieldKey={(raw) => {
-        const target = original.current && findNodeHandle(original.current)
-        if (!scope || !target) return
-        const event = raw as unknown as TNativeFieldKeyEvent
-        receiveNativeFieldKey(scope, event, {
-          target,
-          group: false,
-          run: () => {
-            if (event.nativeEvent.phase === "down") entry.keyDown(event, composing.current)
-          },
-        })
-      }}
       testID={testID}
       style={[appearance.segment, focused ? appearance.focusedSegment : undefined]}
     >

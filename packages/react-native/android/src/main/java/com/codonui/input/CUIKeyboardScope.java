@@ -44,7 +44,6 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
   boolean dialogFocusReady() { return captureReady(); }
   void emitDialogFocus(String name, WritableMap data) { emit(name, data); }
   final CUIOrdinaryEditorKeys ordinaryEditorKeys = new CUIOrdinaryEditorKeys(this);
-  final CUIEditorKeyboardBindings editorKeyboard = new CUIEditorKeyboardBindings(this);
   final CUIMenuPointerPolicies menuPointers = new CUIMenuPointerPolicies(this);
   private List<CUIMenuPointerPolicies.Registration> menuPointerPolicies = new ArrayList<>();
   private double menuPointerRevision;
@@ -193,7 +192,7 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
   private boolean captureReady() { return captureEnabled && windowActive() && acceptedEpoch == windowEpoch && acceptedWindowId.equals(CUIInputWindow.identity(this)); }
   void publishStatus() {
     dragInteractions.refreshWindow();
-    editorKeyboard.publish(); ordinaryEditorKeys.publish();
+    ordinaryEditorKeys.publish();
     CUIWindowPointers.refresh(this);
     menuPointers.update(menuPointerPolicies, menuPointerRevision);
     floating.update(floatingTargets, captureReady());
@@ -233,7 +232,6 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
   @Override public boolean dispatchKeyEvent(KeyEvent event) {
     CUIVirtualDragFocus virtualOwner=CUIVirtualDragAccessibility.owner(this);
     if (virtualOwner!=null && !virtualOwner.allowsInteraction(getRootView().findFocus())) { virtualOwner.refresh(); return true; }
-    if (CUIFieldInputBinding.inDefault(event)) return dispatchOriginalKeyEvent(event);
     dialogs.beginKey(event);
     boolean handled=false;
     try { handled=dispatchOriginalKeyEvent(event); return handled; }
@@ -247,7 +245,6 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
     return wrapped == null ? next : wrapped;
   }
   private boolean dispatchOriginalKeyEvent(KeyEvent event) {
-    if (CUIFieldInputBinding.inDefault(event)) return super.dispatchKeyEvent(event);
     if (!isAttachedToWindow() || !hasWindowFocus() || (event.getAction() != KeyEvent.ACTION_DOWN && event.getAction() != KeyEvent.ACTION_UP)) return super.dispatchKeyEvent(event);
     boolean down = event.getAction() == KeyEvent.ACTION_DOWN;
     CUIMenuPointerPolicies.recordKey(this, event);
@@ -262,26 +259,12 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
         long eventId = CUIInputWindow.nextObservedEvent(this);
         for (CUIKeyboardScope candidate : scopes) candidate.observeKey(event, focused, eventId, captured);
       }
-      if (outer) {
-        CUIFieldInputBinding.Decision field = CUIFieldInputBinding.dispatch(this, event, getRootView().findFocus());
-        if (field != null) {
-          boolean invoked = false, handled = false;
-          String error = "";
-          KeyEvent previous = CUIFieldInputBinding.beginDefault(event);
-          try {
-            if (field.prevented) return true;
-            invoked = true; handled = super.dispatchKeyEvent(event); return handled;
-          } catch (RuntimeException | Error failure) { error = failure.toString(); throw failure; }
-          finally { CUIFieldInputBinding.endDefault(event, previous); field.finish(invoked, handled, error); }
-        }
-      }
       View focused = getRootView().findFocus();
       if (outer && focused instanceof CUIDateSegment && ((CUIDateSegment)focused).capturesOrdinaryEvent(event)) {
         boolean alreadyHeld = false;
         for (CUIKeyboardScope scope : CUIInputWindow.scopes(this)) alreadyHeld |= scope.held.get(event.getKeyCode()) != null;
         if (!alreadyHeld) return super.dispatchKeyEvent(event);
       }
-      if (outer && CUIEditorKeyboardBindings.dispatch(CUIInputWindow.scopes(this), event, getRootView().findFocus())) return true;
       boolean captured = dispatchCapturedKey(event);
       if (outer && captured && focused instanceof CUIDateSegment) ((CUIDateSegment)focused).observeCapturedOrdinaryKey(event);
       if (outer) CUIOrdinaryEditorKeys.dispatch(CUIInputWindow.scopes(this), event, getRootView().findFocus(), captured);
@@ -361,11 +344,9 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
     }
     CUIInputWindow.beginPointer(this);
     try {
-      CUIFieldInputBinding.PointerDecision decision = CUIFieldInputBinding.dispatchPointer(this, event);
-      if (decision.prevented) { dragInteractions.cancelPointer(); return true; }
       boolean handled=super.dispatchTouchEvent(event);
       dragInteractions.touch(event);
-      return handled || decision.admitted;
+      return handled;
     } finally {
       CUIInputWindow.endPointer(this);
     }
@@ -383,8 +364,6 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
     if ((event.getActionMasked() == MotionEvent.ACTION_HOVER_MOVE || event.getActionMasked() == MotionEvent.ACTION_HOVER_ENTER)
         && event.getToolType(0) == MotionEvent.TOOL_TYPE_MOUSE) CUIMenuPointerPolicies.recordHover(this);
     if (event.getActionMasked() == MotionEvent.ACTION_SCROLL) CUIInputWindow.interacted(this);
-    CUIFieldInputBinding.PointerDecision decision = CUIFieldInputBinding.dispatchPointer(this, event);
-    if (decision.prevented) return true;
     return super.dispatchGenericMotionEvent(event);
   }
 
@@ -444,7 +423,7 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
       hold.retired = true;
     }
   }
-  @Override protected void onLayout(boolean changed, int left, int top, int right, int bottom) { super.onLayout(changed, left, top, right, bottom); editorKeyboard.publish(); ordinaryEditorKeys.publish(); dialogs.attach(); dialogs.refresh(); }
+  @Override protected void onLayout(boolean changed, int left, int top, int right, int bottom) { super.onLayout(changed, left, top, right, bottom); ordinaryEditorKeys.publish(); dialogs.attach(); dialogs.refresh(); }
   @Override public void onWindowFocusChanged(boolean focused) { retireHeld(); held.clear(); if (!focused) CUIInputWindow.clearPointers(this); windowEpoch++; super.onWindowFocusChanged(focused); publishStatus(); }
   @Override protected void onWindowVisibilityChanged(int visibility) {
     super.onWindowVisibilityChanged(visibility);

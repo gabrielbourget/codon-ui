@@ -30,8 +30,6 @@ using namespace facebook::react;
   void (^_semanticRefresh)(void);
   id<CUIFieldSemanticContribution> _semanticContribution;
   BOOL _refreshingSemantics;
-  void (^_fieldInputRefresh)(void);
-  NSString *_fieldInputOwner;
   __weak UIView *_semanticAXTarget;
   NSString *_semanticAXIdentity;
 }
@@ -42,7 +40,6 @@ using namespace facebook::react;
     _lastMount = @"unmounted";
     self.semanticBinding = @"";
     self.ownedEditorBinding = @"";
-    self.fieldGroupBinding = @"";
     _applicationActive = UIApplication.sharedApplication.applicationState == UIApplicationStateActive;
     for (NSString *name in @[UIApplicationWillResignActiveNotification, UIApplicationDidBecomeActiveNotification,
         UISceneWillDeactivateNotification, UISceneDidActivateNotification, UIWindowDidBecomeKeyNotification, UIWindowDidResignKeyNotification])
@@ -80,22 +77,6 @@ using namespace facebook::react;
   @catch (NSException *retired) { [self setSemanticContribution:nil]; }
   @finally { _refreshingSemantics = NO; }
 }
-- (void)setFieldInputRefresh:(void (^)(void))refresh owner:(NSString *)owner
-{
-  _fieldInputRefresh = [refresh copy]; _fieldInputOwner = [owner copy];
-  if (_fieldInputRefresh) _fieldInputRefresh();
-}
-- (void)clearFieldInputRefreshForOwner:(NSString *)owner
-{
-  if (![_fieldInputOwner isEqual:owner]) return;
-  _fieldInputRefresh = nil; _fieldInputOwner = nil;
-}
-- (void)emitFieldInputRecord:(NSString *)record
-{
-  if (![self isFieldBinding] || !_eventEmitter) return;
-  CUIFieldBindingEventEmitter::OnNativeFieldInputRecord data{}; data.record = record.UTF8String ?: "";
-  std::static_pointer_cast<const CUIFieldBindingEventEmitter>(_eventEmitter)->onNativeFieldInputRecord(data);
-}
 - (void)resetSemanticAccessibilityFocus { _semanticAXTarget = nil; _semanticAXIdentity = nil; }
 - (void)requestSemanticAccessibilityFocus:(UIView *)target identity:(NSString *)identity returningToEditor:(BOOL)returning
 {
@@ -112,7 +93,6 @@ using namespace facebook::react;
   if ([notification.name isEqual:UIApplicationDidBecomeActiveNotification] || [notification.name isEqual:UISceneDidActivateNotification]) _applicationActive = YES;
   [self publish:self.window != nil surface:_surface mount:_lastMount];
   [self refreshSemantics];
-  if (_fieldInputRefresh) _fieldInputRefresh();
 }
 - (void)dealloc { [_semanticContribution retire]; [NSNotificationCenter.defaultCenter removeObserver:self]; }
 - (NSDictionary *)formMountSnapshot
@@ -137,7 +117,6 @@ using namespace facebook::react;
   _epoch++; _boundWindow = self.window; _boundOriginal = nil; _boundEditor = nil; _signature = @"";
   _windowId = self.window ? CUIInputWindowIdentity(self.window) : @"";
   [self publish:self.window != nil surface:_surface mount:_lastMount];
-  if (_fieldInputRefresh) _fieldInputRefresh();
 }
 - (void)publish:(BOOL)attached surface:(SurfaceId)surface mount:(NSString *)mount
 {
@@ -204,12 +183,9 @@ using namespace facebook::react;
   [self publish:self.window != nil surface:transaction.getSurfaceId()
       mount:[NSString stringWithFormat:@"ios-surface:%d:mount:%lld", transaction.getSurfaceId(), (long long)transaction.getNumber()]];
   [self refreshSemantics];
-  if (_fieldInputRefresh) _fieldInputRefresh();
 }
 - (void)prepareForRecycle
 {
-  void (^refresh)(void) = _fieldInputRefresh;
-  _fieldInputRefresh = nil; _fieldInputOwner = nil;
   [self publish:NO surface:_surface mount:@"retired"];
   [self clearSemanticRefreshForOwner:_semanticOwner];
   [self resetSemanticAccessibilityFocus];
@@ -219,9 +195,7 @@ using namespace facebook::react;
   self.originalTarget = 0;
   self.ownedEditorBinding = @"";
   self.semanticBinding = @"";
-  self.fieldGroupBinding = @"";
   [super prepareForRecycle];
-  if (refresh) refresh();
 }
 @end
 
@@ -265,7 +239,6 @@ using namespace facebook::react;
   self.descriptorRevision = [NSString stringWithUTF8String:value.descriptorRevision.c_str()];
   self.originalTarget = value.editorTarget;
   self.ownedEditorBinding = [NSString stringWithUTF8String:value.ownedEditorBinding.c_str()];
-  self.fieldGroupBinding = [NSString stringWithUTF8String:value.fieldGroupBinding.c_str()];
   self.semanticBinding = [NSString stringWithUTF8String:value.semanticBinding.c_str()];
   [super updateProps:props oldProps:oldProps];
 }

@@ -6,7 +6,6 @@ import { createRef, type Ref, type RefAttributes, type ReactElement } from "reac
 import { StyleSheet, type View } from "react-native"
 
 import { renderWithNativeCollections as render, screen } from "../../../collection/__tests__/nativeReceipts"
-import type { TNativeFieldInputScope } from "../../../input/fieldInput"
 import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import { NativeThemeProvider } from "../../../theme"
 import { resolveNativeTableFilteringLabels } from "../../Table/filterLabels"
@@ -21,13 +20,6 @@ jest.mock("../../../input/specs/CUIDateSegmentNativeComponent", () => ({
   __esModule: true,
   default: jest.requireActual("react-native").View,
   Commands: { requestSegmentFocus: jest.fn(), requestSegmentBlur: jest.fn() },
-}))
-jest.mock("../../../input/useFieldInputBinding", () => ({
-  useNativeFieldInputBinding: () => ({
-    scope: null as TNativeFieldInputScope | null,
-    metadata: { binding: () => "", commit: () => {}, receive: () => {} },
-    status: { ready: false },
-  }),
 }))
 jest.mock("../../../input/specs/CUIFieldBindingNativeComponent", () => ({
   __esModule: true,

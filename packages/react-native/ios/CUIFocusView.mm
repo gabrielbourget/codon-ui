@@ -6,7 +6,6 @@
 #import "CUIFocusWithinObserver.h"
 #import "CUIMenuPointerPolicies.h"
 #import "CUIKeyboardScope.h"
-#import "CUIFieldInputBinding.h"
 #import "CUIFloatingScrollAnchor.h"
 #import "CUIMotionColorSampler.h"
 #import "CUIMotionGeometryObserver.h"
@@ -665,7 +664,6 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 - (BOOL)canBecomeFirstResponder { return _keyboardFocusable && self.window != nil && !self.hidden && self.alpha > 0; }
 - (NSString *)fieldInputOwnerId { return _ownerId; }
 - (BOOL)fieldFocusTabStop { return static_cast<const CUIFocusViewProps &>(*_props).nativeTabStop; }
-- (void)synchronizeFieldInputFocus { [_focusWithin synchronize]; }
 
 - (void)emitFocus:(BOOL)focused
 {
@@ -797,7 +795,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 {
   NSMutableSet<UIPress *> *unhandled = [NSMutableSet set];
   for (UIPress *press in presses) {
-    if (!press.key || !_keyboardFocusable || (!self.isFirstResponder && !self.isFocused) || CUIFieldInputOwnsPress(press, self.window)) {
+    if (!press.key || !_keyboardFocusable || (!self.isFirstResponder && !self.isFocused)) {
       [unhandled addObject:press];
       continue;
     }
@@ -823,23 +821,20 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 
 - (void)pressesBegan:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event
 {
-  NSSet *original = CUIFieldInputRemainingPresses(self, presses, @"down");
-  NSMutableSet *remaining = [[self processPresses:original down:YES cancelled:NO] mutableCopy];
+  NSMutableSet *remaining = [[self processPresses:presses down:YES cancelled:NO] mutableCopy];
   for (UIPress *press in remaining.copy) if (CUIHandleDialogFocusPress(self, press)) [remaining removeObject:press];
   if (remaining.count) [super pressesBegan:remaining withEvent:event];
 }
 
 - (void)pressesEnded:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event
 {
-  NSSet *original = CUIFieldInputRemainingPresses(self, presses, @"up");
-  NSSet *remaining = [self processPresses:original down:NO cancelled:NO];
+  NSSet *remaining = [self processPresses:presses down:NO cancelled:NO];
   if (remaining.count) [super pressesEnded:remaining withEvent:event];
 }
 
 - (void)pressesCancelled:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event
 {
-  NSSet *original = CUIFieldInputRemainingPresses(self, presses, @"cancel");
-  NSSet *remaining = [self processPresses:original down:NO cancelled:YES];
+  NSSet *remaining = [self processPresses:presses down:NO cancelled:YES];
   if (remaining.count) [super pressesCancelled:remaining withEvent:event];
 }
 

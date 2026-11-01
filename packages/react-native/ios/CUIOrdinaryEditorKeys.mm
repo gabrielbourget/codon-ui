@@ -1,6 +1,5 @@
 #import "CUIOrdinaryEditorKeys.h"
 #import "CUIInputWindow.h"
-#import "CUIFieldInputBinding.h"
 #import "CUIPhysicalKey.h"
 #import "CUIDateSegment.h"
 #import "CUIFocusView.h"
@@ -93,7 +92,7 @@ using namespace facebook::react;
 - (NSDictionary *)bindingForPress:(UIPress *)press
 {
   UIView *scope = _scope;
-  if (!press.key || !scope.window || press.window != scope.window || !_ready() || CUIFieldInputOwnsPress(press, scope.window)) return nil;
+  if (!press.key || !scope.window || press.window != scope.window || !_ready()) return nil;
   UIView *focused = [press.responder isKindOfClass:UIView.class] ? (UIView *)press.responder : CUIInputFocusedView(scope.window);
   UIView *original = focused;
   while (original && original != scope) {

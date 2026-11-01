@@ -1,7 +1,6 @@
 import {
   forwardRef,
   useCallback,
-  useContext,
   useInsertionEffect,
   useLayoutEffect,
   useMemo,
@@ -11,11 +10,6 @@ import {
 } from "react"
 import { findNodeHandle, type NativeSyntheticEvent, type PointerEvent } from "react-native"
 
-import {
-  NativeFieldInputContext,
-  receiveNativeFieldOwnedInput,
-  type TNativeFieldOwnedInputEvent,
-} from "../../input/fieldInput"
 import { focusNativeTarget, observeNativeFocus, registerNativeFocusTarget } from "../../input/focus"
 import { nativeViewProps, NativeViewContextBoundary } from "../../input/nativeViewProps"
 import SegmentHost, {
@@ -74,8 +68,6 @@ export const NativeDateSegment = forwardRef<TNativeDateSegmentRef, TNativeDateSe
       props.locale,
     ],
   )
-  const fieldScope = useContext(NativeFieldInputContext)
-  const committedScope = useRef(fieldScope)
   const current = useRef(props)
   const identity = useRef({ ownerId, segmentId, bindingRevision: wireRevision })
   const assignedIdentity = useRef<typeof identity.current | null>(null)
@@ -88,7 +80,6 @@ export const NativeDateSegment = forwardRef<TNativeDateSegmentRef, TNativeDateSe
   const assignedForwarded = useRef(forwardedRef)
   useInsertionEffect(() => {
     current.current = props
-    committedScope.current = fieldScope
     forwarded.current = forwardedRef
     identity.current = { ownerId, segmentId, bindingRevision: wireRevision }
   })
@@ -194,24 +185,8 @@ export const NativeDateSegment = forwardRef<TNativeDateSegmentRef, TNativeDateSe
       (current.current.segmentDisabled || current.current.segmentReadOnly || !current.current.segmentEditable)
     )
       return
-    if (current.current.ordinaryInputEvents && ["insert", "delete", "marked", "unmark"].includes(data.kind)) {
-      if ("fieldDispatch" in data) return
-      current.current.onNativeSegmentInput?.(event)
-      return
-    }
-    const scope = committedScope.current
-    if (
-      scope &&
-      ["insert", "delete", "marked", "unmark"].includes(data.kind) &&
-      (!scope.current() || !("fieldDispatch" in data))
-    )
-      return
-    if ("fieldDispatch" in data) {
-      if (!scope) return
-      receiveNativeFieldOwnedInput(scope, event as unknown as TNativeFieldOwnedInputEvent, () =>
-        current.current.onNativeSegmentInput?.(event),
-      )
-    } else current.current.onNativeSegmentInput?.(event)
+    if ("fieldDispatch" in data) return
+    current.current.onNativeSegmentInput?.(event)
   }, [])
   void onNativeSegmentInput
   void onNativeDateKey

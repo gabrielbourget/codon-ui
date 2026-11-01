@@ -4,7 +4,6 @@ import { createRef, type RefAttributes } from "react"
 import * as RN from "react-native"
 
 import { DateTimePicker, DateTimeRangePicker } from "../../../index"
-import type { TNativeFieldInputScope } from "../../../input/fieldInput"
 import { getNativeFocusedTarget, observeNativeFocus } from "../../../input/focus"
 import { NativeFocusHost } from "../../../input/NativeFocusView"
 import { Commands } from "../../../input/specs/CUIDateSegmentNativeComponent"
@@ -20,12 +19,6 @@ const mockNative = {
   acceptsField: jest.fn(() => true),
   settleField: jest.fn(() => true),
   moveFieldFocus: jest.fn(() => "{}"),
-}
-const mockScope: TNativeFieldInputScope = {
-  bindingId: "legacy-picker",
-  bindingRevision: "1",
-  current: () => true,
-  native: mockNative,
 }
 // Explicit source models: these records do not establish installed event/focus delivery.
 jest.mock("../../../input/specs/CUIDateSegmentNativeComponent", () => {
@@ -51,13 +44,6 @@ jest.mock("../../../input/specs/CUIDateSegmentNativeComponent", () => {
 jest.mock("../../../input/NativeFocusView", () => ({
   NativeFocusHost: jest.requireActual("react-native").View,
   NativeFocusView: jest.requireActual("react-native").View,
-}))
-jest.mock("../../../input/useFieldInputBinding", () => ({
-  useNativeFieldInputBinding: (_plan: unknown, enabled = true) => ({
-    scope: enabled ? mockScope : null,
-    metadata: { binding: () => "", commit: () => {}, receive: () => {} },
-    status: { ready: true },
-  }),
 }))
 jest.mock("../../../input/specs/CUIFieldBindingNativeComponent", () => ({
   __esModule: true,

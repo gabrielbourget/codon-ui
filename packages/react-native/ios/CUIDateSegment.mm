@@ -2,7 +2,6 @@
 #import "CUIFieldCustomContent.h"
 #import "CUIFieldSemantics.h"
 #import "CUIInputWindow.h"
-#import "CUIFieldInputBinding.h"
 #import "CUIPhysicalKey.h"
 #include "../cpp/input/DateSegmentKeyPolicy.h"
 #import <React/RCTConversions.h>
@@ -206,17 +205,17 @@ using namespace facebook::react;
 }
 - (void)pressesBegan:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event
 {
-  NSSet<UIPress *> *remaining = _ordinaryGroupEvents ? [self ordinaryPresses:presses phase:@"down" cancelled:NO] : CUIFieldInputRemainingPresses(self, presses, @"down");
+  NSSet<UIPress *> *remaining = _ordinaryGroupEvents ? [self ordinaryPresses:presses phase:@"down" cancelled:NO] : presses;
   if (remaining.count) [super pressesBegan:remaining withEvent:event];
 }
 - (void)pressesEnded:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event
 {
-  NSSet<UIPress *> *remaining = _ordinaryGroupEvents ? [self ordinaryPresses:presses phase:@"up" cancelled:NO] : CUIFieldInputRemainingPresses(self, presses, @"up");
+  NSSet<UIPress *> *remaining = _ordinaryGroupEvents ? [self ordinaryPresses:presses phase:@"up" cancelled:NO] : presses;
   if (remaining.count) [super pressesEnded:remaining withEvent:event];
 }
 - (void)pressesCancelled:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event
 {
-  NSSet<UIPress *> *remaining = _ordinaryGroupEvents ? [self ordinaryPresses:presses phase:@"up" cancelled:YES] : CUIFieldInputRemainingPresses(self, presses, @"cancel");
+  NSSet<UIPress *> *remaining = _ordinaryGroupEvents ? [self ordinaryPresses:presses phase:@"up" cancelled:YES] : presses;
   if (remaining.count) [super pressesCancelled:remaining withEvent:event];
 }
 - (NSDictionary *)formSegmentIdentity
@@ -268,9 +267,7 @@ using namespace facebook::react;
   data.composingEnd = _marked.location == NSNotFound ? -1 : (int)NSMaxRange(_marked);
   data.focused = self.isFirstResponder; data.active = [self active];
   const auto emitter = std::static_pointer_cast<const CUIDateSegmentEventEmitter>(_eventEmitter);
-  if (!_ordinaryInputEvents && ([kind isEqual:@"insert"] || [kind isEqual:@"delete"] || [kind isEqual:@"marked"] || [kind isEqual:@"unmark"]))
-    CUIEmitOwnedFieldInput(self, ^{ emitter->onNativeSegmentInput(data); });
-  else emitter->onNativeSegmentInput(data);
+  emitter->onNativeSegmentInput(data);
 }
 - (CUIDatePosition *)position:(NSInteger)index
 {

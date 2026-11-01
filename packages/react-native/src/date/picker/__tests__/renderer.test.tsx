@@ -8,7 +8,6 @@ import { AccessibilityInfo } from "react-native"
 
 import { renderWithNativeCollections as render, screen } from "../../../collection/__tests__/nativeReceipts"
 import { DateTimePicker, DateTimeRangePicker } from "../../../index"
-import type { TNativeFieldInputScope } from "../../../input/fieldInput"
 import { NativeFocusView } from "../../../input/NativeFocusView"
 import { NativeLocaleProvider } from "../../../locale/NativeLocaleProvider"
 import { NativeThemeProvider } from "../../../theme"
@@ -21,13 +20,6 @@ jest.mock("../../../input/specs/CUIDateSegmentNativeComponent", () => ({
   __esModule: true,
   default: jest.requireActual("react-native").View,
   Commands: { requestSegmentFocus: jest.fn(), requestSegmentBlur: jest.fn() },
-}))
-jest.mock("../../../input/useFieldInputBinding", () => ({
-  useNativeFieldInputBinding: () => ({
-    scope: null as TNativeFieldInputScope | null,
-    metadata: { binding: () => "", commit: () => {}, receive: () => {} },
-    status: { ready: false },
-  }),
 }))
 jest.mock("../../../components/ClickPopover/ClickPopover", () => ({
   NativeFloatingSurface: ({ children, isOpen }: { children: React.ReactNode; isOpen?: boolean }) =>

@@ -10,7 +10,6 @@ import {
   screen,
 } from "../../../collection/__tests__/nativeReceipts"
 import { CompactTypeaheadSearch, TagComboBox, type TNativeComboBoxKeyboardEvent } from "../../../index"
-import type { TNativeFieldInputPlan } from "../../../input/fieldInputBinding"
 import type { TNativeOrdinaryEditorKeyEvent } from "../../../input/ordinaryEditorKeys"
 import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
@@ -25,18 +24,7 @@ jest.mock("../../../input/specs/CUIFieldBindingNativeComponent", () => ({
   __esModule: true,
   default: jest.requireActual("react-native").View,
 }))
-const mockFieldEnrollment = jest.fn()
 // These are source models of normal native events, not installed event delivery.
-jest.mock("../../../input/useFieldInputBinding", () => ({
-  useNativeFieldInputBinding: (_plan: TNativeFieldInputPlan | null, enabled = true) => {
-    mockFieldEnrollment(enabled)
-    return {
-      scope: null,
-      metadata: { binding: () => "", commit: () => {}, receive: () => {} },
-      status: { ready: false, pending: false, error: "" },
-    }
-  },
-}))
 
 const items = [
   { id: "a", label: "Alpha" },
@@ -167,7 +155,6 @@ const setup = async (kind: "compact" | "tags", prevent = true) => {
   const inputID = kind === "compact" ? "type-ahead-search-input" : "combo-box-input"
   expect(row(inputID).props.onNativeOrdinaryEditorKey).toEqual(expect.any(Function))
   expect(row(inputID).props.onNativeFieldKey).toBeUndefined()
-  expect(mockFieldEnrollment).not.toHaveBeenCalled()
   return {
     ...result,
     input,

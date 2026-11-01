@@ -139,7 +139,6 @@ std::string queryFabricFormDocument(const UIManager &manager, SurfaceId surface,
     if (field) {
       nodes[nodes.size() - 1]["fieldSemantics"] = field->semanticBinding;
       if (!field->ownedEditorBinding.empty()) nodes[nodes.size() - 1]["ownedEditorBinding"] = field->ownedEditorBinding;
-      if (!field->fieldGroupBinding.empty()) nodes[nodes.size() - 1]["fieldGroupBinding"] = field->fieldGroupBinding;
     }
     if (name == "CUIFocusView") nodes[nodes.size() - 1]["collectionBinding"] =
       static_cast<const CUIFocusViewProps *>(node.getProps().get())->nativeCollectionBinding;

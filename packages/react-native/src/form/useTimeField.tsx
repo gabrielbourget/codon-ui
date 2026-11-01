@@ -1,5 +1,4 @@
 import type { TimeFieldState } from "../date/state/useTimeFieldState"
-import type { TNativeFieldInputMetadata } from "../input/fieldInputBinding"
 
 import { nativeTimeFieldData, type TNativeTimeFieldFormOptions } from "./timeField"
 import { useNativeSegmentedFieldForm, type TOriginalDateField } from "./useSegmentedField"
@@ -11,7 +10,6 @@ export const useNativeTimeFieldForm = (
   currentOriginal: () => TOriginalDateField | null,
   isFocusObserved: () => boolean,
   semanticBinding = "",
-  fieldInput?: TNativeFieldInputMetadata,
 ) =>
   useNativeSegmentedFieldForm(
     props,
@@ -22,5 +20,4 @@ export const useNativeTimeFieldForm = (
     currentOriginal,
     isFocusObserved,
     semanticBinding,
-    fieldInput,
   )
