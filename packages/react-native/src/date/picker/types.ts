@@ -18,8 +18,9 @@ export type TNativeDatePickerLabels = {
 }
 export type TNativeDatePickerAppearance = Omit<
   TNativeTimePickerAppearanceProps,
-  "labels" | "customInputIconGroupStyles" | "width" | "height"
+  "labels" | "customInputIconGroupStyles" | "width" | "height" | "textSize"
 > & {
+  textSize?: string
   multiMonth?: boolean
   dayLength?: "narrow" | "short" | "long"
   placement?: TNativeFloatingPlacement

@@ -952,7 +952,7 @@ const Dates = () => {
 }
 ```
 
-Single pickers show two months by default; range pickers show one. Both default to narrow weekdays, a24-hour cycle and leading zeros. multiMonth, dayLength, firstDayOfWeek, pageBehavior, minValue/maxValue and isDateUnavailable retain their distinct calendar behavior. allowsNonContiguousRanges controls whether a range can span unavailable days. NativeLocaleProvider drives locale/calendar formatting and direction; the host owns Intl support.
+Single pickers show two months by default; range pickers show one. Both default to narrow weekdays, a24-hour cycle and leading zeros. The24-hour and leading-zero wrapper defaults take precedence over base picker context values; explicit hourCycle and shouldForceLeadingZeros props retain their own overrides. multiMonth, dayLength, firstDayOfWeek, pageBehavior, minValue/maxValue and isDateUnavailable retain their distinct calendar behavior. allowsNonContiguousRanges controls whether a range can span unavailable days. NativeLocaleProvider drives locale/calendar formatting and direction; the host owns Intl support.
 
 The calendar supports day/week arrows, Home/End, month/year paging and Enter/Space selection. Alt+Arrow opens from the original field group. Range interactions include anchor/highlight/commit, reverse selection, existing-boundary dragging and the source200ms touch-versus-scroll delay. Original native window/day registrations admit physical pointer work; a requested focus remains separate from native focus observation. Platform acceptance of those paths is still required.
 

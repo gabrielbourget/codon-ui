@@ -27,7 +27,12 @@ export const getNativeDatePickerAppearance = (
 ) => {
   const base = getNativeTimePickerAppearance(
     theme,
-    { ...props, labels: undefined, customInputIconGroupStyles: undefined },
+    {
+      ...props,
+      textSize: props.textSize === "small" || props.textSize === "large" ? props.textSize : "medium",
+      labels: undefined,
+      customInputIconGroupStyles: undefined,
+    },
     flags,
   )
   const style = (defaults: TextStyle, custom: Parameters<typeof resolveNativeStyle<TextStyle>>[0]) =>

@@ -569,7 +569,7 @@ export const NativeDatePickerView = (
     ref: bindOriginalRoot,
     onNativeOrdinaryEditorKey: participants.receive,
     testID,
-    accessible: false,
+    accessible: props.accessible ?? false,
     focusable: props.tabIndex !== undefined ? !props.tabIndex : (props.focusable ?? false),
     onFocus: props.onFocus,
     onBlur: props.onBlur,

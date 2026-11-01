@@ -124,3 +124,43 @@ export const ExtraRangeFocus = (
 )
 // @ts-expect-error Explicit participants are actual original native refs, not target tags.
 export const InvalidExtraRangeFocus = <DateTimeRangePicker extraFocusParticipants={[{ current: 42 }]} />
+
+export const SingleWrapperDefaultsContext = (
+  <NativeDatePickerContext.Provider value={{ hourCycle: 12, shouldForceLeadingZeros: false }}>
+    <DateTimePicker hourCycle={24} shouldForceLeadingZeros />
+  </NativeDatePickerContext.Provider>
+)
+export const RangeWrapperDefaultsContext = (
+  <NativeDateRangePickerContext.Provider value={{ hourCycle: 12, shouldForceLeadingZeros: false }}>
+    <DateTimeRangePicker hourCycle={24} shouldForceLeadingZeros />
+  </NativeDateRangePickerContext.Provider>
+)
+export const CompleteSingleRenderFlags = (
+  <DateTimePicker
+    render={(
+      native,
+      { state, isFocusWithin, isFocusVisible, isOpen, isDisabled, isReadOnly, isRequired, isInvalid },
+    ) => {
+      const flags: boolean[] = [isFocusWithin, isFocusVisible, isOpen, isDisabled, isReadOnly, isRequired, isInvalid]
+      state.formatValue("en-US", { year: "numeric", month: "2-digit", day: "2-digit" })
+      return <NativeFocusView {...native} accessibilityHint={flags.some(Boolean) ? "Active" : "Ready"} />
+    }}
+  />
+)
+export const CompleteRangeRenderFlags = (
+  <DateTimeRangePicker
+    render={(
+      native,
+      { state, isFocusWithin, isFocusVisible, isOpen, isDisabled, isReadOnly, isRequired, isInvalid },
+    ) => {
+      const flags: boolean[] = [isFocusWithin, isFocusVisible, isOpen, isDisabled, isReadOnly, isRequired, isInvalid]
+      const updateStart = () => state.setDateTime("start", new CalendarDateTime(2024, 10, 1, 3, 5))
+      void updateStart
+      return <NativeFocusView {...native} accessibilityHint={flags.some(Boolean) ? "Active" : "Ready"} />
+    }}
+  />
+)
+// @ts-expect-error Range edit APIs retain the original start/end endpoint boundary.
+export const ForeignRangeEndpoint: Parameters<
+  NonNullable<TNativeDateTimeRangePickerProps["render"]>
+>[1]["state"]["setDateTime"] = (_part: "middle", _value: CalendarDateTime) => {}

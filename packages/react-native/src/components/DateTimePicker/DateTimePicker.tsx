@@ -17,7 +17,12 @@ import { privateValidationStateProp } from "../ComboBox/state/useFormValidationS
 
 export const DateTimePicker = forwardRef((authored: TNativeDateTimePickerProps, ref: ForwardedRef<View>) => {
   const [props, forwardedRef] = useNativeContextProps(
-    { ...authored, style: calibrateNativeDatePickerStyle<DatePickerState>(authored) },
+    {
+      ...authored,
+      hourCycle: authored.hourCycle ?? 24,
+      shouldForceLeadingZeros: authored.shouldForceLeadingZeros ?? true,
+      style: calibrateNativeDatePickerStyle<DatePickerState>(authored),
+    },
     ref,
     NativeDatePickerContext,
   )
