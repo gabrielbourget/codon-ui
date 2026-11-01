@@ -200,6 +200,7 @@ const setup = async ({
         moduleId: "native-module",
         bindingId: data.bindingId,
         revision: data.revision,
+        metadataRevision: data.metadataRevision,
         rootTarget: data.rootTarget,
         ready: true,
         error: "",

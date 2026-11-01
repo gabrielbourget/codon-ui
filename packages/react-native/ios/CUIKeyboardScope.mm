@@ -167,7 +167,6 @@ static void CUIObserveCapturedDatePress(UIPress *press, NSString *phase, BOOL ca
   double _menuPointerRevision;
   CUIDialogFocusScopes *_dialogs;
   NSString *_ownerId;
-  NSString *_dragMountWitness;
   int32_t _dragSurfaceId;
   CUIDragInteractions *_dragInteractions;
   BOOL _captureEnabled;
@@ -325,10 +324,8 @@ static void CUIObserveCapturedDatePress(UIPress *press, NSString *phase, BOOL ca
   CUIKeyboardScopeEventEmitter::OnNativeDragStatus status{}; status.packet = std::string((const char *)json.bytes, json.length);
   std::static_pointer_cast<const CUIKeyboardScopeEventEmitter>(_eventEmitter)->onNativeDragStatus(status);
 }
-- (NSString *)dragMountWitness { return _dragMountWitness ?: @"unmounted"; }
 - (void)mountingTransactionDidMount:(const MountingTransaction &)transaction withSurfaceTelemetry:(const SurfaceTelemetry &)surfaceTelemetry {
   _dragSurfaceId = transaction.getSurfaceId();
-  _dragMountWitness = self.window ? [NSString stringWithFormat:@"ios-surface:%d:mount:%lld", transaction.getSurfaceId(), (long long)transaction.getNumber()] : nil;
   [_dragInteractions refresh];
   [_ordinaryEditorKeys didMount:transaction];
 }
@@ -841,7 +838,7 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
 - (void)prepareForRecycle
 {
   [_ordinaryEditorKeys update:@[]];
-  _dragMountWitness = nil; _dragSurfaceId = 0;
+  _dragSurfaceId = 0;
   [_dragInteractions invalidate]; _dragInteractions = [[CUIDragInteractions alloc] initWithScope:self];
   [_dialogs invalidate];
   [_menuPointers invalidate]; _menuPointerRegistrations = @[]; _menuPointerRevision = 0;
@@ -864,7 +861,7 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
 }
 - (void)dealloc
 {
-  _dragMountWitness = nil; _dragSurfaceId = 0;
+  _dragSurfaceId = 0;
   [_dragInteractions invalidate]; _dragInteractions = [[CUIDragInteractions alloc] initWithScope:self];
   [_dialogs invalidate];
   [_menuPointers invalidate];

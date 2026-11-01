@@ -198,7 +198,31 @@ Panel, SortAndFilterPanel and Card are initial source integrations under roadmap
 
 Card exports NativeMotionConfig, NativeAnimatePresence, NativeLayoutGroup, NativeDragControls/useNativeDragControls, nativeAnimationControls/useNativeAnimationControls and nativeMotionValue/useNativeMotionValue/useNativeMotionValueEvent with native refs, values and transform types. The underlying rendering, measurement and animation kernels stay private. SortAndFilterPanel and collection consumers use the public native drag hook/state, preview, indicator, event and read-only transfer types; original controls and caller-owned values retain their own input and callback ownership.
 
-Collection drag callbacks no longer promise that native focus/scroll commands complete inside the original native drag callback. Commands use ordinary platform delivery and retain their existing original-target/window guards. Payload/operation negotiation and caller-owned refs/values stay authoritative. The shared scheduler/mount drain is still intermediate migration debt for callback-mounted custom previews; no initial-preview or virtualization requirement has been silently removed. Prepared-preview migration is pending an explicit owner decision. Source/compiler checks do not qualify installed drag behavior.
+Collection drag callbacks use ordinary commits and native command delivery; they do not promise that mounts, focus or scroll finish inside the original native callback. The shared action path uses the stock JS invoker and a bounded, guarded payload/operation response, without a custom runtime task scope, mount drain or notification replay. Existing offscreen render/scroll requests wait for the actual current target and current native metadata acknowledgement; attaching a JS ref or requesting focus does not establish native readiness or completion. Native observers still refresh current bindings after ordinary commits. Metadata-generation acknowledgements require a matching rebuilt native library; old binaries do not qualify this source. Small native transfer/focus/accessibility capabilities remain, and other SDK readers still prevent whole-package stock-RN independence. Source/compiler checks do not qualify installed drag behavior.
+
+Custom previews now use preparedDragPreview: { ref, x?, y? }, where ref points to an already mounted, laid-out original View and x/y are finite hotspot offsets. NativeDragPreview is a passive mounted preview surface with an actual View ref and ordinary ReactNode children; it no longer exposes an imperative renderer. Supply its content before the gesture, using caller-owned selection/data when needed. renderDragPreview, the callback-renderer preview ref, hook DragPreview/renderDragPreview fields and renderer/content aliases are retired. A requested custom preview that is absent, replaced during lift or not natively ready cannot silently fall back to the source. Omitting preparedDragPreview keeps the ordinary source image. Keep the prepared view stable through lift and retire it through normal caller lifecycle.
+
+```tsx
+const preview = useRef<View | null>(null)
+const [previewReady, setPreviewReady] = useState(false)
+const { dragAndDropHooks } = useNativeDragAndDrop({
+  getItems,
+  preparedDragPreview: { ref: preview, x: 8, y: 8 },
+  isDisabled: !previewReady,
+})
+
+return (
+  <>
+    <NativeDragPreview
+      ref={preview}
+      onLayout={({ nativeEvent }) => setPreviewReady(nativeEvent.layout.width > 0 && nativeEvent.layout.height > 0)}
+    >
+      <Text>Prepared drag content</Text>
+    </NativeDragPreview>
+    <Table dragAndDropHooks={dragAndDropHooks}>{children}</Table>
+  </>
+)
+```
 
 The private Table construction uses one stable native Cell content host for aggregate `maxLines`, rather than forwarding a separate limit to each Text. It retains the complete native descendant tree and scroll geometry, clips the inner viewport independently of final Cell overflow, and reveals original focused controls through the native viewport. Original Cell/editor refs, values, selection and callbacks remain on their existing nodes. This source is under construction and does not close Table’s initial-source or native acceptance gates.
 

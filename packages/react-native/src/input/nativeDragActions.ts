@@ -105,7 +105,13 @@ export const parseNativeDragAction = (encoded: string): TNativeDragActionPacket 
 }
 
 export const createNativeDragActions = (scope: TNativeKeyScope) => {
-  type TEntry = { moduleId: string; value: TNativeDragActionRegistration; live: boolean; nativeReady: boolean }
+  type TEntry = {
+    moduleId: string
+    value: TNativeDragActionRegistration
+    live: boolean
+    nativeReady: boolean
+    nativeRevision: number
+  }
   const entries = new Map<string, TEntry>()
   const listeners = new Set<() => void>()
   let revision = 0,
@@ -249,6 +255,7 @@ export const createNativeDragActions = (scope: TNativeKeyScope) => {
                       bindingId: entry.value.bindingId,
                       revision: entry.value.revision,
                       rootTarget: entry.value.rootTarget,
+                      metadataRevision: entry.nativeRevision,
                     },
                   ]
                 : [],
@@ -315,6 +322,12 @@ export const createNativeDragActions = (scope: TNativeKeyScope) => {
         status.rootTarget !== entry.value.rootTarget
       )
         return
+      if (
+        entry.value.native &&
+        ["binding", "retired"].includes(String(status.kind)) &&
+        status.metadataRevision !== entry.nativeRevision
+      )
+        return
       if (status.kind === "retired") {
         entry.value.retire()
         changed()
@@ -363,6 +376,7 @@ export const createNativeDragActions = (scope: TNativeKeyScope) => {
         },
         live: true,
         nativeReady: false,
+        nativeRevision: 1,
       }
       entries.set(value.bindingId, entry)
       changed()
@@ -381,6 +395,7 @@ export const createNativeDragActions = (scope: TNativeKeyScope) => {
             itemTargets: new Set(checked.members.map((member) => member.targetTag)),
           }
           entry.nativeReady = false
+          entry.nativeRevision++
           changed()
         },
         unregister: () => {

@@ -30,14 +30,12 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
   private boolean blockedVirtualTouch;
   final CUIDragInteractions dragInteractions = new CUIDragInteractions(this);
   private UIManager dragMountManager;
-  private long dragMountBatch;
   boolean dragCaptureReady() { return dragInteractions.available(); }
   boolean dragEnabled() { return captureEnabled; }
   long dragEpoch() { return dragInteractions.epoch(); }
   String dragWindowId() { return dragInteractions.window(); }
   void emitDragStatus(String record) { WritableMap data=Arguments.createMap(); data.putString("packet",record); emit("topNativeDragStatus",data); }
-  String dragMountWitness() { return isAttachedToWindow() ? "android-mount:" + dragMountBatch : "unmounted"; }
-  @Override public void didMountItems(UIManager manager) { if (manager == dragMountManager) { dragMountBatch++; dragInteractions.refresh(); } ordinaryEditorKeys.publish(); }
+  @Override public void didMountItems(UIManager manager) { if (manager == dragMountManager) { dragInteractions.refresh(); } ordinaryEditorKeys.publish(); }
   @Override public void willDispatchViewUpdates(UIManager manager) {}
   @Override public void willMountItems(UIManager manager) {}
   @Override public void didDispatchMountItems(UIManager manager) {}

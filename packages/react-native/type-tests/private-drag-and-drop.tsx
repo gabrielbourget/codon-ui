@@ -14,11 +14,7 @@ export const dragContracts = () => {
   const { dragAndDropHooks } = useNativeDragAndDrop<TRow>({
     getItems: (keys, originalRows) => [...keys].map((key) => ({ "text/plain": `${key}:${originalRows[0].name}` })),
     getAllowedDropOperations: () => ["move", "copy", "link"],
-    renderDragPreview: (items) => ({
-      element: <NativeDropIndicator target={{ type: "root" }} />,
-      x: items.length,
-      y: -3,
-    }),
+    preparedDragPreview: { ref: createRef<View>(), x: 4, y: -3 },
     onDragEnd: (event) => event.keys.has(0) && event.isInternal,
     onInsert: async (event) => {
       for (const item of event.items) if (item.kind === "text") await item.getText("text/plain")
@@ -64,3 +60,19 @@ export const nativeRowDragIconColor = <TableRow item={{}} columns={[]} iconColor
 export const authoredRawRowValue: TNativeTableRowProps<TRow>["value"] = { name: "caller value" }
 // @ts-expect-error Raw rows retain the canonical typed value, independently from their rendered item.
 export const rejectRawRowValue: TNativeTableRowProps<TRow>["value"] = 1
+
+export const PreparedPreview = (
+  <NativeDragPreview ref={createRef<View>()}>
+    <NativeDropIndicator target={{ type: "root" }} />
+  </NativeDragPreview>
+)
+export const RejectCallbackMountedPreview = () =>
+  useNativeDragAndDrop({
+    // @ts-expect-error Mounting a custom preview during lift is retired; supply a prepared actual View ref.
+    renderDragPreview: () => <NativeDragPreview />,
+  })
+export const RejectPreviewRendererRef = () =>
+  useNativeDragAndDrop({
+    // @ts-expect-error A prepared preview ref is an actual native View, never an imperative renderer.
+    preparedDragPreview: { ref: createRef<(items: unknown[]) => void>() },
+  })

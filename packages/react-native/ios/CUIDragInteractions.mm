@@ -198,7 +198,7 @@ static BOOL CUIDescendant(UIView *view, UIView *root) { for (UIView *item = view
 - (void)status:(CUIDragBinding *)binding ready:(BOOL)ready error:(NSString *)error kind:(NSString *)kind {
   if (!_scope || _epoch == 0) return;
   NSDictionary *record = @{ @"kind": kind, @"ownerId": _ownerIdentity ?: @"", @"windowId": CUIInputWindowIdentity(_scope.window), @"epoch": @(_epoch),
-    @"moduleId": binding.data[@"moduleId"], @"bindingId": binding.data[@"bindingId"], @"revision": binding.data[@"revision"], @"rootTarget": binding.data[@"rootTarget"], @"ready": @(ready), @"error": error ?: @"" };
+    @"moduleId": binding.data[@"moduleId"], @"bindingId": binding.data[@"bindingId"], @"revision": binding.data[@"revision"], @"rootTarget": binding.data[@"rootTarget"], @"metadataRevision": binding.data[@"metadataRevision"] ?: @0, @"ready": @(ready), @"error": error ?: @"" };
   NSString *encoded = [[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject:record options:NSJSONWritingSortedKeys error:nil] encoding:NSUTF8StringEncoding];
   if (![kind isEqual:@"binding"] || ![_statuses[binding.data[@"bindingId"]] isEqual:encoded]) { _statuses[binding.data[@"bindingId"]] = encoded; [_scope emitDragStatus:record]; }
 }

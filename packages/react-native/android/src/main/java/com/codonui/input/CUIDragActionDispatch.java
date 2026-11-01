@@ -34,5 +34,4 @@ final class CUIDragActionDispatch {
         identity.getDouble("epoch") == scope.dragEpoch() && identity.getString("windowId").equals(scope.dragWindowId());
     } catch (Exception error) { return false; }
   }
-  @DoNotStrip String mountWitness() { UiThreadUtil.assertOnUiThread(); return scope.dragMountWitness(); }
 }

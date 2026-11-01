@@ -11,7 +11,6 @@
  */
 
 import { useRef, useState } from "react"
-import type { RefObject } from "react"
 
 import type { TNativeCollectionKey as Key } from "../snapshot"
 
@@ -22,7 +21,7 @@ import type {
   TNativeDraggableCollectionProps as DraggableCollectionProps,
   TNativeDragItem as DragItem,
   TNativeDragMoveEvent as DragMoveEvent,
-  TNativeDragPreviewRenderer as DragPreviewRenderer,
+  TNativePreparedDragPreview as PreparedDragPreview,
   TNativeDragStartEvent as DragStartEvent,
   TNativeDropOperation as DropOperation,
   TNativeDragSelectionManager as MultipleSelectionManager,
@@ -54,8 +53,8 @@ export interface TNativeDraggableCollectionState {
   getKeysForDrag(key: Key): Set<Key>
   /** Returns the items to drag for the given key. */
   getItems(key: Key): DragItem[]
-  /** The ref of the element that will be rendered as the drag preview while dragging. */
-  preview?: RefObject<DragPreviewRenderer | null>
+  /** An original preview View and hotspot prepared before native lift. */
+  preparedDragPreview?: PreparedDragPreview
   /** Function that returns the drop operations that are allowed for the dragged items. If not provided, all drop operations are allowed. */
   getAllowedDropOperations?: () => DropOperation[]
   /** Begins a drag for the given key. This triggers the onDragStart event. */
@@ -80,7 +79,7 @@ export const useNativeDraggableCollectionState = <T = object>(
     onDragStart,
     onDragMove,
     onDragEnd,
-    preview,
+    preparedDragPreview,
     getAllowedDropOperations,
   } = props
   const [, setDragging] = useState(false)
@@ -145,7 +144,7 @@ export const useNativeDraggableCollectionState = <T = object>(
       return getItems(getKeys(key), items)
     },
     isDisabled,
-    preview,
+    preparedDragPreview,
     getAllowedDropOperations,
     startDrag(key, event) {
       const keys = getKeys(key)

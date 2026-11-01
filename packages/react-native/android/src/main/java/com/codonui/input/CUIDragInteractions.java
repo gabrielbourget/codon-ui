@@ -225,7 +225,7 @@ final class CUIDragInteractions {
     if (epoch==0) return;
     try {
       JSONObject status=new JSONObject().put("kind",kind).put("ownerId",owner).put("windowId",window).put("epoch",epoch)
-        .put("moduleId",binding.data.getString("moduleId")).put("bindingId",binding.data.getString("bindingId")).put("revision",binding.data.getString("revision"))
+        .put("moduleId",binding.data.getString("moduleId")).put("bindingId",binding.data.getString("bindingId")).put("revision",binding.data.getString("revision")).put("metadataRevision",binding.data.optLong("metadataRevision",0))
         .put("rootTarget",binding.data.getInt("rootTarget")).put("ready",ready).put("error",error==null?"":error);
       String encoded=status.toString(), key=binding.data.getString("bindingId");
       if (!kind.equals("binding") || !encoded.equals(statuses.get(key))) { statuses.put(key,encoded); scope.emitDragStatus(encoded); }

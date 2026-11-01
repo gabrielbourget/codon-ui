@@ -4,7 +4,6 @@ import {
   forwardRef,
   useCallback,
   useContext,
-  useImperativeHandle,
   useInsertionEffect,
   useLayoutEffect,
   useMemo,
@@ -14,7 +13,7 @@ import {
 } from "react"
 import type { ComponentPropsWithRef, ForwardedRef, ReactElement, ReactNode, RefAttributes, RefObject } from "react"
 import { findNodeHandle, View } from "react-native"
-import type { StyleProp, ViewStyle } from "react-native"
+import type { StyleProp, ViewStyle, ViewProps } from "react-native"
 
 import type { TNativeButtonProps } from "../../components/Button/types"
 import { nativeKeyTokens } from "../../input/keyScope"
@@ -34,11 +33,8 @@ import { NativeCollectionDragBinding } from "./NativeCollectionDragBinding"
 import type { TNativeDropCollectionOptions } from "./NativeCollectionDragBinding"
 import { NativeListDropTargetDelegate } from "./NativeListDropTargetDelegate"
 import type {
-  TNativeDragItem,
   TNativeDraggableCollectionProps,
   TNativeDroppableCollectionProps,
-  TNativeDragPreviewRenderer,
-  TNativeDragPreviewContent,
   TNativeDropTarget,
   TNativeDropTargetDelegate,
 } from "./types"
@@ -75,11 +71,10 @@ export type TNativeDropIndicatorProps = TNativeDroppableItemOptions &
       | StyleProp<ViewStyle>
       | ((state: TNativeDropIndicatorRenderProps & { defaultStyle: ViewStyle }) => StyleProp<ViewStyle>)
   }
-export type TNativeDragAndDropOptions<T = object> = Omit<TNativeDraggableCollectionProps<T>, "getItems" | "preview"> &
+export type TNativeDragAndDropOptions<T = object> = Omit<TNativeDraggableCollectionProps<T>, "getItems"> &
   TNativeDroppableCollectionProps & {
     getItems?: TNativeDraggableCollectionProps<T>["getItems"]
     isDisabled?: boolean
-    renderDragPreview?: (items: TNativeDragItem[]) => TNativeDragPreviewContent
     renderDropIndicator?: (target: TNativeDropTarget) => ReactElement
     dropTargetDelegate?: TNativeDropTargetDelegate
   }
@@ -92,8 +87,6 @@ export type TNativeDragAndDropHooks<T = object> = {
     props: TNativeDraggableItemProps,
     state: TNativeDraggableCollectionState,
   ) => TNativeDraggableItemResult
-  DragPreview?: typeof NativeDragPreview
-  renderDragPreview?: TNativeDragAndDropOptions<T>["renderDragPreview"]
   isVirtualDragging?: () => boolean
   useDroppableCollectionState?: (props: TNativeDroppableCollectionStateOptions) => TNativeDroppableCollectionState
   useDroppableCollection?: (
@@ -501,43 +494,16 @@ export const NativeCollectionDropIndicator = forwardRef<View, TNativeDropIndicat
     </NativeCollectionSemanticsContext.Provider>
   )
 })
-export const NativeDragPreview = forwardRef<
-  TNativeDragPreviewRenderer,
-  { children: (items: TNativeDragItem[]) => TNativeDragPreviewContent }
->((props, ref) => {
-  const [request, setRequest] = useState<{
-    items: TNativeDragItem[]
-    callback: (view: View | null, x?: number, y?: number) => void
-  } | null>(null)
-  const view = useRef<View | null>(null),
-    context = useContext(NativeDragAndDropContext)
-  useImperativeHandle(ref, () => (items, callback) => setRequest({ items, callback }), [])
-  const content = request ? props.children(request.items) : null
-  const rendered = content && "element" in content ? content.element : content
-  const x = content && "element" in content ? content.x : 0,
-    y = content && "element" in content ? content.y : 0
-  useLayoutEffect(() => {
-    if (!request || !view.current) return
-    request.callback(view.current, x, y)
-    return () => request.callback(null)
-  }, [request, x, y])
-  useLayoutEffect(() => {
-    if (!context.dragState?.draggingKeys.size) setRequest(null)
-  }, [context.dragState?.draggingKeys.size])
-  if (!request) return null
-  return (
-    <View
-      pointerEvents="none"
-      accessibilityElementsHidden
-      importantForAccessibility="no-hide-descendants"
-      style={{ position: "absolute", left: -1000000, top: 0 }}
-    >
-      <View ref={view} collapsable={false}>
-        {rendered}
-      </View>
-    </View>
-  )
-})
+export const NativeDragPreview = forwardRef<View, ViewProps>((props, ref) => (
+  <View
+    pointerEvents="none"
+    accessibilityElementsHidden
+    importantForAccessibility="no-hide-descendants"
+    style={{ position: "absolute", left: -1000000, top: 0 }}
+  >
+    <View {...props} ref={ref} collapsable={false} />
+  </View>
+))
 export const useNativeDragAndDrop = <T,>(options: TNativeDragAndDropOptions<T>): TNativeDragAndDrop<T> => {
   const hooks = useMemo(() => {
     const value: TNativeDragAndDropHooks<T> = {}
@@ -546,8 +512,6 @@ export const useNativeDragAndDrop = <T,>(options: TNativeDragAndDropOptions<T>):
         useNativeDraggableCollectionState({ ...props, ...options, getItems: options.getItems! })
       value.useDraggableCollection = useNativeDraggableCollection
       value.useDraggableItem = useNativeDraggableItem
-      value.DragPreview = NativeDragPreview
-      value.renderDragPreview = options.renderDragPreview
       value.isVirtualDragging = nativeVirtualDrag.isDragging
     }
     if (
@@ -586,7 +550,6 @@ export type TNativeCollectionDragAndDropResult = {
   persistedKeys: Set<TNativeCollectionKey>
   renderDropIndicator?: (target: TNativeDropTarget) => ReactNode
   collectionProps: TNativeDragElementProps
-  preview: ReactNode
   rootDropIndicator: ReactNode
   renderIndicator: (props: TNativeDropIndicatorProps, ref: ForwardedRef<View>) => ReactNode
 }
@@ -699,13 +662,6 @@ export const useNativeCollectionDragAndDrop = <T = object,>({
     },
     [hooks, drop.target],
   )
-  const preview = useRef<TNativeDragPreviewRenderer | null>(null)
-  // The state hook already receives this ref in RAC's parent; the native owner
-  // keeps the same ref on its committed state before any original lift.
-  useInsertionEffect(() => {
-    if (hooks?.renderDragPreview) drag.preview = preview
-  })
-  const Preview = hooks?.DragPreview
   if (failure) throw failure.error
   return {
     dragState: drag,
@@ -718,7 +674,6 @@ export const useNativeCollectionDragAndDrop = <T = object,>({
     persistedKeys,
     renderDropIndicator: hooks?.useDropIndicator ? renderDropIndicator : undefined,
     collectionProps: result.collectionProps,
-    preview: Preview && hooks?.renderDragPreview ? <Preview ref={preview}>{hooks.renderDragPreview}</Preview> : null,
     rootDropIndicator:
       hooks?.useDropIndicator && dropEnabled && collection.size === 0 ? renderDropIndicator({ type: "root" }) : null,
     renderIndicator: (props: TNativeDropIndicatorProps, ref: ForwardedRef<View>) => (

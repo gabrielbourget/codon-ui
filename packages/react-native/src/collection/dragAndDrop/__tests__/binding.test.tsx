@@ -19,7 +19,7 @@ import {
 import type { TNativeDragAndDropOptions } from "../hooks"
 import { nativeDragFormatter } from "../messages"
 import { nativeDragRuntime } from "../runtime"
-import type { TNativeDragPreviewRenderer } from "../types"
+import type { TNativePreparedDragPreview } from "../types"
 import { nativeVirtualDrag } from "../virtualDrag"
 
 import { dragCollection, dragValues } from "./fixtures"
@@ -49,7 +49,8 @@ afterEach(async () => {
 const setup = async (
   options: TNativeDragAndDropOptions = {},
   selected = new Set<string | number>([0]),
-  preview?: TNativeDragPreviewRenderer,
+  preview?: TNativePreparedDragPreview,
+  layoutDelegate?: Parameters<typeof useNativeCollectionDragAndDrop>[0]["layoutDelegate"],
 ) => {
   const scope = createNativeKeyScope("owner"),
     actions = createNativeDragActions(scope)
@@ -90,9 +91,10 @@ const setup = async (
         selectionManager: manager,
         root,
         current: () => true,
+        layoutDelegate,
       })
       useInsertionEffect(() => {
-        if (preview) result.dragState.preview = { current: preview }
+        if (preview) result.dragState.preparedDragPreview = preview
       })
       const draggable = useNativeDraggableItem({ key: 0, hasDragButton: true }, result.dragState)
       return { ...result, draggable, original: root, binding: nativeDragRootFor(root, actions)! }
@@ -116,6 +118,7 @@ const setup = async (
         moduleId: "native-module",
         bindingId: metadata().bindingId,
         revision: metadata().revision,
+        metadataRevision: metadata().metadataRevision,
         rootTarget: metadata().rootTarget,
         ready: true,
         error: "",
@@ -141,6 +144,7 @@ const setup = async (
       ownerId: "owner",
       bindingId: data.bindingId,
       revision: data.revision,
+      metadataRevision: data.metadataRevision,
       rootTarget: data.rootTarget,
       itemTarget: kind === "lift" ? member.targetTag : 0,
       windowId: "window",
@@ -667,36 +671,63 @@ it.each(["missing", "nonfinite", "negative", "replacement"] as const)(
   },
 )
 
-it("ignores a delayed authored preview from an ended session even when the next drag reuses its native session id", async () => {
-  const callbacks: Parameters<TNativeDragPreviewRenderer>[1][] = [],
-    preview: TNativeDragPreviewRenderer = (_items, callback) => {
-      callbacks.push(callback)
-    }
+it("publishes an already mounted preview before lift and preserves the original ref/hotspot across drag end", async () => {
+  const original = view(),
+    ref = { current: original },
+    preview = { ref, x: 4, y: 7 }
   const fixture = await setup({ getItems: () => [{ "text/plain": "zero" }] }, undefined, preview)
   await fixture.row(0)
-  const binding = fixture.rendered.result.current.binding
-  await act(() => fixture.actions.dispatch(fixture.packet("lift")))
-  const original = view()
-  await act(() => callbacks[0](original, 4, 7))
   expect(fixture.metadata()).toMatchObject({ previewTarget: findNodeHandle(original), previewX: 4, previewY: 7 })
+  const firstIdentity = fixture.metadata().previewInstanceId
+  let response: unknown
+  await act(() => {
+    response = fixture.actions.dispatch(fixture.packet("lift"))
+  })
+  expect(response).toMatchObject({ previewExpected: true, items: [[{ type: "text/plain", data: "zero" }]] })
+  expect(ref.current).toBe(original)
   await act(() => fixture.actions.dispatch(fixture.packet("end", { operation: "cancel" })))
-  fixture.ready()
-  await act(() => fixture.actions.dispatch(fixture.packet("lift")))
-  const current = view()
-  await act(() => callbacks[1](current, 8, 9))
-  await act(() => callbacks[0](original, 100, 100))
-  await act(() => callbacks[0](null))
-  expect(fixture.metadata()).toMatchObject({ previewTarget: findNodeHandle(current), previewX: 8, previewY: 9 })
-  // The imperative preview ref is detached before its layout cleanup runs.
-  fixture.rendered.result.current.dragState.preview!.current = null
-  await act(() => callbacks[1](original, 100, 100))
-  expect(fixture.metadata().previewTarget).toBe(findNodeHandle(current))
-  await act(() => callbacks[1](null))
-  expect(fixture.metadata().previewTarget).toBe(0)
-  await act(() => binding.retire())
-  await act(() => callbacks[1](current, 1, 1))
-  binding.publish()
-  expect(fixture.metadata().previewTarget).toBe(0)
+  expect(fixture.metadata().previewInstanceId).toBe(firstIdentity)
+  const replacement = view()
+  ref.current = replacement
+  await act(() => fixture.rendered.result.current.binding.publish())
+  expect(fixture.metadata().previewTarget).toBe(findNodeHandle(replacement))
+  expect(fixture.metadata().previewInstanceId).not.toBe(firstIdentity)
+  await fixture.rendered.unmount()
+  fixture.actions.dispose()
+})
+it("retires custom preview admission after its prepared original ref detaches, without a source fallback", async () => {
+  const ref = { current: view() as View | null }
+  const fixture = await setup({ getItems: () => [{ "text/plain": "zero" }] }, undefined, { ref })
+  await fixture.row(0)
+  const packet = fixture.packet("lift")
+  ref.current = null
+  await act(() => fixture.rendered.result.current.binding.publish())
+  expect(JSON.parse(fixture.actions.bindings())).toEqual([])
+  expect(() => fixture.actions.dispatch(packet)).toThrow(/authority/)
+  expect(fixture.rendered.result.current.binding.controller.activeSession()).toBeNull()
+  await fixture.rendered.unmount()
+  fixture.actions.dispose()
+})
+
+it("rejects a prepared preview replacement made inside onDragStart and retires the original session", async () => {
+  const ref = { current: view() },
+    old = ref.current
+  const fixture = await setup(
+    {
+      getItems: () => [{ "text/plain": "zero" }],
+      onDragStart: () => {
+        ref.current = view()
+      },
+    },
+    undefined,
+    { ref },
+  )
+  await fixture.row(0)
+  await act(() => {
+    expect(() => fixture.actions.dispatch(fixture.packet("lift"))).toThrow(/prepared original changed/)
+  })
+  expect(ref.current).not.toBe(old)
+  expect(fixture.rendered.result.current.binding.controller.activeSession()).toBeNull()
   await fixture.rendered.unmount()
   fixture.actions.dispose()
 })
@@ -889,6 +920,109 @@ it("enrolls a root fallback without exposing unrelated original collection desce
     descendants: false,
   })
   await act(async () => nativeVirtualDrag.cancel())
+  await fixture.rendered.unmount()
+  fixture.actions.dispose()
+})
+
+it.each(["current", "window", "replacement"])(
+  "waits for acknowledged offscreen targets and rejects %s retirement",
+  async (mode) => {
+    const onItemDrop = jest.fn(),
+      requestRendering = jest.fn(),
+      scrollToKey = jest.fn()
+    const fixture = await setup(
+      {
+        onItemDrop,
+        dropTargetDelegate: { getDropTargetFromPoint: () => ({ type: "item", key: "", dropPosition: "on" }) },
+      },
+      undefined,
+      undefined,
+      {
+        requestRendering,
+        scrollToKey,
+        getItemRect: () => null,
+        getVisibleRect: () => ({ x: 0, y: 0, width: 100, height: 200 }),
+        getContentSize: () => ({ width: 100, height: 200 }),
+      },
+    )
+    await fixture.row(0)
+    await act(() => fixture.actions.dispatch(fixture.packet("target", { types: ["text/plain"], operations: ["copy"] })))
+    expect(requestRendering).toHaveBeenCalledWith("")
+    expect(scrollToKey).toHaveBeenCalledWith("")
+    const binding = fixture.rendered.result.current.binding,
+      release = jest.fn()
+    const item = { kind: "text" as const, types: new Set(["text/plain"]), getText: async () => "original", release }
+    let pending: Promise<void>
+    await act(() => {
+      pending = binding.virtualDrop("session", [item], { x: 110, y: 215 })
+    })
+    expect(onItemDrop).not.toHaveBeenCalled()
+    const owner = {},
+      oldMetadata = fixture.metadata()
+    await act(() => binding.member("", owner, view(), "target"))
+    expect(onItemDrop).not.toHaveBeenCalled()
+    await act(() =>
+      fixture.actions.acceptStatus(
+        JSON.stringify({
+          ...oldMetadata,
+          kind: "binding",
+          ownerId: "owner",
+          windowId: "window",
+          epoch: 1,
+          ready: true,
+          error: "",
+        }),
+      ),
+    )
+    expect(onItemDrop).not.toHaveBeenCalled()
+    if (mode === "window")
+      await act(() =>
+        fixture.actions.acceptStatus(
+          JSON.stringify({
+            kind: "window",
+            ownerId: "owner",
+            windowId: "window",
+            epoch: 2,
+            surfaceId: 1,
+            scopeTarget: 10,
+            available: false,
+            canLift: false,
+            canDrop: false,
+          }),
+        ),
+      )
+    if (mode === "replacement") await act(() => binding.member("", owner, view(), "target"))
+    await act(async () => {
+      if (mode === "current") fixture.ready()
+      await pending
+    })
+    expect(onItemDrop).toHaveBeenCalledTimes(mode === "current" ? 1 : 0)
+    if (mode === "current") expect(onItemDrop.mock.calls[0][0].items[0]).toBe(item)
+    else expect(release).toHaveBeenCalledTimes(1)
+    await fixture.rendered.unmount()
+    fixture.actions.dispose()
+  },
+)
+
+it("keeps pointer and accessible lift ineligible when a public prepared ref changes before metadata publication", async () => {
+  const ref = { current: view() as View | null },
+    getItems = jest.fn(() => [{ "text/plain": "zero" }])
+  const fixture = await setup({ getItems, onItemDrop: () => {}, preparedDragPreview: { ref, x: 3, y: 7 } })
+  await fixture.row(0)
+  const binding = fixture.rendered.result.current.binding
+  expect(binding.ready()).toBe(true)
+  ref.current = null
+  expect(binding.ready()).toBe(false)
+  ref.current = view()
+  expect(binding.ready()).toBe(false)
+  await act(() => {
+    expect(() => fixture.actions.dispatch(fixture.packet("lift"))).toThrow(/prepared original preview.*acknowledged/)
+  })
+  expect(getItems).not.toHaveBeenCalled()
+  await act(() => binding.publish())
+  expect(binding.ready()).toBe(false)
+  await act(() => fixture.ready())
+  expect(binding.ready()).toBe(true)
   await fixture.rendered.unmount()
   fixture.actions.dispose()
 })

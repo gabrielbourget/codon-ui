@@ -308,11 +308,19 @@ it("publishes only original view metadata and waits for native enrollment before
   expect(() => f.actions.dispatch(f.packet())).toThrow("authority")
   const serialized = JSON.parse(f.actions.bindings())
   expect(serialized).toEqual([
-    { ...metadata, moduleId: "native-module", bindingId: "collection", revision: "original", rootTarget: 20 },
+    {
+      ...metadata,
+      moduleId: "native-module",
+      bindingId: "collection",
+      revision: "original",
+      rootTarget: 20,
+      metadataRevision: 1,
+    },
   ])
   f.actions.acceptStatus(
     JSON.stringify({
       kind: "binding",
+      metadataRevision: 1,
       ownerId: "owner",
       windowId: "window",
       epoch: 1,
@@ -334,6 +342,26 @@ it("publishes only original view metadata and waits for native enrollment before
     previewY: 5,
   })
   expect(lease.ready()).toBe(false)
+  const acknowledge = (metadataRevision: number) =>
+    f.actions.acceptStatus(
+      JSON.stringify({
+        kind: "binding",
+        metadataRevision,
+        ownerId: "owner",
+        windowId: "window",
+        epoch: 1,
+        moduleId: "native-module",
+        bindingId: "collection",
+        revision: "original",
+        rootTarget: 20,
+        ready: true,
+        error: "",
+      }),
+    )
+  acknowledge(1)
+  expect(lease.ready()).toBe(false)
+  acknowledge(2)
+  expect(lease.ready()).toBe(true)
   expect(lease.current()).toBe(true)
   f.actions.dispatch(f.packet({ kind: "end" }, 2))
   expect(f.dispatch).toHaveBeenCalledTimes(2)

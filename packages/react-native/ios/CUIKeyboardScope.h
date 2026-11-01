@@ -6,7 +6,6 @@
 @interface CUIKeyboardScope : RCTViewComponentView
 - (NSDictionary *)activationSession;
 - (CUIVirtualDragFocus *)virtualDragFocus;
-- (NSString *)dragMountWitness;
 - (BOOL)dragCaptureReady;
 - (BOOL)dragEnabled;
 - (int32_t)dragSurfaceId;

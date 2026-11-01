@@ -458,7 +458,6 @@ const Receiver = <T extends object>({
                       />
                     </View>
                   )}
-                  {dragAndDrop.preview}
                 </View>
               </NativeDropIndicatorContext.Provider>
             </NativeDragAndDropContext.Provider>
