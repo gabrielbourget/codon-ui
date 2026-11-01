@@ -29,7 +29,6 @@ import {
   type TNativeDragMemberBinding,
 } from "../../../input/nativeDragActions"
 import { NativeFocusView } from "../../../input/NativeFocusView"
-import type { TNativeKeyboardEvent } from "../../../input/types"
 import { NativeLocaleProvider } from "../../../locale/NativeLocaleProvider"
 import { NativeThemeProvider } from "../../../theme"
 import { useNativeTable } from "../context"
@@ -212,7 +211,7 @@ const setup = async ({
   return { owner, binding, metadata, ready, rendered, actions, editor, changes, values, endpointRefs }
 }
 
-it("keeps original rows/editors and native target rectangles while exposing separate on-item drop buttons", async () => {
+it("keeps original rows/editors and native target rectangles while offering owned chooser targets", async () => {
   const glyph = jest.spyOn(
     jest.requireActual<typeof import("../../SortAndFilterPanel/glyphs")>("../../SortAndFilterPanel/glyphs"),
     "QueryGlyph",
@@ -231,30 +230,25 @@ it("keeps original rows/editors and native target rectangles while exposing sepa
   expect(grips.every(([props]) => props.color === "orchid")).toBe(true)
   expect(screen.getByTestId("drag-row-zero").props.iconColor).toBeUndefined()
   await act(async () => nativeVirtualDrag.start(fixture.binding, 0, nativeDragFormatter("en-US"), "virtual", "handle"))
-  expect(fixture.values.get(0)).toMatchObject({ isDragging: true })
+  expect(fixture.values.get(0)).toMatchObject({ isDragging: false })
+  expect(nativeVirtualDrag.pendingRequest()?.sourceView).toBe(fixture.binding.handleView(0))
+  expect(fixture.binding.controller.activeSession()).toBeNull()
   expect(screen.getByTestId("drag-row-zero").props.accessibilityElementsHidden).not.toBe(true)
   expect(fixture.binding.rowView(0)).toBe(source)
   expect(fixture.binding.targetView("")).toBe(target)
-  const endpoint = screen.getByTestId("table-row-drop-string:"),
-    endpointRef = fixture.endpointRefs.get("")!.current
-  expect(endpoint.props.accessible).toBe(true)
-  expect(endpointRef).not.toBe(target)
+  expect(screen.queryByTestId("table-row-drop-string:")).toBeNull()
+  expect(nativeVirtualDrag.pendingRequest()?.choices).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({ target: { type: "item", key: "", dropPosition: "on" }, label: "Drop on Empty" }),
+    ]),
+  )
   expect(
     fixture.metadata().members.find((member: TNativeDragMemberBinding) => member.key === "string:").targetTag,
   ).toBe(findNodeHandle(target))
+  await act(() => nativeVirtualDrag.choose(fixture.binding, { type: "item", key: "", dropPosition: "on" }))
+  await act(() => nativeVirtualDrag.drop())
   await act(async () => {
-    endpoint.props.onNativeActivation({
-      nativeEvent: {
-        ownerId: endpoint.props.ownerId,
-        activationId: 1,
-        kind: "activation",
-        source: "ios-accessibility-activate",
-        scopeOwnerId: "drag-owner",
-        windowId: "window",
-        epoch: 7,
-        target: findNodeHandle(endpointRef),
-      },
-    })
+    nativeVirtualDrag.dismissed(nativeVirtualDrag.pendingRequest()!.id)
     await Promise.resolve()
     await Promise.resolve()
   })
@@ -313,7 +307,7 @@ it.each(["renderer", "hooks", "constructor"] as const)(
 )
 
 it.each(["en-US", "ar-AE"])(
-  "binds original hover activation and virtual expand/collapse keys for %s",
+  "retains original hover activation and declares chooser targets without changing expansion for %s",
   async (locale) => {
     const fixture = await setup({ locale })
     expect(fixture.owner().state.collection.getItem("")!.hasChildNodes).toBe(true)
@@ -334,18 +328,10 @@ it.each(["en-US", "ar-AE"])(
     fixture.ready()
     await act(async () => nativeVirtualDrag.start(fixture.binding, 0, nativeDragFormatter(locale), "virtual", "handle"))
     await act(() => nativeVirtualDrag.choose(fixture.binding, { type: "item", key: "", dropPosition: "on" }))
-    await act(async () => nativeVirtualDrag.activate())
-    expect(fixture.owner().state.expandedKeys.has("")).toBe(false)
-    const event = (key: string) =>
-      ({
-        nativeEvent: { key },
-        preventDefault: jest.fn(),
-        stopPropagation: jest.fn(),
-      }) as unknown as TNativeKeyboardEvent
-    await act(() => nativeVirtualDrag.key(event(locale === "ar-AE" ? "ArrowLeft" : "ArrowRight")))
+    expect(nativeVirtualDrag.pendingRequest()?.selected?.target).toEqual({ type: "item", key: "", dropPosition: "on" })
     expect(fixture.owner().state.expandedKeys.has("")).toBe(true)
-    await act(() => nativeVirtualDrag.key(event(locale === "ar-AE" ? "ArrowRight" : "ArrowLeft")))
-    expect(fixture.owner().state.expandedKeys.has("")).toBe(false)
+    expect(fixture.metadata().virtualFocus).toBeUndefined()
+    expect(fixture.binding.controller.activeSession()).toBeNull()
     await act(async () => nativeVirtualDrag.cancel())
     await fixture.rendered.unmount()
     fixture.actions.dispose()

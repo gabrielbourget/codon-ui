@@ -1,16 +1,20 @@
 import "../../../collection/__tests__/nativeReceipts"
 
 import { act as rawAct, cleanup, within } from "@testing-library/react-native"
+import { useSyncExternalStore } from "react"
 import type * as RN from "react-native"
 
 import { SortParameterList, type SortParameter } from ".."
 import {
   actWithNativeCollections as collectionAct,
+  fireEventWithNativeCollections as fireEvent,
   renderWithNativeCollections as collectionRender,
   screen,
 } from "../../../collection/__tests__/nativeReceipts"
+import { NativeAccessibleDropChooser } from "../../../collection/dragAndDrop/NativeAccessibleDropChooser"
 import { nativeVirtualDrag } from "../../../collection/dragAndDrop/virtualDrag"
 import { NativeDragActionsContext } from "../../../input/nativeDragActions"
+import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
 import { NativeThemeProvider } from "../../../theme"
 import { untypedFontWeight } from "../../__tests__/untypedFontWeight"
 import { NativeTextStyleProvider } from "../../NativeTextStyleProvider"
@@ -65,15 +69,27 @@ jest.mock("../../../input/specs/NativeCUIDragAndDrop", () => ({
     readText: jest.fn(),
   },
 }))
+jest.mock("react-native-safe-area-context", () => {
+  const { View } = jest.requireActual("react-native")
+  return { SafeAreaProvider: View, SafeAreaView: View }
+})
+const ChooserHost = () => {
+  useSyncExternalStore(nativeVirtualDrag.subscribe, nativeVirtualDrag.snapshot, nativeVirtualDrag.snapshot)
+  const binding = nativeVirtualDrag.pendingRequest()?.source
+  return binding ? <NativeAccessibleDropChooser binding={binding} /> : null
+}
 const parameters: SortParameter[] = [
   { ID: "name", name: "Name", sortDirection: "Ascending" },
   { ID: "date", name: "Date", sortDirection: "Descending" },
 ]
 const tree = (props: Partial<React.ComponentProps<typeof SortParameterList>> = {}) => (
   <NativeThemeProvider>
-    <NativeDragActionsContext.Provider value={mockFixture.actions}>
-      <SortParameterList sortParameterList={parameters} {...props} />
-    </NativeDragActionsContext.Provider>
+    <NativeOverlayProvider>
+      <NativeDragActionsContext.Provider value={mockFixture.actions}>
+        <SortParameterList sortParameterList={parameters} {...props} />
+        <ChooserHost />
+      </NativeDragActionsContext.Provider>
+    </NativeOverlayProvider>
   </NativeThemeProvider>
 )
 const act = async <T,>(callback: () => T | Promise<T>) => {
@@ -235,11 +251,27 @@ it("reorders locally through the original native source/target roots while the o
   expect(rows().map((item) => item.props.nativeID)).toEqual(["name", "date"])
   expect(mockViews.get(row("name").props.ownerId) === original).toBe(true)
 })
-it("keeps optional owner callbacks independent of local ordering and uses the actual virtual drop action", async () => {
+it("keeps original Sort row refs and optional owner callbacks through the actual chooser drop", async () => {
   await render(tree())
+  const source = select("name"),
+    destination = select("date")
   await act(() => row("name").props.onAccessibilityAction({ nativeEvent: { actionName: "activate" } }))
-  await act(() => row("date").props.onAccessibilityAction({ nativeEvent: { actionName: "activate" } }))
+  const modal = screen.getByTestId("native-drop-chooser-window", { includeHiddenElements: true })
+  const dismiss = modal.props.onDismiss
+  await act(() => modal.props.onShow())
+  expect(nativeVirtualDrag.active()).toBeNull()
+  expect(rows().map((item) => item.props.nativeID)).toEqual(["name", "date"])
+  await fireEvent.press(screen.getByRole("button", { name: "Drop on Sort Parameter - Date" }))
+  await fireEvent.press(screen.getByRole("button", { name: "Drop" }))
+  expect(rows().map((item) => item.props.nativeID)).toEqual(["name", "date"])
+  await act(async () => {
+    dismiss()
+    await Promise.resolve()
+    await Promise.resolve()
+  })
   expect(rows().map((item) => item.props.nativeID)).toEqual(["date", "name"])
+  expect(select("name")).toBe(source)
+  expect(select("date")).toBe(destination)
 })
 it("keeps the canonical empty source ID inert and refreshes original item content by key", async () => {
   const changed = jest.fn(),

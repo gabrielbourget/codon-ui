@@ -29,6 +29,7 @@ import { NativeCollectionSemanticsContext } from "../semantics"
 import type { TNativeCollectionKey } from "../snapshot"
 
 import { nativeDragFormatter } from "./messages"
+import { NativeAccessibleDropChooser } from "./NativeAccessibleDropChooser"
 import { NativeCollectionDragBinding } from "./NativeCollectionDragBinding"
 import type { TNativeDropCollectionOptions } from "./NativeCollectionDragBinding"
 import { NativeListDropTargetDelegate } from "./NativeListDropTargetDelegate"
@@ -446,7 +447,7 @@ export const useNativeDropIndicator = (
           : formatter.format("insertBefore", { itemText: text(after) })
   }
   const result = useDroppableItemBinding(props, state, ref, label, false)
-  const hidden = !nativeVirtualDrag.isDragging() || !!result.dropProps.accessibilityElementsHidden
+  const hidden = !nativeVirtualDrag.active() || !!result.dropProps.accessibilityElementsHidden
   return {
     dropIndicatorProps: {
       ...result.dropProps,
@@ -551,6 +552,7 @@ export type TNativeCollectionDragAndDropResult = {
   renderDropIndicator?: (target: TNativeDropTarget) => ReactNode
   collectionProps: TNativeDragElementProps
   rootDropIndicator: ReactNode
+  accessibleDropChooser: ReactNode
   renderIndicator: (props: TNativeDropIndicatorProps, ref: ForwardedRef<View>) => ReactNode
 }
 export const useNativeCollectionDragAndDrop = <T = object,>({
@@ -620,12 +622,13 @@ export const useNativeCollectionDragAndDrop = <T = object,>({
       binding.configure(current, (error) => setFailure({ error }))
     }
   })
-  useVirtual()
+  const virtualRevision = useVirtual()
   const focused = selectionManager.focusedKey
   const pendingRevision = binding?.pendingSnapshot() ?? 0
   const persistedKeys = useMemo(() => {
     const keys = new Set<TNativeCollectionKey>(drag.draggingKeys)
     for (const key of binding?.pendingKeys() ?? []) keys.add(key)
+    for (const key of nativeVirtualDrag.pendingKeys(binding)) keys.add(key)
     if (focused != null) keys.add(focused)
     if (drop.target?.type === "item") {
       let key: TNativeCollectionKey = drop.target.key
@@ -649,7 +652,7 @@ export const useNativeCollectionDragAndDrop = <T = object,>({
       keys.add(key)
     }
     return keys
-  }, [drag.draggingKeys, drop.target, focused, collection, binding, pendingRevision])
+  }, [drag.draggingKeys, drop.target, focused, collection, binding, pendingRevision, virtualRevision])
   const context: TNativeDragAndDropContextValue = {
     dragAndDropHooks: hooks as TNativeDragAndDropHooks,
     dragState: drag,
@@ -657,7 +660,7 @@ export const useNativeCollectionDragAndDrop = <T = object,>({
   }
   const renderDropIndicator = useCallback(
     (target: TNativeDropTarget) => {
-      if (!hooks?.useDropIndicator || (!nativeVirtualDrag.isDragging() && !drop.isDropTarget(target))) return null
+      if (!hooks?.useDropIndicator || (!nativeVirtualDrag.active() && !drop.isDropTarget(target))) return null
       return hooks.renderDropIndicator ? hooks.renderDropIndicator(target) : <NativeDropIndicator target={target} />
     },
     [hooks, drop.target],
@@ -674,6 +677,7 @@ export const useNativeCollectionDragAndDrop = <T = object,>({
     persistedKeys,
     renderDropIndicator: hooks?.useDropIndicator ? renderDropIndicator : undefined,
     collectionProps: result.collectionProps,
+    accessibleDropChooser: dragEnabled && binding ? <NativeAccessibleDropChooser binding={binding} /> : null,
     rootDropIndicator:
       hooks?.useDropIndicator && dropEnabled && collection.size === 0 ? renderDropIndicator({ type: "root" }) : null,
     renderIndicator: (props: TNativeDropIndicatorProps, ref: ForwardedRef<View>) => (

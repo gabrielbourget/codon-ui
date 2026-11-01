@@ -8,6 +8,7 @@ import type { TNativeDragActionPacket, TNativeDragActions, TNativeDragViewBindin
 import NativeModule from "../../input/specs/NativeCUIDragAndDrop"
 import type { TNativeKeyboardEvent } from "../../input/types"
 import type { TNativeCollectionScrollHost, TNativeCollectionLayoutDelegate } from "../renderer"
+import { getNativeCollectionMetadataIdentity } from "../snapshot"
 import type { TNativeCollectionKey } from "../snapshot"
 
 import { NativeDragController } from "./controller"
@@ -294,7 +295,6 @@ export class NativeCollectionDragBinding {
       previewInstanceId: this.preview?.id ?? "",
       previewX: this.preview?.x ?? 0,
       previewY: this.preview?.y ?? 0,
-      virtualFocus: nativeVirtualDrag.focusManifest(this),
     }
   }
   publish = () => {
@@ -336,7 +336,6 @@ export class NativeCollectionDragBinding {
         current: () => this.logicalCurrent() && this.root.current === view,
         retire: this.retire,
         dispatch: this.dispatch,
-        observeFocus: (sessionId, tag) => nativeVirtualDrag.observeNativeFocus(this, sessionId, tag),
       })
     else this.lease.updateNative(metadata)
     for (const pending of this.pendingDrops) pending.check()
@@ -507,6 +506,45 @@ export class NativeCollectionDragBinding {
       else focusNativeTarget(this.rowView(key))
     }
   }
+  retainAccessibleDropSource(key: TNativeCollectionKey, kind: "source" | "handle") {
+    const root = this.root.current
+    const row = this.rows.get(key)
+    const original = kind === "handle" ? this.handleView(key) : this.rowView(key)
+    return () =>
+      !!original &&
+      this.logicalCurrent() &&
+      this.root.current === root &&
+      this.rows.get(key) === row &&
+      (kind === "handle" ? this.handleView(key) : this.rowView(key)) === original &&
+      this.sourceEnabled &&
+      !!this.source &&
+      !this.source.isDisabled &&
+      !this.source.selectionManager.isDisabled(key) &&
+      !!this.source.collection.getItem(key)
+  }
+  retainAccessibleDropTarget(target: TNativeDropTarget) {
+    const root = this.root.current
+    const original = target.type === "item" ? this.targetView(target.key) : root
+    const node = target.type === "item" ? this.target?.collection.getItem(target.key) : null
+    const descriptor = node && getNativeCollectionMetadataIdentity(node)?.descriptorId
+    const window = this.scope?.window()
+    return () =>
+      this.logicalCurrent() &&
+      this.root.current === root &&
+      this.targetEnabled &&
+      this.scope?.window().windowId === window?.windowId &&
+      this.scope?.window().surfaceId === window?.surfaceId &&
+      this.scope?.window().scopeTarget === window?.scopeTarget &&
+      !!this.target &&
+      !this.target.isDisabled &&
+      (target.type === "root" ||
+        (!!node &&
+          (descriptor
+            ? getNativeCollectionMetadataIdentity(this.target.collection.getItem(target.key) ?? {})?.descriptorId ===
+              descriptor
+            : this.target.collection.getItem(target.key) === node))) &&
+      (!original || (target.type === "item" ? this.targetView(target.key) : this.root.current) === original)
+  }
   sourceOwner() {
     return this.nativeSource
   }
@@ -523,7 +561,10 @@ export class NativeCollectionDragBinding {
     operations: TNativeDropOperation[],
   ) {
     if (!this.nativeTarget.current() || !this.session(id, operations)) return "cancel" as const
-    return this.controller.targetAt(id, this.nativeTarget, target, types, operations)
+    const operation = this.controller.targetAt(id, this.nativeTarget, target, types, operations)
+    if (operation !== "cancel" && target?.type === "item" && !this.targetView(target.key))
+      this.requestOffscreenTarget(id, target.key)
+    return operation
   }
   virtualDrop(id: string, items: TNativeDropItem[], point: TNativeDragPoint) {
     return this.controller.drop(id, items, point)
@@ -588,18 +629,20 @@ export class NativeCollectionDragBinding {
     if (target && !valid(target) && valid({ type: "root" })) target = { type: "root" }
     const operation = this.controller.targetAt(id, this.nativeTarget, target, types, allowed)
     if (operation !== "cancel" && target?.type === "item" && !this.targetView(target.key)) {
-      const prior = this.renderRequest
-      if (prior?.session !== id || prior.key !== target.key || prior.layout !== this.dropOptions.layoutDelegate) {
-        this.renderRequest = { session: id, key: target.key, layout: this.dropOptions.layoutDelegate }
-        this.dropOptions.layoutDelegate?.requestRendering?.(target.key)
-        const scrolling = this.dropOptions.layoutDelegate?.scrollToKey?.(target.key)
-        if (scrolling && typeof scrolling.then === "function")
-          scrolling.catch((error) => {
-            if (this.nativeTarget.current()) this.failure(error)
-          })
-      }
+      this.requestOffscreenTarget(id, target.key)
     }
     return operation
+  }
+  private requestOffscreenTarget(id: string, key: TNativeCollectionKey) {
+    const prior = this.renderRequest
+    if (prior?.session === id && prior.key === key && prior.layout === this.dropOptions.layoutDelegate) return
+    this.renderRequest = { session: id, key, layout: this.dropOptions.layoutDelegate }
+    this.dropOptions.layoutDelegate?.requestRendering?.(key)
+    const scrolling = this.dropOptions.layoutDelegate?.scrollToKey?.(key)
+    if (scrolling && typeof scrolling.then === "function")
+      scrolling.catch((error) => {
+        if (this.nativeTarget.current()) this.failure(error)
+      })
   }
   private prepareDrop(target: TNativeDropTarget, internal: boolean, sourceKeys: Set<TNativeCollectionKey>) {
     const root = this.root.current,

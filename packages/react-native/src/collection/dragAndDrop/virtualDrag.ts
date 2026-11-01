@@ -1,20 +1,23 @@
-/* Copyright Adobe. Apache-2.0; see ../LICENSE.react-aria.md. Native-owned adaptation of DragManager/useDroppableCollection. */
+/* Copyright Adobe. Apache-2.0; see ../LICENSE.react-aria.md. Native-owned collection drop requests. */
 import { AccessibilityInfo, findNodeHandle, Platform } from "react-native"
 import type { View } from "react-native"
 
-import { registerNativeActivationPolicy } from "../../input/activation"
-import { containsNativeView, focusNativeTarget, getNativeFocusedTarget, subscribeNativeFocus } from "../../input/focus"
-import type { TNativeVirtualDragFocus, TNativeVirtualDragFocusTarget } from "../../input/nativeDragActions"
+import { focusNativeTarget } from "../../input/focus"
 import type { TNativeKeyboardEvent } from "../../input/types"
 import type { TNativeCollectionKey } from "../snapshot"
 
-import type { TNativeDropKeyboardDelegate } from "./keyboardNavigation"
 import type { TNativeDragMessageFormatter } from "./messages"
 import type { NativeCollectionDragBinding } from "./NativeCollectionDragBinding"
 import { nativeDragRuntime } from "./runtime"
 import type { TNativeDragItem, TNativeDropTarget, TNativeDropOperation, TNativeTextDropItem } from "./types"
-import { nativeVirtualDropTargetForKey, nextNativeVirtualDropTarget } from "./virtualNavigation"
 
+export type TNativeAccessibleDropChoice = {
+  id: string
+  root: NativeCollectionDragBinding
+  target: TNativeDropTarget
+  label: string
+  current: () => boolean
+}
 type TEndpoint = {
   root: NativeCollectionDragBinding
   target: TNativeDropTarget
@@ -22,372 +25,329 @@ type TEndpoint = {
   activate: () => View | null
   label?: () => string
 }
-type TSession = {
+export type TNativeAccessibleDropRequest = {
   id: string
   source: NativeCollectionDragBinding
   key: TNativeCollectionKey
   sourceKind: "source" | "handle"
   sourceView: View
+  formatter: TNativeDragMessageFormatter
+  phase: "choosing" | "closing" | "waiting" | "running"
+  choices: TNativeAccessibleDropChoice[]
+  selected: TNativeAccessibleDropChoice | null
+  sourceCurrent: () => boolean
+  windowId: string
+  surfaceId: number
+  scopeTarget: number
+  modalDismissed: boolean
+  outcome: "drop" | "cancel" | null
+  release: () => void
+}
+type TSession = {
+  id: string
+  source: NativeCollectionDragBinding
+  sourceView: View
+  key: TNativeCollectionKey
+  sourceKind: "source" | "handle"
   items: TNativeDragItem[]
   operations: TNativeDropOperation[]
   types: Set<string>
-  formatter: TNativeDragMessageFormatter
-  root: NativeCollectionDragBinding | null
-  target: TNativeDropTarget | null
-  generation: number
-  pending: "drop" | "cancel" | null
-  requested: string | null
-  firstAnnounced: boolean
-  unsubscribeFocus: () => void
-  unsubscribeActivation: () => void
-  focusRevision: number
-  focusSignature: string
-  focusRequest: View | null
-  nativeFocusView: View | null
+  root: NativeCollectionDragBinding
+  target: TNativeDropTarget
+  pending: "drop" | "cancel"
+  point: { x: number; y: number }
 }
-const roots = new Set<NativeCollectionDragBinding>(),
-  endpoints = new Map<object, TEndpoint>(),
-  listeners = new Set<() => void>()
-const handled = new WeakMap<object, Set<boolean>>()
-const focusIdentities = new WeakMap<View, string>()
-let focusSerial = 0
-const focusTarget = (view: View, descendants: boolean): TNativeVirtualDragFocusTarget => {
-  const tag = findNodeHandle(view)
-  if (!tag) throw new Error("Native virtual focus requires an original native target")
-  let id = focusIdentities.get(view)
-  if (!id) {
-    id = `native-drag-focus:${++focusSerial}`
-    focusIdentities.set(view, id)
-  }
-  return { id, tag, descendants }
-}
-let session: TSession | null = null,
-  revision = 0,
-  serial = 0,
-  start = 0,
-  restoring = false
+const roots = new Set<NativeCollectionDragBinding>()
+const endpoints = new Map<object, TEndpoint>()
+const listeners = new Set<() => void>()
+let request: TNativeAccessibleDropRequest | null = null
+let session: TSession | null = null
+let revision = 0
+let serial = 0
 const changed = () => {
   revision++
   for (const listener of listeners) listener()
 }
-const announce = (message: string, polite = false) => {
-  if (Platform.OS === "ios") AccessibilityInfo.announceForAccessibilityWithOptions(message, { queue: polite })
+const announce = (message: string) => {
+  if (Platform.OS === "ios") AccessibilityInfo.announceForAccessibilityWithOptions(message, { queue: true })
   else AccessibilityInfo.announceForAccessibility(message)
 }
-const equal = (a: TNativeDropTarget | null, b: TNativeDropTarget | null) =>
-  a?.type === b?.type &&
-  (a?.type !== "item" || (b?.type === "item" && a.key === b.key && a.dropPosition === b.dropPosition))
-const originalSource = (current: TSession) =>
-  current.source.current() &&
-  current.source.canVirtualAct() &&
-  current.source.scope?.window().canLift === true &&
-  (current.sourceKind === "handle" ? current.source.handleView(current.key) : current.source.rowView(current.key)) ===
-    current.sourceView
-const delegate = (root: NativeCollectionDragBinding): TNativeDropKeyboardDelegate => {
-  return root.keyboardDelegate()
+const equal = (left: TNativeDropTarget, right: TNativeDropTarget) =>
+  left.type === right.type &&
+  (left.type !== "item" ||
+    (right.type === "item" && left.key === right.key && left.dropPosition === right.dropPosition))
+const originalSource = (current: TNativeAccessibleDropRequest) => {
+  const window = current.source.scope?.window()
+  return (
+    current.sourceCurrent() &&
+    window?.windowId === current.windowId &&
+    window.surfaceId === current.surfaceId &&
+    window.scopeTarget === current.scopeTarget
+  )
 }
-const validNext = (
-  current: TSession,
-  root: NativeCollectionDragBinding,
-  target: TNativeDropTarget | null,
-  direction: "left" | "right" | "up" | "down" = "down",
-  wrap = true,
-) =>
-  root.target
-    ? nextNativeVirtualDropTarget(
-        root.target.collection,
-        delegate(root),
-        target,
-        (target) => root.operation(target, current.types, current.operations, current.source) !== "cancel",
-        direction,
-        root.dropOptions.direction === "rtl",
-        wrap,
-      )
-    : null
-const eligible = (current: TSession) =>
-  !originalSource(current)
-    ? []
-    : [...roots].filter((root) => {
-        const window = root.scope?.window(),
-          sourceWindow = current.source.scope?.window()
-        return (
-          root.current() &&
-          root.canVirtualAct() &&
-          !!root.target &&
-          !root.target.isDisabled &&
-          window?.available === true &&
-          window?.canDrop === true &&
-          window.windowId === sourceWindow?.windowId &&
-          !!validNext(current, root, null)
-        )
-      })
-// RN's original ReadOnlyElement reads transformed native geometry synchronously.
-// Keep the pinned nearest-origin rotation, including registration-order ties.
-const orderedRoots = (current: TSession) => {
-  const valid = eligible(current)
-  if (!valid.length) return valid
-  const source = current.sourceView
-  const bounds = (view: View) => {
-    if (typeof view.getBoundingClientRect !== "function")
-      throw new Error("Native virtual drag: original target rectangle unavailable")
-    const rect = view.getBoundingClientRect()
-    if (![rect.x, rect.y, rect.width, rect.height].every(Number.isFinite) || rect.width < 0 || rect.height < 0)
-      throw new Error("Native virtual drag: invalid original target rectangle")
-    return rect
+const clear = (current: TNativeAccessibleDropRequest) => {
+  if (request !== current) return
+  current.outcome ??= "cancel"
+  current.release()
+  request = null
+  if (session?.id === current.id) {
+    current.source.controller.retire(current.source.identity)
+    if (session.root !== current.source) session.root.controller.retireSession(current.id)
+    session = null
   }
-  const origin = bounds(source)
-  let nearest = 0,
-    distance = Infinity
-  for (let index = 0; index < valid.length; index++) {
-    const root = valid[index],
-      view = root.root.current!
-    const window = root.scope!.window()
-    const rect = bounds(view)
-    const after = root.scope!.window()
+  changed()
+}
+const textValue = (root: NativeCollectionDragBinding, key: TNativeCollectionKey) =>
+  root.target?.collection.getTextValue?.(key) ?? root.target?.collection.getItem(key)?.textValue ?? ""
+const choiceLabel = (
+  root: NativeCollectionDragBinding,
+  target: TNativeDropTarget,
+  formatter: TNativeDragMessageFormatter,
+) => {
+  const authored = [...endpoints.values()]
+    .find((entry) => entry.root === root && equal(entry.target, target))
+    ?.label?.()
+  if (authored?.trim()) return authored
+  const text = target.type === "root" ? root.dropOptions.rootLabel : textValue(root, target.key)
+  if (!text?.trim()) throw new Error("Native accessible drop requires a declared target label")
+  return target.type === "root"
+    ? `${formatter.format("dropOnRoot")} ${text}`
+    : formatter.format(
+        target.dropPosition === "on" ? "dropOnItem" : target.dropPosition === "before" ? "insertBefore" : "insertAfter",
+        { itemText: text },
+      )
+}
+const choicesFor = (
+  source: NativeCollectionDragBinding,
+  key: TNativeCollectionKey,
+  formatter: TNativeDragMessageFormatter,
+) => {
+  const choices: TNativeAccessibleDropChoice[] = []
+  const sourceWindow = source.scope?.window()
+  const draggingKeys = source.source!.getKeysForDrag(key)
+  for (const root of roots) {
+    const window = root.scope?.window()
     if (
       !root.current() ||
-      root.root.current !== view ||
-      !originalSource(current) ||
-      session !== current ||
-      after.windowId !== window.windowId ||
-      after.epoch !== window.epoch ||
-      !after.canDrop
+      !root.canVirtualAct() ||
+      !root.targetEnabled ||
+      !root.target ||
+      root.target.isDisabled ||
+      !window?.canDrop ||
+      window.windowId !== sourceWindow?.windowId
     )
-      throw new Error("Native virtual drag: target changed during geometry read")
-    const squared = (rect.x - origin.x) ** 2 + (rect.y - origin.y) ** 2
-    if (squared < distance) {
-      distance = squared
-      nearest = index
+      continue
+    const props = root.dropOptions
+    const internal = root === source
+    const add = (target: TNativeDropTarget) => {
+      choices.push({
+        id: JSON.stringify([root.id, target]),
+        root,
+        target,
+        label: choiceLabel(root, target, formatter),
+        current: root.retainAccessibleDropTarget(target),
+      })
+    }
+    if (props.onDrop || (!internal && props.onRootDrop)) add({ type: "root" })
+    const declared = [...endpoints.values()].filter((entry) => entry.root === root)
+    // A custom root-only binding declares no item destinations. Virtualized owners
+    // provide their logical item layout separately from mounted endpoints.
+    if (
+      declared.some((entry) => entry.target.type === "root") &&
+      !declared.some((entry) => entry.target.type === "item") &&
+      !props.layoutDelegate
+    )
+      continue
+    const collection = root.target.collection
+    const seen = new Set<TNativeCollectionKey>()
+    for (
+      let targetKey = collection.getFirstKey();
+      targetKey != null && !seen.has(targetKey);
+      targetKey = collection.getKeyAfter(targetKey)
+    ) {
+      seen.add(targetKey)
+      const node = collection.getItem(targetKey)
+      if (!node || node.type !== "item") continue
+      let excluded = false
+      if (internal) {
+        let parent = node.parentKey
+        while (parent != null) {
+          if (draggingKeys.has(parent)) {
+            excluded = true
+            break
+          }
+          parent = collection.getItem(parent)?.parentKey ?? null
+        }
+      }
+      if (excluded) continue
+      if (props.onDrop || (internal ? props.onReorder || props.onMove : props.onInsert))
+        add({ type: "item", key: targetKey, dropPosition: "before" })
+      if (
+        (!internal || !draggingKeys.has(targetKey)) &&
+        (props.onDrop || props.onItemDrop || (internal && props.onMove))
+      )
+        add({ type: "item", key: targetKey, dropPosition: "on" })
+      if (props.onDrop || (internal ? props.onReorder || props.onMove : props.onInsert))
+        add({ type: "item", key: targetKey, dropPosition: "after" })
     }
   }
-  return [...valid.slice(nearest), ...valid.slice(0, nearest)]
+  return choices
 }
-const selectedEndpoint = (current: TSession) =>
-  [...endpoints.values()].find(
-    (entry) => entry.root === current.root && equal(entry.target, current.target) && entry.view(),
+const ready = (current: TNativeAccessibleDropRequest) => {
+  const choice = current.selected
+  return (
+    originalSource(current) &&
+    current.source.ready() &&
+    current.source.canVirtualAct() &&
+    !!choice &&
+    choice.current() &&
+    choice.root.current() &&
+    choice.root.canVirtualAct() &&
+    choice.root.scope?.window().canDrop === true &&
+    choice.root.scope.window().windowId === current.windowId
   )
-const requestFocus = (view: View | null) => {
-  if (!view) return false
-  if (getNativeFocusedTarget() === view) return true
-  restoring = true
-  try {
-    return focusNativeTarget(view)
-  } finally {
-    restoring = false
-  }
-}
-const focusOnce = (current: TSession, view: View) => {
-  if (current.focusRequest === view) return
-  current.focusRequest = view
-  const previous = current.nativeFocusView
-  current.nativeFocusView = requestFocus(view) ? null : view
-  if (previous !== current.nativeFocusView) changed()
-}
-const focus = (current: TSession) => {
-  if (session !== current || !originalSource(current)) return
-  if (!current.root || !current.target) {
-    focusOnce(current, current.sourceView)
-    return
-  }
-  const root = current.root,
-    target = current.target,
-    endpoint = selectedEndpoint(current)
-  const view = endpoint?.view() ?? (target.type === "root" ? root.root.current : null)
-  if (view) {
-    current.requested = null
-    focusOnce(current, view)
-    if (!current.firstAnnounced && endpoint?.label?.()) {
-      current.firstAnnounced = true
-      const label = endpoint.label()
-      nativeDragRuntime.requestAnimationFrame(() => {
-        if (session === current) announce(label, true)
-      })
-    }
-  } else if (target.type === "item") {
-    const request = JSON.stringify([root.id, target, current.generation])
-    if (current.requested === request) return
-    current.requested = request
-    root.dropOptions.layoutDelegate?.requestRendering?.(target.key)
-    const pending = root.dropOptions.layoutDelegate?.scrollToKey?.(target.key)
-    if (pending && typeof pending.then === "function")
-      pending.catch((error) => {
-        if (session === current && current.requested === request) root.fail(error)
-      })
-  }
-}
-const select = (
-  current: TSession,
-  root: NativeCollectionDragBinding | null,
-  target: TNativeDropTarget | null,
-  request = true,
-) => {
-  if (session !== current || current.pending || (current.root === root && equal(current.target, target))) return
-  if (current.root && current.root !== root)
-    current.root.virtualTarget(current.id, null, current.types, current.operations)
-  current.root = root
-  current.target = target
-  current.generation++
-  current.requested = null
-  current.focusRequest = request
-    ? null
-    : (selectedEndpoint(current)?.view() ?? (target?.type === "root" ? (root?.root.current ?? null) : null))
-  current.nativeFocusView = null
-  if (root) root.virtualTarget(current.id, target, current.types, current.operations)
-  changed()
-  if (request) focus(current)
-}
-const observeFocus = (current: TSession) => {
-  if (session !== current || restoring || current.pending || !originalSource(current)) return
-  const view = getNativeFocusedTarget()
-  const activation = selectedEndpoint(current)?.activate()
-  if (view === current.sourceView || (view && activation && containsNativeView(activation, view))) return
-  const valid = eligible(current)
-  const endpoint = [...endpoints.values()].reduce<TEndpoint | null>((selected, entry) => {
-    const target = entry.view()
-    return view &&
-      target &&
-      valid.includes(entry.root) &&
-      containsNativeView(target, view) &&
-      entry.root.operation(entry.target, current.types, current.operations, current.source) !== "cancel" &&
-      (!selected || containsNativeView(selected.view()!, target))
-      ? entry
-      : selected
-  }, null)
-  if (endpoint) select(current, endpoint.root, endpoint.target)
-  else {
-    current.focusRequest = null
-    focus(current)
-  }
-}
-const initial = (current: TSession, root: NativeCollectionDragBinding) => {
-  const state = root.target!,
-    manager = state.selectionManager
-  let key = manager.focusedKey,
-    position: "before" | "after" = "after"
-  const node = key != null ? state.collection.getItem(key) : null
-  if (node?.type === "cell") key = node.parentKey ?? null
-  if (key != null && manager.isSelected(key)) {
-    if (manager.selectedKeys.size > 1 && manager.firstSelectedKey === key) position = "before"
-    else key = manager.lastSelectedKey ?? null
-  }
-  const target: TNativeDropTarget | null = key != null ? { type: "item", key, dropPosition: position } : null
-  return target && root.operation(target, current.types, current.operations, current.source) !== "cancel"
-    ? target
-    : ((target
-        ? (validNext(current, root, target, "down", false) ?? validNext(current, root, target, "up", false))
-        : null) ?? validNext(current, root, null))
-}
-const clear = (current: TSession) => {
-  current.unsubscribeFocus()
-  current.unsubscribeActivation()
-  if (session === current) session = null
 }
 const finish = (current: TSession, operation: TNativeDropOperation, x: number, y: number) => {
   if (session !== current) return
-  clear(current)
+  session = null
+  const pending = request
+  if (pending) {
+    pending.outcome = operation === "cancel" ? "cancel" : "drop"
+    clear(pending)
+  }
   try {
     current.source.controller.end(current.id, { x, y }, operation)
   } finally {
-    if (current.root && current.root !== current.source) current.root.controller.end(current.id, { x, y }, operation)
+    if (current.root !== current.source) current.root.controller.end(current.id, { x, y }, operation)
     changed()
   }
 }
-const failure = (current: TSession, error: unknown) => {
-  if (session !== current) return
-  clear(current)
-  current.source.controller.retire(current.source.identity)
-  if (current.root && current.root !== current.source) current.root.controller.retireSession(current.id)
+const run = async (pending: TNativeAccessibleDropRequest) => {
+  if (request !== pending) return
+  if (!originalSource(pending) || (pending.selected && !pending.selected.current())) {
+    clear(pending)
+    return
+  }
+  if (!pending.modalDismissed || pending.phase !== "waiting" || !ready(pending)) return
+  pending.phase = "running"
   changed()
-  current.source.fail(error)
-}
-export const nativeVirtualDrag = {
-  focusManifest: (root: NativeCollectionDragBinding): TNativeVirtualDragFocus | null => {
-    const current = session
-    if (
-      !current ||
-      current.source !== root ||
-      !originalSource(current) ||
-      !root.canVirtualAct() ||
-      !root.scope?.window().canLift
-    )
-      return null
-    const targets = new Map<number, TNativeVirtualDragFocusTarget>()
-    const add = (view: View | null, descendants: boolean) => {
-      if (!view) return null
-      const target = focusTarget(view, descendants)
-      if (!targets.has(target.tag)) targets.set(target.tag, target)
-      return targets.get(target.tag)!
-    }
-    const source = add(current.sourceView, false)!
-    const valid = eligible(current)
-    for (const entry of endpoints.values())
-      if (
-        valid.includes(entry.root) &&
-        entry.root.operation(entry.target, current.types, current.operations, current.source) !== "cancel"
-      ) {
-        add(entry.view(), true)
-        add(entry.activate(), true)
-      }
-    for (const candidate of valid)
-      if (
-        ![...endpoints.values()].some(
-          (entry) =>
-            entry.root === candidate &&
-            entry.view() &&
-            candidate.operation(entry.target, current.types, current.operations, current.source) !== "cancel",
-        )
-      )
-        add(candidate.root.current, false)
-    const selected =
-      current.root && current.target
-        ? add(
-            selectedEndpoint(current)?.view() ?? (current.target.type === "root" ? current.root.root.current : null),
-            current.target.type !== "root",
-          )
-        : source
-    const nativeSelection = !!current.nativeFocusView && selected?.tag === findNodeHandle(current.nativeFocusView)
-    const signature = JSON.stringify([source, selected, [...targets.values()], nativeSelection])
-    if (signature !== current.focusSignature) {
-      current.focusSignature = signature
-      current.focusRevision++
-    }
-    const window = root.scope!.window()
-    return {
-      sessionId: current.id,
-      windowId: window.windowId,
-      epoch: window.epoch,
-      revision: current.focusRevision,
-      source,
-      selected,
-      nativeSelection,
-      targets: [...targets.values()],
-    }
-  },
-  observeNativeFocus: (source: NativeCollectionDragBinding, id: string, tag: number) => {
-    const current = session
-    if (
-      !current ||
-      current.source !== source ||
-      current.id !== id ||
-      current.pending ||
-      !originalSource(current) ||
-      !source.canVirtualAct()
-    )
+  const choice = pending.selected!
+  const sourceWindow = pending.source.scope!.window()
+  const targetWindow = choice.root.scope!.window()
+  const current = () =>
+    request === pending &&
+    originalSource(pending) &&
+    pending.source.current() &&
+    pending.source.canVirtualAct() &&
+    pending.source.scope!.window().canLift &&
+    choice.current() &&
+    choice.root.current() &&
+    choice.root.canVirtualAct() &&
+    choice.root.scope!.window().canDrop &&
+    pending.source.scope!.window().epoch === sourceWindow.epoch &&
+    choice.root.scope!.window().epoch === targetWindow.epoch
+  try {
+    const deadline = nativeDragRuntime.performance.now() + 1000
+    const bounds = await pending.source.measure(pending.key, pending.sourceKind)
+    if (!current() || nativeDragRuntime.performance.now() >= deadline) {
+      clear(pending)
       return
-    if (findNodeHandle(current.sourceView) === tag) return
-    const valid = eligible(current)
-    const endpoint = [...endpoints.values()].find(
-      (entry) =>
-        valid.includes(entry.root) &&
-        (findNodeHandle(entry.view()) === tag || findNodeHandle(entry.activate()) === tag) &&
-        entry.root.operation(entry.target, current.types, current.operations, current.source) !== "cancel",
-    )
-    if (endpoint) select(current, endpoint.root, endpoint.target, false)
-    else {
-      const root = valid.find((entry) => findNodeHandle(entry.root.current) === tag)
-      if (root) select(current, root, initial(current, root), false)
     }
-  },
+    const lifted = pending.source.controller.lift(
+      pending.id,
+      pending.source.sourceOwner(),
+      pending.key,
+      { type: "dragstart", x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 },
+      true,
+    )
+    const active: TSession = {
+      id: pending.id,
+      source: pending.source,
+      sourceView: pending.sourceView,
+      key: pending.key,
+      sourceKind: pending.sourceKind,
+      items: lifted.items,
+      operations: lifted.allowedOperations,
+      types: new Set(lifted.items.flatMap((item) => Object.keys(item))),
+      root: choice.root,
+      target: choice.target,
+      pending: "drop",
+      point: { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 },
+    }
+    session = active
+    if (
+      !current() ||
+      choice.root.virtualTarget(active.id, choice.target, active.types, active.operations) === "cancel"
+    ) {
+      finish(active, "cancel", bounds.x, bounds.y)
+      announce(pending.formatter.format("dropCanceled"))
+      return
+    }
+    const targetBounds = await choice.root.measure(null)
+    if (!current() || session !== active) {
+      finish(active, "cancel", bounds.x, bounds.y)
+      return
+    }
+    const operation = choice.root.operation(choice.target, active.types, active.operations, pending.source)
+    if (operation === "cancel") {
+      finish(active, "cancel", bounds.x, bounds.y)
+      return
+    }
+    const items: TNativeTextDropItem[] = active.items.map((value) => {
+      let live = true
+      const types = new Set(Object.keys(value))
+      return {
+        kind: "text",
+        types,
+        release: () => {
+          live = false
+        },
+        getText: (type) =>
+          !live || !types.has(type)
+            ? Promise.reject(new Error("Native virtual drag data: original representation released or unavailable"))
+            : Promise.resolve(value[type]),
+      }
+    })
+    const point = { x: targetBounds.x + targetBounds.width / 2, y: targetBounds.y + targetBounds.height / 2 }
+    const dropped = choice.root.virtualDrop(active.id, items, point)
+    finish(active, operation, point.x, point.y)
+    await dropped
+    announce(pending.formatter.format("dropComplete"))
+  } catch (error) {
+    if (session?.id === pending.id) {
+      pending.source.controller.retire(pending.source.identity)
+      if (choice.root !== pending.source) choice.root.controller.retireSession(pending.id)
+      session = null
+    }
+    clear(pending)
+    pending.source.fail(error)
+  }
+}
+type TNativeVirtualDrag = {
+  subscribe: (listener: () => void) => () => void
+  snapshot: () => number
+  active: () => TSession | null
+  pendingRequest: () => TNativeAccessibleDropRequest | null
+  isDragging: () => boolean
+  pendingKeys: (root: NativeCollectionDragBinding | null) => Set<TNativeCollectionKey>
+  register: (root: NativeCollectionDragBinding) => () => void
+  endpoint: (owner: object, value: TEndpoint | null) => void
+  start: (
+    source: NativeCollectionDragBinding,
+    key: TNativeCollectionKey,
+    formatter: TNativeDragMessageFormatter,
+    modality: "keyboard" | "virtual",
+    sourceKind?: "source" | "handle",
+  ) => Promise<void>
+  choose: (root: NativeCollectionDragBinding, target: TNativeDropTarget, requestId?: string) => boolean
+  drop: (requestId?: string) => Promise<void>
+  dismissed: (id: string) => void
+  reconcile: (root: NativeCollectionDragBinding) => void
+  retire: (root: NativeCollectionDragBinding) => void
+  cancel: () => Promise<void>
+  key: (event: TNativeKeyboardEvent, up?: boolean) => boolean
+}
+export const nativeVirtualDrag: TNativeVirtualDrag = {
   subscribe: (listener: () => void) => {
     listeners.add(listener)
     return () => {
@@ -396,52 +356,17 @@ export const nativeVirtualDrag = {
   },
   snapshot: () => revision,
   active: () => session,
-  isDragging: () => !!session,
-  retire: (root: NativeCollectionDragBinding) => {
-    if (session?.source === root) {
-      start++
-      clear(session)
-      changed()
-    } else if (session?.root === root) {
-      const current = session
-      current.root = null
-      current.target = null
-      current.generation++
-      const replacement = orderedRoots(current).find((candidate) => candidate !== root)
-      if (replacement) select(current, replacement, initial(current, replacement))
-      else {
-        changed()
-        focus(current)
-      }
-    }
-  },
-  reconcile: (root: NativeCollectionDragBinding) => {
-    const current = session
-    if (!current) return
-    if (!current.source.canVirtualAct() || current.source.scope?.window().canLift !== true) {
-      current.source.retire()
-      return
-    }
-    if (current.pending) return
-    if (!originalSource(current)) {
-      nativeVirtualDrag.retire(current.source)
-      if (current.source.current()) current.source.controller.endSourceOnUnmount(current.source.identity)
-      return
-    }
-    if (current.root !== root) return
-    if (!eligible(current).includes(root)) {
-      const replacement = orderedRoots(current)[0]
-      select(current, replacement ?? null, replacement ? initial(current, replacement) : null)
-    } else if (
-      current.target &&
-      root.operation(current.target, current.types, current.operations, current.source) === "cancel"
-    )
-      select(current, root, initial(current, root))
-    else focus(current)
+  pendingRequest: () => request,
+  isDragging: () => !!request || !!session,
+  pendingKeys: (root: NativeCollectionDragBinding | null) => {
+    const keys = new Set<TNativeCollectionKey>()
+    if (request?.source === root) for (const key of root?.source?.getKeysForDrag(request.key) ?? []) keys.add(key)
+    if (request?.selected?.root === root && request.selected.target.type === "item")
+      keys.add(request.selected.target.key)
+    return keys
   },
   register: (root: NativeCollectionDragBinding) => {
     roots.add(root)
-    changed()
     return () => {
       roots.delete(root)
       nativeVirtualDrag.retire(root)
@@ -450,16 +375,15 @@ export const nativeVirtualDrag = {
   endpoint: (owner: object, value: TEndpoint | null) => {
     if (value) endpoints.set(owner, value)
     else endpoints.delete(owner)
-    if (session && !session.pending) focus(session)
   },
   start: async (
     source: NativeCollectionDragBinding,
     key: TNativeCollectionKey,
     formatter: TNativeDragMessageFormatter,
-    modality: "keyboard" | "virtual",
+    _modality: "keyboard" | "virtual",
     sourceKind: "source" | "handle" = "source",
   ) => {
-    if (session) throw new Error("Cannot begin dragging while already dragging")
+    if (request || session) throw new Error("Cannot begin dragging while already dragging")
     if (
       !source.source ||
       source.source.isDisabled ||
@@ -468,259 +392,121 @@ export const nativeVirtualDrag = {
       !source.canVirtualAct()
     )
       return
-    const view = sourceKind === "handle" ? source.handleView(key) : source.rowView(key)
-    if (!view) throw new Error("Native virtual drag requires its original source view")
-    const intent = ++start,
-      deadline = nativeDragRuntime.performance.now() + 1000,
-      bounds = await source.measure(key, sourceKind)
-    if (
-      intent !== start ||
-      !source.ready() ||
-      !source.canVirtualAct() ||
-      nativeDragRuntime.performance.now() >= deadline ||
-      (sourceKind === "handle" ? source.handleView(key) : source.rowView(key)) !== view
-    )
-      return
-    const id = `${source.id}:virtual:${++serial}`,
-      lifted = source.controller.lift(
-        id,
-        source.sourceOwner(),
-        key,
-        { type: "dragstart", x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 },
-        true,
-      )
-    const current: TSession = {
-      id,
+    const sourceView = sourceKind === "handle" ? source.handleView(key) : source.rowView(key)
+    if (!sourceView) throw new Error("Native accessible drop requires its original source view")
+    const window = source.scope!.window()
+    const choices = choicesFor(source, key, formatter)
+    request = {
+      id: `${source.id}:accessible:${++serial}`,
       source,
       key,
       sourceKind,
-      sourceView: view,
-      items: lifted.items,
-      operations: lifted.allowedOperations,
-      types: new Set(lifted.items.flatMap((item) => Object.keys(item))),
+      sourceView,
       formatter,
-      root: null,
-      target: null,
-      generation: 0,
-      pending: null,
-      requested: null,
-      firstAnnounced: false,
-      unsubscribeFocus: () => {},
-      unsubscribeActivation: () => {},
-      focusRevision: 0,
-      focusSignature: "",
-      focusRequest: null,
-      nativeFocusView: null,
+      phase: "choosing",
+      choices,
+      selected: choices[0] ?? null,
+      sourceCurrent: source.retainAccessibleDropSource(key, sourceKind),
+      windowId: window.windowId,
+      surfaceId: window.surfaceId,
+      scopeTarget: window.scopeTarget,
+      modalDismissed: false,
+      outcome: null,
+      release: () => {},
     }
-    session = current
-    current.unsubscribeFocus = subscribeNativeFocus(() => observeFocus(current))
-    current.unsubscribeActivation = registerNativeActivationPolicy((view, event) => {
-      if (
-        session !== current ||
-        !originalSource(current) ||
-        event.nativeEvent.windowId !== current.source.scope?.window().windowId
-      )
-        return false
-      if (event.nativeEvent.target !== findNodeHandle(view)) return true
-      const actor = [current.source, ...roots].find((root) => root.scope?.ownerId === event.nativeEvent.scopeOwnerId)
-      const keyboard = actor?.scope?.activationSession()
-      if (actor && (keyboard?.windowId !== event.nativeEvent.windowId || keyboard.epoch !== event.nativeEvent.epoch))
-        return true
-      if (current.pending) return true
-      const valid = eligible(current)
-      const allowed = [...endpoints.values()].filter(
-        (entry) =>
-          valid.includes(entry.root) &&
-          entry.root.operation(entry.target, current.types, current.operations, current.source) !== "cancel",
-      )
-      const activation = allowed.find((entry) => {
-        const button = entry.activate()
-        return button && containsNativeView(button, view)
-      })
-      if (activation && nativeVirtualDrag.choose(activation.root, activation.target))
-        nativeVirtualDrag.activate().catch((error) => current.source.fail(error))
-      else if (view === current.sourceView) nativeVirtualDrag.cancel().catch((error) => current.source.fail(error))
-      else {
-        const endpoint = allowed.reduce<TEndpoint | null>((selected, entry) => {
-          const target = entry.view()
-          return target &&
-            containsNativeView(target, view) &&
-            (!selected || containsNativeView(selected.view()!, target))
-            ? entry
-            : selected
-        }, null)
-        if (endpoint && nativeVirtualDrag.choose(endpoint.root, endpoint.target))
-          nativeVirtualDrag.drop().catch((error) => current.source.fail(error))
-      }
-      return true
-    })
     changed()
-    nativeDragRuntime.requestAnimationFrame(() => {
-      if (session !== current) return
-      announce(formatter.format(modality === "keyboard" ? "dragStartedKeyboard" : "dragStartedVirtual"))
-      if (modality === "keyboard") {
-        try {
-          nativeVirtualDrag.cycle(1)
-        } catch (error) {
-          failure(current, error)
-        }
-      }
-    })
   },
-  cycle: (direction: 1 | -1) => {
-    const current = session
-    if (!current || current.pending) return
-    if (!originalSource(current)) {
-      nativeVirtualDrag.retire(current.source)
-      return
-    }
-    const ordered = orderedRoots(current)
-    const previous = current.root ? ordered.indexOf(current.root) : -1
-    const index = previous >= 0 ? previous + direction : direction > 0 ? 0 : ordered.length - 1
-    if (index < 0 || index >= ordered.length) {
-      select(current, null, null)
-      return
-    }
-    const root = ordered[index]
-    select(current, root, initial(current, root))
-  },
-  choose: (root: NativeCollectionDragBinding, target: TNativeDropTarget) => {
-    const current = session
+  choose: (root: NativeCollectionDragBinding, target: TNativeDropTarget, requestId?: string) => {
+    const pending = request
     if (
-      !current ||
-      current.pending ||
-      !eligible(current).includes(root) ||
-      root.operation(target, current.types, current.operations, current.source) === "cancel"
+      !pending ||
+      (requestId !== undefined && pending.id !== requestId) ||
+      pending.phase !== "choosing" ||
+      !originalSource(pending)
     )
       return false
-    select(current, root, target)
+    const choice = pending.choices.find((entry) => entry.root === root && equal(entry.target, target))
+    if (!choice || !choice.current()) return false
+    pending.selected = choice
+    changed()
     return true
   },
-  cancel: async () => {
-    start++
-    const current = session
-    if (!current || current.pending === "cancel") return
-    current.pending = "cancel"
-    try {
-      const bounds = await current.source.measure(current.key, current.sourceKind)
-      if (session !== current || !originalSource(current)) return
-      finish(current, "cancel", bounds.x + bounds.width / 2, bounds.y + bounds.height / 2)
-      if (originalSource(current)) requestFocus(current.sourceView)
-      announce(current.formatter.format("dropCanceled"))
-    } catch (error) {
-      failure(current, error)
-    }
-  },
-  drop: async () => {
-    const current = session,
-      root = current?.root,
-      target = current?.target
-    if (!current || current.pending) return
-    if (!root || !target) {
-      await nativeVirtualDrag.cancel()
+  drop: async (requestId?: string) => {
+    if (
+      !request ||
+      (requestId !== undefined && request.id !== requestId) ||
+      request.phase !== "choosing" ||
+      !request.selected ||
+      !originalSource(request)
+    )
+      return
+    if (!request.selected.current()) {
+      const retired = request
+      clear(retired)
+      announce(retired.formatter.format("dropCanceled"))
       return
     }
-    current.pending = "drop"
-    const generation = current.generation
-    try {
-      const bounds = await root.measure(null)
-      if (
-        session !== current ||
-        current.pending !== "drop" ||
-        current.generation !== generation ||
-        !root.current() ||
-        !originalSource(current)
-      )
-        return
-      const operation = root.operation(target, current.types, current.operations, current.source)
-      if (operation === "cancel") {
-        current.pending = null
-        await nativeVirtualDrag.cancel()
-        return
-      }
-      root.virtualTarget(current.id, target, current.types, current.operations)
-      const items: TNativeTextDropItem[] = current.items.map((value) => {
-        let live = true
-        const types = new Set(Object.keys(value))
-        return {
-          kind: "text",
-          types: new Set(types),
-          release: () => {
-            live = false
-          },
-          getText: (type) => {
-            if (!live || !types.has(type))
-              return Promise.reject(
-                new Error("Native virtual drag data: original representation released or unavailable"),
-              )
-            return Promise.resolve(value[type])
-          },
-        }
-      })
-      const point = { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 }
-      const pending = root.virtualDrop(current.id, items, point)
-      finish(current, operation, point.x, point.y)
-      announce(current.formatter.format("dropComplete"))
-      await pending
-    } catch (error) {
-      if (session === current) failure(current, error)
-      else root.fail(error)
+    request.phase = "closing"
+    changed()
+  },
+  dismissed: (id: string) => {
+    const pending = request
+    if (!pending || pending.id !== id || pending.phase !== "closing") return
+    pending.modalDismissed = true
+    const scopes = new Set([pending.source.scope, pending.selected?.root.scope])
+    const unsubscribe = [...scopes].flatMap((scope) =>
+      scope
+        ? [
+            scope.subscribe(() => {
+              void run(pending)
+            }),
+          ]
+        : [],
+    )
+    pending.release = () => {
+      for (const dispose of unsubscribe) dispose()
     }
+    pending.phase = "waiting"
+    changed()
+    void run(pending)
+  },
+  reconcile: (_root: NativeCollectionDragBinding) => {
+    const pending = request
+    if (!pending) return
+    if (!originalSource(pending) || (pending.selected && !pending.selected.current())) {
+      clear(pending)
+      return
+    }
+    void run(pending)
+  },
+  retire: (root: NativeCollectionDragBinding) => {
+    const pending = request
+    if (!pending) return
+    // Native window coverage retires transport leases, not the pending modal request.
+    if (!originalSource(pending) || (pending.selected?.root === root && !pending.selected.current())) clear(pending)
+  },
+  cancel: async () => {
+    const pending = request
+    if (!pending) return
+    if (session) {
+      const current = session
+      finish(current, "cancel", current.point.x, current.point.y)
+    } else clear(pending)
+    if (pending.sourceCurrent() && pending.source.canVirtualAct()) focusNativeTarget(pending.sourceView)
+    announce(pending.formatter.format("dropCanceled"))
   },
   key: (event: TNativeKeyboardEvent, up = false) => {
-    const current = session
-    if (!current) return false
-    if (!originalSource(current)) {
-      nativeVirtualDrag.reconcile(current.source)
-      return false
+    const pending = request
+    if (!pending || event.nativeEvent.target !== findNodeHandle(pending.sourceView)) return false
+    if (event.nativeEvent.key === "Escape" && !up) {
+      event.preventDefault()
+      event.stopPropagation()
+      void nativeVirtualDrag.cancel().catch((error) => pending.source.fail(error))
+      return true
     }
-    const phases = handled.get(event) ?? new Set<boolean>()
-    if (phases.has(up)) return true
-    phases.add(up)
-    handled.set(event, phases)
+    if (event.nativeEvent.key !== "Enter") return false
     event.preventDefault()
     event.stopPropagation()
-    if (current.pending) return true
-    const data = event.nativeEvent
-    if (up) {
-      if (data.key === "Enter") {
-        const activate = selectedEndpoint(current)?.activate()
-        if (data.altKey || (activate && findNodeHandle(activate) === data.target))
-          nativeVirtualDrag.activate().catch((error) => current.source.fail(error))
-        else nativeVirtualDrag.drop().catch((error) => current.source.fail(error))
-      }
-      return true
-    }
-    if (data.key === "Escape") {
-      nativeVirtualDrag.cancel().catch((error) => current.source.fail(error))
-      return true
-    }
-    if (data.key === "Tab" && !data.altKey && !data.ctrlKey && !data.metaKey)
-      nativeVirtualDrag.cycle(data.shiftKey ? -1 : 1)
-    const root = current.root
-    if (root?.target) {
-      const target = nativeVirtualDropTargetForKey(
-        data.key,
-        root.target.collection,
-        delegate(root),
-        current.target,
-        (target) => root.operation(target, current.types, current.operations, current.source) !== "cancel",
-        root.dropOptions.direction === "rtl",
-      )
-      if (target !== undefined) select(current, root, target)
-      root.dropOptions.onKeyDown?.(event)
-    }
     return true
   },
-  activate: async () => {
-    const current = session,
-      root = current?.root,
-      target = current?.target
-    if (!current || current.pending || !root || target?.type !== "item" || target.dropPosition !== "on") return
-    const generation = current.generation,
-      bounds = await root.measure(null)
-    if (session === current && current.generation === generation && root.current())
-      root.virtualActivate(current.id, { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 })
-  },
-  focus,
 }
