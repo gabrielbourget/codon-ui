@@ -1,17 +1,7 @@
-import {
-  forwardRef,
-  useContext,
-  useEffect,
-  useInsertionEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type Ref,
-} from "react"
+import { forwardRef, useEffect, useInsertionEffect, useRef, useState, type Ref } from "react"
 import { findNodeHandle, TextInput, type StyleProp, type TextStyle } from "react-native"
 
 import { useNativeCollectionRefs, useNativeContextProps } from "../../collection/context"
-import { NativeFieldInputContext, receiveNativeFieldKey, type TNativeFieldKeyEvent } from "../../input/fieldInput"
 import { useNativeKeyboardObservation, useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { useNativeOrdinaryEditorKeys } from "../../input/ordinaryEditorKeys"
 import { NativeInput } from "../Input/Input"
@@ -20,15 +10,7 @@ import type { TNativeInputRenderState } from "../Input/types"
 import { NativeComboBoxInputContext } from "./collectionContext"
 import type { TNativeComboBoxInputProps, TNativeComboBoxInputRenderState } from "./collectionInputTypes"
 import type { TNativeCollectionComboBoxProps, TNativeComboBoxSubmitEvent } from "./collectionTypes"
-import { NativeComboBoxEditorKeysContext } from "./editorKeys"
 import type { ComboBoxState } from "./state/types"
-import type { TNativeComboBoxKeyboardEvent } from "./types"
-
-const isOriginalEditorKey = (
-  event: TNativeFieldKeyEvent,
-): event is TNativeFieldKeyEvent & TNativeComboBoxKeyboardEvent =>
-  typeof (event.nativeEvent as TNativeFieldKeyEvent["nativeEvent"] & { isComposing?: unknown }).isComposing ===
-  "boolean"
 
 export const useNativeComboBoxInputProps = <T extends object>({
   owner,
@@ -193,10 +175,7 @@ export const NativeComboBoxInput = forwardRef<TextInput, TNativeComboBoxInputPro
     ...input
   } = props
   const scope = useNativeKeyScope()
-  const fieldInput = useContext(NativeFieldInputContext)
-  const editorKeys = useContext(NativeComboBoxEditorKeysContext)
   const hasKeyCallbacks = !!(props.onKeyDown || props.onKeyUp)
-  useLayoutEffect(() => (hasKeyCallbacks ? editorKeys?.register() : undefined), [editorKeys, hasKeyCallbacks])
   const [hovered, setHovered] = useState(false)
   const [focused, setFocused] = useState(false)
   const [focusVisible, setFocusVisible] = useState(false)
@@ -218,7 +197,7 @@ export const NativeComboBoxInput = forwardRef<TextInput, TNativeComboBoxInputPro
   const ref = useNativeCollectionRefs(inheritedRef, observedRef)
   const receiveOrdinaryKey = useNativeOrdinaryEditorKeys(
     ordinaryTarget,
-    hasKeyCallbacks && !fieldInput && !props.isDisabled,
+    hasKeyCallbacks && !props.isDisabled,
     `${!!props.isDisabled}:${!!props.isReadOnly}`,
     {
       current: () => original.current,
@@ -271,35 +250,7 @@ export const NativeComboBoxInput = forwardRef<TextInput, TNativeComboBoxInputPro
         ref={ref}
         style={typeof style === "function" ? (state) => style({ ...state, ...values(state) }) : style}
         nativeRender={(native, state) => {
-          const hostProps = fieldInput
-            ? {
-                ...native,
-                onNativeFieldKey: (event: TNativeFieldKeyEvent) => {
-                  const target = original.current && findNodeHandle(original.current)
-                  if (
-                    !active() ||
-                    !target ||
-                    current.current.isDisabled ||
-                    !isOriginalEditorKey(event) ||
-                    event.nativeEvent.target !== target
-                  )
-                    return
-                  if (event.target !== original.current || event.currentTarget !== original.current) return
-                  receiveNativeFieldKey(fieldInput, event, {
-                    target,
-                    group: false,
-                    run: () => {
-                      if (event.nativeEvent.phase === "down") editorKeys?.ownedKeyDown(event)
-                      const callback =
-                        event.nativeEvent.phase === "down" ? current.current.onKeyDown : current.current.onKeyUp
-                      if (active()) callback?.(event)
-                    },
-                  })
-                },
-              }
-            : hasKeyCallbacks
-              ? { ...native, onNativeOrdinaryEditorKey: receiveOrdinaryKey }
-              : native
+          const hostProps = hasKeyCallbacks ? { ...native, onNativeOrdinaryEditorKey: receiveOrdinaryKey } : native
           return render ? render(hostProps, values(state)) : <TextInput {...hostProps} />
         }}
         onPointerEnter={(event) => {

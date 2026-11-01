@@ -266,7 +266,12 @@ export const NativeDatePickerView = (
       (latest.current.props.extraFocusParticipants?.some((ref) => ref.current === target) ?? false),
     onContainedKeyDown: (event) => {
       const key = event.nativeEvent
-      if (key.altKey && (key.key === "ArrowDown" || key.key === "ArrowUp")) {
+      const ownedSegment = currentOriginal()?.segments.some((row) => row.original === event.target) ?? false
+      if (
+        key.altKey &&
+        (key.key === "ArrowDown" || key.key === "ArrowUp") &&
+        (ownedSegment || !key.nativeDefaultHandled)
+      ) {
         event.preventDefault()
         event.stopPropagation()
         state.setOpen(true)

@@ -10,12 +10,9 @@ import {
   screen,
 } from "../../../collection/__tests__/nativeReceipts"
 import { CompactTypeaheadSearch, TagComboBox, type TNativeComboBoxKeyboardEvent } from "../../../index"
-import {
-  NativeFieldInputContext,
-  type TNativeFieldInputScope,
-  type TNativeFieldKeyEvent,
-} from "../../../input/fieldInput"
+import { NativeFieldInputContext, type TNativeFieldInputScope } from "../../../input/fieldInput"
 import type { TNativeFieldInputPlan } from "../../../input/fieldInputBinding"
+import type { TNativeOrdinaryEditorKeyEvent } from "../../../input/ordinaryEditorKeys"
 import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
 import { NativeThemeProvider } from "../../../theme"
@@ -29,46 +26,18 @@ jest.mock("../../../input/specs/CUIFieldBindingNativeComponent", () => ({
   __esModule: true,
   default: jest.requireActual("react-native").View,
 }))
-const mockPlans = new Map<string, TNativeFieldInputPlan>()
+const mockFieldEnrollment = jest.fn()
 const mockNative = {
   getLease: () => "original-editor-module",
   acceptsField: jest.fn((_request: string) => true),
   settleField: jest.fn((_request: string) => true),
   moveFieldFocus: jest.fn(),
 }
-// The native frame is an explicit model; these cases prove receiver wiring,
-// original event/ref custody and acknowledgements, not installed defaults.
+// A deliberately retained legacy ancestor cannot switch a migrated editor back to the retired transaction route.
 jest.mock("../../../input/useFieldInputBinding", () => ({
-  useNativeFieldInputBinding: (plan: TNativeFieldInputPlan | null, enabled = true) => {
-    const React = jest.requireActual<typeof import("react")>("react")
-    const committed = React.useRef<TNativeFieldInputPlan | null>(null)
-    React.useInsertionEffect(() => {
-      committed.current = enabled ? plan : null
-      if (enabled && plan) mockPlans.set(plan.bindingId, plan)
-    })
-    React.useInsertionEffect(
-      () => () => {
-        committed.current = null
-      },
-      [],
-    )
-    const scope = React.useMemo<TNativeFieldInputScope | null>(
-      () =>
-        plan && enabled
-          ? {
-              bindingId: plan.bindingId,
-              bindingRevision: plan.bindingRevision,
-              current: () => committed.current === plan,
-              native: mockNative,
-            }
-          : null,
-      [plan, enabled],
-    )
-    return {
-      scope,
-      metadata: { binding: () => "", commit: () => {}, receive: () => {} },
-      status: { ready: !!scope, pending: false, error: "" },
-    }
+  useNativeFieldInputBinding: (_plan: TNativeFieldInputPlan | null, enabled = true) => {
+    mockFieldEnrollment(enabled)
+    return { scope: null, metadata: { binding: () => "", commit: () => {}, receive: () => {} } }
   },
 }))
 
@@ -82,7 +51,6 @@ let previousFind: typeof RN.findNodeHandle
 let eventId = 0
 beforeEach(() => {
   jest.useFakeTimers()
-  mockPlans.clear()
   jest.clearAllMocks()
   previousFind = RN.findNodeHandle
   const targets = new WeakMap<object, number>()
@@ -179,57 +147,50 @@ const setup = async (kind: "compact" | "tags", prevent = true) => {
       }),
     )
   }
-  const plan = [...mockPlans.values()].at(-1)!
-  expect(plan).toBeDefined()
+  const host = row("editor-host").props
+  const binding = host.ordinaryEditorBindings.find(
+    (value: { targetTag: number }) => value.targetTag === RN.findNodeHandle(input.current),
+  )
+  expect(binding).toBeDefined()
+  await act(() =>
+    host.onNativeOrdinaryEditorStatus({
+      nativeEvent: {
+        ...binding,
+        target: binding.targetTag,
+        ownerId: host.ownerId,
+        windowId: "original-editor-window",
+        epoch: 1,
+        sequence: 1,
+        ready: true,
+        windowActive: true,
+        error: "",
+      },
+    }),
+  )
   expect(input.current).not.toBeNull()
   const inputID = kind === "compact" ? "type-ahead-search-input" : "combo-box-input"
-  expect(row(inputID).props.onNativeFieldKey).toEqual(expect.any(Function))
-  return { ...result, input, inputID, node, plan, down, up, query, open, sources }
+  expect(row(inputID).props.onNativeOrdinaryEditorKey).toEqual(expect.any(Function))
+  expect(row(inputID).props.onNativeFieldKey).toBeUndefined()
+  expect(mockFieldEnrollment).not.toHaveBeenCalled()
+  expect(mockNative.settleField).not.toHaveBeenCalled()
+  return { ...result, input, inputID, node, binding, ownerId: host.ownerId, down, up, query, open, sources }
 }
+
 const originalKey = (f: Awaited<ReturnType<typeof setup>>, phase: "down" | "up", key = "z", composing = false) => {
-  const { plan } = f
   const serial = ++eventId
-  const packet = {
-    moduleLease: mockNative.getLease(),
-    token: serial,
-    eventId: serial,
-    phase,
-    identity: {
-      ownerId: plan.bindingId,
-      bindingId: plan.bindingId,
-      bindingRevision: plan.bindingRevision,
-      metadataTarget: 17,
-      outerTarget: plan.outerTarget,
-      inputTarget: plan.inputTarget,
-      surfaceId: 11,
-      target: plan.originalTarget,
-      documentId: "original-editor-document",
-      documentRevision: "1",
-      windowId: "original-editor-window",
-      mountRevision: "1",
-      outerInstance: "original-root",
-      inputInstance: "original-input",
-      nativeInstance: "original-editor",
-      editorInstance: "original-sdk-editor",
-      epoch: 1,
-    },
-    groups: [plan.inputTarget, plan.outerTarget].map((target) => ({
-      target,
-      bindingId: plan.bindingId,
-      bindingRevision: plan.bindingRevision,
-      scopeTarget: plan.outerTarget,
-      containsTarget: true,
-    })),
-  }
-  let prevented = false,
-    stopped = false
+  let prevented = false
   return {
     nativeEvent: {
+      ...f.binding,
+      target: f.binding.targetTag,
+      ownerId: f.ownerId,
+      windowId: "original-editor-window",
+      epoch: 1,
       kind: "keyboard",
-      ownerId: plan.bindingId,
-      target: plan.originalTarget,
+      eventId: serial,
       key,
       code: "KeyZ",
+      location: 0,
       nativeCode: 29,
       characters: key,
       phase,
@@ -244,7 +205,6 @@ const originalKey = (f: Awaited<ReturnType<typeof setup>>, phase: "down" | "up",
       nativeModifierData: "1",
       nativeDefaultHandled: false,
       timestamp: serial,
-      fieldDispatch: JSON.stringify(packet),
     },
     target: f.input.current,
     currentTarget: f.input.current,
@@ -254,28 +214,17 @@ const originalKey = (f: Awaited<ReturnType<typeof setup>>, phase: "down" | "up",
     preventDefault: () => {
       prevented = true
     },
-    stopPropagation: () => {
-      stopped = true
-    },
+    stopPropagation: jest.fn(),
     isDefaultPrevented: () => prevented,
-    isPropagationStopped: () => stopped,
+    isPropagationStopped: () => false,
     persist: jest.fn(),
-  } as unknown as TNativeFieldKeyEvent & TNativeComboBoxKeyboardEvent
+  } as unknown as TNativeOrdinaryEditorKeyEvent
 }
-const deliver = async (f: Awaited<ReturnType<typeof setup>>, event: ReturnType<typeof originalKey>) => {
-  await act(() => {
-    row(f.inputID).props.onNativeFieldKey(event)
-    if (event.isPropagationStopped()) return
-    for (const target of [f.plan.input, f.plan.outer]) {
-      ;(event as TNativeFieldKeyEvent).currentTarget = target
-      const id = f.inputID === "type-ahead-search-input" ? "type-ahead-search" : "combo-box"
-      row(target === f.plan.input ? `${id}-group` : id).props.onNativeFieldKey(event)
-    }
-  })
-}
+const deliver = async (f: Awaited<ReturnType<typeof setup>>, event: TNativeOrdinaryEditorKeyEvent) =>
+  act(() => row(f.inputID).props.onNativeOrdinaryEditorKey(event))
 
-describe.each(["compact", "tags"] as const)("%s legacy-ancestor editor key contract", (kind) => {
-  it("delivers both original phases once and acknowledges the caller's text-default veto", async () => {
+describe.each(["compact", "tags"] as const)("%s migrated editor beneath a legacy ancestor", (kind) => {
+  it("delivers both original phases once without native text-default settlement", async () => {
     const f = await setup(kind)
     const down = originalKey(f, "down"),
       up = originalKey(f, "up")
@@ -294,29 +243,27 @@ describe.each(["compact", "tags"] as const)("%s legacy-ancestor editor key contr
     expect(f.input.current).toBe(original)
     expect(f.query).not.toHaveBeenCalled()
     expect(row(f.inputID).props.value).toBe("held")
-    const acknowledgements = mockNative.settleField.mock.calls.map(([request]) => JSON.parse(request))
-    expect(acknowledgements.map(({ phase, preventDefault }) => [phase, preventDefault])).toEqual([
-      ["down", true],
-      ["up", false],
-    ])
+    expect(down.defaultPrevented).toBe(true)
+    expect(mockNative.settleField).not.toHaveBeenCalled()
+    expect(mockFieldEnrollment).not.toHaveBeenCalled()
   })
-  it("rejects a foreign editor receiver and duplicate delivery of a settled original event", async () => {
+  it("rejects a foreign receiver and duplicate delivery of an original event", async () => {
     const f = await setup(kind)
     const foreign = originalKey(f, "down")
     foreign.currentTarget = {} as RN.TextInput
-    await act(() => row(f.inputID).props.onNativeFieldKey(foreign))
+    await act(() => row(f.inputID).props.onNativeOrdinaryEditorKey(foreign))
     expect(f.down).not.toHaveBeenCalled()
     const original = originalKey(f, "down")
     await deliver(f, original)
     original.currentTarget = f.input.current!
     await deliver(f, original)
     expect(f.down).toHaveBeenCalledTimes(1)
-    expect(mockNative.settleField).toHaveBeenCalledTimes(1)
+    expect(mockNative.settleField).not.toHaveBeenCalled()
   })
   it("retires old event delivery after a guard replacement", async () => {
     const f = await setup(kind)
     const event = originalKey(f, "down")
-    const previous = row(f.inputID).props.onNativeFieldKey
+    const previous = row(f.inputID).props.onNativeOrdinaryEditorKey
     await f.rerender(f.node(true))
     await act(() => previous(event))
     expect(f.down).not.toHaveBeenCalled()
@@ -328,6 +275,7 @@ describe.each(["compact", "tags"] as const)("%s legacy-ancestor editor key contr
     expect(f.down).toHaveBeenCalledTimes(1)
     expect(f.down.mock.calls[0][0].nativeEvent.isComposing).toBe(true)
     expect(f.open).not.toHaveBeenCalled()
-    expect(JSON.parse(mockNative.settleField.mock.calls[0][0]).preventDefault).toBe(false)
+    expect(f.down.mock.calls[0][0].nativeEvent.nativeDefaultHandled).toBe(false)
+    expect(mockNative.settleField).not.toHaveBeenCalled()
   })
 })

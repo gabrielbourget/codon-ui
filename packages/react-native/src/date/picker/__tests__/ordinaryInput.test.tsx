@@ -351,3 +351,35 @@ it.each(["single", "range"] as const)(
     ).toBeTruthy()
   },
 )
+
+it.each(["single", "range"] as const)("preserves nested native key ownership in the %s picker", async (kind) => {
+  const f = await setup(kind, { composition: "icon" })
+  const prefix = kind === "single" ? "datetime-picker" : "datetime-range-picker"
+  const group = row(`${prefix}-group`)
+  const original = f.custom.current!
+  expect(original).not.toBeNull()
+  const event = (captured: boolean) => ({
+    target: original,
+    currentTarget: f.root.current,
+    nativeEvent: {
+      ...keyPacket({ key: "ArrowDown", altKey: true }),
+      target: jest.requireActual<typeof RN>("react-native").findNodeHandle(original)!,
+      nativeDefaultHandled: captured,
+    },
+    preventDefault: jest.fn(),
+    stopPropagation: jest.fn(),
+    isPropagationStopped: () => false,
+    persist: jest.fn(),
+  })
+  const captured = event(true)
+  await act(() => group.props.nativeOrdinaryGroupKeyHandler(captured))
+  expect(screen.queryByTestId(`${prefix}-calendar`, hidden)).toBeNull()
+  expect(captured.preventDefault).not.toHaveBeenCalled()
+  expect(captured.stopPropagation).not.toHaveBeenCalled()
+  expect(f.custom.current).toBe(original)
+  const unclaimed = event(false)
+  await act(() => group.props.nativeOrdinaryGroupKeyHandler(unclaimed))
+  expect(screen.getByTestId(`${prefix}-calendar`, hidden)).toBeTruthy()
+  expect(unclaimed.stopPropagation).toHaveBeenCalled()
+  expect(f.custom.current).toBe(original)
+})

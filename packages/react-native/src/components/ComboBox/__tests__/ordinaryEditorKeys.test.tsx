@@ -167,8 +167,7 @@ const setup = async (kind: "compact" | "tags", prevent = true) => {
   const inputID = kind === "compact" ? "type-ahead-search-input" : "combo-box-input"
   expect(row(inputID).props.onNativeOrdinaryEditorKey).toEqual(expect.any(Function))
   expect(row(inputID).props.onNativeFieldKey).toBeUndefined()
-  expect(mockFieldEnrollment).toHaveBeenCalled()
-  expect(mockFieldEnrollment.mock.calls.every(([enabled]) => !enabled)).toBe(true)
+  expect(mockFieldEnrollment).not.toHaveBeenCalled()
   return {
     ...result,
     input,
