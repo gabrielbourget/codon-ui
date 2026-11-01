@@ -111,11 +111,24 @@ export type TNativeMenuItemProps = Omit<
   descriptionLabel?: string
   render?: (props: TNativeFocusViewProps & RefAttributes<View>, state: TNativeMenuItemState) => ReactElement
 }
+export const NATIVE_MENU_SEPARATOR_ORIENTATIONS = ["horizontal", "vertical"] as const
+export type TNativeMenuSeparatorOrientation = (typeof NATIVE_MENU_SEPARATOR_ORIENTATIONS)[number]
+export type TNativeMenuSeparatorLabels = Readonly<Record<TNativeMenuSeparatorOrientation, string>>
 export type TNativeMenuSeparatorProps = Omit<
   ViewProps,
-  "children" | "style" | "role" | "accessibilityRole" | "accessible"
+  "children" | "style" | "role" | "accessibilityRole" | "accessible" | "focusable" | "tabIndex"
 > & {
   slot?: string | null
+  orientation?: TNativeMenuSeparatorOrientation
+  focusable?: false
+  tabIndex?: -1
+  labels?: Partial<TNativeMenuSeparatorLabels>
+  ariaDescribedBy?: string | readonly string[]
+  ariaDetails?: string | readonly string[]
+  "aria-describedby"?: string
+  "aria-details"?: string
+  descriptionLabel?: string
+  detailsLabel?: string
   render?: (props: ViewProps & RefAttributes<View>, state: undefined) => ReactElement
   customStyles?: StyleProp<ViewStyle>
   style?: StyleProp<ViewStyle>

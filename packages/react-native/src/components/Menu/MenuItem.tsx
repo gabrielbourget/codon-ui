@@ -9,7 +9,7 @@ import {
   useState,
   useCallback,
 } from "react"
-import { findNodeHandle, View, type TextStyle } from "react-native"
+import { Easing, findNodeHandle, StyleSheet, View, type TextStyle } from "react-native"
 
 import { NativeCollectionActionsContext } from "../../collection/actions"
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
@@ -24,12 +24,14 @@ import { NativeCollectionSemanticsContext } from "../../collection/semantics"
 import type { TNativeCollectionNode } from "../../collection/snapshot"
 import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
 import { nativeKeyTokens } from "../../input/keyScope"
+import { NativeFocusView } from "../../input/NativeFocusView"
 import { useNativeKeyPolicy } from "../../input/NativeKeyboardScope"
 import type { TNativeKeyboardEvent } from "../../input/types"
 import { useNativeTheme } from "../../theme"
 import { NativeButton } from "../Button/Button"
 import { getNativeButtonContent } from "../Button/content"
 import type { TNativeButtonRenderState } from "../Button/types"
+import { useNativeLinkColor } from "../Link/motion"
 import type { TNativeTextRef } from "../Text/types"
 
 import {
@@ -60,6 +62,18 @@ const textContent = (value: TNativeMenuItemProps["children"]): string => {
   if (Array.isArray(value)) return value.map(textContent).join("")
   return ""
 }
+const backgroundEasing = Easing.bezier(0.42, 0, 0.58, 1)
+type TMenuItemHostProps = Parameters<NonNullable<TNativeMenuItemProps["render"]>>[0] & {
+  nativeRender?: TNativeMenuItemProps["render"]
+  nativeRenderState: TNativeMenuItemState
+}
+const MenuItemHost = forwardRef<View, TMenuItemHostProps>(({ nativeRender, nativeRenderState, ...native }, ref) => {
+  const style = StyleSheet.flatten(native.style)
+  const backgroundColor = useNativeLinkColor(style?.backgroundColor ?? "transparent", 250, backgroundEasing)
+  const props = { ...native, ref, style: [native.style, { backgroundColor }] }
+  return nativeRender ? nativeRender(props, nativeRenderState) : <NativeFocusView {...props} />
+})
+
 const SubmenuKeyBinding = ({
   targetTag,
   direction,
@@ -274,7 +288,9 @@ const MenuItemReceiver = forwardRef<
           {...native}
           key={lifetime}
           ref={nativeRef}
-          nativeRender={render ? (props, flags) => render(props, stateFor(flags)) : undefined}
+          nativeRender={(props, flags) => (
+            <MenuItemHost {...props} nativeRender={render} nativeRenderState={stateFor(flags)} />
+          )}
           nativeID={submenu?.triggerID ?? props.nativeID}
           nativeRole={role}
           focusable={context.virtualFocus ? false : props.focusable}

@@ -156,3 +156,32 @@ export const separatorDefaults = (
     <MenuSeparator slot={null} />
   </NativeMenuSeparatorContext.Provider>
 )
+
+export const nativeSeparator = (
+  <MenuSeparator
+    ref={ref}
+    orientation="vertical"
+    focusable={false}
+    tabIndex={-1}
+    labels={{ vertical: "Verticale" }}
+    ariaDescribedBy={["description"]}
+    aria-details="details"
+    descriptionLabel="Résumé"
+    accessibilityValue={{ text: "Authored value" }}
+    render={(props, state) => {
+      const noState: undefined = state
+      void noState
+      return <NativeFocusView {...props} />
+    }}
+  />
+)
+// @ts-expect-error Native separators have only the two implemented axes.
+export const invalidSeparatorAxis = <MenuSeparator orientation="diagonal" />
+// @ts-expect-error DOM tag selection maps to the explicit native renderer, not an HTML string.
+export const invalidSeparatorElement = <MenuSeparator elementType="hr" />
+// @ts-expect-error Localized orientation labels are strings.
+export const invalidSeparatorLabels = <MenuSeparator labels={{ vertical: 1 }} />
+// @ts-expect-error Separator hardware focus is owned by the noninteractive counterpart.
+export const invalidSeparatorFocus = <MenuSeparator focusable />
+// @ts-expect-error Separators cannot opt into hardware Tab traversal.
+export const invalidSeparatorTab = <MenuSeparator tabIndex={0} />

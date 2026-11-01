@@ -353,7 +353,7 @@ export {
 } from "./components/Menu/content"
 export type { TNativeMenuTextProps } from "./components/Menu/content"
 export type { TNativeRootMenuTriggerState, TNativeSubmenuTriggerState } from "./components/Menu/triggerState"
-export { NATIVE_MENU_ITEM_VARIANTS } from "./components/Menu/types"
+export { NATIVE_MENU_ITEM_VARIANTS, NATIVE_MENU_SEPARATOR_ORIENTATIONS } from "./components/Menu/types"
 export type {
   TNativeMenuProps,
   TNativeMenuProps as MenuProps,
@@ -366,6 +366,8 @@ export type {
   TNativeMenuItemVariant as MenuItemVariant,
   TNativeMenuSeparatorProps,
   TNativeMenuSeparatorProps as MenuSeparatorProps,
+  TNativeMenuSeparatorOrientation,
+  TNativeMenuSeparatorLabels,
   TNativeMenuSectionProps,
   TNativeMenuHeaderProps,
   TNativeMenuListProps,

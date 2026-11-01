@@ -14,13 +14,14 @@ import {
   NativeCollectionRendererContext,
   type TNativeCollectionRootProps,
 } from "../../../collection/renderer"
-import { NativeFocusHost } from "../../../input/NativeFocusView"
+import { NativeFocusHost, NativeFocusView } from "../../../input/NativeFocusView"
 import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
 import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
 import { NativeThemeProvider } from "../../../theme"
 import { resolveNativeTheme } from "../../../theme/defaults"
 import { Button } from "../../Button/Button"
+import { NativePopoverContext } from "../../ClickPopover/context"
 import { encodeCollectionKey } from "../../collection"
 import { Text } from "../../Text/Text"
 import { MenuText, MenuKeyboardShortcut, NativeMenuSelectionIndicatorContext } from "../content"
@@ -37,8 +38,9 @@ import { MenuHeader } from "../MenuHeader"
 import { MenuItem } from "../MenuItem"
 import { MenuSection } from "../MenuSection"
 import { MenuSeparator } from "../MenuSeparator"
+import { getNativeMenuSeparatorStyle } from "../styles"
 import { SubmenuTrigger } from "../SubmenuTrigger"
-import type { TNativeMenuProps, TNativeMenuItemState } from "../types"
+import type { TNativeMenuProps, TNativeMenuItemState, TNativeMenuSeparatorProps } from "../types"
 
 jest.mock("react-native-safe-area-context", () => ({
   SafeAreaProvider: jest.requireActual("react-native").View,
@@ -931,6 +933,91 @@ it("retires and restores the actual section header relationship without replacin
   expect(header.current).not.toBeNull()
   expect(row("section").props.nativeLabelledBy).toEqual(["header-name"])
   expect(item.current === original).toBe(true)
+})
+
+it("preserves the original Menu root and editor when its public renderer is added and removed", async () => {
+  const editor = createRef<RN.TextInput>()
+  const renderRoot = jest.fn(
+    (
+      props: Parameters<NonNullable<TNativeMenuProps["render"]>>[0],
+      _state: Parameters<NonNullable<TNativeMenuProps["render"]>>[1],
+    ) => <NativeFocusView {...props} />,
+  )
+  const f = fixture(
+    {},
+    <MenuItem id="editor">
+      <RN.TextInput ref={editor} value="Held menu draft" onChangeText={jest.fn()} />
+    </MenuItem>,
+  )
+  const view = await render(f.node())
+  const originalRoot = f.root.current
+  const originalEditor = editor.current
+  expect(originalRoot).not.toBeNull()
+  expect(originalEditor).not.toBeNull()
+
+  await view.rerender(f.node({ render: renderRoot }))
+  expect(renderRoot).toHaveBeenCalled()
+  expect(f.root.current === originalRoot).toBe(true)
+  expect(editor.current === originalEditor).toBe(true)
+  expect(screen.getByDisplayValue("Held menu draft", hidden)).toBeOnTheScreen()
+  const [host, state] = renderRoot.mock.calls.at(-1)!
+  expect(Object.keys(state).sort()).toEqual(["isEntering", "isExiting", "placement", "trigger"])
+  expect(typeof state.isEntering).toBe("boolean")
+  expect(typeof state.isExiting).toBe("boolean")
+  expect(host.ref).toBeDefined()
+  expect(host.role).toBeUndefined()
+  expect(host.testID).toBe("menu")
+  expect(host).not.toHaveProperty("render")
+  expect(f.action).not.toHaveBeenCalled()
+  expect(f.close).not.toHaveBeenCalled()
+
+  await view.rerender(f.node())
+  expect(f.root.current === originalRoot).toBe(true)
+  expect(editor.current === originalEditor).toBe(true)
+  expect(screen.getByDisplayValue("Held menu draft", hidden)).toBeOnTheScreen()
+  await view.unmount()
+  expect(f.root.current).toBeNull()
+  expect(editor.current).toBeNull()
+})
+
+it("composes inherited Popover context props and dynamic styles without replacing Menu roots or owner editors", async () => {
+  const root = createRef<RN.View>()
+  const editor = createRef<RN.TextInput>()
+  const style = jest.fn(({ defaultStyle }) => ({ ...defaultStyle, padding: 9, fontSize: 21 }))
+  const f = fixture(
+    {},
+    <MenuItem id="editor">
+      <RN.TextInput ref={editor} value="Retained context draft" onChangeText={jest.fn()} />
+      <MenuText testID="context-phrase">Context phrase</MenuText>
+    </MenuItem>,
+  )
+  const node = (slot: string | null | undefined = "named") => (
+    <NativePopoverContext.Provider
+      value={{ slots: { named: { ref: root, accessibilityLabel: "Inherited surface", style } } }}
+    >
+      {f.node({ slot, "aria-label": "Authored surface", customStyles: { padding: 4 } })}
+    </NativePopoverContext.Provider>
+  )
+  const view = await render(node())
+  const originalRoot = f.root.current
+  const originalEditor = editor.current
+  expect(root.current === originalRoot).toBe(true)
+  expect(originalRoot).not.toBeNull()
+  expect(originalEditor).not.toBeNull()
+  expect(style).toHaveBeenCalled()
+  expect(row("menu").props.accessibilityLabel).toBe("Authored surface")
+  expect(row("menu")).toHaveStyle({ padding: 4 })
+  expect(screen.getByTestId("context-phrase", hidden)).toHaveStyle({ fontSize: 21 })
+  await view.rerender(node(null))
+  expect(f.root.current === originalRoot).toBe(true)
+  expect(editor.current === originalEditor).toBe(true)
+  expect(root.current).toBeNull()
+  expect(screen.getByDisplayValue("Retained context draft", hidden)).toBeOnTheScreen()
+  expect(f.action).not.toHaveBeenCalled()
+  expect(f.close).not.toHaveBeenCalled()
+  await view.unmount()
+  expect(f.root.current).toBeNull()
+  expect(editor.current).toBeNull()
 })
 
 it("merges default, named and null Menu slots with actual root refs and caller precedence", async () => {
@@ -1983,6 +2070,90 @@ it.each(["ltr", "rtl"] as const)(
   },
 )
 
+it("binds named separators to their original descriptors and source positions without consuming item ordinals", async () => {
+  const list = createRef<RN.View>()
+  const separator = createRef<RN.View>()
+  const itemRefs = Array.from({ length: 5 }, () => createRef<RN.View>())
+  const item = (key: number) => (
+    <MenuItem key={key} id={key} testID={`ordered-item-${key}`} ref={itemRefs[key]}>
+      {`Item ${key}`}
+    </MenuItem>
+  )
+  const content = (named: boolean, includeSecond = true) => (
+    <>
+      {item(0)}
+      <MenuSection>
+        {includeSecond && item(1)}
+        <MenuSeparator
+          key="named"
+          ref={separator}
+          testID="ordered-separator"
+          aria-label={named ? "Group boundary" : ""}
+        />
+        {item(2)}
+      </MenuSection>
+      {item(3)}
+      {item(4)}
+      <MenuSeparator key="decorative" testID="decorative-separator" />
+    </>
+  )
+  const f = fixture({}, content(true))
+  const node = (named: boolean, includeSecond = true) => (
+    <NativeMenuListContext.Provider value={{ ref: list }}>
+      {f.node(undefined, content(named, includeSecond))}
+    </NativeMenuListContext.Provider>
+  )
+  await render(node(true))
+  await f.ready()
+  const originals = itemRefs.map((ref) => ref.current)
+  const originalSeparator = separator.current
+  const parentTarget = RN.findNodeHandle(list.current)
+  expect(JSON.parse(row("menu-list").props.nativeCollectionSemantics)).toEqual({ kind: "list-root", count: 5 })
+  for (let key = 0; key < 5; key++)
+    expect(JSON.parse(row(`ordered-item-${key}`).props.nativeCollectionSemantics)).toEqual({
+      kind: "list-item",
+      parentTarget,
+      ordinal: key,
+    })
+  expect(JSON.parse(row("ordered-separator").props.nativeCollectionSemantics)).toEqual({
+    kind: "list-separator",
+    parentTarget,
+    beforeOrdinal: 2,
+    order: 3,
+  })
+  const binding = JSON.parse(row("ordered-separator").props.nativeCollectionBinding)
+  const rootBinding = JSON.parse(row("menu-list").props.nativeCollectionBinding)
+  expect(binding.descriptorId).not.toBe("")
+  expect(binding.descriptorId).not.toBe(rootBinding.descriptorId)
+  expect(binding.metadataTarget).not.toBe(rootBinding.metadataTarget)
+  for (const key of ["ownerId", "rootId", "rootRevision", "target", "surfaceId", "windowId", "epoch", "sequence"])
+    expect(binding[key]).toEqual(rootBinding[key])
+  expect(row("decorative-separator").props.nativeCollectionSemantics).toBe("")
+  expect(row("ordered-separator").props.nativeTabStop).toBe(false)
+  expect(row("ordered-separator").props.keyboardFocusable).toBe(false)
+  await rerender(node(false))
+  expect(separator.current === originalSeparator).toBe(true)
+  expect(row("ordered-separator").props.accessible).toBe(false)
+  expect(row("ordered-separator").props.nativeCollectionSemantics).toBe("")
+  expect(row("ordered-separator").props.nativeCollectionBinding).not.toBe("")
+  await rerender(node(true, false))
+  expect(separator.current === originalSeparator).toBe(true)
+  expect(itemRefs[1].current).toBeNull()
+  for (const [ordinal, key] of [0, 2, 3, 4].entries()) {
+    expect(itemRefs[key].current === originals[key]).toBe(true)
+    expect(JSON.parse(row(`ordered-item-${key}`).props.nativeCollectionSemantics).ordinal).toBe(ordinal)
+  }
+  expect(JSON.parse(row("menu-list").props.nativeCollectionSemantics).count).toBe(4)
+  expect(JSON.parse(row("ordered-separator").props.nativeCollectionSemantics)).toEqual({
+    kind: "list-separator",
+    parentTarget,
+    beforeOrdinal: 1,
+    order: 2,
+  })
+  expect(screen.getAllByTestId("ordered-separator", hidden)).toHaveLength(1)
+  expect(f.action).not.toHaveBeenCalled()
+})
+
 it("updates list ordinals across opaque reorder, removal, reinsertion and filtering with original refs", async () => {
   const refs = { a: createRef<RN.View>(), b: createRef<RN.View>(), c: createRef<RN.View>() }
   let update!: (keys: (keyof typeof refs)[]) => void
@@ -2344,6 +2515,206 @@ it("keeps direct nonmodal opening from manufacturing an initial focus request", 
   await render(f.node())
   await f.ready()
   expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+})
+
+it("rejects unsupported untyped separator axes instead of silently rendering a horizontal divider", () => {
+  expect(() =>
+    getNativeMenuSeparatorStyle(resolveNativeTheme("light"), {
+      orientation: "diagonal" as TNativeMenuSeparatorProps["orientation"],
+    }),
+  ).toThrow("MenuSeparator: unsupported orientation")
+})
+
+it("transitions only the Menu item background over250ms and retires interrupted paint without owner requests", async () => {
+  jest.mocked(globalThis.requestAnimationFrame).mockRestore()
+  jest.mocked(globalThis.cancelAnimationFrame).mockRestore()
+  jest.mocked(RN.AccessibilityInfo.isReduceMotionEnabled).mockResolvedValue(false)
+  const ref = createRef<RN.View>()
+  const f = fixture({ shouldCloseOnSelect: false })
+  const content = (backgroundColor: string, color: string, shadowOpacity: number) => (
+    <MenuItem id="paint" ref={ref} testID="menu-paint" style={{ backgroundColor, color, shadowOpacity }}>
+      Paint
+    </MenuItem>
+  )
+  const paint = () => RN.StyleSheet.flatten(row("menu-paint").props.style)
+  const view = await render(f.node(undefined, content("#000000", "#000000", 0)))
+  const original = ref.current
+  const initial = paint().backgroundColor
+  await view.rerender(f.node(undefined, content("#ffffff", "#ff0000", 0.5)))
+  expect(ref.current === original).toBe(true)
+  expect(paint().backgroundColor).toBe(initial)
+  expect(paint().shadowOpacity).toBe(0.5)
+  expect(screen.getByText("Paint", hidden)).toHaveStyle({ color: "#ff0000" })
+  await act(() => jest.advanceTimersByTime(100))
+  const interrupted = paint().backgroundColor
+  expect(interrupted).not.toBe(initial)
+  expect(interrupted).not.toBe("#ffffff")
+  await view.rerender(f.node(undefined, content("#000000", "#0000ff", 0)))
+  expect(paint().backgroundColor).toBe(interrupted)
+  expect(paint().shadowOpacity).toBe(0)
+  expect(screen.getByText("Paint", hidden)).toHaveStyle({ color: "#0000ff" })
+  await act(() => jest.advanceTimersByTime(275))
+  expect(paint().backgroundColor).toBe("#000000")
+  expect(f.action).not.toHaveBeenCalled()
+  expect(f.close).not.toHaveBeenCalled()
+  await view.unmount()
+  expect(ref.current).toBeNull()
+  await rendererAct(() => jest.advanceTimersByTime(500))
+  expect(f.action).not.toHaveBeenCalled()
+  expect(f.close).not.toHaveBeenCalled()
+})
+
+it("keeps decorative separators outside navigation while orientation and authored geometry change on the original host", async () => {
+  const ref = createRef<RN.View>()
+  const f = fixture()
+  const content = (props: TNativeMenuSeparatorProps = {}) => (
+    <>
+      <MenuItem id="before">Before</MenuItem>
+      <MenuSeparator {...props} ref={ref} />
+      <MenuItem id="after">After</MenuItem>
+    </>
+  )
+  const view = await render(f.node(undefined, content()))
+  const original = ref.current
+  expect(original).not.toBeNull()
+  expect(row("menu-separator")).toHaveStyle({ height: 1 })
+  expect(row("menu-separator").props.accessible).toBe(false)
+  expect(row("menu-separator").props.focusable).toBe(false)
+  expect(row("menu-separator").props.nativeTabStop).toBe(false)
+  expect(row("menu-separator").props.accessibilityValue).toBeUndefined()
+
+  await view.rerender(f.node(undefined, content({ orientation: "vertical", customStyles: { height: 24 } })))
+  expect(ref.current === original).toBe(true)
+  expect(row("menu-separator")).toHaveStyle({ width: 1, height: 24, alignSelf: "stretch" })
+  await view.rerender(
+    f.node(
+      undefined,
+      content({ orientation: "vertical", customStyles: { width: 4, height: 0 }, style: { width: 7, height: 32 } }),
+    ),
+  )
+  expect(ref.current === original).toBe(true)
+  expect(row("menu-separator")).toHaveStyle({ width: 7, height: 32 })
+  await view.rerender(f.node(undefined, content()))
+  expect(ref.current === original).toBe(true)
+  expect(RN.StyleSheet.flatten(row("menu-separator").props.style).width).toBeUndefined()
+  expect(row("menu-separator")).toHaveStyle({ height: 1 })
+  expect(f.action).not.toHaveBeenCalled()
+  expect(f.close).not.toHaveBeenCalled()
+  await view.unmount()
+  expect(ref.current).toBeNull()
+})
+
+it("keeps separator names and ordered relationships on one noninteractive target with localized and authored value precedence", async () => {
+  const ref = createRef<RN.View>()
+  const f = fixture()
+  const content = (props: TNativeMenuSeparatorProps = {}) => (
+    <>
+      <MenuItem id="before">Before</MenuItem>
+      <MenuSeparator {...props} ref={ref} />
+      <MenuItem id="after">After</MenuItem>
+    </>
+  )
+  const named: TNativeMenuSeparatorProps = {
+    orientation: "vertical",
+    accessibilityLabel: "Division du groupe",
+    labels: { vertical: "Verticale" },
+    ariaDescribedBy: ["description-b", "description-a"],
+    "aria-describedby": "ignored-description",
+    ariaDetails: ["details-b", "details-a"],
+    "aria-details": "ignored-details",
+    descriptionLabel: "Résumé",
+    detailsLabel: "Précisions",
+  }
+  const view = await render(f.node(undefined, content(named)))
+  const original = ref.current
+  expect(original).not.toBeNull()
+  expect(row("menu-separator").props.accessible).toBe(true)
+  expect(row("menu-separator").props.focusable).toBe(false)
+  expect(row("menu-separator").props.nativeTabStop).toBe(false)
+  expect(row("menu-separator").props.accessibilityValue).toMatchObject({ text: "Verticale" })
+  expect(row("menu-separator").props.nativeDescribedBy).toEqual(["description-b", "description-a"])
+  expect(row("menu-separator").props.nativeDetailsBy).toEqual(["details-b", "details-a"])
+  expect(row("menu-separator").props.nativeDescriptionLabel).toBe("Résumé")
+  expect(row("menu-separator").props.nativeDetailsLabel).toBe("Précisions")
+  expect(screen.getAllByTestId("menu-separator", hidden)).toHaveLength(1)
+
+  await view.rerender(
+    f.node(undefined, content({ ...named, accessibilityValue: { text: "Authored value", min: 0, now: 0 } })),
+  )
+  expect(ref.current === original).toBe(true)
+  expect(row("menu-separator").props.accessibilityValue).toMatchObject({ text: "Authored value", min: 0, now: 0 })
+  await view.rerender(f.node(undefined, content({ ...named, "aria-valuetext": "" })))
+  expect(row("menu-separator").props.accessibilityValue.text).toBe("")
+  await view.rerender(
+    f.node(
+      undefined,
+      content({
+        "aria-labelledby": "label-b label-a",
+        "aria-describedby": " current-description  second-description ",
+        "aria-details": " current-details  second-details ",
+        descriptionLabel: "",
+        detailsLabel: "",
+      }),
+    ),
+  )
+  expect(ref.current === original).toBe(true)
+  expect(row("menu-separator").props.nativeLabelledBy).toEqual(["label-b", "label-a"])
+  expect(row("menu-separator").props.nativeDescribedBy).toEqual(["current-description", "second-description"])
+  expect(row("menu-separator").props.nativeDetailsBy).toEqual(["current-details", "second-details"])
+  expect(row("menu-separator").props.nativeDescriptionLabel).toBe("")
+  expect(row("menu-separator").props.nativeDetailsLabel).toBe("")
+  expect(row("menu-separator").props.accessibilityValue).toMatchObject({ text: "Horizontal" })
+  await view.rerender(f.node(undefined, content({ ariaDescribedBy: [], ariaDetails: [] })))
+  expect(ref.current === original).toBe(true)
+  expect(row("menu-separator").props.accessible).toBe(false)
+  expect(row("menu-separator").props.nativeDescribedBy).toEqual([])
+  expect(row("menu-separator").props.nativeDetailsBy).toEqual([])
+  expect(f.action).not.toHaveBeenCalled()
+  expect(f.close).not.toHaveBeenCalled()
+})
+
+it("preserves the original separator through compatible root customization and forwards original layout without wrapper leakage", async () => {
+  const ref = createRef<RN.View>()
+  const layout = jest.fn()
+  const renderRoot = jest.fn(
+    (props: Parameters<NonNullable<TNativeMenuSeparatorProps["render"]>>[0], _state: undefined) => (
+      <NativeFocusView {...props} />
+    ),
+  )
+  const f = fixture()
+  const content = (custom: boolean) => (
+    <>
+      <MenuItem id="before">Before</MenuItem>
+      <MenuSeparator
+        ref={ref}
+        accessibilityLabel="Division"
+        orientation="vertical"
+        labels={{ vertical: "Verticale" }}
+        ariaDetails={["detail"]}
+        onLayout={layout}
+        render={custom ? renderRoot : undefined}
+      />
+      <MenuItem id="after">After</MenuItem>
+    </>
+  )
+  const view = await render(f.node(undefined, content(false)))
+  const original = ref.current
+  expect(original).not.toBeNull()
+  await view.rerender(f.node(undefined, content(true)))
+  expect(ref.current === original).toBe(true)
+  expect(renderRoot).toHaveBeenCalled()
+  expect(renderRoot.mock.calls.at(-1)![1]).toBeUndefined()
+  expect(row("menu-separator").props.nativeDetailsBy).toEqual(["detail"])
+  expect(row("menu-separator").props.nativeTabStop).toBe(false)
+  for (const key of ["orientation", "labels", "ariaDetails", "descriptionLabel", "detailsLabel", "render"])
+    expect(row("menu-separator").props[key]).toBeUndefined()
+  const event = { nativeEvent: { layout: { x: 0, y: 0, width: 1, height: 24 } } }
+  await fireEvent(row("menu-separator"), "layout", event)
+  expect(layout).toHaveBeenCalledWith(event)
+  await view.rerender(f.node(undefined, content(false)))
+  expect(ref.current === original).toBe(true)
+  await view.unmount()
+  expect(ref.current).toBeNull()
 })
 
 it("retains explicit separator rendering and resets ancestor default props", async () => {

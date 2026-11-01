@@ -4,6 +4,7 @@ import type { TNativeTheme } from "../../theme/types"
 import { resolveNativeStyle, validateNativeColor } from "../colors"
 import { splitNativeTextStyle } from "../nativeTextStyle"
 
+import { NATIVE_MENU_SEPARATOR_ORIENTATIONS } from "./types"
 import type { TNativeMenuItemProps, TNativeMenuItemState, TNativeMenuProps, TNativeMenuSeparatorProps } from "./types"
 
 export const getNativeMenuStyles = (theme: TNativeTheme, props: TNativeMenuProps, inherited?: TextStyle) => {
@@ -65,13 +66,22 @@ export const getNativeMenuItemStyles = (
     typeof props.style === "function" ? props.style({ ...state, defaultStyle: { ...defaults } }) : props.style
   return splitNativeTextStyle(resolveNativeStyle([defaults, final], "MenuItem", "style"))
 }
-export const getNativeMenuSeparatorStyle = (theme: TNativeTheme, props: TNativeMenuSeparatorProps) =>
-  resolveNativeStyle<ViewStyle>(
+export const getNativeMenuSeparatorStyle = (theme: TNativeTheme, props: TNativeMenuSeparatorProps) => {
+  const orientation = props.orientation ?? "horizontal"
+  if (!NATIVE_MENU_SEPARATOR_ORIENTATIONS.includes(orientation))
+    throw new TypeError("MenuSeparator: unsupported orientation")
+  return resolveNativeStyle<ViewStyle>(
     [
-      { height: 1, backgroundColor: theme.colors.borderMuted, marginVertical: Math.max(0, theme.spacing.unit - 2) },
+      {
+        ...(orientation === "vertical"
+          ? { width: 1, alignSelf: "stretch", marginHorizontal: Math.max(0, theme.spacing.unit - 2) }
+          : { height: 1, marginVertical: Math.max(0, theme.spacing.unit - 2) }),
+        backgroundColor: theme.colors.borderMuted,
+      },
       props.customStyles,
       props.style,
     ],
     "MenuSeparator",
     "style",
   )
+}
