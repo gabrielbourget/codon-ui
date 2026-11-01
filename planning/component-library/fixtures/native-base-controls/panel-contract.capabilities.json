@@ -421,7 +421,7 @@
         "does not animate changed appearance or construct children while closed",
         "keeps the maintained scene's held editor through a complete appearance toggle",
         "keeps explicit raw and owned text styles without exporting a native descendant typography scope",
-        "retains native typography for unmigrated owners outside the Panel scope"
+        "keeps explicitly styled raw text outside Panel without native typography transport"
       ]
     },
     {
