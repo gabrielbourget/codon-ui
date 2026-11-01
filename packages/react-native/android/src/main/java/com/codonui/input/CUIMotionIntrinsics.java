@@ -85,12 +85,6 @@ final class CUIMotionIntrinsics {
       throw new IllegalStateException("Native motion: unaudited cached text container");
   }
 
-  static SpannableString copyCachedText(Spannable original) {
-    requireContainer(original);
-    return copyText(original, CUIMotionFontSnapshot.capture(
-      original.getSpans(0, original.length(), CustomStyleSpan.class)), null);
-  }
-
   private static SpannableString copyText(Spannable original,
       Map<CustomStyleSpan, MetricAffectingSpan> fonts, CUIIntrinsicSource.Session session) {
     requireContainer(original);
@@ -181,26 +175,6 @@ final class CUIMotionIntrinsics {
     } catch (IllegalAccessException failure) {
       throw new IllegalStateException("Native motion: original text registry inaccessible", failure);
     }
-  }
-
-  static Layout layoutOwnedCached(SpannableString snapshot, ReadableMapBuffer cached, ReadableMapBuffer paragraph,
-      float minWidth, float maxWidth, float minHeight, float maxHeight) {
-    bounds(minWidth, maxWidth); bounds(minHeight, maxHeight);
-    // The UI producer has already removed watchers and isolated mutable fonts/spans.
-    SpannableString owned = new SpannableString(snapshot);
-    ReactTextPaintHolderSpan[] holders = owned.getSpans(0, 0, ReactTextPaintHolderSpan.class);
-    if (holders.length != 1) throw new IllegalStateException("Table clamp: exact retained editor paint required");
-    TextPaint original = holders[0].getTextPaint();
-    TextPaint paint = new TextPaint(); paint.set(original);
-    paint.drawableState = original.drawableState == null ? null : original.drawableState.clone();
-    int start = owned.getSpanStart(holders[0]), end = owned.getSpanEnd(holders[0]), flags = owned.getSpanFlags(holders[0]);
-    owned.removeSpan(holders[0]); owned.setSpan(new ReactTextPaintHolderSpan(paint),start,end,flags);
-    // createLayout consults the cached paint/text, never an original editor or its cache ID.
-    Object result = invoke(PinnedLayout.create, TextLayoutManager.INSTANCE, owned, paint,
-      cached, paragraph,
-      LayoutMetricsConversions.getYogaSize(minWidth,maxWidth), LayoutMetricsConversions.getYogaMeasureMode(minWidth,maxWidth),
-      LayoutMetricsConversions.getYogaSize(minHeight,maxHeight), LayoutMetricsConversions.getYogaMeasureMode(minHeight,maxHeight));
-    return (Layout)invoke(PinnedLayout.layout,result);
   }
 
   private static void requireCurrent(CUIIntrinsicSource.Session session) {

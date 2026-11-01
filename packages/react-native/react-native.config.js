@@ -18,7 +18,6 @@ export default {
           "CUIOwnedOverlayHostComponentDescriptor",
           "CUIOwnedOverlayViewportComponentDescriptor",
           "CUIOwnedOverlaySlotComponentDescriptor",
-          "CUIOwnedClampHostComponentDescriptor",
         ],
       },
       ios: { podspecPath: "./CodonNativeInput.podspec" },

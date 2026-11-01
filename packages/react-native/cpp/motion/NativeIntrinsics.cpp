@@ -218,7 +218,7 @@ class TIntrinsicState : public std::enable_shared_from_this<TIntrinsicState> {
             ? YGMeasureModeAtMost : YGMeasureModeUndefined, direction);
         size = {measured.width, measured.height};
       } else {
-        auto input = copyNativeScratchSubtree(*attachment.shadowNode, context, local, resolver(), propsForNode, check, services.isolatedLeaf);
+        auto input = copyNativeScratchSubtree(*attachment.shadowNode, context, local, resolver(), propsForNode, check);
         TNativeScratchConstraints bounds{
           0, 0, static_cast<float>(local.maximumSize.width), static_cast<float>(local.maximumSize.height),
           static_cast<float>(context.pointScaleFactor),
@@ -262,10 +262,6 @@ class TIntrinsicState : public std::enable_shared_from_this<TIntrinsicState> {
 
   TNativeScratchIntrinsic resolve(const ShadowNode &node, const LayoutContext &context, const Props::Shared &selected) {
     current();
-    if (services.intrinsicOverride) {
-      auto value = services.intrinsicOverride(node, context, selected);
-      if (value) return *value;
-    }
     auto self = shared_from_this();
     const auto *source = &node;
     if (hasNativeIntrinsicSource(node.getFamily())) return provider(node, context, selected);
@@ -320,12 +316,11 @@ class TIntrinsicState : public std::enable_shared_from_this<TIntrinsicState> {
           if (!props->multiline) textBounds.maximumSize.width = std::numeric_limits<Float>::infinity();
           facebook::react::Size size;
           auto content = editorMeasurementText(*editor, *props, context, self->propsForNode, self->check);
-          if (self->services.editorText) content = self->services.editorText(*editor, content);
 #if defined(__ANDROID__)
           if (!self->services.textMeasure) throw std::runtime_error("Native motion: isolated Android editor service unavailable");
           size = self->services.textMeasure(*editor, content, props->paragraphAttributes, context, textBounds);
 #else
-          if (content.getMode() == AttributedStringBox::Mode::OpaquePointer && !self->services.editorText) {
+          if (content.getMode() == AttributedStringBox::Mode::OpaquePointer) {
             if (!self->services.isolateEditorText)
               throw std::runtime_error("Native motion: isolated opaque editor snapshot unavailable");
             content = self->services.isolateEditorText(content);
@@ -373,34 +368,6 @@ class TIntrinsicState : public std::enable_shared_from_this<TIntrinsicState> {
   }
 };
 } // namespace
-
-TNativeSubtreeIntrinsics createNativeSubtreeIntrinsics(
-    std::shared_ptr<const ShadowNode> target, ShadowTreeRevision::Number revision,
-    TNativeIsolatedIntrinsicServices services, TNativeFabricReadGuard check,
-    TNativeScratchPropsResolver propsForNode) {
-  if (!target || !target->getContextContainer())
-    throw std::invalid_argument("Native intrinsic subtree requires its original Fabric context");
-  TNativeFabricSnapshot snapshot{};
-  snapshot.target = target;
-  snapshot.revision = revision;
-  auto state = std::make_shared<TIntrinsicState>(snapshot, target->getContextContainer(),
-      std::move(services), std::move(check), std::move(propsForNode));
-  return {state->resolver(), [state](const ShadowNode &source, const LayoutContext &context,
-      const facebook::react::Size &size, YGDirection direction) {
-    state->current();
-    const auto *paragraph = dynamic_cast<const ParagraphShadowNode *>(&source);
-    const auto selected = selectedTextProps(source, state->propsForNode, state->check);
-    const auto *props = dynamic_cast<const ParagraphProps *>(selected.get());
-    if (!paragraph || !props) throw std::runtime_error("Native intrinsic line source must be an original Paragraph");
-    LayoutConstraints bounds{{0, 0}, size, direction == YGDirectionRTL ? LayoutDirection::RightToLeft : LayoutDirection::LeftToRight};
-    auto content = AttributedStringBox(state->paragraphText(*paragraph, *props, context, bounds, direction));
-    auto result = state->services.textLines
-        ? state->services.textLines(source, content, props->paragraphAttributes, size)
-        : TextLayoutManagerExtended(*state->text).measureLines(content, props->paragraphAttributes, size);
-    state->current();
-    return result;
-  }};
-}
 
 TNativeScratchIntrinsicResolver createNativeIntrinsicResolver(
     const TNativeFabricSnapshot &snapshot,

@@ -1,4 +1,3 @@
--keep class com.codonui.input.CUIClampText { *; }
 -keep class com.codonui.input.CUIFormDocumentModule { *; }
 -keep class com.codonui.input.CUIMotionSnapshotModule { *; }
 -keep class com.codonui.input.CUIMotionIntrinsics { *; }

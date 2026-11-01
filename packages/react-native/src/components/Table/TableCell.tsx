@@ -18,7 +18,7 @@ import { NativePressable } from "../../input/NativePressable"
 import { nativeViewProps } from "../../input/nativeViewProps"
 import { useNativeTheme } from "../../theme"
 import { resolveNativeStyle } from "../colors"
-import { NativeContentContext, NativeTextLayoutContext, useNativeContentContext } from "../NativeContentContext"
+import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
 import { splitNativeTextStyle } from "../nativeTextStyle"
 
 import { NativeTableCellContext, useNativeTable } from "./context"
@@ -150,7 +150,7 @@ const Cell = (props: TNativeTableCellProps, ref: ForwardedRef<View>, node: TNati
         }}
       >
         <NativeCollectionRendererContext.Provider value={DefaultNativeCollectionRenderer}>
-          <NativeTextLayoutContext.Provider value={undefined}>{cellContent.content}</NativeTextLayoutContext.Provider>
+          {cellContent.content}
         </NativeCollectionRendererContext.Provider>
       </NativeContentContext.Provider>
     </NativeTableCellContext.Provider>

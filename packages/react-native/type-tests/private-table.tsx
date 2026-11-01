@@ -270,5 +270,5 @@ void [
   ref,
 ]
 
-// @ts-expect-error The component-owned Fabric clamp host remains private.
+// @ts-expect-error The retired Fabric clamp host is not part of the public API.
 export type TPrivateTableClampHost = (typeof import("../src"))["CUIClampHost"]

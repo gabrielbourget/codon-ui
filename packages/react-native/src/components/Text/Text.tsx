@@ -9,11 +9,10 @@ import {
 import { Easing, Text as RNText, type TextProps, type TextStyle } from "react-native"
 
 import { useNativeContextProps } from "../../collection/context"
-import { NativeFloatingScopeContext } from "../../overlays/floating/scope"
 import { useNativeTheme } from "../../theme"
 import { resolveNativeStyle, validateNativeColor } from "../colors"
 import { useNativeLinkColor } from "../Link/motion"
-import { NativeContentContext, NativeTextLayoutContext, useNativeContentContext } from "../NativeContentContext"
+import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
 import { splitNativeTextStyle, validateNativeFontWeight } from "../nativeTextStyle"
 import { useNativeInheritedTextStyle } from "../NativeTextStyleProvider"
 
@@ -54,9 +53,6 @@ export const NativeText = forwardRef<
     const theme = useNativeTheme()
     const content = useNativeContentContext()
     const inherited = useNativeInheritedTextStyle()
-    const textLayout = useContext(NativeTextLayoutContext)
-    const windowId = useContext(NativeFloatingScopeContext)?.id ?? null
-    const currentTextLayout = textLayout?.windowId === windowId ? textLayout : undefined
     const foreground = color ?? content?.foregroundColor ?? theme.colors.foreground
     validateNativeColor(foreground, "Text", "color")
     const family = variant.startsWith("d") ? "display" : variant.startsWith("h") ? "heading" : "body"
@@ -102,8 +98,6 @@ export const NativeText = forwardRef<
 
     const nativeProps: TextProps & RefAttributes<TNativeTextRef> = {
       ...rest,
-      numberOfLines: rest.numberOfLines ?? currentTextLayout?.numberOfLines,
-      ellipsizeMode: rest.ellipsizeMode ?? currentTextLayout?.ellipsizeMode,
       ref,
       role: semanticRole,
       accessibilityRole,

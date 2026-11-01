@@ -94,8 +94,7 @@
         "CUICollectionNode": "CUICollectionNode",
         "CUIFormRoot": "CUIFormRoot",
         "CUIFieldBinding": "CUIFieldBinding",
-        "CUIDateSegment": "CUIDateSegment",
-        "CUIClampHost": "CUIClampHost"
+        "CUIDateSegment": "CUIDateSegment"
       }
     }
   }
