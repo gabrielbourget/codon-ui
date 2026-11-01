@@ -19,7 +19,7 @@ export const AVAILABLE_TIMEPICKER_TEXT_SIZES = [
 export type TNativeTimePickerTextSize = (typeof AVAILABLE_TIMEPICKER_TEXT_SIZES)[number]
 export type TNativeTimePickerRef = View
 export type TNativeTimePickerProps<T extends TimeValue = TimeValue> = TNativeTimeFieldProps<T> &
-  TNativeTimePickerAppearanceProps
+  Omit<TNativeTimePickerAppearanceProps, "textSize"> & { textSize?: string }
 export type TNativeTimePickerRenderState = TNativeTimeFieldRenderState
 export type TNativeTimePickerStyleState = TNativeTimeFieldStyleState
 export type TNativeTimePickerLabels = Required<NonNullable<TNativeTimePickerAppearanceProps["labels"]>>

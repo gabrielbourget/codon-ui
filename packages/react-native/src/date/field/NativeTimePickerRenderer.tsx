@@ -19,6 +19,7 @@ import { resolveNativeStyle } from "../../components/colors"
 import { NativeContentContext, useNativeContentContext } from "../../components/NativeContentContext"
 import { splitNativeTextStyle } from "../../components/nativeTextStyle"
 import type { TNativeTextRef } from "../../components/Text/types"
+import type { TNativeTimePickerProps } from "../../components/TimePicker/types"
 import { useNativeFieldSemanticRef, useNativeFieldSemantics } from "../../form/useFieldSemantics"
 import { useNativeTimeFieldForm } from "../../form/useTimeField"
 import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
@@ -51,12 +52,11 @@ import { useNativeTimePickerMotion } from "./motion"
 import { NativeTimePickerSegment } from "./NativeTimePickerSegment"
 import { useNativeOrdinaryDateGroup } from "./ordinaryGroup"
 import { NativeDateFieldParticipantFocusManager } from "./participants"
-import type { TNativeTimeFieldProps } from "./types"
 import { useNativeDateFieldLifecycle } from "./useLifecycle"
 import { useNativeDateFieldParticipants } from "./useParticipants"
 import { useNativeTimeField } from "./useTimeField"
 
-type TProps<T extends TimeValue> = TNativeTimeFieldProps<T> & TNativeTimePickerAppearanceProps
+type TProps<T extends TimeValue> = TNativeTimePickerProps<T>
 
 const fieldOptions = new Set([
   "extraFocusParticipants",
@@ -113,18 +113,20 @@ const fieldOptions = new Set([
   "aria-details",
 ])
 
-// Private construction receiver. Public export waits for the full descendant,
-// pointer/default, semantic and installed-input obligations in roadmap 3.5.52.
+// TimePicker owns this renderer; installed-input qualification remains separate.
 export const NativeTimePickerRenderer = forwardRef(
   <T extends TimeValue>(authored: TProps<T>, forwardedRef: ForwardedRef<View>) => {
     const theme = useNativeTheme()
     const content = useNativeContentContext()
+    const textSize: TNativeTimePickerAppearanceProps["textSize"] =
+      authored.textSize === "small" || authored.textSize === "large" ? authored.textSize : "medium"
+    const appearanceProps = { ...authored, textSize }
     const field = useNativeTimeField(
       {
         ...authored,
         hourCycle: authored.hourCycle ?? 24,
         shouldForceLeadingZeros: authored.shouldForceLeadingZeros ?? true,
-        style: calibrateNativeTimePickerStyle(authored),
+        style: calibrateNativeTimePickerStyle(appearanceProps),
       },
       forwardedRef,
     )
@@ -213,7 +215,7 @@ export const NativeTimePickerRenderer = forwardRef(
       if (initialAutoFocus.current && !state.isDisabled && original && focus.focusFirst())
         initialAutoFocus.current = false
     })
-    const appearance = getNativeTimePickerAppearance(theme, authored, { ...renderState, isFocusWithin: focused })
+    const appearance = getNativeTimePickerAppearance(theme, appearanceProps, { ...renderState, isFocusWithin: focused })
     const authoredStyle =
       typeof props.style === "function" ? props.style({ ...renderState, defaultStyle: {} }) : props.style
     const rootStyle = resolveNativeStyle([appearance.root, authoredStyle], "TimePicker", "style")
@@ -400,7 +402,7 @@ export const NativeTimePickerRenderer = forwardRef(
       ref: bindField,
       onNativeOrdinaryEditorKey: participants.receive,
       testID,
-      accessible: false,
+      accessible: props.accessible ?? false,
       style: { ...root.view, ...motion.root },
       onLayout: props.onLayout,
       pointerEvents: props.pointerEvents,
@@ -443,7 +445,7 @@ export const NativeTimePickerRenderer = forwardRef(
                         {props.render ? (
                           props.render(nativeProps, renderState)
                         ) : (
-                          <NativeFocusHost {...nativeProps} focusable={false} />
+                          <NativeFocusHost {...nativeProps} focusable={props.focusable ?? false} />
                         )}
                       </NativeOrdinaryFieldGroupKeysContext.Provider>
                     </NativeOrdinaryFocusParticipantsContext.Provider>

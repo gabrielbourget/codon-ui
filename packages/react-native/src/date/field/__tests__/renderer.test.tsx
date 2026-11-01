@@ -1108,3 +1108,84 @@ it("uses only ordinary group delivery without a transaction receiver", async () 
   expect(screen.getByTestId("time-picker-group").props.nativeOrdinaryGroupKeyHandler).toEqual(expect.any(Function))
   expect(screen.getByTestId("time-picker-group").props.nativeFieldGroupHandler).toBeUndefined()
 })
+
+it("preserves explicit native root focusability and original temporal hosts through held owner updates", async () => {
+  const root = createRef<View>(),
+    held = new Time(13, 45),
+    requests = jest.fn()
+  const node = (focusable?: boolean) => (
+    <NativeLocaleProvider locale="en-GB">
+      <NativeTimePickerRenderer ref={root} value={held} onChange={requests} focusable={focusable} />
+    </NativeLocaleProvider>
+  )
+  const view = await render(node(true))
+  const originalRoot = root.current,
+    originalSegment = segment()
+  expect(originalRoot).not.toBeNull()
+  expect(screen.getByTestId("time-picker").props.focusable).toBe(true)
+  expect(originalSegment.props.displayText).toBe("13")
+  await view.rerender(node(false))
+  expect(root.current).toBe(originalRoot)
+  expect(segment()).toBe(originalSegment)
+  expect(screen.getByTestId("time-picker").props.focusable).toBe(false)
+  await view.rerender(node())
+  expect(root.current).toBe(originalRoot)
+  expect(segment()).toBe(originalSegment)
+  expect(screen.getByTestId("time-picker").props.focusable).toBe(false)
+  expect(segment().props.displayText).toBe("13")
+  expect(requests).not.toHaveBeenCalled()
+  await view.unmount()
+  expect(root.current).toBeNull()
+})
+
+it("preserves explicit native root accessibility ownership without replacing temporal hosts", async () => {
+  const root = createRef<View>(),
+    held = new Time(13, 45),
+    requests = jest.fn()
+  const node = (accessible?: boolean) => (
+    <NativeLocaleProvider locale="en-GB">
+      <NativeTimePickerRenderer ref={root} value={held} onChange={requests} accessible={accessible} />
+    </NativeLocaleProvider>
+  )
+  const view = await render(node(true))
+  const originalRoot = root.current,
+    originalSegment = segment()
+  expect(screen.getByTestId("time-picker").props.accessible).toBe(true)
+  await view.rerender(node(false))
+  expect(root.current).toBe(originalRoot)
+  expect(segment()).toBe(originalSegment)
+  expect(screen.getByTestId("time-picker").props.accessible).toBe(false)
+  await view.rerender(node())
+  expect(root.current).toBe(originalRoot)
+  expect(segment()).toBe(originalSegment)
+  expect(screen.getByTestId("time-picker").props.accessible).toBe(false)
+  expect(segment().props.displayText).toBe("13")
+  expect(requests).not.toHaveBeenCalled()
+  await view.unmount()
+  expect(root.current).toBeNull()
+})
+
+it("preserves canonical dynamic text-size fallback on the original time field", async () => {
+  const root = createRef<View>(),
+    held = new Time(13, 45),
+    requests = jest.fn()
+  const node = (textSize: string) => (
+    <NativeLocaleProvider locale="en-GB">
+      <NativeTimePickerRenderer ref={root} value={held} onChange={requests} textSize={textSize} />
+    </NativeLocaleProvider>
+  )
+  const view = await render(node("medium"))
+  const originalRoot = root.current,
+    originalSegment = segment(),
+    originalLabel = screen.getByText("13"),
+    mediumSize = StyleSheet.flatten(originalLabel.props.style).fontSize
+  await view.rerender(node("owner-defined-size"))
+  expect(root.current).toBe(originalRoot)
+  expect(segment()).toBe(originalSegment)
+  expect(screen.getByText("13")).toBe(originalLabel)
+  expect(StyleSheet.flatten(originalLabel.props.style).fontSize).toBe(mediumSize)
+  expect(mediumSize).toBeGreaterThan(0)
+  expect(requests).not.toHaveBeenCalled()
+  await view.unmount()
+  expect(root.current).toBeNull()
+})
