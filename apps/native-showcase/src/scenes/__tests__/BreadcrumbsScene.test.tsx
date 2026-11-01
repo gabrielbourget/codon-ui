@@ -126,3 +126,60 @@ it("keeps disabled and consolidation controls owner-driven", async () => {
   expect(screen.getByTestId("breadcrumbs").props.nativeNavigation).toBe(false)
   expect(screen.getByTestId("breadcrumb-current")).toHaveTextContent("Current")
 })
+
+it("keeps each trail customization independent while preserving drafts, hosts and reset", async () => {
+  const result = await render(node())
+  await fireEvent.changeText(screen.getByTestId("breadcrumbs-scene-draft"), "Retained customization draft")
+  const draftHost = screen.getByTestId("breadcrumbs-scene-draft").unstable_fiber?.stateNode
+  const linkHost = screen.getByTestId("breadcrumb-link-0").unstable_fiber?.stateNode
+  expect(draftHost).toBeTruthy()
+  expect(linkHost).toBeTruthy()
+  await press("Toggle trail breadcrumb styles")
+  expect(screen.getByTestId("breadcrumb-0")).toHaveStyle({ padding: 6, borderColor: "#087f8c" })
+  expect(screen.getByTestId("breadcrumb-current").props.accessibilityState).toEqual({ selected: true })
+  await press("Toggle trail popover styles")
+  await press("Toggle trail overflow button styles")
+  expect(screen.getByRole("button", { name: "Show hidden trail levels" })).toHaveStyle({
+    backgroundColor: "#ddeeff",
+    borderColor: "#174ea6",
+  })
+  await press("Toggle trail link props")
+  expect(screen.getByText("Home")).toHaveStyle({ color: "#be123c", textDecorationLine: "underline" })
+  await result.rerender(node("dark"))
+  expect(screen.getByTestId("breadcrumbs-scene-draft")).toHaveDisplayValue("Retained customization draft")
+  expect(screen.getByTestId("breadcrumbs-scene-draft").unstable_fiber?.stateNode).toBe(draftHost)
+  expect(screen.getByTestId("breadcrumb-link-0").unstable_fiber?.stateNode).toBe(linkHost)
+  expect(screen.getByTestId("breadcrumbs-scene-state")).toHaveTextContent(/Navigations: 0.*Close requests: 0/)
+  await press("Toggle trail breadcrumb styles")
+  expect(screen.getByTestId("breadcrumb-0")).not.toHaveStyle({ borderColor: "#087f8c" })
+  expect(screen.getByText("Home")).toHaveStyle({ color: "#be123c" })
+  await press("Reset trail")
+  expect(screen.getByTestId("breadcrumbs-customization-state")).toHaveTextContent("Trail customizations: none.")
+  expect(screen.getByTestId("breadcrumbs-scene-draft")).toHaveDisplayValue("")
+  expect(screen.getByText("Home")).not.toHaveStyle({ color: "#be123c" })
+  expect(screen.getByRole("button", { name: "Show hidden trail levels" })).not.toHaveStyle({ borderColor: "#174ea6" })
+})
+
+it("retains the trail popover customization through theme changes and an original declined navigation close", async () => {
+  const result = await render(node())
+  await press("Toggle trail popover styles")
+  await press("Toggle trail popup echo")
+  await press("Show controlled trail popup")
+  await ready()
+  expect(screen.getByTestId("click-popover", hidden)).toHaveStyle({
+    backgroundColor: "#fff2cc",
+    borderColor: "#7c3aed",
+  })
+  await result.rerender(node("dark"))
+  await ready()
+  expect(screen.getByTestId("click-popover", hidden)).toHaveStyle({
+    backgroundColor: "#fff2cc",
+    borderColor: "#7c3aed",
+  })
+  expect(screen.getByTestId("breadcrumbs-scene-state", hidden)).toHaveTextContent(/Navigations: 0.*Close requests: 0/)
+  await activate("4")
+  expect(screen.getByTestId("breadcrumbs-scene-state", hidden)).toHaveTextContent(
+    /Navigations: 1.*Close requests: 1.*declines.*Last: Navigation.*Original: true/,
+  )
+  expect(screen.getByTestId("click-popover", hidden)).toBeOnTheScreen()
+})

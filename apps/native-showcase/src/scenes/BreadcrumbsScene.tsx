@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { TextInput, View } from "react-native"
+import { StyleSheet, TextInput, View } from "react-native"
 
 import {
   AVAILABLE_THEMING_ORDER_CODES,
@@ -19,10 +19,19 @@ const items: readonly BreadcrumbItemData[] = ["Home", "Projects", "Library", "Co
   }),
 )
 
+const TRAIL_CUSTOMIZATIONS = [
+  ["breadcrumb", "Toggle trail breadcrumb styles"],
+  ["popover", "Toggle trail popover styles"],
+  ["overflow", "Toggle trail overflow button styles"],
+  ["link", "Toggle trail link props"],
+] as const
+type TTrailCustomization = (typeof TRAIL_CUSTOMIZATIONS)[number][0]
+
 export const BreadcrumbsScene = () => {
   const [disabled, setDisabled] = useState(false)
   const [left, setLeft] = useState(false)
   const [styled, setStyled] = useState(false)
+  const [customizations, setCustomizations] = useState<readonly TTrailCustomization[]>([])
   const [order, setOrder] = useState(0)
   const [limit, setLimit] = useState<3 | 4>(4)
   const [held, setHeld] = useState(false)
@@ -37,6 +46,7 @@ export const BreadcrumbsScene = () => {
     setDisabled(false)
     setLeft(false)
     setStyled(false)
+    setCustomizations([])
     setOrder(0)
     setLimit(4)
     setHeld(false)
@@ -60,6 +70,19 @@ export const BreadcrumbsScene = () => {
       <Button onPress={() => setLeft((value) => !value)}>Toggle trail consolidation</Button>
       <Button onPress={() => setLimit((value) => (value === 4 ? 3 : 4))}>Toggle trail limit</Button>
       <Button onPress={() => setStyled((value) => !value)}>Toggle trail styles</Button>
+      {TRAIL_CUSTOMIZATIONS.map(([key, label]) => (
+        <Button
+          key={key}
+          onPress={() =>
+            setCustomizations((values) =>
+              values.includes(key) ? values.filter((value) => value !== key) : [...values, key],
+            )
+          }
+        >
+          {label}
+        </Button>
+      ))}
+      <Text testID="breadcrumbs-customization-state">Trail customizations: {customizations.join(", ") || "none"}.</Text>
       <Button onPress={() => setOrder((value) => (value + 1) % AVAILABLE_THEMING_ORDER_CODES.length)}>
         Next trail order
       </Button>
@@ -103,6 +126,10 @@ export const BreadcrumbsScene = () => {
         customStyles={styled ? { gap: 0, color: "purple" } : undefined}
         style={styled ? { color: "orange" } : undefined}
         customOptionsListStyles={styled ? { color: "purple", padding: 0 } : undefined}
+        customBreadcrumbStyles={customizations.includes("breadcrumb") ? styles.breadcrumb : undefined}
+        customPopoverStyles={customizations.includes("popover") ? styles.popover : undefined}
+        customOverflowItemsPopoverButtonStyles={customizations.includes("overflow") ? styles.overflow : undefined}
+        customBreadcrumbLinkProps={customizations.includes("link") ? { style: styles.link } : undefined}
         customClickPopoverProps={{
           ...(held ? { isOpen: open } : {}),
           onOpenChange: (next) => {
@@ -120,3 +147,10 @@ export const BreadcrumbsScene = () => {
     </View>
   )
 }
+
+const styles = StyleSheet.create({
+  breadcrumb: { padding: 6, borderWidth: 2, borderColor: "#087f8c" },
+  popover: { backgroundColor: "#fff2cc", borderWidth: 2, borderColor: "#7c3aed" },
+  overflow: { backgroundColor: "#ddeeff", borderWidth: 2, borderColor: "#174ea6" },
+  link: { color: "#be123c", textDecorationLine: "underline" },
+})
