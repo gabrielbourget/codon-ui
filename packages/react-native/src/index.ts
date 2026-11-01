@@ -237,6 +237,7 @@ export type {
   TNativeTheme as NativeTheme,
   TNativeThemeOverrides as NativeThemeOverrides,
   TNativeThemeMode as NativeThemeMode,
+  TNativeThemeTransition as NativeThemeTransition,
 } from "./theme"
 
 export { Text } from "./components/Text/Text"

@@ -233,3 +233,56 @@ it("overrides added control roles while retaining mode defaults and isolated chi
     validationErrorBorder: "#b73434",
   })
 })
+
+it.each(["light", "dark"] as const)(
+  "PHONE-THEME preserves optional visited/transition overrides and restores defaults in %s",
+  async (mode) => {
+    const overrides = Object.freeze({
+      actions: Object.freeze({ primary: Object.freeze({ visitedForeground: "purple" }) }),
+      transitions: Object.freeze({
+        backgroundColor: 0,
+        color: Object.freeze({ duration: "0.2s" as const, easing: "linear" as const }),
+        boxShadow: Object.freeze({ delay: 7 }),
+      }),
+    })
+    const result = await renderTheme({ mode, overrides })
+    expect(readTheme().actions.primary.visitedForeground).toBe("purple")
+    expect(readTheme().actions.secondary.visitedForeground).toBeUndefined()
+    expect(readTheme().transitions).toEqual(overrides.transitions)
+    await result.rerender(
+      <NativeThemeProvider mode={mode} overrides={{ transitions: { boxShadow: { duration: 90 } } }}>
+        <ThemeProbe />
+      </NativeThemeProvider>,
+    )
+    expect(readTheme().transitions).toEqual({ boxShadow: { duration: 90 } })
+    expect(readTheme().actions.primary.visitedForeground).toBeUndefined()
+    await result.rerender(
+      <NativeThemeProvider
+        mode={mode}
+        overrides={{ actions: { primary: { visitedForeground: undefined } }, transitions: undefined }}
+      >
+        <ThemeProbe />
+      </NativeThemeProvider>,
+    )
+    expect(readTheme()).not.toHaveProperty("transitions")
+    expect(readTheme().actions.primary).not.toHaveProperty("visitedForeground")
+    expect(overrides.transitions.boxShadow).toEqual({ delay: 7 })
+  },
+)
+
+it("PHONE-THEME keeps optional role providers isolated without adding defaults", async () => {
+  await render(
+    <NativeThemeProvider
+      overrides={{ actions: { primary: { visitedForeground: "purple" } }, transitions: { color: 20 } }}
+    >
+      <ThemeProbe label="outer" />
+      <NativeThemeProvider>
+        <ThemeProbe label="inner" />
+      </NativeThemeProvider>
+    </NativeThemeProvider>,
+  )
+  expect(readTheme("outer").transitions?.color).toBe(20)
+  expect(readTheme("outer").actions.primary.visitedForeground).toBe("purple")
+  expect(readTheme("inner")).not.toHaveProperty("transitions")
+  expect(readTheme("inner").actions.primary).not.toHaveProperty("visitedForeground")
+})

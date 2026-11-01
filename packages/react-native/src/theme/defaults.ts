@@ -296,6 +296,11 @@ export const resolveNativeTheme = (mode: TNativeThemeMode, overrides: TNativeThe
     ...defaults,
     colors: mergeDefinedOverrides(defaults.colors, overrides.colors),
     actions,
+    ...(overrides.transitions === undefined
+      ? {}
+      : {
+          transitions: mergeDefinedOverrides<NonNullable<TNativeTheme["transitions"]>>({}, overrides.transitions),
+        }),
     spacing: mergeDefinedOverrides(defaults.spacing, overrides.spacing),
     radius: mergeDefinedOverrides(defaults.radius, overrides.radius),
     opacity: mergeDefinedOverrides(defaults.opacity, overrides.opacity),

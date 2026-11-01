@@ -3,6 +3,13 @@ import { PlatformColor, type ViewStyle } from "react-native"
 import { resolveNativeStyle } from "../colors"
 
 const invalidShadows: [string, ViewStyle, RegExp][] = [
+  ["uppercase none", { boxShadow: "NONE" }, /style.boxShadow\[0\].color/],
+  ["none before another shadow", { boxShadow: "none, 0px 1px red" }, /style.boxShadow\[0\].color/],
+  ["none after another shadow", { boxShadow: "0px 1px red, none" }, /style.boxShadow\[1\].color/],
+  ["none array color", { boxShadow: [{ offsetX: 0, offsetY: 1, color: "none" }] }, /style.boxShadow\[0\].color/],
+  ["none background color", { backgroundColor: "none" }, /style.backgroundColor/],
+  ["none filter array color", { filter: [{ dropShadow: "0px 1px none" }] }, /style.filter\[0\].dropShadow.color/],
+  ["none filter string color", { filter: "drop-shadow(0px 1px none)" }, /style.filter.*dropShadow.color/],
   ["box shadow color", { boxShadow: "0 1px 2px not-a-color" }, /style.boxShadow\[0\].color/],
   ["a later box shadow", { boxShadow: "0 1px 2px red, 0 2px 4px var(--shadow)" }, /style.boxShadow\[1\].color/],
   ["a function color", { boxShadow: "0 1px 2px rgb(no, color, here)" }, /style.boxShadow\[0\].color/],
@@ -25,6 +32,12 @@ const invalidShadows: [string, ViewStyle, RegExp][] = [
 ]
 
 describe("native shadow color validation", () => {
+  it.each(["none", " none ", "\t none \n"])("preserves the raw entire lowercase none keyword %j", (boxShadow) => {
+    const style: ViewStyle = { boxShadow }
+    expect(resolveNativeStyle(style, "Tag", "customStyles")).toBe(style)
+    expect(style.boxShadow).toBe(boxShadow)
+  })
+
   it.each(invalidShadows)("rejects %s with its component and field", (_name, style, field) => {
     expect(() => resolveNativeStyle(style, "Button", "style")).toThrow(TypeError)
     expect(() => resolveNativeStyle(style, "Button", "style")).toThrow(field)

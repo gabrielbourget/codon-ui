@@ -1,19 +1,14 @@
 import type { ReactNode } from "react"
 import type { ColorValue, PressableProps, StyleProp, TextStyle, View, ViewProps, ViewStyle } from "react-native"
 
+import type { TNativeThemeTransition } from "../../theme/types"
 import type { TCornerGeometry } from "../../tokens/geometry"
 import type { TNativeDisplayDimension } from "../displayDimensions"
 
 export const AVAILABLE_NATIVE_TAG_EASINGS = ["linear", "ease", "ease-in", "ease-out", "ease-in-out"] as const
 export type TNativeTagEasing = (typeof AVAILABLE_NATIVE_TAG_EASINGS)[number]
 export type TNativeTagDuration = number | `${number}ms` | `${number}s`
-export type TNativeTagTransition =
-  | TNativeTagDuration
-  | Readonly<{
-      duration?: TNativeTagDuration
-      delay?: TNativeTagDuration
-      easing?: TNativeTagEasing
-    }>
+export type TNativeTagTransition = TNativeThemeTransition
 export type TNativeTagBorder =
   | "none"
   | Readonly<{
@@ -56,6 +51,7 @@ type TNativeTagCommonProps = Omit<
   | "aria-pressed"
   | "aria-selected"
 > & {
+  /** Owned labels wrap under native constraints without a library line limit; authored child layout stays caller-owned. */
   children?: ReactNode
   id?: string | number
   width?: TNativeDisplayDimension

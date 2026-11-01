@@ -6,13 +6,12 @@ import { getNativeButtonContent } from "../Button/content"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
 import { useNativeControlHitSlop, useNativeSelectionInteraction } from "../selection"
 
+import { useNativeTagBoxShadow } from "./boxShadow"
 import { resolveNativeTagTransition, useNativeTagColor, useNativeTagNumber, useNativeTagReducedMotion } from "./motion"
 import { getNativeTagStyle } from "./styles"
 import type { TNativeTagProps, TNativeTagRef } from "./types"
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
-const COLOR_TIMING = resolveNativeTagTransition()
-const SHADOW_TIMING = resolveNativeTagTransition(450)
 
 export const Tag = forwardRef<TNativeTagRef, TNativeTagProps>((props, ref) => {
   const {
@@ -91,26 +90,31 @@ export const Tag = forwardRef<TNativeTagRef, TNativeTagProps>((props, ref) => {
   const content = useNativeContentContext()
   const resolved = getNativeTagStyle(theme, props, flags, content?.foregroundColor ?? theme.colors.foreground)
   const reduced = useNativeTagReducedMotion()
+  const foregroundTiming = resolveNativeTagTransition(theme.transitions?.color)
+  const borderTiming = resolveNativeTagTransition(theme.transitions?.borderColor)
+  const shadowTiming = resolveNativeTagTransition(theme.transitions?.boxShadow, 450)
   const background = useNativeTagColor(
     resolved.view.backgroundColor,
-    resolveNativeTagTransition(backgroundColorTransition),
+    resolveNativeTagTransition(backgroundColorTransition ?? theme.transitions?.backgroundColor),
     reduced,
   )
-  const foreground = useNativeTagColor(resolved.foregroundColor, COLOR_TIMING, reduced, true)
-  const border = useNativeTagColor(resolved.view.borderColor, COLOR_TIMING, reduced)
-  const shadow = useNativeTagColor(resolved.view.shadowColor, SHADOW_TIMING, reduced)
+  const foreground = useNativeTagColor(resolved.foregroundColor, foregroundTiming, reduced, true)
+  const border = useNativeTagColor(resolved.view.borderColor, borderTiming, reduced)
+  const shadow = useNativeTagColor(resolved.view.shadowColor, shadowTiming, reduced)
   const shadowOpacity = useNativeTagNumber(
     typeof resolved.view.shadowOpacity === "number" ? resolved.view.shadowOpacity : undefined,
-    SHADOW_TIMING,
+    shadowTiming,
     reduced,
   )
-  const shadowRadius = useNativeTagNumber(resolved.view.shadowRadius, SHADOW_TIMING, reduced)
-  const shadowX = useNativeTagNumber(resolved.view.shadowOffset?.width, SHADOW_TIMING, reduced)
-  const shadowY = useNativeTagNumber(resolved.view.shadowOffset?.height, SHADOW_TIMING, reduced)
-  const elevation = useNativeTagNumber(resolved.view.elevation, SHADOW_TIMING, reduced)
+  const shadowRadius = useNativeTagNumber(resolved.view.shadowRadius, shadowTiming, reduced)
+  const shadowX = useNativeTagNumber(resolved.view.shadowOffset?.width, shadowTiming, reduced)
+  const shadowY = useNativeTagNumber(resolved.view.shadowOffset?.height, shadowTiming, reduced)
+  const elevation = useNativeTagNumber(resolved.view.elevation, shadowTiming, reduced)
+  const modernShadow = useNativeTagBoxShadow(resolved.view.boxShadow, shadowTiming, reduced)
   const target = useNativeControlHitSlop(onLayout, hitSlop)
   const style = {
     ...resolved.view,
+    ...(modernShadow === undefined && resolved.view.boxShadow === undefined ? {} : { boxShadow: modernShadow }),
     backgroundColor: background.value,
     borderColor: border.value,
     shadowColor: shadow.value,
