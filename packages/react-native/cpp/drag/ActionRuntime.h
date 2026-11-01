@@ -12,7 +12,6 @@
 #include <react/renderer/components/root/RootShadowNode.h>
 #include <react/renderer/runtimescheduler/RuntimeScheduler.h>
 #include <react/renderer/scheduler/Scheduler.h>
-#include <react/renderer/uimanager/NativeEventCommands.h>
 #include <react/renderer/uimanager/UIManagerBinding.h>
 #include <atomic>
 #include <cmath>
@@ -147,28 +146,6 @@ class ActionRuntime final : public std::enable_shared_from_this<ActionRuntime> {
       auto self = weak.lock(); auto manager = weakManager.lock();
       if (!self || !manager || !self->ready() || !self->frames.start(ticket)) return nullptr;
       auto scope = std::make_shared<TaskScope>(self, ticket);
-      scope->commands = manager->getNativeEventCommands().enter([weak, ticket, weakManager, &runtime](const auto &command) {
-        const auto self = weak.lock(); const auto manager = weakManager.lock();
-        if (!self || !manager || !command || !self->frames.accepts(ticket) || command->surfaceId != ticket->identity.surfaceId)
-          throw std::runtime_error("native-drag-original-command-retired");
-        const auto node = command->node.lock(); const auto root = rootFor(*manager, command->surfaceId);
-        const auto current = node && root ? nodeFor(*root, command->target) : nullptr;
-        if (!node || !current || current->getFamilyShared() != node->getFamilyShared()) {
-          command->cancel(); throw std::runtime_error("native-drag-original-command-family-retired");
-        }
-        auto events = self->eventMailbox(manager);
-        const auto result = self->frames.request(ticket, [self, manager, command, events] {
-          std::vector<RawEvent> originals;
-          const auto result = self->capture(manager, [&] { return WorkResult{command->executeOriginal(), ""}; }, originals);
-          events->publish(std::move(originals)); return result;
-        }, [command] { command->cancel(); });
-        std::string error = result.error;
-        try { self->deliver(runtime, manager, events->take()); }
-        catch (const std::exception &failure) { if (error.empty()) error = failure.what(); }
-        catch (...) { if (error.empty()) error = "native-drag-original-notification-threw"; }
-        if (!result.performed || !error.empty() || !self->frames.accepts(ticket))
-          throw std::runtime_error(error.empty() ? "native-drag-original-command-incomplete" : error);
-      });
       return scope;
     });
   }
@@ -177,13 +154,12 @@ class ActionRuntime final : public std::enable_shared_from_this<ActionRuntime> {
   class TaskScope final : public facebook::react::NativeEventTaskScope {
    public:
     TaskScope(std::shared_ptr<ActionRuntime> owner, ActionFrames::Handle ticket) : owner(std::move(owner)), ticket(std::move(ticket)) {}
-    std::shared_ptr<facebook::react::NativeEventCommands::Registration> commands;
     void fail(const std::string &error) noexcept override {
       try { owner->frames.returned(ticket, error); owner->frames.finish(ticket, error); } catch (...) {}
     }
     void finish() noexcept override {
       if (finished) return; finished = true;
-      try { commands.reset(); owner->frames.finish(ticket); } catch (...) {}
+      try { owner->frames.finish(ticket); } catch (...) {}
     }
    private:
     std::shared_ptr<ActionRuntime> owner; ActionFrames::Handle ticket; bool finished{false};
