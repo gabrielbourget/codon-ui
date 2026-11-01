@@ -3,7 +3,6 @@
 #import "CUIDragDataStore.h"
 #import "CUIInputWindow.h"
 #import "CUIKeyboardScope.h"
-#import "CUIVirtualDragFocus.h"
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 #import <QuartzCore/QuartzCore.h>
 #include "../cpp/drag/Motion.h"
@@ -108,7 +107,6 @@ static BOOL CUIDescendant(UIView *view, UIView *root) { for (UIView *item = view
 
 @interface CUIDragInteractions ()
 @property(nonatomic, weak) CUIKeyboardScope *scope;
-@property(nonatomic, strong) CUIVirtualDragFocus *virtualFocus;
 @property(nonatomic, weak) UIWindow *window;
 @property(nonatomic, assign) uint64_t epoch, geometryRevision;
 @property(nonatomic, copy) NSArray<NSDictionary *> *configuration;
@@ -125,7 +123,7 @@ static BOOL CUIDescendant(UIView *view, UIView *root) { for (UIView *item = view
 
 @implementation CUIDragInteractions
 - (instancetype)initWithScope:(CUIKeyboardScope *)scope {
-  if (self = [super init]) { _scope = scope; _virtualFocus=[[CUIVirtualDragFocus alloc] initWithScope:scope]; _configuration = @[]; _bindings = [NSMutableDictionary new]; _statuses = [NSMutableDictionary new]; }
+  if (self = [super init]) { _scope = scope; _configuration = @[]; _bindings = [NSMutableDictionary new]; _statuses = [NSMutableDictionary new]; }
   return self;
 }
 - (BOOL)available { return !_closed && _scope && _scope.window && _scope.dragEnabled && _scope.dragSurfaceId > 0; }
@@ -179,21 +177,12 @@ static BOOL CUIDescendant(UIView *view, UIView *root) { for (UIView *item = view
     NSString *signature = [[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject:status options:NSJSONWritingSortedKeys error:nil] encoding:NSUTF8StringEncoding];
     if (![_windowStatus isEqual:signature]) { _windowStatus = signature; [_scope emitDragStatus:status]; }
   }
-  if (![self canLift]) [_virtualFocus refresh];
   for (CUIDragBinding *binding in _bindings.allValues) { binding.drag.enabled = [binding.data[@"draggable"] boolValue] && ([self canLift] || binding.sources.count > 0); if (![self canDrop]) [binding stopMotion]; }
 }
 - (void)refresh {
   [self refreshWindow];
   if (_closed || !_scope) return;
-  NSDictionary *focus=nil, *owner=nil;
-  for (CUIDragBinding *binding in _bindings.allValues) {
-    [binding refresh];
-    if ([binding current] && [binding.data[@"virtualFocus"] isKindOfClass:NSDictionary.class]) {
-      if (focus) { [self status:binding ready:NO error:@"native-virtual-focus-owners-ambiguous" kind:@"binding"]; [_virtualFocus invalidate]; return; }
-      focus=binding.data[@"virtualFocus"]; owner=binding.data;
-    }
-  }
-  [_virtualFocus update:focus binding:owner];
+  for (CUIDragBinding *binding in _bindings.allValues) [binding refresh];
 }
 - (void)status:(CUIDragBinding *)binding ready:(BOOL)ready error:(NSString *)error kind:(NSString *)kind {
   if (!_scope || _epoch == 0) return;
@@ -239,7 +228,7 @@ static BOOL CUIDescendant(UIView *view, UIView *root) { for (UIView *item = view
   return @{ @"requestId": CUIString(request[@"requestId"]), @"windowId": session[@"windowId"], @"epoch": session[@"epoch"],
     @"geometry": @{ @"revision": @(++_geometryRevision), @"root": CUIRect(binding.root,_scope.window), @"items": items } };
 }
-- (void)invalidate { if (_closed) return; [_virtualFocus invalidate]; for (CUIDragBinding *binding in _bindings.allValues) [binding retire]; [_bindings removeAllObjects]; _closed = YES; }
+- (void)invalidate { if (_closed) return; for (CUIDragBinding *binding in _bindings.allValues) [binding retire]; [_bindings removeAllObjects]; _closed = YES; }
 @end
 
 @implementation CUIDragBinding

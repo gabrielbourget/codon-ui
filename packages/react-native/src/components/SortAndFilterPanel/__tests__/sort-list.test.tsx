@@ -1,7 +1,7 @@
 import "../../../collection/__tests__/nativeReceipts"
 
 import { act as rawAct, cleanup, within } from "@testing-library/react-native"
-import { Fragment, useState, useSyncExternalStore, type ComponentProps } from "react"
+import { Fragment, useState, type ComponentProps } from "react"
 import { AccessibilityInfo, Animated, Easing, PlatformColor, processColor, StyleSheet } from "react-native"
 import type * as RN from "react-native"
 
@@ -11,7 +11,6 @@ import {
   fireEventWithNativeCollections as fireEvent,
   screen,
 } from "../../../collection/__tests__/nativeReceipts"
-import { NativeAccessibleDropChooser } from "../../../collection/dragAndDrop/NativeAccessibleDropChooser"
 import { nativeVirtualDrag } from "../../../collection/dragAndDrop/virtualDrag"
 import {
   DefaultNativeCollectionRenderer,
@@ -85,11 +84,6 @@ jest.mock("react-native-safe-area-context", () => {
   const { View } = jest.requireActual("react-native")
   return { SafeAreaProvider: View, SafeAreaView: View }
 })
-const ChooserHost = () => {
-  useSyncExternalStore(nativeVirtualDrag.subscribe, nativeVirtualDrag.snapshot, nativeVirtualDrag.snapshot)
-  const binding = nativeVirtualDrag.pendingRequest()?.source
-  return binding ? <NativeAccessibleDropChooser binding={binding} /> : null
-}
 const NativeThemeProvider = (props: ComponentProps<typeof ThemeProvider>) => (
   <ThemeProvider {...props}>
     <NativeDragActionsContext.Provider value={mockDragFixture.actions}>
@@ -132,7 +126,6 @@ const props = (): TQuerySortParameterListProps => ({
 const tree = (value: TQuerySortParameterListProps = props()) => (
   <NativeThemeProvider>
     <QuerySortParameterList {...value} />
-    <ChooserHost />
   </NativeThemeProvider>
 )
 type THost = ReturnType<typeof screen.getByTestId>
@@ -388,6 +381,7 @@ it("keeps a physical sort option attached across current metadata updates and de
 })
 
 const showChooser = async () => {
+  expect(screen.getAllByTestId("native-drop-chooser-window", { includeHiddenElements: true })).toHaveLength(1)
   const modal = screen.getByTestId("native-drop-chooser-window", { includeHiddenElements: true })
   const dismissed = modal.props.onDismiss as () => void
   await fireEvent(modal, "show")

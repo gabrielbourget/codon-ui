@@ -1,11 +1,9 @@
 #import <React/RCTViewComponentView.h>
 @class CUIMenuPointerPolicies;
 @class CUIDialogFocusScopes;
-@class CUIVirtualDragFocus;
 
 @interface CUIKeyboardScope : RCTViewComponentView
 - (NSDictionary *)activationSession;
-- (CUIVirtualDragFocus *)virtualDragFocus;
 - (BOOL)dragCaptureReady;
 - (BOOL)dragEnabled;
 - (int32_t)dragSurfaceId;

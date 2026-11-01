@@ -27,7 +27,6 @@ import java.util.Objects;
 import java.util.Set;
 
 public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerListener {
-  private boolean blockedVirtualTouch;
   final CUIDragInteractions dragInteractions = new CUIDragInteractions(this);
   private UIManager dragMountManager;
   boolean dragCaptureReady() { return dragInteractions.available(); }
@@ -230,8 +229,6 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
   }
 
   @Override public boolean dispatchKeyEvent(KeyEvent event) {
-    CUIVirtualDragFocus virtualOwner=CUIVirtualDragAccessibility.owner(this);
-    if (virtualOwner!=null && !virtualOwner.allowsInteraction(getRootView().findFocus())) { virtualOwner.refresh(); return true; }
     dialogs.beginKey(event);
     boolean handled=false;
     try { handled=dispatchOriginalKeyEvent(event); return handled; }
@@ -239,8 +236,6 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
   }
   @Override public View focusSearch(View focused, int direction) {
     View next=super.focusSearch(focused, direction);
-    View projected=CUIVirtualDragFocus.redirect(this,focused,next);
-    if (projected!=null) return projected;
     View wrapped=dialogs.redirect(focused, next, direction);
     return wrapped == null ? next : wrapped;
   }
@@ -331,12 +326,6 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
   }
 
   @Override public boolean dispatchTouchEvent(MotionEvent event) {
-    int action=event.getActionMasked();
-    if (action==MotionEvent.ACTION_DOWN) blockedVirtualTouch=!CUIVirtualDragAccessibility.allowsPointer(this,event);
-    if (blockedVirtualTouch) {
-      if (action==MotionEvent.ACTION_UP || action==MotionEvent.ACTION_CANCEL) blockedVirtualTouch=false;
-      return true;
-    }
     CUIInputWindow.pointerEvent(this, event);
     if (event.getActionMasked() == MotionEvent.ACTION_DOWN && hasWindowFocus()) {
       CUIMenuPointerPolicies.recordPointerDown(this);
@@ -360,7 +349,6 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
     } finally { CUIDragInteractions.endDispatch(); }
   }
   @Override public boolean dispatchGenericMotionEvent(MotionEvent event) {
-    if (!CUIVirtualDragAccessibility.allowsPointer(this,event)) return true;
     if ((event.getActionMasked() == MotionEvent.ACTION_HOVER_MOVE || event.getActionMasked() == MotionEvent.ACTION_HOVER_ENTER)
         && event.getToolType(0) == MotionEvent.TOOL_TYPE_MOUSE) CUIMenuPointerPolicies.recordHover(this);
     if (event.getActionMasked() == MotionEvent.ACTION_SCROLL) CUIInputWindow.interacted(this);

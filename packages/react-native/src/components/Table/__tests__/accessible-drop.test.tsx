@@ -103,7 +103,7 @@ const setup = async () => {
   }
   const Capture = () => {
     owner = useNativeTable()
-    return <>{owner.dragAndDrop.accessibleDropChooser}</>
+    return null
   }
   const columns = [{ id: "value", name: "Value", isRowHeader: true }]
   let sourceRevision = 0
@@ -229,6 +229,7 @@ const setup = async () => {
 
 const open = async (fixture: Awaited<ReturnType<typeof setup>>) => {
   await act(() => nativeVirtualDrag.start(fixture.binding, 0, nativeDragFormatter("en-US"), "keyboard"))
+  expect(screen.getAllByTestId("native-drop-chooser-window", { includeHiddenElements: true })).toHaveLength(1)
   const modal = screen.getByTestId("native-drop-chooser-window", hidden)
   const dismiss = modal.props.onDismiss
   await fireEvent(modal, "show")

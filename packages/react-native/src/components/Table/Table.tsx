@@ -459,6 +459,7 @@ const Receiver = <T extends object>({
                     </View>
                   )}
                 </View>
+                {dragAndDrop.accessibleDropChooser}
               </NativeDropIndicatorContext.Provider>
             </NativeDragAndDropContext.Provider>
           </NativeTableContext.Provider>

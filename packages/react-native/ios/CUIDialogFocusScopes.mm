@@ -1,6 +1,5 @@
 #import "CUIDialogFocusScopes.h"
 #import "CUIInputWindow.h"
-#import "CUIVirtualDragFocus.h"
 #import "CUIKeyboardScope.h"
 #import "CUIFocusView.h"
 
@@ -120,7 +119,6 @@ static BOOL CUIDialogVisible(UIView *view) {
   return result;
 }
 - (CUIDialogBinding *)active {
-  if (CUIActiveVirtualDragFocus(_owner.window)) return nil;
   CUIDialogBinding *binding=[self localActive]; if (!binding) return nil;
   UIView *root=[self resolve:binding.root];
   for (UIView *scope in CUIInputScopes(_owner.window)) {

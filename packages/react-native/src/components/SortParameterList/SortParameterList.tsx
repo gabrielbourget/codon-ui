@@ -227,6 +227,7 @@ const Row = (props: TItemProps, ref: ForwardedRef<View>, node: TNativeCollection
         dragAndDrop={dragAndDrop}
         forwarded={ref}
       />
+      {dragAndDrop.accessibleDropChooser}
     </NativeDragAndDropContext.Provider>
   )
 }

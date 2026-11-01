@@ -1,7 +1,6 @@
 import "../../../collection/__tests__/nativeReceipts"
 
 import { act as rawAct, cleanup, within } from "@testing-library/react-native"
-import { useSyncExternalStore } from "react"
 import type * as RN from "react-native"
 
 import { SortParameterList, type SortParameter } from ".."
@@ -11,7 +10,6 @@ import {
   renderWithNativeCollections as collectionRender,
   screen,
 } from "../../../collection/__tests__/nativeReceipts"
-import { NativeAccessibleDropChooser } from "../../../collection/dragAndDrop/NativeAccessibleDropChooser"
 import { nativeVirtualDrag } from "../../../collection/dragAndDrop/virtualDrag"
 import { NativeDragActionsContext } from "../../../input/nativeDragActions"
 import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
@@ -73,11 +71,6 @@ jest.mock("react-native-safe-area-context", () => {
   const { View } = jest.requireActual("react-native")
   return { SafeAreaProvider: View, SafeAreaView: View }
 })
-const ChooserHost = () => {
-  useSyncExternalStore(nativeVirtualDrag.subscribe, nativeVirtualDrag.snapshot, nativeVirtualDrag.snapshot)
-  const binding = nativeVirtualDrag.pendingRequest()?.source
-  return binding ? <NativeAccessibleDropChooser binding={binding} /> : null
-}
 const parameters: SortParameter[] = [
   { ID: "name", name: "Name", sortDirection: "Ascending" },
   { ID: "date", name: "Date", sortDirection: "Descending" },
@@ -87,7 +80,6 @@ const tree = (props: Partial<React.ComponentProps<typeof SortParameterList>> = {
     <NativeOverlayProvider>
       <NativeDragActionsContext.Provider value={mockFixture.actions}>
         <SortParameterList sortParameterList={parameters} {...props} />
-        <ChooserHost />
       </NativeDragActionsContext.Provider>
     </NativeOverlayProvider>
   </NativeThemeProvider>
@@ -256,6 +248,7 @@ it("keeps original Sort row refs and optional owner callbacks through the actual
   const source = select("name"),
     destination = select("date")
   await act(() => row("name").props.onAccessibilityAction({ nativeEvent: { actionName: "activate" } }))
+  expect(screen.getAllByTestId("native-drop-chooser-window", { includeHiddenElements: true })).toHaveLength(1)
   const modal = screen.getByTestId("native-drop-chooser-window", { includeHiddenElements: true })
   const dismiss = modal.props.onDismiss
   await act(() => modal.props.onShow())

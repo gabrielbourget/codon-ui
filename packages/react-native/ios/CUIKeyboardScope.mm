@@ -1,7 +1,5 @@
 #import "CUIKeyboardScope.h"
 #import "CUIDialogFocusScopes.h"
-#import "CUIVirtualDragFocus.h"
-#import "CUIVirtualDragAccessibility.h"
 #import "CUIDragInteractions.h"
 #import "CUIInputWindow.h"
 #import "CUIMenuPointerPolicies.h"
@@ -84,11 +82,10 @@ static void CUIObserveCapturedDatePress(UIPress *press, NSString *phase, BOOL ca
   for (UIPress *press in presses) {
     if (!press.key) continue;
     NSNumber *code = @(press.key.keyCode);
-    CUIVirtualDragFocus *virtualOwner=CUIActiveVirtualDragFocus(self.view.window);
-    if ([self.suppressed containsObject:code] || (virtualOwner && ![virtualOwner allowsInteractionWithView:CUIInputFocusedView(self.view.window)])) {
+    if ([self.suppressed containsObject:code]) {
       [self.suppressed addObject:code];
       self.state=self.state==UIGestureRecognizerStatePossible ? UIGestureRecognizerStateBegan : UIGestureRecognizerStateChanged;
-      [virtualOwner refresh]; continue;
+      continue;
     }
     CUIKeyHold *hold = self.held[code];
     BOOL repeat = hold != nil;
@@ -178,12 +175,6 @@ static void CUIObserveCapturedDatePress(UIPress *press, NSString *phase, BOOL ca
   BOOL _sceneActive;
   CUIFloatingObserver *_floating;
   NSArray<NSDictionary *> *_floatingTargets;
-}
-
-- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
-{
-  UIView *original=[super hitTest:point withEvent:event];
-  return original && !CUIAllowsVirtualDragInteraction(original) ? self : original;
 }
 
 + (ComponentDescriptorProvider)componentDescriptorProvider
@@ -316,11 +307,9 @@ static void CUIObserveCapturedDatePress(UIPress *press, NSString *phase, BOOL ca
 }
 - (CUIMenuPointerPolicies *)menuPointers { return _menuPointers; }
 - (CUIDialogFocusScopes *)dialogFocusScopes { return _dialogs; }
-- (CUIVirtualDragFocus *)virtualDragFocus { return [_dragInteractions virtualFocus]; }
 - (BOOL)shouldUpdateFocusInContext:(UIFocusUpdateContext *)context
 {
-  CUIVirtualDragFocus *drag=CUIActiveVirtualDragFocus(self.window);
-  return [super shouldUpdateFocusInContext:context] && [_dialogs shouldAllowFocusUpdate:context] && (!drag || [drag allowsFocus:context]);
+  return [super shouldUpdateFocusInContext:context] && [_dialogs shouldAllowFocusUpdate:context];
 }
 - (void)emitMenuPointer:(NSDictionary *)packet
 {
