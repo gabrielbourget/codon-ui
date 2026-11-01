@@ -478,3 +478,73 @@ it("preserves selected tags and the same original editor across a vetoed form qu
   expect([...registry.fields.values()][0].data.entries).toEqual([["text", "held"]])
   expect(screen.getByText("Zero", hidden)).toBeOnTheScreen()
 })
+
+it("preserves authored root tag typography and local overrides through held owner updates", async () => {
+  const root = createRef<RN.View>(),
+    editor = createRef<RN.TextInput>(),
+    selected = jest.fn(),
+    query = jest.fn()
+  const view = await render(
+    wrap(
+      <TagComboBox
+        {...base}
+        ref={root}
+        inputRef={editor}
+        selectedItems={[items[0]]}
+        inputValue="held"
+        onSelectedItemsChange={selected}
+        onInputChange={query}
+        customStyles={{ fontStyle: "italic", letterSpacing: 3 }}
+      />,
+    ),
+  )
+  const originalRoot = root.current,
+    originalEditor = editor.current,
+    originalLabel = screen.getByText("Zero", hidden)
+  expect(originalRoot).not.toBeNull()
+  expect(originalEditor).not.toBeNull()
+  expect(originalLabel).toHaveStyle({ fontStyle: "italic", letterSpacing: 3 })
+  await view.rerender(
+    wrap(
+      <TagComboBox
+        {...base}
+        ref={root}
+        inputRef={editor}
+        selectedItems={[items[0]]}
+        inputValue="held"
+        onSelectedItemsChange={selected}
+        onInputChange={query}
+        customStyles={{ fontStyle: "italic", letterSpacing: 3 }}
+        customTagGroupStyles={{ fontStyle: "normal", letterSpacing: 0 }}
+        customTagProps={{ customStyles: { fontStyle: "italic", letterSpacing: 5 } }}
+      />,
+    ),
+  )
+  expect(screen.getByText("Zero", hidden)).toBe(originalLabel)
+  expect(originalLabel).toHaveStyle({ fontStyle: "italic", letterSpacing: 5 })
+  expect(root.current).toBe(originalRoot)
+  expect(editor.current).toBe(originalEditor)
+  await view.rerender(
+    wrap(
+      <TagComboBox
+        {...base}
+        ref={root}
+        inputRef={editor}
+        selectedItems={[items[0]]}
+        inputValue="held"
+        onSelectedItemsChange={selected}
+        onInputChange={query}
+        customStyles={{ fontStyle: "normal", letterSpacing: 0 }}
+      />,
+    ),
+  )
+  expect(originalLabel).toHaveStyle({ fontStyle: "normal", letterSpacing: 0 })
+  expect(root.current).toBe(originalRoot)
+  expect(editor.current).toBe(originalEditor)
+  expect(row("combo-box-input").props.value).toBe("held")
+  expect(selected).not.toHaveBeenCalled()
+  expect(query).not.toHaveBeenCalled()
+  await view.unmount()
+  expect(root.current).toBeNull()
+  expect(editor.current).toBeNull()
+})

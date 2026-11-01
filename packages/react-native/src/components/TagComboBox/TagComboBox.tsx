@@ -34,6 +34,7 @@ const TagComboBoxInner = <T extends object>(
   const {
     items,
     selectedItems,
+    selectionMode: _selectionMode,
     getItemKey,
     getItemTextValue,
     children,
@@ -154,6 +155,7 @@ const TagComboBoxInner = <T extends object>(
     customInputButtonGroupStyles: nestedGroupStyles,
     labels: _nestedLabels,
     onInputChange: _nestedInput,
+    selectionMode: _nestedSelectionMode,
     ...innerCombo
   } = customComboBoxProps ?? {}
   const { customStyles: nestedTagsStyles, ...innerTags } = customTagGroupProps ?? {}
@@ -187,7 +189,7 @@ const TagComboBoxInner = <T extends object>(
           onRemove={remove}
           accessibilityLabel={innerTags.accessibilityLabel ?? innerTags["aria-label"] ?? resolved.tagGroupAriaLabel}
           disabledKeys={props.isDisabled ? selectedItems.map(getItemKey) : innerTags.disabledKeys}
-          customStyles={[customTagGroupStyles, nestedTagsStyles]}
+          customStyles={[styles.text, customTagGroupStyles, nestedTagsStyles]}
         >
           {(item) => (
             <Tag

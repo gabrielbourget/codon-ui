@@ -31,6 +31,7 @@ type TInnerComboProps<T extends object> = Partial<
   Omit<
     TNativeCollectionComboBoxProps<T>,
     | "items"
+    | "children"
     | "getKey"
     | "getTextValue"
     | "value"
@@ -42,6 +43,7 @@ type TInnerComboProps<T extends object> = Partial<
     | "popoverIsOpen"
   >
 > & {
+  selectionMode?: "single"
   labels?: Partial<TNativeTagComboBoxLabels["comboBox"]>
 }
 export type TNativeTagComboBoxProps<T extends object> = Omit<
@@ -67,6 +69,7 @@ export type TNativeTagComboBoxProps<T extends object> = Omit<
 > & {
   items?: Iterable<T>
   selectedItems: readonly T[]
+  selectionMode?: "single"
   onSelectedItemsChange: (items: T[], details: TNativeTagComboBoxChangeDetails<T>) => void
   getItemKey: (item: T) => string | number
   getItemTextValue: (item: T) => string
