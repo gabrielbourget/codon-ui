@@ -1,5 +1,6 @@
 import { CalendarDateTime, Time, parseZonedDateTime } from "@internationalized/date"
 import { createRef } from "react"
+import type { TextInput, View } from "react-native"
 
 import {
   TimePicker,
@@ -63,3 +64,7 @@ export const TimePickerOrdinaryPointer = (
     }}
   />
 )
+
+export const ExplicitExtraFocus = <TimePicker extraFocusParticipants={[createRef<TextInput>(), createRef<View>()]} />
+// @ts-expect-error Explicit participants retain original native refs rather than numeric tags or descriptors.
+export const InvalidExtraFocus = <TimePicker extraFocusParticipants={[{ current: 42 }]} />

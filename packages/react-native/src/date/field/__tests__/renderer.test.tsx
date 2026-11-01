@@ -23,6 +23,7 @@ import {
 } from "../../../input/fieldInput"
 import { getNativeFocusedTarget, observeNativeFocus } from "../../../input/focus"
 import { NativeFocusHost } from "../../../input/NativeFocusView"
+import { NativeKeyboardScope } from "../../../input/NativeKeyboardScope"
 import { Commands } from "../../../input/specs/CUIDateSegmentNativeComponent"
 import type { TNativeKeyboardEvent } from "../../../input/types"
 import { NativeLocaleProvider } from "../../../locale/NativeLocaleProvider"
@@ -438,44 +439,11 @@ const rendererScope = (): TNativeFieldInputScope => ({
       }),
   },
 })
-const rendererDispatch = (phase: "down" | "up") =>
-  JSON.stringify({
-    moduleLease: "module:renderer",
-    token: phase === "down" ? 1 : 2,
-    eventId: phase === "down" ? 1 : 2,
-    phase,
-    identity: {
-      ownerId: "renderer",
-      bindingId: "renderer",
-      bindingRevision: "renderer:1",
-      metadataTarget: 15,
-      outerTarget: 2,
-      inputTarget: 3,
-      surfaceId: 11,
-      target: 101,
-      documentId: "document",
-      documentRevision: "1",
-      windowId: "window",
-      mountRevision: "mount",
-      outerInstance: "outer",
-      inputInstance: "input",
-      nativeInstance: "component:101",
-      editorInstance: "editor:101",
-      epoch: 1,
-    },
-    groups: [3, 2].map((target) => ({
-      target,
-      bindingId: "renderer",
-      bindingRevision: "renderer:1",
-      scopeTarget: 2,
-      containsTarget: true,
-    })),
-  })
-
 const rendererKeyEvent = (phase: "down" | "up", key: string) => {
   let prevented = false,
     stopped = false
   return {
+    target: getNativeFocusedTarget(),
     nativeEvent: {
       kind: "keyboard",
       ownerId: "window",
@@ -494,7 +462,6 @@ const rendererKeyEvent = (phase: "down" | "up", key: string) => {
       nativeModifierData: "0",
       nativeDefaultHandled: true,
       timestamp: 100,
-      fieldDispatch: rendererDispatch(phase),
     },
     persist: jest.fn(),
     preventDefault: jest.fn(() => {
@@ -517,24 +484,41 @@ it("routes an accepted key release to onKeyUp once per source group without repe
     down = jest.fn((event: TNativeKeyboardEvent) => order.push(`down:${event.nativeEvent.phase}`)),
     up = jest.fn((event: TNativeKeyboardEvent) => order.push(`up:${event.nativeEvent.phase}`))
   await render(
-    <NativeTimePickerRenderer
-      value={new Time(13, 45)}
-      onChange={() => order.push("change")}
-      onKeyDown={down}
-      onKeyUp={up}
-      render={(props) => <NativeFocusHost {...props} />}
-    />,
+    <NativeKeyboardScope captureEnabled>
+      <NativeTimePickerRenderer
+        value={new Time(13, 45)}
+        onChange={() => order.push("change")}
+        onKeyDown={down}
+        onKeyUp={up}
+        render={(props) => <NativeFocusHost {...props} />}
+      />
+    </NativeKeyboardScope>,
   )
   await send(0)
+  await send(1)
   await send(0, { kind: "focus", focused: true, sequence: 2 })
   const pressed = rendererKeyEvent("down", "ArrowUp"),
     released = rendererKeyEvent("up", "ArrowUp")
-  await act(() => segment(0).props.onNativeFieldKey(pressed))
-  await act(() => screen.getByTestId("time-picker-input").props.nativeFieldGroupHandler(pressed, 3))
-  await act(() => screen.getByTestId("time-picker-group").props.nativeFieldGroupHandler(pressed, 2))
-  await act(() => segment(0).props.onNativeFieldKey(released))
-  await act(() => screen.getByTestId("time-picker-input").props.nativeFieldGroupHandler(released, 3))
-  await act(() => screen.getByTestId("time-picker-group").props.nativeFieldGroupHandler(released, 2))
+  for (const [index, event] of [pressed, released].entries())
+    Object.assign(
+      event.nativeEvent,
+      keyPacket({
+        ownerId: segment(0).props.ownerId,
+        segmentId: segment(0).props.segmentId,
+        bindingRevision: segment(0).props.bindingRevision,
+        target: 101,
+        nativeInstance: "original:0",
+        key: "ArrowUp",
+        phase: index === 0 ? "down" : "up",
+        sequence: index + 3,
+      }),
+    )
+  await act(() => segment(0).props.onNativeDateKey(pressed))
+  await act(() => screen.getByTestId("time-picker-input").props.nativeOrdinaryGroupKeyHandler(pressed))
+  await act(() => screen.getByTestId("time-picker-group").props.nativeOrdinaryGroupKeyHandler(pressed))
+  await act(() => segment(0).props.onNativeDateKey(released))
+  await act(() => screen.getByTestId("time-picker-input").props.nativeOrdinaryGroupKeyHandler(released))
+  await act(() => screen.getByTestId("time-picker-group").props.nativeOrdinaryGroupKeyHandler(released))
   expect(order).toEqual(["change", "down:down", "down:down", "up:up", "up:up"])
   expect(down.mock.calls.every(([value]) => value === pressed)).toBe(true)
   expect(up.mock.calls.every(([value]) => value === released)).toBe(true)
@@ -544,17 +528,21 @@ it("retains the same-group callback after navigation stops propagation to the ou
   mockFieldScope = rendererScope()
   const down = jest.fn()
   await render(
-    <NativeTimePickerRenderer
-      value={new Time(13, 45)}
-      onKeyDown={down}
-      render={(props) => <NativeFocusHost {...props} />}
-    />,
+    <NativeKeyboardScope captureEnabled>
+      <NativeTimePickerRenderer
+        value={new Time(13, 45)}
+        onKeyDown={down}
+        render={(props) => <NativeFocusHost {...props} />}
+      />
+    </NativeKeyboardScope>,
   )
   await send(0)
+  await send(1)
   await send(0, { kind: "focus", focused: true, sequence: 2 })
   const event = rendererKeyEvent("down", "ArrowRight")
-  await act(() => screen.getByTestId("time-picker-input").props.nativeFieldGroupHandler(event, 3))
-  await act(() => screen.getByTestId("time-picker-group").props.nativeFieldGroupHandler(event, 2))
+  await act(() => screen.getByTestId("time-picker-input").props.nativeOrdinaryGroupKeyHandler(event))
+  if (!event.isPropagationStopped())
+    await act(() => screen.getByTestId("time-picker-group").props.nativeOrdinaryGroupKeyHandler(event))
   expect(event.preventDefault).toHaveBeenCalledTimes(1)
   expect(event.stopPropagation).toHaveBeenCalledTimes(1)
   expect(down).toHaveBeenCalledTimes(1)
@@ -963,7 +951,7 @@ const prepareOrdinaryTimeInput = async (
   expect(hour).not.toBeNull()
   expect(minute).not.toBeNull()
   expect(hour).not.toBe(minute)
-  expect(segment().props.ordinaryInputEvents).toBe(composition === "default")
+  expect(segment().props.ordinaryInputEvents).toBe(true)
   jest.mocked(Commands.requestSegmentFocus).mockClear()
   return { ...result, root, hour, minute, native, onChange, customEditor }
 }
@@ -996,7 +984,8 @@ it("requests ordinary-input auto-advance on the original next segment while pres
   expect(f.native.moveFieldFocus).not.toHaveBeenCalled()
   expect(screen.getByTestId("time-picker-group").props.nativeFieldGroupHandler).toBeUndefined()
   expect(screen.getByTestId("time-picker-group").props.nativeOrdinaryGroupKeyHandler).toEqual(expect.any(Function))
-  expect(screen.getByTestId("time-picker-group").props.nativeFieldGroupPointerHandler).toEqual(expect.any(Function))
+  expect(screen.getByTestId("time-picker-group").props.nativeFieldGroupPointerHandler).toBeUndefined()
+  expect(screen.getByTestId("time-picker-group").props.onPointerDown).toEqual(expect.any(Function))
 })
 it("preserves numeric composition and auto-advances only after the original unmark notification", async () => {
   const f = await prepareOrdinaryTimeInput()
@@ -1080,7 +1069,7 @@ it("requests the original previous segment when ordinary deletion reaches an emp
 })
 
 it.each(["render", "icon"] as const)(
-  "preserves the legacy input route for custom %s composition with an original core editor",
+  "uses ordinary input for custom %s composition while an unlisted original editor stays independent",
   async (composition) => {
     const f = await prepareOrdinaryTimeInput(jest.fn(), new Time(13, 45, 7), composition)
     const original = f.customEditor.current
@@ -1095,21 +1084,21 @@ it.each(["render", "icon"] as const)(
       selectionStart: 1,
       selectionEnd: 1,
     })
-    // The legacy route requires the original native frame; an unframed ordinary packet cannot skip the authored editor.
-    expect(f.onChange).not.toHaveBeenCalled()
-    expect(Commands.requestSegmentFocus).not.toHaveBeenCalled()
+    expect(f.onChange).toHaveBeenCalledWith(new Time(3, 45, 7))
+    expect(Commands.requestSegmentFocus).toHaveBeenCalledTimes(1)
+    expect(jest.mocked(Commands.requestSegmentFocus).mock.calls[0][0]).toBe(f.minute)
     expect(f.customEditor.current).toBe(original)
     expect(screen.getByTestId("custom-composed-editor").props.value).toBe("owned")
     expect(write).not.toHaveBeenCalled()
   },
 )
-it("keeps a context-supplied custom renderer on the legacy input route", async () => {
+it("uses ordinary input through a context-supplied custom renderer", async () => {
   await render(
     <NativeTimeFieldContext.Provider value={{ render: (props) => <NativeFocusHost {...props} /> }}>
       <NativeTimePickerRenderer defaultValue={new Time(13, 45)} />
     </NativeTimeFieldContext.Provider>,
   )
-  expect(segment().props.ordinaryInputEvents).toBe(false)
+  expect(segment().props.ordinaryInputEvents).toBe(true)
 })
 
 it("uses the original raw segment key event for default adjustment, navigation and each group callback", async () => {
@@ -1150,14 +1139,14 @@ it("uses the original raw segment key event for default adjustment, navigation a
   expect(jest.mocked(Commands.requestSegmentFocus).mock.calls[0][0]).toBe(f.minute)
   expect(arrow.target).toBe(f.hour)
 })
-it("keeps the legacy group route beneath an active inherited field owner", async () => {
+it("isolates ordinary group delivery from an inherited legacy owner", async () => {
   mockFieldScope = rendererScope()
   await render(
     <NativeFieldInputContext.Provider value={mockFieldScope}>
       <NativeTimePickerRenderer value={new Time(13, 45)} />
     </NativeFieldInputContext.Provider>,
   )
-  expect(segment().props.ordinaryGroupEvents).toBe(false)
-  expect(screen.getByTestId("time-picker-group").props.nativeOrdinaryGroupKeyHandler).toBeUndefined()
-  expect(screen.getByTestId("time-picker-group").props.nativeFieldGroupHandler).toEqual(expect.any(Function))
+  expect(segment().props.ordinaryGroupEvents).toBe(true)
+  expect(screen.getByTestId("time-picker-group").props.nativeOrdinaryGroupKeyHandler).toEqual(expect.any(Function))
+  expect(screen.getByTestId("time-picker-group").props.nativeFieldGroupHandler).toBeUndefined()
 })

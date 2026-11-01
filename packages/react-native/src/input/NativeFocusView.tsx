@@ -42,6 +42,7 @@ import {
 import { registerNativeDescriptionSource, type TNativeDescriptionBinding } from "./nativeDescription"
 import { useNativeKeyScope } from "./NativeKeyboardScope"
 import { nativeViewProps, NativeViewContextBoundary } from "./nativeViewProps"
+import { NativeOrdinaryFocusParticipantsContext, useNativeOrdinaryEditorKeys } from "./ordinaryEditorKeys"
 import FocusHost, {
   Commands,
   type NativeAccessibilityData,
@@ -64,6 +65,9 @@ export const NativeFocusHost = forwardRef<
   TNativeFocusViewProps & {
     nativePressable?: boolean
     nativeOrdinaryGroupKeyHandler?: (event: TNativeKeyboardEvent) => void
+    onNativeOrdinaryEditorKey?: (
+      event: NativeSyntheticEvent<import("./specs/CUIFocusViewNativeComponent").NativeOrdinaryEditorKeyData>,
+    ) => void
     nativeFieldGroupHandler?: (event: TNativeFieldKeyEvent, target: number) => void
     nativeFieldGroupPointerHandler?: (
       event: TNativeFieldPointerEvent,
@@ -107,6 +111,7 @@ export const NativeFocusHost = forwardRef<
     onKeyUp,
     nativeFieldGroupHandler,
     nativeOrdinaryGroupKeyHandler,
+    onNativeOrdinaryEditorKey,
     nativeFieldGroupPointerHandler,
     onFocus,
     onBlur,
@@ -130,6 +135,8 @@ export const NativeFocusHost = forwardRef<
   } = props
   const ownerId = useId()
   const fieldInput = useContext(NativeFieldInputContext)
+  const participants = useContext(NativeOrdinaryFocusParticipantsContext)
+  const [ordinaryOriginal, setOrdinaryOriginal] = useState<ElementRef<typeof FocusHost> | null>(null)
   const collectionBinding = useContext(NativeCollectionItemBindingContext)
   const collectionSemantics = useContext(NativeCollectionSemanticsContext)
   const [geometryBinding] = useState(() => `motion-geometry:${++motionGeometryBindings}`)
@@ -164,7 +171,7 @@ export const NativeFocusHost = forwardRef<
   })
   const [description, setDescription] = useState<TNativeDescriptionBinding | null>(null)
   const releaseForwardedRef = useRef<(() => void) | undefined>(undefined)
-  const keyboardFocusable = tabIndex === -1 && !fieldInput ? false : (focusable ?? true)
+  const keyboardFocusable = tabIndex === -1 && !fieldInput && !participants ? false : (focusable ?? true)
   const inputScope = useNativeKeyScope()
   const floatingScope = useContext(NativeFloatingScopeContext)
   const windowActive = useContext(NativeFloatingWindowContext)
@@ -335,6 +342,23 @@ export const NativeFocusHost = forwardRef<
   useLayoutEffect(() => {
     refreshMotionObservers()
   }, [nativeMotionColorObservation, nativeMotionGeometryObservation, refreshMotionObservers])
+  const ordinaryMember = keyboardFocusable && !!ordinaryOriginal && !!participants?.(ordinaryOriginal)
+  const ordinaryOptions = useRef({ ordinaryMember, onKeyDown, onKeyUp })
+  useInsertionEffect(() => {
+    ordinaryOptions.current = { ordinaryMember, onKeyDown, onKeyUp }
+  })
+  const receiveOrdinaryKey = useNativeOrdinaryEditorKeys(ordinaryOriginal, ordinaryMember, ownerId, {
+    current: () => nativeTarget.current,
+    canAct: () => attached.current && ordinaryOptions.current.ordinaryMember,
+    receive: (event) => {
+      const options = ordinaryOptions.current
+      if (event.nativeEvent.phase === "down") options.onKeyDown?.(event)
+      else options.onKeyUp?.(event)
+    },
+  })
+  useLayoutEffect(() => {
+    if (participants) setOrdinaryOriginal(nativeTarget.current)
+  }, [participants])
   const normalized = nativeViewProps(rest)
   const labelledBy = normalized.accessibilityLabelledBy
   const pointerHandler = <TEvent extends NativeSyntheticEvent<object>>(
@@ -406,7 +430,7 @@ export const NativeFocusHost = forwardRef<
         }
         focusable={keyboardFocusable}
         keyboardFocusable={keyboardFocusable}
-        nativeTabStop={fieldInput ? (rest.nativeTabStop ?? tabIndex !== -1) : rest.nativeTabStop}
+        nativeTabStop={fieldInput || participants ? (rest.nativeTabStop ?? tabIndex !== -1) : rest.nativeTabStop}
         capturedKeys={capturedKeys}
         onFocus={
           onBubbledFocus
@@ -437,7 +461,13 @@ export const NativeFocusHost = forwardRef<
           const target = nativeTarget.current
           if (!target || !dispatchNativeActivationPolicy(target, event)) onNativeActivation?.(event)
         }}
+        onNativeOrdinaryEditorKey={(event) => {
+          if (!attached.current) return
+          if (event.target === nativeTarget.current && ordinaryOptions.current.ordinaryMember) receiveOrdinaryKey(event)
+          onNativeOrdinaryEditorKey?.(event)
+        }}
         onNativeKey={(event) => {
+          if (ordinaryOptions.current.ordinaryMember) return
           if (!attached.current || event.nativeEvent.ownerId !== ownerId || !isKeyboardEvent(event)) return
           if (event.nativeEvent.phase === "down") {
             if (keyboardFocusable) onKeyDown?.(event)

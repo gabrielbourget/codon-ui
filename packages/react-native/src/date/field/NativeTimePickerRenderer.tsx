@@ -1,11 +1,9 @@
 import {
   forwardRef,
   useCallback,
-  useContext,
   useId,
   useInsertionEffect,
   useLayoutEffect,
-  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
@@ -24,12 +22,10 @@ import type { TNativeTextRef } from "../../components/Text/types"
 import { useNativeFieldSemanticRef, useNativeFieldSemantics } from "../../form/useFieldSemantics"
 import { useNativeTimeFieldForm } from "../../form/useTimeField"
 import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
-import { NativeFieldInputContext, nativeFieldGroupKeyHandler } from "../../input/fieldInput"
-import type { TNativeFieldInputPlan } from "../../input/fieldInputBinding"
+import { NativeFieldInputContext } from "../../input/fieldInput"
 import { NativeFocusHost } from "../../input/NativeFocusView"
+import { NativeOrdinaryFocusParticipantsContext } from "../../input/ordinaryEditorKeys"
 import type { TNativeFocusViewProps } from "../../input/types"
-import { useNativeFieldGroupPress } from "../../input/useFieldGroupPress"
-import { useNativeFieldInputBinding } from "../../input/useFieldInputBinding"
 import { useNativeTheme } from "../../theme"
 import { getNativeDateFieldDescription } from "../entry/semantics"
 import type { TimeValue } from "../state/types"
@@ -47,20 +43,21 @@ import {
   NativeTimeFieldTextContext,
   NativeTimeFieldErrorContext,
 } from "./descendants"
-import { NativeDateFieldFocusManager } from "./focus"
 import { isNativeDateFieldFocusEvent } from "./focusEvent"
 import { NativeDateFieldHostSet, nativeDateFieldSegmentId } from "./hostSet"
 import { useNativeTimePickerMotion } from "./motion"
 import { NativeTimePickerSegment } from "./NativeTimePickerSegment"
 import { useNativeOrdinaryDateGroup } from "./ordinaryGroup"
+import { NativeDateFieldParticipantFocusManager } from "./participants"
 import type { TNativeTimeFieldProps } from "./types"
 import { useNativeDateFieldLifecycle } from "./useLifecycle"
+import { useNativeDateFieldParticipants } from "./useParticipants"
 import { useNativeTimeField } from "./useTimeField"
 
 type TProps<T extends TimeValue> = TNativeTimeFieldProps<T> & TNativeTimePickerAppearanceProps
-let nextGroupRevision = 0
 
 const fieldOptions = new Set([
+  "extraFocusParticipants",
   "value",
   "defaultValue",
   "onChange",
@@ -130,21 +127,37 @@ export const NativeTimePickerRenderer = forwardRef(
       forwardedRef,
     )
     const { props, state, renderState, locale, direction } = field
-    // Custom compositions may add native focus targets outside the owned segment registry.
-    const ordinaryInputEvents = !props.render && !authored.ComponentIcon
-    const inheritedFieldInput = useContext(NativeFieldInputContext)
-    const ordinaryGroupEvents = ordinaryInputEvents && !inheritedFieldInput
     const ownerId = useId()
     const testID = props.testID ?? props["data-testid"] ?? "time-picker"
     const [hosts] = useState(() => new NativeDateFieldHostSet())
     const [outer, setOuter] = useState<View | null>(null)
-    const [inputRoot, setInputRoot] = useState<View | null>(null)
+    const [fieldRoot, setFieldRoot] = useState<View | null>(null)
+    const rootRef = useRef<View | null>(null)
+    const participantRefs = useRef(props.extraFocusParticipants)
+    useInsertionEffect(() => {
+      participantRefs.current = props.extraFocusParticipants
+    })
+    const bindField = useCallback(
+      (target: View | null) => {
+        rootRef.current = target
+        setFieldRoot(target)
+        return field.ref(target)
+      },
+      [field.ref],
+    )
     useSyncExternalStore(hosts.subscribe, hosts.version, hosts.version)
     const current = useRef(state)
     useInsertionEffect(() => {
       current.current = state
     })
-    const [focus] = useState(() => new NativeDateFieldFocusManager(() => hosts.snapshot(current.current.segments)))
+    const [focus] = useState(
+      () =>
+        new NativeDateFieldParticipantFocusManager(() => {
+          const owned = hosts.snapshot(current.current.segments),
+            root = rootRef.current
+          return owned && root ? { owned, root, participants: participantRefs.current ?? [] } : null
+        }),
+    )
     useInsertionEffect(() => () => focus.retire(), [focus])
     const bindGroup = useCallback(
       (target: View | null) => {
@@ -173,61 +186,26 @@ export const NativeTimePickerRenderer = forwardRef(
       const value = hosts.snapshot(current.current.segments)
       return value ? { root: value.root, rootTarget: value.rootTarget, segments: value.rows } : null
     }, [hosts])
-    const originalSignature = JSON.stringify(original?.rows.map((row) => row.identity))
-    const groupRevision = useMemo(
-      () => `${ownerId}:group:${++nextGroupRevision}`,
-      [
-        ownerId,
-        originalSignature,
-        locale,
-        state.isDisabled,
-        state.isReadOnly,
-        props.onKeyDown,
-        props.onKeyUp,
-        props.onFocus,
-        props.onBlur,
-        props.onFocusChange,
-        props.onPointerDown,
-        props.onPointerUp,
-        props.onPointerCancel,
-        props.onClick,
-        props.render,
-      ],
-    )
     const outerTarget = outer ? (findNodeHandle(outer) ?? 0) : 0
-    const inputTarget = inputRoot ? (findNodeHandle(inputRoot) ?? 0) : 0
-    const originalTarget = original?.rows[0].identity.target ?? 0
-    const inputPlan = useMemo<TNativeFieldInputPlan | null>(
-      () =>
-        outer && inputRoot && outerTarget && inputTarget && originalTarget
-          ? {
-              bindingId: ownerId,
-              bindingRevision: groupRevision,
-              outer,
-              outerTarget,
-              input: inputRoot,
-              inputTarget,
-              originalTarget,
-            }
-          : null,
-      [ownerId, groupRevision, outer, inputRoot, outerTarget, inputTarget, originalTarget],
-    )
-    const inputBinding = useNativeFieldInputBinding(inputPlan, !ordinaryGroupEvents)
-    const receiveGroupKey = inputBinding.scope
-      ? nativeFieldGroupKeyHandler(inputBinding.scope, {
-          direction,
-          onKeyDown: props.onKeyDown,
-          onKeyUp: props.onKeyUp,
-        })
-      : undefined
-    const receiveGroupPointer = useNativeFieldGroupPress({ scope: inputBinding.scope })
     const ordinary = useNativeOrdinaryDateGroup({
-      enabled: ordinaryGroupEvents,
+      enabled: true,
       disabled: state.isDisabled,
       direction,
       focus,
+      admitKey: (target) =>
+        (hosts.snapshot(current.current.segments)?.rows.some((row) => row.original === target) ?? false) ||
+        (participantRefs.current?.some((ref) => ref.current === target) ?? false),
       onKeyDown: props.onKeyDown,
       onKeyUp: props.onKeyUp,
+    })
+    const participants = useNativeDateFieldParticipants({
+      root: fieldRoot,
+      participants: props.extraFocusParticipants,
+      requiresHost:
+        !!props.extraFocusParticipants?.length ||
+        (!!(props.render || authored.ComponentIcon) && !!(props.onKeyDown || props.onKeyUp)),
+      disabled: state.isDisabled,
+      key: ordinary.key,
     })
     const initialAutoFocus = useRef(!!props.autoFocus)
     useLayoutEffect(() => {
@@ -303,7 +281,6 @@ export const NativeTimePickerRenderer = forwardRef(
       currentOriginal,
       () => observedFocus.current,
       firstEditableTarget ? semanticFrame : "",
-      inputBinding.metadata,
     )
     const groupProps = {
       ref: bindGroup,
@@ -313,14 +290,12 @@ export const NativeTimePickerRenderer = forwardRef(
       isDisabled: state.isDisabled,
       isReadOnly: state.isReadOnly,
       isInvalid: state.isInvalid,
-      nativeFieldGroupHandler: receiveGroupKey,
-      nativeOrdinaryGroupKeyHandler: ordinaryGroupEvents ? ordinary.key : undefined,
+      nativeOrdinaryGroupKeyHandler: ordinary.key,
       ...ordinary.pointer,
-      nativeFieldGroupPointerHandler: receiveGroupPointer,
     }
     const inheritedText = { ...inheritedRootText, ...group.text, color: motion.groupColor, ...input.text }
     const children = (
-      <NativeFieldInputContext.Provider value={inputBinding.scope}>
+      <NativeFieldInputContext.Provider value={null}>
         <NativeFocusHost
           ref={bindGroup}
           nativeID={props.id}
@@ -330,10 +305,8 @@ export const NativeTimePickerRenderer = forwardRef(
           accessibilityLabel={groupProps.accessibilityLabel}
           nativeLabelledBy={label.current ? [labelId] : undefined}
           focusable={false}
-          nativeOrdinaryGroupKeyHandler={ordinaryGroupEvents ? ordinary.key : undefined}
+          nativeOrdinaryGroupKeyHandler={ordinary.key}
           {...ordinary.pointer}
-          nativeFieldGroupHandler={receiveGroupKey}
-          nativeFieldGroupPointerHandler={receiveGroupPointer}
           nativeFocusWithinObservation
           nativeOnFocusWithin={(event) => {
             if (!isNativeDateFieldFocusEvent(event)) return
@@ -349,12 +322,9 @@ export const NativeTimePickerRenderer = forwardRef(
           style={{ ...group.view, ...motion.group }}
         >
           <NativeFocusHost
-            ref={setInputRoot}
             focusable={false}
-            nativeOrdinaryGroupKeyHandler={ordinaryGroupEvents ? ordinary.key : undefined}
+            nativeOrdinaryGroupKeyHandler={ordinary.key}
             {...ordinary.pointer}
-            nativeFieldGroupHandler={receiveGroupKey}
-            nativeFieldGroupPointerHandler={receiveGroupPointer}
             testID={`${testID}-input`}
             accessible={false}
             role="group"
@@ -371,12 +341,12 @@ export const NativeTimePickerRenderer = forwardRef(
                 locale={locale}
                 direction={direction}
                 hostSet={hosts}
-                inputFocus={ordinaryInputEvents ? focus : undefined}
-                ordinaryGroupEvents={ordinaryGroupEvents}
+                inputFocus={focus}
+                ordinaryGroupEvents
                 appearance={appearance}
                 inheritedText={inheritedText}
                 label={props.accessibilityLabel ?? props["aria-label"]}
-                scope={inputBinding.scope}
+                scope={null}
                 outerTarget={outerTarget}
                 testID={`${testID}-segment-${index}`}
               />
@@ -428,7 +398,8 @@ export const NativeTimePickerRenderer = forwardRef(
       ...(Object.fromEntries(
         Object.entries(props).filter(([name]) => !fieldOptions.has(name)),
       ) as TNativeFocusViewProps),
-      ref: field.ref,
+      ref: bindField,
+      onNativeOrdinaryEditorKey: participants.receive,
       testID,
       accessible: false,
       style: { ...root.view, ...motion.root },
@@ -466,13 +437,15 @@ export const NativeTimePickerRenderer = forwardRef(
                   <NativeContentContext.Provider
                     value={{ foregroundColor, isButton: content?.isButton ?? false, textStyle: inheritedRootText }}
                   >
-                    <NativeFieldInputContext.Provider value={null}>
-                      {props.render ? (
-                        props.render(nativeProps, renderState)
-                      ) : (
-                        <NativeFocusHost {...nativeProps} focusable={false} />
-                      )}
-                    </NativeFieldInputContext.Provider>
+                    <NativeOrdinaryFocusParticipantsContext.Provider value={participants.observes}>
+                      <NativeFieldInputContext.Provider value={null}>
+                        {props.render ? (
+                          props.render(nativeProps, renderState)
+                        ) : (
+                          <NativeFocusHost {...nativeProps} focusable={false} />
+                        )}
+                      </NativeFieldInputContext.Provider>
+                    </NativeOrdinaryFocusParticipantsContext.Provider>
                   </NativeContentContext.Provider>
                 </NativeTimeFieldErrorContext.Provider>
               </NativeTimeFieldTextContext.Provider>

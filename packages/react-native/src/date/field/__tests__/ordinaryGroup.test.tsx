@@ -126,3 +126,36 @@ it("keeps same-group key callbacks, real releases and RTL physical requests with
   await act(() => group.key(event))
   expect(down).toHaveBeenCalledTimes(2)
 })
+
+it("observes unlisted and composing editors without applying group navigation or preventing their defaults", async () => {
+  const next = jest.fn(),
+    down = jest.fn()
+  const options: TOptions = {
+    enabled: true,
+    disabled: false,
+    direction: "ltr",
+    admitKey: () => false,
+    onKeyDown: down,
+    focus: { focusNext: next, focusPrevious: jest.fn(), focusVisual: jest.fn(), capturePress: jest.fn() },
+  }
+  let group: ReturnType<typeof useNativeOrdinaryDateGroup>
+  const Probe = () => {
+    group = useNativeOrdinaryDateGroup(options)
+    return null
+  }
+  const view = await render(<Probe />)
+  const event = {
+    target: {},
+    nativeEvent: { kind: "keyboard", key: "ArrowRight", phase: "down", cancelled: false, isComposing: false },
+    preventDefault: jest.fn(),
+    stopPropagation: jest.fn(),
+  } as unknown as TNativeKeyboardEvent
+  await act(() => group.key(event))
+  options.admitKey = () => true
+  Object.assign(event.nativeEvent, { isComposing: true })
+  await view.rerender(<Probe />)
+  await act(() => group.key(event))
+  expect(next).not.toHaveBeenCalled()
+  expect(event.preventDefault).not.toHaveBeenCalled()
+  expect(down.mock.calls.map(([value]) => value)).toEqual([event, event])
+})

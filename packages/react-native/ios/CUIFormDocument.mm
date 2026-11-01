@@ -292,6 +292,18 @@ RCT_EXPORT_MODULE(CUIFormDocument)
     resolve(@(owned));
   } @catch (NSException *failure) { reject(@"E_CUI_FIELD_BINDING", failure.reason, nil); }
 }
+- (void)readFocusParticipants:(NSString *)encoded resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
+{
+  RCTAssertMainQueue();
+  @try {
+    if (!_valid.load() || ![(id)_presenter isKindOfClass:RCTSurfacePresenter.class])
+      @throw [NSException exceptionWithName:@"CUI.FocusParticipants" reason:@"focus-participant-module-retired" userInfo:nil];
+    NSDictionary *request = [NSJSONSerialization JSONObjectWithData:[encoded dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
+    NSDictionary *snapshot = CUIReadFocusParticipants((id)_presenter, request);
+    NSData *bytes = [NSJSONSerialization dataWithJSONObject:snapshot options:0 error:nil];
+    resolve([[NSString alloc] initWithData:bytes encoding:NSUTF8StringEncoding]);
+  } @catch (NSException *failure) { reject(@"E_CUI_FOCUS_PARTICIPANTS", failure.reason, nil); }
+}
 - (void)getSnapshot:(NSString *)encoded resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
 {
   [self performRequest:encoded focus:NO resolve:resolve reject:reject];

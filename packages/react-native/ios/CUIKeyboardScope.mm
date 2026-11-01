@@ -744,7 +744,7 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
   }
   NSMutableArray *ordinary = [NSMutableArray new];
   for (const auto &entry : next.ordinaryEditorBindings) [ordinary addObject:@{
-    @"bindingId": @(entry.bindingId.c_str()), @"bindingRevision": @(entry.bindingRevision.c_str()), @"targetTag": @(entry.targetTag)
+    @"bindingId": @(entry.bindingId.c_str()), @"bindingRevision": @(entry.bindingRevision.c_str()), @"targetTag": @(entry.targetTag), @"subtree": @(entry.subtree)
   }];
   [_ordinaryEditorKeys update:ordinary];
   _editorKeyboardBindings = checkedEditorBindings;

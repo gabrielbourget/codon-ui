@@ -203,7 +203,12 @@ export type NativeEditorKeyboardBinding = Readonly<{
   targetTag: Int32
   moduleLease: string
 }>
-type NativeOrdinaryEditorBinding = Readonly<{ bindingId: string; bindingRevision: string; targetTag: Int32 }>
+type NativeOrdinaryEditorBinding = Readonly<{
+  bindingId: string
+  bindingRevision: string
+  targetTag: Int32
+  subtree: boolean
+}>
 
 export type NativeEditorKeyData = Readonly<{
   ownerId: string

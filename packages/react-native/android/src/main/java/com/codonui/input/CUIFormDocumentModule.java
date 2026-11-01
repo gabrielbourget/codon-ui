@@ -253,6 +253,18 @@ public final class CUIFormDocumentModule extends NativeCUIFormDocumentSpec {
       } catch (Exception error) { promise.reject("E_CUI_FIELD_INPUT", error); }
     });
   }
+  @Override public void readFocusParticipants(String encoded, Promise promise) {
+    UiThreadUtil.runOnUiThread(() -> {
+      try {
+        if (!valid.get() || !getReactApplicationContext().hasActiveReactInstance()) throw new IllegalStateException("focus-participant-module-retired");
+        JSONObject request = new JSONObject(encoded);
+        int rootTarget = positiveInteger(request, "rootTarget");
+        UIManager selected = UIManagerHelper.getUIManagerForReactTag(getReactApplicationContext(), rootTarget);
+        if (!(selected instanceof FabricUIManager)) throw new IllegalStateException("focus-participant-Fabric-unavailable");
+        promise.resolve(CUIFieldGroupDocument.readFocusParticipants((FabricUIManager)selected, request).toString());
+      } catch (Exception failure) { promise.reject("E_CUI_FOCUS_PARTICIPANTS", failure); }
+    });
+  }
   @Override public void getSnapshot(String encoded, Promise promise) { performRequest(encoded, promise, false); }
   @Override public void focusField(String encoded, Promise promise) { performRequest(encoded, promise, true); }
   private void performRequest(String encoded, Promise promise, boolean focus) {

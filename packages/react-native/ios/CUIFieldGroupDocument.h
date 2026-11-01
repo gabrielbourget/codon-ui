@@ -4,3 +4,5 @@
 // issue focus commands, and its records are never proof of focus completion.
 NSDictionary *CUIReadFieldGroupDocument(RCTSurfacePresenter *presenter, NSDictionary *document);
 BOOL CUIFieldGroupOriginalMatches(RCTSurfacePresenter *presenter, NSDictionary *row, UIView *component, UIView *editor);
+
+NSDictionary *CUIReadFocusParticipants(RCTSurfacePresenter *presenter, NSDictionary *request);

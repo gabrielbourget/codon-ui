@@ -10,7 +10,10 @@ type TOptions = {
   enabled: boolean
   disabled: boolean
   direction: "ltr" | "rtl"
-  focus: NativeDateFieldFocusManager
+  focus: Pick<NativeDateFieldFocusManager, "capturePress" | "focusNext" | "focusPrevious"> & {
+    focusVisual: (direction: -1 | 1) => unknown
+  }
+  admitKey?: (target: object) => boolean
   admitPointer?: (target: object) => boolean
   onContainedKeyDown?: (event: TNativeKeyboardEvent) => void
   onKeyDown?: (event: TNativeKeyboardEvent) => void
@@ -81,7 +84,8 @@ export const useNativeOrdinaryDateGroup = (options: TOptions) => {
       if (!value.enabled || value.disabled) return
       if (data.phase === "down" && !data.cancelled) {
         value.onContainedKeyDown?.(event)
-        handleNativeDateGroupKey(event, value.direction, value.focus)
+        if (!("isComposing" in data && data.isComposing) && (!value.admitKey || value.admitKey(event.target)))
+          handleNativeDateGroupKey(event, value.direction, value.focus)
       }
       if (current.current.enabled && !current.current.disabled) {
         const callback = data.phase === "down" ? current.current.onKeyDown : current.current.onKeyUp

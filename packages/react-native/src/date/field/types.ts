@@ -7,6 +7,8 @@ import type { TNativeFocusViewProps } from "../../input/types"
 import type { TimePickerProps, TimeValue } from "../state/types"
 import type { DateFieldState } from "../state/useDateFieldState"
 
+import type { TNativeExtraFocusParticipants } from "./participants"
+
 export type TNativeTimeFieldRenderState = Readonly<{
   state: DateFieldState
   isInvalid: boolean
@@ -29,6 +31,7 @@ export type TNativeTimeFieldProps<T extends TimeValue = TimeValue> = Omit<TNativ
     | "onKeyUp"
   > &
   TNativeSlotProps & {
+    extraFocusParticipants?: TNativeExtraFocusParticipants
     onFocusChange?: (focused: boolean) => void
     onClick?: (event: PointerEvent) => void
     id?: string

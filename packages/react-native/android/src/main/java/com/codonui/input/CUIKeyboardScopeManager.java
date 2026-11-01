@@ -91,7 +91,7 @@ public final class CUIKeyboardScopeManager extends ReactViewManager implements C
     List<CUIOrdinaryEditorKeys.Registration> registrations = new ArrayList<>();
     if (value != null) for (int index = 0; index < value.size(); index++) {
       ReadableMap entry = value.getMap(index);
-      registrations.add(new CUIOrdinaryEditorKeys.Registration(entry.getString("bindingId"), entry.getString("bindingRevision"), entry.getInt("targetTag")));
+      registrations.add(new CUIOrdinaryEditorKeys.Registration(entry.getString("bindingId"), entry.getString("bindingRevision"), entry.getInt("targetTag"), entry.hasKey("subtree") && entry.getBoolean("subtree")));
     }
     ((CUIKeyboardScope)view).ordinaryEditorKeys.update(registrations);
   }

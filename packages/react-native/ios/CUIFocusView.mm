@@ -664,6 +664,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 - (BOOL)canBecomeFocused { return _nativeTabStop && !CUIIsDialogFocusRoot(self) && [self canBecomeFirstResponder]; }
 - (BOOL)canBecomeFirstResponder { return _keyboardFocusable && self.window != nil && !self.hidden && self.alpha > 0; }
 - (NSString *)fieldInputOwnerId { return _ownerId; }
+- (BOOL)fieldFocusTabStop { return static_cast<const CUIFocusViewProps &>(*_props).nativeTabStop; }
 - (void)synchronizeFieldInputFocus { [_focusWithin synchronize]; }
 
 - (void)emitFocus:(BOOL)focused

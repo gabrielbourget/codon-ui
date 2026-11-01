@@ -50,6 +50,7 @@ export type NativeFieldKeyData = Readonly<{
 }>
 
 export type NativeOrdinaryEditorKeyData = Readonly<{
+  observerBindings: string
   bindingId: string
   bindingRevision: string
   windowId: string

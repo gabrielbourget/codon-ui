@@ -1,33 +1,41 @@
 import { createContext, useContext, useId, useInsertionEffect, useLayoutEffect, useRef } from "react"
-import { findNodeHandle, type NativeSyntheticEvent, type TextInput } from "react-native"
+import { findNodeHandle, type NativeSyntheticEvent, type TextInput, type View } from "react-native"
 
 import type { NativeOrdinaryEditorKeyData } from "./specs/CUIFocusViewNativeComponent"
 import type { NativeEditorKeyboardStatus } from "./specs/CUIKeyboardScopeNativeComponent"
 
 type TSession = { windowId?: string; epoch?: number; active: boolean }
-type TOptions = {
-  original: TextInput
-  current: () => TextInput | null
+type TOptions<TTarget extends View, TReceiver extends View = TTarget> = {
+  original: TTarget
+  current: () => TTarget | null
   canAct: () => boolean
-  receive: (event: TNativeOrdinaryEditorKeyEvent) => void
+  subtree?: boolean
+  currentTarget?: () => TReceiver | null
+  receive: (event: TNativeOrdinaryEditorKeyEvent<TTarget, TReceiver>) => void
 }
-export type TNativeOrdinaryEditorKeyEvent = NativeSyntheticEvent<
-  Omit<NativeOrdinaryEditorKeyData, "kind"> & { kind: "keyboard" }
-> & { target: TextInput; currentTarget: TextInput }
+export type TNativeOrdinaryEditorKeyEvent<
+  TTarget extends View = TextInput,
+  TReceiver extends View = TTarget,
+> = NativeSyntheticEvent<Omit<NativeOrdinaryEditorKeyData, "kind"> & { kind: "keyboard" }> & {
+  target: TTarget
+  currentTarget: TReceiver
+}
 
 export const createNativeOrdinaryEditorKeys = (ownerId: string, session: () => TSession) => {
   type TEntry = {
     bindingId: string
     bindingRevision: string
     targetTag: number
-    options: TOptions
+    original: View | TextInput
+    keys: Set<string>
+    observers: Set<string>
     ready: boolean
     sequence: number
-    eventId: number
     windowId: string
     epoch: number
   }
   const entries = new Map<string, TEntry>()
+  const targets = new Map<View | TextInput, TEntry>()
   const listeners = new Set<() => void>()
   let revision = 0
   let version = 0
@@ -44,32 +52,61 @@ export const createNativeOrdinaryEditorKeys = (ownerId: string, session: () => T
       return () => listeners.delete(listener)
     },
     bindings: () =>
-      [...entries.values()].map(({ bindingId, bindingRevision, targetTag }) => ({
+      [...targets.values()].map(({ bindingId, bindingRevision, targetTag, observers }) => ({
         bindingId,
         bindingRevision,
         targetTag,
+        subtree: observers.size > 0,
       })),
-    register: (key: string, options: TOptions) => {
+    register: <TTarget extends View, TReceiver extends View = TTarget>(
+      key: string,
+      options: TOptions<TTarget, TReceiver>,
+    ) => {
       if (disposed || entries.has(key)) throw new Error("Ordinary editor binding is unavailable or duplicated")
       const targetTag = findNodeHandle(options.original)
-      if (!targetTag || targetTag <= 0) throw new Error("Ordinary editor keys require the original TextInput target")
-      const entry: TEntry = {
+      if (!targetTag || targetTag <= 0) throw new Error("Ordinary editor keys require the original native focus target")
+      if ([...targets.values()].some((entry) => entry.targetTag === targetTag && entry.original !== options.original))
+        throw new Error("Ordinary editor target tag belongs to a different original native control")
+      const existing = targets.get(options.original)
+      const entry: TEntry = existing ?? {
         bindingId: `${ownerId}:ordinary:${key}`,
         bindingRevision: String(++revision),
         targetTag,
-        options,
+        original: options.original,
+        keys: new Set(),
+        observers: new Set(),
         ready: false,
         sequence: 0,
-        eventId: 0,
         windowId: "",
         epoch: 0,
       }
+      const wasSubtree = entry.observers.size > 0
+      entry.keys.add(key)
+      if (options.subtree) entry.observers.add(key)
       entries.set(key, entry)
-      changed()
+      targets.set(options.original, entry)
+      let eventId = 0
+      if (!existing || wasSubtree !== entry.observers.size > 0) changed()
       return {
         receive: (event: NativeSyntheticEvent<NativeOrdinaryEditorKeyData>) => {
           const data = event.nativeEvent
           const current = session()
+          let observed = false
+          if (options.subtree) {
+            try {
+              const observers: unknown = JSON.parse(data.observerBindings)
+              observed =
+                Array.isArray(observers) &&
+                observers.some(
+                  (value) =>
+                    value?.bindingId === entry.bindingId &&
+                    value?.bindingRevision === entry.bindingRevision &&
+                    value?.targetTag === entry.targetTag,
+                )
+            } catch {
+              return false
+            }
+          }
           if (
             disposed ||
             entries.get(key) !== entry ||
@@ -77,13 +114,13 @@ export const createNativeOrdinaryEditorKeys = (ownerId: string, session: () => T
             !current.active ||
             options.current() !== options.original ||
             !options.canAct() ||
-            event.target !== options.original ||
-            event.currentTarget !== options.original ||
+            (options.subtree ? !observed : event.target !== options.original) ||
+            event.currentTarget !== (options.currentTarget ? options.currentTarget() : options.original) ||
             data.kind !== "keyboard" ||
             data.ownerId !== ownerId ||
-            data.bindingId !== entry.bindingId ||
-            data.bindingRevision !== entry.bindingRevision ||
-            data.target !== targetTag ||
+            (!options.subtree &&
+              (data.bindingId !== entry.bindingId || data.bindingRevision !== entry.bindingRevision)) ||
+            data.target !== findNodeHandle(event.target as View) ||
             data.windowId !== entry.windowId ||
             data.windowId !== current.windowId ||
             data.epoch !== entry.epoch ||
@@ -91,25 +128,31 @@ export const createNativeOrdinaryEditorKeys = (ownerId: string, session: () => T
             (data.phase !== "down" && data.phase !== "up") ||
             (data.phase === "down" && data.cancelled) ||
             !Number.isSafeInteger(data.eventId) ||
-            data.eventId <= entry.eventId
+            data.eventId <= eventId
           )
             return false
-          entry.eventId = data.eventId
+          eventId = data.eventId
           event.persist?.()
           // The native event already proceeds independently; there is no default acknowledgment.
-          options.receive(event as TNativeOrdinaryEditorKeyEvent)
+          options.receive(event as TNativeOrdinaryEditorKeyEvent<TTarget, TReceiver>)
           return true
         },
         unregister: () => {
           if (entries.get(key) !== entry) return
           entries.delete(key)
-          changed()
+          const wasSubtree = entry.observers.size > 0
+          entry.keys.delete(key)
+          entry.observers.delete(key)
+          if (!entry.keys.size) {
+            targets.delete(options.original)
+            changed()
+          } else if (wasSubtree !== entry.observers.size > 0) changed()
         },
       }
     },
     acceptStatus: (status: NativeEditorKeyboardStatus) => {
       if (disposed || status.ownerId !== ownerId) return
-      const entry = [...entries.values()].find((entry) => entry.bindingId === status.bindingId)
+      const entry = [...targets.values()].find((entry) => entry.bindingId === status.bindingId)
       if (
         !entry ||
         status.bindingRevision !== entry.bindingRevision ||
@@ -122,24 +165,28 @@ export const createNativeOrdinaryEditorKeys = (ownerId: string, session: () => T
       entry.windowId = status.windowId
       entry.epoch = status.epoch
       entry.ready = status.ready && status.windowActive
+      if (entry.observers.size > 0) changed()
     },
     dispose: () => {
       disposed = true
       entries.clear()
+      targets.clear()
       listeners.clear()
     },
   }
 }
 
+export const NativeOrdinaryFocusParticipantsContext = createContext<((target: object) => boolean) | null>(null)
+
 export const NativeOrdinaryEditorKeysContext = createContext<ReturnType<typeof createNativeOrdinaryEditorKeys> | null>(
   null,
 )
 
-export const useNativeOrdinaryEditorKeys = (
-  target: TextInput | null,
+export const useNativeOrdinaryEditorKeys = <TTarget extends View, TReceiver extends View = TTarget>(
+  target: TTarget | null,
   enabled: boolean,
   revisionKey: string,
-  options: Omit<TOptions, "original">,
+  options: Omit<TOptions<TTarget, TReceiver>, "original">,
 ) => {
   const registry = useContext(NativeOrdinaryEditorKeysContext)
   const key = useId()
@@ -151,10 +198,12 @@ export const useNativeOrdinaryEditorKeys = (
   useLayoutEffect(() => {
     if (!enabled || !target) return
     if (!registry) throw new Error("Ordinary editor keys require a same-window NativeFloatingLayerHost")
-    const registration = registry.register(key, {
+    const registration = registry.register<TTarget, TReceiver>(key, {
       original: target,
       current: () => current.current.current(),
       canAct: () => current.current.canAct(),
+      subtree: options.subtree,
+      ...(options.currentTarget ? { currentTarget: () => current.current.currentTarget?.() ?? null } : {}),
       receive: (event) => current.current.receive(event),
     })
     lease.current = registration

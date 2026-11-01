@@ -142,6 +142,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   void retireFocusWithin() { if (focusWithin != null) focusWithin.invalidate(); focusWithin = null; }
 
   void setNativeTabStop(boolean value) { nativeTabStop = value; }
+  boolean fieldFocusTabStop() { return nativeTabStop; }
   @Override public void addFocusables(ArrayList<View> views, int direction, int mode) {
     super.addFocusables(views, direction, mode);
     if ((!nativeTabStop || CUIDialogFocusScopes.isDialogRoot(this)) && (direction == View.FOCUS_FORWARD || direction == View.FOCUS_BACKWARD)) views.remove(this);

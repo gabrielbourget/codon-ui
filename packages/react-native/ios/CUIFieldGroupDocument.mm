@@ -214,3 +214,60 @@ NSDictionary *CUIReadFieldGroupDocument(RCTSurfacePresenter *presenter, NSDictio
     @"field":field, @"mount":mount, @"focusedTarget":focused, @"eventFocusedTarget":eventFocused,
     @"nativeHierarchy":nativeHierarchy, @"originals":originals, @"instances":instances};
 }
+
+
+// Explicit membership only. Native ancestry supplies ordering and eligibility;
+// no descendant is enrolled because it happens to be focusable.
+NSDictionary *CUIReadFocusParticipants(RCTSurfacePresenter *presenter, NSDictionary *request)
+{
+  RCTAssertMainQueue();
+  NSNumber *rootTag = request[@"rootTarget"];
+  UIView *root = [presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:rootTag.integerValue];
+  UIWindow *window = root.window;
+  if (!root || !window.isKeyWindow || !CUIGroupVisible(root, window)) CUIGroupFail(@"focus-participant-root-retired");
+  NSMutableDictionary<NSNumber *, NSDictionary *> *members = [NSMutableDictionary new];
+  for (NSNumber *tag in request[@"targets"]) {
+    if (tag.integerValue <= 0 || members[tag]) CUIGroupFail(@"focus-participant-target-invalid");
+    UIView *component = [presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:tag.integerValue];
+    if (!component || component == root || ![component isDescendantOfView:root] || component.window != window)
+      CUIGroupFail(@"focus-participant-outside-root");
+    UIView *editor = component;
+    BOOL tabStop = YES;
+    if ([component isKindOfClass:RCTTextInputComponentView.class]) {
+      editor = [(RCTTextInputComponentView *)component accessibilityElement];
+      if (![editor isKindOfClass:UITextField.class] && ![editor isKindOfClass:UITextView.class]) CUIGroupFail(@"focus-participant-editor-unavailable");
+    } else if ([component isKindOfClass:CUIFocusView.class]) tabStop = [(CUIFocusView *)component fieldFocusTabStop];
+    else if (![component isKindOfClass:CUIDateSegment.class]) CUIGroupFail(@"focus-participant-control-unsupported");
+    BOOL eligible = CUIGroupVisible(editor, window) && [editor canBecomeFirstResponder] &&
+      !(editor.accessibilityTraits & UIAccessibilityTraitNotEnabled) &&
+      (![editor isKindOfClass:UIControl.class] || [(UIControl *)editor isEnabled]);
+    members[tag] = @{@"target":tag, @"eligible":@(eligible), @"tabStop":@(tabStop),
+      @"x":@([editor convertRect:editor.bounds toView:window].origin.x)};
+  }
+  NSMutableArray *rows = [NSMutableArray new];
+  NSNumber *pressTag = request[@"pressTarget"];
+  UIView *hit = pressTag ? [presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:pressTag.integerValue] : nil;
+  if (pressTag && hit != root && ![hit isDescendantOfView:root]) CUIGroupFail(@"focus-participant-press-retired");
+  UIView *focused = CUIInputFocusedView(window);
+  BOOL independent = hit && hit != root && !members[@(hit.tag)] && focused &&
+    (focused == hit || [focused isDescendantOfView:hit]);
+  for (UIView *view = hit; view && view != root; view = view.superview) {
+    UIView *editor = [view isKindOfClass:RCTTextInputComponentView.class] ? [(RCTTextInputComponentView *)view accessibilityElement] : view;
+    if ([editor canBecomeFirstResponder] && !members[@(view.tag)]) independent = YES;
+  }
+  __block NSNumber *before = nil;
+  __block BOOL foundHit = NO;
+  __block void (^walk)(UIView *);
+  walk = ^(UIView *view) {
+    if (view == hit) foundHit = YES;
+    NSDictionary *row = members[@(view.tag)];
+    if (row) {
+      [rows addObject:row];
+      if (!foundHit && [row[@"eligible"] boolValue] && [row[@"tabStop"] boolValue]) before = row[@"target"];
+    }
+    for (UIView *child in view.subviews) walk(child);
+  };
+  walk(root); walk = nil;
+  if (rows.count != members.count || (pressTag && !foundHit)) CUIGroupFail(@"focus-participant-order-retired");
+  return @{@"rootTarget":rootTag, @"windowId":CUIInputWindowIdentity(window), @"rows":rows, @"before":before ?: NSNull.null, @"pressIndependent":@(independent)};
+}

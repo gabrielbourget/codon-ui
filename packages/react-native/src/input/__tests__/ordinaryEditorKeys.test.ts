@@ -159,3 +159,97 @@ it("never lets a retired registration adopt a replacement with the same native t
   expect(f.registry.bindings()).toEqual([])
   expect(next.receive(f.event())).toBe(false)
 })
+
+it("shares one native publisher between an editor and its containing field without replacing event receivers", () => {
+  const f = setup(),
+    root = {} as RN.View,
+    receive = jest.fn()
+  const observer = f.registry.register("field", {
+    original: f.original,
+    current: () => f.original,
+    currentTarget: () => root,
+    canAct: () => true,
+    receive,
+  })
+  expect(f.registry.bindings()).toEqual([f.binding])
+  const event = f.event()
+  expect(f.lease.receive(event)).toBe(true)
+  // React's native bubbling changes currentTarget for each receiver. The
+  // adapter validates that actual value instead of rewriting it.
+  Object.assign(event, { currentTarget: root })
+  expect(observer.receive(event)).toBe(true)
+  expect(receive.mock.calls[0][0]).toBe(event)
+  expect(receive.mock.calls[0][0].target).toBe(f.original)
+  expect(receive.mock.calls[0][0].currentTarget).toBe(root)
+  expect(observer.receive(event)).toBe(false)
+  expect(f.lease.receive(event)).toBe(false)
+  f.lease.unregister()
+  expect(f.registry.bindings()).toEqual([f.binding])
+  const up = f.event(2, "up")
+  Object.assign(up, { currentTarget: root })
+  expect(observer.receive(up)).toBe(true)
+  observer.unregister()
+  expect(f.registry.bindings()).toEqual([])
+})
+it("retires a containing receiver independently and rejects an unmounted or foreign root", () => {
+  const f = setup(),
+    receive = jest.fn()
+  let root: RN.View | null = {} as RN.View
+  const observer = f.registry.register("field", {
+    original: f.original,
+    current: () => f.original,
+    currentTarget: () => root,
+    canAct: () => true,
+    receive,
+  })
+  expect(observer.receive(f.event())).toBe(false)
+  const event = f.event()
+  Object.assign(event, { currentTarget: root })
+  root = null
+  expect(observer.receive(event)).toBe(false)
+  observer.unregister()
+  expect(f.lease.receive(f.event())).toBe(true)
+  expect(receive).not.toHaveBeenCalled()
+})
+it("rejects an alias object with the same native tag while retaining the original publisher", () => {
+  const f = setup(),
+    alias = { _nativeTag: 17 } as unknown as RN.TextInput
+  expect(() =>
+    f.registry.register("alias", {
+      original: alias,
+      current: () => alias,
+      canAct: () => true,
+      receive: jest.fn(),
+    }),
+  ).toThrow("different original native control")
+  expect(f.registry.bindings()).toEqual([f.binding])
+  expect(f.lease.receive(f.event())).toBe(true)
+})
+
+it("admits only current native subtree observations and keeps the actual focused editor and receiving root", () => {
+  const f = setup(),
+    root = { _nativeTag: 91 } as unknown as RN.View,
+    receive = jest.fn()
+  const observer = f.registry.register("field", {
+    original: root,
+    current: () => root,
+    subtree: true,
+    currentTarget: () => root,
+    canAct: () => true,
+    receive,
+  })
+  const binding = f.registry.bindings().find((value) => value.targetTag === 91)!
+  f.registry.acceptStatus({ ...f.status, ...binding, target: 91 })
+  const event = f.event()
+  Object.assign(event, { currentTarget: root })
+  Object.assign(event.nativeEvent, { observerBindings: JSON.stringify([{ ...binding, bindingRevision: "retired" }]) })
+  expect(observer.receive(event)).toBe(false)
+  Object.assign(event.nativeEvent, { observerBindings: JSON.stringify([binding]) })
+  expect(observer.receive(event)).toBe(true)
+  expect(receive.mock.calls[0][0]).toBe(event)
+  expect(event.target).toBe(f.original)
+  expect(event.currentTarget).toBe(root)
+  expect(observer.receive(event)).toBe(false)
+  observer.unregister()
+  expect(f.registry.bindings()).toEqual([f.binding])
+})
