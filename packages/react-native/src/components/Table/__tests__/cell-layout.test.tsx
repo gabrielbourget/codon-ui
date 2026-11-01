@@ -1,16 +1,17 @@
 import "../../../collection/__tests__/nativeReceipts"
 
-import { cleanup } from "@testing-library/react-native"
+import { act as rawAct, cleanup } from "@testing-library/react-native"
 import { createRef, type ReactNode, type RefAttributes } from "react"
 import { TextInput, type View } from "react-native"
 
 import {
   actWithNativeCollections as act,
+  fireEventWithNativeCollections as fireEvent,
   renderWithNativeCollections as render,
   screen,
 } from "../../../collection/__tests__/nativeReceipts"
 import { NativeFocusView } from "../../../input/NativeFocusView"
-import { NativeFloatingScopeContext } from "../../../overlays/floating/scope"
+import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../../overlays/floating/scope"
 import { NativeThemeProvider } from "../../../theme"
 import { Button } from "../../Button/Button"
 import { Text } from "../../Text/Text"
@@ -47,33 +48,30 @@ const tree = (
 
 afterEach(cleanup)
 
+// The approved phone contract limits owned text, not arbitrary mixed native content.
 it.each([
-  [{}, false, 0, false, "visible"],
-  [{ truncate: true }, false, 0, true, "hidden"],
-  [{ maxLines: 3 }, true, 3, false, "visible"],
-  [{ truncate: true, maxLines: 3 }, true, 3, true, "hidden"],
-  [{ truncate: false, maxLines: 0 }, false, 0, false, "visible"],
-  [{ maxLines: -1 }, true, -1, false, "visible"],
-  [{ maxLines: 1.5 }, true, 1.5, false, "visible"],
-  [{ maxLines: Infinity }, true, 0, false, "visible"],
-] as const)(
-  "receives aggregate cell layout %j without leaking wrapper props",
-  async (props, hasClamp, lines, noWrap, overflow) => {
-    await render(tree(props))
-    const host = screen.container.queryAll((host) => host.type === "CUIClampHost")[0]!
-    expect(host.props.hasClamp).toBe(hasClamp)
-    expect(host.props.maximumLines).toBe(lines)
-    expect(host.props.noWrap).toBe(noWrap)
-    expect(host).toHaveStyle({ overflow: hasClamp ? "hidden" : "visible" })
-    const text = screen.getByText("Long cell content")
-    expect(text.props.numberOfLines).toBeUndefined()
-    expect(text.props.ellipsizeMode).toBeUndefined()
-    const cell = screen.getByTestId("layout-cell")
-    expect(cell).toHaveStyle({ overflow })
-    expect(cell.props.truncate).toBeUndefined()
-    expect(cell.props.maxLines).toBeUndefined()
-  },
-)
+  [{}, undefined],
+  [{ truncate: true }, 1],
+  [{ maxLines: 3 }, 3],
+  [{ truncate: true, maxLines: 3 }, 1],
+  [{ truncate: false, maxLines: 0 }, undefined],
+  [{ maxLines: -1 }, undefined],
+  [{ maxLines: 1.5 }, undefined],
+  [{ maxLines: Infinity }, undefined],
+  [{ maxLines: NaN }, undefined],
+  [{ maxLines: Number.MAX_SAFE_INTEGER }, 2147483647],
+] as const)("limits owned text with stock props for %j without leaking cell props", async (props, lines) => {
+  await render(tree(props))
+  expect(screen.container.queryAll((host) => host.type === "CUIClampHost")).toHaveLength(0)
+  const text = screen.getByText("Long cell content")
+  expect(text.props.numberOfLines).toBe(lines)
+  expect(text.props.ellipsizeMode).toBe(lines === undefined ? undefined : "tail")
+  const cell = screen.getByTestId("layout-cell")
+  expect(cell).toHaveStyle({ overflow: "visible" })
+  expect(cell.props.truncate).toBeUndefined()
+  expect(cell.props.maxLines).toBeUndefined()
+  expect(screen.queryByRole("button", { name: "Show full value" }) !== null).toBe(lines !== undefined)
+})
 
 it("passes column metadata to its cell and retains the caller's original renderer arguments", async () => {
   const column: TNativeTableColumnMetadata<{ value: string }> = {
@@ -91,16 +89,12 @@ it("passes column metadata to its cell and retains the caller's original rendere
       </Table>
     </NativeThemeProvider>,
   )
-  expect(screen.container.queryAll((host) => host.type === "CUIClampHost")[0]!.props).toMatchObject({
-    noWrap: true,
-    maximumLines: 2,
-    hasClamp: true,
-  })
-  expect(screen.getByText(row.value).props.numberOfLines).toBeUndefined()
+  expect(screen.getByText(row.value).props.numberOfLines).toBe(1)
+  expect(screen.getByRole("button", { name: "Show full value" })).toBeOnTheScreen()
   expect(column.cellRenderer).toHaveBeenLastCalledWith({ row, column })
 })
 
-it("owns one mixed-content budget while preserving explicit native text props", async () => {
+it("leaves authored text and interactive components on their original separate layouts", async () => {
   await render(
     tree(
       { maxLines: 2 },
@@ -113,7 +107,8 @@ it("owns one mixed-content budget while preserving explicit native text props", 
       </>,
     ),
   )
-  expect(screen.container.queryAll((host) => host.type === "CUIClampHost")[0]!.props.maximumLines).toBe(2)
+  expect(screen.container.queryAll((host) => host.type === "CUIClampHost")).toHaveLength(0)
+  expect(screen.queryByRole("button", { name: "Show full value" })).toBeNull()
   expect(screen.getByTestId("authored").props.numberOfLines).toBeUndefined()
   expect(screen.getByText("Nested button text").props.numberOfLines).toBeUndefined()
   expect(screen.getByTestId("unlimited").props.numberOfLines).toBe(0)
@@ -137,8 +132,7 @@ it("keeps constraints inside the originating window and clears them at a nested 
     ),
   )
   await act(() => {})
-  const hosts = screen.container.queryAll((host) => host.type === "CUIClampHost")
-  expect(hosts.map((host) => host.props.noWrap)).toEqual([true, false])
+  expect(screen.container.queryAll((host) => host.type === "CUIClampHost")).toHaveLength(0)
   expect(screen.getByTestId("current-window").props.numberOfLines).toBeUndefined()
   expect(screen.getByTestId("popup-text").props.numberOfLines).toBeUndefined()
   await act(() => {})
@@ -152,7 +146,8 @@ it("retains the original cell and held editor through layout and custom-renderer
   const view = await render(tree({ ref: cell }, children))
   const originalCell = cell.current,
     originalEditor = editor.current
-  const originalContent = screen.container.queryAll((host) => host.type === "CUIClampHost")[0]!
+  expect(originalCell).not.toBeNull()
+  expect(originalEditor).not.toBeNull()
   for (const props of [
     { truncate: true },
     { maxLines: 3, render: (host) => <NativeFocusView {...host} /> },
@@ -161,7 +156,7 @@ it("retains the original cell and held editor through layout and custom-renderer
     await view.rerender(tree({ ref: cell, ...props }, children))
     expect(cell.current).toBe(originalCell)
     expect(editor.current).toBe(originalEditor)
-    expect(screen.container.queryAll((host) => host.type === "CUIClampHost")[0]!).toBe(originalContent)
+    expect(screen.container.queryAll((host) => host.type === "CUIClampHost")).toHaveLength(0)
     expect(screen.getByTestId("held-layout-editor").props.value).toBe("")
     expect(screen.getByTestId("held-layout-editor").props.selection).toEqual({ start: 0, end: 0 })
   }
@@ -181,9 +176,9 @@ it("retains complete mixed native content under the original Cell and separate a
     ),
   )
   expect(screen.getByTestId("layout-cell")).toHaveStyle({ overflow: "visible" })
-  const host = screen.container.queryAll((host) => host.type === "CUIClampHost")[0]!
-  expect(host).toHaveStyle({ overflow: "hidden" })
-  expect(host.props).toMatchObject({ hasClamp: true, maximumLines: 2, noWrap: true })
+  expect(screen.container.queryAll((host) => host.type === "CUIClampHost")).toHaveLength(0)
+  expect(screen.queryByRole("button", { name: "Show full value" })).toBeNull()
+  expect(screen.getByText("Raw prefix").props.numberOfLines).toBeUndefined()
   expect(screen.getByText("Raw prefix")).toBeOnTheScreen()
   expect(screen.getByTestId("block-one").props.children).toBe("Complete block one")
   expect(screen.getByTestId("block-two").props.children).toBe("Complete block two")
@@ -192,4 +187,142 @@ it("retains complete mixed native content under the original Cell and separate a
     selection: { start: 3, end: 3 },
   })
   expect(screen.getByText("Original control")).toBeOnTheScreen()
+})
+
+it("expands and collapses the original owned text through an ordinary button without changing the cell ref", async () => {
+  const cell = createRef<View>()
+  const view = await render(tree({ ref: cell, maxLines: 2 }))
+  const originalCell = cell.current
+  const originalText = screen.getByText("Long cell content")
+  expect(originalCell).not.toBeNull()
+  await fireEvent.press(screen.getByRole("button", { name: "Show full value" }))
+  expect(screen.getByText("Long cell content")).toBe(originalText)
+  expect(originalText.props.numberOfLines).toBe(0)
+  expect(cell.current).toBe(originalCell)
+  expect(screen.getByRole("button", { name: "Show less" }).props.accessibilityState.expanded).toBe(true)
+  await view.rerender(tree({ ref: cell, maxLines: 3 }, "Current complete value"))
+  expect(screen.getByText("Current complete value")).toBe(originalText)
+  expect(originalText.props.numberOfLines).toBe(0)
+  await fireEvent.press(screen.getByRole("button", { name: "Show less" }))
+  expect(originalText.props.numberOfLines).toBe(3)
+  expect(cell.current).toBe(originalCell)
+})
+
+it("composes full-value accessibility actions with the caller's original action and event", async () => {
+  const onAccessibilityAction = jest.fn()
+  await render(
+    tree({ maxLines: 2, accessibilityActions: [{ name: "inspect", label: "Inspect" }], onAccessibilityAction }),
+  )
+  const cell = screen.getByTestId("layout-cell")
+  expect(cell.props.accessibilityActions).toEqual([
+    { name: "inspect", label: "Inspect" },
+    { name: "expandCellValue", label: "Show full value" },
+  ])
+  const original = { nativeEvent: { actionName: "expandCellValue" }, isDefaultPrevented: () => false }
+  const expand = cell.props.onAccessibilityAction
+  await act(() => expand(original))
+  expect(onAccessibilityAction).toHaveBeenCalledTimes(1)
+  expect(onAccessibilityAction).toHaveBeenCalledWith(original)
+  expect(screen.getByText("Long cell content").props.numberOfLines).toBe(0)
+  expect(cell.props.accessibilityActions[1]).toEqual({ name: "collapseCellValue", label: "Show less" })
+  await act(() => expand(original))
+  expect(screen.getByText("Long cell content").props.numberOfLines).toBe(0)
+  await act(() =>
+    cell.props.onAccessibilityAction({ nativeEvent: { actionName: "inspect" }, isDefaultPrevented: () => false }),
+  )
+  expect(screen.getByText("Long cell content").props.numberOfLines).toBe(0)
+  await act(() =>
+    cell.props.onAccessibilityAction({
+      nativeEvent: { actionName: "collapseCellValue" },
+      isDefaultPrevented: () => false,
+    }),
+  )
+  expect(screen.getByText("Long cell content").props.numberOfLines).toBe(2)
+})
+
+it("preserves same-event caller prevention and rejects retained disclosure after window loss", async () => {
+  const onAccessibilityAction = jest.fn()
+  const content = (active: boolean) => (
+    <NativeFloatingWindowContext.Provider value={() => active}>
+      {tree({ maxLines: 2, onAccessibilityAction })}
+    </NativeFloatingWindowContext.Provider>
+  )
+  const view = await render(content(true))
+  const cell = screen.getByTestId("layout-cell")
+  const saved = cell.props.onAccessibilityAction
+  await act(() => saved({ nativeEvent: { actionName: "expandCellValue" }, isDefaultPrevented: () => true }))
+  expect(screen.getByText("Long cell content").props.numberOfLines).toBe(2)
+  await view.rerender(content(false))
+  await act(() => saved({ nativeEvent: { actionName: "expandCellValue" }, isDefaultPrevented: () => false }))
+  expect(screen.getByText("Long cell content").props.numberOfLines).toBe(2)
+  await view.unmount()
+  await rawAct(() => saved({ nativeEvent: { actionName: "expandCellValue" }, isDefaultPrevented: () => false }))
+})
+
+it("keeps primitive arrays and fragments in one owned phrase with complete content", async () => {
+  await render(
+    tree(
+      { maxLines: 2 },
+      <>
+        Prefix {0}
+        {[" middle ", <>{9n} suffix</>]}
+      </>,
+    ),
+  )
+  const text = screen.getByText("Prefix 0 middle 9 suffix")
+  expect(text.props.numberOfLines).toBe(2)
+  await fireEvent.press(screen.getByRole("button", { name: "Show full value" }))
+  expect(text.props.numberOfLines).toBe(0)
+  expect(text.props.children).toEqual(["Prefix ", 0, " middle ", 9n, " suffix"])
+})
+
+it("preserves caller-owned clipping without applying it as a truncation default", async () => {
+  await render(tree({ truncate: true, style: { overflow: "hidden" } }))
+  expect(screen.getByTestId("layout-cell")).toHaveStyle({ overflow: "hidden" })
+  expect(screen.getByText("Long cell content").props.numberOfLines).toBe(1)
+})
+
+it("reveals a controlled row value without selection or row-action requests", async () => {
+  const onSelectionChange = jest.fn()
+  const onRowAction = jest.fn()
+  const metadata = [{ ...columns[0]!, maxLines: 2 }]
+  await render(
+    <NativeThemeProvider>
+      <Table
+        selectionMode="single"
+        selectedKeys={["row"]}
+        onSelectionChange={onSelectionChange}
+        onRowAction={onRowAction}
+      >
+        <TableHeader columns={metadata} />
+        <TableBody columns={metadata} items={[{ value: "Complete controlled value" }]} rowKey={() => "row"} />
+      </Table>
+    </NativeThemeProvider>,
+  )
+  const button = screen.getByRole("button", { name: "Show full value" })
+  expect(button).toHaveStyle({ minHeight: 44, minWidth: 44 })
+  await fireEvent.press(button)
+  expect(screen.getByText("Complete controlled value").props.numberOfLines).toBe(0)
+  expect(onSelectionChange).not.toHaveBeenCalled()
+  expect(onRowAction).not.toHaveBeenCalled()
+  expect(screen.getByTestId("table-row-string:row").props.accessibilityState.selected).toBe(true)
+})
+
+it.each([
+  ["empty string", ""],
+  ["whitespace", "   "],
+  ["null", null],
+  ["false", false],
+  ["empty fragment", <></>],
+] as const)("does not add a disclosure control for %s content", async (_name, children) => {
+  await render(tree({ maxLines: 2 }, children))
+  expect(screen.queryByRole("button", { name: "Show full value" })).toBeNull()
+  expect(screen.getByTestId("layout-cell").props.accessibilityActions).toEqual([])
+})
+
+it.each([0, 0n])("keeps a meaningful zero value %s eligible for full-value disclosure", async (children) => {
+  await render(tree({ truncate: true }, children))
+  expect(screen.getByText("0").props.numberOfLines).toBe(1)
+  await fireEvent.press(screen.getByRole("button", { name: "Show full value" }))
+  expect(screen.getByText("0").props.numberOfLines).toBe(0)
 })
