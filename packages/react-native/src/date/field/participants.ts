@@ -10,7 +10,7 @@ import {
 } from "../../input/focus"
 import FormDocument from "../../input/specs/NativeCUIFormDocument"
 
-import { NativeDateFieldFocusManager, type TNativeDateFieldFocusSnapshot } from "./focus"
+import { NativeDateFieldFocusManager, nativeDateFieldFocusRuntime, type TNativeDateFieldFocusSnapshot } from "./focus"
 import { nativeDateFieldPressIndex, nativeDateFieldVisualIndex } from "./selection"
 
 export type TNativeExtraFocusParticipants = readonly RefObject<TextInput | View | null>[]
@@ -18,10 +18,18 @@ type TCurrent = Readonly<{
   owned: TNativeDateFieldFocusSnapshot
   root: View
   participants: TNativeExtraFocusParticipants
+  scope?: View
+  inputRoots?: readonly View[]
 }>
 type TMember = Readonly<{ original: View; target: number; isPlaceholder: boolean }>
 type TNativeRow = Readonly<{ target: number; eligible: boolean; tabStop: boolean; x: number }>
-type TRead = (request: { rootTarget: number; targets: readonly number[]; pressTarget?: number }) => Promise<string>
+type TRead = (request: {
+  rootTarget: number
+  targets: readonly number[]
+  pressTarget?: number
+  scopeTarget?: number
+  inputRoots?: readonly number[]
+}) => Promise<string>
 const read: TRead = (request) => {
   if (!FormDocument) return Promise.reject(new Error("Native focus participant queries are unavailable"))
   return FormDocument.readFocusParticipants(JSON.stringify(request))
@@ -42,18 +50,26 @@ export class NativeDateFieldParticipantFocusManager {
       focused: getNativeFocusedTarget,
     },
   ) {
-    this.owned = new NativeDateFieldFocusManager(() => current()?.owned ?? null)
+    this.owned = new NativeDateFieldFocusManager(() => current()?.owned ?? null, {
+      ...nativeDateFieldFocusRuntime,
+      ...native,
+    })
   }
   retire = () => {
     this.#retired = true
     this.#request++
     this.owned.retire()
   }
-  #capture = () => {
+  #capture = (placeholderSensitive = false) => {
     if (this.#retired) return null
     const value = this.current()
     if (!value) return null
     const { owned, root } = value
+    const scope = value.scope,
+      inputRoots = [...(value.inputRoots ?? [])]
+    const scopeTarget = scope ? findNodeHandle(scope) : undefined
+    const inputTargets = inputRoots.map((input) => findNodeHandle(input))
+    if ((scope && !scopeTarget) || inputTargets.some((target) => !target)) return null
     const ownedRoot = owned.root,
       ownedRootTarget = owned.rootTarget
     const rootTarget = findNodeHandle(root)
@@ -87,30 +103,46 @@ export class NativeDateFieldParticipantFocusManager {
       return (
         !this.#retired &&
         latest?.root === root &&
+        latest.scope === scope &&
+        (latest.inputRoots?.length ?? 0) === inputRoots.length &&
+        inputRoots.every((input, index) => latest.inputRoots?.[index] === input) &&
         latest.owned.root === ownedRoot &&
         latest.owned.rootTarget === ownedRootTarget &&
         sameNativeDateFieldTargets(ownedRows, latest.owned.rows) &&
-        ownedRows.every((row, index) => row.isPlaceholder === latest.owned.rows[index].isPlaceholder) &&
+        (!placeholderSensitive ||
+          ownedRows.every((row, index) => row.isPlaceholder === latest.owned.rows[index].isPlaceholder)) &&
         latest.participants.length === refs.length &&
         refs.every(({ ref, original }, index) => latest.participants[index] === ref && ref.current === original) &&
         guards.every((guard) => !guard || guard())
       )
     }
-    return { rootTarget, windowId: ownedRows[0]?.identity.windowId, members, guards, current }
+    return {
+      rootTarget,
+      scopeTarget,
+      inputTargets: inputTargets as number[],
+      windowId: ownedRows[0]?.identity.windowId,
+      members,
+      guards,
+      current,
+    }
   }
   #run = (
     select: (rows: readonly TNativeRow[], members: readonly TMember[], before: number | null) => number,
     pressTarget?: number,
+    navigation = true,
   ) => {
-    const capture = this.#capture(),
+    const capture = this.#capture(pressTarget !== undefined),
       request = ++this.#request,
       focused = this.native.focused()
+    const focusedTarget = focused ? findNodeHandle(focused) : 0
     if (!capture) return false
     void this.native
       .read({
         rootTarget: capture.rootTarget,
         targets: capture.members.map((row) => row.target),
         ...(pressTarget ? { pressTarget } : {}),
+        ...(capture.scopeTarget ? { scopeTarget: capture.scopeTarget } : {}),
+        ...(navigation && capture.inputTargets.length ? { inputRoots: capture.inputTargets } : {}),
       })
       .then((encoded) => {
         const value: unknown = JSON.parse(encoded)
@@ -118,12 +150,14 @@ export class NativeDateFieldParticipantFocusManager {
         const snapshot = value as {
           rootTarget?: unknown
           windowId?: unknown
+          focusedTarget?: unknown
           rows?: unknown
           before?: unknown
           pressIndependent?: unknown
         }
         if (
           snapshot.pressIndependent === true ||
+          snapshot.focusedTarget !== focusedTarget ||
           snapshot.rootTarget !== capture.rootTarget ||
           snapshot.windowId !== capture.windowId ||
           (typeof snapshot.before !== "number" && snapshot.before !== null) ||
@@ -160,7 +194,10 @@ export class NativeDateFieldParticipantFocusManager {
     return true
   }
   #extra = () => !!this.current()?.participants.length
-  focusFirst = () => (this.#extra() ? this.#run(() => 0) : this.owned.focusFirst())
+  focusFirst = () => {
+    this.#request++
+    return this.owned.focusFirst()
+  }
   focusFromInput = (original: View, kind: "next" | "previous") => {
     if (!this.#extra()) return this.owned.focusFromInput(original, kind)
     if (this.native.focused() !== original) return false
@@ -187,7 +224,7 @@ export class NativeDateFieldParticipantFocusManager {
       : this.owned.focusVisual(direction)
   capturePress = (target: object): (() => boolean) | null => {
     if (!this.#extra()) return this.owned.capturePress(target)
-    const capture = this.#capture(),
+    const capture = this.#capture(true),
       tag = findNodeHandle(target as View)
     if (!capture || !tag) return null
     // A control owns its own touch focus, whether registered or independent.
@@ -207,14 +244,18 @@ export class NativeDateFieldParticipantFocusManager {
     return () =>
       request === this.#request &&
       capture.current() &&
-      this.#run((rows, members, before) => {
-        const tabs = rows.map((row, index) => ({ row, member: members[index] })).filter(({ row }) => row.tabStop)
-        const predecessor = before === null ? null : tabs.findIndex(({ row }) => row.target === rows[before]?.target)
-        const index = nativeDateFieldPressIndex(
-          tabs.map(({ member }) => member.isPlaceholder),
-          predecessor,
-        )
-        return index < 0 ? -1 : members.indexOf(tabs[index].member)
-      }, tag)
+      this.#run(
+        (rows, members, before) => {
+          const tabs = rows.map((row, index) => ({ row, member: members[index] })).filter(({ row }) => row.tabStop)
+          const predecessor = before === null ? null : tabs.findIndex(({ row }) => row.target === rows[before]?.target)
+          const index = nativeDateFieldPressIndex(
+            tabs.map(({ member }) => member.isPlaceholder),
+            predecessor,
+          )
+          return index < 0 ? -1 : members.indexOf(tabs[index].member)
+        },
+        tag,
+        false,
+      )
   }
 }

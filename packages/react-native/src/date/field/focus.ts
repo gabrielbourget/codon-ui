@@ -29,7 +29,7 @@ type TFocusRuntime = Readonly<{
 
 type TFocusCapture = Readonly<{ rows: readonly TNativeDateFieldFocusRow[]; current: () => boolean }>
 
-const runtime: TFocusRuntime = {
+export const nativeDateFieldFocusRuntime: TFocusRuntime = {
   capture: captureNativeFocusTarget,
   focused: getNativeFocusedTarget,
   focus: focusNativeTarget,
@@ -51,7 +51,7 @@ export class NativeDateFieldFocusManager {
   #retired = false
   constructor(
     readonly current: () => TNativeDateFieldFocusSnapshot | null,
-    readonly native: TFocusRuntime = runtime,
+    readonly native: TFocusRuntime = nativeDateFieldFocusRuntime,
   ) {}
   retire = () => {
     this.#retired = true

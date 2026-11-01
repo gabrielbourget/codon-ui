@@ -177,6 +177,7 @@ export const createNativeOrdinaryEditorKeys = (ownerId: string, session: () => T
 }
 
 export const NativeOrdinaryFocusParticipantsContext = createContext<((target: object) => boolean) | null>(null)
+export const NativeOrdinaryFieldGroupKeysContext = createContext(false)
 
 export const NativeOrdinaryEditorKeysContext = createContext<ReturnType<typeof createNativeOrdinaryEditorKeys> | null>(
   null,
@@ -211,6 +212,6 @@ export const useNativeOrdinaryEditorKeys = <TTarget extends View, TReceiver exte
       if (lease.current === registration) lease.current = null
       registration.unregister()
     }
-  }, [registry, key, target, enabled, revisionKey])
+  }, [registry, key, target, enabled, revisionKey, options.subtree])
   return (event: NativeSyntheticEvent<NativeOrdinaryEditorKeyData>) => lease.current?.receive(event)
 }

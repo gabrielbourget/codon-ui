@@ -42,7 +42,11 @@ import {
 import { registerNativeDescriptionSource, type TNativeDescriptionBinding } from "./nativeDescription"
 import { useNativeKeyScope } from "./NativeKeyboardScope"
 import { nativeViewProps, NativeViewContextBoundary } from "./nativeViewProps"
-import { NativeOrdinaryFocusParticipantsContext, useNativeOrdinaryEditorKeys } from "./ordinaryEditorKeys"
+import {
+  NativeOrdinaryFieldGroupKeysContext,
+  NativeOrdinaryFocusParticipantsContext,
+  useNativeOrdinaryEditorKeys,
+} from "./ordinaryEditorKeys"
 import FocusHost, {
   Commands,
   type NativeAccessibilityData,
@@ -136,6 +140,7 @@ export const NativeFocusHost = forwardRef<
   const ownerId = useId()
   const fieldInput = useContext(NativeFieldInputContext)
   const participants = useContext(NativeOrdinaryFocusParticipantsContext)
+  const bubbleFieldKeys = useContext(NativeOrdinaryFieldGroupKeysContext)
   const [ordinaryOriginal, setOrdinaryOriginal] = useState<ElementRef<typeof FocusHost> | null>(null)
   const collectionBinding = useContext(NativeCollectionItemBindingContext)
   const collectionSemantics = useContext(NativeCollectionSemanticsContext)
@@ -171,7 +176,7 @@ export const NativeFocusHost = forwardRef<
   })
   const [description, setDescription] = useState<TNativeDescriptionBinding | null>(null)
   const releaseForwardedRef = useRef<(() => void) | undefined>(undefined)
-  const keyboardFocusable = tabIndex === -1 && !fieldInput && !participants ? false : (focusable ?? true)
+  const keyboardFocusable = tabIndex === -1 && !fieldInput && !bubbleFieldKeys ? false : (focusable ?? true)
   const inputScope = useNativeKeyScope()
   const floatingScope = useContext(NativeFloatingScopeContext)
   const windowActive = useContext(NativeFloatingWindowContext)
@@ -342,7 +347,10 @@ export const NativeFocusHost = forwardRef<
   useLayoutEffect(() => {
     refreshMotionObservers()
   }, [nativeMotionColorObservation, nativeMotionGeometryObservation, refreshMotionObservers])
-  const ordinaryMember = keyboardFocusable && !!ordinaryOriginal && !!participants?.(ordinaryOriginal)
+  const ordinaryMember =
+    (keyboardFocusable || (bubbleFieldKeys && !!(onKeyDown || onKeyUp))) &&
+    !!ordinaryOriginal &&
+    !!participants?.(ordinaryOriginal)
   const ordinaryOptions = useRef({ ordinaryMember, onKeyDown, onKeyUp })
   useInsertionEffect(() => {
     ordinaryOptions.current = { ordinaryMember, onKeyDown, onKeyUp }
@@ -350,6 +358,7 @@ export const NativeFocusHost = forwardRef<
   const receiveOrdinaryKey = useNativeOrdinaryEditorKeys(ordinaryOriginal, ordinaryMember, ownerId, {
     current: () => nativeTarget.current,
     canAct: () => attached.current && ordinaryOptions.current.ordinaryMember,
+    subtree: bubbleFieldKeys && !!(onKeyDown || onKeyUp),
     receive: (event) => {
       const options = ordinaryOptions.current
       if (event.nativeEvent.phase === "down") options.onKeyDown?.(event)
@@ -430,7 +439,7 @@ export const NativeFocusHost = forwardRef<
         }
         focusable={keyboardFocusable}
         keyboardFocusable={keyboardFocusable}
-        nativeTabStop={fieldInput || participants ? (rest.nativeTabStop ?? tabIndex !== -1) : rest.nativeTabStop}
+        nativeTabStop={fieldInput || bubbleFieldKeys ? (rest.nativeTabStop ?? tabIndex !== -1) : rest.nativeTabStop}
         capturedKeys={capturedKeys}
         onFocus={
           onBubbledFocus
@@ -463,7 +472,7 @@ export const NativeFocusHost = forwardRef<
         }}
         onNativeOrdinaryEditorKey={(event) => {
           if (!attached.current) return
-          if (event.target === nativeTarget.current && ordinaryOptions.current.ordinaryMember) receiveOrdinaryKey(event)
+          if (ordinaryOptions.current.ordinaryMember) receiveOrdinaryKey(event)
           onNativeOrdinaryEditorKey?.(event)
         }}
         onNativeKey={(event) => {

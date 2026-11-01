@@ -84,7 +84,7 @@ it.each([
     screen
       .getAllByTestId(/^datetime-picker-input-segment-/)
       .filter((segment) => segment.props.ownerId)
-      .every((segment) => segment.props.ordinaryInputEvents === false),
+      .every((segment) => segment.props.ordinaryInputEvents === true),
   ).toBe(true)
 })
 
@@ -126,7 +126,7 @@ it("retains the original range ref through renderer updates with independent sta
     screen
       .getAllByTestId(/^datetime-range-picker-input-(start|end)-segment-/)
       .filter((segment) => segment.props.ownerId)
-      .every((segment) => segment.props.ordinaryInputEvents === false),
+      .every((segment) => segment.props.ordinaryInputEvents === true),
   ).toBe(true)
   expect(screen.getByTestId("datetime-range-picker-input-start")).toBeTruthy()
   expect(screen.getByTestId("datetime-range-picker-input-end")).toBeTruthy()

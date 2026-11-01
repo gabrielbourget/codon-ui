@@ -225,6 +225,22 @@ NSDictionary *CUIReadFocusParticipants(RCTSurfacePresenter *presenter, NSDiction
   UIView *root = [presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:rootTag.integerValue];
   UIWindow *window = root.window;
   if (!root || !window.isKeyWindow || !CUIGroupVisible(root, window)) CUIGroupFail(@"focus-participant-root-retired");
+  UIView *focused = CUIInputFocusedView(window);
+  UIView *scope = nil;
+  NSNumber *focusedTarget = @0;
+  for (UIView *view = focused; view && view != window; view = view.superview)
+    if (view.tag > 0 && [presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:view.tag] == view) { focusedTarget = @(view.tag); break; }
+  if (request[@"scopeTarget"]) {
+    scope = [presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[request[@"scopeTarget"] integerValue]];
+    if (!scope || scope.window != window || (scope != root && ![scope isDescendantOfView:root])) CUIGroupFail(@"focus-participant-input-retired");
+  } else for (NSNumber *tag in request[@"inputRoots"]) {
+    UIView *input = [presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:tag.integerValue];
+    if (!input || input.window != window || ![input isDescendantOfView:root]) CUIGroupFail(@"focus-participant-input-retired");
+    if (focused == input || [focused isDescendantOfView:input]) {
+      if (scope) CUIGroupFail(@"focus-participant-input-ambiguous");
+      scope = input;
+    }
+  }
   NSMutableDictionary<NSNumber *, NSDictionary *> *members = [NSMutableDictionary new];
   for (NSNumber *tag in request[@"targets"]) {
     if (tag.integerValue <= 0 || members[tag]) CUIGroupFail(@"focus-participant-target-invalid");
@@ -238,7 +254,7 @@ NSDictionary *CUIReadFocusParticipants(RCTSurfacePresenter *presenter, NSDiction
       if (![editor isKindOfClass:UITextField.class] && ![editor isKindOfClass:UITextView.class]) CUIGroupFail(@"focus-participant-editor-unavailable");
     } else if ([component isKindOfClass:CUIFocusView.class]) tabStop = [(CUIFocusView *)component fieldFocusTabStop];
     else if (![component isKindOfClass:CUIDateSegment.class]) CUIGroupFail(@"focus-participant-control-unsupported");
-    BOOL eligible = CUIGroupVisible(editor, window) && [editor canBecomeFirstResponder] &&
+    BOOL eligible = (!scope || component == scope || [component isDescendantOfView:scope]) && CUIGroupVisible(editor, window) && [editor canBecomeFirstResponder] &&
       !(editor.accessibilityTraits & UIAccessibilityTraitNotEnabled) &&
       (![editor isKindOfClass:UIControl.class] || [(UIControl *)editor isEnabled]);
     members[tag] = @{@"target":tag, @"eligible":@(eligible), @"tabStop":@(tabStop),
@@ -248,8 +264,9 @@ NSDictionary *CUIReadFocusParticipants(RCTSurfacePresenter *presenter, NSDiction
   NSNumber *pressTag = request[@"pressTarget"];
   UIView *hit = pressTag ? [presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:pressTag.integerValue] : nil;
   if (pressTag && hit != root && ![hit isDescendantOfView:root]) CUIGroupFail(@"focus-participant-press-retired");
-  UIView *focused = CUIInputFocusedView(window);
-  BOOL independent = hit && hit != root && !members[@(hit.tag)] && focused &&
+  BOOL focusedMember = NO;
+  for (UIView *view = focused; view && view != root; view = view.superview) if (members[@(view.tag)]) focusedMember = YES;
+  BOOL independent = !focusedMember && hit && hit != root && !members[@(hit.tag)] && focused &&
     (focused == hit || [focused isDescendantOfView:hit]);
   for (UIView *view = hit; view && view != root; view = view.superview) {
     UIView *editor = [view isKindOfClass:RCTTextInputComponentView.class] ? [(RCTTextInputComponentView *)view accessibilityElement] : view;
@@ -269,5 +286,5 @@ NSDictionary *CUIReadFocusParticipants(RCTSurfacePresenter *presenter, NSDiction
   };
   walk(root); walk = nil;
   if (rows.count != members.count || (pressTag && !foundHit)) CUIGroupFail(@"focus-participant-order-retired");
-  return @{@"rootTarget":rootTag, @"windowId":CUIInputWindowIdentity(window), @"rows":rows, @"before":before ?: NSNull.null, @"pressIndependent":@(independent)};
+  return @{@"rootTarget":rootTag, @"windowId":CUIInputWindowIdentity(window), @"focusedTarget":focusedTarget, @"rows":rows, @"before":before ?: NSNull.null, @"pressIndependent":@(independent)};
 }

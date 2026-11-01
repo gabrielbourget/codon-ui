@@ -232,6 +232,24 @@ final class CUIFieldGroupDocument {
     int rootTag = request.getInt("rootTarget"); View root = manager.resolveView(rootTag);
     if (root == null || !root.isAttachedToWindow() || !root.hasWindowFocus() || !root.isShown())
       throw new IllegalStateException("focus-participant-root-retired");
+    View focused = root.getRootView().findFocus(), scope = null;
+    int focusedTarget = 0;
+    for (View view = focused; view != null; view = view.getParent() instanceof View ? (View)view.getParent() : null)
+      if (view.getId() > 0 && resolve(manager, view.getId()) == view) { focusedTarget = view.getId(); break; }
+    if (request.has("scopeTarget")) {
+      scope = resolve(manager, request.getInt("scopeTarget"));
+      if (scope == null || !descendant(scope, root)) throw new IllegalStateException("focus-participant-input-retired");
+    } else {
+      JSONArray inputs = request.optJSONArray("inputRoots");
+      for (int index = 0; inputs != null && index < inputs.length(); index++) {
+        View input = resolve(manager, inputs.getInt(index));
+        if (input == null || !descendant(input, root)) throw new IllegalStateException("focus-participant-input-retired");
+        if (descendant(focused, input)) {
+          if (scope != null) throw new IllegalStateException("focus-participant-input-ambiguous");
+          scope = input;
+        }
+      }
+    }
     java.util.Map<Integer, JSONObject> members = new java.util.HashMap<>();
     JSONArray targets = request.getJSONArray("targets");
     for (int index = 0; index < targets.length(); index++) {
@@ -242,7 +260,7 @@ final class CUIFieldGroupDocument {
         throw new IllegalStateException("focus-participant-outside-root");
       if (!(target instanceof ReactEditText) && !(target instanceof CUIFocusView) && !(target instanceof CUIDateSegment))
         throw new IllegalArgumentException("focus-participant-control-unsupported");
-      boolean eligible = target.isAttachedToWindow() && visible(target, root) && target.isEnabled() && target.isFocusable();
+      boolean eligible = (scope == null || descendant(target, scope)) && target.isAttachedToWindow() && visible(target, root) && target.isEnabled() && target.isFocusable();
       Matrix matrix = new Matrix(); transformToRoot(target, target.getRootView(), matrix);
       RectF rectangle = new RectF(0, 0, target.getWidth(), target.getHeight()); matrix.mapRect(rectangle);
       if (!Float.isFinite(rectangle.left)) throw new IllegalStateException("focus-participant-geometry-invalid");
@@ -252,13 +270,16 @@ final class CUIFieldGroupDocument {
     JSONArray rows = new JSONArray(); int[] before = new int[]{0}; boolean[] found = new boolean[]{false};
     int pressTag = request.optInt("pressTarget", 0);
     View hit = pressTag > 0 ? resolve(manager, pressTag) : null;
-    boolean independent = hit != null && hit != root && !members.containsKey(hit.getId()) && hit.hasFocus();
+    boolean focusedMember = false;
+    for (View view = focused; view != null && view != root; view = view.getParent() instanceof View ? (View)view.getParent() : null)
+      if (members.containsKey(view.getId())) focusedMember = true;
+    boolean independent = !focusedMember && hit != null && hit != root && !members.containsKey(hit.getId()) && hit.hasFocus();
     for (View view = hit; view != null && view != root; view = view.getParent() instanceof View ? (View)view.getParent() : null)
       if (view.isFocusable() && !members.containsKey(view.getId())) independent = true;
     appendFocusParticipants(root, members, rows, pressTag, before, found);
     if (pressTag > 0 && !found[0]) throw new IllegalStateException("focus-participant-press-retired");
     if (rows.length() != members.size()) throw new IllegalStateException("focus-participant-order-retired");
-    return new JSONObject().put("rootTarget", rootTag).put("windowId", CUIInputWindow.identity(root)).put("rows", rows).put("before", before[0] == 0 ? JSONObject.NULL : before[0]).put("pressIndependent", independent);
+    return new JSONObject().put("rootTarget", rootTag).put("windowId", CUIInputWindow.identity(root)).put("focusedTarget", focusedTarget).put("rows", rows).put("before", before[0] == 0 ? JSONObject.NULL : before[0]).put("pressIndependent", independent);
   }
   private static void appendFocusParticipants(View view, java.util.Map<Integer, JSONObject> members, JSONArray rows, int pressTag, int[] before, boolean[] found) throws Exception {
     if (view.getId() == pressTag) found[0] = true;

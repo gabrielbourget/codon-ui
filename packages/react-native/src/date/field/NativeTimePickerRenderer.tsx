@@ -24,7 +24,10 @@ import { useNativeTimeFieldForm } from "../../form/useTimeField"
 import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
 import { NativeFieldInputContext } from "../../input/fieldInput"
 import { NativeFocusHost } from "../../input/NativeFocusView"
-import { NativeOrdinaryFocusParticipantsContext } from "../../input/ordinaryEditorKeys"
+import {
+  NativeOrdinaryFieldGroupKeysContext,
+  NativeOrdinaryFocusParticipantsContext,
+} from "../../input/ordinaryEditorKeys"
 import type { TNativeFocusViewProps } from "../../input/types"
 import { useNativeTheme } from "../../theme"
 import { getNativeDateFieldDescription } from "../entry/semantics"
@@ -295,104 +298,106 @@ export const NativeTimePickerRenderer = forwardRef(
     }
     const inheritedText = { ...inheritedRootText, ...group.text, color: motion.groupColor, ...input.text }
     const children = (
-      <NativeFieldInputContext.Provider value={null}>
-        <NativeFocusHost
-          ref={bindGroup}
-          nativeID={props.id}
-          testID={`${testID}-group`}
-          accessible={false}
-          role="group"
-          accessibilityLabel={groupProps.accessibilityLabel}
-          nativeLabelledBy={label.current ? [labelId] : undefined}
-          focusable={false}
-          nativeOrdinaryGroupKeyHandler={ordinary.key}
-          {...ordinary.pointer}
-          nativeFocusWithinObservation
-          nativeOnFocusWithin={(event) => {
-            if (!isNativeDateFieldFocusEvent(event)) return
-            observedFocus.current = event.nativeEvent.within
-            setFocused(event.nativeEvent.within)
-            lifecycle.receive(event)
-          }}
-          nativeOnFocusWithinRetired={() => {
-            observedFocus.current = false
-            setFocused(false)
-            lifecycle.retire()
-          }}
-          style={{ ...group.view, ...motion.group }}
-        >
+      <NativeOrdinaryFieldGroupKeysContext.Provider value>
+        <NativeFieldInputContext.Provider value={null}>
           <NativeFocusHost
+            ref={bindGroup}
+            nativeID={props.id}
+            testID={`${testID}-group`}
+            accessible={false}
+            role="group"
+            accessibilityLabel={groupProps.accessibilityLabel}
+            nativeLabelledBy={label.current ? [labelId] : undefined}
             focusable={false}
             nativeOrdinaryGroupKeyHandler={ordinary.key}
             {...ordinary.pointer}
-            testID={`${testID}-input`}
-            accessible={false}
-            role="group"
-            accessibilityLabel={props.accessibilityLabel ?? props["aria-label"]}
-            style={input.view}
-          >
-            {state.segments.map((segment, index) => (
-              <NativeTimePickerSegment
-                key={index}
-                ownerId={ownerId}
-                segmentId={nativeDateFieldSegmentId(segment, index)}
-                segment={segment}
-                state={state}
-                locale={locale}
-                direction={direction}
-                hostSet={hosts}
-                inputFocus={focus}
-                ordinaryGroupEvents
-                appearance={appearance}
-                inheritedText={inheritedText}
-                label={props.accessibilityLabel ?? props["aria-label"]}
-                scope={null}
-                outerTarget={outerTarget}
-                testID={`${testID}-segment-${index}`}
-              />
-            ))}
-          </NativeFocusHost>
-          {metadata}
-          <NativeContentContext.Provider
-            value={{
-              foregroundColor: appearance.iconColor,
-              isButton: false,
-              textStyle: { ...inheritedRootText, ...group.text, color: motion.groupColor },
+            nativeFocusWithinObservation
+            nativeOnFocusWithin={(event) => {
+              if (!isNativeDateFieldFocusEvent(event)) return
+              observedFocus.current = event.nativeEvent.within
+              setFocused(event.nativeEvent.within)
+              lifecycle.receive(event)
             }}
+            nativeOnFocusWithinRetired={() => {
+              observedFocus.current = false
+              setFocused(false)
+              lifecycle.retire()
+            }}
+            style={{ ...group.view, ...motion.group }}
           >
-            {authored.ComponentIcon || (
-              <Svg
-                testID={`${testID}-clock`}
-                accessible={false}
-                width={15}
-                height={15}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke={appearance.iconColor}
-                strokeWidth={2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <Circle cx={12} cy={12} r={10} />
-                <Polyline points="12 6 12 12 16 14" />
-              </Svg>
-            )}
-          </NativeContentContext.Provider>
-          {selectedDescription ? (
-            <Text
-              ref={selectedRef}
-              nativeID={selectedId}
-              testID={`${testID}-selected-description`}
+            <NativeFocusHost
+              focusable={false}
+              nativeOrdinaryGroupKeyHandler={ordinary.key}
+              {...ordinary.pointer}
+              testID={`${testID}-input`}
               accessible={false}
-              accessibilityElementsHidden
-              importantForAccessibility="no-hide-descendants"
-              style={{ position: "absolute", width: 0, height: 0, opacity: 0 }}
+              role="group"
+              accessibilityLabel={props.accessibilityLabel ?? props["aria-label"]}
+              style={input.view}
             >
-              {selectedDescription}
-            </Text>
-          ) : null}
-        </NativeFocusHost>
-      </NativeFieldInputContext.Provider>
+              {state.segments.map((segment, index) => (
+                <NativeTimePickerSegment
+                  key={index}
+                  ownerId={ownerId}
+                  segmentId={nativeDateFieldSegmentId(segment, index)}
+                  segment={segment}
+                  state={state}
+                  locale={locale}
+                  direction={direction}
+                  hostSet={hosts}
+                  inputFocus={focus}
+                  ordinaryGroupEvents
+                  appearance={appearance}
+                  inheritedText={inheritedText}
+                  label={props.accessibilityLabel ?? props["aria-label"]}
+                  scope={null}
+                  outerTarget={outerTarget}
+                  testID={`${testID}-segment-${index}`}
+                />
+              ))}
+            </NativeFocusHost>
+            {metadata}
+            <NativeContentContext.Provider
+              value={{
+                foregroundColor: appearance.iconColor,
+                isButton: false,
+                textStyle: { ...inheritedRootText, ...group.text, color: motion.groupColor },
+              }}
+            >
+              {authored.ComponentIcon || (
+                <Svg
+                  testID={`${testID}-clock`}
+                  accessible={false}
+                  width={15}
+                  height={15}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke={appearance.iconColor}
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <Circle cx={12} cy={12} r={10} />
+                  <Polyline points="12 6 12 12 16 14" />
+                </Svg>
+              )}
+            </NativeContentContext.Provider>
+            {selectedDescription ? (
+              <Text
+                ref={selectedRef}
+                nativeID={selectedId}
+                testID={`${testID}-selected-description`}
+                accessible={false}
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+                style={{ position: "absolute", width: 0, height: 0, opacity: 0 }}
+              >
+                {selectedDescription}
+              </Text>
+            ) : null}
+          </NativeFocusHost>
+        </NativeFieldInputContext.Provider>
+      </NativeOrdinaryFieldGroupKeysContext.Provider>
     )
     const nativeProps = {
       ...(Object.fromEntries(
@@ -437,14 +442,18 @@ export const NativeTimePickerRenderer = forwardRef(
                   <NativeContentContext.Provider
                     value={{ foregroundColor, isButton: content?.isButton ?? false, textStyle: inheritedRootText }}
                   >
-                    <NativeOrdinaryFocusParticipantsContext.Provider value={participants.observes}>
-                      <NativeFieldInputContext.Provider value={null}>
-                        {props.render ? (
-                          props.render(nativeProps, renderState)
-                        ) : (
-                          <NativeFocusHost {...nativeProps} focusable={false} />
-                        )}
-                      </NativeFieldInputContext.Provider>
+                    <NativeOrdinaryFocusParticipantsContext.Provider
+                      value={(target) => target !== rootRef.current && participants.observes(target)}
+                    >
+                      <NativeOrdinaryFieldGroupKeysContext.Provider value={false}>
+                        <NativeFieldInputContext.Provider value={null}>
+                          {props.render ? (
+                            props.render(nativeProps, renderState)
+                          ) : (
+                            <NativeFocusHost {...nativeProps} focusable={false} />
+                          )}
+                        </NativeFieldInputContext.Provider>
+                      </NativeOrdinaryFieldGroupKeysContext.Provider>
                     </NativeOrdinaryFocusParticipantsContext.Provider>
                   </NativeContentContext.Provider>
                 </NativeTimeFieldErrorContext.Provider>

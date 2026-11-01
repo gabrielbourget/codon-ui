@@ -22,11 +22,16 @@ const setup = () => {
     isPlaceholder: true,
   }))
   let focused: View | null = rows[0].original
-  let current = { root, owned: { root, rootTarget: 3, rows }, participants: [ref] }
+  let current: NonNullable<ReturnType<ConstructorParameters<typeof NativeDateFieldParticipantFocusManager>[0]>> = {
+    root,
+    owned: { root, rootTarget: 3, rows },
+    participants: [ref],
+  }
   const focus = jest.fn((_target: View | null) => true)
   const disabled = new Set<View>()
   const response = {
     rootTarget: 3,
+    focusedTarget: 10,
     windowId: "window",
     before: null as number | null,
     rows: [
@@ -35,7 +40,15 @@ const setup = () => {
       { target: 11, eligible: true, tabStop: true, x: 60 },
     ],
   }
-  const read = jest.fn(async () => JSON.stringify(response))
+  const read = jest.fn(
+    async (_request: {
+      rootTarget: number
+      targets: readonly number[]
+      pressTarget?: number
+      scopeTarget?: number
+      inputRoots?: readonly number[]
+    }) => JSON.stringify(response),
+  )
   const release = registerNativeFocusTarget(extra, { canFocus: () => true, focus: () => {}, blur: () => {} })
   const manager = new NativeDateFieldParticipantFocusManager(() => current, {
     read,
@@ -59,6 +72,7 @@ const setup = () => {
     current: () => current,
     focused: (target: View | null) => {
       focused = target
+      response.focusedTarget = target ? (target as unknown as { _nativeTag: number })._nativeTag : 0
     },
     flush: async () => {
       await Promise.resolve()
@@ -112,7 +126,6 @@ it.each(["ref", "epoch", "root", "focus", "guard", "new-request", "retire"])(
     if (kind === "guard") f.disabled.add(f.extra)
     if (kind === "new-request") {
       f.manager.focusFirst()
-      f.focus.mockClear()
     }
     if (kind === "retire") f.manager.retire()
 
@@ -171,5 +184,67 @@ it("allows a nonfocusable owned background while preserving an independently foc
   await f.flush()
   expect(f.focus).not.toHaveBeenCalled()
   release()
+  f.release()
+})
+
+it("passes a fixed native input boundary and rejects queued navigation when that original is replaced", async () => {
+  const f = setup(),
+    input = { _nativeTag: 31 } as unknown as View
+  f.replace({ ...f.current(), scope: input })
+  f.response.rows[1].eligible = false
+  f.manager.focusNext()
+  expect(f.read.mock.calls[0][0].scopeTarget).toBe(31)
+  await f.flush()
+  expect(f.focus).toHaveBeenLastCalledWith(f.rows[1].original)
+  f.focus.mockClear()
+  f.manager.focusNext()
+  f.replace({ ...f.current(), scope: { _nativeTag: 31 } as unknown as View })
+  await f.flush()
+  expect(f.focus).not.toHaveBeenCalled()
+  f.release()
+})
+it("scopes range navigation by native input ancestry while keeping initial focus independent of the active endpoint", async () => {
+  const f = setup(),
+    start = { _nativeTag: 31 } as unknown as View,
+    end = { _nativeTag: 32 } as unknown as View
+  f.replace({ ...f.current(), inputRoots: [start, end] })
+  f.manager.focusNext()
+  expect(f.read.mock.calls[0][0].inputRoots).toEqual([31, 32])
+  await f.flush()
+  f.manager.focusFirst()
+  expect(f.read).toHaveBeenCalledTimes(1)
+  expect(f.focus).toHaveBeenLastCalledWith(f.rows[0].original)
+  await f.flush()
+  f.focus.mockClear()
+  f.manager.focusNext()
+  f.replace({ ...f.current(), inputRoots: [end, start] })
+  await f.flush()
+  expect(f.focus).not.toHaveBeenCalled()
+  f.release()
+})
+
+it("rejects native focus movement that has not yet reached the JS observer", async () => {
+  const f = setup()
+  f.response.focusedTarget = 25
+  f.manager.focusFromInput(f.rows[0].original, "next")
+  await f.flush()
+  expect(f.focus).not.toHaveBeenCalled()
+  f.release()
+})
+
+it("keeps input auto-advance through a value commit but invalidates placeholder-dependent background targeting", async () => {
+  const f = setup(),
+    root = f.current().root
+  f.manager.focusFromInput(f.rows[0].original, "next")
+  f.rows[0].isPlaceholder = false
+  await f.flush()
+  expect(f.focus).toHaveBeenCalledWith(f.extra)
+  f.focus.mockClear()
+  const hit = { _nativeTag: 29 } as unknown as View
+  const press = f.manager.capturePress(hit)
+  f.rows[1].isPlaceholder = false
+  expect(press?.()).toBe(false)
+  expect(f.focus).not.toHaveBeenCalled()
+  expect(root).toBe(f.current().root)
   f.release()
 })

@@ -1,6 +1,6 @@
 import { CalendarDate, CalendarDateTime, Time, parseZonedDateTime } from "@internationalized/date"
 import { createRef } from "react"
-import type { View } from "react-native"
+import type { TextInput, View } from "react-native"
 
 import {
   DateTimePicker,
@@ -117,3 +117,10 @@ export const DateTimeRangePickerOrdinaryPointer = (
     }}
   />
 )
+
+export const ExtraSingleFocus = <DateTimePicker extraFocusParticipants={[createRef<TextInput>(), createRef<View>()]} />
+export const ExtraRangeFocus = (
+  <DateTimeRangePicker extraFocusParticipants={[createRef<TextInput>(), createRef<View>()]} />
+)
+// @ts-expect-error Explicit participants are actual original native refs, not target tags.
+export const InvalidExtraRangeFocus = <DateTimeRangePicker extraFocusParticipants={[{ current: 42 }]} />

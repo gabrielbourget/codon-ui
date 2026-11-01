@@ -6,6 +6,7 @@ import type { TNativeFieldSemanticLabels } from "../../form/semantics"
 import type { TNativeFocusViewProps } from "../../input/types"
 import type { TNativeFloatingPlacement } from "../../overlays/floating/placement"
 import type { TNativeTimePickerAppearanceProps } from "../field/appearance"
+import type { TNativeExtraFocusParticipants } from "../field/participants"
 import type { DateValue } from "../state/types"
 import type { DatePickerStateOptions, DatePickerState } from "../state/useDatePickerState"
 import type { DateRangePickerStateOptions, DateRangePickerState } from "../state/useDateRangePickerState"
@@ -60,6 +61,7 @@ type TDOMFocus =
 type TCommon<S> = Omit<TNativeFocusViewProps, "style" | "children"> &
   TNativeSlotProps &
   TNativeDatePickerAppearance & {
+    extraFocusParticipants?: TNativeExtraFocusParticipants
     "aria-describedby"?: string
     "aria-details"?: string
     ariaDescribedBy?: string | readonly string[]

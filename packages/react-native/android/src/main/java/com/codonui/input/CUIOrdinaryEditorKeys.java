@@ -121,6 +121,7 @@ final class CUIOrdinaryEditorKeys {
       original = original.getParent() instanceof View ? (View)original.getParent() : null;
     }
     if (original == null || original == scope) return;
+    captured = captured || (focused instanceof CUIFocusView && ((CUIFocusView)focused).capturesObservedKey(event));
     WritableMap data = identity(registration); int code = event.getKeyCode();
     int unicode = event.getUnicodeChar();
     String characters = unicode > 0 && Character.isValidCodePoint(unicode) ? new String(Character.toChars(unicode)) : "";

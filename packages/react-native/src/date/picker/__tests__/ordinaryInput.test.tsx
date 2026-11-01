@@ -90,7 +90,13 @@ const hidden = { includeHiddenElements: true }
 const row = (id: string) => screen.getByTestId(id, hidden)
 const setup = async (
   kind: "single" | "range",
-  options: { empty?: boolean; readOnly?: boolean; composition?: "render" | "icon"; onChange?: () => void } = {},
+  options: {
+    empty?: boolean
+    readOnly?: boolean
+    composition?: "render" | "icon"
+    onChange?: () => void
+    onKeyDown?: jest.Mock
+  } = {},
 ) => {
   const root = createRef<RN.View>(),
     custom = createRef<RN.TextInput>(),
@@ -106,6 +112,7 @@ const setup = async (
     ref: root,
     granularity: "second" as const,
     isReadOnly: options.readOnly,
+    onKeyDown: options.onKeyDown,
     render:
       options.composition === "render"
         ? (props: TNativeFocusViewProps & RefAttributes<RN.View>) => <NativeFocusHost {...props} />
@@ -239,20 +246,30 @@ describe.each(["single", "range"] as const)("%s ordinary date input", (kind) => 
     expect(f.target(source)).toBe(original)
     expect(Commands.requestSegmentFocus).not.toHaveBeenCalled()
   })
-  it.each(["render", "icon"] as const)("keeps custom %s composition on the legacy input route", async (composition) => {
-    const f = await setup(kind, { composition }),
-      source = f.id("hour")
-    expect(row(source).props.ordinaryInputEvents).toBe(false)
-    const original = f.custom.current
-    if (composition === "icon") expect(original).not.toBeNull()
-    await f.send(source, { kind: "focus", focused: true })
-    expect(getNativeFocusedTarget() === f.target(source)).toBe(true)
-    jest.mocked(Commands.requestSegmentFocus).mockClear()
-    await f.send(source, edit)
-    expect(f.onChange).not.toHaveBeenCalled()
-    expect(Commands.requestSegmentFocus).not.toHaveBeenCalled()
-    expect(f.custom.current).toBe(original)
-  })
+  it.each(["render", "icon"] as const)(
+    "uses ordinary input in custom %s composition without enrolling its independent editor",
+    async (composition) => {
+      const f = await setup(kind, { composition }),
+        source = f.id("hour")
+      expect(row(source).props.ordinaryInputEvents).toBe(true)
+      const original = f.custom.current
+      if (composition === "icon") expect(original).not.toBeNull()
+      await f.send(source, { kind: "focus", focused: true })
+      expect(getNativeFocusedTarget() === f.target(source)).toBe(true)
+      jest.mocked(Commands.requestSegmentFocus).mockClear()
+      await f.send(source, edit)
+      expect(f.onChange).toHaveBeenCalledTimes(1)
+      expect(Commands.requestSegmentFocus).toHaveBeenCalledTimes(1)
+      expect(
+        f
+          .segments()
+          .some((node) => f.target(node.props.testID) === jest.mocked(Commands.requestSegmentFocus).mock.calls[0][0]),
+      ).toBe(true)
+      expect(mockNative.settleField).not.toHaveBeenCalled()
+      expect(mockNative.moveFieldFocus).not.toHaveBeenCalled()
+      expect(f.custom.current).toBe(original)
+    },
+  )
 })
 it("does not auto-advance from the last start segment into the end input", async () => {
   const f = await setup("range"),
@@ -277,29 +294,36 @@ it("does not backspace from the first end placeholder into the start input", asy
 it.each(["single", "range"] as const)(
   "uses ordinary keys within the active %s endpoint and opens its calendar with Alt+Arrow",
   async (kind) => {
-    const f = await setup(kind),
+    const onKeyDown = jest.fn()
+    const f = await setup(kind, { onKeyDown }),
       id = f.id("day"),
       host = row(id),
       target = f.target(id)
     await f.send(id, { kind: "focus", focused: true })
-    const make = (key: string, sequence: number, altKey = false) => ({
-      target,
-      currentTarget: target,
-      nativeEvent: keyPacket({
-        ownerId: host.props.ownerId,
-        segmentId: host.props.segmentId,
-        bindingRevision: host.props.bindingRevision,
-        target: jest.requireActual<typeof RN>("react-native").findNodeHandle(target)!,
-        nativeInstance: `original:${id}`,
-        windowId: "picker-window",
-        sequence,
-        key,
-        altKey,
-      }),
-      preventDefault: jest.fn(),
-      stopPropagation: jest.fn(),
-      persist: jest.fn(),
-    })
+    const make = (key: string, sequence: number, altKey = false) => {
+      let stopped = false
+      return {
+        target,
+        currentTarget: target,
+        nativeEvent: keyPacket({
+          ownerId: host.props.ownerId,
+          segmentId: host.props.segmentId,
+          bindingRevision: host.props.bindingRevision,
+          target: jest.requireActual<typeof RN>("react-native").findNodeHandle(target)!,
+          nativeInstance: `original:${id}`,
+          windowId: "picker-window",
+          sequence,
+          key,
+          altKey,
+        }),
+        preventDefault: jest.fn(),
+        stopPropagation: jest.fn(() => {
+          stopped = true
+        }),
+        isPropagationStopped: () => stopped,
+        persist: jest.fn(),
+      }
+    }
     expect(host.props.ordinaryGroupEvents).toBe(true)
     expect(host.props.pickerKeyboard).toBe(true)
     const group = screen.getByTestId(
@@ -315,6 +339,8 @@ it.each(["single", "range"] as const)(
     const request = jest.mocked(Commands.requestSegmentFocus).mock.calls.at(-1)![0]
     expect(f.segments().some((node) => f.target(node.props.testID) === request)).toBe(true)
     expect(arrow.target).toBe(target)
+    expect(onKeyDown).toHaveBeenCalledTimes(1)
+    expect(onKeyDown).toHaveBeenCalledWith(arrow)
     const open = make("ArrowDown", 4, true)
     await act(() => row(id).props.onNativeDateKey(open))
     const outer = screen.getByTestId(`${kind === "single" ? "datetime-picker" : "datetime-range-picker"}-group`, hidden)

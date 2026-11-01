@@ -5,7 +5,10 @@ import type * as RN from "react-native"
 import { registerNativeFocusTarget } from "../../../input/focus"
 import { NativeFocusHost } from "../../../input/NativeFocusView"
 import { NativeKeyboardScope } from "../../../input/NativeKeyboardScope"
-import { NativeOrdinaryFocusParticipantsContext } from "../../../input/ordinaryEditorKeys"
+import {
+  NativeOrdinaryFieldGroupKeysContext,
+  NativeOrdinaryFocusParticipantsContext,
+} from "../../../input/ordinaryEditorKeys"
 import type { TNativeKeyboardEvent } from "../../../input/types"
 import { useNativeDateFieldParticipants } from "../useParticipants"
 
@@ -15,11 +18,15 @@ const Probe = ({
   group,
   independent,
   listed = true,
+  subtree = false,
+  rootKey,
 }: {
   leaf: jest.Mock
   group: jest.Mock
   independent: jest.Mock
   listed?: boolean
+  subtree?: boolean
+  rootKey?: jest.Mock
 }) => {
   const extra = useRef<RN.View | null>(null)
   const independentRef = useRef<RN.View | null>(null)
@@ -33,12 +40,20 @@ const Probe = ({
     key: group,
   })
   return (
-    <NativeOrdinaryFocusParticipantsContext.Provider value={participants.observes}>
-      <NativeFocusHost ref={setRoot} testID="root" focusable={false} onNativeOrdinaryEditorKey={participants.receive}>
-        <NativeFocusHost ref={extra} testID="extra" onKeyDown={leaf} />
-        <NativeFocusHost ref={independentRef} testID="independent" onKeyDown={independent} />
-      </NativeFocusHost>
-    </NativeOrdinaryFocusParticipantsContext.Provider>
+    <NativeOrdinaryFieldGroupKeysContext.Provider value={subtree}>
+      <NativeOrdinaryFocusParticipantsContext.Provider value={participants.observes}>
+        <NativeFocusHost
+          ref={setRoot}
+          testID="root"
+          focusable={false}
+          onNativeOrdinaryEditorKey={participants.receive}
+          onKeyDown={rootKey}
+        >
+          <NativeFocusHost ref={extra} testID="extra" onKeyDown={leaf} />
+          <NativeFocusHost ref={independentRef} testID="independent" onKeyDown={independent} />
+        </NativeFocusHost>
+      </NativeOrdinaryFocusParticipantsContext.Provider>
+    </NativeOrdinaryFieldGroupKeysContext.Provider>
   )
 }
 beforeEach(() => {
@@ -175,4 +190,78 @@ it("requires the approved host when explicit participants are requested", async 
   await expect(render(<Probe leaf={jest.fn()} group={jest.fn()} independent={jest.fn()} />)).rejects.toThrow(
     "NativeFloatingLayerHost",
   )
+})
+
+it("retains original descendant callbacks for an owned nonfocusable group while surrounding native views keep direct keys", async () => {
+  const rootKey = jest.fn(),
+    group = jest.fn()
+  const node = (subtree: boolean) => (
+    <NativeKeyboardScope captureEnabled testID="host">
+      <Probe leaf={jest.fn()} independent={jest.fn()} group={group} rootKey={rootKey} subtree={subtree} />
+    </NativeKeyboardScope>
+  )
+  const view = await render(node(true))
+  for (const ready of [false, true, true]) {
+    const props = screen.getByTestId("host").props
+    await act(() =>
+      props.onNativeScopeStatus({
+        nativeEvent: {
+          ownerId: props.ownerId,
+          windowId: "window",
+          epoch: 1,
+          policyRevision: props.policyRevision,
+          ready,
+          windowActive: true,
+        },
+      }),
+    )
+  }
+  const props = screen.getByTestId("host").props
+  const binding = props.ordinaryEditorBindings.find(
+    (value: { targetTag: number }) =>
+      value.targetTag === jest.requireActual<typeof RN>("react-native").findNodeHandle(refs.extra.current),
+  )
+  for (const value of props.ordinaryEditorBindings)
+    await act(() =>
+      props.onNativeOrdinaryEditorStatus({
+        nativeEvent: {
+          ...value,
+          ownerId: props.ownerId,
+          target: value.targetTag,
+          windowId: "window",
+          epoch: 1,
+          sequence: 1,
+          ready: true,
+          windowActive: true,
+          error: "",
+        },
+      }),
+    )
+  const event = {
+    target: refs.extra.current,
+    currentTarget: refs.root,
+    persist: jest.fn(),
+    nativeEvent: {
+      ...binding,
+      ownerId: props.ownerId,
+      target: binding.targetTag,
+      observerBindings: JSON.stringify(
+        props.ordinaryEditorBindings.filter((value: { subtree: boolean }) => value.subtree),
+      ),
+      windowId: "window",
+      epoch: 1,
+      eventId: 1,
+      phase: "down",
+      kind: "keyboard",
+      cancelled: false,
+    },
+  }
+  await act(() => screen.getByTestId("root").props.onNativeOrdinaryEditorKey(event))
+  expect(rootKey).toHaveBeenCalledWith(event)
+  expect(group).toHaveBeenCalledWith(event)
+  rootKey.mockClear()
+  await view.rerender(node(false))
+  Object.assign(event.nativeEvent, { eventId: 2 })
+  await act(() => screen.getByTestId("root").props.onNativeOrdinaryEditorKey(event))
+  expect(rootKey).not.toHaveBeenCalled()
 })

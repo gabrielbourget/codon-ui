@@ -1,10 +1,8 @@
 import {
   useCallback,
-  useContext,
   useId,
   useInsertionEffect,
   useLayoutEffect,
-  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
@@ -13,7 +11,7 @@ import {
 import type { View } from "react-native"
 import { findNodeHandle, Text } from "react-native"
 
-import { NATIVE_DEFAULT_SLOT } from "../../collection/context"
+import { NATIVE_DEFAULT_SLOT, useNativeCollectionRefs } from "../../collection/context"
 import { Button } from "../../components/Button/Button"
 import { NativeButtonContext } from "../../components/Button/context"
 import { NativeFloatingSurface } from "../../components/ClickPopover/ClickPopover"
@@ -26,15 +24,16 @@ import type { TNativeDateInputGroup, TNativeDateInputSlot } from "../../form/dat
 import { useNativeFieldSemanticRef, useNativeFieldSemantics } from "../../form/useFieldSemantics"
 import { useNativeSegmentedFieldForm, type TOriginalDateField } from "../../form/useSegmentedField"
 import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
-import { NativeFieldInputContext, nativeFieldGroupKeyHandler } from "../../input/fieldInput"
-import type { TNativeFieldInputPlan } from "../../input/fieldInputBinding"
+import { NativeFieldInputContext } from "../../input/fieldInput"
 import { containsNativeView, getNativeFocusedTarget } from "../../input/focus"
 import { NativeFocusHost, NativeFocusView } from "../../input/NativeFocusView"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { nativeViewProps } from "../../input/nativeViewProps"
+import {
+  NativeOrdinaryFieldGroupKeysContext,
+  NativeOrdinaryFocusParticipantsContext,
+} from "../../input/ordinaryEditorKeys"
 import type { TNativeFocusViewProps } from "../../input/types"
-import { useNativeFieldGroupPress } from "../../input/useFieldGroupPress"
-import { useNativeFieldInputBinding } from "../../input/useFieldInputBinding"
 import { useNativeTheme } from "../../theme"
 import { NativeDateCalendar } from "../calendar/NativeDateCalendar"
 import { getNativeDatePickerDescription, getNativeDateInputLabel } from "../entry/semantics"
@@ -44,11 +43,12 @@ import {
   NativeTimeFieldLabelContext,
   NativeTimeFieldTextContext,
 } from "../field/descendants"
-import { NativeDateFieldFocusManager } from "../field/focus"
 import { isNativeDateFieldFocusEvent } from "../field/focusEvent"
 import { NativeDateFieldHostSet } from "../field/hostSet"
 import { useNativeOrdinaryDateGroup } from "../field/ordinaryGroup"
+import { NativeDateFieldParticipantFocusManager } from "../field/participants"
 import { useNativeDateFieldLifecycle } from "../field/useLifecycle"
+import { useNativeDateFieldParticipants } from "../field/useParticipants"
 import type { DateFieldState } from "../state/useDateFieldState"
 import type { DatePickerState } from "../state/useDatePickerState"
 import type { DateRangePickerState } from "../state/useDateRangePickerState"
@@ -68,8 +68,8 @@ type TOptions =
   | { range: false; props: TNativeDateTimePickerProps; state: DatePickerState }
   | { range: true; props: TNativeDateTimeRangePickerProps; state: DateRangePickerState }
 type TFields = readonly Readonly<{ slot: TNativeDateInputSlot; state: DateFieldState }>[]
-let nextRevision = 0
 const omitted = new Set([
+  "extraFocusParticipants",
   "value",
   "defaultValue",
   "onChange",
@@ -156,9 +156,6 @@ export const NativeDatePickerView = (
   },
 ) => {
   const { props, state, range, fields, locale, direction } = options
-  const inheritedFieldInput = useContext(NativeFieldInputContext)
-  const ordinaryInputEvents = !props.render && !props.ComponentIcon
-  const ordinaryGroupEvents = ordinaryInputEvents && !inheritedFieldInput
   const keyScope = useNativeKeyScope()
   useSyncExternalStore(keyScope?.subscribe ?? (() => () => {}), keyScope?.snapshot ?? (() => 0), () => 0)
   const [observedOrigin, setObservedOrigin] = useState("unknown")
@@ -179,21 +176,26 @@ export const NativeDatePickerView = (
     input = useRef<View | null>(null),
     trigger = useRef<View | null>(null),
     calendarFocus = useRef<View | null>(null)
+  const rootOriginal = useRef<View | null>(null)
+  const [originalRoot, setOriginalRoot] = useState<View | null>(null)
+  const storeOriginalRoot = useCallback((target: View | null) => {
+    rootOriginal.current = target
+    setOriginalRoot(target)
+  }, [])
+  const bindOriginalRoot = useNativeCollectionRefs(options.forwardedRef, storeOriginalRoot)
   const restoreFocus = useRef<ReturnType<typeof getNativeFocusedTarget>>(null),
     previousOpen = useRef(false)
   useInsertionEffect(() => {
     if (state.isOpen && !previousOpen.current && !calendarFocus.current) restoreFocus.current = getNativeFocusedTarget()
     previousOpen.current = state.isOpen
   })
-  const [outerTarget, setOuterTarget] = useState(0),
-    [inputTarget, setInputTarget] = useState(0)
+  const [outerTarget, setOuterTarget] = useState(0)
   const bindOuter = useCallback((target: View | null) => {
     outer.current = target
     setOuterTarget(target ? (findNodeHandle(target) ?? 0) : 0)
   }, [])
   const bindInput = useCallback((target: View | null) => {
     input.current = target
-    setInputTarget(target ? (findNodeHandle(target) ?? 0) : 0)
   }, [])
   const [focused, setFocused] = useState(false),
     observedFocus = useRef(false)
@@ -219,81 +221,39 @@ export const NativeDatePickerView = (
       segments: values.flatMap((value) => value!.rows),
     }
   }, [hosts])
-  const original = currentOriginal(),
-    originalSignature = JSON.stringify(original?.groups) + JSON.stringify(original?.segments.map((row) => row.identity))
-  const revision = useMemo(
-    () => `${ownerId}:date-group:${++nextRevision}`,
-    [
-      ownerId,
-      originalSignature,
-      locale,
-      props.isDisabled,
-      props.isReadOnly,
-      props.onKeyDown,
-      props.onKeyUp,
-      props.render,
-    ],
-  )
-  const inputPlan = useMemo<TNativeFieldInputPlan | null>(
-    () =>
-      outer.current && input.current && outerTarget && inputTarget && original
-        ? {
-            bindingId: ownerId,
-            bindingRevision: revision,
-            outer: outer.current,
-            outerTarget,
-            input: input.current,
-            inputTarget,
-            originalTarget: original.segments[0].identity.target,
-          }
-        : null,
-    [ownerId, revision, outerTarget, inputTarget, originalSignature],
-  )
-  const binding = useNativeFieldInputBinding(inputPlan, !ordinaryGroupEvents)
-  const receiveGroupKey = binding.scope
-    ? nativeFieldGroupKeyHandler(binding.scope, {
-        direction,
-        onContainedKeyDown: (event) => {
-          const key = event.nativeEvent
-          if (key.altKey && (key.key === "ArrowDown" || key.key === "ArrowUp")) {
-            event.preventDefault()
-            event.stopPropagation()
-            state.setOpen(true)
-          }
-        },
-        onKeyDown: (event) => {
-          if (!state.isOpen) props.onKeyDown?.(event)
-        },
-        onKeyUp: (event) => {
-          if (!state.isOpen) props.onKeyUp?.(event)
-        },
-      })
-    : undefined
-  const receiveInputKey = binding.scope ? nativeFieldGroupKeyHandler(binding.scope, { direction }) : undefined
-  const press = useNativeFieldGroupPress({ scope: binding.scope })
+  const original = currentOriginal()
   const [focus] = useState(
     () =>
-      new NativeDateFieldFocusManager(() => {
+      new NativeDateFieldParticipantFocusManager(() => {
         const current = currentOriginal()
-        return current
+        return current && rootOriginal.current
           ? {
-              root: current.root,
-              rootTarget: current.rootTarget,
-              rows: current.segments.map((row) => ({
-                ...row,
-                isPlaceholder: latest.current.fields.some((field, index) =>
-                  field.state.segments.some(
-                    (segment, segmentIndex) =>
-                      hosts[index].segmentId(segment, segmentIndex) === row.identity.segmentId && segment.isPlaceholder,
+              root: rootOriginal.current,
+              participants: latest.current.props.extraFocusParticipants ?? [],
+              inputRoots: hosts.flatMap((host, index) => {
+                const snapshot = host.snapshot(latest.current.fields[index].state.segments)
+                return snapshot ? [snapshot.root] : []
+              }),
+              owned: {
+                root: current.root,
+                rootTarget: current.rootTarget,
+                rows: current.segments.map((row) => ({
+                  ...row,
+                  isPlaceholder: latest.current.fields.some((field, index) =>
+                    field.state.segments.some(
+                      (segment, segmentIndex) =>
+                        hosts[index].segmentId(segment, segmentIndex) === row.identity.segmentId &&
+                        segment.isPlaceholder,
+                    ),
                   ),
-                ),
-              })),
+                })),
+              },
             }
           : null
       }),
   )
   const ordinary = useNativeOrdinaryDateGroup({
-    enabled: ordinaryGroupEvents,
+    enabled: true,
     disabled: !!props.isDisabled,
     direction,
     focus,
@@ -301,6 +261,9 @@ export const NativeDatePickerView = (
       target === outer.current ||
       (!!input.current && containsNativeView(input.current, target as View)) ||
       (!!trigger.current && containsNativeView(trigger.current, target as View)),
+    admitKey: (target) =>
+      (currentOriginal()?.segments.some((row) => row.original === target) ?? false) ||
+      (latest.current.props.extraFocusParticipants?.some((ref) => ref.current === target) ?? false),
     onContainedKeyDown: (event) => {
       const key = event.nativeEvent
       if (key.altKey && (key.key === "ArrowDown" || key.key === "ArrowUp")) {
@@ -315,6 +278,16 @@ export const NativeDatePickerView = (
     onKeyUp: (event) => {
       if (!state.isOpen) props.onKeyUp?.(event)
     },
+  })
+  const observeEditors =
+    !!props.extraFocusParticipants?.length ||
+    (!!(props.render || props.ComponentIcon) && !!(props.onKeyDown || props.onKeyUp))
+  const participants = useNativeDateFieldParticipants({
+    root: originalRoot,
+    participants: props.extraFocusParticipants,
+    requiresHost: observeEditors,
+    disabled: !!props.isDisabled,
+    key: ordinary.key,
   })
   useInsertionEffect(() => () => focus.retire(), [focus])
   const autoFocus = useRef(!!props.autoFocus)
@@ -396,7 +369,6 @@ export const NativeDatePickerView = (
     currentOriginal,
     () => observedFocus.current,
     firstEditableTarget ? semanticFrame : "",
-    binding.metadata,
   )
   const flags = {
     isFocusWithin: focused,
@@ -436,7 +408,7 @@ export const NativeDatePickerView = (
       {
         field: { ...field, hosts: hosts[index] },
         ownerId,
-        scope: binding.scope,
+        scope: null,
         outerTarget,
         appearance,
         locale,
@@ -453,133 +425,144 @@ export const NativeDatePickerView = (
   const children = (
     <NativeButtonContext.Provider value={null}>
       <NativeDateInputContext.Provider value={{ slots: inputs }}>
-        <NativeFieldInputContext.Provider value={binding.scope}>
-          <NativeFocusHost
-            ref={bindOuter}
-            testID={`${testID}-group`}
-            accessible={false}
-            focusable={false}
-            role="group"
-            accessibilityLabel={labels.inputButtonGroupAriaLabel}
-            nativeOrdinaryGroupKeyHandler={ordinaryGroupEvents ? ordinary.key : undefined}
-            {...ordinary.pointer}
-            nativeFieldGroupHandler={receiveGroupKey}
-            nativeFieldGroupPointerHandler={press}
-            nativeFocusWithinObservation
-            nativeOnFocusWithin={(event) => {
-              if (!isNativeDateFieldFocusEvent(event)) return
-              observedFocus.current = event.nativeEvent.within
-              setFocused(event.nativeEvent.within)
-              setObservedOrigin(event.nativeEvent.origin)
-              lifecycle.receive(event)
-            }}
-            nativeOnFocusWithinRetired={() => {
-              observedFocus.current = false
-              setFocused(false)
-              lifecycle.retire()
-            }}
-            style={{ ...group.view, ...motion.group }}
-          >
-            <NativeContentContext.Provider
-              value={{
-                foregroundColor: motion.foreground,
-                isButton: false,
-                textStyle: { ...content?.textStyle, ...root.text, ...group.text, color: motion.foreground },
-              }}
-            >
-              <NativeFocusHost
-                ref={bindInput}
-                accessible={false}
-                focusable={false}
-                style={{ flexDirection: "row", alignItems: "center" }}
-                nativeFieldGroupHandler={receiveInputKey}
-                nativeFieldGroupPointerHandler={press}
-              >
-                <NativeDateInputOrdinaryEventsContext.Provider
-                  value={{ input: ordinaryInputEvents, group: ordinaryGroupEvents }}
-                >
-                  <NativePickerInput slot={fields[0].slot} testID={`${testID}-input${range ? "-start" : ""}`} />
-                  {range ? (
-                    <>
-                      <Text
-                        accessible={false}
-                        style={{ ...content?.textStyle, ...root.text, ...group.text, color: motion.foreground }}
-                      >
-                        –
-                      </Text>
-                      <NativePickerInput slot="end" testID={`${testID}-input-end`} />
-                    </>
-                  ) : null}
-                </NativeDateInputOrdinaryEventsContext.Provider>
-              </NativeFocusHost>
-              {metadata}
-              {selectedDescription ? (
-                <Text
-                  ref={selectedRef}
-                  nativeID={selectedId}
-                  testID={`${testID}-selected-description`}
-                  accessible={false}
-                  accessibilityElementsHidden
-                  importantForAccessibility="no-hide-descendants"
-                  style={{ position: "absolute", width: 0, height: 0, opacity: 0 }}
-                >
-                  {selectedDescription}
-                </Text>
-              ) : null}
-              <Button
-                ref={trigger}
-                isDisabled={!!props.isDisabled || !!props.isReadOnly}
-                accessibilityLabel={[labels.triggerButtonAriaLabel, labels.inputButtonGroupAriaLabel]
-                  .filter((value) => value !== undefined && value !== "")
-                  .join(" ")}
-                aria-haspopup="dialog"
-                aria-expanded={state.isOpen}
-                raised={false}
-                geometry="rounded"
-                customStyles={appearance.button}
-                onPress={() => state.setOpen(true)}
-                testID={`${testID}-trigger`}
-              >
-                <NativeContentContext.Provider
-                  value={{
-                    foregroundColor: motion.icon,
-                    isButton: false,
-                    textStyle: { ...content?.textStyle, color: motion.icon },
-                  }}
-                >
-                  {props.ComponentIcon || <NativeDatePickerCalendarIcon color={motion.icon} />}
-                </NativeContentContext.Provider>
-              </Button>
-            </NativeContentContext.Provider>
-          </NativeFocusHost>
+        <NativeOrdinaryFieldGroupKeysContext.Provider value>
           <NativeFieldInputContext.Provider value={null}>
-            <NativeFloatingSurface
-              isOpen={state.isOpen}
-              onOpenChange={state.setOpen}
-              triggerRef={outer}
-              restoreFocusRef={restoreFocus}
-              initialFocusRef={calendarFocus}
-              placement={props.placement ?? "bottom start"}
-              direction={direction}
-              offset={5}
-              geometry={props.geometry === "orthogonal" ? "orthogonal" : "rounded"}
-              customStyles={appearance.popover}
-              customDialogStyles={appearance.dialog}
-              accessibilityLabel={[labels.triggerButtonAriaLabel, labels.inputButtonGroupAriaLabel]
-                .filter((value) => value !== undefined && value !== "")
-                .join(" ")}
-              testID={`${testID}-popover`}
+            <NativeFocusHost
+              ref={bindOuter}
+              testID={`${testID}-group`}
+              accessible={false}
+              focusable={false}
+              role="group"
+              accessibilityLabel={labels.inputButtonGroupAriaLabel}
+              nativeOrdinaryGroupKeyHandler={ordinary.key}
+              {...ordinary.pointer}
+              nativeFocusWithinObservation
+              nativeOnFocusWithin={(event) => {
+                if (!isNativeDateFieldFocusEvent(event)) return
+                observedFocus.current = event.nativeEvent.within
+                setFocused(event.nativeEvent.within)
+                setObservedOrigin(event.nativeEvent.origin)
+                lifecycle.receive(event)
+              }}
+              nativeOnFocusWithinRetired={() => {
+                observedFocus.current = false
+                setFocused(false)
+                lifecycle.retire()
+              }}
+              style={{ ...group.view, ...motion.group }}
             >
-              <NativeDateCalendar
-                options={options}
-                appearance={appearance}
-                labels={labels}
-                initialFocusRef={calendarFocus}
-                testID={testID}
-              />
-            </NativeFloatingSurface>
+              <NativeContentContext.Provider
+                value={{
+                  foregroundColor: motion.foreground,
+                  isButton: false,
+                  textStyle: { ...content?.textStyle, ...root.text, ...group.text, color: motion.foreground },
+                }}
+              >
+                <NativeFocusHost
+                  ref={bindInput}
+                  accessible={false}
+                  focusable={false}
+                  style={{ flexDirection: "row", alignItems: "center" }}
+                >
+                  <NativeDateInputOrdinaryEventsContext.Provider
+                    value={{
+                      input: true,
+                      group: true,
+                      observe: observeEditors,
+                      root: rootOriginal,
+                      participants: props.extraFocusParticipants,
+                      onNavigationKeyDown: (event) => {
+                        if (!latest.current.state.isOpen) latest.current.props.onKeyDown?.(event)
+                      },
+                    }}
+                  >
+                    <NativePickerInput slot={fields[0].slot} testID={`${testID}-input${range ? "-start" : ""}`} />
+                    {range ? (
+                      <>
+                        <Text
+                          accessible={false}
+                          style={{ ...content?.textStyle, ...root.text, ...group.text, color: motion.foreground }}
+                        >
+                          –
+                        </Text>
+                        <NativePickerInput slot="end" testID={`${testID}-input-end`} />
+                      </>
+                    ) : null}
+                  </NativeDateInputOrdinaryEventsContext.Provider>
+                </NativeFocusHost>
+                {metadata}
+                {selectedDescription ? (
+                  <Text
+                    ref={selectedRef}
+                    nativeID={selectedId}
+                    testID={`${testID}-selected-description`}
+                    accessible={false}
+                    accessibilityElementsHidden
+                    importantForAccessibility="no-hide-descendants"
+                    style={{ position: "absolute", width: 0, height: 0, opacity: 0 }}
+                  >
+                    {selectedDescription}
+                  </Text>
+                ) : null}
+                <Button
+                  ref={trigger}
+                  isDisabled={!!props.isDisabled || !!props.isReadOnly}
+                  accessibilityLabel={[labels.triggerButtonAriaLabel, labels.inputButtonGroupAriaLabel]
+                    .filter((value) => value !== undefined && value !== "")
+                    .join(" ")}
+                  aria-haspopup="dialog"
+                  aria-expanded={state.isOpen}
+                  raised={false}
+                  geometry="rounded"
+                  customStyles={appearance.button}
+                  onPress={() => state.setOpen(true)}
+                  testID={`${testID}-trigger`}
+                >
+                  <NativeContentContext.Provider
+                    value={{
+                      foregroundColor: motion.icon,
+                      isButton: false,
+                      textStyle: { ...content?.textStyle, color: motion.icon },
+                    }}
+                  >
+                    {props.ComponentIcon || <NativeDatePickerCalendarIcon color={motion.icon} />}
+                  </NativeContentContext.Provider>
+                </Button>
+              </NativeContentContext.Provider>
+            </NativeFocusHost>
+            <NativeFieldInputContext.Provider value={null}>
+              <NativeOrdinaryFocusParticipantsContext.Provider value={null}>
+                <NativeOrdinaryFieldGroupKeysContext.Provider value={false}>
+                  <NativeFloatingSurface
+                    isOpen={state.isOpen}
+                    onOpenChange={state.setOpen}
+                    triggerRef={outer}
+                    restoreFocusRef={restoreFocus}
+                    initialFocusRef={calendarFocus}
+                    placement={props.placement ?? "bottom start"}
+                    direction={direction}
+                    offset={5}
+                    geometry={props.geometry === "orthogonal" ? "orthogonal" : "rounded"}
+                    customStyles={appearance.popover}
+                    customDialogStyles={appearance.dialog}
+                    accessibilityLabel={[labels.triggerButtonAriaLabel, labels.inputButtonGroupAriaLabel]
+                      .filter((value) => value !== undefined && value !== "")
+                      .join(" ")}
+                    testID={`${testID}-popover`}
+                  >
+                    <NativeDateCalendar
+                      options={options}
+                      appearance={appearance}
+                      labels={labels}
+                      initialFocusRef={calendarFocus}
+                      testID={testID}
+                    />
+                  </NativeFloatingSurface>
+                </NativeOrdinaryFieldGroupKeysContext.Provider>
+              </NativeOrdinaryFocusParticipantsContext.Provider>
+            </NativeFieldInputContext.Provider>
           </NativeFieldInputContext.Provider>
-        </NativeFieldInputContext.Provider>
+        </NativeOrdinaryFieldGroupKeysContext.Provider>
       </NativeDateInputContext.Provider>
     </NativeButtonContext.Provider>
   )
@@ -587,14 +570,15 @@ export const NativeDatePickerView = (
     ...(nativeViewProps(
       Object.fromEntries(Object.entries(props).filter(([name]) => !omitted.has(name))),
     ) as TNativeFocusViewProps),
-    ref: options.forwardedRef,
+    ref: bindOriginalRoot,
+    onNativeOrdinaryEditorKey: participants.receive,
     testID,
     accessible: false,
     focusable: props.tabIndex !== undefined ? !props.tabIndex : (props.focusable ?? false),
     onFocus: props.onFocus,
     onBlur: props.onBlur,
-    onKeyDown: props.onKeyDown,
-    onKeyUp: props.onKeyUp,
+    onKeyDown: observeEditors ? undefined : props.onKeyDown,
+    onKeyUp: observeEditors ? undefined : props.onKeyUp,
     style: { ...root.view },
     children,
   }
@@ -619,19 +603,25 @@ export const NativeDatePickerView = (
                 textStyle: { ...content?.textStyle, ...root.text, color: foreground },
               }}
             >
-              <NativeFieldInputContext.Provider value={null}>
-                {options.range ? (
-                  options.props.render ? (
-                    options.props.render(nativeProps, { ...flags, state: options.state })
-                  ) : (
-                    <NativeFocusView {...nativeProps} />
-                  )
-                ) : options.props.render ? (
-                  options.props.render(nativeProps, { ...flags, state: options.state })
-                ) : (
-                  <NativeFocusView {...nativeProps} />
-                )}
-              </NativeFieldInputContext.Provider>
+              <NativeOrdinaryFocusParticipantsContext.Provider
+                value={(target) => target !== rootOriginal.current && participants.observes(target)}
+              >
+                <NativeOrdinaryFieldGroupKeysContext.Provider value={false}>
+                  <NativeFieldInputContext.Provider value={null}>
+                    {options.range ? (
+                      options.props.render ? (
+                        options.props.render(nativeProps, { ...flags, state: options.state })
+                      ) : (
+                        <NativeFocusView {...nativeProps} />
+                      )
+                    ) : options.props.render ? (
+                      options.props.render(nativeProps, { ...flags, state: options.state })
+                    ) : (
+                      <NativeFocusView {...nativeProps} />
+                    )}
+                  </NativeFieldInputContext.Provider>
+                </NativeOrdinaryFieldGroupKeysContext.Provider>
+              </NativeOrdinaryFocusParticipantsContext.Provider>
             </NativeContentContext.Provider>
           </NativeTimeFieldErrorContext.Provider>
         </NativeTimeFieldTextContext.Provider>

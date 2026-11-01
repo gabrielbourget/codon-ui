@@ -3,6 +3,7 @@
 #import "CUIFieldInputBinding.h"
 #import "CUIPhysicalKey.h"
 #import "CUIDateSegment.h"
+#import "CUIFocusView.h"
 #include <react/renderer/core/EventEmitter.h>
 #include <react/renderer/mounting/ShadowViewMutation.h>
 #include <unordered_map>
@@ -146,6 +147,8 @@ using namespace facebook::react;
   const auto emitter = found == _emitters.end() ? nullptr : found->second.lock();
   if (!emitter) return;
   NSDictionary *session = _session(); UIKey *key = press.key; const auto flags = key.modifierFlags;
+  UIView *original = [_scope.window viewWithTag:[binding[@"originalTarget"] integerValue]];
+  captured = captured || ([original isKindOfClass:CUIFocusView.class] && [(CUIFocusView *)original capturesObservedKey:key]);
   UIView *focused = [press.responder isKindOfClass:UIView.class] ? (UIView *)press.responder : CUIInputFocusedView(_scope.window);
   const bool composing = [focused conformsToProtocol:@protocol(UITextInput)] && ((id<UITextInput>)focused).markedTextRange != nil;
   folly::dynamic data = folly::dynamic::object("kind", "keyboard")("ownerId", [session[@"scopeOwnerId"] UTF8String] ?: "")
