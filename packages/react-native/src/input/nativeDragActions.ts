@@ -185,6 +185,12 @@ export const createNativeDragActions = (scope: TNativeKeyScope) => {
     setEnabled: (next: boolean) => {
       if (enabled === next) return
       enabled = next
+      if (!next)
+        for (const entry of entries.values()) {
+          if (!entry.value.native) continue
+          entry.nativeReady = false
+          entry.nativeRevision++
+        }
       revision++
     },
     bindings: () =>

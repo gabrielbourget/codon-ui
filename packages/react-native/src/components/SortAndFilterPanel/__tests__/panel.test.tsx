@@ -1,6 +1,6 @@
 import "../../../collection/__tests__/nativeReceipts"
 
-import { act as rawAct, cleanup } from "@testing-library/react-native"
+import { act as rawAct, cleanup, within } from "@testing-library/react-native"
 import { useEffect, useState, type ComponentProps } from "react"
 import { AccessibilityInfo, AppState, View } from "react-native"
 
@@ -153,10 +153,16 @@ beforeEach(() => {
   jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
   jest.mocked(NativeDragModule!.readGeometry).mockImplementation(async (encoded) => {
     const request = JSON.parse(encoded)
-    const binding = JSON.parse(host("sort-filter-panel-floating-host").props.dragBindings).find(
-      (value: { bindingId: string }) => value.bindingId === request.bindingId,
+    const scope = screen.container.queryAll(
+      (node) => node.props.ownerId === request.ownerId && typeof node.props.dragBindings === "string",
+    )[0]
+    const binding = JSON.parse(scope?.props.dragBindings ?? "[]").find(
+      (value: { bindingId: string; revision: string; rootTarget: number }) =>
+        value.bindingId === request.bindingId &&
+        value.revision === request.revision &&
+        value.rootTarget === request.rootTarget,
     )
-    if (!binding) throw new Error("Original composed Sort binding is unavailable")
+    if (!binding) throw new Error("Original composed Sort binding is unavailable for the current native request")
     return JSON.stringify({
       ...request,
       geometry: {
@@ -343,12 +349,43 @@ it("reorders the visible draft, applies its exact order, and restores the owner'
   await act(() =>
     host("query-sort-option-city").props.onAccessibilityAction({ nativeEvent: { actionName: "activate" } }),
   )
-  await acknowledge()
-  await act(() =>
-    screen
-      .getByRole("button", { name: "Insert after Sort Parameter - Name - Descending" })
-      .props.onAccessibilityAction({ nativeEvent: { actionName: "activate" } }),
-  )
+  const chooser = host("native-drop-chooser-window")
+  const dismissed = chooser.props.onDismiss as () => void
+  expect(screen.getAllByTestId("native-drop-chooser-window", { includeHiddenElements: true })).toHaveLength(1)
+  await fireEvent(chooser, "show")
+  await acknowledge("native-drop-chooser-floating-host")
+  // Deliver the original pointer callbacks directly across the renderer's covered parent tree, as in choose().
+  expect(chooser.props.visible).toBe(true)
+  const pressChoice = async (name: string) => {
+    const receiver = within(chooser).getByRole("button", { name, includeHiddenElements: true }).props
+    const event = {
+      persist: jest.fn(),
+      currentTarget: 17,
+      nativeEvent: {
+        target: 17,
+        timestamp: 100,
+        identifier: 1,
+        pageX: 1,
+        pageY: 1,
+        locationX: 1,
+        locationY: 1,
+        touches: [],
+        changedTouches: [],
+      },
+    }
+    await act(() => {
+      receiver.onResponderGrant(event)
+      receiver.onResponderRelease(event)
+    })
+  }
+  await pressChoice("Insert after Sort Parameter - Name - Descending")
+  expect(nativeVirtualDrag.pendingRequest()?.selected?.target).toMatchObject({ key: "name", dropPosition: "after" })
+  expect(events).toEqual([])
+  await pressChoice("Drop")
+  expect(nativeVirtualDrag.pendingRequest()?.phase).toBe("closing")
+  expect(JSON.parse(host("query-sort-option-city").props.nativeCollectionSemantics).ordinal).toBe(0)
+  expect(events).toEqual([])
+  await act(dismissed)
   await acknowledge()
   expect(JSON.parse(host("query-sort-option-name").props.nativeCollectionSemantics).ordinal).toBe(0)
   expect(events).toEqual([])

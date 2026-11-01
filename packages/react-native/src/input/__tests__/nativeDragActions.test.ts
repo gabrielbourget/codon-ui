@@ -413,3 +413,44 @@ it("preserves ordinary bindings when lift eligibility leaves its still-attached 
   expect(f.dispatch).toHaveBeenCalledTimes(1)
   f.actions.dispose()
 })
+
+it("requires fresh native admission after scope coverage and rejects the previous metadata acknowledgement", () => {
+  const f = setup()
+  f.registration.updateNative({
+    draggable: true,
+    droppable: true,
+    members: [{ key: "number:0", instanceId: "row", targetTag: 30, handleTag: 0 }],
+    previewTarget: 0,
+    previewInstanceId: "",
+    previewX: 0,
+    previewY: 0,
+  })
+  const previous = JSON.parse(f.actions.bindings())[0]
+  const acknowledge = (binding: object) =>
+    f.actions.acceptStatus(
+      JSON.stringify({
+        ...binding,
+        kind: "binding",
+        ownerId: "owner",
+        windowId: "window",
+        epoch: 1,
+        ready: true,
+        error: "",
+      }),
+    )
+  acknowledge(previous)
+  expect(f.registration.ready()).toBe(true)
+  f.actions.setEnabled(false)
+  expect(f.actions.bindings()).toBe("[]")
+  expect(f.registration.ready()).toBe(false)
+  f.actions.setEnabled(true)
+  expect(f.registration.current()).toBe(true)
+  expect(f.registration.ready()).toBe(false)
+  acknowledge(previous)
+  expect(f.registration.ready()).toBe(false)
+  const current = JSON.parse(f.actions.bindings())[0]
+  expect(current.metadataRevision).toBeGreaterThan(previous.metadataRevision)
+  acknowledge(current)
+  expect(f.registration.ready()).toBe(true)
+  f.actions.dispose()
+})
