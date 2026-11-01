@@ -1,7 +1,7 @@
 import { createRef } from "react"
 import { PlatformColor, StyleSheet, type View } from "react-native"
 
-import { Link, type LinkProps } from "../src"
+import { NativeThemeProvider, Link, type LinkProps } from "../src"
 
 const styles = StyleSheet.create({ link: { color: "purple", width: 0, fontSize: 20 } })
 export const linkProps: LinkProps = {
@@ -85,3 +85,24 @@ export const DOMLinkRef = <Link href="/" ref={createRef<HTMLAnchorElement>()} />
 
 // @ts-expect-error The private pressable receiver is not a public package export.
 export { NativePressable } from "../src"
+
+export const ProviderVisitedLink = (
+  <NativeThemeProvider overrides={{ actions: { primary: { visitedForeground: "purple" } } }}>
+    <Link href="original" order="primary" isVisited>
+      Provider visited foreground
+    </Link>
+  </NativeThemeProvider>
+)
+
+// @ts-expect-error Native URL handoff does not implement browser downloads.
+export const DOMLinkDownload = <Link href="/" download="file" />
+// @ts-expect-error Native URL handoff does not implement browser relationship policy.
+export const DOMLinkRel = <Link href="/" rel="noopener" />
+// @ts-expect-error Resource language hints belong to browser navigation.
+export const DOMLinkHrefLang = <Link href="/" hrefLang="fr" />
+// @ts-expect-error Browser resource media conditions are excluded.
+export const DOMLinkMedia = <Link href="/" media="screen" />
+// @ts-expect-error Browser navigation tracking requests are excluded.
+export const DOMLinkPing = <Link href="/" ping="https://example.test/ping" />
+// @ts-expect-error Browser resource type hints are excluded.
+export const DOMLinkResourceType = <Link href="/" type="text/html" />

@@ -47,6 +47,7 @@ export type TNativeActionTheme = Readonly<{
   hoverBackground: ColorValue
   pressedBackground: ColorValue
   foreground: ColorValue
+  visitedForeground?: ColorValue
   border: ColorValue
   outlineBackground: ColorValue
   outlineHoverBackground: ColorValue

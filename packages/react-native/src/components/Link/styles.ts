@@ -70,7 +70,9 @@ export const getNativeLinkStyle = (
         : flags.isHovered
           ? action.hoverBackground
           : flags.isVisited
-            ? (props.visitedColor ?? visitedColor(action.background, theme.colors.background))
+            ? (props.visitedColor ??
+              action.visitedForeground ??
+              visitedColor(action.background, theme.colors.background))
             : action.background
       : flags.isVisited
         ? (props.visitedColor ?? inherited)
