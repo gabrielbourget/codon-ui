@@ -17,6 +17,20 @@
 namespace codon::table {
 using namespace facebook::react;
 namespace {
+float selectedMargin(const facebook::yoga::Style &style,
+    bool horizontal, bool trailing, bool rightToLeft, float width) {
+  using facebook::yoga::Edge;
+  // Match pinned Style.h edge precedence; all margin percentages use width.
+  auto value = style.margin(horizontal ? (trailing ? Edge::Right : Edge::Left) :
+      (trailing ? Edge::Bottom : Edge::Top));
+  if (horizontal) {
+    const auto logical = style.margin(trailing != rightToLeft ? Edge::End : Edge::Start);
+    if (logical.isDefined()) value = logical;
+  }
+  if (value.isUndefined()) value = style.margin(horizontal ? Edge::Horizontal : Edge::Vertical);
+  if (value.isUndefined()) value = style.margin(Edge::All);
+  return value.resolve(width).unwrapOrDefault(0.0f);
+}
 std::atomic<uint64_t> sequence{0};
 std::shared_ptr<const ShadowNode> findNode(const RootShadowNode &root, const ShadowNodeFamily &family) {
   const auto ancestors = family.getAncestors(root);
@@ -223,7 +237,6 @@ bool NativeTableStickyPresentation::frame(const std::string &lease, const TStick
     const auto normalX = viewport.tableX + relative.frame.origin.x - viewport.scrollBelowTableX;
     const auto normalY = viewport.tableY + relative.frame.origin.y - viewport.scrollBelowTableY;
     auto style = codon::motion::copyNativeYogaStyle(props, context.swapLeftAndRightInRTL);
-    const auto direction = rtl ? facebook::yoga::Direction::RTL : facebook::yoga::Direction::LTR;
     double containingX = viewport.tableX, containingY = viewport.tableY;
     auto containingSize = tableMetrics.frame.size;
     if (std::string_view(table->getComponentName()) == "ScrollView") {
@@ -237,13 +250,13 @@ bool NativeTableStickyPresentation::frame(const std::string &lease, const TStick
     const auto width = containingSize.width;
     x = nativeStickyAxisOffset({normalX, relative.frame.size.width, containingX, width,
         viewport.viewportX, viewport.viewportWidth,
-        style.computeFlexStartMargin(facebook::yoga::FlexDirection::Row, direction, width),
-        style.computeFlexEndMargin(facebook::yoga::FlexDirection::Row, direction, width),
+        selectedMargin(style, true, false, rtl, width),
+        selectedMargin(style, true, true, rtl, width),
         insets[0], insets[2], rtl});
     y = nativeStickyAxisOffset({normalY, relative.frame.size.height, containingY, containingSize.height,
         viewport.viewportY, viewport.viewportHeight,
-        style.computeFlexStartMargin(facebook::yoga::FlexDirection::Column, direction, width),
-        style.computeFlexEndMargin(facebook::yoga::FlexDirection::Column, direction, width), insets[1], insets[3]});
+        selectedMargin(style, false, false, rtl, width),
+        selectedMargin(style, false, true, rtl, width), insets[1], insets[3]});
   }
   bool changed = false;
   {

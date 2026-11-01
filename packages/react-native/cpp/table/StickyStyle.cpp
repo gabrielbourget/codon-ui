@@ -19,6 +19,19 @@ Float nativeFloat(double value) {
     throw std::invalid_argument("Table sticky: finite representable native value required");
   return static_cast<Float>(value);
 }
+y::StyleLength selectedPosition(const y::Style &style,
+    bool horizontal, bool trailing, bool rightToLeft) {
+  // Match pinned Style.h edge precedence without its unexported fatal branch.
+  if (horizontal) {
+    const auto logical = style.position(trailing != rightToLeft ? y::Edge::End : y::Edge::Start);
+    if (logical.isDefined()) return logical;
+  }
+  const auto physical = style.position(horizontal ? (trailing ? y::Edge::Right : y::Edge::Left) :
+      (trailing ? y::Edge::Bottom : y::Edge::Top));
+  if (physical.isDefined()) return physical;
+  const auto axis = style.position(horizontal ? y::Edge::Horizontal : y::Edge::Vertical);
+  return axis.isDefined() ? axis : style.position(y::Edge::All);
+}
 y::StyleLength fallbackInset(const folly::dynamic &value) {
   if (value.isNumber()) return y::StyleLength::points(nativeFloat(value.asDouble()));
   if (value.isString()) {
@@ -109,21 +122,15 @@ std::array<std::optional<double>, 4> nativeStickyInsets(const BaseViewProps &pro
     const folly::dynamic &fallback, bool rightToLeft, bool swapLeftAndRight,
     double viewportWidth, double viewportHeight) {
   auto style = codon::motion::copyNativeYogaStyle(props, swapLeftAndRight);
-  const auto direction = rightToLeft ? y::Direction::RTL : y::Direction::LTR;
-  if (!style.isFlexStartPositionDefined(y::FlexDirection::Column, direction))
+  if (!selectedPosition(style, false, false, rightToLeft).isDefined())
     style.setPosition(y::Edge::Top, fallbackInset(fallback.at("top")));
-  const auto inset = [&](y::FlexDirection axis, bool start, double size) -> std::optional<double> {
-    const bool defined = start ? style.isFlexStartPositionDefined(axis, direction) : style.isFlexEndPositionDefined(axis, direction);
-    const bool automatic = start ? style.isFlexStartPositionAuto(axis, direction) : style.isFlexEndPositionAuto(axis, direction);
-    if (!defined || automatic) return std::nullopt;
-    const auto value = start ? style.computeFlexStartPosition(axis, direction, nativeFloat(size)) :
-        style.computeFlexEndPosition(axis, direction, nativeFloat(size));
-    return nativeFloat(value);
+  const auto inset = [&](bool horizontal, bool trailing, double size) -> std::optional<double> {
+    auto value = selectedPosition(style, horizontal, trailing, rightToLeft);
+    if (!value.isDefined() || value.isAuto()) return std::nullopt;
+    return nativeFloat(value.resolve(nativeFloat(size)).unwrapOrDefault(0.0f));
   };
-  return {inset(y::FlexDirection::Row, true, viewportWidth),
-      inset(y::FlexDirection::Column, true, viewportHeight),
-      inset(y::FlexDirection::Row, false, viewportWidth),
-      inset(y::FlexDirection::Column, false, viewportHeight)};
+  return {inset(true, false, viewportWidth), inset(false, false, viewportHeight),
+      inset(true, true, viewportWidth), inset(false, true, viewportHeight)};
 }
 
 } // namespace codon::table
