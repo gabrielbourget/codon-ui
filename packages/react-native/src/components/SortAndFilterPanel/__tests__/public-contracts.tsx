@@ -44,7 +44,11 @@ const props: SortAndFilterPanelProps = {
   customModalStyles: { letterSpacing: 1 },
   customDialogStyles: { padding: 10, fontWeight: "600" },
   customOverlayStyles: { opacity: 0.5 },
-  labels: { form: { addSortCriteriaLabel: "" }, footer: { applyButton: "" } },
+  labels: {
+    form: { addSortCriteriaLabel: "" },
+    footer: { applyButton: "" },
+    filtering: { argumentInput: { multiInputFallbackPlaceholder: ({ position }) => String(position) } },
+  },
   testID: "query-panel",
   "data-testid": "query-alias",
   children: "Unused canonical child",

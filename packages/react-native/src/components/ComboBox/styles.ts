@@ -54,28 +54,29 @@ export const getNativeComboBoxStyles = <T>(
     "ComboBox",
     "customInputButtonGroupStyles",
   )
-  const button = getNativeControlRootStyle(
-    "ComboBox",
-    {
-      width: "100%",
-      height: root.height != null ? "100%" : undefined,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      padding: theme.spacing.unit,
-      gap: theme.spacing.unit,
-      borderRadius: group.borderRadius,
-      color: foreground,
-      backgroundColor: pressed
-        ? theme.colors.controlPressedBackground
-        : hovered
-          ? theme.colors.controlHoverBackground
-          : "transparent",
-    } satisfies TNativeComboBoxRootStyle,
-    props.customButtonStyles,
-    undefined,
-    state,
-  )
+  const buttonForState = (pressed: boolean, hovered: boolean) =>
+    getNativeControlRootStyle(
+      "ComboBox",
+      {
+        width: "100%",
+        height: root.height != null ? "100%" : undefined,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: theme.spacing.unit,
+        gap: theme.spacing.unit,
+        borderRadius: group.borderRadius,
+        color: foreground,
+        backgroundColor: pressed
+          ? theme.colors.controlPressedBackground
+          : hovered
+            ? theme.colors.controlHoverBackground
+            : "transparent",
+      } satisfies TNativeComboBoxRootStyle,
+      props.customButtonStyles,
+      undefined,
+      state,
+    )
   const input = resolveNativeStyle(
     [
       {
@@ -93,5 +94,5 @@ export const getNativeComboBoxStyles = <T>(
     "ComboBox",
     "customOptionsListStyles",
   )
-  return { root, group, button, input, list, foreground }
+  return { root, group, button: buttonForState(pressed, hovered), buttonForState, input, list, foreground }
 }

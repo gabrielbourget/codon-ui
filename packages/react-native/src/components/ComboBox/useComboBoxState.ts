@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useInsertionEffect, useRef, useState } from "react"
 
 import { encodeCollectionKey, normalizeCollection, validateCollectionKey } from "../collection"
 
@@ -13,7 +13,6 @@ export const useComboBoxState = <T>(props: TNativeComboBoxProps<T>) => {
     isOpen,
     defaultOpen = false,
     isDisabled = false,
-    isReadOnly = false,
   } = props
   if (value != null) validateCollectionKey(value, "value", "ComboBox")
   if (defaultValue !== null) validateCollectionKey(defaultValue, "defaultValue", "ComboBox")
@@ -44,15 +43,37 @@ export const useComboBoxState = <T>(props: TNativeComboBoxProps<T>) => {
   const selectedKey = value === undefined ? localValue : value
   const query = inputValue === undefined ? localInput : inputValue
   const open = isOpen ?? localOpen
-  const requestOpen = (next: boolean) => {
-    if ((next && isDisabled) || next === open) return
-    if (isOpen === undefined) setLocalOpen(next)
-    props.onOpenChange?.(next)
+  const focusStrategy = useRef<"first" | "last" | "selected">("selected")
+  const owner = useRef({ props, entries, disabledKeys, selectedKey, query, open })
+  const live = useRef(false)
+  useInsertionEffect(() => {
+    owner.current = { props, entries, disabledKeys, selectedKey, query, open }
+  })
+  useInsertionEffect(() => {
+    live.current = true
+    return () => {
+      live.current = false
+    }
+  }, [])
+  const requestOpen = (next: boolean, strategy: "first" | "last" | "selected" = "selected") => {
+    const current = owner.current
+    if (!live.current || (next && current.props.isDisabled) || next === current.open) return
+    if (next) focusStrategy.current = strategy
+    if (current.props.isOpen === undefined) setLocalOpen(next)
+    current.props.onOpenChange?.(next)
   }
   const requestInput = (text: string) => {
-    if (!open || isDisabled || isReadOnly || text === query) return
-    if (inputValue === undefined) setLocalInput(text)
-    props.onInputChange?.(text)
+    const current = owner.current
+    if (
+      !live.current ||
+      !current.open ||
+      current.props.isDisabled ||
+      current.props.isReadOnly ||
+      text === current.query
+    )
+      return
+    if (current.props.inputValue === undefined) setLocalInput(text)
+    current.props.onInputChange?.(text)
   }
   const requestedDisabledClose = useRef(false)
   useEffect(() => {
@@ -66,15 +87,29 @@ export const useComboBoxState = <T>(props: TNativeComboBoxProps<T>) => {
     props.onOpenChange?.(false)
   }, [isDisabled, open, isOpen, props.onOpenChange])
   const activate = (key: TNativeComboBoxKey) => {
-    if (!open || isDisabled || isReadOnly || disabledKeys.has(encodeCollectionKey(key))) return
-    const entry = entries.find((item) => item.key === key)
+    const current = owner.current
+    if (
+      !live.current ||
+      !current.open ||
+      current.props.isDisabled ||
+      current.props.isReadOnly ||
+      current.disabledKeys.has(encodeCollectionKey(key))
+    )
+      return
+    const entry = current.entries.find((item) => item.key === key)
     if (!entry) return
-    if (selectedKey !== key) {
-      if (value === undefined) setLocalValue(key)
-      props.onChange?.(key)
+    if (current.selectedKey !== key) {
+      if (current.props.value === undefined) setLocalValue(key)
+      current.props.onChange?.(key)
     }
-    if (selectedKey === key || value === undefined || inputValue === undefined) requestInput(entry.text)
+    if (current.selectedKey === key || current.props.value === undefined || current.props.inputValue === undefined)
+      requestInput(entry.text)
     requestOpen(false)
   }
-  return { entries, selectedKey, disabledKeys, query, open, requestOpen, requestInput, activate }
+  const revert = () => {
+    const current = owner.current
+    requestInput(current.entries.find((entry) => entry.key === current.selectedKey)?.text ?? "")
+    requestOpen(false)
+  }
+  return { entries, selectedKey, disabledKeys, query, open, requestOpen, requestInput, activate, revert, focusStrategy }
 }

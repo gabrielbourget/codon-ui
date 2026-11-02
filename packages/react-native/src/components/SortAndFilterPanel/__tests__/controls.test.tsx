@@ -17,6 +17,7 @@ import {
 import type { TTableSortInstruction } from "../../Table/queryTypes"
 import { Text } from "../../Text/Text"
 import { DEFAULT_QUERY_CONTROL_LABELS, resolveQueryControlLabels } from "../controlLabels"
+import { resolveNativeSortAndFilterPanelLabels } from "../labels"
 import {
   QueryActiveSorts,
   QueryPanelFooter,
@@ -460,4 +461,16 @@ it("preserves explicit empty footer semantic labels alongside their visible text
     ),
   )
   expect(screen.getAllByRole("button").map((control) => control.props.accessibilityLabel)).toEqual(["", "", ""])
+})
+
+it("source closeout: preserves the canonical declared fallback formatter without inventing an editor use", () => {
+  const formatter = jest.fn(() => "")
+  const defaults = resolveNativeSortAndFilterPanelLabels()
+  expect(defaults.filtering.argumentInput.multiInputFallbackPlaceholder({ position: 2 })).toBe("Filter Argument #2")
+  const resolved = resolveNativeSortAndFilterPanelLabels({
+    filtering: { argumentInput: { multiInputFallbackPlaceholder: formatter } },
+  })
+  expect(resolved.filtering.argumentInput.multiInputFallbackPlaceholder).toBe(formatter)
+  expect(resolved.filtering.argumentInput.multiInputFallbackPlaceholder({ position: 1 })).toBe("")
+  expect(formatter).toHaveBeenCalledWith({ position: 1 })
 })

@@ -710,3 +710,83 @@ it("loads and clears explicit confirmed scene models without generating an Apply
   expect(screen.getByText("No filters currently applied")).toBeOnTheScreen()
   expect(owner().requests).toEqual([])
 })
+
+it("source closeout: routes a real simple ComboBox argument to the query draft without confirming the owner", async () => {
+  await render(<SortAndFilterPanelFixture />)
+  const owner = () => JSON.parse(screen.getByTestId("query-panel-owner").props.children)
+  await press("Load ComboBox argument")
+  await press("Open query panel")
+  await present()
+  await press("Show filter argument suggestions")
+  const window = host("combo-box-window")
+  const dismissed = window.props.onDismiss
+  await fireEvent(window, "show")
+  const editor = screen.getByLabelText("Edit filter argument", { includeHiddenElements: true })
+  await fireEvent.changeText(editor, "pending query")
+  expect(editor.props.value).toBe("pending query")
+  expect(owner().confirmed.filterGroups[0].clauses[0].argument).toBe("Alpha")
+  await acknowledge("combo-box-floating-host")
+  // The original responder pair proves source composition beneath the covered logical parent.
+  const option = screen.getByRole("radio", { name: "Beta", includeHiddenElements: true })
+  expect(option.props.onResponderGrant).toEqual(expect.any(Function))
+  expect(option.props.onResponderRelease).toEqual(expect.any(Function))
+  const event = {
+    persist: jest.fn(),
+    stopPropagation: jest.fn(),
+    target: 17,
+    currentTarget: 17,
+    nativeEvent: {
+      target: 17,
+      timestamp: 100,
+      identifier: 1,
+      pageX: 1,
+      pageY: 1,
+      locationX: 1,
+      locationY: 1,
+      touches: [],
+      changedTouches: [],
+    },
+  }
+  await act(() => {
+    option.props.onResponderGrant(event)
+    option.props.onResponderRelease(event)
+  })
+  expect(
+    screen.getByRole("button", { name: "Show filter argument suggestions", includeHiddenElements: true }).props
+      .accessibilityValue.text,
+  ).toBe("Beta")
+  expect(screen.queryByTestId("combo-box-window", { includeHiddenElements: true })).toBeNull()
+  await act(() => dismissed())
+  await acknowledge()
+  await press("Apply")
+  expect(owner().requests[0].filterGroups[0]).toMatchObject({
+    criteriaID: "suggestion",
+    queryKey: "events.suggestion",
+    clauses: [{ id: "suggestion-clause", operationCode: "equal", argument: "Beta" }],
+  })
+  expect(owner().confirmed.filterGroups[0].clauses[0].argument).toBe("Alpha")
+})
+
+it("source closeout: retains both canonical Typeahead placeholders and their owned arguments", async () => {
+  await render(<SortAndFilterPanelFixture />)
+  const owner = () => JSON.parse(screen.getByTestId("query-panel-owner").props.children)
+  await press("Load typeahead placeholders")
+  await press("Open query panel")
+  await present()
+  expect(screen.getByTestId("filter-typeahead-placeholder")).toHaveTextContent(
+    "placeholder: typeahead search not implemented yet",
+  )
+  expect(screen.getByTestId("filter-multi-typeahead-placeholder")).toHaveTextContent(
+    "placeholder: multi-typeahead search not implemented yet",
+  )
+  expect(screen.queryByTestId("typeahead-input")).toBeNull()
+  await press("Apply")
+  expect(owner().requests[0].filterGroups[0].clauses.map((clause: { argument: unknown }) => clause.argument)).toEqual([
+    "kept scalar",
+    ["kept", "list"],
+  ])
+  expect(owner().confirmed.filterGroups[0].clauses.map((clause: { argument: unknown }) => clause.argument)).toEqual([
+    "kept scalar",
+    ["kept", "list"],
+  ])
+})

@@ -4,8 +4,14 @@ import { SafeAreaInsetsContext } from "react-native-safe-area-context"
 
 import { NativeShowcase } from "../NativeShowcase"
 
-beforeEach(() => jest.useFakeTimers())
-afterEach(() => jest.useRealTimers())
+beforeEach(() => {
+  jest.useFakeTimers()
+  jest.spyOn(jest.requireActual("react-native"), "findNodeHandle").mockImplementation(() => 17)
+})
+afterEach(() => {
+  jest.restoreAllMocks()
+  jest.useRealTimers()
+})
 const enter = async () => {
   await render(
     <SafeAreaInsetsContext.Provider value={{ top: 20, bottom: 10, left: 0, right: 0 }}>
@@ -83,8 +89,28 @@ it("commits the native draft, preserves empty/zero, and exercises every style ow
 it("observes held veto requests and retires repeat on owner guard takeover", async () => {
   const press = await enter()
   await press("Toggle stepper owner veto")
-  const event = { nativeEvent: { timestamp: 1 }, persist: () => undefined }
-  await fireEvent(plus(), "pressIn", event)
+  const event = {
+    persist: () => undefined,
+    currentTarget: 17,
+    target: 17,
+    nativeEvent: { target: 17, timestamp: 1, identifier: 0, locationX: 0, locationY: 0, pageX: 0, pageY: 0 },
+  }
+  for (const ready of [false, true]) {
+    const host = screen.getByTestId("stepper-example").props
+    await act(() =>
+      host.onNativeScopeStatus({
+        nativeEvent: {
+          ownerId: host.ownerId,
+          windowId: "stepper-scene-window",
+          epoch: 1,
+          policyRevision: host.policyRevision,
+          ready,
+          windowActive: true,
+        },
+      }),
+    )
+  }
+  await fireEvent(plus(), "responderGrant", event)
   await act(() => jest.advanceTimersByTime(600))
   await act(() => jest.advanceTimersByTime(60))
   expect(state()).toHaveTextContent(/Value: 0.*Request: 0.1.*Requests: 2/)
@@ -99,7 +125,7 @@ it("observes held veto requests and retires repeat on owner guard takeover", asy
   expect(state()).toHaveTextContent(new RegExp(`Requests: ${countAtTakeover}.*Guard: read-only`))
   expect(plus()).toBeDisabled()
   await press("Toggle stepper read-only")
-  await fireEvent(plus(), "pressOut", event)
+  await fireEvent(plus(), "responderRelease", event)
   await fireEvent.press(plus(), event)
   expect(state()).toHaveTextContent(new RegExp(`Requests: ${countAtTakeover}`))
   await press("Toggle stepper disabled")

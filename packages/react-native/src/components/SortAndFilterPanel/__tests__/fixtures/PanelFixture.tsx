@@ -34,6 +34,26 @@ const filterCriteria: TAvailableFilterCriteria[] = [
     allowedOperationCodes: ["equal", "between"],
   },
   { id: "active", name: "Active", queryKey: "events.active", dataType: "boolean", allowedOperationCodes: ["equal"] },
+  {
+    id: "suggestion",
+    name: "Suggestions",
+    queryKey: "events.suggestion",
+    dataType: "text",
+    allowedOperationCodes: ["equal"],
+    usesComboBoxInput: true,
+    availableCriteriaArguments: [
+      { id: "alpha", name: "Alpha" },
+      { id: "beta", name: "Beta" },
+    ],
+  },
+  {
+    id: "unavailable",
+    name: "Typeahead placeholders",
+    queryKey: "events.unavailable",
+    dataType: "text",
+    allowedOperationCodes: ["equal", "in"],
+    usesTypeAheadInput: true,
+  },
   ...(["date", "date-time", "time"] as const).map((dataType) => ({
     id: dataType,
     name: dataType,
@@ -69,6 +89,27 @@ const confirmedQuery = (): TNativeQueryApplyRequest => ({
   ],
 })
 
+const argumentQuery = (criterion: "suggestion" | "unavailable"): TNativeQueryApplyRequest => ({
+  sortInstructions: [],
+  filterGroups: [
+    {
+      id: `${criterion}-group`,
+      criteriaID: criterion,
+      criteriaName: criterion === "suggestion" ? "Suggestions" : "Typeahead placeholders",
+      queryKey: `events.${criterion}`,
+      dataType: "text",
+      joinOperator: "and",
+      clauses:
+        criterion === "suggestion"
+          ? [{ id: "suggestion-clause", operationCode: "equal", argument: "Alpha" }]
+          : [
+              { id: "placeholder-scalar", operationCode: "equal", argument: "kept scalar" },
+              { id: "placeholder-list", operationCode: "in", argument: ["kept", "list"] },
+            ],
+    },
+  ],
+})
+
 export const SortAndFilterPanelFixture = ({ adapter }: { adapter?: TNativeBackdropAdapter } = {}) => {
   const [open, setOpen] = useState(false)
   const [echo, setEcho] = useState(false)
@@ -100,6 +141,8 @@ export const SortAndFilterPanelFixture = ({ adapter }: { adapter?: TNativeBackdr
               <Button onPress={() => setConfirmed({ sortInstructions: [], filterGroups: [] })}>
                 Clear confirmed query
               </Button>
+              <Button onPress={() => setConfirmed(argumentQuery("suggestion"))}>Load ComboBox argument</Button>
+              <Button onPress={() => setConfirmed(argumentQuery("unavailable"))}>Load typeahead placeholders</Button>
               <Button onPress={() => setEcho((value) => !value)}>Toggle owner echo</Button>
               {adapter && <Button onPress={() => setBlur((value) => !value)}>Toggle configured query blur</Button>}
               {adapter && (
