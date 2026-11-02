@@ -7,6 +7,7 @@ import type { NativeEditorKeyboardStatus } from "./specs/CUIKeyboardScopeNativeC
 
 type TSession = { windowId?: string; epoch?: number; active: boolean }
 type TOptions<TTarget extends View, TReceiver extends View = TTarget> = {
+  focusOnly?: false
   original: TTarget
   current: () => TTarget | null
   canAct: () => boolean
@@ -17,6 +18,19 @@ type TOptions<TTarget extends View, TReceiver extends View = TTarget> = {
   receive: (event: TNativeOrdinaryEditorKeyEvent<TTarget, TReceiver>) => void
   receiveDate?: (event: TNativeToolbarDateKeyEvent) => void
 }
+type TFocusOptions<TTarget extends View> = {
+  original: TTarget
+  current: () => TTarget | null
+  canAct: () => boolean
+  focusOnly: true
+  subtree?: never
+  toolbar?: never
+  originalEditorAction?: never
+  currentTarget?: never
+  receive?: never
+  receiveDate?: never
+}
+
 export type TNativeOrdinaryEditorKeyEvent<
   TTarget extends View = TextInput,
   TReceiver extends View = TTarget,
@@ -48,6 +62,7 @@ export const createNativeOrdinaryEditorKeys = (ownerId: string, session: () => T
     toolbarKeys: Set<string>
     toolbarObservers: Set<string>
     actionKeys: Set<string>
+    eligibility: Map<string, () => boolean>
     ready: boolean
     sequence: number
     windowId: string
@@ -80,6 +95,7 @@ export const createNativeOrdinaryEditorKeys = (ownerId: string, session: () => T
       return (
         !disposed &&
         targets.get(original) === entry &&
+        [...entry.eligibility.values()].some((eligible) => eligible()) &&
         entry.ready &&
         entry.bindingRevision === revision &&
         current.active &&
@@ -136,7 +152,7 @@ export const createNativeOrdinaryEditorKeys = (ownerId: string, session: () => T
     },
     register: <TTarget extends View, TReceiver extends View = TTarget>(
       key: string,
-      options: TOptions<TTarget, TReceiver>,
+      options: TOptions<TTarget, TReceiver> | TFocusOptions<TTarget>,
     ) => {
       if (disposed || entries.has(key)) throw new Error("Ordinary editor binding is unavailable or duplicated")
       const targetTag = findNodeHandle(options.original)
@@ -154,6 +170,7 @@ export const createNativeOrdinaryEditorKeys = (ownerId: string, session: () => T
         toolbarKeys: new Set(),
         toolbarObservers: new Set(),
         actionKeys: new Set(),
+        eligibility: new Map(),
         ready: false,
         sequence: 0,
         windowId: "",
@@ -162,6 +179,7 @@ export const createNativeOrdinaryEditorKeys = (ownerId: string, session: () => T
       const wasSubtree = entry.observers.size > 0
       const previousPurpose = JSON.stringify(purpose(entry))
       entry.keys.add(key)
+      entry.eligibility.set(key, () => options.current() === options.original && options.canAct())
       if (options.toolbar) entry.toolbarKeys.add(key)
       if (options.originalEditorAction) entry.actionKeys.add(key)
       if (options.subtree) {
@@ -243,6 +261,7 @@ export const createNativeOrdinaryEditorKeys = (ownerId: string, session: () => T
 
       return {
         receive: (event: NativeSyntheticEvent<NativeOrdinaryEditorKeyData>) => {
+          if (options.focusOnly) return false
           const data = event.nativeEvent
           const current = session()
           let observed = false
@@ -328,6 +347,7 @@ export const createNativeOrdinaryEditorKeys = (ownerId: string, session: () => T
           const wasSubtree = entry.observers.size > 0
           const previousPurpose = JSON.stringify(purpose(entry))
           entry.keys.delete(key)
+          entry.eligibility.delete(key)
           entry.observers.delete(key)
           entry.toolbarKeys.delete(key)
           entry.actionKeys.delete(key)
@@ -415,4 +435,30 @@ export const useNativeOrdinaryEditorKeys = <TTarget extends View, TReceiver exte
     receiveDate: (event: NativeSyntheticEvent<NativeDateSegmentKeyData>) =>
       lease.current ? registry?.receiveDate(key, event) : false,
   })
+}
+
+// Focus enrollment publishes an actual binding; it neither captures keys nor claims an ordinary-event observer.
+export const useNativeOriginalEditorFocusBinding = <TTarget extends TextInput>(
+  target: TTarget | null,
+  enabled: boolean,
+  lifetimeKey: string,
+  options: Pick<TFocusOptions<TTarget>, "current" | "canAct">,
+) => {
+  const registry = useContext(NativeOrdinaryEditorKeysContext)
+  const key = useId()
+  const current = useRef(options)
+  useInsertionEffect(() => {
+    current.current = options
+  })
+  useLayoutEffect(() => {
+    if (!enabled || !target) return
+    if (!registry) throw new Error("Original editor focus requires a same-window NativeKeyboardScope")
+    const registration = registry.register(key, {
+      original: target,
+      current: () => current.current.current(),
+      canAct: () => current.current.canAct(),
+      focusOnly: true,
+    })
+    return registration.unregister
+  }, [registry, key, target, enabled, lifetimeKey])
 }

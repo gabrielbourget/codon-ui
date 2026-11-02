@@ -1,6 +1,6 @@
 #import <UIKit/UIKit.h>
 
-@protocol CUIKeyboardObservationScope
+@protocol CUIKeyboardObservationScope <NSObject>
 - (BOOL)hasKeyboardObservations;
 - (BOOL)capturesObservedPress:(UIPress *)press;
 - (void)observePress:(UIPress *)press repeat:(BOOL)repeat eventId:(NSUInteger)eventId captured:(BOOL)captured;

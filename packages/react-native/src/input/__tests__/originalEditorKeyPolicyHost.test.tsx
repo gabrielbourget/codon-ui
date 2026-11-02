@@ -1,9 +1,15 @@
 import { act, render, screen } from "@testing-library/react-native"
-import { createRef, useCallback, useState } from "react"
+import { createRef, useCallback, useContext, useState } from "react"
 import { TextInput } from "react-native"
 
 import { NativeKeyboardScope } from "../NativeKeyboardScope"
-import type { TNativeOrdinaryEditorKeyEvent } from "../ordinaryEditorKeys"
+import {
+  captureNativeOrdinaryEditorFocus,
+  type createNativeOrdinaryEditorKeys,
+  NativeOrdinaryEditorKeysContext,
+  useNativeOriginalEditorFocusBinding,
+  type TNativeOrdinaryEditorKeyEvent,
+} from "../ordinaryEditorKeys"
 import { useNativeOriginalEditorKeyPolicy, type TNativeOriginalEditorActionFrame } from "../originalEditorKeyPolicy"
 
 const originalRef = createRef<TextInput>()
@@ -167,4 +173,49 @@ it("keeps readonly observation and original refs while native numeric capture is
   expect(observe.mock.calls[0][0]).toBe(event.original)
   expect(action).not.toHaveBeenCalled()
   expect(originalRef.current).toBe(original)
+})
+
+const focusRegistry = createRef<ReturnType<typeof createNativeOrdinaryEditorKeys>>()
+const FocusHarness = ({ enabled = true }: { enabled?: boolean }) => {
+  const [original, setOriginal] = useState<TextInput | null>(null)
+  const ref = useCallback((value: TextInput | null) => {
+    originalRef.current = value
+    setOriginal(value)
+  }, [])
+  focusRegistry.current = useContext(NativeOrdinaryEditorKeysContext)
+  useNativeOriginalEditorFocusBinding(original, enabled, "same-model", {
+    current: () => originalRef.current,
+    canAct: () => enabled,
+  })
+  return <TextInput ref={ref} testID="editor" value="original" />
+}
+
+it("enrolls the actual standalone original for focus without key policies or a fake ordinary observer", async () => {
+  const tree = (enabled = true) => (
+    <NativeKeyboardScope testID="host" captureEnabled>
+      <FocusHarness enabled={enabled} />
+    </NativeKeyboardScope>
+  )
+  const { rerender, unmount } = await render(tree())
+  const original = originalRef.current!
+  expect(captureNativeOrdinaryEditorFocus(focusRegistry.current, original, { windowId: "window" })).toBeNull()
+  await acknowledge()
+  const capture = captureNativeOrdinaryEditorFocus(focusRegistry.current, original, { windowId: "window" })
+  const binding = host().props.ordinaryEditorBindings[0]
+  expect(capture?.()).toBe(true)
+  expect(host().props.policies).toEqual([])
+  expect(binding).not.toHaveProperty("originalEditorAction")
+  expect(editor().props).not.toHaveProperty("onNativeOrdinaryEditorKey")
+  await rerender(tree())
+  expect(originalRef.current).toBe(original)
+  expect(host().props.ordinaryEditorBindings[0]).toEqual(binding)
+  expect(capture?.()).toBe(true)
+  await rerender(tree(false))
+  expect(capture?.()).toBe(false)
+  await rerender(tree())
+  await acknowledge()
+  expect(capture?.()).toBe(false)
+  expect(captureNativeOrdinaryEditorFocus(focusRegistry.current, original, { windowId: "window" })?.()).toBe(true)
+  await unmount()
+  expect(capture?.()).toBe(false)
 })
