@@ -60,9 +60,9 @@ public final class CUIFormDocumentModule extends NativeCUIFormDocumentSpec {
     if (dateField != plan.has("dateField")) { metadata.resetSemanticAccessibilityFocus(); return; }
     CUIFormMetadataView.SemanticContribution contribution = dateField ? CUIFieldSemantics.bindDateField(manager,
         CUIOwnedDateField.resolveAll(manager, metadata, metadata.ownedEditorBinding, editor.getId(), surface), plan, current) :
-        CUIFieldSemantics.bind(manager, (ReactEditText)editor, plan, current);
+        CUIFieldSemantics.bindCoreActionGuard((ReactEditText)editor, plan, current);
     metadata.setSemanticContribution(contribution);
-    if (dateField || contribution == null || !current.check() || !editor.isFocused() || plan.getBoolean("disabled")) { metadata.resetSemanticAccessibilityFocus(); return; }
+    if (dateField || !current.check() || !editor.isFocused() || plan.getBoolean("disabled")) { metadata.resetSemanticAccessibilityFocus(); return; }
     if (!plan.getBoolean("expanded")) {
       if (current.check()) metadata.requestSemanticAccessibilityFocus(editor, descriptor, editor, true);
       else metadata.resetSemanticAccessibilityFocus();

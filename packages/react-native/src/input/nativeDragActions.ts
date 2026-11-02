@@ -55,7 +55,7 @@ export type TNativeDragActionRegistration = Readonly<{
   revision: string
   rootTarget: number
   itemTargets: ReadonlySet<number>
-  native?: TNativeDragViewBinding
+  native: TNativeDragViewBinding
   current: () => boolean
   retire: () => void
   dispatch: (packet: TNativeDragActionPacket, current: () => boolean) => unknown
@@ -134,6 +134,8 @@ export const createNativeDragActions = (scope: TNativeKeyScope) => {
     entries.get(entry.value.bindingId) === entry &&
     entry.value.current()
   const checkedNative = (value: TNativeDragViewBinding) => {
+    if (!value || typeof value !== "object" || Array.isArray(value))
+      throw new Error("Native drag action: invalid native view metadata")
     const keys = new Set<string>(),
       instances = new Set<string>()
     if (
@@ -187,7 +189,6 @@ export const createNativeDragActions = (scope: TNativeKeyScope) => {
       enabled = next
       if (!next)
         for (const entry of entries.values()) {
-          if (!entry.value.native) continue
           entry.nativeReady = false
           entry.nativeRevision++
         }
@@ -198,7 +199,7 @@ export const createNativeDragActions = (scope: TNativeKeyScope) => {
         !enabled || disposed
           ? []
           : [...entries.values()].flatMap((entry) =>
-              entry.live && entry.value.native && entry.value.current()
+              entry.live && entry.value.current()
                 ? [
                     {
                       ...entry.value.native,
@@ -271,11 +272,7 @@ export const createNativeDragActions = (scope: TNativeKeyScope) => {
         status.rootTarget !== entry.value.rootTarget
       )
         return
-      if (
-        entry.value.native &&
-        ["binding", "retired"].includes(String(status.kind)) &&
-        status.metadataRevision !== entry.nativeRevision
-      )
+      if (["binding", "retired"].includes(String(status.kind)) && status.metadataRevision !== entry.nativeRevision)
         return
       if (status.kind === "retired") {
         entry.value.retire()
@@ -307,7 +304,7 @@ export const createNativeDragActions = (scope: TNativeKeyScope) => {
         moduleId,
         value: {
           ...value,
-          native: value.native ? checkedNative(value.native) : undefined,
+          native: checkedNative(value.native),
           itemTargets: new Set(value.itemTargets),
         },
         live: true,
@@ -319,7 +316,7 @@ export const createNativeDragActions = (scope: TNativeKeyScope) => {
       return {
         moduleId,
         current: () => current(entry),
-        ready: () => current(entry) && (!entry.value.native || entry.nativeReady),
+        ready: () => current(entry) && entry.nativeReady,
         updateNative: (native: TNativeDragViewBinding) => {
           if (!entry.live || disposed || entries.get(value.bindingId) !== entry)
             throw new Error("Native drag action: original registration retired")
@@ -361,7 +358,7 @@ export const createNativeDragActions = (scope: TNativeKeyScope) => {
         identity.rootTarget !== entry.value.rootTarget ||
         identity.surfaceId !== session.surfaceId ||
         identity.scopeTarget !== session.scopeTarget ||
-        (identity.kind === "lift" && (!window.canLift || (!!entry.value.native && !entry.nativeReady))) ||
+        (identity.kind === "lift" && (!window.canLift || !entry.nativeReady)) ||
         (["target", "activate", "drop"].includes(identity.kind) && !window.canDrop) ||
         (identity.itemTarget !== 0 && !entry.value.itemTargets.has(identity.itemTarget)) ||
         packet.token <= (lastTokens.get(identity.moduleId) ?? 0) ||

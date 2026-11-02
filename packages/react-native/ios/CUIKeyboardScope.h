@@ -1,5 +1,4 @@
 #import <React/RCTViewComponentView.h>
-@class CUIMenuPointerPolicies;
 @class CUIDialogFocusScopes;
 @class CUIOrdinaryEditorKeys;
 
@@ -12,7 +11,6 @@
 - (NSDictionary *)dragActivationSession;
 - (NSDictionary *)dragGeometry:(NSDictionary *)request;
 - (void)emitDragStatus:(NSDictionary *)record;
-- (CUIMenuPointerPolicies *)menuPointers;
 - (CUIDialogFocusScopes *)dialogFocusScopes;
 @end
 

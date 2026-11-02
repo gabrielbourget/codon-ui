@@ -28,17 +28,13 @@ final class CUIFieldSemantics implements CUIFormMetadataView.SemanticContributio
   private Current current;
   private boolean retired;
 
-  static CUIFieldSemantics bind(UIManager manager, ReactEditText editor, JSONObject plan, Current current) throws Exception {
-    if (!current.check()) return null;
+  // Core editors use RN accessibility props. Only disabled activation needs the existing action guard.
+  static CUIFieldSemantics bindCoreActionGuard(ReactEditText editor, JSONObject plan, Current current) throws Exception {
+    if (!current.check() || !plan.getBoolean("disabled")) return null;
     WeakReference<CUIFieldSemantics> previous = leases.get(editor);
     if (previous != null && previous.get() != null) previous.get().retire();
-    String label = plan.getJSONObject("text").getString("label");
-    String description = plan.getJSONObject("text").getString("description");
-    String errors = plan.getJSONObject("text").getString("errorMessage");
-    String details = plan.getJSONObject("text").getString("details");
-    View firstLabel = null;
     if (!current.check()) return null;
-    return new CUIFieldSemantics(editor, plan, label, description, errors, details, firstLabel, current);
+    return new CUIFieldSemantics(editor, plan, "", "", "", "", null, current);
   }
   static CUIFormMetadataView.SemanticContribution bindDateField(UIManager manager, ArrayList<CUIDateSegment> segments,
       JSONObject plan, Current current) throws Exception {
@@ -87,20 +83,18 @@ final class CUIFieldSemantics implements CUIFormMetadataView.SemanticContributio
     try { return current.check(); } catch (Exception unavailable) { return false; }
   }
   private void augment(View host, AccessibilityNodeInfoCompat node) {
+    if (!(host instanceof CUIDateSegment)) return;
     if (!isCurrent(host)) { retire(); return; }
     try {
       JSONObject labels = plan.getJSONObject("labels");
-      boolean dateField = plan.has("dateField");
       if (!label.isEmpty()) {
         CharSequence base = node.getContentDescription();
-        node.setContentDescription(dateField && base != null && base.length() > 0 ? base + ", " + label : label);
+        node.setContentDescription(base != null && base.length() > 0 ? base + ", " + label : label);
       }
       View labelledBy = firstLabel.get(); if (labelledBy != null) node.setLabeledBy(labelledBy);
-      if (!dateField && (node.getRoleDescription() == null || node.getRoleDescription().length() == 0)) node.setRoleDescription(labels.getString("role"));
       if (plan.getBoolean("disabled")) node.setEnabled(false);
       ArrayList<String> state = new ArrayList<>();
       CharSequence ownerState = node.getStateDescription(); if (ownerState != null && ownerState.length() > 0) state.add(ownerState.toString());
-      if (!dateField) state.add(labels.getString(plan.getBoolean("expanded") ? "expanded" : "collapsed"));
       for (String key : new String[]{"required", "readOnly", "disabled"}) if (plan.getBoolean(key)) state.add(labels.getString(key));
       node.setStateDescription(String.join(" ", state));
       ArrayList<String> hints = new ArrayList<>(); CharSequence ownerHint = node.getHintText();

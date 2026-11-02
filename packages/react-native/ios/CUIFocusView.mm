@@ -4,7 +4,6 @@
 #import "CUICollectionRoot.h"
 #import "CUIInputWindow.h"
 #import "CUIFocusWithinObserver.h"
-#import "CUIMenuPointerPolicies.h"
 #include "CUIMenuAccessibilityOrder.h"
 #import "CUIKeyboardScope.h"
 #import "CUIFloatingScrollAnchor.h"
@@ -142,17 +141,6 @@ using namespace facebook::react;
   NSUInteger _localKeyEventId;
   SurfaceId _formActionSurface;
   CUIFocusViewEventEmitter::OnNativeFocusChangeOrigin _origin;
-}
-
-- (BOOL)menuPointerTriggerEnabled { return _nativePressable && _keyboardFocusable; }
-- (BOOL)shouldUpdateFocusInContext:(UIFocusUpdateContext *)context
-{
-  if (context.nextFocusedView == self && _origin != CUIFocusViewEventEmitter::OnNativeFocusChangeOrigin::Programmatic && CUIMenuPointerPreventsFocus(self.window)) return NO;
-  return [super shouldUpdateFocusInContext:context];
-}
-- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
-{
-  return CUIMenuPointerSuppresses(self) ? nil : [super hitTest:point withEvent:event];
 }
 
 + (ComponentDescriptorProvider)componentDescriptorProvider
@@ -683,7 +671,6 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 - (BOOL)accessibilityActivate
 {
   if (!_nativePressable) return [super accessibilityActivate];
-  CUIRecordMenuPointerVirtual(self.window);
   UIWindow *window = self.window;
   BOOL sceneActive = window.windowScene == nil || window.windowScene.activationState == UISceneActivationStateForegroundActive;
   if (!_eventEmitter || !window.isKeyWindow || window.hidden || self.hidden || self.alpha <= 0 || !sceneActive || UIApplication.sharedApplication.applicationState != UIApplicationStateActive) return NO;

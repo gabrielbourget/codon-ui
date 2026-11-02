@@ -1,7 +1,6 @@
 import { useContext, type Context, type ReactNode } from "react"
 import type { ViewProps } from "react-native"
-// @ts-expect-error Pinned RN publishes this inspected context without TypeScript declarations.
-import upstreamTextAncestorContext from "react-native/Libraries/Text/TextAncestorContext"
+import { unstable_TextAncestorContext as upstreamTextAncestorContext } from "react-native"
 
 const TextAncestorContext: Context<boolean> = upstreamTextAncestorContext
 export const NativeViewContextBoundary = ({ children }: { children: ReactNode }) => {

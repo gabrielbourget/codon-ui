@@ -7,6 +7,7 @@ import { observeNativeFocus, registerNativeFocusTarget } from "../../../input/fo
 import { createNativeKeyScope } from "../../../input/keyScope"
 import { NativeDragActionsContext, createNativeDragActions } from "../../../input/nativeDragActions"
 import type { TNativeDragActionIdentity, TNativeDragMemberBinding } from "../../../input/nativeDragActions"
+import NativeModule from "../../../input/specs/NativeCUIDragAndDrop"
 import { SelectionManager } from "../../state/SelectionManager"
 import { useMultipleSelectionState } from "../../state/useMultipleSelectionState"
 import {
@@ -214,8 +215,10 @@ it("routes actual committed collection state and original values through an auth
   expect(trace).toEqual(["start", ["items", [0], [dragValues[0]]]])
   expect(fixture.rendered.result.current.dragState.isDragging(0)).toBe(true)
   await act(() => {
-    fixture.actions.dispatch(fixture.packet("move"))
-    fixture.actions.dispatch(fixture.packet("end", { operation: "copy" }))
+    expect(fixture.actions.dispatch(fixture.packet("move"))).toEqual({})
+    expect(JSON.parse(jest.mocked(NativeModule!.settleAction).mock.calls.at(-1)![0]).response).toBe("{}")
+    expect(fixture.actions.dispatch(fixture.packet("end", { operation: "copy" }))).toEqual({})
+    expect(JSON.parse(jest.mocked(NativeModule!.settleAction).mock.calls.at(-1)![0]).response).toBe("{}")
   })
   expect(trace.slice(-2)).toEqual(["move", ["end", "copy", false]])
   expect(fixture.rendered.result.current.dragState.draggingKeys.size).toBe(0)
@@ -416,11 +419,13 @@ it("does not install a generic descendant activation interceptor or publish nati
 
 it("returns the actual hover target identity, avoids duplicate entry work and refuses a stale activation target", async () => {
   const onDropActivate = jest.fn(),
+    onDropExit = jest.fn(),
     onDropEnter = jest.fn(),
     fixture = await setup({
       getItems: () => [{ "text/plain": "zero" }],
       onItemDrop: () => {},
       onDropActivate,
+      onDropExit,
       onDropEnter,
     })
   await fixture.row(0)
@@ -456,14 +461,21 @@ it("returns the actual hover target identity, avoids duplicate entry work and re
       fixture.actions.dispatch(
         fixture.packet("activate", { expectedTarget: { ...response!.target, key: "number:0" } }),
       ),
-    ).toEqual({ activated: false })
+    ).toEqual({})
   })
   expect(onDropActivate).not.toHaveBeenCalled()
   await act(() => {
-    fixture.actions.dispatch(fixture.packet("activate", { expectedTarget: response!.target }))
+    expect(fixture.actions.dispatch(fixture.packet("activate", { expectedTarget: response!.target }))).toEqual({})
+    expect(JSON.parse(jest.mocked(NativeModule!.settleAction).mock.calls.at(-1)![0]).response).toBe("{}")
   })
   expect(onDropActivate).toHaveBeenCalledTimes(1)
   expect(onDropActivate.mock.calls[0][0].target).toEqual({ type: "item", key: "", dropPosition: "on" })
+  await act(() => {
+    expect(fixture.actions.dispatch(fixture.packet("exit"))).toEqual({})
+    expect(JSON.parse(jest.mocked(NativeModule!.settleAction).mock.calls.at(-1)![0]).response).toBe("{}")
+  })
+  expect(onDropExit).toHaveBeenCalledTimes(1)
+  expect(fixture.rendered.result.current.binding.controller.dropTarget()).toBeNull()
   await fixture.rendered.unmount()
   fixture.actions.dispose()
 })
