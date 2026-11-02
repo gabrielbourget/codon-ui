@@ -44,7 +44,8 @@ export type TNativeTooltipProps = Omit<
   onTouchStartCapture?: TNativeClickPopoverProps["onTouchStart"]
   onTouchMoveCapture?: TNativeClickPopoverProps["onTouchMove"]
   onTouchCancelCapture?: TNativeClickPopoverProps["onTouchCancel"]
-  triggerRef?: RefObject<View | TextInput | null>
+  /** The original NativeFocusView-backed trigger; raw View/TextInput description targets are rejected at runtime. */
+  triggerRef?: RefObject<View | null>
   boundaryRef?: RefObject<View | TextInput | null>
   descriptionLabel?: string
   detailsLabel?: string

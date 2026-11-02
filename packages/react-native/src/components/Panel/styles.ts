@@ -148,16 +148,10 @@ export const getNativePanelStyles = (props: TNativePanelProps, theme: TNativeThe
     !NATIVE_BOX_POSITIONS.includes(authored.position as (typeof NATIVE_BOX_POSITIONS)[number])
   )
     throw new TypeError("Panel: unsupported native layout position")
-  const panelPosition = authored.position ?? "fixed"
   return {
     text,
     view,
     overlay,
     side,
-    layout: {
-      position: panelPosition as "fixed" | "absolute" | "relative" | "static",
-      viewportHeight: authored.height === undefined,
-      viewportWidth: authored.width === undefined,
-    },
   }
 }

@@ -9,8 +9,6 @@ file(GLOB CUI_OVERLAY_GENERATED_SOURCES CONFIGURE_DEPENDS
   "${CUI_OVERLAY_GENERATED_DIR}/react/renderer/components/CodonNativeInputSpec/*.cpp")
 add_library(${CUI_OVERLAY_TARGET} SHARED
   CodonNativeOverlay.cpp
-  "${CUI_OVERLAY_CPP_DIR}/NativeOverlayLayout.cpp"
-  "${CUI_OVERLAY_CPP_DIR}/OwnedYogaLayout.cpp"
   ${CUI_OVERLAY_GENERATED_SOURCES})
 target_include_directories(${CUI_OVERLAY_TARGET} PUBLIC
   "${CMAKE_CURRENT_LIST_DIR}"

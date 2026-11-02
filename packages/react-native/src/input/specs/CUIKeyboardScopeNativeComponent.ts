@@ -126,7 +126,7 @@ export type NativeFloatingObservation = Readonly<{
   scrollRevision: Double
   revision: Double
 }>
-type NativeFloatingTarget = Readonly<{ id: string; targetTag: Int32; descriptionTag: Int32; descriptionLabel: string }>
+type NativeFloatingTarget = Readonly<{ id: string; targetTag: Int32 }>
 type NativeKeyObservation = Readonly<{ id: string; targetTag: Int32 }>
 export type NativeObservedKeyData = Readonly<{
   ownerId: string

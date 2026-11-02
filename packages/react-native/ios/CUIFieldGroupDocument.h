@@ -1,8 +1,4 @@
 #import <React/RCTSurfacePresenter.h>
 
-// Read-only prototype prerequisite. This does not register a default owner or
-// issue focus commands, and its records are never proof of focus completion.
-NSDictionary *CUIReadFieldGroupDocument(RCTSurfacePresenter *presenter, NSDictionary *document);
-BOOL CUIFieldGroupOriginalMatches(RCTSurfacePresenter *presenter, NSDictionary *row, UIView *component, UIView *editor);
-
+// Explicit participants retain native order and eligibility without a form document snapshot.
 NSDictionary *CUIReadFocusParticipants(RCTSurfacePresenter *presenter, NSDictionary *request);

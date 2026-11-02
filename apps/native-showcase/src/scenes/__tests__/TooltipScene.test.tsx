@@ -38,7 +38,7 @@ it("composes public descriptions with declined close requests and preserves the 
 it("retains caller-owned editor drafts through theme/style changes, owner removal and explicit reset", async () => {
   const result = await render(node())
   await fireEvent.changeText(screen.getByTestId("tooltip-scene-editor"), "Retained draft")
-  await press("Show editor description explicitly")
+  await press("Show editor help explicitly")
   await press("Toggle description styles")
   await press("Toggle description geometry")
   await press("Toggle description arrow")

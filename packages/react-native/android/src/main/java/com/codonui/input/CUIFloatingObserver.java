@@ -21,8 +21,7 @@ final class CUIFloatingObserver implements ViewTreeObserver.OnPreDrawListener {
   static final class Target {
     final String id;
     final int tag;
-    final int descriptionTag;
-    Target(String id, int tag, int descriptionTag) { this.id = id; this.tag = tag; this.descriptionTag = descriptionTag; }
+    Target(String id, int tag) { this.id = id; this.tag = tag; }
   }
   private static final class Sample {
     WeakReference<View> anchor;
@@ -34,7 +33,6 @@ final class CUIFloatingObserver implements ViewTreeObserver.OnPreDrawListener {
   private final View host;
   private final Consumer<WritableMap> publish;
   private final Map<String, Sample> samples = new HashMap<>();
-  private final Map<String, CUINativeDescription> descriptions = new HashMap<>();
   private List<Target> targets = new ArrayList<>();
   private ViewTreeObserver observer;
   private long revision;
@@ -42,10 +40,6 @@ final class CUIFloatingObserver implements ViewTreeObserver.OnPreDrawListener {
   void update(List<Target> next, boolean active) {
     targets = next;
     samples.keySet().removeIf(id -> next.stream().noneMatch(target -> target.id.equals(id)));
-    descriptions.entrySet().removeIf(entry -> {
-      if (next.stream().anyMatch(target -> target.id.equals(entry.getKey()) && target.descriptionTag > 0)) return false;
-      entry.getValue().invalidate(); return true;
-    });
     if (!active || next.isEmpty() || !host.isAttachedToWindow()) { stop(); return; }
     if (observer == null || !observer.isAlive()) {
       observer = host.getViewTreeObserver(); observer.addOnPreDrawListener(this);
@@ -57,8 +51,6 @@ final class CUIFloatingObserver implements ViewTreeObserver.OnPreDrawListener {
     if (observer != null && observer.isAlive()) observer.removeOnPreDrawListener(this);
     observer = null;
     for (Sample sample : samples.values()) { sample.ancestors.clear(); sample.offsets.clear(); sample.visible = null; }
-    for (CUINativeDescription binding : descriptions.values()) binding.invalidate();
-    descriptions.clear();
   }
   @Override public boolean onPreDraw() {
     if (!host.isAttachedToWindow() || !host.hasWindowFocus()) return true;
@@ -77,14 +69,8 @@ final class CUIFloatingObserver implements ViewTreeObserver.OnPreDrawListener {
     for (Target target : targets) {
       View anchor = target.tag > 0 ? root.findViewById(target.tag) : null;
       if (anchor == null || !anchor.isAttachedToWindow() || anchor.getWindowToken() != host.getWindowToken()) {
-        samples.remove(target.id); CUINativeDescription retired = descriptions.remove(target.id); if (retired != null) retired.invalidate(); continue;
+        samples.remove(target.id); continue;
       }
-      View description = target.descriptionTag > 0 ? root.findViewById(target.descriptionTag) : null;
-      if (description != null) {
-        CUINativeDescription binding = descriptions.get(target.id);
-        if (binding == null) { binding = new CUINativeDescription(); descriptions.put(target.id, binding); }
-        binding.bind(anchor, description);
-      } else { CUINativeDescription retired = descriptions.remove(target.id); if (retired != null) retired.invalidate(); }
       Sample sample = samples.get(target.id);
       if (sample == null || sample.anchor.get() != anchor) { sample = new Sample(); sample.anchor = new WeakReference<>(anchor); samples.put(target.id, sample); }
       List<WeakReference<View>> ancestors = new ArrayList<>(); List<Integer> offsets = new ArrayList<>();

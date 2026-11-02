@@ -302,11 +302,6 @@ export const createPanelAppearanceMixer = (
     const mixer = numberMixer(first.value, last.value)
     return first.percent ? (progress) => `${mixer(progress)}%` : mixer
   }
-  if (field === "flexBasis") return undefined
-  return (progress) => {
-    const basis = /^(height|minHeight|maxHeight|top|bottom|insetBlock.*)$/.test(field) ? bounds.height : bounds.width
-    const start = first.value * (first.percent ? basis / 100 : 1)
-    const end = last.value * (last.percent ? basis / 100 : 1)
-    return start + (end - start) * progress
-  }
+  // Mixed native units change discretely; Yoga owns their current parent basis.
+  return undefined
 }

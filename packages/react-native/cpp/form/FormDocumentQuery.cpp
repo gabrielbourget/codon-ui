@@ -1,11 +1,9 @@
 #include "FormDocumentQuery.h"
 #include "FieldSemanticQuery.h"
-#include "FieldGroupQuery.h"
 
 #include <folly/json.h>
 #include <react/renderer/components/CodonNativeInputSpec/Props.h>
 #include <react/renderer/components/view/YogaStylableProps.h>
-#include <react/renderer/components/textinput/BaseTextInputProps.h>
 #include <react/renderer/mounting/ShadowTree.h>
 #include <stdexcept>
 #include <string_view>
@@ -112,7 +110,7 @@ std::string queryFabricFormDocumentStamp(const UIManager &manager, SurfaceId sur
 }
 
 std::string queryFabricFormDocument(const UIManager &manager, SurfaceId surface, Tag target,
-    NativeFormDocumentSession &session, const std::function<void()> &check, const std::string &fieldGroup) {
+    NativeFormDocumentSession &session, const std::function<void()> &check) {
   if (target <= 0) throw std::invalid_argument("Native form: current target and document required");
   const auto document = surface == 0 ? captureFabricFormDocumentForTarget(manager, target, check) :
       captureFabricFormDocument(manager, surface, check);
@@ -143,20 +141,6 @@ std::string queryFabricFormDocument(const UIManager &manager, SurfaceId surface,
     if (name == "CUIDateSegment") {
       const auto &segment = *static_cast<const CUIDateSegmentProps *>(node.getProps().get());
       nodes[nodes.size() - 1]["dateSegmentOwner"] = segment.ownerId;
-      if (!fieldGroup.empty()) nodes[nodes.size() - 1]["fieldFocus"] = folly::dynamic::object
-        ("candidate", true)("focusable", segment.segmentEditable && !segment.segmentDisabled)
-        ("tabStop", true)("readOnly", segment.segmentReadOnly)("placeholder", segment.segmentPlaceholder)("ownerId", segment.ownerId);
-    } else if (!fieldGroup.empty() && name == "CUIFocusView") {
-      const auto &focus = *static_cast<const CUIFocusViewProps *>(node.getProps().get());
-      nodes[nodes.size() - 1]["fieldFocus"] = folly::dynamic::object
-        ("candidate", true)("focusable", focus.keyboardFocusable)("tabStop", focus.nativeTabStop)
-        ("readOnly", false)("placeholder", false)("ownerId", focus.ownerId);
-    } else if (!fieldGroup.empty() && (name == "TextInput" || name == "AndroidTextInput")) {
-      const auto &editor = *static_cast<const BaseTextInputProps *>(node.getProps().get());
-      const bool disabled = editor.accessibilityState && editor.accessibilityState->disabled;
-      nodes[nodes.size() - 1]["fieldFocus"] = folly::dynamic::object
-        ("candidate", true)("focusable", !disabled)("tabStop", true)
-        ("readOnly", editor.readOnly || !editor.editable)("placeholder", false);
     }
     // The generated app library owns custom prop vtables on Android. Resolve
     // its exact component identity before reading its generated prop type.
@@ -206,11 +190,6 @@ std::string queryFabricFormDocument(const UIManager &manager, SurfaceId surface,
   folly::dynamic result = folly::dynamic::object("documentId", documentId)("surfaceId", document.root->getSurfaceId())
     ("rootTarget", document.root->getTag())("revision", std::to_string(document.revision))
     ("target", target)("nodes", std::move(nodes))("forms", std::move(forms))("fields", std::move(fields));
-  if (!fieldGroup.empty()) {
-    result["fieldGroup"] = fieldGroupPlan(result, folly::parseJson(fieldGroup));
-    if (check) check();
-    if (!isFabricFormDocumentCurrent(manager, document)) throw std::runtime_error("Native field group: document revision retired");
-  }
   return folly::toJson(result);
 }
 } // namespace codon::form

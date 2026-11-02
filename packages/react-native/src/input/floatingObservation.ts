@@ -3,8 +3,6 @@ import type { NativeFloatingObservation } from "./specs/CUIKeyboardScopeNativeCo
 export type TNativeFloatingObservationTarget = Readonly<{
   id: string
   targetTag: number
-  descriptionTag: number
-  descriptionLabel: string
 }>
 export const createNativeFloatingObservations = () => {
   const entries = new Map<
@@ -28,15 +26,10 @@ export const createNativeFloatingObservations = () => {
         listeners.delete(listener)
       }
     },
-    register: (
-      targetTag: number,
-      receive: (data: NativeFloatingObservation) => void,
-      descriptionTag = 0,
-      descriptionLabel = "Description",
-    ) => {
+    register: (targetTag: number, receive: (data: NativeFloatingObservation) => void) => {
       if (disposed || !Number.isSafeInteger(targetTag) || targetTag <= 0) return undefined
       const id = `floating-${++serial}`
-      entries.set(id, { target: { id, targetTag, descriptionTag, descriptionLabel }, receive })
+      entries.set(id, { target: { id, targetTag }, receive })
       changed()
       return () => {
         if (entries.delete(id)) changed()

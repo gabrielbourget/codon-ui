@@ -2,7 +2,6 @@ import { useLayoutEffect, type RefObject } from "react"
 import { findNodeHandle, type View } from "react-native"
 
 import { bindNativeDescription } from "../../input/nativeDescription"
-import { useNativeFloatingObservations } from "../../input/NativeKeyboardScope"
 
 import type { TNativeFloatingMeasurable } from "./measurement"
 
@@ -12,7 +11,6 @@ export const useNativeTooltipDescription = (
   content: RefObject<View | null>,
   label: string,
 ) => {
-  const observations = useNativeFloatingObservations()
   useLayoutEffect(() => {
     if (!enabled) return
     let live = true
@@ -24,16 +22,16 @@ export const useNativeTooltipDescription = (
       if (!live) return
       const target = anchor.current,
         description = content.current
-      if (target !== previousAnchor || description !== previousContent) {
+      if (target !== previousAnchor || description !== previousContent || !release) {
         release?.()
         previousAnchor = target
         previousContent = description
         release = bindNativeDescription(target, description, label)
         if (!release && target && description) {
-          const targetTag = findNodeHandle(target as View),
-            descriptionTag = findNodeHandle(description)
-          if (targetTag !== null && descriptionTag !== null && descriptionTag > 0)
-            release = observations?.register(targetTag, () => undefined, descriptionTag, label)
+          const descriptionTag = findNodeHandle(description)
+          // A missing native tag can become available on a later frame; a live unsupported trigger cannot bind.
+          if (descriptionTag !== null && Number.isSafeInteger(descriptionTag) && descriptionTag > 0)
+            throw new TypeError("Tooltip/HoverPopover supplementary descriptions require a NativeFocusView trigger")
         }
       }
       frame = requestAnimationFrame(update)
@@ -44,5 +42,5 @@ export const useNativeTooltipDescription = (
       if (frame !== null) cancelAnimationFrame(frame)
       release?.()
     }
-  }, [enabled, anchor, content, label, observations])
+  }, [enabled, anchor, content, label])
 }

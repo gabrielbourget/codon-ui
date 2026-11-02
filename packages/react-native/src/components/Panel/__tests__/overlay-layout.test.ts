@@ -5,57 +5,41 @@ import { getNativePanelOverlayLayout } from "../overlayLayout"
 import { getNativePanelStyles } from "../styles"
 
 const theme = resolveNativeTheme("light")
-const resolve = (body: TextStyle = {}, overlay: ViewStyle = {}, blur = false) => {
+const resolve = (body: TextStyle = {}, overlay: ViewStyle = {}) => {
   const styles = getNativePanelStyles(
     { accessibilityLabel: "Layout", customStyles: body, customOverlayStyles: overlay },
     theme,
     1280,
   )
-  return getNativePanelOverlayLayout(styles, styles.view, blur)
+  return getNativePanelOverlayLayout(styles)
 }
 
-it("keeps default viewport-fixed and viewport-height ownership distinct from authored native absolute and percentage values", () => {
-  expect(resolve()).toMatchObject({ panelPosition: "fixed", panelViewportHeight: true, panelViewportWidth: true })
-  expect(resolve({ position: "absolute", width: "50%", height: "100%" })).toMatchObject({
-    panelPosition: "absolute",
-    panelViewportHeight: false,
-    panelViewportWidth: false,
-  })
-  expect(resolve({ position: "relative" }).panelPosition).toBe("relative")
-  expect(resolve({ position: "static" }).panelPosition).toBe("static")
+it("passes native flex and percentage layout to the original overlay owner without browser block defaults", () => {
+  const overlay: ViewStyle = {
+    width: "60%",
+    height: "auto",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    gap: 30,
+  }
+  expect(resolve({ position: "relative" }, overlay).host).toMatchObject(overlay)
+  expect(resolve({}, { display: "flex" }).host.flexDirection).toBeUndefined()
+  expect(resolve({}, { display: "flex" }).host.alignContent).toBeUndefined()
 })
 
-it.each<ViewStyle>([{ transform: [{ translateX: 0 }] }, { filter: "brightness(100%)" }, { filter: "opacity(100%)" }])(
-  "retains an explicitly authored identity transform/filter as a containing block (%j)",
-  (overlay) => {
-    expect(resolve({}, { ...overlay, overflow: "hidden" })).toMatchObject({
-      establishesContainingBlock: true,
-      host: { overflow: "hidden" },
+it.each<TextStyle>([{}, { position: "absolute" }, { position: "relative" }, { position: "static" }])(
+  "keeps authored native clipping on the actual composition owner (%j)",
+  (body) => {
+    const result = resolve(body, { overflow: "hidden", transform: [{ translateX: 0 }], filter: "brightness(100%)" })
+    expect(result.host).toMatchObject({
+      overflow: "hidden",
+      transform: [{ translateX: 0 }],
+      filter: [{ brightness: 1 }],
     })
+    expect(resolve(body, { overflow: "hidden" }).host.overflow).toBe("hidden")
   },
 )
-
-it.each<ViewStyle>([
-  { opacity: 0 },
-  { isolation: "isolate" },
-  { mixBlendMode: "multiply" },
-  { transform: [], filter: "none" },
-])("keeps fixed descendants outside ordinary overlay clipping (%j)", (overlay) => {
-  expect(resolve({}, { ...overlay, overflow: "hidden" })).toMatchObject({
-    establishesContainingBlock: false,
-    host: { overflow: "visible" },
-    paint: { overflow: "hidden" },
-  })
-})
-
-it("keeps clipping for authored flow and absolute children and includes the existing blur in containing-block ownership", () => {
-  expect(resolve({ position: "relative" }, { overflow: "hidden" }).host.overflow).toBe("hidden")
-  expect(resolve({ position: "absolute" }, { overflow: "hidden" }).host.overflow).toBe("hidden")
-  expect(resolve({}, { overflow: "hidden" }, true)).toMatchObject({
-    establishesContainingBlock: true,
-    host: { overflow: "hidden" },
-  })
-})
 
 it("gives the host real box geometry while preserving original backdrop ink and excluding geometry from that paint leaf", () => {
   const result = resolve(
@@ -75,6 +59,7 @@ it("gives the host real box geometry while preserving original backdrop ink and 
   expect(result).toMatchObject({
     host: { left: 40, top: 30, width: 240, height: 180, padding: 10, borderWidth: 4, borderColor: "transparent" },
     paint: { borderWidth: 4, borderColor: "red", backgroundColor: "plum" },
+    paintPlane: { margin: -4 },
     opacity: 0.4,
   })
   for (const field of ["left", "top", "width", "height", "padding", "opacity"])
@@ -82,37 +67,23 @@ it("gives the host real box geometry while preserving original backdrop ink and 
   expect(result.host).not.toHaveProperty("backgroundColor")
 })
 
-it("removes the overlay compositing box for contents without changing the original body position ownership", () => {
+it("extends the retained underlay and paint over native border insets with physical and logical overrides", () => {
   expect(
-    resolve({}, { display: "contents", opacity: 0, transform: [{ translateX: 20 }], filter: "blur(2px)" }, true),
+    resolve({}, { borderWidth: 4, borderTopWidth: 2, borderLeftWidth: 0, borderStartWidth: 8 }).paintPlane,
+  ).toEqual({
+    margin: -4,
+    marginTop: -2,
+    marginLeft: -0,
+    marginStart: -8,
+  })
+})
+
+it("removes only paint and group effects for native display contents while retaining the body", () => {
+  expect(
+    resolve({}, { display: "contents", opacity: 0, transform: [{ translateX: 20 }], filter: "blur(2px)" }),
   ).toMatchObject({
-    panelPosition: "fixed",
-    establishesContainingBlock: false,
     opacity: 1,
     host: { display: "contents", transform: undefined, filter: undefined },
-  })
-})
-
-it("leaves intermediate numeric appearance dimensions on the original property clock", () => {
-  const styles = getNativePanelStyles({ accessibilityLabel: "Clock" }, theme, 1280)
-  expect(getNativePanelOverlayLayout(styles, { ...styles.view, height: 600, width: 350 }, false)).toMatchObject({
-    panelViewportHeight: false,
-    panelViewportWidth: false,
-  })
-})
-
-it("keeps default CSS block flow distinct from an explicitly authored flex container", () => {
-  const authored: ViewStyle = { flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 30 }
-  const block = resolve({ position: "relative", flexGrow: 1, flexBasis: 140 }, authored)
-  expect(block.panelFlowFlexContainer).toBe(false)
-  for (const field of ["flexDirection", "alignItems", "justifyContent", "gap"])
-    expect(block.host).not.toHaveProperty(field)
-  expect(resolve({ position: "relative" }, { ...authored, display: "flex" })).toMatchObject({
-    panelFlowFlexContainer: true,
-    host: authored,
-  })
-  expect(resolve({ position: "relative" }, { display: "flex" }).host).toMatchObject({
-    flexDirection: "row",
-    alignContent: "stretch",
+    paintPlane: { display: "none" },
   })
 })

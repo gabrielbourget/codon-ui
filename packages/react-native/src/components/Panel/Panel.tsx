@@ -8,12 +8,10 @@ import {
   useState,
   type ComponentProps,
 } from "react"
-import { Animated, Modal as NativeModal, Pressable, StyleSheet, useWindowDimensions, type View } from "react-native"
+import { Animated, Modal as NativeModal, Pressable, StyleSheet, useWindowDimensions, View } from "react-native"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 
 import CUIOverlayHost from "../../input/specs/CUIOverlayHostNativeComponent"
-import CUIOverlaySlot from "../../input/specs/CUIOverlaySlotNativeComponent"
-import CUIOverlayViewport from "../../input/specs/CUIOverlayViewportNativeComponent"
 import { NativeBackdropSourceContext } from "../../overlays/backdrop/context"
 import { NativeBackdropEffect } from "../../overlays/backdrop/NativeBackdropEffect"
 import { NativeBackdropWindow } from "../../overlays/backdrop/NativeBackdropWindow"
@@ -87,9 +85,8 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
     },
     appearanceHost,
     () => appearanceScope.current?.() ?? false,
-    styles.layout,
   )
-  const overlayLayout = getNativePanelOverlayLayout(styles, appearance.view, props.overlayBlur ?? false)
+  const overlayLayout = getNativePanelOverlayLayout(styles)
   const identity = props.testID ?? props["data-testid"] ?? "panel"
   const label = props.accessibilityLabel ?? props["aria-label"]
   const current = useRef({ props, open, live: true })
@@ -149,8 +146,7 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
                 }}
               >
                 {/* Portal layers stay outside the authored overlay's common compositing group. */}
-                <CUIOverlayViewport
-                  ownerId={overlay.id}
+                <View
                   testID={`${identity}-overlay-viewport`}
                   collapsable={false}
                   accessible={false}
@@ -164,31 +160,23 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
                     focusable={false}
                     pointerEvents="box-none"
                     paintOpacity={overlayLayout.opacity as TOverlayPaintOpacity}
-                    panelPosition={overlayLayout.panelPosition}
-                    panelFlowFlexContainer={overlayLayout.panelFlowFlexContainer}
-                    panelViewportHeight={overlayLayout.panelViewportHeight}
-                    panelViewportWidth={overlayLayout.panelViewportWidth}
-                    panelLayoutLengths={appearance.layoutLengths}
-                    establishesContainingBlock={overlayLayout.establishesContainingBlock}
                     style={[StyleSheet.absoluteFill, overlayLayout.host]}
                   >
-                    <CUIOverlaySlot
-                      slotRole="underlay"
+                    <View
                       testID={`${identity}-overlay-underlay`}
                       collapsable={false}
                       accessible={false}
                       pointerEvents="none"
-                      style={StyleSheet.absoluteFill}
+                      style={[StyleSheet.absoluteFill, overlayLayout.paintPlane]}
                     >
                       {props.overlayBlur && <NativeBackdropEffect source={source} />}
-                    </CUIOverlaySlot>
-                    <CUIOverlaySlot
-                      slotRole="paint"
+                    </View>
+                    <View
                       testID={`${identity}-overlay-paint`}
                       collapsable={false}
                       accessible={false}
                       pointerEvents="box-none"
-                      style={StyleSheet.absoluteFill}
+                      style={[StyleSheet.absoluteFill, overlayLayout.paintPlane]}
                     >
                       <Pressable
                         testID={`${identity}-backdrop`}
@@ -200,14 +188,13 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
                           if (current.current.props.isDismissable !== false) close()
                         }}
                       />
-                    </CUIOverlaySlot>
-                    <CUIOverlaySlot
-                      slotRole="body"
+                    </View>
+                    <View
                       testID={`${identity}-overlay-body`}
                       collapsable={false}
                       accessible={false}
                       pointerEvents="box-none"
-                      style={StyleSheet.absoluteFill}
+                      style={{ flexGrow: 1, flexShrink: 1 }}
                     >
                       <NativeTextStyleProvider style={appearance.text}>
                         <NativePanelSurface
@@ -271,9 +258,9 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
                           </NativeContentContext.Provider>
                         </NativePanelSurface>
                       </NativeTextStyleProvider>
-                    </CUIOverlaySlot>
+                    </View>
                   </AnimatedOverlayHost>
-                </CUIOverlayViewport>
+                </View>
               </NativeFloatingWindowHost>
             </NativeBackdropWindow>
           </SafeAreaProvider>

@@ -2,7 +2,6 @@
 #include <react/fabric/FabricUIManagerBinding.h>
 #include <react/fabric/JFabricUIManager.h>
 #include <react/renderer/scheduler/Scheduler.h>
-#include "SnapshotQuery.h"
 #include "FabricManager.h"
 #include "FormDocumentJNI.h"
 #include "DragActionJNI.h"
@@ -20,16 +19,6 @@
 
 namespace jni = facebook::jni;
 using namespace facebook::react;
-
-static jni::local_ref<jstring> nativeSnapshot(
-    jni::alias_ref<jclass>, jni::alias_ref<JFabricUIManager::javaobject> manager,
-    jint target, jni::alias_ref<jstring> owner, jni::alias_ref<jstring> binding,
-    jni::alias_ref<jstring> revision) {
-  if (!owner || !binding || !revision) throw std::runtime_error("Native motion: actual owner unavailable");
-  const auto uiManager = scopedManager(manager);
-  return jni::make_jstring(codon::motion::queryNativeFabricSnapshot(
-      *uiManager, target, owner->toStdString(), binding->toStdString(), revision->toStdString()));
-}
 
 static jni::local_ref<jstring> nativePopFrame(
     jni::alias_ref<jclass>, jni::alias_ref<JFabricUIManager::javaobject> manager,
@@ -142,7 +131,6 @@ extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *) {
     registerBackdropNatives(jni::Environment::current());
     registerForegroundNatives(jni::Environment::current());
     jni::findClassStatic("com/codonui/input/CUIMotionSnapshotModule")->registerNatives({
-        makeNativeMethod("nativeSnapshot", nativeSnapshot),
         makeNativeMethod("nativeInitialValue", nativeInitialValue),
         makeNativeMethod("nativeEvaluatedLayout", nativeEvaluatedLayout),
         makeNativeMethod("nativePopFrame", nativePopFrame),

@@ -1,10 +1,14 @@
-#import "CUICollectionNode.h"
+#import <React/RCTViewComponentView.h>
 
 @protocol CUIFieldSemanticContribution <NSObject>
 - (void)retire;
 @end
 
-@interface CUIFormMetadataView : CUICollectionMetadataView
+@interface CUIFormMetadataView : RCTViewComponentView
+@property(nonatomic, copy) NSString *ownerId;
+@property(nonatomic, copy) NSString *descriptorId;
+@property(nonatomic, copy) NSString *descriptorRevision;
+- (BOOL)isMetadataOnly;
 @property (nonatomic, assign) NSInteger originalTarget;
 @property (nonatomic, copy) NSString *semanticBinding;
 @property (nonatomic, copy) NSString *ownedEditorBinding;

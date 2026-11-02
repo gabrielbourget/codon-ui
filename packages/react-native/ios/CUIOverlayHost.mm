@@ -1,5 +1,5 @@
 #import "CUIOverlayHost.h"
-#include "../cpp/overlay/NativeOverlayLayout.h"
+#include <react/renderer/components/CodonNativeInputSpec/ComponentDescriptors.h>
 #import <react/renderer/components/CodonNativeInputSpec/Props.h>
 #include <cmath>
 using namespace facebook::react;
@@ -7,7 +7,7 @@ using namespace facebook::react;
   CGFloat _paintOpacity;
 }
 + (ComponentDescriptorProvider)componentDescriptorProvider {
-  return concreteComponentDescriptorProvider<CUIOwnedOverlayHostComponentDescriptor>();
+  return concreteComponentDescriptorProvider<CUIOverlayHostComponentDescriptor>();
 }
 - (instancetype)initWithFrame:(CGRect)frame {
   if (self = [super initWithFrame:frame]) {

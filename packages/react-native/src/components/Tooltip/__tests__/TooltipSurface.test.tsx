@@ -323,8 +323,9 @@ describe.each(variants)("$name measured native surface", ({ name, Component, arr
     expect(f.onOpenChange).not.toHaveBeenCalled()
   })
 
-  it("routes raw View and core editor description leases to actual tags, preserves metadata/values and retires native window loss", async () => {
+  it("binds cooperating original targets, preserves editor values and metadata, and retires native window loss", async () => {
     const anchor = createRef<View>(),
+      replacement = createRef<View>(),
       editor = createRef<TextInput>(),
       root = createRef<View>(),
       host = createRef<View>()
@@ -332,16 +333,17 @@ describe.each(variants)("$name measured native surface", ({ name, Component, arr
     jest
       .spyOn(ReactNative, "findNodeHandle")
       .mockImplementation((target) =>
-        target === anchor.current ? 17 : target === editor.current ? 18 : target === root.current ? 91 : 92,
+        target === anchor.current ? 17 : target === replacement.current ? 18 : target === root.current ? 91 : 92,
       )
-    const node = (useEditor = false) => (
+    const node = (useReplacement = false) => (
       <NativeFloatingLayerHost testID="host" ref={host}>
-        <View
+        <NativeFocusView
           ref={anchor}
           testID="generic-anchor"
           accessibilityLabel="Authored label"
           accessibilityHint="Authored hint"
         />
+        <NativeFocusView ref={replacement} testID="replacement-anchor" />
         <TextInput
           ref={editor}
           testID="generic-editor"
@@ -352,7 +354,7 @@ describe.each(variants)("$name measured native surface", ({ name, Component, arr
         />
         <Component
           isOpen
-          triggerRef={useEditor ? editor : anchor}
+          triggerRef={useReplacement ? replacement : anchor}
           ref={root}
           showOverlayArrow={false}
           descriptionLabel=""
@@ -368,17 +370,13 @@ describe.each(variants)("$name measured native surface", ({ name, Component, arr
     const result = await render(node())
     measure(host.current!, [0, 0, 300, 400])
     measure(anchor.current!, [100, 200, 40, 20])
-    measure(editor.current!, [100, 250, 40, 20])
+    measure(replacement.current!, [100, 250, 40, 20])
     measure(root.current!, [0, 0, 100, 80])
     await fireEvent(screen.getByTestId("host"), "layout", layout(300, 400))
     await tick()
-    const descriptions = () =>
-      screen
-        .getByTestId("host")
-        .props.floatingTargets.filter((target: { descriptionTag: number }) => target.descriptionTag > 0)
-    expect(descriptions()).toEqual([
-      expect.objectContaining({ targetTag: 17, descriptionTag: 91, descriptionLabel: "" }),
-    ])
+    const description = (id: string) => screen.getByTestId(id).props.nativeDescriptionTag
+    expect(description("generic-anchor")).toBe(91)
+    expect(screen.getByTestId("generic-anchor").props.nativeDescriptionLabel).toBe("")
     expect(screen.getByTestId(name, hidden).props).toMatchObject({
       nativeLabelledBy: ["label-one", "label-two"],
       nativeDescribedBy: [],
@@ -390,11 +388,12 @@ describe.each(variants)("$name measured native surface", ({ name, Component, arr
       accessibilityLabel: "Authored label",
       accessibilityHint: "Authored hint",
     })
-    const retired = descriptions()[0].id
+    const originalEditor = editor.current
     await result.rerender(node(true))
     await tick()
-    expect(descriptions()).toEqual([expect.objectContaining({ targetTag: 18, descriptionTag: 91 })])
-    expect(descriptions()[0].id).not.toBe(retired)
+    expect(description("generic-anchor")).toBe(0)
+    expect(description("replacement-anchor")).toBe(91)
+    expect(editor.current).toBe(originalEditor)
     expect(screen.getByTestId("generic-editor")).toHaveDisplayValue("")
     expect(change).not.toHaveBeenCalled()
     const scope = screen.getByTestId("host").props
@@ -410,9 +409,39 @@ describe.each(variants)("$name measured native surface", ({ name, Component, arr
         },
       }),
     )
-    expect(descriptions()).toEqual([])
+    expect(description("replacement-anchor")).toBe(0)
     expect(change).not.toHaveBeenCalled()
   })
+
+  it.each(["View", "TextInput"])(
+    "rejects an active raw %s trigger instead of dropping its description",
+    async (kind) => {
+      const anchor = createRef<View>(),
+        editor = createRef<TextInput>(),
+        root = createRef<View>(),
+        host = createRef<View>()
+      jest.spyOn(ReactNative, "findNodeHandle").mockReturnValue(91)
+      await render(
+        <NativeFloatingLayerHost testID="host" ref={host}>
+          <View ref={anchor} />
+          <TextInput ref={editor} value="" />
+          <Component isOpen triggerRef={kind === "View" ? anchor : editor} ref={root} showOverlayArrow={false}>
+            Required supplementary description
+          </Component>
+        </NativeFloatingLayerHost>,
+      )
+      measure(host.current!, [0, 0, 300, 400])
+      measure(anchor.current!, [100, 200, 40, 20])
+      measure(editor.current!, [100, 250, 40, 20])
+      measure(root.current!, [0, 0, 100, 80])
+      await expect(
+        (async () => {
+          await fireEvent(screen.getByTestId("host"), "layout", layout(300, 400))
+          await tick()
+        })(),
+      ).rejects.toThrow("Tooltip/HoverPopover supplementary descriptions require a NativeFocusView trigger")
+    },
+  )
 
   it("retains caller-controlled empty children and independent vector/root styles through themes", async () => {
     const change = jest.fn()
