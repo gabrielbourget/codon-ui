@@ -48,7 +48,6 @@ type TStepperBase<T> = T extends unknown
 
 export type TNativeStepperProps = TStepperBase<TNativeStepperNumberFieldProps> &
   TNativeStepperKeyboardCallbacks & {
-    isWheelDisabled?: boolean
     inputProps?: TNativeStepperInputProps
     type?: TNativeStepperType
     orientation?: TNativeStepperOrientation
