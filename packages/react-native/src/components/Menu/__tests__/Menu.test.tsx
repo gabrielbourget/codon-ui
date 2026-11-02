@@ -33,7 +33,6 @@ import {
   NativeMenuHeaderContext,
   NativeMenuListContext,
   NativeMenuSeparatorContext,
-  NativeMenuPointerObservationContext,
   NativeMenuStateContext,
 } from "../context"
 import { Menu, NativeMenuTrigger } from "../Menu"
@@ -2677,157 +2676,103 @@ it("updates list ordinals across explicit reorder, removal, reinsertion and filt
   expect(row("menu-empty-state").props.nativeCollectionSemantics).toBe("")
 })
 
-it.each([false, true])(
-  "hands an admitted native pointer receipt to the original parent row, retired=%s",
-  async (retired) => {
-    const trigger = createRef<RN.View>(),
-      other = createRef<RN.View>(),
-      childList = createRef<RN.View>()
-    const f = fixture({}, [
-      menuModelEntry(
-        "submenutrigger-13",
-        <SubmenuTrigger ref={trigger}>
-          <NativeMenuListContext.Provider
-            value={{
-              ref: childList,
-            }}
-          >
-            <Menu
-              testID="submenu"
-              items={[menuModelEntry("child", <MenuItem id="child">Child</MenuItem>, "Child", "item")]}
-            />
-          </NativeMenuListContext.Provider>
-        </SubmenuTrigger>,
-        "",
-        "submenutrigger",
-        [
-          menuModelEntry(
-            "trigger",
-            <MenuItem id="trigger" testID="trigger">
-              More
-            </MenuItem>,
-            "More",
-            "item",
-          ),
-        ],
-      ),
-      menuModelEntry(
-        "other",
-        <MenuItem ref={other} id="other" testID="other">
-          Other
-        </MenuItem>,
-        "Other",
-        "item",
-      ),
-    ])
-    const observe = jest.fn()
-    await render(
-      <NativeMenuPointerObservationContext.Provider value={observe}>
-        {f.node()}
-      </NativeMenuPointerObservationContext.Provider>,
-    )
-    await f.ready(false, "source-model-window")
-    expect(row("host").props.menuPointerPolicies).toEqual([])
-    await act(() =>
-      row("trigger").props.onNativeFocusChange({
-        nativeEvent: {
-          ownerId: row("trigger").props.ownerId,
-          target: RN.findNodeHandle(trigger.current),
-          isFocused: true,
-          isFocusVisible: true,
-        },
-      }),
-    )
-    await rawKey("trigger", "Enter")
-    const lists = screen.getAllByTestId("menu-list", hidden)
-    await fireEvent(lists[1], "layout", { nativeEvent: { layout: { x: 200, y: 0, width: 150, height: 180 } } })
-    await act(() => {
-      const scope = row("host").props
-      scope.onNativeScopeStatus({
-        nativeEvent: {
-          ownerId: scope.ownerId,
-          windowId: "source-model-window",
-          epoch: 1,
-          policyRevision: scope.policyRevision,
-          ready: true,
-          windowActive: true,
-        },
-      })
+it("uses ordinary parent-row hover immediately without a Menu grace policy or delayed handoff", async () => {
+  const trigger = createRef<RN.View>(),
+    other = createRef<RN.View>(),
+    childList = createRef<RN.View>()
+  const f = fixture({}, [
+    menuModelEntry(
+      "submenutrigger-13",
+      <SubmenuTrigger ref={trigger}>
+        <NativeMenuListContext.Provider
+          value={{
+            ref: childList,
+          }}
+        >
+          <Menu
+            testID="submenu"
+            items={[menuModelEntry("child", <MenuItem id="child">Child</MenuItem>, "Child", "item")]}
+          />
+        </NativeMenuListContext.Provider>
+      </SubmenuTrigger>,
+      "",
+      "submenutrigger",
+      [
+        menuModelEntry(
+          "trigger",
+          <MenuItem id="trigger" testID="trigger">
+            More
+          </MenuItem>,
+          "More",
+          "item",
+        ),
+      ],
+    ),
+    menuModelEntry(
+      "other",
+      <MenuItem ref={other} id="other" testID="other">
+        Other
+      </MenuItem>,
+      "Other",
+      "item",
+    ),
+  ])
+  await render(f.node())
+  await f.ready(false, "source-model-window")
+  await act(() =>
+    row("trigger").props.onNativeFocusChange({
+      nativeEvent: {
+        ownerId: row("trigger").props.ownerId,
+        target: RN.findNodeHandle(trigger.current),
+        isFocused: true,
+        isFocusVisible: true,
+      },
+    }),
+  )
+  await rawKey("trigger", "Enter")
+  expect(row("trigger").props.accessibilityState.expanded).toBe(true)
+  await act(() => {
+    const scope = row("host").props
+    scope.onNativeScopeStatus({
+      nativeEvent: {
+        ownerId: scope.ownerId,
+        windowId: "source-model-window",
+        epoch: 1,
+        policyRevision: scope.policyRevision,
+        ready: true,
+        windowActive: true,
+      },
     })
-    const native = row("host").props
-    expect(native.menuPointerPolicies).toHaveLength(1)
-    const policy = native.menuPointerPolicies[0]
-    expect(policy.triggerTarget).toBe(RN.findNodeHandle(trigger.current))
-    expect(policy.submenuTarget).toBe(RN.findNodeHandle(childList.current))
-    expect(inspectSourceCollectionBinding(policy.parentBinding)?.itemId).toBe("")
-    expect(inspectSourceCollectionBinding(policy.triggerBinding)?.itemId).toBeTruthy()
-    const data = {
-      ownerId: native.ownerId,
-      windowId: "source-model-window",
-      epoch: 1,
-      revision: native.menuPointerRevision,
-      policyId: policy.id,
-      sequence: 1,
-      phase: "status",
-      ready: true,
-      suppressed: false,
-      observationId: 0,
-      pointerType: "unknown",
-      pageX: 10,
-      pageY: 10,
-      timestamp: 0,
-      target: policy.parentTarget,
-      hitPath: [policy.parentTarget],
-      nativeButtons: "",
-      nativeModifiers: "",
-      geometry: "",
-      error: "",
-    }
-    const status = { nativeEvent: data }
-    await act(() => native.onNativeMenuPointer(status))
-    expect(observe).toHaveBeenLastCalledWith(status)
-    expect(observe.mock.calls.at(-1)![0]).toBe(status)
-    if (retired)
-      await act(() =>
-        row("other").props.onNativeFocusChange({
-          nativeEvent: {
-            ownerId: row("other").props.ownerId,
-            target: RN.findNodeHandle(other.current),
-            isFocused: true,
-            isFocusVisible: false,
-          },
-        }),
-      )
-    if (retired) {
-      expect(row("trigger").props.accessibilityState.expanded).toBe(false)
-      expect(row("host").props.menuPointerPolicies).toEqual([])
-    }
-    jest.mocked(Commands.requestCollectionFocus).mockClear()
-    await act(() =>
-      row("host").props.onNativeMenuPointer({
-        nativeEvent: {
-          ...data,
-          sequence: 2,
-          phase: "handoff",
-          observationId: 7,
-          pointerType: "mouse",
-          target: RN.findNodeHandle(other.current),
-          hitPath: [RN.findNodeHandle(other.current), policy.parentTarget],
-        },
-      }),
-    )
-    if (retired) expect(Commands.requestCollectionFocus).not.toHaveBeenCalled()
-    else {
-      expect(
-        jest
-          .mocked(Commands.requestCollectionFocus)
-          .mock.calls.some(([target, owner]) => target === other.current && owner === row("other").props.ownerId),
-      ).toBe(true)
-      expect(row("trigger").props.accessibilityState.expanded).toBe(false)
-    }
-    expect(f.action).not.toHaveBeenCalled()
-  },
-)
+  })
+  const native = row("host").props
+  expect(native).not.toHaveProperty("menuPointerPolicies")
+  expect(native).not.toHaveProperty("menuPointerRevision")
+  expect(native).not.toHaveProperty("onNativeMenuPointer")
+  expect(native.onNativeWindowPointer).toEqual(expect.any(Function))
+  jest.mocked(Commands.requestCollectionFocus).mockClear()
+  await act(() =>
+    row("other").props.onPointerEnter({
+      ...event(),
+      nativeEvent: {
+        target: RN.findNodeHandle(other.current),
+        pointerType: "mouse",
+        pageX: 40,
+        pageY: 80,
+        timestamp: 50,
+      },
+    }),
+  )
+  expect(
+    jest
+      .mocked(Commands.requestCollectionFocus)
+      .mock.calls.some(([target, owner]) => target === other.current && owner === row("other").props.ownerId),
+  ).toBe(true)
+  expect(row("trigger").props.accessibilityState.expanded).toBe(false)
+  jest.mocked(Commands.requestCollectionFocus).mockClear()
+  await act(() => jest.advanceTimersByTime(1100))
+  expect(Commands.requestCollectionFocus).not.toHaveBeenCalled()
+  expect(f.action).not.toHaveBeenCalled()
+})
 
 it("names the original menu list through its actual trigger while retaining explicit list naming precedence", async () => {
   const scene = (override = false) => (

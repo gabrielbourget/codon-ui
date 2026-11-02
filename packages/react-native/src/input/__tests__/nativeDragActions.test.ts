@@ -1,6 +1,6 @@
 import { createNativeKeyScope } from "../keyScope"
 import { createNativeDragActions, parseNativeDragAction } from "../nativeDragActions"
-import type { TNativeDragActionIdentity } from "../nativeDragActions"
+import type { TNativeDragActionIdentity, TNativeDragViewBinding } from "../nativeDragActions"
 import NativeModule from "../specs/NativeCUIDragAndDrop"
 
 jest.mock("../specs/NativeCUIDragAndDrop", () => ({
@@ -12,7 +12,16 @@ jest.mock("../specs/NativeCUIDragAndDrop", () => ({
   },
 }))
 const native = NativeModule as jest.Mocked<NonNullable<typeof NativeModule>>
-const setup = () => {
+const metadata = (): TNativeDragViewBinding => ({
+  draggable: true,
+  droppable: true,
+  members: [{ key: "number:0", instanceId: "row-instance", targetTag: 30, handleTag: 0 }],
+  previewTarget: 0,
+  previewInstanceId: "",
+  previewX: 0,
+  previewY: 0,
+})
+const setup = (acknowledged = true) => {
   const scope = createNativeKeyScope("owner")
   for (const ready of [false, true])
     scope.acceptNativeStatus({
@@ -45,10 +54,23 @@ const setup = () => {
     revision: "original",
     rootTarget: 20,
     itemTargets: new Set([30]),
+    native: metadata(),
     current: () => live,
     dispatch,
     retire,
   })
+  if (acknowledged)
+    actions.acceptStatus(
+      JSON.stringify({
+        ...JSON.parse(actions.bindings())[0],
+        kind: "binding",
+        ownerId: "owner",
+        windowId: "window",
+        epoch: 1,
+        ready: true,
+        error: "",
+      }),
+    )
   const identity: TNativeDragActionIdentity = {
     moduleId: "native-module",
     ownerId: "owner",
@@ -178,6 +200,7 @@ it("unregisters old collection leases once and never routes a late action into a
     revision: "replacement",
     rootTarget: 20,
     itemTargets: new Set([30]),
+    native: metadata(),
     current: () => true,
     dispatch: replacement,
     retire: retired,
@@ -454,3 +477,95 @@ it("requires fresh native admission after scope coverage and rejects the previou
   expect(f.registration.ready()).toBe(true)
   f.actions.dispose()
 })
+
+it("rejects a registration without native metadata instead of granting readiness", () => {
+  const f = setup()
+  f.registration.unregister()
+  const omitted = {
+    bindingId: "collection",
+    revision: "original",
+    rootTarget: 20,
+    itemTargets: new Set([30]),
+    current: () => true,
+    dispatch: f.dispatch,
+    retire: f.retire,
+  }
+  // @ts-expect-error Native metadata is required even for an otherwise valid registration.
+  expect(() => f.actions.register(omitted)).toThrow("invalid native view metadata")
+  expect(f.actions.bindings()).toBe("[]")
+  expect(f.dispatch).not.toHaveBeenCalled()
+  expect(native.settleAction).not.toHaveBeenCalled()
+  f.actions.dispose()
+})
+
+it.each([null, false, [], {}])("rejects malformed native metadata %p without publishing a binding", (invalid) => {
+  const f = setup()
+  f.registration.unregister()
+  expect(() =>
+    f.actions.register({
+      bindingId: "collection",
+      revision: "original",
+      rootTarget: 20,
+      itemTargets: new Set([30]),
+      native: invalid as unknown as TNativeDragViewBinding,
+      current: () => true,
+      dispatch: f.dispatch,
+      retire: f.retire,
+    }),
+  ).toThrow("invalid native view metadata")
+  expect(f.actions.bindings()).toBe("[]")
+  expect(f.dispatch).not.toHaveBeenCalled()
+  f.actions.dispose()
+})
+
+it("keeps unacknowledged registration and stale metadata replies ineligible for lift", () => {
+  const f = setup(false)
+  const status = {
+    ...JSON.parse(f.actions.bindings())[0],
+    kind: "binding",
+    ownerId: "owner",
+    windowId: "window",
+    epoch: 1,
+    ready: true,
+    error: "",
+  }
+  expect(f.registration.current()).toBe(true)
+  expect(f.registration.ready()).toBe(false)
+  expect(() => f.actions.dispatch(f.packet())).toThrow("authority")
+  for (const metadataRevision of [undefined, 0, 2]) {
+    f.actions.acceptStatus(JSON.stringify({ ...status, metadataRevision }))
+    expect(f.registration.ready()).toBe(false)
+    expect(() => f.actions.dispatch(f.packet())).toThrow("authority")
+  }
+  expect(f.dispatch).not.toHaveBeenCalled()
+  expect(native.settleAction).not.toHaveBeenCalled()
+  f.actions.acceptStatus(JSON.stringify(status))
+  expect(f.registration.ready()).toBe(true)
+  f.actions.dispatch(f.packet())
+  expect(f.dispatch).toHaveBeenCalledTimes(1)
+  expect(native.settleAction).toHaveBeenCalledTimes(1)
+  f.actions.dispose()
+})
+
+it.each(["move", "exit", "activate", "end"] as const)(
+  "still acknowledges %s synchronously and propagates its original exception",
+  (kind) => {
+    const f = setup(),
+      failure = new Error(`original ${kind}`),
+      trace: string[] = []
+    f.dispatch.mockImplementation(() => {
+      trace.push("callback")
+      throw failure
+    })
+    native.settleAction.mockImplementation(() => {
+      trace.push("acknowledgement")
+      return true
+    })
+    expect(() => f.actions.dispatch(f.packet({ kind }))).toThrow(failure)
+    expect(trace).toEqual(["callback", "acknowledgement"])
+    expect(f.retire).toHaveBeenCalledTimes(1)
+    expect(() => f.actions.dispatch(f.packet({ kind }))).toThrow("authority")
+    expect(f.dispatch).toHaveBeenCalledTimes(1)
+    f.actions.dispose()
+  },
+)

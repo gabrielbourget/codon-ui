@@ -20,7 +20,7 @@
     "node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/React/Fabric/RCTSurfacePointerHandler.mm": "402bd6a1e1f97b3eabd3f6a7cc8944dd5dd59859a2cd6deb800fc8b6b43c0e8f"
   },
   "license": "../../collection/LICENSE.react-aria.md",
-  "scope": "Private Menu state/context and native pointer-policy family integration with original collection/native-target/window admission, native geometry/timers, Android original-window delegation, UIKit original-surface input observers and a private original-receipt observation context for maintained scenes. Actual native/default/focus/retirement, active-descendant/AT, full current consumer/Release products and public-family acceptance remain open. Owner-approved D6 uses explicit ordered items/stable keys and explicit section/submenu-trigger children; only the separate submenu overlay remains authored as SubmenuTrigger children. The original visible list ref registers logical ownership with the shared admission adapter. No adapter means no business action; shared native integration and installed qualification remain open. The original primary MenuItem ref registers through useNativeCollectionReceiverRef; submenu branches do not duplicate trigger receiver claims. Cached leaves refresh native bindings after adapter notifications.",
+  "scope": "Private Menu state/context with original collection/native-target/window admission. Menu-specific directional mouse grace, native suppression/focus interception, delayed pointer handoff and private grace-receipt observation have been retired; ordinary row hover, configured submenu hover delay, keyboard/press operation, original focus and selection remain. Diagonal movement across parent rows follows ordinary hover behavior without a protected corridor. Actual native/default/focus/retirement, active-descendant/AT, full current consumer/Release products and public-family acceptance remain open. Owner-approved D6 uses explicit ordered items/stable keys and explicit section/submenu-trigger children; only the separate submenu overlay remains authored as SubmenuTrigger children. The original visible list ref registers logical ownership with the shared admission adapter. No adapter means no business action; shared native integration and installed qualification remain open. The original primary MenuItem ref registers through useNativeCollectionReceiverRef; submenu branches do not duplicate trigger receiver claims. Cached leaves refresh native bindings after adapter notifications.",
   "authoredFilesSHA256": {
     "GroupSelectionManager.ts": "64f9b1fc570bb01acbcf9782fd0a8b93024d858fb2ae3698c8ad2148325e8406",
     "MenuSection.tsx": "c057c34465d469a6ea41981cea32aa278de81b4dc2530e506507d339607a0197",
@@ -35,13 +35,6 @@
     "../../collection/snapshot.ts": "c25fcd3b23987a1ab703304b41b6f5553bfdb4246213522e2bd5b863e4ccf659",
     "content.tsx": "3b4f00bb4137ad7d41aebfedb763fe197f8ce2dba9f67f3a704ebc739f2adf7b",
     "../../collection/context.tsx": "404811bd4f5ec84ca8394bf2bbdad73f1fd5068368e0f9a3f75dbeec4b2892a7",
-    "../../../android/src/main/java/com/codonui/input/CUIMenuPointerGrace.java": "3db9f8f11236bfe98ffd9a8e8a58ff226b8f5c42594c8f5adaff576f4f8f10a7",
-    "../../../ios/CUIMenuPointerGrace.h": "b26b65e99c0d6ca1eb93ad13d68f420312af55198e6ff99b72af7773bdf1d19a",
-    "../../input/nativeMenuPointers.ts": "c5346a3f995ab383092294b5d2168be565ec60df3e9c32527f6093b7e9e0b1d2",
-    "../../../android/src/main/java/com/codonui/input/CUIMenuPointerPolicies.java": "6e64b9f31da7fefb00c54e157984a475c9c857852d9eb7c529b7dfeb9df017da",
-    "../../../android/src/main/java/com/codonui/input/CUIMenuPointerWindowCallback.java": "849fd9f6ea098488d68f02744b3d03f61700fe67c3f65ce83bbfd3a90d20c9a4",
-    "../../../ios/CUIMenuPointerPolicies.h": "c3c9cebce969206c8f2e0da7880ca6a974725c6f8ba0a3eae18da310bd68bb9f",
-    "../../../ios/CUIMenuPointerPolicies.mm": "46c9da4cae0fe3d61dbb6dae1b2bc42177fd9e507c6e2327ab97e55f7f30d0a3",
     "../../input/NativeKeyboardScope.tsx": "c3b7d3987abd3acc3751e49994226c2fb958c08d1d5da69418ecea6df8441d3a",
     "../../input/specs/CUIKeyboardScopeNativeComponent.ts": "a6ed1aaf8d8374e49244aab3b560bd046156990618bd33656bee7c4345060b8c",
     "../../../ios/CUIFocusView.mm": "a7859d01e9038d695b7b85d5192dfcb3a836321477a2a41d154d6b06840a7fed",
@@ -54,5 +47,18 @@
     "../../../android/src/main/java/com/codonui/input/CUICollectionRoot.java": "10b674bc2f956b3fd377e91a4d1af2251e0a8b329d58e79ff503713d45b112f5",
     "../../../android/src/main/java/com/codonui/input/CUIWindowPointerCallback.java": "173252c7efbf8c0f27fc0e02fe647fddff9e6f713cbf70948c33608e545a0192",
     "../../../android/src/main/java/com/codonui/input/CUIWindowPointers.java": "fc7e9bb1b6123d6b718f2a406b5f8c5144b238b133e073f6151fed948a3d2826"
+  },
+  "retiredMenuPointerGrace": {
+    "contract": "Ordinary parent-row hover applies immediately; no directional corridor or 1000ms inactivity/100ms handoff timer. Keep ordinary submenu hover delay, press/keyboard operation, original refs/focus, accessibility activation and selection.",
+    "historicalAuthoredFilesSHA256": {
+      "../../../android/src/main/java/com/codonui/input/CUIMenuPointerGrace.java": "3db9f8f11236bfe98ffd9a8e8a58ff226b8f5c42594c8f5adaff576f4f8f10a7",
+      "../../../ios/CUIMenuPointerGrace.h": "b26b65e99c0d6ca1eb93ad13d68f420312af55198e6ff99b72af7773bdf1d19a",
+      "../../input/nativeMenuPointers.ts": "c5346a3f995ab383092294b5d2168be565ec60df3e9c32527f6093b7e9e0b1d2",
+      "../../../android/src/main/java/com/codonui/input/CUIMenuPointerPolicies.java": "6e64b9f31da7fefb00c54e157984a475c9c857852d9eb7c529b7dfeb9df017da",
+      "../../../android/src/main/java/com/codonui/input/CUIMenuPointerWindowCallback.java": "849fd9f6ea098488d68f02744b3d03f61700fe67c3f65ce83bbfd3a90d20c9a4",
+      "../../../ios/CUIMenuPointerPolicies.h": "c3c9cebce969206c8f2e0da7880ca6a974725c6f8ba0a3eae18da310bd68bb9f",
+      "../../../ios/CUIMenuPointerPolicies.mm": "46c9da4cae0fe3d61dbb6dae1b2bc42177fd9e507c6e2327ab97e55f7f30d0a3"
+    },
+    "evidenceBoundary": "Historical hashes above retain their original evidence values. Focused source tests do not establish installed native event/focus behavior."
   }
 }

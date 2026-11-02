@@ -43,15 +43,9 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
   boolean dialogFocusReady() { return captureReady(); }
   void emitDialogFocus(String name, WritableMap data) { emit(name, data); }
   final CUIOrdinaryEditorKeys ordinaryEditorKeys = new CUIOrdinaryEditorKeys(this);
-  final CUIMenuPointerPolicies menuPointers = new CUIMenuPointerPolicies(this);
-  private List<CUIMenuPointerPolicies.Registration> menuPointerPolicies = new ArrayList<>();
-  private double menuPointerRevision;
-  void setMenuPointerPolicies(List<CUIMenuPointerPolicies.Registration> next) { menuPointerPolicies = next; }
-  void setMenuPointerRevision(double next) { menuPointerRevision = next; }
   boolean menuPointerCaptureReady() { return captureReady(); }
   String menuPointerOwnerId() { return ownerId; }
   double menuPointerEpoch() { return windowEpoch; }
-  void emitMenuPointer(WritableMap data) { emit("topNativeMenuPointer", data); }
   private static final class ToolbarRole {
     final java.lang.ref.WeakReference<View> original;
     final Object role;
@@ -549,7 +543,6 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
     ordinaryEditorKeys.publish();
     publishToolbarStatus();
     CUIWindowPointers.refresh(this);
-    menuPointers.update(menuPointerPolicies, menuPointerRevision);
     floating.update(floatingTargets, captureReady());
     WritableMap data = baseData(); data.putString("windowId", isAttachedToWindow() ? CUIInputWindow.identity(this) : "");
     data.putDouble("epoch", windowEpoch); data.putDouble("policyRevision", policyRevision); data.putBoolean("ready", captureReady()); data.putBoolean("windowActive", windowActive()); emit("topNativeScopeStatus", data);
@@ -598,7 +591,6 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
   private boolean dispatchOriginalKeyEvent(KeyEvent event) {
     if (!isAttachedToWindow() || !hasWindowFocus() || (event.getAction() != KeyEvent.ACTION_DOWN && event.getAction() != KeyEvent.ACTION_UP)) return super.dispatchKeyEvent(event);
     boolean down = event.getAction() == KeyEvent.ACTION_DOWN;
-    CUIMenuPointerPolicies.recordKey(this, event);
     if (down) recordModality("keyboard", event.getEventTime());
     boolean outer = CUIInputWindow.beginKey(this);
     try {
@@ -690,7 +682,6 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
   @Override public boolean dispatchTouchEvent(MotionEvent event) {
     CUIInputWindow.pointerEvent(this, event);
     if (event.getActionMasked() == MotionEvent.ACTION_DOWN && hasWindowFocus()) {
-      CUIMenuPointerPolicies.recordPointerDown(this);
       recordModality("pointer", event.getEventTime());
     }
     CUIInputWindow.beginPointer(this);
@@ -711,8 +702,6 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
     } finally { CUIDragInteractions.endDispatch(); }
   }
   @Override public boolean dispatchGenericMotionEvent(MotionEvent event) {
-    if ((event.getActionMasked() == MotionEvent.ACTION_HOVER_MOVE || event.getActionMasked() == MotionEvent.ACTION_HOVER_ENTER)
-        && event.getToolType(0) == MotionEvent.TOOL_TYPE_MOUSE) CUIMenuPointerPolicies.recordHover(this);
     if (event.getActionMasked() == MotionEvent.ACTION_SCROLL) CUIInputWindow.interacted(this);
     return super.dispatchGenericMotionEvent(event);
   }
@@ -795,8 +784,7 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
     detachToolbarObserver();
     dialogs.detach();
     floating.stop();
-    menuPointers.dispose();
-    retireHeld(); held.clear(); if (boundRoot != null) { ViewCompat.removeOnUnhandledKeyEventListener(boundRoot, unhandled); CUIInputWindow.unregister(boundRoot, this); CUIWindowPointers.release(boundRoot); CUIMenuPointerPolicies.release(boundRoot); boundRoot = null; }
+    retireHeld(); held.clear(); if (boundRoot != null) { ViewCompat.removeOnUnhandledKeyEventListener(boundRoot, unhandled); CUIInputWindow.unregister(boundRoot, this); CUIWindowPointers.release(boundRoot); boundRoot = null; }
     windowEpoch++; super.onDetachedFromWindow(); publishStatus();
   }
 

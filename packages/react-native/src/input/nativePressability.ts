@@ -1,9 +1,9 @@
 import type { RefObject } from "react"
 import type { GestureResponderEvent, PressableProps, View, ViewProps } from "react-native"
+// @ts-expect-error RN 0.86.3 exports this hook at runtime and in strict API types, but omits it from legacy types.
+import { usePressability as upstreamUsePressability } from "react-native"
 // @ts-expect-error Pinned RN publishes this inspected hook without TypeScript declarations.
 import upstreamUseAndroidRippleForView from "react-native/Libraries/Components/Pressable/useAndroidRippleForView"
-// @ts-expect-error Pinned RN publishes this inspected hook without TypeScript declarations.
-import upstreamUsePressability from "react-native/Libraries/Pressability/usePressability"
 
 type TConfig = Pick<
   PressableProps,

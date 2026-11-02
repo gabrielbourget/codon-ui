@@ -752,16 +752,19 @@ export class NativeCollectionDragBinding {
           previewExpected: !!source.preparedDragPreview,
         }
       }
-      if (identity.kind === "move")
-        return { moved: this.controller.move(identity.sessionId, { ...point, type: "dragmove" }) }
+      if (identity.kind === "move") {
+        this.controller.move(identity.sessionId, { ...point, type: "dragmove" })
+        return {}
+      }
       if (identity.kind === "exit") {
         this.controller.leave(identity.sessionId, this.nativeTarget)
-        return { exited: true }
+        return {}
       }
       if (identity.kind === "end") {
-        if (payload.external && this.controller.activeSession()?.source) return { ended: false }
+        if (payload.external && this.controller.activeSession()?.source) return {}
         const operation = offered([payload.operation])[0]
-        return { ended: this.controller.end(identity.sessionId, point, operation) }
+        this.controller.end(identity.sessionId, point, operation)
+        return {}
       }
       if (identity.kind === "activate") {
         if (payload.expectedTarget) {
@@ -772,12 +775,13 @@ export class NativeCollectionDragBinding {
             encodeCollectionKey(target.key) !== expected.key ||
             target.dropPosition !== expected.position
           )
-            return { activated: false }
+            return {}
           const row = this.rowFor(expected.key, expected.instanceId),
             view = this.view(row, "target")
-          if (!view || findNodeHandle(view) !== expected.targetTag) return { activated: false }
+          if (!view || findNodeHandle(view) !== expected.targetTag) return {}
         }
-        return { activated: this.controller.activate(identity.sessionId, point) }
+        this.controller.activate(identity.sessionId, point)
+        return {}
       }
       if (!Array.isArray(payload.types) || payload.types.some((type) => typeof type !== "string"))
         throw new Error("Native drop binding: original types required")

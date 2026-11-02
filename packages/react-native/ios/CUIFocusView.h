@@ -7,7 +7,6 @@
 - (NSDictionary *)motionSnapshotIdentity;
 - (NSArray<NSNumber *> *)motionContentBox;
 - (NSString *)motionProjectionRevision;
-- (BOOL)menuPointerTriggerEnabled;
 - (NSDictionary *)formActionSnapshot;
 - (NSString *)fieldInputOwnerId;
 - (BOOL)fieldFocusTabStop;

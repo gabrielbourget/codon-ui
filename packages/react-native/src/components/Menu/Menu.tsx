@@ -321,13 +321,6 @@ const NativeMenuList = (props: TListProps) => {
   const renderer = useContext(NativeCollectionRendererContext)
   const CollectionRoot = renderer.CollectionRoot
   const actions = useContext(NativeCollectionActionsContext)
-  const pointerBinding = actions?.bindingFor(null) ?? ""
-  const reportPointerRoot = props.submenu?.reportPointerRoot
-  useLayoutEffect(() => {
-    if (!reportPointerRoot) return
-    reportPointerRoot(targetTag && pointerBinding ? { target: targetTag, binding: pointerBinding } : null)
-    return () => reportPointerRoot(null)
-  }, [reportPointerRoot, targetTag, pointerBinding])
   const state = useTreeState({
     ...props.listProps,
     children: undefined,
@@ -841,18 +834,6 @@ const NativeMenuList = (props: TListProps) => {
                       : ""
                   },
                   requestFocus: (row) => withNativeAdmission(row, () => requestFocus(row.id)),
-                  pointerHandoff: (hitPath, isCurrent) => {
-                    if (!isCurrent()) return false
-                    const row = hitPath
-                      .map((target) =>
-                        current.current.ordered.find((candidate) => findNodeHandle(candidate.view.current) === target),
-                      )
-                      .find((candidate) => candidate !== undefined)
-                    if (!row) return false
-                    return withNativeAdmission(row, () => {
-                      if (isCurrent()) requestFocus(row.id)
-                    })
-                  },
                   focus,
                   activate,
                   openSubmenu: (row, strategy, isCurrent) => {

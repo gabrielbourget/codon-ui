@@ -21,9 +21,7 @@ import {
   type TNativeMenuItemProps,
 } from "@codon-ui/react-native"
 
-import { NativeMenuPointerObservationContext } from "../../../../packages/react-native/src/components/Menu/context"
 import { inspectNativeAccessibility } from "../../../../packages/react-native/src/input/accessibilityInspection"
-import type { TNativeMenuPointerEvent } from "../../../../packages/react-native/src/input/nativeMenuPointers"
 
 import { useMenuVirtualRenderer } from "./MenuVirtualRenderer"
 
@@ -68,25 +66,6 @@ export const MenuScene = () => {
   const [refs, setRefs] = useState("unmeasured")
   const [sdkReads, setSDKReads] = useState(0)
   const sdkSequence = useRef(0)
-  const pointerRecords = useRef<TNativeMenuPointerEvent["nativeEvent"][]>([])
-  const omittedPointerRecords = useRef(0)
-  const pointerExportSequence = useRef(0)
-  const observePointer = (event: TNativeMenuPointerEvent) => {
-    if (pointerRecords.current.length === 512) {
-      pointerRecords.current.shift()
-      omittedPointerRecords.current++
-    }
-    pointerRecords.current.push({ ...event.nativeEvent, hitPath: [...event.nativeEvent.hitPath] })
-  }
-  const exportPointers = () => {
-    const content = JSON.stringify({ records: pointerRecords.current, omitted: omittedPointerRecords.current })
-    const sequence = ++pointerExportSequence.current
-    const parts = Math.ceil(content.length / 768)
-    for (let part = 0; part < parts; part++)
-      console.warn(
-        `CUI_MENU_POINTER_CHUNK ${JSON.stringify({ sequence, part, parts, content: content.slice(part * 768, (part + 1) * 768) })}`,
-      )
-  }
   const root = useRef<View>(null),
     list = useRef<View>(null),
     editor = useRef<TextInput>(null)
@@ -277,7 +256,6 @@ export const MenuScene = () => {
         <Button onPress={() => setItems(ITEMS)}>Restore menu items</Button>
         <Button onPress={inspectRefs}>Inspect menu refs</Button>
         <Button onPress={inspectSDK}>Inspect menu native accessibility</Button>
-        <Button onPress={exportPointers}>Export menu native pointer observations</Button>
       </View>
       <TextInput
         ref={editor}
@@ -301,53 +279,51 @@ export const MenuScene = () => {
         <Button onPress={() => setLongPressTrigger((value) => !value)}>Toggle menu long-press trigger</Button>
         <Button onPress={() => setFrenchTrigger((value) => !value)}>Toggle menu trigger locale</Button>
       </View>
-      <NativeMenuPointerObservationContext.Provider value={observePointer}>
-        <NativeCollectionRendererContext.Provider value={renderer}>
-          <NativeMenuListContext.Provider
-            value={{
-              ref: list,
-              disabledBehavior: selectionOnly ? "selection" : "all",
-              shouldUseVirtualFocus: virtualFocus,
-              renderEmptyState: () => <Text testID="menu-owner-empty">No owner menu items</Text>,
-              render: customHost
-                ? (props) => <NativeFocusView {...props} accessibilityHint="Custom menu list" />
-                : undefined,
+      <NativeCollectionRendererContext.Provider value={renderer}>
+        <NativeMenuListContext.Provider
+          value={{
+            ref: list,
+            disabledBehavior: selectionOnly ? "selection" : "all",
+            shouldUseVirtualFocus: virtualFocus,
+            renderEmptyState: () => <Text testID="menu-owner-empty">No owner menu items</Text>,
+            render: customHost
+              ? (props) => <NativeFocusView {...props} accessibilityHint="Custom menu list" />
+              : undefined,
+          }}
+        >
+          <NativeMenuTrigger
+            triggerMode={longPressTrigger ? "longPress" : "press"}
+            locale={frenchTrigger ? "fr-FR" : "en-US"}
+            isOpen={open}
+            onOpenChange={(next) => {
+              record(`open:${next}`)
+              if (!veto) setOpen(next)
             }}
+            trigger={(state) => <Button {...state.triggerProps}>Open owner menu</Button>}
           >
-            <NativeMenuTrigger
-              triggerMode={longPressTrigger ? "longPress" : "press"}
-              locale={frenchTrigger ? "fr-FR" : "en-US"}
-              isOpen={open}
-              onOpenChange={(next) => {
-                record(`open:${next}`)
-                if (!veto) setOpen(next)
+            <Menu
+              items={collectionItems}
+              ref={root}
+              testID="menu-owner-surface"
+              menuAriaLabel="Owner menu actions"
+              direction={rtl ? "rtl" : "ltr"}
+              isNonModal={nonModal}
+              shouldFlip={false}
+              selectionMode={MODES[mode]}
+              selectedKeys={selected}
+              disabledKeys={disabled ? ["0"] : []}
+              shouldCloseOnSelect={closeOnSelect}
+              maxHeight={320}
+              customMenuStyles={custom ? { fontSize: 18, color: "purple", padding: 12 } : undefined}
+              onSelectionChange={(keys) => {
+                record(`selection:${keysLabel(keys)}`)
+                if (!veto) setSelected(keys)
               }}
-              trigger={(state) => <Button {...state.triggerProps}>Open owner menu</Button>}
-            >
-              <Menu
-                items={collectionItems}
-                ref={root}
-                testID="menu-owner-surface"
-                menuAriaLabel="Owner menu actions"
-                direction={rtl ? "rtl" : "ltr"}
-                isNonModal={nonModal}
-                shouldFlip={false}
-                selectionMode={MODES[mode]}
-                selectedKeys={selected}
-                disabledKeys={disabled ? ["0"] : []}
-                shouldCloseOnSelect={closeOnSelect}
-                maxHeight={320}
-                customMenuStyles={custom ? { fontSize: 18, color: "purple", padding: 12 } : undefined}
-                onSelectionChange={(keys) => {
-                  record(`selection:${keysLabel(keys)}`)
-                  if (!veto) setSelected(keys)
-                }}
-                onAction={(key) => record(`action:${keyLabel(key)}`)}
-              ></Menu>
-            </NativeMenuTrigger>
-          </NativeMenuListContext.Provider>
-        </NativeCollectionRendererContext.Provider>
-      </NativeMenuPointerObservationContext.Provider>
+              onAction={(key) => record(`action:${keyLabel(key)}`)}
+            ></Menu>
+          </NativeMenuTrigger>
+        </NativeMenuListContext.Provider>
+      </NativeCollectionRendererContext.Provider>
       <Button onPress={() => record("underlying-action")}>Underlying menu action</Button>
       <Text testID="menu-owner-refs">Refs: {refs}.</Text>
       <Text testID="menu-owner-sdk">SDK reads: {sdkReads}.</Text>

@@ -25,7 +25,7 @@ public final class CUIKeyboardScopeManager extends ReactViewManager implements C
   private final ViewManagerDelegate<ReactViewGroup> inherited = new ViewManagerPropertyUpdater.GenericViewManagerDelegate<>(this);
   private final CUIKeyboardScopeManagerDelegate<ReactViewGroup, CUIKeyboardScopeManager> delegate = new CUIKeyboardScopeManagerDelegate<>(this) {
     @Override public void setProperty(ReactViewGroup view, String name, Object value) {
-      if ("toolbarBindings".equals(name) || "dragBindings".equals(name) || "dialogScopes".equals(name) || "dialogRevision".equals(name) || "ordinaryEditorBindings".equals(name) || "menuPointerPolicies".equals(name) || "menuPointerRevision".equals(name) || "pointerRegistrations".equals(name) || "pointerRevision".equals(name) || "ownerId".equals(name) || "enabled".equals(name) || "policies".equals(name) || "acceptedWindowId".equals(name) || "acceptedEpoch".equals(name) || "policyRevision".equals(name) || "floatingTargets".equals(name) || "observations".equals(name) || "observationRevision".equals(name)) super.setProperty(view, name, value);
+      if ("toolbarBindings".equals(name) || "dragBindings".equals(name) || "dialogScopes".equals(name) || "dialogRevision".equals(name) || "ordinaryEditorBindings".equals(name) || "pointerRegistrations".equals(name) || "pointerRevision".equals(name) || "ownerId".equals(name) || "enabled".equals(name) || "policies".equals(name) || "acceptedWindowId".equals(name) || "acceptedEpoch".equals(name) || "policyRevision".equals(name) || "floatingTargets".equals(name) || "observations".equals(name) || "observationRevision".equals(name)) super.setProperty(view, name, value);
       else inherited.setProperty(view, name, value);
     }
   };
@@ -65,15 +65,6 @@ public final class CUIKeyboardScopeManager extends ReactViewManager implements C
     ((CUIKeyboardScope) view).setObservations(observations);
   }
   @Override @ReactProp(name = "pointerRevision") public void setPointerRevision(ReactViewGroup view, double value) { ((CUIKeyboardScope) view).setPointerRevision(value); }
-  @Override @ReactProp(name = "menuPointerRevision") public void setMenuPointerRevision(ReactViewGroup view, double value) { ((CUIKeyboardScope)view).setMenuPointerRevision(value); }
-  @Override @ReactProp(name = "menuPointerPolicies") public void setMenuPointerPolicies(ReactViewGroup view, ReadableArray value) {
-    List<CUIMenuPointerPolicies.Registration> registrations = new ArrayList<>();
-    if (value != null) for (int index = 0; index < value.size(); index++) {
-      ReadableMap entry = value.getMap(index);
-      registrations.add(new CUIMenuPointerPolicies.Registration(entry.getString("id"), entry.getInt("parentTarget"), entry.getInt("submenuTarget"), entry.getInt("triggerTarget"), entry.getString("parentBinding"), entry.getString("submenuBinding"), entry.getString("triggerBinding")));
-    }
-    ((CUIKeyboardScope)view).setMenuPointerPolicies(registrations);
-  }
   @Override @ReactProp(name = "pointerRegistrations") public void setPointerRegistrations(ReactViewGroup view, ReadableArray value) {
     List<CUIWindowPointers.Registration> registrations = new ArrayList<>();
     if (value != null) for (int index = 0; index < value.size(); index++) {
@@ -134,7 +125,6 @@ public final class CUIKeyboardScopeManager extends ReactViewManager implements C
     events.put("topNativeObservationStatus", Collections.singletonMap("registrationName", "onNativeObservationStatus"));
     events.put("topNativeWindowPointer", Collections.singletonMap("registrationName", "onNativeWindowPointer"));
     events.put("topNativePointerStatus", Collections.singletonMap("registrationName", "onNativePointerStatus"));
-    events.put("topNativeMenuPointer", Collections.singletonMap("registrationName", "onNativeMenuPointer"));
     return events;
   }
   @Override public void onDropViewInstance(ReactViewGroup view) { ((CUIKeyboardScope) view).retireHeld(); super.onDropViewInstance(view); }
