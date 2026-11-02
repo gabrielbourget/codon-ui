@@ -154,11 +154,12 @@ export const DatePickerFixture = ({
               {String(disabled)}. Date {value?.toString() ?? "null"}. Range{" "}
               {range ? `${range.start.toString()} / ${range.end.toString()}` : "null"}.
             </Text>
-            <NativeForm onSubmit={submit}>
+            <NativeForm fieldOrder={["date", "interval"]} onSubmit={submit}>
               <DateTimePicker
                 ref={single}
                 {...(customStyles ? customAppearance : {})}
                 accessibilityLabel="Single date"
+                formFieldId="date"
                 name="date"
                 value={value}
                 granularity={sample === 0 ? "day" : "second"}
@@ -179,6 +180,7 @@ export const DatePickerFixture = ({
                 ref={pair}
                 {...(customStyles ? customAppearance : {})}
                 accessibilityLabel="Date interval"
+                formFieldId="interval"
                 startName="endpoint"
                 endName="endpoint"
                 value={range}

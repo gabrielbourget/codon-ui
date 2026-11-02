@@ -41,40 +41,59 @@ final class CUIFormMetadataView extends ReactViewGroup implements UIManagerListe
   private boolean observing, resumed, lastActive;
   private SemanticContribution semanticContribution;
   private Runnable semanticRefresh;
-  private String semanticOwner;
+  private String semanticOwner, semanticModule;
   private boolean refreshingSemantics;
   private WeakReference<View> semanticAXTarget = new WeakReference<>(null);
   private String semanticAXIdentity = "";
+  private WeakReference<View> semanticAXReturnEditor = new WeakReference<>(null);
+  private String semanticAXReturnOwner = "", semanticAXReturnDescriptor = "";
 
-  void resetSemanticAccessibilityFocus() { semanticAXTarget.clear(); semanticAXIdentity = ""; }
-  void requestSemanticAccessibilityFocus(View target, String identity, boolean returning) {
-    if (target == null || !target.hasWindowFocus() || (returning && semanticAXTarget.get() == null) ||
+  void clearSemanticAccessibilityRequest() { semanticAXTarget.clear(); semanticAXIdentity = ""; }
+  void resetSemanticAccessibilityFocus() {
+    clearSemanticAccessibilityRequest();
+    semanticAXReturnEditor.clear(); semanticAXReturnOwner = ""; semanticAXReturnDescriptor = "";
+  }
+  void requestSemanticAccessibilityFocus(View target, String identity, View editor, boolean returning) {
+    if (target == null || editor == null || editor != original.get() || !editor.isFocused() || !editor.hasWindowFocus() ||
+        !CUIInputWindow.identity(target).equals(CUIInputWindow.identity(editor)) ||
+        (returning && (target != editor || semanticAXReturnEditor.get() != editor ||
+          !semanticAXReturnOwner.equals(ownerId) || !semanticAXReturnDescriptor.equals(descriptorId))) ||
         (semanticAXTarget.get() == target && semanticAXIdentity.equals(identity))) return;
-    semanticAXTarget = new WeakReference<>(target); semanticAXIdentity = identity;
-    target.performAccessibilityAction(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null);
+    if (target.performAccessibilityAction(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null)) {
+      semanticAXTarget = new WeakReference<>(target); semanticAXIdentity = identity;
+      // SDK acceptance is request history, not observed TalkBack focus.
+      semanticAXReturnEditor = new WeakReference<>(returning ? null : editor);
+      semanticAXReturnOwner = returning ? "" : ownerId;
+      semanticAXReturnDescriptor = returning ? "" : descriptorId;
+    } else resetSemanticAccessibilityFocus();
   }
 
   void setSemanticBinding(String value) {
     if (semanticBinding.equals(value)) return;
     setSemanticContribution(null); semanticBinding = value;
+    if (value.isEmpty()) resetSemanticAccessibilityFocus();
   }
   void setSemanticContribution(SemanticContribution value) {
     if (semanticContribution == value) return;
     if (semanticContribution != null) semanticContribution.retire();
     semanticContribution = value;
   }
-  void setSemanticRefresh(Runnable refresh, String owner) {
+  void setSemanticRefresh(Runnable refresh, String owner, String module) {
+    if (!module.equals(semanticModule)) resetSemanticAccessibilityFocus();
+    semanticModule = module;
     setSemanticContribution(null); semanticOwner = owner; semanticRefresh = refresh; refreshSemantics();
   }
-  void clearSemanticRefresh(String owner) {
+  void clearSemanticRefresh(String owner, boolean retiring) {
     if (semanticOwner == null || !semanticOwner.equals(owner)) return;
     setSemanticContribution(null); semanticRefresh = null; semanticOwner = null;
+    // Ordinary same-editor data revisions replace the watch before the next bind.
+    if (retiring) resetSemanticAccessibilityFocus();
   }
   void refreshSemantics() {
     if (semanticRefresh == null || refreshingSemantics) return;
     refreshingSemantics = true;
     try { semanticRefresh.run(); }
-    catch (RuntimeException retired) { setSemanticContribution(null); }
+    catch (RuntimeException retired) { setSemanticContribution(null); resetSemanticAccessibilityFocus(); }
     finally { refreshingSemantics = false; }
   }
   CUIFormMetadataView(Context context, boolean fieldBinding) { super(context); this.fieldBinding = fieldBinding; enforceMetadata(); }
@@ -119,7 +138,7 @@ final class CUIFormMetadataView extends ReactViewGroup implements UIManagerListe
     publish(false, "detached"); disconnect(); epoch++; signature = ""; super.onDetachedFromWindow();
   }
   void retire() {
-    setSemanticContribution(null); semanticRefresh = null; semanticOwner = null;
+    setSemanticContribution(null); resetSemanticAccessibilityFocus(); semanticRefresh = null; semanticOwner = null;
     publish(false, "retired"); disconnect(); epoch++; signature = ""; identity = ""; original.clear();
     ownerId = ""; descriptorId = ""; descriptorRevision = ""; originalTarget = 0;
     mountSnapshot = null; lastMount = "retired"; lastActive = false;
@@ -130,6 +149,10 @@ final class CUIFormMetadataView extends ReactViewGroup implements UIManagerListe
   JSONObject formMountSnapshot() throws Exception {
     publish(isAttachedToWindow(), lastMount);
     return mountSnapshot == null ? null : new JSONObject(mountSnapshot.toString());
+  }
+  View originalForAttachedMountSnapshot(JSONObject expected) throws Exception {
+    JSONObject current = formMountSnapshot();
+    return CUIFormActionAdmission.same(expected, current) && current.getBoolean("complete") && current.getBoolean("attached") ? original.get() : null;
   }
   View originalForMountSnapshot(JSONObject expected) throws Exception {
     JSONObject current = formMountSnapshot();
@@ -159,13 +182,13 @@ final class CUIFormMetadataView extends ReactViewGroup implements UIManagerListe
       Object role = target.getTag(com.facebook.react.R.id.role);
       if (role == null) role = target.getTag(com.facebook.react.R.id.accessibility_role);
       boolean adjustable = role != null && ("adjustable".equalsIgnoreCase(role.toString()) || "slider".equalsIgnoreCase(role.toString()));
-      return root instanceof ReactViewGroup && !(root instanceof CUIFormMetadataView) && !(root instanceof CUICollectionNode) && !(root instanceof CUIDateSegment) &&
+      return root instanceof ReactViewGroup && !(root instanceof CUIFormMetadataView) && !(root instanceof CUIDateSegment) &&
         root != target && root.isAttachedToWindow() && CUIInputWindow.identity(this).equals(CUIInputWindow.identity(root)) &&
         strictDescendant(target, root) && strictDescendant(this, target) && adjustable;
     } catch (Exception retired) { return false; }
   }
   private void publish(boolean attached, String mountRevision) {
-    if (ownerId == null || ownerId.isEmpty() || descriptorId.isEmpty() || descriptorRevision.isEmpty()) { mountSnapshot = null; return; }
+    if (ownerId == null || ownerId.isEmpty() || descriptorId.isEmpty() || descriptorRevision.isEmpty()) { mountSnapshot = null; resetSemanticAccessibilityFocus(); return; }
     attached &= isAttachedToWindow();
     String currentWindow = attached ? CUIInputWindow.identity(this) : window;
     View target = null;
@@ -174,19 +197,23 @@ final class CUIFormMetadataView extends ReactViewGroup implements UIManagerListe
     }
     int currentSurface = UIManagerHelper.getSurfaceId(this);
     String currentIdentity = new JSONArray().put(ownerId).put(descriptorId).put(descriptorRevision).put(originalTarget).put(ownedEditorBinding).put(ownedControlBinding).toString();
+    if (!window.equals(currentWindow) || original.get() != target || surface != currentSurface ||
+        (semanticAXReturnEditor.get() != null && (!semanticAXReturnOwner.equals(ownerId) || !semanticAXReturnDescriptor.equals(descriptorId))))
+      resetSemanticAccessibilityFocus();
     if (!window.equals(currentWindow) || original.get() != target || !identity.equals(currentIdentity) || surface != currentSurface) {
       epoch++; window = currentWindow; original = new WeakReference<>(target); identity = currentIdentity; surface = currentSurface;
     }
     boolean ownedDate = fieldBinding && !ownedEditorBinding.isEmpty();
     boolean ownedControl = fieldBinding && !ownedControlBinding.isEmpty();
     boolean correctType = ownedControl ? isOwnedRangeThumb(target, currentSurface) : ownedDate ? target != null && CUIOwnedDateField.resolve(manager, this, ownedEditorBinding, originalTarget, currentSurface) == target :
-      fieldBinding ? target instanceof ReactEditText : target instanceof ReactViewGroup && !(target instanceof CUIFormMetadataView) && !(target instanceof CUICollectionNode);
+      fieldBinding ? target instanceof ReactEditText : target instanceof ReactViewGroup && !(target instanceof CUIFormMetadataView);
     boolean metadataOnly = isMetadataOnly();
     boolean complete = attached && surface > 0 && !window.isEmpty() && target != null && target.isAttachedToWindow()
       && window.equals(CUIInputWindow.identity(target)) && correctType && metadataOnly;
     boolean active = complete && resumed && getContext() instanceof ReactContext && ((ReactContext)getContext()).getLifecycleState() == LifecycleState.RESUMED
       && target.hasWindowFocus() && target.isShown() && target.getWindowVisibility() == View.VISIBLE;
     for (View view = target; view != null && active; view = view.getParent() instanceof View ? (View)view.getParent() : null) active &= view.getAlpha() > 0;
+    if (!active) resetSemanticAccessibilityFocus();
     if (lastActive != active) { lastActive = active; epoch++; }
     String error = !attached ? "form-metadata-detached" : target == null ? "form-original-target-unavailable" :
       !correctType ? "form-original-type-mismatch" : !metadataOnly ? "form-metadata-not-inert" : !complete ? "form-metadata-incomplete" : "";
@@ -195,7 +222,7 @@ final class CUIFormMetadataView extends ReactViewGroup implements UIManagerListe
       .put(attached).put(active).put(complete).put(metadataOnly).put(originalClass).put(error).toString();
     if (signature.equals(nextSignature)) return;
     EventDispatcher dispatcher = UIManagerHelper.getEventDispatcherForReactTag((ReactContext)getContext(), getId());
-    if (dispatcher == null) { mountSnapshot = null; return; }
+    if (dispatcher == null) { mountSnapshot = null; resetSemanticAccessibilityFocus(); return; }
     signature = nextSignature;
     lastMount = mountRevision;
     sequence++;
@@ -204,7 +231,7 @@ final class CUIFormMetadataView extends ReactViewGroup implements UIManagerListe
         .put("target", getId()).put("originalTarget", originalTarget).put("surfaceId", surface).put("windowId", window)
         .put("epoch", epoch).put("sequence", sequence).put("mountRevision", mountRevision).put("attached", attached).put("active", active)
         .put("complete", complete).put("metadataOnly", metadataOnly).put("originalClass", originalClass).put("error", error);
-    } catch (org.json.JSONException invalid) { mountSnapshot = null; return; }
+    } catch (org.json.JSONException invalid) { mountSnapshot = null; resetSemanticAccessibilityFocus(); return; }
     WritableMap data = Arguments.createMap();
     data.putString("ownerId", ownerId); data.putString("descriptorId", descriptorId); data.putString("descriptorRevision", descriptorRevision);
     data.putInt("target", getId()); data.putInt("originalTarget", originalTarget); data.putInt("surfaceId", surface);

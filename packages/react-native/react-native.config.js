@@ -11,7 +11,6 @@ export default {
           "CUIOwnedFocusViewComponentDescriptor",
           "CUIKeyboardScopeComponentDescriptor",
           "CUICollectionRootComponentDescriptor",
-          "CUICollectionNodeComponentDescriptor",
           "CUIFormRootComponentDescriptor",
           "CUIFieldBindingComponentDescriptor",
           "CUIDateSegmentComponentDescriptor",

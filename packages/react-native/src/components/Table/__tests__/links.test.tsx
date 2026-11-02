@@ -1,28 +1,31 @@
-import "../../../collection/__tests__/nativeReceipts"
-
 import { act as nativeAct, cleanup, userEvent } from "@testing-library/react-native"
 import { createRef, useContext, type ReactNode, type RefAttributes } from "react"
 import { findNodeHandle, Linking, TextInput, View } from "react-native"
+
+import { createNativeCollectionBranch } from "../../../collection/CollectionBuilder"
+import { NativeCollectionRendererContext } from "../../../collection/renderer"
+import { NativeFloatingWindowContext } from "../../../overlays/floating/scope"
+import { NativeThemeProvider } from "../../../theme"
+import { useNativeTable } from "../context"
+import {
+  nativeTableChildren,
+  createNativeTableHeaderModel,
+  nativeTableReceiver,
+  createNativeTableRowModel,
+} from "../model"
+import { Table } from "../Table"
+import type { TNativeTableProps, TNativeTableRowProps } from "../types"
 
 import {
   actWithNativeCollections as act,
   fireEventWithNativeCollections as fireEvent,
   renderWithNativeCollections as render,
   screen,
-} from "../../../collection/__tests__/nativeReceipts"
-import { createNativeCollectionBranch } from "../../../collection/CollectionBuilder"
-import { NativeCollectionRendererContext } from "../../../collection/renderer"
-import { NativeFloatingWindowContext } from "../../../overlays/floating/scope"
-import { NativeThemeProvider } from "../../../theme"
-import { useNativeTable } from "../context"
-import { Table } from "../Table"
-import { TableHeader } from "../TableHeader"
-import { TableRow } from "../TableRow"
-import type { TNativeTableProps, TNativeTableRowProps } from "../types"
+} from "./collectionModel"
 
 jest.unmock("react-native/Libraries/Components/TextInput/TextInput")
 const Body = createNativeCollectionBranch<object, { children?: ReactNode }, View>(
-  "body",
+  "tablebody",
   (_props, ref, parent) => {
     const table = useNativeTable(),
       renderer = useContext(NativeCollectionRendererContext)
@@ -32,7 +35,6 @@ const Body = createNativeCollectionBranch<object, { children?: ReactNode }, View
       </View>
     )
   },
-  (props) => props.children,
 )
 const item = { id: 0, name: "Zero" }
 const columns = [{ id: "name", name: "Name", isRowHeader: true }]
@@ -41,12 +43,26 @@ const tree = (
   table: TNativeTableProps = {},
 ) => (
   <NativeThemeProvider>
-    <Table {...table}>
-      <TableHeader columns={columns} />
-      <Body>
-        <TableRow id={0} testID="linked-row" item={item} columns={columns} href="/people/0" {...props} />
-      </Body>
-    </Table>
+    <Table
+      {...table}
+      items={(modelOptions) =>
+        nativeTableChildren(
+          createNativeTableHeaderModel({ columns: columns }, modelOptions),
+          nativeTableReceiver<React.ComponentProps<typeof Body>>(
+            "__body:1",
+            "tablebody",
+            {},
+            (visibleProps) => <Body {...visibleProps} />,
+            nativeTableChildren(
+              createNativeTableRowModel(
+                { id: 0, testID: "linked-row", item: item, columns: columns, href: "/people/0", ...props },
+                modelOptions,
+              ),
+            ),
+          ),
+        )
+      }
+    />
   </NativeThemeProvider>
 )
 const press = async (pointerType = "touch", settle = true) => {
@@ -158,20 +174,33 @@ it("reports current navigation failures and retires stale failures without chang
   const localColumns = [{ ...columns[0], cellRenderer: () => <TextInput ref={editor} testID="held" value="held" /> }]
   const content = (href: string) => (
     <NativeThemeProvider>
-      <Table>
-        <TableHeader columns={localColumns} />
-        <Body>
-          <TableRow
-            ref={row}
-            id={0}
-            item={item}
-            columns={localColumns}
-            testID="linked-row"
-            href={href}
-            onNavigationError={report}
-          />
-        </Body>
-      </Table>
+      <Table
+        items={(modelOptions) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel({ columns: localColumns }, modelOptions),
+            nativeTableReceiver<React.ComponentProps<typeof Body>>(
+              "__body:2",
+              "tablebody",
+              {},
+              (visibleProps) => <Body {...visibleProps} />,
+              nativeTableChildren(
+                createNativeTableRowModel(
+                  {
+                    ref: row,
+                    id: 0,
+                    item: item,
+                    columns: localColumns,
+                    testID: "linked-row",
+                    href: href,
+                    onNavigationError: report,
+                  },
+                  modelOptions,
+                ),
+              ),
+            ),
+          )
+        }
+      />
     </NativeThemeProvider>
   )
   const view = await render(content("first"))
@@ -283,24 +312,39 @@ it.each([
         }}
         clickableRows={mode !== "root-gated" && mode !== "root-only-off"}
         onRowAction={(key) => order.push(`root:${key}`)}
-      >
-        <TableHeader columns={localColumns} />
-        <Body>
-          <TableRow
-            ref={row}
-            id={0}
-            testID="linked-row"
-            item={item}
-            columns={localColumns}
-            onAction={mode.startsWith("root-only") ? undefined : () => order.push("row")}
-            onPress={(event) => {
-              order.push("press")
-              originalPresses.push(event)
-            }}
-          />
-          <TableRow id={1} testID="approved-other" item={{ id: 1, name: "One" }} columns={columns} />
-        </Body>
-      </Table>
+        items={(modelOptions) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel({ columns: localColumns }, modelOptions),
+            nativeTableReceiver<React.ComponentProps<typeof Body>>(
+              "__body:3",
+              "tablebody",
+              {},
+              (visibleProps) => <Body {...visibleProps} />,
+              nativeTableChildren(
+                createNativeTableRowModel(
+                  {
+                    ref: row,
+                    id: 0,
+                    testID: "linked-row",
+                    item: item,
+                    columns: localColumns,
+                    onAction: mode.startsWith("root-only") ? undefined : () => order.push("row"),
+                    onPress: (event) => {
+                      order.push("press")
+                      originalPresses.push(event)
+                    },
+                  },
+                  modelOptions,
+                ),
+                createNativeTableRowModel(
+                  { id: 1, testID: "approved-other", item: { id: 1, name: "One" }, columns: columns },
+                  modelOptions,
+                ),
+              ),
+            ),
+          )
+        }
+      />
     </NativeThemeProvider>,
   )
   const originalRow = row.current,

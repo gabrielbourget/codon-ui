@@ -14,7 +14,7 @@ import { findNodeHandle, type View } from "react-native"
 import type { TimeFieldState } from "../date/state/useTimeFieldState"
 import type { NativeFormCommitData } from "../input/specs/CUIFormRootNativeComponent"
 
-import { NativeFormRegistryContext } from "./context"
+import { NativeFormRegistryContext, NativeFormOwnerContext } from "./context"
 import {
   encodeNativeDateFieldBinding,
   sameNativeDateFieldTargets,
@@ -37,7 +37,7 @@ let nextRevision = 0
 // The registry contains one logical field. Physical authority requires the
 // current root and the complete ordered set of original segment objects.
 export const useNativeSegmentedFieldForm = (
-  props: Readonly<{ form?: string }>,
+  props: Readonly<{ form?: string; formFieldId?: string }>,
   data: TNativeFormFieldData,
   state: Pick<
     TimeFieldState,
@@ -50,12 +50,13 @@ export const useNativeSegmentedFieldForm = (
   semanticBinding = "",
 ) => {
   const registry = useContext(NativeFormRegistryContext)
+  const formOwnerId = useContext(NativeFormOwnerContext)
   const ownerId = useId()
   const descriptorId = `${ownerId}:time-field`
   const ownedEditorBinding = original
     ? encodeNativeDateFieldBinding(original.rootTarget, original.segments, original.groups)
     : ""
-  const signature = JSON.stringify([data, props.form, ownedEditorBinding])
+  const signature = JSON.stringify([data, props.formFieldId, formOwnerId, props.form, ownedEditorBinding])
   const descriptorRevision = useMemo(
     () => `${ownerId}:time-field:${++nextRevision}`,
     [ownerId, signature, original?.root],
@@ -169,6 +170,8 @@ export const useNativeSegmentedFieldForm = (
         hasFormAssociation: props.form !== undefined,
         ownedEditorBinding,
       },
+      fieldId: props.formFieldId,
+      formOwnerId,
       data,
       editor: currentPrimary,
       mount: () => receipt.current,

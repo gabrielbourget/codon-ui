@@ -5,16 +5,16 @@ import { Button, Input, NativeFocusView, Text } from "../../../.."
 import { createNativeCollectionBranch } from "../../../../collection/CollectionBuilder"
 import { NativeCollectionRendererContext } from "../../../../collection/renderer"
 import { useNativeTable } from "../../context"
+import { nativeTableChildren, nativeTableReceiver, createNativeTableRowModel } from "../../model"
 import { NativeColumnResizer } from "../../NativeColumnResizer"
 import { NativeResizableTableContainer } from "../../NativeResizableTableContainer"
 import { Table } from "../../Table"
 import { TableColumn } from "../../TableColumn"
-import { TableRow } from "../../TableRow"
 
 import { CellFixtureBody } from "./TableCellFixture"
 
 export const ColumnFixtureHeader = createNativeCollectionBranch<object, { children?: ReactNode }, View>(
-  "header",
+  "tableheader",
   (_props, ref, node) => {
     const table = useNativeTable(),
       renderer = useContext(NativeCollectionRendererContext)
@@ -24,7 +24,6 @@ export const ColumnFixtureHeader = createNativeCollectionBranch<object, { childr
       </View>
     )
   },
-  (props) => props.children,
 )
 
 const columns = [
@@ -47,53 +46,81 @@ export const TableColumnFixture = () => {
           if (!hold) setWidth(Number(widths.get("raw")))
         }}
       >
-        <Table accessibilityLabel="Raw column resizing">
-          <ColumnFixtureHeader>
-            <TableColumn
-              id="raw"
-              columnID="raw"
-              isRowHeader
-              width={width}
-              minWidth={100}
-              maxWidth={400}
-              testID="raw-column"
-              render={custom ? (props) => <NativeFocusView {...props} /> : undefined}
-            >
-              {(values) => (
-                <>
-                  <Text>Raw title</Text>
-                  <Button onPress={() => values.startResize()}>Start raw column resizing</Button>
-                  <NativeColumnResizer
-                    testID="raw-column-resizer"
-                    style={{ width: 12, height: 20, backgroundColor: "lightgray" }}
-                  />
-                </>
-              )}
-            </TableColumn>
-            <TableColumn id="other" columnID="other">
-              Other title
-            </TableColumn>
-          </ColumnFixtureHeader>
-          <CellFixtureBody>
-            <TableRow
-              id="raw-row"
-              item={{}}
-              columns={columns}
-              renderCell={({ column }) =>
-                column.id === "raw" ? (
-                  <Input
-                    testID="raw-column-editor"
-                    accessibilityLabel="Held raw column draft"
-                    value=""
-                    onChangeText={(value) => setRequests((previous) => [...previous, `draft:${value}`])}
-                  />
-                ) : (
-                  "Other value"
-                )
-              }
-            />
-          </CellFixtureBody>
-        </Table>
+        <Table
+          accessibilityLabel="Raw column resizing"
+          items={(modelOptions) =>
+            nativeTableChildren(
+              nativeTableReceiver<React.ComponentProps<typeof ColumnFixtureHeader>>(
+                "__header:1",
+                "tableheader",
+                {},
+                (visibleProps) => <ColumnFixtureHeader {...visibleProps} />,
+                nativeTableChildren(
+                  nativeTableReceiver<React.ComponentProps<typeof TableColumn>>(
+                    "raw",
+                    "column",
+                    {
+                      id: "raw",
+                      columnID: "raw",
+                      isRowHeader: true,
+                      width: width,
+                      minWidth: 100,
+                      maxWidth: 400,
+                      testID: "raw-column",
+                      render: custom ? (props) => <NativeFocusView {...props} /> : undefined,
+                      children: (values) => (
+                        <>
+                          <Text>Raw title</Text>
+                          <Button onPress={() => values.startResize()}>Start raw column resizing</Button>
+                          <NativeColumnResizer
+                            testID="raw-column-resizer"
+                            style={{ width: 12, height: 20, backgroundColor: "lightgray" }}
+                          />
+                        </>
+                      ),
+                    },
+                    (visibleProps) => <TableColumn {...visibleProps} />,
+                    [],
+                  ),
+                  nativeTableReceiver<React.ComponentProps<typeof TableColumn>>(
+                    "other",
+                    "column",
+                    { id: "other", columnID: "other", children: <>Other title</> },
+                    (visibleProps) => <TableColumn {...visibleProps} />,
+                    [],
+                  ),
+                ),
+              ),
+              nativeTableReceiver<React.ComponentProps<typeof CellFixtureBody>>(
+                "__body:2",
+                "tablebody",
+                {},
+                (visibleProps) => <CellFixtureBody {...visibleProps} />,
+                nativeTableChildren(
+                  createNativeTableRowModel(
+                    {
+                      id: "raw-row",
+                      item: {},
+                      columns: columns,
+                      renderCell: ({ column }) =>
+                        column.id === "raw" ? (
+                          <Input
+                            testID="raw-column-editor"
+                            accessibilityLabel="Held raw column draft"
+                            value=""
+                            onChangeText={(value) => setRequests((previous) => [...previous, `draft:${value}`])}
+                          />
+                        ) : (
+                          "Other value"
+                        ),
+                    },
+                    modelOptions,
+                  ),
+                ),
+              ),
+            )
+          }
+        />
       </NativeResizableTableContainer>
       <Text testID="raw-column-width">{width}</Text>
       <Text testID="raw-column-requests">{JSON.stringify(requests)}</Text>

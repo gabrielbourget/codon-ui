@@ -218,6 +218,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   void captureMotionBorderColor(int index, Integer color) { motionDrawing.setBorderColor(index, color); }
   void captureMotionShadows(com.facebook.react.bridge.ReadableArray shadows) { motionDrawing.setShadows(shadows); }
   void synchronizeMotionDrawing() { motionDrawing.synchronize(); }
+  void retireCollectionAdmission() { CUICollectionRoot.originalLifecycleChanged(this); }
   void retireMotionDrawing() { motionDrawing.retire(); }
   @Override public void draw(Canvas canvas) { if (!foreground.draw(canvas)) drawForegroundSource(canvas); }
   @Override public void dispatchDraw(Canvas canvas) {
@@ -242,7 +243,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   void synchronizeMotionColors() { motionColors.updateOwner(ownerId, nativeMotionColorObservation); motionColors.synchronize(); }
   void invalidateMotionColors() { motionColors.invalidate(); }
   void sampleMotionColors(String owner, String requestId, String request) { synchronizeMotionColors(); motionColors.sample(owner, requestId, request); }
-  @Override protected void onAttachedToWindow() { super.onAttachedToWindow(); foreground.attached(); if (motionColors != null) motionColors.attached(); if (motionGeometry != null) motionGeometry.attached(); if (formAction != null) formAction.attachmentChanged(true); if (localKeyLease != null) localKeyLease.attachmentChanged(true); synchronizeFocusWithin(); }
+  @Override protected void onAttachedToWindow() { super.onAttachedToWindow(); CUICollectionRoot.originalLifecycleChanged(this); foreground.attached(); if (motionColors != null) motionColors.attached(); if (motionGeometry != null) motionGeometry.attached(); if (formAction != null) formAction.attachmentChanged(true); if (localKeyLease != null) localKeyLease.attachmentChanged(true); synchronizeFocusWithin(); }
   @Override protected void drawableStateChanged() { super.drawableStateChanged(); if (motionColors != null) motionColors.synchronize(); }
   @Override protected void onConfigurationChanged(android.content.res.Configuration configuration) { super.onConfigurationChanged(configuration); if (motionColors != null) motionColors.synchronize(); }
 
@@ -397,6 +398,11 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
     capturedKeys = next;
   }
 
+  void requestCollectionFocus(String owner, String binding, boolean container) {
+    if (!CUICollectionRoot.acceptsCurrentBinding(binding, this)) return;
+    if (container) requestContainerFocus(owner); else requestKeyboardFocus(owner);
+  }
+
   void requestKeyboardFocus(String owner) {
     if (!ownerId.equals(owner) || !keyboardFocusable || !isAttachedToWindow() || !isShown() || !hasWindowFocus()) return;
     origin = "programmatic";
@@ -540,6 +546,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
 
   @Override
   protected void onDetachedFromWindow() {
+    CUICollectionRoot.originalLifecycleChanged(this);
     foreground.detached();
     if (focusWithin != null) focusWithin.detached();
     if (formAction != null) formAction.attachmentChanged(false);
@@ -555,6 +562,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
 
   @Override
   public void onWindowFocusChanged(boolean focused) {
+    CUICollectionRoot.originalLifecycleChanged(this);
     if (!focused) foreground.detached(); else foreground.attached();
     if (formAction != null) formAction.snapshot();
     if (!focused) scrollAnchor.invalidate();

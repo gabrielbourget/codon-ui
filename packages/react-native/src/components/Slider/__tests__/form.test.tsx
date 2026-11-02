@@ -75,7 +75,7 @@ const setup = async (
       <NativeFormRegistryContext.Provider value={registry}>
         {forms ? (
           <>
-            <NativeForm id="contained" testID="contained-form" {...callbacks}>
+            <NativeForm fieldOrder={["slider"]} id="contained" testID="contained-form" {...callbacks}>
               {control}
             </NativeForm>
             <NativeForm id="other" testID="other-form" />
@@ -341,46 +341,52 @@ it.each([
       [10, 70],
       [20, 80],
     ],
-    reverse: false,
   },
   {
     value: [20, 70],
     defaultValue: [10, 80],
     names: ["same", "same"],
     entries: [
-      ["same", "70"],
       ["same", "20"],
+      ["same", "70"],
     ],
     resets: [
-      [20, 80],
       [10, 70],
+      [20, 80],
     ],
-    reverse: true,
   },
   {
     value: [20, 40, 70],
     defaultValue: [10, 60],
     names: ["same", "same", "same"],
     entries: [
-      ["same", "70"],
-      ["same", "40"],
       ["same", "20"],
+      ["same", "40"],
+      ["same", "70"],
     ],
     resets: [
-      [20, 60, 70],
       [10, 40, 70],
+      [20, 60, 70],
     ],
-    reverse: true,
   },
 ])(
   "submits and resets actual containing-form members for $value without adopting outside controls or matching root IDs",
-  async ({ value, defaultValue, names, entries, resets, reverse }) => {
+  async ({ value, defaultValue, names, entries, resets }) => {
     const onSubmit = jest.fn(),
       onReset = jest.fn(),
       onChange = jest.fn(),
       onChangeEnd = jest.fn()
     const result = await setup(
-      { label: "Quantity", value, defaultValue, thumbNames: names, nativeID: "other", onChange, onChangeEnd },
+      {
+        label: "Quantity",
+        formFieldId: "slider",
+        value,
+        defaultValue,
+        thumbNames: names,
+        nativeID: "other",
+        onChange,
+        onChangeEnd,
+      },
       true,
       { onSubmit, onReset },
     )
@@ -419,59 +425,9 @@ it.each([
         }),
       )
     }
-    const read = jest.fn(async (request: { target: number; requestId: string }) => {
-      const nodes: {
-        target: number
-        parent: number
-        component: string
-        hidden: boolean
-        displayNone: boolean
-        rangeThumb?: boolean
-      }[] = []
-      const append = (target: number, parent: number, component: string, rangeThumb?: boolean) => {
-        nodes.push({
-          target,
-          parent,
-          component,
-          hidden: false,
-          displayNone: false,
-          ...(rangeThumb ? { rangeThumb } : {}),
-        })
-        return nodes.length - 1
-      }
-      const fields: object[] = [],
-        descriptors: object[] = []
-      append(100000, 0, "View")
-      const group = (members: typeof inside, parent: number) => {
-        if (!members.length) return
-        const root = (JSON.parse(members[0].descriptor.ownedControlBinding!) as { rootTarget: number }).rootTarget
-        append(root, parent, "View")
-        for (const member of members) {
-          append(member.descriptor.target, root, "CUIFocusView", true)
-          const position = append(member.descriptor.metadataTarget, member.descriptor.target, "CUIFieldBinding")
-          fields.push({ ...member.descriptor, position })
-        }
-      }
-      for (const binding of [form, other]) {
-        append(binding.descriptor.target, 100000, "View")
-        const position = append(binding.descriptor.metadataTarget, binding.descriptor.target, "CUIFormRoot")
-        descriptors.push({ ...binding.descriptor, position })
-        if (binding === form) group(reverse ? [...inside].reverse() : inside, binding.descriptor.target)
-      }
-      group([outside], 100000)
-      return JSON.stringify({
-        ...request,
-        documentId: "source-native-document",
-        surfaceId: 1,
-        rootTarget: 100000,
-        revision: "1",
-        nodes,
-        forms: descriptors,
-        fields,
-      })
-    })
+    const admit = jest.fn(async () => true)
     const focus = jest.fn()
-    const controller = new NativeFormController(result.registry, read, focus)
+    const controller = new NativeFormController(result.registry, admit, focus)
     let status = ""
     await act(async () => {
       status = (await controller.request("submit", { origin: "programmatic", form: form.original })).status

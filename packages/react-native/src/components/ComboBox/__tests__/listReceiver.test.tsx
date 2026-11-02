@@ -1,23 +1,19 @@
-import "../../../collection/__tests__/nativeReceipts"
+import "./visibleCollections"
 
-import { createRef, useState, type ReactNode, type RefObject } from "react"
+import { createRef, useLayoutEffect, useSyncExternalStore, useState, type ReactNode, type RefObject } from "react"
 import { ScrollView, TextInput, View } from "react-native"
 
-import {
-  actWithNativeCollections as act,
-  renderWithNativeCollections as render,
-  screen,
-} from "../../../collection/__tests__/nativeReceipts"
 import { NativeCollectionActions, NativeCollectionActionsContext } from "../../../collection/actions"
 import { NATIVE_DEFAULT_SLOT, NativeSelectableCollectionContext } from "../../../collection/context"
+import { NativeCollectionModel, nativeCollectionOwnerBinding } from "../../../collection/model"
 import {
   NativeCollectionRendererContext,
   type TNativeCollectionRenderer,
   type TNativeCollectionRootProps,
   type TNativeCollectionScrollHost,
 } from "../../../collection/renderer"
-import { NativeCollectionSession } from "../../../collection/session"
 import { NativeFocusHost } from "../../../input/NativeFocusView"
+import { createNativeVisibleCollectionAdmission } from "../../../input/nativeVisibleCollectionAdmission"
 import { NativeThemeProvider } from "../../../theme"
 import {
   NativeComboBoxList,
@@ -29,6 +25,8 @@ import { NativeComboBoxListContext, NativeComboBoxStateContext } from "../collec
 import { collection, ITEMS, type TItem } from "../state/__tests__/collection"
 import type { ComboBoxState } from "../state/types"
 import { useComboBoxState } from "../state/useComboBoxState"
+
+import { actWithNativeCollections as act, renderWithNativeCollections as render, screen } from "./visibleCollections"
 
 const emptyRenderer = { CollectionRoot: () => null, CollectionBranch: () => null }
 const wrap = (children: ReactNode) => (
@@ -400,41 +398,28 @@ it.each(["live", "unmounted", "controller-replaced"] as const)(
       if (!targets.has(view)) targets.set(view, ++nextTarget)
       return targets.get(view)!
     })
-    const makeActions = (rootRevision: string) => {
-      const session = new NativeCollectionSession<unknown>({
-        ownerId: "model-owner",
-        rootId: "model-root",
-        rootRevision,
-      })
-      session.bindRootTarget(7)
-      session.receive({
-        ...session.scope,
-        target: 7,
-        surfaceId: 11,
-        windowId: "model-window",
-        epoch: 1,
-        sequence: 1,
-        mountRevision: "model-mount",
-        attached: true,
-        complete: true,
-        metadataOnly: true,
-        error: "",
-        hierarchy: "[]",
-      })
-      return new NativeCollectionActions(session)
+    const original = collection().filter(() => false)
+    const makeActions = (ownerId: string) => {
+      const model = new NativeCollectionModel<unknown>(ownerId)
+      const snapshot = model.prepare(original)
+      model.commit(snapshot)
+      const transport = createNativeVisibleCollectionAdmission()
+      const actions = new NativeCollectionActions(model, transport.adapter, snapshot)
+      return { actions, transport, binding: nativeCollectionOwnerBinding(snapshot) }
     }
-    const actions = makeActions("model-revision")
-    let replaceActions!: (next: NativeCollectionActions) => void
+    const first = makeActions("model-owner")
+    let replaceActions!: (next: typeof first) => void
     const focusModule = jest.requireActual<typeof import("../../../input/focus")>("../../../input/focus")
     const focus = jest.spyOn(focusModule, "focusNativeTarget")
-    const original = collection().filter(() => false),
-      ref = createRef<View>()
+    const ref = createRef<View>()
     const Harness = () => {
       const state = useComboBoxState({ collection: original, isOpen: true, items: [], allowsEmptyCollection: true })
-      const [currentActions, updateActions] = useState(actions)
+      const [current, updateActions] = useState(first)
       replaceActions = updateActions
+      useSyncExternalStore(current.transport.adapter.subscribe, current.transport.adapter.getSnapshot)
+      useLayoutEffect(() => current.transport.adapter.registerOwner(current.binding, ref.current!), [current])
       return (
-        <NativeCollectionActionsContext.Provider value={currentActions}>
+        <NativeCollectionActionsContext.Provider value={current.actions}>
           <NativeComboBoxStateContext.Provider value={state}>
             <NativeComboBoxList ref={ref} autoFocus shouldUseVirtualFocus={false} />
           </NativeComboBoxStateContext.Provider>
@@ -443,19 +428,34 @@ it.each(["live", "unmounted", "controller-replaced"] as const)(
     }
     const view = await render(wrap(<Harness />))
     expect(focus).not.toHaveBeenCalled()
-    const [request, ...extra] = JSON.parse(actions.getSnapshot())
+    const publication = JSON.parse(first.transport.publication())
+    await act(() =>
+      first.transport.receiveCommit(
+        JSON.stringify({
+          intent: publication.intent,
+          publisher: "source-list-publisher",
+          instance: 1,
+          sequence: 1,
+          lifetime: "source-list-lifetime",
+          registrations: [{ ...publication.root, binding: "source-list-lease" }],
+        }),
+      ),
+    )
+    const [request, ...extra] = JSON.parse(first.transport.requests())
     expect(request).toBeDefined()
     expect(extra).toEqual([])
     const originalHost = ref.current
     if (mode === "unmounted") await view.rerender(wrap(<View />))
-    if (mode === "controller-replaced") await act(() => replaceActions(makeActions("replacement-revision")))
+    if (mode === "controller-replaced") await act(() => replaceActions(makeActions("replacement-owner")))
     await act(() =>
-      actions.receive({
-        ...JSON.parse(request.binding),
-        requestId: request.requestId,
-        visibleTarget: request.visibleTarget,
-        accepted: true,
-      }),
+      first.transport.receiveAction(
+        JSON.stringify({
+          id: request.id,
+          binding: request.binding,
+          publisher: "source-list-publisher",
+          accepted: true,
+        }),
+      ),
     )
     if (mode !== "live") expect(focus).not.toHaveBeenCalled()
     else expect(focus.mock.calls).toEqual([[originalHost]])

@@ -37,6 +37,7 @@ import { registerNativeDescriptionSource, type TNativeDescriptionBinding } from 
 import { useNativeKeyScope } from "./NativeKeyboardScope"
 import { deliverNativeToolbarTargetKey, type TNativeToolbarListenerProps } from "./nativeToolbarKeyboard"
 import { nativeViewProps, NativeViewContextBoundary } from "./nativeViewProps"
+import { nativeCollectionFocusBinding } from "./nativeVisibleCollectionAdmission"
 import {
   NativeOrdinaryFieldGroupKeysContext,
   NativeOrdinaryFocusParticipantsContext,
@@ -537,10 +538,19 @@ export const NativeFocusHost = forwardRef<
       releaseForwardedRef.current = undefined
       release.current = target
         ? registerNativeFocusTarget(target, {
-            canFocus,
+            canFocus: () => canFocus() && nativeCollectionFocusBinding(target) !== "",
+            canObserveFocus: canFocus,
             window: focusWindow,
-            focus: () => Commands.requestKeyboardFocus(target, ownerId),
-            focusContainer: () => Commands.requestContainerFocus(target, ownerId),
+            focus: () => {
+              const binding = nativeCollectionFocusBinding(target)
+              if (binding === null) Commands.requestKeyboardFocus(target, ownerId)
+              else if (binding) Commands.requestCollectionFocus(target, ownerId, binding, false)
+            },
+            focusContainer: () => {
+              const binding = nativeCollectionFocusBinding(target)
+              if (binding === null) Commands.requestContainerFocus(target, ownerId)
+              else if (binding) Commands.requestCollectionFocus(target, ownerId, binding, true)
+            },
             blur: () => Commands.requestKeyboardBlur(target, ownerId),
           })
         : undefined

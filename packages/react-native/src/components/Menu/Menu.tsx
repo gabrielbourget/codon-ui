@@ -22,16 +22,21 @@ import {
 
 import { NativeCollectionActionsContext } from "../../collection/actions"
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
-import { NativeCollection, NativeCollectionBuilder } from "../../collection/CollectionBuilder"
+import { NativeCollectionBuilder, useNativeCollectionOwnerRef } from "../../collection/CollectionBuilder"
 import { NativeSelectableCollectionContext, useNativeContextProps } from "../../collection/context"
+import type { TNativeCollectionModelSnapshot } from "../../collection/model"
 import {
   NativeCollectionRendererContext,
   useNativePersistedKeys,
   type TNativeCollectionScrollHost,
 } from "../../collection/renderer"
 import { NativeCollectionSemanticsContext, type TNativeCollectionSemantics } from "../../collection/semantics"
-import type { TNativeCollectionSessionSnapshot } from "../../collection/session"
-import type { TNativeCollectionNode, TNativeCollectionSnapshot } from "../../collection/snapshot"
+import {
+  getNativeCollectionNodeIdentity,
+  type TNativeCollectionItem,
+  type TNativeCollectionNode,
+  type TNativeCollectionSnapshot,
+} from "../../collection/snapshot"
 import { useTreeState } from "../../collection/state"
 import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
 import { focusNativeTarget } from "../../input/focus"
@@ -76,6 +81,8 @@ import { getNativeMenuStyles } from "./styles"
 import { useNativeMenuTriggerState } from "./triggerState"
 import type { TNativeMenuListProps, TNativeMenuProps, TNativeMenuRef } from "./types"
 
+const emptyItems: readonly TNativeCollectionItem<object>[] = []
+
 const keyTokens = ["ArrowDown", "ArrowUp", "Home", "End", "PageDown", "PageUp"]
   .flatMap((key) => nativeKeyTokens(key).filter((token) => token.startsWith("0000:") || token.startsWith("1000:")))
   .concat(nativeKeyTokens("a").filter((token) => token.startsWith("0010:") || token.startsWith("0001:")))
@@ -98,6 +105,7 @@ export const Menu = forwardRef<TNativeMenuRef, TNativeMenuProps>((authoredProps,
   const {
     slot: _slot,
     menuListSlot,
+    items,
     children,
     menuAriaLabel,
     selectionMode,
@@ -151,7 +159,7 @@ export const Menu = forwardRef<TNativeMenuRef, TNativeMenuProps>((authoredProps,
   const list = useRef<View>(null)
   const [listDefaults, defaultsRef] = useNativeContextProps<TNativeMenuListProps, View, Partial<TNativeMenuListProps>>(
     {
-      children,
+      items,
       slot: menuListSlot,
       selectionMode,
       selectedKeys,
@@ -166,6 +174,8 @@ export const Menu = forwardRef<TNativeMenuRef, TNativeMenuProps>((authoredProps,
     NativeMenuListContext,
   )
   const [listProps, listRef] = useNativeContextProps(listDefaults, defaultsRef, NativeSelectableCollectionContext)
+  if (children != null || listProps.children != null)
+    throw new TypeError("Menu: supply explicit ordered items; JSX children do not define collection membership")
   const rootFocusStrategy = useNativeMenuFocusStrategy()
   const wantsAutoFocus =
     listProps.autoFocus !== undefined
@@ -208,21 +218,11 @@ export const Menu = forwardRef<TNativeMenuRef, TNativeMenuProps>((authoredProps,
           style={styles.root}
         >
           <NativeSubmenuContext.Provider value={null}>
-            <NativeCollectionBuilder<object>
-              content={
-                <NativeCollection
-                  items={listProps.items}
-                  dependencies={listProps.dependencies}
-                  idScope={listProps.idScope}
-                >
-                  {listProps.children}
-                </NativeCollection>
-              }
-            >
-              {(collection, receipt) => (
+            <NativeCollectionBuilder<object> items={listProps.items ?? emptyItems}>
+              {(collection, modelSnapshot) => (
                 <NativeMenuList
                   collection={collection}
-                  receipt={receipt}
+                  modelSnapshot={modelSnapshot}
                   {...{
                     props,
                     menuAriaLabel: listProps.accessibilityLabel ?? listProps["aria-label"],
@@ -264,13 +264,14 @@ type TListProps = Pick<
   shouldCloseOnSelect: boolean
   styles: ReturnType<typeof getNativeMenuStyles>
   collection: TNativeCollectionSnapshot<object>
-  receipt: TNativeCollectionSessionSnapshot<unknown>["receipt"]
+  modelSnapshot: TNativeCollectionModelSnapshot<object>
   root: RefObject<View | null>
   initialTarget: RefObject<View | null>
   close: () => void
   submenu: React.ContextType<typeof NativeSubmenuContext>
 }
 const NativeMenuList = (props: TListProps) => {
+  const ownerRef = useNativeCollectionOwnerRef(props.modelSnapshot, props.listRef)
   const theme = useNativeTheme()
   const inheritedTextStyle = useNativeInheritedTextStyle()
   const triggerLabelledBy = useContext(NativeMenuTriggerNamingContext)
@@ -359,7 +360,7 @@ const NativeMenuList = (props: TListProps) => {
     node: NonNullable<ReturnType<TNativeCollectionSnapshot<object>["getItem"]>>
     window: string
     commandedTarget: View | null
-    commandedLease: TListProps["receipt"]["lease"]
+    commandedLease: string | null
   } | null>(null)
   const setActive = (key: TNativeMenuKey | null) => manager.setFocusedKey(key)
   const logicalMembers: TNativeCollectionNode<object>[] = []
@@ -400,7 +401,8 @@ const NativeMenuList = (props: TListProps) => {
     window,
     input,
     collection,
-    receipt: props.receipt,
+    modelSnapshot: props.modelSnapshot,
+    actions,
     manager,
     renderer,
   })
@@ -417,7 +419,8 @@ const NativeMenuList = (props: TListProps) => {
       window,
       input,
       collection,
-      receipt: props.receipt,
+      modelSnapshot: props.modelSnapshot,
+      actions,
       manager,
       renderer,
     }
@@ -453,7 +456,8 @@ const NativeMenuList = (props: TListProps) => {
   }, [])
   const admitted = (row?: TNativeMenuRegistration) =>
     live.current &&
-    current.current.receipt.status === "confirmed" &&
+    current.current.actions?.model.getSnapshot() === current.current.modelSnapshot &&
+    !!current.current.actions.ownerLifetime() &&
     current.current.scope?.canAct() !== false &&
     current.current.window?.() !== false &&
     current.current.input?.isWindowActive() !== false &&
@@ -487,10 +491,7 @@ const NativeMenuList = (props: TListProps) => {
   }
   const focusWindowStamp = () =>
     JSON.stringify([
-      current.current.receipt.lease?.rootRevision,
-      current.current.receipt.lease?.target,
-      current.current.receipt.lease?.windowId,
-      current.current.receipt.lease?.epoch,
+      current.current.actions?.ownerLifetime(),
       current.current.input?.acknowledgedSession()?.windowId,
       current.current.input?.acknowledgedSession()?.epoch,
     ])
@@ -501,11 +502,17 @@ const NativeMenuList = (props: TListProps) => {
   const attemptFocus = () => {
     const pending = pendingFocus.current
     if (!pending || !admitted() || current.current.input?.isNativeReady() === false) return
-    if (pending.window !== focusWindowStamp() || !actions?.bindingFor(pending.node)) {
+    const currentNode = current.current.collection.getItem(pending.key)
+    if (
+      pending.window !== focusWindowStamp() ||
+      !currentNode ||
+      getNativeCollectionNodeIdentity(currentNode) !== getNativeCollectionNodeIdentity(pending.node)
+    ) {
       cancelFocusRequest()
       return
     }
-    if (pending.commandedLease !== current.current.receipt.lease) pending.commandedTarget = null
+    if (!actions?.bindingFor(pending.node)) return
+    if (pending.commandedLease !== (current.current.actions?.bindingFor(null) || null)) pending.commandedTarget = null
     const row = current.current.rows.get(pending.key),
       host = row?.view.current
     if (!row || !host || host === pending.commandedTarget) return
@@ -518,7 +525,7 @@ const NativeMenuList = (props: TListProps) => {
       })
     ) {
       pending.commandedTarget = host
-      pending.commandedLease = current.current.receipt.lease
+      pending.commandedLease = current.current.actions?.bindingFor(null) || null
     }
   }
   const requestFocus = (key: TNativeMenuKey) => {
@@ -870,7 +877,7 @@ const NativeMenuList = (props: TListProps) => {
                   >
                     <MenuListHost
                       {...props.listProps}
-                      ref={props.listRef}
+                      ref={ownerRef}
                       render={props.listProps.render}
                       isEmpty={collection.size === 0}
                       nativeID={props.listProps.nativeID ?? props.listProps.id ?? props.submenu?.menuID}
@@ -1008,8 +1015,6 @@ const MenuListHost = forwardRef<
     slot: _slot,
     isEmpty,
     items: _items,
-    dependencies: _dependencies,
-    idScope: _idScope,
     filter: _filter,
     shouldUseVirtualFocus: _virtual,
     disallowTypeAhead: _ahead,

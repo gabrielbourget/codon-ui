@@ -8,12 +8,12 @@ import { Button } from "../../../Button/Button"
 import { Input } from "../../../Input/Input"
 import { Text } from "../../../Text/Text"
 import { useNativeTable } from "../../context"
+import { nativeTableChildren, createNativeTableHeaderModel, nativeTableReceiver } from "../../model"
 import { Table } from "../../Table"
 import { TableCell } from "../../TableCell"
-import { TableHeader } from "../../TableHeader"
 import type { TNativeTableCellProps } from "../../types"
 
-const createPart = (kind: "body" | "item") =>
+const createPart = (kind: "tablebody" | "item") =>
   createNativeCollectionBranch<object, { id?: string | number; children?: ReactNode }, View>(
     kind,
     (_props, ref, parent) => {
@@ -25,9 +25,8 @@ const createPart = (kind: "body" | "item") =>
         </View>
       )
     },
-    (props) => props.children,
   )
-export const CellFixtureBody = createPart("body")
+export const CellFixtureBody = createPart("tablebody")
 export const CellFixtureRow = createPart("item")
 const columns = [{ id: "value", name: "Custom cell", isRowHeader: true }]
 const renderCell: NonNullable<TNativeTableCellProps["render"]> = (props, state) => (
@@ -45,32 +44,59 @@ export const TableCellFixture = ({ editorRef }: { editorRef?: Ref<TextInput> }) 
       <Button onPress={() => setMaxLines((value) => (value === undefined ? 2 : undefined))}>
         Toggle cell line limit
       </Button>
-      <Table testID="table-cell-render-probe" accessibilityLabel="Custom cell rendering">
-        <TableHeader columns={columns} />
-        <CellFixtureBody>
-          <CellFixtureRow id="custom-row">
-            <TableCell
-              id="custom-value"
-              columnID="value"
-              testID="table-custom-cell"
-              render={custom ? renderCell : undefined}
-              truncate={truncate}
-              maxLines={maxLines}
-            >
-              <Text testID="table-custom-cell-text">
-                A long cell phrase that can wrap over several lines at narrow widths.
-              </Text>
-              <Input
-                ref={editorRef}
-                testID="table-custom-cell-editor"
-                accessibilityLabel="Held custom cell draft"
-                value=""
-                onChangeText={(value) => setRequests((previous) => [...previous, value])}
-              />
-            </TableCell>
-          </CellFixtureRow>
-        </CellFixtureBody>
-      </Table>
+      <Table
+        testID="table-cell-render-probe"
+        accessibilityLabel="Custom cell rendering"
+        items={(modelOptions) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel({ columns: columns }, modelOptions),
+            nativeTableReceiver<React.ComponentProps<typeof CellFixtureBody>>(
+              "__body:1",
+              "tablebody",
+              {},
+              (visibleProps) => <CellFixtureBody {...visibleProps} />,
+              nativeTableChildren(
+                nativeTableReceiver<React.ComponentProps<typeof CellFixtureRow>>(
+                  "custom-row",
+                  "item",
+                  { id: "custom-row" },
+                  (visibleProps) => <CellFixtureRow {...visibleProps} />,
+                  nativeTableChildren(
+                    nativeTableReceiver<React.ComponentProps<typeof TableCell>>(
+                      "custom-value",
+                      "cell",
+                      {
+                        id: "custom-value",
+                        columnID: "value",
+                        testID: "table-custom-cell",
+                        render: custom ? renderCell : undefined,
+                        truncate: truncate,
+                        maxLines: maxLines,
+                        children: (
+                          <>
+                            <Text testID="table-custom-cell-text">
+                              A long cell phrase that can wrap over several lines at narrow widths.
+                            </Text>
+                            <Input
+                              ref={editorRef}
+                              testID="table-custom-cell-editor"
+                              accessibilityLabel="Held custom cell draft"
+                              value=""
+                              onChangeText={(value) => setRequests((previous) => [...previous, value])}
+                            />
+                          </>
+                        ),
+                      },
+                      (visibleProps) => <TableCell {...visibleProps} />,
+                      [],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          )
+        }
+      />
       <Text testID="table-custom-cell-requests">{JSON.stringify(requests)}</Text>
     </>
   )

@@ -8,4 +8,5 @@ import type { TNativeFormProps } from "./types"
 
 export const NativeFormContext = createContext<TNativeContextValue<TNativeFormProps, View>>(null)
 export const NativeFormRegistryContext = createContext(nativeFormRegistry)
+export const NativeFormOwnerContext = createContext<string | null>(null)
 export const NativeFormBehaviorContext = createContext<"native" | "aria">("native")

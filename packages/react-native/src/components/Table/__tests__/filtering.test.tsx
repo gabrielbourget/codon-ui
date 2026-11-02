@@ -1,15 +1,8 @@
-import "../../../collection/__tests__/nativeReceipts"
-
 import { cleanup } from "@testing-library/react-native"
 import { createRef } from "react"
 import type * as RN from "react-native"
 
-import {
-  actWithNativeCollections as act,
-  fireEventWithNativeCollections as fireEvent,
-  renderWithNativeCollections as render,
-  screen,
-} from "../../../collection/__tests__/nativeReceipts"
+import { packet } from "../../../date/input/__tests__/packet"
 import { NativeFormRegistryContext } from "../../../form/context"
 import { NativeForm } from "../../../form/NativeForm"
 import { NativeFormRegistry } from "../../../form/registry"
@@ -17,14 +10,50 @@ import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloati
 import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
 import { NativeThemeProvider } from "../../../theme"
 import { Input } from "../../Input/Input"
+import { nativeTableChildren, createNativeTableHeaderModel, createNativeTableBodyModel } from "../model"
 import type { TTableFilterGroup } from "../queryTypes"
 import { Table } from "../Table"
-import { TableBody } from "../TableBody"
 import { TableFilterPopover, type TNativeTableFilterPopoverProps } from "../TableFilterPopover"
-import { TableHeader } from "../TableHeader"
 import type { TNativeTableColumnMetadata, TNativeTableFilteringControls } from "../types"
 
-const mockRead = jest.fn<Promise<string>, [string]>()
+import {
+  actWithNativeCollections as act,
+  fireEventWithNativeCollections as fireEvent,
+  renderWithNativeCollections as render,
+  screen,
+} from "./collectionModel"
+
+const mockSegmentHosts = new Map<string, RN.View>()
+jest.mock("../../../input/specs/CUIDateSegmentNativeComponent", () => {
+  const React = jest.requireActual<typeof import("react")>("react")
+  const Native = jest.requireActual<typeof RN>("react-native")
+  return {
+    __esModule: true,
+    default: React.forwardRef<RN.View, RN.ViewProps & { ownerId: string; segmentId: string }>((props, ref) => {
+      const bind = React.useCallback(
+        (host: RN.View | null) => {
+          const key = `${props.ownerId}:${props.segmentId}`
+          if (host) mockSegmentHosts.set(key, host)
+          else mockSegmentHosts.delete(key)
+          if (typeof ref === "function") ref(host)
+          else if (ref) ref.current = host
+        },
+        [props.ownerId, props.segmentId, ref],
+      )
+      return <Native.View {...props} ref={bind} />
+    }),
+    Commands: { requestSegmentFocus: jest.fn(), requestSegmentBlur: jest.fn() },
+  }
+})
+jest.mock("../../../input/specs/CUIFieldBindingNativeComponent", () => ({
+  __esModule: true,
+  default: jest
+    .requireActual("react")
+    .forwardRef((props: object, ref: React.Ref<RN.View>) =>
+      jest.requireActual("react").createElement(jest.requireActual("react-native").View, { ...props, ref }),
+    ),
+}))
+const mockAdmit = jest.fn<Promise<string>, [string]>()
 jest.unmock("react-native/Libraries/Components/TextInput/TextInput")
 jest.mock("react-native/Libraries/Components/Pressable/Pressable", () => {
   const React = jest.requireActual<typeof import("react")>("react")
@@ -49,7 +78,7 @@ jest.mock("react-native/Libraries/Components/Pressable/Pressable", () => {
 })
 jest.mock("../../../input/specs/NativeCUIFormDocument", () => ({
   __esModule: true,
-  default: { getSnapshot: (request: string) => mockRead(request) },
+  default: { admitForm: (request: string) => mockAdmit(request) },
 }))
 jest.mock("../../../input/specs/CUIFormRootNativeComponent", () => ({
   __esModule: true,
@@ -89,10 +118,11 @@ let nextTag = 200,
   nextFrame = 0
 beforeEach(() => {
   jest.useFakeTimers()
-  mockRead.mockReset()
+  mockAdmit.mockReset()
   hosts.clear()
   frames.clear()
   mockOriginalViews.clear()
+  mockSegmentHosts.clear()
   const native = jest.requireActual<typeof RN>("react-native")
   jest.spyOn(native.AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
   const base = jest.mocked(native.findNodeHandle).getMockImplementation()!
@@ -178,10 +208,15 @@ const headerNode = (
   header: TNativeTableColumnMetadata<{ id: string; name: string }>[] = columns,
 ) => (
   <NativeThemeProvider>
-    <Table queryControls={{ sorting: { activeSorts: [], onSortChange: jest.fn() }, filtering }}>
-      <TableHeader columns={header} />
-      <TableBody items={[{ id: "a", name: "Alpha" }]} columns={columns} />
-    </Table>
+    <Table
+      queryControls={{ sorting: { activeSorts: [], onSortChange: jest.fn() }, filtering }}
+      items={(modelOptions) =>
+        nativeTableChildren(
+          createNativeTableHeaderModel({ columns: header }, modelOptions),
+          createNativeTableBodyModel({ items: [{ id: "a", name: "Alpha" }], columns: columns }, modelOptions),
+        )
+      }
+    />
   </NativeThemeProvider>
 )
 it("preserves current external callback payloads and held active filters without sorting", async () => {
@@ -237,14 +272,20 @@ const setup = async (initial: Partial<TNativeTableFilterPopoverProps<object>> = 
                       onFiltersChange: props.onFiltersChange ?? changed,
                     },
                   }}
-                >
-                  <TableHeader columns={columns} />
-                  <TableBody
-                    items={[{ id: "a", name: "Alpha" }]}
-                    columns={columns}
-                    renderCell={() => <Input ref={editor} accessibilityLabel="Held table draft" value="held" />}
-                  />
-                </Table>
+                  items={(modelOptions) =>
+                    nativeTableChildren(
+                      createNativeTableHeaderModel({ columns: columns }, modelOptions),
+                      createNativeTableBodyModel(
+                        {
+                          items: [{ id: "a", name: "Alpha" }],
+                          columns: columns,
+                          renderCell: () => <Input ref={editor} accessibilityLabel="Held table draft" value="held" />,
+                        },
+                        modelOptions,
+                      ),
+                    )
+                  }
+                />
               ) : (
                 <TableFilterPopover
                   column={columns[0]}
@@ -302,6 +343,34 @@ const setup = async (initial: Partial<TNativeTableFilterPopoverProps<object>> = 
     expect(jest.requireActual<typeof RN>("react-native").StyleSheet.flatten(surface.props.style)?.opacity).not.toBe(0)
   }
   const actionStatus = async () => {
+    // Source-only mount/admission packets exercise the caller; they do not qualify native attachment.
+    const filtered = [...registry.forms.values()].find((form) => form.descriptor.formId !== "outer")!
+    const descriptor = filtered.descriptor
+    const metadata = screen.container.queryAll(
+      (node) =>
+        node.props.descriptorId === descriptor.descriptorId && typeof node.props.onNativeFormCommit === "function",
+    )[0]
+    expect(metadata).toBeDefined()
+    await act(() =>
+      metadata.props.onNativeFormCommit({
+        nativeEvent: {
+          ...descriptor,
+          target: descriptor.metadataTarget,
+          originalTarget: descriptor.target,
+          surfaceId: 11,
+          windowId: "filter-window",
+          epoch: 1,
+          sequence: 1,
+          mountRevision: descriptor.descriptorRevision,
+          attached: true,
+          active: true,
+          complete: true,
+          metadataOnly: true,
+          originalClass: "View",
+          error: "",
+        },
+      }),
+    )
     const action = screen.container.queryAll((item) => !!item.props.nativeFormActionBinding)[0]
     const binding = JSON.parse(action.props.nativeFormActionBinding)
     const target = [...hosts].find(
@@ -323,59 +392,24 @@ const setup = async (initial: Partial<TNativeTableFilterPopoverProps<object>> = 
       enabled: true,
     }
     await act(() => action.props.onNativeFormActionStatus({ nativeEvent: status }))
-    mockRead.mockImplementation(async (encoded) => {
+    mockAdmit.mockImplementation(async (encoded) => {
       const request = JSON.parse(encoded)
-      const forms = [...registry.forms.values()]
-      const filtered = forms.find((form) => form.descriptor.formId !== "outer")!
-      const nodes = [{ target: 1, parent: 0, component: "RootView", hidden: false, displayNone: false }]
-      const formNodes = forms.map(({ descriptor }) => {
-        nodes.push({ target: descriptor.target, parent: 1, component: "View", hidden: false, displayNone: false })
-        nodes.push({
-          target: descriptor.metadataTarget,
-          parent: descriptor.target,
-          component: "CUIFormRoot",
-          hidden: false,
-          displayNone: false,
-        })
-        return { ...descriptor, position: nodes.length - 1 }
-      })
-      nodes.push({
-        target: target!,
-        parent: filtered.descriptor.target,
-        component: "CUIFocusView",
-        hidden: false,
-        displayNone: false,
-      })
       expect(registry.fields.size).toBe(0)
-      return JSON.stringify({
-        ...request,
-        documentId: "filter-model",
-        revision: "1",
-        rootTarget: 1,
-        surfaceId: 11,
-        nodes,
-        forms: formNodes,
-        fields: [],
-        ...(request.actionAdmission
-          ? {
-              actionAdmission: {
-                accepted,
-                lease: status,
-                documentId: "filter-model",
-                revision: "1",
-                formDescriptorId: filtered.descriptor.descriptorId,
-                formDescriptorRevision: filtered.descriptor.descriptorRevision,
-              },
-            }
-          : {}),
-      })
+      expect(request.form.descriptorId).toBe(descriptor.descriptorId)
+      expect(request.form.descriptorRevision).toBe(descriptor.descriptorRevision)
+      expect(request.formMount).toMatchObject({ originalTarget: descriptor.target, target: descriptor.metadataTarget })
+      expect(request.actionLease).toMatchObject(status)
+      expect(request.fields).toEqual([])
+      return JSON.stringify({ accepted, requestId: request.requestId, formRevision: descriptor.descriptorRevision })
     })
   }
+
   const open = async (name = "Filter by Name") => {
     await press(name)
     await ready()
   }
   return {
+    registry,
     changed,
     outside,
     view,
@@ -440,6 +474,7 @@ it("rejects native submit admission without emitting a filter request", async ()
   await f.actionStatus()
   f.reject()
   await press("Apply")
+  expect(mockAdmit).toHaveBeenCalledTimes(1)
   expect(f.changed).not.toHaveBeenCalled()
 })
 it("renders add, join, delete, label and slot owners through the actual popover", async () => {
@@ -543,3 +578,61 @@ it("opens filtering through the Table header and retains the original held body 
   expect(write).not.toHaveBeenCalled()
   expect(f.outside).not.toHaveBeenCalled()
 })
+
+it.each(["date", "date-time", "time"] as const)(
+  "declares the mounted %s range editors in explicit form order and retires them when the operator changes",
+  async (dataType) => {
+    const column = {
+      ...columns[0],
+      filter: { ...columns[0].filter, dataType, allowedOperationCodes: ["equal", "between"] as const },
+    }
+    const filterGroup = {
+      ...group(),
+      dataType,
+      clauses: [{ id: "held-clause", operationCode: "between" as const, argument: [] }],
+    }
+    const f = await setup({ column, filterGroup })
+    await f.open()
+    const observeSegments = async () => {
+      // Explicit source packets model original segment acknowledgements, not native qualification.
+      const segments = screen.container.queryAll((host) => typeof host.props.onNativeSegmentInput === "function")
+      for (const segment of segments) {
+        const props = segment.props
+        const original = mockSegmentHosts.get(`${props.ownerId}:${props.segmentId}`)
+        expect(original).toBeDefined()
+        const target = jest.requireActual<typeof RN>("react-native").findNodeHandle(original!)!
+        await act(() =>
+          props.onNativeSegmentInput({
+            nativeEvent: packet({
+              ownerId: props.ownerId,
+              segmentId: props.segmentId,
+              bindingRevision: props.bindingRevision,
+              target,
+              nativeInstance: `source-segment:${target}`,
+              windowId: "filter-window",
+            }),
+          }),
+        )
+      }
+    }
+    await observeSegments()
+    const fields = () => {
+      const form = [...f.registry.forms.values()].find((candidate) => candidate.descriptor.formId !== "outer")!
+      expect(form).toBeDefined()
+      const registered = f.registry.fieldsFor(form)
+      expect(registered.map((field) => field.fieldId)).toEqual(form.fieldOrder)
+      return registered.map((field) => field.fieldId)
+    }
+    expect(fields()).toEqual([
+      '["filter-argument","person","held-clause","minimum"]',
+      '["filter-argument","person","held-clause","maximum"]',
+    ])
+    await f.view.rerender(
+      f.node({ column, filterGroup: { ...filterGroup, clauses: [{ id: "held-clause", operationCode: "equal" }] } }),
+    )
+    await f.ready()
+    await observeSegments()
+    expect(fields()).toEqual(['["filter-argument","person","held-clause","value"]'])
+    expect(f.changed).not.toHaveBeenCalled()
+  },
+)

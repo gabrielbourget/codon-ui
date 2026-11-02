@@ -1,15 +1,7 @@
-import "../../../collection/__tests__/nativeReceipts"
-
 import { cleanup } from "@testing-library/react-native"
 import { createRef, useContext } from "react"
 import { findNodeHandle, ScrollView, type View } from "react-native"
 
-import {
-  actWithNativeCollections as act,
-  fireEventWithNativeCollections as fireEvent,
-  renderWithNativeCollections as render,
-  screen,
-} from "../../../collection/__tests__/nativeReceipts"
 import {
   DefaultNativeCollectionRenderer,
   NativeCollectionCellFocusContext,
@@ -17,6 +9,7 @@ import {
   type TNativeCollectionRootProps,
 } from "../../../collection/renderer"
 import { NativeThemeProvider } from "../../../theme"
+import { nativeTableChildren, nativeTableReceiver, createNativeTableRowModel } from "../model"
 import {
   NativeResizableTableContainer,
   NativeResizableTableContainerContext,
@@ -25,8 +18,13 @@ import {
 import { Table } from "../Table"
 import { TableCell } from "../TableCell"
 import { TableColumn } from "../TableColumn"
-import { TableRow } from "../TableRow"
 
+import {
+  actWithNativeCollections as act,
+  fireEventWithNativeCollections as fireEvent,
+  renderWithNativeCollections as render,
+  screen,
+} from "./collectionModel"
 import { CellFixtureBody, CellFixtureRow } from "./fixtures/TableCellFixture"
 import { ColumnFixtureHeader } from "./fixtures/TableColumnFixture"
 import { TableVirtualizedFixture } from "./fixtures/TableVirtualizedFixture"
@@ -70,28 +68,95 @@ const tree = (
       value={{ ...DefaultNativeCollectionRenderer, isVirtualized: virtual, CollectionRoot: root }}
     >
       <NativeResizableTableContainer testID="container">
-        <Table testID="grid" style={{ width: 444 }} onScroll={onScroll}>
-          <ColumnFixtureHeader>
-            <TableColumn ref={refs.column} id="name" columnID="name" isRowHeader width={200}>
-              Name
-              <Probe />
-            </TableColumn>
-            <TableColumn id="other" columnID="other">
-              Other
-            </TableColumn>
-          </ColumnFixtureHeader>
-          <CellFixtureBody>
-            <TableRow ref={refs.row} id="row" testID="row" item={{ name: "Alpha", other: "Beta" }} columns={columns} />
-            <CellFixtureRow id="raw-row">
-              <TableCell ref={refs.cell} id="raw-name" columnID="name" testID="cell">
-                Explicit cell
-              </TableCell>
-              <TableCell id="raw-other" columnID="other">
-                Other cell
-              </TableCell>
-            </CellFixtureRow>
-          </CellFixtureBody>
-        </Table>
+        <Table
+          testID="grid"
+          style={{ width: 444 }}
+          onScroll={onScroll}
+          items={(modelOptions) =>
+            nativeTableChildren(
+              nativeTableReceiver<React.ComponentProps<typeof ColumnFixtureHeader>>(
+                "__header:1",
+                "tableheader",
+                {},
+                (visibleProps) => <ColumnFixtureHeader {...visibleProps} />,
+                nativeTableChildren(
+                  nativeTableReceiver<React.ComponentProps<typeof TableColumn>>(
+                    "name",
+                    "column",
+                    {
+                      ref: refs.column,
+                      id: "name",
+                      columnID: "name",
+                      isRowHeader: true,
+                      width: 200,
+                      children: (
+                        <>
+                          Name
+                          <Probe />
+                        </>
+                      ),
+                    },
+                    (visibleProps) => <TableColumn {...visibleProps} />,
+                    [],
+                  ),
+                  nativeTableReceiver<React.ComponentProps<typeof TableColumn>>(
+                    "other",
+                    "column",
+                    { id: "other", columnID: "other", children: <>Other</> },
+                    (visibleProps) => <TableColumn {...visibleProps} />,
+                    [],
+                  ),
+                ),
+              ),
+              nativeTableReceiver<React.ComponentProps<typeof CellFixtureBody>>(
+                "__body:2",
+                "tablebody",
+                {},
+                (visibleProps) => <CellFixtureBody {...visibleProps} />,
+                nativeTableChildren(
+                  createNativeTableRowModel(
+                    {
+                      ref: refs.row,
+                      id: "row",
+                      testID: "row",
+                      item: { name: "Alpha", other: "Beta" },
+                      columns: columns,
+                    },
+                    modelOptions,
+                  ),
+                  nativeTableReceiver<React.ComponentProps<typeof CellFixtureRow>>(
+                    "raw-row",
+                    "item",
+                    { id: "raw-row" },
+                    (visibleProps) => <CellFixtureRow {...visibleProps} />,
+                    nativeTableChildren(
+                      nativeTableReceiver<React.ComponentProps<typeof TableCell>>(
+                        "raw-name",
+                        "cell",
+                        {
+                          ref: refs.cell,
+                          id: "raw-name",
+                          columnID: "name",
+                          testID: "cell",
+                          children: <>Explicit cell</>,
+                        },
+                        (visibleProps) => <TableCell {...visibleProps} />,
+                        [],
+                      ),
+                      nativeTableReceiver<React.ComponentProps<typeof TableCell>>(
+                        "raw-other",
+                        "cell",
+                        { id: "raw-other", columnID: "other", children: <>Other cell</> },
+                        (visibleProps) => <TableCell {...visibleProps} />,
+                        [],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            )
+          }
+        />
       </NativeResizableTableContainer>
     </NativeCollectionRendererContext.Provider>
   </NativeThemeProvider>

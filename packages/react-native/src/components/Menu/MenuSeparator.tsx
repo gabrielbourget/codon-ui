@@ -3,7 +3,7 @@ import type { View } from "react-native"
 
 import { NativeCollectionActionsContext } from "../../collection/actions"
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
-import { createNativeCollectionLeaf } from "../../collection/CollectionBuilder"
+import { createNativeCollectionLeaf, useNativeCollectionReceiverRef } from "../../collection/CollectionBuilder"
 import { useNativeContextProps } from "../../collection/context"
 import { NativeCollectionSemanticsContext } from "../../collection/semantics"
 import type { TNativeCollectionNode } from "../../collection/snapshot"
@@ -23,6 +23,7 @@ const MenuSeparatorReceiver = forwardRef<
 >(({ collectionNode, ...authoredProps }, forwardedRef) => {
   const menu = useContext(NativeMenuActionsContext)
   const [props, ref] = useNativeContextProps(authoredProps, forwardedRef, NativeMenuSeparatorContext)
+  const receiverRef = useNativeCollectionReceiverRef(collectionNode, ref)
   const {
     render,
     slot: _slot,
@@ -58,7 +59,7 @@ const MenuSeparatorReceiver = forwardRef<
     throw new TypeError("MenuSeparator: an accessible orientation label must be nonempty")
   const hostProps = {
     ...native,
-    ref,
+    ref: receiverRef,
     testID: testID ?? aliasTestID ?? "menu-separator",
     role: "separator" as const,
     accessible,

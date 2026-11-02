@@ -5,7 +5,7 @@ import { findNodeHandle, type GestureResponderEvent, type PointerEvent } from "r
 
 import { NativeCollectionActionsContext } from "../../collection/actions"
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
-import { createNativeCollectionLeaf } from "../../collection/CollectionBuilder"
+import { createNativeCollectionLeaf, useNativeCollectionReceiverRef } from "../../collection/CollectionBuilder"
 import { NativeCollectionSemanticsContext } from "../../collection/semantics"
 import { NativeButton } from "../../components/Button/Button"
 import { resolveNativeStyle } from "../../components/colors"
@@ -36,6 +36,7 @@ export const Day = createNativeCollectionLeaf<object, TDayProps, View>("cell", (
   const inherited = useNativeContentContext()
   const target = useRef<View | null>(null),
     current = useRef({ owner, node })
+  const receiverRef = useNativeCollectionReceiverRef(node, target)
   useInsertionEffect(() => {
     current.current = { owner, node }
   })
@@ -172,7 +173,7 @@ export const Day = createNativeCollectionLeaf<object, TDayProps, View>("cell", (
         }
       >
         <NativeButton
-          ref={target}
+          ref={receiverRef}
           nativeRole="button"
           nativeProgrammaticFocusable
           nativeTabStop={!props.outside && owner.state.focusedDate.compare(props.date) === 0 && !semantics.disabled}

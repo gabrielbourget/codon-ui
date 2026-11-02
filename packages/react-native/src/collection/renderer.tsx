@@ -13,6 +13,7 @@ import type { ScrollView, ScrollViewProps, VirtualizedList } from "react-native"
 import { encodeCollectionKey } from "../components/collection"
 import type { TNativeFocusEvent, TNativeFocusViewProps } from "../input/types"
 
+import { NativeCollectionNodeContext } from "./binding"
 import { useNativeCachedChildren } from "./cachedChildren"
 import type { TNativeCollectionKey, TNativeCollectionNode, TNativeCollectionSnapshot } from "./snapshot"
 import type { LayoutDelegate } from "./state/types"
@@ -94,6 +95,11 @@ export const renderNativeAfterDropIndicators = (
   }
   return indicators
 }
+// Custom virtualizers use this same receiver boundary for each materialized logical node.
+export const renderNativeCollectionNode = (node: TNativeCollectionNode<unknown>) => (
+  <NativeCollectionNodeContext.Provider value={node}>{node.render?.(node)}</NativeCollectionNodeContext.Provider>
+)
+
 const useCollectionRender = (
   collection: TNativeCollectionSnapshot<unknown>,
   parent: TNativeCollectionNode<unknown> | null,
@@ -105,7 +111,7 @@ const useCollectionRender = (
     getReactKey: encodeCollectionKey,
     children: (node) => {
       if (node.type === "content") return <></>
-      const rendered = node.render?.(node)
+      const rendered = renderNativeCollectionNode(node)
       if (!renderDropIndicator || node.type !== "item") return rendered
       return (
         <>

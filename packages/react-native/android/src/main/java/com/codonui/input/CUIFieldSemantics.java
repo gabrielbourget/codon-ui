@@ -5,7 +5,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
-import android.widget.TextView;
 import androidx.core.view.AccessibilityDelegateCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
@@ -15,7 +14,6 @@ import com.facebook.react.views.textinput.ReactEditText;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.WeakHashMap;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 final class CUIFieldSemantics implements CUIFormMetadataView.SemanticContribution {
@@ -30,37 +28,15 @@ final class CUIFieldSemantics implements CUIFormMetadataView.SemanticContributio
   private Current current;
   private boolean retired;
 
-  private static String text(View view) {
-    CharSequence label = view.getContentDescription();
-    if (label != null) return label.toString();
-    if (view instanceof ReactEditText) return "";
-    if (view instanceof TextView) return ((TextView)view).getText().toString();
-    ArrayList<String> parts = new ArrayList<>();
-    if (view instanceof ViewGroup) for (int index = 0; index < ((ViewGroup)view).getChildCount(); index++) {
-      String value = text(((ViewGroup)view).getChildAt(index)); if (!value.isEmpty()) parts.add(value);
-    }
-    return String.join(" ", parts);
-  }
-  private static String referencedText(UIManager manager, JSONArray targets) throws Exception {
-    ArrayList<String> parts = new ArrayList<>();
-    for (int index = 0; index < targets.length(); index++) {
-      View view = manager.resolveView(targets.getInt(index));
-      if (view == null) throw new IllegalStateException("field-semantic-reference-not-materialized");
-      parts.add(text(view));
-    }
-    return String.join(" ", parts);
-  }
   static CUIFieldSemantics bind(UIManager manager, ReactEditText editor, JSONObject plan, Current current) throws Exception {
     if (!current.check()) return null;
     WeakReference<CUIFieldSemantics> previous = leases.get(editor);
     if (previous != null && previous.get() != null) previous.get().retire();
-    String label = referencedText(manager, plan.getJSONArray("labelledBy"));
-    String description = referencedText(manager, plan.getJSONArray("describedBy"));
-    String errors = referencedText(manager, plan.getJSONArray("errorMessageBy"));
-    String details = referencedText(manager, plan.getJSONArray("detailsBy"));
-    // Resolve control references now too; missing UI never becomes a fabricated relation.
-    referencedText(manager, plan.getJSONArray("controls"));
-    View firstLabel = plan.getJSONArray("labelledBy").length() == 0 ? null : manager.resolveView(plan.getJSONArray("labelledBy").getInt(0));
+    String label = plan.getJSONObject("text").getString("label");
+    String description = plan.getJSONObject("text").getString("description");
+    String errors = plan.getJSONObject("text").getString("errorMessage");
+    String details = plan.getJSONObject("text").getString("details");
+    View firstLabel = null;
     if (!current.check()) return null;
     return new CUIFieldSemantics(editor, plan, label, description, errors, details, firstLabel, current);
   }
@@ -76,15 +52,15 @@ final class CUIFieldSemantics implements CUIFormMetadataView.SemanticContributio
       for (CUIDateSegment segment : segments) {
         if (!current.check()) throw new IllegalStateException("date-semantic-document-retired");
         JSONObject part = new JSONObject(plan.toString());
-        if (segment.getId() != first && !plan.getBoolean("invalid")) part.put("describedBy", new JSONArray());
+        if (segment.getId() != first && !plan.getBoolean("invalid")) part.getJSONObject("text").put("description", "");
         part.put("readOnly", segment.segmentReadOnly);
         WeakReference<CUIFieldSemantics> previous = leases.get(segment);
         if (previous != null && previous.get() != null) previous.get().retire();
-        String label = referencedText(manager, part.getJSONArray("labelledBy"));
-        String description = referencedText(manager, part.getJSONArray("describedBy"));
-        String errors = referencedText(manager, part.getJSONArray("errorMessageBy"));
-        String details = referencedText(manager, part.getJSONArray("detailsBy"));
-        View firstLabel = part.getJSONArray("labelledBy").length() == 0 ? null : manager.resolveView(part.getJSONArray("labelledBy").getInt(0));
+        String label = part.getJSONObject("text").getString("label");
+        String description = part.getJSONObject("text").getString("description");
+        String errors = part.getJSONObject("text").getString("errorMessage");
+        String details = part.getJSONObject("text").getString("details");
+        View firstLabel = null;
         contributions.add(new CUIFieldSemantics(segment, part, label, description, errors, details, firstLabel, current));
       }
       if (!current.check()) throw new IllegalStateException("date-semantic-document-retired");
@@ -115,7 +91,7 @@ final class CUIFieldSemantics implements CUIFormMetadataView.SemanticContributio
     try {
       JSONObject labels = plan.getJSONObject("labels");
       boolean dateField = plan.has("dateField");
-      if (plan.getJSONArray("labelledBy").length() > 0) {
+      if (!label.isEmpty()) {
         CharSequence base = node.getContentDescription();
         node.setContentDescription(dateField && base != null && base.length() > 0 ? base + ", " + label : label);
       }
@@ -138,11 +114,6 @@ final class CUIFieldSemantics implements CUIFormMetadataView.SemanticContributio
       }
       // Native relations retain their complete ordered target sets even where
       // Android exposes a single labeledBy slot. Editing/text/actions are untouched.
-      for (String key : new String[]{"labelledBy", "describedBy", "errorMessageBy", "detailsBy", "controls"}) {
-        JSONArray values = plan.getJSONArray(key); int[] targets = new int[values.length()];
-        for (int index = 0; index < targets.length; index++) targets[index] = values.getInt(index);
-        node.getExtras().putIntArray("com.codonui.field." + key, targets);
-      }
       if (!details.isEmpty()) node.getExtras().putCharSequence("com.codonui.field.details", details);
     } catch (Exception retired) { retire(); }
   }

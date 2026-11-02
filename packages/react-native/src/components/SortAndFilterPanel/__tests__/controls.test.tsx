@@ -1,19 +1,19 @@
-import "../../../collection/__tests__/nativeReceipts"
+import "../../Table/__tests__/collectionModel"
 
 import { act, screen, within } from "@testing-library/react-native"
 import { createRef, useContext, type ReactNode } from "react"
 import { AccessibilityInfo, StyleSheet, type View } from "react-native"
 
-import {
-  fireEventWithNativeCollections as fireEvent,
-  renderWithNativeCollections as render,
-  rerenderWithNativeCollections,
-} from "../../../collection/__tests__/nativeReceipts"
 import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import { NativeFloatingWindowContext } from "../../../overlays/floating/scope"
 import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
 import { NativeThemeProvider } from "../../../theme"
 import { resolveNativeTheme } from "../../../theme/defaults"
+import {
+  fireEventWithNativeCollections as fireEvent,
+  renderWithNativeCollections as render,
+  rerenderWithNativeCollections,
+} from "../../Table/__tests__/collectionModel"
 import type { TTableSortInstruction } from "../../Table/queryTypes"
 import { Text } from "../../Text/Text"
 import { DEFAULT_QUERY_CONTROL_LABELS, resolveQueryControlLabels } from "../controlLabels"
@@ -51,6 +51,16 @@ const entryProps = (): TQuerySortEntryProps => ({
   onDeleteSortParameter: jest.fn(),
 })
 beforeEach(() => {
+  // Synthetic source identities for original mounted refs; no native readiness claim.
+  const native = jest.requireActual<typeof import("react-native")>("react-native")
+  const tags = new WeakMap<object, number>()
+  let nextTag = 1000000
+  jest.mocked(native.findNodeHandle).mockImplementation((host) => {
+    if (!host || typeof host !== "object") return typeof host === "number" ? host : null
+    if (!tags.has(host)) tags.set(host, ++nextTag)
+    return tags.get(host)!
+  })
+
   jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
 })
 afterEach(() => {

@@ -83,3 +83,13 @@ export type { TNativeResizableTableContainerProps, TNativeTableResizeCallbacks }
 export { NativeColumnResizer } from "./NativeColumnResizer"
 export type { TNativeColumnResizerProps, TNativeColumnResizerRenderState } from "./NativeColumnResizer"
 export type { TNativeTableState } from "./state/useTableState"
+
+export {
+  createNativeTableHeaderModel,
+  createNativeTableBodyModel,
+  createNativeTableRowModel,
+  nativeTableChildren,
+  nativeTableItem,
+  nativeTableReceiver,
+} from "./model"
+export type { TNativeTableModelInput, TNativeTableModelOptions } from "./model"

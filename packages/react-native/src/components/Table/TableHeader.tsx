@@ -15,20 +15,16 @@ import { splitNativeTextStyle } from "../nativeTextStyle"
 import { QueryGlyph } from "../SortAndFilterPanel/glyphs"
 import { Text } from "../Text/Text"
 
-import { NativeTableCellContext, NativeTableOptionsContext, useNativeTable } from "./context"
+import { NativeTableCellContext, useNativeTable } from "./context"
 import { TableFilterGlyph } from "./filterGlyphs"
 import { TABLE_SORT_DIRECTION__ASCENDING } from "./queryTypes"
-import { getNativeTableColumns } from "./rendering"
-import { TableSelectionCheckbox } from "./SelectionCheckbox"
 import { computeNextNativeTableSorts } from "./sorting"
-import { TableColumn } from "./TableCell"
-import { TableColumnResizer } from "./TableColumnResizer"
 import { TableFilterPopover } from "./TableFilterPopover"
 import type { TNativeTableHeaderProps, TNativeTableHeaderComponent, TNativeTableColumnMetadata } from "./types"
 import { useTableAction } from "./useTableAction"
 import { useTableHover } from "./useTableHover"
 
-const HeaderContent = ({ column }: { column: TNativeTableColumnMetadata<object> }) => {
+export const NativeTableHeaderContent = ({ column }: { column: TNativeTableColumnMetadata<object> }) => {
   const table = useNativeTable()
   const cell = useContext(NativeTableCellContext)!
   const action = useTableAction(cell.node, cell.target)
@@ -256,53 +252,6 @@ const Header = (
   return render ? render(hostProps, { isHovered: hover.isHovered }) : <View {...hostProps} />
 }
 export const TableHeader = createNativeCollectionBranch<object, TNativeTableHeaderProps<object>, View>(
-  "header",
+  "tableheader",
   Header,
-  (props) => {
-    const options = useContext(NativeTableOptionsContext)
-    return (
-      <>
-        {options.draggingEnabled && <TableColumn id="__drag" columnID="__drag" style={{ width: 30, padding: 0 }} />}
-        {options.behavior === "toggle" && (
-          <TableColumn
-            id="__selection"
-            testID="table-column-header:__selection"
-            columnID="__selection"
-            style={{ width: 30, padding: 0 }}
-          >
-            {options.mode === "multiple" && <TableSelectionCheckbox all />}
-          </TableColumn>
-        )}
-        {getNativeTableColumns(props.columns).map((column) => {
-          const custom = resolveNativeStyle(column.customHeaderColumnStyles, "TableHeader", "customHeaderColumnStyles")
-          const reserveEnd =
-            options.resizingEnabled &&
-            !column.headerVisuallyHidden &&
-            custom.padding === undefined &&
-            custom.paddingHorizontal === undefined
-          return (
-            <TableColumn
-              key={column.id}
-              id={column.id}
-              testID={`table-column-header:${column.id}`}
-              columnID={column.id}
-              textValue={column.headerAriaLabel}
-              isRowHeader={column.isRowHeader}
-              allowsSorting={options.sortingEnabled && !!column.sort?.enabled}
-              accessibilityLabel={column.headerAriaLabel ?? column.name}
-              alignment={column.headerAlignment ?? column.alignment}
-              customStyles={[
-                reserveEnd ? { paddingEnd: 11 } : undefined,
-                { width: column.width, minWidth: column.minWidth, maxWidth: column.maxWidth },
-                custom,
-              ]}
-            >
-              <HeaderContent column={column} />
-              {options.resizingEnabled && !column.headerVisuallyHidden && <TableColumnResizer column={column} />}
-            </TableColumn>
-          )
-        })}
-      </>
-    )
-  },
 ) as TNativeTableHeaderComponent

@@ -1,24 +1,23 @@
-import "../../../collection/__tests__/nativeReceipts"
-
 import { act as rawAct, cleanup } from "@testing-library/react-native"
 import { createRef, useContext, type ReactNode } from "react"
 import { AccessibilityInfo, TextInput, View, type MouseEvent, type PointerEvent } from "react-native"
 
-import {
-  actWithNativeCollections as act,
-  renderWithNativeCollections as render,
-  screen,
-} from "../../../collection/__tests__/nativeReceipts"
 import { createNativeCollectionBranch } from "../../../collection/CollectionBuilder"
 import { NativeCollectionRendererContext } from "../../../collection/renderer"
 import { NativeFloatingWindowContext } from "../../../overlays/floating/scope"
 import { NativeThemeProvider } from "../../../theme"
 import { useNativeTable } from "../context"
+import {
+  nativeTableChildren,
+  createNativeTableHeaderModel,
+  nativeTableReceiver,
+  createNativeTableRowModel,
+  createNativeTableBodyModel,
+} from "../model"
 import { Table } from "../Table"
-import { TableBody } from "../TableBody"
-import { TableHeader } from "../TableHeader"
-import { TableRow } from "../TableRow"
 import type { TNativeTableHeaderProps, TNativeTableProps, TNativeTableRowProps } from "../types"
+
+import { actWithNativeCollections as act, renderWithNativeCollections as render, screen } from "./collectionModel"
 
 jest.unmock("react-native/Libraries/Components/TextInput/TextInput")
 beforeEach(() => jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true))
@@ -27,7 +26,7 @@ afterEach(async () => {
   jest.restoreAllMocks()
 })
 const Body = createNativeCollectionBranch<object, { children?: ReactNode }, View>(
-  "body",
+  "tablebody",
   (_props, ref, parent) => {
     const table = useNativeTable(),
       renderer = useContext(NativeCollectionRendererContext)
@@ -37,7 +36,6 @@ const Body = createNativeCollectionBranch<object, { children?: ReactNode }, View
       </View>
     )
   },
-  (props) => props.children,
 )
 const columns = [{ id: "name", name: "Name", isRowHeader: true }]
 const tree = (
@@ -48,12 +46,27 @@ const tree = (
 ) => (
   <NativeThemeProvider>
     <NativeFloatingWindowContext.Provider value={() => active}>
-      <Table hoverColor="#abcdef" {...table}>
-        <TableHeader testID="header" columns={columns} {...header} />
-        <Body>
-          <TableRow id="a" testID="row" columns={columns} item={{ name: "Alpha" }} {...row} />
-        </Body>
-      </Table>
+      <Table
+        hoverColor="#abcdef"
+        {...table}
+        items={(modelOptions) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel({ testID: "header", columns: columns, ...header }, modelOptions),
+            nativeTableReceiver<React.ComponentProps<typeof Body>>(
+              "__body:1",
+              "tablebody",
+              {},
+              (visibleProps) => <Body {...visibleProps} />,
+              nativeTableChildren(
+                createNativeTableRowModel(
+                  { id: "a", testID: "row", columns: columns, item: { name: "Alpha" }, ...row },
+                  modelOptions,
+                ),
+              ),
+            ),
+          )
+        }
+      />
     </NativeFloatingWindowContext.Provider>
   </NativeThemeProvider>
 )
@@ -94,25 +107,32 @@ it.each(["mouse", "pen"])(
     )
     await render(
       <NativeThemeProvider>
-        <Table>
-          <TableHeader
-            ref={headerRef}
-            testID="header"
-            columns={columns}
-            render={renderer}
-            onPointerEnter={(event) => {
-              order.push("pointer-enter")
-              event.preventDefault()
-            }}
-            onPointerLeave={() => order.push("pointer-leave")}
-            onHoverStart={start}
-            onHoverEnd={end}
-            onHoverChange={(value) => order.push(`change:${value}`)}
-            customStyles={{ padding: 7 }}
-            style={{ padding: 9 }}
-          />
-          <TableBody items={[]} columns={columns} />
-        </Table>
+        <Table
+          items={(modelOptions) =>
+            nativeTableChildren(
+              createNativeTableHeaderModel(
+                {
+                  ref: headerRef,
+                  testID: "header",
+                  columns: columns,
+                  render: renderer,
+                  onPointerEnter: (event) => {
+                    order.push("pointer-enter")
+                    event.preventDefault()
+                  },
+                  onPointerLeave: () => order.push("pointer-leave"),
+                  onHoverStart: start,
+                  onHoverEnd: end,
+                  onHoverChange: (value) => order.push(`change:${value}`),
+                  customStyles: { padding: 7 },
+                  style: { padding: 9 },
+                },
+                modelOptions,
+              ),
+              createNativeTableBodyModel({ items: [], columns: columns }, modelOptions),
+            )
+          }
+        />
       </NativeThemeProvider>,
     )
     const originalHeader = headerRef.current,

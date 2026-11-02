@@ -18,15 +18,30 @@ import {
   Button,
   type TNativeCollectionRenderer,
   type TNativeCollectionSnapshot,
+  type TNativeCollectionItem,
+  renderNativeCollectionNode,
 } from "../src"
 
 const values = [
   { id: 0, label: "Zero" },
   { id: "0", label: "String" },
 ]
+const items: readonly TNativeCollectionItem<(typeof values)[number]>[] = values.map((item) => ({
+  key: item.id,
+  type: "item",
+  value: item,
+  rendered: item.label,
+  textValue: item.label,
+  props: {},
+  render: () => (
+    <Tag ref={createRef<View>()} textValue={item.label}>
+      {(state) => String(state.isSelected)}
+    </Tag>
+  ),
+}))
 export const NativeCollectionContract = (
-  <NativeCollection items={values} dependencies={["revision"]} idScope="scope">
-    {(item) => <Tag>{item.label}</Tag>}
+  <NativeCollection items={items}>
+    {(collection) => <>{[...collection].map(renderNativeCollectionNode)}</>}
   </NativeCollection>
 )
 export const NativeTagGroupContract = (
@@ -35,7 +50,7 @@ export const NativeTagGroupContract = (
     selectionMode="multiple"
     labels={{ selectedItem: (text) => `Selected: ${text}`, selectedCount: (count) => String(count), selectedAll: "" }}
     selectedKeys="all"
-    items={values}
+    items={items}
     render={(props, state) => {
       const expected: undefined = state
       void expected
@@ -46,13 +61,7 @@ export const NativeTagGroupContract = (
       state.selectionManager.selectAll()
       return null
     }}
-  >
-    {(item) => (
-      <Tag ref={createRef<View>()} textValue={item.label}>
-        {(state) => String(state.isSelected)}
-      </Tag>
-    )}
-  </TagGroup>
+  />
 )
 export const NativeSlotContract = (
   <NativeTagGroupContext.Provider
@@ -127,20 +136,34 @@ export const invalidNativeRect: NonNullable<TNativeCollectionRenderer["layoutDel
 export const invalidNativeKeys = <TagGroup selectedKeys={[{}]} />
 
 export const NativeGroupedItemRendering = (
-  <TagGroup selectionMode="multiple" onRemove={(keys) => keys.has(0)}>
-    <Tag
-      id={0}
-      autoFocus
-      render={(props, state) => <NativeFocusView {...props} accessibilityHint={String(state.isSelected)} />}
-      style={({ defaultStyle, isFocusVisible }) => [defaultStyle, { opacity: isFocusVisible ? 1 : 0.8 }]}
-    >
-      {(state) => (
-        <Button slot="remove" isDisabled={state.isDisabled}>
-          Remove zero
-        </Button>
-      )}
-    </Tag>
-  </TagGroup>
+  <TagGroup
+    selectionMode="multiple"
+    onRemove={(keys) => keys.has(0)}
+    items={[
+      {
+        key: 0,
+        type: "item",
+        value: values[0],
+        rendered: "Zero",
+        textValue: "Zero",
+        props: { autoFocus: true },
+        render: () => (
+          <Tag
+            id={0}
+            autoFocus
+            render={(props, state) => <NativeFocusView {...props} accessibilityHint={String(state.isSelected)} />}
+            style={({ defaultStyle, isFocusVisible }) => [defaultStyle, { opacity: isFocusVisible ? 1 : 0.8 }]}
+          >
+            {(state) => (
+              <Button slot="remove" isDisabled={state.isDisabled}>
+                Remove zero
+              </Button>
+            )}
+          </Tag>
+        ),
+      },
+    ]}
+  />
 )
 export const NativeFieldRenderer: TNativeCollectionRenderer = {
   ...DefaultNativeCollectionRenderer,
@@ -177,3 +200,9 @@ export const invalidAnnouncementCount = <TagGroup labels={{ selectedCount: (coun
 export const AuthoredRootFocusability = <TagGroup focusable />
 // @ts-expect-error Native focusability remains a boolean.
 export const InvalidRootFocusability = <TagGroup focusable="true" />
+
+// @ts-expect-error Plain business data does not declare complete collection membership.
+export const invalidImplicitTagItems = <TagGroup items={values} />
+const opaqueTagChild = <Tag id="legacy">Legacy</Tag>
+// @ts-expect-error Opaque JSX children do not declare native tag membership.
+export const invalidOpaqueTagChildren = <TagGroup items={items}>{opaqueTagChild}</TagGroup>

@@ -166,12 +166,13 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
   @Override public void sampleMotionColors(ReactViewGroup view, String ownerId, String requestId, String request) { ((CUIFocusView) view).sampleMotionColors(ownerId, requestId, request); }
   @Override public void inspectAccessibility(ReactViewGroup view, String ownerId) { ((CUIFocusView) view).inspectAccessibility(ownerId); }
 
+  @Override public void requestCollectionFocus(ReactViewGroup view, String ownerId, String binding, boolean container) { ((CUIFocusView)view).requestCollectionFocus(ownerId, binding, container); }
   @Override public void requestKeyboardFocus(ReactViewGroup view, String ownerId) { ((CUIFocusView) view).requestKeyboardFocus(ownerId); }
   @Override public void requestContainerFocus(ReactViewGroup view, String ownerId) { ((CUIFocusView) view).requestContainerFocus(ownerId); }
   @Override public void requestKeyboardBlur(ReactViewGroup view, String ownerId) { ((CUIFocusView) view).requestKeyboardBlur(ownerId); }
 
   @Override public void receiveCommand(ReactViewGroup view, String command, ReadableArray args) {
-    if ("requestKeyboardFocus".equals(command) || "requestContainerFocus".equals(command) || "requestKeyboardBlur".equals(command) || "inspectAccessibility".equals(command) || "sampleMotionColors".equals(command) || "queryMotionGeometry".equals(command)) delegate.receiveCommand(view, command, args);
+    if ("requestCollectionFocus".equals(command) || "requestKeyboardFocus".equals(command) || "requestContainerFocus".equals(command) || "requestKeyboardBlur".equals(command) || "inspectAccessibility".equals(command) || "sampleMotionColors".equals(command) || "queryMotionGeometry".equals(command)) delegate.receiveCommand(view, command, args);
     else super.receiveCommand(view, command, args);
   }
 
@@ -203,6 +204,7 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
     ((CUIFocusView)view).retireFocusWithin();
     ((CUIFocusView)view).retireFormAction();
     ((CUIFocusView)view).retireLocalKeys();
+    ((CUIFocusView)view).retireCollectionAdmission();
     ((CUIFocusView)view).retireMotionDrawing();
     ((CUIFocusView)view).retireForeground();
     return super.prepareToRecycleView(context, view);
@@ -212,6 +214,7 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
     ((CUIFocusView) view).retireFocusWithin();
     ((CUIFocusView) view).retireFormAction();
     ((CUIFocusView) view).retireLocalKeys();
+    ((CUIFocusView) view).retireCollectionAdmission();
     ((CUIFocusView) view).retireMotionDrawing();
     ((CUIFocusView) view).retireForeground();
     ((CUIFocusView) view).cancelHeldKeys();

@@ -1,20 +1,18 @@
-import "../../../collection/__tests__/nativeReceipts"
-
 import { cleanup } from "@testing-library/react-native"
 import { createRef, useState } from "react"
 import { StyleSheet, TextInput } from "react-native"
 
-import {
-  actWithNativeCollections as act,
-  renderWithNativeCollections as render,
-  screen,
-} from "../../../collection/__tests__/nativeReceipts"
 import { NativeThemeProvider } from "../../../theme"
+import {
+  nativeTableChildren,
+  createNativeTableHeaderModel,
+  createNativeTableRowModel,
+  createNativeTableBodyModel,
+} from "../model"
 import { Table } from "../Table"
-import { TableBody } from "../TableBody"
-import { TableHeader } from "../TableHeader"
-import { TableRow } from "../TableRow"
 import type { TNativeTableColumnMetadata } from "../types"
+
+import { actWithNativeCollections as act, renderWithNativeCollections as render, screen } from "./collectionModel"
 
 jest.unmock("react-native/Libraries/Components/TextInput/TextInput")
 afterEach(cleanup)
@@ -37,10 +35,15 @@ const root = () => JSON.parse(screen.getByTestId("table").props.nativeCollection
 it("renders native header/body/row/cell composition in normalized logical column order", async () => {
   await render(
     wrap(
-      <Table accessibilityLabel="People">
-        <TableHeader columns={columns} />
-        <TableBody items={items} columns={columns} />
-      </Table>,
+      <Table
+        accessibilityLabel="People"
+        items={(modelOptions) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel({ columns: columns }, modelOptions),
+            createNativeTableBodyModel({ items: items, columns: columns }, modelOptions),
+          )
+        }
+      />,
     ),
   )
   const visible = cells()
@@ -72,16 +75,29 @@ it("keeps explicit zero-width structural tracks and independent native style own
   )
   await render(
     wrap(
-      <Table testID="table" customStyles={{ marginTop: 2, width: 100 }} style={{ width: 200 }}>
-        <TableHeader testID="header" columns={styled} customStyles={registered.header} />
-        <TableBody
-          testID="body"
-          items={items}
-          columns={styled}
-          customStyles={registered.body}
-          customRowStyles={{ marginTop: 3 }}
-        />
-      </Table>,
+      <Table
+        testID="table"
+        customStyles={{ marginTop: 2, width: 100 }}
+        style={{ width: 200 }}
+        items={(modelOptions) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel(
+              { testID: "header", columns: styled, customStyles: registered.header },
+              modelOptions,
+            ),
+            createNativeTableBodyModel(
+              {
+                testID: "body",
+                items: items,
+                columns: styled,
+                customStyles: registered.body,
+                customRowStyles: { marginTop: 3 },
+              },
+              modelOptions,
+            ),
+          )
+        }
+      />,
     ),
   )
   expect(screen.getByTestId("table")).toHaveStyle({ width: 200, marginTop: 2 })
@@ -102,10 +118,14 @@ it("calls the column renderer before the body renderer with original row and col
   ]
   await render(
     wrap(
-      <Table>
-        <TableHeader columns={received} />
-        <TableBody items={[items[0]]} columns={received} renderCell={fallback} />
-      </Table>,
+      <Table
+        items={(modelOptions) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel({ columns: received }, modelOptions),
+            createNativeTableBodyModel({ items: [items[0]], columns: received, renderCell: fallback }, modelOptions),
+          )
+        }
+      />,
     ),
   )
   expect(columnRender).toHaveBeenCalledWith({ row: items[0], column: received[0] })
@@ -121,10 +141,17 @@ it.each([undefined, "auto", null] as const)(
     const metadata: TNativeTableColumnMetadata<TRow>[] = [{ id: "name", name: "Short", isRowHeader: true, width }]
     await render(
       wrap(
-        <Table>
-          <TableHeader columns={metadata} />
-          <TableBody columns={metadata} items={[{ id: "long", name: "A much longer body value" }]} />
-        </Table>,
+        <Table
+          items={(modelOptions) =>
+            nativeTableChildren(
+              createNativeTableHeaderModel({ columns: metadata }, modelOptions),
+              createNativeTableBodyModel(
+                { columns: metadata, items: [{ id: "long", name: "A much longer body value" }] },
+                modelOptions,
+              ),
+            )
+          }
+        />,
       ),
     )
     for (const cell of cells()) expect(cell).toHaveStyle({ flexGrow: 1, flexShrink: 1, flexBasis: 0 })
@@ -143,10 +170,14 @@ it.each([
   const metadata = [{ id: "value", name: "Value", isRowHeader: true }]
   await render(
     wrap(
-      <Table>
-        <TableHeader columns={metadata} />
-        <TableBody items={data} columns={metadata} />
-      </Table>,
+      <Table
+        items={(modelOptions) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel({ columns: metadata }, modelOptions),
+            createNativeTableBodyModel({ items: data, columns: metadata }, modelOptions),
+          )
+        }
+      />,
     ),
   )
   expect(cells()[1]).toHaveTextContent(expected === "" ? /^$/ : expected)
@@ -157,16 +188,30 @@ it("replaces source rows with a loading row and then uses the empty renderer wit
   const empty = jest.fn(() => "No people")
   const node = (loading: boolean) =>
     wrap(
-      <Table>
-        <TableHeader columns={metadata} />
-        <TableBody
-          columns={metadata}
-          items={loading ? items : []}
-          isLoading={loading}
-          renderLoadingState={() => <TableRow id="loading" item={{ name: "Loading" }} columns={metadata} />}
-          renderEmptyState={empty}
-        />
-      </Table>,
+      <Table
+        items={(modelOptions) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel({ columns: metadata }, modelOptions),
+            createNativeTableBodyModel(
+              {
+                columns: metadata,
+                items: loading ? items : [],
+                isLoading: loading,
+                renderEmptyState: empty,
+              },
+              modelOptions,
+              loading
+                ? [
+                    createNativeTableRowModel(
+                      { id: "loading", item: { name: "Loading" }, columns: metadata },
+                      modelOptions,
+                    ),
+                  ]
+                : undefined,
+            ),
+          )
+        }
+      />,
     )
   const view = await render(node(true))
   expect(cells()).toHaveLength(2)
@@ -182,17 +227,21 @@ it("replaces source rows with a loading row and then uses the empty renderer wit
 it("keeps ordinary items while isLoading has no loading renderer", async () => {
   await render(
     wrap(
-      <Table>
-        <TableHeader columns={columns} />
-        <TableBody items={items} columns={columns} isLoading />
-      </Table>,
+      <Table
+        items={(modelOptions) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel({ columns: columns }, modelOptions),
+            createNativeTableBodyModel({ items: items, columns: columns, isLoading: true }, modelOptions),
+          )
+        }
+      />,
     ),
   )
   expect(screen.getByText("Alpha")).toBeOnTheScreen()
   expect(screen.getByText("Beta")).toBeOnTheScreen()
 })
 
-it("preserves an original editor and its held value through opaque child-local row reorder", async () => {
+it("preserves an original editor and its held value through explicit owner-data row reorder", async () => {
   const editor = createRef<TextInput>()
   let reverse: () => void = () => {}
   const metadata: TNativeTableColumnMetadata<TRow>[] = [
@@ -203,19 +252,19 @@ it("preserves an original editor and its held value through opaque child-local r
       cellRenderer: ({ row }) => (row.id === "a" ? <TextInput ref={editor} value="held" testID="editor" /> : row.name),
     },
   ]
-  const Rows = () => {
+  const Owner = () => {
     const [reversed, setReversed] = useState(false)
     reverse = () => setReversed((value) => !value)
-    return <TableBody items={reversed ? [...items].reverse() : items} columns={metadata} />
+    return (
+      <Table
+        items={(options) => [
+          createNativeTableHeaderModel({ columns: metadata }, options),
+          createNativeTableBodyModel({ items: reversed ? [...items].reverse() : items, columns: metadata }, options),
+        ]}
+      />
+    )
   }
-  await render(
-    wrap(
-      <Table>
-        <TableHeader columns={metadata} />
-        <Rows />
-      </Table>,
-    ),
-  )
+  await render(wrap(<Owner />))
   const original = editor.current!
   const write = jest.spyOn(original, "setNativeProps")
   await act(reverse)

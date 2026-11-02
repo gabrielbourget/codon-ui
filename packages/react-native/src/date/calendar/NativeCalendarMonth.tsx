@@ -6,19 +6,21 @@ import {
   isSameMonth,
   type CalendarDate,
 } from "@internationalized/date"
-import { useCallback, useContext, useMemo, useState, type ReactNode } from "react"
+import { useCallback, useContext, useMemo, useState, type ComponentProps, type Ref } from "react"
 import { findNodeHandle, Text, View, type ViewStyle } from "react-native"
 
 import { NativeCollectionActionsContext } from "../../collection/actions"
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
 import {
   NativeCollectionBuilder,
+  useNativeCollectionOwnerRef,
   createNativeCollectionBranch,
   createNativeCollectionLeaf,
 } from "../../collection/CollectionBuilder"
+import type { TNativeCollectionModelSnapshot } from "../../collection/model"
 import { NativeCollectionRendererContext } from "../../collection/renderer"
 import { NativeCollectionSemanticsContext } from "../../collection/semantics"
-import type { TNativeCollectionSnapshot } from "../../collection/snapshot"
+import type { TNativeCollectionItem, TNativeCollectionSnapshot } from "../../collection/snapshot"
 import { NativeContentContext, useNativeContentContext } from "../../components/NativeContentContext"
 import { splitNativeTextStyle } from "../../components/nativeTextStyle"
 import { NativeFocusHost } from "../../input/NativeFocusView"
@@ -26,7 +28,7 @@ import { NativeFocusHost } from "../../input/NativeFocusView"
 import { Grid, Owner, type TCalendarOwner } from "./context"
 import { Day } from "./NativeCalendarDay"
 
-const Branch = createNativeCollectionBranch<object, { id: string; children: ReactNode; style?: ViewStyle }, View>(
+const Branch = createNativeCollectionBranch<object, { id: string; style?: ViewStyle }, View>(
   "item",
   (props, _ref, node) => {
     const renderer = useContext(NativeCollectionRendererContext),
@@ -51,7 +53,6 @@ const Branch = createNativeCollectionBranch<object, { id: string; children: Reac
       </View>
     )
   },
-  (props) => props.children,
 )
 const Header = createNativeCollectionLeaf<object, { id: string; index: number; name: string }, View>(
   "column",
@@ -155,43 +156,65 @@ export const Month = ({ owner, start }: { owner: TCalendarOwner; start: Calendar
   )
   const headerStyle = JSON.stringify(owner.appearance.gridHeader),
     bodyStyle = JSON.stringify(owner.appearance.body)
-  const content = useMemo(
-    () => (
-      <>
-        <Branch id="header" style={owner.appearance.gridHeader}>
-          <Branch id="weekdays">
-            {weekdays.map((name, index) => (
-              <Header key={index} id={`header:${index}`} index={index} name={name} />
-            ))}
-          </Branch>
-        </Branch>
-        <Branch id="body" style={owner.appearance.body}>
-          {dates.map((week, row) => (
-            <Branch key={row} id={`week:${row}`}>
-              {week.map((date, column) =>
-                date ? (
-                  <Day
-                    key={column}
-                    id={`day:${row}:${column}`}
-                    date={date}
-                    row={row}
-                    column={column}
-                    outside={!isSameMonth(date, start)}
-                  />
-                ) : (
-                  <Blank key={column} id={`blank:${row}:${column}`} row={row} column={column} />
-                ),
-              )}
-            </Branch>
-          ))}
-        </Branch>
-      </>
-    ),
-    [dates, owner.options.locale, owner.options.props.dayLength, headerStyle, bodyStyle],
-  )
+  const items = useMemo<readonly TNativeCollectionItem<object>[]>(() => {
+    const branch = (
+      key: string,
+      children: readonly TNativeCollectionItem<object>[],
+      style?: ViewStyle,
+    ): TNativeCollectionItem<object> => ({
+      key,
+      type: "item",
+      value: undefined as unknown as object,
+      textValue: "",
+      rendered: null,
+      props: { id: key, style },
+      render: (node) => <Branch {...node.props} />,
+      children,
+    })
+    return [
+      branch(
+        "header",
+        [
+          branch(
+            "weekdays",
+            weekdays.map((name, index) => ({
+              key: `header:${index}`,
+              type: "column",
+              value: undefined as unknown as object,
+              textValue: "",
+              rendered: null,
+              props: { id: `header:${index}`, index, name },
+              render: (node) => <Header {...node.props} />,
+            })),
+          ),
+        ],
+        owner.appearance.gridHeader,
+      ),
+      branch(
+        "body",
+        dates.map((week, row) =>
+          branch(
+            `week:${row}`,
+            week.map((date, column) => ({
+              key: `${date ? "day" : "blank"}:${row}:${column}`,
+              type: "cell",
+              value: undefined as unknown as object,
+              textValue: "",
+              rendered: null,
+              props: date
+                ? { id: `day:${row}:${column}`, date, row, column, outside: !isSameMonth(date, start) }
+                : { id: `blank:${row}:${column}`, row, column },
+              render: (node) => (date ? <Day {...node.props} /> : <Blank {...node.props} />),
+            })),
+          ),
+        ),
+        owner.appearance.body,
+      ),
+    ]
+  }, [dates, owner.options.locale, owner.options.props.dayLength, headerStyle, bodyStyle])
   return (
-    <NativeCollectionBuilder<object> content={content}>
-      {(collection) => (
+    <NativeCollectionBuilder<object> items={items}>
+      {(collection, modelSnapshot) => (
         <Grid.Provider value={{ collection, target, headers, registerHeader }}>
           <NativeCollectionSemanticsContext.Provider
             value={
@@ -206,8 +229,9 @@ export const Month = ({ owner, start }: { owner: TCalendarOwner; start: Calendar
                 : ""
             }
           >
-            <NativeFocusHost
-              ref={bind}
+            <CalendarGrid
+              modelSnapshot={modelSnapshot}
+              forwardedRef={bind}
               nativeFocusWithinObservation
               nativeOnFocusWithin={(event) => {
                 if (owner.canAct()) owner.state.setFocused(event.nativeEvent.within)
@@ -224,7 +248,7 @@ export const Month = ({ owner, start }: { owner: TCalendarOwner; start: Calendar
               style={owner.appearance.grid}
             >
               <CollectionRows collection={collection} />
-            </NativeFocusHost>
+            </CalendarGrid>
           </NativeCollectionSemanticsContext.Provider>
         </Grid.Provider>
       )}
@@ -239,4 +263,16 @@ const CollectionRows = ({ collection }: { collection: TNativeCollectionSnapshot<
       <renderer.CollectionRoot collection={collection} />
     </NativeCollectionItemBindingContext.Provider>
   )
+}
+
+const CalendarGrid = ({
+  modelSnapshot,
+  forwardedRef,
+  ...props
+}: Omit<ComponentProps<typeof NativeFocusHost>, "ref"> & {
+  modelSnapshot: TNativeCollectionModelSnapshot<object>
+  forwardedRef: Ref<View>
+}) => {
+  const ref = useNativeCollectionOwnerRef(modelSnapshot, forwardedRef)
+  return <NativeFocusHost {...props} ref={ref} />
 }

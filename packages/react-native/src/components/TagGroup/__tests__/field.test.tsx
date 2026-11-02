@@ -14,6 +14,8 @@ import { NativeTagGroupLabelContext, NativeTagGroupTextContext, TagGroupLabel, T
 import { Tag } from "../Tag"
 import { TagGroup } from "../TagGroup"
 
+import { tagItem } from "./tagModel"
+
 const Visibility = createContext(true)
 const labelRef = createRef<RN.Text>()
 const Root = (props: TNativeCollectionRootProps) => {
@@ -44,9 +46,12 @@ const example = (visible: boolean) => (
   <NativeThemeProvider>
     <Visibility.Provider value={visible}>
       <NativeCollectionRendererContext.Provider value={{ ...DefaultNativeCollectionRenderer, CollectionRoot: Root }}>
-        <TagGroup accessibilityLabel="Own" aria-labelledby="external-name" aria-describedby="external-description">
-          <Tag id="a">Alpha</Tag>
-        </TagGroup>
+        <TagGroup
+          accessibilityLabel="Own"
+          aria-labelledby="external-name"
+          aria-describedby="external-description"
+          items={[tagItem("a", <Tag id="a">Alpha</Tag>)]}
+        />
       </NativeCollectionRendererContext.Provider>
     </Visibility.Provider>
   </NativeThemeProvider>

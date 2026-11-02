@@ -31,9 +31,7 @@ const Section = createNativeCollectionBranch<object, TNativeMenuSectionProps, Vi
     const {
       id: _id,
       value: _value,
-      items: _items,
       children: _children,
-      dependencies: _dependencies,
       selectionMode: _mode,
       selectedKeys: _selected,
       defaultSelectedKeys: _defaults,

@@ -1,15 +1,7 @@
-import "../../../collection/__tests__/nativeReceipts"
-
 import { act as rawAct, cleanup, within } from "@testing-library/react-native"
 import type * as RN from "react-native"
 
 import { SortParameterList, type SortParameter } from ".."
-import {
-  actWithNativeCollections as collectionAct,
-  fireEventWithNativeCollections as fireEvent,
-  renderWithNativeCollections as collectionRender,
-  screen,
-} from "../../../collection/__tests__/nativeReceipts"
 import { nativeVirtualDrag } from "../../../collection/dragAndDrop/virtualDrag"
 import { NativeDragActionsContext } from "../../../input/nativeDragActions"
 import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
@@ -17,6 +9,12 @@ import { NativeThemeProvider } from "../../../theme"
 import { untypedFontWeight } from "../../__tests__/untypedFontWeight"
 import { NativeTextStyleProvider } from "../../NativeTextStyleProvider"
 import { createSortDragFixture } from "../../SortAndFilterPanel/__tests__/fixtures/SortDragFixture"
+import {
+  actWithNativeCollections as collectionAct,
+  fireEventWithNativeCollections as fireEvent,
+  renderWithNativeCollections as collectionRender,
+  screen,
+} from "../../Table/__tests__/collectionModel"
 import { reorderNativeSortParameters } from "../reorder"
 
 const { reorderSortParameterList: canonicalReorder } = jest.requireActual<{

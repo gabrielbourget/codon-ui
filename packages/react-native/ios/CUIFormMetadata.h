@@ -15,14 +15,15 @@
 @property (nonatomic, copy) NSString *ownedControlBinding;
 - (BOOL)isFieldBinding;
 - (NSDictionary *)formMountSnapshot;
-- (NSString *)formTransactionWitness;
 - (UIView *)originalForMountSnapshot:(NSDictionary *)snapshot;
+- (UIView *)originalForAttachedMountSnapshot:(NSDictionary *)snapshot;
 - (void)setSemanticContribution:(id<CUIFieldSemanticContribution>)contribution;
-- (void)setSemanticRefresh:(void (^)(void))refresh owner:(NSString *)owner;
-- (void)clearSemanticRefreshForOwner:(NSString *)owner;
+- (void)setSemanticRefresh:(void (^)(void))refresh owner:(NSString *)owner module:(NSString *)module;
+- (void)clearSemanticRefreshForOwner:(NSString *)owner retiring:(BOOL)retiring;
 - (void)refreshSemantics;
+- (void)clearSemanticAccessibilityRequest;
 - (void)resetSemanticAccessibilityFocus;
-- (void)requestSemanticAccessibilityFocus:(UIView *)target identity:(NSString *)identity returningToEditor:(BOOL)returning;
+- (void)requestSemanticAccessibilityFocus:(UIView *)target identity:(NSString *)identity editor:(UIView *)editor returningToEditor:(BOOL)returning;
 @end
 
 @interface CUIFormRoot : CUIFormMetadataView

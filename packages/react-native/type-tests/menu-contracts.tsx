@@ -20,33 +20,55 @@ import {
   NativeMenuSelectionManagerContext,
   NativeRootMenuTriggerStateContext,
   type TNativeMenuListProps,
+  type TNativeCollectionItem,
   // @ts-expect-error Private action admission is not a public family API.
   NativeMenuActionsContext,
 } from "../src"
 const ref = createRef<View>()
-export const menu = (
-  <NativeMenuTrigger trigger={(state) => <Button {...state.triggerProps}>Open</Button>}>
-    <Menu
-      ref={ref}
-      selectionMode="multiple"
-      selectedKeys={new Set([0, ""])}
-      onSelectionChange={(value) => {
-        if (value !== "all") value.has(0)
-      }}
-    >
+type TBookItem = { id: string | number; label: string }
+const menuItems: readonly TNativeCollectionItem<TBookItem>[] = [
+  {
+    key: 0,
+    type: "item",
+    value: { id: 0, label: "Zero" },
+    rendered: "Zero",
+    textValue: "Zero",
+    props: {},
+    render: () => (
       <MenuItem
         ref={ref}
         id={0}
         icon={null}
-        onPress={(e) => {
-          if ("kind" in e.nativeEvent) e.nativeEvent.kind.toUpperCase()
+        onPress={(event) => {
+          if ("kind" in event.nativeEvent) event.nativeEvent.kind.toUpperCase()
         }}
         style={(state) => ({ opacity: state.isSelected ? 1 : 0, ...state.defaultStyle })}
       >
         Zero
       </MenuItem>
-      <MenuSeparator style={{ height: 0 }} />
-    </Menu>
+    ),
+  },
+  {
+    key: "separator",
+    type: "separator",
+    value: null,
+    rendered: null,
+    textValue: "",
+    props: {},
+    render: () => <MenuSeparator style={{ height: 0 }} />,
+  },
+]
+export const menu = (
+  <NativeMenuTrigger trigger={(state) => <Button {...state.triggerProps}>Open</Button>}>
+    <Menu
+      ref={ref}
+      items={menuItems}
+      selectionMode="multiple"
+      selectedKeys={new Set([0, ""])}
+      onSelectionChange={(value) => {
+        if (value !== "all") value.has(0)
+      }}
+    />
   </NativeMenuTrigger>
 )
 // @ts-expect-error Menu IDs retain native typed-key semantics.
@@ -59,17 +81,31 @@ export const domRef = <Menu ref={createRef<HTMLDivElement>()} />
 export const role = <Button nativeRole="menuitem">Invalid</Button>
 
 export const section = (
-  <MenuSection
-    ref={ref}
-    id={0}
-    selectionMode="multiple"
-    selectedKeys={new Set([0, "0"])}
-    items={[{ id: "item", label: "Item" }]}
-    style={{ fontSize: 18 }}
-  >
-    {(item) => <MenuItem id={item.id}>{item.label}</MenuItem>}
-  </MenuSection>
+  <MenuSection ref={ref} id={0} selectionMode="multiple" selectedKeys={new Set([0, "0"])} style={{ fontSize: 18 }} />
 )
+export const sectionModel: readonly TNativeCollectionItem<TBookItem>[] = [
+  {
+    key: 0,
+    type: "section",
+    value: null,
+    rendered: null,
+    textValue: "",
+    props: {},
+    children: [
+      {
+        key: "item",
+        type: "item",
+        value: { id: "item", label: "Item" },
+        rendered: "Item",
+        textValue: "Item",
+        props: {},
+        render: () => <MenuItem id="item">Item</MenuItem>,
+      },
+    ],
+    render: () => section,
+  },
+]
+export const explicitSection = <Menu items={sectionModel} />
 export const header = <MenuHeader ref={ref} nativeID="header" style={{ fontWeight: "bold" }} />
 // @ts-expect-error Section keys retain the same string/number identity as item keys.
 export const invalidSection = <MenuSection id={false} />
@@ -79,29 +115,53 @@ export const invalidSectionRef = <MenuSection ref={createRef<HTMLElement>()} />
 export const invalidHeaderStyles = <MenuHeader style={{ fontSize: "18px" }} />
 export const submenu = (
   <SubmenuTrigger ref={ref} delay={0}>
-    <MenuItem id={0}>More</MenuItem>
-    <Menu>
-      <MenuItem id="child">Child</MenuItem>
-    </Menu>
+    <Menu items={menuItems} />
   </SubmenuTrigger>
 )
-export const missingSubmenu = (
-  // @ts-expect-error Submenu authoring requires both its original trigger and its separate child overlay.
-  <SubmenuTrigger>
-    <MenuItem id="trigger">More</MenuItem>
-  </SubmenuTrigger>
-)
+export const explicitSubmenuBranch: readonly TNativeCollectionItem<TBookItem>[] = [
+  {
+    key: "branch",
+    type: "submenutrigger",
+    value: null,
+    rendered: "More",
+    textValue: "More",
+    props: {},
+    children: [
+      {
+        key: "trigger",
+        type: "item",
+        value: { id: "trigger", label: "More" },
+        rendered: "More",
+        textValue: "More",
+        props: {},
+        render: () => <MenuItem id="trigger">More</MenuItem>,
+      },
+    ],
+    render: () => submenu,
+  },
+]
+export const explicitSubmenu = <Menu items={explicitSubmenuBranch} />
+// @ts-expect-error The explicit trigger branch still requires its separate child overlay.
+export const missingSubmenu = <SubmenuTrigger />
 export const domSubmenuRef = (
   // @ts-expect-error Submenu refs remain the actual native trigger view.
   <SubmenuTrigger ref={createRef<HTMLDivElement>()}>
-    <MenuItem id="trigger">More</MenuItem>
-    <Menu />
+    <Menu items={menuItems} />
   </SubmenuTrigger>
 )
 type TActionValue = { id: string; label: string }
 const listDefaults: TNativeMenuListProps<TActionValue> = {
-  items: [{ id: "a", label: "Alpha" }],
-  children: (item) => <MenuItem id={item.id}>{item.label}</MenuItem>,
+  items: [
+    {
+      key: "a",
+      type: "item",
+      value: { id: "a", label: "Alpha" },
+      rendered: "Alpha",
+      textValue: "Alpha",
+      props: {},
+      render: () => <MenuItem id="a">Alpha</MenuItem>,
+    },
+  ],
   selectionMode: "multiple",
   disabledBehavior: "selection",
   defaultSelectedKeys: [0, "0"],
@@ -151,9 +211,7 @@ export const longPressTrigger = (
     longPressDescription=""
     trigger={(state) => <Button {...state.triggerProps}>Open</Button>}
   >
-    <Menu>
-      <MenuItem id="a">Alpha</MenuItem>
-    </Menu>
+    <Menu items={menuItems} />
   </NativeMenuTrigger>
 )
 // @ts-expect-error Trigger interaction modes are explicitly bounded.
@@ -226,3 +284,7 @@ export const invalidSeparatorTab = <MenuSeparator tabIndex={0} />
 // @ts-expect-error Header custom roots retain actual native refs.
 export const invalidHeaderRoot = <MenuHeader render={() => <NativeFocusView ref={createRef<HTMLElement>()} />} />
 void NativeMenuActionsContext
+
+const opaqueMenuChild = <MenuItem id="legacy">Legacy</MenuItem>
+// @ts-expect-error Opaque JSX cannot define native menu membership.
+export const invalidOpaqueMenu = <Menu>{opaqueMenuChild}</Menu>

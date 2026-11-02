@@ -11,7 +11,7 @@ type TTargets = Readonly<{
 const positive = (value: number) => Number.isSafeInteger(value) && value > 0
 
 // A mount acknowledgment identifies original current objects. It is neither
-// committed document order nor permission to submit, reset or move focus.
+// declared field order nor permission to submit, reset or move focus.
 export class NativeFormMountReceipt {
   readonly scope: TNativeFormMountScope
   readonly #metadata: WeakSet<object>

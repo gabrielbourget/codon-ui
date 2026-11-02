@@ -9,8 +9,6 @@ import {
 } from "@codon-ui/react-native"
 import { useNativeDragAndDrop, NativeDropIndicator, NativeDragPreview } from "@codon-ui/react-native"
 import { Table } from "@codon-ui/react-native"
-import { TableBody } from "@codon-ui/react-native"
-import { TableHeader } from "@codon-ui/react-native"
 import type {
   TNativeDropEvent,
   TNativeDropItem,
@@ -18,6 +16,12 @@ import type {
   TNativeInsertDropEvent,
 } from "@codon-ui/react-native"
 import type { TNativeTableColumnMetadata } from "@codon-ui/react-native"
+
+import {
+  nativeTableChildren,
+  createNativeTableHeaderModel,
+  createNativeTableBodyModel,
+} from "../../../../packages/react-native/src/components/Table/model"
 
 type TRow = { id: string | number; name: string }
 const initialRows: TRow[] = [
@@ -157,36 +161,51 @@ export const TableDragScene = () => {
             dragAndDropHooks={source}
             selectionMode="multiple"
             selectionBehavior="toggle"
-          >
-            <TableHeader columns={columns} />
-            <TableBody
-              items={left}
-              columns={columns}
-              rowKey={(row) => row.id}
-              renderCell={({ row }) =>
-                row.id === 0 ? (
-                  <Input
-                    ref={editor}
-                    testID="table-drag-original-editor"
-                    accessibilityLabel="Original row draft"
-                    value={draft}
-                    onChangeText={setDraft}
-                  />
-                ) : (
-                  row.name
-                )
-              }
-            />
-          </Table>
-          <Table accessibilityLabel="Drop destination" testID="table-drag-destination" dragAndDropHooks={destination}>
-            <TableHeader columns={columns} />
-            <TableBody
-              items={right}
-              columns={columns}
-              rowKey={(row) => row.id}
-              renderEmptyState={() => "Drop original values here"}
-            />
-          </Table>
+            items={(modelOptions) =>
+              nativeTableChildren(
+                createNativeTableHeaderModel({ columns: columns }, modelOptions),
+                createNativeTableBodyModel(
+                  {
+                    items: left,
+                    columns: columns,
+                    rowKey: (row) => row.id,
+                    renderCell: ({ row }) =>
+                      row.id === 0 ? (
+                        <Input
+                          ref={editor}
+                          testID="table-drag-original-editor"
+                          accessibilityLabel="Original row draft"
+                          value={draft}
+                          onChangeText={setDraft}
+                        />
+                      ) : (
+                        row.name
+                      ),
+                  },
+                  modelOptions,
+                ),
+              )
+            }
+          />
+          <Table
+            accessibilityLabel="Drop destination"
+            testID="table-drag-destination"
+            dragAndDropHooks={destination}
+            items={(modelOptions) =>
+              nativeTableChildren(
+                createNativeTableHeaderModel({ columns: columns }, modelOptions),
+                createNativeTableBodyModel(
+                  {
+                    items: right,
+                    columns: columns,
+                    rowKey: (row) => row.id,
+                    renderEmptyState: () => "Drop original values here",
+                  },
+                  modelOptions,
+                ),
+              )
+            }
+          />
         </>
       )}
       <Text testID="table-drag-events">{JSON.stringify(events)}</Text>

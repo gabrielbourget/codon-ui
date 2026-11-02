@@ -1,14 +1,7 @@
-import "../../../collection/__tests__/nativeReceipts"
-
 import { cleanup } from "@testing-library/react-native"
 import { createRef } from "react"
 import { findNodeHandle, TextInput, type View } from "react-native"
 
-import {
-  actWithNativeCollections as act,
-  renderWithNativeCollections as render,
-  screen,
-} from "../../../collection/__tests__/nativeReceipts"
 import {
   useNativeDragAndDrop,
   type TNativeDragAndDropOptions,
@@ -32,11 +25,16 @@ import { NativeFocusView } from "../../../input/NativeFocusView"
 import { NativeLocaleProvider } from "../../../locale/NativeLocaleProvider"
 import { NativeThemeProvider } from "../../../theme"
 import { useNativeTable } from "../context"
+import {
+  nativeTableChildren,
+  createNativeTableHeaderModel,
+  nativeTableReceiver,
+  createNativeTableRowModel,
+} from "../model"
 import { Table } from "../Table"
-import { TableHeader } from "../TableHeader"
-import { TableRow } from "../TableRow"
 import type { TNativeTableRowProps } from "../types"
 
+import { actWithNativeCollections as act, renderWithNativeCollections as render, screen } from "./collectionModel"
 import { CellFixtureBody } from "./fixtures/TableCellFixture"
 
 jest.mock("../../../input/specs/NativeCUIDragAndDrop", () => ({
@@ -143,32 +141,42 @@ const setup = async ({
             {props.children}
           </NativeFocusView>
         )}
-      >
-        <TableHeader columns={columns} />
-        <CellFixtureBody>
-          {rows.map((row) => (
-            <TableRow
-              key={row.id}
-              id={row.id}
-              item={row}
-              value={row}
-              textValue={row.name}
-              hasChildItems
-              iconColor="orchid"
-              columns={columns}
-              testID={`drag-row-${row.id === 0 ? "zero" : "empty"}`}
-              render={renderRow}
-              renderCell={({ row }) =>
-                row.id === 0 ? (
-                  <TextInput ref={editor} testID="original-drag-editor" value="untouched" onChange={changes} />
-                ) : (
-                  row.name
-                )
-              }
-            />
-          ))}
-        </CellFixtureBody>
-      </Table>
+        items={(modelOptions) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel({ columns: columns }, modelOptions),
+            nativeTableReceiver<React.ComponentProps<typeof CellFixtureBody>>(
+              "__body:1",
+              "tablebody",
+              {},
+              (visibleProps) => <CellFixtureBody {...visibleProps} />,
+              nativeTableChildren(
+                rows.map((row) =>
+                  createNativeTableRowModel(
+                    {
+                      id: row.id,
+                      item: row,
+                      value: row,
+                      textValue: row.name,
+                      hasChildItems: true,
+                      iconColor: "orchid",
+                      columns: columns,
+                      testID: `drag-row-${row.id === 0 ? "zero" : "empty"}`,
+                      render: renderRow,
+                      renderCell: ({ row }) =>
+                        row.id === 0 ? (
+                          <TextInput ref={editor} testID="original-drag-editor" value="untouched" onChange={changes} />
+                        ) : (
+                          row.name
+                        ),
+                    },
+                    modelOptions,
+                  ),
+                ),
+              ),
+            ),
+          )
+        }
+      />
     )
   }
   const rendered = await render(

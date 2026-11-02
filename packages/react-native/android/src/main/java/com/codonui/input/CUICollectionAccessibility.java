@@ -1,7 +1,6 @@
 package com.codonui.input;
 
 import android.os.Build;
-import android.graphics.Rect;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
@@ -34,16 +33,11 @@ final class CUICollectionAccessibility {
     String mode = fields.optString("selectionMode");
     return host.isAttachedToWindow() && !host.nativeCollectionBinding.isEmpty() && "root".equals(fields.optString("kind"))
       && integer(fields, "rowCount") >= 0 && integer(fields, "columnCount") >= 0
-      && ("none".equals(mode) || "single".equals(mode) || "multiple".equals(mode));
+      && ("none".equals(mode) || "single".equals(mode) || "multiple".equals(mode)) && hasCurrentBinding();
   }
 
   private boolean hasCurrentBinding() {
-    if (!host.isAttachedToWindow() || !host.isShown() || !host.getGlobalVisibleRect(new Rect())) return false;
-    try {
-      JSONObject binding = new JSONObject(host.nativeCollectionBinding);
-      View root = host.getRootView().findViewById(integer(binding, "target"));
-      return root instanceof CUICollectionRoot && ((CUICollectionRoot)root).acceptsPointerBinding(host.nativeCollectionBinding, host.getId());
-    } catch (Exception invalid) { return false; }
+    return CUICollectionRoot.acceptsCurrentBinding(host.nativeCollectionBinding, host);
   }
 
   private boolean isListRoot() {
@@ -108,7 +102,7 @@ final class CUICollectionAccessibility {
   }
 
   private CUIFocusView parent() {
-    if (!"cell".equals(fields.optString("kind"))) return null;
+    if (!"cell".equals(fields.optString("kind")) || !hasCurrentBinding()) return null;
     View candidate = host.getRootView().findViewById(integer(fields, "parentTarget"));
     if (!(candidate instanceof CUIFocusView) || candidate == host) return null;
     CUIFocusView parent = (CUIFocusView)candidate;

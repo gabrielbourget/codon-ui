@@ -1,7 +1,6 @@
 import { act, render, screen } from "@testing-library/react-native"
 import {
   Activity,
-  Fragment,
   StrictMode,
   Suspense,
   createContext,
@@ -10,424 +9,257 @@ import {
   useContext,
   useLayoutEffect,
   useState,
-  type ComponentProps,
-  type ReactNode,
 } from "react"
-import { StyleSheet, Text, View, type NativeSyntheticEvent } from "react-native"
-import type { TestInstance } from "test-renderer"
+import { Text, View } from "react-native"
 
-import type { NativeCollectionCommitData } from "../../input/specs/CUICollectionRootNativeComponent"
 import {
-  NativeCollection,
-  NativeCollectionBuilder,
-  createNativeCollectionBranch,
-  createNativeCollectionLeaf,
-} from "../CollectionBuilder"
-import type { NativeCollectionMetadataRoot } from "../NativeCollectionMetadata"
-import type { TNativeCollectionSessionSnapshot } from "../session"
-import type { TNativeCollectionKey, TNativeCollectionSnapshot } from "../snapshot"
+  NativeCollectionActionAdmissionContext,
+  NativeCollectionActionsContext,
+  type NativeCollectionActions,
+  type TNativeCollectionActionAdmission,
+} from "../actions"
+import { NativeCollectionBuilder, createNativeCollectionLeaf, useNativeCollectionOwnerRef } from "../CollectionBuilder"
+import type { TNativeCollectionModelSnapshot } from "../model"
+import { renderNativeCollectionNode } from "../renderer"
+import type { TNativeCollectionItem } from "../snapshot"
 
-jest.mock("../../input/specs/CUICollectionRootNativeComponent", () => ({
-  __esModule: true,
-  default: jest.requireActual("react-native").View,
-}))
-jest.mock("../../input/specs/CUICollectionNodeNativeComponent", () => ({
-  __esModule: true,
-  default: jest.requireActual("react-native").View,
-}))
-const ReactNative = jest.requireActual<typeof import("react-native")>("react-native")
-beforeEach(() => jest.spyOn(ReactNative, "findNodeHandle").mockReturnValue(7001))
-afterEach(() => jest.restoreAllMocks())
-type TValue = { title: string }
-type TItemProps = {
-  id?: TNativeCollectionKey
-  value?: TValue
-  textValue?: string
-  children?: ReactNode
-  onAction?: () => void
-}
-type TReceipt = TNativeCollectionSessionSnapshot<unknown>["receipt"]
-const itemMount = jest.fn(),
-  itemRetire = jest.fn()
-const setters = new Map<TNativeCollectionKey, (next: number) => void>()
-const Item = createNativeCollectionLeaf<TValue, TItemProps, View>("item", (props, ref, node) => {
+const inherited = createContext("missing")
+const mounts = jest.fn(),
+  retires = jest.fn()
+const setters = new Map<string | number, (next: number) => void>()
+const Item = createNativeCollectionLeaf<object, { title: string }, View>("item", (props, ref, node) => {
   const [count, setCount] = useState(0)
+  const context = useContext(inherited)
   useLayoutEffect(() => {
+    mounts(node.key)
     setters.set(node.key, setCount)
-    itemMount(node.key)
     return () => {
+      retires(node.key)
       setters.delete(node.key)
-      itemRetire(node.key)
     }
   }, [node.key])
   return (
     <View ref={ref} testID={`row:${node.key}`}>
-      <Text>
-        {props.children}:{count}
-      </Text>
+      <Text>{`${props.title}:${count}:${context}`}</Text>
     </View>
   )
 })
-const Branch = createNativeCollectionBranch<TValue, { id: string; children?: ReactNode }, View>(
-  "section",
-  (_props, ref, node) => <View ref={ref} testID={`section:${node.key}`} />,
+const item = (key: string): TNativeCollectionItem<object> => ({
+  key,
+  type: "item",
+  value: {},
+  props: {},
+  rendered: key,
+  textValue: key,
+  render: () => <Item title={key} />,
+})
+let current: TNativeCollectionModelSnapshot<object>
+const tree = (items: readonly TNativeCollectionItem<object>[], limit = Infinity) => (
+  <inherited.Provider value="context">
+    <NativeCollectionBuilder items={items}>
+      {(collection, model) => {
+        current = model
+        return (
+          <>
+            {[...collection].slice(0, limit).map((node) => (
+              <View key={node.key}>{renderNativeCollectionNode(node)}</View>
+            ))}
+          </>
+        )
+      }}
+    </NativeCollectionBuilder>
+  </inherited.Provider>
 )
-const current: { collection: TNativeCollectionSnapshot<TValue> | null; receipt: TReceipt | null } = {
-  collection: null,
-  receipt: null,
-}
-const observe = jest.fn()
-const Receiver = ({
-  collection,
-  receipt,
-  limit,
-}: {
-  collection: TNativeCollectionSnapshot<TValue>
-  receipt: TReceipt
-  limit?: number
-}) => {
-  useLayoutEffect(() => {
-    current.collection = collection
-    current.receipt = receipt
-    observe(collection, receipt)
-  }, [collection, receipt])
-  return (
-    <>
-      {[...collection].slice(0, limit).map((node) => (
-        <Fragment key={node.key}>{node.render?.(node)}</Fragment>
-      ))}
-    </>
-  )
-}
-const tree = (
-  content: ReactNode,
-  limit?: number,
-  event?: ComponentProps<typeof NativeCollectionMetadataRoot>["onNativeCollectionCommit"],
-) => (
-  <NativeCollectionBuilder<TValue> content={content} onNativeCollectionCommit={event}>
-    {(collection, receipt) => <Receiver collection={collection} receipt={receipt} limit={limit} />}
-  </NativeCollectionBuilder>
-)
-type TView = Awaited<ReturnType<typeof render>>
-const rootHost = (view: TView) => {
-  const roots = view.container.queryAll((host) => typeof host.props.rootRevision === "string")
-  expect(roots).toHaveLength(1)
-  return roots[0]
-}
-const nodeHosts = (view: TView) =>
-  view.container
-    .queryAll((host) => typeof host.props.descriptorId === "string")
-    .filter((host) => {
-      let current: TestInstance | null = host
-      while (current) {
-        if (StyleSheet.flatten(current.props.style)?.display === "none") return false
-        current = current.parent
-      }
-      return true
-    })
-let sequence = 0
 beforeEach(() => {
-  sequence = 0
-  current.collection = null
-  current.receipt = null
-  itemMount.mockClear()
-  itemRetire.mockClear()
-  observe.mockClear()
+  mounts.mockClear()
+  retires.mockClear()
   setters.clear()
 })
 
-// Synthetic receipts check source lifecycles. Only the SDK fixture may establish actual native hierarchy/order.
-const receiptFor = (view: TView): NativeCollectionCommitData => {
-  const root = rootHost(view),
-    nodes = nodeHosts(view),
-    positions = new Map<string, number>()
-  const parentId = (host: TestInstance): string => {
-    let parent = host.parent
-    while (parent && parent !== root) {
-      if (typeof parent.props.descriptorId === "string") return parent.props.descriptorId
-      parent = parent.parent
-    }
-    return ""
-  }
-  const hierarchy = nodes.map((host, position) => {
-    expect(host.props).not.toHaveProperty("rootRevision")
-    const parentDescriptorId = parentId(host),
-      index = positions.get(parentDescriptorId) ?? 0
-    positions.set(parentDescriptorId, index + 1)
-    return {
-      descriptorId: host.props.descriptorId,
-      descriptorRevision: host.props.descriptorRevision,
-      parentDescriptorId,
-      target: 8000 + position,
-      index,
-      retainedIndex: index,
-      hasRetainedChildren: nodes.some((child) => parentId(child) === host.props.descriptorId),
-    }
-  })
-  expect(hierarchy.some((entry) => entry.descriptorRevision === "uncommitted")).toBe(false)
-  return {
-    ownerId: root.props.ownerId,
-    rootId: root.props.rootId,
-    rootRevision: root.props.rootRevision,
-    target: 7001,
-    surfaceId: 11,
-    windowId: "source-model-window",
-    epoch: 1,
-    sequence: ++sequence,
-    mountRevision: "source-model",
-    complete: true,
-    attached: true,
-    metadataOnly: true,
-    error: "",
-    hierarchy: JSON.stringify(hierarchy),
-  }
-}
-const emit = async (view: TView, packet = receiptFor(view)) => {
-  const event = {
-    nativeEvent: packet,
-    persist: jest.fn(),
-  } as unknown as NativeSyntheticEvent<NativeCollectionCommitData>
-  await act(() => rootHost(view).props.onNativeCollectionCommit(event))
-  return event
-}
-const keys = () => [...current.collection!].map((node) => node.key)
-
-it("renders authoring once and binds caller refs only to the visible receiver after a complete matching receipt", async () => {
-  const mounted = jest.fn(),
-    retired = jest.fn(),
-    original = jest.fn(),
-    ref = createRef<View>(),
-    value = { title: "Original" }
-  const Opaque = () => {
-    useLayoutEffect(() => {
-      mounted()
-      return retired
-    }, [])
-    return (
-      <Item id={0} value={value} ref={ref} textValue="Original">
-        Original
-      </Item>
-    )
-  }
-  const view = await render(tree(<Opaque />, undefined, original))
-  expect(ref.current).toBeNull()
-  expect(current.receipt?.status).toBe("pending")
-  const event = await emit(view)
-  expect(original).toHaveBeenCalledWith(event)
-  expect(event.persist).toHaveBeenCalled()
-  expect(current.receipt?.status).toBe("confirmed")
-  expect(keys()).toEqual([0])
-  expect(current.collection?.getItem(0)?.value).toBe(value)
-  expect(current.collection?.getItem(0)?.props.ref).toBe(ref)
-  expect(current.collection?.getItem(0)?.rendered).toBe("Original")
-  expect(ref.current).not.toBeNull()
-  expect(mounted).toHaveBeenCalledTimes(1)
-  expect(retired).not.toHaveBeenCalled()
-  expect(itemMount).toHaveBeenCalledTimes(1)
-  const node = current.collection!.getItem(0)!
-  expect(Object.keys(node).some((key) => ["descriptorId", "descriptorRevision", "metadataTarget"].includes(key))).toBe(
-    false,
-  )
-  await view.unmount()
-  expect(ref.current).toBeNull()
-  expect(retired).toHaveBeenCalledTimes(1)
-})
-
-it("keeps visible row state/ref lifetimes while an opaque local reorder awaits native confirmation", async () => {
-  let update!: (order: string[]) => void
+it("renders only explicit visible receivers and never creates hidden metadata hosts", async () => {
   const ref = createRef<View>(),
-    mounted = jest.fn()
-  const Opaque = () => {
-    const [order, setOrder] = useState(["a", "b", "c"])
-    update = setOrder
-    useLayoutEffect(() => {
-      mounted()
-    }, [])
-    return (
-      <>
-        {order.map((id) => (
-          <Item key={id} id={id} ref={id === "a" ? ref : undefined}>
-            {id}
-          </Item>
-        ))}
-      </>
-    )
-  }
-  const view = await render(tree(<Opaque />)),
-    old = receiptFor(view)
-  await emit(view, old)
-  const visible = ref.current
-  await act(() => setters.get("a")!(7))
-  await act(() => update(["c", "a", "b"]))
-  expect(keys()).toEqual(["a", "b", "c"])
-  expect(ref.current).toBe(visible)
-  await emit(view, { ...old, sequence: ++sequence })
-  expect(current.receipt?.status).toBe("pending")
-  await emit(view)
-  expect(keys()).toEqual(["c", "a", "b"])
-  expect([...current.collection!.getKeys()]).toEqual(["a", "b", "c"])
-  expect(screen.getByText("a:7")).toBeTruthy()
-  expect(ref.current).toBe(visible)
-  expect(mounted).toHaveBeenCalledTimes(1)
-  expect(itemMount).toHaveBeenCalledTimes(3)
-  expect(itemRetire).not.toHaveBeenCalled()
+    renderItem = jest.fn(() => <Item title="a" ref={ref} />)
+  const view = await render(tree([{ ...item("a"), render: renderItem }]))
+  expect(screen.getByText("a:0:context")).toBeTruthy()
+  expect(renderItem).toHaveBeenCalledTimes(1)
+  expect(
+    view.container.queryAll((host) => host.props.descriptorId !== undefined || host.props.rootRevision !== undefined),
+  ).toHaveLength(0)
+  expect([...current.collection.getKeys()]).toEqual(["a"])
 })
 
-it("retains full logical membership when a renderer materializes no rows", async () => {
+it("preserves visible hook state and typed logical identities across explicit reorder", async () => {
+  const a = item("a"),
+    b = item("b")
+  const view = await render(tree([a, b]))
+  await act(() => setters.get("a")!(5))
+  await view.rerender(tree([b, a]))
+  expect(screen.getByText("a:5:context")).toBeTruthy()
+  expect([...current.collection].map((node) => node.key)).toEqual(["b", "a"])
+  expect([...current.collection.getKeys()]).toEqual(["a", "b"])
+  expect(retires).not.toHaveBeenCalled()
+})
+
+it("keeps complete membership with no materialized rows and mounts requested rows without authoring evaluation", async () => {
+  const a = item("a"),
+    b = item("b"),
+    renderA = jest.fn(a.render!),
+    renderB = jest.fn(b.render!)
+  const items = [
+    { ...a, render: renderA },
+    { ...b, render: renderB },
+  ]
+  const view = await render(tree(items, 0))
+  expect(current.collection.size).toBe(2)
+  expect(renderA).not.toHaveBeenCalled()
+  expect(renderB).not.toHaveBeenCalled()
+  await view.rerender(tree(items, 1))
+  expect(screen.getByText("a:0:context")).toBeTruthy()
+  expect(renderA).toHaveBeenCalledTimes(1)
+  expect(renderB).not.toHaveBeenCalled()
+})
+
+it("keeps full explicit section membership independently of rendered descendants", async () => {
+  const section = {
+    ...item("section"),
+    type: "section",
+    render: () => <Text>Section</Text>,
+    children: [item("a"), item("b")],
+  }
+  await render(tree([section]))
+  expect(screen.getByText("Section")).toBeTruthy()
+  expect([...current.collection.getChildren("section")].map((node) => node.key)).toEqual(["a", "b"])
+  expect(current.collection.size).toBe(2)
+  expect(mounts).not.toHaveBeenCalled()
+})
+
+it("survives StrictMode and Activity restoration without discovering or changing keys", async () => {
+  const items = [item("a")]
   const view = await render(
-    tree(
-      <>
-        <Item id="a">a</Item>
-        <Item id="b">b</Item>
-        <Item id="c">c</Item>
-      </>,
-      0,
-    ),
+    <StrictMode>
+      <Activity mode="visible">{tree(items)}</Activity>
+    </StrictMode>,
   )
-  await emit(view)
-  expect(keys()).toEqual(["a", "b", "c"])
-  expect(current.collection?.size).toBe(3)
-  expect(itemMount).not.toHaveBeenCalled()
-  expect(screen.queryAllByTestId(/^row:/)).toHaveLength(0)
-})
-
-it("propagates ancestor context and keeps a generated ID across keyed reorder", async () => {
-  const Context = createContext(false),
-    generated = <Item key="generated">generated</Item>,
-    explicit = (
-      <Item key="b" id="b">
-        b
-      </Item>
-    )
-  const Opaque = () => <>{useContext(Context) ? [explicit, generated] : [generated, explicit]}</>
-  const view = await render(<Context.Provider value={false}>{tree(<Opaque />)}</Context.Provider>)
-  await emit(view)
-  const generatedKey = keys()[0]
-  expect(generatedKey).toBe("react-aria-1")
-  await view.rerender(<Context.Provider value={true}>{tree(<Opaque />)}</Context.Provider>)
-  await emit(view)
-  expect(keys()).toEqual(["b", generatedKey])
-})
-
-it("handles hidden membership/effect restoration without changing generated identity", async () => {
-  const content = (hidden: boolean) => (
-    <>
-      <Activity mode={hidden ? "hidden" : "visible"}>
-        <Item key="generated">generated</Item>
-      </Activity>
-      <Item id="b">b</Item>
-    </>
+  await act(() => setters.get("a")!(7))
+  await view.rerender(
+    <StrictMode>
+      <Activity mode="hidden">{tree(items)}</Activity>
+    </StrictMode>,
   )
-  const view = await render(tree(content(false)))
-  await emit(view)
-  const generatedKey = keys()[0]
-  await view.rerender(tree(content(true)))
-  await emit(view)
-  expect(keys()).toEqual(["b"])
-  await view.rerender(tree(content(false)))
-  await emit(view)
-  expect(keys()).toEqual([generatedKey, "b"])
-})
-
-it("preserves restored whole-Activity lookup history and visible hook state like the pinned source", async () => {
-  let reorder!: (next: string[]) => void
-  const ref = createRef<View>()
-  const Content = () => {
-    const [order, setOrder] = useState(["a", "b", "c"])
-    reorder = setOrder
-    return (
-      <>
-        {order.map((id) => (
-          <Item key={id} id={id} ref={id === "a" ? ref : undefined}>
-            {id}
-          </Item>
-        ))}
-      </>
-    )
-  }
-  const fixture = (hidden: boolean) => <Activity mode={hidden ? "hidden" : "visible"}>{tree(<Content />)}</Activity>
-  const view = await render(fixture(false))
-  await emit(view)
-  await act(() => reorder(["b", "c", "a"]))
-  await emit(view)
-  expect([...current.collection!.getKeys()]).toEqual(["a", "b", "c"])
-  await act(() => setters.get("a")!(9))
-  await view.rerender(fixture(true))
-  expect(ref.current).toBeNull()
-  await view.rerender(fixture(false))
-  await emit(view)
-  expect(keys()).toEqual(["b", "c", "a"])
-  expect([...current.collection!.getKeys()]).toEqual(["a", "b", "c"])
-  expect(screen.getByText("a:9")).toBeTruthy()
-  expect(ref.current).not.toBeNull()
-})
-
-it("runs branch child hooks through React and preserves complete section membership", async () => {
-  const nested = jest.fn()
-  const content = (
-    <Branch id="section">
-      <NativeCollection items={[{ title: "a" }, { title: "b" }]}>
-        {(item) => {
-          nested(item)
-          return <Item id={item.title}>{item.title}</Item>
-        }}
-      </NativeCollection>
-    </Branch>
+  await view.rerender(
+    <StrictMode>
+      <Activity mode="visible">{tree(items)}</Activity>
+    </StrictMode>,
   )
-  const view = await render(tree(content, 0))
-  await emit(view)
-  expect(keys()).toEqual(["section"])
-  expect([...current.collection!.getChildren("section")].map((node) => node.key)).toEqual(["a", "b"])
-  expect([...current.collection!.getKeys()]).toEqual(["a", "b", "section"])
-  expect(nested).toHaveBeenCalledTimes(2)
-  expect(current.collection?.size).toBe(2)
+  expect(screen.getByText("a:7:context")).toBeTruthy()
+  expect([...current.collection.getKeys()]).toEqual(["a"])
 })
 
-it("survives StrictMode effect replay without duplicate membership or ref ownership", async () => {
-  const ref = createRef<View>(),
-    view = await render(<StrictMode>{tree(<Item ref={ref}>generated</Item>)}</StrictMode>)
-  await emit(view)
-  expect(keys()).toEqual(["react-aria-1"])
-  expect(current.collection?.size).toBe(1)
-  expect(ref.current).not.toBeNull()
-})
-
-it("does not allocate committed generated IDs or publish a discarded suspended transition", async () => {
+it("does not commit a suspended candidate or replace the current action owner", async () => {
   const pending = new Promise<void>(() => {})
-  const onAction = jest.fn()
-  let setMode!: (mode: "initial" | "aborted" | "committed") => void
-  const Suspend = () => {
-    throw pending
+  let setItems!: (items: readonly TNativeCollectionItem<object>[]) => void
+  let committedActions: NativeCollectionActions | null
+  const Observe = ({ suspend }: { suspend: boolean }) => {
+    const actions = useContext(NativeCollectionActionsContext)
+    useLayoutEffect(() => {
+      committedActions = actions
+    })
+    if (suspend) throw pending
+    return <Text>ready</Text>
   }
-  const Owner = () => {
-    const [mode, update] = useState<"initial" | "aborted" | "committed">("initial")
-    setMode = update
+  const App = () => {
+    const [items, set] = useState([item("a")] as readonly TNativeCollectionItem<object>[])
+    setItems = set
     return (
-      <Suspense fallback={null}>
-        {mode === "initial" ? (
-          <Item key="initial" onAction={onAction}>
-            initial
-          </Item>
-        ) : (
-          <Item key={mode} onAction={onAction}>
-            {mode}
-          </Item>
-        )}
-        {mode === "aborted" && <Suspend />}
+      <Suspense fallback={<Text>waiting</Text>}>
+        <NativeCollectionBuilder items={items}>
+          {() => <Observe suspend={items[0].key === "pending"} />}
+        </NativeCollectionBuilder>
       </Suspense>
     )
   }
-  const view = await render(tree(<Owner />))
-  await emit(view)
-  const before = current.collection,
-    observations = observe.mock.calls.length
-  await act(() => startTransition(() => setMode("aborted")))
-  expect(current.collection).toBe(before)
-  expect(observe.mock.calls.length).toBe(observations)
-  await act(() => setMode("committed"))
-  await emit(view)
-  expect(keys()).toEqual(["react-aria-2"])
-  expect(current.collection?.getItem("react-aria-2")?.rendered).toBe("committed")
-  expect(current.collection?.getItem("react-aria-2")?.props.onAction).toBe(onAction)
-  expect(onAction).not.toHaveBeenCalled()
+  await render(<App />)
+  const before = committedActions!.model.getSnapshot()
+  await act(() => startTransition(() => setItems([item("pending")])))
+  expect(committedActions!.model.getSnapshot()).toBe(before)
+  expect(screen.getByText("ready")).toBeTruthy()
+})
+
+it("commits logical ownership before descendant layout actions without insertion-effect callbacks", async () => {
+  const action = jest.fn()
+  const admission: TNativeCollectionActionAdmission = {
+    registerOwner: () => () => {},
+    ownerLifetimeFor: () => "source-model-window",
+    bindingFor: (scope) => JSON.stringify(scope),
+    request: (_scope, _binding, _target, receive) => {
+      receive(true)
+      return () => {}
+    },
+    subscribe: () => () => {},
+    getSnapshot: () => 0,
+  }
+  const Receiver = () => {
+    const actions = useContext(NativeCollectionActionsContext)!
+    useLayoutEffect(() => {
+      actions.request(null, 42, action)
+    }, [actions])
+    return null
+  }
+  await render(
+    <NativeCollectionActionAdmissionContext.Provider value={admission}>
+      <NativeCollectionBuilder items={[]}>{() => <Receiver />}</NativeCollectionBuilder>
+    </NativeCollectionActionAdmissionContext.Provider>,
+  )
+  expect(action).toHaveBeenCalledTimes(1)
+})
+
+it("registers and retires only the original visible root across model and ref replacement", async () => {
+  const roots = new Map<string, object>(),
+    retired: object[] = []
+  const admission: TNativeCollectionActionAdmission = {
+    registerOwner: (binding, original) => {
+      roots.set(binding, original)
+      return () => {
+        roots.delete(binding)
+        retired.push(original)
+      }
+    },
+    ownerLifetimeFor: () => "",
+    bindingFor: () => "",
+    request: () => {
+      throw new Error("Source ownership is not native admission")
+    },
+    subscribe: () => () => {},
+    getSnapshot: () => 0,
+  }
+  const ref = createRef<View>()
+  const Root = ({ snapshot, alternate }: { snapshot: TNativeCollectionModelSnapshot<object>; alternate: boolean }) => {
+    const ownerRef = useNativeCollectionOwnerRef(snapshot, ref)
+    return <View ref={ownerRef} key={alternate ? "replacement" : "original"} />
+  }
+  const fixture = (items: readonly TNativeCollectionItem<object>[], alternate = false) => (
+    <NativeCollectionActionAdmissionContext.Provider value={admission}>
+      <NativeCollectionBuilder items={items}>
+        {(_collection, snapshot) => <Root snapshot={snapshot} alternate={alternate} />}
+      </NativeCollectionBuilder>
+    </NativeCollectionActionAdmissionContext.Provider>
+  )
+  const a = item("a"),
+    b = item("b")
+  const view = await render(fixture([a]))
+  const original = ref.current!
+  expect([...roots.values()]).toEqual([original])
+  const firstBinding = [...roots.keys()][0]
+  await view.rerender(fixture([a, b]))
+  expect(ref.current).toBe(original)
+  expect([...roots.values()]).toEqual([original])
+  expect(roots.has(firstBinding)).toBe(false)
+  expect(JSON.parse([...roots.keys()][0]).items).toHaveLength(2)
+  await view.rerender(fixture([a, b], true))
+  expect(ref.current).not.toBe(original)
+  expect([...roots.values()]).toEqual([ref.current])
+  expect(retired).toContain(original)
+  await view.unmount()
+  expect(roots.size).toBe(0)
+  expect(ref.current).toBeNull()
 })

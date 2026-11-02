@@ -245,6 +245,8 @@ export type TNativeSliderProps<T extends TNativeSliderValue = TNativeSliderValue
     "aria-describedby"?: string
     "aria-details"?: string
     thumbAriaLabels?: readonly string[]
+    form?: string
+    formFieldId?: string
     thumbNames?: readonly string[]
     thumbColor?: ColorValue
     trackColor?: ColorValue

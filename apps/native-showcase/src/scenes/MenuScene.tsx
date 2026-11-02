@@ -1,4 +1,4 @@
-import { createRef, useMemo, useRef, useState } from "react"
+import { createRef, useMemo, useRef, useState, type ReactNode } from "react"
 import { findNodeHandle, TextInput, View } from "react-native"
 
 import {
@@ -13,11 +13,12 @@ import {
   NativeMenuListContext,
   MenuText,
   MenuKeyboardShortcut,
-  NativeCollection,
   NativeCollectionRendererContext,
   NativeFocusView,
   Text,
   useNativeTheme,
+  type TNativeCollectionItem,
+  type TNativeMenuItemProps,
 } from "@codon-ui/react-native"
 
 import { NativeMenuPointerObservationContext } from "../../../../packages/react-native/src/components/Menu/context"
@@ -92,6 +93,127 @@ export const MenuScene = () => {
   const itemRefs = useMemo(() => new Map(ITEMS.map((item) => [item.id, createRef<View>()])), [])
   const trigger = useRef<View>(null),
     childList = useRef<View>(null)
+  const collectionItems = useMemo<readonly TNativeCollectionItem<object>[]>(() => {
+    const item = (
+      key: TKey,
+      label: string,
+      children: ReactNode = label,
+      props: TNativeMenuItemProps & { ref?: React.Ref<View> } = {},
+    ): TNativeCollectionItem<object> => ({
+      key,
+      type: "item",
+      value: { id: key, label },
+      props: { id: key, textValue: label, ...props },
+      rendered: children,
+      textValue: label,
+      render: () => (
+        <MenuItem id={key} textValue={label} {...props}>
+          {children}
+        </MenuItem>
+      ),
+    })
+    const deepItems = [item("deep", "Deep action")]
+    const childItems: readonly TNativeCollectionItem<object>[] = [
+      item("child", "Child action", "Child action", { testID: "menu-owner-child-action" }),
+      {
+        key: "deeper-submenu",
+        type: "submenutrigger",
+        value: null,
+        props: {},
+        rendered: null,
+        textValue: "Deeper actions",
+        children: [item("deeper", "Deeper actions")],
+        render: () => (
+          <SubmenuTrigger>
+            <Menu menuAriaLabel="Deep menu actions" shouldFlip={false} items={deepItems} />
+          </SubmenuTrigger>
+        ),
+      },
+    ]
+    if (!items.length) return []
+    if (virtualized)
+      return virtualItems.map((value) =>
+        item(value.id, value.label, value.label, {
+          value,
+          ref: itemRefs.get(value.id),
+          testID: `menu-owner-${keyLabel(value.id)}`,
+          render: customHost
+            ? (props, state) => (
+                <NativeFocusView
+                  {...props}
+                  accessibilityHint={state.isFocusVisible ? "Keyboard focused menu item" : "Custom menu item"}
+                />
+              )
+            : undefined,
+        }),
+      )
+    return [
+      {
+        key: "primary",
+        type: "section",
+        value: null,
+        props: {},
+        rendered: null,
+        textValue: "Primary actions",
+        render: () => <MenuSection id="primary" style={custom ? { fontSize: 20 } : undefined} />,
+        children: [
+          {
+            key: "primary-header",
+            type: "header",
+            value: null,
+            props: {},
+            rendered: "Primary actions",
+            textValue: "Primary actions",
+            render: () => <MenuHeader>Primary actions</MenuHeader>,
+          },
+          ...items.map((value) =>
+            item(
+              value.id,
+              value.label,
+              <>
+                <MenuText slot="label">{value.label}</MenuText>
+                <MenuText slot="description">Current owner item</MenuText>
+                <MenuKeyboardShortcut>⌘K</MenuKeyboardShortcut>
+              </>,
+              { ref: itemRefs.get(value.id), testID: `menu-owner-${keyLabel(value.id)}` },
+            ),
+          ),
+        ],
+      },
+      {
+        key: "primary-separator",
+        type: "separator",
+        value: null,
+        props: {},
+        rendered: null,
+        textValue: "",
+        render: () => <MenuSeparator />,
+      },
+      {
+        key: "more-submenu",
+        type: "submenutrigger",
+        value: null,
+        props: {},
+        rendered: null,
+        textValue: "More actions",
+        children: [item("more", "More actions", "More actions", { testID: "menu-owner-more" })],
+        render: () => (
+          <SubmenuTrigger ref={trigger}>
+            <NativeMenuListContext.Provider value={{ ref: childList }}>
+              <Menu
+                menuAriaLabel="Nested menu actions"
+                testID="menu-owner-child"
+                shouldFlip={false}
+                items={childItems}
+              />
+            </NativeMenuListContext.Provider>
+          </SubmenuTrigger>
+        ),
+      },
+      item("after", "After submenu", "After submenu", { testID: "menu-owner-after" }),
+      item("destructive", "Destructive action", "Destructive action", { variant: "destructive" }),
+    ]
+  }, [items, virtualized, virtualItems, itemRefs, customHost, custom])
   const initial = useRef(new Map<string, View | TextInput>())
   const receivers = () =>
     [
@@ -203,6 +325,7 @@ export const MenuScene = () => {
               trigger={(state) => <Button {...state.triggerProps}>Open owner menu</Button>}
             >
               <Menu
+                items={collectionItems}
                 ref={root}
                 testID="menu-owner-surface"
                 menuAriaLabel="Owner menu actions"
@@ -220,81 +343,7 @@ export const MenuScene = () => {
                   if (!veto) setSelected(keys)
                 }}
                 onAction={(key) => record(`action:${keyLabel(key)}`)}
-              >
-                {items.length > 0 &&
-                  (virtualized ? (
-                    <NativeCollection items={virtualItems}>
-                      {(item) => (
-                        <MenuItem
-                          value={item}
-                          render={
-                            customHost
-                              ? (props, state) => (
-                                  <NativeFocusView
-                                    {...props}
-                                    accessibilityHint={
-                                      state.isFocusVisible ? "Keyboard focused menu item" : "Custom menu item"
-                                    }
-                                  />
-                                )
-                              : undefined
-                          }
-                          id={item.id}
-                          textValue={item.label}
-                          ref={itemRefs.get(item.id)}
-                          testID={`menu-owner-${keyLabel(item.id)}`}
-                        >
-                          {item.label}
-                        </MenuItem>
-                      )}
-                    </NativeCollection>
-                  ) : (
-                    <>
-                      <MenuSection id="primary" style={custom ? { fontSize: 20 } : undefined}>
-                        <MenuHeader>Primary actions</MenuHeader>
-                        <NativeCollection items={items}>
-                          {(item) => (
-                            <MenuItem
-                              ref={itemRefs.get(item.id)}
-                              id={item.id}
-                              textValue={item.label}
-                              testID={`menu-owner-${keyLabel(item.id)}`}
-                            >
-                              <MenuText slot="label">{item.label}</MenuText>
-                              <MenuText slot="description">Current owner item</MenuText>
-                              <MenuKeyboardShortcut>⌘K</MenuKeyboardShortcut>
-                            </MenuItem>
-                          )}
-                        </NativeCollection>
-                      </MenuSection>
-                      <MenuSeparator />
-                      <SubmenuTrigger ref={trigger}>
-                        <MenuItem id="more" testID="menu-owner-more">
-                          More actions
-                        </MenuItem>
-                        <NativeMenuListContext.Provider value={{ ref: childList }}>
-                          <Menu menuAriaLabel="Nested menu actions" testID="menu-owner-child" shouldFlip={false}>
-                            <MenuItem id="child" testID="menu-owner-child-action">
-                              Child action
-                            </MenuItem>
-                            <SubmenuTrigger>
-                              <MenuItem id="deeper">Deeper actions</MenuItem>
-                              <Menu menuAriaLabel="Deep menu actions" shouldFlip={false}>
-                                <MenuItem id="deep">Deep action</MenuItem>
-                              </Menu>
-                            </SubmenuTrigger>
-                          </Menu>
-                        </NativeMenuListContext.Provider>
-                      </SubmenuTrigger>
-                      <MenuItem id="after" testID="menu-owner-after">
-                        After submenu
-                      </MenuItem>
-                      <MenuItem id="destructive" variant="destructive">
-                        Destructive action
-                      </MenuItem>
-                    </>
-                  ))}
-              </Menu>
+              ></Menu>
             </NativeMenuTrigger>
           </NativeMenuListContext.Provider>
         </NativeCollectionRendererContext.Provider>

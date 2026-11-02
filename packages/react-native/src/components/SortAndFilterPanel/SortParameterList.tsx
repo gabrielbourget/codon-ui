@@ -1,14 +1,19 @@
-import { createContext, useCallback, useContext, useInsertionEffect, useRef, useState, type ForwardedRef } from "react"
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useInsertionEffect,
+  useRef,
+  useState,
+  type ForwardedRef,
+} from "react"
 import type { View } from "react-native"
 import { findNodeHandle } from "react-native"
 
 import { NativeCollectionActionsContext } from "../../collection/actions"
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
-import {
-  NativeCollection,
-  NativeCollectionBuilder,
-  createNativeCollectionLeaf,
-} from "../../collection/CollectionBuilder"
+import { NativeCollectionBuilder, createNativeCollectionLeaf } from "../../collection/CollectionBuilder"
 import { useNativeCollectionRefs } from "../../collection/context"
 import {
   NativeDragAndDropContext,
@@ -21,13 +26,13 @@ import {
 } from "../../collection/dragAndDrop/hooks"
 import type { TNativeInsertDropEvent, TNativeReorderDropEvent } from "../../collection/dragAndDrop/types"
 import { nativeVirtualDrag } from "../../collection/dragAndDrop/virtualDrag"
+import type { TNativeCollectionModelSnapshot } from "../../collection/model"
 import {
   NativeCollectionRendererContext,
   useNativePersistedKeys,
   type TNativeCollectionScrollHost,
 } from "../../collection/renderer"
 import { NativeCollectionSemanticsContext } from "../../collection/semantics"
-import type { TNativeCollectionSessionSnapshot } from "../../collection/session"
 import type { TNativeCollectionNode, TNativeCollectionSnapshot } from "../../collection/snapshot"
 import { useListState } from "../../collection/state"
 import { NativeFocusHost } from "../../input/NativeFocusView"
@@ -37,6 +42,7 @@ import { NativeContentContext } from "../NativeContentContext"
 import type { TTableSortInstruction } from "../Table/queryTypes"
 import { TableKeyPolicy } from "../Table/TableCellKeys"
 import { NativeCollectionTypeahead } from "../Table/TableTypeahead"
+import { useCollectionModelOwner } from "../Table/useCollectionModelOwner"
 import { useNativeCollectionKeyboard } from "../Table/useTableKeyboard"
 import { useTableTargetRef } from "../Table/useTableTargetRef"
 import { resolveNativeTagTransition, useNativeTagColor, useNativeTagReducedMotion } from "../Tag/motion"
@@ -203,21 +209,30 @@ const noHeaders = new Set<string>()
 const policy = { disallowSelectAll: true, escapeKeyBehavior: "none" as const, shouldFocusWrap: false }
 const List = ({
   collection,
-  receipt,
+  model,
   props,
 }: {
   collection: TNativeCollectionSnapshot<object>
-  receipt: TNativeCollectionSessionSnapshot<unknown>["receipt"]
+  model: TNativeCollectionModelSnapshot<object>
   props: TQuerySortParameterListProps
 }) => {
   const state = useListState({ collection, selectionMode: "none" })
   const root = useRef<View | null>(null)
   const scrollRef = useRef<TNativeCollectionScrollHost | null>(null)
-  const [target, setTarget] = useState(0)
+  const [{ originalRoot, target }, setRootTarget] = useState<{ originalRoot: View | null; target: number }>({
+    originalRoot: null,
+    target: 0,
+  })
   const bind = useCallback((view: View | null) => {
     root.current = view
-    setTarget(view ? (findNodeHandle(view) ?? 0) : 0)
+    const nextTarget = view ? (findNodeHandle(view) ?? 0) : 0
+    setRootTarget((previous) =>
+      previous.originalRoot === view && previous.target === nextTarget
+        ? previous
+        : { originalRoot: view, target: nextTarget },
+    )
   }, [])
+  useCollectionModelOwner(model, originalRoot, target)
   const renderer = useContext(NativeCollectionRendererContext)
   const actions = useContext(NativeCollectionActionsContext)!
   const theme = useNativeTheme()
@@ -229,7 +244,7 @@ const List = ({
     root,
     props: policy,
     rowHeaderColumns: noHeaders,
-    receipt,
+    model,
     layout: renderer.layoutDelegate,
     allowItemDescendantKeys: true,
     canAct: props.canAct,
@@ -341,21 +356,31 @@ const List = ({
     </ListContext.Provider>
   )
 }
-// The complete original metadata collection owns membership; rendering and native admission keep their existing owners.
-export const QuerySortParameterList = (props: TQuerySortParameterListProps) => (
-  <NativeCollectionBuilder<object>
-    content={
-      <NativeCollection items={props.sortParameterList} dependencies={[props]}>
-        {(parameter) => {
-          const label = props.listLabels.itemAriaLabel({
-            criteriaName: parameter.criteriaName,
-            sortDirection: parameter.sortDirection,
-          })
-          return <SortOption {...props} id={parameter.id} parameter={parameter} label={label} textValue={label} />
-        }}
-      </NativeCollection>
-    }
-  >
-    {(collection, receipt) => <List collection={collection} receipt={receipt} props={props} />}
-  </NativeCollectionBuilder>
-)
+// Complete ordered data owns membership; only visible original hosts admit actions.
+export const QuerySortParameterList = (props: TQuerySortParameterListProps) => {
+  const items = useMemo(
+    () =>
+      props.sortParameterList.map((parameter) => {
+        const label = props.listLabels.itemAriaLabel({
+          criteriaName: parameter.criteriaName,
+          sortDirection: parameter.sortDirection,
+        })
+        const visible = { ...props, id: parameter.id, parameter, label, textValue: label }
+        return {
+          key: parameter.id,
+          type: "item",
+          value: parameter,
+          props: visible,
+          textValue: label,
+          rendered: null,
+          render: () => <SortOption {...visible} />,
+        }
+      }),
+    [props],
+  )
+  return (
+    <NativeCollectionBuilder<object> items={items}>
+      {(collection, model) => <List collection={collection} model={model} props={props} />}
+    </NativeCollectionBuilder>
+  )
+}

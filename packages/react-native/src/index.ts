@@ -390,6 +390,7 @@ export type {
 } from "./collection/context"
 export {
   DefaultNativeCollectionRenderer,
+  renderNativeCollectionNode,
   NativeCollectionRendererContext,
   NativeCollectionCellFocusContext,
 } from "./collection/renderer"
@@ -403,7 +404,12 @@ export type {
   TNativeCollectionDropTarget,
   TNativeCollectionItemDropTarget,
 } from "./collection/renderer"
-export type { TNativeCollectionKey, TNativeCollectionNode, TNativeCollectionSnapshot } from "./collection/snapshot"
+export type {
+  TNativeCollectionItem,
+  TNativeCollectionKey,
+  TNativeCollectionNode,
+  TNativeCollectionSnapshot,
+} from "./collection/snapshot"
 export { NativeListStateContext } from "./collection/state"
 export type { TNativeListState } from "./collection/state"
 export { NativeButtonContext } from "./components/Button/context"

@@ -1,48 +1,36 @@
 import type { NativeFormActionStatus } from "../input/specs/CUIFocusViewNativeComponent"
+import FormRuntime from "../input/specs/NativeCUIFormDocument"
 
-import { NATIVE_FORM_ACTION_LEASE_KEYS } from "./actionLease"
-import { decodeNativeFormDocument, type TNativeFormDocument, type TNativeFormDescriptor } from "./document"
-import { readNativeFormDocument } from "./runtime"
+import type { TNativeFormBinding, TNativeFormFieldBinding } from "./registry"
 
+// Main integrates admitForm into the owned codegen spec. Missing native support fails closed.
+type TRuntime = { admitForm?: (request: string) => Promise<string> }
+let nextAdmission = 0
 export const admitNativeFormAction = async (
-  lease: NativeFormActionStatus,
-  document: TNativeFormDocument,
-  form: TNativeFormDescriptor,
-  read = readNativeFormDocument,
+  form: TNativeFormBinding,
+  fields: readonly TNativeFormFieldBinding[],
+  actionLease?: NativeFormActionStatus | null,
+  admit = (FormRuntime as TRuntime | null)?.admitForm?.bind(FormRuntime),
 ) => {
+  if (!admit) return false
+  const requestId = `form-model:${++nextAdmission}`
   const request = {
-    target: lease.target,
-    requestId: `${document.requestId}:admission`,
-    surfaceId: document.surfaceId,
-    actionAdmission: { lease, form, documentId: document.documentId, revision: document.revision },
+    requestId,
+    form: form.descriptor,
+    formMount: form.mount()?.getSnapshot(),
+    fields: fields.map((field) => ({ field: field.descriptor, mount: field.mount()?.getSnapshot() })),
+    ...(actionLease ? { actionLease } : {}),
   }
-  const encoded = await read(request)
-  const current = decodeNativeFormDocument(encoded, request)
-  if (
-    current.documentId !== document.documentId ||
-    current.revision !== document.revision ||
-    JSON.stringify(current.forms) !== JSON.stringify(document.forms) ||
-    JSON.stringify(current.fields) !== JSON.stringify(document.fields) ||
-    JSON.stringify(current.nodes) !== JSON.stringify(document.nodes)
-  )
+  if (!request.formMount) return false
+  if (request.fields.some((field) => !field.mount)) return false
+  try {
+    const value = JSON.parse(await admit(JSON.stringify(request)))
+    return (
+      value?.accepted === true &&
+      value.requestId === requestId &&
+      value.formRevision === form.descriptor.descriptorRevision
+    )
+  } catch {
     return false
-  const packet = (JSON.parse(encoded) as { actionAdmission?: unknown }).actionAdmission
-  if (!packet || typeof packet !== "object" || Array.isArray(packet)) return false
-  const value = packet as Record<string, unknown>
-  if (
-    value.accepted !== true ||
-    value.documentId !== document.documentId ||
-    value.revision !== document.revision ||
-    value.formDescriptorId !== form.descriptorId ||
-    value.formDescriptorRevision !== form.descriptorRevision ||
-    !value.lease ||
-    typeof value.lease !== "object" ||
-    Array.isArray(value.lease)
-  )
-    return false
-  const accepted = value.lease as Record<string, unknown>
-  return (
-    Object.keys(accepted).length === NATIVE_FORM_ACTION_LEASE_KEYS.length &&
-    NATIVE_FORM_ACTION_LEASE_KEYS.every((key) => accepted[key] === lease[key])
-  )
+  }
 }

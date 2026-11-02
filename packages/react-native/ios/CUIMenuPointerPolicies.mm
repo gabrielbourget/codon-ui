@@ -134,9 +134,8 @@ static codon::MenuPointerRect CUIMenuRect(CGRect value) {
     NSString *serialized = self.registration[[name stringByAppendingString:@"Binding"]];
     id binding = [NSJSONSerialization JSONObjectWithData:[serialized dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
     if (![binding isKindOfClass:NSDictionary.class]) return NO;
-    UIView *root = [window viewWithTag:[binding[@"target"] integerValue]];
     NSInteger target = [self.registration[[name stringByAppendingString:@"Target"]] integerValue];
-    if (![root isKindOfClass:CUICollectionRoot.class] || ![(CUICollectionRoot *)root acceptsPointerBinding:serialized visibleTarget:target]) return NO;
+    if (![CUICollectionRoot acceptsCurrentBinding:serialized original:[window viewWithTag:target]]) return NO;
     [bindings addObject:binding];
   }
   for (NSString *field in @[@"ownerId", @"rootId", @"rootRevision", @"target", @"surfaceId", @"windowId", @"epoch", @"sequence"])

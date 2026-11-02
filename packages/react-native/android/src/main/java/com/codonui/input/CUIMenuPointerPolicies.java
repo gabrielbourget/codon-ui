@@ -139,11 +139,7 @@ final class CUIMenuPointerPolicies {
     return false;
   }
   private static boolean binding(View target, String serialized) {
-    try {
-      JSONObject value = new JSONObject(serialized);
-      View root = target.getRootView().findViewById(value.getInt("target"));
-      return root instanceof CUICollectionRoot && ((CUICollectionRoot)root).acceptsPointerBinding(serialized, target.getId());
-    } catch (JSONException invalid) { return false; }
+    return CUICollectionRoot.acceptsCurrentBinding(serialized, target);
   }
   private static boolean relatedBindings(Registration registration) {
     try {

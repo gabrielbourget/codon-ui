@@ -1,6 +1,7 @@
 import { useCallback, useInsertionEffect, useLayoutEffect, useRef, type Ref, type RefObject } from "react"
 import type { View } from "react-native"
 
+import { useNativeCollectionReceiverRef } from "../../collection/CollectionBuilder"
 import { useNativeCollectionRefs } from "../../collection/context"
 import type { TNativeCollectionNode } from "../../collection/snapshot"
 
@@ -48,5 +49,6 @@ export const useTableTargetRef = (
     () => synchronize(target.current),
     [target, registration.node, registration.register, registration.header, synchronize],
   )
-  return useNativeCollectionRefs(ref, bind)
+  const receiverRef = useNativeCollectionReceiverRef(registration.node, ref)
+  return useNativeCollectionRefs(receiverRef, bind)
 }

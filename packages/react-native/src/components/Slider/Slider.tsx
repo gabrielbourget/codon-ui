@@ -53,6 +53,8 @@ const SliderRoot = forwardRef<TNativeSliderRef, TNativeSliderProps>((ownProps, f
     labelID,
     thumbAriaLabels,
     thumbNames,
+    form,
+    formFieldId,
     thumbColor: _thumbColor,
     trackColor,
     geometry = "round",
@@ -428,6 +430,8 @@ const SliderRoot = forwardRef<TNativeSliderRef, TNativeSliderProps>((ownProps, f
               />
               <NativeSliderThumbForm
                 index={index}
+                form={form}
+                formFieldId={formFieldId}
                 name={thumbNames?.[index]}
                 state={state}
                 root={rootNode}

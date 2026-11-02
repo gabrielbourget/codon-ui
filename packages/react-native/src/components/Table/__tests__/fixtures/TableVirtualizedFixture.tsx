@@ -10,6 +10,7 @@ import {
 } from "react"
 import { View, VirtualizedList, useWindowDimensions, type TextInput, type VirtualizedListProps } from "react-native"
 
+import { renderNativeCollectionNode } from "../../../../collection/renderer"
 import {
   DefaultNativeCollectionRenderer,
   NativeCollectionCellFocusContext,
@@ -24,10 +25,10 @@ import { Button } from "../../../Button/Button"
 import { Input } from "../../../Input/Input"
 import { Text } from "../../../Text/Text"
 import { useNativeTable } from "../../context"
+import { nativeTableChildren, nativeTableReceiver, createNativeTableBodyModel } from "../../model"
 import { NativeResizableTableContainer } from "../../NativeResizableTableContainer"
 import type { NativeTableCollection } from "../../state/TableCollection"
 import { Table } from "../../Table"
-import { TableBody } from "../../TableBody"
 import { TableColumn } from "../../TableColumn"
 
 import { ColumnFixtureHeader } from "./TableColumnFixture"
@@ -114,7 +115,7 @@ const VirtualBody = ({ collection, parent, bridge }: TNativeCollectionBranchProp
       getItem={(items: TNode[], index) => items[index]}
       getItemCount={(items: TNode[]) => items.length}
       keyExtractor={(node) => JSON.stringify([typeof node.key, node.key])}
-      renderItem={({ item }) => item.render?.(item) ?? null}
+      renderItem={({ item }) => renderNativeCollectionNode(item) ?? null}
       CellRendererComponent={Cell}
       initialNumToRender={4}
       maxToRenderPerBatch={4}
@@ -235,37 +236,67 @@ export const TableVirtualizedFixture = ({ editorRef }: { editorRef?: Ref<TextInp
             testID="table-virtual-root"
             accessibilityLabel="Virtualized rows"
             onScroll={() => setScrolls((value) => value + 1)}
-          >
-            <ColumnFixtureHeader>
-              <TableColumn columnID="name" id="name" isRowHeader width={200} accessibilityLabel="Name">
-                Name
-                <LogicalCount />
-              </TableColumn>
-              <TableColumn columnID="draft" id="draft">
-                Draft
-              </TableColumn>
-            </ColumnFixtureHeader>
-            <TableBody<TRow>
-              columns={columns}
-              items={rows}
-              customRowStyles={{ height: 72 * fontScale }}
-              renderCell={({ row, column }) =>
-                column.id === "name" ? (
-                  row.name
-                ) : row.id === rows[0]!.id ? (
-                  <Input
-                    ref={editorRef}
-                    testID="table-virtual-editor"
-                    accessibilityLabel="Held virtual draft"
-                    value=""
-                    onChangeText={(value) => setDrafts((previous) => [...previous, value])}
-                  />
-                ) : (
-                  ""
-                )
-              }
-            />
-          </Table>
+            items={(modelOptions) =>
+              nativeTableChildren(
+                nativeTableReceiver<React.ComponentProps<typeof ColumnFixtureHeader>>(
+                  "__header:1",
+                  "tableheader",
+                  {},
+                  (visibleProps) => <ColumnFixtureHeader {...visibleProps} />,
+                  nativeTableChildren(
+                    nativeTableReceiver<React.ComponentProps<typeof TableColumn>>(
+                      "name",
+                      "column",
+                      {
+                        columnID: "name",
+                        id: "name",
+                        isRowHeader: true,
+                        width: 200,
+                        accessibilityLabel: "Name",
+                        children: (
+                          <>
+                            Name
+                            <LogicalCount />
+                          </>
+                        ),
+                      },
+                      (visibleProps) => <TableColumn {...visibleProps} />,
+                      [],
+                    ),
+                    nativeTableReceiver<React.ComponentProps<typeof TableColumn>>(
+                      "draft",
+                      "column",
+                      { columnID: "draft", id: "draft", children: <>Draft</> },
+                      (visibleProps) => <TableColumn {...visibleProps} />,
+                      [],
+                    ),
+                  ),
+                ),
+                createNativeTableBodyModel(
+                  {
+                    columns: columns,
+                    items: rows,
+                    customRowStyles: { height: 72 * fontScale },
+                    renderCell: ({ row, column }) =>
+                      column.id === "name" ? (
+                        row.name
+                      ) : row.id === rows[0]!.id ? (
+                        <Input
+                          ref={editorRef}
+                          testID="table-virtual-editor"
+                          accessibilityLabel="Held virtual draft"
+                          value=""
+                          onChangeText={(value) => setDrafts((previous) => [...previous, value])}
+                        />
+                      ) : (
+                        ""
+                      ),
+                  },
+                  modelOptions,
+                ),
+              )
+            }
+          />
         </NativeResizableTableContainer>
       </NativeCollectionRendererContext.Provider>
       <Text testID="table-virtual-requests">{JSON.stringify({ drafts, scrolls })}</Text>

@@ -1,26 +1,28 @@
-import "../../../collection/__tests__/nativeReceipts"
-
 import { act as rawAct, cleanup } from "@testing-library/react-native"
 import { createRef, type ReactNode, type RefAttributes } from "react"
 import { TextInput, type View } from "react-native"
+
+import { NativeFocusView } from "../../../input/NativeFocusView"
+import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../../overlays/floating/scope"
+import { NativeThemeProvider } from "../../../theme"
+import { Button } from "../../Button/Button"
+import { Text } from "../../Text/Text"
+import {
+  nativeTableChildren,
+  createNativeTableHeaderModel,
+  nativeTableReceiver,
+  createNativeTableBodyModel,
+} from "../model"
+import { Table } from "../Table"
+import { TableCell } from "../TableCell"
+import type { TNativeTableCellProps, TNativeTableColumnMetadata } from "../types"
 
 import {
   actWithNativeCollections as act,
   fireEventWithNativeCollections as fireEvent,
   renderWithNativeCollections as render,
   screen,
-} from "../../../collection/__tests__/nativeReceipts"
-import { NativeFocusView } from "../../../input/NativeFocusView"
-import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../../overlays/floating/scope"
-import { NativeThemeProvider } from "../../../theme"
-import { Button } from "../../Button/Button"
-import { Text } from "../../Text/Text"
-import { Table } from "../Table"
-import { TableBody } from "../TableBody"
-import { TableCell } from "../TableCell"
-import { TableHeader } from "../TableHeader"
-import type { TNativeTableCellProps, TNativeTableColumnMetadata } from "../types"
-
+} from "./collectionModel"
 import { CellFixtureBody, CellFixtureRow } from "./fixtures/TableCellFixture"
 
 const columns = [{ id: "value", name: "Value", isRowHeader: true }]
@@ -32,16 +34,43 @@ const tree = (
 ) => (
   <NativeThemeProvider>
     <NativeFloatingScopeContext.Provider value={rootWindow}>
-      <Table accessibilityLabel="Cell layout">
-        <TableHeader columns={columns} />
-        <CellFixtureBody>
-          <CellFixtureRow id="row">
-            <TableCell id="row-value" columnID="value" testID="layout-cell" {...props}>
-              {children}
-            </TableCell>
-          </CellFixtureRow>
-        </CellFixtureBody>
-      </Table>
+      <Table
+        accessibilityLabel="Cell layout"
+        items={(modelOptions) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel({ columns: columns }, modelOptions),
+            nativeTableReceiver<React.ComponentProps<typeof CellFixtureBody>>(
+              "__body:1",
+              "tablebody",
+              {},
+              (visibleProps) => <CellFixtureBody {...visibleProps} />,
+              nativeTableChildren(
+                nativeTableReceiver<React.ComponentProps<typeof CellFixtureRow>>(
+                  "row",
+                  "item",
+                  { id: "row" },
+                  (visibleProps) => <CellFixtureRow {...visibleProps} />,
+                  nativeTableChildren(
+                    nativeTableReceiver<React.ComponentProps<typeof TableCell>>(
+                      "row-value",
+                      "cell",
+                      {
+                        id: "row-value",
+                        columnID: "value",
+                        testID: "layout-cell",
+                        ...props,
+                        children: children,
+                      },
+                      (visibleProps) => <TableCell {...visibleProps} />,
+                      [],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          )
+        }
+      />
     </NativeFloatingScopeContext.Provider>
   </NativeThemeProvider>
 )
@@ -83,10 +112,14 @@ it("passes column metadata to its cell and retains the caller's original rendere
   const row = { value: "Column-owned content" }
   await render(
     <NativeThemeProvider>
-      <Table>
-        <TableHeader columns={[column]} />
-        <TableBody columns={[column]} items={[row]} rowKey={() => "row"} />
-      </Table>
+      <Table
+        items={(modelOptions) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel({ columns: [column] }, modelOptions),
+            createNativeTableBodyModel({ columns: [column], items: [row], rowKey: () => "row" }, modelOptions),
+          )
+        }
+      />
     </NativeThemeProvider>,
   )
   expect(screen.getByText(row.value).props.numberOfLines).toBe(1)
@@ -124,10 +157,17 @@ it("keeps constraints inside the originating window and clears them at a nested 
         <NativeFloatingScopeContext.Provider value={popupWindow}>
           <Text testID="popup-text">Popup content</Text>
         </NativeFloatingScopeContext.Provider>
-        <Table>
-          <TableHeader columns={columns} />
-          <TableBody columns={columns} items={[{ value: "Nested table content" }]} rowKey={() => "nested-row"} />
-        </Table>
+        <Table
+          items={(modelOptions) =>
+            nativeTableChildren(
+              createNativeTableHeaderModel({ columns: columns }, modelOptions),
+              createNativeTableBodyModel(
+                { columns: columns, items: [{ value: "Nested table content" }], rowKey: () => "nested-row" },
+                modelOptions,
+              ),
+            )
+          }
+        />
       </>,
     ),
   )
@@ -293,10 +333,16 @@ it("reveals a controlled row value without selection or row-action requests", as
         selectedKeys={["row"]}
         onSelectionChange={onSelectionChange}
         onRowAction={onRowAction}
-      >
-        <TableHeader columns={metadata} />
-        <TableBody columns={metadata} items={[{ value: "Complete controlled value" }]} rowKey={() => "row"} />
-      </Table>
+        items={(modelOptions) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel({ columns: metadata }, modelOptions),
+            createNativeTableBodyModel(
+              { columns: metadata, items: [{ value: "Complete controlled value" }], rowKey: () => "row" },
+              modelOptions,
+            ),
+          )
+        }
+      />
     </NativeThemeProvider>,
   )
   const button = screen.getByRole("button", { name: "Show full value" })

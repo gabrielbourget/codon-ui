@@ -4,16 +4,13 @@ import type { View } from "react-native"
 
 import {
   createNativeCollectionSnapshot,
-  getNativeCollectionMetadataIdentity,
-  type TNativeCollectionDescriptor,
-  type TNativeCollectionHierarchyEntry,
+  getNativeCollectionNodeIdentity,
+  type TNativeCollectionItem,
 } from "../snapshot"
 import { useListState, useTreeState } from "../state"
 
 type TValue = { id: string | number }
-const descriptor = (key: string | number, type = "item"): TNativeCollectionDescriptor<TValue> => ({
-  descriptorId: `${typeof key}:${key}`,
-  descriptorRevision: "1",
+const descriptor = (key: string | number, type = "item"): TNativeCollectionItem<TValue> => ({
   key,
   type,
   value: { id: key },
@@ -21,18 +18,7 @@ const descriptor = (key: string | number, type = "item"): TNativeCollectionDescr
   rendered: String(key),
   props: { ref: createRef<View>() },
 })
-const entries = (descriptors: readonly TNativeCollectionDescriptor<TValue>[]): TNativeCollectionHierarchyEntry[] =>
-  descriptors.map((node, index) => ({
-    descriptorId: node.descriptorId,
-    descriptorRevision: node.descriptorRevision,
-    parentDescriptorId: "",
-    target: index + 10,
-    index,
-    retainedIndex: index,
-    hasRetainedChildren: false,
-  }))
-const snapshot = (descriptors: readonly TNativeCollectionDescriptor<TValue>[]) =>
-  createNativeCollectionSnapshot(entries(descriptors), new Map(descriptors.map((node) => [node.descriptorId, node])))
+const snapshot = (items: readonly TNativeCollectionItem<TValue>[]) => createNativeCollectionSnapshot(items)
 
 it("keeps typed keys, original payload/ref/renderer identities and immutable owned links", () => {
   const render = jest.fn(() => <></>)
@@ -48,8 +34,13 @@ it("keeps typed keys, original payload/ref/renderer identities and immutable own
   expect(
     Object.keys(node).filter((key) => ["descriptorId", "descriptorRevision", "metadataTarget"].includes(key)),
   ).toEqual([])
-  expect(getNativeCollectionMetadataIdentity(node)?.metadataTarget).toBe(10)
-  expect(getNativeCollectionMetadataIdentity(logical.filter(() => true).getItem(0)!)?.metadataTarget).toBe(10)
+  expect(getNativeCollectionNodeIdentity(node)).toEqual({
+    itemId: expect.any(String),
+    itemRevision: expect.any(String),
+  })
+  expect(getNativeCollectionNodeIdentity(logical.filter(() => true).getItem(0)!)).toBe(
+    getNativeCollectionNodeIdentity(node),
+  )
   expect(render).not.toHaveBeenCalled()
   expect(node.nextKey).toBe("0")
   expect(logical.getKeyBefore("0")).toBe(0)
@@ -66,17 +57,16 @@ it("keeps typed keys, original payload/ref/renderer identities and immutable own
 
 it("separates lookup membership from linked order across reorder, removal and reinsert", () => {
   const nodes = [descriptor("a"), descriptor("b"), descriptor("c")]
-  const descriptors = new Map(nodes.map((node) => [node.descriptorId, node]))
-  const initial = createNativeCollectionSnapshot(entries(nodes), descriptors)
-  const reordered = createNativeCollectionSnapshot(entries([nodes[1], nodes[2], nodes[0]]), descriptors, initial)
+  const initial = createNativeCollectionSnapshot(nodes)
+  const reordered = createNativeCollectionSnapshot([nodes[1], nodes[2], nodes[0]], initial)
   expect([...reordered].map((node) => node.key)).toEqual(["b", "c", "a"])
   expect([...reordered.getKeys()]).toEqual(["a", "b", "c"])
   expect(reordered.getFirstKey()).toBe("b")
   expect(reordered.getLastKey()).toBe("a")
   expect(reordered.getKeyAfter("c")).toBe("a")
   expect([...initial].map((node) => node.key)).toEqual(["a", "b", "c"])
-  const removed = createNativeCollectionSnapshot(entries([nodes[1], nodes[2]]), descriptors, reordered)
-  const restored = createNativeCollectionSnapshot(entries(nodes), descriptors, removed)
+  const removed = createNativeCollectionSnapshot([nodes[1], nodes[2]], reordered)
+  const restored = createNativeCollectionSnapshot(nodes, removed)
   expect([...restored.getKeys()]).toEqual(["b", "c", "a"])
   expect([...restored].map((node) => node.key)).toEqual(["a", "b", "c"])
 })
@@ -85,45 +75,33 @@ it("filters a submenu by its trigger label and retains the original whole branch
   const branch = descriptor("submenu", "submenutrigger"),
     trigger = { ...descriptor(0), textValue: "More actions" },
     sibling = descriptor("other")
-  const descriptors = [branch, trigger, sibling]
-  const hierarchy = entries(descriptors).map((entry, index) => ({
-    ...entry,
-    parentDescriptorId: index === 1 ? branch.descriptorId : "",
-    index: index === 2 ? 1 : 0,
-    retainedIndex: index === 2 ? 1 : 0,
-    hasRetainedChildren: index === 0,
-  }))
-  const original = createNativeCollectionSnapshot(
-    hierarchy,
-    new Map(descriptors.map((node) => [node.descriptorId, node])),
-  )
+  const original = createNativeCollectionSnapshot([{ ...branch, children: [trigger] }, sibling])
   const filter = jest.fn((text: string) => text === "More actions")
   const matched = original.filter(filter)
   expect([...matched].map((node) => node.key)).toEqual(["submenu"])
   expect([...matched.getChildren("submenu")].map((node) => node.key)).toEqual([0])
   expect(matched.getItem(0)?.value).toBe(trigger.value)
-  expect(getNativeCollectionMetadataIdentity(matched.getItem(0)!)?.metadataTarget).toBe(11)
+  expect(getNativeCollectionNodeIdentity(matched.getItem(0)!)).toBe(
+    getNativeCollectionNodeIdentity(original.getItem(0)!),
+  )
   expect(filter.mock.calls.map(([text]) => text)).toEqual(["More actions", "other"])
   expect(original.filter(() => false).size).toBe(0)
   expect(original.getItem(0)?.value).toBe(trigger.value)
 })
 
-it("treats a replacement descriptor with the same business key as a new lookup lifetime", () => {
+it("revises changed items and gives removed/reinserted keys a fresh occurrence", () => {
   const a = descriptor("a"),
     b = descriptor("b")
   const initial = snapshot([a, b])
-  const replacement = { ...a, descriptorId: "replacement" }
-  const next = createNativeCollectionSnapshot(
-    entries([replacement, b]),
-    new Map([
-      [replacement.descriptorId, replacement],
-      [b.descriptorId, b],
-    ]),
-    initial,
-  )
-  expect([...next.getKeys()]).toEqual(["b", "a"])
-  expect(getNativeCollectionMetadataIdentity(next.getItem("a")!)?.descriptorId).toBe("replacement")
-  expect(getNativeCollectionMetadataIdentity(initial.getItem("a")!)?.descriptorId).toBe(a.descriptorId)
+  const originalIdentity = getNativeCollectionNodeIdentity(initial.getItem("a")!)!
+  const next = createNativeCollectionSnapshot([{ ...a, textValue: "Changed" }, b], initial)
+  const revised = getNativeCollectionNodeIdentity(next.getItem("a")!)!
+  expect(revised.itemId).toBe(originalIdentity.itemId)
+  expect(revised.itemRevision).not.toBe(originalIdentity.itemRevision)
+  const removed = createNativeCollectionSnapshot([b], next)
+  const restored = createNativeCollectionSnapshot([a, b], removed)
+  expect(getNativeCollectionNodeIdentity(restored.getItem("a")!)!.itemId).not.toBe(originalIdentity.itemId)
+  expect([...restored.getKeys()]).toEqual(["b", "a"])
 })
 
 it("feeds the actual list selection manager with full membership and controlled veto", async () => {
@@ -167,29 +145,43 @@ it("uses logical navigation for actual range selection and focus recovery across
     result.current.selectionManager.setFocusedKey("b")
   })
   expect([...result.current.selectionManager.selectedKeys]).toEqual(["a", "b", "d"])
-  const removed = createNativeCollectionSnapshot(
-    entries([nodes[0], nodes[2], nodes[3]]),
-    new Map(nodes.map((node) => [node.descriptorId, node])),
-    initial,
-  )
+  const removed = createNativeCollectionSnapshot([nodes[0], nodes[2], nodes[3]], initial)
   await rerender({ collection: removed })
   expect(result.current.selectionManager.focusedKey).toBe("d")
   expect(result.current.collection).toBe(removed)
   expect(initial.getKeyAfter("b")).toBe("c")
 })
 
-it.each(["cycle", "reopened-parent", "duplicate-target", "missing-revision"])(
-  "rejects malformed complete hierarchy: %s",
-  (kind) => {
-    const nodes = [descriptor("a"), descriptor("b"), descriptor("c")]
-    const hierarchy = entries(nodes)
-    if (kind === "cycle") hierarchy[0] = { ...hierarchy[0], parentDescriptorId: nodes[0].descriptorId }
-    if (kind === "reopened-parent")
-      hierarchy.push({ ...hierarchy[0], descriptorId: "fourth", parentDescriptorId: nodes[0].descriptorId })
-    if (kind === "duplicate-target") hierarchy[1] = { ...hierarchy[1], target: hierarchy[0].target }
-    if (kind === "missing-revision") hierarchy[1] = { ...hierarchy[1], descriptorRevision: "not-committed" }
-    expect(() =>
-      createNativeCollectionSnapshot(hierarchy, new Map(nodes.map((node) => [node.descriptorId, node]))),
-    ).toThrow()
-  },
-)
+it("rejects duplicate, missing and invalid keys without evaluating renderers", () => {
+  const item = descriptor("a")
+  expect(() => snapshot([item, item])).toThrow("Duplicate")
+  expect(() => snapshot([{ ...item, key: undefined } as unknown as TNativeCollectionItem<TValue>])).toThrow(
+    "explicit stable keys",
+  )
+  expect(() => snapshot([{ ...item, key: NaN }])).toThrow("explicit stable keys")
+  const cyclic = { ...item, children: [] as TNativeCollectionItem<TValue>[] }
+  cyclic.children.push(cyclic)
+  expect(() => snapshot([cyclic])).toThrow()
+})
+
+it("preserves section children, column spans and complete empty branches", () => {
+  const section = {
+    ...descriptor("section", "section"),
+    children: [descriptor("header", "header"), descriptor("a"), descriptor("b")],
+  }
+  const collection = snapshot([section, { ...descriptor("empty", "section"), children: [] }])
+  expect([...collection.getChildren("section")].map((node) => node.key)).toEqual(["header", "a", "b"])
+  expect(collection.size).toBe(2)
+  expect(collection.getItem("empty")!.hasChildNodes).toBe(false)
+  expect(collection.getItem("b")!.index).toBe(2)
+  const columns = snapshot([{ ...descriptor("x", "column"), colSpan: 2 }, descriptor("y", "column")])
+  expect(columns.getItem("y")!.colIndex).toBe(2)
+})
+
+it("retains source label and span history while explicit item revisions advance", () => {
+  const original = { ...descriptor("a", "column"), "aria-label": "Accessible", colSpan: 3 }
+  const first = snapshot([original])
+  const next = createNativeCollectionSnapshot([{ ...descriptor("a", "column"), colSpan: null }], first)
+  expect(next.getItem("a")!["aria-label"]).toBe("Accessible")
+  expect(next.getItem("a")!.colSpan).toBe(3)
+})

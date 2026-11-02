@@ -2,9 +2,9 @@ import { useCallback, useRef, useState } from "react"
 import { ScrollView, View, type TextInput } from "react-native"
 
 import { Button, Input, NativeFocusView, Text } from "../../../.."
+import { nativeTableChildren, nativeTableReceiver, createNativeTableRowModel } from "../../model"
 import { Table } from "../../Table"
 import { TableColumn } from "../../TableColumn"
-import { TableRow } from "../../TableRow"
 import type { TNativeTableColumnProps } from "../../types"
 
 import { CellFixtureBody } from "./TableCellFixture"
@@ -84,44 +84,65 @@ export const TableStickyFixture = () => {
           stickyHeader={enabled}
           stickyHeaderOffset={offset ? "10%" : 0}
           stickyHeaderBackgroundColor={paint ? "#b8d9ed" : undefined}
-        >
-          <ColumnFixtureHeader>
-            <TableColumn
-              ref={column}
-              id="value"
-              columnID="value"
-              isRowHeader
-              testID="table-sticky-original-column"
-              render={renderColumn}
-            >
-              Sticky original column
-            </TableColumn>
-          </ColumnFixtureHeader>
-          <CellFixtureBody>
-            {rows.map((row, index) => (
-              <TableRow
-                key={row.id}
-                id={row.id}
-                item={row}
-                columns={columns}
-                style={{ minHeight: 45 }}
-                renderCell={() =>
-                  index === 0 ? (
-                    <Input
-                      ref={editor}
-                      testID="table-sticky-held-editor"
-                      accessibilityLabel="Sticky held draft"
-                      value={draft}
-                      onChangeText={setDraft}
-                    />
-                  ) : (
-                    `Sticky row ${index + 1}`
-                  )
-                }
-              />
-            ))}
-          </CellFixtureBody>
-        </Table>
+          items={(modelOptions) =>
+            nativeTableChildren(
+              nativeTableReceiver<React.ComponentProps<typeof ColumnFixtureHeader>>(
+                "__header:1",
+                "tableheader",
+                {},
+                (visibleProps) => <ColumnFixtureHeader {...visibleProps} />,
+                nativeTableChildren(
+                  nativeTableReceiver<React.ComponentProps<typeof TableColumn>>(
+                    "value",
+                    "column",
+                    {
+                      ref: column,
+                      id: "value",
+                      columnID: "value",
+                      isRowHeader: true,
+                      testID: "table-sticky-original-column",
+                      render: renderColumn,
+                      children: <>Sticky original column</>,
+                    },
+                    (visibleProps) => <TableColumn {...visibleProps} />,
+                    [],
+                  ),
+                ),
+              ),
+              nativeTableReceiver<React.ComponentProps<typeof CellFixtureBody>>(
+                "__body:2",
+                "tablebody",
+                {},
+                (visibleProps) => <CellFixtureBody {...visibleProps} />,
+                nativeTableChildren(
+                  rows.map((row, index) =>
+                    createNativeTableRowModel(
+                      {
+                        id: row.id,
+                        item: row,
+                        columns: columns,
+                        style: { minHeight: 45 },
+                        renderCell: () =>
+                          index === 0 ? (
+                            <Input
+                              ref={editor}
+                              testID="table-sticky-held-editor"
+                              accessibilityLabel="Sticky held draft"
+                              value={draft}
+                              onChangeText={setDraft}
+                            />
+                          ) : (
+                            `Sticky row ${index + 1}`
+                          ),
+                      },
+                      modelOptions,
+                    ),
+                  ),
+                ),
+              ),
+            )
+          }
+        />
         <View style={{ height: 100 }} />
       </ScrollView>
       <Text testID="table-sticky-ref-snapshot">{snapshot}</Text>

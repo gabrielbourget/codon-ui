@@ -975,3 +975,30 @@ NativeDatePickerContext and NativeDateRangePickerContext provide base picker pro
 Every input/button/group/popover/dialog/calendar/header/navigation/grid/header-cell/body/day style owner is independent. Root style callbacks receive focus/visibility, open/disabled/readonly/required/invalid flags and state. NativeForm submits exact DateValue.toString entries: one named date, or ordered startName/endName entries with duplicates retained. Disabled fields are excluded, readonly values remain included, and reset/custom/server/required validation shares the existing original segmented-field receiver.
 
 The maintained DatePickerFixture under packages/react-native/src/date/picker/**tests**/fixtures exercises the public components with owner vetoes, three value classes, DST/zone values, RTL/non-Gregorian locales, a large-text fixture, form actions, range rules, original refs and a held-empty caller editor. These source examples do not replace native qualification.
+
+## Table Collection Model
+
+Table receives its complete ordered membership through `items`, either an explicit descriptor array or a pure function of Table model options. Use `createNativeTableHeaderModel`, `createNativeTableBodyModel` and `createNativeTableRowModel` for the standard visible receivers. Every row needs a stable `id`, item `id`/`key`, or a body `rowKey`. Custom branches use `nativeTableReceiver` with an explicit children array. Authored JSX is no longer traversed or mounted offscreen to discover logical membership. Cell content callbacks execute only when their visible receivers render.
+
+```tsx
+<Table
+  items={(options) => [
+    createNativeTableHeaderModel({ columns }, options),
+    createNativeTableBodyModel({ items: rows, columns, rowKey: (row) => row.id }, options),
+  ]}
+/>
+```
+
+A loading row is an explicit row model supplied as the body helper’s third argument; `renderLoadingState` remains ordinary visible presentation and does not contribute collection membership. Custom virtualizers materialize logical nodes with `renderNativeCollectionNode(node)` so each original visible receiver receives the correct model node. Existing selection, keyboard focus requests, virtual destinations, projection, sticky presentation and drag behavior retain their current owners. A logical model is not native mount proof: shared admission must acknowledge the original visible root and current model/window/item lifetime before guarded actions run. Source tests with a synthetic admission adapter do not qualify installed behavior.
+
+## Explicit Native Forms And Collection Authoring
+
+NativeForm uses declared membership rather than discovering a native form tree. Set a stable formFieldId on each participating field and list every associated ID in fieldOrder. React ownership supplies the default form; an explicit form value targets NativeForm.id, and form="" disassociates the field. Duplicate, missing or incomplete declarations retire the action instead of inventing membership. Original refs, controlled/raw values, validation/reset rules and native focus guards remain. Bare descendant TextInputs are not automatically registered.
+
+Supply nativeAccessibilityText for semantic label, description, errorMessage and details that were previously discovered through opaque descendants. Core editors retain supported RN accessibility props and spoken error/status text; separate iOS custom-content entries and their reading order are no longer promised for core editors. Owned date segments retain their own native custom-content support. Requested focus and observed completion remain distinct.
+
+Menu, TagGroup, calendar and Table collection paths use complete ordered TNativeCollectionItem models with stable typed keys. Model construction never mounts offscreen content or inspects JSX to infer membership. Declare sections, headers, separators and branch children in the model; render callbacks only materialize visible content. Custom virtualizers must call renderNativeCollectionNode so original receivers receive the correct node context. NativeCollection takes items plus a collection/model render callback; old dependencies/idScope authoring and opaque children do not supply membership.
+
+Collection-backed options use getOptionProps(item) for href, onAction, onNavigate, onNavigationError, isReadOnly, isDisabled and isPending. Those declared semantics drive both hardware-key and pointer activation. The outer mapper takes precedence over nested overrides and conflicting rendered option props. Rich section models can supply collectionItems directly where that collection-backed API is exposed. TagComboBox keeps ownership of its query and selected-tag models while forwarding the semantic mapper; custom rendering does not restore JSX metadata discovery.
+
+A logical model, numeric tag or registration request does not prove mounting. The private flat publisher acknowledges exact original roots/receivers, and native actions recheck the current object, model, visibility, surface and window. Missing acknowledgement or unavailable targets fail closed without replay. Observed changes cancel old requests. Under the accepted current-state contract, an unobserved clip-out/clip-in of the same unchanged item may preserve pending intent; an already approved JS callback can finish after a visibility change while its owner/ref/request remains current. Arbitrary third-party native hosts and custom cross-window portals still require qualification; source fixtures do not establish that support.

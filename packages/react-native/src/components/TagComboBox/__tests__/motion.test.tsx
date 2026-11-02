@@ -1,17 +1,17 @@
-import "../../../collection/__tests__/nativeReceipts"
+import "../../ComboBox/__tests__/visibleCollections"
 
 import { cleanup } from "@testing-library/react-native"
 import { createRef } from "react"
 import { AccessibilityInfo, Animated, processColor, StyleSheet, type TextInput, type View } from "react-native"
 
+import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
+import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
+import { NativeThemeProvider } from "../../../theme"
 import {
   actWithNativeCollections as act,
   renderWithNativeCollections as render,
   screen,
-} from "../../../collection/__tests__/nativeReceipts"
-import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
-import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
-import { NativeThemeProvider } from "../../../theme"
+} from "../../ComboBox/__tests__/visibleCollections"
 import { TagComboBox } from "../TagComboBox"
 
 jest.unmock("react-native/Libraries/Components/TextInput/TextInput")

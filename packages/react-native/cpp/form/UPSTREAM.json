@@ -1,7 +1,7 @@
 {
   "package": "react-native",
   "version": "0.86.3",
-  "scope": "Private immutable form document reader and original-editor custom-content adapter under approved roadmap3.5.54.11; compilation/model proof only, committed SDK/installed behavior remains OPEN",
+  "scope": "Historical provenance for the retired immutable Fabric form-document reader and core-editor runtime custom-content installation. No C++ form reader remains. Current explicit form metadata/field admission, owned date semantics and native focus-participant order are separate retained capabilities; installed qualification remains open.",
   "license": "../motion/LICENSE.react-native.md",
   "sources": [
     {
@@ -66,5 +66,7 @@
     "Validate generated metadata and original core editor identities without copying field values or selection into native metadata",
     "Reuse the already approved and retained Android mBinding descriptor, without adding private renderer fields",
     "Gate only accessibilityCustomContent getter/conformance on exact registered RCTUITextField/RCTUITextView classes; unregistered/retired editors fall through to the original getter"
-  ]
+  ],
+  "retired": true,
+  "retirement": "Approved explicit field IDs/order/ownership/semantic text and supported core-editor accessibility props replace this reader/installation. Historical sourceRefs and adaptation records below remain attribution evidence, not current production-reader claims."
 }

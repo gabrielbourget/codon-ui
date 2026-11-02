@@ -2,7 +2,6 @@ import {
   forwardRef,
   useCallback,
   useContext,
-  useId,
   useInsertionEffect,
   useLayoutEffect,
   useMemo,
@@ -14,7 +13,7 @@ import Svg, { Path } from "react-native-svg"
 
 import { NativeCollectionActionsContext } from "../../collection/actions"
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
-import { createNativeCollectionLeaf } from "../../collection/CollectionBuilder"
+import { createNativeCollectionLeaf, useNativeCollectionReceiverRef } from "../../collection/CollectionBuilder"
 import { useNativeCollectionRefs } from "../../collection/context"
 import {
   DefaultNativeCollectionRenderer,
@@ -33,12 +32,7 @@ import { encodeCollectionKey, validateCollectionKey } from "../collection"
 import { NativeContentContext } from "../NativeContentContext"
 import { NativeSelectionIndicatorProvider } from "../SelectionIndicator/context"
 
-import {
-  NativeTagGroupActionsContext,
-  NativeTagItemValueContext,
-  type TNativeTagPressMetadata,
-  type TNativeTagRegistration,
-} from "./context"
+import { NativeTagGroupActionsContext, type TNativeTagPressMetadata, type TNativeTagRegistration } from "./context"
 import { NATIVE_TAG_GROUP_POINTER_TYPES } from "./intent"
 import { getNativeGroupedTagStyles } from "./styles"
 import type { TNativeGroupedTagProps, TNativeGroupedTagRef } from "./types"
@@ -56,7 +50,7 @@ const TagReceiver = forwardRef<
 >((props, ref) => {
   const {
     collectionNode,
-    id: authoredId,
+    id: _authoredId,
     textValue,
     children,
     closeIcon,
@@ -108,17 +102,16 @@ const TagReceiver = forwardRef<
     ...native
   } = props
   const nativeCellFocus = useContext(NativeCollectionCellFocusContext)
-  const group = useContext(NativeTagGroupActionsContext),
-    value = useContext(NativeTagItemValueContext),
-    generated = useId()
+  const group = useContext(NativeTagGroupActionsContext)
   if (!group) throw new Error("TagGroup.Tag requires a native TagGroup")
-  const key = authoredId ?? value?.key ?? generated
+  const key = collectionNode.key
   validateCollectionKey(key, "id", "TagGroup.Tag")
   const theme = useNativeTheme(),
     view = useRef<View>(null),
     removeView = useRef<View>(null),
     current = useRef(props)
-  const bindView = useNativeCollectionRefs(view, ref)
+  const originalRef = useNativeCollectionRefs(view, ref)
+  const bindView = useNativeCollectionReceiverRef(collectionNode, originalRef)
   const initialAutoFocus = useRef({
     pending: autoFocus === true,
     captured: false,
@@ -145,7 +138,7 @@ const TagReceiver = forwardRef<
       removeView,
       removeViews: removeViews.current,
       autoFocus: initialAutoFocus.current,
-      order: value?.order,
+      order: collectionNode.index,
       props: () => current.current,
       text: () =>
         current.current.textValue ??
@@ -153,7 +146,7 @@ const TagReceiver = forwardRef<
         current.current["aria-label"] ??
         textContent(current.current.children),
     }),
-    [key, value?.order, collectionNode],
+    [key, collectionNode],
   )
   const register = group.register,
     refresh = group.refresh
@@ -424,12 +417,9 @@ const CollectionTag = createNativeCollectionLeaf<unknown, TCollectionTagProps, T
   },
 )
 export const Tag = forwardRef<TNativeGroupedTagRef, TNativeGroupedTagProps>((props, ref) => {
-  const value = useContext(NativeTagItemValueContext)
   return (
     <CollectionTag
       {...props}
-      value={(props as TCollectionTagProps).value ?? value?.value}
-      id={props.id ?? value?.key}
       textValue={props.textValue ?? props.accessibilityLabel ?? props["aria-label"] ?? textContent(props.children)}
       ref={ref}
     />

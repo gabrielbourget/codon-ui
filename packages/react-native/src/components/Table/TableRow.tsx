@@ -30,7 +30,7 @@ import type { TNativePressEvent } from "../../input/types"
 import { useNativeLocale } from "../../locale/NativeLocaleProvider"
 import { NativeMotionOwnerHost } from "../../motion/owner/NativeMotionOwnerHost"
 import { useNativeTheme } from "../../theme"
-import { Button, NativeButton } from "../Button/Button"
+import { NativeButton } from "../Button/Button"
 import { NativeButtonContext, NATIVE_BUTTON_SELF_LABELLED_BY } from "../Button/context"
 import { encodeCollectionKey } from "../collection"
 import { resolveNativeStyle } from "../colors"
@@ -47,10 +47,7 @@ import {
 } from "../TagGroup/intent"
 
 import { nativeTableExpansionLabel } from "./announcements"
-import { NativeTableOptionsContext, useNativeTable } from "./context"
-import { getNativeTableColumns, renderNativeTableValue } from "./rendering"
-import { TableSelectionCheckbox } from "./SelectionCheckbox"
-import { TableCell } from "./TableCell"
+import { useNativeTable } from "./context"
 import type { TNativeTableRowComponent, TNativeTableRowProps, TNativeTableRowRenderState } from "./types"
 import { useTableAction } from "./useTableAction"
 import { useTableHover } from "./useTableHover"
@@ -59,7 +56,7 @@ import { useTableTargetRef } from "./useTableTargetRef"
 const BACKGROUND_TRANSITION = resolveNativeTagTransition(250)
 const FOREGROUND_TRANSITION = resolveNativeTagTransition(350)
 const noSubscription = () => () => {}
-const DragIcon = ({ color }: { color?: ColorValue }) => {
+export const NativeTableDragIcon = ({ color }: { color?: ColorValue }) => {
   const content = useNativeContentContext()!
   return <QueryGlyph kind="grip" size={12} color={color ?? content.foregroundColor} />
 }
@@ -494,61 +491,4 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
 export const TableRow = createNativeCollectionBranch<object, TNativeTableRowProps<object>, View>(
   "item",
   Row,
-  (props) => {
-    const generated = useId()
-    const theme = useNativeTheme()
-    const options = useContext(NativeTableOptionsContext)
-    const columns = getNativeTableColumns(props.columns)
-    const radius = props.geometry === "orthogonal" ? 0 : props.geometry === "round" ? 10000 : theme.radius.rounded
-    return (
-      <>
-        {options.draggingEnabled && (
-          <TableCell
-            id={`${encodeCollectionKey(props.id ?? generated)}:__drag`}
-            columnID="__drag"
-            style={{ width: 30, padding: 0 }}
-          >
-            <Button slot="drag" raised={false} style={{ padding: 4 }}>
-              <DragIcon color={props.iconColor} />
-            </Button>
-          </TableCell>
-        )}
-        {options.behavior === "toggle" && (
-          <TableCell
-            id={`${encodeCollectionKey(props.id ?? generated)}:__selection`}
-            columnID="__selection"
-            style={{ width: 30, padding: 0, borderTopLeftRadius: radius, borderBottomLeftRadius: radius }}
-          >
-            <TableSelectionCheckbox />
-          </TableCell>
-        )}
-        {columns.map((column, index) => (
-          <TableCell
-            key={column.id}
-            id={`${encodeCollectionKey(props.id ?? generated)}:${column.id}`}
-            columnID={column.id}
-            alignment={column.alignment}
-            truncate={column.truncate}
-            maxLines={column.maxLines}
-            customStyles={[
-              {
-                width: column.width,
-                minWidth: column.minWidth,
-                maxWidth: column.maxWidth,
-                borderTopLeftRadius: index === 0 && options.behavior !== "toggle" ? radius : 0,
-                borderBottomLeftRadius: index === 0 && options.behavior !== "toggle" ? radius : 0,
-                borderTopRightRadius: index === columns.length - 1 ? radius : 0,
-                borderBottomRightRadius: index === columns.length - 1 ? radius : 0,
-              },
-              column.customBodyCellStyles,
-            ]}
-          >
-            {column.cellRenderer
-              ? column.cellRenderer({ row: props.item, column })
-              : (props.renderCell ?? renderNativeTableValue)({ row: props.item, column })}
-          </TableCell>
-        ))}
-      </>
-    )
-  },
 ) as TNativeTableRowComponent

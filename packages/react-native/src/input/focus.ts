@@ -2,6 +2,8 @@ import type { TextInput, View } from "react-native"
 // @ts-expect-error RN0.86.3 publishes this inspected registry without TypeScript declarations.
 import upstreamTextInputState from "react-native/Libraries/Components/TextInput/TextInputState"
 
+import { requestNativeCollectionTextInputFocus } from "./nativeVisibleCollectionAdmission"
+
 type TTarget = View | TextInput
 const textInputState: Readonly<{
   isTextInput: (target: TTarget) => boolean
@@ -92,6 +94,10 @@ const request = (target: TTarget | null, action: "focus" | "blur") => {
     return true
   }
   if (!textInputState.isTextInput(target)) return false
+  if (action === "focus") {
+    const admitted = requestNativeCollectionTextInputFocus(target)
+    if (admitted !== null) return admitted
+  }
   target[action]()
   return true
 }

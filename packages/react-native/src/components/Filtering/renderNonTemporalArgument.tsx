@@ -26,6 +26,7 @@ export const isNonTemporalFilterArgumentDataType = (dataType: string): dataType 
 
 export type TNonTemporalFilterArgumentContext = TFilterAvailability & {
   dataType: TNonTemporalFilterArgumentDataType
+  formFieldIds?: readonly string[]
   argument?: TTableFilterDraftArgumentValue
   filterArgumentType?: TAvailableFilterArgumentTypes
   filterArgumentAccessibleLabel?: string
@@ -72,7 +73,9 @@ const renderers = {
   Range: renderRange,
   "Multi Input": (props) => <ListFilterArgument {...props} />,
   Select: (props) => <SelectFilterArgument {...props} closeLabel={props.nativeLabels.options.closeLabel} />,
-  "Multi Select": (props) => <MultiSelectFilterArgument {...props} {...props.nativeLabels.options} />,
+  "Multi Select": (props) => (
+    <MultiSelectFilterArgument {...props} formFieldId={props.formFieldIds?.[0]} {...props.nativeLabels.options} />
+  ),
   "Combo Box": (props) => (
     <ComboBoxFilterArgument
       {...props}

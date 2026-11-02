@@ -1,5 +1,4 @@
 #import <CodonNativeInputSpec/CodonNativeInputSpec.h>
-#import "CUIFormDocumentInspection.h"
 #import "CUIFieldGroupDocument.h"
 #import "CUIFormMetadata.h"
 #import "CUIFormFieldFocus.h"
@@ -9,42 +8,56 @@
 #import "CUIFocusView.h"
 #import <React/RCTAssert.h>
 #import <React/RCTInvalidating.h>
-#import <React/RCTScheduler.h>
 #import <React/RCTSurfacePresenter.h>
-#include "../cpp/form/FormDocumentQuery.h"
 #include <atomic>
 #include <cmath>
 #include <climits>
 #include <functional>
 #include <stdexcept>
 
-static NSDictionary *CUIAdmitFormAction(RCTSurfacePresenter *presenter, NSDictionary *document, NSDictionary *request)
+static void CUIFormFail(NSString *reason)
 {
-  if (![request isKindOfClass:NSDictionary.class] || ![request[@"lease"] isKindOfClass:NSDictionary.class] ||
-      ![request[@"form"] isKindOfClass:NSDictionary.class] || ![request[@"documentId"] isEqual:document[@"documentId"]] ||
-      ![request[@"revision"] isEqual:document[@"revision"]])
-    @throw [NSException exceptionWithName:@"CUI.Form" reason:@"form-action-document-retired" userInfo:nil];
-  NSDictionary *lease = request[@"lease"], *form = request[@"form"];
-  BOOL found = NO;
-  for (NSDictionary *candidate in document[@"forms"]) if ([candidate isEqual:form]) found = YES;
-  if (!found || ![lease[@"target"] isEqual:document[@"target"]] || ![lease[@"surfaceId"] isEqual:document[@"surfaceId"]])
-    @throw [NSException exceptionWithName:@"CUI.Form" reason:@"form-action-association-retired" userInfo:nil];
-  UIView *target = [presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[lease[@"target"] integerValue]];
-  CUIFormRoot *metadata = (id)[presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[form[@"metadataTarget"] integerValue]];
-  UIView *original = [presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[form[@"target"] integerValue]];
-  if (![target isKindOfClass:CUIFocusView.class] || ![metadata isKindOfClass:CUIFormRoot.class] ||
-      ![original isKindOfClass:RCTViewComponentView.class] || !metadata.isMetadataOnly || metadata.originalTarget != original.tag ||
-      ![metadata.ownerId isEqual:form[@"ownerId"]] || ![metadata.descriptorId isEqual:form[@"descriptorId"]] ||
-      ![metadata.descriptorRevision isEqual:form[@"descriptorRevision"]])
-    @throw [NSException exceptionWithName:@"CUI.Form" reason:@"form-action-original-target-retired" userInfo:nil];
-  NSDictionary *current = [(CUIFocusView *)target formActionSnapshot];
-  NSData *expectedBytes = [NSJSONSerialization dataWithJSONObject:lease options:NSJSONWritingSortedKeys error:nil];
-  NSData *currentBytes = current ? [NSJSONSerialization dataWithJSONObject:current options:NSJSONWritingSortedKeys error:nil] : nil;
-  if (!currentBytes || ![currentBytes isEqual:expectedBytes] || ![current[@"attached"] boolValue] ||
-      ![current[@"active"] boolValue] || ![current[@"enabled"] boolValue])
-    @throw [NSException exceptionWithName:@"CUI.Form" reason:@"form-action-native-lease-retired" userInfo:nil];
-  return @{@"accepted":@YES, @"lease":current, @"documentId":document[@"documentId"], @"revision":document[@"revision"],
-    @"formDescriptorId":form[@"descriptorId"], @"formDescriptorRevision":form[@"descriptorRevision"]};
+  @throw [NSException exceptionWithName:@"CUI.Form" reason:reason userInfo:nil];
+}
+static CUIFormMetadataView *CUIFormOriginal(RCTSurfacePresenter *presenter, NSDictionary *descriptor, BOOL field)
+{
+  if (![descriptor isKindOfClass:NSDictionary.class]) CUIFormFail(@"form-descriptor-invalid");
+  CUIFormMetadataView *metadata = (id)[presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[descriptor[@"metadataTarget"] integerValue]];
+  UIView *original = [presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[descriptor[@"target"] integerValue]];
+  if (![metadata isKindOfClass:CUIFormMetadataView.class] || metadata.isFieldBinding != field ||
+      ![metadata.ownerId isEqual:descriptor[@"ownerId"]] || ![metadata.descriptorId isEqual:descriptor[@"descriptorId"]] ||
+      ![metadata.descriptorRevision isEqual:descriptor[@"descriptorRevision"]] || metadata.originalTarget != original.tag ||
+      !original || !metadata.isMetadataOnly ||
+      (field && (![metadata.ownedEditorBinding isEqual:(descriptor[@"ownedEditorBinding"] ?: @"")] ||
+        ![metadata.ownedControlBinding isEqual:(descriptor[@"ownedControlBinding"] ?: @"")]))) CUIFormFail(@"form-original-retired");
+  return metadata;
+}
+// The explicit model supplies membership/order. This checks only its exact original native hosts.
+static void CUIAdmitFormOriginals(RCTSurfacePresenter *presenter, NSDictionary *request)
+{
+  CUIFormMetadataView *form = CUIFormOriginal(presenter, request[@"form"], NO);
+  NSDictionary *formMount = request[@"formMount"];
+  UIView *root = [form originalForAttachedMountSnapshot:formMount];
+  if (!root || !root.window.isKeyWindow) CUIFormFail(@"form-original-retired");
+  id fields = request[@"fields"];
+  if (![fields isKindOfClass:NSArray.class]) CUIFormFail(@"form-fields-invalid");
+  NSMutableSet *targets = [NSMutableSet new];
+  for (NSDictionary *row in fields) {
+    CUIFormMetadataView *field = CUIFormOriginal(presenter, row[@"field"], YES);
+    NSDictionary *mount = row[@"mount"];
+    UIView *original = [field originalForAttachedMountSnapshot:mount];
+    if (!original || original.window != root.window || ![mount[@"surfaceId"] isEqual:formMount[@"surfaceId"]] ||
+        [targets containsObject:@(original.tag)]) CUIFormFail(@"form-field-original-retired");
+    [targets addObject:@(original.tag)];
+  }
+  NSDictionary *lease = request[@"actionLease"];
+  if (lease) {
+    CUIFocusView *action = (id)[presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[lease[@"target"] integerValue]];
+    NSDictionary *current = [action isKindOfClass:CUIFocusView.class] ? [action formActionSnapshot] : nil;
+    if (![current isEqual:lease] || ![current[@"active"] boolValue] || ![current[@"attached"] boolValue] ||
+        ![current[@"enabled"] boolValue] || action.window != root.window ||
+        ![current[@"surfaceId"] isEqual:formMount[@"surfaceId"]]) CUIFormFail(@"form-action-native-lease-retired");
+  }
 }
 
 @interface CUIFormDocument : NativeCUIFormDocumentSpecBase <NativeCUIFormDocumentSpec, RCTInvalidating>
@@ -53,18 +66,15 @@ static NSDictionary *CUIAdmitFormAction(RCTSurfacePresenter *presenter, NSDictio
 @implementation CUIFormDocument {
   id<RCTSurfacePresenterStub> _presenter;
   std::atomic<bool> _valid;
-  std::unique_ptr<codon::form::NativeFormDocumentSession> _session;
   NSMapTable<CUIFormMetadataView *, NSString *> *_semanticHosts;
   NSString *_semanticModuleId;
-  NSDictionary *_semanticDocumentStamp, *_semanticDocument;
-  NSDictionary<NSNumber *, NSDictionary *> *_semanticNodes, *_semanticFields;
 }
 RCT_EXPORT_MODULE(CUIFormDocument)
 + (BOOL)requiresMainQueueSetup { return NO; }
 - (instancetype)init
 {
   if (self = [super init]) {
-    _valid.store(true); _session = std::make_unique<codon::form::NativeFormDocumentSession>([NSUUID.UUID.UUIDString UTF8String]);
+    _valid.store(true);
     _semanticModuleId = NSUUID.UUID.UUIDString; _semanticHosts = [NSMapTable weakToStrongObjectsMapTable];
   }
   return self;
@@ -77,59 +87,9 @@ RCT_EXPORT_MODULE(CUIFormDocument)
   _valid.store(false);
   dispatch_async(dispatch_get_main_queue(), ^{
     for (CUIFormMetadataView *metadata in _semanticHosts.keyEnumerator)
-      [metadata clearSemanticRefreshForOwner:[_semanticHosts objectForKey:metadata]];
+      [metadata clearSemanticRefreshForOwner:[_semanticHosts objectForKey:metadata] retiring:YES];
     [_semanticHosts removeAllObjects];
-    _semanticDocument = nil; _semanticDocumentStamp = nil; _semanticNodes = nil; _semanticFields = nil;
   });
-}
-- (NSDictionary *)fieldDocumentStampForSurface:(NSInteger)surface
-{
-  if (!_valid.load() || ![(id)_presenter isKindOfClass:RCTSurfacePresenter.class])
-    @throw [NSException exceptionWithName:@"CUI.Field" reason:@"field-module-retired" userInfo:nil];
-  RCTSurfacePresenter *presenter = (id)_presenter;
-  auto manager = presenter.scheduler.uiManager;
-  if (!manager) @throw [NSException exceptionWithName:@"CUI.Field" reason:@"field-Fabric-unavailable" userInfo:nil];
-  try {
-    const auto result = codon::form::queryFabricFormDocumentStamp(*manager, (int)surface, *_session, [&] {
-      if (!_valid.load()) throw std::runtime_error("field-module-retired");
-    });
-    NSDictionary *stamp = [NSJSONSerialization JSONObjectWithData:[[NSString stringWithUTF8String:result.c_str()] dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
-    if (!stamp) throw std::runtime_error("field-document-stamp-invalid");
-    return stamp;
-  } catch (const std::exception &failure) {
-    @throw [NSException exceptionWithName:@"CUI.Field" reason:[NSString stringWithUTF8String:failure.what()] userInfo:nil];
-  }
-}
-- (NSDictionary *)fieldDocumentForTarget:(NSInteger)target surface:(NSInteger)surface
-{
-  NSDictionary *stamp = [self fieldDocumentStampForSurface:surface];
-  if ([_semanticDocumentStamp isEqual:stamp] && _semanticNodes[@(target)]) {
-    NSMutableDictionary *scoped = [_semanticDocument mutableCopy]; scoped[@"target"] = @(target); return scoped;
-  }
-  if (!_valid.load() || ![(id)_presenter isKindOfClass:RCTSurfacePresenter.class])
-    @throw [NSException exceptionWithName:@"CUI.Field" reason:@"field-module-retired" userInfo:nil];
-  RCTSurfacePresenter *presenter = (id)_presenter;
-  auto manager = presenter.scheduler.uiManager;
-  if (!manager) @throw [NSException exceptionWithName:@"CUI.Field" reason:@"field-Fabric-unavailable" userInfo:nil];
-  try {
-    const auto result = codon::form::queryFabricFormDocument(*manager, (int)surface, (int)target, *_session, [&] {
-      if (!_valid.load()) throw std::runtime_error("field-module-retired");
-    });
-    NSDictionary *document = [NSJSONSerialization JSONObjectWithData:[[NSString stringWithUTF8String:result.c_str()] dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
-    if (!document) throw std::runtime_error("field-document-invalid");
-    NSDictionary *after = [self fieldDocumentStampForSurface:surface];
-    for (NSString *key in @[@"documentId", @"surfaceId", @"rootTarget", @"revision"])
-      if (![document[key] isEqual:after[key]]) throw std::runtime_error("field-document-retired-during-read");
-    NSMutableDictionary *nodes = [NSMutableDictionary new], *fields = [NSMutableDictionary new];
-    for (NSDictionary *node in document[@"nodes"]) nodes[node[@"target"]] = node;
-    for (NSDictionary *field in document[@"fields"]) fields[field[@"metadataTarget"]] = field;
-    // Cache metadata only for one exact revision; no editor props, values or
-    // ShadowNodes are retained. Getter guards use the cheap native stamp.
-    _semanticDocument = document; _semanticDocumentStamp = after; _semanticNodes = [nodes copy]; _semanticFields = [fields copy];
-    return document;
-  } catch (const std::exception &failure) {
-    @throw [NSException exceptionWithName:@"CUI.Field" reason:[NSString stringWithUTF8String:failure.what()] userInfo:nil];
-  }
 }
 - (void)refreshField:(CUIFieldBinding *)metadata core:(RCTViewComponentView *)core owner:(NSString *)owner descriptor:(NSString *)descriptor
 {
@@ -140,14 +100,12 @@ RCT_EXPORT_MODULE(CUIFormDocument)
     [metadata resetSemanticAccessibilityFocus]; return;
   }
   RCTSurfacePresenter *presenter = (id)_presenter;
-  if ([presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:core.tag] != core) return;
-  NSDictionary *document = [self fieldDocumentForTarget:core.tag surface:[mount[@"surfaceId"] integerValue]];
-  NSDictionary *field = _semanticFields[@(metadata.tag)], *node = _semanticNodes[@(metadata.tag)];
-  NSDictionary *plan = node[@"semanticPlan"];
+  if ([presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:core.tag] != core) { [metadata resetSemanticAccessibilityFocus]; return; }
   NSString *encoded = [metadata.semanticBinding copy], *revision = [metadata.descriptorRevision copy];
-  if (!field || ![field[@"ownerId"] isEqual:owner] || ![field[@"descriptorId"] isEqual:descriptor] ||
-      ![field[@"descriptorRevision"] isEqual:revision] || [field[@"target"] integerValue] != core.tag ||
-      ![node[@"fieldSemantics"] isEqual:encoded] || ![plan isKindOfClass:NSDictionary.class]) { [metadata resetSemanticAccessibilityFocus]; return; }
+  NSDictionary *plan = [NSJSONSerialization JSONObjectWithData:[encoded dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
+  if (![plan isKindOfClass:NSDictionary.class] || ![plan[@"text"] isKindOfClass:NSDictionary.class]) {
+    [metadata resetSemanticAccessibilityFocus]; return;
+  }
   id accessible = core.accessibilityElement;
   UIView *editor = [accessible isKindOfClass:UIView.class] ? (UIView *)accessible : nil;
   if (!editor) { [metadata resetSemanticAccessibilityFocus]; return; }
@@ -155,7 +113,6 @@ RCT_EXPORT_MODULE(CUIFormDocument)
   __weak CUIFieldBinding *weakMetadata = metadata;
   __weak RCTViewComponentView *weakCore = core;
   __weak UIView *weakEditor = editor;
-  NSString *documentId = document[@"documentId"], *documentRevision = document[@"revision"];
   BOOL (^current)(void) = ^BOOL {
     CUIFormDocument *module = weakSelf; CUIFieldBinding *binding = weakMetadata;
     RCTViewComponentView *original = weakCore; UIView *backed = weakEditor;
@@ -164,30 +121,31 @@ RCT_EXPORT_MODULE(CUIFormDocument)
           original.accessibilityElement != backed || ![binding.ownerId isEqual:owner] || ![binding.descriptorId isEqual:descriptor] ||
           ![binding.descriptorRevision isEqual:revision] || ![binding.semanticBinding isEqual:encoded] ||
           [binding originalForMountSnapshot:mount] != original) return NO;
-      NSDictionary *latest = [module fieldDocumentStampForSurface:[mount[@"surfaceId"] integerValue]];
-      return [latest[@"documentId"] isEqual:documentId] && [latest[@"revision"] isEqual:documentRevision];
+      return YES;
     } @catch (NSException *retired) { return NO; }
   };
   const BOOL dateField = [core isKindOfClass:CUIDateSegment.class];
   if (dateField != (plan[@"dateField"] != nil)) { [metadata resetSemanticAccessibilityFocus]; return; }
-  id<CUIFieldSemanticContribution> contribution = dateField ? CUIBindDateFieldSemantics(presenter,
-      CUIResolveOwnedDateFieldSegments(metadata, metadata.ownedEditorBinding, core.tag, [mount[@"surfaceId"] integerValue]), plan, current) :
-      CUIBindFieldSemantics(presenter, (RCTTextInputComponentView *)core, plan, current);
-  [metadata setSemanticContribution:contribution];
-  if (dateField || !contribution || !current() || !editor.isFirstResponder || [plan[@"disabled"] boolValue]) { [metadata resetSemanticAccessibilityFocus]; return; }
+  if (dateField) {
+    [metadata setSemanticContribution:CUIBindDateFieldSemantics(presenter,
+      CUIResolveOwnedDateFieldSegments(metadata, metadata.ownedEditorBinding, core.tag, [mount[@"surfaceId"] integerValue]), plan, current)];
+    [metadata resetSemanticAccessibilityFocus]; return;
+  }
+  if (!current() || !editor.isFirstResponder || [plan[@"disabled"] boolValue]) { [metadata resetSemanticAccessibilityFocus]; return; }
+  if (![plan[@"expanded"] boolValue]) {
+    if (current()) [metadata requestSemanticAccessibilityFocus:editor identity:descriptor editor:editor returningToEditor:YES];
+    else [metadata resetSemanticAccessibilityFocus];
+    return;
+  }
   NSDictionary *active = [plan[@"activeDescendant"] isKindOfClass:NSDictionary.class] ? plan[@"activeDescendant"] : nil;
   if (active) {
-    NSString *serialized = active[@"binding"];
-    NSDictionary *binding = [NSJSONSerialization JSONObjectWithData:[serialized dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
-    CUICollectionRoot *root = (id)[presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[binding[@"target"] integerValue]];
-    UIView *option = [presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[active[@"target"] integerValue]];
-    if ([root isKindOfClass:CUICollectionRoot.class] && option.window == editor.window &&
-        [root acceptsPointerBinding:serialized visibleTarget:option.tag] && current())
-      [metadata requestSemanticAccessibilityFocus:option identity:binding[@"descriptorId"] returningToEditor:NO];
+    CUICollectionOptionAdmission *admission = CUIResolveCurrentCollectionOption(
+      active[@"binding"], [active[@"target"] integerValue], editor, current);
+    if (admission && admission.current)
+      [metadata requestSemanticAccessibilityFocus:admission.originalOption identity:admission.opaqueFocusIdentity editor:editor returningToEditor:NO];
+    else if (current()) [metadata clearSemanticAccessibilityRequest];
     else [metadata resetSemanticAccessibilityFocus];
-  } else if (![plan[@"expanded"] boolValue]) {
-    [metadata requestSemanticAccessibilityFocus:editor identity:descriptor returningToEditor:YES];
-  } else [metadata resetSemanticAccessibilityFocus];
+  } else [metadata clearSemanticAccessibilityRequest];
 }
 - (void)bindField:(NSString *)encoded resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
 {
@@ -209,9 +167,9 @@ RCT_EXPORT_MODULE(CUIFormDocument)
     __weak CUIFormDocument *weakSelf = self; __weak CUIFieldBinding *weakMetadata = metadata; __weak RCTViewComponentView *weakCore = core;
     [metadata setSemanticRefresh:^{
       CUIFormDocument *module = weakSelf; CUIFieldBinding *binding = weakMetadata;
-      if (!module || !binding) { [binding setSemanticContribution:nil]; return; }
+      if (!module || !binding) { [binding setSemanticContribution:nil]; [binding resetSemanticAccessibilityFocus]; return; }
       [module refreshField:binding core:weakCore owner:owner descriptor:descriptor];
-    } owner:token];
+    } owner:token module:_semanticModuleId];
     [_semanticHosts setObject:token forKey:metadata];
     NSDictionary *result = @{@"requestId":nonce, @"ownerToken":token, @"metadataTarget":@(metadata.tag)};
     resolve([[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject:result options:NSJSONWritingSortedKeys error:nil] encoding:NSUTF8StringEncoding]);
@@ -226,7 +184,7 @@ RCT_EXPORT_MODULE(CUIFormDocument)
     NSString *token = request[@"ownerToken"];
     BOOL owned = [metadata isKindOfClass:CUIFieldBinding.class] && [token isKindOfClass:NSString.class] &&
       [[_semanticHosts objectForKey:metadata] isEqual:token];
-    if (owned) { [metadata clearSemanticRefreshForOwner:token]; [_semanticHosts removeObjectForKey:metadata]; }
+    if (owned) { [metadata clearSemanticRefreshForOwner:token retiring:NO]; [_semanticHosts removeObjectForKey:metadata]; }
     resolve(@(owned));
   } @catch (NSException *failure) { reject(@"E_CUI_FIELD_BINDING", failure.reason, nil); }
 }
@@ -242,79 +200,35 @@ RCT_EXPORT_MODULE(CUIFormDocument)
     resolve([[NSString alloc] initWithData:bytes encoding:NSUTF8StringEncoding]);
   } @catch (NSException *failure) { reject(@"E_CUI_FOCUS_PARTICIPANTS", failure.reason, nil); }
 }
-- (void)getSnapshot:(NSString *)encoded resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
-{
-  [self performRequest:encoded focus:NO resolve:resolve reject:reject];
-}
-- (void)focusField:(NSString *)encoded resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
-{
-  [self performRequest:encoded focus:YES resolve:resolve reject:reject];
-}
-- (void)performRequest:(NSString *)encoded focus:(BOOL)focus resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
+- (void)admitForm:(NSString *)encoded resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
 {
   RCTAssertMainQueue();
   @try {
-    if (!_valid.load() || ![(id)_presenter isKindOfClass:RCTSurfacePresenter.class])
-      @throw [NSException exceptionWithName:@"CUI.Form" reason:@"form-module-retired" userInfo:nil];
-    NSError *error = nil;
-    id request = [NSJSONSerialization JSONObjectWithData:[encoded dataUsingEncoding:NSUTF8StringEncoding] options:0 error:&error];
-    if (error || ![request isKindOfClass:NSDictionary.class])
-      @throw [NSException exceptionWithName:@"CUI.Form" reason:@"form-request-invalid" userInfo:nil];
-    id target = request[@"target"], surface = request[@"surfaceId"], nonce = request[@"requestId"];
-    for (id value in (surface ? @[target ?: NSNull.null, surface] : @[target ?: NSNull.null])) {
-      if (![value isKindOfClass:NSNumber.class] || CFGetTypeID((__bridge CFTypeRef)value) == CFBooleanGetTypeID() ||
-          !std::isfinite([value doubleValue]) || [value doubleValue] <= 0 || [value doubleValue] > INT_MAX ||
-          [value doubleValue] != std::floor([value doubleValue]))
-        @throw [NSException exceptionWithName:@"CUI.Form" reason:@"form-target-invalid" userInfo:nil];
-    }
-    if (![nonce isKindOfClass:NSString.class] || ![nonce length])
-      @throw [NSException exceptionWithName:@"CUI.Form" reason:@"form-request-id-invalid" userInfo:nil];
-    RCTSurfacePresenter *presenter = (RCTSurfacePresenter *)_presenter;
-    auto manager = presenter.scheduler.uiManager;
-    if (!manager) @throw [NSException exceptionWithName:@"CUI.Form" reason:@"form-Fabric-unavailable" userInfo:nil];
-    try {
-      const auto check = [&] { if (!_valid.load()) throw std::runtime_error("Native form: module retired"); };
-      if (request[@"fieldGroup"]) throw std::runtime_error("field-group-snapshot-retired");
-      const auto result = codon::form::queryFabricFormDocument(*manager, [surface intValue], [target intValue], *_session, check);
-      NSMutableDictionary *response = [[NSJSONSerialization JSONObjectWithData:[[NSString stringWithUTF8String:result.c_str()] dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableContainers error:&error] mutableCopy];
-      if (!response || error) throw std::runtime_error("Native form: invalid snapshot encoding");
-      response[@"requestId"] = nonce;
-      if (focus) {
-        NSString *origin = request[@"origin"];
-        if (!([origin isEqual:@"native"] && request[@"actionAdmission"]) &&
-            !([origin isEqual:@"programmatic"] && !request[@"actionAdmission"]))
-          throw std::runtime_error("Native form: focus origin invalid");
-        if (request[@"inspect"]) throw std::runtime_error("Native form: focus inspection not admitted");
-      }
-      if (request[@"actionAdmission"]) {
-        response[@"actionAdmission"] = CUIAdmitFormAction(presenter, response, request[@"actionAdmission"]);
-        if (result != codon::form::queryFabricFormDocument(*manager, [surface intValue], [target intValue], *_session, check))
-          throw std::runtime_error("Native form: document retired during action admission");
-      }
-      if ([request[@"inspect"] isEqual:@YES]) {
-        id control = request[@"controlTarget"];
-        if (control && (![control isKindOfClass:NSNumber.class] || CFGetTypeID((__bridge CFTypeRef)control) == CFBooleanGetTypeID() || !std::isfinite([control doubleValue]) || [control doubleValue] <= 0 || [control doubleValue] > INT_MAX || [control doubleValue] != std::floor([control doubleValue])))
-          throw std::runtime_error("Native form: invalid control target");
-        response[@"inspection"] = CUIInspectFormDocument(presenter, response, [request[@"probeCustomContent"] isEqual:@YES], control);
-        if (result != codon::form::queryFabricFormDocument(*manager, [surface intValue], [target intValue], *_session, check))
-          throw std::runtime_error("Native form: document retired during inspection");
-      }
-      if (focus) {
-        response[@"focus"] = CUIFocusFormField(presenter, response, request, ^BOOL {
-          @try {
-            try {
-              if (!_valid.load()) return NO;
-              if (request[@"actionAdmission"]) CUIAdmitFormAction(presenter, response, request[@"actionAdmission"]);
-              return result == codon::form::queryFabricFormDocument(*manager, [surface intValue], [target intValue], *_session, check);
-            } catch (...) { return NO; }
-          } @catch (NSException *retired) { return NO; }
-        });
-      }
-      NSData *data = [NSJSONSerialization dataWithJSONObject:response options:NSJSONWritingSortedKeys error:&error];
-      if (!data || error) throw std::runtime_error("Native form: invalid snapshot encoding");
-      resolve([[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
-    } catch (const std::exception &failure) { reject(@"E_CUI_FORM_DOCUMENT", [NSString stringWithUTF8String:failure.what()], nil); }
-  } @catch (NSException *failure) { reject(@"E_CUI_FORM_DOCUMENT", failure.reason, nil); }
+    if (!_valid.load()) CUIFormFail(@"form-module-retired");
+    NSDictionary *request = [NSJSONSerialization JSONObjectWithData:[encoded dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
+    CUIAdmitFormOriginals((id)_presenter, request);
+    NSDictionary *result = @{@"accepted":@YES, @"requestId":request[@"requestId"], @"formRevision":request[@"form"][@"descriptorRevision"]};
+    resolve([[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject:result options:0 error:nil] encoding:NSUTF8StringEncoding]);
+  } @catch (NSException *failure) { reject(@"E_CUI_FORM_ADMISSION", failure.reason, nil); }
+}
+- (void)focusField:(NSString *)encoded resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
+{
+  RCTAssertMainQueue();
+  @try {
+    if (!_valid.load()) CUIFormFail(@"form-module-retired");
+    NSDictionary *request = [NSJSONSerialization JSONObjectWithData:[encoded dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
+    NSString *origin = request[@"origin"];
+    if (!([origin isEqual:@"native"] && request[@"actionLease"]) && !([origin isEqual:@"programmatic"] && !request[@"actionLease"]))
+      CUIFormFail(@"form-focus-origin-invalid");
+    NSMutableDictionary *admission = [request mutableCopy];
+    admission[@"fields"] = @[@{@"field":request[@"field"], @"mount":request[@"mount"]}];
+    CUIAdmitFormOriginals((id)_presenter, admission);
+    NSDictionary *result = CUIFocusFormField((id)_presenter, request, ^BOOL {
+      @try { if (!_valid.load()) return NO; CUIAdmitFormOriginals((id)_presenter, admission); return YES; }
+      @catch (NSException *retired) { return NO; }
+    });
+    resolve([[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject:result options:0 error:nil] encoding:NSUTF8StringEncoding]);
+  } @catch (NSException *failure) { reject(@"E_CUI_FORM_FOCUS", failure.reason, nil); }
 }
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:(const facebook::react::ObjCTurboModule::InitParams &)params
 {

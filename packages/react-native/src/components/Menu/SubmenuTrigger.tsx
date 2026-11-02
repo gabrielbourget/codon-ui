@@ -34,7 +34,7 @@ import {
 import { useNativeSubmenuTriggerState } from "./triggerState"
 
 export type TNativeSubmenuTriggerProps = {
-  children: [ReactElement, ReactElement]
+  children: ReactElement
   delay?: number
 }
 export const SubmenuTrigger = createNativeCollectionBranch<object, TNativeSubmenuTriggerProps, View>(
@@ -157,11 +157,10 @@ export const SubmenuTrigger = createNativeCollectionBranch<object, TNativeSubmen
               reportPointerRoot,
             }}
           >
-            {props.children[1]}
+            {props.children}
           </NativeSubmenuContext.Provider>
         </NativeMenuListContext.Provider>
       </>
     )
   },
-  (props) => props.children[0],
 )

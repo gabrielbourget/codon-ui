@@ -20,6 +20,7 @@ export const isTemporalFilterArgumentDataType = (value: string): value is TTempo
 
 export type TTemporalFilterArgumentProps = TFilterAvailability & {
   dataType: TTemporalFilterArgumentDataType
+  formFieldIds?: readonly string[]
   argument?: TTableFilterDraftArgumentValue
   range?: boolean
   labels?: TFilterArgumentLabels
@@ -66,6 +67,8 @@ export const TemporalFilterArgument = (props: TTemporalFilterArgumentProps) => {
       <FormField key={index} label={label} customStyles={props.customFieldStyles}>
         {props.dataType === "time" ? (
           <TimePicker
+            formFieldId={props.formFieldIds?.[index]}
+            nativeAccessibilityText={{ label }}
             accessibilityLabel={label}
             granularity="second"
             value={parseFilterTimeArgument(values[index])}
@@ -75,6 +78,8 @@ export const TemporalFilterArgument = (props: TTemporalFilterArgumentProps) => {
           />
         ) : props.dataType === "date" ? (
           <DateTimePicker
+            formFieldId={props.formFieldIds?.[index]}
+            nativeAccessibilityText={{ label }}
             accessibilityLabel={label}
             granularity="day"
             multiMonth
@@ -85,6 +90,8 @@ export const TemporalFilterArgument = (props: TTemporalFilterArgumentProps) => {
           />
         ) : (
           <DateTimePicker
+            formFieldId={props.formFieldIds?.[index]}
+            nativeAccessibilityText={{ label }}
             accessibilityLabel={label}
             granularity="second"
             multiMonth

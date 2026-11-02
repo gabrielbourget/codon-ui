@@ -5,6 +5,7 @@ import type { TNativeFormFieldData } from "./registry"
 
 export type TNativeComboBoxFieldOptions = Readonly<{
   name?: string
+  formFieldId?: string
   form?: string
   formValue?: "key" | "text"
   allowsCustomValue?: boolean

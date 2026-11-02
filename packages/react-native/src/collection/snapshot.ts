@@ -4,9 +4,7 @@ type TSourceCollection<T> = ListState<T>["collection"]
 type TSourceNode<T> = NonNullable<ReturnType<TSourceCollection<T>["getItem"]>>
 export type TNativeCollectionKey = TSourceNode<unknown>["key"]
 
-export type TNativeCollectionDescriptor<T> = Readonly<{
-  descriptorId: string
-  descriptorRevision: string
+export type TNativeCollectionItem<T> = Readonly<{
   key: TNativeCollectionKey
   type: string
   value: T | null
@@ -14,19 +12,10 @@ export type TNativeCollectionDescriptor<T> = Readonly<{
   textValue: string
   props: TSourceNode<T>["props"]
   render?: TSourceNode<T>["render"]
+  children?: readonly TNativeCollectionItem<T>[]
   "aria-label"?: string
   colSpan?: number | null
   colIndex?: number | null
-}>
-
-export type TNativeCollectionHierarchyEntry = Readonly<{
-  descriptorId: string
-  descriptorRevision: string
-  parentDescriptorId: string
-  target: number
-  index: number
-  retainedIndex: number
-  hasRetainedChildren: boolean
 }>
 
 export type TNativeCollectionNode<T> = Readonly<
@@ -43,20 +32,20 @@ export type TNativeCollectionNode<T> = Readonly<
 >
 
 type TFilter<T> = (textValue: string, node: TSourceNode<T>) => boolean
-type TMetadataIdentity = Readonly<{ descriptorId: string; descriptorRevision: string; metadataTarget: number }>
-const metadataIdentities = new WeakMap<object, TMetadataIdentity>()
-export const getNativeCollectionMetadataIdentity = (node: object): TMetadataIdentity | undefined =>
-  metadataIdentities.get(node)
-// Filtered state views retain the original descriptor lease without exposing it on public nodes.
+export type TNativeCollectionNodeIdentity = Readonly<{ itemId: string; itemRevision: string }>
+const nodeIdentities = new WeakMap<object, TNativeCollectionNodeIdentity>()
+export const getNativeCollectionNodeIdentity = (node: object): TNativeCollectionNodeIdentity | undefined =>
+  nodeIdentities.get(node)
+// Filtered state views retain logical identity. This never proves that a native receiver is mounted.
 export const copyNativeCollectionNodeIdentity = <T extends object>(original: object, copy: T): T => {
-  const identity = metadataIdentities.get(original)
-  if (identity) metadataIdentities.set(copy, identity)
+  const identity = nodeIdentities.get(original)
+  if (identity) nodeIdentities.set(copy, identity)
   return copy
 }
 type TNodeFields<T> = {
   -readonly [P in keyof Omit<TNativeCollectionNode<T>, "childNodes">]: TNativeCollectionNode<T>[P]
 }
-const ownedNode = <T>(fields: TNodeFields<T>, identity?: TMetadataIdentity): TNativeCollectionNode<T> => {
+const ownedNode = <T>(fields: TNodeFields<T>, identity?: TNativeCollectionNodeIdentity): TNativeCollectionNode<T> => {
   const node = Object.freeze(
     Object.defineProperty(fields, "childNodes", {
       get: () => {
@@ -64,7 +53,7 @@ const ownedNode = <T>(fields: TNodeFields<T>, identity?: TMetadataIdentity): TNa
       },
     }),
   ) as TNativeCollectionNode<T>
-  if (identity) metadataIdentities.set(node, identity)
+  if (identity) nodeIdentities.set(node, identity)
   return node
 }
 
@@ -136,10 +125,10 @@ class NativeCollectionSnapshot<T> implements TSourceCollection<T> {
 
   filter = (predicate: TFilter<T>): TNativeCollectionSnapshot<T> => {
     const membership = new Map<TNativeCollectionKey, TNodeFields<T>>()
-    const identities = new Map<TNativeCollectionKey, TMetadataIdentity | undefined>()
+    const identities = new Map<TNativeCollectionKey, TNativeCollectionNodeIdentity | undefined>()
     const addDescendants = (node: TNodeFields<T>) => {
       membership.set(node.key, { ...node })
-      identities.set(node.key, metadataIdentities.get(node))
+      identities.set(node.key, nodeIdentities.get(node))
       for (const child of this.getChildren(node.key)) addDescendants(child)
     }
     const filterSiblings = (
@@ -167,7 +156,7 @@ class NativeCollectionSnapshot<T> implements TSourceCollection<T> {
           addDescendants(filtered)
         }
         if (filtered) {
-          identities.set(filtered.key, metadataIdentities.get(node))
+          identities.set(filtered.key, nodeIdentities.get(node))
           filtered = { ...filtered, nextKey: null }
           if (last) {
             last.nextKey = filtered.key
@@ -195,98 +184,84 @@ class NativeCollectionSnapshot<T> implements TSourceCollection<T> {
 
 export type TNativeCollectionSnapshot<T> = Pick<NativeCollectionSnapshot<T>, keyof NativeCollectionSnapshot<T>>
 
-export const createNativeCollectionSnapshot = <T>(
-  hierarchy: readonly TNativeCollectionHierarchyEntry[],
-  descriptors: ReadonlyMap<string, TNativeCollectionDescriptor<T>>,
-  previous?: TNativeCollectionSnapshot<T> | null,
-): NativeCollectionSnapshot<T> => {
-  const byId = new Map<string, TNativeCollectionHierarchyEntry>()
-  const children = new Map<string, TNativeCollectionHierarchyEntry[]>()
-  const activeParents = [""]
-  const targets = new Set<number>()
-  for (const entry of hierarchy) {
-    if (!entry.descriptorId || !entry.descriptorRevision || byId.has(entry.descriptorId)) {
-      throw new Error("invalid-descriptor-identity")
-    }
-    while (activeParents.length > 0 && activeParents.at(-1) !== entry.parentDescriptorId) activeParents.pop()
-    if (activeParents.length === 0) throw new Error("invalid-descriptor-preorder")
-    const siblings = children.get(entry.parentDescriptorId) ?? []
-    if (
-      entry.index !== siblings.length ||
-      !Number.isSafeInteger(entry.retainedIndex) ||
-      entry.retainedIndex < entry.index ||
-      (siblings.length > 0 && entry.retainedIndex <= siblings.at(-1)!.retainedIndex) ||
-      typeof entry.hasRetainedChildren !== "boolean" ||
-      !Number.isSafeInteger(entry.target) ||
-      entry.target <= 0 ||
-      targets.has(entry.target)
-    ) {
-      throw new Error("invalid-descriptor-position")
-    }
-    const descriptor = descriptors.get(entry.descriptorId)
-    if (!descriptor || descriptor.descriptorRevision !== entry.descriptorRevision)
-      throw new Error("uncommitted-descriptor")
-    targets.add(entry.target)
-    byId.set(entry.descriptorId, entry)
-    siblings.push(entry)
-    children.set(entry.parentDescriptorId, siblings)
-    activeParents.push(entry.descriptorId)
-  }
-  for (const entry of hierarchy) {
-    if (children.has(entry.descriptorId) && !entry.hasRetainedChildren) throw new Error("invalid-descriptor-children")
-  }
+let nextIdentity = 0
+const sourceItems = new WeakMap<object, object>()
 
+// The caller supplies complete ordered membership; renderers may materialize any subset.
+// Constructing a candidate is pure apart from opaque identity allocation. Only a committed model may admit actions.
+export const createNativeCollectionSnapshot = <T>(
+  items: readonly TNativeCollectionItem<T>[],
+  previous?: TNativeCollectionSnapshot<T> | null,
+): TNativeCollectionSnapshot<T> => {
   const built = new Map<TNativeCollectionKey, TNativeCollectionNode<T>>()
-  const buildSiblings = (parentId: string, level: number): readonly TNativeCollectionNode<T>[] => {
-    const siblings = children.get(parentId) ?? []
+  const keys = new Set<TNativeCollectionKey>()
+  const visiting = new Set<object>()
+  const buildSiblings = (
+    siblings: readonly TNativeCollectionItem<T>[],
+    parentKey: TNativeCollectionKey | null,
+    level: number,
+  ): readonly TNativeCollectionNode<T>[] => {
+    if (!Array.isArray(siblings)) throw new Error("Collection items must be a complete ordered array")
     let previousSibling: TNativeCollectionNode<T> | null = null
-    return Object.freeze(
-      siblings.map((entry, index) => {
-        const descriptor = descriptors.get(entry.descriptorId)!
-        const prior = previous?.getItem(descriptor.key)
-        const retained = prior && metadataIdentities.get(prior)?.descriptorId === descriptor.descriptorId ? prior : null
-        const descendants = buildSiblings(entry.descriptorId, level + (descriptor.type === "item" ? 1 : 0))
-        const keyAt = (position: number) => {
-          const sibling = siblings[position]
-          return sibling ? descriptors.get(sibling.descriptorId)!.key : null
-        }
-        const { descriptorId, descriptorRevision, ...content } = descriptor
-        const node = ownedNode<T>(
-          {
-            ...content,
-            "aria-label": descriptor["aria-label"] || retained?.["aria-label"],
-            level,
-            index: entry.retainedIndex,
-            parentKey: parentId === "" ? null : descriptors.get(parentId)!.key,
-            prevKey: keyAt(index - 1),
-            nextKey: keyAt(index + 1),
-            hasChildNodes: entry.hasRetainedChildren,
-            firstChildKey: descendants[0]?.key ?? null,
-            lastChildKey: descendants.at(-1)?.key ?? null,
-            colSpan: descriptor.colSpan ?? retained?.colSpan ?? null,
-            colIndex:
-              previousSibling && (previousSibling.colSpan != null || previousSibling.colIndex != null)
-                ? (previousSibling.colIndex ?? previousSibling.index) + (previousSibling.colSpan ?? 1)
-                : (descriptor.colIndex ?? retained?.colIndex ?? null),
-          },
-          Object.freeze({ descriptorId, descriptorRevision, metadataTarget: entry.target }),
-        )
-        built.set(node.key, node)
-        previousSibling = node
-        return node
-      }),
-    )
+    return siblings.map((item, index) => {
+      if (!item || typeof item !== "object" || visiting.has(item)) throw new Error("Invalid collection item tree")
+      if (
+        (typeof item.key !== "string" && typeof item.key !== "number") ||
+        (typeof item.key === "number" && !Number.isFinite(item.key)) ||
+        !item.type ||
+        typeof item.type !== "string" ||
+        typeof item.textValue !== "string"
+      )
+        throw new Error("Collection items require explicit stable keys, types and text values")
+      if (keys.has(item.key)) throw new Error("Duplicate collection item key")
+      keys.add(item.key)
+      visiting.add(item)
+      const prior = previous?.getItem(item.key)
+      const priorIdentity = prior && nodeIdentities.get(prior)
+      const identity =
+        priorIdentity && sourceItems.get(prior!) === item
+          ? priorIdentity
+          : Object.freeze({
+              itemId: priorIdentity?.itemId ?? `cui-item:${++nextIdentity}`,
+              itemRevision: `cui-item-revision:${++nextIdentity}`,
+            })
+      const descendants = buildSiblings(item.children ?? [], item.key, level + (item.type === "item" ? 1 : 0))
+      visiting.delete(item)
+      const { children: _children, ...content } = item
+      const node = ownedNode<T>(
+        {
+          ...content,
+          "aria-label": item["aria-label"] || prior?.["aria-label"],
+          level,
+          index,
+          parentKey,
+          prevKey: siblings[index - 1]?.key ?? null,
+          nextKey: siblings[index + 1]?.key ?? null,
+          hasChildNodes: descendants.length > 0,
+          firstChildKey: descendants[0]?.key ?? null,
+          lastChildKey: descendants.at(-1)?.key ?? null,
+          colSpan: item.colSpan ?? prior?.colSpan ?? null,
+          colIndex:
+            previousSibling && (previousSibling.colSpan != null || previousSibling.colIndex != null)
+              ? (previousSibling.colIndex ?? previousSibling.index) + (previousSibling.colSpan ?? 1)
+              : (item.colIndex ?? prior?.colIndex ?? null),
+        },
+        identity,
+      )
+      sourceItems.set(node, item)
+      built.set(node.key, node)
+      previousSibling = node
+      return node
+    })
   }
-  const roots = buildSiblings("", 0)
+  const roots = buildSiblings(items, null, 0)
   const membership = new Map<TNativeCollectionKey, TNativeCollectionNode<T>>()
-  if (previous) {
+  // Keep source lookup insertion history independently of current linked navigation order.
+  if (previous)
     for (const key of previous.getKeys()) {
       const node = built.get(key)
-      const prior = previous.getItem(key)
-      if (node && prior && metadataIdentities.get(prior)?.descriptorId === metadataIdentities.get(node)?.descriptorId)
-        membership.set(key, node)
+      if (node) membership.set(key, node)
     }
-  }
   for (const [key, node] of built) if (!membership.has(key)) membership.set(key, node)
   return new NativeCollectionSnapshot(membership, roots[0]?.key ?? null, roots.at(-1)?.key ?? null)
 }

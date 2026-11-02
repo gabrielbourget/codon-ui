@@ -38,6 +38,7 @@ export type TNativeFormResult = Readonly<{
 export type TNativeFormProps = Omit<ViewProps, "children"> &
   TNativeSlotProps & {
     children?: ReactNode
+    fieldOrder?: readonly string[]
     id?: string
     validationBehavior?: "native" | "aria"
     validationErrors?: ValidationErrors

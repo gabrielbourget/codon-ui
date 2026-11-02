@@ -11,7 +11,7 @@ import {
 } from "react"
 import { findNodeHandle, type View } from "react-native"
 
-import { NativeFormRegistryContext } from "../../form/context"
+import { NativeFormRegistryContext, NativeFormOwnerContext } from "../../form/context"
 import { NativeFormMountReceipt } from "../../form/mount"
 import { NativeFieldMetadata } from "../../form/NativeFormMetadata"
 import type { TNativeFormFieldData } from "../../form/registry"
@@ -25,6 +25,8 @@ type TOriginalThumb = Readonly<{ thumb: View; target: number; root: View; rootTa
 type TMetadata = Readonly<{ node: View; target: number }>
 type TProps = Readonly<{
   index: number
+  formFieldId?: string
+  form?: string
   name?: string
   state: TNativeSliderState
   root: { current: View | null }
@@ -36,8 +38,9 @@ const tag = (view: View | null) => {
 }
 let revision = 0
 
-export const NativeSliderThumbForm = ({ index, name, state, root, thumbs }: TProps) => {
+export const NativeSliderThumbForm = ({ index, name, formFieldId, form, state, root, thumbs }: TProps) => {
   const registry = useContext(NativeFormRegistryContext)
+  const formOwnerId = useContext(NativeFormOwnerContext)
   const ownerId = useId()
   const descriptorId = `${ownerId}:range-thumb`
   const [original, setOriginal] = useState<TOriginalThumb | null>(null)
@@ -53,7 +56,16 @@ export const NativeSliderThumbForm = ({ index, name, state, root, thumbs }: TPro
     validation: DEFAULT_VALIDATION_RESULT,
   }
   const ownedControlBinding = original ? JSON.stringify({ kind: "range-thumb", rootTarget: original.rootTarget }) : ""
-  const signature = JSON.stringify([index, data, state.defaultValues[index], ownedControlBinding, original?.target])
+  const signature = JSON.stringify([
+    index,
+    form,
+    formFieldId,
+    formOwnerId,
+    data,
+    state.defaultValues[index],
+    ownedControlBinding,
+    original?.target,
+  ])
   const descriptorRevision = useMemo(
     () => `${ownerId}:range-thumb:${++revision}`,
     [ownerId, signature, original?.root, original?.thumb, metadataMount?.node],
@@ -145,10 +157,13 @@ export const NativeSliderThumbForm = ({ index, name, state, root, thumbs }: TPro
         descriptorRevision,
         metadataTarget: metadataMount.target,
         target: original.target,
-        formId: "",
-        hasFormAssociation: false,
+        formId: form ?? "",
+        hasFormAssociation: form !== undefined,
         ownedControlBinding,
       },
+      fieldId: formFieldId,
+      fieldIndex: index,
+      formOwnerId,
       data,
       editor: currentOriginal,
       mount: () => (retained ? receipt.current : null),
@@ -176,8 +191,8 @@ export const NativeSliderThumbForm = ({ index, name, state, root, thumbs }: TPro
       descriptorId={descriptorId}
       descriptorRevision={descriptorRevision}
       editorTarget={original?.target ?? 0}
-      hasFormAssociation={false}
-      formId=""
+      hasFormAssociation={form !== undefined}
+      formId={form ?? ""}
       ownedControlBinding={ownedControlBinding}
       onNativeFormCommit={(event) => receive(event.nativeEvent)}
     />

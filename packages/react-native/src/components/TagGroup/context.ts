@@ -31,11 +31,6 @@ export type TNativeTagPressMetadata = Readonly<{
   primaryAtStart?: boolean
   suppressed?: boolean
 }>
-export const NativeTagItemValueContext = createContext<{
-  key: TNativeTagGroupKey
-  order: number
-  value?: unknown
-} | null>(null)
 export const NativeTagGroupActionsContext = createContext<{
   text: TextStyle
   register: (row: TNativeTagRegistration) => () => void
@@ -64,7 +59,7 @@ export const NativeTagGroupActionsContext = createContext<{
 export const NativeTagGroupStateContext = createContext<ListState<object> | null>(null)
 
 export const NativeTagGroupContext =
-  createContext<TNativeContextValue<Partial<Omit<TNativeTagGroupProps, "children" | "items" | "getKey">>, View>>(null)
+  createContext<TNativeContextValue<Partial<Omit<TNativeTagGroupProps, "children" | "items">>, View>>(null)
 export type TNativeTagListContextProps = Partial<TNativeTagListProps> & {
   nativeLabelledBy?: readonly string[]
   nativeDescribedBy?: readonly string[]

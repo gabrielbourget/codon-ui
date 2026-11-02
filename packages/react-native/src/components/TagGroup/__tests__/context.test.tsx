@@ -28,6 +28,8 @@ import { Tag } from "../Tag"
 import { TagGroup, NativeTagList } from "../TagGroup"
 import type { TNativeTagGroupEmptyState } from "../types"
 
+import { tagItem } from "./tagModel"
+
 beforeEach(() => jest.spyOn(RN.AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true))
 afterEach(() => jest.restoreAllMocks())
 const hidden = { includeHiddenElements: true }
@@ -36,9 +38,7 @@ it("preserves authored root focusability with an unchanged original native ref",
   const ref = createRef<RN.View>()
   const node = (focusable?: boolean) => (
     <NativeThemeProvider>
-      <TagGroup ref={ref} focusable={focusable}>
-        <Tag id="a">Alpha</Tag>
-      </TagGroup>
+      <TagGroup ref={ref} focusable={focusable} items={[tagItem("a", <Tag id="a">Alpha</Tag>)]} />
     </NativeThemeProvider>
   )
   const view = await render(node())
@@ -55,7 +55,7 @@ it("preserves authored root focusability with an unchanged original native ref",
   expect(ref.current).toBeNull()
 })
 
-it("uses TagList's authoring phase for original dynamic values without mounting a second visible list", async () => {
+it("preserves explicit original dynamic values without mounting a second visible list", async () => {
   const values = [
     { id: 0, label: "Zero" },
     { id: "0", label: "String zero" },
@@ -68,19 +68,21 @@ it("uses TagList's authoring phase for original dynamic values without mounting 
   await render(
     <NativeThemeProvider>
       <NativeCollectionRendererContext.Provider value={{ ...DefaultNativeCollectionRenderer, CollectionRoot: Root }}>
-        <TagGroup>
-          <NativeTagList
-            items={(function* () {
+        <TagGroup
+          items={Array.from(
+            (function* () {
               yield* values
-            })()}
-          >
-            {(value) => (
-              <Tag id={value.id} testID={typeof value.id === "number" ? "number" : "string"}>
-                {value.label}
-              </Tag>
-            )}
-          </NativeTagList>
-        </TagGroup>
+            })(),
+            (value) =>
+              tagItem(
+                value.id,
+                <Tag id={value.id} testID={typeof value.id === "number" ? "number" : "string"}>
+                  {value.label}
+                </Tag>,
+                value,
+              ),
+          )}
+        />
       </NativeCollectionRendererContext.Provider>
     </NativeThemeProvider>,
   )
@@ -114,7 +116,7 @@ it("retains original list ref/events and observes empty render focus independent
   }
   await render(
     <NativeThemeProvider>
-      <NativeCollectionBuilder<object> content={null}>
+      <NativeCollectionBuilder<object> items={[]}>
         {(collection) => <Receiver collection={collection} />}
       </NativeCollectionBuilder>
     </NativeThemeProvider>,
@@ -148,12 +150,16 @@ it("inherits root/list native typography while item styles retain final preceden
         customStyles={{ fontSize: 15 }}
         style={{ fontSize: 17 }}
         customTagListStyles={{ fontSize: 19, fontWeight: "700" }}
-      >
-        <Tag id="a">Inherited</Tag>
-        <Tag id="b" style={final} closeIcon="×">
-          Final
-        </Tag>
-      </TagGroup>
+        items={[
+          tagItem("a", <Tag id="a">Inherited</Tag>),
+          tagItem(
+            "b",
+            <Tag id="b" style={final} closeIcon="×">
+              Final
+            </Tag>,
+          ),
+        ]}
+      />
     </NativeThemeProvider>,
   )
   expect(RN.StyleSheet.flatten(screen.getByText("Inherited", hidden).props.style)).toMatchObject({
@@ -175,14 +181,24 @@ it("publishes the current original selection indicator state inside grouped item
   }
   const node = (keys: (string | number)[]) => (
     <NativeThemeProvider>
-      <TagGroup selectionMode="multiple" selectedKeys={keys}>
-        <Tag id={0} textValue="Zero">
-          <Indicator name="number" />
-        </Tag>
-        <Tag id="0" textValue="String zero">
-          <Indicator name="string" />
-        </Tag>
-      </TagGroup>
+      <TagGroup
+        selectionMode="multiple"
+        selectedKeys={keys}
+        items={[
+          tagItem(
+            0,
+            <Tag id={0} textValue="Zero">
+              <Indicator name="number" />
+            </Tag>,
+          ),
+          tagItem(
+            "0",
+            <Tag id="0" textValue="String zero">
+              <Indicator name="string" />
+            </Tag>,
+          ),
+        ]}
+      />
     </NativeThemeProvider>
   )
   const view = await render(node([0]))
@@ -208,16 +224,34 @@ it("retains every logical item through a committed branch and reports its real r
   )
   await render(
     <NativeThemeProvider>
-      <TagGroup selectionMode="multiple">
-        <Branch>
-          <Tag id={0} testID="number">
-            Zero
-          </Tag>
-          <Tag id="0" testID="string">
-            String zero
-          </Tag>
-        </Branch>
-      </TagGroup>
+      <TagGroup
+        selectionMode="multiple"
+        items={[
+          {
+            key: "section",
+            type: "section",
+            value: null,
+            props: {},
+            rendered: null,
+            textValue: "",
+            render: () => <Branch />,
+            children: [
+              tagItem(
+                0,
+                <Tag id={0} testID="number">
+                  Zero
+                </Tag>,
+              ),
+              tagItem(
+                "0",
+                <Tag id="0" testID="string">
+                  String zero
+                </Tag>,
+              ),
+            ],
+          },
+        ]}
+      />
     </NativeThemeProvider>,
   )
   expect(JSON.parse(screen.getByTestId("tag-list", hidden).props.nativeCollectionSemantics).rowCount).toBe(2)
@@ -249,9 +283,13 @@ it("merges default and named slots with caller precedence, original native refs/
           },
         }}
       >
-        <TagGroup ref={caller} style={{ opacity: 0.8 }} onLayout={callerLayout} render={customRoot}>
-          <Tag id="a">Alpha</Tag>
-        </TagGroup>
+        <TagGroup
+          ref={caller}
+          style={{ opacity: 0.8 }}
+          onLayout={callerLayout}
+          render={customRoot}
+          items={[tagItem("a", <Tag id="a">Alpha</Tag>)]}
+        />
         <TagGroup slot="named" testID="named" />
         <TagGroup slot={null} testID="isolated" />
       </NativeTagGroupContext.Provider>
@@ -291,7 +329,7 @@ it("exposes the actual filtered state and native list props while preserving ori
     <NativeThemeProvider>
       <NativeSelectableCollectionContext.Provider value={{ ref: listRef, filter: (text) => text === "Beta" }}>
         <NativeCollectionRendererContext.Provider value={{ ...DefaultNativeCollectionRenderer, CollectionRoot: Root }}>
-          <TagGroup items={values}>{(item) => <Tag testID={item.id}>{item.label}</Tag>}</TagGroup>
+          <TagGroup items={values.map((item) => tagItem(item.id, <Tag testID={item.id}>{item.label}</Tag>, item))} />
         </NativeCollectionRendererContext.Provider>
       </NativeSelectableCollectionContext.Provider>
     </NativeThemeProvider>,
@@ -307,14 +345,16 @@ it("exposes the actual filtered state and native list props while preserving ori
 it("keeps numeric and string keys separate through authored reorder without replacing native refs", async () => {
   const number = createRef<RN.View>(),
     string = createRef<RN.View>()
-  const item = (key: string | number) => (
-    <Tag key={typeof key + key} id={key} ref={typeof key === "number" ? number : string}>
-      {String(key)}
-    </Tag>
-  )
+  const item = (key: string | number) =>
+    tagItem(
+      key,
+      <Tag key={typeof key + key} id={key} ref={typeof key === "number" ? number : string}>
+        {String(key)}
+      </Tag>,
+    )
   const view = await render(
     <NativeThemeProvider>
-      <TagGroup>{[0, "0"].map(item)}</TagGroup>
+      <TagGroup items={[0, "0"].map(item)} />
     </NativeThemeProvider>,
   )
   const firstNumber = number.current,
@@ -322,7 +362,7 @@ it("keeps numeric and string keys separate through authored reorder without repl
   expect(firstNumber !== firstString).toBe(true)
   await view.rerender(
     <NativeThemeProvider>
-      <TagGroup>{["0", 0].map(item)}</TagGroup>
+      <TagGroup items={["0", 0].map(item)} />
     </NativeThemeProvider>,
   )
   expect(number.current === firstNumber).toBe(true)

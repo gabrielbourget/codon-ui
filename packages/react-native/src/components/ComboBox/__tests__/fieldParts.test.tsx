@@ -1,13 +1,8 @@
-import "../../../collection/__tests__/nativeReceipts"
+import "./visibleCollections"
 
 import { createRef, useContext, useState, type ReactNode } from "react"
 import { Text as RNText, TextInput, View } from "react-native"
 
-import {
-  actWithNativeCollections as act,
-  renderWithNativeCollections as render,
-  screen,
-} from "../../../collection/__tests__/nativeReceipts"
 import { NATIVE_DEFAULT_SLOT } from "../../../collection/context"
 import { NativeListStateContext } from "../../../collection/state"
 import { registerNativeFocusTarget } from "../../../input/focus"
@@ -42,6 +37,8 @@ import { collection, ITEMS } from "../state/__tests__/collection"
 import type { ComboBoxState, ValidationResult } from "../state/types"
 import { useComboBoxState } from "../state/useComboBoxState"
 import { FormValidationContext, VALID_VALIDITY_STATE } from "../state/useFormValidationState"
+
+import { actWithNativeCollections as act, renderWithNativeCollections as render, screen } from "./visibleCollections"
 
 const wrap = (children: ReactNode) => <NativeThemeProvider>{children}</NativeThemeProvider>
 const invalid: ValidationResult = {
@@ -343,7 +340,7 @@ it("keeps controlled pressed rendering independent from disabled native activati
   expect(screen.getByRole("button")).toBeDisabled()
 })
 
-it("binds current original text refs and semantic aliases without copying the editor query or label bodies", async () => {
+it("retains original refs with explicit semantic text and validation without discovering descendant bodies", async () => {
   const native = jest.requireActual<typeof import("react-native")>("react-native")
   const inherited = jest.mocked(native.findNodeHandle).getMockImplementation()!
   const targets = new WeakMap<object, number>()
@@ -376,6 +373,10 @@ it("binds current original text refs and semantic aliases without copying the ed
               inputValue="held business query"
               onInputChange={changed}
               nativeAccessibilityLabels={{ role: "Liste" }}
+              nativeAccessibilityText={{
+                label: "Declared label",
+                description: showDescription ? "Declared description" : undefined,
+              }}
               render={(props) => (
                 <NativeFocusHost {...props}>
                   {props.children}
@@ -403,58 +404,68 @@ it("binds current original text refs and semantic aliases without copying the ed
       view.container.queryAll((node) => typeof node.props.semanticBinding === "string")[0].props.semanticBinding,
     )
   const first = binding()
-  expect(first.aliases).toContainEqual({ id: "source-input", target: native.findNodeHandle(original) })
-  expect(first.labelledBy).toHaveLength(1)
-  expect(first.aliases).toContainEqual({ id: first.labelledBy[0], target: native.findNodeHandle(label.current) })
-  expect(first.describedBy).toHaveLength(1)
-  expect(first.aliases).toContainEqual({ id: first.describedBy[0], target: native.findNodeHandle(description.current) })
-  expect(first).toMatchObject({ invalid: true, expanded: false, labels: { role: "Liste" } })
-  expect(first.errorMessageBy).toHaveLength(1)
-  for (const value of ["held business query", "Visible label body", "Visible description body", "Server message body"])
+  expect(label.current).not.toBeNull()
+  expect(description.current).not.toBeNull()
+  expect(first).toMatchObject({
+    text: { label: "Declared label", description: "Declared description", errorMessage: "Server message body" },
+    invalid: true,
+    expanded: false,
+    labels: { role: "Liste" },
+  })
+  expect(first).not.toHaveProperty("aliases")
+  expect(first).not.toHaveProperty("labelledBy")
+  for (const value of ["held business query", "Visible label body", "Visible description body"])
     expect(JSON.stringify(first)).not.toContain(value)
+  expect(screen.getByDisplayValue("held business query").props.accessibilityLabel).toBe(
+    "Declared label, Server message body",
+  )
+  expect(screen.getByDisplayValue("held business query").props.accessibilityHint).toBe("Declared description")
   await view.rerender(content(false))
-  expect(binding().describedBy).toEqual([])
-  expect(binding().aliases.some((alias: { id: string }) => alias.id === first.describedBy[0])).toBe(false)
+  expect(binding().text.description).toBe("")
+  expect(description.current).toBeNull()
+  expect(screen.getByDisplayValue("held business query").props.accessibilityHint).toBeUndefined()
   expect(input.current === original).toBe(true)
   expect(input.current!.focus === focus).toBe(true)
   expect(changed).not.toHaveBeenCalled()
 })
 
-it("observes semantic slots that mount and retire in a child-only commit", async () => {
-  const native = jest.requireActual<typeof import("react-native")>("react-native")
-  const inherited = jest.mocked(native.findNodeHandle).getMockImplementation()!
-  const targets = new WeakMap<object, number>()
-  let nextTarget = 600000,
-    toggle!: () => void
-  jest.mocked(native.findNodeHandle).mockImplementation((view) => {
-    const original = inherited(view)
-    if (original) return original
-    if (!view || typeof view !== "object") return null
-    if (!targets.has(view)) targets.set(view, ++nextTarget)
-    return targets.get(view)!
-  })
+it("keeps declared semantics independent of child-only slot mounts and updates explicit text", async () => {
+  let toggle!: () => void, changeText!: () => void
+  const description = createRef<TNativeTextRef>()
   const DeferredDescription = () => {
     const [show, setShow] = useState(false)
     toggle = () => setShow((value) => !value)
-    return show ? <NativeComboBoxText slot="description">Deferred description</NativeComboBoxText> : null
+    return show ? (
+      <NativeComboBoxText ref={description} slot="description">
+        Deferred descendant body
+      </NativeComboBoxText>
+    ) : null
+  }
+  const Harness = () => {
+    const [text, setText] = useState("Declared description")
+    changeText = () => setText("Updated explicit description")
+    return (
+      <NativeCollectionComboBox
+        items={ITEMS}
+        getKey={(item) => item.id}
+        getTextValue={(item) => item.label}
+        inputLabel="Input"
+        closeLabel="Close"
+        nativeAccessibilityText={{ description: text }}
+        render={(props) => (
+          <NativeFocusHost {...props}>
+            {props.children}
+            <DeferredDescription />
+          </NativeFocusHost>
+        )}
+      />
+    )
   }
   const view = await render(
     wrap(
       <NativeOverlayProvider>
         <NativeFloatingLayerHost>
-          <NativeCollectionComboBox
-            items={ITEMS}
-            getKey={(item) => item.id}
-            getTextValue={(item) => item.label}
-            inputLabel="Input"
-            closeLabel="Close"
-            render={(props) => (
-              <NativeFocusHost {...props}>
-                {props.children}
-                <DeferredDescription />
-              </NativeFocusHost>
-            )}
-          />
+          <Harness />
         </NativeFloatingLayerHost>
       </NativeOverlayProvider>,
     ),
@@ -463,13 +474,17 @@ it("observes semantic slots that mount and retire in a child-only commit", async
     JSON.parse(
       view.container.queryAll((node) => typeof node.props.semanticBinding === "string")[0].props.semanticBinding,
     )
-  expect(binding().describedBy).toEqual([])
+  expect(binding().text.description).toBe("Declared description")
+  expect(description.current).toBeNull()
   await act(toggle)
-  const descriptionId = binding().describedBy[0]
-  expect(typeof descriptionId).toBe("string")
-  expect(binding().aliases.some((alias: { id: string }) => alias.id === descriptionId)).toBe(true)
+  expect(description.current).not.toBeNull()
+  expect(binding().text.description).toBe("Declared description")
+  expect(JSON.stringify(binding())).not.toContain("Deferred descendant body")
   await act(toggle)
-  expect(binding().describedBy).toEqual([])
+  expect(description.current).toBeNull()
+  expect(binding().text.description).toBe("Declared description")
+  await act(changeText)
+  expect(binding().text.description).toBe("Updated explicit description")
 })
 
 it("preserves style/children/host rendering order, full error values and the actual custom Text ref", async () => {

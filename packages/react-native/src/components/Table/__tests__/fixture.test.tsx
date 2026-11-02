@@ -1,17 +1,15 @@
-import "../../../collection/__tests__/nativeReceipts"
-
 import { cleanup, userEvent } from "@testing-library/react-native"
 import { createRef } from "react"
 import type { TextInput, View } from "react-native"
+
+import { NativeThemeProvider } from "../../../theme"
 
 import {
   actWithNativeCollections as act,
   fireEventWithNativeCollections as fireEvent,
   renderWithNativeCollections as render,
   screen,
-} from "../../../collection/__tests__/nativeReceipts"
-import { NativeThemeProvider } from "../../../theme"
-
+} from "./collectionModel"
 import { TableCellFixture } from "./fixtures/TableCellFixture"
 import { TableColumnFixture } from "./fixtures/TableColumnFixture"
 import { TableFixture } from "./fixtures/TableFixture"

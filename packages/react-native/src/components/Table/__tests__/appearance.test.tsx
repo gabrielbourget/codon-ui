@@ -1,27 +1,26 @@
-import "../../../collection/__tests__/nativeReceipts"
-
 import { cleanup } from "@testing-library/react-native"
 import { useContext, type ReactNode } from "react"
 import { AccessibilityInfo, Animated, StyleSheet, View, processColor } from "react-native"
 import type { PointerEvent } from "react-native"
 
-import {
-  actWithNativeCollections as act,
-  renderWithNativeCollections as render,
-  screen,
-} from "../../../collection/__tests__/nativeReceipts"
 import { createNativeCollectionBranch } from "../../../collection/CollectionBuilder"
 import { NativeCollectionRendererContext } from "../../../collection/renderer"
 import { NativeFloatingWindowContext } from "../../../overlays/floating/scope"
 import { NativeThemeProvider } from "../../../theme"
 import { useNativeTable } from "../context"
+import {
+  nativeTableChildren,
+  createNativeTableHeaderModel,
+  nativeTableReceiver,
+  createNativeTableRowModel,
+} from "../model"
 import { Table } from "../Table"
-import { TableHeader } from "../TableHeader"
-import { TableRow } from "../TableRow"
 import type { TNativeTableProps, TNativeTableRowProps } from "../types"
 
+import { actWithNativeCollections as act, renderWithNativeCollections as render, screen } from "./collectionModel"
+
 const Body = createNativeCollectionBranch<object, { children?: ReactNode }, View>(
-  "body",
+  "tablebody",
   (_props, ref, parent) => {
     const table = useNativeTable(),
       renderer = useContext(NativeCollectionRendererContext)
@@ -31,7 +30,6 @@ const Body = createNativeCollectionBranch<object, { children?: ReactNode }, View
       </View>
     )
   },
-  (props) => props.children,
 )
 beforeEach(() => {
   jest.useFakeTimers()
@@ -52,13 +50,30 @@ const appearanceTree = (
 ) => (
   <NativeThemeProvider>
     <NativeFloatingWindowContext.Provider value={() => active}>
-      <Table {...table}>
-        <TableHeader columns={appearanceColumns} />
-        <Body>
-          <TableRow id="a" testID="first" item={{ name: "Alpha" }} columns={appearanceColumns} {...row} />
-          <TableRow id="b" testID="second" item={{ name: "Beta" }} columns={appearanceColumns} />
-        </Body>
-      </Table>
+      <Table
+        {...table}
+        items={(modelOptions) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel({ columns: appearanceColumns }, modelOptions),
+            nativeTableReceiver<React.ComponentProps<typeof Body>>(
+              "__body:1",
+              "tablebody",
+              {},
+              (visibleProps) => <Body {...visibleProps} />,
+              nativeTableChildren(
+                createNativeTableRowModel(
+                  { id: "a", testID: "first", item: { name: "Alpha" }, columns: appearanceColumns, ...row },
+                  modelOptions,
+                ),
+                createNativeTableRowModel(
+                  { id: "b", testID: "second", item: { name: "Beta" }, columns: appearanceColumns },
+                  modelOptions,
+                ),
+              ),
+            ),
+          )
+        }
+      />
     </NativeFloatingWindowContext.Provider>
   </NativeThemeProvider>
 )

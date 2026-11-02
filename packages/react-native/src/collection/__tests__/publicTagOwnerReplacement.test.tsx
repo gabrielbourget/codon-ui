@@ -1,6 +1,6 @@
 import "./nativeReceipts"
 
-import { createRef, useEffect, useState } from "react"
+import { createRef, useEffect, useMemo, useState } from "react"
 import type { TextInput, View } from "react-native"
 
 import {
@@ -11,6 +11,7 @@ import {
   TagGroup,
   TagGroupItem,
 } from "../.."
+import type { TNativeCollectionItem } from "../snapshot"
 
 import { actWithNativeCollections as act, renderWithNativeCollections as render, screen } from "./nativeReceipts"
 
@@ -31,6 +32,19 @@ it("receives asynchronous owner tag collections without replacing original group
   })
   const Owner = () => {
     const [items, setItems] = useState(initial)
+    const model = useMemo<readonly TNativeCollectionItem<(typeof initial)[number]>[]>(
+      () =>
+        items.map((item) => ({
+          key: item.id,
+          type: "item",
+          value: item,
+          props: {},
+          rendered: item.label,
+          textValue: item.label,
+          render: () => <TagGroupItem testID={`async-tag-${item.id}`}>{item.label}</TagGroupItem>,
+        })),
+      [items],
+    )
     useEffect(() => {
       let mounted = true
       void response.then((next) => {
@@ -44,9 +58,13 @@ it("receives asynchronous owner tag collections without replacing original group
       <NativeThemeProvider>
         <NativeOverlayProvider>
           <NativeFloatingLayerHost>
-            <TagGroup ref={group} items={items} selectionMode="multiple" selectedKeys={[0]} {...{ onSelectionChange }}>
-              {(item) => <TagGroupItem testID={`async-tag-${item.id}`}>{item.label}</TagGroupItem>}
-            </TagGroup>
+            <TagGroup
+              ref={group}
+              items={model}
+              selectionMode="multiple"
+              selectedKeys={[0]}
+              {...{ onSelectionChange }}
+            />
             <TagComboBox
               ref={picker}
               inputRef={editor}

@@ -140,6 +140,7 @@ it("updates the native root barrier when fields commit without changing the orig
     useInsertionEffect(
       () =>
         registry.commitField({
+          formOwnerId: null,
           descriptor: {
             ownerId: "model",
             descriptorId: "field",

@@ -8,7 +8,7 @@ import type { TNativeDragActionPacket, TNativeDragActions, TNativeDragViewBindin
 import NativeModule from "../../input/specs/NativeCUIDragAndDrop"
 import type { TNativeKeyboardEvent } from "../../input/types"
 import type { TNativeCollectionScrollHost, TNativeCollectionLayoutDelegate } from "../renderer"
-import { getNativeCollectionMetadataIdentity } from "../snapshot"
+import { getNativeCollectionNodeIdentity } from "../snapshot"
 import type { TNativeCollectionKey } from "../snapshot"
 
 import { NativeDragController } from "./controller"
@@ -526,7 +526,7 @@ export class NativeCollectionDragBinding {
     const root = this.root.current
     const original = target.type === "item" ? this.targetView(target.key) : root
     const node = target.type === "item" ? this.target?.collection.getItem(target.key) : null
-    const descriptor = node && getNativeCollectionMetadataIdentity(node)?.descriptorId
+    const descriptor = node && getNativeCollectionNodeIdentity(node)?.itemId
     const window = this.scope?.window()
     return () =>
       this.logicalCurrent() &&
@@ -540,8 +540,7 @@ export class NativeCollectionDragBinding {
       (target.type === "root" ||
         (!!node &&
           (descriptor
-            ? getNativeCollectionMetadataIdentity(this.target.collection.getItem(target.key) ?? {})?.descriptorId ===
-              descriptor
+            ? getNativeCollectionNodeIdentity(this.target.collection.getItem(target.key) ?? {})?.itemId === descriptor
             : this.target.collection.getItem(target.key) === node))) &&
       (!original || (target.type === "item" ? this.targetView(target.key) : this.root.current) === original)
   }

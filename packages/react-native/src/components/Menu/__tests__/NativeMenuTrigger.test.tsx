@@ -16,6 +16,8 @@ import { MenuItem } from "../MenuItem"
 import { NativeMenuTrigger, type TNativeMenuTriggerState, type TNativeMenuTriggerMode } from "../NativeMenuTrigger"
 import { nativeMenuTriggerMessages } from "../triggerMessages"
 
+import { menuModelEntry } from "./menuModels"
+
 const hidden = { includeHiddenElements: true }
 const row = (id: string) => screen.getByTestId(id, hidden)
 beforeEach(() => {
@@ -50,9 +52,7 @@ const setup = (mode: TNativeMenuTriggerMode = "press", controlled = false) => {
               )
             }}
           >
-            <Menu isNonModal>
-              <MenuItem id="a">Alpha</MenuItem>
-            </Menu>
+            <Menu isNonModal items={[menuModelEntry("a", <MenuItem id="a">Alpha</MenuItem>, "Alpha", "item")]} />
           </NativeMenuTrigger>
         </NativeFloatingLayerHost>
       </NativeOverlayProvider>

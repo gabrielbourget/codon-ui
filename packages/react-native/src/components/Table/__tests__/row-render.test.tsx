@@ -1,22 +1,20 @@
-import "../../../collection/__tests__/nativeReceipts"
-
 import { act as rawAct, cleanup, userEvent } from "@testing-library/react-native"
 import { createRef } from "react"
 import { AccessibilityInfo, findNodeHandle, TextInput, type View } from "react-native"
 
-import {
-  actWithNativeCollections as act,
-  renderWithNativeCollections as render,
-  screen,
-} from "../../../collection/__tests__/nativeReceipts"
 import { NativeFocusView } from "../../../input/NativeFocusView"
 import { NativeFloatingWindowContext } from "../../../overlays/floating/scope"
 import { NativeThemeProvider } from "../../../theme"
+import {
+  nativeTableChildren,
+  createNativeTableHeaderModel,
+  nativeTableReceiver,
+  createNativeTableRowModel,
+} from "../model"
 import { Table } from "../Table"
-import { TableHeader } from "../TableHeader"
-import { TableRow } from "../TableRow"
 import type { TNativeTableProps, TNativeTableRowProps } from "../types"
 
+import { actWithNativeCollections as act, renderWithNativeCollections as render, screen } from "./collectionModel"
 import { CellFixtureBody } from "./fixtures/TableCellFixture"
 
 jest.unmock("react-native/Libraries/Components/TextInput/TextInput")
@@ -38,12 +36,27 @@ const receiver = () => jest.fn<ReturnType<TRender>, Parameters<TRender>>((props)
 const tree = (row: Partial<TRow> = {}, table: TNativeTableProps = {}, active = true) => (
   <NativeThemeProvider>
     <NativeFloatingWindowContext.Provider value={() => active}>
-      <Table accessibilityLabel="Rows" {...table}>
-        <TableHeader columns={columns} />
-        <CellFixtureBody>
-          <TableRow testID="row" id="a" item={item} columns={columns} {...row} />
-        </CellFixtureBody>
-      </Table>
+      <Table
+        accessibilityLabel="Rows"
+        {...table}
+        items={(modelOptions) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel({ columns: columns }, modelOptions),
+            nativeTableReceiver<React.ComponentProps<typeof CellFixtureBody>>(
+              "__body:1",
+              "tablebody",
+              {},
+              (visibleProps) => <CellFixtureBody {...visibleProps} />,
+              nativeTableChildren(
+                createNativeTableRowModel(
+                  { testID: "row", id: "a", item: item, columns: columns, ...row },
+                  modelOptions,
+                ),
+              ),
+            ),
+          )
+        }
+      />
     </NativeFloatingWindowContext.Provider>
   </NativeThemeProvider>
 )

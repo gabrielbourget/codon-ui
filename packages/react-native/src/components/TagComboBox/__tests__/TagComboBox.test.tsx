@@ -1,23 +1,28 @@
-import "../../../collection/__tests__/nativeReceipts"
+import "../../ComboBox/__tests__/visibleCollections"
 
-import { cleanup } from "@testing-library/react-native"
-import { createRef, useState } from "react"
+import { act as rawAct, cleanup } from "@testing-library/react-native"
+import { createRef, useContext, useState, type ContextType } from "react"
 import * as RN from "react-native"
 
 import { NativeThemeProvider, TagComboBox, TagComboBoxItem, Text } from "../../.."
+import { NativeFormRegistryContext } from "../../../form/context"
+import { NativeFormRegistry } from "../../../form/registry"
+import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
+import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
+import { resolveNativeTheme } from "../../../theme/defaults"
 import {
   actWithNativeCollections as act,
   renderWithNativeCollections as render,
   fireEventWithNativeCollections as fireEvent,
   screen,
   userEvent,
-} from "../../../collection/__tests__/nativeReceipts"
-import { NativeFormRegistryContext } from "../../../form/context"
-import { NativeFormRegistry } from "../../../form/registry"
-import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
-import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
-import { resolveNativeTheme } from "../../../theme/defaults"
-import { NativeComboBoxGroupContext, NativeComboBoxPopoverContext } from "../../ComboBox/collectionContext"
+  pendingNativeCollectionActions,
+} from "../../ComboBox/__tests__/visibleCollections"
+import {
+  NativeComboBoxStateContext,
+  NativeComboBoxGroupContext,
+  NativeComboBoxPopoverContext,
+} from "../../ComboBox/collectionContext"
 import { getNativeTagComboBoxStyles } from "../styles"
 import type { TNativeTagComboBoxProps } from "../types"
 
@@ -425,9 +430,24 @@ it("registers only the original inner ComboBox key/text values rather than selec
   await render(
     wrap(
       <NativeFormRegistryContext.Provider value={registry}>
-        <TagComboBox {...base} name="key" inputRef={key} selectedItems={[items[0]]} inputValue="held" />
-        <TagComboBox {...base} name="text" inputRef={text} formValue="text" inputValue="held" />
-        <TagComboBox {...base} name="custom" inputRef={custom} formValue="key" allowsCustomValue inputValue="draft" />
+        <TagComboBox
+          {...base}
+          name="key"
+          formFieldId="key"
+          inputRef={key}
+          selectedItems={[items[0]]}
+          inputValue="held"
+        />
+        <TagComboBox {...base} name="text" formFieldId="text" inputRef={text} formValue="text" inputValue="held" />
+        <TagComboBox
+          {...base}
+          name="custom"
+          formFieldId="custom"
+          inputRef={custom}
+          formValue="key"
+          allowsCustomValue
+          inputValue="draft"
+        />
       </NativeFormRegistryContext.Provider>,
     ),
   )
@@ -457,6 +477,7 @@ it("preserves selected tags and the same original editor across a vetoed form qu
         <TagComboBox
           {...base}
           name="text"
+          formFieldId="query"
           formValue="text"
           inputRef={input}
           selectedItems={[items[0]]}
@@ -547,4 +568,184 @@ it("preserves authored root tag typography and local overrides through held owne
   await view.unmount()
   expect(root.current).toBeNull()
   expect(editor.current).toBeNull()
+})
+
+it.each([
+  ["pointer", "link"],
+  ["enter", "link"],
+  ["pointer", "action"],
+  ["enter", "action"],
+  ["pointer", "readonly"],
+  ["enter", "readonly"],
+  ["pointer", "dual"],
+  ["enter", "dual"],
+  ["tab", "dual"],
+] as const)("uses declared option metadata for %s %s through TagComboBox", async (route, kind) => {
+  const trace: unknown[] = [],
+    input = createRef<RN.TextInput>()
+  let state!: NonNullable<ContextType<typeof NativeComboBoxStateContext>>
+  const Capture = () => {
+    state = useContext(NativeComboBoxStateContext)!
+    return null
+  }
+  const native = jest.requireActual<typeof RN>("react-native")
+  const inheritedFind = jest.mocked(native.findNodeHandle).getMockImplementation()!
+  jest
+    .mocked(native.findNodeHandle)
+    .mockImplementation((target) => (target != null && target === input.current ? 888888 : inheritedFind(target)))
+  const mapper: NonNullable<TNativeTagComboBoxProps<TItem>["getOptionProps"]> = () => ({
+    href: kind === "action" ? undefined : "/declared",
+    onAction: kind === "link" ? undefined : () => trace.push("action"),
+    onNavigate: (href) => trace.push(["navigate", href]),
+    isReadOnly: kind === "readonly",
+  })
+  await render(
+    node({
+      items: [items[0]!],
+      inputRef: input,
+      inputValue: "held",
+      isOpen: true,
+      onSelectedItemsChange: () => trace.push("selected"),
+      getOptionProps: mapper,
+      customComboBoxProps: { getOptionProps: () => ({ onAction: () => trace.push("nested") }) },
+      children: (item) => (
+        <>
+          <Capture />
+          <TagComboBoxItem
+            id={item.key}
+            textValue={item.label}
+            href="/jsx-only"
+            onAction={() => trace.push("jsx-only")}
+            isReadOnly={false}
+          >
+            {item.label}
+          </TagComboBoxItem>
+        </>
+      ),
+    }),
+  )
+  const original = input.current
+  await ready()
+  if (route === "pointer") await act(() => userEvent.setup().press(screen.getByRole("option", { name: "Zero" })))
+  else {
+    await act(() => {
+      state.selectionManager.setFocused(true)
+      state.selectionManager.setFocusedKey(0)
+    })
+    if (route === "enter")
+      await act(() =>
+        row("combo-box-input").props.onSubmitEditing({
+          persist: jest.fn(),
+          nativeEvent: { text: "held", target: 888888, eventCount: 1 },
+        }),
+      )
+    else {
+      // Tab uses the original editor's observed-key route rather than treating a link as selection.
+      const scope = row("fixture-host").props
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const live = row("fixture-host").props
+        await act(() =>
+          live.onNativeObservationStatus({
+            nativeEvent: {
+              ownerId: live.ownerId,
+              windowId: "source-model-window",
+              epoch: 1,
+              observationRevision: live.observationRevision,
+              ready: true,
+              windowActive: true,
+            },
+          }),
+        )
+      }
+      const live = row("fixture-host").props
+      const registration = live.observations.find((entry: { targetTag: number }) => entry.targetTag === 888888)
+      expect(registration).toBeDefined()
+      await act(() =>
+        live.onNativeObservedKey({
+          persist: jest.fn(),
+          isDefaultPrevented: () => false,
+          nativeEvent: {
+            ownerId: scope.ownerId,
+            windowId: "source-model-window",
+            epoch: 1,
+            observationRevision: live.observationRevision,
+            observerIds: [registration.id],
+            eventId: 1,
+            target: 888888,
+            focusedTarget: 888888,
+            key: "Tab",
+            code: "Tab",
+            nativeCode: 1,
+            legacyKeyCode: 9,
+            location: 0,
+            repeat: false,
+            cancelled: false,
+            isComposing: false,
+            shiftKey: false,
+            altKey: false,
+            ctrlKey: false,
+            metaKey: false,
+            capsLock: false,
+            nativeModifierData: "0",
+            defaultCaptured: false,
+            timestamp: 1,
+          },
+        }),
+      )
+    }
+  }
+  const expected =
+    kind === "readonly" || route === "tab"
+      ? []
+      : kind === "action" || (kind === "dual" && route === "pointer")
+        ? ["action"]
+        : [["navigate", "/declared"]]
+  expect(trace).toEqual(expected)
+  expect(input.current).toBe(original)
+  expect(original).not.toBeNull()
+  expect(row("combo-box-input").props.value).toBe("held")
+})
+
+it("retires an admitted pending option when its explicit metadata mapper changes", async () => {
+  const before = jest.fn(),
+    after = jest.fn(),
+    selected = jest.fn()
+  let state!: NonNullable<ContextType<typeof NativeComboBoxStateContext>>
+  const Capture = () => {
+    state = useContext(NativeComboBoxStateContext)!
+    return null
+  }
+  const content = (onAction: () => void) =>
+    node({
+      items: [items[0]!],
+      isOpen: true,
+      inputValue: "held",
+      onSelectedItemsChange: selected,
+      getOptionProps: () => ({ onAction }),
+      children: (item) => (
+        <>
+          <Capture />
+          <TagComboBoxItem>{item.label}</TagComboBoxItem>
+        </>
+      ),
+    })
+  const view = await render(content(before))
+  await ready()
+  await act(() => {
+    state.selectionManager.setFocused(true)
+    state.selectionManager.setFocusedKey(0)
+  })
+  await rawAct(() =>
+    row("combo-box-input").props.onSubmitEditing({
+      persist: jest.fn(),
+      nativeEvent: { text: "held", target: 17, eventCount: 1 },
+    }),
+  )
+  const pending = pendingNativeCollectionActions()
+  expect(pending).toHaveLength(1)
+  await view.rerender(content(after))
+  await rawAct(() => pending[0]!.respond())
+  expect(before).not.toHaveBeenCalled()
+  expect(after).not.toHaveBeenCalled()
+  expect(selected).not.toHaveBeenCalled()
 })

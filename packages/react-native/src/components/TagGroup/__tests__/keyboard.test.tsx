@@ -1,7 +1,7 @@
 import "../../../collection/__tests__/nativeReceipts"
 
 import { fireEvent, screen } from "@testing-library/react-native"
-import { createRef, Fragment, useContext, useState, type ReactNode, type RefObject } from "react"
+import { createRef, Fragment, useContext, useState, type RefObject } from "react"
 import * as RN from "react-native"
 
 import { Button, NativeFloatingLayerHost, NativeOverlayProvider, NativeThemeProvider } from "../../.."
@@ -14,8 +14,10 @@ import {
   DefaultNativeCollectionRenderer,
   NativeCollectionRendererContext,
   type TNativeCollectionRenderer,
+  renderNativeCollectionNode,
   type TNativeCollectionRootProps,
 } from "../../../collection/renderer"
+import type { TNativeCollectionItem } from "../../../collection/snapshot"
 import { NativeListStateContext, type TNativeListState } from "../../../collection/state"
 import { nativeKeyToken } from "../../../input/keyScope"
 import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
@@ -23,6 +25,8 @@ import { encodeCollectionKey } from "../../collection"
 import { Tag } from "../Tag"
 import { TagGroup } from "../TagGroup"
 import type { TNativeTagGroupProps } from "../types"
+
+import { tagItem } from "./tagModel"
 
 jest.mock("react-native-safe-area-context", () => ({
   SafeAreaProvider: jest.requireActual("react-native").View,
@@ -32,12 +36,12 @@ const row = (id: string) => screen.getByTestId(id, { includeHiddenElements: true
 beforeEach(() => {
   jest.replaceProperty(RN.Platform, "OS", "android")
   jest.spyOn(RN.AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
-  jest.spyOn(Commands, "requestKeyboardFocus").mockImplementation(() => {})
+  jest.spyOn(Commands, "requestCollectionFocus").mockImplementation(() => {})
 })
 afterEach(() => jest.restoreAllMocks())
 const fixture = async (
   props: TNativeTagGroupProps,
-  children: ReactNode,
+  items: readonly TNativeCollectionItem<object>[],
   renderer = DefaultNativeCollectionRenderer,
   virtualFocusContext = false,
   collectionRef?: RefObject<RN.View | null>,
@@ -55,7 +59,7 @@ const fixture = async (
                   : null
               }
             >
-              <TagGroup {...props}>{children}</TagGroup>
+              <TagGroup {...props} items={items} />
             </NativeSelectableCollectionContext.Provider>
           </NativeFloatingLayerHost>
         </NativeOverlayProvider>
@@ -90,22 +94,30 @@ it.each(["enabled", "disabled", "all-disabled"] as const)(
       list = createRef<RN.View>()
     await fixture(
       { disabledKeys: mode === "enabled" ? [] : mode === "disabled" ? ["a"] : ["a", "b"] },
-      <>
-        <Tag id="a" textValue="Alpha" ref={first} autoFocus>
-          Alpha
-        </Tag>
-        <Tag id="b" textValue="Beta" ref={second}>
-          Beta
-        </Tag>
-      </>,
+      [
+        tagItem(
+          "a",
+          <Tag id="a" textValue="Alpha" ref={first} autoFocus>
+            Alpha
+          </Tag>,
+        ),
+        tagItem(
+          "b",
+          <Tag id="b" textValue="Beta" ref={second}>
+            Beta
+          </Tag>,
+        ),
+      ],
       DefaultNativeCollectionRenderer,
       false,
       list,
     )
-    expect(Commands.requestKeyboardFocus).toHaveBeenCalledTimes(1)
-    expect(Commands.requestKeyboardFocus).toHaveBeenCalledWith(
+    expect(Commands.requestCollectionFocus).toHaveBeenCalledTimes(1)
+    expect(Commands.requestCollectionFocus).toHaveBeenCalledWith(
       mode === "disabled" ? second.current : first.current,
       expect.any(String),
+      expect.any(String),
+      false,
     )
   },
 )
@@ -121,17 +133,22 @@ it("samples item autofocus on its original lifetime rather than later prop updat
       </Tag>
     )
   }
-  await fixture({}, <Authored />)
+  await fixture({}, [tagItem("a", <Authored />)])
   await act(enable)
-  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+  expect(Commands.requestCollectionFocus).not.toHaveBeenCalled()
 })
 
 it("retires initial autofocus if original input arrives before native readiness", async () => {
   await fixture(
     {},
-    <Tag id="a" autoFocus>
-      Alpha
-    </Tag>,
+    [
+      tagItem(
+        "a",
+        <Tag id="a" autoFocus>
+          Alpha
+        </Tag>,
+      ),
+    ],
     DefaultNativeCollectionRenderer,
     false,
     undefined,
@@ -142,15 +159,20 @@ it("retires initial autofocus if original input arrives before native readiness"
       })
     },
   )
-  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+  expect(Commands.requestCollectionFocus).not.toHaveBeenCalled()
 })
 
 it("does not revive initial autofocus in a replacement native window epoch", async () => {
   await fixture(
     {},
-    <Tag id="a" autoFocus>
-      Alpha
-    </Tag>,
+    [
+      tagItem(
+        "a",
+        <Tag id="a" autoFocus>
+          Alpha
+        </Tag>,
+      ),
+    ],
     DefaultNativeCollectionRenderer,
     false,
     undefined,
@@ -168,7 +190,7 @@ it("does not revive initial autofocus in a replacement native window epoch", asy
       })
     },
   )
-  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+  expect(Commands.requestCollectionFocus).not.toHaveBeenCalled()
 })
 
 it("matches the source TagGroup's physical-focus policy when the collection context requests virtual focus", async () => {
@@ -180,9 +202,14 @@ it("matches the source TagGroup's physical-focus policy when the collection cont
   const target = createRef<RN.View>()
   await fixture(
     {},
-    <Tag id="a" ref={target}>
-      Alpha
-    </Tag>,
+    [
+      tagItem(
+        "a",
+        <Tag id="a" ref={target}>
+          Alpha
+        </Tag>,
+      ),
+    ],
     { ...DefaultNativeCollectionRenderer, CollectionRoot: Root },
     true,
   )
@@ -190,8 +217,13 @@ it("matches the source TagGroup's physical-focus policy when the collection cont
     state.selectionManager.setFocused(true)
     state.selectionManager.setFocusedKey("a")
   })
-  expect(Commands.requestKeyboardFocus).toHaveBeenCalledTimes(1)
-  expect(Commands.requestKeyboardFocus).toHaveBeenCalledWith(target.current, expect.any(String))
+  expect(Commands.requestCollectionFocus).toHaveBeenCalledTimes(1)
+  expect(Commands.requestCollectionFocus).toHaveBeenCalledWith(
+    target.current,
+    expect.any(String),
+    expect.any(String),
+    false,
+  )
 })
 
 it("keeps complete state behind a partial renderer and waits for an actual offscreen focus target", async () => {
@@ -211,7 +243,7 @@ it("keeps complete state behind a partial renderer and waits for an actual offsc
     renderedProps = props
     return [...props.collection]
       .filter((node) => visible.includes(node.key))
-      .map((node) => <Fragment key={encodeCollectionKey(node.key)}>{node.render?.(node)}</Fragment>)
+      .map((node) => <Fragment key={encodeCollectionKey(node.key)}>{renderNativeCollectionNode(node)}</Fragment>)
   }
   const renderer: TNativeCollectionRenderer = {
     ...DefaultNativeCollectionRenderer,
@@ -228,17 +260,26 @@ it("keeps complete state behind a partial renderer and waits for an actual offsc
   const change = jest.fn()
   await fixture(
     { selectionMode: "multiple", selectedKeys: [], onSelectionChange: change },
-    <>
-      <Tag id={0} ref={first} testID="first">
-        First
-      </Tag>
-      <Tag id="0" ref={second} testID="second" onFocus={focus}>
-        Second
-      </Tag>
-      <Tag id="third" ref={third}>
-        Third
-      </Tag>
-    </>,
+    [
+      tagItem(
+        0,
+        <Tag id={0} ref={first} testID="first">
+          First
+        </Tag>,
+      ),
+      tagItem(
+        "0",
+        <Tag id="0" ref={second} testID="second" onFocus={focus}>
+          Second
+        </Tag>,
+      ),
+      tagItem(
+        "third",
+        <Tag id="third" ref={third}>
+          Third
+        </Tag>,
+      ),
+    ],
     renderer,
   )
   expect([...state.collection].map((node) => node.key)).toEqual([0, "0", "third"])
@@ -250,12 +291,12 @@ it("keeps complete state behind a partial renderer and waits for an actual offsc
   await scoped("ArrowDown", first.current)
   expect(requestRendering).toHaveBeenLastCalledWith("0")
   expect(scrollToKey).toHaveBeenLastCalledWith("0")
-  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+  expect(Commands.requestCollectionFocus).not.toHaveBeenCalled()
   expect(focus).not.toHaveBeenCalled()
   expect(state.selectionManager.focusedKey).toBe("0")
   expect(renderedProps.persistedKeys?.has("0")).toBe(true)
   await act(() => materialize([0, "0"]))
-  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0] === second.current).toBe(true)
+  expect(jest.mocked(Commands.requestCollectionFocus).mock.calls.at(-1)?.[0] === second.current).toBe(true)
   expect(state.selectionManager.focusedKey).toBe("0")
   const host = row("second")
   const event = {
@@ -285,19 +326,25 @@ it("advances repeated logical navigation and keeps older focus acknowledgements 
     state = useContext(NativeListStateContext)!
     return [...collection]
       .filter((node) => all || node.key === 0)
-      .map((node) => <Fragment key={encodeCollectionKey(node.key)}>{node.render?.(node)}</Fragment>)
+      .map((node) => <Fragment key={encodeCollectionKey(node.key)}>{renderNativeCollectionNode(node)}</Fragment>)
   }
   await fixture(
     {},
-    <>
-      <Tag id={0} ref={first} testID="first">
-        First
-      </Tag>
-      <Tag id="middle">Middle</Tag>
-      <Tag id="last" ref={last} onFocus={focus}>
-        Last
-      </Tag>
-    </>,
+    [
+      tagItem(
+        0,
+        <Tag id={0} ref={first} testID="first">
+          First
+        </Tag>,
+      ),
+      tagItem("middle", <Tag id="middle">Middle</Tag>),
+      tagItem(
+        "last",
+        <Tag id="last" ref={last} onFocus={focus}>
+          Last
+        </Tag>,
+      ),
+    ],
     { ...DefaultNativeCollectionRenderer, isVirtualized: true, CollectionRoot: Root },
   )
   await scoped("ArrowDown", first.current)
@@ -319,7 +366,7 @@ it("advances repeated logical navigation and keeps older focus acknowledgements 
   expect(state.selectionManager.focusedKey).toBe("last")
   expect(focus).not.toHaveBeenCalled()
   await act(materialize)
-  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0] === last.current).toBe(true)
+  expect(jest.mocked(Commands.requestCollectionFocus).mock.calls.at(-1)?.[0] === last.current).toBe(true)
   expect(focus).not.toHaveBeenCalled()
 })
 
@@ -332,18 +379,24 @@ it("rejects a pending offscreen focus request after its native window retires", 
     materialize = () => setAll(true)
     return [...collection]
       .filter((node) => all || node.key === "first")
-      .map((node) => <Fragment key={encodeCollectionKey(node.key)}>{node.render?.(node)}</Fragment>)
+      .map((node) => <Fragment key={encodeCollectionKey(node.key)}>{renderNativeCollectionNode(node)}</Fragment>)
   }
   await fixture(
     {},
-    <>
-      <Tag id="first" ref={first}>
-        First
-      </Tag>
-      <Tag id="second" ref={second}>
-        Second
-      </Tag>
-    </>,
+    [
+      tagItem(
+        "first",
+        <Tag id="first" ref={first}>
+          First
+        </Tag>,
+      ),
+      tagItem(
+        "second",
+        <Tag id="second" ref={second}>
+          Second
+        </Tag>,
+      ),
+    ],
     { ...DefaultNativeCollectionRenderer, isVirtualized: true, CollectionRoot: Root },
   )
   await scoped("ArrowDown", first.current)
@@ -362,7 +415,7 @@ it("rejects a pending offscreen focus request after its native window retires", 
   )
   await act(materialize)
   expect(second.current).not.toBeNull()
-  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+  expect(Commands.requestCollectionFocus).not.toHaveBeenCalled()
 })
 const scoped = async (
   value: string,
@@ -419,15 +472,15 @@ it("routes a captured deletion from an authored remove-slot target through its c
       </Button>
     ) : null
   }
-  await fixture(
-    { selectionMode: "multiple", selectedKeys: ["a", "b"], onRemove: remove },
-    <>
+  await fixture({ selectionMode: "multiple", selectedKeys: ["a", "b"], onRemove: remove }, [
+    tagItem(
+      "a",
       <Tag id="a" textValue="Alpha">
         <Authored />
-      </Tag>
-      <Tag id="b">Beta</Tag>
-    </>,
-  )
+      </Tag>,
+    ),
+    tagItem("b", <Tag id="b">Beta</Tag>),
+  ])
   const target = RN.findNodeHandle(custom.current)
   expect(target).not.toBeNull()
   await scoped("Backspace", custom.current)
@@ -441,12 +494,14 @@ it("Delete/Backspace requests selected owner membership, while the remove button
   const ref = createRef<RN.View>(),
     remove = jest.fn(),
     owner = new Set<string | number>([0, "missing"])
-  await fixture(
-    { selectionMode: "multiple", selectedKeys: owner, onRemove: remove },
-    <Tag ref={ref} id={0} testID="zero">
-      Zero
-    </Tag>,
-  )
+  await fixture({ selectionMode: "multiple", selectedKeys: owner, onRemove: remove }, [
+    tagItem(
+      0,
+      <Tag ref={ref} id={0} testID="zero">
+        Zero
+      </Tag>,
+    ),
+  ])
   await scoped("Delete", ref.current)
   await scoped("Backspace", ref.current)
   expect(remove.mock.calls.map(([keys]) => [...keys])).toEqual([
@@ -460,12 +515,14 @@ it("Delete/Backspace requests selected owner membership, while the remove button
 it("none mode and unselected items remove only their own typed key", async () => {
   const ref = createRef<RN.View>(),
     remove = jest.fn()
-  await fixture(
-    { selectionMode: "none", selectedKeys: [0, "missing"], onRemove: remove },
-    <Tag ref={ref} id="" testID="empty">
-      Empty
-    </Tag>,
-  )
+  await fixture({ selectionMode: "none", selectedKeys: [0, "missing"], onRemove: remove }, [
+    tagItem(
+      "",
+      <Tag ref={ref} id="" testID="empty">
+        Empty
+      </Tag>,
+    ),
+  ])
   await scoped("Delete", ref.current)
   expect([...remove.mock.calls[0][0]]).toEqual([""])
 })
@@ -476,38 +533,49 @@ it("navigates actual item refs with wrapping and disabled skipping without chang
     change = jest.fn()
   await fixture(
     { selectionMode: "multiple", selectedKeys: [0], selectionBehavior: "replace", onSelectionChange: change },
-    <>
-      <Tag ref={a} id={0}>
-        Zero
-      </Tag>
-      <Tag ref={b} id="disabled" isDisabled>
-        Disabled
-      </Tag>
-      <Tag ref={c} id="">
-        Empty
-      </Tag>
-    </>,
+    [
+      tagItem(
+        0,
+        <Tag ref={a} id={0}>
+          Zero
+        </Tag>,
+      ),
+      tagItem(
+        "disabled",
+        <Tag ref={b} id="disabled" isDisabled>
+          Disabled
+        </Tag>,
+      ),
+      tagItem(
+        "",
+        <Tag ref={c} id="">
+          Empty
+        </Tag>,
+      ),
+    ],
   )
   await scoped("ArrowDown", a.current)
-  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0] === c.current).toBe(true)
+  expect(jest.mocked(Commands.requestCollectionFocus).mock.calls.at(-1)?.[0] === c.current).toBe(true)
   expect([...change.mock.calls[0][0]]).toEqual([""])
   await scoped("ArrowDown", c.current)
-  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0] === a.current).toBe(true)
+  expect(jest.mocked(Commands.requestCollectionFocus).mock.calls.at(-1)?.[0] === a.current).toBe(true)
   await scoped("Home", c.current)
-  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0] === a.current).toBe(true)
+  expect(jest.mocked(Commands.requestCollectionFocus).mock.calls.at(-1)?.[0] === a.current).toBe(true)
   await scoped("End", a.current)
-  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0] === c.current).toBe(true)
+  expect(jest.mocked(Commands.requestCollectionFocus).mock.calls.at(-1)?.[0] === c.current).toBe(true)
   expect(b.current).not.toBeNull()
 })
 it("does not capture ordinary letters and retains typed select-all/escape owner requests", async () => {
   const ref = createRef<RN.View>(),
     change = jest.fn()
-  await fixture(
-    { selectionMode: "multiple", selectedKeys: [], onSelectionChange: change },
-    <Tag ref={ref} id={0}>
-      Zero
-    </Tag>,
-  )
+  await fixture({ selectionMode: "multiple", selectedKeys: [], onSelectionChange: change }, [
+    tagItem(
+      0,
+      <Tag ref={ref} id={0}>
+        Zero
+      </Tag>,
+    ),
+  ])
   const tokens = row("host").props.policies.flatMap((policy: { tokens: string[] }) => policy.tokens)
   expect(tokens).not.toContain("0000:a")
   expect(tokens).toContain("0010:ArrowRight")
@@ -519,12 +587,14 @@ it("does not capture ordinary letters and retains typed select-all/escape owner 
 it("rejects key-up, cancelled removal and retired window epochs while admitting valid repeats", async () => {
   const ref = createRef<RN.View>(),
     remove = jest.fn()
-  await fixture(
-    { onRemove: remove },
-    <Tag ref={ref} id={0}>
-      Zero
-    </Tag>,
-  )
+  await fixture({ onRemove: remove }, [
+    tagItem(
+      0,
+      <Tag ref={ref} id={0}>
+        Zero
+      </Tag>,
+    ),
+  ])
   await scoped("Delete", ref.current, "0000:Delete", { phase: "up" })
   await scoped("Delete", ref.current, "0000:Delete", { cancelled: true })
   await scoped("Delete", ref.current, "0000:Delete", { epoch: 0 })
@@ -538,12 +608,14 @@ it("preserves owner keys on Escape when selection mode is omitted and defaults t
   const ref = createRef<RN.View>(),
     change = jest.fn(),
     owner = new Set([0])
-  await fixture(
-    { selectedKeys: owner, onSelectionChange: change },
-    <Tag ref={ref} id={0}>
-      Zero
-    </Tag>,
-  )
+  await fixture({ selectedKeys: owner, onSelectionChange: change }, [
+    tagItem(
+      0,
+      <Tag ref={ref} id={0}>
+        Zero
+      </Tag>,
+    ),
+  ])
   await scoped("Escape", ref.current)
   expect(change).not.toHaveBeenCalled()
   expect([...owner]).toEqual([0])
@@ -563,20 +635,32 @@ const navigationFixture = async (props: TNativeTagGroupProps = {}, links = false
       onSelectionChange: change,
       ...props,
     },
-    <>
-      <Tag ref={first} id={0}>
-        Alpha
-      </Tag>
-      <Tag id="disabled" isDisabled>
-        Disabled
-      </Tag>
-      <Tag ref={middle} id="" href={links ? "https://example.test/beta" : undefined}>
-        Beta
-      </Tag>
-      <Tag ref={last} id="tail" href={links ? "https://example.test/charlie" : undefined}>
-        Charlie
-      </Tag>
-    </>,
+    [
+      tagItem(
+        0,
+        <Tag ref={first} id={0}>
+          Alpha
+        </Tag>,
+      ),
+      tagItem(
+        "disabled",
+        <Tag id="disabled" isDisabled>
+          Disabled
+        </Tag>,
+      ),
+      tagItem(
+        "",
+        <Tag ref={middle} id="" href={links ? "https://example.test/beta" : undefined}>
+          Beta
+        </Tag>,
+      ),
+      tagItem(
+        "tail",
+        <Tag ref={last} id="tail" href={links ? "https://example.test/charlie" : undefined}>
+          Charlie
+        </Tag>,
+      ),
+    ],
   )
   return { first, middle, last, change, owner, view }
 }
@@ -592,14 +676,14 @@ it.each([
 ] as const)("matches the web $key focus target through actual native refs", async ({ key, target }) => {
   const f = await navigationFixture()
   await scoped(key, f.first.current)
-  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0] === f[target].current).toBe(true)
+  expect(jest.mocked(Commands.requestCollectionFocus).mock.calls.at(-1)?.[0] === f[target].current).toBe(true)
   expect([...f.owner]).toEqual([0])
 })
 it("matches source PageDown extension without inventing an anchor on the owner's plain set", async () => {
   const f = await navigationFixture()
   await scoped("PageDown", f.first.current, "1000:PageDown", { shiftKey: true })
   expect(f.change.mock.calls.map(([keys]) => [...keys])).toEqual([[0, "tail"]])
-  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0] === f.last.current).toBe(true)
+  expect(jest.mocked(Commands.requestCollectionFocus).mock.calls.at(-1)?.[0] === f.last.current).toBe(true)
   expect([...f.owner]).toEqual([0])
 })
 it.each([
@@ -612,7 +696,7 @@ it.each([
   const f = await navigationFixture({ selectionBehavior: behavior })
   const data = { key: "ArrowDown", shiftKey: false, ctrlKey: false, altKey: false, metaKey: false, ...modifiers }
   await scoped(data.key, f.first.current, nativeKeyToken(data), data)
-  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0] === f.middle.current).toBe(true)
+  expect(jest.mocked(Commands.requestCollectionFocus).mock.calls.at(-1)?.[0] === f.middle.current).toBe(true)
   expect(f.change.mock.calls.map(([keys]) => [...keys])).toEqual(expected ? [expected] : [])
   expect([...f.owner]).toEqual([0])
 })
@@ -625,13 +709,13 @@ it.each([
   const data = { key: "End", shiftKey: false, ctrlKey: false, altKey: false, metaKey: false, ...modifiers }
   await scoped(data.key, f.first.current, nativeKeyToken(data), data)
   expect(f.change.mock.calls.map(([keys]) => [...keys])).toEqual([expected])
-  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0] === f.last.current).toBe(true)
+  expect(jest.mocked(Commands.requestCollectionFocus).mock.calls.at(-1)?.[0] === f.last.current).toBe(true)
   expect([...f.owner]).toEqual([0])
 })
 it("preserves arrow link override while Home/End follows the selection manager", async () => {
   const f = await navigationFixture({}, true)
   await scoped("ArrowDown", f.first.current)
-  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0] === f.middle.current).toBe(true)
+  expect(jest.mocked(Commands.requestCollectionFocus).mock.calls.at(-1)?.[0] === f.middle.current).toBe(true)
   expect(f.change).not.toHaveBeenCalled()
   await scoped("End", f.middle.current)
   expect([...f.change.mock.calls[0][0]]).toEqual(["tail"])
@@ -658,7 +742,7 @@ it.each([
   jest.replaceProperty(RN.I18nManager, "isRTL", true)
   const f = await navigationFixture()
   await scoped(key, f.first.current)
-  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0] === f[target].current).toBe(true)
+  expect(jest.mocked(Commands.requestCollectionFocus).mock.calls.at(-1)?.[0] === f[target].current).toBe(true)
 })
 it.each(["all", new Set([0, "", "tail"])] as const)(
   "Select All never clears the already-complete %s owner",

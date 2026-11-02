@@ -231,6 +231,12 @@ interface NativeCommands {
     request: string,
   ) => void
   inspectAccessibility: (viewRef: React.ElementRef<TNativeComponent>, ownerId: string) => void
+  requestCollectionFocus: (
+    viewRef: React.ElementRef<TNativeComponent>,
+    ownerId: string,
+    binding: string,
+    container: boolean,
+  ) => void
   requestKeyboardFocus: (viewRef: React.ElementRef<TNativeComponent>, ownerId: string) => void
   requestContainerFocus: (viewRef: React.ElementRef<TNativeComponent>, ownerId: string) => void
   requestKeyboardBlur: (viewRef: React.ElementRef<TNativeComponent>, ownerId: string) => void
@@ -238,6 +244,7 @@ interface NativeCommands {
 
 export const Commands = codegenNativeCommands<NativeCommands>({
   supportedCommands: [
+    "requestCollectionFocus",
     "requestKeyboardFocus",
     "requestContainerFocus",
     "requestKeyboardBlur",

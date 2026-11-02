@@ -343,49 +343,46 @@ it("keeps group focus styling and owner callbacks tied to the original admitted 
   expect(onFocusChange).toHaveBeenLastCalledWith(false)
 })
 
-it.each([false, true])(
-  "binds complete original segments and live description/error slots: invalid=%s",
-  async (invalid) => {
-    await render(
-      <NativeTimePickerRenderer
-        value={new Time(13, 45)}
-        validationBehavior="aria"
-        validate={() => (invalid ? "Rejected clock" : null)}
-        nativeAccessibilityLabels={{ required: "Obligatoire", readOnly: "Lecture seule" }}
-        render={(props) => (
-          <NativeFocusHost {...props}>
-            <NativeTimeFieldLabel testID="semantic-label">Clock label</NativeTimeFieldLabel>
-            <NativeTimeFieldText slot="description" testID="semantic-description">
-              Time helper
-            </NativeTimeFieldText>
-            {props.children}
-            <NativeTimeFieldError testID="semantic-error" />
-          </NativeFocusHost>
-        )}
-      />,
-    )
-    const metadata = () => screen.getByTestId("field-metadata", { includeHiddenElements: true })
-    expect(metadata().props.semanticBinding).toBe("")
-    await send(0)
-    expect(metadata().props.semanticBinding).toBe("")
-    await send(1)
-    const owned = JSON.parse(metadata().props.ownedEditorBinding),
-      frame = JSON.parse(metadata().props.semanticBinding)
-    expect(owned.segments).toHaveLength(2)
-    expect(frame.dateField.firstEditableTarget).toBe(owned.segments[0].target)
-    expect(frame.invalid).toBe(invalid)
-    expect(frame.labels).toMatchObject({ required: "Obligatoire", readOnly: "Lecture seule" })
-    expect(frame.labelledBy).toEqual([screen.getByTestId("semantic-label").props.nativeID])
-    expect(frame.describedBy).toEqual([
-      screen.getByTestId("time-picker-selected-description", { includeHiddenElements: true }).props.nativeID,
-      screen.getByTestId("semantic-description").props.nativeID,
-    ])
-    expect(frame.errorMessageBy).toEqual(invalid ? [screen.getByTestId("semantic-error").props.nativeID] : [])
-    expect(frame.aliases.map((entry: { id: string }) => entry.id)).toEqual(
-      expect.arrayContaining([...frame.labelledBy, ...frame.describedBy, ...frame.errorMessageBy]),
-    )
-  },
-)
+it.each([false, true])("binds complete original segments and explicit semantic text: invalid=%s", async (invalid) => {
+  await render(
+    <NativeTimePickerRenderer
+      value={new Time(13, 45)}
+      validationBehavior="aria"
+      validate={() => (invalid ? "Rejected clock" : null)}
+      nativeAccessibilityText={{ label: "Clock label", description: "Time helper" }}
+      nativeAccessibilityLabels={{ required: "Obligatoire", readOnly: "Lecture seule" }}
+      render={(props) => (
+        <NativeFocusHost {...props}>
+          <NativeTimeFieldLabel testID="semantic-label">Clock label</NativeTimeFieldLabel>
+          <NativeTimeFieldText slot="description" testID="semantic-description">
+            Time helper
+          </NativeTimeFieldText>
+          {props.children}
+          <NativeTimeFieldError testID="semantic-error" />
+        </NativeFocusHost>
+      )}
+    />,
+  )
+  const metadata = () => screen.getByTestId("field-metadata", { includeHiddenElements: true })
+  expect(metadata().props.semanticBinding).toBe("")
+  await send(0)
+  expect(metadata().props.semanticBinding).toBe("")
+  await send(1)
+  const owned = JSON.parse(metadata().props.ownedEditorBinding),
+    frame = JSON.parse(metadata().props.semanticBinding)
+  expect(owned.segments).toHaveLength(2)
+  expect(frame.dateField.firstEditableTarget).toBe(owned.segments[0].target)
+  expect(frame.invalid).toBe(invalid)
+  expect(frame.labels).toMatchObject({ required: "Obligatoire", readOnly: "Lecture seule" })
+  expect(frame.text.label).toBe("Clock label")
+  expect(frame.text.description).toContain("Time helper")
+  expect(frame.text.description).toContain(
+    screen.getByTestId("time-picker-selected-description", { includeHiddenElements: true }).props.children,
+  )
+  expect(frame.text.errorMessage).toBe(invalid ? "Rejected clock" : "")
+  expect(frame).not.toHaveProperty("aliases")
+  expect(frame).not.toHaveProperty("labelledBy")
+})
 
 it("keeps parent form metadata ahead of an independently owned field in the icon slot", async () => {
   await render(

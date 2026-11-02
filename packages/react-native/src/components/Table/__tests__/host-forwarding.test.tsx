@@ -1,5 +1,3 @@
-import "../../../collection/__tests__/nativeReceipts"
-
 import { createRef } from "react"
 import {
   findNodeHandle,
@@ -10,14 +8,17 @@ import {
   type PointerEvent,
 } from "react-native"
 
-import { NativeFocusView, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "../../.."
-import {
-  actWithNativeCollections as act,
-  renderWithNativeCollections as render,
-  screen,
-} from "../../../collection/__tests__/nativeReceipts"
+import { NativeFocusView, Table, TableCell, TableColumn } from "../../.."
 import { NativeThemeProvider } from "../../../theme"
+import {
+  nativeTableChildren,
+  createNativeTableHeaderModel,
+  createNativeTableBodyModel,
+  nativeTableReceiver,
+  createNativeTableRowModel,
+} from "../model"
 
+import { actWithNativeCollections as act, renderWithNativeCollections as render, screen } from "./collectionModel"
 import { CellFixtureBody, CellFixtureRow } from "./fixtures/TableCellFixture"
 import { ColumnFixtureHeader } from "./fixtures/TableColumnFixture"
 
@@ -85,55 +86,95 @@ it.each(["generated", "raw"] as const)(
         <Table
           {...hostProps("root")}
           render={custom ? (props) => <NativeFocusView {...remember("root", props)} /> : undefined}
-        >
-          {kind === "generated" ? (
-            <>
-              <TableHeader
-                {...hostProps("header")}
-                columns={columns}
-                render={custom ? (props) => <View {...remember("header", props)} /> : undefined}
-              />
-              <TableBody
-                {...hostProps("body")}
-                items={items}
-                columns={bodyColumns}
-                render={custom ? (props) => <View {...remember("body", props)} /> : undefined}
-              />
-            </>
-          ) : (
-            <>
-              <ColumnFixtureHeader>
-                <TableColumn
-                  {...hostProps("column")}
-                  id="name"
-                  columnID="name"
-                  isRowHeader
-                  render={custom ? (props) => <NativeFocusView {...remember("column", props)} /> : undefined}
-                >
-                  Name
-                </TableColumn>
-              </ColumnFixtureHeader>
-              <CellFixtureBody>
-                <TableRow
-                  {...hostProps("row")}
-                  id="row"
-                  item={items[0]}
-                  columns={columns}
-                  render={custom ? (props) => <NativeFocusView {...remember("row", props)} /> : undefined}
-                />
-                <CellFixtureRow id="cell-row">
-                  <TableCell
-                    {...hostProps("cell")}
-                    columnID="name"
-                    render={custom ? (props) => <NativeFocusView {...remember("cell", props)} /> : undefined}
-                  >
-                    {heldEditor()}
-                  </TableCell>
-                </CellFixtureRow>
-              </CellFixtureBody>
-            </>
-          )}
-        </Table>
+          items={(modelOptions) =>
+            nativeTableChildren(
+              kind === "generated"
+                ? nativeTableChildren(
+                    createNativeTableHeaderModel(
+                      {
+                        ...hostProps("header"),
+                        columns: columns,
+                        render: custom ? (props) => <View {...remember("header", props)} /> : undefined,
+                      },
+                      modelOptions,
+                    ),
+                    createNativeTableBodyModel(
+                      {
+                        ...hostProps("body"),
+                        items: items,
+                        columns: bodyColumns,
+                        render: custom ? (props) => <View {...remember("body", props)} /> : undefined,
+                      },
+                      modelOptions,
+                    ),
+                  )
+                : nativeTableChildren(
+                    nativeTableReceiver<React.ComponentProps<typeof ColumnFixtureHeader>>(
+                      "__header:1",
+                      "tableheader",
+                      {},
+                      (visibleProps) => <ColumnFixtureHeader {...visibleProps} />,
+                      nativeTableChildren(
+                        nativeTableReceiver<React.ComponentProps<typeof TableColumn>>(
+                          "name",
+                          "column",
+                          {
+                            ...hostProps("column"),
+                            id: "name",
+                            columnID: "name",
+                            isRowHeader: true,
+                            render: custom ? (props) => <NativeFocusView {...remember("column", props)} /> : undefined,
+                            children: <>Name</>,
+                          },
+                          (visibleProps) => <TableColumn {...visibleProps} />,
+                          [],
+                        ),
+                      ),
+                    ),
+                    nativeTableReceiver<React.ComponentProps<typeof CellFixtureBody>>(
+                      "__body:2",
+                      "tablebody",
+                      {},
+                      (visibleProps) => <CellFixtureBody {...visibleProps} />,
+                      nativeTableChildren(
+                        createNativeTableRowModel(
+                          {
+                            ...hostProps("row"),
+                            id: "row",
+                            item: items[0],
+                            columns: columns,
+                            render: custom ? (props) => <NativeFocusView {...remember("row", props)} /> : undefined,
+                          },
+                          modelOptions,
+                        ),
+                        nativeTableReceiver<React.ComponentProps<typeof CellFixtureRow>>(
+                          "cell-row",
+                          "item",
+                          { id: "cell-row" },
+                          (visibleProps) => <CellFixtureRow {...visibleProps} />,
+                          nativeTableChildren(
+                            nativeTableReceiver<React.ComponentProps<typeof TableCell>>(
+                              "__cell:3",
+                              "cell",
+                              {
+                                ...hostProps("cell"),
+                                columnID: "name",
+                                render: custom
+                                  ? (props) => <NativeFocusView {...remember("cell", props)} />
+                                  : undefined,
+                                children: heldEditor(),
+                              },
+                              (visibleProps) => <TableCell {...visibleProps} />,
+                              [],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+            )
+          }
+        />
       </NativeThemeProvider>
     )
     const parts =
@@ -217,71 +258,103 @@ it.each(["generated", "raw"] as const)(
             render={
               step.custom ? (host) => <NativeFocusView {...host} style={[host.style, step.rendererStyle]} /> : undefined
             }
-          >
-            {kind === "generated" ? (
-              <>
-                <TableHeader
-                  {...props("header")}
-                  columns={columns}
-                  render={
-                    step.custom ? (host) => <View {...host} style={[host.style, step.rendererStyle]} /> : undefined
-                  }
-                />
-                <TableBody
-                  {...props("body")}
-                  items={items}
-                  columns={bodyColumns}
-                  render={
-                    step.custom ? (host) => <View {...host} style={[host.style, step.rendererStyle]} /> : undefined
-                  }
-                />
-              </>
-            ) : (
-              <>
-                <ColumnFixtureHeader>
-                  <TableColumn
-                    {...props("column")}
-                    id="name"
-                    columnID="name"
-                    isRowHeader
-                    render={
-                      step.custom
-                        ? (host) => <NativeFocusView {...host} style={[host.style, step.rendererStyle]} />
-                        : undefined
-                    }
-                  >
-                    Name
-                  </TableColumn>
-                </ColumnFixtureHeader>
-                <CellFixtureBody>
-                  <TableRow
-                    {...props("row")}
-                    id="row"
-                    item={items[0]}
-                    columns={columns}
-                    render={
-                      step.custom
-                        ? (host) => <NativeFocusView {...host} style={[host.style, step.rendererStyle]} />
-                        : undefined
-                    }
-                  />
-                  <CellFixtureRow id="cell-row">
-                    <TableCell
-                      {...props("cell")}
-                      columnID="name"
-                      render={
-                        step.custom
-                          ? (host) => <NativeFocusView {...host} style={[host.style, step.rendererStyle]} />
-                          : undefined
-                      }
-                    >
-                      {heldEditor()}
-                    </TableCell>
-                  </CellFixtureRow>
-                </CellFixtureBody>
-              </>
-            )}
-          </Table>
+            items={(modelOptions) =>
+              nativeTableChildren(
+                kind === "generated"
+                  ? nativeTableChildren(
+                      createNativeTableHeaderModel(
+                        {
+                          ...props("header"),
+                          columns: columns,
+                          render: step.custom
+                            ? (host) => <View {...host} style={[host.style, step.rendererStyle]} />
+                            : undefined,
+                        },
+                        modelOptions,
+                      ),
+                      createNativeTableBodyModel(
+                        {
+                          ...props("body"),
+                          items: items,
+                          columns: bodyColumns,
+                          render: step.custom
+                            ? (host) => <View {...host} style={[host.style, step.rendererStyle]} />
+                            : undefined,
+                        },
+                        modelOptions,
+                      ),
+                    )
+                  : nativeTableChildren(
+                      nativeTableReceiver<React.ComponentProps<typeof ColumnFixtureHeader>>(
+                        "__header:4",
+                        "tableheader",
+                        {},
+                        (visibleProps) => <ColumnFixtureHeader {...visibleProps} />,
+                        nativeTableChildren(
+                          nativeTableReceiver<React.ComponentProps<typeof TableColumn>>(
+                            "name",
+                            "column",
+                            {
+                              ...props("column"),
+                              id: "name",
+                              columnID: "name",
+                              isRowHeader: true,
+                              render: step.custom
+                                ? (host) => <NativeFocusView {...host} style={[host.style, step.rendererStyle]} />
+                                : undefined,
+                              children: <>Name</>,
+                            },
+                            (visibleProps) => <TableColumn {...visibleProps} />,
+                            [],
+                          ),
+                        ),
+                      ),
+                      nativeTableReceiver<React.ComponentProps<typeof CellFixtureBody>>(
+                        "__body:5",
+                        "tablebody",
+                        {},
+                        (visibleProps) => <CellFixtureBody {...visibleProps} />,
+                        nativeTableChildren(
+                          createNativeTableRowModel(
+                            {
+                              ...props("row"),
+                              id: "row",
+                              item: items[0],
+                              columns: columns,
+                              render: step.custom
+                                ? (host) => <NativeFocusView {...host} style={[host.style, step.rendererStyle]} />
+                                : undefined,
+                            },
+                            modelOptions,
+                          ),
+                          nativeTableReceiver<React.ComponentProps<typeof CellFixtureRow>>(
+                            "cell-row",
+                            "item",
+                            { id: "cell-row" },
+                            (visibleProps) => <CellFixtureRow {...visibleProps} />,
+                            nativeTableChildren(
+                              nativeTableReceiver<React.ComponentProps<typeof TableCell>>(
+                                "__cell:6",
+                                "cell",
+                                {
+                                  ...props("cell"),
+                                  columnID: "name",
+                                  render: step.custom
+                                    ? (host) => <NativeFocusView {...host} style={[host.style, step.rendererStyle]} />
+                                    : undefined,
+                                  children: heldEditor(),
+                                },
+                                (visibleProps) => <TableCell {...visibleProps} />,
+                                [],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+              )
+            }
+          />
         </NativeThemeProvider>
       )
     }
@@ -404,55 +477,97 @@ it.each(["generated", "raw"] as const)(
             onRowAction={action}
             {...hostProps("root", observe)}
             render={custom ? (props) => <NativeFocusView {...remember("root", props)} /> : undefined}
-          >
-            {kind === "generated" ? (
-              <>
-                <TableHeader
-                  {...hostProps("header", observe)}
-                  columns={columns}
-                  render={custom ? (props) => <View {...remember("header", props)} /> : undefined}
-                />
-                <TableBody
-                  {...hostProps("body", observe)}
-                  items={items}
-                  columns={bodyColumns}
-                  render={custom ? (props) => <View {...remember("body", props)} /> : undefined}
-                />
-              </>
-            ) : (
-              <>
-                <ColumnFixtureHeader>
-                  <TableColumn
-                    {...hostProps("column", observe)}
-                    id="name"
-                    columnID="name"
-                    isRowHeader
-                    render={custom ? (props) => <NativeFocusView {...remember("column", props)} /> : undefined}
-                  >
-                    Name
-                  </TableColumn>
-                </ColumnFixtureHeader>
-                <CellFixtureBody>
-                  <TableRow
-                    {...hostProps("row", observe)}
-                    id="row"
-                    item={items[0]}
-                    columns={columns}
-                    render={custom ? (props) => <NativeFocusView {...remember("row", props)} /> : undefined}
-                  />
-                  <CellFixtureRow id="cell-row">
-                    <TableCell
-                      {...hostProps("cell", observe)}
-                      columnID="name"
-                      render={custom ? (props) => <NativeFocusView {...remember("cell", props)} /> : undefined}
-                    >
-                      {heldEditor()}
-                    </TableCell>
-                  </CellFixtureRow>
-                </CellFixtureBody>
-              </>
-            )}
-          </Table>
+            items={(modelOptions) =>
+              nativeTableChildren(
+                kind === "generated"
+                  ? nativeTableChildren(
+                      createNativeTableHeaderModel(
+                        {
+                          ...hostProps("header", observe),
+                          columns: columns,
+                          render: custom ? (props) => <View {...remember("header", props)} /> : undefined,
+                        },
+                        modelOptions,
+                      ),
+                      createNativeTableBodyModel(
+                        {
+                          ...hostProps("body", observe),
+                          items: items,
+                          columns: bodyColumns,
+                          render: custom ? (props) => <View {...remember("body", props)} /> : undefined,
+                        },
+                        modelOptions,
+                      ),
+                    )
+                  : nativeTableChildren(
+                      nativeTableReceiver<React.ComponentProps<typeof ColumnFixtureHeader>>(
+                        "__header:7",
+                        "tableheader",
+                        {},
+                        (visibleProps) => <ColumnFixtureHeader {...visibleProps} />,
+                        nativeTableChildren(
+                          nativeTableReceiver<React.ComponentProps<typeof TableColumn>>(
+                            "name",
+                            "column",
+                            {
+                              ...hostProps("column", observe),
+                              id: "name",
+                              columnID: "name",
+                              isRowHeader: true,
+                              render: custom
+                                ? (props) => <NativeFocusView {...remember("column", props)} />
+                                : undefined,
+                              children: <>Name</>,
+                            },
+                            (visibleProps) => <TableColumn {...visibleProps} />,
+                            [],
+                          ),
+                        ),
+                      ),
+                      nativeTableReceiver<React.ComponentProps<typeof CellFixtureBody>>(
+                        "__body:8",
+                        "tablebody",
+                        {},
+                        (visibleProps) => <CellFixtureBody {...visibleProps} />,
+                        nativeTableChildren(
+                          createNativeTableRowModel(
+                            {
+                              ...hostProps("row", observe),
+                              id: "row",
+                              item: items[0],
+                              columns: columns,
+                              render: custom ? (props) => <NativeFocusView {...remember("row", props)} /> : undefined,
+                            },
+                            modelOptions,
+                          ),
+                          nativeTableReceiver<React.ComponentProps<typeof CellFixtureRow>>(
+                            "cell-row",
+                            "item",
+                            { id: "cell-row" },
+                            (visibleProps) => <CellFixtureRow {...visibleProps} />,
+                            nativeTableChildren(
+                              nativeTableReceiver<React.ComponentProps<typeof TableCell>>(
+                                "__cell:9",
+                                "cell",
+                                {
+                                  ...hostProps("cell", observe),
+                                  columnID: "name",
+                                  render: custom
+                                    ? (props) => <NativeFocusView {...remember("cell", props)} />
+                                    : undefined,
+                                  children: heldEditor(),
+                                },
+                                (visibleProps) => <TableCell {...visibleProps} />,
+                                [],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+              )
+            }
+          />
         </NativeThemeProvider>
       )
       const parts =

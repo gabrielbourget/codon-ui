@@ -9,6 +9,7 @@ import {
   type RefAttributes,
 } from "react"
 
+import type { TNativeCollectionItem } from "../../collection/snapshot"
 import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeTheme } from "../../theme"
 import { useNativeBorderTransition } from "../borderMotion"
@@ -160,6 +161,53 @@ const TagComboBoxInner = <T extends object>(
   } = customComboBoxProps ?? {}
   const { customStyles: nestedTagsStyles, ...innerTags } = customTagGroupProps ?? {}
   const { customStyles: nestedTagStyles, ...innerTag } = customTagProps ?? {}
+  const tagItems = useMemo(
+    (): readonly TNativeCollectionItem<T>[] =>
+      selectedItems.map((item) => ({
+        key: getItemKey(item),
+        type: "item",
+        value: item,
+        rendered: getItemTextValue(item),
+        textValue: getItemTextValue(item),
+        props: { isDisabled: props.isDisabled || customTagProps?.isDisabled },
+        render: () => (
+          <Tag
+            color={color}
+            geometry={geometry}
+            order={order}
+            raised
+            {...innerTag}
+            id={getItemKey(item)}
+            textValue={getItemTextValue(item)}
+            isDisabled={props.isDisabled || innerTag.isDisabled}
+            customStyles={[customTagStyles, nestedTagStyles]}
+            onFocus={(event) => {
+              observedFocus(true)
+              innerTag.onFocus?.(event)
+            }}
+            onBlur={(event) => {
+              observedFocus(false)
+              innerTag.onBlur?.(event)
+            }}
+          >
+            {renderTagContent?.(item) ?? <Text variant={styles.textVariant}>{getItemTextValue(item)}</Text>}
+          </Tag>
+        ),
+      })),
+    [
+      selectedItems,
+      getItemKey,
+      getItemTextValue,
+      color,
+      geometry,
+      order,
+      props.isDisabled,
+      customTagProps,
+      customTagStyles,
+      renderTagContent,
+      styles.textVariant,
+    ],
+  )
   return (
     <NativeContentContext.Provider value={{ foregroundColor: styles.foreground, isButton: false }}>
       <NativeFocusHost
@@ -183,38 +231,13 @@ const TagComboBoxInner = <T extends object>(
       >
         <TagGroup
           {...innerTags}
-          items={selectedItems}
-          getKey={getItemKey}
+          items={tagItems}
           selectionMode="none"
           onRemove={remove}
           accessibilityLabel={innerTags.accessibilityLabel ?? innerTags["aria-label"] ?? resolved.tagGroupAriaLabel}
           disabledKeys={props.isDisabled ? selectedItems.map(getItemKey) : innerTags.disabledKeys}
           customStyles={[styles.text, customTagGroupStyles, nestedTagsStyles]}
-        >
-          {(item) => (
-            <Tag
-              color={color}
-              geometry={geometry}
-              order={order}
-              raised
-              {...innerTag}
-              id={getItemKey(item)}
-              textValue={getItemTextValue(item)}
-              isDisabled={props.isDisabled || innerTag.isDisabled}
-              customStyles={[customTagStyles, nestedTagStyles]}
-              onFocus={(event) => {
-                observedFocus(true)
-                innerTag.onFocus?.(event)
-              }}
-              onBlur={(event) => {
-                observedFocus(false)
-                innerTag.onBlur?.(event)
-              }}
-            >
-              {renderTagContent?.(item) ?? <Text variant={styles.textVariant}>{getItemTextValue(item)}</Text>}
-            </Tag>
-          )}
-        </TagGroup>
+        />
         <NativeCollectionComboBox
           {...innerCombo}
           {...comboProps}

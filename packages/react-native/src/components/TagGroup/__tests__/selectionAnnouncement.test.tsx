@@ -1,7 +1,7 @@
 import { act, renderHook } from "@testing-library/react-native"
 import { AccessibilityInfo, Platform } from "react-native"
 
-import { createNativeCollectionSnapshot, type TNativeCollectionDescriptor } from "../../../collection/snapshot"
+import { createNativeCollectionSnapshot, type TNativeCollectionItem } from "../../../collection/snapshot"
 import { useListState } from "../../../collection/state"
 import type { TNativeTagGroupLabels } from "../types"
 import { useNativeTagSelectionAnnouncement } from "../useSelectionAnnouncement"
@@ -13,30 +13,17 @@ type TProps = {
   behavior: "toggle" | "replace"
   labels: TNativeTagGroupLabels
 }
-const descriptors: TNativeCollectionDescriptor<object>[] = [
+const items: TNativeCollectionItem<object>[] = [
   { key: 0, textValue: "Number zero" },
   { key: "0", textValue: "String zero" },
-].map((item, index) => ({
+].map((item) => ({
   ...item,
-  descriptorId: String(index),
-  descriptorRevision: "1",
   type: "item",
   value: item,
   rendered: item.textValue,
   props: {},
 }))
-const collection = createNativeCollectionSnapshot(
-  descriptors.map((item, index) => ({
-    descriptorId: item.descriptorId,
-    descriptorRevision: "1",
-    parentDescriptorId: "",
-    target: index + 10,
-    index,
-    retainedIndex: index,
-    hasRetainedChildren: false,
-  })),
-  new Map(descriptors.map((item) => [item.descriptorId, item])),
-)
+const collection = createNativeCollectionSnapshot(items)
 const fixture = (props: TProps) =>
   renderHook(
     (current: TProps) => {
