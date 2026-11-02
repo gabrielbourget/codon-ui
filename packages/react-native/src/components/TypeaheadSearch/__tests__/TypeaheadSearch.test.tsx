@@ -22,6 +22,13 @@ import {
   resolveTypeaheadSearchLabels,
   type TypeaheadSearchProps,
 } from "../../.."
+import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
+
+jest.mock("../../../input/specs/CUIFocusViewNativeComponent", () => ({
+  __esModule: true,
+  default: jest.requireActual("react-native").View,
+  Commands: { requestKeyboardFocus: jest.fn(), requestKeyboardBlur: jest.fn(), inspectAccessibility: jest.fn() },
+}))
 
 type TItem = { id: string | number; name: string; disabled?: boolean }
 const ITEMS: readonly TItem[] = [
@@ -41,13 +48,20 @@ const nativeMethods: { measureLayout: jest.Mock; focus: jest.Mock } = jest.requi
 ).default
 const animation = () => ({ start: jest.fn(), stop: jest.fn(), reset: jest.fn() })
 beforeEach(() => {
+  const targets = new WeakMap<object, number>()
+  let nextTarget = 100
+  jest.spyOn(jest.requireActual("react-native"), "findNodeHandle").mockImplementation((target: unknown) => {
+    if (!target || typeof target !== "object") return null
+    if (!targets.has(target)) targets.set(target, ++nextTarget)
+    return targets.get(target)!
+  })
   jest.useFakeTimers()
   query.onInputChange.mockClear()
   jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(false)
   jest.spyOn(Animated, "timing").mockImplementation(animation)
   jest.spyOn(Animated, "loop").mockImplementation(animation)
   nativeMethods.measureLayout.mockReset()
-  nativeMethods.focus.mockClear()
+  jest.mocked(Commands.requestKeyboardFocus).mockClear()
 })
 afterEach(() => {
   jest.restoreAllMocks()
@@ -592,17 +606,22 @@ it.each([
   ["rounded", 5],
   ["round", 10000],
 ] as const)("retains %s row geometry and single group focus styling", async (geometry, radius) => {
+  jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
   await render(<TypeaheadSearch {...query} geometry={geometry} />)
   const group = screen.getByTestId("typeahead-search-input-row")
   expect(group).toHaveStyle({ borderRadius: radius })
   await fireEvent(input(), "focus", { nativeEvent: { target: 7 } })
-  expect(group).toHaveStyle({ outlineWidth: 1.5, outlineOffset: 0 })
+  expect(group.props.style.boxShadow).toEqual([
+    expect.objectContaining({ spreadDistance: 1.5, offsetX: 0, offsetY: 0 }),
+  ])
+  expect(group.props.style.outlineWidth).toBeUndefined()
   expect(input()).toHaveStyle({ outlineWidth: 0 })
   await fireEvent(input(), "blur", { nativeEvent: { target: 7 } })
-  expect(group.props.style.outlineWidth).toBeUndefined()
+  expect(group.props.style.boxShadow).toEqual([])
 })
 
 it("updates native theme/window/registered styles without changing the owner or selection", async () => {
+  jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
   const color = PlatformColor("labelColor")
   const custom = StyleSheet.create({ list: { gap: 0, padding: 0 } })
   const fixture = (dark: boolean) => (
@@ -661,11 +680,11 @@ it("maps shouldFocusWrap to measured native row focus without selecting or fabri
     nativeEvent: { layout: { x: 0, y: 0, width: 200, height: 160 } },
   })
   await fireEvent(row("Alpha"), "accessibilityAction", { nativeEvent: { actionName: "decrement" } })
-  expect(nativeMethods.focus).not.toHaveBeenCalled()
+  expect(jest.mocked(Commands.requestKeyboardFocus)).not.toHaveBeenCalled()
   await rerender(fixture(true))
   await fireEvent(row("Beta"), "accessibilityAction", { nativeEvent: { actionName: "increment" } })
-  expect(nativeMethods.focus).toHaveBeenCalledTimes(1)
-  expect(nativeMethods.focus.mock.contexts[0].props.accessibilityState.checked).toBe(true)
+  expect(jest.mocked(Commands.requestKeyboardFocus)).toHaveBeenCalledTimes(1)
+  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls[0]![0]!.props.accessibilityState!.checked).toBe(true)
   expect(scroll).toHaveBeenCalledWith({ y: 288, animated: false })
   expect(select.mock.calls).toEqual([[0]])
 })
@@ -678,17 +697,17 @@ it("retires delayed measured focus after item/status/window replacement and unmo
   await fireEvent(row("Alpha"), "accessibilityAction", { nativeEvent: { actionName: "increment" } })
   await rerender(fixture(ITEMS.slice(1)))
   await act(() => pending.shift()?.())
-  expect(nativeMethods.focus).not.toHaveBeenCalled()
+  expect(jest.mocked(Commands.requestKeyboardFocus)).not.toHaveBeenCalled()
   await fireEvent(row("Beta"), "accessibilityAction", { nativeEvent: { actionName: "increment" } })
   await fireEvent(screen.getByTestId("typeahead-search-results-container"), "layout", {
     nativeEvent: { layout: { x: 0, y: 0, width: 100, height: 100 } },
   })
   await act(() => pending.shift()?.())
-  expect(nativeMethods.focus).not.toHaveBeenCalled()
+  expect(jest.mocked(Commands.requestKeyboardFocus)).not.toHaveBeenCalled()
   await fireEvent(row("Beta"), "accessibilityAction", { nativeEvent: { actionName: "increment" } })
   await unmount()
   await act(() => pending.shift()?.())
-  expect(nativeMethods.focus).not.toHaveBeenCalled()
+  expect(jest.mocked(Commands.requestKeyboardFocus)).not.toHaveBeenCalled()
 })
 
 it.each([
@@ -739,7 +758,7 @@ it("retains a pending native focus request through equivalent data/styles and ca
   expect(pending).toHaveLength(1)
   await rerender(fixture([...ITEMS], second))
   await act(() => pending.shift()?.())
-  expect(nativeMethods.focus).toHaveBeenCalledTimes(1)
+  expect(jest.mocked(Commands.requestKeyboardFocus)).toHaveBeenCalledTimes(1)
   expect(first).not.toHaveBeenCalled()
   expect(second).not.toHaveBeenCalled()
 })
@@ -755,7 +774,7 @@ it("keeps obsolete measured focus retired after list layout changes and restorat
   await rerender(fixture(9))
   await rerender(fixture(5))
   await act(() => pending.shift()?.())
-  expect(nativeMethods.focus).not.toHaveBeenCalled()
+  expect(jest.mocked(Commands.requestKeyboardFocus)).not.toHaveBeenCalled()
 })
 
 it.each([
@@ -793,7 +812,7 @@ it.each(["window", "viewport", "input", "button"] as const)(
       await fireEvent(takeover === "input" ? input() : button(), "focus", { nativeEvent: { target: 7 } })
     }
     await act(() => pending.shift()?.())
-    expect(nativeMethods.focus).not.toHaveBeenCalled()
+    expect(jest.mocked(Commands.requestKeyboardFocus)).not.toHaveBeenCalled()
     expect(query.onInputChange).not.toHaveBeenCalled()
   },
 )

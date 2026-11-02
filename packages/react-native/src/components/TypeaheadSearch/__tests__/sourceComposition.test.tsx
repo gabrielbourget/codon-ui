@@ -4,10 +4,20 @@ import type { TextInput, View } from "react-native"
 
 import { AVAILABLE_TYPEAHEAD_SEARCH_STATUSES, TypeaheadSearch, type TypeaheadSearchStatus } from "../../.."
 
-beforeEach(() => jest.useFakeTimers())
+beforeEach(() => {
+  jest.useFakeTimers()
+  const tags = new WeakMap<object, number>()
+  let serial = 100
+  jest.spyOn(jest.requireActual("react-native"), "findNodeHandle").mockImplementation((target: unknown) => {
+    if (!target || typeof target !== "object") return null
+    if (!tags.has(target)) tags.set(target, ++serial)
+    return tags.get(target)
+  })
+})
 afterEach(() => {
   jest.clearAllTimers()
   jest.useRealTimers()
+  jest.restoreAllMocks()
 })
 
 it("retains original refs, exact native observations and the held query across every caller-owned status", async () => {

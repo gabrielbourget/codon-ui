@@ -1,11 +1,24 @@
 import { act, fireEvent, render, screen, userEvent } from "@testing-library/react-native"
-import { Dimensions } from "react-native"
+import { AccessibilityInfo, Dimensions } from "react-native"
 import { SafeAreaInsetsContext } from "react-native-safe-area-context"
 
 import { NativeShowcase } from "../NativeShowcase"
 
-beforeEach(() => jest.useFakeTimers())
-afterEach(() => jest.useRealTimers())
+beforeEach(() => {
+  const targets = new WeakMap<object, number>()
+  let nextTarget = 100
+  jest.spyOn(jest.requireActual("react-native"), "findNodeHandle").mockImplementation((target: unknown) => {
+    if (!target || typeof target !== "object") return null
+    if (!targets.has(target)) targets.set(target, ++nextTarget)
+    return targets.get(target)!
+  })
+  jest.useFakeTimers()
+  jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
+})
+afterEach(() => {
+  jest.restoreAllMocks()
+  jest.useRealTimers()
+})
 const enter = async () => {
   await render(
     <SafeAreaInsetsContext.Provider value={{ top: 20, bottom: 10, left: 0, right: 0 }}>

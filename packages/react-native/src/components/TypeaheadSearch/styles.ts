@@ -44,7 +44,9 @@ export const getTypeaheadStyles = <T extends object>(
           borderColor: focused ? theme.colors.focusRing : theme.colors.controlBorder,
           backgroundColor: theme.colors.controlBackground,
           borderRadius: geometry === "round" ? theme.radius.round : geometry === "rounded" ? theme.radius.rounded : 0,
-          ...(focused ? { outlineColor: theme.colors.focusRing, outlineWidth: 1.5, outlineOffset: 0 } : {}),
+          boxShadow: focused
+            ? [{ offsetX: 0, offsetY: 0, blurRadius: 0, spreadDistance: 1.5, color: theme.colors.focusRing }]
+            : [],
         },
         props.customInputRowStyles,
       ],
