@@ -779,6 +779,10 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 
 - (void)handleCommand:(const NSString *)commandName args:(const NSArray *)args
 {
+  if ([commandName isEqualToString:@"focus"] || [commandName isEqualToString:@"blur"]) {
+    [super handleCommand:commandName args:args];
+    return;
+  }
   RCTCUIFocusViewHandleCommand(self, commandName, args);
 }
 
