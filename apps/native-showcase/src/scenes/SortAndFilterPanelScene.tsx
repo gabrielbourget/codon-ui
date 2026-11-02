@@ -42,6 +42,33 @@ const filterCriteria: TAvailableFilterCriteria[] = [
     allowedOperationCodes: ["equal", "between"] as ("equal" | "between")[],
   })),
 ]
+const confirmedQuery = (): TNativeQueryApplyRequest => ({
+  sortInstructions: [
+    { id: "count", criteriaID: "count", criteriaName: "Count", queryKey: "events.count", sortDirection: "Descending" },
+    { id: "name", criteriaID: "name", criteriaName: "Name", queryKey: "events.name", sortDirection: "Ascending" },
+  ],
+  filterGroups: [
+    {
+      id: "count-group",
+      criteriaID: "count",
+      criteriaName: "Count",
+      queryKey: "events.count",
+      dataType: "number",
+      joinOperator: "and",
+      clauses: [{ id: "count-zero", operationCode: "equal", argument: 0 }],
+    },
+    {
+      id: "active-group",
+      criteriaID: "active",
+      criteriaName: "Active",
+      queryKey: "events.active",
+      dataType: "boolean",
+      joinOperator: "and",
+      clauses: [{ id: "active-false", operationCode: "equal", argument: false }],
+    },
+  ],
+})
+
 export const SortAndFilterPanelScene = ({ adapter }: { adapter?: TNativeBackdropAdapter } = {}) => {
   const [open, setOpen] = useState(false)
   const [echo, setEcho] = useState(false)
@@ -69,6 +96,10 @@ export const SortAndFilterPanelScene = ({ adapter }: { adapter?: TNativeBackdrop
             <ScrollView contentContainerStyle={{ padding: 15, gap: 10 }}>
               <Text elementType="h1">Sort and Filter Panel</Text>
               <Button onPress={() => setOpen(true)}>Open query panel</Button>
+              <Button onPress={() => setConfirmed(confirmedQuery())}>Load confirmed query</Button>
+              <Button onPress={() => setConfirmed({ sortInstructions: [], filterGroups: [] })}>
+                Clear confirmed query
+              </Button>
               <Button onPress={() => setEcho((value) => !value)}>Toggle owner echo</Button>
               {adapter && <Button onPress={() => setBlur((value) => !value)}>Toggle configured query blur</Button>}
               {adapter && (

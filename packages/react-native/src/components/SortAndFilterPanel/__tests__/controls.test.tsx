@@ -332,6 +332,11 @@ it("updates footer labels/callbacks and keeps a vetoed Apply separate from Cance
       />,
     ),
   )
+  expect(screen.getAllByRole("button").map((control) => control.props.accessibilityLabel)).toEqual([
+    "Effacer",
+    "Annuler",
+    "Valider",
+  ])
   await press("Valider")
   expect(current).toHaveBeenCalledTimes(1)
   expect(original).not.toHaveBeenCalled()
@@ -441,4 +446,18 @@ it("admits a Select child-window request while its actual parent window is tempo
   expect(screen.getByTestId("query-parent-window-status").props.children).toBe("false")
   await fireEvent.press(screen.getByRole("radio", { name: "City" }))
   expect(onAdd).toHaveBeenCalledWith("a")
+})
+
+it("preserves explicit empty footer semantic labels alongside their visible text", async () => {
+  await render(
+    wrap(
+      <QueryPanelFooter
+        labels={{ clearAllButton: "", cancelButton: "", applyButton: "" }}
+        onClearAllSortAndFilterParameters={jest.fn()}
+        onCancelPendingChanges={jest.fn()}
+        onApplyPendingChanges={jest.fn()}
+      />,
+    ),
+  )
+  expect(screen.getAllByRole("button").map((control) => control.props.accessibilityLabel)).toEqual(["", "", ""])
 })

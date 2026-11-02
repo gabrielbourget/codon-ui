@@ -54,6 +54,10 @@ export const TypeaheadSearchScene = () => {
   const [request, setRequest] = useState<string>()
   const [requests, setRequests] = useState(0)
   const [nativeText, setNativeText] = useState<string>()
+  const [nativeChanges, setNativeChanges] = useState(0)
+  const [nativeSelection, setNativeSelection] = useState<{ start: number; end: number }>()
+  const [nativeKey, setNativeKey] = useState<string>()
+  const [nativeEndText, setNativeEndText] = useState<string>()
   const [nativeSubmit, setNativeSubmit] = useState<string>()
   const [submitted, setSubmitted] = useState<string>()
   const [submits, setSubmits] = useState(0)
@@ -145,7 +149,13 @@ export const TypeaheadSearchScene = () => {
         }}
         inputProps={{
           returnKeyType: "search",
-          onChange: ({ nativeEvent }) => setNativeText(nativeEvent.text),
+          onChange: ({ nativeEvent }) => {
+            setNativeText(nativeEvent.text)
+            setNativeChanges((value) => value + 1)
+          },
+          onSelectionChange: ({ nativeEvent }) => setNativeSelection(nativeEvent.selection),
+          onKeyPress: ({ nativeEvent }) => setNativeKey(nativeEvent.key),
+          onEndEditing: ({ nativeEvent }) => setNativeEndText(nativeEvent.text),
           onSubmitEditing: ({ nativeEvent }) => setNativeSubmit(nativeEvent.text),
           onFocus: () => setFocusEvents((value) => value + 1),
         }}
@@ -208,7 +218,10 @@ export const TypeaheadSearchScene = () => {
       <Text testID="inline-search-native">
         Last native text: {nativeText === undefined ? "none" : JSON.stringify(nativeText)}. Last native submit:{" "}
         {nativeSubmit === undefined ? "none" : JSON.stringify(nativeSubmit)}. Last root frame:{" "}
-        {frame ? `${frame.width} x ${frame.height}` : "unmeasured"}.
+        {frame ? `${frame.width} x ${frame.height}` : "unmeasured"}. Native changes: {nativeChanges}. Last selection:{" "}
+        {nativeSelection ? `${nativeSelection.start}:${nativeSelection.end}` : "none"}. Last native key:{" "}
+        {nativeKey === undefined ? "none" : JSON.stringify(nativeKey)}. Last native end text:{" "}
+        {nativeEndText === undefined ? "none" : JSON.stringify(nativeEndText)}.
       </Text>
       <Text testID="inline-search-content-end">
         Query/status/results are caller-owned. Selection belongs to the results lifetime. Native text and submit

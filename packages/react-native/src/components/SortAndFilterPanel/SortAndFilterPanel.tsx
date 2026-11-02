@@ -1,6 +1,7 @@
 import { useRef, type ReactNode, type RefObject } from "react"
 import { View, type StyleProp, type TextStyle } from "react-native"
 
+import { focusNativeTarget } from "../../input/focus"
 import { useNativeTheme } from "../../theme"
 import { useFilterRequest } from "../Filtering/requests"
 import { FormField } from "../FormField/FormField"
@@ -58,6 +59,7 @@ const QueryPanelBody = ({
   const theme = useNativeTheme()
   const controller = useNativeQueryDraftController(props)
   const request = useFilterRequest({ ...props, canAct: () => props.isOpen })
+  const filterLabelFor = useRef({ focus: () => focusNativeTarget(criteriaRefs.filter.current) })
   const style = resolveQueryDialogStyle(props.customDialogStyles, theme)
   const separator = <LineSegment color={theme.colors.borderMuted} height={1} size="100%" />
   const content = (
@@ -87,7 +89,7 @@ const QueryPanelBody = ({
           canAct={() => props.isOpen}
           onAddSortParameter={controller.addSort}
         />
-        <FormField label={labels.form.addFilterCriteriaLabel}>
+        <FormField label={labels.form.addFilterCriteriaLabel} labelFor={filterLabelFor}>
           <Select
             ref={criteriaRefs.filter}
             accessibilityLabel={labels.form.addFilterCriteriaLabel}

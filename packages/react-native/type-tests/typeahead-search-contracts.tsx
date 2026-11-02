@@ -56,6 +56,9 @@ export const searchProps: TypeaheadSearchProps<TItem> = {
     onSubmitEditing: (event) => event.nativeEvent.text,
     onSelectionChange: (event) => event.nativeEvent.selection.start,
     onKeyPress: (event) => event.nativeEvent.key,
+    onFocus: (event) => event.nativeEvent.target,
+    onBlur: (event) => event.nativeEvent.target,
+    onEndEditing: (event) => event.nativeEvent.text,
     allowFontScaling: true,
   },
   customStyles: [{ color: PlatformColor("labelColor") }, { width: 0 }],
@@ -100,6 +103,8 @@ export const SearchSelection = <TypeaheadSearch {...controlled} selectedKeys={ne
 export const SearchClass = <TypeaheadSearch {...controlled} className="search" />
 // @ts-expect-error The root exposes a native View ref.
 export const SearchRef = <TypeaheadSearch {...controlled} ref={createRef<HTMLDivElement>()} />
+// @ts-expect-error The separate editor ref must refer to the original TextInput.
+export const SearchInputRef = <TypeaheadSearch {...controlled} inputRef={createRef<View>()} />
 // @ts-expect-error Native font sizes use logical numbers.
 export const SearchFont = <TypeaheadSearch {...controlled} customInputStyles={{ fontSize: "1rem" }} />
 // @ts-expect-error Canonical root style is a value rather than a render callback.

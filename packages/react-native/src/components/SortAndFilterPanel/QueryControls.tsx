@@ -1,6 +1,8 @@
 import { forwardRef, useContext, useInsertionEffect, useMemo, useRef } from "react"
 import { View } from "react-native"
 
+import { useNativeCollectionRefs } from "../../collection/context"
+import { focusNativeTarget } from "../../input/focus"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { NativeTooltipTrigger } from "../../overlays/floating/NativeTooltipTrigger"
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../overlays/floating/scope"
@@ -148,10 +150,13 @@ export type TQuerySortCriteriaFieldProps = TAvailability & {
 export const QuerySortCriteriaField = forwardRef<TNativeSelectRef, TQuerySortCriteriaFieldProps>((props, ref) => {
   // Select admits changes from its own native window while the parent window is inactive.
   const request = useControlRequest(props, true)
+  const target = useRef<TNativeSelectRef>(null)
+  const original = useNativeCollectionRefs(target, ref)
+  const labelFor = useRef({ focus: () => focusNativeTarget(target.current) })
   return (
-    <FormField label={props.labels.addSortCriteriaLabel}>
+    <FormField label={props.labels.addSortCriteriaLabel} labelFor={labelFor}>
       <Select
-        ref={ref}
+        ref={original}
         accessibilityLabel={props.labels.addSortCriteriaLabel}
         closeLabel={props.closeLabel}
         items={props.availableSortCriteria}
@@ -293,6 +298,7 @@ export const QueryPanelFooter = (props: TQueryPanelFooterProps) => {
       style={{ width: "100%", flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}
     >
       <Button
+        accessibilityLabel={props.labels.clearAllButton}
         transparent
         geometry="rounded"
         raised={false}
@@ -304,6 +310,7 @@ export const QueryPanelFooter = (props: TQueryPanelFooterProps) => {
       </Button>
       <View style={{ flexDirection: "row", gap: theme.spacing.unit * 2, alignItems: "center" }}>
         <Button
+          accessibilityLabel={props.labels.cancelButton}
           transparent
           geometry="rounded"
           raised={false}
@@ -314,6 +321,7 @@ export const QueryPanelFooter = (props: TQueryPanelFooterProps) => {
           </Text>
         </Button>
         <Button
+          accessibilityLabel={props.labels.applyButton}
           geometry="rounded"
           raised={false}
           order="primary"

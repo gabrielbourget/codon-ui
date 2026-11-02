@@ -634,3 +634,79 @@ it("keeps muted separators and filter borders independent while retaining the or
   expect(apply).not.toHaveBeenCalled()
   expect(close).not.toHaveBeenCalled()
 })
+
+it("routes explicit criteria label presses to their original admitted refs without changing the query", async () => {
+  const focus = jest.spyOn(Commands, "requestKeyboardFocus").mockImplementation(() => {})
+  const apply = jest.fn()
+  const view = await render(tree({ applyPendingSortAndFilterChanges: apply }))
+  await present()
+  await act(() => jest.advanceTimersByTime(20))
+  const labels = screen.getAllByTestId("form-field-label")
+  const sort = screen.getByRole("button", { name: "Add Sort Criteria" })
+  const filter = screen.getByRole("button", { name: "Add Filter Criteria" })
+  focus.mockClear()
+  for (const [index, control] of [sort, filter].entries()) {
+    expect(labels[index].props.onPress).toEqual(expect.any(Function))
+    await fireEvent.press(labels[index])
+    expect(focus.mock.calls.at(-1)![1]).toBe(control.props.ownerId)
+  }
+  expect(focus).toHaveBeenCalledTimes(2)
+  const retiredSortLabel = labels[0].props.onPress
+  await view.rerender(
+    tree({
+      applyPendingSortAndFilterChanges: apply,
+      labels: { form: { addSortCriteriaLabel: "Sort field", addFilterCriteriaLabel: "Filter field" } },
+    }),
+  )
+  await acknowledge()
+  focus.mockClear()
+  await act(() => retiredSortLabel())
+  expect(focus).not.toHaveBeenCalled()
+  expect(screen.getByRole("button", { name: "Sort field" })).toBe(sort)
+  expect(screen.getByRole("button", { name: "Filter field" })).toBe(filter)
+  await fireEvent.press(screen.getAllByTestId("form-field-label")[1])
+  expect(focus.mock.calls.at(-1)![1]).toBe(filter.props.ownerId)
+  expect(apply).not.toHaveBeenCalled()
+  expect(screen.queryByTestId("select-window")).toBeNull()
+})
+
+it("loads and clears explicit confirmed scene models without generating an Apply request", async () => {
+  await render(<SortAndFilterPanelFixture />)
+  const owner = () => JSON.parse(screen.getByTestId("query-panel-owner").props.children)
+  await press("Load confirmed query")
+  expect(owner().confirmed.sortInstructions.map((item: TTableSortInstruction) => item.id)).toEqual(["count", "name"])
+  expect(owner().confirmed.filterGroups.map((group: TTableFilterGroup) => group.clauses[0].argument)).toEqual([
+    0,
+    false,
+  ])
+  await press("Open query panel")
+  await present()
+  expect(screen.getAllByRole("option").map((row) => row.props.accessibilityLabel)).toEqual([
+    "Sort Parameter - Count - Descending",
+    "Sort Parameter - Name - Ascending",
+  ])
+  expect(within(screen.getByLabelText("Count filter group")).getByLabelText("Filter Argument").props.value).toBe("0")
+  expect(
+    within(screen.getByLabelText("Active filter group")).getByRole("checkbox", { name: "Filter Argument" }).props
+      .accessibilityState.checked,
+  ).toBe(false)
+  const dismissed = host("sort-filter-panel-window").props.onDismiss
+  await press("Clear All")
+  await press("Cancel")
+  await act(() => jest.advanceTimersByTime(1000))
+  await act(() => dismissed())
+  await press("Open query panel")
+  await present()
+  expect(screen.getAllByRole("option")).toHaveLength(2)
+  expect(owner().requests).toEqual([])
+  const nextDismissed = host("sort-filter-panel-window").props.onDismiss
+  await press("Cancel")
+  await act(() => jest.advanceTimersByTime(1000))
+  await act(() => nextDismissed())
+  await press("Clear confirmed query")
+  await press("Open query panel")
+  await present()
+  expect(screen.queryAllByRole("option")).toEqual([])
+  expect(screen.getByText("No filters currently applied")).toBeOnTheScreen()
+  expect(owner().requests).toEqual([])
+})

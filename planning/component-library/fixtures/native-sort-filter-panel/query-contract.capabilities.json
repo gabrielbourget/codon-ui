@@ -1,0 +1,164 @@
+{
+  "cell": "CAT.sort-and-filter-panel.G01",
+  "canonicalSourceRef": "ddc9f066f67af4742e05e04bd870726141c44129",
+  "sourceBase": "fa7900ce8582d8704417c560fc2871cd2a72db5e",
+  "status": "CANDIDATE_SOURCE_MAPPING_G01_OPEN_PENDING_COORDINATOR_RECONCILIATION",
+  "sourceRequirements": [
+    {
+      "requirement": "Public controlled snapshots and omitted/empty baseline",
+      "publicSurface": "isOpen, activeSorts, activeFilters, possibleSortCriteria, possibleFilterCriteria",
+      "sourceCounterpart": "controller.ts; hydration.ts; commands.ts",
+      "sourceProof": "controller.test.tsx; hydration.test.ts; commands.test.ts",
+      "correspondence": "Confirmed owner arrays stay authoritative. Reopen/Cancel rehydrate current snapshots; held Apply does not confirm drafts. Metadata rebase keeps dirty raw clauses and absent criteria."
+    },
+    {
+      "requirement": "Apply/Cancel/Clear/Close ownership",
+      "publicSurface": "applyPendingSortAndFilterChanges, onOpenChange",
+      "sourceCounterpart": "controller.ts; QueryControls.tsx",
+      "sourceProof": "controller.test.tsx; controls.test.tsx; panel.test.tsx",
+      "correspondence": "Apply normalizes only its payload before requesting close; a throwing callback prevents close. Cancel restores confirmed state; Clear edits the draft; Close requests dismissal only. Current callbacks and availability are rechecked."
+    },
+    {
+      "requirement": "Sort membership and defaults",
+      "publicSurface": "possibleSortCriteria, activeSorts",
+      "sourceCounterpart": "commands.ts; QueryControls.tsx",
+      "sourceProof": "commands.test.ts; controls.test.tsx; panel.test.tsx",
+      "correspondence": "Complete criteria arrays, including an empty string key, own membership. Used criteria are excluded; defaultDirection/Ascending, named stable IDs, queryKey are retained, and unchanged rows retain their identity/order."
+    },
+    {
+      "requirement": "Sort entry and active-tag controls",
+      "publicSurface": "activeSorts, labels.sortEntry, labels.activeSorts",
+      "sourceCounterpart": "QueryControls.tsx",
+      "sourceProof": "controls.test.tsx; panel.test.tsx",
+      "correspondence": "Ascending/Descending and removal request current row IDs without adopting owner state. Explicit item keys/textValue feed TagGroup; original native action/tooltip hosts remain."
+    },
+    {
+      "requirement": "Ordered collection source and rendering",
+      "publicSurface": "activeSorts, labels.sortParameterList",
+      "sourceCounterpart": "SortParameterList.tsx",
+      "sourceProof": "sort-list.test.tsx; panel.test.tsx",
+      "correspondence": "Explicit items own complete ordered membership, value, stable keys and semantic text. NativeCollectionBuilder is the flat publisher, not a hidden JSX hierarchy; custom CollectionRoot uses the current real receiver contract."
+    },
+    {
+      "requirement": "Full native drag/drop behavior",
+      "publicSurface": "activeSorts",
+      "sourceCounterpart": "SortParameterList.tsx",
+      "sourceProof": "sort-list.test.tsx; panel.test.tsx",
+      "correspondence": "Current collection object/model/window/ref admission, payload text/plain, keyboard/virtual/native reorder, drop indicators, preview/chooser and focused/persisted keys are retained. No replacement by only visible Move controls."
+    },
+    {
+      "requirement": "Criteria selectors and label focus",
+      "publicSurface": "initialFocusTarget, labels.form, labels.native",
+      "sourceCounterpart": "SortAndFilterPanel.tsx; QueryControls.tsx",
+      "sourceProof": "controls.test.tsx; panel.test.tsx",
+      "correspondence": "Both selectors receive explicit current items/getKey/getTextValue and null selection. Existing Select child-window admission remains authoritative. Labels request original registered refs through focusNativeTarget; retained stale label callbacks retire after replacement."
+    },
+    {
+      "requirement": "Filter groups and joins",
+      "publicSurface": "possibleFilterCriteria, activeFilters",
+      "sourceCounterpart": "ActiveFilters.tsx; commands.ts; hydration.ts",
+      "sourceProof": "commands.test.ts; hydration.test.ts; panel.test.tsx",
+      "correspondence": "Stable group/clause IDs preserve repeat conditions, operation order, joins and removal. Absent metadata and raw drafts survive; explicit tag text/keys and ordinary ScrollViews replace no collection or form discovery."
+    },
+    {
+      "requirement": "Argument values and editor dispatch",
+      "publicSurface": "booleanArgumentComponent, possibleFilterCriteria",
+      "sourceCounterpart": "ActiveFilters.tsx; ../Filtering/FilterClauseRow.tsx; ../Filtering/renderArgument.tsx; ../Filtering/renderNonTemporalArgument.tsx",
+      "sourceProof": "panel.test.tsx; ../Filtering/__tests__ (coordinator dependency)",
+      "correspondence": "Text, number, Boolean Checkbox/Toggle, scalar/range temporal, Select/ComboBox/TagComboBox/Typeahead argument shapes retain zero/false/empty and incomplete drafts. No unsupported editor fallback or core-editor/ref/IME promise is waived."
+    },
+    {
+      "requirement": "Root chrome defaults and stock dimensions",
+      "publicSurface": "title, height, width, horizontalGap, position, panelGeometry, raised, overlayBlur",
+      "sourceCounterpart": "SortAndFilterPanel.tsx; ../Panel/Panel.tsx",
+      "sourceProof": "panel.test.tsx; public-contracts.tsx; ../Panel/__tests__ (coordinator dependency)",
+      "correspondence": "Default title, height100%, width350/right, raised/blur remain. Height/width use approved stock RN numeric/percentage/auto dimensions. No browser sizing evaluator or implicit native typography inheritance is restored."
+    },
+    {
+      "requirement": "Window dismissal and focus",
+      "publicSurface": "isDismissable, isKeyboardDismissDisabled, initialFocusTarget",
+      "sourceCounterpart": "SortAndFilterPanel.tsx; QueryDialog.tsx; ../Panel",
+      "sourceProof": "panel.test.tsx; dialog-integration.test.tsx; ../Panel/__tests__ (coordinator dependency)",
+      "correspondence": "Panel owns dismissal, focus target readiness/acknowledgment, containment and return. Dialog/shell/backdrop stay out of sequential Tab order while criteria controls retain original eligibility. Native focus completion is separate from a request."
+    },
+    {
+      "requirement": "Original style owners and text context",
+      "publicSurface": "customModalStyles, customDialogStyles, customOverlayStyles",
+      "sourceCounterpart": "SortAndFilterPanel.tsx; QueryDialog.tsx; ../NativeTextStyleProvider.tsx",
+      "sourceProof": "dialog-integration.test.tsx; panel.test.tsx",
+      "correspondence": "Modal/overlay/dialog owners remain separate. Defined override/reset precedence and original held editor identity survive metadata/theme changes. Owned text receives explicit JS context; raw custom RN text must be styled explicitly."
+    },
+    {
+      "requirement": "Complete label defaults and semantic text",
+      "publicSurface": "labels",
+      "sourceCounterpart": "labels.ts; controlLabels.ts; QueryControls.tsx; ActiveFilters.tsx",
+      "sourceProof": "controls.test.tsx; panel.test.tsx",
+      "correspondence": "Partial and explicit empty strings preserve defaults/formatter identity. Owned footer controls now receive resolved accessibilityLabel directly, with the same visible Text, callbacks and empty-string behavior. Selects, tags and sort options retain explicit semantic text."
+    },
+    {
+      "requirement": "Native IDs and unsupported root ref",
+      "publicSurface": "testID, data-testid",
+      "sourceCounterpart": "SortAndFilterPanel.tsx",
+      "sourceProof": "panel.test.tsx; public-contracts.tsx",
+      "correspondence": "Explicit testID wins over alias/default. The root continues to expose criteria targets rather than a public root ref. Native type tests reject browser viewport CSS and unsupported focus/Boolean renderer choices."
+    },
+    {
+      "requirement": "Canonical unused children",
+      "publicSurface": "children",
+      "sourceCounterpart": "SortAndFilterPanel.tsx",
+      "sourceProof": "packages/react/src/components/SortAndFilterPanel/__tests__/native-port-contract.test.tsx; public-contracts.tsx",
+      "correspondence": "Canonical authored children remain unused in this compound view; no new slot or child discovery contract is introduced."
+    },
+    {
+      "requirement": "Maintained scene and fixture ownership",
+      "publicSurface": "SortAndFilterPanelScene; PanelFixture; native-sort-filter-panel/App.tsx",
+      "sourceCounterpart": "../../../../../apps/native-showcase/src/scenes/SortAndFilterPanelScene.tsx; __tests__/fixtures/PanelFixture.tsx",
+      "sourceProof": "panel.test.tsx",
+      "correspondence": "Default empty scene remains. Load/Clear confirmed query controls expose two sort rows, zero/false filter values and exact current owner snapshots for installed reorder/Apply/Cancel. Existing metadata/theme/echo/backdrop controls remain."
+    }
+  ],
+  "sharedDependencies": [
+    {
+      "owner": "coordinator",
+      "paths": ["packages/react-native/src/components/Panel/**", "packages/react-native/src/overlays/**"],
+      "request": "Reconcile stock RN Panel layout, window/focus, backdrop opt-in and dismissal source evidence at the adopted candidate identity. No Panel or overlay change is requested by this lane."
+    },
+    {
+      "owner": "coordinator",
+      "paths": [
+        "packages/react-native/src/components/Filtering/**",
+        "packages/react-native/src/components/Table/filterDraft.ts",
+        "packages/react-native/src/components/Table/filterMetadata.ts",
+        "packages/react-native/src/components/Table/queryTypes.ts"
+      ],
+      "request": "Supply current full argument/operation/temporal/multi-value dispatcher and original-editor composition proof, including all current core Input/NumberInput/date and ComboBox/Typeahead source dependencies. This lane changes no Filtering behavior."
+    },
+    {
+      "owner": "coordinator",
+      "paths": [
+        "packages/react-native/src/collection/**",
+        "packages/react-native/src/input/**",
+        "packages/react-native/src/components/FormField/**",
+        "packages/react-native/src/form/**"
+      ],
+      "request": "Reconcile exact explicit-model/current-real-receiver, native focus/press/default/IME, field semantics and full drag/transfer dependencies; retain current admission and no-refused-action-replay behavior. Owned label wiring uses existing focusNativeTarget/useNativeCollectionRefs only."
+    },
+    {
+      "owner": "coordinator",
+      "paths": [
+        "packages/react-native/src/theme/**",
+        "packages/react-native/src/components/Button/**",
+        "packages/react-native/src/components/ToggleSwitcher/**",
+        "packages/react-native/src/components/TagGroup/**"
+      ],
+      "request": "Retain existing live theme and owned-control typography, semantic-label, action and original-host contracts in current shared evidence."
+    }
+  ],
+  "remainingNativeObligations": [
+    "Current exact-product original-editor/IME/keyboard Apply/Close and native focus acknowledgments",
+    "Current native pointer/keyboard/AT reorder/drop/chooser/preview and offscreen receiver behavior",
+    "Default/override pixels, stock layout, nested scrolling, blur and live theme/profile observations",
+    "All original G02/G04/G07/G08/G09 gates; source/mock/compiler checks do not qualify an installed product"
+  ],
+  "ledgerDisposition": "Unchanged; no automatic PASS, failure erasure or cell-count change."
+}

@@ -134,3 +134,24 @@ it("exercises statuses, caller curation, all six styles, affordances, zero frame
   expect(screen.getByTestId("inline-search-native")).toHaveTextContent(/Last root frame: 0 x 0/)
   expect(input()).toHaveDisplayValue("Alpha")
 })
+
+it("keeps native selection/key/end observations separate from held query and result ownership across statuses", async () => {
+  const press = await enter()
+  await fireEvent.changeText(input(), "held owner")
+  await press("Toggle inline search veto")
+  await fireEvent(input(), "change", { nativeEvent: { text: "に", eventCount: 1, target: 7 } })
+  await fireEvent(input(), "selectionChange", { nativeEvent: { selection: { start: 1, end: 1 }, target: 7 } })
+  await fireEvent(input(), "keyPress", { nativeEvent: { key: "Enter", target: 7 } })
+  await fireEvent.changeText(input(), "日本")
+  expect(input()).toHaveDisplayValue("held owner")
+  for (let index = 0; index < 6; index++) await press("Next inline search status")
+  await fireEvent(input(), "endEditing", { nativeEvent: { text: "日本", target: 7 } })
+  expect(screen.getByTestId("inline-search-native")).toHaveTextContent(
+    /Last native text: "に".*Native changes: 1.*Last selection: 1:1.*Last native key: "Enter".*Last native end text: "日本"/,
+  )
+  expect(screen.getByTestId("inline-search-state")).toHaveTextContent(
+    /Owner: "held owner".*Request: "日本".*Requests: 2.*Submits: 0.*Selection: none.*Selection callbacks: 0.*Status: results/,
+  )
+  await fireEvent(input(), "submitEditing", { nativeEvent: { text: "native submit", target: 7 } })
+  expect(screen.getByTestId("inline-search-state")).toHaveTextContent(/Submitted: "held owner".*Submits: 1/)
+})

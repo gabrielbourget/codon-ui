@@ -537,3 +537,104 @@ it.each(["light", "dark"] as const)("keeps default segmented editor theme roles 
   expect(input()).toHaveDisplayValue("0")
   expect(input()).toHaveStyle({ color: theme.colors.controlForeground, borderColor: theme.colors.controlBorder })
 })
+
+it("retains the original editor and exact event observers through locale and guard composition", async () => {
+  const ref = createRef<TNativeStepperRef>()
+  const trace: unknown[] = []
+  const change = jest.fn((event) => trace.push(event))
+  const selection = jest.fn((event) => trace.push(event))
+  const final = jest.fn((event) => trace.push(event))
+  const example = (locale: string, isReadOnly = false) => (
+    <Stepper
+      {...names}
+      ref={ref}
+      value={0}
+      step={0.1}
+      locale={locale}
+      isReadOnly={isReadOnly}
+      onChange={(next) => trace.push(next)}
+      inputProps={{ onChange: change, onSelectionChange: selection, onEndEditing: final }}
+    />
+  )
+  const { rerender } = await render(example("en-US"))
+  const originalEditor = ref.current
+  expect(originalEditor).toBeTruthy()
+  await rerender(example("fr-CA"))
+  expect(ref.current).toBe(originalEditor)
+  const nativeChange = { nativeEvent: { text: "0,1", eventCount: 7, target: 42 } }
+  const nativeSelection = { nativeEvent: { selection: { start: 1, end: 3 }, target: 42 } }
+  const nativeFinal = { nativeEvent: { text: "0,2", target: 42 } }
+  await fireEvent(input(), "focus", { nativeEvent: { target: 42 } })
+  await fireEvent.changeText(input(), "0,1")
+  await fireEvent(input(), "change", nativeChange)
+  await fireEvent(input(), "selectionChange", nativeSelection)
+  await fireEvent(input(), "endEditing", nativeFinal)
+  expect(trace).toEqual([nativeChange, nativeSelection, 0.2, nativeFinal])
+  expect(change.mock.calls[0]?.[0]).toBe(nativeChange)
+  expect(selection.mock.calls[0]?.[0]).toBe(nativeSelection)
+  expect(final.mock.calls[0]?.[0]).toBe(nativeFinal)
+  expect(input()).toHaveDisplayValue("0")
+  await rerender(example("fr-CA", true))
+  expect(ref.current).toBe(originalEditor)
+  await fireEvent.changeText(input(), "0,7")
+  await fireEvent(input(), "change", nativeChange)
+  await fireEvent(input(), "accessibilityAction", { nativeEvent: { actionName: "incrementValue" } })
+  expect(trace).toEqual([nativeChange, nativeSelection, 0.2, nativeFinal])
+  await rerender(example("en-US"))
+  expect(ref.current).toBe(originalEditor)
+  await userEvent.setup().press(plus())
+  expect(trace).toEqual([nativeChange, nativeSelection, 0.2, nativeFinal, 0.1])
+})
+
+it("held veto uses the latest owner callback without restarting its600/60ms clock", async () => {
+  const previousOwner = jest.fn()
+  const currentOwner = jest.fn()
+  const { rerender } = await render(<Stepper {...names} value={0} onChange={previousOwner} />)
+  await hold()
+  await advance(300)
+  await rerender(<Stepper {...names} value={0} onChange={currentOwner} />)
+  await advance(299)
+  expect(currentOwner).not.toHaveBeenCalled()
+  await advance(1)
+  await advance(60)
+  expect(previousOwner).not.toHaveBeenCalled()
+  expect(currentOwner.mock.calls).toEqual([[1], [1]])
+  expect(input()).toHaveDisplayValue("0")
+  await release()
+  await fireEvent.press(plus(), pressEvent)
+  expect(currentOwner).toHaveBeenCalledTimes(2)
+})
+
+it("owner value takeover retires a pending hold and its release before a fresh action", async () => {
+  const changed = jest.fn()
+  const { rerender } = await render(<Stepper {...names} value={0} onChange={changed} />)
+  await hold()
+  await advance(300)
+  await rerender(<Stepper {...names} value={5} onChange={changed} />)
+  await advance(1000)
+  await release()
+  await fireEvent.press(plus(), pressEvent)
+  expect(changed).not.toHaveBeenCalled()
+  expect(input()).toHaveDisplayValue("5")
+  await userEvent.setup().press(plus())
+  expect(changed.mock.calls).toEqual([[6]])
+  expect(input()).toHaveDisplayValue("5")
+})
+
+it("locale takeover retires the pending draft and hold without replay after restoration", async () => {
+  const changed = jest.fn()
+  const example = (locale: string) => <Stepper {...names} value={1} step={0.1} locale={locale} onChange={changed} />
+  const { rerender } = await render(example("en-US"))
+  await fireEvent.changeText(input(), "2.2")
+  await hold()
+  await end("2.3")
+  await rerender(example("fr-CA"))
+  await rerender(example("en-US"))
+  await advance(1000)
+  await release()
+  await fireEvent.press(plus(), pressEvent)
+  expect(changed).not.toHaveBeenCalled()
+  expect(input()).toHaveDisplayValue("1")
+  await userEvent.setup().press(plus())
+  expect(changed.mock.calls).toEqual([[1.1]])
+})
