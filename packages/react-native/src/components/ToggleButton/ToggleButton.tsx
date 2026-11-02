@@ -27,6 +27,7 @@ export const ToggleButton = forwardRef<TNativeToggleButtonRef, TNativeToggleButt
     onChange,
     onPress,
     children,
+    render,
     color,
     order,
     raised = false,
@@ -88,6 +89,14 @@ export const ToggleButton = forwardRef<TNativeToggleButtonRef, TNativeToggleButt
       <Button
         {...rest}
         slot={null}
+        nativeAnimate="colors"
+        nativeRole={member && group.selectionMode === "single" ? "radio" : "button"}
+        nativeRender={
+          render
+            ? (props, { isPending: _pending, isFocusVisible: _focusVisible, ...interaction }) =>
+                render(props, { ...interaction, isSelected: selected, state })
+            : undefined
+        }
         nativeFocusOnPress={!preventFocusOnPress}
         ref={root}
         nativeID={nativeID ?? (!member && id !== undefined ? String(id) : undefined)}

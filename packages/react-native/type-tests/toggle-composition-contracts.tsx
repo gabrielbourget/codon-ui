@@ -1,6 +1,7 @@
 import { createRef, type ComponentProps } from "react"
 import { PlatformColor, View } from "react-native"
 
+import type { SharedElementTransitionProps } from "../src"
 import { SelectionIndicator } from "../src/components/SelectionIndicator/SelectionIndicator"
 import { SharedElementTransition } from "../src/components/SharedElementTransition/SharedElementTransition"
 import { NativeToggleButtonGroupKeyboardScope } from "../src/components/ToggleButtonGroup/NativeToggleButtonGroupKeyboardScope"
@@ -86,3 +87,7 @@ export const InvalidKeyboardScopeChild: ComponentProps<typeof NativeToggleButton
 export const InvalidGenericKeyCapture = <NativeFocusView onKeyDownCapture={() => undefined} />
 // @ts-expect-error Raw Fabric capture bags remain private outside the approved group helper.
 export const InvalidGenericRawCapture = <NativeFocusView onNativeOrdinaryEditorKeyCapture={() => undefined} />
+
+export const SharedScopeAlias: SharedElementTransitionProps = { children: "Scoped content" }
+// @ts-expect-error The ordinary alias retains a headless scope without host styles.
+export const NoScopeHost: SharedElementTransitionProps = { style: {} }

@@ -46,7 +46,7 @@ it.each([false, true])(
     await result.rerender(example(["a"]))
     expect(root.current).toBe(original)
     expect(editor.current).toBe(originalEditor)
-    expect(screen.getByRole("button").props.accessibilityState.checked).toBe(true)
+    expect(screen.getByRole("radio").props.accessibilityState.checked).toBe(true)
     expect(request).not.toHaveBeenCalled()
   },
 )
@@ -57,9 +57,10 @@ it("uses acknowledged physical nesting rather than React nesting and retires the
     inner = createRef<View>()
   const tree = (replace = false) =>
     f.wrap(
-      <ToggleButtonGroup ref={outer} testID="outer">
+      <ToggleButtonGroup ref={outer} testID="outer" selectionMode="multiple">
         <ToggleButtonGroup
           ref={inner}
+          selectionMode="multiple"
           testID="inner"
           render={replace ? (props) => <View {...props} key="replacement" /> : undefined}
         />

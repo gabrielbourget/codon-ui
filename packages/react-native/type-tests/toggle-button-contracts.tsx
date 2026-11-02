@@ -1,7 +1,7 @@
 import { createRef } from "react"
-import { Animated, PlatformColor, type View } from "react-native"
+import { Animated, PlatformColor, View } from "react-native"
 
-import { Text, ToggleButton, type ToggleButtonProps } from "../src"
+import { NativeFocusView, Text, ToggleButton, type ToggleButtonProps } from "../src"
 
 export const props: ToggleButtonProps = {
   isSelected: false,
@@ -51,3 +51,11 @@ export const InvalidModality = <ToggleButton>{(state) => String(state.isFocusVis
 export const PointerFocusOptOut = <ToggleButton preventFocusOnPress />
 // @ts-expect-error Pointer focus prevention is boolean.
 export const InvalidPointerFocusOptOut = <ToggleButton preventFocusOnPress="true" />
+
+export const OriginalToggleRenderer = (
+  <ToggleButton render={(props, state) => <NativeFocusView {...props} testID={String(state.isSelected)} />} />
+)
+// @ts-expect-error Toggle renderer retains native View ref and event props, not DOM root props.
+export const InvalidToggleRenderer: NonNullable<ToggleButtonProps["render"]> = (_props: { ref: HTMLButtonElement }) => (
+  <View />
+)

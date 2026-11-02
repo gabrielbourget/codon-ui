@@ -1,4 +1,4 @@
-import type { ReactNode } from "react"
+import type { ReactElement, ReactNode } from "react"
 import type { AccessibilityState, StyleProp } from "react-native"
 
 import type {
@@ -51,6 +51,10 @@ export type TNativeToggleButtonProps = Omit<
   width?: TNativeDisplayDimension
   height?: TNativeDisplayDimension
   children?: ReactNode | ((state: TNativeToggleButtonChildrenState) => ReactNode)
+  render?: (
+    props: Parameters<NonNullable<TNativeButtonProps["render"]>>[0],
+    state: TNativeToggleButtonRenderState,
+  ) => ReactElement
   style?:
     | StyleProp<TNativeButtonRootStyle>
     | ((state: TNativeToggleButtonStyleState) => StyleProp<TNativeButtonRootStyle>)

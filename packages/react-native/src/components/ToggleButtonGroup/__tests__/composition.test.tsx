@@ -14,7 +14,8 @@ import { renderWithToggleKeyboard as render } from "./keyboard-fixture"
 
 beforeEach(() => jest.useFakeTimers())
 afterEach(() => jest.useRealTimers())
-const press = (name: string) => userEvent.setup().press(screen.getByRole("button", { name }))
+const press = (name: string) =>
+  userEvent.setup().press(screen.queryByRole("radio", { name }) ?? screen.getByRole("button", { name }))
 
 it("uses group membership instead of a keyed member's own selected/default/change props", async () => {
   const memberChange = jest.fn(),
@@ -28,9 +29,9 @@ it("uses group membership instead of a keyed member's own selected/default/chang
       <ToggleButton id="" aria-label="Empty" />
     </ToggleButtonGroup>,
   )
-  expect(screen.getByRole("button", { name: "Numeric" }).props.accessibilityState.checked).toBe(true)
+  expect(screen.getByRole("radio", { name: "Numeric" }).props.accessibilityState.checked).toBe(true)
   expect(screen.getByText("Default: true")).toBeOnTheScreen()
-  expect(screen.getByRole("button", { name: "String" }).props.accessibilityState.checked).toBe(false)
+  expect(screen.getByRole("radio", { name: "String" }).props.accessibilityState.checked).toBe(false)
   await press("String")
   await press("Empty")
   expect(groupChange.mock.calls.map(([keys]) => [...keys])).toEqual([["0"], [""]])
@@ -44,7 +45,7 @@ it("requests group selection before the member observes the same original activa
       <ToggleButton id={0} aria-label="Member" onPress={(original) => calls.push(original)} />
     </ToggleButtonGroup>,
   )
-  const button = screen.getByRole("button", { name: "Member" })
+  const button = screen.getByRole("radio", { name: "Member" })
   const event = {
     persist: jest.fn(),
     nativeEvent: {
@@ -79,7 +80,7 @@ it("retains repeated owner veto, accepts an echo and preserves original members 
   )
   const { rerender } = await render(<Example selected={[]} />)
   const originalRoot = root.current,
-    member = screen.getByRole("button", { name: "Member" }),
+    member = screen.getByRole("radio", { name: "Member" }),
     editor = screen.getByTestId("independent-editor")
   expect(originalRoot).not.toBeNull()
   await fireEvent.changeText(editor, "kept draft")
@@ -88,7 +89,7 @@ it("retains repeated owner veto, accepts an echo and preserves original members 
   expect(request.mock.calls.map(([keys]) => [...keys])).toEqual([[0], [0]])
   expect(member.props.accessibilityState.checked).toBe(false)
   await rerender(<Example selected={[0]} />)
-  expect(screen.getByRole("button", { name: "Member" })).toBe(member)
+  expect(screen.getByRole("radio", { name: "Member" })).toBe(member)
   expect(root.current).toBe(originalRoot)
   expect(member.props.accessibilityState.checked).toBe(true)
   expect(screen.getByTestId("independent-editor")).toBe(editor)
@@ -107,7 +108,7 @@ it("combines member/group user guards without disabling unrelated original contr
   )
   await press("Guarded")
   expect(request).not.toHaveBeenCalled()
-  expect(screen.getByRole("button", { name: "Guarded" })).toBeDisabled()
+  expect(screen.getByRole("radio", { name: "Guarded" })).toBeDisabled()
   await press("Independent toggle")
   expect(screen.getByRole("button", { name: "Independent toggle" }).props.accessibilityState.checked).toBe(true)
   expect(screen.getByTestId("editor").props.editable).not.toBe(false)
@@ -129,7 +130,7 @@ it("isolates nested selection owners and leaves members without ids standalone",
   await press("Standalone")
   expect(inner.mock.calls.map(([keys]) => [...keys])).toEqual([["same"]])
   expect(outer).not.toHaveBeenCalled()
-  expect(screen.getByRole("button", { name: "Outer" }).props.accessibilityState.checked).toBe(false)
+  expect(screen.getByRole("radio", { name: "Outer" }).props.accessibilityState.checked).toBe(false)
   expect(screen.getByRole("button", { name: "Standalone" }).props.accessibilityState.checked).toBe(true)
 })
 
@@ -146,8 +147,8 @@ it("keeps standalone id aliases separate from grouped selection keys and explici
   )
   expect(screen.getByRole("button", { name: "Standalone" }).props.nativeID).toBe("0")
   expect(screen.getByRole("button", { name: "Explicit standalone" }).props.nativeID).toBe("explicit")
-  expect(screen.getByRole("button", { name: "Grouped" }).props.nativeID).toBeUndefined()
-  expect(screen.getByRole("button", { name: "Explicit grouped" }).props.nativeID).toBe("group-original")
+  expect(screen.getByRole("radio", { name: "Grouped" }).props.nativeID).toBeUndefined()
+  expect(screen.getByRole("radio", { name: "Explicit grouped" }).props.nativeID).toBe("group-original")
 })
 
 it("merges toggle slots and original refs while retaining foreign Button context isolation", async () => {
@@ -244,9 +245,9 @@ it("retains the original owner through live theme changes without selection requ
     )
   }
   await render(<Example />)
-  const held = screen.getByRole("button", { name: "Held" })
+  const held = screen.getByRole("radio", { name: "Held" })
   await press("Theme")
-  expect(screen.getByRole("button", { name: "Held" })).toBe(held)
+  expect(screen.getByRole("radio", { name: "Held" })).toBe(held)
   expect(held.props.accessibilityState.checked).toBe(true)
   expect(request).not.toHaveBeenCalled()
 })

@@ -69,7 +69,7 @@ export const ToggleButtonGroup = forwardRef<TNativeToggleButtonGroupRef, TNative
         {...navigation.listenerProps}
         ref={rootRef}
         accessible={false}
-        role={navigation.nestedToolbar ? "group" : "toolbar"}
+        role={state.selectionMode === "single" ? "radiogroup" : navigation.nestedToolbar ? "group" : "toolbar"}
         aria-orientation={orientation}
         aria-disabled={state.isDisabled}
         accessibilityLabel={accessibilityLabel ?? aliasLabel}
