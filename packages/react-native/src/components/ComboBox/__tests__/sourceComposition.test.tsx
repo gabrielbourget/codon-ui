@@ -113,3 +113,31 @@ it("keeps the original editor and independent owners through a deferred explicit
     await act(() => Dimensions.set({ window: previousWindow, screen: previousScreen }))
   }
 })
+
+it("retains the canonical group name without combining or renaming its independent controls", async () => {
+  const props = {
+    items: [{ key: "a", text: "Alpha" }],
+    getKey: (item: { key: string }) => item.key,
+    getTextValue: (item: { text: string }) => item.text,
+    accessibilityLabel: "Show choices",
+    inputLabel: "Original query",
+    closeLabel: "Close choices",
+  }
+  const { rerender } = await render(<ComboBox {...props} />)
+  const group = () => screen.getByTestId("combo-box-group")
+  expect(group().props).toMatchObject({
+    accessible: false,
+    role: "group",
+    accessibilityLabel: "ComboBox Input Button Group",
+  })
+  expect(screen.getByRole("button", { name: "Show choices" })).toBeOnTheScreen()
+  await rerender(<ComboBox {...props} labels={{ inputButtonGroupAriaLabel: "Localized controls" }} />)
+  expect(group().props.accessibilityLabel).toBe("Localized controls")
+  expect(screen.getByRole("button", { name: "Show choices" })).toBeOnTheScreen()
+  await rerender(<ComboBox {...props} labels={{ inputButtonGroupAriaLabel: "" }} />)
+  expect(group().props.accessibilityLabel).toBe("")
+  expect(group().props.accessible).toBe(false)
+  await rerender(<ComboBox {...props} labels={{ inputButtonGroupAriaLabel: undefined }} />)
+  expect(group().props.accessibilityLabel).toBeUndefined()
+  expect(screen.getByRole("button", { name: "Show choices" })).toBeOnTheScreen()
+})

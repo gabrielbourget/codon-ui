@@ -103,6 +103,10 @@ const ComboBoxInner = <T,>(props: TNativeComboBoxProps<T>, ref: Ref<TNativeCombo
     flags.isHovered,
   )
   const identity = props.testID ?? props["data-testid"] ?? "combo-box"
+  const groupLabel =
+    props.labels && "inputButtonGroupAriaLabel" in props.labels
+      ? props.labels.inputButtonGroupAriaLabel
+      : "ComboBox Input Button Group"
   const close = () => {
     if (overlay.isActive()) model.requestOpen(false)
   }
@@ -120,6 +124,9 @@ const ComboBoxInner = <T,>(props: TNativeComboBoxProps<T>, ref: Ref<TNativeCombo
     >
       <View
         testID={`${identity}-group`}
+        accessible={false}
+        role="group"
+        accessibilityLabel={groupLabel}
         style={[{ width: "100%", height: styles.root.height != null ? "100%" : undefined }, styles.group]}
       >
         <NativeContentContext.Provider

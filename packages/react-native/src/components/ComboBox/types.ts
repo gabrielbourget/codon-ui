@@ -74,6 +74,7 @@ export type TNativeComboBoxProps<T> = Pick<
   "testID" | "nativeID" | "id" | "onLayout" | "pointerEvents" | "collapsable" | "accessibilityHint"
 > &
   TNativeComboBoxLabel & {
+    labels?: { inputButtonGroupAriaLabel?: string }
     items: readonly T[]
     getKey: (item: T) => TNativeComboBoxKey
     getTextValue: (item: T) => string

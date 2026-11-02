@@ -10,6 +10,7 @@ import {
   useNativeOriginalEditorFocusBinding,
   type TNativeOrdinaryEditorKeyEvent,
 } from "../ordinaryEditorKeys"
+import { useNativeOriginalEditorEnterPolicy } from "../originalEditorEnterPolicy"
 import { useNativeOriginalEditorKeyPolicy, type TNativeOriginalEditorActionFrame } from "../originalEditorKeyPolicy"
 
 const originalRef = createRef<TextInput>()
@@ -218,4 +219,81 @@ it("enrolls the actual standalone original for focus without key policies or a f
   expect(captureNativeOrdinaryEditorFocus(focusRegistry.current, original, { windowId: "window" })?.()).toBe(true)
   await unmount()
   expect(capture?.()).toBe(false)
+})
+
+const EnterHarness = ({ submit, stock, keyPress }: { submit: jest.Mock; stock: jest.Mock; keyPress: jest.Mock }) => {
+  const [original, setOriginal] = useState<TextInput | null>(null)
+  const ref = useCallback((value: TextInput | null) => {
+    originalRef.current = value
+    setOriginal(value)
+  }, [])
+  const receive = useNativeOriginalEditorEnterPolicy(original, {
+    enabled: true,
+    lifetimeKey: "query-editor",
+    current: () => originalRef.current,
+    canAct: () => true,
+    onSubmit: () => submit("current query"),
+  })
+  const props = { ref, testID: "editor", onNativeOrdinaryEditorKey: receive }
+  return (
+    <TextInput
+      {...props}
+      value="current query"
+      onKeyPress={keyPress}
+      onSubmitEditing={(event) => {
+        stock(event)
+        submit("current query")
+      }}
+    />
+  )
+}
+
+it("pairs actual Enter hook receipts and leaves an unrelated genuine soft submit and stock key observer intact", async () => {
+  const submit = jest.fn(),
+    stock = jest.fn(),
+    keyPress = jest.fn()
+  await render(
+    <NativeKeyboardScope testID="host" captureEnabled>
+      <EnterHarness submit={submit} stock={stock} keyPress={keyPress} />
+    </NativeKeyboardScope>,
+  )
+  await acknowledge()
+  expect(host().props.policies[0].tokens).toHaveLength(16)
+  const enter = (id: number, repeat = false) => {
+    const packet = packets(id)
+    const frame = JSON.parse(packet.internal.nativeEvent.originalEditorAction)
+    Object.assign(frame, { key: "Enter", nativeCode: 66, characters: "\n", repeat })
+    for (const event of [packet.internal, packet.original])
+      Object.assign(event.nativeEvent, {
+        key: "Enter",
+        nativeCode: 66,
+        characters: "\n",
+        repeat,
+        originalEditorAction: JSON.stringify(frame),
+      })
+    return packet
+  }
+  for (const [id, repeat] of [
+    [1, false],
+    [2, true],
+  ] as const) {
+    const packet = enter(id, repeat)
+    await act(() => host().props.onNativeScopedKey(packet.internal))
+    expect(submit).toHaveBeenCalledTimes(id - 1)
+    await act(() => editor().props.onNativeOrdinaryEditorKey(packet.original))
+    expect(submit).toHaveBeenCalledTimes(id)
+    await act(() => editor().props.onNativeOrdinaryEditorKey(packet.original))
+    expect(submit).toHaveBeenCalledTimes(id)
+  }
+  expect(stock).not.toHaveBeenCalled()
+  expect(keyPress).not.toHaveBeenCalled()
+  const soft = { nativeEvent: { text: "soft native payload" } }
+  await act(() => editor().props.onSubmitEditing(soft))
+  expect(stock).toHaveBeenCalledTimes(1)
+  expect(stock).toHaveBeenCalledWith(soft)
+  expect(submit).toHaveBeenCalledTimes(3)
+  const observed = { nativeEvent: { key: "x" } }
+  await act(() => editor().props.onKeyPress(observed))
+  expect(keyPress).toHaveBeenCalledWith(observed)
+  expect(submit).toHaveBeenCalledTimes(3)
 })

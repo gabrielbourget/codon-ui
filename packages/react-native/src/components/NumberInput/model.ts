@@ -154,6 +154,12 @@ export const createNumberModel = ({
       const value = result === undefined ? undefined : number(result)
       return value === undefined ? undefined : { value }
     },
+    endpoint: (direction: -1 | 1): number | undefined => {
+      const boundary = direction === -1 ? min : max
+      if (boundary === undefined) return undefined
+      const target = direction === -1 ? boundary : project(boundary)
+      return target === undefined ? undefined : number(target)
+    },
     step: (raw: string, direction: -1 | 1): number | undefined => {
       const parsed = parse(raw)
       if (parsed === null) return undefined

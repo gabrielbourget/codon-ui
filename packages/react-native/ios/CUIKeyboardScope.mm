@@ -43,6 +43,7 @@ static UIView *CUIFirstResponder(UIView *root)
 @property(nonatomic, copy) NSString *revision;
 @property(nonatomic, assign) NSInteger rootTag;
 @property(nonatomic, copy) NSString *orientation;
+@property(nonatomic, assign) BOOL tabOnly;
 @property(nonatomic, weak) UIView *original;
 @property(nonatomic, weak) UIView *last;
 @property(nonatomic, assign) BOOL resolved;
@@ -611,9 +612,10 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
 {
   if (!view || view.hidden || view.alpha <= 0 || !view.userInteractionEnabled) return;
   if ([self toolbarEligible:binding view:view]) {
-    [items addObject:view];
-    // An original focusable host owns its internal native implementation descendants.
-    return;
+    BOOL tabStop=![view isKindOfClass:CUIFocusView.class] || [(CUIFocusView *)view fieldFocusTabStop];
+    if (!binding.tabOnly || tabStop) [items addObject:view];
+    // Collection Tab must include independently tabbable children, while toolbar arrows own host internals.
+    if (!binding.tabOnly) return;
   }
   for (UIView *child in view.subviews) [self collectToolbar:child binding:binding into:items];
 }
@@ -636,6 +638,7 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
 }
 - (NSInteger)toolbarDelta:(CUIToolbarBinding *)binding key:(UIKey *)key
 {
+  if (binding.tabOnly) return 0;
   UIKeyModifierFlags flags=key.modifierFlags;
   if (flags & (UIKeyModifierAlternate | UIKeyModifierControl | UIKeyModifierCommand | UIKeyModifierShift)) return 0;
   NSInteger code=key.keyCode;
@@ -785,7 +788,7 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
     if (![item isKindOfClass:NSDictionary.class] || ![item[@"bindingId"] isKindOfClass:NSString.class] || ![item[@"bindingRevision"] isKindOfClass:NSString.class]) continue;
     CUIToolbarBinding *binding=nil;
     for (CUIToolbarBinding *old in _toolbars) if ([old.identity isEqual:item[@"bindingId"]] && [old.revision isEqual:item[@"bindingRevision"]] && old.rootTag == [item[@"rootTarget"] integerValue]) { binding=old; break; }
-    if (!binding) { binding=[CUIToolbarBinding new]; binding.identity=item[@"bindingId"]; binding.revision=item[@"bindingRevision"]; binding.rootTag=[item[@"rootTarget"] integerValue]; binding.orientation=item[@"orientation"]; }
+    if (!binding) { binding=[CUIToolbarBinding new]; binding.identity=item[@"bindingId"]; binding.revision=item[@"bindingRevision"]; binding.rootTag=[item[@"rootTarget"] integerValue]; binding.orientation=item[@"orientation"]; binding.tabOnly=[item[@"tabOnly"] boolValue]; }
     [next addObject:binding];
   }
   if (![_toolbars isEqual:next]) [self retireToolbarHeld]; _toolbars=next;
@@ -797,6 +800,7 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
   [self refreshToolbarRolesInWindow];
   CUIToolbarBinding *binding=[self outermostToolbar:context.nextFocusedView key:nil capture:YES];
   if (!binding || ![_toolbars containsObject:binding] || ![self toolbarEligible:binding view:context.nextFocusedView]) return;
+  if (binding.tabOnly) return;
   UIView *last=binding.last;
   if ([self outermostToolbar:context.previouslyFocusedView key:nil capture:YES] != binding && [self toolbarEligible:binding view:last]) [self focusToolbar:binding view:last];
   else binding.last=context.nextFocusedView;

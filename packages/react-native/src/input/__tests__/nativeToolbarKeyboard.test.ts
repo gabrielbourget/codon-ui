@@ -6,7 +6,7 @@ import {
   type TNativeToolbarKeyData,
 } from "../nativeToolbarKeyboard"
 
-const setup = () => {
+const setup = (tabOnly = false) => {
   const root = { _nativeTag: 17 } as unknown as View
   let current: View | null = root
   let allowed = true
@@ -16,6 +16,7 @@ const setup = () => {
   const register = () =>
     registry.register("toolbar", root, {
       orientation: "horizontal",
+      ...(tabOnly ? { tabOnly: true } : {}),
       current: () => current,
       canAct: () => allowed,
       receive,
@@ -162,4 +163,38 @@ it("rejects malformed packets and nonpositive or duplicate event identities", ()
   expect(f.registry.dispatch(f.event({ target: -1 }))).toBe(false)
   expect(f.registry.dispatch({ nativeEvent: { packet: "[]" } } as unknown as TNativeToolbarKeyboardEvent)).toBe(false)
   expect(f.receive).not.toHaveBeenCalled()
+})
+
+it("keeps legacy binding bytes and opts collection boundaries into Tab-only native routing", () => {
+  const legacy = setup()
+  expect(JSON.parse(legacy.registry.bindings())[0]).not.toHaveProperty("tabOnly")
+  legacy.registry.dispose()
+  const boundary = setup(true)
+  expect(JSON.parse(boundary.registry.bindings())[0]).toMatchObject({ rootTarget: 17, tabOnly: true })
+  expect(boundary.registry.dispatch(boundary.event({ physicalPath: [23, 17] }))).toBe(true)
+  expect(boundary.receive.mock.calls[0][0]).toMatchObject({
+    disposition: "tab",
+    nativeDefaultHandled: false,
+    focusedTarget: 23,
+    requestedTarget: 29,
+    focusObserved: true,
+  })
+})
+
+it("refuses collection arrow routing and paths outside its actual bound group", () => {
+  const f = setup(true)
+  expect(f.registry.dispatch(f.event({ disposition: "arrow", physicalPath: [23, 17] }))).toBe(false)
+  expect(f.registry.dispatch(f.event({ physicalPath: [23, 99] }))).toBe(false)
+  expect(f.registry.dispatch(f.event({ physicalPath: [99, 17] }))).toBe(false)
+  expect(f.receive).not.toHaveBeenCalled()
+  expect(f.registry.dispatch(f.event({ physicalPath: [23, 17] }))).toBe(true)
+})
+
+it("preserves an untagged native descendant in a truthful scoped Tab observation", () => {
+  const f = setup(true)
+  expect(f.registry.dispatch(f.event({ target: 0, focusedTarget: 0, physicalPath: [23, 17] }))).toBe(true)
+  expect(f.receive.mock.calls[0][0]).toMatchObject({ target: 0, focusedTarget: 0, physicalPath: [23, 17] })
+  f.registry.dispose()
+  const legacy = setup()
+  expect(legacy.registry.dispatch(legacy.event({ target: 0, focusedTarget: 0, physicalPath: [23, 17] }))).toBe(false)
 })

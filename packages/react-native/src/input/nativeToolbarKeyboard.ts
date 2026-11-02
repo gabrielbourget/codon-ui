@@ -48,10 +48,12 @@ export type TNativeToolbarKeyData = Readonly<{
   nativeDefaultHandled: boolean
   disposition: "arrow" | "tab" | "ordinary"
   timestamp: number
+  physicalPath?: readonly number[]
 }>
 // This is a genuine scope observation, not the original child synthetic key event.
 export type TNativeToolbarKeyboardEvent = NativeSyntheticEvent<Readonly<{ packet: string }>>
 export type TNativeToolbarKeyboardOptions = {
+  tabOnly?: boolean
   orientation: "horizontal" | "vertical"
   current: () => View | null
   canAct: () => boolean
@@ -188,6 +190,7 @@ export const createNativeToolbarKeyboard = (ownerId: string, session: () => TSes
           bindingRevision,
           rootTarget,
           orientation: options.orientation,
+          ...(options.tabOnly ? { tabOnly: true } : {}),
         })),
       ),
     setEnabled: (next: boolean) => {
@@ -269,6 +272,12 @@ export const createNativeToolbarKeyboard = (ownerId: string, session: () => TSes
       if (!parsed || typeof parsed !== "object") return false
       const data = parsed as TNativeToolbarKeyData
       const entry = [...entries.values()].find((candidate) => candidate.bindingId === data.bindingId)
+      const tabPath =
+        entry &&
+        Array.isArray(data.physicalPath) &&
+        data.physicalPath.every((tag) => Number.isSafeInteger(tag) && tag > 0) &&
+        data.physicalPath.includes(entry.rootTarget) &&
+        (data.target <= 0 || data.physicalPath.includes(data.target))
       if (
         !entry ||
         !matches(entry, data) ||
@@ -279,7 +288,8 @@ export const createNativeToolbarKeyboard = (ownerId: string, session: () => TSes
         !Number.isSafeInteger(data.eventId) ||
         data.eventId <= entry.lastEventId ||
         !Number.isSafeInteger(data.target) ||
-        data.target <= 0 ||
+        (entry.options.tabOnly ? !tabPath : data.target <= 0) ||
+        (entry.options.tabOnly && data.disposition === "arrow") ||
         (data.phase !== "down" && data.phase !== "up") ||
         (data.phase === "down" && data.cancelled) ||
         !["arrow", "tab", "ordinary"].includes(data.disposition) ||
@@ -320,12 +330,13 @@ export const useNativeToolbarKeyboard = (
     if (!registry) throw new Error("Native toolbar requires a same-window NativeFloatingLayerHost")
     const lease = registry.register(key, target, {
       orientation: options.orientation,
+      tabOnly: options.tabOnly,
       current: () => current.current.current(),
       canAct: () => current.current.canAct(),
       receive: (data, observation) => current.current.receive(data, observation),
     })
     return () => lease.unregister()
-  }, [registry, key, target, enabled, revisionKey, options.orientation])
+  }, [registry, key, target, enabled, revisionKey, options.orientation, options.tabOnly])
   return registry?.status(key) ?? { ready: false, nestedToolbar: false, error: "" }
 }
 
@@ -441,4 +452,46 @@ export const deliverToolbarObserver = (
         : callbacks.onKeyUp
   callback?.(event as TNativeKeyboardEvent)
   return true
+}
+
+export const useNativeCollectionTabBoundary = ({
+  rootRef,
+  enabled,
+  lifetimeKey,
+  canAct,
+  receive,
+}: {
+  rootRef: RefObject<View | null>
+  enabled: boolean
+  lifetimeKey: string
+  canAct: () => boolean
+  receive: TNativeToolbarKeyboardOptions["receive"]
+}) => {
+  const [target, setTarget] = useState<View | null>(null)
+  const committed = useRef({ rootRef, canAct, receive })
+  useInsertionEffect(() => {
+    committed.current = { rootRef, canAct, receive }
+  })
+  useLayoutEffect(() => {
+    if (target !== rootRef.current) setTarget(rootRef.current)
+  })
+  const navigation = useNativeToolbarKeyboard(target, enabled, lifetimeKey, {
+    orientation: "vertical",
+    tabOnly: true,
+    current: () => committed.current.rootRef.current,
+    canAct: () => committed.current.rootRef.current !== null && committed.current.canAct(),
+    receive: (data, event) => committed.current.receive(data, event),
+  })
+  const capture = useNativeOrdinaryEditorKeys(target, enabled, lifetimeKey, {
+    current: () => committed.current.rootRef.current,
+    canAct: () => committed.current.rootRef.current !== null && committed.current.canAct(),
+    subtree: true,
+    toolbar: true,
+    receive: (event) => captureToolbarOriginal(committed.current.rootRef.current, event),
+    receiveDate: (event) => captureToolbarOriginal(committed.current.rootRef.current, event),
+  })
+  return {
+    ...navigation,
+    listenerProps: { onNativeOrdinaryEditorKeyCapture: capture, onNativeDateKeyCapture: capture.receiveDate },
+  }
 }

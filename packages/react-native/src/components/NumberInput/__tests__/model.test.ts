@@ -111,6 +111,16 @@ describe("NumberInput decimal model", () => {
     expect(model.step("1.125", -1)).toBe(1)
     expect(model.step("1", -1)).toBe(0)
   })
+  test("Home uses the exact minimum and End snaps to the last feasible maximum grid point", () => {
+    const model = createNumberModel({ minValue: 0.1, maxValue: 1.1, step: 0.3 })
+    expect(model.endpoint(-1)).toBe(0.1)
+    expect(model.endpoint(1)).toBe(1)
+    expect(createNumberModel({ minValue: 0, maxValue: 0 }).endpoint(1)).toBe(0)
+    expect(createNumberModel({ maxValue: 0.75 }).endpoint(1)).toBe(0)
+    expect(createNumberModel({ minValue: -0.2, maxValue: 0.8 }).endpoint(1)).toBe(0.8)
+    expect(createNumberModel({}).endpoint(-1)).toBeUndefined()
+    expect(createNumberModel({}).endpoint(1)).toBeUndefined()
+  })
   test("seeds empty/invalid drafts once and steps without binary tails", () => {
     const model = createNumberModel({ minValue: 1, maxValue: 10 })
     expect(model.step("", 1)).toBe(1)

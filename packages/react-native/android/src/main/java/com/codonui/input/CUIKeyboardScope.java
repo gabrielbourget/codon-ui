@@ -55,13 +55,14 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
   static final class Toolbar {
     final String id, revision, orientation;
     final int rootTag;
+    final boolean tabOnly;
     boolean resolved;
     String failure="";
     List<ToolbarRole> roles;
     java.lang.ref.WeakReference<View> original, last;
     Toolbar(org.json.JSONObject data) throws org.json.JSONException {
       id=data.getString("bindingId"); revision=data.getString("bindingRevision"); rootTag=data.getInt("rootTarget");
-      orientation=data.getString("orientation");
+      orientation=data.getString("orientation"); tabOnly=data.optBoolean("tabOnly",false);
     }
   }
   private static final class ToolbarHold {
@@ -94,6 +95,7 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
     refreshToolbarRolesInWindow();
     Toolbar binding=outermostToolbar(after,null,true);
     if (binding == null || !toolbars.contains(binding) || !toolbarEligible(binding, after)) return;
+    if (binding.tabOnly) return;
     View last=binding.last == null ? null : binding.last.get();
     if (outermostToolbar(before,null,true) != binding && toolbarEligible(binding, last)) {
       toolbarMoving=true;
@@ -155,6 +157,7 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
     return toolbarObservationAvailable(binding) && !toolbarAncestor(toolbarRoot(binding));
   }
   private int toolbarDelta(Toolbar binding, KeyEvent event) {
+    if (binding.tabOnly) return 0;
     if (event.isAltPressed() || event.isCtrlPressed() || event.isMetaPressed() || event.isShiftPressed()) return 0;
     int code=event.getKeyCode();
     if ("vertical".equals(binding.orientation)) return code == KeyEvent.KEYCODE_DPAD_DOWN ? 1 : code == KeyEvent.KEYCODE_DPAD_UP ? -1 : 0;
