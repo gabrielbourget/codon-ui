@@ -483,7 +483,10 @@ export type {
   TNativeSelectionIndicatorTransitionProperty,
 } from "./components/SelectionIndicator/types"
 export { SharedElementTransition } from "./components/SharedElementTransition/SharedElementTransition"
-export type { TNativeSharedElementTransitionProps } from "./components/SharedElementTransition/SharedElementTransition"
+export type {
+  TNativeSharedElementTransitionProps,
+  TNativeSharedElementTransitionProps as SharedElementTransitionProps,
+} from "./components/SharedElementTransition/SharedElementTransition"
 export { ToggleButton } from "./components/ToggleButton/ToggleButton"
 export type {
   TNativeToggleButtonProps,
@@ -883,6 +886,12 @@ export type {
   TNativeModalProps as ModalProps,
   TNativeModalRef,
   TNativeModalRootStyle,
+  TNativeModalViewportProps,
+  TNativeModalViewportProps as ModalViewportProps,
+  TNativeModalState,
+  TNativeModalState as ModalState,
+  TNativeModalRenderState,
+  TNativeModalRenderState as ModalRenderState,
 } from "./components/Modal/types"
 
 export { AlertDialog } from "./components/AlertDialog/AlertDialog"

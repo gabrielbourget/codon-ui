@@ -105,6 +105,17 @@ public final class CUIKeyboardScopeManager extends ReactViewManager implements C
     }
     ((CUIKeyboardScope) view).setPolicies(policies);
   }
+  @Override public Map<String, Object> getExportedCustomBubblingEventTypeConstants() {
+    Map<String, Object> events = new HashMap<>(); Map<String, Object> existing = super.getExportedCustomBubblingEventTypeConstants();
+    if (existing != null) events.putAll(existing);
+    Map<String, String> gotCapture = new HashMap<>();
+    gotCapture.put("bubbled", "onGotPointerCapture"); gotCapture.put("captured", "onGotPointerCaptureCapture");
+    events.put("topGotPointerCapture", Collections.singletonMap("phasedRegistrationNames", gotCapture));
+    Map<String, String> lostCapture = new HashMap<>();
+    lostCapture.put("bubbled", "onLostPointerCapture"); lostCapture.put("captured", "onLostPointerCaptureCapture");
+    events.put("topLostPointerCapture", Collections.singletonMap("phasedRegistrationNames", lostCapture));
+    return events;
+  }
   @Override public Map<String, Object> getExportedCustomDirectEventTypeConstants() {
     Map<String, Object> events = new HashMap<>(); Map<String, Object> existing = super.getExportedCustomDirectEventTypeConstants();
     if (existing != null) events.putAll(existing);

@@ -1,4 +1,4 @@
-import { useContext, useRef, type ReactNode, type Ref } from "react"
+import { useContext, useInsertionEffect, useRef, type ReactNode, type Ref } from "react"
 import {
   KeyboardAvoidingView,
   Modal as NativeModal,
@@ -12,7 +12,7 @@ import {
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context"
 
 import { resolveNativeStyle, validateNativeColor } from "../components/colors"
-import type { TNativeModalProps, TNativeModalRef } from "../components/Modal/types"
+import type { TNativeModalProps, TNativeModalRef, TNativeModalRenderState } from "../components/Modal/types"
 import { NativeContentContext } from "../components/NativeContentContext"
 import { useNativeTheme } from "../theme"
 
@@ -27,6 +27,7 @@ export const OverlayFrame = ({
   props,
   open,
   requestClose,
+  requestOpen,
   panelRef,
   children,
   initialFocusRef,
@@ -38,6 +39,7 @@ export const OverlayFrame = ({
   props: TNativeModalProps
   open: boolean
   requestClose: () => void
+  requestOpen: (isOpen: boolean) => void
   panelRef: Ref<TNativeModalRef>
   children: ReactNode | ((controls: { close: () => void; isActive: () => boolean }) => ReactNode)
   initialFocusRef?: TNativeModalProps["initialFocusRef"]
@@ -46,6 +48,31 @@ export const OverlayFrame = ({
   dialogDefaults?: ViewStyle
   componentName?: string
 }) => {
+  const renderOwner = useRef({ open, requestOpen, live: true })
+  useInsertionEffect(() => {
+    renderOwner.current = { open, requestOpen, live: true }
+  })
+  useInsertionEffect(
+    () => () => {
+      renderOwner.current.live = false
+    },
+    [],
+  )
+  const requestRenderedOpen = (next: boolean) => {
+    if (renderOwner.current.live) renderOwner.current.requestOpen(next)
+  }
+  const renderState: TNativeModalRenderState = {
+    // These windows retain the approved animationType="none" contract, independently of readiness.
+    isEntering: false,
+    isExiting: false,
+    state: {
+      isOpen: open,
+      open: () => requestRenderedOpen(true),
+      close: () => requestRenderedOpen(false),
+      toggle: () => requestRenderedOpen(!renderOwner.current.open),
+      setOpen: requestRenderedOpen,
+    },
+  }
   const theme = useNativeTheme()
   const backdropSource = useContext(NativeBackdropSourceContext)
   const overlay = useOverlay(open, true, false, props.restoreFocusRef)
@@ -158,6 +185,7 @@ export const OverlayFrame = ({
           <SafeAreaProvider style={{ flex: 1 }}>
             <NativeBackdropWindow testID={`${identity}-backdrop-target`}>
               <NativeFloatingWindowHost
+                nativeBackgroundRender={props.render ? (hostProps) => props.render!(hostProps, renderState) : undefined}
                 isWindowActive={overlay.isActive}
                 dismissRef={floatingDismiss}
                 testID={`${identity}-floating-host`}
@@ -181,8 +209,11 @@ export const OverlayFrame = ({
                     },
                     backdrop,
                   ]}
-                  onPress={() => {
-                    if (props.isDismissable !== false) close()
+                  onPress={(event) => {
+                    if (!overlay.isActive() || props.isDismissable === false) return
+                    if (props.shouldCloseOnInteractOutside?.({ target: event.target, event, kind: "touch" }) === false)
+                      return
+                    close()
                   }}
                 />
                 <SafeAreaView pointerEvents="box-none" style={{ flex: 1 }}>
@@ -227,8 +258,9 @@ export const OverlayFrame = ({
                               keyboardDismissMode="on-drag"
                               onLayout={revealFocusedInput}
                               onContentSizeChange={revealFocusedInput}
-                              onScroll={({ nativeEvent }) => {
-                                scrollOffset.current = nativeEvent.contentOffset.y
+                              onScroll={(event) => {
+                                scrollOffset.current = event.nativeEvent.contentOffset.y
+                                props.onScroll?.(event)
                               }}
                               scrollEventThrottle={16}
                             >

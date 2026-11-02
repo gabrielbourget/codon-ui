@@ -11,7 +11,10 @@ import {
   useRef,
   useState,
   useSyncExternalStore,
+  type ForwardRefExoticComponent,
+  type ReactElement,
   type ReactNode,
+  type RefAttributes,
   type RefObject,
 } from "react"
 import {
@@ -47,6 +50,10 @@ type TNativeTouchCaptureProps = {
   onFocusCapture?: NonNullable<ViewProps["onFocus"]>
 }
 export type TNativeFloatingLayerHostProps = Omit<ViewProps, "pointerEvents" | "collapsable"> & TNativeTouchCaptureProps
+
+type TNativeFloatingBackgroundRenderProps = {
+  nativeBackgroundRender?: (props: ViewProps & RefAttributes<View>) => ReactElement
+}
 
 type TNativeFloatingHost = {
   name: string
@@ -101,10 +108,14 @@ export const NativeFloatingPortal = ({ children, layerId }: { children: ReactNod
   )
 }
 
-export const NativeFloatingLayerHost = forwardRef<TNativeFloatingLayerHostRef, TNativeFloatingLayerHostProps>(
+const NativeFloatingLayerHostReceiver = forwardRef<
+  TNativeFloatingLayerHostRef,
+  TNativeFloatingLayerHostProps & TNativeFloatingBackgroundRenderProps
+>(
   (
     {
       children,
+      nativeBackgroundRender,
       style,
       onLayout,
       onAccessibilityEscape,
@@ -120,6 +131,7 @@ export const NativeFloatingLayerHost = forwardRef<TNativeFloatingLayerHostRef, T
     const id = useId()
     const name = `codon-floating-${id}`
     const root = useRef<View>(null)
+    const background = useRef<View>(null)
     const generation = useRef(0)
     const live = useRef(false)
     const [layers] = useState(createNativeFloatingLayerRegistry)
@@ -221,6 +233,15 @@ export const NativeFloatingLayerHost = forwardRef<TNativeFloatingLayerHostRef, T
         current.current.onTouchCancelCapture?.(event)
       },
     }
+    const backgroundProps: ViewProps & RefAttributes<View> = {
+      ref: background,
+      testID: `${testID}-background`,
+      style: { flex: 1 },
+      pointerEvents: modal ? "none" : "box-none",
+      accessibilityElementsHidden: modal,
+      importantForAccessibility: modal ? "no-hide-descendants" : "auto",
+      children: <NativeFloatingScopeContext.Provider value={scope}>{children}</NativeFloatingScopeContext.Provider>,
+    }
     return (
       <PortalProvider>
         <FloatingHostContext.Provider value={host}>
@@ -240,15 +261,7 @@ export const NativeFloatingLayerHost = forwardRef<TNativeFloatingLayerHostRef, T
             }}
           >
             <NativeFloatingKeyboard host={host} />
-            <View
-              testID={`${testID}-background`}
-              style={{ flex: 1 }}
-              pointerEvents={modal ? "none" : "box-none"}
-              accessibilityElementsHidden={modal}
-              importantForAccessibility={modal ? "no-hide-descendants" : "auto"}
-            >
-              <NativeFloatingScopeContext.Provider value={scope}>{children}</NativeFloatingScopeContext.Provider>
-            </View>
+            {nativeBackgroundRender ? nativeBackgroundRender(backgroundProps) : <View {...backgroundProps} />}
             <PortalHost name={name} style={StyleSheet.absoluteFill} />
             {layers.presentationOrder().map((layerId) => (
               <PortalHost key={layerId} name={layerHostName(name, layerId)} style={StyleSheet.absoluteFill} />
@@ -259,7 +272,10 @@ export const NativeFloatingLayerHost = forwardRef<TNativeFloatingLayerHostRef, T
     )
   },
 )
-NativeFloatingLayerHost.displayName = "NativeFloatingLayerHost"
+NativeFloatingLayerHostReceiver.displayName = "NativeFloatingLayerHost"
+export const NativeFloatingLayerHost: ForwardRefExoticComponent<
+  TNativeFloatingLayerHostProps & RefAttributes<TNativeFloatingLayerHostRef>
+> = NativeFloatingLayerHostReceiver
 
 export type TNativeFloatingWindowDismiss = (reason: TNativeFloatingDismissReason) => boolean
 const NativeFloatingWindowBridge = ({ dismissRef }: { dismissRef: RefObject<TNativeFloatingWindowDismiss | null> }) => {
@@ -283,14 +299,15 @@ export const NativeFloatingWindowHost = ({
   isWindowActive,
   dismissRef,
   ...props
-}: TNativeFloatingLayerHostProps & {
-  isWindowActive: () => boolean
-  dismissRef: RefObject<TNativeFloatingWindowDismiss | null>
-}) => (
+}: TNativeFloatingLayerHostProps &
+  TNativeFloatingBackgroundRenderProps & {
+    isWindowActive: () => boolean
+    dismissRef: RefObject<TNativeFloatingWindowDismiss | null>
+  }) => (
   <NativeFloatingWindowContext.Provider value={isWindowActive}>
-    <NativeFloatingLayerHost {...props}>
+    <NativeFloatingLayerHostReceiver {...props}>
       <NativeFloatingWindowBridge dismissRef={dismissRef} />
       {children}
-    </NativeFloatingLayerHost>
+    </NativeFloatingLayerHostReceiver>
   </NativeFloatingWindowContext.Provider>
 )

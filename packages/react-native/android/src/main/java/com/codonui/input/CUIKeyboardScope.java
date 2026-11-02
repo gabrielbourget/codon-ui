@@ -52,11 +52,18 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
   String menuPointerOwnerId() { return ownerId; }
   double menuPointerEpoch() { return windowEpoch; }
   void emitMenuPointer(WritableMap data) { emit("topNativeMenuPointer", data); }
+  private static final class ToolbarRole {
+    final java.lang.ref.WeakReference<View> original;
+    final Object role;
+    final String capture;
+    ToolbarRole(View original, Object role, String capture) { this.original=new java.lang.ref.WeakReference<>(original); this.role=role; this.capture=capture; }
+  }
   static final class Toolbar {
     final String id, revision, orientation;
     final int rootTag;
     boolean resolved;
     String failure="";
+    List<ToolbarRole> roles;
     java.lang.ref.WeakReference<View> original, last;
     Toolbar(org.json.JSONObject data) throws org.json.JSONException {
       id=data.getString("bindingId"); revision=data.getString("bindingRevision"); rootTag=data.getInt("rootTarget");
@@ -90,10 +97,11 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
   private static KeyEvent toolbarOriginalEvent, toolbarObservedOriginalEvent;
   private final android.view.ViewTreeObserver.OnGlobalFocusChangeListener toolbarFocusChanged=(before, after) -> {
     if (toolbarMoving || !captureReady()) return;
-    Toolbar binding=nearestToolbar(after);
+    refreshToolbarRolesInWindow();
+    Toolbar binding=outermostToolbar(after,null,true);
     if (binding == null || !toolbars.contains(binding) || !toolbarEligible(binding, after)) return;
     View last=binding.last == null ? null : binding.last.get();
-    if (nearestToolbar(before) != binding && toolbarEligible(binding, last)) {
+    if (outermostToolbar(before,null,true) != binding && toolbarEligible(binding, last)) {
       toolbarMoving=true;
       try { last.requestFocus(); } finally { toolbarMoving=false; }
     } else binding.last=new java.lang.ref.WeakReference<>(after);
@@ -129,30 +137,87 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
       for (Toolbar binding : scope.toolbars) if (scope.toolbarRoot(binding) == view) return binding;
     return null;
   }
-  private static boolean originalToolbarRole(View view) {
+  private static Object originalToolbarRole(View view) {
     Object role=view.getTag(com.facebook.react.R.id.role);
-    if (role == null) role=view.getTag(com.facebook.react.R.id.accessibility_role);
-    return role != null && "toolbar".equalsIgnoreCase(role.toString());
+    return role != null ? role : view.getTag(com.facebook.react.R.id.accessibility_role);
   }
   private boolean toolbarAncestor(View root) {
-    for (View view=root == null ? null : root.getParent() instanceof View ? (View)root.getParent() : null; view != null; view=view.getParent() instanceof View ? (View)view.getParent() : null)
-      if (toolbarAt(view) != null || originalToolbarRole(view)) return true;
+    for (View view=root == null ? null : root.getParent() instanceof View ? (View)root.getParent() : null; view != null; view=view.getParent() instanceof View ? (View)view.getParent() : null) {
+      Object role=originalToolbarRole(view);
+      if (role != null && "toolbar".equalsIgnoreCase(role.toString())) return true;
+    }
     return false;
   }
-  private Toolbar nearestToolbar(View focused) {
+  private CUIKeyboardScope toolbarOwner(Toolbar binding) {
+    if (binding == null) return null;
+    for (CUIKeyboardScope scope : CUIInputWindow.scopes(this)) if (scope.toolbars.contains(binding)) return scope;
+    return null;
+  }
+  private boolean toolbarObservationAvailable(Toolbar binding) {
+    View root=toolbarRoot(binding);
+    return captureReady() && root != null && ordinaryEditorKeys.canObserveTarget(root);
+  }
+  private boolean toolbarCaptureAvailable(Toolbar binding) {
+    return toolbarObservationAvailable(binding) && !toolbarAncestor(toolbarRoot(binding));
+  }
+  private int toolbarDelta(Toolbar binding, KeyEvent event) {
+    if (event.isAltPressed() || event.isCtrlPressed() || event.isMetaPressed() || event.isShiftPressed()) return 0;
+    int code=event.getKeyCode();
+    if ("vertical".equals(binding.orientation)) return code == KeyEvent.KEYCODE_DPAD_DOWN ? 1 : code == KeyEvent.KEYCODE_DPAD_UP ? -1 : 0;
+    boolean rtl=toolbarRoot(binding).getLayoutDirection() == View.LAYOUT_DIRECTION_RTL;
+    return code == KeyEvent.KEYCODE_DPAD_RIGHT ? (rtl ? -1 : 1) : code == KeyEvent.KEYCODE_DPAD_LEFT ? (rtl ? 1 : -1) : 0;
+  }
+  private Toolbar outermostToolbar(View focused, KeyEvent event, boolean capture) {
     if (focused == null || !captureReady()) return null;
+    Toolbar selected=null;
     for (View view=focused; view != null; view=view.getParent() instanceof View ? (View)view.getParent() : null) {
       Toolbar binding=toolbarAt(view);
-      if (binding != null) {
-        if (!toolbarAncestor(view)) return binding;
-      } else if (originalToolbarRole(view)) return null;
+      CUIKeyboardScope owner=toolbarOwner(binding);
+      if (binding == null || owner == null || !(capture ? owner.toolbarCaptureAvailable(binding) : owner.toolbarObservationAvailable(binding))) continue;
+      if (event != null && owner.toolbarDelta(binding,event) == 0 && !(event.getKeyCode() == KeyEvent.KEYCODE_TAB && !event.isAltPressed() && !event.isCtrlPressed() && !event.isMetaPressed())) continue;
+      // Capture walks from outer to inner; an unhandled orientation falls through.
+      selected=binding;
     }
-    return null;
+    return selected;
+  }
+  private Toolbar toolbarForEvent(View focused, KeyEvent event) {
+    boolean tab=event.getKeyCode() == KeyEvent.KEYCODE_TAB;
+    boolean editable=focused instanceof CUIDateSegment || (focused != null && focused.onCheckIsTextEditor());
+    Toolbar navigation=!toolbarComposing(focused) && (tab || !editable) ? outermostToolbar(focused,event,true) : null;
+    return navigation != null ? navigation : outermostToolbar(focused,null,false);
+  }
+  private boolean refreshToolbarRoles() {
+    boolean changed=false;
+    for (Toolbar binding : toolbars) {
+      List<ToolbarRole> roles=new ArrayList<>();
+      for (View view=toolbarRoot(binding); view != null; view=view.getParent() instanceof View ? (View)view.getParent() : null) {
+        Toolbar capture=toolbarAt(view);
+        roles.add(new ToolbarRole(view,originalToolbarRole(view),capture == null ? "" : capture.id+":"+capture.revision+":"+capture.rootTag));
+      }
+      boolean same=binding.roles != null && binding.roles.size() == roles.size();
+      for (int index=0; same && index<roles.size(); index++) {
+        ToolbarRole before=binding.roles.get(index), after=roles.get(index);
+        same=before.original.get() == after.original.get() && Objects.equals(before.role,after.role) && before.capture.equals(after.capture);
+      }
+      if (same) continue;
+      boolean replacing=binding.roles != null; binding.roles=roles; changed=true;
+      if (!replacing) continue;
+      binding.last=null;
+      for (int index=toolbarHeld.size()-1; index>=0; index--) {
+        ToolbarHold hold=toolbarHeld.valueAt(index); if (hold.binding != binding) continue;
+        if (!hold.retired && hold.event != null) emitToolbarKey(hold,hold.event,-1,true);
+        hold.retired=true; toolbarHeld.removeAt(index);
+      }
+    }
+    return changed;
+  }
+  private void refreshToolbarRolesInWindow() {
+    for (CUIKeyboardScope scope : CUIInputWindow.scopes(this)) if (scope.refreshToolbarRoles()) scope.publishToolbarStatus();
   }
   private boolean toolbarEligible(Toolbar binding, View view) {
     View root=toolbarRoot(binding);
     if (view instanceof CUIDateSegment && (((CUIDateSegment)view).segmentDisabled || !((CUIDateSegment)view).segmentEditable)) return false;
-    if (root == null || view == null || view == root || !view.isFocusable() || !view.isEnabled() || !view.isShown() || !view.isAttachedToWindow() || nearestToolbar(view) != binding) return false;
+    if (root == null || view == null || view == root || !view.isFocusable() || !view.isEnabled() || !view.isShown() || !view.isAttachedToWindow() || !toolbarObservationAvailable(binding)) return false;
     for (View current=view; current != null; current=current.getParent() instanceof View ? (View)current.getParent() : null) {
       if (current == root) return true;
     }
@@ -169,6 +234,7 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
     Editable text=((EditText)focused).getText(); return text != null && BaseInputConnection.getComposingSpanStart(text) >= 0;
   }
   private Boolean dispatchToolbarKey(KeyEvent event, View focused) {
+    refreshToolbarRolesInWindow();
     int code=event.getKeyCode(); boolean down=event.getAction() == KeyEvent.ACTION_DOWN;
     CUIKeyboardScope owner=null; ToolbarHold hold=null;
     for (CUIKeyboardScope scope : CUIInputWindow.scopes(this)) {
@@ -176,7 +242,7 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
       if (candidate != null) { owner=scope; hold=candidate; break; }
     }
     if (hold == null && down && event.getRepeatCount() == 0) {
-      Toolbar binding=nearestToolbar(focused);
+      Toolbar binding=toolbarForEvent(focused,event);
       if (binding == null) return null;
       for (CUIKeyboardScope scope : CUIInputWindow.scopes(this)) if (scope.toolbars.contains(binding)) { owner=scope; break; }
       if (owner == null) return null;
@@ -194,13 +260,9 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
     if (!hold.retired && down) {
       boolean unmodified=!event.isAltPressed() && !event.isCtrlPressed() && !event.isMetaPressed();
       boolean tab=code == KeyEvent.KEYCODE_TAB && unmodified;
-      int delta=0;
-      if (unmodified && !event.isShiftPressed()) {
-        if ("vertical".equals(binding.orientation)) delta=code == KeyEvent.KEYCODE_DPAD_DOWN ? 1 : code == KeyEvent.KEYCODE_DPAD_UP ? -1 : 0;
-        else delta=code == KeyEvent.KEYCODE_DPAD_RIGHT ? (owner.toolbarRoot(binding).getLayoutDirection() == View.LAYOUT_DIRECTION_RTL ? -1 : 1) : code == KeyEvent.KEYCODE_DPAD_LEFT ? (owner.toolbarRoot(binding).getLayoutDirection() == View.LAYOUT_DIRECTION_RTL ? 1 : -1) : 0;
-      }
+      int delta=owner.toolbarDelta(binding,event);
       if (focused instanceof CUIDateSegment || (focused != null && focused.onCheckIsTextEditor())) delta=0;
-      if ((tab || delta != 0) && !toolbarComposing(focused) && owner.ordinaryEditorKeys.canObserveTarget(owner.toolbarRoot(binding))) {
+      if ((tab || delta != 0) && !toolbarComposing(focused) && owner.toolbarCaptureAvailable(binding)) {
         List<View> candidates=owner.toolbarCandidates(binding); int index=candidates.indexOf(focused);
         if (index >= 0 && !candidates.isEmpty()) {
           View target=tab ? candidates.get(event.isShiftPressed() ? 0 : candidates.size()-1) : candidates.get(Math.max(0, Math.min(candidates.size()-1, index+delta)));
@@ -238,7 +300,7 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
       data.put("physicalPath",path);
       hold.observationTarget=event.getAction() == KeyEvent.ACTION_UP && !cancelled ? getRootView().findFocus() : hold.original;
       hold.route=null;
-      if (nearestToolbar(hold.observationTarget) == hold.binding) {
+      if (toolbarEligible(hold.binding,hold.observationTarget)) {
         org.json.JSONObject route=new org.json.JSONObject(data.toString()); org.json.JSONArray originalPath=new org.json.JSONArray();
         for (View view=hold.observationTarget; view != null; view=view.getParent() instanceof View ? (View)view.getParent() : null) if (view.getId() > 0) originalPath.put(view.getId());
         route.put("physicalPath",originalPath); hold.route=route;
@@ -255,6 +317,7 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
     WritableMap data=Arguments.createMap(); data.putString("packet",packet.toString()); emit(name,data);
   }
   private void publishToolbarStatus() {
+    refreshToolbarRoles();
     for (int index=toolbarHeld.size()-1; index>=0; index--) {
       ToolbarHold hold=toolbarHeld.valueAt(index);
       if (!captureReady() || hold.epoch != windowEpoch || !toolbars.contains(hold.binding) || !toolbarEligible(hold.binding, hold.original)) {
@@ -286,6 +349,8 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
     ToolbarHold hold=originalToolbarHold(original,event); return hold == null || toolbarRouteForOriginal(original,event) == null ? null : hold.owner;
   }
   static String toolbarRouteForOriginal(View original, KeyEvent event) {
+    if (original == null) return null;
+    for (CUIKeyboardScope scope : CUIInputWindow.scopes(original)) if (scope.refreshToolbarRoles()) scope.publishToolbarStatus();
     ToolbarHold hold=originalToolbarHold(original,event);
     if (hold == null || hold.retired || hold.route == null || !hold.owner.captureReady() || hold.epoch != hold.owner.windowEpoch || !hold.owner.toolbars.contains(hold.binding) || !hold.owner.toolbarEligible(hold.binding,hold.original) || !hold.owner.ordinaryEditorKeys.canObserveTarget(hold.owner.toolbarRoot(hold.binding))) return null;
     return hold.route.toString();

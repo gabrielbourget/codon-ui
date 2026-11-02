@@ -1,5 +1,42 @@
 import { codegenNativeComponent, type HostComponent, type ViewProps } from "react-native"
-import type { DirectEventHandler, Double, Int32, WithDefault } from "react-native/Libraries/Types/CodegenTypes"
+import type {
+  BubblingEventHandler,
+  DirectEventHandler,
+  Double,
+  Int32,
+  WithDefault,
+} from "react-native/Libraries/Types/CodegenTypes"
+
+// Registration metadata mirrors the locked stock PointerEvent serializer; the stock processor emits these events.
+type NativePointerCaptureData = Readonly<{
+  pointerId: Int32
+  pressure: Double
+  pointerType: string
+  clientX: Double
+  clientY: Double
+  x: Double
+  y: Double
+  pageX: Double
+  pageY: Double
+  screenX: Double
+  screenY: Double
+  offsetX: Double
+  offsetY: Double
+  width: Double
+  height: Double
+  tiltX: Int32
+  tiltY: Int32
+  detail: Int32
+  buttons: Int32
+  tangentialPressure: Double
+  twist: Int32
+  ctrlKey: boolean
+  shiftKey: boolean
+  altKey: boolean
+  metaKey: boolean
+  isPrimary: boolean
+  button: Int32
+}>
 
 export type NativeDragActionData = Readonly<{ packet: string }>
 export type NativeScopedKeyData = Readonly<{
@@ -220,6 +257,8 @@ export type NativeEditorKeyboardStatus = Readonly<{
 }>
 
 export interface NativeProps extends ViewProps {
+  onGotPointerCapture?: BubblingEventHandler<NativePointerCaptureData>
+  onLostPointerCapture?: BubblingEventHandler<NativePointerCaptureData>
   onNativeDragAction?: DirectEventHandler<NativeDragActionData>
   onNativeDragStatus?: DirectEventHandler<NativeDragActionData>
   dragBindings?: WithDefault<string, "[]">
