@@ -3,14 +3,19 @@ import { useLayoutEffect, useSyncExternalStore } from "react"
 import type { TextInput } from "react-native"
 
 import { NativeFloatingLayerHost, useNativeFloatingHost } from "../../overlays/floating/NativeFloatingLayerHost"
+import type { TNativeKeyScope } from "../keyScope"
+import { useNativeInputModalityWitness } from "../nativeInputModality"
+import type { TNativeInputModalityWitness } from "../nativeInputModality"
 import {
   NativeKeyboardScope,
   useNativeKeyboardObservation,
   useNativeKeyPolicy,
   useNativeKeyScope,
   useNativeMenuPointerPolicy,
+  useNativeWindowPointers,
 } from "../NativeKeyboardScope"
 import type { TNativeMenuPointerEvent } from "../nativeMenuPointers"
+import type { TNativeWindowPointers } from "../nativeWindowPointers"
 import { useNativeOrdinaryEditorKeys, type TNativeOrdinaryEditorKeyEvent } from "../ordinaryEditorKeys"
 
 type THost = ReturnType<typeof useNativeFloatingHost>
@@ -470,4 +475,89 @@ it("retires ordinary editor callbacks immediately when logical window ownership 
   // The actual native window is still reported active; no new status is delivered.
   await act(() => deliver!(event(3)))
   expect(observe).toHaveBeenCalledTimes(2)
+})
+
+it("publishes genuine accepted keyboard chronology after virtual activation and rejects exact same-packet replay", async () => {
+  let input!: TNativeKeyScope,
+    pointers!: TNativeWindowPointers,
+    witness: TNativeInputModalityWitness | null = null
+  const Probe = () => {
+    input = useNativeKeyScope()!
+    pointers = useNativeWindowPointers()!
+    witness = useNativeInputModalityWitness(input)
+    return null
+  }
+  const view = await render(
+    <NativeKeyboardScope captureEnabled testID="host">
+      <Probe />
+    </NativeKeyboardScope>,
+  )
+  await act(() => {
+    pointers.register("existing-consumer", {
+      targetTag: 7,
+      global: true,
+      stopPropagation: true,
+      current: () => true,
+      start: () => true,
+      move: jest.fn(),
+      end: jest.fn(),
+      activate: jest.fn(),
+      retire: jest.fn(),
+    })
+    pointers.flush()
+  })
+  await acknowledge()
+  await act(() =>
+    root().props.onNativePointerStatus({
+      nativeEvent: {
+        ownerId: input.ownerId,
+        ...input.acknowledgedSession(),
+        revision: pointers.revision(),
+        ready: true,
+        error: "",
+      },
+    }),
+  )
+  const record = (timestamp: number) =>
+    act(() =>
+      root().props.onNativeInputModality({
+        nativeEvent: { ownerId: input.ownerId, ...input.acknowledgedSession(), origin: "keyboard", timestamp },
+      }),
+    )
+  await record(10)
+  const originalKeyboard = input.lastInput()
+  const first = witness as TNativeInputModalityWitness | null
+  expect(first?.origin).toBe("keyboard")
+  const data = {
+    ownerId: input.ownerId,
+    ...input.acknowledgedSession(),
+    sequence: 1,
+    phase: "activation",
+    pointerType: "virtual",
+    pointerId: -1,
+    isPrimary: true,
+    button: 0,
+    buttons: 0,
+    target: 7,
+    pageX: 0,
+    pageY: 0,
+    timestamp: 1,
+    registrations: pointers.registrations().map((entry) => ({
+      ...entry,
+      ownerId: input.ownerId,
+      epoch: input.acknowledgedSession().epoch,
+      revision: pointers.revision(),
+      depth: -1,
+    })),
+  }
+  await act(() => root().props.onNativeWindowPointer({ nativeEvent: data }))
+  expect((witness as TNativeInputModalityWitness | null)?.origin).toBe("virtual")
+  expect(input.lastInput()?.origin).toBe("keyboard")
+  const virtual = witness
+  await act(() => root().props.onNativeInputModality({ nativeEvent: originalKeyboard }))
+  expect(witness).toBe(virtual)
+  await record(11)
+  expect((witness as TNativeInputModalityWitness | null)?.origin).toBe("keyboard")
+  expect((witness as TNativeInputModalityWitness | null)!.revision).toBeGreaterThan(first!.revision)
+  await view.unmount()
 })

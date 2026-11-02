@@ -18,7 +18,7 @@ import { validateNativeFontWeight } from "../nativeTextStyle"
 import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
 
 import { getNativeButtonContent } from "./content"
-import { NativeButtonContext } from "./context"
+import { NativeButtonLabelContext, NATIVE_BUTTON_SELF_LABELLED_BY } from "./context"
 import { useNativeButtonMotion } from "./motion"
 import { getNativeButtonStyle } from "./styles"
 import type { TNativeButtonProps, TNativeButtonRef, TNativeButtonRenderState } from "./types"
@@ -340,8 +340,16 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
 NativeButton.displayName = "Button"
 export const Button: ForwardRefExoticComponent<TNativeButtonProps & RefAttributes<TNativeButtonRef>> = forwardRef(
   (props, ref) => {
-    const [merged, mergedRef] = useNativeContextProps(props, ref, NativeButtonContext)
-    const { slot: _slot, render, ...native } = merged
+    const [merged, mergedRef] = useNativeContextProps(props, ref, NativeButtonLabelContext)
+    const { slot: _slot, render, [NATIVE_BUTTON_SELF_LABELLED_BY]: labelledBySelf, ...native } = merged
+    const callerLabelledBy =
+      props.accessibilityLabelledBy !== undefined ||
+      props["aria-labelledby"] !== undefined ||
+      ("nativeLabelledBy" in props && props.nativeLabelledBy !== undefined)
+    if (labelledBySelf !== undefined && !callerLabelledBy) {
+      const finalId = native.id !== undefined ? native.id : native.nativeID
+      native.accessibilityLabelledBy = [...(finalId ? [finalId] : []), ...labelledBySelf]
+    }
     return <NativeButton {...native} nativeAnimate nativeRender={render} ref={mergedRef} />
   },
 )

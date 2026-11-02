@@ -16,6 +16,7 @@ import { DefaultNativeCollectionRenderer, NativeCollectionRendererContext } from
 import type { TNativeCollectionRootProps, TNativeCollectionBranchProps } from "../../../collection/renderer"
 import { nativeKeyToken } from "../../../input/keyScope"
 import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
+import { NativeLocaleProvider } from "../../../locale/NativeLocaleProvider"
 import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import { NativeFloatingWindowContext } from "../../../overlays/floating/scope"
 import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
@@ -121,10 +122,15 @@ const RawRow = createNativeCollectionBranch<object, { id: string | number; child
   },
   (props) => props.children,
 )
-const node = (props: TNativeTableProps = {}, window = () => true, explicitText = false) => (
+const node = (
+  props: TNativeTableProps = {},
+  window = () => true,
+  explicitText = false,
+  originalRoot?: React.RefObject<RN.View | null>,
+) => (
   <NativeThemeProvider>
     <NativeFloatingWindowContext.Provider value={window}>
-      <Table accessibilityLabel="Rows" {...props}>
+      <Table ref={originalRoot} accessibilityLabel="Rows" {...props}>
         <TableHeader columns={columns} />
         {explicitText ? (
           <RawBody>
@@ -418,6 +424,33 @@ it("reverses horizontal navigation in RTL while retaining header wrapping", asyn
   await key(cell(0, 0), "ArrowRight")
   expectFocus(cell(0, 1))
 })
+it.each([false, true])(
+  "uses the current explicit locale instead of OS RTL=%s for Table keyboard navigation",
+  async (osRTL) => {
+    const native = jest.requireActual<typeof RN>("react-native")
+    jest.replaceProperty(native.I18nManager, "isRTL", osRTL)
+    const root = createRef<RN.View>()
+    const content = (locale: string) => (
+      <NativeLocaleProvider locale={locale}>{node({}, undefined, false, root)}</NativeLocaleProvider>
+    )
+    const view = await render(content("ar-AE"))
+    const original = root.current
+    expect(original).not.toBeNull()
+    await focused(row(0))
+    await key(row(0), "ArrowRight")
+    expectFocus(cell(1, 1))
+    await view.rerender(content("en-US"))
+    expect(root.current).toBe(original)
+    await focused(row(0))
+    await key(row(0), "ArrowRight")
+    expectFocus(cell(1, 0))
+    await view.rerender(content("ar-AE"))
+    expect(root.current).toBe(original)
+    await focused(row(0))
+    await key(row(0), "ArrowRight")
+    expectFocus(cell(1, 1))
+  },
+)
 it("preserves the delegate's row and local-cell wrap boundaries", async () => {
   await render(node({ shouldFocusWrap: true }))
   await focused(row("last"))

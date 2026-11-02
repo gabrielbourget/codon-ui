@@ -1,7 +1,16 @@
 import type { ReactElement, ReactNode, RefAttributes } from "react"
-import type { ColorValue, ScrollViewProps, StyleProp, TextStyle, View, ViewProps } from "react-native"
+import type {
+  ColorValue,
+  NativeSyntheticEvent,
+  PointerEvent,
+  ScrollViewProps,
+  StyleProp,
+  TextStyle,
+  View,
+  ViewProps,
+} from "react-native"
 import type { TableStateProps } from "react-stately/useTableState"
-import type { ColumnSize } from "react-stately/useTableState"
+import type { ColumnSize, ColumnStaticSize } from "react-stately/useTableState"
 
 import type { TNativeSlotProps } from "../../collection/context"
 import type { TNativeDragAndDropHooks } from "../../collection/dragAndDrop/hooks"
@@ -72,6 +81,230 @@ export type TNativeTableQueryControls = {
   filtering?: TNativeTableFilteringControls
 }
 
+type TNativeTableTouchCaptureProps = {
+  onTouchStartCapture?: ViewProps["onTouchStart"]
+  onTouchMoveCapture?: ViewProps["onTouchMove"]
+  onTouchCancelCapture?: ViewProps["onTouchCancel"]
+}
+type TNativeTablePointerEventProps = {
+  onPointerOver?: ViewProps["onPointerDown"]
+  onPointerOverCapture?: ViewProps["onPointerDown"]
+  onPointerOut?: ViewProps["onPointerDown"]
+  onPointerOutCapture?: ViewProps["onPointerDown"]
+  onGotPointerCapture?: ViewProps["onPointerDown"]
+  onGotPointerCaptureCapture?: ViewProps["onPointerDown"]
+  onLostPointerCapture?: ViewProps["onPointerDown"]
+  onLostPointerCaptureCapture?: ViewProps["onPointerDown"]
+}
+type TNativeTableUnsupportedHostProps = {
+  translate?: never
+  inert?: never
+  onAuxClick?: never
+  onAuxClickCapture?: never
+  onContextMenu?: never
+  onContextMenuCapture?: never
+  onDoubleClick?: never
+  onDoubleClickCapture?: never
+  onWheel?: never
+  onWheelCapture?: never
+  onScroll?: never
+  onScrollCapture?: never
+  onScrollEnd?: never
+  onScrollEndCapture?: never
+  defaultChecked?: never
+  defaultValue?: never
+  autoCapitalize?: never
+  contentEditable?: never
+  enterKeyHint?: never
+  spellCheck?: never
+  autoCorrect?: never
+  unselectable?: never
+  inputMode?: never
+  onCopy?: never
+  onCopyCapture?: never
+  onCut?: never
+  onCutCapture?: never
+  onPaste?: never
+  onPasteCapture?: never
+  onCompositionEnd?: never
+  onCompositionEndCapture?: never
+  onCompositionStart?: never
+  onCompositionStartCapture?: never
+  onCompositionUpdate?: never
+  onCompositionUpdateCapture?: never
+  onChange?: never
+  onChangeCapture?: never
+  onBeforeInput?: never
+  onBeforeInputCapture?: never
+  onInput?: never
+  onInputCapture?: never
+  onReset?: never
+  onResetCapture?: never
+  onSubmit?: never
+  onSubmitCapture?: never
+  onInvalid?: never
+  onInvalidCapture?: never
+  onLoad?: never
+  onLoadCapture?: never
+  onError?: never
+  onErrorCapture?: never
+  onAbort?: never
+  onAbortCapture?: never
+  onCanPlay?: never
+  onCanPlayCapture?: never
+  onCanPlayThrough?: never
+  onCanPlayThroughCapture?: never
+  onDurationChange?: never
+  onDurationChangeCapture?: never
+  onEmptied?: never
+  onEmptiedCapture?: never
+  onEncrypted?: never
+  onEncryptedCapture?: never
+  onEnded?: never
+  onEndedCapture?: never
+  onLoadedData?: never
+  onLoadedDataCapture?: never
+  onLoadedMetadata?: never
+  onLoadedMetadataCapture?: never
+  onLoadStart?: never
+  onLoadStartCapture?: never
+  onPause?: never
+  onPauseCapture?: never
+  onPlay?: never
+  onPlayCapture?: never
+  onPlaying?: never
+  onPlayingCapture?: never
+  onProgress?: never
+  onProgressCapture?: never
+  onRateChange?: never
+  onRateChangeCapture?: never
+  onSeeked?: never
+  onSeekedCapture?: never
+  onSeeking?: never
+  onSeekingCapture?: never
+  onStalled?: never
+  onStalledCapture?: never
+  onSuspend?: never
+  onSuspendCapture?: never
+  onTimeUpdate?: never
+  onTimeUpdateCapture?: never
+  onVolumeChange?: never
+  onVolumeChangeCapture?: never
+  onWaiting?: never
+  onWaitingCapture?: never
+  onSelect?: never
+  onSelectCapture?: never
+  "aria-activedescendant"?: never
+  "aria-atomic"?: never
+  "aria-autocomplete"?: never
+  "aria-braillelabel"?: never
+  "aria-brailleroledescription"?: never
+  "aria-colcount"?: never
+  "aria-colindex"?: never
+  "aria-colindextext"?: never
+  "aria-colspan"?: never
+  "aria-controls"?: never
+  "aria-current"?: never
+  "aria-description"?: never
+  "aria-errormessage"?: never
+  "aria-flowto"?: never
+  "aria-haspopup"?: never
+  "aria-invalid"?: never
+  "aria-keyshortcuts"?: never
+  "aria-level"?: never
+  "aria-multiline"?: never
+  "aria-multiselectable"?: never
+  "aria-orientation"?: never
+  "aria-owns"?: never
+  "aria-placeholder"?: never
+  "aria-posinset"?: never
+  "aria-pressed"?: never
+  "aria-readonly"?: never
+  "aria-relevant"?: never
+  "aria-required"?: never
+  "aria-roledescription"?: never
+  "aria-rowcount"?: never
+  "aria-rowindex"?: never
+  "aria-rowindextext"?: never
+  "aria-rowspan"?: never
+  "aria-setsize"?: never
+  "aria-sort"?: never
+  contextMenu?: never
+  popover?: never
+  popoverTargetAction?: never
+  popoverTarget?: never
+  onAnimationStart?: never
+  onAnimationStartCapture?: never
+  onAnimationEnd?: never
+  onAnimationEndCapture?: never
+  onAnimationIteration?: never
+  onAnimationIterationCapture?: never
+  onToggle?: never
+  onBeforeToggle?: never
+  onTransitionCancel?: never
+  onTransitionCancelCapture?: never
+  onTransitionEnd?: never
+  onTransitionEndCapture?: never
+  onTransitionRun?: never
+  onTransitionRunCapture?: never
+  onTransitionStart?: never
+  onTransitionStartCapture?: never
+  suppressContentEditableWarning?: never
+  suppressHydrationWarning?: never
+  nonce?: never
+  slot?: never
+  radioGroup?: never
+  about?: never
+  content?: never
+  datatype?: never
+  inlist?: never
+  prefix?: never
+  property?: never
+  rel?: never
+  resource?: never
+  rev?: never
+  typeof?: never
+  vocab?: never
+  autoSave?: never
+  color?: never
+  itemProp?: never
+  itemScope?: never
+  itemType?: never
+  itemID?: never
+  itemRef?: never
+  results?: never
+  security?: never
+  is?: never
+  exportparts?: never
+  part?: never
+  dir?: never
+  hidden?: never
+  lang?: never
+  title?: never
+  accessKey?: never
+  autoFocus?: never
+  onKeyPress?: never
+  onKeyPressCapture?: never
+  dangerouslySetInnerHTML?: never
+}
+type TNativeTableClickProps = {
+  onClick?: (event: PointerEvent | NativeSyntheticEvent<Record<never, never>>) => void
+  onClickCapture?: (event: PointerEvent | NativeSyntheticEvent<Record<never, never>>) => void
+}
+type TNativeTableHostEventProps = TNativeTableTouchCaptureProps & TNativeTablePointerEventProps & TNativeTableClickProps
+type TNativeTableViewHostProps = Omit<ViewProps, keyof TNativeTableUnsupportedHostProps> &
+  TNativeTableUnsupportedHostProps &
+  TNativeTableHostEventProps
+type TNativeTableFocusHostProps = Omit<TNativeFocusViewProps, keyof TNativeTableUnsupportedHostProps> &
+  TNativeTableUnsupportedHostProps &
+  TNativeTableHostEventProps
+type TNativeTableRootAccessibilityProps = {
+  accessible?: false
+  role?: "grid"
+  accessibilityRole?: never
+}
+type TNativeTableRootHostProps = Omit<TNativeTableFocusHostProps, keyof TNativeTableRootAccessibilityProps> &
+  TNativeTableRootAccessibilityProps
 type TStyleProps = { customStyles?: StyleProp<TextStyle>; style?: StyleProp<TextStyle> }
 type TColumnMetadataBase<T extends object> = {
   id: string
@@ -122,7 +355,11 @@ export type TNativeTableRenderState = Readonly<{
 export type TNativeTableRenderStyle =
   | StyleProp<TextStyle>
   | ((values: TNativeTableRenderState & { defaultStyle: TextStyle }) => StyleProp<TextStyle>)
-export type TNativeTableInheritedProps = Omit<ViewProps, "children" | "style" | "onFocus" | "onBlur"> &
+export type TNativeTableInheritedProps = Omit<
+  TNativeTableViewHostProps,
+  "children" | "style" | "onFocus" | "onBlur" | "slot" | "onScroll" | keyof TNativeTableRootAccessibilityProps
+> &
+  TNativeTableRootAccessibilityProps &
   Pick<TNativeFocusViewProps, "onFocus" | "onBlur"> &
   RefAttributes<View> &
   MultipleSelectionStateProps &
@@ -138,7 +375,7 @@ export type TNativeTableInheritedProps = Omit<ViewProps, "children" | "style" | 
     "aria-details"?: string
     "data-testid"?: string
     style?: TNativeTableRenderStyle
-    render?: (props: TNativeFocusViewProps & RefAttributes<View>, state: TNativeTableRenderState) => ReactElement
+    render?: (props: TNativeTableRootHostProps & RefAttributes<View>, state: TNativeTableRenderState) => ReactElement
     onRowAction?: (key: TNativeCollectionKey) => void
     disallowSelectAll?: boolean
     escapeKeyBehavior?: "clearSelection" | "none"
@@ -167,10 +404,13 @@ export type TNativeTableProps<T extends object = object> = Omit<
   }
 export type TNativeTableReceivedProps<T extends object> = Omit<TNativeTableProps<T>, "style"> &
   Pick<TNativeTableInheritedProps, "style" | "sortDescriptor" | "onSortChange">
-export type TNativeTableHeaderProps<T extends object> = Omit<ViewProps, "children" | "style"> &
+export type TNativeTableHeaderProps<T extends object> = Omit<TNativeTableViewHostProps, "children" | "style"> &
   TStyleProps & {
     columns: TNativeTableColumnMetadata<T>[]
-    render?: (props: ViewProps & RefAttributes<View>, state: TNativeTableHeaderRenderState) => ReactElement
+    render?: (
+      props: TNativeTableViewHostProps & RefAttributes<View>,
+      state: TNativeTableHeaderRenderState,
+    ) => ReactElement
   } & TNativeTableHoverEvents
 export type TNativeTableHeaderRenderState = Readonly<{ isHovered: boolean }>
 export type TNativeTableColumnRenderState = Readonly<{
@@ -184,17 +424,20 @@ export type TNativeTableColumnRenderState = Readonly<{
   sort: (direction: "ascending" | "descending") => void
   startResize: () => void
 }>
-export type TNativeTableColumnProps = Omit<TNativeFocusViewProps, "id" | "style" | "children"> & {
+export type TNativeTableColumnProps = Omit<TNativeTableFocusHostProps, "id" | "style" | "children"> & {
   customStyles?: StyleProp<TextStyle>
   style?:
     | StyleProp<TextStyle>
     | ((state: TNativeTableColumnRenderState & { defaultStyle: TextStyle }) => StyleProp<TextStyle>)
   children?: ReactNode | ((state: TNativeTableColumnRenderState & { defaultChildren: undefined }) => ReactNode)
-  render?: (props: TNativeFocusViewProps & RefAttributes<View>, state: TNativeTableColumnRenderState) => ReactElement
-  width?: ColumnSize
-  defaultWidth?: ColumnSize
-  minWidth?: ColumnSize
-  maxWidth?: ColumnSize
+  render?: (
+    props: TNativeTableFocusHostProps & RefAttributes<View>,
+    state: TNativeTableColumnRenderState,
+  ) => ReactElement
+  width?: ColumnSize | null
+  defaultWidth?: ColumnSize | null
+  minWidth?: ColumnStaticSize | null
+  maxWidth?: ColumnStaticSize | null
   textValue?: string
   id?: TNativeCollectionKey
   columnID: string
@@ -218,10 +461,13 @@ export type TNativeTableCellRenderState = Readonly<{
   defaultChildren: undefined
 }>
 export type TNativeTableCellRenderValues = Omit<TNativeTableCellRenderState, "defaultChildren">
-export type TNativeTableCellProps = Omit<ViewProps, "id" | "style" | "children"> &
+export type TNativeTableCellProps = Omit<TNativeTableViewHostProps, "id" | "style" | "children"> &
   TStyleProps & {
     children?: ReactNode | ((state: TNativeTableCellRenderState) => ReactNode)
-    render?: (props: TNativeFocusViewProps & RefAttributes<View>, state: TNativeTableCellRenderValues) => ReactElement
+    render?: (
+      props: TNativeTableFocusHostProps & RefAttributes<View>,
+      state: TNativeTableCellRenderValues,
+    ) => ReactElement
     textValue?: string
     id?: TNativeCollectionKey
     colSpan?: number
@@ -230,13 +476,26 @@ export type TNativeTableCellProps = Omit<ViewProps, "id" | "style" | "children">
     truncate?: boolean
     maxLines?: number
   }
-export type TNativeTableRowProps<T extends object> = Omit<TNativeFocusViewProps, "id" | "children" | "style"> &
+type TNativeTableRowNavigationBoundaryProps = {
+  target?: never
+  download?: never
+  ping?: never
+  referrerPolicy?: never
+  rel?: never
+  hrefLang?: never
+  routerOptions?: never
+}
+export type TNativeTableRowProps<T extends object> = Omit<TNativeTableFocusHostProps, "id" | "children" | "style"> &
+  TNativeTableRowNavigationBoundaryProps &
   Partial<Pick<TNativeLinkProps, "href" | "onNavigationError">> &
   TNativeTableHoverEvents &
   Pick<TNativeButtonProps, "onPress" | "onPressStart" | "onPressEnd" | "onPressUp" | "onPressChange"> &
   TStyleProps & {
     children?: never
-    render?: (props: TNativeFocusViewProps & RefAttributes<View>, state: TNativeTableRowRenderState) => ReactElement
+    render?: (
+      props: TNativeTableFocusHostProps & TNativeTableRowNavigationBoundaryProps & RefAttributes<View>,
+      state: TNativeTableRowRenderState,
+    ) => ReactElement
     textValue?: string
     id?: TNativeCollectionKey
     hasChildItems?: boolean
@@ -274,9 +533,12 @@ export type TNativeTableRowRenderState = Readonly<{
   isExpanded: boolean
   level: number
 }>
-export type TNativeTableBodyProps<T extends object> = Omit<ViewProps, "children" | "style"> &
+export type TNativeTableBodyProps<T extends object> = Omit<TNativeTableViewHostProps, "children" | "style"> &
   TStyleProps & {
-    render?: (props: ViewProps & RefAttributes<View>, state: TNativeTableBodyRenderState) => ReactElement
+    render?: (
+      props: TNativeTableViewHostProps & RefAttributes<View>,
+      state: TNativeTableBodyRenderState,
+    ) => ReactElement
     items?: T[]
     columns: TNativeTableColumnMetadata<T>[]
     geometry?: TCornerGeometry

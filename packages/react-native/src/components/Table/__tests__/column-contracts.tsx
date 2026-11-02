@@ -10,6 +10,14 @@ import { TableColumn } from "../TableColumn"
 import type { TNativeTableColumnMetadata, TNativeTableColumnRenderState } from "../types"
 
 export const nativeColumnContracts = [
+  <TableColumn columnID="name" width={null} />,
+  <TableColumn columnID="name" defaultWidth={null} />,
+  <TableColumn columnID="name" minWidth={null} />,
+  <TableColumn columnID="name" maxWidth={null} />,
+  // @ts-expect-error Fractional units size a column, not its static minimum bound.
+  <TableColumn columnID="name" minWidth="1fr" />,
+  // @ts-expect-error Fractional units size a column, not its static maximum bound.
+  <TableColumn columnID="name" maxWidth="1fr" />,
   <TableCell columnID="name" truncate maxLines={3} />,
   <TableCell columnID="name" truncate={false} maxLines={0} />,
   // @ts-expect-error Line bounds retain the canonical numeric contract.

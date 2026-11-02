@@ -192,7 +192,12 @@ const Cell = (props: TNativeTableCellProps, ref: ForwardedRef<View>, node: TNati
           nativeProgrammaticFocusable
           nativeTabStop={table.manager.focusedKey === node.key}
           nativeRender={(props) => {
-            const hostProps = { ...props, capturedKeys: scope ? [] : table.keyboard.keysFor(node.key) }
+            const hostProps = {
+              ...props,
+              onClick: native.onClick,
+              onClickCapture: native.onClickCapture,
+              capturedKeys: scope ? [] : table.keyboard.keysFor(node.key),
+            }
             return render ? render(hostProps, renderValues) : <NativeFocusView {...hostProps} />
           }}
           onFocus={(event) => {

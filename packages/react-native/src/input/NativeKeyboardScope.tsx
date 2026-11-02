@@ -24,6 +24,7 @@ import { createNativeKeyScope, type TNativeKeyPolicy, type TNativeKeyScope } fro
 import { NativeDialogRegistryContext } from "./NativeDialogFocusScope"
 import { createNativeDragActions, NativeDragActionsContext } from "./nativeDragActions"
 import { dispatchNativeGestureWindow } from "./nativeGestureObservation"
+import { attachNativeInputModalityWitness, recordAcceptedNativeInputModality } from "./nativeInputModality"
 import { createNativeMenuPointers, type TNativeMenuPointerPolicy, type TNativeMenuPointers } from "./nativeMenuPointers"
 import { createNativeToolbarKeyboard, NativeToolbarKeyboardContext } from "./nativeToolbarKeyboard"
 import { nativeViewProps, NativeViewContextBoundary } from "./nativeViewProps"
@@ -165,6 +166,10 @@ export const NativeKeyboardScope = forwardRef<View, TNativeKeyboardScopeProps>(
     useSyncExternalStore(toolbarKeyboard.subscribe, toolbarKeyboard.snapshot, toolbarKeyboard.snapshot)
     useSyncExternalStore(ordinaryEditorKeys.subscribe, ordinaryEditorKeys.snapshot, ordinaryEditorKeys.snapshot)
     useInsertionEffect(() => scope.setEnabled(captureEnabled), [scope, captureEnabled])
+    useInsertionEffect(
+      () => (captureEnabled ? attachNativeInputModalityWitness(scope) : undefined),
+      [scope, captureEnabled],
+    )
     useInsertionEffect(() => dragActions.setEnabled(captureEnabled), [dragActions, captureEnabled])
     useInsertionEffect(() => pointers.setEnabled(captureEnabled), [pointers, captureEnabled])
     useInsertionEffect(() => menuPointers.setEnabled(captureEnabled), [menuPointers, captureEnabled])
@@ -326,7 +331,12 @@ export const NativeKeyboardScope = forwardRef<View, TNativeKeyboardScopeProps>(
                               if (attached.current) scope.acceptNativeStatus(event.nativeEvent)
                             }}
                             onNativeInputModality={(event) => {
-                              if (attached.current) scope.recordInput(event.nativeEvent)
+                              if (!attached.current) return
+                              const data = event.nativeEvent
+                              const previous = scope.lastInput()
+                              scope.recordInput(data)
+                              if (previous !== data && scope.lastInput() === data)
+                                recordAcceptedNativeInputModality(scope, data)
                             }}
                             onNativeScopedKey={(event) => {
                               if (!attached.current || !isKeyboardEvent(event)) return
