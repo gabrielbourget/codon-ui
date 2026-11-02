@@ -1,19 +1,12 @@
-import "../../../collection/__tests__/nativeReceipts"
-
 import { cleanup } from "@testing-library/react-native"
 import { Fragment, createRef, useInsertionEffect, useState } from "react"
 import { AccessibilityInfo, AppState, TextInput, type AppStateStatus } from "react-native"
 
-import {
-  actWithNativeCollections as act,
-  fireEventWithNativeCollections as fireEvent,
-  renderWithNativeCollections as render,
-  screen,
-} from "../../../collection/__tests__/nativeReceipts"
 import { useNativeDragAndDrop } from "../../../collection/dragAndDrop/hooks"
 import { nativeDragFormatter } from "../../../collection/dragAndDrop/messages"
 import type { TNativeDropEvent } from "../../../collection/dragAndDrop/types"
 import { nativeVirtualDrag } from "../../../collection/dragAndDrop/virtualDrag"
+import { renderNativeCollectionNode } from "../../../collection/renderer"
 import {
   DefaultNativeCollectionRenderer,
   NativeCollectionRendererContext,
@@ -25,10 +18,20 @@ import { NativeFocusView } from "../../../input/NativeFocusView"
 import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
 import { NativeThemeProvider } from "../../../theme"
 import { useNativeTable } from "../context"
+import {
+  nativeTableChildren,
+  createNativeTableHeaderModel,
+  nativeTableReceiver,
+  createNativeTableRowModel,
+} from "../model"
 import { Table } from "../Table"
-import { TableHeader } from "../TableHeader"
-import { TableRow } from "../TableRow"
 
+import {
+  actWithNativeCollections as act,
+  fireEventWithNativeCollections as fireEvent,
+  renderWithNativeCollections as render,
+  screen,
+} from "./collectionModel"
 import { CellFixtureBody } from "./fixtures/TableCellFixture"
 
 jest.mock("../../../input/specs/NativeCUIDragAndDrop", () => ({
@@ -96,7 +99,7 @@ const setup = async () => {
         {[...collection.getChildren(parent.key)]
           .filter((node) => node.key !== "target" || mounted)
           .map((node) => (
-            <Fragment key={node.key}>{node.render?.(node)}</Fragment>
+            <Fragment key={node.key}>{renderNativeCollectionNode(node)}</Fragment>
           ))}
       </>
     )
@@ -127,28 +130,43 @@ const setup = async () => {
             <Capture />
           </NativeFocusView>
         )}
-      >
-        <TableHeader columns={columns} />
-        <CellFixtureBody>
-          <TableRow
-            key={sourceRevision}
-            id={0}
-            item={{ value: "Source" }}
-            textValue="Source"
-            columns={columns}
-            renderCell={() => (
-              <TextInput
-                ref={editor}
-                testID="held-chooser-editor"
-                value="dirty draft"
-                selection={{ start: 3, end: 3 }}
-                onChangeText={changed}
-              />
-            )}
-          />
-          <TableRow id="target" item={{ value: "Offscreen" }} textValue="Offscreen" columns={columns} />
-        </CellFixtureBody>
-      </Table>
+        items={(modelOptions) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel({ columns: columns }, modelOptions),
+            nativeTableReceiver<React.ComponentProps<typeof CellFixtureBody>>(
+              "__body:1",
+              "tablebody",
+              {},
+              (visibleProps) => <CellFixtureBody {...visibleProps} />,
+              nativeTableChildren(
+                createNativeTableRowModel(
+                  {
+                    key: sourceRevision,
+                    id: 0,
+                    item: { value: "Source" },
+                    textValue: "Source",
+                    columns: columns,
+                    renderCell: () => (
+                      <TextInput
+                        ref={editor}
+                        testID="held-chooser-editor"
+                        value="dirty draft"
+                        selection={{ start: 3, end: 3 }}
+                        onChangeText={changed}
+                      />
+                    ),
+                  },
+                  modelOptions,
+                ),
+                createNativeTableRowModel(
+                  { id: "target", item: { value: "Offscreen" }, textValue: "Offscreen", columns: columns },
+                  modelOptions,
+                ),
+              ),
+            ),
+          )
+        }
+      />
     )
   }
   const element = () => (

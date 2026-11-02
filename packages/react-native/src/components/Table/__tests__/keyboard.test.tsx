@@ -1,17 +1,10 @@
-import "../../../collection/__tests__/nativeReceipts"
-
 import { act as rawAct, cleanup } from "@testing-library/react-native"
 import { createRef, Fragment, useContext, useState, type ReactNode } from "react"
 import type * as RN from "react-native"
 
-import {
-  actWithNativeCollections as act,
-  flushNativeCollectionActions,
-  renderWithNativeCollections as render,
-  screen,
-} from "../../../collection/__tests__/nativeReceipts"
 import { createNativeCollectionBranch } from "../../../collection/CollectionBuilder"
 import { NativeSelectableCollectionContext } from "../../../collection/context"
+import { renderNativeCollectionNode } from "../../../collection/renderer"
 import { DefaultNativeCollectionRenderer, NativeCollectionRendererContext } from "../../../collection/renderer"
 import type { TNativeCollectionRootProps, TNativeCollectionBranchProps } from "../../../collection/renderer"
 import { nativeKeyToken } from "../../../input/keyScope"
@@ -24,14 +17,25 @@ import { NativeThemeProvider } from "../../../theme"
 import { NativeButton } from "../../Button/Button"
 import { encodeCollectionKey } from "../../collection"
 import { useNativeTable } from "../context"
+import {
+  nativeTableChildren,
+  createNativeTableHeaderModel,
+  nativeTableReceiver,
+  createNativeTableRowModel,
+  createNativeTableBodyModel,
+} from "../model"
 import { Table } from "../Table"
-import { TableBody } from "../TableBody"
 import { TableCell } from "../TableCell"
-import { TableHeader } from "../TableHeader"
-import { TableRow } from "../TableRow"
 import type { TNativeTableProps } from "../types"
 import type { TNativeTableCellRenderState } from "../types"
 
+import { pendingCollectionActions } from "./collectionModel"
+import {
+  actWithNativeCollections as act,
+  flushNativeCollectionActions,
+  renderWithNativeCollections as render,
+  screen,
+} from "./collectionModel"
 import { TableFixture } from "./fixtures/TableFixture"
 
 jest.unmock("react-native/Libraries/Components/TextInput/TextInput")
@@ -95,7 +99,7 @@ const columns = [
   { id: "age", name: "Age" },
 ]
 const RawBody = createNativeCollectionBranch<object, { children?: ReactNode }, RN.View>(
-  "body",
+  "tablebody",
   (_props, ref, parent) => {
     const table = useNativeTable(),
       renderer = useContext(NativeCollectionRendererContext)
@@ -106,7 +110,6 @@ const RawBody = createNativeCollectionBranch<object, { children?: ReactNode }, R
       </Native.View>
     )
   },
-  (props) => props.children,
 )
 const RawRow = createNativeCollectionBranch<object, { id: string | number; children?: ReactNode }, RN.View>(
   "item",
@@ -120,7 +123,6 @@ const RawRow = createNativeCollectionBranch<object, { id: string | number; child
       </Native.View>
     )
   },
-  (props) => props.children,
 )
 const node = (
   props: TNativeTableProps = {},
@@ -130,18 +132,32 @@ const node = (
 ) => (
   <NativeThemeProvider>
     <NativeFloatingWindowContext.Provider value={window}>
-      <Table ref={originalRoot} accessibilityLabel="Rows" {...props}>
-        <TableHeader columns={columns} />
-        {explicitText ? (
-          <RawBody>
-            {items.map((item) => (
-              <TableRow key={item.id} id={item.id} item={item} columns={columns} textValue={item.name} />
-            ))}
-          </RawBody>
-        ) : (
-          <TableBody items={items} columns={columns} />
-        )}
-      </Table>
+      <Table
+        ref={originalRoot}
+        accessibilityLabel="Rows"
+        {...props}
+        items={(modelOptions) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel({ columns: columns }, modelOptions),
+            explicitText
+              ? nativeTableReceiver<React.ComponentProps<typeof RawBody>>(
+                  "__body:1",
+                  "tablebody",
+                  {},
+                  (visibleProps) => <RawBody {...visibleProps} />,
+                  nativeTableChildren(
+                    items.map((item) =>
+                      createNativeTableRowModel(
+                        { id: item.id, item: item, columns: columns, textValue: item.name },
+                        modelOptions,
+                      ),
+                    ),
+                  ),
+                )
+              : createNativeTableBodyModel({ items: items, columns: columns }, modelOptions),
+          )
+        }
+      />
     </NativeFloatingWindowContext.Provider>
   </NativeThemeProvider>
 )
@@ -205,12 +221,26 @@ it("opens linked rows on Enter release and selects on Space without a second nav
     changed = jest.fn()
   await render(
     <NativeThemeProvider>
-      <Table selectionMode="multiple" selectionBehavior="replace" selectedKeys={new Set()} onSelectionChange={changed}>
-        <TableHeader columns={columns} />
-        <RawBody>
-          <TableRow id={0} item={items[0]} columns={columns} href="/people/0" />
-        </RawBody>
-      </Table>
+      <Table
+        selectionMode="multiple"
+        selectionBehavior="replace"
+        selectedKeys={new Set()}
+        onSelectionChange={changed}
+        items={(modelOptions) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel({ columns: columns }, modelOptions),
+            nativeTableReceiver<React.ComponentProps<typeof RawBody>>(
+              "__body:2",
+              "tablebody",
+              {},
+              (visibleProps) => <RawBody {...visibleProps} />,
+              nativeTableChildren(
+                createNativeTableRowModel({ id: 0, item: items[0], columns: columns, href: "/people/0" }, modelOptions),
+              ),
+            ),
+          )
+        }
+      />
     </NativeThemeProvider>,
   )
   await focused(row(0))
@@ -229,13 +259,30 @@ it("replaces selection when arrow navigation reaches an action link without open
     changed = jest.fn()
   await render(
     <NativeThemeProvider>
-      <Table selectionMode="multiple" selectionBehavior="replace" selectedKeys={new Set()} onSelectionChange={changed}>
-        <TableHeader columns={columns} />
-        <RawBody>
-          <TableRow id={0} item={items[0]} columns={columns} />
-          <TableRow id="beta" item={items[1]} columns={columns} href="/people/beta" />
-        </RawBody>
-      </Table>
+      <Table
+        selectionMode="multiple"
+        selectionBehavior="replace"
+        selectedKeys={new Set()}
+        onSelectionChange={changed}
+        items={(modelOptions) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel({ columns: columns }, modelOptions),
+            nativeTableReceiver<React.ComponentProps<typeof RawBody>>(
+              "__body:3",
+              "tablebody",
+              {},
+              (visibleProps) => <RawBody {...visibleProps} />,
+              nativeTableChildren(
+                createNativeTableRowModel({ id: 0, item: items[0], columns: columns }, modelOptions),
+                createNativeTableRowModel(
+                  { id: "beta", item: items[1], columns: columns, href: "/people/beta" },
+                  modelOptions,
+                ),
+              ),
+            ),
+          )
+        }
+      />
     </NativeThemeProvider>,
   )
   await focused(row(0))
@@ -256,23 +303,24 @@ it("enters the first row through the original root and supports row navigation w
   await key(row("beta"), "ArrowUp")
   expectFocus(row(0))
 })
-it("publishes the exact native root binding required by its queued focus admission", async () => {
+it("queues the exact explicit root binding required by owner admission", async () => {
   await render(node())
   const root = screen.getByTestId("table")
   const binding = root.props.nativeCollectionBinding
   expect(JSON.parse(binding)).toMatchObject({
-    descriptorId: "",
-    descriptorRevision: "",
-    metadataTarget: expect.any(Number),
+    itemId: "",
+    itemRevision: "",
+    ownerId: expect.any(String),
+    generation: expect.any(String),
+    revision: expect.any(String),
+    lifetime: expect.any(String),
   })
   await rawAct(() =>
     root.props.onNativeFocusChange({
       nativeEvent: { ownerId: root.props.ownerId, target: tag(root), isFocused: true, isFocusVisible: true },
     }),
   )
-  const requests = screen.container
-    .queryAll((host) => typeof host.props.actionRequests === "string")
-    .flatMap((host) => JSON.parse(host.props.actionRequests))
+  const requests = pendingCollectionActions()
   expect(requests).toEqual([expect.objectContaining({ binding, visibleTarget: tag(root) })])
   await act(() => {})
 })
@@ -534,18 +582,30 @@ const controlsFixture = async (scoped = false, explicitText = false) => {
     },
   ]
   const table = (
-    <Table accessibilityLabel="Controls">
-      <TableHeader columns={controlColumns} />
-      {explicitText ? (
-        <RawBody>
-          {items.map((item) => (
-            <TableRow key={item.id} id={item.id} item={item} columns={controlColumns} textValue={item.name} />
-          ))}
-        </RawBody>
-      ) : (
-        <TableBody columns={controlColumns} items={items} />
-      )}
-    </Table>
+    <Table
+      accessibilityLabel="Controls"
+      items={(modelOptions) =>
+        nativeTableChildren(
+          createNativeTableHeaderModel({ columns: controlColumns }, modelOptions),
+          explicitText
+            ? nativeTableReceiver<React.ComponentProps<typeof RawBody>>(
+                "__body:4",
+                "tablebody",
+                {},
+                (visibleProps) => <RawBody {...visibleProps} />,
+                nativeTableChildren(
+                  items.map((item) =>
+                    createNativeTableRowModel(
+                      { id: item.id, item: item, columns: controlColumns, textValue: item.name },
+                      modelOptions,
+                    ),
+                  ),
+                ),
+              )
+            : createNativeTableBodyModel({ columns: controlColumns, items: items }, modelOptions),
+        )
+      }
+    />
   )
   await render(
     <NativeThemeProvider>
@@ -760,10 +820,16 @@ it("enters the resize handle from its row and preserves its scoped policy priori
     <NativeThemeProvider>
       <NativeOverlayProvider>
         <NativeFloatingLayerHost ref={scope} testID="keys-host">
-          <Table columns={sized} columnResizing={{ enabled: true, onColumnResize: resized }}>
-            <TableHeader columns={sized} />
-            <TableBody columns={sized} items={items} />
-          </Table>
+          <Table
+            columns={sized}
+            columnResizing={{ enabled: true, onColumnResize: resized }}
+            items={(modelOptions) =>
+              nativeTableChildren(
+                createNativeTableHeaderModel({ columns: sized }, modelOptions),
+                createNativeTableBodyModel({ columns: sized, items: items }, modelOptions),
+              )
+            }
+          />
         </NativeFloatingLayerHost>
       </NativeOverlayProvider>
     </NativeThemeProvider>,
@@ -891,19 +957,48 @@ it("renders the complete flat cell state and observes hover/focus without a cell
         selectionBehavior="replace"
         selectedKeys={new Set(selected ? [0] : [])}
         disabledKeys={disabled ? [0] : []}
-      >
-        <TableHeader columns={columns} />
-        <RawBody>
-          <RawRow id={0}>
-            <TableCell id="state-cell" columnID="name" testID="state-cell" style={style}>
-              {rendered}
-            </TableCell>
-            <TableCell id="other-cell" columnID="age">
-              20
-            </TableCell>
-          </RawRow>
-        </RawBody>
-      </Table>
+        items={(modelOptions) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel({ columns: columns }, modelOptions),
+            nativeTableReceiver<React.ComponentProps<typeof RawBody>>(
+              "__body:5",
+              "tablebody",
+              {},
+              (visibleProps) => <RawBody {...visibleProps} />,
+              nativeTableChildren(
+                nativeTableReceiver<React.ComponentProps<typeof RawRow>>(
+                  0,
+                  "item",
+                  { id: 0 },
+                  (visibleProps) => <RawRow {...visibleProps} />,
+                  nativeTableChildren(
+                    nativeTableReceiver<React.ComponentProps<typeof TableCell>>(
+                      "state-cell",
+                      "cell",
+                      {
+                        id: "state-cell",
+                        columnID: "name",
+                        testID: "state-cell",
+                        style: style,
+                        children: rendered,
+                      },
+                      (visibleProps) => <TableCell {...visibleProps} />,
+                      [],
+                    ),
+                    nativeTableReceiver<React.ComponentProps<typeof TableCell>>(
+                      "other-cell",
+                      "cell",
+                      { id: "other-cell", columnID: "age", children: <>20</> },
+                      (visibleProps) => <TableCell {...visibleProps} />,
+                      [],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          )
+        }
+      />
     </NativeThemeProvider>
   )
   const view = await render(content())
@@ -976,7 +1071,7 @@ const partialFixture = async (active = () => true) => {
     materialize = setVisible
     return [...props.collection.getChildren(props.parent.key)]
       .filter((entry) => visible.includes(entry.key))
-      .map((entry) => <Fragment key={encodeCollectionKey(entry.key)}>{entry.render?.(entry)}</Fragment>)
+      .map((entry) => <Fragment key={encodeCollectionKey(entry.key)}>{renderNativeCollectionNode(entry)}</Fragment>)
   }
   await render(
     <NativeCollectionRendererContext.Provider

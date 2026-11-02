@@ -22,7 +22,6 @@ import type { TNativeTextRef } from "../../components/Text/types"
 import type { TNativeTimePickerProps } from "../../components/TimePicker/types"
 import { useNativeFieldSemanticRef, useNativeFieldSemantics } from "../../form/useFieldSemantics"
 import { useNativeTimeFieldForm } from "../../form/useTimeField"
-import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
 import { NativeFocusHost } from "../../input/NativeFocusView"
 import {
   NativeOrdinaryFieldGroupKeysContext,
@@ -80,6 +79,8 @@ const fieldOptions = new Set([
   "autoFocus",
   "name",
   "form",
+  "formFieldId",
+  "nativeAccessibilityText",
   "autoComplete",
   "id",
   "slot",
@@ -232,19 +233,14 @@ export const NativeTimePickerRenderer = forwardRef(
       appearance.defaultBorderColor,
     )
     const [label, labelRef] = useNativeFieldSemanticRef<TNativeTextRef>()
-    const [description, descriptionRef] = useNativeFieldSemanticRef<TNativeTextRef>()
-    const [error, errorRef] = useNativeFieldSemanticRef<TNativeTextRef>()
-    const [selected, selectedRef] = useNativeFieldSemanticRef<TNativeTextRef>()
+    const [, descriptionRef] = useNativeFieldSemanticRef<TNativeTextRef>()
+    const [, errorRef] = useNativeFieldSemanticRef<TNativeTextRef>()
+    const [, selectedRef] = useNativeFieldSemanticRef<TNativeTextRef>()
     const selectedDescription = getNativeDateFieldDescription(state, locale)
     const labelId = `${ownerId}:label`,
       descriptionId = `${ownerId}:description`,
       errorId = `${ownerId}:error`,
       selectedId = `${ownerId}:selected-time`
-    const primary = useRef<View | null>(null),
-      absent = useRef<View | null>(null)
-    useInsertionEffect(() => {
-      primary.current = original?.rows[0].original ?? null
-    })
     const firstIndex = state.segments.findIndex((segment) => segment.isEditable)
     const firstPart = state.segments[firstIndex]
     const firstEditableTarget = firstPart
@@ -252,20 +248,12 @@ export const NativeTimePickerRenderer = forwardRef(
           ?.identity.target
       : undefined
     const semanticFrame = useNativeFieldSemantics({
-      ids: {
-        input: `${ownerId}:input`,
-        label: labelId,
-        description: descriptionId,
-        errorMessage: errorId,
-        value: selectedId,
-        list: `${ownerId}:list`,
+      text: {
+        label: props.nativeAccessibilityText?.label ?? props.accessibilityLabel ?? props["aria-label"],
+        description: [props.nativeAccessibilityText?.description, selectedDescription].filter(Boolean).join(". "),
+        errorMessage: props.nativeAccessibilityText?.errorMessage ?? state.displayValidation.validationErrors.join(" "),
+        details: props.nativeAccessibilityText?.details,
       },
-      refs: { input: primary, label, description, errorMessage: error, value: selected, list: absent },
-      labelledBy: nativeAccessibilityIDs(props.accessibilityLabelledBy ?? props["aria-labelledby"]),
-      describedBy: [
-        ...(selected.current ? [selectedId] : []),
-        ...(nativeAccessibilityIDs(props["aria-describedby"] ?? props.ariaDescribedBy) ?? []),
-      ],
       labels: props.nativeAccessibilityLabels,
       flags: {
         disabled: state.isDisabled,

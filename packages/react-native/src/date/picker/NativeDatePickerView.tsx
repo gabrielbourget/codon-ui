@@ -23,7 +23,6 @@ import { nativeDatePickerData } from "../../form/datePicker"
 import type { TNativeDateInputGroup, TNativeDateInputSlot } from "../../form/dateSegments"
 import { useNativeFieldSemanticRef, useNativeFieldSemantics } from "../../form/useFieldSemantics"
 import { useNativeSegmentedFieldForm, type TOriginalDateField } from "../../form/useSegmentedField"
-import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
 import { containsNativeView, getNativeFocusedTarget } from "../../input/focus"
 import { NativeFocusHost, NativeFocusView } from "../../input/NativeFocusView"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
@@ -92,6 +91,8 @@ const omitted = new Set([
   "startName",
   "endName",
   "form",
+  "formFieldId",
+  "nativeAccessibilityText",
   "autoComplete",
   "id",
   "slot",
@@ -314,15 +315,10 @@ export const NativeDatePickerView = (
     },
     isNativeDateFieldFocusEvent,
   )
-  const [label, labelRef] = useNativeFieldSemanticRef<TNativeTextRef>(),
-    [description, descriptionRef] = useNativeFieldSemanticRef<TNativeTextRef>(),
-    [error, errorRef] = useNativeFieldSemanticRef<TNativeTextRef>(),
-    [selected, selectedRef] = useNativeFieldSemanticRef<TNativeTextRef>()
-  const primary = useRef<View | null>(null),
-    absent = useRef<View | null>(null)
-  useInsertionEffect(() => {
-    primary.current = original?.segments[0].original ?? null
-  })
+  const [, labelRef] = useNativeFieldSemanticRef<TNativeTextRef>(),
+    [, descriptionRef] = useNativeFieldSemanticRef<TNativeTextRef>(),
+    [, errorRef] = useNativeFieldSemanticRef<TNativeTextRef>(),
+    [, selectedRef] = useNativeFieldSemanticRef<TNativeTextRef>()
   const selectedDescription = getNativeDatePickerDescription(state.formatValue(locale, { month: "long" }), locale)
   const labelId = `${ownerId}:label`,
     descriptionId = `${ownerId}:description`,
@@ -334,20 +330,12 @@ export const NativeDatePickerView = (
   const firstEditableTarget = original?.segments.find((row) => row.identity.segmentId === firstEditableId)?.identity
     .target
   const semanticFrame = useNativeFieldSemantics({
-    ids: {
-      input: `${ownerId}:input`,
-      label: labelId,
-      description: descriptionId,
-      errorMessage: errorId,
-      value: selectedId,
-      list: `${ownerId}:list`,
+    text: {
+      label: props.nativeAccessibilityText?.label ?? props.accessibilityLabel ?? props["aria-label"],
+      description: [props.nativeAccessibilityText?.description, selectedDescription].filter(Boolean).join(". "),
+      errorMessage: props.nativeAccessibilityText?.errorMessage ?? state.displayValidation.validationErrors.join(" "),
+      details: props.nativeAccessibilityText?.details,
     },
-    refs: { input: primary, label, description, errorMessage: error, value: selected, list: absent },
-    labelledBy: nativeAccessibilityIDs(props.accessibilityLabelledBy ?? props["aria-labelledby"]),
-    describedBy: [
-      ...(selected.current ? [selectedId] : []),
-      ...(nativeAccessibilityIDs(props["aria-describedby"] ?? props.ariaDescribedBy) ?? []),
-    ],
     flags: {
       disabled: !!props.isDisabled,
       readOnly: !!props.isReadOnly,

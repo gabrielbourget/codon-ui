@@ -7,6 +7,8 @@ import {
 
 const binding = (root: number, descriptor = "", more: Record<string, unknown> = {}) =>
   JSON.stringify({
+    publisher: `publisher-${root}`,
+    lease: `lease-${root}-${descriptor || "root"}`,
     ownerId: `owner-${root}`,
     rootId: `root-${root}`,
     rootRevision: `revision-${root}`,
@@ -17,7 +19,6 @@ const binding = (root: number, descriptor = "", more: Record<string, unknown> = 
     sequence: 9,
     descriptorId: descriptor,
     descriptorRevision: descriptor ? "item-revision" : "",
-    metadataTarget: descriptor ? 130 : root,
     ...more,
   })
 const fixture = () => {
@@ -208,6 +209,14 @@ it.each([
   { submenuBinding: binding(200, "", { windowId: "foreign" }) },
   { submenuBinding: binding(200, "", { surfaceId: 2 }) },
   { parentBinding: binding(100, "item") },
+  { parentBinding: binding(100, "", { publisher: "" }) },
+  { parentBinding: binding(100, "", { lease: "" }) },
+  { triggerBinding: binding(100, "trigger", { publisher: "recycled-publisher" }) },
+  { triggerBinding: binding(100, "trigger", { lease: "lease-100-root" }) },
+  { submenuBinding: binding(200, "", { publisher: "publisher-100" }) },
+  { submenuBinding: binding(200, "", { target: 100 }) },
+  { triggerBinding: binding(100, "trigger", { rootRevision: "old-model" }) },
+  { triggerBinding: binding(100, "trigger", { rootId: "old-generation" }) },
 ] as const)("does not register a policy with inconsistent actual collection identities %p", (more) => {
   const f = fixture()
   f.lease.update({ ...f.options, ...more })
@@ -271,4 +280,37 @@ it("retires the old identity before calling a receiver's retirement callback", (
   f.lease.update({ ...f.options, triggerTarget: 12, retire: reenter })
   expect(reenter).toHaveReturnedWith(false)
   expect(f.observe).not.toHaveBeenCalled()
+})
+
+it("accepts flat leases without hidden metadata and retires a replaced native lease before old delivery", () => {
+  const f = fixture()
+  expect(JSON.parse(f.options.parentBinding)).not.toHaveProperty("metadataTarget")
+  expect(f.pointers.policies()).toHaveLength(1)
+  expect(f.acknowledge()).toBe(true)
+  const old = f.packet({
+    phase: "handoff",
+    observationId: 8,
+    pointerType: "mouse",
+  })
+  f.lease.update({
+    ...f.options,
+    triggerBinding: binding(100, "trigger", {
+      lease: "replacement-native-lease",
+    }),
+  })
+  expect(f.pointers.dispatch(old)).toBe(false)
+  expect(f.pointers.dispatch(f.packet({ phase: "handoff", observationId: 9, pointerType: "mouse" }))).toBe(false)
+  expect(f.acknowledge()).toBe(true)
+  expect(f.pointers.dispatch(f.packet({ phase: "handoff", observationId: 10, pointerType: "mouse" }))).toBe(true)
+})
+
+it("rejects legacy descriptor receipts even if hidden metadata tags are still supplied", () => {
+  const f = fixture()
+  const legacy = JSON.parse(f.options.parentBinding)
+  delete legacy.publisher
+  delete legacy.lease
+  legacy.metadataTarget = legacy.target
+  f.lease.update({ ...f.options, parentBinding: JSON.stringify(legacy) })
+  expect(f.pointers.policies()).toEqual([])
+  expect(f.acknowledge()).toBe(false)
 })

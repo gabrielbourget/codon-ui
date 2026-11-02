@@ -5,6 +5,7 @@ import {
   useContext,
   useId,
   useInsertionEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -15,20 +16,20 @@ import {
 import { findNodeHandle, Linking, type TextInput, type View } from "react-native"
 
 import { NativeCollectionActionsContext, type TNativeCollectionActionOutcome } from "../../collection/actions"
-import { useNativeCachedChildren } from "../../collection/cachedChildren"
-import { NativeCollectionBuilder } from "../../collection/CollectionBuilder"
+import { NativeCollectionBuilder, useNativeCollectionOwnerRef } from "../../collection/CollectionBuilder"
 import { useNativeCollectionRefs, useNativeContextProps } from "../../collection/context"
+import type { TNativeCollectionModelSnapshot } from "../../collection/model"
 import {
   NativeCollectionRendererContext,
   type TNativeCollectionRenderer,
   type TNativeCollectionScrollHost,
 } from "../../collection/renderer"
-import type { TNativeCollectionNode, TNativeCollectionSnapshot } from "../../collection/snapshot"
+import type { TNativeCollectionItem, TNativeCollectionNode, TNativeCollectionSnapshot } from "../../collection/snapshot"
 import { NativeListStateContext } from "../../collection/state"
 import { NativeFormBehaviorContext } from "../../form/context"
+import { nativeFieldAccessibilityProps } from "../../form/semantics"
 import { useNativeComboBoxField } from "../../form/useComboBoxField"
 import { useNativeFieldSemantics, useNativeFieldSemanticRef } from "../../form/useFieldSemantics"
-import { nativeAccessibilityIDs, nativeCompositeLabelProps } from "../../input/accessibilityReferences"
 import type { TNativeObservedKeyboardEvent } from "../../input/keyboardObservation"
 import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
@@ -36,7 +37,7 @@ import type { TNativeWindowPointerEvent } from "../../input/nativeWindowPointers
 import type { TNativePressEvent } from "../../input/types"
 import type { TNativeKeyboardEvent } from "../../input/types"
 import { useNativeTheme } from "../../theme"
-import { encodeCollectionKey, validateCollectionKey } from "../collection"
+import { validateCollectionKey } from "../collection"
 import { NativeContentContext } from "../NativeContentContext"
 import type { TNativeTextRef } from "../Text/types"
 import { PlaceholderText } from "../Text/variants/PlaceholderText/PlaceholderText"
@@ -85,7 +86,7 @@ type TCommitEvent =
   | TNativeWindowPointerEvent
   | TNativeObservedKeyboardEvent
 export type { TNativeCollectionComboBoxProps } from "./collectionTypes"
-const AuthoredItem = ({
+const VisibleItem = ({
   id,
   value,
   text,
@@ -110,31 +111,35 @@ const AuthoredItem = ({
     )}
   </NativeComboBoxItemValueContext.Provider>
 )
-const Authoring = <T extends object>({ props }: { props: TNativeCollectionComboBoxProps<T> }) => {
-  const values = useMemo(() => Array.from(props.items), [props.items])
-  return useNativeCachedChildren({
-    items: values,
-    dependencies: props.dependencies,
-    getReactKey: encodeCollectionKey,
-    children:
-      props.children != null && typeof props.children !== "function"
-        ? props.children
-        : (item) => {
-            const key = props.getKey(item)
-            validateCollectionKey(key, "item key", "ComboBox")
-            const content = typeof props.children === "function" ? props.children(item) : undefined
-            const authored = isValidElement<{ id?: string | number }>(content) ? content.props.id : undefined
-            return (
-              <AuthoredItem
-                id={authored ?? key}
-                value={item}
-                text={props.getTextValue(item)}
-                content={content}
-                renderItem={props.renderItem as TNativeComboBoxProps<object>["renderItem"]}
-              />
-            )
-          },
-  })
+const useComboBoxItems = <T extends object>(props: TNativeCollectionComboBoxProps<T>) => {
+  const { items, collectionItems, children, getKey, getTextValue, renderItem, dependencies, getOptionProps } = props
+  return useMemo((): readonly TNativeCollectionItem<T>[] => {
+    if (collectionItems) return collectionItems
+    if (children != null && typeof children !== "function")
+      throw new Error("ComboBox membership and sections require explicit collectionItems")
+    return Array.from(items, (item) => {
+      const key = getKey(item),
+        text = getTextValue(item)
+      validateCollectionKey(key, "item key", "ComboBox")
+      return {
+        key,
+        type: "item",
+        value: item,
+        rendered: text,
+        textValue: text,
+        props: { ...getOptionProps?.(item) },
+        render: () => (
+          <VisibleItem
+            id={key}
+            value={item}
+            text={text}
+            content={children?.(item)}
+            renderItem={renderItem as TNativeComboBoxProps<object>["renderItem"]}
+          />
+        ),
+      }
+    })
+  }, [items, collectionItems, children, getKey, getTextValue, renderItem, dependencies, getOptionProps])
 }
 let nextEditorBindingRevision = 0
 
@@ -142,15 +147,16 @@ const Receiver = <T extends object>({
   props,
   forwardedRef,
   collection,
-  isCollectionPending,
+  modelSnapshot,
   controlledItems,
 }: {
   props: TNativeCollectionComboBoxProps<T>
   forwardedRef: ForwardedRef<TNativeComboBoxRef>
   collection: TNativeCollectionSnapshot<T>
-  isCollectionPending: boolean
+  modelSnapshot: TNativeCollectionModelSnapshot<T>
   controlledItems?: Iterable<T>
 }) => {
+  const isCollectionPending = false
   const filter = useMemo(
     () => props.defaultFilter ?? createNativeComboBoxFilter(props.locale),
     [props.defaultFilter, props.locale],
@@ -197,11 +203,12 @@ const Receiver = <T extends object>({
     }),
     [fieldId],
   )
-  const [label, labelRef] = useNativeFieldSemanticRef<TNativeTextRef>()
-  const [description, descriptionRef] = useNativeFieldSemanticRef<TNativeTextRef>()
-  const [errorMessage, errorMessageRef] = useNativeFieldSemanticRef<TNativeTextRef>()
-  const [value, valueRef] = useNativeFieldSemanticRef<View>()
-  const [list, listRef] = useNativeFieldSemanticRef<View>()
+  const [, labelRef] = useNativeFieldSemanticRef<TNativeTextRef>()
+  const [, descriptionRef] = useNativeFieldSemanticRef<TNativeTextRef>()
+  const [, errorMessageRef] = useNativeFieldSemanticRef<TNativeTextRef>()
+  const [, valueRef] = useNativeFieldSemanticRef<View>()
+  const [, listRef] = useNativeFieldSemanticRef<View>()
+  const collectionRootRef = useNativeCollectionOwnerRef(modelSnapshot, listRef)
   const input = useRef<TextInput>(null)
   const anchor = useRef<View>(null)
   const [outerRoot, setOuterRoot] = useState<View | null>(null)
@@ -243,32 +250,26 @@ const Receiver = <T extends object>({
       ? actions?.bindingFor(activeRow.node)
       : ""
   const activeTarget = activeBinding && activeRow ? findNodeHandle(activeRow.target) : 0
-  const labelProps = nativeCompositeLabelProps(
-    {
-      id: props.id,
-      accessibilityLabel: props.accessibilityLabel ?? props["aria-label"],
-      nativeLabelledBy:
-        props.nativeLabelledBy ?? nativeAccessibilityIDs(props.accessibilityLabelledBy ?? props["aria-labelledby"]),
-    },
-    fieldIds.input,
-  )
   const semanticBinding = useNativeFieldSemantics({
-    ids: fieldIds,
-    refs: { input, label, description, errorMessage, value, list },
-    inputAliases: props.id ? [props.id] : [],
-    labelledBy: labelProps.nativeLabelledBy,
-    describedBy: props.nativeDescribedBy ?? nativeAccessibilityIDs(props["aria-describedby"]),
-    errorMessageBy: props.nativeErrorMessageBy,
-    detailsBy: props.nativeDetailsBy ?? nativeAccessibilityIDs(props["aria-details"]),
+    text: {
+      label:
+        props.nativeAccessibilityText?.label ?? props.accessibilityLabel ?? props["aria-label"] ?? props.inputLabel,
+      description: props.nativeAccessibilityText?.description,
+      errorMessage: props.nativeAccessibilityText?.errorMessage ?? state.displayValidation.validationErrors.join(". "),
+      details: props.nativeAccessibilityText?.details,
+    },
     labels: props.nativeAccessibilityLabels,
     flags: {
       disabled: !!props.isDisabled,
       readOnly: !!props.isReadOnly,
       required: !!props.isRequired,
       invalid: state.displayValidation.isInvalid,
-      expanded: state.isOpen,
+      expanded: props.popoverIsOpen ?? state.isOpen,
     },
-    activeDescendant: activeTarget && activeBinding ? { target: activeTarget, binding: activeBinding } : null,
+    activeDescendant:
+      (props.popoverIsOpen ?? state.isOpen) && activeTarget && activeBinding
+        ? { target: activeTarget, binding: activeBinding }
+        : null,
   })
   const field = useNativeComboBoxField(
     {
@@ -287,6 +288,9 @@ const Receiver = <T extends object>({
     {
       key: string | number
       collection: TNativeCollectionSnapshot<T>
+      model: TNativeCollectionModelSnapshot<T>
+      ownerLifetime: string
+      originalRow?: { node: TNativeCollectionNode<unknown>; target: View }
       query: string
       input: TextInput | null
       scope: typeof inputScope
@@ -335,9 +339,21 @@ const Receiver = <T extends object>({
     const previous = rows.current.get(node.key)
     if (target) {
       rows.current.set(node.key, { node, target })
+      pendingCommit.current = pendingCommit.current.filter((pending) => {
+        if (pending.key !== node.key) return true
+        if (pending.originalRow && (pending.originalRow.node !== node || pending.originalRow.target !== target))
+          return false
+        pending.originalRow = { node, target }
+        return true
+      })
       if (pendingCommit.current.some((pending) => pending.key === node.key))
         void Promise.resolve().then(() => flushCommit.current())
-    } else if (rows.current.get(node.key)?.node === node) rows.current.delete(node.key)
+    } else if (rows.current.get(node.key)?.node === node) {
+      rows.current.delete(node.key)
+      pendingCommit.current = pendingCommit.current.filter(
+        (pending) => pending.key !== node.key || !pending.originalRow,
+      )
+    }
     if (
       live.current &&
       current.current.state.selectionManager.focusedKey === node.key &&
@@ -455,10 +471,14 @@ const Receiver = <T extends object>({
       const row = rows.current.get(key)
       if (row) press(row.node, row.target, event, undefined, getNativeComboBoxInputRequest(row.node.props, mode))
       else if (owner.state.collection.getItem(key)?.type === "item" && !owner.state.disabledKeys.has(key)) {
+        const ownerLifetime = actions?.ownerLifetime()
+        if (!ownerLifetime || actions?.model.getSnapshot() !== modelSnapshot) return
         event.persist()
         pendingCommit.current.push({
           key,
           collection: owner.state.collection,
+          model: modelSnapshot,
+          ownerLifetime,
           query: owner.state.inputValue,
           input: input.current,
           scope: inputScope,
@@ -484,6 +504,8 @@ const Receiver = <T extends object>({
           owner.state.isOpen &&
           owner.state.selectionManager.focusedKey === pending.key &&
           owner.state.collection === pending.collection &&
+          actions?.model.getSnapshot() === pending.model &&
+          actions?.ownerLifetime() === pending.ownerLifetime &&
           owner.state.inputValue === pending.query &&
           input.current === pending.input &&
           inputScope === pending.scope &&
@@ -491,7 +513,13 @@ const Receiver = <T extends object>({
           JSON.stringify(inputScope?.acknowledgedSession() ?? null) === pending.window
         if (!valid) continue
         const row = rows.current.get(pending.key)
-        if (row)
+        if (
+          pending.originalRow &&
+          (!row || row.node !== pending.originalRow.node || row.target !== pending.originalRow.target)
+        )
+          continue
+        if (row) pending.originalRow = row
+        if (row && actions?.bindingFor(row.node))
           press(
             row.node,
             row.target,
@@ -503,6 +531,15 @@ const Receiver = <T extends object>({
       }
     }
   })
+
+  useLayoutEffect(
+    () =>
+      actions?.admission?.subscribe(() => {
+        // Only unsent materialization intents wait here; submitted requests are consumed before native dispatch.
+        void Promise.resolve().then(() => flushCommit.current())
+      }),
+    [actions],
+  )
 
   const inputRef = useNativeCollectionRefs(props.inputRef, bindInput)
   const identity = props.testID ?? props["data-testid"] ?? "combo-box"
@@ -528,7 +565,7 @@ const Receiver = <T extends object>({
     false,
     false,
   )
-  const inputProps = useNativeComboBoxInputProps({
+  const baseInputProps = useNativeComboBoxInputProps({
     owner: { ...props, id: props.id ?? fieldIds.input },
     state,
     inputRef,
@@ -541,6 +578,16 @@ const Receiver = <T extends object>({
     },
     onCommit: requestCommit,
   })
+  const semanticProps = nativeFieldAccessibilityProps(
+    semanticBinding,
+    baseInputProps.accessibilityLabel,
+    baseInputProps.accessibilityHint,
+  )
+  const inputProps = {
+    ...baseInputProps,
+    ...semanticProps,
+    accessibilityState: { ...baseInputProps.accessibilityState, ...semanticProps.accessibilityState },
+  }
   const buttonProps = useNativeComboBoxButtonProps({
     owner: props,
     state,
@@ -832,7 +879,7 @@ const Receiver = <T extends object>({
                       >
                         <NativeComboBoxListContext.Provider
                           value={{
-                            ref: listRef,
+                            ref: collectionRootRef,
                             style: props.customOptionsListStyles,
                             role: "list",
                             accessible: false,
@@ -938,14 +985,15 @@ export const NativeCollectionComboBox = forwardRef(
       getKey: authored.getKey,
       getTextValue: authored.getTextValue,
     }
+    const items = useComboBoxItems(props)
     return (
-      <NativeCollectionBuilder<T> content={<Authoring props={props} />}>
-        {(collection, receipt) => (
+      <NativeCollectionBuilder<T> items={items}>
+        {(collection, modelSnapshot) => (
           <Receiver
             props={props}
             forwardedRef={ref}
             collection={collection}
-            isCollectionPending={receipt.status !== "confirmed"}
+            modelSnapshot={modelSnapshot}
             controlledItems={authored.controlledItems ?? inherited.items}
           />
         )}

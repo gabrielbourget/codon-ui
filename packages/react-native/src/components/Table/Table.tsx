@@ -15,6 +15,7 @@ import {
   useNativeCollectionDragAndDrop,
 } from "../../collection/dragAndDrop/hooks"
 import { NativeListDropTargetDelegate } from "../../collection/dragAndDrop/NativeListDropTargetDelegate"
+import type { TNativeCollectionModelSnapshot } from "../../collection/model"
 import {
   NativeCollectionRendererContext,
   useNativePersistedKeys,
@@ -22,7 +23,6 @@ import {
   type TNativeCollectionScrollHost,
 } from "../../collection/renderer"
 import { NativeCollectionSemanticsContext } from "../../collection/semantics"
-import type { TNativeCollectionSessionSnapshot } from "../../collection/session"
 import type { TNativeCollectionSnapshot } from "../../collection/snapshot"
 import { useControlledState } from "../../collection/state/useControlledState"
 import { useMultipleSelectionState } from "../../collection/state/useMultipleSelectionState"
@@ -64,19 +64,22 @@ import { resolveNativeTableStickyOptions } from "./stickyStyles"
 import { NativeTableDescription } from "./TableDescription"
 import { TableTypeahead } from "./TableTypeahead"
 import type { TNativeTableProps, TNativeTableReceivedProps, TNativeTableRenderState } from "./types"
+import { useCollectionModelOwner } from "./useCollectionModelOwner"
 import { useNativeTableAnnouncements } from "./useTableAnnouncements"
 import { useTableKeyboard } from "./useTableKeyboard"
+
+const emptyItems = Object.freeze([])
 
 const Receiver = <T extends object>({
   props: incoming,
   collection: sourceCollection,
   selection,
-  receipt,
+  model,
 }: {
   props: TNativeTableReceivedProps<T>
   collection: TNativeCollectionSnapshot<object>
   selection: ReturnType<typeof useMultipleSelectionState>
-  receipt: TNativeCollectionSessionSnapshot<unknown>["receipt"]
+  model: TNativeCollectionModelSnapshot<object>
 }) => {
   const [props, contextRef] = useNativeContextProps(incoming, incoming.ref, NativeSelectableCollectionContext)
   const [expandedKeys, setExpandedKeys] = useControlledState(
@@ -92,6 +95,7 @@ const Receiver = <T extends object>({
   const {
     ref: _consumerRef,
     children: _children,
+    items: _items,
     geometry: _geometry,
     dragAndDropHooks,
     style,
@@ -190,12 +194,21 @@ const Receiver = <T extends object>({
   const actions = useContext(NativeCollectionActionsContext)!
   const theme = useNativeTheme()
   const parentContent = useNativeContentContext()
-  const [target, setTarget] = useState(0)
+  const [{ originalRoot, target }, setRootTarget] = useState<{ originalRoot: View | null; target: number }>({
+    originalRoot: null,
+    target: 0,
+  })
   const root = useRef<View | null>(null)
+  const ownerLifetime = useCollectionModelOwner(model, originalRoot, target)
   const [headerTargets, setHeaderTargets] = useState(new Map<string, number>())
   const bind = useCallback((view: View | null) => {
     root.current = view
-    setTarget(view ? (findNodeHandle(view) ?? 0) : 0)
+    const nextTarget = view ? (findNodeHandle(view) ?? 0) : 0
+    setRootTarget((previous) =>
+      previous.originalRoot === view && previous.target === nextTarget
+        ? previous
+        : { originalRoot: view, target: nextTarget },
+    )
   }, [])
   const callerRef = useNativeCollectionRefs(contextRef, resizeContainer?.tableRef)
   const mergedRef = useNativeCollectionRefs(bind, callerRef)
@@ -225,9 +238,9 @@ const Receiver = <T extends object>({
   )
   const sortDescription = useNativeTableAnnouncements(state, {
     locale: announcementLocale,
-    confirmed: receipt.status === "confirmed",
+    confirmed: !!ownerLifetime,
     target,
-    windowIdentity: receipt.lease ? JSON.stringify([receipt.lease.windowId, receipt.lease.epoch]) : "",
+    windowIdentity: ownerLifetime,
     canAct: canAnnounce,
   })
   const sortDescriptionID = `codon-table-sort-description-${generatedID}`
@@ -287,7 +300,7 @@ const Receiver = <T extends object>({
     root,
     props,
     layout: renderer.layoutDelegate,
-    receipt,
+    model,
     rowHeaderColumns,
   })
   const dragAndDrop = useNativeCollectionDragAndDrop({
@@ -335,7 +348,7 @@ const Receiver = <T extends object>({
       : sourceKeyboard
   const focusKeys = useNativePersistedKeys(manager.focusedKey, keyboard.requestedKey, keyboard.observedKey)
   const persistedKeys = new Set([...(focusKeys ?? []), ...dragAndDrop.persistedKeys])
-  if (receipt.status === "confirmed" && columnCount > 0 && rowHeaderColumns.size === 0)
+  if (columnCount > 0 && rowHeaderColumns.size === 0)
     throw new Error("A table must have at least one Column with the isRowHeader prop set to true")
   const renderState: TNativeTableRenderState = {
     isFocused,
@@ -525,6 +538,7 @@ const Receiver = <T extends object>({
   )
 }
 export const Table = <T extends object = object>(authored: TNativeTableProps<T>) => {
+  const theme = useNativeTheme()
   const sorting = authored.queryControls?.sorting
   const firstSort = sorting?.activeSorts[0]
   const primaryColumn =
@@ -592,12 +606,18 @@ export const Table = <T extends object = object>(authored: TNativeTableProps<T>)
       !!props.dragAndDropHooks?.useDraggableCollectionState,
     ],
   )
+  const modelOptions = useMemo(
+    () => ({ ...options, roundedRadius: theme.radius.rounded }),
+    [options, theme.radius.rounded],
+  )
+  const items = useMemo(
+    () => (typeof props.items === "function" ? props.items(modelOptions) : (props.items ?? emptyItems)),
+    [props.items, modelOptions],
+  )
   return (
     <NativeTableOptionsContext.Provider value={options}>
-      <NativeCollectionBuilder<object> content={props.children}>
-        {(collection, receipt) => (
-          <Receiver props={props} collection={collection} selection={selection} receipt={receipt} />
-        )}
+      <NativeCollectionBuilder<object> items={items}>
+        {(collection, model) => <Receiver props={props} collection={collection} selection={selection} model={model} />}
       </NativeCollectionBuilder>
     </NativeTableOptionsContext.Provider>
   )

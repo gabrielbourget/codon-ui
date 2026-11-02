@@ -11,13 +11,17 @@ import {
   Text,
 } from "../../../.."
 import { NativeTableStateContext } from "../../context"
+import {
+  nativeTableChildren,
+  createNativeTableHeaderModel,
+  createNativeTableBodyModel,
+  nativeTableReceiver,
+  createNativeTableRowModel,
+} from "../../model"
 import type { TTableSortInstruction } from "../../queryTypes"
 import type { TTableFilterGroup } from "../../queryTypes"
 import type { TNativeTableState } from "../../state/useTableState"
 import { Table } from "../../Table"
-import { TableBody } from "../../TableBody"
-import { TableHeader } from "../../TableHeader"
-import { TableRow } from "../../TableRow"
 import type {
   TNativeTableColumnMetadata,
   TNativeTableHeaderProps,
@@ -242,25 +246,34 @@ export const TableFixture = ({ editorRef, tableRef }: { editorRef?: Ref<TextInpu
                   },
                 },
               }}
-            >
-              <TableHeader
-                testID="table-header"
-                columns={columns}
-                onHoverChange={setHeaderHovered}
-                render={renderHeader}
-              />
-              <TableBody
-                testID="table-body"
-                render={renderBody}
-                items={empty ? [] : reversed ? [...people].reverse() : people}
-                columns={columns}
-                renderEmptyState={() => "No people"}
-                isLoading={loading}
-                renderLoadingState={() => (
-                  <TableRow id="loading" item={{ id: "loading", name: "Loading", active: false }} columns={columns} />
-                )}
-              />
-            </Table>
+              items={(modelOptions) =>
+                nativeTableChildren(
+                  createNativeTableHeaderModel(
+                    { testID: "table-header", columns: columns, onHoverChange: setHeaderHovered, render: renderHeader },
+                    modelOptions,
+                  ),
+                  createNativeTableBodyModel(
+                    {
+                      testID: "table-body",
+                      render: renderBody,
+                      items: empty ? [] : reversed ? [...people].reverse() : people,
+                      columns: columns,
+                      renderEmptyState: () => "No people",
+                      isLoading: loading,
+                    },
+                    modelOptions,
+                    loading
+                      ? [
+                          createNativeTableRowModel(
+                            { id: "loading", item: { id: "loading", name: "Loading", active: false }, columns },
+                            modelOptions,
+                          ),
+                        ]
+                      : undefined,
+                  ),
+                )
+              }
+            />
             <Text testID="table-state-proof">{stateSummary}</Text>
             <Text testID="table-expansion-requests">{JSON.stringify(expansionRequests)}</Text>
             <Text testID="table-requests">{JSON.stringify(requests)}</Text>
@@ -324,33 +337,44 @@ const TableRowFixture = () => {
           setRequests((previous) => [...previous, `selection:${JSON.stringify(keys === "all" ? keys : [...keys])}`])
           if (!hold) setSelected(keys === "all" ? new Set(["custom-row"]) : new Set(keys))
         }}
-      >
-        <TableHeader columns={rowColumns} />
-        <CellFixtureBody>
-          <TableRow
-            id="custom-row"
-            testID="table-custom-row"
-            item={{}}
-            columns={rowColumns}
-            render={custom ? renderRow : undefined}
-            style={{ marginLeft: offset ? 25 : 0 }}
-            onPress={(event) =>
-              setRequests((previous) => [
-                ...previous,
-                `press:${"kind" in event.nativeEvent ? event.nativeEvent.kind : "pointer"}`,
-              ])
-            }
-            renderCell={() => (
-              <Input
-                testID="table-custom-row-editor"
-                accessibilityLabel="Held custom row draft"
-                value=""
-                onChangeText={(value) => setRequests((previous) => [...previous, `draft:${value}`])}
-              />
-            )}
-          />
-        </CellFixtureBody>
-      </Table>
+        items={(modelOptions) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel({ columns: rowColumns }, modelOptions),
+            nativeTableReceiver<React.ComponentProps<typeof CellFixtureBody>>(
+              "__body:1",
+              "tablebody",
+              {},
+              (visibleProps) => <CellFixtureBody {...visibleProps} />,
+              nativeTableChildren(
+                createNativeTableRowModel(
+                  {
+                    id: "custom-row",
+                    testID: "table-custom-row",
+                    item: {},
+                    columns: rowColumns,
+                    render: custom ? renderRow : undefined,
+                    style: { marginLeft: offset ? 25 : 0 },
+                    onPress: (event) =>
+                      setRequests((previous) => [
+                        ...previous,
+                        `press:${"kind" in event.nativeEvent ? event.nativeEvent.kind : "pointer"}`,
+                      ]),
+                    renderCell: () => (
+                      <Input
+                        testID="table-custom-row-editor"
+                        accessibilityLabel="Held custom row draft"
+                        value=""
+                        onChangeText={(value) => setRequests((previous) => [...previous, `draft:${value}`])}
+                      />
+                    ),
+                  },
+                  modelOptions,
+                ),
+              ),
+            ),
+          )
+        }
+      />
       <Text testID="table-custom-row-values">{snapshot}</Text>
       <Text testID="table-custom-row-requests">{JSON.stringify(requests)}</Text>
     </>

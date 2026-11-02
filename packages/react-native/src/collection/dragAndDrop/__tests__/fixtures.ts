@@ -1,40 +1,23 @@
-import {
-  createNativeCollectionSnapshot,
-  type TNativeCollectionDescriptor,
-  type TNativeCollectionHierarchyEntry,
-  type TNativeCollectionKey,
-} from "../../snapshot"
+import { createNativeCollectionSnapshot, type TNativeCollectionItem, type TNativeCollectionKey } from "../../snapshot"
 
 export const dragValues = [{ id: "zero" }, { id: "empty" }, { id: "folder" }, { id: "child" }]
 export const dragCollection = () => {
-  const descriptors = new Map<string, TNativeCollectionDescriptor<object>>()
-  const hierarchy: TNativeCollectionHierarchyEntry[] = []
-  const add = (key: TNativeCollectionKey, value: object, parent: string, index: number, children = false) => {
-    const id = `node-${hierarchy.length}`
-    descriptors.set(id, {
-      descriptorId: id,
-      descriptorRevision: `${id}-revision`,
-      key,
-      type: "item",
-      value,
-      rendered: null,
-      textValue: String(key),
-      props: {},
-    })
-    hierarchy.push({
-      descriptorId: id,
-      descriptorRevision: `${id}-revision`,
-      parentDescriptorId: parent,
-      target: hierarchy.length + 100,
-      index,
-      retainedIndex: index,
-      hasRetainedChildren: children,
-    })
-    return id
-  }
-  add(0, dragValues[0], "", 0)
-  add("", dragValues[1], "", 1)
-  const parent = add("folder", dragValues[2], "", 2, true)
-  add("child", dragValues[3], parent, 0)
-  return createNativeCollectionSnapshot(hierarchy, descriptors)
+  const item = (
+    key: TNativeCollectionKey,
+    value: object,
+    children?: readonly TNativeCollectionItem<object>[],
+  ): TNativeCollectionItem<object> => ({
+    key,
+    type: "item",
+    value,
+    rendered: null,
+    textValue: String(key),
+    props: {},
+    children,
+  })
+  return createNativeCollectionSnapshot([
+    item(0, dragValues[0]),
+    item("", dragValues[1]),
+    item("folder", dragValues[2], [item("child", dragValues[3])]),
+  ])
 }

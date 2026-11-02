@@ -3,12 +3,7 @@ import type { TextInput, View } from "react-native"
 import type { NativeFormActionStatus } from "../input/specs/CUIFocusViewNativeComponent"
 import type { TNativePressEvent } from "../input/types"
 
-import {
-  decodeNativeFormDocument,
-  fieldsInNativeForm,
-  type TNativeFormDocument,
-  type TNativeFormDescriptor,
-} from "./document"
+import { admitNativeFormAction } from "./actionAdmission"
 import {
   requestNativeFormFieldFocus,
   type TNativeFormFieldFocusOutcome,
@@ -18,48 +13,24 @@ import type { NativeFormRegistry } from "./registry"
 import { type TNativeFormBinding, type TNativeFormFieldBinding } from "./registry"
 import type { TNativeFormAction, TNativeFormEntry, TNativeFormRequest, TNativeFormResult } from "./types"
 
-type TReader = (request: Readonly<{ target: number; requestId: string }>) => Promise<string>
 type TNativeActionAdmission = Readonly<{
   origin: "native"
   sourceEvent: TNativePressEvent
-  target: number
   formId?: string
+  formOwnerId: string | null
   isCurrent: () => boolean
-  admit: (document: TNativeFormDocument, form: TNativeFormDescriptor) => Promise<boolean>
   actionLease?: NativeFormActionStatus | null
 }>
 type TProgrammatic = Readonly<{ origin: "programmatic"; form: View }>
 const retired = (reason: string, requestedFields?: readonly string[]): TNativeFormResult =>
   Object.freeze({ status: "retired", reason, requestedFields })
-const descriptorMatches = (
-  expected: Readonly<{
-    ownerId: string
-    descriptorId: string
-    descriptorRevision: string
-    target: number
-    metadataTarget: number
-    formId: string
-  }>,
-  actual: typeof expected,
-) => Object.keys(expected).every((key) => expected[key as keyof typeof expected] === actual[key as keyof typeof actual])
 const prevented = (source: TNativeActionAdmission | TProgrammatic) =>
   source.origin === "native" &&
   (!source.isCurrent() || source.sourceEvent.defaultPrevented || source.sourceEvent.isDefaultPrevented?.() === true)
-const hidden = (document: TNativeFormDocument, target: number) => {
-  const nodes = new Map(document.nodes.map((node) => [node.target, node]))
-  let node = nodes.get(target)
-  while (node) {
-    if (node.hidden || node.displayNone) return true
-    node = nodes.get(node.parent)
-  }
-  return false
-}
-
 export class NativeFormController {
-  #sequence = 0
   constructor(
     readonly registry: NativeFormRegistry,
-    readonly read: TReader,
+    readonly admit: typeof admitNativeFormAction = admitNativeFormAction,
     readonly focus: (
       target: TextInput | View,
       scope: TNativeFormFieldFocusRequest,
@@ -76,6 +47,7 @@ export class NativeFormController {
     action: TNativeFormAction,
     source: TProgrammatic | TNativeActionAdmission,
   ): Promise<TNativeFormResult> => {
+    if (source.origin === "native" && !source.actionLease) return retired("native-action-lease-unavailable")
     if (prevented(source)) return retired("native-action-retired-or-prevented")
     let form =
       source.origin === "programmatic"
@@ -84,78 +56,27 @@ export class NativeFormController {
           )
         : undefined
     if (source.origin === "programmatic" && !form) return retired("original-form-retired")
-    const target = source.origin === "programmatic" ? form!.descriptor.target : source.target
     const revision = this.registry.getRevision()
-    const request = { target, requestId: `native-form:${++this.#sequence}` }
-    let document: TNativeFormDocument
-    try {
-      document = decodeNativeFormDocument(await this.read(request), request)
-    } catch {
-      return retired("native-document-unavailable-or-incomplete")
-    }
-    if (prevented(source) || this.registry.getRevision() !== revision)
-      return retired("form-state-changed-during-native-read")
-    let descriptor: TNativeFormDescriptor | undefined
-    if (source.origin === "programmatic")
-      descriptor = document.forms.find((candidate) => candidate.descriptorId === form!.descriptor.descriptorId)
-    else if (source.formId !== undefined) {
-      const matches = document.forms.filter((candidate) => candidate.formId === source.formId)
-      if (!source.formId || matches.length !== 1) return retired("native-form-association-unavailable-or-ambiguous")
-      descriptor = matches[0]
-    } else {
-      const parents = new Map(document.nodes.map((node) => [node.target, node.parent]))
-      let ancestor = source.target
-      while (ancestor && !descriptor) {
-        descriptor = document.forms.find((candidate) => candidate.target === ancestor)
-        ancestor = parents.get(ancestor) ?? 0
-      }
-    }
-    if (!descriptor) return retired("native-form-association-unavailable")
-    form ??= this.registry.forms.get(descriptor.descriptorId)
-    if (
-      !form ||
-      form.fieldRevision !== revision ||
-      !descriptorMatches(form.descriptor, descriptor) ||
-      form.current() !== form.original
-    )
-      return retired("native-form-registration-not-current")
-    // Native completeness includes descriptors from other forms in this exact
-    // document. Foreign documents' registrations never supply entries here.
-    for (const candidate of document.forms) {
-      const binding = this.registry.forms.get(candidate.descriptorId)
-      if (!binding || !descriptorMatches(binding.descriptor, candidate))
-        return retired("native-document-form-registration-incomplete")
-    }
-    for (const candidate of document.fields) {
-      const binding = this.registry.fields.get(candidate.descriptorId)
-      if (
-        !binding ||
-        !descriptorMatches(binding.descriptor, candidate) ||
-        binding.descriptor.hasFormAssociation !== candidate.hasFormAssociation ||
-        (binding.descriptor.ownedEditorBinding ?? "") !== (candidate.ownedEditorBinding ?? "") ||
-        (binding.descriptor.ownedControlBinding ?? "") !== (candidate.ownedControlBinding ?? "")
-      )
-        return retired("native-document-field-registration-incomplete")
-    }
     let fields: TNativeFormFieldBinding[]
     try {
-      fields = fieldsInNativeForm(document, descriptor).map(
-        (candidate) => this.registry.fields.get(candidate.descriptorId)!,
+      form ??= this.registry.resolveForm(
+        source.origin === "native" ? source.formId : undefined,
+        source.origin === "native" ? source.formOwnerId : null,
       )
-    } catch {
-      return retired("native-form-association-ambiguous")
+      fields = this.registry.fieldsFor(form)
+    } catch (error) {
+      return retired(error instanceof Error ? error.message : "form-model-unavailable")
     }
+    if (form.fieldRevision !== revision || form.current() !== form.original) return retired("form-model-not-current")
     const current = () => this.#current(form!, revision, fields) && !prevented(source)
     if (!current()) return retired("original-form-state-retired")
-    if (source.origin === "native") {
-      let admitted = false
-      try {
-        admitted = await source.admit(document, descriptor)
-      } catch {
-        /* Native admission failure retires the action. */
-      }
-      if (!admitted || !current()) return retired("native-action-not-admitted")
+    let admitted = false
+    try {
+      admitted = await this.admit(form, fields, source.origin === "native" ? source.actionLease : undefined)
+    } catch {
+      /* Unavailable original hosts cannot authorize an action. */
     }
+    if (!admitted || !current()) return retired("form-originals-not-admitted")
     const entries: readonly TNativeFormEntry[] = Object.freeze(
       fields.flatMap((field) =>
         field.data.isDisabled ? [] : field.data.entries.map(([name, value]) => Object.freeze([name, value] as const)),
@@ -178,14 +99,13 @@ export class NativeFormController {
         const first = invalid[0],
           editor = first.editor(),
           mount = first.mount()?.getSnapshot()
-        const fieldDescriptor = document.fields.find((field) => field.descriptorId === first.descriptor.descriptorId)!
         let focus: TNativeFormFieldFocusOutcome = { requested: false, current: false }
-        if (current() && editor && mount?.active && !hidden(document, first.descriptor.target)) {
+        if (current() && editor && mount?.active) {
           try {
             focus = await this.focus(editor, {
-              document,
-              form: descriptor,
-              field: fieldDescriptor,
+              form: form.descriptor,
+              formMount: form.mount()?.getSnapshot() ?? null,
+              field: first.descriptor,
               mount,
               origin: source.origin,
               actionLease: source.origin === "native" ? source.actionLease : undefined,

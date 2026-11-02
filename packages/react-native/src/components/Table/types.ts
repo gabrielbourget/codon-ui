@@ -25,6 +25,7 @@ import type { TNativePaginationProps } from "../Pagination/types"
 import type { TPartialNativeTableFilteringLabels } from "./filterLabels"
 import type { TAvailableListItem } from "./filterMetadata"
 import type { TPartialNativeTableLabels } from "./labels"
+import type { TNativeTableModelInput } from "./model"
 import type {
   TTableSortInstruction,
   TTableFilterGroup,
@@ -368,7 +369,8 @@ export type TNativeTableInheritedProps = Omit<
     TableStateProps<object>,
     "expandedKeys" | "defaultExpandedKeys" | "onExpandedChange" | "treeColumn" | "sortDescriptor" | "onSortChange"
   > & {
-    children?: ReactNode
+    items?: TNativeTableModelInput
+    children?: never
     ariaDescribedBy?: string | readonly string[]
     ariaDetails?: string | readonly string[]
     "aria-describedby"?: string

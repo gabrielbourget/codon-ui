@@ -4,12 +4,12 @@ import { NativeTableStateContext } from "../context"
 import { Table } from "../Table"
 
 export const tableStateCalls = [
-  <Table expandedKeys={new Set([0, ""])} treeColumn="name" onExpandedChange={(keys) => keys.has(0)} />,
-  <Table defaultExpandedKeys={["a"]} slot={null} />,
+  <Table expandedKeys={new Set([0, ""])} treeColumn="name" onExpandedChange={(keys) => keys.has(0)} items={[]} />,
+  <Table defaultExpandedKeys={["a"]} slot={null} items={[]} />,
   // @ts-expect-error Expansion remains an iterable of source keys, never a scalar mirror.
-  <Table expandedKeys={true} />,
+  <Table expandedKeys={true} items={[]} />,
   // @ts-expect-error Native state keys retain their source string/number shape.
-  <Table treeColumn={{ id: "name" }} />,
+  <Table treeColumn={{ id: "name" }} items={[]} />,
   // @ts-expect-error A complete real state is required, rather than a selection-only DTO.
   <NativeTableStateContext.Provider value={{ selectionManager: {} }} />,
 ]

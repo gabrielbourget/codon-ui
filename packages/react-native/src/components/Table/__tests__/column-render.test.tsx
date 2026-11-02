@@ -1,21 +1,14 @@
-import "../../../collection/__tests__/nativeReceipts"
-
 import { cleanup } from "@testing-library/react-native"
 import { Children, createRef, isValidElement, useContext, type ReactNode, type RefObject } from "react"
 import { findNodeHandle, type View } from "react-native"
 
-import {
-  actWithNativeCollections as act,
-  fireEventWithNativeCollections as fireEvent,
-  renderWithNativeCollections as render,
-  screen,
-} from "../../../collection/__tests__/nativeReceipts"
 import { NativeSelectableCollectionContext } from "../../../collection/context"
 import { NativeFocusHost, NativeFocusView } from "../../../input/NativeFocusView"
 import { NativeLocaleProvider } from "../../../locale/NativeLocaleProvider"
 import { NativeFloatingWindowContext } from "../../../overlays/floating/scope"
 import { NativeThemeProvider } from "../../../theme"
 import { NativeTablePropsContext, NativeTableStateContext } from "../context"
+import { nativeTableChildren, nativeTableReceiver } from "../model"
 import { NativeColumnResizer, type TNativeColumnResizerProps } from "../NativeColumnResizer"
 import {
   NativeResizableTableContainer,
@@ -27,6 +20,12 @@ import { TableCell } from "../TableCell"
 import { TableColumn } from "../TableColumn"
 import type { TNativeTableColumnProps, TNativeTableProps } from "../types"
 
+import {
+  actWithNativeCollections as act,
+  fireEventWithNativeCollections as fireEvent,
+  renderWithNativeCollections as render,
+  screen,
+} from "./collectionModel"
 import { CellFixtureBody, CellFixtureRow } from "./fixtures/TableCellFixture"
 import { ColumnFixtureHeader } from "./fixtures/TableColumnFixture"
 
@@ -75,41 +74,92 @@ const tree = ({
     <NativeTablePropsContext.Provider
       value={sort ? { sortDescriptor: { column: "name", direction: "ascending" }, onSortChange: sort } : null}
     >
-      <Table accessibilityLabel="Columns" {...table}>
-        <ColumnFixtureHeader>
-          <TableColumn id="name" columnID="name" isRowHeader testID="column" {...column}>
-            {column.children ?? (
-              <>
-                Name
-                <Probe />
-                {handle && (
-                  <NativeColumnResizer
-                    testID="resizer"
-                    {...handleProps}
-                    render={(props, values) => {
-                      captureField(props.children)
-                      return handleProps?.render ? handleProps.render(props, values) : <NativeFocusView {...props} />
-                    }}
-                  />
-                )}
-              </>
-            )}
-          </TableColumn>
-          <TableColumn id="other" columnID="other">
-            Other
-          </TableColumn>
-        </ColumnFixtureHeader>
-        <CellFixtureBody>
-          <CellFixtureRow id="row">
-            <TableCell columnID="name" testID="sizing-name-cell">
-              Alpha
-            </TableCell>
-            <TableCell columnID="other" testID="sizing-other-cell">
-              Beta
-            </TableCell>
-          </CellFixtureRow>
-        </CellFixtureBody>
-      </Table>
+      <Table
+        accessibilityLabel="Columns"
+        {...table}
+        items={(_modelOptions) =>
+          nativeTableChildren(
+            nativeTableReceiver<React.ComponentProps<typeof ColumnFixtureHeader>>(
+              "__header:1",
+              "tableheader",
+              {},
+              (visibleProps) => <ColumnFixtureHeader {...visibleProps} />,
+              nativeTableChildren(
+                nativeTableReceiver<React.ComponentProps<typeof TableColumn>>(
+                  "name",
+                  "column",
+                  {
+                    id: "name",
+                    columnID: "name",
+                    isRowHeader: true,
+                    testID: "column",
+                    ...column,
+                    children: column.children ?? (
+                      <>
+                        Name
+                        <Probe />
+                        {handle && (
+                          <NativeColumnResizer
+                            testID="resizer"
+                            {...handleProps}
+                            render={(props, values) => {
+                              captureField(props.children)
+                              return handleProps?.render ? (
+                                handleProps.render(props, values)
+                              ) : (
+                                <NativeFocusView {...props} />
+                              )
+                            }}
+                          />
+                        )}
+                      </>
+                    ),
+                  },
+                  (visibleProps) => <TableColumn {...visibleProps} />,
+                  [],
+                ),
+                nativeTableReceiver<React.ComponentProps<typeof TableColumn>>(
+                  "other",
+                  "column",
+                  { id: "other", columnID: "other", children: <>Other</> },
+                  (visibleProps) => <TableColumn {...visibleProps} />,
+                  [],
+                ),
+              ),
+            ),
+            nativeTableReceiver<React.ComponentProps<typeof CellFixtureBody>>(
+              "__body:2",
+              "tablebody",
+              {},
+              (visibleProps) => <CellFixtureBody {...visibleProps} />,
+              nativeTableChildren(
+                nativeTableReceiver<React.ComponentProps<typeof CellFixtureRow>>(
+                  "row",
+                  "item",
+                  { id: "row" },
+                  (visibleProps) => <CellFixtureRow {...visibleProps} />,
+                  nativeTableChildren(
+                    nativeTableReceiver<React.ComponentProps<typeof TableCell>>(
+                      "__cell:3",
+                      "cell",
+                      { columnID: "name", testID: "sizing-name-cell", children: <>Alpha</> },
+                      (visibleProps) => <TableCell {...visibleProps} />,
+                      [],
+                    ),
+                    nativeTableReceiver<React.ComponentProps<typeof TableCell>>(
+                      "__cell:4",
+                      "cell",
+                      { columnID: "other", testID: "sizing-other-cell", children: <>Beta</> },
+                      (visibleProps) => <TableCell {...visibleProps} />,
+                      [],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          )
+        }
+      />
     </NativeTablePropsContext.Provider>
   )
   return (
@@ -393,29 +443,81 @@ it("keeps the resize input when caller children and a custom renderer supply vis
   const view = await render(
     <NativeThemeProvider>
       <NativeResizableTableContainer>
-        <Table accessibilityLabel="Custom resizer">
-          <ColumnFixtureHeader>
-            <TableColumn id="name" columnID="name" isRowHeader width={200}>
-              Name
-              <NativeColumnResizer testID="custom-resizer" render={(props) => <NativeFocusView {...props} />}>
-                {children}
-              </NativeColumnResizer>
-            </TableColumn>
-            <TableColumn id="other" columnID="other">
-              Other
-            </TableColumn>
-          </ColumnFixtureHeader>
-          <CellFixtureBody>
-            <CellFixtureRow id="row">
-              <TableCell columnID="name" testID="sizing-name-cell">
-                Alpha
-              </TableCell>
-              <TableCell columnID="other" testID="sizing-other-cell">
-                Beta
-              </TableCell>
-            </CellFixtureRow>
-          </CellFixtureBody>
-        </Table>
+        <Table
+          accessibilityLabel="Custom resizer"
+          items={(_modelOptions) =>
+            nativeTableChildren(
+              nativeTableReceiver<React.ComponentProps<typeof ColumnFixtureHeader>>(
+                "__header:5",
+                "tableheader",
+                {},
+                (visibleProps) => <ColumnFixtureHeader {...visibleProps} />,
+                nativeTableChildren(
+                  nativeTableReceiver<React.ComponentProps<typeof TableColumn>>(
+                    "name",
+                    "column",
+                    {
+                      id: "name",
+                      columnID: "name",
+                      isRowHeader: true,
+                      width: 200,
+                      children: (
+                        <>
+                          Name
+                          <NativeColumnResizer
+                            testID="custom-resizer"
+                            render={(props) => <NativeFocusView {...props} />}
+                          >
+                            {children}
+                          </NativeColumnResizer>
+                        </>
+                      ),
+                    },
+                    (visibleProps) => <TableColumn {...visibleProps} />,
+                    [],
+                  ),
+                  nativeTableReceiver<React.ComponentProps<typeof TableColumn>>(
+                    "other",
+                    "column",
+                    { id: "other", columnID: "other", children: <>Other</> },
+                    (visibleProps) => <TableColumn {...visibleProps} />,
+                    [],
+                  ),
+                ),
+              ),
+              nativeTableReceiver<React.ComponentProps<typeof CellFixtureBody>>(
+                "__body:6",
+                "tablebody",
+                {},
+                (visibleProps) => <CellFixtureBody {...visibleProps} />,
+                nativeTableChildren(
+                  nativeTableReceiver<React.ComponentProps<typeof CellFixtureRow>>(
+                    "row",
+                    "item",
+                    { id: "row" },
+                    (visibleProps) => <CellFixtureRow {...visibleProps} />,
+                    nativeTableChildren(
+                      nativeTableReceiver<React.ComponentProps<typeof TableCell>>(
+                        "__cell:7",
+                        "cell",
+                        { columnID: "name", testID: "sizing-name-cell", children: <>Alpha</> },
+                        (visibleProps) => <TableCell {...visibleProps} />,
+                        [],
+                      ),
+                      nativeTableReceiver<React.ComponentProps<typeof TableCell>>(
+                        "__cell:8",
+                        "cell",
+                        { columnID: "other", testID: "sizing-other-cell", children: <>Beta</> },
+                        (visibleProps) => <TableCell {...visibleProps} />,
+                        [],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            )
+          }
+        />
       </NativeResizableTableContainer>
     </NativeThemeProvider>,
   )

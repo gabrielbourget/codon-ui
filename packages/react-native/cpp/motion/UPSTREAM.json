@@ -733,7 +733,7 @@
   "androidAuthoredFiles": [
     {
       "file": "android/src/main/jni/CMakeLists.txt",
-      "sha256": "3ed1846c4ca6618bb00262753c61386657138c617869005d36b86efa5d471867"
+      "sha256": "42ca4ef648e9a92c0665bbe2c4eb83b8929163a6be966cd0d434793687861a77"
     },
     {
       "file": "android/src/main/consumer-rules.pro",
@@ -746,7 +746,7 @@
     },
     {
       "file": "android/src/main/jni/MotionSnapshotJNI.cpp",
-      "sha256": "3bc9882fa525ef28b74d82de7bff59eb41c12bffa2f38ca16df53d393133273e"
+      "sha256": "96688a532656c72c969ba6e0744ec89b75d18bfcf7774d7f48bd8c742d535e49"
     },
     {
       "file": "android/src/main/java/com/codonui/input/CUIMotionSnapshotModule.java",

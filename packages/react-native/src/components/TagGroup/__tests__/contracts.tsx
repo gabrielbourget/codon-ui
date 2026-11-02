@@ -1,7 +1,8 @@
 import { createRef } from "react"
 import type { View } from "react-native"
 
-import { NativeFocusView } from "../../.."
+import type { TNativeCollectionItem } from "../../../collection/snapshot"
+import { NativeFocusView } from "../../../input/NativeFocusView"
 import { Button } from "../../Button/Button"
 import { NativeButtonContext } from "../../Button/context"
 import { NativeTagListContext } from "../context"
@@ -11,33 +12,44 @@ import { TagGroup, NativeTagList } from "../TagGroup"
 import type { TNativeTagListProps } from "../types"
 
 const ref = createRef<View>()
+const model: readonly TNativeCollectionItem<{ id: number; label: string }>[] = [
+  {
+    key: 0,
+    type: "item",
+    value: { id: 0, label: "Zero" },
+    props: {},
+    rendered: "Zero",
+    textValue: "Zero",
+    render: () => (
+      <Tag
+        ref={ref}
+        style={(state) => ({ ...state.defaultStyle, opacity: state.isSelected ? 1 : 0 })}
+        onPress={(event) => {
+          if ("kind" in event.nativeEvent) event.nativeEvent.kind.toUpperCase()
+        }}
+      >
+        {(state) => (state.allowsRemoving ? "Removable" : "Tag")}
+      </Tag>
+    ),
+  },
+]
 export const controlled = (
   <TagGroup
     ref={ref}
+    items={model}
     selectionMode="multiple"
     selectedKeys={new Set([0, ""])}
     onSelectionChange={(keys) => {
       if (keys !== "all") keys.has(0)
     }}
     onRemove={(keys) => keys.has("")}
-  >
-    <Tag
-      ref={ref}
-      id={0}
-      style={(state) => ({ ...state.defaultStyle, opacity: state.isSelected ? 1 : 0 })}
-      onPress={(event) => {
-        if ("kind" in event.nativeEvent) event.nativeEvent.kind.toUpperCase()
-      }}
-    >
-      {(state) => (state.allowsRemoving ? "Removable" : "Tag")}
-    </Tag>
-  </TagGroup>
+  />
 )
 export const dynamic = (
-  <TagGroup items={[{ id: 0, label: "Zero" }]} getKey={(item) => item.id}>
-    {(item) => <Tag>{item.label}</Tag>}
-  </TagGroup>
+  <TagGroup items={model.map((item) => ({ ...item, render: (node) => <Tag>{node.value?.label}</Tag> }))} />
 )
+// @ts-expect-error Opaque JSX no longer defines collection membership.
+export const implicitTags = <TagGroup children={<Tag id="implicit" />} />
 // @ts-expect-error Grouped keys preserve native string/number identity.
 export const booleanKey = <Tag id={false} />
 // @ts-expect-error Native refs retain actual View instances.
@@ -68,10 +80,7 @@ export const relationships = (
 // @ts-expect-error Native relationship identities are strings, not collection keys.
 export const invalidRelationship = <TagGroup ariaDescribedBy={[0]} />
 
-type TTagValue = { id: string; label: string }
-const listDefaults: TNativeTagListProps<TTagValue> = {
-  items: [{ id: "a", label: "Alpha" }],
-  children: (item) => <Tag id={item.id}>{item.label}</Tag>,
+const listDefaults: TNativeTagListProps = {
   style: (state) => ({ ...state.defaultStyle, fontSize: state.isFocused ? 20 : 18 }),
   render: (props, state) => {
     state.state.selectionManager.isSelected(0)

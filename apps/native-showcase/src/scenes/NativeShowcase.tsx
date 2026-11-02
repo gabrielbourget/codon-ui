@@ -326,7 +326,7 @@ export const NativeShowcase = () => {
               <FixtureAction label="Stepper scene" selected={scene === "stepper"} onPress={() => setScene("stepper")} />
               <FixtureAction label="Slider scene" selected={scene === "slider"} onPress={() => setScene("slider")} />
               <FixtureAction
-                label="Form document prototype"
+                label="Explicit form model"
                 selected={scene === "form-document"}
                 onPress={() => setScene("form-document")}
               />

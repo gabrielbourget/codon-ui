@@ -10,6 +10,7 @@ import { getNativeButtonContent } from "../Button/content"
 import { ClickPopover } from "../ClickPopover/ClickPopover"
 import { resolveNativeStyle } from "../colors"
 import { FilterClauseRow } from "../Filtering/FilterClauseRow"
+import { getFilterClauseFormFieldIds } from "../Filtering/metadata"
 import { useFilterRequest } from "../Filtering/requests"
 import { Tag } from "../Tag/Tag"
 import { Text } from "../Text/Text"
@@ -102,6 +103,7 @@ const FilterPopoverBody = <T extends object>({
   })
   return (
     <NativeForm
+      fieldOrder={draft.clauses.flatMap((clause) => getFilterClauseFormFieldIds(draft, clause))}
       testID={props.testID ?? props["data-testid"] ?? "table-filter-popover"}
       style={resolveNativeStyle<ViewStyle>(
         [

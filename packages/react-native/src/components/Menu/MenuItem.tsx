@@ -13,7 +13,7 @@ import { Easing, findNodeHandle, StyleSheet, View, type TextStyle } from "react-
 
 import { NativeCollectionActionsContext } from "../../collection/actions"
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
-import { createNativeCollectionLeaf } from "../../collection/CollectionBuilder"
+import { createNativeCollectionLeaf, useNativeCollectionReceiverRef } from "../../collection/CollectionBuilder"
 import { NATIVE_DEFAULT_SLOT, useNativeCollectionRefs, useNativeContextProps } from "../../collection/context"
 import {
   DefaultNativeCollectionRenderer,
@@ -217,7 +217,8 @@ const MenuItemReceiver = forwardRef<
     view.current = target
     setTargetTag(findNodeHandle(target) ?? 0)
   }, [])
-  const nativeRef = useNativeCollectionRefs(ref, bindView)
+  const originalRef = useNativeCollectionRefs(ref, bindView)
+  const nativeRef = useNativeCollectionReceiverRef(collectionNode, originalRef)
   const openSubmenu = (event: TNativeKeyboardEvent) => {
     const data = event.nativeEvent
     if (

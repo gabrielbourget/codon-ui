@@ -64,6 +64,7 @@ export const nativeTableTouchCaptureCalls = [
       readPointers(host)
       return <NativeFocusView {...host} />
     }}
+    items={[]}
   />,
   <TableHeader
     columns={[]}
@@ -167,7 +168,7 @@ export const nativeTableTouchCaptureCalls = [
     }}
   />,
   // @ts-expect-error Table capture handlers receive the original native touch payload, not a DOM TouchEvent.
-  <Table onTouchStartCapture={(_event: TouchEvent) => {}} />,
+  <Table onTouchStartCapture={(_event: TouchEvent) => {}} items={[]} />,
   // @ts-expect-error Native touch capture handlers are functions, not boolean capture requests.
   <TableCell columnID="name" onTouchMoveCapture />,
   // @ts-expect-error Pointer counterparts retain native PointerEvent rather than touch callbacks.
@@ -189,14 +190,14 @@ export const originalTablePointerCaptureCalls = () => {
 }
 
 export const existingNativeTableMetadataCalls = [
-  <Table style={{ direction: "rtl", display: "none" }} accessibilityLanguage="ar" />,
+  <Table style={{ direction: "rtl", display: "none" }} accessibilityLanguage="ar" items={[]} />,
   <TableHeader columns={[]} style={{ direction: "ltr", display: "flex" }} accessibilityLanguage="fr-CA" />,
   <TableBody columns={[]} style={{ direction: "rtl", display: "none" }} accessibilityLanguage="" />,
   <TableRow item={{}} columns={[]} style={{ direction: "ltr", display: "flex" }} accessibilityLanguage="en" />,
   <TableCell columnID="name" style={{ direction: "rtl", display: "none" }} accessibilityLanguage="ar" />,
   <TableColumn columnID="name" style={{ direction: "ltr", display: "flex" }} accessibilityLanguage="fr-CA" />,
   // @ts-expect-error Native layout direction does not encode HTML first-strong auto semantics.
-  <Table style={{ direction: "auto" }} />,
+  <Table style={{ direction: "auto" }} items={[]} />,
   // @ts-expect-error Native accessibility language is a string, not a locale object.
   <TableHeader columns={[]} accessibilityLanguage={{ language: "fr" }} />,
   // @ts-expect-error Native display visibility uses none/flex, not a hidden alias value.
@@ -433,6 +434,7 @@ export const approvedNativeTableHostCalls = [
     accessibilityLabel="People"
     accessibilityHint="Choose a row"
     aria-live="polite"
+    items={[]}
   />,
   <NativeTablePropsContext.Provider value={{ slot: "people", accessible: false, role: "grid", onScroll: () => {} }} />,
   <TableHeader columns={[]} onClick={nativeClick} onClickCapture={nativeClick} />,
@@ -441,7 +443,7 @@ export const approvedNativeTableHostCalls = [
   <TableCell columnID="name" colSpan={2} onClick={nativeClick} onClickCapture={nativeClick} />,
   <TableColumn columnID="name" isRowHeader allowsSorting onClick={nativeClick} onClickCapture={nativeClick} />,
   // @ts-expect-error Generic authored subtree inertness is explicitly excluded, also through spreads.
-  <Table {...browserSpread} />,
+  <Table {...browserSpread} items={[]} />,
   // @ts-expect-error Header original hosts do not promise browser service protocols.
   <TableHeader columns={[]} {...browserSpread} />,
   // @ts-expect-error Body original hosts do not promise browser service protocols.
@@ -455,11 +457,11 @@ export const approvedNativeTableHostCalls = [
   // @ts-expect-error The same explicit browser boundary applies to named native contexts.
   <NativeTablePropsContext.Provider value={{ slots: { people: browserSpread } }} />,
   // @ts-expect-error Root grouping would hide or regroup meaningful descendant AT targets.
-  <Table accessible />,
+  <Table accessible items={[]} />,
   // @ts-expect-error The original root remains the collection-owned native grid.
-  <Table role="button" />,
+  <Table role="button" items={[]} />,
   // @ts-expect-error A contradictory legacy role is not an authored override.
-  <Table accessibilityRole="button" />,
+  <Table accessibilityRole="button" items={[]} />,
   // @ts-expect-error Native context values retain the same grouping boundary.
   <NativeTablePropsContext.Provider value={{ accessible: true }} />,
   // @ts-expect-error Native context values retain the same grid-role boundary.
@@ -471,5 +473,5 @@ export const approvedNativeTableHostCalls = [
   // @ts-expect-error Only the root renderer owner exposes meaningful scroll observation.
   <TableRow item={{}} columns={[]} onScroll={() => {}} />,
   // @ts-expect-error Raw click is a native pointer or empty Android click packet, never a full DOM MouseEvent.
-  <Table onClick={(_event: import("react").MouseEvent) => {}} />,
+  <Table onClick={(_event: import("react").MouseEvent) => {}} items={[]} />,
 ]

@@ -9,24 +9,30 @@ import {
   actWithNativeCollections as act,
   renderWithNativeCollections as render,
 } from "../../../collection/__tests__/nativeReceipts"
+import type { TNativeCollectionItem } from "../../../collection/snapshot"
 import { Tag } from "../Tag"
 import { TagGroup } from "../TagGroup"
 import type { TNativeTagGroupEmptyState, TNativeTagGroupProps } from "../types"
 import type { TNativeGroupedTagState } from "../visualTypes"
 
+import { tagItem } from "./tagModel"
+
 const hidden = { includeHiddenElements: true }
 const row = (id: string) => screen.getByTestId(id, hidden)
 const node = (
   props: TNativeTagGroupProps = {},
-  children: ReactNode = (
-    <Tag id={0} testID="zero">
-      Zero
-    </Tag>
-  ),
+  items: readonly TNativeCollectionItem<object>[] = [
+    tagItem(
+      0,
+      <Tag id={0} testID="zero">
+        Zero
+      </Tag>,
+    ),
+  ],
   mode: "light" | "dark" = "light",
 ) => (
   <NativeThemeProvider mode={mode}>
-    <TagGroup {...props}>{children}</TagGroup>
+    <TagGroup {...props} items={items} />
   </NativeThemeProvider>
 )
 const gesture = () => {
@@ -56,28 +62,30 @@ it("renders the actual custom item host with current state, original events and 
     select = jest.fn()
   const states: TNativeGroupedTagState[] = []
   const example = (selected: string[], alternate = false) =>
-    node(
-      { selectionMode: "multiple", selectedKeys: selected, onSelectionChange: select },
-      <Tag
-        id="a"
-        textValue="Alpha"
-        ref={target}
-        onPress={calls}
-        render={(props, state) => {
-          states.push(state)
-          return (
-            <NativeFocusView
-              {...props}
-              key={alternate ? "alternate" : "original"}
-              testID="custom-tag"
-              style={[props.style, { borderWidth: 7 }]}
-            />
-          )
-        }}
-      >
-        Alpha
-      </Tag>,
-    )
+    node({ selectionMode: "multiple", selectedKeys: selected, onSelectionChange: select }, [
+      tagItem(
+        "a",
+        <Tag
+          id="a"
+          textValue="Alpha"
+          ref={target}
+          onPress={calls}
+          render={(props, state) => {
+            states.push(state)
+            return (
+              <NativeFocusView
+                {...props}
+                key={alternate ? "alternate" : "original"}
+                testID="custom-tag"
+                style={[props.style, { borderWidth: 7 }]}
+              />
+            )
+          }}
+        >
+          Alpha
+        </Tag>,
+      ),
+    ])
   const view = await render(example([]))
   const original = target.current
   expect(original).not.toBeNull()
@@ -102,16 +110,18 @@ it("retires a held custom-host press before the actual receiver is replaced", as
   const selection = jest.fn(),
     pressEnd = jest.fn()
   const example = (alternate: boolean) =>
-    node(
-      { selectionMode: "multiple", onSelectionChange: selection },
-      <Tag
-        id="a"
-        onPressEnd={pressEnd}
-        render={(props) => <NativeFocusView {...props} key={alternate ? "b" : "a"} testID="replace-host" />}
-      >
-        Alpha
-      </Tag>,
-    )
+    node({ selectionMode: "multiple", onSelectionChange: selection }, [
+      tagItem(
+        "a",
+        <Tag
+          id="a"
+          onPressEnd={pressEnd}
+          render={(props) => <NativeFocusView {...props} key={alternate ? "b" : "a"} testID="replace-host" />}
+        >
+          Alpha
+        </Tag>,
+      ),
+    ])
   const view = await render(example(false))
   const old = row("replace-host").props
   const event = gesture()
@@ -126,14 +136,16 @@ it("binds an authored remove-slot button to the current tag and preserves the or
   const remove = jest.fn(),
     caller = jest.fn()
   await render(
-    node(
-      { onRemove: remove },
-      <Tag id="a" textValue="Alpha">
-        <Button slot="remove" testID="custom-remove" onPress={caller}>
-          Custom removal
-        </Button>
-      </Tag>,
-    ),
+    node({ onRemove: remove }, [
+      tagItem(
+        "a",
+        <Tag id="a" textValue="Alpha">
+          <Button slot="remove" testID="custom-remove" onPress={caller}>
+            Custom removal
+          </Button>
+        </Tag>,
+      ),
+    ]),
   )
   expect(row("custom-remove").props.accessibilityLabel).toBe("Remove Alpha")
   const event = await press("custom-remove")
@@ -146,14 +158,16 @@ it("retains a null-slot button's own action independently of tag removal", async
   const remove = jest.fn(),
     caller = jest.fn()
   await render(
-    node(
-      { onRemove: remove },
-      <Tag id="a" textValue="Alpha">
-        <Button slot={null} testID="independent-action" onPress={caller}>
-          Independent
-        </Button>
-      </Tag>,
-    ),
+    node({ onRemove: remove }, [
+      tagItem(
+        "a",
+        <Tag id="a" textValue="Alpha">
+          <Button slot={null} testID="independent-action" onPress={caller}>
+            Independent
+          </Button>
+        </Tag>,
+      ),
+    ]),
   )
   await press("independent-action")
   expect(caller).toHaveBeenCalledTimes(1)
@@ -211,17 +225,20 @@ it("keeps Tab eligibility distinct from programmatic focus and suppresses disabl
     blurred = jest.fn(),
     pressed = jest.fn()
   await render(
-    node(
-      { disabledKeys: ["a", "b"] },
-      <>
+    node({ disabledKeys: ["a", "b"] }, [
+      tagItem(
+        "a",
         <Tag id="a" testID="a" autoFocus onFocus={called} onBlur={blurred} onPress={pressed}>
           Alpha
-        </Tag>
+        </Tag>,
+      ),
+      tagItem(
+        "b",
         <Tag id="b" testID="b">
           Beta
-        </Tag>
-      </>,
-    ),
+        </Tag>,
+      ),
+    ]),
   )
   expect(row("a").props.focusable).toBe(true)
   expect(row("a").props.nativeTabStop).toBe(false)
@@ -236,17 +253,20 @@ it("keeps Tab eligibility distinct from programmatic focus and suppresses disabl
 
 it("updates native Tab stops from the same focused-key policy as the source", async () => {
   await render(
-    node(
-      { onRemove: jest.fn() },
-      <>
+    node({ onRemove: jest.fn() }, [
+      tagItem(
+        "a",
         <Tag id="a" testID="a">
           Alpha
-        </Tag>
+        </Tag>,
+      ),
+      tagItem(
+        "b",
         <Tag id="b" testID="b">
           Beta
-        </Tag>
-      </>,
-    ),
+        </Tag>,
+      ),
+    ]),
   )
   expect(row("tag-list").props.nativeTabStop).toBe(true)
   expect(row("a").props.nativeTabStop).toBe(true)
@@ -266,11 +286,14 @@ afterEach(() => {
 
 it("retains the actual native item ref across passive and selectable modes", async () => {
   const ref = createRef<RN.View>()
-  const item = (
-    <Tag id="a" ref={ref}>
-      Alpha
-    </Tag>
-  )
+  const item = [
+    tagItem(
+      "a",
+      <Tag id="a" ref={ref}>
+        Alpha
+      </Tag>,
+    ),
+  ]
   const view = await render(node({ selectionMode: "none" }, item))
   const original = ref.current
   await view.rerender(node({ selectionMode: "multiple" }, item))
@@ -282,11 +305,14 @@ it("cancels a held press when the same native row becomes passive", async () => 
   const ref = createRef<RN.View>(),
     change = jest.fn(),
     end = jest.fn()
-  const item = (
-    <Tag id={0} testID="zero" ref={ref} onPressEnd={end}>
-      Zero
-    </Tag>
-  )
+  const item = [
+    tagItem(
+      0,
+      <Tag id={0} testID="zero" ref={ref} onPressEnd={end}>
+        Zero
+      </Tag>,
+    ),
+  ]
   const view = await render(node({ selectionMode: "multiple", selectedKeys: [], onSelectionChange: change }, item))
   const original = ref.current
   const active = row("zero").props
@@ -304,12 +330,14 @@ it("cancels a held press when the same native row becomes passive", async () => 
 it("retains explicit text values on composed items and their removal labels after collection reception", async () => {
   const remove = jest.fn()
   await render(
-    node(
-      { onRemove: remove },
-      <Tag id={0} testID="composed" textValue="Alpha">
-        <Text>Visual content</Text>
-      </Tag>,
-    ),
+    node({ onRemove: remove }, [
+      tagItem(
+        0,
+        <Tag id={0} testID="composed" textValue="Alpha">
+          <Text>Visual content</Text>
+        </Tag>,
+      ),
+    ]),
   )
   expect(row("composed").props.accessibilityLabel).toBe("Alpha")
   expect(row("tag-remove-button").props.accessibilityLabel).toBe("Remove Alpha")
@@ -324,11 +352,17 @@ it("CAP.tag-group.001 and item.001 forwards actual root and grouped-item native 
     item = createRef<RN.View>()
   await render(
     <NativeThemeProvider>
-      <TagGroup ref={root}>
-        <Tag ref={item} id={0}>
-          Zero
-        </Tag>
-      </TagGroup>
+      <TagGroup
+        ref={root}
+        items={[
+          tagItem(
+            0,
+            <Tag ref={item} id={0}>
+              Zero
+            </Tag>,
+          ),
+        ]}
+      />
     </NativeThemeProvider>,
   )
   expect(root.current).not.toBeNull()
@@ -350,16 +384,21 @@ it("CAP.tag-group.002–.005 and item.002/.009/.010 retains each rendered style 
         style: { width: 33 },
         customTagListStyles: { gap: 0 },
       },
-      <Tag
-        id={0}
-        testID="zero"
-        width={0}
-        height={0}
-        customStyles={{ color: "orange", padding: 0 }}
-        style={{ width: 7, color: "purple" }}
-      >
-        Zero
-      </Tag>,
+      [
+        tagItem(
+          0,
+          <Tag
+            id={0}
+            testID="zero"
+            width={0}
+            height={0}
+            customStyles={{ color: "orange", padding: 0 }}
+            style={{ width: 7, color: "purple" }}
+          >
+            Zero
+          </Tag>,
+        ),
+      ],
     ),
   )
   expect(RN.StyleSheet.flatten(row("tag-group").props.style)).toMatchObject({
@@ -379,7 +418,7 @@ it("CAP.tag-group.002–.005 and item.002/.009/.010 retains each rendered style 
 })
 it("CAP.tag-group.006 keeps explicit empty renderer precedence, including null and empty message", async () => {
   const empty = jest.fn<ReactNode, [TNativeTagGroupEmptyState]>(() => <Text>Explicit empty</Text>)
-  const view = await render(node({ renderEmptyState: empty, emptyListMessage: "Fallback" }, null))
+  const view = await render(node({ renderEmptyState: empty, emptyListMessage: "Fallback" }, []))
   expect(screen.getByText("Explicit empty")).toBeOnTheScreen()
   expect(screen.queryByText("Fallback")).toBeNull()
   const emptyState = empty.mock.calls.at(-1)![0]
@@ -391,11 +430,11 @@ it("CAP.tag-group.006 keeps explicit empty renderer precedence, including null a
   expect(emptyState.state.selectionManager.selectionMode).toBe("none")
   expect(emptyState.state.selectionManager.selectionBehavior).toBe("toggle")
 
-  await view.rerender(node({ renderEmptyState: () => null, emptyListMessage: "Fallback" }, null))
+  await view.rerender(node({ renderEmptyState: () => null, emptyListMessage: "Fallback" }, []))
   expect(screen.queryByText("Fallback")).toBeNull()
-  await view.rerender(node({ emptyListMessage: "Fallback" }, null))
+  await view.rerender(node({ emptyListMessage: "Fallback" }, []))
   expect(screen.getByText("Fallback")).toBeOnTheScreen()
-  await view.rerender(node({ emptyListMessage: "" }, null))
+  await view.rerender(node({ emptyListMessage: "" }, []))
   expect(screen.queryByText("Fallback")).toBeNull()
 })
 it("CAP.tag-group.007 and item.011 consume family props on actual hosts", async () => {
@@ -409,9 +448,22 @@ it("CAP.tag-group.007 and item.011 consume family props on actual hosts", async 
         labels: {},
         onRemove: jest.fn(),
       },
-      <Tag id={0} testID="zero" textValue="Zero" transparent raised={false} order="primary" closeIcon={<Text>X</Text>}>
-        Zero
-      </Tag>,
+      [
+        tagItem(
+          0,
+          <Tag
+            id={0}
+            testID="zero"
+            textValue="Zero"
+            transparent
+            raised={false}
+            order="primary"
+            closeIcon={<Text>X</Text>}
+          >
+            Zero
+          </Tag>,
+        ),
+      ],
     ),
   )
   for (const field of ["selectedKeys", "disabledKeys", "selectionMode", "orientation", "labels", "onRemove"])
@@ -422,19 +474,26 @@ it("CAP.tag-group.007 and item.011 consume family props on actual hosts", async 
 it("requests copied typed keys repeatedly under owner veto and paints only owner echoes", async () => {
   const owner = new Set<string | number>([0, "missing"]),
     change = jest.fn()
-  const children = (
-    <>
+  const children = [
+    tagItem(
+      0,
       <Tag id={0} testID="zero">
         Zero
-      </Tag>
+      </Tag>,
+    ),
+    tagItem(
+      "0",
       <Tag id="0" testID="string">
         String zero
-      </Tag>
+      </Tag>,
+    ),
+    tagItem(
+      "",
       <Tag id="" testID="empty">
         Empty
-      </Tag>
-    </>
-  )
+      </Tag>,
+    ),
+  ]
   const view = await render(
     node({ selectionMode: "multiple", selectedKeys: owner, onSelectionChange: change }, children),
   )
@@ -465,12 +524,14 @@ it("protects passive row ownership from untyped accessibility-state aliases", as
     "aria-busy": true,
   }
   await render(
-    node(
-      { selectedKeys: [0], disabledKeys: [0] },
-      <Tag {...aliases} id={0} testID="zero">
-        Zero
-      </Tag>,
-    ),
+    node({ selectedKeys: [0], disabledKeys: [0] }, [
+      tagItem(
+        0,
+        <Tag {...aliases} id={0} testID="zero">
+          Zero
+        </Tag>,
+      ),
+    ]),
   )
   expect(row("zero").props.accessibilityState.selected).toBeUndefined()
   expect(row("zero").props.accessibilityState.checked).toBeUndefined()
@@ -482,16 +543,20 @@ it("caches one-shot selected/disabled iterables by owner identity across interna
   const selectedKeys = [0, "missing"][Symbol.iterator](),
     disabledKeys = [""][Symbol.iterator](),
     change = jest.fn()
-  const children = (
-    <>
+  const children = [
+    tagItem(
+      0,
       <Tag id={0} testID="zero">
         Zero
-      </Tag>
+      </Tag>,
+    ),
+    tagItem(
+      "",
       <Tag id="" testID="empty" isDisabled={false}>
         Empty
-      </Tag>
-    </>
-  )
+      </Tag>,
+    ),
+  ]
   const props = { selectionMode: "multiple" as const, selectedKeys, disabledKeys, onSelectionChange: change }
   const view = await render(node(props, children))
   await view.rerender(node(props, children, "dark"))
@@ -504,16 +569,20 @@ it("caches one-shot selected/disabled iterables by owner identity across interna
 })
 it("samples default selection once and changes only local uncontrolled membership", async () => {
   const change = jest.fn(),
-    children = (
-      <>
+    children = [
+      tagItem(
+        0,
         <Tag id={0} testID="zero">
           Zero
-        </Tag>
+        </Tag>,
+      ),
+      tagItem(
+        "",
         <Tag id="" testID="empty">
           Empty
-        </Tag>
-      </>
-    )
+        </Tag>,
+      ),
+    ]
   const view = await render(
     node({ selectionMode: "single", defaultSelectedKeys: [0], onSelectionChange: change }, children),
   )
@@ -527,12 +596,14 @@ it("CAP.tag-group.item.012 passes live controlled/action/removal/disabled flags 
   const child = jest.fn((state) => <Text>{state.isSelected ? "Selected" : "Unselected"}</Text>),
     style = jest.fn<RN.TextStyle, [TNativeGroupedTagState & { defaultStyle: RN.TextStyle }]>(() => ({}))
   const view = await render(
-    node(
-      { selectionMode: "multiple", selectedKeys: [0], onRemove: jest.fn() },
-      <Tag id={0} testID="zero" style={style}>
-        {child}
-      </Tag>,
-    ),
+    node({ selectionMode: "multiple", selectedKeys: [0], onRemove: jest.fn() }, [
+      tagItem(
+        0,
+        <Tag id={0} testID="zero" style={style}>
+          {child}
+        </Tag>,
+      ),
+    ]),
   )
   expect(child.mock.calls.at(-1)?.[0]).toMatchObject({
     isSelected: true,
@@ -542,12 +613,14 @@ it("CAP.tag-group.item.012 passes live controlled/action/removal/disabled flags 
     selectionMode: "multiple",
   })
   await view.rerender(
-    node(
-      { selectionMode: "multiple", selectedKeys: [], onRemove: jest.fn() },
-      <Tag id={0} testID="zero" isDisabled style={style}>
-        {child}
-      </Tag>,
-    ),
+    node({ selectionMode: "multiple", selectedKeys: [], onRemove: jest.fn() }, [
+      tagItem(
+        0,
+        <Tag id={0} testID="zero" isDisabled style={style}>
+          {child}
+        </Tag>,
+      ),
+    ]),
   )
   expect(child.mock.calls.at(-1)?.[0]).toMatchObject({ isSelected: false, isDisabled: true, allowsSelection: false })
   expect(style.mock.calls.at(-1)?.[0]).toMatchObject({
@@ -556,12 +629,14 @@ it("CAP.tag-group.item.012 passes live controlled/action/removal/disabled flags 
     defaultStyle: expect.any(Object),
   })
   await view.rerender(
-    node(
-      { selectionMode: "multiple", selectedKeys: [] },
-      <Tag id={0} testID="zero" isDisabled={false}>
-        {child}
-      </Tag>,
-    ),
+    node({ selectionMode: "multiple", selectedKeys: [] }, [
+      tagItem(
+        0,
+        <Tag id={0} testID="zero" isDisabled={false}>
+          {child}
+        </Tag>,
+      ),
+    ]),
   )
   expect(child.mock.calls.at(-1)?.[0]).toMatchObject({
     isDisabled: false,
@@ -572,21 +647,25 @@ it("CAP.tag-group.item.012 passes live controlled/action/removal/disabled flags 
 it("CAP.tag-group.item.013/.014 keeps the default close icon, falsy fallback and authored icon", async () => {
   const remove = jest.fn(),
     view = await render(
-      node(
-        { onRemove: remove },
-        <Tag id={0} closeIcon={false}>
-          Zero
-        </Tag>,
-      ),
+      node({ onRemove: remove }, [
+        tagItem(
+          0,
+          <Tag id={0} closeIcon={false}>
+            Zero
+          </Tag>,
+        ),
+      ]),
     )
   expect(row("tag-default-close-icon").props).toMatchObject({ width: 15, height: 15, accessible: false })
   await view.rerender(
-    node(
-      { onRemove: remove },
-      <Tag id={0} closeIcon={<Text testID="custom-icon">X</Text>}>
-        Zero
-      </Tag>,
-    ),
+    node({ onRemove: remove }, [
+      tagItem(
+        0,
+        <Tag id={0} closeIcon={<Text testID="custom-icon">X</Text>}>
+          Zero
+        </Tag>,
+      ),
+    ]),
   )
   expect(row("custom-icon")).toBeOnTheScreen()
   expect(screen.queryByTestId("tag-default-close-icon", hidden)).toBeNull()
@@ -608,18 +687,20 @@ it("uses item → group → URL callback order without selecting links", async (
     change = jest.fn(),
     navigate = jest.fn((href) => order.push(href))
   await render(
-    node(
-      { selectionMode: "multiple", selectedKeys: [], onSelectionChange: change, onAction: (id) => order.push(id) },
-      <Tag
-        id={0}
-        testID="zero"
-        href="https://example.test/zero"
-        onAction={() => order.push("item")}
-        onNavigate={navigate}
-      >
-        Zero
-      </Tag>,
-    ),
+    node({ selectionMode: "multiple", selectedKeys: [], onSelectionChange: change, onAction: (id) => order.push(id) }, [
+      tagItem(
+        0,
+        <Tag
+          id={0}
+          testID="zero"
+          href="https://example.test/zero"
+          onAction={() => order.push("item")}
+          onNavigate={navigate}
+        >
+          Zero
+        </Tag>,
+      ),
+    ]),
   )
   await press("zero")
   expect(order).toEqual(["item", 0, "https://example.test/zero"])
@@ -636,12 +717,14 @@ it("uses current callbacks and retires captured host callbacks after item replac
   const retired = row("zero").props.onNativeActivation,
     ownerId = row("zero").props.ownerId
   await view.rerender(
-    node(
-      { onAction: current },
-      <Tag key="other" id="other">
-        Other
-      </Tag>,
-    ),
+    node({ onAction: current }, [
+      tagItem(
+        "other",
+        <Tag key="other" id="other">
+          Other
+        </Tag>,
+      ),
+    ]),
   )
   await act(() =>
     retired({
@@ -673,9 +756,14 @@ it("selects Space on key-down and acts on Enter release, preserving raw event id
         onSelectionChange: change,
         onAction: action,
       },
-      <Tag id={0} testID="zero" onKeyDown={down} onKeyUp={up} onPressStart={start} onPress={release}>
-        Zero
-      </Tag>,
+      [
+        tagItem(
+          0,
+          <Tag id={0} testID="zero" onKeyDown={down} onKeyUp={up} onPressStart={start} onPress={release}>
+            Zero
+          </Tag>,
+        ),
+      ],
     ),
   )
   const space = await key("zero", " ", "down")
@@ -696,38 +784,41 @@ it("preserves original focus packets and clears empty focus flags on blur", asyn
     onFocus = jest.fn(),
     onBlur = jest.fn()
   const view = await render(
-    node(
-      {},
-      <Tag id={0} testID="zero" onFocus={onFocus} onBlur={onBlur}>
-        Zero
-      </Tag>,
-    ),
+    node({}, [
+      tagItem(
+        0,
+        <Tag id={0} testID="zero" onFocus={onFocus} onBlur={onBlur}>
+          Zero
+        </Tag>,
+      ),
+    ]),
   )
   const gained = await focus("zero", true),
     lost = await focus("zero", false)
   expect(onFocus.mock.calls[0][0] === gained).toBe(true)
   expect(onBlur.mock.calls[0][0] === lost).toBe(true)
-  await view.rerender(node({ renderEmptyState: empty }, null))
+  await view.rerender(node({ renderEmptyState: empty }, []))
   await focus("tag-list", true)
   expect(empty.mock.calls.at(-1)?.[0]).toMatchObject({ isFocused: true, isFocusVisible: true })
   await focus("tag-list", false)
   expect(empty.mock.calls.at(-1)?.[0]).toMatchObject({ isFocused: false, isFocusVisible: false })
 })
-it("accepts dynamic one-shot item iterables and typed key zero/empty without a local data mirror", async () => {
+it("retains an explicit model materialized once from an iterator with typed zero/empty keys", async () => {
   const items = [
     { id: 0, label: "Zero" },
     { id: "", label: "Empty" },
   ][Symbol.iterator]()
+  const model = Array.from(items, (item) => tagItem(item.id, <Tag testID={`item-${item.id}`}>{item.label}</Tag>, item))
   const view = await render(
     <NativeThemeProvider>
-      <TagGroup items={items}>{(item) => <Tag testID={`item-${item.id}`}>{item.label}</Tag>}</TagGroup>
+      <TagGroup items={model} />
     </NativeThemeProvider>,
   )
   expect(row("item-0")).toBeOnTheScreen()
   expect(row("item-")).toBeOnTheScreen()
   await view.rerender(
     <NativeThemeProvider>
-      <TagGroup items={items}>{(item) => <Tag testID={`item-${item.id}`}>{item.label} again</Tag>}</TagGroup>
+      <TagGroup items={model} />
     </NativeThemeProvider>,
   )
   expect(screen.getByText("Zero")).toBeOnTheScreen()
@@ -741,12 +832,14 @@ it("matches pinned default text buffering and captures Space before selection wi
     const change = jest.fn(),
       raw = jest.fn()
     await render(
-      node(
-        { selectionMode: "multiple", selectedKeys: [], onSelectionChange: change },
-        <Tag id={0} testID="zero" onKeyDown={raw}>
-          Zero
-        </Tag>,
-      ),
+      node({ selectionMode: "multiple", selectedKeys: [], onSelectionChange: change }, [
+        tagItem(
+          0,
+          <Tag id={0} testID="zero" onKeyDown={raw}>
+            Zero
+          </Tag>,
+        ),
+      ]),
     )
     await key("zero", "z", "down", { nativeDefaultHandled: false })
     const space = await key("zero", " ", "down")

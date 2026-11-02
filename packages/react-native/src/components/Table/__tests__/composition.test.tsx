@@ -1,5 +1,3 @@
-import "../../../collection/__tests__/nativeReceipts"
-
 import { createRef, useEffect, useState } from "react"
 import type { TextInput, View } from "react-native"
 
@@ -9,16 +7,16 @@ import {
   NativeOverlayProvider,
   NativeThemeProvider,
   Table,
-  TableBody,
-  TableHeader,
   type TableColumnMetadata,
 } from "../../.."
+import { nativeTableChildren, createNativeTableHeaderModel, createNativeTableBodyModel } from "../model"
+
 import {
   actWithNativeCollections as act,
   fireEventWithNativeCollections as fireEvent,
   renderWithNativeCollections as render,
   screen,
-} from "../../../collection/__tests__/nativeReceipts"
+} from "./collectionModel"
 
 it("receives asynchronous public Table rows while retaining the original selected row editor and issuing no selection request", async () => {
   const initial = [
@@ -67,10 +65,13 @@ it("receives asynchronous public Table rows while retaining the original selecte
               selectionMode="multiple"
               selectedKeys={["a"]}
               onSelectionChange={onSelectionChange}
-            >
-              <TableHeader columns={columns} />
-              <TableBody items={items} columns={columns} />
-            </Table>
+              items={(modelOptions) =>
+                nativeTableChildren(
+                  createNativeTableHeaderModel({ columns: columns }, modelOptions),
+                  createNativeTableBodyModel({ items: items, columns: columns }, modelOptions),
+                )
+              }
+            />
           </NativeFloatingLayerHost>
         </NativeOverlayProvider>
       </NativeThemeProvider>

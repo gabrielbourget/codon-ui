@@ -249,7 +249,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
   NSString *mode = _nativeCollectionSemantics[@"selectionMode"];
   return self.window && _nativeCollectionBinding.length && [_nativeCollectionSemantics[@"kind"] isEqual:@"root"]
     && CUICollectionInteger(_nativeCollectionSemantics, @"rowCount") >= 0 && CUICollectionInteger(_nativeCollectionSemantics, @"columnCount") >= 0
-    && [@[@"none", @"single", @"multiple"] containsObject:mode ?: @""];
+    && [@[@"none", @"single", @"multiple"] containsObject:mode ?: @""] && [self hasCurrentListBinding];
 }
 
 - (BOOL)hasCurrentListBinding
@@ -263,9 +263,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
   if (CGRectIsEmpty(CGRectIntersection(visible, self.window.bounds))) return NO;
   id binding = [NSJSONSerialization JSONObjectWithData:[_nativeCollectionBinding dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
   if (![binding isKindOfClass:NSDictionary.class]) return NO;
-  NSInteger target = CUICollectionInteger(binding, @"target");
-  UIView *root = target > 0 ? [self.window viewWithTag:target] : nil;
-  return [root isKindOfClass:CUICollectionRoot.class] && [(CUICollectionRoot *)root acceptsPointerBinding:_nativeCollectionBinding visibleTarget:self.tag];
+  return [CUICollectionRoot acceptsCurrentBinding:_nativeCollectionBinding original:self];
 }
 
 - (BOOL)isListRoot
@@ -394,7 +392,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 
 - (CUIFocusView *)collectionParent
 {
-  if (![_nativeCollectionSemantics[@"kind"] isEqual:@"cell"] || !self.window) return nil;
+  if (![_nativeCollectionSemantics[@"kind"] isEqual:@"cell"] || ![self hasCurrentListBinding]) return nil;
   UIView *candidate = [self.window viewWithTag:CUICollectionInteger(_nativeCollectionSemantics, @"parentTarget")];
   if (![candidate isKindOfClass:CUIFocusView.class] || candidate == self || ![self isDescendantOfView:candidate]) return nil;
   CUIFocusView *parent = (CUIFocusView *)candidate;
@@ -776,6 +774,13 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
   [_focusWithin schedule];
 }
 
+- (void)requestCollectionFocus:(NSString *)ownerId binding:(NSString *)binding container:(BOOL)container
+{
+  if (![CUICollectionRoot acceptsCurrentBinding:binding original:self]) return;
+  if (container) [self requestContainerFocus:ownerId];
+  else [self requestKeyboardFocus:ownerId];
+}
+
 - (void)requestKeyboardFocus:(NSString *)ownerId
 {
   if (![_ownerId isEqualToString:ownerId] || ![self canBecomeFirstResponder]) return;
@@ -1119,9 +1124,16 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 
 - (NSString *)motionProjectionRevision { return _motionProjectionRevision ?: @""; }
 
+- (void)didMoveToSuperview
+{
+  [super didMoveToSuperview];
+  CUICollectionOriginalDidChange(self);
+}
+
 - (void)didMoveToWindow
 {
   [super didMoveToWindow];
+  CUICollectionOriginalDidChange(self);
   if (_localKeyLease && !self.window) {
     _localKeyWindowWasInactive = YES;
     _localKeyReactivationPending = NO;
@@ -1142,6 +1154,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 
 - (void)prepareForRecycle
 {
+  CUICollectionOriginalDidChange(self);
   [_focusWithin invalidate]; _focusWithin = nil;
   [_formAction invalidate]; _formAction = nil;
   [_localKeyLease invalidate]; _localKeyLease=nil; _localKeyTokens=nil; [self synchronizeLocalKeyWindow]; [_localKeySuppressed removeAllObjects]; [_localKeySequences removeAllObjects]; [_localKeyFreshStarts removeAllObjects]; _localKeyWindowWasInactive = NO; _localKeyReactivationPending = NO; _formActionSurface = -1;

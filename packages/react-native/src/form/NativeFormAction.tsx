@@ -7,10 +7,9 @@ import { NativeButtonContext } from "../components/Button/context"
 import type { TNativeButtonProps } from "../components/Button/types"
 import type { TNativePressEvent } from "../input/types"
 
-import { admitNativeFormAction } from "./actionAdmission"
 import { NativeFormActionLease } from "./actionLease"
 import { nativeFormControllerFor } from "./actions"
-import { NativeFormRegistryContext } from "./context"
+import { NativeFormRegistryContext, NativeFormOwnerContext } from "./context"
 import type { TNativeFormAction, TNativeFormResult } from "./types"
 
 export type TNativeFormActionProps = Omit<TNativeButtonProps, "render"> & {
@@ -24,6 +23,7 @@ export const NativeFormAction = forwardRef<View, TNativeFormActionProps>((receiv
   const [props, inheritedRef] = useNativeContextProps(received, forwardedRef, NativeButtonContext)
   const { action = "submit", form, onActionResult: _onActionResult, slot: _slot, onPress: _onPress, ...button } = props
   const registry = useContext(NativeFormRegistryContext)
+  const formOwnerId = useContext(NativeFormOwnerContext)
   const ownerId = useId()
   const view = useRef<View | null>(null)
   const attachment = useRef(0)
@@ -46,9 +46,9 @@ export const NativeFormAction = forwardRef<View, TNativeFormActionProps>((receiv
         : null,
     [ownerId, descriptorRevision, original],
   )
-  const current = useRef({ props, descriptorRevision, lease, registry })
+  const current = useRef({ props, descriptorRevision, lease, registry, formOwnerId })
   useInsertionEffect(() => {
-    current.current = { props, descriptorRevision, lease, registry }
+    current.current = { props, descriptorRevision, lease, registry, formOwnerId }
     receiver.current = lease
   })
   useInsertionEffect(() => () => lease?.retire(), [lease])
@@ -90,11 +90,10 @@ export const NativeFormAction = forwardRef<View, TNativeFormActionProps>((receiv
       .request(owner.props.action ?? "submit", {
         origin: "native",
         sourceEvent: event,
-        target: lease?.target ?? 0,
+        formOwnerId: owner.formOwnerId,
         formId: owner.props.form,
         isCurrent,
         actionLease: lease,
-        admit: (document, form) => (lease ? admitNativeFormAction(lease, document, form) : Promise.resolve(false)),
       })
       .then((result) => {
         if (

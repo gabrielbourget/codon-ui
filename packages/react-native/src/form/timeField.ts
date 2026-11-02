@@ -6,6 +6,7 @@ import type { TNativeFormEntry } from "./types"
 
 export type TNativeTimeFieldFormOptions = Readonly<{
   name?: string
+  formFieldId?: string
   form?: string
   validationBehavior?: "native" | "aria"
   requiredErrorMessage?: string

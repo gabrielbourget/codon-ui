@@ -2,7 +2,7 @@ import type { ReactElement, ReactNode, RefAttributes } from "react"
 import type { PointerEvent, StyleProp, TextStyle, View } from "react-native"
 
 import type { TNativeSlotProps } from "../../collection/context"
-import type { TNativeFieldSemanticLabels } from "../../form/semantics"
+import type { TNativeFieldSemanticLabels, TNativeFieldSemanticText } from "../../form/semantics"
 import type { TNativeFocusViewProps } from "../../input/types"
 import type { TNativeFloatingPlacement } from "../../overlays/floating/placement"
 import type { TNativeTimePickerAppearanceProps } from "../field/appearance"
@@ -68,6 +68,8 @@ type TCommon<S> = Omit<TNativeFocusViewProps, "style" | "children"> &
     ariaDescribedBy?: string | readonly string[]
     ariaDetails?: string | readonly string[]
     nativeAccessibilityLabels?: Partial<TNativeFieldSemanticLabels>
+    formFieldId?: string
+    nativeAccessibilityText?: TNativeFieldSemanticText
     form?: string
     id?: string
     "data-testid"?: string

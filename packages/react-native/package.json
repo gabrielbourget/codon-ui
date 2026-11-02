@@ -88,7 +88,6 @@
         "CUIFocusView": "CUIFocusView",
         "CUIKeyboardScope": "CUIKeyboardScope",
         "CUICollectionRoot": "CUICollectionRoot",
-        "CUICollectionNode": "CUICollectionNode",
         "CUIFormRoot": "CUIFormRoot",
         "CUIFieldBinding": "CUIFieldBinding",
         "CUIDateSegment": "CUIDateSegment"

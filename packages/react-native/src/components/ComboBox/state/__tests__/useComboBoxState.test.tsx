@@ -1,7 +1,7 @@
 import { act, renderHook } from "@testing-library/react-native"
 import { useComboBoxState as usePinnedComboBoxState } from "react-stately/useComboBoxState"
 
-import { getNativeCollectionMetadataIdentity } from "../../../../collection/snapshot"
+import { getNativeCollectionNodeIdentity } from "../../../../collection/snapshot"
 import type { TSourceManagerSurface } from "../../../../collection/state/types"
 import type { ComboBoxState, ComboBoxStateOptions } from "../types"
 import { useComboBoxState } from "../useComboBoxState"
@@ -104,7 +104,7 @@ it("repeats owner-vetoed value requests after separate native commits without ch
   expect(result.current.inputValue).toBe("held")
 })
 
-it("freezes only owned filtered nodes and retains their original descriptor and caller value identities", async () => {
+it("freezes only owned filtered nodes and retains their original model and caller value identities", async () => {
   const original = collection()
   const { result } = await renderHook(() =>
     useComboBoxState({
@@ -121,7 +121,7 @@ it("freezes only owned filtered nodes and retains their original descriptor and 
   expect(Object.isFrozen(node)).toBe(true)
   expect(Object.isFrozen(result.current.collection)).toBe(true)
   expect(node.value).toBe(ITEMS[2])
-  expect(getNativeCollectionMetadataIdentity(node)).toBe(getNativeCollectionMetadataIdentity(original.getItem("b")!))
+  expect(getNativeCollectionNodeIdentity(node)).toBe(getNativeCollectionNodeIdentity(original.getItem("b")!))
   expect(Object.isFrozen(ITEMS[2])).toBe(false)
 })
 
@@ -213,8 +213,8 @@ it("provides the complete immutable native view after filtering a section", asyn
   expect([...again.getKeys()]).toEqual(["section", "b"])
   expect(Object.isFrozen(again.getItem("section")!.childNodes)).toBe(true)
   expect(again.getItem("b")!.value).toBe(ITEMS[2])
-  expect(getNativeCollectionMetadataIdentity(again.getItem("b")!)).toBe(
-    getNativeCollectionMetadataIdentity(original.getItem("b")!),
+  expect(getNativeCollectionNodeIdentity(again.getItem("b")!)).toBe(
+    getNativeCollectionNodeIdentity(original.getItem("b")!),
   )
   expect([...original.getChildren("section")].map((node) => node.key)).toEqual([0, "", "b"])
 })

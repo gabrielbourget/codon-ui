@@ -1,22 +1,19 @@
-import "../../../collection/__tests__/nativeReceipts"
-
 import { act as rawAct, cleanup, userEvent } from "@testing-library/react-native"
 import { createRef } from "react"
 import type * as RN from "react-native"
+
+import { NativeFloatingWindowContext } from "../../../overlays/floating/scope"
+import { NativeThemeProvider } from "../../../theme"
+import { nativeTableChildren, createNativeTableHeaderModel, createNativeTableBodyModel } from "../model"
+import { Table } from "../Table"
+import type { TNativeTableColumnMetadata, TNativeTableProps } from "../types"
 
 import {
   actWithNativeCollections as act,
   fireEventWithNativeCollections as fireEvent,
   renderWithNativeCollections as render,
   screen,
-} from "../../../collection/__tests__/nativeReceipts"
-import { NativeFloatingWindowContext } from "../../../overlays/floating/scope"
-import { NativeThemeProvider } from "../../../theme"
-import { Table } from "../Table"
-import { TableBody } from "../TableBody"
-import { TableHeader } from "../TableHeader"
-import type { TNativeTableColumnMetadata, TNativeTableProps } from "../types"
-
+} from "./collectionModel"
 import { TableFixture } from "./fixtures/TableFixture"
 
 jest.unmock("react-native/Libraries/Components/TextInput/TextInput")
@@ -80,10 +77,16 @@ const node = (
 ) => (
   <NativeThemeProvider>
     <NativeFloatingWindowContext.Provider value={window}>
-      <Table columns={columns} {...props}>
-        <TableHeader columns={header} />
-        <TableBody items={[{ id: "a", name: "Alpha" }]} columns={header} />
-      </Table>
+      <Table
+        columns={columns}
+        {...props}
+        items={(modelOptions) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel({ columns: header }, modelOptions),
+            createNativeTableBodyModel({ items: [{ id: "a", name: "Alpha" }], columns: header }, modelOptions),
+          )
+        }
+      />
     </NativeFloatingWindowContext.Provider>
   </NativeThemeProvider>
 )

@@ -49,3 +49,22 @@ export const computeFilterArgumentAccessibleLabel = ({
   if (operationCode === "similar-to") return labels.similarTextArgumentAccessibleLabel({ criteriaName })
   return labels.argumentAccessibleLabel({ criteriaName })
 }
+
+// These are the editors that register with NativeForm, in their rendered order.
+// Ordinary Input, Select and the standalone ComboBox do not register fields.
+export const getFilterClauseFormFieldIds = (
+  group: TQueryFilterGroupDraft,
+  clause: TQueryFilterClauseDraft,
+): string[] => {
+  const kind = computeFilterArgumentType(group, clause)
+  const temporal = group.dataType === "date" || group.dataType === "date-time" || group.dataType === "time"
+  const slots =
+    temporal && (kind === "Input" || kind === "Range")
+      ? kind === "Range"
+        ? ["minimum", "maximum"]
+        : ["value"]
+      : kind === "Multi Select"
+        ? ["query"]
+        : []
+  return slots.map((slot) => JSON.stringify(["filter-argument", group.id, clause.id, slot]))
+}

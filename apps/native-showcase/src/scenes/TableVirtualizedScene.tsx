@@ -29,10 +29,15 @@ import {
   NativeTableStateContext,
   NativeResizableTableContainer,
   Table,
-  TableBody,
-  TableHeader,
   type TNativeTableState,
 } from "@codon-ui/react-native"
+
+import { renderNativeCollectionNode } from "../../../../packages/react-native/src/collection/renderer"
+import {
+  nativeTableChildren,
+  createNativeTableHeaderModel,
+  createNativeTableBodyModel,
+} from "../../../../packages/react-native/src/components/Table/model"
 
 const useSceneTableState = () => {
   const state = useContext(NativeTableStateContext)
@@ -122,7 +127,7 @@ const VirtualBody = ({ collection, parent, bridge }: TNativeCollectionBranchProp
       getItem={(items: TNode[], index) => items[index]}
       getItemCount={(items: TNode[]) => items.length}
       keyExtractor={(node) => JSON.stringify([typeof node.key, node.key])}
-      renderItem={({ item }) => item.render?.(item) ?? null}
+      renderItem={({ item }) => renderNativeCollectionNode(item) ?? null}
       CellRendererComponent={Cell}
       initialNumToRender={4}
       maxToRenderPerBatch={4}
@@ -243,32 +248,37 @@ export const TableVirtualizedScene = ({ editorRef }: { editorRef?: Ref<TextInput
             testID="table-virtual-root"
             accessibilityLabel="Virtualized rows"
             onScroll={() => setScrolls((value) => value + 1)}
-          >
-            <TableHeader columns={columns} />
-            <TableBody<TRow>
-              columns={columns}
-              items={rows}
-              customRowStyles={{ height: 72 * fontScale }}
-              renderCell={({ row, column }) =>
-                column.id === "name" ? (
-                  <>
-                    <Text>{row.name}</Text>
-                    {row.id === rows[0]!.id && <LogicalCount />}
-                  </>
-                ) : row.id === rows[0]!.id ? (
-                  <Input
-                    ref={editorRef}
-                    testID="table-virtual-editor"
-                    accessibilityLabel="Held virtual draft"
-                    value=""
-                    onChangeText={(value) => setDrafts((previous) => [...previous, value])}
-                  />
-                ) : (
-                  ""
-                )
-              }
-            />
-          </Table>
+            items={(modelOptions) =>
+              nativeTableChildren(
+                createNativeTableHeaderModel({ columns: columns }, modelOptions),
+                createNativeTableBodyModel(
+                  {
+                    columns: columns,
+                    items: rows,
+                    customRowStyles: { height: 72 * fontScale },
+                    renderCell: ({ row, column }) =>
+                      column.id === "name" ? (
+                        <>
+                          <Text>{row.name}</Text>
+                          {row.id === rows[0]!.id && <LogicalCount />}
+                        </>
+                      ) : row.id === rows[0]!.id ? (
+                        <Input
+                          ref={editorRef}
+                          testID="table-virtual-editor"
+                          accessibilityLabel="Held virtual draft"
+                          value=""
+                          onChangeText={(value) => setDrafts((previous) => [...previous, value])}
+                        />
+                      ) : (
+                        ""
+                      ),
+                  },
+                  modelOptions,
+                ),
+              )
+            }
+          />
         </NativeResizableTableContainer>
       </NativeCollectionRendererContext.Provider>
       <Text testID="table-virtual-requests">{JSON.stringify({ drafts, scrolls })}</Text>

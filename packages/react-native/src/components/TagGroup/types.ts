@@ -2,6 +2,7 @@ import type { ReactElement, ReactNode, RefAttributes } from "react"
 import type { View, StyleProp, TextStyle } from "react-native"
 
 import type { TNativeSlotProps } from "../../collection/context"
+import type { TNativeCollectionItem } from "../../collection/snapshot"
 import type { TNativeListState as ListState } from "../../collection/state"
 import type { TNativeFocusViewProps } from "../../input/types"
 import type { TNativeButtonProps } from "../Button/types"
@@ -16,13 +17,9 @@ export type TNativeTagGroupEmptyState = Readonly<{
   isFocusVisible: boolean
   state: TNativeTagGroupSnapshot
 }>
-type TNativeTagListItemRenderer<T> = { render(item: T): ReactNode }["render"]
-export type TNativeTagListProps<T extends object = object> = Omit<TNativeFocusViewProps, "children" | "style"> &
+export type TNativeTagListProps = Omit<TNativeFocusViewProps, "children" | "style"> &
   TNativeSlotProps & {
-    items?: Iterable<T>
-    children?: ReactNode | TNativeTagListItemRenderer<T>
-    dependencies?: readonly unknown[]
-    idScope?: TNativeTagGroupKey
+    children?: never
     renderEmptyState?: (state: TNativeTagGroupEmptyState) => ReactNode
     style?:
       | StyleProp<TextStyle>
@@ -46,9 +43,8 @@ export type TNativeTagGroupProps<T extends object = object> = Omit<
   TNativeTagGroupVisualProps & {
     slot?: TNativeSlotProps["slot"]
     render?: (props: TNativeFocusViewProps & RefAttributes<View>, state: undefined) => ReactElement
-    children?: ReactNode | ((item: T) => ReactNode)
-    items?: Iterable<T>
-    getKey?: (item: T) => TNativeTagGroupKey
+    children?: never
+    items?: readonly TNativeCollectionItem<T>[]
     selectionMode?: TNativeTagGroupSelectionMode
     selectionBehavior?: TNativeTagGroupSelectionBehavior
     selectedKeys?: "all" | Iterable<TNativeTagGroupKey>

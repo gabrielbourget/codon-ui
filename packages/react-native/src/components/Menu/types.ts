@@ -1,7 +1,7 @@
 import type { ReactElement, ReactNode, RefAttributes } from "react"
 import type { StyleProp, TextStyle, View, ViewProps, ViewStyle } from "react-native"
 
-import type { TNativeCollectionNode } from "../../collection/snapshot"
+import type { TNativeCollectionItem, TNativeCollectionNode } from "../../collection/snapshot"
 import type { TreeProps } from "../../collection/state/useTreeState"
 import type { TNativeFocusViewProps } from "../../input/types"
 import type { TNativeButtonProps } from "../Button/types"
@@ -11,15 +11,12 @@ import type { TNativeMenuKey, TNativeMenuSelectionMode } from "./model"
 
 export type TNativeMenuListRenderState = Readonly<{ isEmpty: boolean }>
 // Like React event handlers, item callbacks remain assignable through a heterogeneous context.
-type TNativeMenuItemRenderer<T> = { render(item: T): ReactNode }["render"]
 type TNativeMenuFilter<T> = { filter(textValue: string, node: TNativeCollectionNode<T>): boolean }["filter"]
 export type TNativeMenuListProps<T extends object = object> = Omit<TNativeFocusViewProps, "children" | "style"> &
   Omit<TreeProps<T>, "collection" | "children" | "items"> & {
     slot?: string | null
-    items?: Iterable<T>
-    children?: ReactNode | TNativeMenuItemRenderer<T>
-    dependencies?: readonly unknown[]
-    idScope?: TNativeMenuKey
+    items?: readonly TNativeCollectionItem<T>[]
+    children?: never
     ariaDescribedBy?: string | readonly string[]
     ariaDetails?: string | readonly string[]
     "aria-describedby"?: string
@@ -49,7 +46,8 @@ export type TNativeMenuProps = Omit<
 > & {
   slot?: string | null
   menuListSlot?: string | null
-  children?: ReactNode
+  items?: readonly TNativeCollectionItem<object>[]
+  children?: never
   menuAriaLabel?: string
   selectionMode?: TNativeMenuSelectionMode
   selectedKeys?: "all" | Iterable<TNativeMenuKey>
@@ -152,9 +150,7 @@ export type TNativeMenuSectionProps<T extends object = object> = Omit<
 > & {
   id?: TNativeMenuKey
   value?: T
-  items?: Iterable<T>
-  children?: ReactNode | ((item: T) => ReactNode)
-  dependencies?: readonly unknown[]
+  children?: never
   selectionMode?: TNativeMenuSelectionMode
   selectedKeys?: "all" | Iterable<TNativeMenuKey>
   defaultSelectedKeys?: "all" | Iterable<TNativeMenuKey>

@@ -1,14 +1,7 @@
-import "../../../collection/__tests__/nativeReceipts"
-
 import { cleanup } from "@testing-library/react-native"
 import { createRef, useRef } from "react"
 import { AccessibilityInfo, findNodeHandle, TextInput, type View } from "react-native"
 
-import {
-  actWithNativeCollections as act,
-  renderWithNativeCollections as render,
-  screen,
-} from "../../../collection/__tests__/nativeReceipts"
 import { useNativeDragAndDrop } from "../../../collection/dragAndDrop/hooks"
 import { NativeDragDataBinding } from "../../../collection/dragAndDrop/nativeData"
 import { createNativeKeyScope } from "../../../input/keyScope"
@@ -17,11 +10,16 @@ import type { TNativeDragMemberBinding } from "../../../input/nativeDragActions"
 import { NativeThemeProvider } from "../../../theme"
 import { DEFAULT_QUERY_CONTROL_LABELS } from "../../SortAndFilterPanel/controlLabels"
 import { QuerySortParameterList } from "../../SortAndFilterPanel/SortParameterList"
+import {
+  nativeTableChildren,
+  createNativeTableHeaderModel,
+  createNativeTableBodyModel,
+  nativeTableReceiver,
+  createNativeTableRowModel,
+} from "../model"
 import { Table } from "../Table"
-import { TableBody } from "../TableBody"
-import { TableHeader } from "../TableHeader"
-import { TableRow } from "../TableRow"
 
+import { actWithNativeCollections as act, renderWithNativeCollections as render, screen } from "./collectionModel"
 import { CellFixtureBody } from "./fixtures/TableCellFixture"
 
 jest.mock("../../../input/specs/NativeCUIDragAndDrop", () => ({
@@ -68,10 +66,17 @@ const Fixture = ({ items, trace }: { items: typeof originalRows; trace: unknown[
   })
   const root = useRef<View | null>(null)
   return (
-    <Table dragAndDropHooks={dragAndDropHooks} ref={root} accessibilityLabel="People">
-      <TableHeader columns={columns} />
-      <TableBody items={items} columns={columns} rowKey={(row) => row.id} />
-    </Table>
+    <Table
+      dragAndDropHooks={dragAndDropHooks}
+      ref={root}
+      accessibilityLabel="People"
+      items={(modelOptions) =>
+        nativeTableChildren(
+          createNativeTableHeaderModel({ columns: columns }, modelOptions),
+          createNativeTableBodyModel({ items: items, columns: columns, rowKey: (row) => row.id }, modelOptions),
+        )
+      }
+    />
   )
 }
 const installTags = () => {
@@ -361,25 +366,40 @@ it.each(["ordinary-release", "drag-release", "drag-cancel", "drag-space", "drag-
                 order.push("selection")
                 requests.push(keys)
               }}
-            >
-              <TableHeader columns={columns} />
-              <CellFixtureBody>
-                <TableRow
-                  ref={ref}
-                  testID="drag-selection-row"
-                  id="a"
-                  item={{ id: "a", name: "Alpha" }}
-                  columns={ownedColumns}
-                  onPressStart={record("start")}
-                  onPressUp={record("up")}
-                  onPressEnd={record("end")}
-                  onPress={record("press")}
-                  onPressChange={(value) => order.push(`change:${value}`)}
-                  onAction={keyboardCycle ? () => order.push("action") : undefined}
-                />
-                <TableRow testID="drag-selection-other" id="b" item={{ id: "b", name: "Beta" }} columns={columns} />
-              </CellFixtureBody>
-            </Table>
+              items={(modelOptions) =>
+                nativeTableChildren(
+                  createNativeTableHeaderModel({ columns: columns }, modelOptions),
+                  nativeTableReceiver<React.ComponentProps<typeof CellFixtureBody>>(
+                    "__body:1",
+                    "tablebody",
+                    {},
+                    (visibleProps) => <CellFixtureBody {...visibleProps} />,
+                    nativeTableChildren(
+                      createNativeTableRowModel(
+                        {
+                          ref: ref,
+                          testID: "drag-selection-row",
+                          id: "a",
+                          item: { id: "a", name: "Alpha" },
+                          columns: ownedColumns,
+                          onPressStart: record("start"),
+                          onPressUp: record("up"),
+                          onPressEnd: record("end"),
+                          onPress: record("press"),
+                          onPressChange: (value) => order.push(`change:${value}`),
+                          onAction: keyboardCycle ? () => order.push("action") : undefined,
+                        },
+                        modelOptions,
+                      ),
+                      createNativeTableRowModel(
+                        { testID: "drag-selection-other", id: "b", item: { id: "b", name: "Beta" }, columns: columns },
+                        modelOptions,
+                      ),
+                    ),
+                  ),
+                )
+              }
+            />
           </NativeThemeProvider>
         )
       }

@@ -1,17 +1,7 @@
 /* Adapted from pinned RAC TagList; Apache-2.0. See ../../collection/LICENSE.react-aria.md. */
-import {
-  forwardRef,
-  useContext,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type ForwardedRef,
-  type ReactNode,
-  type RefAttributes,
-} from "react"
+import { forwardRef, useContext, useLayoutEffect, useRef, useState, type ForwardedRef } from "react"
 import type { View } from "react-native"
 
-import { NativeCollection } from "../../collection/CollectionBuilder"
 import { useNativeContextProps } from "../../collection/context"
 import {
   NativeCollectionRendererContext,
@@ -34,17 +24,7 @@ import type { TNativeTagGroupEmptyState, TNativeTagListProps } from "./types"
 const TagListInner = ({ props, forwardedRef }: { props: TNativeTagListProps; forwardedRef: ForwardedRef<View> }) => {
   const state = useContext(NativeListStateContext)!
   const [merged, ref] = useNativeContextProps(props, forwardedRef, NativeTagListContext)
-  const {
-    children: _children,
-    items: _items,
-    dependencies: _dependencies,
-    idScope: _idScope,
-    slot: _slot,
-    renderEmptyState,
-    render,
-    style,
-    ...native
-  } = merged
+  const { children: _children, slot: _slot, renderEmptyState, render, style, ...native } = merged
   const [focused, setFocused] = useState(false),
     [focusVisible, setFocusVisible] = useState(false)
   const observedFocus = useRef(false)
@@ -114,11 +94,8 @@ const TagListInner = ({ props, forwardedRef }: { props: TNativeTagListProps; for
   return render ? render(hostProps, renderState) : <NativeFocusView {...hostProps} />
 }
 
-export const NativeTagList = forwardRef(<T extends object>(props: TNativeTagListProps<T>, ref: ForwardedRef<View>) => {
+export const NativeTagList = forwardRef((props: TNativeTagListProps, ref: ForwardedRef<View>) => {
   const state = useContext(NativeListStateContext)
-  return state ? (
-    <TagListInner props={props as TNativeTagListProps} forwardedRef={ref} />
-  ) : (
-    <NativeCollection {...props} />
-  )
-}) as <T extends object>(props: TNativeTagListProps<T> & RefAttributes<View>) => ReactNode
+  if (!state) throw new Error("TagList requires an explicit collection state from TagGroup or NativeListStateContext")
+  return <TagListInner props={props} forwardedRef={ref} />
+})

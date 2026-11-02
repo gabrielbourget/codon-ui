@@ -1,21 +1,21 @@
-import "../../../collection/__tests__/nativeReceipts"
+import "../../Table/__tests__/collectionModel"
 
 import { act as rawAct, cleanup, within } from "@testing-library/react-native"
 import { useEffect, useState, type ComponentProps } from "react"
 import { AccessibilityInfo, AppState, View } from "react-native"
 
-import {
-  actWithNativeCollections as act,
-  fireEventWithNativeCollections as fireEvent,
-  renderWithNativeCollections as render,
-  screen,
-} from "../../../collection/__tests__/nativeReceipts"
 import { nativeVirtualDrag } from "../../../collection/dragAndDrop/virtualDrag"
 import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
 import NativeDragModule from "../../../input/specs/NativeCUIDragAndDrop"
 import { NativeBackdropHost } from "../../../overlays/backdrop/NativeBackdropHost"
 import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
 import { NativeThemeProvider } from "../../../theme"
+import {
+  actWithNativeCollections as act,
+  fireEventWithNativeCollections as fireEvent,
+  renderWithNativeCollections as render,
+  screen,
+} from "../../Table/__tests__/collectionModel"
 import type { TAvailableFilterCriteria } from "../../Table/filterMetadata"
 import type { TTableFilterGroup, TTableSortInstruction } from "../../Table/queryTypes"
 import { resolveNativeSortAndFilterPanelLabels } from "../labels"
@@ -149,6 +149,16 @@ const choose = async (field: string, option: string) => {
   await acknowledge()
 }
 beforeEach(() => {
+  // Synthetic source identities for original mounted refs; no native readiness claim.
+  const native = jest.requireActual<typeof import("react-native")>("react-native")
+  const tags = new WeakMap<object, number>()
+  let nextTag = 1000000
+  jest.mocked(native.findNodeHandle).mockImplementation((host) => {
+    if (!host || typeof host !== "object") return typeof host === "number" ? host : null
+    if (!tags.has(host)) tags.set(host, ++nextTag)
+    return tags.get(host)!
+  })
+
   jest.useFakeTimers()
   jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
   jest.mocked(NativeDragModule!.readGeometry).mockImplementation(async (encoded) => {

@@ -66,6 +66,7 @@ export const createNativeMenuPointers = (scope: TNativeKeyScope) => {
     for (const entry of entries.values()) retire(entry)
     changed()
   }
+  // Structural lease consistency only; native policy admission still checks the exact current original targets.
   const validTargets = (options: TNativeMenuPointerPolicy) => {
     const targets = [options.parentTarget, options.submenuTarget, options.triggerTarget]
     if (!targets.every(target) || new Set(targets).size !== 3) return false
@@ -73,17 +74,26 @@ export const createNativeMenuPointers = (scope: TNativeKeyScope) => {
       const [parent, submenu, trigger] = [options.parentBinding, options.submenuBinding, options.triggerBinding].map(
         (binding) => JSON.parse(binding),
       )
-      const identity = ["ownerId", "rootId", "rootRevision", "target", "surfaceId", "windowId", "epoch", "sequence"]
+      const identity = [
+        "publisher",
+        "ownerId",
+        "rootId",
+        "rootRevision",
+        "target",
+        "surfaceId",
+        "windowId",
+        "epoch",
+        "sequence",
+      ]
       return (
         [parent, submenu, trigger].every(
           (binding) =>
             binding &&
             typeof binding === "object" &&
-            ["ownerId", "rootId", "rootRevision"].every(
+            ["publisher", "lease", "ownerId", "rootId", "rootRevision"].every(
               (field) => typeof binding[field] === "string" && binding[field],
             ) &&
             target(binding.target) &&
-            target(binding.metadataTarget) &&
             [binding.surfaceId, binding.epoch, binding.sequence].every(
               (value) => Number.isSafeInteger(value) && value >= 0,
             ) &&
@@ -93,13 +103,14 @@ export const createNativeMenuPointers = (scope: TNativeKeyScope) => {
         ) &&
         parent.descriptorId === "" &&
         parent.descriptorRevision === "" &&
-        parent.metadataTarget === parent.target &&
         submenu.descriptorId === "" &&
         submenu.descriptorRevision === "" &&
-        submenu.metadataTarget === submenu.target &&
         !!trigger.descriptorId &&
         !!trigger.descriptorRevision &&
         identity.every((field) => parent[field] === trigger[field]) &&
+        parent.lease !== trigger.lease &&
+        parent.publisher !== submenu.publisher &&
+        parent.target !== submenu.target &&
         parent.surfaceId === submenu.surfaceId
       )
     } catch {

@@ -1,13 +1,6 @@
-import "../../../collection/__tests__/nativeReceipts"
-
 import { createRef, useContext } from "react"
 import { StyleSheet, type View } from "react-native"
 
-import {
-  actWithNativeCollections as act,
-  renderWithNativeCollections as render,
-  screen,
-} from "../../../collection/__tests__/nativeReceipts"
 import { NativeSelectableCollectionContext } from "../../../collection/context"
 import {
   DefaultNativeCollectionRenderer,
@@ -16,10 +9,11 @@ import {
 } from "../../../collection/renderer"
 import { NativeThemeProvider } from "../../../theme"
 import { NativeTableStateContext, useNativeTable } from "../context"
+import { nativeTableChildren, createNativeTableHeaderModel, createNativeTableBodyModel } from "../model"
 import { Table } from "../Table"
-import { TableBody } from "../TableBody"
-import { TableHeader } from "../TableHeader"
 import type { TNativeTableColumnMetadata, TNativeTableProps } from "../types"
+
+import { actWithNativeCollections as act, renderWithNativeCollections as render, screen } from "./collectionModel"
 
 type TState = NonNullable<React.ContextType<typeof NativeTableStateContext>>
 let current: TState | null = null
@@ -49,10 +43,16 @@ const tree = (
 ) => (
   <NativeThemeProvider>
     <NativeCollectionRendererContext.Provider value={renderer}>
-      <Table accessibilityLabel="Table" {...props}>
-        <TableHeader columns={viewColumns} />
-        <TableBody items={rows} columns={viewColumns} rowKey={(item) => item.id} />
-      </Table>
+      <Table
+        accessibilityLabel="Table"
+        {...props}
+        items={(modelOptions) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel({ columns: viewColumns }, modelOptions),
+            createNativeTableBodyModel({ items: rows, columns: viewColumns, rowKey: (item) => item.id }, modelOptions),
+          )
+        }
+      />
     </NativeCollectionRendererContext.Provider>
   </NativeThemeProvider>
 )

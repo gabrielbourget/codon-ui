@@ -1,14 +1,12 @@
-import "../../../collection/__tests__/nativeReceipts"
-
 import { cleanup } from "@testing-library/react-native"
 import { createRef, type Ref } from "react"
 import { findNodeHandle, TextInput, type View } from "react-native"
 
-import { renderWithNativeCollections as render, screen } from "../../../collection/__tests__/nativeReceipts"
 import { NativeThemeProvider } from "../../../theme"
+import { nativeTableChildren, createNativeTableHeaderModel, createNativeTableBodyModel } from "../model"
 import { Table } from "../Table"
-import { TableBody } from "../TableBody"
-import { TableHeader } from "../TableHeader"
+
+import { renderWithNativeCollections as render, screen } from "./collectionModel"
 
 jest.unmock("react-native/Libraries/Components/TextInput/TextInput")
 afterEach(cleanup)
@@ -20,10 +18,16 @@ const items = [
 const columns = [{ id: "name", name: "Name", isRowHeader: true }]
 const tree = (ref: Ref<View>, reverse = false) => (
   <NativeThemeProvider>
-    <Table ref={ref} accessibilityLabel="People">
-      <TableHeader columns={columns} />
-      <TableBody items={reverse ? [...items].reverse() : items} columns={columns} />
-    </Table>
+    <Table
+      ref={ref}
+      accessibilityLabel="People"
+      items={(modelOptions) =>
+        nativeTableChildren(
+          createNativeTableHeaderModel({ columns: columns }, modelOptions),
+          createNativeTableBodyModel({ items: reverse ? [...items].reverse() : items, columns: columns }, modelOptions),
+        )
+      }
+    />
   </NativeThemeProvider>
 )
 
@@ -48,10 +52,15 @@ it("exposes the original semantic grid host and clears its object ref on unmount
 it("consumes source-inert root geometry while leaving body and row geometry authoritative", async () => {
   await render(
     <NativeThemeProvider>
-      <Table geometry="orthogonal">
-        <TableHeader columns={columns} />
-        <TableBody items={items} columns={columns} geometry="round" />
-      </Table>
+      <Table
+        geometry="orthogonal"
+        items={(modelOptions) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel({ columns: columns }, modelOptions),
+            createNativeTableBodyModel({ items: items, columns: columns, geometry: "round" }, modelOptions),
+          )
+        }
+      />
     </NativeThemeProvider>,
   )
   expect(screen.getByTestId("table").props.geometry).toBeUndefined()
@@ -95,10 +104,15 @@ it("retains an embedded editor through root ref handoff and delivers null to a c
   ]
   const content = (root: Ref<View>) => (
     <NativeThemeProvider>
-      <Table ref={root}>
-        <TableHeader columns={metadata} />
-        <TableBody items={items} columns={metadata} />
-      </Table>
+      <Table
+        ref={root}
+        items={(modelOptions) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel({ columns: metadata }, modelOptions),
+            createNativeTableBodyModel({ items: items, columns: metadata }, modelOptions),
+          )
+        }
+      />
     </NativeThemeProvider>
   )
   const view = await render(content(ref))

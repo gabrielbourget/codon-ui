@@ -1,5 +1,4 @@
 #import "CUIFormMetadata.h"
-#import "CUICollectionNode.h"
 #import "CUIInputWindow.h"
 #import "CUIOwnedDateField.h"
 #import "CUIFocusView.h"
@@ -27,14 +26,15 @@ using namespace facebook::react;
   SurfaceId _surface;
   NSDictionary *_mountSnapshot;
   NSString *_lastMount;
-  NSString *_transactionWitness;
   BOOL _applicationActive, _lastActive;
-  NSString *_semanticBinding, *_semanticOwner;
+  NSString *_semanticBinding, *_semanticOwner, *_semanticModule;
   void (^_semanticRefresh)(void);
   id<CUIFieldSemanticContribution> _semanticContribution;
   BOOL _refreshingSemantics;
   __weak UIView *_semanticAXTarget;
   NSString *_semanticAXIdentity;
+  __weak UIView *_semanticAXReturnEditor;
+  NSString *_semanticAXReturnOwner, *_semanticAXReturnDescriptor;
 }
 - (instancetype)initWithFrame:(CGRect)frame
 {
@@ -78,37 +78,54 @@ using namespace facebook::react;
 {
   if ([_semanticBinding isEqual:value]) return;
   [self setSemanticContribution:nil]; _semanticBinding = [value copy] ?: @"";
+  if (!_semanticBinding.length) [self resetSemanticAccessibilityFocus];
 }
 - (void)setSemanticContribution:(id<CUIFieldSemanticContribution>)contribution
 {
   if (_semanticContribution == contribution) return;
   [_semanticContribution retire]; _semanticContribution = contribution;
 }
-- (void)setSemanticRefresh:(void (^)(void))refresh owner:(NSString *)owner
+- (void)setSemanticRefresh:(void (^)(void))refresh owner:(NSString *)owner module:(NSString *)module
 {
+  if (![_semanticModule isEqual:module]) [self resetSemanticAccessibilityFocus];
+  _semanticModule = [module copy];
   [self setSemanticContribution:nil]; _semanticOwner = [owner copy]; _semanticRefresh = [refresh copy];
   [self refreshSemantics];
 }
-- (void)clearSemanticRefreshForOwner:(NSString *)owner
+- (void)clearSemanticRefreshForOwner:(NSString *)owner retiring:(BOOL)retiring
 {
   if (![_semanticOwner isEqual:owner]) return;
   [self setSemanticContribution:nil]; _semanticRefresh = nil; _semanticOwner = nil;
+  // Ordinary same-editor data revisions replace the watch before the next bind.
+  if (retiring) [self resetSemanticAccessibilityFocus];
 }
 - (void)refreshSemantics
 {
   if (!_semanticRefresh || _refreshingSemantics) return;
   _refreshingSemantics = YES;
   @try { _semanticRefresh(); }
-  @catch (NSException *retired) { [self setSemanticContribution:nil]; }
+  @catch (NSException *retired) { [self setSemanticContribution:nil]; [self resetSemanticAccessibilityFocus]; }
   @finally { _refreshingSemantics = NO; }
 }
-- (void)resetSemanticAccessibilityFocus { _semanticAXTarget = nil; _semanticAXIdentity = nil; }
-- (void)requestSemanticAccessibilityFocus:(UIView *)target identity:(NSString *)identity returningToEditor:(BOOL)returning
+- (void)clearSemanticAccessibilityRequest { _semanticAXTarget = nil; _semanticAXIdentity = nil; }
+- (void)resetSemanticAccessibilityFocus
 {
-  if (!target || !target.window.isKeyWindow || (returning && !_semanticAXTarget) ||
+  [self clearSemanticAccessibilityRequest];
+  _semanticAXReturnEditor = nil; _semanticAXReturnOwner = nil; _semanticAXReturnDescriptor = nil;
+}
+- (void)requestSemanticAccessibilityFocus:(UIView *)target identity:(NSString *)identity editor:(UIView *)editor returningToEditor:(BOOL)returning
+{
+  if (!target || !editor || editor != _boundEditor || !editor.isFirstResponder || !editor.window.isKeyWindow || target.window != editor.window ||
+      (returning && (target != editor || _semanticAXReturnEditor != editor ||
+        ![_semanticAXReturnOwner isEqual:self.ownerId] || ![_semanticAXReturnDescriptor isEqual:self.descriptorId])) ||
       (_semanticAXTarget == target && [_semanticAXIdentity isEqual:identity])) return;
-  _semanticAXTarget = target; _semanticAXIdentity = [identity copy];
   id element = [target isKindOfClass:RCTViewComponentView.class] ? [(RCTViewComponentView *)target accessibilityElement] : target;
+  if (!element) return;
+  _semanticAXTarget = target; _semanticAXIdentity = [identity copy];
+  // This records a dispatched request, never observed VoiceOver focus.
+  _semanticAXReturnEditor = returning ? nil : editor;
+  _semanticAXReturnOwner = returning ? nil : [self.ownerId copy];
+  _semanticAXReturnDescriptor = returning ? nil : [self.descriptorId copy];
   UIAccessibilityPostNotification(UIAccessibilityLayoutChangedNotification, element);
 }
 - (void)environmentChanged:(NSNotification *)notification
@@ -125,7 +142,11 @@ using namespace facebook::react;
   [self publish:self.window != nil surface:_surface mount:_lastMount];
   return _mountSnapshot;
 }
-- (NSString *)formTransactionWitness { return self.window ? _transactionWitness ?: @"unmounted" : @"unmounted"; }
+- (UIView *)originalForAttachedMountSnapshot:(NSDictionary *)snapshot
+{
+  NSDictionary *current = [self formMountSnapshot];
+  return [current isEqual:snapshot] && [current[@"complete"] boolValue] && [current[@"attached"] boolValue] ? _boundOriginal : nil;
+}
 - (UIView *)originalForMountSnapshot:(NSDictionary *)snapshot
 {
   NSDictionary *current = [self formMountSnapshot];
@@ -137,7 +158,6 @@ using namespace facebook::react;
   [self resetSemanticAccessibilityFocus];
   [super didMoveToWindow];
   if (_boundWindow == self.window) return;
-  _transactionWitness = nil;
   if (_boundWindow) [self publish:NO surface:_surface mount:@"detached"];
   _epoch++; _boundWindow = self.window; _boundOriginal = nil; _boundEditor = nil; _signature = @"";
   _windowId = self.window ? CUIInputWindowIdentity(self.window) : @"";
@@ -156,7 +176,7 @@ using namespace facebook::react;
     UIView *root = [self.window viewWithTag:[rootTag integerValue]];
     id element = [(CUIFocusView *)original accessibilityElement];
     return root != original && [root isKindOfClass:RCTViewComponentView.class] &&
-      ![root isKindOfClass:CUIFormMetadataView.class] && ![root isKindOfClass:CUICollectionMetadataView.class] && ![root isKindOfClass:RCTTextInputComponentView.class] &&
+      ![root isKindOfClass:CUIFormMetadataView.class] && ![root isKindOfClass:RCTTextInputComponentView.class] &&
       ![root isKindOfClass:CUIDateSegment.class] && root.window == self.window &&
       [original isDescendantOfView:root] && self != original && [self isDescendantOfView:original] &&
       ([element accessibilityTraits] & UIAccessibilityTraitAdjustable);
@@ -164,7 +184,7 @@ using namespace facebook::react;
 }
 - (void)publish:(BOOL)attached surface:(SurfaceId)surface mount:(NSString *)mount
 {
-  if (!_eventEmitter || !self.ownerId.length || !self.descriptorId.length || !self.descriptorRevision.length) { _mountSnapshot = nil; return; }
+  if (!_eventEmitter || !self.ownerId.length || !self.descriptorId.length || !self.descriptorRevision.length) { _mountSnapshot = nil; [self resetSemanticAccessibilityFocus]; return; }
   UIView *original = nil;
   if (attached && self.originalTarget > 0) {
     UIView *bound = _boundOriginal;
@@ -176,6 +196,9 @@ using namespace facebook::react;
   NSString *identity = [[NSString alloc] initWithData:identityData encoding:NSUTF8StringEncoding];
   UIView *editor = [self isFieldBinding] && [original isKindOfClass:RCTTextInputComponentView.class] ?
     (UIView *)((RCTTextInputComponentView *)original).accessibilityElement : original;
+  if (_boundOriginal != original || _boundEditor != editor || _surface != surface ||
+      (_semanticAXReturnEditor && (![_semanticAXReturnOwner isEqual:self.ownerId] || ![_semanticAXReturnDescriptor isEqual:self.descriptorId])))
+    [self resetSemanticAccessibilityFocus];
   if (_boundOriginal != original || _boundEditor != editor || ![_identity isEqual:identity] || _surface != surface) {
     _epoch++; _boundOriginal = original; _boundEditor = editor; _identity = identity; _surface = surface;
   }
@@ -184,13 +207,14 @@ using namespace facebook::react;
   BOOL correctType = ownedControl ? [self isOwnedRangeThumb:original surface:surface] : ownedDate ? CUIResolveOwnedDateField(self, self.ownedEditorBinding, self.originalTarget, surface) == original && original != nil :
     [self isFieldBinding] ? [original isKindOfClass:RCTTextInputComponentView.class] &&
       ([editor isKindOfClass:UITextField.class] || [editor isKindOfClass:UITextView.class]) :
-      [original isKindOfClass:RCTViewComponentView.class] && ![original isKindOfClass:CUIFormMetadataView.class] && ![original isKindOfClass:CUICollectionMetadataView.class];
+      [original isKindOfClass:RCTViewComponentView.class] && ![original isKindOfClass:CUIFormMetadataView.class];
   BOOL metadataOnly = self.isMetadataOnly;
   BOOL complete = attached && surface > 0 && _windowId.length && original.window == self.window && editor.window == self.window && correctType && metadataOnly;
   BOOL active = complete && _applicationActive && UIApplication.sharedApplication.applicationState == UIApplicationStateActive && editor.window.isKeyWindow &&
     editor.window.windowScene.activationState == UISceneActivationStateForegroundActive;
   for (UIView *view = editor; view && active; view = view.superview)
     active &= !view.hidden && view.alpha > 0 && view.userInteractionEnabled;
+  if (!active) [self resetSemanticAccessibilityFocus];
   if (_lastActive != active) { _lastActive = active; _epoch++; }
   NSString *error = !attached ? @"form-metadata-detached" : !original ? @"form-original-target-unavailable" :
       !correctType ? @"form-original-type-mismatch" : !metadataOnly ? @"form-metadata-not-inert" : !complete ? @"form-metadata-incomplete" : @"";
@@ -223,8 +247,6 @@ using namespace facebook::react;
 }
 - (void)mountingTransactionDidMount:(const MountingTransaction &)transaction withSurfaceTelemetry:(const SurfaceTelemetry &)surfaceTelemetry
 {
-  _transactionWitness = self.window ? [NSString stringWithFormat:@"ios-surface:%d:mount:%lld",
-      transaction.getSurfaceId(), (long long)transaction.getNumber()] : nil;
   [self publish:self.window != nil surface:transaction.getSurfaceId()
       mount:[NSString stringWithFormat:@"ios-surface:%d:mount:%lld", transaction.getSurfaceId(), (long long)transaction.getNumber()]];
   [self refreshSemantics];
@@ -232,11 +254,10 @@ using namespace facebook::react;
 - (void)prepareForRecycle
 {
   [self publish:NO surface:_surface mount:@"retired"];
-  [self clearSemanticRefreshForOwner:_semanticOwner];
+  [self clearSemanticRefreshForOwner:_semanticOwner retiring:YES];
   [self resetSemanticAccessibilityFocus];
   _epoch++; _boundWindow = nil; _boundOriginal = nil; _boundEditor = nil; _windowId = @""; _signature = @""; _identity = @""; _surface = -1;
   _mountSnapshot = nil; _lastMount = @"retired"; _lastActive = NO;
-  _transactionWitness = nil;
   self.ownerId = @""; self.descriptorId = @""; self.descriptorRevision = @"";
   self.originalTarget = 0;
   self.ownedEditorBinding = @"";

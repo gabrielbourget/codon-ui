@@ -1,10 +1,12 @@
 import type { ReactElement, ReactNode, RefAttributes } from "react"
 import type { TextInputProps, View, ViewProps, StyleProp, TextStyle } from "react-native"
 
-import type { TNativeFieldSemanticLabels } from "../../form/semantics"
+import type { TNativeCollectionItem } from "../../collection/snapshot"
+import type { TNativeFieldSemanticLabels, TNativeFieldSemanticText } from "../../form/semantics"
 import type { TNativeFocusViewProps } from "../../input/types"
 import type { TNativeFloatingPlacement } from "../../overlays/floating/placement"
 
+import type { TNativeComboBoxItemProps } from "./ComboBoxItem"
 import type { ComboBoxStateOptions } from "./state/types"
 import type { TNativeComboBoxProps, TNativeComboBoxRootStyle, TNativeComboBoxKeyboardCallbacks } from "./types"
 
@@ -47,7 +49,15 @@ export type TNativeCollectionComboBoxProps<T extends object> = TNativeComboBoxKe
     "aria-labelledby"?: string
     "aria-describedby"?: string
     "aria-details"?: string
-    children?: ReactNode | ((item: T) => ReactNode)
+    children?: (item: T) => ReactNode
+    // Nested sections and item action metadata are declared here, never inferred from rendered JSX.
+    collectionItems?: readonly TNativeCollectionItem<T>[]
+    getOptionProps?: (
+      item: T,
+    ) => Pick<
+      TNativeComboBoxItemProps,
+      "href" | "onAction" | "onNavigate" | "onNavigationError" | "isReadOnly" | "isDisabled" | "isPending"
+    >
     placement?: TNativeFloatingPlacement
     shouldFocusWrap?: boolean
     slot?: string | null
@@ -56,6 +66,8 @@ export type TNativeCollectionComboBoxProps<T extends object> = TNativeComboBoxKe
     dependencies?: readonly unknown[]
     name?: string
     form?: string
+    formFieldId?: string
+    nativeAccessibilityText?: TNativeFieldSemanticText
     formValue?: "key" | "text"
     triggerLabel?: string
     groupLabel?: string

@@ -1,4 +1,4 @@
-import { forwardRef, useContext, useInsertionEffect, useRef } from "react"
+import { forwardRef, useContext, useInsertionEffect, useMemo, useRef } from "react"
 import { View } from "react-native"
 
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
@@ -178,6 +178,29 @@ export type TQueryActiveSortsProps = TAvailability & {
 export const QueryActiveSorts = (props: TQueryActiveSortsProps) => {
   const theme = useNativeTheme()
   const request = useControlRequest(props)
+  const items = useMemo(
+    () =>
+      props.sortParameterList.map((item) => ({
+        key: item.id,
+        type: "item",
+        value: item,
+        props: { id: item.id, textValue: item.criteriaName },
+        textValue: item.criteriaName,
+        rendered: null,
+        render: () => (
+          <Tag
+            id={item.id}
+            color={theme.actions.primary.background}
+            geometry="round"
+            textValue={item.criteriaName}
+            customStyles={{ borderWidth: 0 }}
+          >
+            <Text variant="b11">{item.criteriaName}</Text>
+          </Tag>
+        ),
+      })),
+    [props.sortParameterList, theme.actions.primary.background],
+  )
   return (
     <View
       testID="query-active-sorts"
@@ -189,8 +212,7 @@ export const QueryActiveSorts = (props: TQueryActiveSortsProps) => {
       ) : (
         <TagGroup
           accessibilityLabel={props.labels.activeSortsAriaLabel}
-          items={props.sortParameterList}
-          getKey={(item) => item.id}
+          items={items}
           selectionMode="none"
           onRemove={(keys) => {
             for (const key of keys)
@@ -199,19 +221,7 @@ export const QueryActiveSorts = (props: TQueryActiveSortsProps) => {
                   owner.onDeleteSortParameter(key)
               })()
           }}
-        >
-          {(item) => (
-            <Tag
-              id={item.id}
-              color={theme.actions.primary.background}
-              geometry="round"
-              textValue={item.criteriaName}
-              customStyles={{ borderWidth: 0 }}
-            >
-              <Text variant="b11">{item.criteriaName}</Text>
-            </Tag>
-          )}
-        </TagGroup>
+        />
       )}
     </View>
   )

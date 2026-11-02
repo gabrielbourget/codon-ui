@@ -2,8 +2,8 @@ import { useCallback, useContext, useInsertionEffect, useLayoutEffect, useRef, u
 import { findNodeHandle, I18nManager, Platform, type View } from "react-native"
 
 import { NativeCollectionActionsContext } from "../../collection/actions"
+import type { TNativeCollectionModelSnapshot } from "../../collection/model"
 import type { TNativeCollectionLayoutDelegate } from "../../collection/renderer"
-import type { TNativeCollectionSessionSnapshot } from "../../collection/session"
 import type { TNativeCollectionKey, TNativeCollectionNode, TNativeCollectionSnapshot } from "../../collection/snapshot"
 import type { SelectionManager } from "../../collection/state/SelectionManager"
 import {
@@ -32,7 +32,7 @@ type TOwner = {
   props: Pick<TNativeTableProps, "disallowSelectAll" | "escapeKeyBehavior" | "shouldFocusWrap">
   rowHeaderColumns: ReadonlySet<string>
   layout?: TNativeCollectionLayoutDelegate
-  receipt: TNativeCollectionSessionSnapshot<unknown>["receipt"]
+  model: TNativeCollectionModelSnapshot<object>
   direction?: "ltr" | "rtl"
   allowItemDescendantKeys?: boolean
   canAct?: () => boolean
@@ -76,9 +76,9 @@ export const useNativeCollectionKeyboard = (owner: TOwner): TNativeTableKeyboard
     commanded?: View
   } | null>(null)
   const live = useRef(false)
-  const current = useRef({ ...owner, scope, floating, window })
+  const current = useRef({ ...owner, actions, scope, floating, window })
   useInsertionEffect(() => {
-    current.current = { ...owner, scope, floating, window }
+    current.current = { ...owner, actions, scope, floating, window }
   })
   useInsertionEffect(() => {
     live.current = true
@@ -113,17 +113,16 @@ export const useNativeCollectionKeyboard = (owner: TOwner): TNativeTableKeyboard
     } else if (targets.current.get(node.key)?.node === node) targets.current.delete(node.key)
   }, [])
   const focusWindow = () => {
-    const { receipt, scope } = current.current,
-      lease = receipt.lease
+    const { model, actions, scope } = current.current
     return JSON.stringify([
-      lease?.rootRevision,
-      lease?.target,
-      lease?.surfaceId,
-      lease?.windowId,
-      lease?.epoch,
+      model.ownerId,
+      model.generation,
+      model.revision,
+      actions.ownerLifetime(),
       scope?.acknowledgedSession(),
     ])
   }
+
   const cancelFocus = () => {
     pendingFocus.current = null
     if (live.current) setRequestedKey(null)
@@ -135,7 +134,7 @@ export const useNativeCollectionKeyboard = (owner: TOwner): TNativeTableKeyboard
       cancelFocus()
       return
     }
-    if (current.current.receipt.status !== "confirmed") return
+    if (!current.current.actions.ownerLifetime()) return
     if (current.current.scope?.isNativeReady() === false) return
     const { key, child } = request
     if (!actions.bindingFor(request.node) || current.current.manager.focusedKey !== key) {
@@ -223,7 +222,7 @@ export const useNativeCollectionKeyboard = (owner: TOwner): TNativeTableKeyboard
     if (
       typedEvents.current.has(event) ||
       !eligible() ||
-      current.current.receipt.status !== "confirmed" ||
+      !current.current.actions.ownerLifetime() ||
       data.cancelled ||
       ("phase" in data && data.phase !== "down") ||
       ("isComposing" in data && data.isComposing) ||

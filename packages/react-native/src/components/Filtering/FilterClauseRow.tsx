@@ -12,7 +12,11 @@ import { resolveNativeTableFilteringLabels, type TPartialNativeTableFilteringLab
 import { DynamicFilterArgumentInput } from "./DynamicFilterArgumentInput"
 import { FilterClauseSelectors, type TFilterClauseSelectorsProps } from "./FilterClauseSelectors"
 import { FilterDeleteGlyph } from "./FilterDeleteGlyph"
-import { computeFilterArgumentType, computeFilterArgumentAccessibleLabel } from "./metadata"
+import {
+  computeFilterArgumentType,
+  computeFilterArgumentAccessibleLabel,
+  getFilterClauseFormFieldIds,
+} from "./metadata"
 import { useFilterRequest } from "./requests"
 
 export type TNativeFilterClauseRowProps = Omit<TNativeCardProps, "children" | "style" | "customStyles"> &
@@ -104,6 +108,7 @@ export const FilterClauseRow = (props: TNativeFilterClauseRowProps) => {
         />
         <View testID="filter-clause-row-argument" style={props.customArgumentStyles}>
           <DynamicFilterArgumentInput
+            formFieldIds={getFilterClauseFormFieldIds(group, clause)}
             dataType={group.dataType}
             argument={clause.argument}
             filterArgumentType={kind}

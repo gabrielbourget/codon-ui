@@ -242,6 +242,7 @@ export const TagComboBoxScene = () => {
       <NativeForm
         ref={form}
         id="tag-combo-owner-form"
+        fieldOrder={disassociated ? [] : ["tag-query"]}
         testID="tag-combo-owner-form"
         validationBehavior={ariaValidation ? "aria" : "native"}
         validationErrors={serverError ? { tagQuery: ["Owner server validation"] } : {}}
@@ -260,6 +261,7 @@ export const TagComboBoxScene = () => {
             <TagComboBox
               id="tag-combo-owner-query-field"
               name="tagQuery"
+              formFieldId="tag-query"
               formValue="text"
               form={disassociated ? "" : undefined}
               isRequired={required}

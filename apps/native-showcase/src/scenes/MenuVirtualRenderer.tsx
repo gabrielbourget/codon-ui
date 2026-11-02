@@ -3,6 +3,7 @@ import { View, VirtualizedList, useWindowDimensions, type FocusEvent, type Virtu
 
 import {
   DefaultNativeCollectionRenderer,
+  renderNativeCollectionNode,
   NativeCollectionCellFocusContext,
   type TNativeCollectionRect,
   type TNativeCollectionRenderer,
@@ -96,7 +97,7 @@ const VirtualMenuRoot = ({
       getItem={(items: TNode[], index) => items[index]}
       getItemCount={(items: TNode[]) => items.length}
       keyExtractor={(node) => JSON.stringify([typeof node.key, node.key])}
-      renderItem={({ item }) => item.render?.(item) ?? null}
+      renderItem={({ item }) => renderNativeCollectionNode(item)}
       CellRendererComponent={Cell}
       initialNumToRender={4}
       maxToRenderPerBatch={4}

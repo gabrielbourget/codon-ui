@@ -16,7 +16,7 @@ import { findNodeHandle, type View, type TextStyle, type StyleProp } from "react
 
 import { NativeCollectionActionsContext } from "../../collection/actions"
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
-import { createNativeCollectionLeaf } from "../../collection/CollectionBuilder"
+import { createNativeCollectionLeaf, useNativeCollectionReceiverRef } from "../../collection/CollectionBuilder"
 import { useNativeCollectionRefs, NATIVE_DEFAULT_SLOT } from "../../collection/context"
 import { NativeCollectionSemanticsContext, type TNativeCollectionSemantics } from "../../collection/semantics"
 import type { TNativeCollectionNode } from "../../collection/snapshot"
@@ -165,7 +165,8 @@ const Receiver = forwardRef<View, TNativeComboBoxItemProps & { node: TNativeColl
     },
     [node, register],
   )
-  const mergedRef = useNativeCollectionRefs(ref, bind)
+  const originalRef = useNativeCollectionRefs(ref, bind)
+  const mergedRef = useNativeCollectionReceiverRef(node, originalRef)
   const member = state.collection.getItem(node.key)
   const disabled = !!isDisabled || options.isDisabled || !member || state.selectionManager.isDisabled(node.key)
   const readOnly = !!isReadOnly || options.isReadOnly
@@ -502,7 +503,18 @@ const Receiver = forwardRef<View, TNativeComboBoxItemProps & { node: TNativeColl
   )
 })
 const Leaf = createNativeCollectionLeaf<unknown, TNativeComboBoxItemProps, View>("item", (props, ref, node) => (
-  <Receiver {...props} node={node} ref={ref} />
+  <Receiver
+    {...props}
+    href={node.props.href}
+    onAction={node.props.onAction}
+    onNavigate={node.props.onNavigate}
+    onNavigationError={node.props.onNavigationError}
+    isReadOnly={node.props.isReadOnly}
+    isDisabled={node.props.isDisabled}
+    isPending={node.props.isPending}
+    node={node}
+    ref={ref}
+  />
 ))
 export const NativeComboBoxItem = forwardRef<View, TNativeComboBoxItemProps>((props, ref) => {
   const item = useContext(NativeComboBoxItemValueContext)

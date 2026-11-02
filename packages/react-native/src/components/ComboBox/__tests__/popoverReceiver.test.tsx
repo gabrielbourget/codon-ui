@@ -1,14 +1,8 @@
-import "../../../collection/__tests__/nativeReceipts"
+import "./visibleCollections"
 
 import { createRef, useContext, type ReactNode } from "react"
 import { AccessibilityInfo, View } from "react-native"
 
-import {
-  actWithNativeCollections as act,
-  fireEventWithNativeCollections as fireEvent,
-  renderWithNativeCollections as render,
-  screen,
-} from "../../../collection/__tests__/nativeReceipts"
 import { NativeFocusHost } from "../../../input/NativeFocusView"
 import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
@@ -26,6 +20,13 @@ import {
 } from "../collectionContext"
 import { collection } from "../state/__tests__/collection"
 import { useComboBoxState } from "../state/useComboBoxState"
+
+import {
+  actWithNativeCollections as act,
+  fireEventWithNativeCollections as fireEvent,
+  renderWithNativeCollections as render,
+  screen,
+} from "./visibleCollections"
 
 const hidden = { includeHiddenElements: true },
   frames = new Map<number, Parameters<typeof requestAnimationFrame>[0]>()

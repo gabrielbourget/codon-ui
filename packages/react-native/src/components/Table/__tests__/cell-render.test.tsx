@@ -1,25 +1,23 @@
-import "../../../collection/__tests__/nativeReceipts"
-
 import { act as rawAct, cleanup } from "@testing-library/react-native"
 import { createRef } from "react"
 import type { Ref } from "react"
 import { findNodeHandle, TextInput, type View } from "react-native"
 
-import {
-  actWithNativeCollections as act,
-  renderWithNativeCollections as render,
-  screen,
-} from "../../../collection/__tests__/nativeReceipts"
 import { nativeKeyTokens } from "../../../input/keyScope"
 import { NativeFocusView } from "../../../input/NativeFocusView"
 import { NativeFloatingWindowContext } from "../../../overlays/floating/scope"
 import { NativeThemeProvider } from "../../../theme"
+import {
+  nativeTableChildren,
+  createNativeTableHeaderModel,
+  nativeTableReceiver,
+  createNativeTableRowModel,
+} from "../model"
 import { Table } from "../Table"
 import { TableCell } from "../TableCell"
-import { TableHeader } from "../TableHeader"
-import { TableRow } from "../TableRow"
 import type { TNativeTableCellProps, TNativeTableCellRenderState } from "../types"
 
+import { actWithNativeCollections as act, renderWithNativeCollections as render, screen } from "./collectionModel"
 import { CellFixtureBody, CellFixtureRow } from "./fixtures/TableCellFixture"
 
 jest.unmock("react-native/Libraries/Components/TextInput/TextInput")
@@ -42,26 +40,46 @@ const tree = (options: TOptions = {}) => (
         selectionBehavior="replace"
         selectedKeys={new Set(options.selected ? [0] : [])}
         disabledKeys={options.disabled ? [0] : []}
-      >
-        <TableHeader columns={columns} />
-        <CellFixtureBody>
-          <CellFixtureRow id={0}>
-            <TableCell
-              ref={options.ref}
-              id="cell"
-              columnID="value"
-              testID="cell"
-              customStyles={{ padding: 7 }}
-              style={{ padding: 9 }}
-              render={options.render}
-            >
-              {options.children ?? (
-                <TextInput ref={options.editor} testID="held" value="" selection={{ start: 0, end: 0 }} />
-              )}
-            </TableCell>
-          </CellFixtureRow>
-        </CellFixtureBody>
-      </Table>
+        items={(modelOptions) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel({ columns: columns }, modelOptions),
+            nativeTableReceiver<React.ComponentProps<typeof CellFixtureBody>>(
+              "__body:1",
+              "tablebody",
+              {},
+              (visibleProps) => <CellFixtureBody {...visibleProps} />,
+              nativeTableChildren(
+                nativeTableReceiver<React.ComponentProps<typeof CellFixtureRow>>(
+                  0,
+                  "item",
+                  { id: 0 },
+                  (visibleProps) => <CellFixtureRow {...visibleProps} />,
+                  nativeTableChildren(
+                    nativeTableReceiver<React.ComponentProps<typeof TableCell>>(
+                      "cell",
+                      "cell",
+                      {
+                        ref: options.ref,
+                        id: "cell",
+                        columnID: "value",
+                        testID: "cell",
+                        customStyles: { padding: 7 },
+                        style: { padding: 9 },
+                        render: options.render,
+                        children: options.children ?? (
+                          <TextInput ref={options.editor} testID="held" value="" selection={{ start: 0, end: 0 }} />
+                        ),
+                      },
+                      (visibleProps) => <TableCell {...visibleProps} />,
+                      [],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          )
+        }
+      />
     </NativeFloatingWindowContext.Provider>
   </NativeThemeProvider>
 )
@@ -219,12 +237,25 @@ it("keeps the same consumer row ref attached while its metadata and cell content
   const item = { value: "Original" }
   const content = (label: string) => (
     <NativeThemeProvider>
-      <Table>
-        <TableHeader columns={columns} />
-        <CellFixtureBody>
-          <TableRow ref={rowRef} id="row" item={item} columns={columns} renderCell={() => label} />
-        </CellFixtureBody>
-      </Table>
+      <Table
+        items={(modelOptions) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel({ columns: columns }, modelOptions),
+            nativeTableReceiver<React.ComponentProps<typeof CellFixtureBody>>(
+              "__body:2",
+              "tablebody",
+              {},
+              (visibleProps) => <CellFixtureBody {...visibleProps} />,
+              nativeTableChildren(
+                createNativeTableRowModel(
+                  { ref: rowRef, id: "row", item: item, columns: columns, renderCell: () => label },
+                  modelOptions,
+                ),
+              ),
+            ),
+          )
+        }
+      />
     </NativeThemeProvider>
   )
   const view = await render(content("Original"))

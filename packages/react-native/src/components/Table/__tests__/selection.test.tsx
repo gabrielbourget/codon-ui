@@ -1,21 +1,19 @@
-import "../../../collection/__tests__/nativeReceipts"
-
 import { cleanup, userEvent } from "@testing-library/react-native"
 import { createRef } from "react"
 import { findNodeHandle, type View } from "react-native"
 
-import {
-  actWithNativeCollections as act,
-  renderWithNativeCollections as render,
-  screen,
-} from "../../../collection/__tests__/nativeReceipts"
 import { NativeFloatingWindowContext } from "../../../overlays/floating/scope"
 import { NativeThemeProvider } from "../../../theme"
+import {
+  nativeTableChildren,
+  createNativeTableHeaderModel,
+  createNativeTableRowModel,
+  createNativeTableBodyModel,
+} from "../model"
 import { Table } from "../Table"
-import { TableBody } from "../TableBody"
-import { TableHeader } from "../TableHeader"
-import { TableRow } from "../TableRow"
 import type { TNativeTableProps } from "../types"
+
+import { actWithNativeCollections as act, renderWithNativeCollections as render, screen } from "./collectionModel"
 
 beforeEach(() => jest.useFakeTimers())
 afterEach(async () => {
@@ -30,10 +28,16 @@ const items = [
 const columns = [{ id: "name", name: "Name", isRowHeader: true }]
 const node = (props: TNativeTableProps = {}, rows = items) => (
   <NativeThemeProvider>
-    <Table accessibilityLabel="Rows" {...props}>
-      <TableHeader columns={columns} />
-      <TableBody items={rows} columns={columns} />
-    </Table>
+    <Table
+      accessibilityLabel="Rows"
+      {...props}
+      items={(modelOptions) =>
+        nativeTableChildren(
+          createNativeTableHeaderModel({ columns: columns }, modelOptions),
+          createNativeTableBodyModel({ items: rows, columns: columns }, modelOptions),
+        )
+      }
+    />
   </NativeThemeProvider>
 )
 const press = async (target: Parameters<ReturnType<typeof userEvent.setup>["press"]>[0]) => {
@@ -221,10 +225,17 @@ it("allows action for selection-only disabled keys while all-disabled rows rejec
 it("takes row-header ownership from the header even when body metadata differs", async () => {
   await render(
     <NativeThemeProvider>
-      <Table>
-        <TableHeader columns={columns} />
-        <TableBody items={items} columns={[{ id: "name", name: "Body", isRowHeader: false }]} />
-      </Table>
+      <Table
+        items={(modelOptions) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel({ columns: columns }, modelOptions),
+            createNativeTableBodyModel(
+              { items: items, columns: [{ id: "name", name: "Body", isRowHeader: false }] },
+              modelOptions,
+            ),
+          )
+        }
+      />
     </NativeThemeProvider>,
   )
   const cells = screen.container.queryAll(
@@ -238,10 +249,14 @@ it("rejects a committed header without a row-header column, matching the canonic
   await expect(
     render(
       <NativeThemeProvider>
-        <Table>
-          <TableHeader columns={[{ id: "name", name: "Name" }]} />
-          <TableBody items={items} columns={columns} />
-        </Table>
+        <Table
+          items={(modelOptions) =>
+            nativeTableChildren(
+              createNativeTableHeaderModel({ columns: [{ id: "name", name: "Name" }] }, modelOptions),
+              createNativeTableBodyModel({ items: items, columns: columns }, modelOptions),
+            )
+          }
+        />
       </NativeThemeProvider>,
     ),
   ).rejects.toThrow("A table must have at least one Column with the isRowHeader prop set to true")
@@ -274,22 +289,33 @@ it("keeps final row outline styles after an original native focus acknowledgment
   const original = createRef<View>()
   await render(
     <NativeThemeProvider>
-      <Table selectionMode="single">
-        <TableHeader columns={columns} />
-        <TableBody
-          columns={columns}
-          isLoading
-          renderLoadingState={() => (
-            <TableRow
-              ref={original}
-              id="focus"
-              item={items[0]}
-              columns={columns}
-              style={{ outlineWidth: 0, outlineColor: "red" }}
-            />
-          )}
-        />
-      </Table>
+      <Table
+        selectionMode="single"
+        items={(modelOptions) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel({ columns: columns }, modelOptions),
+            createNativeTableBodyModel(
+              {
+                columns: columns,
+                isLoading: true,
+              },
+              modelOptions,
+              [
+                createNativeTableRowModel(
+                  {
+                    ref: original,
+                    id: "focus",
+                    item: items[0],
+                    columns,
+                    style: { outlineWidth: 0, outlineColor: "red" },
+                  },
+                  modelOptions,
+                ),
+              ],
+            ),
+          )
+        }
+      />
     </NativeThemeProvider>,
   )
   const row = screen.getByTestId("table-row-string:focus")

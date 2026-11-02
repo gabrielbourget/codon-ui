@@ -1,19 +1,16 @@
-import "../../../collection/__tests__/nativeReceipts"
+import "./visibleCollections"
 
 import { cleanup } from "@testing-library/react-native"
 import { createRef, type ReactNode } from "react"
 import * as RN from "react-native"
 
-import {
-  actWithNativeCollections as act,
-  renderWithNativeCollections as render,
-  screen,
-} from "../../../collection/__tests__/nativeReceipts"
 import { CompactTypeaheadSearch, TagComboBox, type TNativeComboBoxKeyboardEvent } from "../../../index"
 import type { TNativeOrdinaryEditorKeyEvent } from "../../../input/ordinaryEditorKeys"
 import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
 import { NativeThemeProvider } from "../../../theme"
+
+import { actWithNativeCollections as act, renderWithNativeCollections as render, screen } from "./visibleCollections"
 
 jest.unmock("react-native/Libraries/Components/TextInput/TextInput")
 jest.mock("react-native-safe-area-context", () => ({
@@ -43,10 +40,12 @@ let eventId = 0
 beforeEach(() => {
   jest.useFakeTimers()
   jest.clearAllMocks()
-  previousFind = RN.findNodeHandle
+  const native = jest.requireActual<typeof RN>("react-native")
+  const existingFind = native.findNodeHandle
+  previousFind = jest.isMockFunction(existingFind) ? existingFind.getMockImplementation()! : existingFind
   const targets = new WeakMap<object, number>()
   let serial = 10000
-  jest.spyOn(RN, "findNodeHandle").mockImplementation((target) => {
+  jest.spyOn(native, "findNodeHandle").mockImplementation((target) => {
     const known = previousFind(target)
     if (known != null && known > 0) return known
     if (!target || typeof target !== "object") return typeof target === "number" ? target : null

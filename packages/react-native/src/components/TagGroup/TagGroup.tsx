@@ -1,6 +1,5 @@
 import {
   forwardRef,
-  isValidElement,
   useCallback,
   useContext,
   useId,
@@ -17,16 +16,21 @@ import { findNodeHandle, I18nManager, Linking, Platform, type View } from "react
 
 import { NativeCollectionActionsContext } from "../../collection/actions"
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
-import { NativeCollectionBuilder } from "../../collection/CollectionBuilder"
+import { NativeCollectionBuilder, useNativeCollectionOwnerRef } from "../../collection/CollectionBuilder"
 import { NativeSelectableCollectionContext, useNativeContextProps } from "../../collection/context"
+import type { TNativeCollectionModelSnapshot } from "../../collection/model"
 import {
   NativeCollectionRendererContext,
   useNativePersistedKeys,
   type TNativeCollectionScrollHost,
 } from "../../collection/renderer"
 import { NativeCollectionSemanticsContext, type TNativeCollectionSemantics } from "../../collection/semantics"
-import type { TNativeCollectionSessionSnapshot } from "../../collection/session"
-import type { TNativeCollectionNode, TNativeCollectionSnapshot } from "../../collection/snapshot"
+import {
+  getNativeCollectionNodeIdentity,
+  type TNativeCollectionItem,
+  type TNativeCollectionNode,
+  type TNativeCollectionSnapshot,
+} from "../../collection/snapshot"
 import { NativeListStateContext, useListState, UNSTABLE_useFilteredListState } from "../../collection/state"
 import type { Node } from "../../collection/state/types"
 import { nativeAccessibilityIDs, nativeCompositeLabelProps } from "../../input/accessibilityReferences"
@@ -36,7 +40,6 @@ import { useNativeKeyPolicy, useNativeKeyScope } from "../../input/NativeKeyboar
 import type { TNativeFocusViewProps, TNativeKeyboardEvent } from "../../input/types"
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../overlays/floating/scope"
 import { useNativeTheme } from "../../theme"
-import { encodeCollectionKey, validateCollectionKey } from "../collection"
 
 import {
   NativeTagGroupActionsContext,
@@ -44,7 +47,6 @@ import {
   NativeTagListContext,
   NativeTagListRenderContext,
   NativeTagGroupStateContext,
-  NativeTagItemValueContext,
   type TNativeTagRegistration,
 } from "./context"
 import {
@@ -79,6 +81,8 @@ import { NativeTagList } from "./TagList"
 import type { TNativeTagGroupProps, TNativeTagGroupRef } from "./types"
 import { useNativeTagSelectionAnnouncement } from "./useSelectionAnnouncement"
 
+const emptyItems: readonly TNativeCollectionItem<never>[] = []
+
 const KeyBindings = ({
   targetTag,
   lifetime,
@@ -107,22 +111,22 @@ const NativeTagGroup = <T extends object>({
   props: authoredProps,
   forwardedRef: ref,
   collection: unfilteredCollection,
-  receipt,
+  modelSnapshot,
 }: {
   props: TNativeTagGroupProps<T>
   forwardedRef: ForwardedRef<TNativeTagGroupRef>
   collection: TNativeCollectionSnapshot<T>
-  receipt: TNativeCollectionSessionSnapshot<unknown>["receipt"]
+  modelSnapshot: TNativeCollectionModelSnapshot<T>
 }) => {
   const listID = `codon-tag-list-${useId()}`
   const field = useNativeTagGroupField()
   const list = useRef<View>(null)
   const { id, ...otherProps } = authoredProps
   const [props, listRef] = useNativeContextProps(otherProps, list, NativeSelectableCollectionContext)
+  const ownerRef = useNativeCollectionOwnerRef(modelSnapshot, listRef)
   const {
     children: _children,
     items: _items,
-    getKey: _getKey,
     selectedKeys,
     defaultSelectedKeys,
     disabledKeys,
@@ -209,7 +213,7 @@ const NativeTagGroup = <T extends object>({
     node: ReturnType<TNativeCollectionSnapshot<T>["getItem"]>
     window: string
     commandedTarget: View | null
-    commandedLease: TNativeCollectionSessionSnapshot<unknown>["receipt"]["lease"]
+    commandedLease: string | null
     allowDisabled?: boolean
   } | null>(null)
   const observedFocus = useRef<TNativeTagGroupKey | null>(null)
@@ -255,7 +259,8 @@ const NativeTagGroup = <T extends object>({
   const current = useRef({
     props,
     collection,
-    receipt,
+    modelSnapshot,
+    actions,
     manager,
     renderer,
     ordered,
@@ -273,7 +278,8 @@ const NativeTagGroup = <T extends object>({
     current.current = {
       props,
       collection,
-      receipt,
+      modelSnapshot,
+      actions,
       manager,
       renderer,
       ordered,
@@ -319,7 +325,8 @@ const NativeTagGroup = <T extends object>({
   }, [])
   const admitted = (row?: TNativeTagRegistration, allowDisabled = false) =>
     live.current &&
-    current.current.receipt.status === "confirmed" &&
+    current.current.actions?.model.getSnapshot() === current.current.modelSnapshot &&
+    !!current.current.actions.ownerLifetime() &&
     current.current.scope?.canAct() !== false &&
     current.current.window?.() !== false &&
     current.current.input?.isWindowActive() !== false &&
@@ -397,19 +404,12 @@ const NativeTagGroup = <T extends object>({
       }) ?? false
     )
   }
-  const focusWindowStamp = () => {
-    const lease = current.current.receipt.lease,
-      session = current.current.input?.acknowledgedSession()
-    return JSON.stringify([
-      lease?.rootRevision,
-      lease?.target,
-      lease?.surfaceId,
-      lease?.windowId,
-      lease?.epoch,
-      session?.windowId,
-      session?.epoch,
+  const focusWindowStamp = () =>
+    JSON.stringify([
+      current.current.actions?.ownerLifetime(),
+      current.current.input?.acknowledgedSession()?.windowId,
+      current.current.input?.acknowledgedSession()?.epoch,
     ])
-  }
   const cancelFocusRequest = () => {
     if (pendingFocus.current?.key != null) retiredFocusIntent.current = pendingFocus.current.key
     pendingFocus.current = null
@@ -419,11 +419,18 @@ const NativeTagGroup = <T extends object>({
     const request = pendingFocus.current
     if (!request || !admitted() || current.current.input?.isNativeReady() === false) return
     const window = focusWindowStamp()
-    if (request.window !== window || !actions?.bindingFor(request.node)) {
+    const currentNode = request.key === null ? null : current.current.collection.getItem(request.key)
+    if (
+      request.window !== window ||
+      (request.node &&
+        (!currentNode ||
+          getNativeCollectionNodeIdentity(currentNode) !== getNativeCollectionNodeIdentity(request.node)))
+    ) {
       cancelFocusRequest()
       return
     }
-    if (request.commandedLease !== current.current.receipt.lease) request.commandedTarget = null
+    if (!actions?.bindingFor(request.node)) return
+    if (request.commandedLease !== (current.current.actions?.bindingFor(null) || null)) request.commandedTarget = null
     if (request.key === null) {
       const host = list.current
       const target = host && findNodeHandle(host)
@@ -435,7 +442,7 @@ const NativeTagGroup = <T extends object>({
         })
       ) {
         request.commandedTarget = host
-        request.commandedLease = current.current.receipt.lease
+        request.commandedLease = current.current.actions?.bindingFor(null) || null
       }
     } else {
       const row = current.current.rows.get(request.key)
@@ -453,7 +460,7 @@ const NativeTagGroup = <T extends object>({
         )
       ) {
         request.commandedTarget = host
-        request.commandedLease = current.current.receipt.lease
+        request.commandedLease = current.current.actions?.bindingFor(null) || null
       }
     }
   }
@@ -488,9 +495,8 @@ const NativeTagGroup = <T extends object>({
   }
   const attemptAutoFocus = () => {
     const owner = current.current
-    const lease = owner.receipt.lease
-    if (owner.receipt.status !== "confirmed" || !lease) return
-    const stamp = JSON.stringify([lease.rootRevision, lease.target, lease.surfaceId, lease.windowId, lease.epoch])
+    const stamp = owner.actions?.ownerLifetime()
+    if (!stamp || !admitted()) return
     for (const row of owner.ordered) {
       const intent = row.autoFocus
       if (!intent.pending) continue
@@ -538,7 +544,7 @@ const NativeTagGroup = <T extends object>({
       !pendingFocus.current
     )
       requestFocus(focusedKey)
-  }, [focusedKey, manager.isFocused, receipt])
+  }, [focusedKey, manager.isFocused, modelSnapshot, actions])
   const action = (row: TNativeTagRegistration) => {
     if (!admitted(row)) return
     row.props().onAction?.()
@@ -633,7 +639,7 @@ const NativeTagGroup = <T extends object>({
     if (collection.size !== 0 || observedFocus.current === null || !manager.isFocused) return
     observedFocus.current = null
     requestListFocus()
-  }, [collection.size, receipt])
+  }, [collection.size, modelSnapshot, actions])
   const onKeyAdmitted = (event: TNativeKeyboardEvent) => {
     const data = event.nativeEvent
     if (!admitted() || data.phase !== "down" || data.cancelled || !data.nativeDefaultHandled) return
@@ -717,7 +723,7 @@ const NativeTagGroup = <T extends object>({
       },
       listID,
     ),
-    ref: listRef,
+    ref: ownerRef,
     role: collection.size ? ("grid" as const) : ("group" as const),
     accessible: collection.size === 0,
     focusable: true,
@@ -864,42 +870,16 @@ const TagGroupRoot = forwardRef<TNativeTagGroupRef, TNativeFocusViewProps & Pick
     render ? render({ ...props, ref }, undefined) : <NativeFocusView {...props} ref={ref} />,
 )
 export { NativeTagList } from "./TagList"
-const TagGroupAuthoring = <T extends object>({ props }: { props: TNativeTagGroupProps<T> }) => {
-  const { items, children, getKey } = props
-  const supplied = useMemo(() => (items === undefined ? undefined : Array.from(items)), [items])
-  if (!getKey) return <NativeTagList items={supplied}>{children}</NativeTagList>
-  return supplied === undefined
-    ? typeof children === "function"
-      ? null
-      : children
-    : (() => {
-        if (typeof children !== "function") throw new TypeError("TagGroup: items require render children")
-        const seen = new Set<string>()
-        return supplied.map((item, order) => {
-          const rendered = children(item)
-          const authored = isValidElement<{ id?: TNativeTagGroupKey }>(rendered) ? rendered.props.id : undefined
-          const value = item as { id?: TNativeTagGroupKey; key?: TNativeTagGroupKey }
-          const key = getKey ? getKey(item) : (authored ?? value.id ?? value.key)
-          validateCollectionKey(key as TNativeTagGroupKey, "item key", "TagGroup")
-          const encoded = encodeCollectionKey(key!)
-          if (seen.has(encoded)) throw new TypeError("TagGroup: duplicate item key")
-          seen.add(encoded)
-          return (
-            <NativeTagItemValueContext.Provider key={encoded} value={{ key: key!, order, value: item }}>
-              {rendered}
-            </NativeTagItemValueContext.Provider>
-          )
-        })
-      })()
-}
 export const TagGroup = forwardRef(
   <T extends object>(authoredProps: TNativeTagGroupProps<T>, forwardedRef: ForwardedRef<TNativeTagGroupRef>) => {
     const [props, ref] = useNativeContextProps(authoredProps, forwardedRef, NativeTagGroupContext)
+    if (props.children != null)
+      throw new TypeError("TagGroup: supply explicit ordered items; JSX children do not define collection membership")
     return (
       <NativeListStateContext.Provider value={null}>
-        <NativeCollectionBuilder<T> content={<TagGroupAuthoring props={props} />}>
-          {(collection, receipt) => (
-            <NativeTagGroup props={props} forwardedRef={ref} collection={collection} receipt={receipt} />
+        <NativeCollectionBuilder<T> items={props.items ?? emptyItems}>
+          {(collection, modelSnapshot) => (
+            <NativeTagGroup props={props} forwardedRef={ref} collection={collection} modelSnapshot={modelSnapshot} />
           )}
         </NativeCollectionBuilder>
       </NativeListStateContext.Provider>

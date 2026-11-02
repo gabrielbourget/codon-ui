@@ -10,6 +10,8 @@ import { NativeSelectableCollectionContext } from "../../../collection/context"
 import { Tag } from "../Tag"
 import { TagGroup } from "../TagGroup"
 
+import { tagItem } from "./tagModel"
+
 beforeEach(() => {
   jest.spyOn(RN.AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
 })
@@ -26,9 +28,8 @@ it("binds ordered names and descriptions to the actual focusable list", async ()
         aria-details="details"
         accessibilityHint="Original caller hint"
         labels={{ descriptionLabel: "Instructions", detailsLabel: "Details" }}
-      >
-        <Tag id="a">Alpha</Tag>
-      </TagGroup>
+        items={[tagItem("a", <Tag id="a">Alpha</Tag>)]}
+      />
     </NativeThemeProvider>,
   )
   expect(group.current).not.toBeNull()

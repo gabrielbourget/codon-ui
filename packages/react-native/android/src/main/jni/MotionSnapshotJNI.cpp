@@ -3,7 +3,6 @@
 #include <react/fabric/JFabricUIManager.h>
 #include <react/renderer/scheduler/Scheduler.h>
 #include "FabricManager.h"
-#include "FormDocumentJNI.h"
 #include "DragActionJNI.h"
 #include "PopFrame.h"
 #include "PopPresentation.h"
@@ -98,7 +97,6 @@ static void nativeCloseTable(jni::alias_ref<jclass>, jlong handle) {
 extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *) {
   return jni::initialize(vm, [] {
     codon::motion::registerMotionDrawingNatives(jni::Environment::current());
-    registerFormDocumentNatives();
     registerDragActionNatives();
     registerBackdropNatives(jni::Environment::current());
     registerForegroundNatives(jni::Environment::current());

@@ -1,14 +1,7 @@
-import "../../../collection/__tests__/nativeReceipts"
-
 import { act as rawAct, cleanup } from "@testing-library/react-native"
 import { createRef, useContext, type ReactNode } from "react"
 import { StyleSheet, TextInput, View, findNodeHandle } from "react-native"
 
-import {
-  actWithNativeCollections as act,
-  renderWithNativeCollections as render,
-  screen,
-} from "../../../collection/__tests__/nativeReceipts"
 import { createNativeCollectionBranch } from "../../../collection/CollectionBuilder"
 import { NativeCollectionRendererContext } from "../../../collection/renderer"
 import { geometryPacket, geometrySnapshot } from "../../../input/__tests__/motionGeometry.fixture"
@@ -17,13 +10,19 @@ import { NativeMotionConfig } from "../../../motion/config"
 import { MotionGlobalConfig, frameData, time } from "../../../motion/kernel"
 import { NativeThemeProvider } from "../../../theme"
 import { useNativeTable } from "../context"
+import {
+  nativeTableChildren,
+  createNativeTableHeaderModel,
+  nativeTableReceiver,
+  createNativeTableRowModel,
+} from "../model"
 import { Table } from "../Table"
-import { TableHeader } from "../TableHeader"
-import { TableRow } from "../TableRow"
+
+import { actWithNativeCollections as act, renderWithNativeCollections as render, screen } from "./collectionModel"
 
 jest.unmock("react-native/Libraries/Components/TextInput/TextInput")
 const Body = createNativeCollectionBranch<object, { children?: ReactNode }, View>(
-  "body",
+  "tablebody",
   (_props, ref, parent) => {
     const table = useNativeTable(),
       renderer = useContext(NativeCollectionRendererContext)
@@ -33,7 +32,6 @@ const Body = createNativeCollectionBranch<object, { children?: ReactNode }, View
       </View>
     )
   },
-  (props) => props.children,
 )
 const frames = new Map<number, Parameters<typeof requestAnimationFrame>[0]>()
 let frameID = 0
@@ -81,20 +79,33 @@ it.each([false, true])(
     const tree = (offset: number) => (
       <NativeThemeProvider>
         <NativeMotionConfig transition={{ duration: 0.1, ease: "linear" }}>
-          <Table>
-            <TableHeader columns={columns} />
-            <Body>
-              <TableRow
-                ref={row}
-                id="a"
-                testID="row"
-                item={item}
-                columns={columns}
-                style={{ marginLeft: offset }}
-                render={custom ? (props) => <NativeFocusView {...props} /> : undefined}
-              />
-            </Body>
-          </Table>
+          <Table
+            items={(modelOptions) =>
+              nativeTableChildren(
+                createNativeTableHeaderModel({ columns: columns }, modelOptions),
+                nativeTableReceiver<React.ComponentProps<typeof Body>>(
+                  "__body:1",
+                  "tablebody",
+                  {},
+                  (visibleProps) => <Body {...visibleProps} />,
+                  nativeTableChildren(
+                    createNativeTableRowModel(
+                      {
+                        ref: row,
+                        id: "a",
+                        testID: "row",
+                        item: item,
+                        columns: columns,
+                        style: { marginLeft: offset },
+                        render: custom ? (props) => <NativeFocusView {...props} /> : undefined,
+                      },
+                      modelOptions,
+                    ),
+                  ),
+                ),
+              )
+            }
+          />
         </NativeMotionConfig>
       </NativeThemeProvider>
     )

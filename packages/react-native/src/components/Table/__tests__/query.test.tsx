@@ -1,26 +1,20 @@
-import "../../../collection/__tests__/nativeReceipts"
-
 import { cleanup, userEvent, within } from "@testing-library/react-native"
 
-import {
-  actWithNativeCollections as act,
-  renderWithNativeCollections as render,
-  screen,
-} from "../../../collection/__tests__/nativeReceipts"
 import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import { NativeFloatingWindowContext } from "../../../overlays/floating/scope"
 import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
 import { NativeThemeProvider } from "../../../theme"
 import type { TNativePaginationProps } from "../../Pagination/types"
+import { nativeTableChildren, createNativeTableHeaderModel, createNativeTableBodyModel } from "../model"
 import {
   TABLE_SORT_DIRECTION__ASCENDING,
   TABLE_SORT_DIRECTION__DESCENDING,
   type TTableSortInstruction,
 } from "../queryTypes"
 import { Table } from "../Table"
-import { TableBody } from "../TableBody"
-import { TableHeader } from "../TableHeader"
 import type { TNativeTableColumnMetadata, TNativeTableProps } from "../types"
+
+import { actWithNativeCollections as act, renderWithNativeCollections as render, screen } from "./collectionModel"
 
 beforeEach(() => jest.useFakeTimers())
 afterEach(async () => {
@@ -46,10 +40,17 @@ const node = (
     <NativeOverlayProvider>
       <NativeFloatingLayerHost>
         <NativeFloatingWindowContext.Provider value={windowActive}>
-          <Table accessibilityLabel="Rows" columns={columns} {...props}>
-            <TableHeader columns={header} />
-            <TableBody items={items} columns={header} />
-          </Table>
+          <Table
+            accessibilityLabel="Rows"
+            columns={columns}
+            {...props}
+            items={(modelOptions) =>
+              nativeTableChildren(
+                createNativeTableHeaderModel({ columns: header }, modelOptions),
+                createNativeTableBodyModel({ items: items, columns: header }, modelOptions),
+              )
+            }
+          />
         </NativeFloatingWindowContext.Provider>
       </NativeFloatingLayerHost>
     </NativeOverlayProvider>

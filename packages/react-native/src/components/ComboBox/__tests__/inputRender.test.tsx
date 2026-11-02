@@ -1,13 +1,8 @@
-import "../../../collection/__tests__/nativeReceipts"
+import "./visibleCollections"
 
 import { createRef, type ReactNode } from "react"
 import { TextInput, View } from "react-native"
 
-import {
-  actWithNativeCollections as act,
-  renderWithNativeCollections as render,
-  screen,
-} from "../../../collection/__tests__/nativeReceipts"
 import { NATIVE_DEFAULT_SLOT } from "../../../collection/context"
 import { NativeFocusHost } from "../../../input/NativeFocusView"
 import { NativeMotionConfig } from "../../../motion/config"
@@ -23,6 +18,8 @@ import {
 import type { TNativeComboBoxInputRenderState } from "../collectionInputTypes"
 import { collection, ITEMS } from "../state/__tests__/collection"
 import { useComboBoxState } from "../state/useComboBoxState"
+
+import { actWithNativeCollections as act, renderWithNativeCollections as render, screen } from "./visibleCollections"
 
 const wrap = (children: ReactNode) => <NativeThemeProvider>{children}</NativeThemeProvider>
 const pointer = (pointerType = "mouse") => ({ persist: jest.fn(), nativeEvent: { pointerType, target: 1 } })

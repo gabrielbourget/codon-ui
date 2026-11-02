@@ -120,6 +120,7 @@ it("shares a FocusView publisher, retains actual leaf/root events and leaves unl
     target: refs.extra.current,
     currentTarget: refs.extra.current,
     persist: jest.fn(),
+    isPropagationStopped: () => false,
     nativeEvent: {
       ...binding,
       observerBindings: JSON.stringify([observer]),
@@ -241,6 +242,7 @@ it("retains original descendant callbacks for an owned nonfocusable group while 
     target: refs.extra.current,
     currentTarget: refs.root,
     persist: jest.fn(),
+    isPropagationStopped: () => false,
     nativeEvent: {
       ...binding,
       ownerId: props.ownerId,

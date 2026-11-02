@@ -30,6 +30,7 @@ export type TNativeTagComboBoxPartialLabels = Partial<Omit<TNativeTagComboBoxLab
 type TInnerComboProps<T extends object> = Partial<
   Omit<
     TNativeCollectionComboBoxProps<T>,
+    | "collectionItems"
     | "items"
     | "children"
     | "getKey"
@@ -48,6 +49,7 @@ type TInnerComboProps<T extends object> = Partial<
 }
 export type TNativeTagComboBoxProps<T extends object> = Omit<
   TNativeCollectionComboBoxProps<T>,
+  | "collectionItems"
   | "items"
   | "controlledItems"
   | "renderContent"
@@ -73,7 +75,7 @@ export type TNativeTagComboBoxProps<T extends object> = Omit<
   onSelectedItemsChange: (items: T[], details: TNativeTagComboBoxChangeDetails<T>) => void
   getItemKey: (item: T) => string | number
   getItemTextValue: (item: T) => string
-  children?: ReactNode | ((item: T) => ReactNode)
+  children?: (item: T) => ReactNode
   renderTagContent?: (item: T) => ReactNode
   accessibilityLabel?: string
   "aria-label"?: string
@@ -89,7 +91,7 @@ export type TNativeTagComboBoxProps<T extends object> = Omit<
   style?: StyleProp<TextStyle>
   customTagGroupStyles?: TNativeTagGroupProps<T>["customStyles"]
   customTagGroupProps?: Partial<
-    Omit<TNativeTagGroupProps<T>, "children" | "items" | "getKey" | "onRemove" | "selectionMode">
+    Omit<TNativeTagGroupProps<T>, "children" | "collectionItems" | "items" | "getKey" | "onRemove" | "selectionMode">
   >
   customTagStyles?: TNativeGroupedTagProps["customStyles"]
   customTagProps?: Partial<Omit<TNativeGroupedTagProps, "children" | "id" | "textValue">>

@@ -1,13 +1,8 @@
-import "../../../collection/__tests__/nativeReceipts"
+import "./visibleCollections"
 
 import { createRef, useContext, useState, type ReactNode } from "react"
 import { StyleSheet, type View } from "react-native"
 
-import {
-  actWithNativeCollections as act,
-  renderWithNativeCollections as render,
-  screen,
-} from "../../../collection/__tests__/nativeReceipts"
 import { NativeSelectionIndicatorContext } from "../../../collection/context"
 import { NativeFocusHost } from "../../../input/NativeFocusView"
 import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
@@ -19,6 +14,8 @@ import { NativeCollectionComboBox } from "../CollectionComboBox"
 import { NativeComboBoxStateContext } from "../collectionContext"
 import { NativeComboBoxItem } from "../ComboBoxItem"
 import { NativeComboBoxText } from "../fieldParts"
+
+import { actWithNativeCollections as act, renderWithNativeCollections as render, screen } from "./visibleCollections"
 
 const hidden = { includeHiddenElements: true }
 beforeEach(() => jest.useFakeTimers())
@@ -178,14 +175,23 @@ it("retires an authored disabled focused item without replacing its original hos
         isOpen
         inputLabel="Query"
         closeLabel="Close"
-      >
-        {(item) => (
-          <NativeComboBoxItem id={item.id} textValue={item.label} isDisabled={item.disabled} ref={original}>
-            <Capture />
-            {item.label}
-          </NativeComboBoxItem>
-        )}
-      </NativeCollectionComboBox>
+        collectionItems={[
+          {
+            key: 0,
+            type: "item",
+            value: { id: 0, label: "Zero", disabled },
+            rendered: "Zero",
+            textValue: "Zero",
+            props: { isDisabled: disabled },
+            render: (node) => (
+              <NativeComboBoxItem {...node.props} ref={original}>
+                <Capture />
+                Zero
+              </NativeComboBoxItem>
+            ),
+          },
+        ]}
+      />
     )
   }
   await render(wrap(<Harness />))

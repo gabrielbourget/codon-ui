@@ -1,8 +1,7 @@
 import {
   createNativeCollectionSnapshot,
-  getNativeCollectionMetadataIdentity,
-  type TNativeCollectionDescriptor,
-  type TNativeCollectionHierarchyEntry,
+  getNativeCollectionNodeIdentity,
+  type TNativeCollectionItem,
   type TNativeCollectionKey,
 } from "../../../collection/snapshot"
 import { NativeTableCollection } from "../state/TableCollection"
@@ -38,48 +37,33 @@ const source = (
     },
   ],
 ) => {
-  const descriptors = new Map<string, TNativeCollectionDescriptor<object>>()
-  const hierarchy: TNativeCollectionHierarchyEntry[] = []
-  const visit = (entries: TEntry[], parent = "") =>
-    entries.forEach((entry, index) => {
-      const id = `descriptor-${hierarchy.length}`
-      descriptors.set(id, {
-        descriptorId: id,
-        descriptorRevision: `${id}-revision`,
-        key: entry.key,
-        type: entry.type,
-        props: entry.props ?? {},
-        value: entry.value ?? null,
-        rendered: null,
-        textValue: entry.text ?? "",
-        colSpan: entry.span,
-      })
-      hierarchy.push({
-        descriptorId: id,
-        descriptorRevision: `${id}-revision`,
-        parentDescriptorId: parent,
-        target: 100 + hierarchy.length,
-        index,
-        retainedIndex: index,
-        hasRetainedChildren: !!entry.children?.length,
-      })
-      visit(entry.children ?? [], id)
-    })
-  visit([
-    {
-      key: "head",
-      type: "header",
-      children: [
-        { key: "name", type: "column", props: { isRowHeader: true, columnID: "name" } },
-        { key: "value", type: "column", props: { columnID: "value" } },
-      ],
-    },
-    { key: "body", type: "body", children: rows },
-  ])
-  return createNativeCollectionSnapshot(hierarchy, descriptors)
+  const build = (entries: TEntry[]): TNativeCollectionItem<object>[] =>
+    entries.map((entry) => ({
+      key: entry.key,
+      type: entry.type,
+      props: entry.props ?? {},
+      value: entry.value ?? null,
+      rendered: null,
+      textValue: entry.text ?? "",
+      colSpan: entry.span,
+      children: build(entry.children ?? []),
+    }))
+  return createNativeCollectionSnapshot(
+    build([
+      {
+        key: "head",
+        type: "header",
+        children: [
+          { key: "name", type: "column", props: { isRowHeader: true, columnID: "name" } },
+          { key: "value", type: "column", props: { columnID: "value" } },
+        ],
+      },
+      { key: "body", type: "body", children: rows },
+    ]),
+  )
 }
 
-it("matches the actual canonical row/column/header navigation and preserves original metadata identities", () => {
+it("matches the actual canonical row/column/header navigation and preserves original logical identities", () => {
   const original = source()
   const collection = new NativeTableCollection(original)
   expect([...collection].map((node) => node.type)).toEqual(["tableheader", "tablebody"])
@@ -101,10 +85,10 @@ it("matches the actual canonical row/column/header navigation and preserves orig
   expect([...collection.rowHeaderColumnKeys]).toEqual(["name"])
   expect(collection.getItem("a")!.value === value).toBe(true)
   expect(collection.getItem("a")!.props === original.getItem("a")!.props).toBe(true)
-  expect(getNativeCollectionMetadataIdentity(collection.getItem("a")!)).toBe(
-    getNativeCollectionMetadataIdentity(original.getItem("a")!),
+  expect(getNativeCollectionNodeIdentity(collection.getItem("a")!)).toBe(
+    getNativeCollectionNodeIdentity(original.getItem("a")!),
   )
-  expect(getNativeCollectionMetadataIdentity(collection.headerRows[0])).toBeUndefined()
+  expect(getNativeCollectionNodeIdentity(collection.headerRows[0])).toBeUndefined()
   expect(Object.isFrozen(collection)).toBe(true)
 })
 it("retains the source row text override and row-header cell fallback", () => {
@@ -117,7 +101,7 @@ it("retains the source row text override and row-header cell fallback", () => {
     ).getTextValue("a"),
   ).toBe("Explicit")
 })
-it("filters rows by their actual child cells, retaining columns, raw data and descriptor leases", () => {
+it("filters rows by their actual child cells, retaining columns, raw data and logical identities", () => {
   const collection = new NativeTableCollection(source())
   expect(collection.filter((_text, node) => node.key === "b").rows).toEqual([])
   const filtered = collection.filter((_text, node) => node.parentKey === "b")
@@ -126,8 +110,8 @@ it("filters rows by their actual child cells, retaining columns, raw data and de
   expect(filtered.getFirstKey()).toBe("b")
   expect(filtered.getKeyBefore("b")).toBeNull()
   expect(filtered.columns.map((node) => node.key)).toEqual(["name", "value"])
-  expect(getNativeCollectionMetadataIdentity(filtered.getItem("b")!)).toBe(
-    getNativeCollectionMetadataIdentity(collection.getItem("b")!),
+  expect(getNativeCollectionNodeIdentity(filtered.getItem("b")!)).toBe(
+    getNativeCollectionNodeIdentity(collection.getItem("b")!),
   )
   expect(collection.rows.map((node) => node.key)).toEqual(["a", "b"])
 })

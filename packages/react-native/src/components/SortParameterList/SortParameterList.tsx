@@ -15,9 +15,9 @@ import { findNodeHandle, StyleSheet, View, type StyleProp, type TextStyle } from
 import { NativeCollectionActionsContext } from "../../collection/actions"
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
 import {
-  NativeCollection,
   NativeCollectionBuilder,
   createNativeCollectionLeaf,
+  useNativeCollectionReceiverRef,
 } from "../../collection/CollectionBuilder"
 import { useNativeCollectionRefs } from "../../collection/context"
 import {
@@ -28,6 +28,7 @@ import {
   useNativeDroppableItem,
 } from "../../collection/dragAndDrop/hooks"
 import { nativeVirtualDrag } from "../../collection/dragAndDrop/virtualDrag"
+import type { TNativeCollectionModelSnapshot } from "../../collection/model"
 import { DefaultNativeCollectionRenderer } from "../../collection/renderer"
 import type { TNativeCollectionNode, TNativeCollectionSnapshot } from "../../collection/snapshot"
 import { useListState } from "../../collection/state"
@@ -41,6 +42,7 @@ import { resolveNativeStyle } from "../colors"
 import { splitNativeTextStyle, validateNativeFontWeight } from "../nativeTextStyle"
 import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
 import { QueryGlyph } from "../SortAndFilterPanel/glyphs"
+import { useCollectionModelOwner } from "../Table/useCollectionModelOwner"
 import { Text } from "../Text/Text"
 
 import { reorderNativeSortParameters } from "./reorder"
@@ -187,6 +189,7 @@ const RowContent = ({
 }
 const Row = (props: TItemProps, ref: ForwardedRef<View>, node: TNativeCollectionNode<object>) => {
   const actions = useContext(NativeCollectionActionsContext)!
+  const receiverRef = useNativeCollectionReceiverRef(node, ref)
   const collection = useContext(SortCollectionContext)!
   const state = useListState({ collection, selectionMode: "none" })
   const original = useRef<View | null>(null)
@@ -225,13 +228,26 @@ const Row = (props: TItemProps, ref: ForwardedRef<View>, node: TNativeCollection
         original={original}
         binding={actions.bindingFor(node)}
         dragAndDrop={dragAndDrop}
-        forwarded={ref}
+        forwarded={receiverRef}
       />
       {dragAndDrop.accessibleDropChooser}
     </NativeDragAndDropContext.Provider>
   )
 }
 const SortItem = createNativeCollectionLeaf<object, TItemProps, View>("item", Row)
+
+const ModelOwner = ({
+  model,
+  original,
+  target,
+}: {
+  model: TNativeCollectionModelSnapshot<object>
+  original: View | null
+  target: number
+}) => {
+  useCollectionModelOwner(model, original, target)
+  return null
+}
 
 export const SortParameterList = (props: TNativeSortParameterListProps) => {
   const {
@@ -254,6 +270,20 @@ export const SortParameterList = (props: TNativeSortParameterListProps) => {
     ariaDetails,
     ...native
   } = props
+  const original = useRef<View | null>(null)
+  const [{ originalRoot, target }, setRootTarget] = useState<{ originalRoot: View | null; target: number }>({
+    originalRoot: null,
+    target: 0,
+  })
+  const bind = useCallback((view: View | null) => {
+    original.current = view
+    const nextTarget = view ? (findNodeHandle(view) ?? 0) : 0
+    setRootTarget((previous) =>
+      previous.originalRoot === view && previous.target === nextTarget
+        ? previous
+        : { originalRoot: view, target: nextTarget },
+    )
+  }, [])
   const [state, setState] = useState<{ draggedID: string | null; parameters: TNativeSortParameter[] }>({
     draggedID: null,
     parameters: [],
@@ -285,19 +315,28 @@ export const SortParameterList = (props: TNativeSortParameterListProps) => {
     [customStyles, style],
   )
   validateNativeFontWeight(root.text.fontWeight, "SortParameterList")
+  const items = useMemo(
+    () =>
+      state.parameters.map((item) => ({
+        key: item.ID,
+        type: "item",
+        value: item,
+        props: { id: item.ID, item, owner, textValue: item.name },
+        rendered: null,
+        textValue: item.name,
+        render: () => <SortItem id={item.ID} item={item} owner={owner} textValue={item.name} />,
+      })),
+    [state.parameters, owner],
+  )
   return (
-    <NativeCollectionBuilder<object>
-      content={
-        <NativeCollection items={state.parameters} dependencies={[owner]}>
-          {(item) => <SortItem id={item.ID} item={item} owner={owner} textValue={item.name} />}
-        </NativeCollection>
-      }
-    >
-      {(collection) => (
+    <NativeCollectionBuilder<object> items={items}>
+      {(collection, model) => (
         <SortCollectionContext.Provider value={collection}>
+          <ModelOwner model={model} original={originalRoot} target={target} />
           <NativeTextStyleProvider style={root.text}>
             <NativeFocusHost
               {...native}
+              ref={bind}
               style={root.view}
               testID={testID ?? testAlias ?? "sort-parameter-list"}
               accessibilityLabel={label ?? ariaLabel ?? native.accessibilityLabel}

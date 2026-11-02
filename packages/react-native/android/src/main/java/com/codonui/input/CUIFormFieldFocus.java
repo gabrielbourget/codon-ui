@@ -3,45 +3,12 @@ package com.codonui.input;
 import android.view.View;
 import com.facebook.react.bridge.UIManager;
 import com.facebook.react.views.textinput.ReactEditText;
-import java.util.HashMap;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 final class CUIFormFieldFocus {
   interface Current { boolean check() throws Exception; }
-  private static boolean contains(JSONArray descriptors, JSONObject expected) throws Exception {
-    for (int index = 0; index < descriptors.length(); index++)
-      if (CUIFormActionAdmission.same(descriptors.getJSONObject(index), expected)) return true;
-    return false;
-  }
-  private static boolean belongs(JSONObject document, JSONObject field, JSONObject form) throws Exception {
-    JSONArray forms = document.getJSONArray("forms");
-    if (field.getBoolean("hasFormAssociation")) {
-      String id = field.getString("formId"); int matches = 0;
-      for (int index = 0; index < forms.length(); index++) if (id.equals(forms.getJSONObject(index).getString("formId"))) matches++;
-      return !id.isEmpty() && matches == 1 && id.equals(form.getString("formId"));
-    }
-    HashMap<Integer, Integer> parents = new HashMap<>();
-    JSONArray nodes = document.getJSONArray("nodes");
-    for (int index = 0; index < nodes.length(); index++) {
-      JSONObject node = nodes.getJSONObject(index); parents.put(node.getInt("target"), node.getInt("parent"));
-    }
-    int ancestor = field.getInt("metadataTarget");
-    while (ancestor > 0) {
-      for (int index = 0; index < forms.length(); index++) {
-        JSONObject candidate = forms.getJSONObject(index);
-        if (candidate.getInt("target") == ancestor) return CUIFormActionAdmission.same(candidate, form);
-      }
-      ancestor = parents.containsKey(ancestor) ? parents.get(ancestor) : 0;
-    }
-    return false;
-  }
-  static JSONObject focus(UIManager manager, JSONObject document, JSONObject request, Current isCurrent) throws Exception {
+  static JSONObject focus(UIManager manager, JSONObject request, Current isCurrent) throws Exception {
     JSONObject field = request.getJSONObject("field"), form = request.getJSONObject("form"), mount = request.getJSONObject("mount");
-    if (!request.getString("documentId").equals(document.getString("documentId")) ||
-        !request.getString("revision").equals(document.getString("revision")) ||
-        !contains(document.getJSONArray("fields"), field) || !contains(document.getJSONArray("forms"), form) || !belongs(document, field, form))
-      throw new IllegalStateException("form-focus-document-retired");
     View root = manager.resolveView(form.getInt("metadataTarget"));
     View binding = manager.resolveView(field.getInt("metadataTarget"));
     View target = manager.resolveView(field.getInt("target"));
@@ -55,11 +22,11 @@ final class CUIFormFieldFocus {
       throw new IllegalStateException("form-focus-original-editor-retired");
     String owned = field.optString("ownedEditorBinding", "");
     if (!owned.isEmpty()) {
-      CUIDateSegment segment = CUIOwnedDateField.resolve(manager, metadata, owned, field.getInt("target"), document.getInt("surfaceId"));
+      CUIDateSegment segment = CUIOwnedDateField.resolve(manager, metadata, owned, field.getInt("target"), mount.getInt("surfaceId"));
       if (segment != target || !metadata.ownedEditorBinding.equals(owned)) throw new IllegalStateException("form-focus-owned-segments-retired");
       boolean requested = segment.requestFormSegmentFocus(segment.formSegmentIdentity());
       boolean current = requested && isCurrent.check() && metadata.originalForMountSnapshot(mount) == target &&
-        CUIOwnedDateField.resolve(manager, metadata, owned, field.getInt("target"), document.getInt("surfaceId")) == target;
+        CUIOwnedDateField.resolve(manager, metadata, owned, field.getInt("target"), mount.getInt("surfaceId")) == target;
       return result(field, mount, current).put("requested", requested);
     }
     if (!(target instanceof ReactEditText) || !metadata.ownedEditorBinding.isEmpty()) throw new IllegalStateException("form-focus-original-editor-retired");

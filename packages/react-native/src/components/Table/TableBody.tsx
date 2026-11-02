@@ -1,7 +1,6 @@
 import { useContext, type ForwardedRef } from "react"
 import { View } from "react-native"
 
-import { useNativeCachedChildren } from "../../collection/cachedChildren"
 import { createNativeCollectionBranch } from "../../collection/CollectionBuilder"
 import { NativeCollectionRendererContext } from "../../collection/renderer"
 import type { TNativeCollectionNode } from "../../collection/snapshot"
@@ -12,7 +11,6 @@ import { NativeContentContext, useNativeContentContext } from "../NativeContentC
 import { splitNativeTextStyle } from "../nativeTextStyle"
 
 import { useNativeTable } from "./context"
-import { TableRow } from "./TableRow"
 import type { TNativeTableBodyProps, TNativeTableBodyComponent } from "./types"
 
 const Body = (props: TNativeTableBodyProps<object>, ref: ForwardedRef<View>, node: TNativeCollectionNode<object>) => {
@@ -25,7 +23,7 @@ const Body = (props: TNativeTableBodyProps<object>, ref: ForwardedRef<View>, nod
     dependencies: _deps,
     customRowStyles: _rows,
     isLoading,
-    renderLoadingState: _loading,
+    renderLoadingState,
     renderEmptyState,
     render,
     style,
@@ -52,7 +50,9 @@ const Body = (props: TNativeTableBodyProps<object>, ref: ForwardedRef<View>, nod
         }}
       >
         {table.dragAndDrop.rootDropIndicator}
-        {!isLoading && items.length === 0 && renderEmptyState ? (
+        {isLoading && renderLoadingState ? (
+          getNativeButtonContent(renderLoadingState(), styles.text)
+        ) : !isLoading && items.length === 0 && renderEmptyState ? (
           getNativeButtonContent(renderEmptyState(renderState), styles.text)
         ) : (
           <renderer.CollectionBranch
@@ -67,27 +67,6 @@ const Body = (props: TNativeTableBodyProps<object>, ref: ForwardedRef<View>, nod
   return render ? render(hostProps, renderState) : <View {...hostProps} />
 }
 export const TableBody = createNativeCollectionBranch<object, TNativeTableBodyProps<object>, View>(
-  "body",
+  "tablebody",
   Body,
-  (props) => {
-    const items = props.items ?? []
-    const rows = useNativeCachedChildren({
-      items,
-      addIdAndValue: true,
-      dependencies: [items, props.columns, props.rowKey, props.renderCell, ...(props.dependencies ?? [])],
-      children: (row) => (
-        <TableRow
-          id={props.rowKey ? props.rowKey(row) : undefined}
-          item={row}
-          columns={props.columns}
-          geometry={props.geometry}
-          renderCell={props.renderCell}
-          customStyles={props.customRowStyles}
-        />
-      ),
-    })
-    if (props.isLoading && props.renderLoadingState) return props.renderLoadingState()
-    if (!props.isLoading && items.length === 0 && props.renderEmptyState) return null
-    return rows
-  },
 ) as TNativeTableBodyComponent

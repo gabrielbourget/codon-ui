@@ -1,13 +1,7 @@
-import "../../../collection/__tests__/nativeReceipts"
-
+import { render as renderWithoutAdmission } from "@testing-library/react-native"
 import { createRef, useContext } from "react"
 import { findNodeHandle, StyleSheet, TextInput, View } from "react-native"
 
-import {
-  actWithNativeCollections as act,
-  renderWithNativeCollections as render,
-  screen,
-} from "../../../collection/__tests__/nativeReceipts"
 import { NATIVE_DEFAULT_SLOT, NativeSelectableCollectionContext } from "../../../collection/context"
 import { captureNativeFocusTarget, focusNativeTarget } from "../../../input/focus"
 import { NativeFocusView } from "../../../input/NativeFocusView"
@@ -15,10 +9,11 @@ import { NativeKeyboardScope } from "../../../input/NativeKeyboardScope"
 import { NativeThemeProvider } from "../../../theme"
 import { Button } from "../../Button/Button"
 import { NativeTablePropsContext, NativeTableStateContext, useNativeTable } from "../context"
+import { nativeTableChildren, createNativeTableHeaderModel, createNativeTableBodyModel } from "../model"
 import { Table } from "../Table"
-import { TableBody } from "../TableBody"
-import { TableHeader } from "../TableHeader"
 import type { TNativeTableProps, TNativeTableRenderState } from "../types"
+
+import { actWithNativeCollections as act, renderWithNativeCollections as render, screen } from "./collectionModel"
 
 type TState = NonNullable<React.ContextType<typeof NativeTableStateContext>>
 let state: TState
@@ -42,18 +37,28 @@ const renderRoot: NonNullable<TNativeTableProps["render"]> = (props, values) => 
 }
 const tree = (props: TNativeTableProps<(typeof items)[number]> = {}, rows = items) => (
   <NativeThemeProvider>
-    <Table accessibilityLabel="People" render={renderRoot} {...props}>
-      <TableHeader
-        columns={columns}
-        render={(header) => (
-          <View {...header}>
-            <Probe />
-            {header.children}
-          </View>
-        )}
-      />
-      <TableBody columns={columns} items={rows} rowKey={(item) => item.id} />
-    </Table>
+    <Table
+      accessibilityLabel="People"
+      render={renderRoot}
+      {...props}
+      items={(modelOptions) =>
+        nativeTableChildren(
+          createNativeTableHeaderModel(
+            {
+              columns: columns,
+              render: (header) => (
+                <View {...header}>
+                  <Probe />
+                  {header.children}
+                </View>
+              ),
+            },
+            modelOptions,
+          ),
+          createNativeTableBodyModel({ columns: columns, items: rows, rowKey: (item) => item.id }, modelOptions),
+        )
+      }
+    />
   </NativeThemeProvider>
 )
 const observeFocus = async (ref: React.RefObject<View | null>, focused: boolean, visible = true, target?: number) => {
@@ -93,18 +98,29 @@ it.each([false, true])(
     ]
     const node = (admission: Pick<TNativeTableProps, "focusable" | "tabIndex"> = {}) => (
       <NativeThemeProvider>
-        <Table ref={root} testID="root-focus-table" render={custom ? renderRoot : undefined} {...admission}>
-          <TableHeader
-            columns={columns}
-            render={(header) => (
-              <View {...header}>
-                <Probe />
-                {header.children}
-              </View>
-            )}
-          />
-          <TableBody items={items} columns={ownedColumns} />
-        </Table>
+        <Table
+          ref={root}
+          testID="root-focus-table"
+          render={custom ? renderRoot : undefined}
+          {...admission}
+          items={(modelOptions) =>
+            nativeTableChildren(
+              createNativeTableHeaderModel(
+                {
+                  columns: columns,
+                  render: (header) => (
+                    <View {...header}>
+                      <Probe />
+                      {header.children}
+                    </View>
+                  ),
+                },
+                modelOptions,
+              ),
+              createNativeTableBodyModel({ items: items, columns: ownedColumns }, modelOptions),
+            )
+          }
+        />
       </NativeThemeProvider>
     )
     const view = await render(node())
@@ -145,7 +161,7 @@ it.each([false, true])(
         rowCount: 3,
         columnCount: 1,
       })
-      expect(JSON.parse(host().props.nativeCollectionBinding).metadataTarget).toBeGreaterThan(0)
+      expect(JSON.parse(host().props.nativeCollectionBinding).lifetime).not.toBe("")
       expect(screen.getByTestId("root-focus-editor").props.value).toBe("held")
     }
     await act(() => state.selectionManager.setFocusedKey(null))
@@ -164,9 +180,12 @@ it("renders the four source fields over the real complete filtered state and kee
   expect(flags.isDropTarget).toBe(false)
   const root = screen.getByTestId("table")
   expect(JSON.parse(root.props.nativeCollectionBinding)).toMatchObject({
-    descriptorId: "",
-    descriptorRevision: "",
-    metadataTarget: expect.any(Number),
+    itemId: "",
+    itemRevision: "",
+    ownerId: expect.any(String),
+    generation: expect.any(String),
+    revision: expect.any(String),
+    lifetime: expect.any(String),
   })
   expect(JSON.parse(root.props.nativeCollectionSemantics)).toMatchObject({ kind: "root", columnCount: 1, rowCount: 3 })
   expect(root.props.render).toBeUndefined()
@@ -277,15 +296,24 @@ it("preserves the original root, editor and refs through default/custom renderin
   const editor = createRef<TextInput>()
   const owned = (custom: boolean) => (
     <NativeThemeProvider>
-      <Table ref={root} render={custom ? renderRoot : undefined}>
-        <TableHeader columns={columns} />
-        <TableBody
-          items={[items[0]]}
-          columns={[
-            { ...columns[0], cellRenderer: () => <TextInput ref={editor} testID="held-editor" value="held" /> },
-          ]}
-        />
-      </Table>
+      <Table
+        ref={root}
+        render={custom ? renderRoot : undefined}
+        items={(modelOptions) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel({ columns: columns }, modelOptions),
+            createNativeTableBodyModel(
+              {
+                items: [items[0]],
+                columns: [
+                  { ...columns[0], cellRenderer: () => <TextInput ref={editor} testID="held-editor" value="held" /> },
+                ],
+              },
+              modelOptions,
+            ),
+          )
+        }
+      />
     </NativeThemeProvider>
   )
   const view = await render(owned(false))
@@ -369,15 +397,24 @@ it("refreshes visible root modality from the existing same-window keyboard scope
 it("inherits root typography in body cells while header names retain canonical b10 bold text", async () => {
   await render(
     <NativeThemeProvider>
-      <Table customStyles={{ fontSize: 17, fontFamily: "Helvetica", lineHeight: 23 }} style={{ letterSpacing: 0 }}>
-        <TableHeader columns={columns} customStyles={{ fontWeight: "700" }} />
-        <TableBody
-          items={[items[0]]}
-          columns={columns}
-          customStyles={{ fontSize: 19 }}
-          customRowStyles={{ letterSpacing: 1 }}
-        />
-      </Table>
+      <Table
+        customStyles={{ fontSize: 17, fontFamily: "Helvetica", lineHeight: 23 }}
+        style={{ letterSpacing: 0 }}
+        items={(modelOptions) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel({ columns: columns, customStyles: { fontWeight: "700" } }, modelOptions),
+            createNativeTableBodyModel(
+              {
+                items: [items[0]],
+                columns: columns,
+                customStyles: { fontSize: 19 },
+                customRowStyles: { letterSpacing: 1 },
+              },
+              modelOptions,
+            ),
+          )
+        }
+      />
     </NativeThemeProvider>,
   )
   expect(StyleSheet.flatten(screen.getByText("Alpha").props.style)).toMatchObject({
@@ -426,4 +463,41 @@ it("preserves native reference aliases, multiple source IDs and explicit empty v
   expect(root.props.nativeLabelledBy).toEqual([])
   expect(root.props.nativeDescribedBy).toEqual([])
   expect(root.props.nativeDetailsBy).toEqual([])
+})
+
+it("retires the collection owner when its original root is replaced with a reused numeric tag", async () => {
+  jest.mocked(findNodeHandle).mockImplementation(() => 777)
+  const original = createRef<View>()
+  let renderKey = "first"
+  const renderHost: NonNullable<TNativeTableProps["render"]> = (props) => <NativeFocusView key={renderKey} {...props} />
+  const model: NonNullable<TNativeTableProps["items"]> = (options) =>
+    nativeTableChildren(
+      createNativeTableHeaderModel({ columns }, options),
+      createNativeTableBodyModel({ items, columns }, options),
+    )
+  const element = () => (
+    <NativeThemeProvider>
+      <Table ref={original} render={renderHost} items={model} />
+    </NativeThemeProvider>
+  )
+  const view = await render(element())
+  const before = original.current
+  const binding = JSON.parse(screen.getByTestId("table").props.nativeCollectionBinding)
+  expect(binding.lifetime).not.toBe("")
+  renderKey = "replacement"
+  await view.rerender(element())
+  expect(original.current).not.toBe(before)
+  const replacement = JSON.parse(screen.getByTestId("table").props.nativeCollectionBinding)
+  expect(replacement.ownerId).toBe(binding.ownerId)
+  expect(replacement.generation).toBe(binding.generation)
+  expect(replacement.revision).toBe(binding.revision)
+  expect(replacement.lifetime).not.toBe(binding.lifetime)
+})
+
+it("renders explicit membership without granting actions when native owner admission is absent", async () => {
+  await renderWithoutAdmission(tree())
+  expect(screen.getByText("Alpha")).toBeTruthy()
+  expect(screen.getByText("Beta")).toBeTruthy()
+  expect(screen.getByTestId("table").props.nativeCollectionBinding).toBe("")
+  expect(screen.getByTestId("table-row-string:a").props.nativeCollectionBinding).toBe("")
 })

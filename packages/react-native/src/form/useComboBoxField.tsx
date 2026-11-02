@@ -15,7 +15,7 @@ import type { ComboBoxState } from "../components/ComboBox/state/types"
 import type { NativeFormCommitData } from "../input/specs/CUIFormRootNativeComponent"
 
 import { nativeComboBoxFieldData, type TNativeComboBoxFieldOptions } from "./comboBox"
-import { NativeFormRegistryContext } from "./context"
+import { NativeFormRegistryContext, NativeFormOwnerContext } from "./context"
 import { NativeFormMountReceipt } from "./mount"
 import { NativeFieldMetadata } from "./NativeFormMetadata"
 import { NativeFieldSemanticSession } from "./semanticSession"
@@ -31,10 +31,11 @@ export const useNativeComboBoxField = <T extends object>(
   semanticBinding = "",
 ) => {
   const registry = useContext(NativeFormRegistryContext)
+  const formOwnerId = useContext(NativeFormOwnerContext)
   const ownerId = useId()
   const descriptorId = `${ownerId}:field`
   const data = nativeComboBoxFieldData(props, state)
-  const signature = JSON.stringify([data, props.form, original?.target])
+  const signature = JSON.stringify([data, props.formFieldId, formOwnerId, props.form, original?.target])
   // Allocation is opaque; aborted renders may consume an unused identity but
   // cannot register a field or place business values in native metadata.
   const descriptorRevision = useMemo(() => `${ownerId}:field:${++nextRevision}`, [ownerId, signature])
@@ -130,6 +131,8 @@ export const useNativeComboBoxField = <T extends object>(
         formId: props.form ?? "",
         hasFormAssociation: props.form !== undefined,
       },
+      fieldId: props.formFieldId,
+      formOwnerId,
       data,
       editor: () => current.current.currentEditor(),
       mount: () => receipt.current,

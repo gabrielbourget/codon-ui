@@ -1,18 +1,16 @@
-import "../../../collection/__tests__/nativeReceipts"
-
 import { cleanup } from "@testing-library/react-native"
 import { createRef, type RefAttributes } from "react"
 import { StyleSheet, TextInput, View } from "react-native"
 
-import { renderWithNativeCollections as render, screen } from "../../../collection/__tests__/nativeReceipts"
 import { NativeFocusView } from "../../../input/NativeFocusView"
 import { NativeThemeProvider } from "../../../theme"
+import { nativeTableChildren, nativeTableReceiver, createNativeTableRowModel } from "../model"
 import { createNativeTableStickyBinding } from "../stickyBinding"
 import { Table } from "../Table"
 import { TableColumn } from "../TableColumn"
-import { TableRow } from "../TableRow"
 import type { TNativeTableColumnProps, TNativeTableProps } from "../types"
 
+import { renderWithNativeCollections as render, screen } from "./collectionModel"
 import { CellFixtureBody } from "./fixtures/TableCellFixture"
 import { ColumnFixtureHeader } from "./fixtures/TableColumnFixture"
 
@@ -57,21 +55,56 @@ const setup = async (props: TNativeTableProps = {}, column: Partial<TNativeTable
     columnProps: Partial<TNativeTableColumnProps> & RefAttributes<View> = column,
   ) => (
     <NativeThemeProvider>
-      <Table ref={root} accessibilityLabel="Sticky source" testID="sticky-source" {...tableProps}>
-        <ColumnFixtureHeader>
-          <TableColumn ref={header} id="value" columnID="value" isRowHeader testID="sticky-column" {...columnProps}>
-            Value
-          </TableColumn>
-        </ColumnFixtureHeader>
-        <CellFixtureBody>
-          <TableRow
-            id="one"
-            item={{}}
-            columns={columns}
-            renderCell={() => <TextInput ref={editor} testID="sticky-held" value="" onChangeText={change} />}
-          />
-        </CellFixtureBody>
-      </Table>
+      <Table
+        ref={root}
+        accessibilityLabel="Sticky source"
+        testID="sticky-source"
+        {...tableProps}
+        items={(modelOptions) =>
+          nativeTableChildren(
+            nativeTableReceiver<React.ComponentProps<typeof ColumnFixtureHeader>>(
+              "__header:1",
+              "tableheader",
+              {},
+              (visibleProps) => <ColumnFixtureHeader {...visibleProps} />,
+              nativeTableChildren(
+                nativeTableReceiver<React.ComponentProps<typeof TableColumn>>(
+                  "value",
+                  "column",
+                  {
+                    ref: header,
+                    id: "value",
+                    columnID: "value",
+                    isRowHeader: true,
+                    testID: "sticky-column",
+                    ...columnProps,
+                    children: <>Value</>,
+                  },
+                  (visibleProps) => <TableColumn {...visibleProps} />,
+                  [],
+                ),
+              ),
+            ),
+            nativeTableReceiver<React.ComponentProps<typeof CellFixtureBody>>(
+              "__body:2",
+              "tablebody",
+              {},
+              (visibleProps) => <CellFixtureBody {...visibleProps} />,
+              nativeTableChildren(
+                createNativeTableRowModel(
+                  {
+                    id: "one",
+                    item: {},
+                    columns: columns,
+                    renderCell: () => <TextInput ref={editor} testID="sticky-held" value="" onChangeText={change} />,
+                  },
+                  modelOptions,
+                ),
+              ),
+            ),
+          )
+        }
+      />
     </NativeThemeProvider>
   )
   const view = await render(node())

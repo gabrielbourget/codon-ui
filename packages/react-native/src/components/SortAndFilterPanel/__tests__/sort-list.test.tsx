@@ -1,17 +1,10 @@
-import "../../../collection/__tests__/nativeReceipts"
-
 import { act as rawAct, cleanup, within } from "@testing-library/react-native"
 import { Fragment, useState, type ComponentProps } from "react"
 import { AccessibilityInfo, Animated, Easing, PlatformColor, processColor, StyleSheet } from "react-native"
 import type * as RN from "react-native"
 
-import {
-  actWithNativeCollections as collectionAct,
-  renderWithNativeCollections as collectionRender,
-  fireEventWithNativeCollections as fireEvent,
-  screen,
-} from "../../../collection/__tests__/nativeReceipts"
 import { nativeVirtualDrag } from "../../../collection/dragAndDrop/virtualDrag"
+import { renderNativeCollectionNode } from "../../../collection/renderer"
 import {
   DefaultNativeCollectionRenderer,
   NativeCollectionRendererContext,
@@ -23,6 +16,13 @@ import { NativeDragActionsContext } from "../../../input/nativeDragActions"
 import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
 import { NativeFloatingWindowContext } from "../../../overlays/floating/scope"
 import { NativeThemeProvider as ThemeProvider } from "../../../theme"
+import { pendingCollectionActions } from "../../Table/__tests__/collectionModel"
+import {
+  actWithNativeCollections as collectionAct,
+  renderWithNativeCollections as collectionRender,
+  fireEventWithNativeCollections as fireEvent,
+  screen,
+} from "../../Table/__tests__/collectionModel"
 import type { TTableSortInstruction } from "../../Table/queryTypes"
 import { DEFAULT_QUERY_CONTROL_LABELS } from "../controlLabels"
 import { QuerySortParameterList, type TQuerySortParameterListProps } from "../SortParameterList"
@@ -231,7 +231,7 @@ it("renders the complete empty/string-key collection with original list/item sem
       parentTarget: tag(root),
       ordinal: index,
     })
-    expect(JSON.parse(row.props.nativeCollectionBinding).descriptorId).not.toBe("")
+    expect(JSON.parse(row.props.nativeCollectionBinding).itemId).not.toBe("")
   }
   expect(option().props.accessibilityLabel).toBe("Sort Parameter - City - Ascending")
   expect(option()).toHaveStyle({ minHeight: 20, width: "100%" })
@@ -240,9 +240,7 @@ it("renders the complete empty/string-key collection with original list/item sem
       nativeEvent: { ownerId: root.props.ownerId, target: tag(root), isFocused: true, isFocusVisible: true },
     }),
   )
-  const request = screen.container
-    .queryAll((host) => typeof host.props.rootRevision === "string")
-    .flatMap((host) => JSON.parse(host.props.actionRequests ?? "[]"))
+  const request = pendingCollectionActions()
   expect(request[0].binding).toBe(root.props.nativeCollectionBinding)
   await act(() => {})
   expectFocus(option())
@@ -534,7 +532,7 @@ it("persists dragged and logical target keys and waits for an original virtual t
         {Array.from(value.collection)
           .filter((node) => visible.has(String(node.key)))
           .map((node) => (
-            <Fragment key={String(node.key)}>{node.render?.(node)}</Fragment>
+            <Fragment key={String(node.key)}>{renderNativeCollectionNode(node)}</Fragment>
           ))}
       </>
     )

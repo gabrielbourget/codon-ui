@@ -9,10 +9,10 @@ import { NativeForm } from "../NativeForm"
 import { NativeFormAction, type TNativeFormActionProps } from "../NativeFormAction"
 import { NativeFormRegistry } from "../registry"
 
-const mockRead = jest.fn<Promise<string>, [string]>()
+const mockAdmit = jest.fn<Promise<string>, [string]>()
 jest.mock("../../input/specs/NativeCUIFormDocument", () => ({
   __esModule: true,
-  default: { getSnapshot: (request: string) => mockRead(request) },
+  default: { admitForm: (request: string) => mockAdmit(request) },
 }))
 jest.mock("../../input/specs/CUIFormRootNativeComponent", () => ({
   __esModule: true,
@@ -31,7 +31,7 @@ jest.mock("../../input/specs/CUIFocusViewNativeComponent", () => ({
 
 beforeEach(() => {
   jest.useFakeTimers()
-  mockRead.mockReset()
+  mockAdmit.mockReset()
   const targets = new WeakMap<object, number>()
   let next = 100
   jest.spyOn(jest.requireActual<typeof RN>("react-native"), "findNodeHandle").mockImplementation((view) => {
@@ -70,6 +70,31 @@ const setup = async (props: Partial<TNativeFormActionProps> = {}) => {
   let status!: NativeFormActionStatus
   let accept = true
   const ready = async (updates: Partial<NativeFormActionStatus> = {}) => {
+    const descriptor = [...registry.forms.values()][0].descriptor
+    const metadata = view.container.queryAll(
+      (node) =>
+        node.props.descriptorId === descriptor.descriptorId && typeof node.props.onNativeFormCommit === "function",
+    )[0]
+    await act(() =>
+      metadata.props.onNativeFormCommit({
+        nativeEvent: {
+          ...descriptor,
+          target: descriptor.metadataTarget,
+          originalTarget: descriptor.target,
+          surfaceId: 11,
+          windowId: "model-window",
+          epoch: 1,
+          sequence: 1,
+          mountRevision: descriptor.descriptorRevision,
+          attached: true,
+          active: true,
+          complete: true,
+          metadataOnly: true,
+          originalClass: "View",
+          error: "",
+        },
+      }),
+    )
     const host = screen.getByRole("button").props
     const binding = JSON.parse(host.nativeFormActionBinding) as { ownerId: string; descriptorRevision: string }
     status = {
@@ -89,48 +114,12 @@ const setup = async (props: Partial<TNativeFormActionProps> = {}) => {
     }
     await act(() => host.onNativeFormActionStatus({ nativeEvent: status }))
   }
-  const packet = (request: { target: number; requestId: string }) => {
-    const descriptor = [...registry.forms.values()][0].descriptor
-    const nodes = [
-      { target: 1, parent: 0, component: "RootView" },
-      { target: descriptor.target, parent: 1, component: "View" },
-      { target: descriptor.metadataTarget, parent: descriptor.target, component: "CUIFormRoot" },
-      {
-        target: jest.requireActual<typeof RN>("react-native").findNodeHandle(button.current),
-        parent: descriptor.target,
-        component: "CUIFocusView",
-      },
-    ].map((node) => ({ ...node, hidden: false, displayNone: false }))
-    return {
-      ...request,
-      documentId: "model-doc",
-      revision: "9",
-      rootTarget: 1,
-      surfaceId: 11,
-      nodes,
-      forms: [{ ...descriptor, position: 2 }],
-      fields: [],
-    }
-  }
-  mockRead.mockImplementation(async (encoded) => {
-    const request = JSON.parse(encoded)
-    const document = packet(request)
-    return JSON.stringify({
-      ...document,
-      ...(request.actionAdmission
-        ? {
-            actionAdmission: {
-              accepted: accept,
-              lease: { ...status },
-              documentId: "model-doc",
-              revision: "9",
-              formDescriptorId: document.forms[0].descriptorId,
-              formDescriptorRevision: document.forms[0].descriptorRevision,
-            },
-          }
-        : {}),
-    })
+  const packet = (request: { requestId: string; form: { descriptorRevision: string } }) => ({
+    accepted: accept,
+    requestId: request.requestId,
+    formRevision: request.form.descriptorRevision,
   })
+  mockAdmit.mockImplementation(async (encoded) => JSON.stringify(packet(JSON.parse(encoded))))
   const activate = () => act(() => userEvent.setup().press(screen.getByRole("button")))
   const activateOriginal = async () => {
     const host = screen.getByRole("button").props
@@ -195,11 +184,11 @@ it("preserves the actual original button and press event through exact native fo
   expect(request.action).toBe("submit")
   expect(request.entries).toEqual([])
   expect(request.sourceEvent === value.press.mock.calls[0][0]).toBe(true)
-  expect(mockRead).toHaveBeenCalledTimes(2)
+  expect(mockAdmit).toHaveBeenCalledTimes(1)
   expect(value.result.mock.calls[0][0].status).toBe("submitted")
 })
 
-it("preserves the caller's original-event veto before any document read or form callback", async () => {
+it("preserves the caller's original-event veto before native admission or form callback", async () => {
   const order: string[] = []
   const value = await setup({
     onPress: (event) => {
@@ -210,7 +199,7 @@ it("preserves the caller's original-event veto before any document read or form 
   await value.ready()
   await value.activateOriginal()
   expect(order).toEqual(["press"])
-  expect(mockRead).not.toHaveBeenCalled()
+  expect(mockAdmit).not.toHaveBeenCalled()
   expect(value.submit).not.toHaveBeenCalled()
   expect(value.result.mock.calls[0][0].status).toBe("retired")
 })
@@ -219,7 +208,7 @@ it("reports missing readiness and denied native admission without submitting", a
   const value = await setup()
   await value.activate()
   expect(value.result.mock.calls[0][0].status).toBe("retired")
-  expect(mockRead).not.toHaveBeenCalled()
+  expect(mockAdmit).not.toHaveBeenCalled()
   await value.ready()
   value.reject()
   await value.activate()
@@ -260,7 +249,7 @@ it("retires a pending original action after a real status callback loses its win
   const value = await setup()
   await value.ready()
   let finish!: () => void
-  mockRead.mockImplementationOnce(
+  mockAdmit.mockImplementationOnce(
     (encoded) =>
       new Promise((resolve) => {
         const document = JSON.stringify(value.packet(JSON.parse(encoded)))
@@ -271,7 +260,7 @@ it("retires a pending original action after a real status callback loses its win
   await value.ready({ active: false, epoch: 2, sequence: 2 })
   await act(() => finish())
   expect(value.submit).not.toHaveBeenCalled()
-  expect(mockRead).toHaveBeenCalledTimes(1)
+  expect(mockAdmit).toHaveBeenCalledTimes(1)
   expect(value.result.mock.calls[0][0].status).toBe("retired")
 })
 
@@ -281,7 +270,7 @@ it.each(["owner", ""])("uses the exact explicit form association %j", async (for
   await value.activate()
   expect(value.submit.mock.calls.length).toBe(form ? 1 : 0)
   expect(value.result.mock.calls[0][0].status).toBe(form ? "submitted" : "retired")
-  expect(mockRead.mock.calls.length).toBe(form ? 2 : 1)
+  expect(mockAdmit.mock.calls.length).toBe(form ? 1 : 0)
 })
 
 it.each(["isDisabled", "isPending"] as const)("preserves the original button's %s activation guard", async (key) => {
@@ -290,7 +279,7 @@ it.each(["isDisabled", "isPending"] as const)("preserves the original button's %
   await value.activate()
   expect(value.press).not.toHaveBeenCalled()
   expect(value.submit).not.toHaveBeenCalled()
-  expect(mockRead).not.toHaveBeenCalled()
+  expect(mockAdmit).not.toHaveBeenCalled()
 })
 
 it("requires a fresh native lease after Activity disconnects and restores the same original button", async () => {
@@ -302,7 +291,7 @@ it("requires a fresh native lease after Activity disconnects and restores the sa
   await value.restore()
   expect(value.button.current === original).toBe(true)
   await value.activate()
-  expect(mockRead).not.toHaveBeenCalled()
+  expect(mockAdmit).not.toHaveBeenCalled()
   expect(value.submit).not.toHaveBeenCalled()
   await value.ready({ epoch: 3, sequence: 3 })
   await value.activate()

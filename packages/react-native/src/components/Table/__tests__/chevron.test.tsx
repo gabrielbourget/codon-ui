@@ -1,24 +1,22 @@
-import "../../../collection/__tests__/nativeReceipts"
-
 import { act as nativeAct, cleanup } from "@testing-library/react-native"
 import { createRef, useContext } from "react"
 import { findNodeHandle, TextInput, View } from "react-native"
 
 import { Button, NativeFocusView } from "../../.."
-import {
-  actWithNativeCollections as act,
-  renderWithNativeCollections,
-  screen,
-} from "../../../collection/__tests__/nativeReceipts"
 import { NativeLocaleProvider } from "../../../locale/NativeLocaleProvider"
 import { NativeFloatingWindowContext } from "../../../overlays/floating/scope"
 import { NativeThemeProvider } from "../../../theme"
 import { NativeTableStateContext } from "../context"
+import {
+  nativeTableChildren,
+  createNativeTableHeaderModel,
+  nativeTableReceiver,
+  createNativeTableRowModel,
+} from "../model"
 import type { TNativeTableState } from "../state/useTableState"
 import { Table } from "../Table"
-import { TableHeader } from "../TableHeader"
-import { TableRow } from "../TableRow"
 
+import { actWithNativeCollections as act, renderWithNativeCollections, screen } from "./collectionModel"
 import { CellFixtureBody } from "./fixtures/TableCellFixture"
 
 const describeRenderError = (error: unknown): string => {
@@ -92,29 +90,44 @@ const tree = (expanded = empty, disabled = false, locale = "en-US", treeColumn: 
           onSelectionChange={selected}
           clickableRows
           onRowAction={rowAction}
-        >
-          <TableHeader
-            columns={columns}
-            render={(host) => (
-              <View {...host}>
-                <Probe />
-                {host.children}
-              </View>
-            )}
-          />
-          <CellFixtureBody>
-            <TableRow
-              ref={row}
-              nativeID="caller-parent-row"
-              id="parent"
-              testID="chevron-row"
-              item={{}}
-              columns={columns}
-              hasChildItems
-              isDisabled={disabled}
-            />
-          </CellFixtureBody>
-        </Table>
+          items={(modelOptions) =>
+            nativeTableChildren(
+              createNativeTableHeaderModel(
+                {
+                  columns: columns,
+                  render: (host) => (
+                    <View {...host}>
+                      <Probe />
+                      {host.children}
+                    </View>
+                  ),
+                },
+                modelOptions,
+              ),
+              nativeTableReceiver<React.ComponentProps<typeof CellFixtureBody>>(
+                "__body:1",
+                "tablebody",
+                {},
+                (visibleProps) => <CellFixtureBody {...visibleProps} />,
+                nativeTableChildren(
+                  createNativeTableRowModel(
+                    {
+                      ref: row,
+                      nativeID: "caller-parent-row",
+                      id: "parent",
+                      testID: "chevron-row",
+                      item: {},
+                      columns: columns,
+                      hasChildItems: true,
+                      isDisabled: disabled,
+                    },
+                    modelOptions,
+                  ),
+                ),
+              ),
+            )
+          }
+        />
       </NativeThemeProvider>
     </NativeLocaleProvider>
   </NativeFloatingWindowContext.Provider>

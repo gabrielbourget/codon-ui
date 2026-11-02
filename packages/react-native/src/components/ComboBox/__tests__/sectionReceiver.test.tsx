@@ -1,13 +1,7 @@
-import "../../../collection/__tests__/nativeReceipts"
-
+import { act, render, screen } from "@testing-library/react-native"
 import { createRef, useState, type ReactNode } from "react"
 import { StyleSheet, type View } from "react-native"
 
-import {
-  actWithNativeCollections as act,
-  renderWithNativeCollections as render,
-  screen,
-} from "../../../collection/__tests__/nativeReceipts"
 import { NativeFocusHost } from "../../../input/NativeFocusView"
 import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
@@ -15,6 +9,15 @@ import { NativeThemeProvider } from "../../../theme"
 import { NativeCollectionComboBox } from "../CollectionComboBox"
 import { NativeComboBoxItem } from "../ComboBoxItem"
 import { NativeComboBoxHeader, NativeComboBoxSection } from "../ComboBoxSection"
+
+jest.mock("../../../input/specs/CUICollectionRootNativeComponent", () => ({
+  __esModule: true,
+  default: jest.requireActual("react-native").View,
+}))
+jest.mock("../../../input/specs/CUIFieldBindingNativeComponent", () => ({
+  __esModule: true,
+  default: jest.requireActual("react-native").View,
+}))
 
 const hidden = { includeHiddenElements: true }
 const wrap = (children: ReactNode) => (
@@ -45,33 +48,60 @@ it("retains section/header original custom hosts and presentational group naming
         isOpen
         inputLabel="Query"
         closeLabel="Close"
-      >
-        <NativeComboBoxSection
-          id="metadata-section"
-          accessibilityLabel="Fallback"
-          ref={section}
-          style={{ padding: 6 }}
-          render={(props, values) => {
-            sectionValues.push(values)
-            return <NativeFocusHost {...props} testID="section" />
-          }}
-        >
-          <NativeComboBoxHeader
-            id="authored-heading"
-            ref={header}
-            style={{ color: "red" }}
-            render={(props, values) => {
-              headerValues.push(values)
-              return <NativeFocusHost {...props} testID="heading" />
-            }}
-          >
-            Choices
-          </NativeComboBoxHeader>
-          <NativeComboBoxItem id={0} textValue="Zero">
-            Zero
-          </NativeComboBoxItem>
-        </NativeComboBoxSection>
-      </NativeCollectionComboBox>,
+        collectionItems={[
+          {
+            key: "metadata-section",
+            type: "section",
+            value: null,
+            rendered: "",
+            textValue: "",
+            props: {},
+            render: () => (
+              <NativeComboBoxSection
+                accessibilityLabel="Fallback"
+                ref={section}
+                style={{ padding: 6 }}
+                render={(props, values) => {
+                  sectionValues.push(values)
+                  return <NativeFocusHost {...props} testID="section" />
+                }}
+              />
+            ),
+            children: [
+              {
+                key: "authored-heading",
+                type: "header",
+                value: null,
+                rendered: "Choices",
+                textValue: "Choices",
+                props: {},
+                render: () => (
+                  <NativeComboBoxHeader
+                    id="authored-heading"
+                    ref={header}
+                    style={{ color: "red" }}
+                    render={(props, values) => {
+                      headerValues.push(values)
+                      return <NativeFocusHost {...props} testID="heading" />
+                    }}
+                  >
+                    Choices
+                  </NativeComboBoxHeader>
+                ),
+              },
+              {
+                key: 0,
+                type: "item",
+                value: null,
+                rendered: "Zero",
+                textValue: "Zero",
+                props: {},
+                render: () => <NativeComboBoxItem textValue="Zero">Zero</NativeComboBoxItem>,
+              },
+            ],
+          },
+        ]}
+      />,
     ),
   )
   const group = screen.getByTestId("section", hidden),
@@ -109,18 +139,46 @@ it("retires group header references on actual ID replacement and removal", async
         isOpen
         inputLabel="Query"
         closeLabel="Close"
-      >
-        <NativeComboBoxSection id="section" accessibilityLabel="Fallback" ref={section} testID="section">
-          {phase === 2 ? null : (
-            <NativeComboBoxHeader key={phase} id={phase === 0 ? "before" : "after"} ref={header}>
-              Choices
-            </NativeComboBoxHeader>
-          )}
-          <NativeComboBoxItem id={0} textValue="Zero">
-            Zero
-          </NativeComboBoxItem>
-        </NativeComboBoxSection>
-      </NativeCollectionComboBox>
+        collectionItems={[
+          {
+            key: "section",
+            type: "section",
+            value: null,
+            rendered: "",
+            textValue: "",
+            props: {},
+            render: () => <NativeComboBoxSection accessibilityLabel="Fallback" ref={section} testID="section" />,
+            children: [
+              ...(phase === 2
+                ? []
+                : [
+                    {
+                      key: "heading",
+                      type: "header",
+                      value: null,
+                      rendered: "Choices",
+                      textValue: "Choices",
+                      props: {},
+                      render: () => (
+                        <NativeComboBoxHeader key={phase} id={phase === 0 ? "before" : "after"} ref={header}>
+                          Choices
+                        </NativeComboBoxHeader>
+                      ),
+                    },
+                  ]),
+              {
+                key: 0,
+                type: "item",
+                value: null,
+                rendered: "Zero",
+                textValue: "Zero",
+                props: {},
+                render: () => <NativeComboBoxItem textValue="Zero">Zero</NativeComboBoxItem>,
+              },
+            ],
+          },
+        ]}
+      />
     )
   }
   await render(wrap(<Harness />))

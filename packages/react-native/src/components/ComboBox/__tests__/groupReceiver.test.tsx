@@ -1,20 +1,17 @@
-import "../../../collection/__tests__/nativeReceipts"
+import "./visibleCollections"
 
 import { createRef, type ReactNode } from "react"
 import type { View } from "react-native"
 import { TextInput } from "react-native"
 
-import {
-  actWithNativeCollections as act,
-  renderWithNativeCollections as render,
-  screen,
-} from "../../../collection/__tests__/nativeReceipts"
 import { NATIVE_DEFAULT_SLOT } from "../../../collection/context"
 import { NativeFocusHost } from "../../../input/NativeFocusView"
 import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import { NativeThemeProvider } from "../../../theme"
 import { NativeComboBoxGroup, type TNativeComboBoxGroupRenderState } from "../CollectionComboBoxGroup"
 import { NativeComboBoxGroupContext } from "../collectionContext"
+
+import { actWithNativeCollections as act, renderWithNativeCollections as render, screen } from "./visibleCollections"
 
 const wrap = (children: ReactNode) => (
   <NativeThemeProvider>

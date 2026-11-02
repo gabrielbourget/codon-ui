@@ -5,6 +5,7 @@ import { Table as PublicTable } from "../src"
 import { NativeSelectableCollectionContext } from "../src/collection/context"
 import { FilterClauseRow } from "../src/components/Filtering/FilterClauseRow"
 import { buildNativeTableFilterDraft } from "../src/components/Table/filterPopoverDraft"
+import { createNativeTableHeaderModel, createNativeTableBodyModel } from "../src/components/Table/model"
 import { Table } from "../src/components/Table/Table"
 import { TableBody } from "../src/components/Table/TableBody"
 import { TableCell } from "../src/components/Table/TableCell"
@@ -108,18 +109,29 @@ export const linkedRow = (
 // @ts-expect-error Native link destinations retain the existing Link string contract.
 export const invalidLink = <TableRow item={rows[0]} columns={columns} href={0} />
 const composition = (
-  <Table accessibilityLabel="People" style={{ width: "100%" }}>
-    <TableHeader columns={columns} />
-    <TableBody
-      ref={view}
-      items={rows}
-      columns={columns}
-      rowKey={(row) => row.id}
-      renderCell={({ row, column }) => `${row.name}:${column.id}`}
-      renderEmptyState={() => "Empty"}
-    />
-  </Table>
+  <Table
+    accessibilityLabel="People"
+    style={{ width: "100%" }}
+    items={(options) => [
+      createNativeTableHeaderModel({ columns }, options),
+      createNativeTableBodyModel(
+        {
+          ref: view,
+          items: rows,
+          columns,
+          rowKey: (row) => row.id,
+          renderCell: ({ row, column }) => `${row.name}:${column.id}`,
+          renderEmptyState: () => "Empty",
+        },
+        options,
+      ),
+    ]}
+  />
 )
+export const authoredChildren: TNativeTableProps = {
+  // @ts-expect-error Logical membership is explicit; visible JSX is no longer a discovery protocol.
+  children: <TableHeader columns={columns} />,
+}
 const selection = (
   <Table
     selectionMode="multiple"

@@ -68,6 +68,7 @@ export const SelectFilterArgument = forwardRef<TNativeSelectRef, TSelectFilterAr
 SelectFilterArgument.displayName = "SelectFilterArgument"
 
 export type TMultiSelectFilterArgumentProps = TOptionArgumentProps & {
+  formFieldId?: string
   inputLabel: string
   closeLabel: string
   labels?: Pick<TFilterOptionLabels, "label" | "tagComboBox">
@@ -84,6 +85,8 @@ export const MultiSelectFilterArgument = forwardRef<TNativeTagComboBoxRef, TMult
       <FormField label={labels.label} customStyles={props.customFieldStyles}>
         <TagComboBox
           ref={ref}
+          formFieldId={props.formFieldId}
+          nativeAccessibilityText={{ label: labels.tagComboBox?.comboBox?.inputLabel ?? props.inputLabel }}
           items={props.availableFilterArguments ?? []}
           selectedItems={selected}
           getItemKey={(item) => item.id}

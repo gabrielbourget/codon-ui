@@ -5,13 +5,17 @@ import { Button, Input, Text } from "@codon-ui/react-native"
 import {
   SortParameterList,
   Table,
-  TableBody,
-  TableHeader,
   type SortParameter,
   type TableColumnMetadata,
   type TableFilterGroup,
   type TableSortInstruction,
 } from "@codon-ui/react-native"
+
+import {
+  nativeTableChildren,
+  createNativeTableHeaderModel,
+  createNativeTableBodyModel,
+} from "../../../../packages/react-native/src/components/Table/model"
 
 import { TableDragScene } from "./TableDragScene"
 import { TableVirtualizedScene } from "./TableVirtualizedScene"
@@ -159,14 +163,20 @@ export const TableScene = () => {
                 },
               },
             }}
-          >
-            <TableHeader columns={columns} />
-            <TableBody
-              items={empty ? [] : reversed ? [...people].reverse() : people}
-              columns={columns}
-              renderEmptyState={() => "No people"}
-            />
-          </Table>
+            items={(modelOptions) =>
+              nativeTableChildren(
+                createNativeTableHeaderModel({ columns: columns }, modelOptions),
+                createNativeTableBodyModel(
+                  {
+                    items: empty ? [] : reversed ? [...people].reverse() : people,
+                    columns: columns,
+                    renderEmptyState: () => "No people",
+                  },
+                  modelOptions,
+                ),
+              )
+            }
+          />
         </ScrollView>
       </ScrollView>
       <Text testID="table-scene-owner">

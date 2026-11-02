@@ -1,3 +1,4 @@
+import { useMemo } from "react"
 import { ScrollView, View } from "react-native"
 
 import { useNativeTheme } from "../../theme"
@@ -26,8 +27,30 @@ export const QueryActiveFilters = (props: TNativeQueryActiveFiltersProps) => {
   const { controller, criteria, labels } = props
   const theme = useNativeTheme()
   const request = useFilterRequest(props, false)
-  const clauses = controller.draft.filterGroups.flatMap((group) =>
-    group.clauses.map((clause) => ({ id: clause.id, criteriaName: group.criteriaName })),
+  const items = useMemo(
+    () =>
+      controller.draft.filterGroups.flatMap((group) =>
+        group.clauses.map((clause) => ({
+          key: clause.id,
+          type: "item",
+          value: clause,
+          props: { id: clause.id, textValue: group.criteriaName },
+          textValue: group.criteriaName,
+          rendered: null,
+          render: () => (
+            <Tag
+              id={clause.id}
+              textValue={group.criteriaName}
+              geometry="round"
+              color={theme.actions.primary.background}
+              customStyles={{ borderWidth: 0 }}
+            >
+              <Text variant="b11">{group.criteriaName}</Text>
+            </Tag>
+          ),
+        })),
+      ),
+    [controller.draft.filterGroups, theme.actions.primary.background],
   )
   return (
     <ScrollView
@@ -40,32 +63,19 @@ export const QueryActiveFilters = (props: TNativeQueryActiveFiltersProps) => {
     >
       <View style={{ width: "100%", flexDirection: "row", flexWrap: "wrap", gap: theme.spacing.unit }}>
         <Text variant="b10">{labels.activeFilters.headingLabel}</Text>
-        {clauses.length === 0 ? (
+        {items.length === 0 ? (
           <PlaceholderText>{labels.activeFilters.noFiltersFallback}</PlaceholderText>
         ) : (
           <TagGroup
             accessibilityLabel={labels.activeFilters.activeFiltersAriaLabel}
-            items={clauses}
-            getKey={(item) => item.id}
+            items={items}
             selectionMode="none"
             onRemove={(keys) =>
               request((current) => {
                 for (const key of keys) if (typeof key === "string") current.controller.removeFilterClause(key)
               })()
             }
-          >
-            {(clause) => (
-              <Tag
-                id={clause.id}
-                textValue={clause.criteriaName}
-                geometry="round"
-                color={theme.actions.primary.background}
-                customStyles={{ borderWidth: 0 }}
-              >
-                <Text variant="b11">{clause.criteriaName}</Text>
-              </Tag>
-            )}
-          </TagGroup>
+          />
         )}
       </View>
       {controller.draft.filterGroups.length > 0 && (

@@ -10,6 +10,8 @@ import {
 } from "../../../collection/__tests__/nativeReceipts"
 import { resolveNativeTheme } from "../../../theme/defaults"
 
+import { tagItem } from "./tagModel"
+
 beforeEach(() => {
   jest.useFakeTimers()
   jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(false)
@@ -24,11 +26,19 @@ it("animates grouped selection paint over250ms while the authored shadow changes
   const theme = resolveNativeTheme("light")
   const node = (selected: boolean) => (
     <NativeThemeProvider>
-      <TagGroup selectionMode="multiple" selectedKeys={selected ? ["a"] : []} onRemove={() => {}}>
-        <TagGroupItem id="a" testID="paint-tag" raised={selected}>
-          Alpha
-        </TagGroupItem>
-      </TagGroup>
+      <TagGroup
+        selectionMode="multiple"
+        selectedKeys={selected ? ["a"] : []}
+        onRemove={() => {}}
+        items={[
+          tagItem(
+            "a",
+            <TagGroupItem id="a" testID="paint-tag" raised={selected}>
+              Alpha
+            </TagGroupItem>,
+          ),
+        ]}
+      />
     </NativeThemeProvider>
   )
   const paint = () => StyleSheet.flatten(screen.getByTestId("paint-tag").props.style)
@@ -58,11 +68,19 @@ it("retargets interrupted paint without changing selection and honors Reduce Mot
   const theme = resolveNativeTheme("light")
   const change = jest.fn()
   const node = (selected: boolean) => (
-    <TagGroup selectionMode="multiple" selectedKeys={selected ? ["a"] : []} onSelectionChange={change}>
-      <TagGroupItem id="a" testID="interrupted-tag">
-        Alpha
-      </TagGroupItem>
-    </TagGroup>
+    <TagGroup
+      selectionMode="multiple"
+      selectedKeys={selected ? ["a"] : []}
+      onSelectionChange={change}
+      items={[
+        tagItem(
+          "a",
+          <TagGroupItem id="a" testID="interrupted-tag">
+            Alpha
+          </TagGroupItem>,
+        ),
+      ]}
+    />
   )
   const paint = () => StyleSheet.flatten(screen.getByTestId("interrupted-tag").props.style).backgroundColor
   const view = await render(node(false))

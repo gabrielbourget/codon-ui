@@ -8,6 +8,8 @@ import { NativeFormRegistry, nativeFormRevision, type TNativeFormFieldBinding } 
 import type { TNativeFormProps } from "../types"
 
 const setup = () => {
+  let order = ["outside", "beta", "alpha"]
+  let hidden = false
   const registry = new NativeFormRegistry()
   const form = {} as View
   let original: View | null = form
@@ -60,13 +62,15 @@ const setup = () => {
       mountRevision: "model",
       complete: true,
       attached: true,
-      active: true,
+      active: !(hidden && id === "beta"),
       metadataOnly: true,
       originalClass: "OriginalModelEditor",
       error: "",
     })
     const binding: TNativeFormFieldBinding = {
       descriptor,
+      fieldId: id,
+      formOwnerId: "form-owner",
       data: {
         entries: [[data[id].name, data[id].text]],
         isDisabled: false,
@@ -92,76 +96,41 @@ const setup = () => {
       descriptor: {
         ownerId: "form-owner",
         descriptorId: "form",
-        descriptorRevision: nativeFormRevision("form-owner", 2, registry.getRevision()),
+        descriptorRevision: nativeFormRevision("form-owner", 2, registry.getRevision(), order),
         target: 2,
         metadataTarget: 3,
         formId: "owner",
       },
       fieldRevision: registry.getRevision(),
+      fieldOrder: order,
       original: form,
+      mount: () => null,
       current: () => original,
       props: () => props,
     })
   }
   root()
-  let hidden = false,
-    mutate: ((value: ReturnType<typeof packet>) => void) | null = null
-  const packet = (request: { target: number; requestId: string }) => {
-    const rootDescriptor = registry.forms.get("form")!.descriptor
-    const list = registry.fields
-    const nodes = [
-      { target: 1, parent: 0, component: "RootView" },
-      { target: 10, parent: 1, component: "View" },
-      { target: 11, parent: 10, component: "CUIFieldBinding" },
-      { target: 12, parent: 10, component: "TextInput" },
-      { target: 2, parent: 1, component: "View" },
-      { target: 3, parent: 2, component: "CUIFormRoot" },
-      { target: 7, parent: 2, component: "View", hidden },
-      { target: 8, parent: 7, component: "CUIFieldBinding" },
-      { target: 9, parent: 7, component: "TextInput" },
-      { target: 4, parent: 2, component: "View" },
-      { target: 5, parent: 4, component: "CUIFieldBinding" },
-      { target: 6, parent: 4, component: "TextInput" },
-      { target: 13, parent: 2, component: "View" },
-      { target: 14, parent: 13, component: "CUIFieldBinding" },
-      { target: 15, parent: 13, component: "TextInput" },
-    ].map((node) => ({ hidden: false, displayNone: false, ...node }))
-    return {
-      documentId: "native-model-doc",
-      rootTarget: 1,
-      revision: "9",
-      surfaceId: 11,
-      ...request,
-      nodes,
-      forms: [{ ...rootDescriptor, position: 5 }],
-      fields: (["outside", "beta", "alpha", "unassociated"] as const).map((id) => ({
-        ...list.get(id)!.descriptor,
-        position: nodes.findIndex((node) => node.target === list.get(id)!.descriptor.metadataTarget),
-      })),
-    }
-  }
-  const read = jest.fn(async (request: { target: number; requestId: string }) => {
-    const value = packet(request)
-    mutate?.(value)
-    return JSON.stringify(value)
-  })
+  const admit = jest.fn(async () => true)
   const focus = jest.fn(
     async (_editor: TextInput | View, _scope: import("../fieldFocus").TNativeFormFieldFocusRequest) => ({
       requested: true,
       current: true,
     }),
   )
-  const controller = new NativeFormController(registry, read, focus)
+  const controller = new NativeFormController(registry, admit, focus)
   return {
     registry,
     form,
     controller,
     focus,
-    read,
+    admit,
     callbacks,
     publish,
     root,
-    packet,
+    order: (next: string[]) => {
+      order = next
+      root()
+    },
     remove: (id: string) => releases.get(id)?.(),
     retire: () => {
       original = null
@@ -172,13 +141,10 @@ const setup = () => {
     hidden: () => {
       hidden = true
     },
-    corrupt: (next: NonNullable<typeof mutate>) => {
-      mutate = next
-    },
   }
 }
 
-it("submits duplicate entries in actual native order with external associations and original form identity", async () => {
+it("submits duplicate entries in declared form order with external associations and original form identity", async () => {
   const value = setup(),
     submit = jest.fn()
   value.owner({ onSubmit: submit })
@@ -335,7 +301,7 @@ it.each(["form", "field", "readonly"] as const)("retains %s aria/readonly submis
   )
 })
 
-it("requests reset in native order before the form callback and preserves the programmatic origin", async () => {
+it("requests reset in declared order before the form callback and preserves the programmatic origin", async () => {
   const value = setup(),
     order: string[] = []
   for (const id of ["outside", "beta", "alpha"])
@@ -364,53 +330,59 @@ it("stops reset requests immediately when an owner retires the original form", a
   expect(reset).not.toHaveBeenCalled()
 })
 
-it("retires a request if committed field data changes while native ownership is being read", async () => {
+it("retires a request if committed field data changes while native originals are being admitted", async () => {
   const value = setup(),
     submit = jest.fn()
   value.owner({ onSubmit: submit })
-  let resolve!: (text: string) => void
+  let resolve!: (accepted: boolean) => void
   const controller = new NativeFormController(
     value.registry,
-    (request) =>
+    () =>
       new Promise((done) => {
-        resolve = () => done(JSON.stringify(value.packet(request)))
+        resolve = done
       }),
   )
   const pending = controller.request("submit", { origin: "programmatic", form: value.form })
   value.publish("alpha", { entries: [["same", "new"]] })
   value.root()
-  resolve("")
+  resolve(true)
   expect((await pending).status).toBe("retired")
   expect(submit).not.toHaveBeenCalled()
 })
 
-it("rejects partial/foreign native descriptors rather than returning empty successful data", async () => {
-  const value = setup(),
-    submit = jest.fn()
-  value.owner({ onSubmit: submit })
-  value.corrupt((packet) => {
-    packet.fields[0].descriptorRevision = "foreign"
-  })
+it.each([
+  ["outside", "beta"],
+  ["outside", "beta", "alpha", "missing"],
+  ["outside", "beta", "beta"],
+])("rejects incomplete or ambiguous declared order %j", async (...order) => {
+  const value = setup()
+  value.order(order)
   expect((await value.controller.request("submit", { origin: "programmatic", form: value.form })).status).toBe(
     "retired",
   )
-  expect(submit).not.toHaveBeenCalled()
+  expect(value.admit).not.toHaveBeenCalled()
+})
+
+it("uses declared reorder independently of field registration order", async () => {
+  const value = setup()
+  value.order(["alpha", "outside", "beta"])
+  const result = await value.controller.request("submit", { origin: "programmatic", form: value.form })
+  expect(result.request?.entries.map((entry) => entry[1])).toEqual(["a", "external", "b"])
 })
 
 it("retains the exact original native event only after a current native admission", async () => {
   const value = setup(),
     event = { nativeEvent: { kind: "activation" }, defaultPrevented: false } as TNativePressEvent
-  const admit = jest.fn(async () => true)
   const result = await value.controller.request("submit", {
     origin: "native",
     sourceEvent: event,
-    target: 6,
+    formOwnerId: "form-owner",
+    actionLease: {} as import("../../input/specs/CUIFocusViewNativeComponent").NativeFormActionStatus,
     isCurrent: () => true,
-    admit,
   })
   expect(result.status).toBe("submitted")
   expect(result.request?.sourceEvent).toBe(event)
-  expect(admit).toHaveBeenCalledTimes(1)
+  expect(value.admit).toHaveBeenCalledTimes(1)
 })
 
 it("does not issue callbacks when native admission is denied or the original event is prevented", async () => {
@@ -421,14 +393,15 @@ it("does not issue callbacks when native admission is denied or the original eve
   const source = {
     origin: "native" as const,
     sourceEvent: event,
-    target: 6,
+    formOwnerId: "form-owner",
+    actionLease: {} as import("../../input/specs/CUIFocusViewNativeComponent").NativeFormActionStatus,
     isCurrent: () => true,
-    admit: jest.fn(async () => false),
   }
+  value.admit.mockResolvedValueOnce(false)
   expect((await value.controller.request("submit", source)).status).toBe("retired")
   const prevented = { ...event, defaultPrevented: true } as TNativePressEvent
   expect((await value.controller.request("submit", { ...source, sourceEvent: prevented })).status).toBe("retired")
-  expect(source.admit).toHaveBeenCalledTimes(1)
+  expect(value.admit).toHaveBeenCalledTimes(1)
   expect(submit).not.toHaveBeenCalled()
 })
 
@@ -443,7 +416,7 @@ it("rejects a new committed field until the native root barrier catches up", asy
   ).toEqual(["same", "new"])
 })
 
-it("reads the latest committed form callback after an asynchronous native document read", async () => {
+it("reads the latest committed form callback after an asynchronous original-host admission", async () => {
   const value = setup(),
     first = jest.fn(),
     latest = jest.fn()
@@ -451,10 +424,9 @@ it("reads the latest committed form callback after an asynchronous native docume
   let finish!: () => void
   const controller = new NativeFormController(
     value.registry,
-    (request) =>
+    () =>
       new Promise((resolve) => {
-        const encoded = JSON.stringify(value.packet(request))
-        finish = () => resolve(encoded)
+        finish = () => resolve(true)
       }),
   )
   const pending = controller.request("submit", { origin: "programmatic", form: value.form })
@@ -484,4 +456,44 @@ it("does not move focus after an invalid callback retires its form", async () =>
     "retired",
   )
   expect(value.focus).not.toHaveBeenCalled()
+})
+
+it("does not adopt an unrelated external field whose explicit form is unavailable", async () => {
+  const value = setup()
+  const unrelated = value.registry.fields.get("unassociated")!
+  value.publish("unassociated", {}, { descriptor: { ...unrelated.descriptor, formId: "unmounted-owner" } })
+  value.root()
+  const result = await value.controller.request("submit", { origin: "programmatic", form: value.form })
+  expect(result.status).toBe("submitted")
+  expect(result.request?.entries).toEqual([
+    ["same", "external"],
+    ["same", "b"],
+    ["same", "a"],
+  ])
+})
+
+it("rejects ambiguous logical field IDs before native admission", async () => {
+  const value = setup()
+  value.publish("alpha", {}, { fieldId: "beta" })
+  value.order(["outside", "beta"])
+  expect((await value.controller.request("submit", { origin: "programmatic", form: value.form })).status).toBe(
+    "retired",
+  )
+  expect(value.admit).not.toHaveBeenCalled()
+})
+
+it("requires declared order to be updated when a field unmounts", async () => {
+  const value = setup()
+  value.remove("alpha")
+  value.root()
+  expect((await value.controller.request("submit", { origin: "programmatic", form: value.form })).status).toBe(
+    "retired",
+  )
+  value.order(["beta", "outside"])
+  expect(
+    (await value.controller.request("submit", { origin: "programmatic", form: value.form })).request?.entries,
+  ).toEqual([
+    ["same", "b"],
+    ["same", "external"],
+  ])
 })

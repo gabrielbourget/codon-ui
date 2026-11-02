@@ -1,16 +1,11 @@
-import "../../../collection/__tests__/nativeReceipts"
+import "./visibleCollections"
 
 import { act as actWithoutNativeCollections } from "@testing-library/react-native"
 import { createRef, useContext, useState } from "react"
 import * as RN from "react-native"
 
-import {
-  actWithNativeCollections as act,
-  fireEventWithNativeCollections as fireEvent,
-  renderWithNativeCollections as render,
-  screen,
-} from "../../../collection/__tests__/nativeReceipts"
 import { DefaultNativeCollectionRenderer, NativeCollectionRendererContext } from "../../../collection/renderer"
+import type { TNativeCollectionItem } from "../../../collection/snapshot"
 import { NativeFocusHost } from "../../../input/NativeFocusView"
 import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
@@ -25,15 +20,40 @@ import {
   NativeComboBoxStateContext,
 } from "../collectionContext"
 import type { TNativeCollectionComboBoxStyleState } from "../collectionTypes"
-import { NativeComboBoxItem } from "../ComboBoxItem"
+import { NativeComboBoxItem, type TNativeComboBoxItemProps } from "../ComboBoxItem"
 import { NativeComboBoxHeader, NativeComboBoxSection } from "../ComboBoxSection"
 import { FormValidationContext } from "../state/useFormValidationState"
+
+import {
+  actWithNativeCollections as act,
+  confirmNativeCollections,
+  pendingNativeCollectionActions,
+  fireEventWithNativeCollections as fireEvent,
+  renderWithNativeCollections as render,
+  screen,
+} from "./visibleCollections"
 
 const ITEMS = [
   { id: 0, label: "Zero" },
   { id: "", label: "Empty" },
   { id: "b", label: "Beta" },
 ]
+const modelItem = (
+  item: { id: string | number; label: string },
+  props: TNativeComboBoxItemProps & React.RefAttributes<RN.View> = {},
+): TNativeCollectionItem<typeof item> => ({
+  key: item.id,
+  type: "item",
+  value: item,
+  rendered: item.label,
+  textValue: item.label,
+  props,
+  render: (node) => (
+    <NativeComboBoxItem {...node.props} textValue={item.label}>
+      {props.children ?? item.label}
+    </NativeComboBoxItem>
+  ),
+})
 const hidden = { includeHiddenElements: true }
 const frames = new Map<number, Parameters<typeof requestAnimationFrame>[0]>()
 let sequence = 0
@@ -181,18 +201,13 @@ it.each([
           dependencies={scenario === "pending" ? [retired] : undefined}
           isDisabled={retired && scenario.startsWith("disabled")}
           isReadOnly={retired && (scenario === "read-only" || scenario === "late-read-only")}
-        >
-          {(item) => (
-            <NativeComboBoxItem
-              id={item.id}
-              ref={item.id === 0 ? option : undefined}
-              textValue={item.label}
-              isPending={retired && scenario === "pending"}
-            >
-              {item.label}
-            </NativeComboBoxItem>
+          collectionItems={ITEMS.map((item) =>
+            modelItem(item, {
+              ref: item.id === 0 ? option : undefined,
+              isPending: retired && scenario === "pending",
+            }),
           )}
-        </NativeCollectionComboBox>
+        />
       )
     }
     await render(f.node(<Harness />))
@@ -352,52 +367,65 @@ it("binds all five sectioned options to the original list target in linked readi
         inputLabel="Query"
         closeLabel="Close"
         isOpen
-      >
-        <NativeComboBoxItem id="" textValue="Empty" testID="ordered-empty">
-          Empty
-        </NativeComboBoxItem>
-        <NativeComboBoxSection id="first-section" accessibilityLabel="First section">
-          <NativeComboBoxItem id={0} textValue="Number zero" testID="ordered-number">
-            Number zero
-          </NativeComboBoxItem>
-          <NativeComboBoxItem id="0" textValue="String zero" testID="ordered-string">
-            String zero
-          </NativeComboBoxItem>
-        </NativeComboBoxSection>
-        <NativeComboBoxSection id="second-section">
-          <NativeComboBoxHeader>Second section</NativeComboBoxHeader>
-          <NativeComboBoxItem id="third" textValue="Third" testID="ordered-third">
-            Third
-          </NativeComboBoxItem>
-          <NativeComboBoxItem id="fourth" textValue="Fourth" testID="ordered-fourth">
-            Fourth
-          </NativeComboBoxItem>
-        </NativeComboBoxSection>
-      </NativeCollectionComboBox>,
+        collectionItems={[
+          modelItem({ id: "", label: "Empty" }, { testID: "ordered-empty" }),
+          {
+            key: "first-section",
+            type: "section",
+            value: null,
+            rendered: "",
+            textValue: "",
+            props: {},
+            render: () => <NativeComboBoxSection accessibilityLabel="First section" />,
+            children: [
+              modelItem({ id: 0, label: "Number zero" }, { testID: "ordered-number" }),
+              modelItem({ id: "0", label: "String zero" }, { testID: "ordered-string" }),
+            ],
+          },
+          {
+            key: "second-section",
+            type: "section",
+            value: null,
+            rendered: "",
+            textValue: "",
+            props: {},
+            render: () => <NativeComboBoxSection />,
+            children: [
+              {
+                key: "heading",
+                type: "header",
+                value: null,
+                rendered: "Second section",
+                textValue: "Second section",
+                props: {},
+                render: () => <NativeComboBoxHeader>Second section</NativeComboBoxHeader>,
+              },
+              modelItem({ id: "third", label: "Third" }, { testID: "ordered-third" }),
+              modelItem({ id: "fourth", label: "Fourth" }, { testID: "ordered-fourth" }),
+            ],
+          },
+        ]}
+      />,
     ),
   )
   await f.ready()
   const root = screen.getByTestId("combo-box-list", hidden)
   expect(JSON.parse(root.props.nativeCollectionSemantics)).toEqual({ kind: "list-root", count: 5 })
-  const binding = JSON.parse(root.props.nativeCollectionBinding)
-  expect(binding.descriptorId).toBe("")
-  const field = screen.container.queryAll(
-    (node) => typeof node.props.semanticBinding === "string" && node.props.semanticBinding.length > 0,
-  )[0]
-  const listAlias = JSON.parse(field.props.semanticBinding).aliases.find(
-    (alias: { id: string }) => alias.id === root.props.nativeID,
-  )
-  expect(listAlias.target).toBeGreaterThan(0)
+  const publisher = screen.container.queryAll((host) => typeof host.props.publication === "string")[0]
+  const publication = JSON.parse(publisher.props.publication)
+  expect(root.props.nativeCollectionBinding).toBeTruthy()
+  expect(publication.root.tag).toBeGreaterThan(0)
+  expect(publication.receivers).toHaveLength(5)
   for (const [ordinal, name] of ["empty", "number", "string", "third", "fourth"].entries()) {
     const option = screen.getByTestId(`ordered-${name}`, hidden)
     expect(JSON.parse(option.props.nativeCollectionSemantics)).toEqual({
       kind: "list-item",
-      parentTarget: listAlias.target,
+      parentTarget: publication.root.tag,
       ordinal,
     })
-    const itemBinding = JSON.parse(option.props.nativeCollectionBinding)
-    expect(itemBinding.rootRevision).toBe(binding.rootRevision)
-    expect(itemBinding.descriptorId).not.toBe("")
+    expect(option.props.nativeCollectionBinding).toBeTruthy()
+    expect(option.props.nativeCollectionBinding).not.toBe(root.props.nativeCollectionBinding)
+    expect(publication.receivers[ordinal].itemId).toBeTruthy()
   }
 })
 
@@ -448,7 +476,7 @@ it("connects the complete state and original values to committed options and rep
   expect(state.inputValue).toBe("Empty")
 })
 
-it("receives actual declarative options and preserves composite add/clear ordering", async () => {
+it("receives explicit data options and preserves composite add/clear ordering", async () => {
   const f = setup(),
     events: string[] = [],
     change = jest.fn()
@@ -468,9 +496,11 @@ it("receives actual declarative options and preserves composite add/clear orderi
         isOpen
         customComboBoxProps={{ onInputChange: (value) => events.push(`nested:${value}`) }}
       >
-        <NativeComboBoxItem id="" textValue="Empty" testID="static-empty">
-          Empty
-        </NativeComboBoxItem>
+        {(item) => (
+          <NativeComboBoxItem textValue={item.label} testID={item.id === "" ? "static-empty" : undefined}>
+            {item.label}
+          </NativeComboBoxItem>
+        )}
       </TagComboBox>,
     ),
   )
@@ -752,7 +782,7 @@ it("preserves parent-controlled filtering without replacing the wrapper's origin
   expect(screen.getByTestId("combo-box-input")).toHaveDisplayValue("missing")
 })
 
-it("follows linked collection order after opaque parent-controlled reordering", async () => {
+it("follows linked collection order after explicit parent-controlled reordering", async () => {
   const f = setup(),
     editor = createRef<RN.TextInput>()
   const native = jest.requireActual("react-native") as typeof RN
@@ -772,33 +802,39 @@ it("follows linked collection order after opaque parent-controlled reordering", 
     state = useContext(NativeComboBoxStateContext)!
     return null
   }
-  const Opaque = () => {
+  const Harness = () => {
     const [reversed, setReversed] = useState(false)
     reverse = () => setReversed(true)
-    return (reversed ? [...values].reverse() : values).map((item) => (
-      <NativeComboBoxItem key={item.id} id={item.id} textValue={item.label}>
-        <Capture />
-        {item.label}
-      </NativeComboBoxItem>
-    ))
+    const ordered = reversed ? [...values].reverse() : values
+    return (
+      <NativeCollectionComboBox
+        items={ordered}
+        getKey={(item) => item.id}
+        getTextValue={(item) => item.label}
+        value={null}
+        inputValue=""
+        inputRef={editor}
+        isOpen
+        accessibilityLabel="Choices"
+        inputLabel="Query"
+        closeLabel="Close"
+        collectionItems={ordered.map((item) =>
+          modelItem(item, {
+            children: (
+              <>
+                <Capture />
+                {item.label}
+              </>
+            ),
+          }),
+        )}
+      />
+    )
   }
   await render(
     f.node(
       <NativeComboBoxContext.Provider value={{ items: values }}>
-        <NativeCollectionComboBox
-          items={values}
-          getKey={(item) => item.id}
-          getTextValue={(item) => item.label}
-          value={null}
-          inputValue=""
-          inputRef={editor}
-          isOpen
-          accessibilityLabel="Choices"
-          inputLabel="Query"
-          closeLabel="Close"
-        >
-          <Opaque />
-        </NativeCollectionComboBox>
+        <Harness />
       </NativeComboBoxContext.Provider>,
     ),
   )
@@ -920,7 +956,7 @@ it("retains the custom picker root, complete render state and original field/roo
   expect(screen.getByTestId("tag-combobox").props.id).toBeUndefined()
   expect(screen.getByTestId("custom-picker").props.id).toBeUndefined()
   expect(screen.getByTestId("combo-box-input").props.nativeID).toBe("source-field")
-  expect(screen.getByTestId("combo-box-input").props.accessibilityLabel).toBe("Source field")
+  expect(screen.getByTestId("combo-box-input").props.accessibilityLabel).toBe("Source field, Required, Invalid")
   expect(screen.getByTestId("combo-box-trigger").props.accessibilityLabel).toBe("Show suggestions")
   expect(screen.getByTestId("combo-box-group").props.accessibilityLabel).toBe("ComboBox Input Button Group")
   expect(flags).toEqual({ isOpen: false, isDisabled: false, isInvalid: true, isRequired: true, isReadOnly: false })
@@ -1217,22 +1253,25 @@ it.each([false, true])(
   },
 )
 
-it.each(["current", "readonly", "query"] as const)(
+it.each(["current", "readonly", "query", "refused", "receiver-replaced"] as const)(
   "holds virtual submit for its actual current row, %s",
   async (change) => {
     const f = setup(),
       selected = jest.fn(),
-      requested = jest.fn()
-    let show!: () => void, retire!: () => void
+      requested = jest.fn(),
+      originalOption = createRef<RN.View>()
+    let show!: () => void, hide!: () => void, retire!: () => void
     let state!: NonNullable<React.ContextType<typeof NativeComboBoxStateContext>>
     const Capture = () => {
       state = useContext(NativeComboBoxStateContext)!
       return null
     }
+    const explicitItems = ITEMS.map((item) => modelItem(item, { ref: item.id === "b" ? originalOption : undefined }))
     const Owner = () => {
       const [visible, setVisible] = useState(false),
         [retired, setRetired] = useState(false)
       show = () => setVisible(true)
+      hide = () => setVisible(false)
       retire = () => setRetired(true)
       return (
         <NativeCollectionRendererContext.Provider
@@ -1251,6 +1290,7 @@ it.each(["current", "readonly", "query"] as const)(
         >
           <NativeCollectionComboBox
             items={ITEMS}
+            collectionItems={explicitItems}
             getKey={(item) => item.id}
             getTextValue={(item) => item.label}
             value={null}
@@ -1282,8 +1322,53 @@ it.each(["current", "readonly", "query"] as const)(
     )
     expect(selected).not.toHaveBeenCalled()
     expect(requested).toHaveBeenCalledWith("b")
-    if (change !== "current") await act(retire)
-    await act(show)
+    if (change === "readonly" || change === "query") await act(retire)
+    await actWithoutNativeCollections(show)
+    expect(selected).not.toHaveBeenCalled()
+    expect(pendingNativeCollectionActions()).toHaveLength(0)
+    if (change === "receiver-replaced") {
+      const firstOriginal = originalOption.current
+      expect(firstOriginal).not.toBeNull()
+      await actWithoutNativeCollections(hide)
+      expect(originalOption.current).toBeNull()
+      await actWithoutNativeCollections(show)
+      expect(originalOption.current).not.toBeNull()
+      expect(originalOption.current).not.toBe(firstOriginal)
+    }
+    // Original refs alone cannot submit: the first source-native receiver acknowledgement is deliberately delayed.
+    await confirmNativeCollections()
+    const pending = pendingNativeCollectionActions()
+    if (change === "current" || change === "refused") expect(pending).toHaveLength(2)
+    else expect(pending).toHaveLength(0)
+    if (change === "refused") {
+      await actWithoutNativeCollections(() => pending.forEach((request) => request.respond(false)))
+      const publisher = screen.container.queryAll((host) => typeof host.props.publication === "string")[0]
+      const publication = JSON.parse(publisher.props.publication)
+      const recovered = {
+        intent: publication.intent,
+        publisher: `source-test-publisher:${publication.model.ownerId}`,
+        instance: 1,
+        lifetime: "source-recovered-lifetime",
+        registrations: [publication.root, ...publication.receivers].map(({ id, tag }: { id: string; tag: number }) => ({
+          id,
+          tag,
+          binding: `source-recovered-lease:${id}`,
+        })),
+      }
+      await actWithoutNativeCollections(() =>
+        publisher.props.onNativeCollectionCommit({
+          nativeEvent: { data: JSON.stringify({ ...recovered, sequence: 1000, registrations: [] }) },
+        }),
+      )
+      await actWithoutNativeCollections(() =>
+        publisher.props.onNativeCollectionCommit({
+          nativeEvent: { data: JSON.stringify({ ...recovered, sequence: 1001 }) },
+        }),
+      )
+      await act(() => {})
+      expect(pendingNativeCollectionActions()).toHaveLength(0)
+      expect(selected).not.toHaveBeenCalled()
+    } else await act(() => {})
     expect(selected.mock.calls).toEqual(change === "current" ? [["b"], ["b"]] : [])
   },
 )
@@ -1306,25 +1391,20 @@ it.each(["selection", "action", "link", "action-link"])(
           closeLabel="Close"
           onChange={(key) => trace.push(["select", key])}
           onOpenChange={(value) => trace.push(["open", value])}
-        >
-          {(item) => (
-            <NativeComboBoxItem
-              id={item.id}
-              textValue={item.label}
-              testID="action-option"
-              href={kind.includes("link") ? "/zero" : undefined}
-              onAction={kind.includes("action") ? () => trace.push(["action"]) : undefined}
-              onNavigate={(href) => trace.push(["navigate", href])}
-              onPressChange={(value) => trace.push(["change", value])}
-              onPressStart={() => trace.push(["start"])}
-              onPressUp={() => trace.push(["up"])}
-              onPressEnd={() => trace.push(["end"])}
-              onPress={() => trace.push(["press"])}
-            >
-              {item.label}
-            </NativeComboBoxItem>
-          )}
-        </NativeCollectionComboBox>,
+          collectionItems={[
+            modelItem(ITEMS[0], {
+              testID: "action-option",
+              href: kind.includes("link") ? "/zero" : undefined,
+              onAction: kind.includes("action") ? () => trace.push(["action"]) : undefined,
+              onNavigate: (href) => trace.push(["navigate", href]),
+              onPressChange: (value) => trace.push(["change", value]),
+              onPressStart: () => trace.push(["start"]),
+              onPressUp: () => trace.push(["up"]),
+              onPressEnd: () => trace.push(["end"]),
+              onPress: () => trace.push(["press"]),
+            }),
+          ]}
+        />,
       ),
     )
     await f.ready()
@@ -1391,19 +1471,14 @@ it.each(
         closeLabel="Close"
         onChange={(key) => trace.push(["select", key])}
         onOpenChange={(open) => trace.push(["open", open])}
-      >
-        {(item) => (
-          <NativeComboBoxItem
-            id={item.id}
-            textValue={item.label}
-            href={kind.includes("link") ? "/zero" : undefined}
-            onAction={kind.includes("action") ? () => trace.push(["action"]) : undefined}
-            onNavigate={(href) => trace.push(["navigate", href])}
-          >
-            {item.label}
-          </NativeComboBoxItem>
-        )}
-      </NativeCollectionComboBox>,
+        collectionItems={[
+          modelItem(ITEMS[0], {
+            href: kind.includes("link") ? "/zero" : undefined,
+            onAction: kind.includes("action") ? () => trace.push(["action"]) : undefined,
+            onNavigate: (href) => trace.push(["navigate", href]),
+          }),
+        ]}
+      />,
     ),
   )
   await f.ready()
@@ -1561,20 +1636,15 @@ it.each(["current", "synchronous", "query", "href", "unmount"])(
           dependencies={[retired]}
           inputLabel="Query"
           closeLabel="Close"
-        >
-          {(item) => (
-            <NativeComboBoxItem
-              id={item.id}
-              textValue={item.label}
-              testID="native-link"
-              href={retired && mode === "href" ? "codon://replacement" : url}
-              accessibilityHint={retired && mode === "href" ? "codon://replacement" : url}
-              onNavigationError={report}
-            >
-              {item.label}
-            </NativeComboBoxItem>
-          )}
-        </NativeCollectionComboBox>
+          collectionItems={[
+            modelItem(ITEMS[0], {
+              testID: "native-link",
+              href: retired && mode === "href" ? "codon://replacement" : url,
+              accessibilityHint: retired && mode === "href" ? "codon://replacement" : url,
+              onNavigationError: report,
+            }),
+          ]}
+        />
       )
     }
     await render(f.node(<Harness />))

@@ -1,81 +1,53 @@
 import {
   encodeNativeFieldSemantics,
   encodeNativeDateFieldSemantics,
+  nativeFieldAccessibilityProps,
   NATIVE_FIELD_SEMANTIC_LABELS,
-  type TNativeFieldSemanticBinding,
 } from "../semantics"
 
-const binding = (): TNativeFieldSemanticBinding => ({
-  revision: "semantic:1",
-  aliases: [{ id: "generated", target: 12 }],
-  labelledBy: ["label", "label"],
-  describedBy: [],
-  errorMessageBy: [],
-  detailsBy: [],
-  controls: [],
-  activeDescendant: null,
+const frame = () => ({
+  revision: "field:1",
+  text: {
+    label: "Account",
+    description: "Choose an account",
+    errorMessage: "Account required",
+    details: "Personal or business",
+  },
   disabled: false,
   readOnly: false,
-  required: false,
-  invalid: false,
-  expanded: false,
+  required: true,
+  invalid: true,
+  expanded: true,
   labels: NATIVE_FIELD_SEMANTIC_LABELS,
+  activeDescendant: { target: 8, binding: "admitted-option" },
 })
-
-it("keeps the existing fourteen-field protocol intact and admits only an explicit segmented field", () => {
-  expect(Object.keys(JSON.parse(encodeNativeFieldSemantics(binding())))).toHaveLength(14)
-  const result = JSON.parse(encodeNativeDateFieldSemantics({ ...binding(), dateField: { firstEditableTarget: 12 } }))
-  expect(Object.keys(result)).toHaveLength(15)
-  expect(result.dateField).toEqual({ firstEditableTarget: 12 })
-  expect(result).toMatchObject({ expanded: false, controls: [], activeDescendant: null })
+it("carries explicit text without a native document or label-discovery request", () => {
+  const result = JSON.parse(encodeNativeFieldSemantics(frame()))
+  expect(result.text).toEqual(frame().text)
+  expect(result).not.toHaveProperty("aliases")
+  expect(result).not.toHaveProperty("labelledBy")
+  expect(result.activeDescendant).toEqual({ target: 8, binding: "admitted-option" })
 })
-
-it.each([
-  { dateField: { firstEditableTarget: 0 } },
-  { dateField: { firstEditableTarget: 1.5 } },
-  { dateField: { firstEditableTarget: 2_147_483_648 } },
-  { expanded: true },
-  { controls: ["options"] },
-  { activeDescendant: { target: 13, binding: "option" } },
-])("rejects an unavailable date target or combobox-only state %j", (override) => {
-  expect(() =>
-    encodeNativeDateFieldSemantics({ ...binding(), dateField: { firstEditableTarget: 12 }, ...override }),
-  ).toThrow()
+it("keeps essential errors and required/read-only status in the label even when hints are disabled", () => {
+  const props = nativeFieldAccessibilityProps(encodeNativeFieldSemantics({ ...frame(), readOnly: true }))
+  expect(props.accessibilityLabel).toBe("Account, Required, Read only, Account required")
+  expect(props.accessibilityHint).toBe("Choose an account Personal or business")
+  expect(props.accessibilityState).toEqual({ disabled: false, expanded: true })
 })
-
-it("preserves false flags, live aliases and caller-localized or explicitly empty captions", () => {
-  const value = binding()
-  const result = JSON.parse(
-    encodeNativeFieldSemantics({ ...value, labels: { ...value.labels, role: "Liste", required: "" } }),
+it("preserves owner label and hint fallbacks and removes retired invalid text", () => {
+  const props = nativeFieldAccessibilityProps(
+    encodeNativeFieldSemantics({ ...frame(), text: {}, required: false, invalid: false }),
+    "Owner label",
+    "Owner hint",
   )
-  expect(result.labelledBy).toEqual(["label"])
-  expect(result.aliases).toEqual([{ id: "generated", target: 12 }])
-  expect(result).toMatchObject({ disabled: false, readOnly: false, required: false, invalid: false, expanded: false })
-  expect(result.labels).toMatchObject({ role: "Liste", required: "" })
+  expect(props.accessibilityLabel).toBe("Owner label")
+  expect(props.accessibilityHint).toBe("Owner hint")
 })
-
-it("never encodes query/value/key objects from extra caller properties", () => {
-  const value = binding()
-  const result = encodeNativeFieldSemantics({
-    ...value,
-    query: "business query",
-    value: { selected: "business value" },
-    aliases: [{ id: "generated", target: 12, value: "business alias" }],
-    activeDescendant: { target: 13, binding: "opaque", value: "business option" },
-    labels: { ...value.labels, query: "business label" },
-  } as unknown as TNativeFieldSemanticBinding)
-  expect(result).not.toContain("business")
+it.each([0, -1, 1.5, 2147483648, NaN])("rejects invalid active option target %s", (target) => {
+  expect(() => encodeNativeFieldSemantics({ ...frame(), activeDescendant: { target, binding: "lease" } })).toThrow()
 })
-
-it.each([
-  { revision: "" },
-  { aliases: [{ id: "", target: 12 }] },
-  { aliases: [{ id: "id", target: 0 }] },
-  { aliases: [{ id: "id", target: 1.5 }] },
-  { activeDescendant: { target: 0, binding: "opaque" } },
-  { activeDescendant: { target: 13, binding: "" } },
-  { labelledBy: [""] },
-  { required: "yes" },
-])("rejects malformed native semantic identity/flags %p", (updates) => {
-  expect(() => encodeNativeFieldSemantics({ ...binding(), ...updates } as TNativeFieldSemanticBinding)).toThrow()
+it("keeps date segment custom content separate from core editor option focus", () => {
+  const value = { ...frame(), expanded: false, activeDescendant: null, dateField: { firstEditableTarget: 7 } }
+  expect(JSON.parse(encodeNativeDateFieldSemantics(value)).dateField).toEqual({ firstEditableTarget: 7 })
+  expect(() => encodeNativeDateFieldSemantics({ ...value, expanded: true })).toThrow()
 })

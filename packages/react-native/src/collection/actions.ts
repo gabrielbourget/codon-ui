@@ -1,71 +1,69 @@
 import { createContext } from "react"
 
-import type { NativeCollectionActionData } from "../input/specs/CUICollectionRootNativeComponent"
-
-import type { NativeCollectionSession } from "./session"
-import { getNativeCollectionMetadataIdentity, type TNativeCollectionNode } from "./snapshot"
+import type { NativeCollectionModel, TNativeCollectionActionScope, TNativeCollectionModelSnapshot } from "./model"
+import { getNativeCollectionNodeIdentity, type TNativeCollectionNode } from "./snapshot"
 
 export type TNativeCollectionActionOutcome = "accepted" | "rejected" | "failed"
 
-type TLease = NonNullable<ReturnType<NativeCollectionSession<unknown>["getSnapshot"]>["receipt"]["lease"]>
-type TRequest = Readonly<{
-  requestId: string
-  actionSequence: number
-  binding: string
-  visibleTarget: number
-}>
-type TPending = {
-  request: TRequest
-  node: TNativeCollectionNode<unknown> | null
-  lease: TLease
-  action: () => void
-  settled?: (outcome: TNativeCollectionActionOutcome) => void
+// Native acceptance rechecks the current original object, model, visibility and window.
+// Unobserved clip-out/clip-in may preserve an intent; JS scope alone is never admission.
+export type TNativeCollectionActionAdmission = {
+  // Registration must resolve this original renderer ref, acknowledge native attachment, and retire only its own registration.
+  registerOwner: (binding: string, originalRoot: object) => () => void
+  registerReceiver?: (scope: TNativeCollectionActionScope, originalReceiver: object) => () => void
+  // Historical native acknowledgement; observed changes invalidate it. Every action revalidates current state.
+  ownerLifetimeFor: (ownerId: string, generation: string) => string
+  bindingFor: (scope: TNativeCollectionActionScope) => string
+  request: (
+    scope: TNativeCollectionActionScope,
+    binding: string,
+    visibleTarget: number,
+    receive: (accepted: boolean) => void,
+  ) => () => void
+  subscribe: (listener: () => void) => () => void
+  getSnapshot: () => number
 }
+export const NativeCollectionActionAdmissionContext = createContext<TNativeCollectionActionAdmission | null>(null)
 
-// A JS collection receipt selects a candidate. Only the original native root can admit its current visible binding.
+type TPending = {
+  reject: () => void
+}
 export class NativeCollectionActions {
-  readonly #session: NativeCollectionSession<unknown>
-  readonly #pending = new Map<string, TPending>()
-  readonly #listeners = new Set<() => void>()
-  #sequence = 0
-  #requests = "[]"
+  readonly #pending = new Set<TPending>()
 
-  constructor(session: NativeCollectionSession<unknown>) {
-    this.#session = session
-    session.subscribe(() => {
-      const { receipt } = session.getSnapshot()
-      const retired: TPending[] = []
-      for (const [id, pending] of this.#pending)
-        if (receipt.status !== "confirmed" || receipt.lease !== pending.lease) {
-          this.#pending.delete(id)
-          retired.push(pending)
-        }
-      this.#publish()
-      for (const pending of retired) pending.settled?.("rejected")
+  constructor(
+    readonly model: Pick<NativeCollectionModel<unknown>, "getSnapshot" | "subscribe">,
+    readonly admission: TNativeCollectionActionAdmission | null,
+    readonly snapshot: TNativeCollectionModelSnapshot<unknown>,
+  ) {}
+
+  connect = () => this.model.subscribe(this.reset)
+
+  #scope = (node: TNativeCollectionNode<unknown> | null): TNativeCollectionActionScope | null => {
+    const snapshot = this.snapshot
+    const identity = node && getNativeCollectionNodeIdentity(node)
+    const current = node && snapshot.collection.getItem(node.key)
+    const currentIdentity = current && getNativeCollectionNodeIdentity(current)
+    if (node && (!identity || identity !== currentIdentity)) return null
+    return Object.freeze({
+      ownerId: snapshot.ownerId,
+      generation: snapshot.generation,
+      revision: snapshot.revision,
+      itemId: identity?.itemId ?? "",
+      itemRevision: identity?.itemRevision ?? "",
     })
   }
-  getSnapshot = () => this.#requests
-  subscribe = (listener: () => void) => {
-    this.#listeners.add(listener)
-    return () => {
-      this.#listeners.delete(listener)
-    }
+
+  registerReceiver = (node: TNativeCollectionNode<unknown>, original: object) => {
+    const scope = this.#scope(node)
+    return scope ? (this.admission?.registerReceiver?.(scope, original) ?? (() => {})) : () => {}
   }
 
+  ownerLifetime = () => this.admission?.ownerLifetimeFor(this.snapshot.ownerId, this.snapshot.generation) ?? ""
+
   bindingFor = (node: TNativeCollectionNode<unknown> | null) => {
-    const { collection, receipt } = this.#session.getSnapshot()
-    const identity = node
-      ? getNativeCollectionMetadataIdentity(node)
-      : { descriptorId: "", descriptorRevision: "", metadataTarget: receipt.lease?.target }
-    if (
-      !identity ||
-      receipt.status !== "confirmed" ||
-      !receipt.lease ||
-      (node !== null && !this.#matchesNode(node, collection.getItem(node.key)))
-    )
-      return ""
-    const { ownerId, rootId, rootRevision, target, surfaceId, windowId, epoch, sequence } = receipt.lease
-    return JSON.stringify({ ownerId, rootId, rootRevision, target, surfaceId, windowId, epoch, sequence, ...identity })
+    const scope = this.#scope(node)
+    return scope ? (this.admission?.bindingFor(scope) ?? "") : ""
   }
 
   request = (
@@ -74,78 +72,68 @@ export class NativeCollectionActions {
     action: () => void,
     settled?: (outcome: TNativeCollectionActionOutcome) => void,
   ) => {
-    const binding = this.bindingFor(node),
-      { receipt } = this.#session.getSnapshot()
+    const snapshot = this.snapshot
+    const scope = this.#scope(node)
+    const binding = scope && this.admission?.bindingFor(scope)
     if (
+      this.model.getSnapshot() !== snapshot ||
+      !scope ||
       !binding ||
+      !this.admission ||
       !Number.isSafeInteger(visibleTarget) ||
       visibleTarget <= 0 ||
-      visibleTarget > 2147483647 ||
-      !receipt.lease
+      visibleTarget > 2147483647
     ) {
       settled?.("rejected")
       return false
     }
-    const requestId = `${this.#session.scope.rootRevision}:action:${++this.#sequence}`
-    const request = Object.freeze({ requestId, actionSequence: this.#sequence, binding, visibleTarget })
-    this.#pending.set(requestId, { request, node, lease: receipt.lease, action, settled })
-    this.#publish()
-    return true
-  }
-
-  receive = (packet: NativeCollectionActionData) => {
-    const pending = this.#pending.get(packet.requestId)
-    if (!pending) return false
-    const { request, node, lease, action, settled } = pending
-    const identity = ["ownerId", "rootId", "rootRevision", "target"] as const
-    if (!identity.every((field) => packet[field] === lease[field]) || packet.visibleTarget !== request.visibleTarget)
-      return false
-    this.#pending.delete(packet.requestId)
-    this.#publish()
-    const current = this.#session.getSnapshot()
-    const matches = ["surfaceId", "windowId", "epoch", "sequence"] as const
-    if (
-      !packet.accepted ||
-      !matches.every((field) => packet[field] === lease[field]) ||
-      current.receipt.lease !== lease ||
-      current.receipt.status !== "confirmed" ||
-      (node !== null && !this.#matchesNode(node, current.collection.getItem(node.key)))
-    ) {
-      settled?.("rejected")
-      return false
+    let completed = false
+    const finish = (outcome: TNativeCollectionActionOutcome) => {
+      if (completed) return
+      completed = true
+      this.#pending.delete(pending)
+      settled?.(outcome)
+    }
+    const pending: TPending = { reject: () => finish("rejected") }
+    this.#pending.add(pending)
+    const receive = (accepted: boolean) => {
+      if (completed) return
+      if (
+        !accepted ||
+        this.model.getSnapshot() !== snapshot ||
+        !this.#scope(node) ||
+        this.bindingFor(node) !== binding
+      ) {
+        finish("rejected")
+        return
+      }
+      // Consume before invoking caller code: a reentrant model update cannot settle this operation twice.
+      completed = true
+      this.#pending.delete(pending)
+      try {
+        action()
+      } catch (error) {
+        settled?.("failed")
+        throw error
+      }
+      settled?.("accepted")
     }
     try {
-      action()
+      const cancel = this.admission.request(scope, binding, visibleTarget, receive)
+      pending.reject = () => {
+        finish("rejected")
+        cancel()
+      }
+      if (completed) cancel()
     } catch (error) {
-      settled?.("failed")
+      finish("failed")
       throw error
     }
-    settled?.("accepted")
     return true
   }
 
   reset = () => {
-    const retired = [...this.#pending.values()]
-    this.#pending.clear()
-    this.#publish()
-    for (const pending of retired) pending.settled?.("rejected")
-  }
-  #matchesNode = (node: TNativeCollectionNode<unknown>, current: TNativeCollectionNode<unknown> | null) => {
-    const identity = getNativeCollectionMetadataIdentity(node)
-    const confirmed = current && getNativeCollectionMetadataIdentity(current)
-    return (
-      !!identity &&
-      !!confirmed &&
-      identity.descriptorId === confirmed.descriptorId &&
-      identity.descriptorRevision === confirmed.descriptorRevision &&
-      identity.metadataTarget === confirmed.metadataTarget
-    )
-  }
-  #publish = () => {
-    const next = JSON.stringify([...this.#pending.values()].map(({ request }) => request))
-    if (next === this.#requests) return
-    this.#requests = next
-    for (const listener of this.#listeners) listener()
+    for (const pending of [...this.#pending]) pending.reject()
   }
 }
 

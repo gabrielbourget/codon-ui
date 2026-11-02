@@ -1,26 +1,24 @@
-import "../../../collection/__tests__/nativeReceipts"
-
 import { act as nativeAct, cleanup } from "@testing-library/react-native"
 import { createRef, useContext } from "react"
 import { AccessibilityInfo, findNodeHandle, Platform, TextInput, View } from "react-native"
 
-import {
-  actWithNativeCollections as act,
-  renderWithNativeCollections as render,
-  screen,
-} from "../../../collection/__tests__/nativeReceipts"
 import { NativeFocusView, type NativeFocusHost } from "../../../input/NativeFocusView"
 import { NativeKeyboardScope, useNativeWindowPointers } from "../../../input/NativeKeyboardScope"
 import { NativeLocaleProvider } from "../../../locale/NativeLocaleProvider"
 import { NativeFloatingWindowContext } from "../../../overlays/floating/scope"
 import { NativeThemeProvider } from "../../../theme"
 import { NativeTablePropsContext, NativeTableStateContext } from "../context"
+import {
+  nativeTableChildren,
+  createNativeTableHeaderModel,
+  nativeTableReceiver,
+  createNativeTableRowModel,
+} from "../model"
 import type { TNativeTableState } from "../state/useTableState"
 import { Table } from "../Table"
 import { TableColumn } from "../TableColumn"
-import { TableHeader } from "../TableHeader"
-import { TableRow } from "../TableRow"
 
+import { actWithNativeCollections as act, renderWithNativeCollections as render, screen } from "./collectionModel"
 import { CellFixtureBody } from "./fixtures/TableCellFixture"
 import { ColumnFixtureHeader } from "./fixtures/TableColumnFixture"
 
@@ -86,21 +84,39 @@ const tree = ({
               clickableRows={clickableRows}
               selectedKeys={selected}
               onSelectionChange={changed}
-            >
-              <TableHeader
-                columns={columns}
-                render={(host) => (
-                  <View {...host}>
-                    <Probe />
-                    {host.children}
-                  </View>
-                )}
-              />
-              <CellFixtureBody>
-                <TableRow onAction={rowAction} id={0} textValue="Alpha" item={{}} columns={columns} />
-                <TableRow id="" textValue="Beta" item={{}} columns={columns} />
-              </CellFixtureBody>
-            </Table>
+              items={(modelOptions) =>
+                nativeTableChildren(
+                  createNativeTableHeaderModel(
+                    {
+                      columns: columns,
+                      render: (host) => (
+                        <View {...host}>
+                          <Probe />
+                          {host.children}
+                        </View>
+                      ),
+                    },
+                    modelOptions,
+                  ),
+                  nativeTableReceiver<React.ComponentProps<typeof CellFixtureBody>>(
+                    "__body:1",
+                    "tablebody",
+                    {},
+                    (visibleProps) => <CellFixtureBody {...visibleProps} />,
+                    nativeTableChildren(
+                      createNativeTableRowModel(
+                        { onAction: rowAction, id: 0, textValue: "Alpha", item: {}, columns: columns },
+                        modelOptions,
+                      ),
+                      createNativeTableRowModel(
+                        { id: "", textValue: "Beta", item: {}, columns: columns },
+                        modelOptions,
+                      ),
+                    ),
+                  ),
+                )
+              }
+            />
           </NativeTablePropsContext.Provider>
         </NativeThemeProvider>
       </NativeLocaleProvider>
@@ -287,42 +303,59 @@ it.each(["ios", "android"] as const)(
           <NativeTablePropsContext.Provider
             value={{ sortDescriptor: direction ? { column: "name", direction } : undefined, onSortChange: sorted }}
           >
-            <Table>
-              <ColumnFixtureHeader>
-                <TableColumn
-                  ref={original}
-                  id="name"
-                  columnID="name"
-                  textValue="Name"
-                  isRowHeader
-                  allowsSorting={enabled}
-                  testID="described-column"
-                  accessibilityLabel=""
-                  accessibilityHint="Author column hint"
-                  accessibilityValue={{ text: "Author value" }}
-                  render={
-                    custom
-                      ? (host) => {
-                          const concrete: React.ComponentProps<typeof NativeFocusHost> = host
-                          return (
-                            <NativeFocusView
-                              {...{
-                                ...host,
-                                nativeDescribedBy: [...(concrete.nativeDescribedBy ?? []), "column-author"],
-                              }}
-                            />
-                          )
-                        }
-                      : undefined
-                  }
-                >
-                  Name
-                </TableColumn>
-              </ColumnFixtureHeader>
-              <CellFixtureBody>
-                <TableRow id={0} item={{}} columns={columns} />
-              </CellFixtureBody>
-            </Table>
+            <Table
+              items={(modelOptions) =>
+                nativeTableChildren(
+                  nativeTableReceiver<React.ComponentProps<typeof ColumnFixtureHeader>>(
+                    "__header:2",
+                    "tableheader",
+                    {},
+                    (visibleProps) => <ColumnFixtureHeader {...visibleProps} />,
+                    nativeTableChildren(
+                      nativeTableReceiver<React.ComponentProps<typeof TableColumn>>(
+                        "name",
+                        "column",
+                        {
+                          ref: original,
+                          id: "name",
+                          columnID: "name",
+                          textValue: "Name",
+                          isRowHeader: true,
+                          allowsSorting: enabled,
+                          testID: "described-column",
+                          accessibilityLabel: "",
+                          accessibilityHint: "Author column hint",
+                          accessibilityValue: { text: "Author value" },
+                          render: custom
+                            ? (host) => {
+                                const concrete: React.ComponentProps<typeof NativeFocusHost> = host
+                                return (
+                                  <NativeFocusView
+                                    {...{
+                                      ...host,
+                                      nativeDescribedBy: [...(concrete.nativeDescribedBy ?? []), "column-author"],
+                                    }}
+                                  />
+                                )
+                              }
+                            : undefined,
+                          children: <>Name</>,
+                        },
+                        (visibleProps) => <TableColumn {...visibleProps} />,
+                        [],
+                      ),
+                    ),
+                  ),
+                  nativeTableReceiver<React.ComponentProps<typeof CellFixtureBody>>(
+                    "__body:3",
+                    "tablebody",
+                    {},
+                    (visibleProps) => <CellFixtureBody {...visibleProps} />,
+                    nativeTableChildren(createNativeTableRowModel({ id: 0, item: {}, columns: columns }, modelOptions)),
+                  ),
+                )
+              }
+            />
           </NativeTablePropsContext.Provider>
         </NativeThemeProvider>
       </NativeLocaleProvider>
