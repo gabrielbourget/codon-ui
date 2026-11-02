@@ -1,7 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { View, type TextInput } from "react-native"
 
-import { Button, ComboBox, Text, useNativeTheme, type TNativeComboBoxKey } from "@codon-ui/react-native"
+import {
+  Button,
+  ComboBox,
+  NativeForm,
+  NativeFormAction,
+  Text,
+  useNativeTheme,
+  type TNativeComboBoxKey,
+  type TNativeComboBoxKeyboardEvent,
+  type TNativeFormEntry,
+} from "@codon-ui/react-native"
 
 type TItem = { key: TNativeComboBoxKey; text: string }
 const ITEMS: readonly TItem[] = [
@@ -28,6 +38,11 @@ export const ComboBoxScene = () => {
   const [readOnly, setReadOnly] = useState(false)
   const [items, setItems] = useState(ITEMS)
   const [pending, setPending] = useState(false)
+  const [formValue, setFormValue] = useState<"key" | "text">("key")
+  const [required, setRequired] = useState(false)
+  const [keys, setKeys] = useState<string[]>([])
+  const [formEntries, setFormEntries] = useState<readonly TNativeFormEntry[]>([])
+  const [formResult, setFormResult] = useState("none")
   const [requests, setRequests] = useState<{
     query: string[]
     selection: (TNativeComboBoxKey | null)[]
@@ -58,6 +73,11 @@ export const ComboBoxScene = () => {
       editorMounts: current.editorMounts + (node ? 1 : 0),
     }))
   }, [])
+  const recordKey = (source: "root" | "input", phase: "down" | "up", event: TNativeComboBoxKeyboardEvent) => {
+    const original = event.target === editor.current && event.currentTarget === editor.current
+    const receipt = `${source}:${phase}:${event.nativeEvent.key}:original=${String(original)}`
+    setKeys((current) => [...current.slice(-5), receipt])
+  }
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   useEffect(() => () => clearTimeout(timer.current), [])
   const replaceItems = () => {
@@ -84,6 +104,11 @@ export const ComboBoxScene = () => {
     setReadOnly(false)
     setRequests({ query: [], selection: [], open: [] })
     setNative({ changes: 0 })
+    setFormValue("key")
+    setRequired(false)
+    setKeys([])
+    setFormEntries([])
+    setFormResult("none")
   }
   return (
     <View style={{ gap: 10 }}>
@@ -101,51 +126,82 @@ export const ComboBoxScene = () => {
           Replace ComboBox items after 125 ms
         </Button>
         <Button onPress={reset}>Reset ComboBox scene</Button>
+        <Button onPress={() => setFormValue((value) => (value === "key" ? "text" : "key"))}>
+          Toggle ComboBox Form value
+        </Button>
+        <Button onPress={() => setRequired((value) => !value)}>Toggle ComboBox required</Button>
       </View>
-      <ComboBox
-        ref={bindRoot}
-        inputRef={bindEditor}
-        testID="public-combo-example"
-        accessibilityLabel="Choose typed item"
-        inputLabel="Public ComboBox query"
-        closeLabel="Close public ComboBox"
-        items={items}
-        getKey={(item) => item.key}
-        getTextValue={(item) => item.text}
-        disabledKeys={["blocked"]}
-        value={selection}
-        inputValue={query}
-        isOpen={open}
-        isDisabled={disabled}
-        isReadOnly={readOnly}
-        onInputChange={(next) => {
-          setRequests((current) => ({ ...current, query: [...current.query, next] }))
-          if (!queryVeto) setQuery(next)
-        }}
-        onChange={(next) => {
-          setRequests((current) => ({ ...current, selection: [...current.selection, next] }))
-          if (!selectionVeto) setSelection(next)
-        }}
-        onOpenChange={(next) => {
-          setRequests((current) => ({ ...current, open: [...current.open, next] }))
-          if (!openVeto) setOpen(next)
-        }}
-        inputProps={{
-          returnKeyType: "search",
-          onChange: ({ nativeEvent }) =>
-            setNative((current) => ({
-              ...current,
-              changes: current.changes + 1,
-              text: nativeEvent.text,
-              eventCount: nativeEvent.eventCount,
-            })),
-          onSelectionChange: ({ nativeEvent }) =>
-            setNative((current) => ({ ...current, selection: nativeEvent.selection })),
-          onSubmitEditing: ({ nativeEvent }) => setNative((current) => ({ ...current, submit: nativeEvent.text })),
-          onEndEditing: ({ nativeEvent }) => setNative((current) => ({ ...current, end: nativeEvent.text })),
-        }}
-        customStyles={{ width: "100%", borderColor: theme.colors.controlBorder }}
-      />
+      <NativeForm
+        id="public-combo-form"
+        fieldOrder={["choice"]}
+        onSubmit={(request) => setFormEntries(request.entries)}
+      >
+        <ComboBox
+          name="choice"
+          formFieldId="choice"
+          formValue={formValue}
+          isRequired={required}
+          onKeyDown={(event) => recordKey("root", "down", event)}
+          onKeyUp={(event) => recordKey("root", "up", event)}
+          ref={bindRoot}
+          inputRef={bindEditor}
+          testID="public-combo-example"
+          accessibilityLabel="Choose typed item"
+          inputLabel="Public ComboBox query"
+          closeLabel="Close public ComboBox"
+          items={items}
+          getKey={(item) => item.key}
+          getTextValue={(item) => item.text}
+          disabledKeys={["blocked"]}
+          value={selection}
+          inputValue={query}
+          isOpen={open}
+          isDisabled={disabled}
+          isReadOnly={readOnly}
+          onInputChange={(next) => {
+            setRequests((current) => ({ ...current, query: [...current.query, next] }))
+            if (!queryVeto) setQuery(next)
+          }}
+          onChange={(next) => {
+            setRequests((current) => ({ ...current, selection: [...current.selection, next] }))
+            if (!selectionVeto) setSelection(next)
+          }}
+          onOpenChange={(next) => {
+            setRequests((current) => ({ ...current, open: [...current.open, next] }))
+            if (!openVeto) setOpen(next)
+          }}
+          inputProps={{
+            returnKeyType: "search",
+            onKeyDown: (event) => recordKey("input", "down", event),
+            onKeyUp: (event) => recordKey("input", "up", event),
+            onChange: ({ nativeEvent }) =>
+              setNative((current) => ({
+                ...current,
+                changes: current.changes + 1,
+                text: nativeEvent.text,
+                eventCount: nativeEvent.eventCount,
+              })),
+            onSelectionChange: ({ nativeEvent }) =>
+              setNative((current) => ({ ...current, selection: nativeEvent.selection })),
+            onSubmitEditing: ({ nativeEvent }) => setNative((current) => ({ ...current, submit: nativeEvent.text })),
+            onEndEditing: ({ nativeEvent }) => setNative((current) => ({ ...current, end: nativeEvent.text })),
+          }}
+          customStyles={{ width: "100%", borderColor: theme.colors.controlBorder }}
+        />
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+          <NativeFormAction action="submit" onActionResult={(result) => setFormResult(result.status)}>
+            Submit ComboBox form
+          </NativeFormAction>
+          <NativeFormAction action="reset" onActionResult={(result) => setFormResult(result.status)}>
+            Reset ComboBox form
+          </NativeFormAction>
+        </View>
+      </NativeForm>
+      <Text testID="public-combo-form">
+        Form value: {formValue}. Required: {String(required)}. Result: {formResult}. Entries:{" "}
+        {JSON.stringify(formEntries)}.
+      </Text>
+      <Text testID="public-combo-keys">Original key receipts: {JSON.stringify(keys)}.</Text>
       <Text testID="public-combo-state">
         Query: {JSON.stringify(query)}. Selection: {formatKey(selection)}. Open: {String(open)}. Query veto:{" "}
         {String(queryVeto)}. Selection veto: {String(selectionVeto)}. Open veto: {String(openVeto)}. Disabled:{" "}

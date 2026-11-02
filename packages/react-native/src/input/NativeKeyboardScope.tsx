@@ -33,6 +33,7 @@ import {
   type TNativeWindowPointers,
 } from "./nativeWindowPointers"
 import { createNativeOrdinaryEditorKeys, NativeOrdinaryEditorKeysContext } from "./ordinaryEditorKeys"
+import { createNativeOriginalEditorWheelPolicies, NativeOriginalEditorWheelContext } from "./originalEditorWheel"
 import ScopeHost, { type NativeScopedKeyData } from "./specs/CUIKeyboardScopeNativeComponent"
 import type { TNativeKeyboardData } from "./types"
 
@@ -122,6 +123,12 @@ export const NativeKeyboardScope = forwardRef<View, TNativeKeyboardScopeProps>(
         active: ordinaryKeysEnabled.current && scope.isWindowActive() !== false,
       })),
     )
+    const [editorWheel] = useState(() =>
+      createNativeOriginalEditorWheelPolicies(ownerId, () => ({
+        ...scope.acknowledgedSession(),
+        active: ordinaryKeysEnabled.current && scope.isWindowActive() === true,
+      })),
+    )
     const [toolbarKeyboard] = useState(() =>
       createNativeToolbarKeyboard(ownerId, () => ({
         ...scope.acknowledgedSession(),
@@ -138,6 +145,7 @@ export const NativeKeyboardScope = forwardRef<View, TNativeKeyboardScopeProps>(
     useSyncExternalStore(keyboardObservations.subscribe, keyboardObservations.snapshot, keyboardObservations.snapshot)
     useSyncExternalStore(toolbarKeyboard.subscribe, toolbarKeyboard.snapshot, toolbarKeyboard.snapshot)
     useSyncExternalStore(ordinaryEditorKeys.subscribe, ordinaryEditorKeys.snapshot, ordinaryEditorKeys.snapshot)
+    useSyncExternalStore(editorWheel.subscribe, editorWheel.snapshot, editorWheel.snapshot)
     useInsertionEffect(() => scope.setEnabled(captureEnabled), [scope, captureEnabled])
     useInsertionEffect(
       () => (captureEnabled ? attachNativeInputModalityWitness(scope) : undefined),
@@ -154,6 +162,7 @@ export const NativeKeyboardScope = forwardRef<View, TNativeKeyboardScopeProps>(
     useInsertionEffect(() => () => keyboardObservations.dispose(), [keyboardObservations])
     useInsertionEffect(() => () => toolbarKeyboard.dispose(), [toolbarKeyboard])
     useInsertionEffect(() => () => ordinaryEditorKeys.dispose(), [ordinaryEditorKeys])
+    useInsertionEffect(() => () => editorWheel.dispose(), [editorWheel])
     useLayoutEffect(() => toolbarKeyboard.setEnabled(captureEnabled), [toolbarKeyboard, captureEnabled])
     useLayoutEffect(() => {
       dragActions.flush()
@@ -163,12 +172,14 @@ export const NativeKeyboardScope = forwardRef<View, TNativeKeyboardScopeProps>(
       dialogs.flush()
       keyboardObservations.flush()
       pointers.syncSession()
+      editorWheel.syncSession()
       pointers.flush()
       return scope.subscribe(() => {
         dialogs.flush()
         pointers.syncSession()
+        editorWheel.syncSession()
       })
-    }, [scope, dialogs, keyboardObservations, pointers, captureEnabled])
+    }, [scope, dialogs, keyboardObservations, pointers, editorWheel, captureEnabled])
     const setRef = useCallback(
       (target: ElementRef<typeof ScopeHost> | null) => {
         attached.current = target !== null
@@ -198,116 +209,128 @@ export const NativeKeyboardScope = forwardRef<View, TNativeKeyboardScopeProps>(
               <NativeFloatingObservationsContext.Provider value={observations}>
                 <NativeKeyboardObservationsContext.Provider value={keyboardObservations}>
                   <NativeOrdinaryEditorKeysContext.Provider value={ordinaryEditorKeys}>
-                    <NativeToolbarKeyboardContext.Provider value={toolbarKeyboard}>
-                      <NativeViewContextBoundary>
-                        <ScopeHost
-                          {...nativeViewProps(props)}
-                          onTouchMove={(event) => {
-                            props.onTouchMove?.(event)
-                            dispatchNativeGestureWindow(scope, event, "move")
-                          }}
-                          onTouchEnd={(event) => {
-                            props.onTouchEnd?.(event)
-                            dispatchNativeGestureWindow(scope, event, "end")
-                          }}
-                          onTouchCancel={(event) => {
-                            props.onTouchCancel?.(event)
-                            dispatchNativeGestureWindow(scope, event, "cancel")
-                          }}
-                          onPointerMove={(event) => {
-                            props.onPointerMove?.(event)
-                            dispatchNativeGestureWindow(scope, event, "move")
-                          }}
-                          onPointerUp={(event) => {
-                            props.onPointerUp?.(event)
-                            dispatchNativeGestureWindow(scope, event, "end")
-                          }}
-                          onPointerCancel={(event) => {
-                            props.onPointerCancel?.(event)
-                            dispatchNativeGestureWindow(scope, event, "cancel")
-                          }}
-                          ref={setRef}
-                          ownerId={ownerId}
-                          toolbarBindings={toolbarKeyboard.bindings()}
-                          onNativeToolbarKeyboard={(event) => {
-                            if (attached.current) toolbarKeyboard.dispatch(event)
-                          }}
-                          onNativeToolbarStatus={(event) => {
-                            if (attached.current) toolbarKeyboard.acceptStatus(event.nativeEvent.packet)
-                          }}
-                          ordinaryEditorBindings={ordinaryEditorKeys.bindings()}
-                          onNativeOrdinaryEditorStatus={(event) => {
-                            if (attached.current) ordinaryEditorKeys.acceptStatus(event.nativeEvent)
-                          }}
-                          dragBindings={dragActions.bindings()}
-                          onNativeDragStatus={(event) => {
-                            if (attached.current) dragActions.acceptStatus(event.nativeEvent.packet)
-                          }}
-                          onNativeDragAction={(event) => {
-                            if (attached.current) dragActions.dispatch(event.nativeEvent.packet)
-                          }}
-                          dialogScopes={dialogs.bindings()}
-                          dialogRevision={dialogs.revision()}
-                          onNativeDialogStatus={(event) => {
-                            if (attached.current) dialogs.acceptStatus(event.nativeEvent)
-                          }}
-                          onNativeDialogAction={(event) => {
-                            if (attached.current) dialogs.acceptAction(event.nativeEvent)
-                          }}
-                          enabled={captureEnabled}
-                          policies={scope.policies()}
-                          acceptedWindowId={session.windowId}
-                          acceptedEpoch={session.epoch}
-                          policyRevision={scope.policyRevision()}
-                          floatingTargets={observations.targets()}
-                          observations={keyboardObservations.registrations()}
-                          observationRevision={keyboardObservations.revision()}
-                          pointerRegistrations={pointers.registrations()}
-                          pointerRevision={pointers.revision()}
-                          onNativeWindowPointer={(event) => {
-                            if (attached.current) dispatchNativeWindowPointer(event)
-                          }}
-                          onNativePointerStatus={(event) => {
-                            if (attached.current) pointers.acceptStatus(event.nativeEvent)
-                          }}
-                          onNativeObservedKey={(event) => {
-                            if (attached.current) keyboardObservations.dispatch(event)
-                          }}
-                          onNativeObservationStatus={(event) => {
-                            if (attached.current) keyboardObservations.acceptStatus(event.nativeEvent)
-                          }}
-                          onNativeFloatingObservation={(event) => {
-                            const data = event.nativeEvent
-                            const session = scope.acknowledgedSession()
-                            if (
-                              attached.current &&
-                              captureEnabled &&
-                              scope.isWindowActive() === true &&
-                              data.ownerId === ownerId &&
-                              data.windowId === session.windowId &&
-                              data.epoch === session.epoch
-                            )
-                              observations.dispatch(data)
-                          }}
-                          onNativeScopeStatus={(event) => {
-                            if (attached.current) scope.acceptNativeStatus(event.nativeEvent)
-                          }}
-                          onNativeInputModality={(event) => {
-                            if (!attached.current) return
-                            const data = event.nativeEvent
-                            const previous = scope.lastInput()
-                            scope.recordInput(data)
-                            if (previous !== data && scope.lastInput() === data)
-                              recordAcceptedNativeInputModality(scope, data)
-                          }}
-                          onNativeScopedKey={(event) => {
-                            if (!attached.current || !isKeyboardEvent(event)) return
-                            const data = event.nativeEvent
-                            scope.dispatch(data.policyId, event, data)
-                          }}
-                        />
-                      </NativeViewContextBoundary>
-                    </NativeToolbarKeyboardContext.Provider>
+                    <NativeOriginalEditorWheelContext.Provider value={editorWheel}>
+                      <NativeToolbarKeyboardContext.Provider value={toolbarKeyboard}>
+                        <NativeViewContextBoundary>
+                          <ScopeHost
+                            {...nativeViewProps(props)}
+                            onTouchMove={(event) => {
+                              props.onTouchMove?.(event)
+                              dispatchNativeGestureWindow(scope, event, "move")
+                            }}
+                            onTouchEnd={(event) => {
+                              props.onTouchEnd?.(event)
+                              dispatchNativeGestureWindow(scope, event, "end")
+                            }}
+                            onTouchCancel={(event) => {
+                              props.onTouchCancel?.(event)
+                              dispatchNativeGestureWindow(scope, event, "cancel")
+                            }}
+                            onPointerMove={(event) => {
+                              props.onPointerMove?.(event)
+                              dispatchNativeGestureWindow(scope, event, "move")
+                            }}
+                            onPointerUp={(event) => {
+                              props.onPointerUp?.(event)
+                              dispatchNativeGestureWindow(scope, event, "end")
+                            }}
+                            onPointerCancel={(event) => {
+                              props.onPointerCancel?.(event)
+                              dispatchNativeGestureWindow(scope, event, "cancel")
+                            }}
+                            ref={setRef}
+                            ownerId={ownerId}
+                            toolbarBindings={toolbarKeyboard.bindings()}
+                            onNativeToolbarKeyboard={(event) => {
+                              if (attached.current) toolbarKeyboard.dispatch(event)
+                            }}
+                            onNativeToolbarStatus={(event) => {
+                              if (attached.current) toolbarKeyboard.acceptStatus(event.nativeEvent.packet)
+                            }}
+                            ordinaryEditorBindings={ordinaryEditorKeys.bindings()}
+                            editorWheelBindings={editorWheel.bindings()}
+                            onNativeEditorWheelStatus={(event) => {
+                              if (attached.current) editorWheel.receiveStatus(event.nativeEvent)
+                            }}
+                            onNativeEditorWheel={(event) => {
+                              if (attached.current) editorWheel.receive(event.nativeEvent)
+                            }}
+                            onNativeOrdinaryEditorStatus={(event) => {
+                              if (attached.current) ordinaryEditorKeys.acceptStatus(event.nativeEvent)
+                            }}
+                            dragBindings={dragActions.bindings()}
+                            onNativeDragStatus={(event) => {
+                              if (attached.current) dragActions.acceptStatus(event.nativeEvent.packet)
+                            }}
+                            onNativeDragAction={(event) => {
+                              if (attached.current) dragActions.dispatch(event.nativeEvent.packet)
+                            }}
+                            dialogScopes={dialogs.bindings()}
+                            dialogRevision={dialogs.revision()}
+                            onNativeDialogStatus={(event) => {
+                              if (attached.current) dialogs.acceptStatus(event.nativeEvent)
+                            }}
+                            onNativeDialogAction={(event) => {
+                              if (attached.current) dialogs.acceptAction(event.nativeEvent)
+                            }}
+                            enabled={captureEnabled}
+                            policies={scope.policies()}
+                            acceptedWindowId={session.windowId}
+                            acceptedEpoch={session.epoch}
+                            policyRevision={scope.policyRevision()}
+                            floatingTargets={observations.targets()}
+                            observations={keyboardObservations.registrations()}
+                            observationRevision={keyboardObservations.revision()}
+                            pointerRegistrations={pointers.registrations()}
+                            pointerRevision={pointers.revision()}
+                            onNativeWindowPointer={(event) => {
+                              if (attached.current) dispatchNativeWindowPointer(event)
+                            }}
+                            onNativePointerStatus={(event) => {
+                              if (attached.current) pointers.acceptStatus(event.nativeEvent)
+                            }}
+                            onNativeObservedKey={(event) => {
+                              if (attached.current) keyboardObservations.dispatch(event)
+                            }}
+                            onNativeObservationStatus={(event) => {
+                              if (attached.current) keyboardObservations.acceptStatus(event.nativeEvent)
+                            }}
+                            onNativeFloatingObservation={(event) => {
+                              const data = event.nativeEvent
+                              const session = scope.acknowledgedSession()
+                              if (
+                                attached.current &&
+                                captureEnabled &&
+                                scope.isWindowActive() === true &&
+                                data.ownerId === ownerId &&
+                                data.windowId === session.windowId &&
+                                data.epoch === session.epoch
+                              )
+                                observations.dispatch(data)
+                            }}
+                            onNativeScopeStatus={(event) => {
+                              if (attached.current) {
+                                scope.acceptNativeStatus(event.nativeEvent)
+                                editorWheel.syncSession()
+                              }
+                            }}
+                            onNativeInputModality={(event) => {
+                              if (!attached.current) return
+                              const data = event.nativeEvent
+                              const previous = scope.lastInput()
+                              scope.recordInput(data)
+                              if (previous !== data && scope.lastInput() === data)
+                                recordAcceptedNativeInputModality(scope, data)
+                            }}
+                            onNativeScopedKey={(event) => {
+                              if (!attached.current || !isKeyboardEvent(event)) return
+                              const data = event.nativeEvent
+                              scope.dispatch(data.policyId, event, data)
+                            }}
+                          />
+                        </NativeViewContextBoundary>
+                      </NativeToolbarKeyboardContext.Provider>
+                    </NativeOriginalEditorWheelContext.Provider>
                   </NativeOrdinaryEditorKeysContext.Provider>
                 </NativeKeyboardObservationsContext.Provider>
               </NativeFloatingObservationsContext.Provider>

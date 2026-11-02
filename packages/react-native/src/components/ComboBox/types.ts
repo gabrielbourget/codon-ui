@@ -11,6 +11,7 @@ import type {
   ViewStyle,
 } from "react-native"
 
+import type { TNativeSimpleComboBoxFieldOptions } from "../../form/simpleComboBox"
 import type { TNativeKeyboardData } from "../../input/types"
 import type { TCornerGeometry } from "../../tokens/geometry"
 import type { TNativeButtonRootStyle } from "../Button/types"
@@ -64,7 +65,8 @@ export type TNativeComboBoxInputProps = Pick<
   | "onEndEditing"
   | "onSubmitEditing"
   | "onSelectionChange"
->
+> &
+  TNativeComboBoxKeyboardCallbacks
 type TNativeComboBoxLabel =
   | { accessibilityLabel: string; "aria-label"?: string }
   | { accessibilityLabel?: string; "aria-label": string }
@@ -73,7 +75,9 @@ export type TNativeComboBoxProps<T> = Pick<
   ViewProps,
   "testID" | "nativeID" | "id" | "onLayout" | "pointerEvents" | "collapsable" | "accessibilityHint"
 > &
-  TNativeComboBoxLabel & {
+  TNativeComboBoxLabel &
+  TNativeComboBoxKeyboardCallbacks &
+  TNativeSimpleComboBoxFieldOptions & {
     labels?: { inputButtonGroupAriaLabel?: string }
     items: readonly T[]
     getKey: (item: T) => TNativeComboBoxKey

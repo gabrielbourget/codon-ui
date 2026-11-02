@@ -71,6 +71,7 @@ export const ComboBoxOptions = <T,>({
   strategy,
   closeFromTab,
 }: TComboBoxOptionsProps<T>) => {
+  const { onKeyDown: _onKeyDown, onKeyUp: _onKeyUp, ...inputProps } = props.inputProps ?? {}
   const theme = useNativeTheme()
   const scope = useNativeKeyScope()!
   const registry = useContext(NativeOrdinaryEditorKeysContext)
@@ -386,6 +387,16 @@ export const ComboBoxOptions = <T,>({
       else navigate(frame.key)
     },
     receive: (event) => {
+      const owner = current.current
+      if (!canAct() || event.target !== editorRef.current || event.currentTarget !== editorRef.current) return
+      if (event.nativeEvent.phase === "down") {
+        owner.props.onKeyDown?.(event)
+        if (canAct()) current.current.props.inputProps?.onKeyDown?.(event)
+      } else {
+        owner.props.onKeyUp?.(event)
+        if (canAct()) current.current.props.inputProps?.onKeyUp?.(event)
+      }
+      if (!canAct()) return
       enter.current?.receive(event)
       if (
         !current.current.props.isReadOnly &&
@@ -495,7 +506,7 @@ export const ComboBoxOptions = <T,>({
           >
             <View testID={`${identity}-query-group`} style={[{ flexGrow: 1, flexBasis: 160 }, groupStyle]}>
               <Input
-                {...props.inputProps}
+                {...inputProps}
                 ref={editorBinding}
                 nativeRender={(native) => {
                   const original = { ...native, onNativeOrdinaryEditorKey: receive }

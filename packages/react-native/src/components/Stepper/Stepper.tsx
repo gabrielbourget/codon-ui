@@ -18,6 +18,7 @@ import { useNativeNumberFieldForm } from "../../form/useNumberField"
 import { NativeKeyboardScope, useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { NativeButtonPressContext } from "../../input/nativePressCycle"
 import { useNativeOriginalEditorFocusBinding } from "../../input/ordinaryEditorKeys"
+import { useNativeOriginalEditorWheelPolicy } from "../../input/originalEditorWheel"
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../overlays/floating/scope"
 import { useNativeTheme } from "../../theme"
 import { NativeButton as Button } from "../Button/Button"
@@ -74,6 +75,12 @@ const StepperControls = forwardRef<TNativeStepperRef, TStepperControlsProps>(
       originalRef.current = target
       setOriginal(target)
     }, [])
+    const groupRef = useRef<View | null>(null)
+    const [group, setGroup] = useState<View | null>(null)
+    const bindGroup = useCallback((target: View | null) => {
+      groupRef.current = target
+      setGroup(target)
+    }, [])
     const editorRef = useNativeCollectionRefs(bindOriginal, ref)
     const scope = useNativeKeyScope()
     const floatingScope = useContext(NativeFloatingScopeContext)
@@ -118,6 +125,26 @@ const StepperControls = forwardRef<TNativeStepperRef, TStepperControlsProps>(
         AccessibilityInfo.announceForAccessibility(spokenValue)
     }, [spokenValue, numeric.isInputFocused, isDisabled, original, scope, floatingScope, windowActive])
     const lifetimeKey = JSON.stringify([owner, numeric.configurationKey, isDisabled, isReadOnly])
+    useNativeOriginalEditorWheelPolicy(original, {
+      enabled:
+        !isDisabled &&
+        !isReadOnly &&
+        !props.isWheelDisabled &&
+        floatingScope?.canAct() !== false &&
+        windowActive?.() !== false,
+      lifetimeKey,
+      group,
+      current: () => originalRef.current,
+      currentGroup: () => groupRef.current,
+      canAct: () =>
+        !isDisabled &&
+        !isReadOnly &&
+        !props.isWheelDisabled &&
+        scope?.isWindowActive() === true &&
+        floatingScope?.canAct() !== false &&
+        windowActive?.() !== false,
+      onAction: (direction) => numeric.step(direction),
+    })
     useNativeOriginalEditorFocusBinding(original, !isDisabled, lifetimeKey, {
       current: () => originalRef.current,
       canAct: () => !isDisabled && originalRef.current === original,
@@ -188,7 +215,14 @@ const StepperControls = forwardRef<TNativeStepperRef, TStepperControlsProps>(
           ]
     return (
       <>
-        <View testID={`${testID}-group`} accessible={false} accessibilityLabel={groupLabel} style={groupStyle}>
+        <View
+          ref={bindGroup}
+          collapsable={false}
+          testID={`${testID}-group`}
+          accessible={false}
+          accessibilityLabel={groupLabel}
+          style={groupStyle}
+        >
           {renderButton(-1)}
           <Input
             ref={editorRef}

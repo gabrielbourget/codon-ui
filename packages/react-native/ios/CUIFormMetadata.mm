@@ -182,6 +182,25 @@ using namespace facebook::react;
       ([element accessibilityTraits] & UIAccessibilityTraitAdjustable);
   } @catch (NSException *retired) { return NO; }
 }
+- (BOOL)isOwnedComboBoxTrigger:(UIView *)original surface:(SurfaceId)surface
+{
+  @try {
+    if (![original isKindOfClass:CUIFocusView.class] || self.ownedEditorBinding.length || !self.semanticBinding.length || surface <= 0) return NO;
+    id value = [NSJSONSerialization JSONObjectWithData:[self.ownedControlBinding dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
+    if (![value isKindOfClass:NSDictionary.class] || [value count] != 2 || ![value[@"kind"] isEqual:@"combo-box-trigger"]) return NO;
+    id rootTag = value[@"rootTarget"];
+    if (![rootTag isKindOfClass:NSNumber.class] || CFGetTypeID((__bridge CFTypeRef)rootTag) == CFBooleanGetTypeID()) return NO;
+    double number = [rootTag doubleValue];
+    if (!std::isfinite(number) || number <= 0 || number > INT_MAX || std::floor(number) != number) return NO;
+    UIView *root = [self.window viewWithTag:[rootTag integerValue]];
+    id element = [(CUIFocusView *)original accessibilityElement];
+    return root != original && [root isKindOfClass:RCTViewComponentView.class] &&
+      ![root isKindOfClass:CUIFormMetadataView.class] && ![root isKindOfClass:RCTTextInputComponentView.class] &&
+      ![root isKindOfClass:CUIDateSegment.class] && root.window == self.window &&
+      [original isDescendantOfView:root] && self != original && [self isDescendantOfView:original] &&
+      ([element accessibilityTraits] & UIAccessibilityTraitButton);
+  } @catch (NSException *retired) { return NO; }
+}
 - (void)publish:(BOOL)attached surface:(SurfaceId)surface mount:(NSString *)mount
 {
   if (!_eventEmitter || !self.ownerId.length || !self.descriptorId.length || !self.descriptorRevision.length) { _mountSnapshot = nil; [self resetSemanticAccessibilityFocus]; return; }
@@ -204,7 +223,7 @@ using namespace facebook::react;
   }
   BOOL ownedDate = [self isFieldBinding] && self.ownedEditorBinding.length;
   BOOL ownedControl = [self isFieldBinding] && self.ownedControlBinding.length;
-  BOOL correctType = ownedControl ? [self isOwnedRangeThumb:original surface:surface] : ownedDate ? CUIResolveOwnedDateField(self, self.ownedEditorBinding, self.originalTarget, surface) == original && original != nil :
+  BOOL correctType = ownedControl ? ([self isOwnedRangeThumb:original surface:surface] || [self isOwnedComboBoxTrigger:original surface:surface]) : ownedDate ? CUIResolveOwnedDateField(self, self.ownedEditorBinding, self.originalTarget, surface) == original && original != nil :
     [self isFieldBinding] ? [original isKindOfClass:RCTTextInputComponentView.class] &&
       ([editor isKindOfClass:UITextField.class] || [editor isKindOfClass:UITextView.class]) :
       [original isKindOfClass:RCTViewComponentView.class] && ![original isKindOfClass:CUIFormMetadataView.class];

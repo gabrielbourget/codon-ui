@@ -187,6 +187,24 @@ final class CUIFormMetadataView extends ReactViewGroup implements UIManagerListe
         strictDescendant(target, root) && strictDescendant(this, target) && adjustable;
     } catch (Exception retired) { return false; }
   }
+  private boolean isOwnedComboBoxTrigger(View target, int currentSurface) {
+    try {
+      if (!(target instanceof CUIFocusView) || !ownedEditorBinding.isEmpty() || semanticBinding.isEmpty() || currentSurface <= 0) return false;
+      JSONObject value = new JSONObject(ownedControlBinding);
+      if (value.length() != 2 || !"combo-box-trigger".equals(value.get("kind"))) return false;
+      Object tag = value.get("rootTarget");
+      if (!(tag instanceof Number)) return false;
+      double number = ((Number)tag).doubleValue();
+      if (!Double.isFinite(number) || number <= 0 || number > Integer.MAX_VALUE || Math.floor(number) != number) return false;
+      View root = manager.resolveView((int)number);
+      Object role = target.getTag(com.facebook.react.R.id.role);
+      if (role == null) role = target.getTag(com.facebook.react.R.id.accessibility_role);
+      boolean button = role != null && "button".equalsIgnoreCase(role.toString());
+      return root instanceof ReactViewGroup && !(root instanceof CUIFormMetadataView) && !(root instanceof CUIDateSegment) &&
+        root != target && root.isAttachedToWindow() && CUIInputWindow.identity(this).equals(CUIInputWindow.identity(root)) &&
+        strictDescendant(target, root) && strictDescendant(this, target) && button;
+    } catch (Exception retired) { return false; }
+  }
   private void publish(boolean attached, String mountRevision) {
     if (ownerId == null || ownerId.isEmpty() || descriptorId.isEmpty() || descriptorRevision.isEmpty()) { mountSnapshot = null; resetSemanticAccessibilityFocus(); return; }
     attached &= isAttachedToWindow();
@@ -205,7 +223,7 @@ final class CUIFormMetadataView extends ReactViewGroup implements UIManagerListe
     }
     boolean ownedDate = fieldBinding && !ownedEditorBinding.isEmpty();
     boolean ownedControl = fieldBinding && !ownedControlBinding.isEmpty();
-    boolean correctType = ownedControl ? isOwnedRangeThumb(target, currentSurface) : ownedDate ? target != null && CUIOwnedDateField.resolve(manager, this, ownedEditorBinding, originalTarget, currentSurface) == target :
+    boolean correctType = ownedControl ? (isOwnedRangeThumb(target, currentSurface) || isOwnedComboBoxTrigger(target, currentSurface)) : ownedDate ? target != null && CUIOwnedDateField.resolve(manager, this, ownedEditorBinding, originalTarget, currentSurface) == target :
       fieldBinding ? target instanceof ReactEditText : target instanceof ReactViewGroup && !(target instanceof CUIFormMetadataView);
     boolean metadataOnly = isMetadataOnly();
     boolean complete = attached && surface > 0 && !window.isEmpty() && target != null && target.isAttachedToWindow()

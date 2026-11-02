@@ -34,7 +34,7 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
   long dragEpoch() { return dragInteractions.epoch(); }
   String dragWindowId() { return dragInteractions.window(); }
   void emitDragStatus(String record) { WritableMap data=Arguments.createMap(); data.putString("packet",record); emit("topNativeDragStatus",data); }
-  @Override public void didMountItems(UIManager manager) { if (manager == dragMountManager) { dragInteractions.refresh(); } ordinaryEditorKeys.publish(); publishToolbarStatus(); }
+  @Override public void didMountItems(UIManager manager) { if (manager == dragMountManager) { dragInteractions.refresh(); } ordinaryEditorKeys.publish(); editorWheel.publish(); publishToolbarStatus(); }
   @Override public void willDispatchViewUpdates(UIManager manager) {}
   @Override public void willMountItems(UIManager manager) {}
   @Override public void didDispatchMountItems(UIManager manager) {}
@@ -43,6 +43,14 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
   boolean dialogFocusReady() { return captureReady(); }
   void emitDialogFocus(String name, WritableMap data) { emit(name, data); }
   final CUIOrdinaryEditorKeys ordinaryEditorKeys = new CUIOrdinaryEditorKeys(this);
+  final CUIOriginalEditorWheel editorWheel = new CUIOriginalEditorWheel(this);
+  void emitEditorWheelStatus(WritableMap data) { emit("topNativeEditorWheelStatus",data); }
+  boolean emitEditorWheel(WritableMap data) {
+    EventDispatcher dispatcher=UIManagerHelper.getEventDispatcherForReactTag((ThemedReactContext)getContext(),getId());
+    if (dispatcher==null) return false;
+    dispatcher.dispatchEvent(new ScopeEvent(UIManagerHelper.getSurfaceId(this),getId(),"topNativeEditorWheel",data));
+    return true;
+  }
   boolean menuPointerCaptureReady() { return captureReady(); }
   String menuPointerOwnerId() { return ownerId; }
   double menuPointerEpoch() { return windowEpoch; }
@@ -557,6 +565,7 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
   void publishStatus() {
     dragInteractions.refreshWindow();
     ordinaryEditorKeys.publish();
+    editorWheel.publish();
     publishToolbarStatus();
     CUIWindowPointers.refresh(this);
     floating.update(floatingTargets, captureReady());
@@ -838,7 +847,7 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
       hold.retired = true;
     }
   }
-  @Override protected void onLayout(boolean changed, int left, int top, int right, int bottom) { super.onLayout(changed, left, top, right, bottom); ordinaryEditorKeys.publish(); publishToolbarStatus(); dialogs.attach(); dialogs.refresh(); }
+  @Override protected void onLayout(boolean changed, int left, int top, int right, int bottom) { super.onLayout(changed, left, top, right, bottom); ordinaryEditorKeys.publish(); editorWheel.publish(); publishToolbarStatus(); dialogs.attach(); dialogs.refresh(); }
   @Override public void onWindowFocusChanged(boolean focused) { retireHeld(); held.clear(); if (!focused) CUIInputWindow.clearPointers(this); windowEpoch++; super.onWindowFocusChanged(focused); publishStatus(); }
   @Override protected void onWindowVisibilityChanged(int visibility) {
     super.onWindowVisibilityChanged(visibility);

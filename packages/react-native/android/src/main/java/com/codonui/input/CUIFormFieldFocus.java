@@ -29,6 +29,20 @@ final class CUIFormFieldFocus {
         CUIOwnedDateField.resolve(manager, metadata, owned, field.getInt("target"), mount.getInt("surfaceId")) == target;
       return result(field, mount, current).put("requested", requested);
     }
+    JSONObject control=metadata.ownedControlBinding.isEmpty() ? null : new JSONObject(metadata.ownedControlBinding);
+    if (control!=null && control.length()==2 && "combo-box-trigger".equals(control.optString("kind"))) {
+      CUIFocusView trigger=target instanceof CUIFocusView ? (CUIFocusView)target : null;
+      String owner=trigger==null ? "" : trigger.fieldInputOwnerId();
+      if (trigger==null || owner.isEmpty() || !trigger.isFocusable() || !metadata.ownedEditorBinding.isEmpty() ||
+          !metadata.ownedControlBinding.equals(field.optString("ownedControlBinding","")))
+        throw new IllegalStateException("form-focus-owned-trigger-retired");
+      try { trigger.requestKeyboardFocus(owner); }
+      catch (RuntimeException retired) { return result(field,mount,false).put("requested",false); }
+      boolean current=false;
+      try { current=isCurrent.check() && metadata.originalForMountSnapshot(mount)==trigger && owner.equals(trigger.fieldInputOwnerId()); }
+      catch (Exception retired) { current=false; }
+      return result(field,mount,current);
+    }
     if (!(target instanceof ReactEditText) || !metadata.ownedEditorBinding.isEmpty()) throw new IllegalStateException("form-focus-original-editor-retired");
     boolean current = false;
     // Preserve RN's original keyboard/focus behavior and caller-owned props.

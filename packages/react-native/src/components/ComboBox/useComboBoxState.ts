@@ -1,7 +1,10 @@
-import { useEffect, useInsertionEffect, useRef, useState } from "react"
+import { useContext, useEffect, useInsertionEffect, useMemo, useRef, useState } from "react"
 
+import { NativeFormBehaviorContext } from "../../form/context"
+import { nativeSimpleComboBoxValidity } from "../../form/simpleComboBox"
 import { encodeCollectionKey, normalizeCollection, validateCollectionKey } from "../collection"
 
+import { useFormValidationState } from "./state/useFormValidationState"
 import type { TNativeComboBoxKey, TNativeComboBoxProps } from "./types"
 
 export const useComboBoxState = <T>(props: TNativeComboBoxProps<T>) => {
@@ -43,11 +46,30 @@ export const useComboBoxState = <T>(props: TNativeComboBoxProps<T>) => {
   const selectedKey = value === undefined ? localValue : value
   const query = inputValue === undefined ? localInput : inputValue
   const open = isOpen ?? localOpen
+  if (props.formValue !== undefined && props.formValue !== "key" && props.formValue !== "text")
+    throw new TypeError("ComboBox: unsupported formValue")
+  const inheritedBehavior = useContext(NativeFormBehaviorContext)
+  const validationBehavior = props.validationBehavior ?? inheritedBehavior
+  const validationValue = useMemo(() => ({ inputValue: query, value: selectedKey, selectedKey }), [query, selectedKey])
+  const builtinValidation = nativeSimpleComboBoxValidity({ ...props, validationBehavior }, query)
+  const validation = useFormValidationState({
+    name: props.name,
+    value: validationValue,
+    isInvalid: props.isInvalid ?? (props.errorState ? true : undefined),
+    validationState: props.validationState,
+    validate: props.validate,
+    validationBehavior,
+    builtinValidation,
+  })
+  const [initialValue] = useState(selectedKey)
+  const [initialInput] = useState(localInput)
+  const resetValue = props.defaultValue ?? initialValue
+  const resetQuery = props.defaultInputValue ?? entries.find((entry) => entry.key === resetValue)?.text ?? initialInput
   const focusStrategy = useRef<"first" | "last" | "selected">("selected")
-  const owner = useRef({ props, entries, disabledKeys, selectedKey, query, open })
+  const owner = useRef({ props, entries, disabledKeys, selectedKey, query, open, resetValue, resetQuery })
   const live = useRef(false)
   useInsertionEffect(() => {
-    owner.current = { props, entries, disabledKeys, selectedKey, query, open }
+    owner.current = { props, entries, disabledKeys, selectedKey, query, open, resetValue, resetQuery }
   })
   useInsertionEffect(() => {
     live.current = true
@@ -111,5 +133,33 @@ export const useComboBoxState = <T>(props: TNativeComboBoxProps<T>) => {
     requestInput(current.entries.find((entry) => entry.key === current.selectedKey)?.text ?? "")
     requestOpen(false)
   }
-  return { entries, selectedKey, disabledKeys, query, open, requestOpen, requestInput, activate, revert, focusStrategy }
+  const resetInput = () => {
+    const current = owner.current
+    if (!live.current || current.query === current.resetQuery) return
+    if (current.props.inputValue === undefined) setLocalInput(current.resetQuery)
+    current.props.onInputChange?.(current.resetQuery)
+  }
+  const resetKey = () => {
+    const current = owner.current
+    if (!live.current || current.selectedKey === current.resetValue) return
+    if (current.props.value === undefined) setLocalValue(current.resetValue)
+    current.props.onChange?.(current.resetValue)
+  }
+  return {
+    entries,
+    selectedKey,
+    disabledKeys,
+    query,
+    open,
+    requestOpen,
+    requestInput,
+    activate,
+    revert,
+    focusStrategy,
+    ...validation,
+    validationBehavior,
+    formValidation: validation.realtimeValidation.isInvalid ? validation.realtimeValidation : builtinValidation,
+    resetInput,
+    resetKey,
+  }
 }

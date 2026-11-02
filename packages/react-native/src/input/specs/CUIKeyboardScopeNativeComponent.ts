@@ -227,6 +227,49 @@ export type NativeEditorKeyboardStatus = Readonly<{
   error: string
 }>
 
+type NativeEditorWheelBinding = Readonly<{
+  bindingId: string
+  bindingRevision: string
+  targetTag: Int32
+  groupTarget: Int32
+}>
+export type NativeEditorWheelStatus = Readonly<{
+  ownerId: string
+  bindingId: string
+  bindingRevision: string
+  target: Int32
+  groupTarget: Int32
+  windowId: string
+  epoch: Double
+  sequence: Double
+  ready: boolean
+  windowActive: boolean
+  sourceKind: string
+  error: string
+}>
+export type NativeEditorWheelData = Readonly<{
+  ownerId: string
+  bindingId: string
+  bindingRevision: string
+  target: Int32
+  groupTarget: Int32
+  focusedTarget: Int32
+  windowId: string
+  epoch: Double
+  sequence: Double
+  timestamp: Double
+  deltaX: Double
+  deltaY: Double
+  rawAxisX: Double
+  rawAxisY: Double
+  sourceKind: string
+  nativeDefaultHandled: boolean
+  altKey: boolean
+  ctrlKey: boolean
+  metaKey: boolean
+  shiftKey: boolean
+}>
+
 export interface NativeProps extends ViewProps {
   onGotPointerCapture?: BubblingEventHandler<NativePointerCaptureData>
   onLostPointerCapture?: BubblingEventHandler<NativePointerCaptureData>
@@ -243,6 +286,9 @@ export interface NativeProps extends ViewProps {
   onNativeToolbarStatus?: DirectEventHandler<NativeDragActionData>
   ordinaryEditorBindings?: ReadonlyArray<NativeOrdinaryEditorBinding>
   onNativeOrdinaryEditorStatus?: DirectEventHandler<NativeEditorKeyboardStatus>
+  editorWheelBindings?: ReadonlyArray<NativeEditorWheelBinding>
+  onNativeEditorWheelStatus?: DirectEventHandler<NativeEditorWheelStatus>
+  onNativeEditorWheel?: DirectEventHandler<NativeEditorWheelData>
   enabled?: WithDefault<boolean, true>
   policies?: ReadonlyArray<NativeKeyPolicy>
   acceptedWindowId?: string

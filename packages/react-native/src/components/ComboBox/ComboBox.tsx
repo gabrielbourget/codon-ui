@@ -13,6 +13,10 @@ import {
 import { AccessibilityInfo, Modal, Platform, View, type TextStyle } from "react-native"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 
+import { useNativeCollectionRefs } from "../../collection/context"
+import { nativeFieldAccessibilityProps } from "../../form/semantics"
+import { useNativeFieldSemantics } from "../../form/useFieldSemantics"
+import { useNativeSimpleComboBoxField } from "../../form/useSimpleComboBoxField"
 import { focusNativeTarget } from "../../input/focus"
 import { nativeKeyTokens } from "../../input/keyScope"
 import { NativeFocusHost, type TNativeLocalKeyEvent } from "../../input/NativeFocusView"
@@ -62,6 +66,8 @@ const ComboBoxInner = <T,>(props: TNativeComboBoxProps<T>, ref: Ref<TNativeCombo
   validateNativeColor(theme.colors.background, "ComboBox", "windowBackground")
   const model = useComboBoxState(props)
   const trigger = useRef<View>(null)
+  const root = useRef<View>(null)
+  const rootRef = useNativeCollectionRefs(ref, root)
   const floatingDismiss = useRef<TNativeFloatingWindowDismiss | null>(null)
   const restoreKeyboard = useRef(true)
   const rotateX = useNativeMotionValue<unknown>(0)
@@ -107,9 +113,16 @@ const ComboBoxInner = <T,>(props: TNativeComboBoxProps<T>, ref: Ref<TNativeCombo
     isOpen: model.open,
     isDisabled: !!props.isDisabled,
     isReadOnly: !!props.isReadOnly,
-    isInvalid: !!props.errorState,
+    isInvalid: !!props.errorState || model.displayValidation.isInvalid,
   }
-  const styles = getNativeComboBoxStyles(theme, props, state, queryFocused || triggerFocused, false, false)
+  const styles = getNativeComboBoxStyles(
+    theme,
+    { ...props, errorState: state.isInvalid },
+    state,
+    queryFocused || triggerFocused,
+    false,
+    false,
+  )
   const groupStyle = useNativeInputBorder(styles.group)
   const triggerForeground: TextStyle = { color: styles.button.color ?? styles.foreground }
   const current = useRef({ model, props })
@@ -139,18 +152,37 @@ const ComboBoxInner = <T,>(props: TNativeComboBoxProps<T>, ref: Ref<TNativeCombo
     props.labels && "inputButtonGroupAriaLabel" in props.labels
       ? props.labels.inputButtonGroupAriaLabel
       : "ComboBox Input Button Group"
+  const semantics = useNativeFieldSemantics({
+    text: { label, errorMessage: model.displayValidation.validationErrors.join(" ") },
+    flags: {
+      disabled: !!props.isDisabled,
+      readOnly: !!props.isReadOnly,
+      required: !!props.isRequired,
+      invalid: state.isInvalid,
+      expanded: model.open,
+    },
+    activeDescendant: null,
+  })
+  const field = useNativeSimpleComboBoxField(props, model, root, trigger, semantics)
+  const fieldAccessibility = field.participating
+    ? nativeFieldAccessibilityProps(semantics, label, props.accessibilityHint)
+    : {
+        accessibilityLabel: label,
+        accessibilityHint: props.accessibilityHint,
+        accessibilityState: { expanded: model.open },
+      }
   const close = () => {
     if (overlay.isActive() && !floatingDismiss.current?.("keyboard")) model.requestOpen(false)
   }
   return (
     <View
-      ref={ref}
+      ref={rootRef}
       testID={identity}
       nativeID={props.nativeID}
       id={props.id}
       onLayout={props.onLayout}
       pointerEvents={props.pointerEvents}
-      collapsable={props.collapsable}
+      collapsable={field.participating ? false : props.collapsable}
       accessible={false}
       style={styles.root}
     >
@@ -187,14 +219,17 @@ const ComboBoxInner = <T,>(props: TNativeComboBoxProps<T>, ref: Ref<TNativeCombo
                   onKey: triggerKey,
                   onRetire: () => {},
                 }}
-              />
+              >
+                {native.children}
+                {field.metadata}
+              </NativeFocusHost>
             )}
             onKeyDown={triggerKey}
             ref={trigger}
-            accessibilityLabel={label}
-            accessibilityHint={props.accessibilityHint}
+            accessibilityLabel={fieldAccessibility.accessibilityLabel}
+            accessibilityHint={fieldAccessibility.accessibilityHint}
             accessibilityValue={{ text: model.query || props.placeholder || "" }}
-            accessibilityState={{ expanded: model.open }}
+            accessibilityState={fieldAccessibility.accessibilityState}
             isDisabled={props.isDisabled}
             testID={`${identity}-trigger`}
             style={(button) => styles.buttonForState(button.isPressed, button.isHovered)}

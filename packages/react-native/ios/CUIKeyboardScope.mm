@@ -117,6 +117,7 @@ static NSNumber *CUIPrepareToolbarPress(UIPress *press, NSString *phase, BOOL re
 - (NSString *)toolbarRouteForHold:(CUIToolbarHold *)hold;
 - (void)cancelOriginalToolbarHold:(CUIToolbarHold *)hold press:(UIPress *)press handled:(BOOL)handled;
 - (void)publishToolbarStatus;
+- (void)publishEditorWheelStatus;
 - (void)updateToolbarBindings:(NSString *)value;
 - (CUIToolbarBinding *)outermostToolbar:(UIView *)focused key:(UIKey *)key capture:(BOOL)capture;
 - (CUIToolbarBinding *)toolbarForPress:(UIPress *)press;
@@ -242,6 +243,9 @@ static void CUIObserveCapturedDatePress(UIPress *press, NSString *phase, BOOL ca
   BOOL _toolbarMoving;
   CUIEditorKeyboardRecognizer *_editorKeyboard;
   CUIOrdinaryEditorKeys *_ordinaryEditorKeys;
+  NSArray<NSDictionary *> *_editorWheelBindings;
+  NSMutableDictionary<NSString *, NSString *> *_editorWheelPublished;
+  NSUInteger _editorWheelSequence;
   CUIDialogFocusScopes *_dialogs;
   NSString *_ownerId;
   int32_t _dragSurfaceId;
@@ -278,6 +282,8 @@ static void CUIObserveCapturedDatePress(UIPress *press, NSString *phase, BOOL ca
     _props = std::make_shared<const CUIKeyboardScopeProps>();
     _toolbars=@[]; _toolbarHeld=[NSMutableDictionary new];
     _ownerId = @"";
+    _editorWheelBindings = @[];
+    _editorWheelPublished = [NSMutableDictionary new];
     _dragInteractions = [[CUIDragInteractions alloc] initWithScope:self];
     _captureEnabled = YES;
     _policies = @[];
@@ -401,6 +407,7 @@ static void CUIObserveCapturedDatePress(UIPress *press, NSString *phase, BOOL ca
   _dragSurfaceId = transaction.getSurfaceId();
   [_dragInteractions refresh];
   [_ordinaryEditorKeys didMount:transaction];
+  [self publishEditorWheelStatus];
   [self publishToolbarStatus];
 }
 - (CUIDialogFocusScopes *)dialogFocusScopes { return _dialogs; }
@@ -422,6 +429,7 @@ static void CUIObserveCapturedDatePress(UIPress *press, NSString *phase, BOOL ca
   [_dragInteractions refreshWindow];
   [_dialogs refresh];
   [_ordinaryEditorKeys publish];
+  [self publishEditorWheelStatus];
   [self publishToolbarStatus];
   [_floating setTargets:_floatingTargets active:[self captureReady]];
   CUIRefreshKeyboardObservation(self.window);
@@ -439,6 +447,27 @@ static void CUIObserveCapturedDatePress(UIPress *press, NSString *phase, BOOL ca
   observed.ownerId = data.ownerId; observed.windowId = data.windowId; observed.epoch = _windowEpoch;
   observed.observationRevision = _observationRevision; observed.ready = [self captureReady]; observed.windowActive = [self windowActive];
   std::static_pointer_cast<const CUIKeyboardScopeEventEmitter>(_eventEmitter)->onNativeObservationStatus(observed);
+}
+- (void)publishEditorWheelStatus
+{
+  if (!_eventEmitter) return;
+  NSString *window = CUIInputWindowIdentity(self.window);
+  BOOL active = [self windowActive];
+  for (NSDictionary *binding in _editorWheelBindings) {
+    NSString *identity = binding[@"bindingId"], *revision = binding[@"bindingRevision"];
+    NSString *signature = [NSString stringWithFormat:@"%@:%@:%@:%@:%@:%@:%g:%d", _ownerId, identity, revision,
+      binding[@"targetTag"], binding[@"groupTarget"], window, _windowEpoch, active];
+    if ([_editorWheelPublished[identity] isEqual:signature]) continue;
+    _editorWheelPublished[identity] = signature;
+    CUIKeyboardScopeEventEmitter::OnNativeEditorWheelStatus data{};
+    data.ownerId = _ownerId.UTF8String; data.bindingId = identity.UTF8String; data.bindingRevision = revision.UTF8String;
+    data.target = [binding[@"targetTag"] intValue]; data.groupTarget = [binding[@"groupTarget"] intValue];
+    data.windowId = window.UTF8String; data.epoch = _windowEpoch; data.sequence = ++_editorWheelSequence;
+    data.ready = false; data.windowActive = active; data.sourceKind = "unavailable";
+    // A scroll-only pan recognizer alone does not establish per-update pre-default ownership or modifier retirement.
+    data.error = "uikit-original-editor-wheel-predefault-unproven";
+    std::static_pointer_cast<const CUIKeyboardScopeEventEmitter>(_eventEmitter)->onNativeEditorWheelStatus(data);
+  }
 }
 - (NSArray<NSDictionary *> *)windowPointerRegistrationsForAncestry:(NSArray<NSNumber *> *)ancestry
 {
@@ -1102,6 +1131,15 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
     @"bindingId": @(entry.bindingId.c_str()), @"bindingRevision": @(entry.bindingRevision.c_str()), @"targetTag": @(entry.targetTag), @"subtree": @(entry.subtree), @"toolbarTargetOnly": @(entry.toolbarTargetOnly), @"toolbarSubtreeOnly": @(entry.toolbarSubtreeOnly), @"originalEditorAction": @(entry.originalEditorAction == true)
   }];
   [_ordinaryEditorKeys update:ordinary];
+  NSMutableArray *wheel = [NSMutableArray new];
+  for (const auto &entry : next.editorWheelBindings) [wheel addObject:@{
+    @"bindingId": @(entry.bindingId.c_str()), @"bindingRevision": @(entry.bindingRevision.c_str()),
+    @"targetTag": @(entry.targetTag), @"groupTarget": @(entry.groupTarget)
+  }];
+  if (![_editorWheelBindings isEqual:wheel]) {
+    _editorWheelBindings = wheel;
+    [_editorWheelPublished removeAllObjects];
+  }
   [self updateToolbarBindings:@(next.toolbarBindings.c_str())];
   _editorKeyboard.enabled = next.enabled && ([_ordinaryEditorKeys hasBindings] || _toolbars.count > 0);
   _ownerId = owner;
@@ -1187,6 +1225,7 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
   [_originalEditorHeld removeAllObjects]; [_originalEditorIgnored removeAllObjects];
   [_originalEditorLogicalHeld removeAllObjects]; [_originalEditorLogicalRecords removeAllObjects];
   [_ordinaryEditorKeys update:@[]];
+  _editorWheelBindings = @[]; [_editorWheelPublished removeAllObjects];
   [self retireToolbarHeld]; _toolbars=@[]; [_toolbarHeld removeAllObjects];
   _dragSurfaceId = 0;
   [_dragInteractions invalidate]; _dragInteractions = [[CUIDragInteractions alloc] initWithScope:self];
