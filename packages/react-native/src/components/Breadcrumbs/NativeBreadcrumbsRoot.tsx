@@ -7,6 +7,7 @@ import { NativeFocusView } from "../../input/NativeFocusView"
 import { useNativeTheme } from "../../theme"
 import { resolveNativeStyle, validateNativeColor } from "../colors"
 import { NativeContentContext } from "../NativeContentContext"
+import { validateNativeFontWeight } from "../nativeTextStyle"
 import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
 
 import { NativeBreadcrumbsContext, type TNativeBreadcrumbsContextProps } from "./context"
@@ -57,6 +58,7 @@ export const NativeBreadcrumbsRoot = forwardRef<
       resolveNativeStyle([nativeBaselineStyle, style], "Breadcrumbs", "root context"),
     )
     validateNativeColor(resolved.text.color, "Breadcrumbs", "root context color")
+    validateNativeFontWeight(resolved.text.fontWeight, "Breadcrumbs")
     const host = {
       ...native,
       ref: mergedRef,

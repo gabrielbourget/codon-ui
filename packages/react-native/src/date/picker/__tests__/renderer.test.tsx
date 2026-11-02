@@ -8,7 +8,6 @@ import { AccessibilityInfo } from "react-native"
 
 import { renderWithNativeCollections as render, screen } from "../../../collection/__tests__/nativeReceipts"
 import { DateTimePicker, DateTimeRangePicker } from "../../../index"
-import type { TNativeFieldInputScope } from "../../../input/fieldInput"
 import { NativeFocusView } from "../../../input/NativeFocusView"
 import { NativeLocaleProvider } from "../../../locale/NativeLocaleProvider"
 import { NativeThemeProvider } from "../../../theme"
@@ -21,13 +20,6 @@ jest.mock("../../../input/specs/CUIDateSegmentNativeComponent", () => ({
   __esModule: true,
   default: jest.requireActual("react-native").View,
   Commands: { requestSegmentFocus: jest.fn(), requestSegmentBlur: jest.fn() },
-}))
-jest.mock("../../../input/useFieldInputBinding", () => ({
-  useNativeFieldInputBinding: () => ({
-    scope: null as TNativeFieldInputScope | null,
-    metadata: { binding: () => "", commit: () => {}, receive: () => {} },
-    status: { ready: false },
-  }),
 }))
 jest.mock("../../../components/ClickPopover/ClickPopover", () => ({
   NativeFloatingSurface: ({ children, isOpen }: { children: React.ReactNode; isOpen?: boolean }) =>
@@ -65,6 +57,12 @@ it.each([
   const original = ref.current
   expect(original).not.toBeNull()
   expect(screen.getAllByTestId(/^datetime-picker-input-segment-/).some((segment) => segment.props.ownerId)).toBe(true)
+  expect(
+    screen
+      .getAllByTestId(/^datetime-picker-input-segment-/)
+      .filter((segment) => segment.props.ownerId)
+      .every((segment) => segment.props.ordinaryInputEvents === true),
+  ).toBe(true)
   expect(screen.getByText("2024")).toBeTruthy()
   await view.rerender(
     <NativeThemeProvider>
@@ -74,6 +72,12 @@ it.each([
     </NativeThemeProvider>,
   )
   expect(ref.current === original).toBe(true)
+  expect(
+    screen
+      .getAllByTestId(/^datetime-picker-input-segment-/)
+      .filter((segment) => segment.props.ownerId)
+      .every((segment) => segment.props.ordinaryInputEvents === true),
+  ).toBe(true)
 })
 
 it("retains the original range ref through renderer updates with independent start/end groups", async () => {
@@ -88,6 +92,12 @@ it("retains the original range ref through renderer updates with independent sta
   )
   expect(screen.getByTestId("datetime-range-picker-input-start")).toBeTruthy()
   expect(screen.getByTestId("datetime-range-picker-input-end")).toBeTruthy()
+  expect(
+    screen
+      .getAllByTestId(/^datetime-range-picker-input-(start|end)-segment-/)
+      .filter((segment) => segment.props.ownerId)
+      .every((segment) => segment.props.ordinaryInputEvents === true),
+  ).toBe(true)
   expect(screen.getAllByText("2024")).toHaveLength(2)
   expect(screen.getByText("18")).toBeTruthy()
   const original = ref.current
@@ -104,6 +114,12 @@ it("retains the original range ref through renderer updates with independent sta
     </NativeThemeProvider>,
   )
   expect(ref.current).toBe(original)
+  expect(
+    screen
+      .getAllByTestId(/^datetime-range-picker-input-(start|end)-segment-/)
+      .filter((segment) => segment.props.ownerId)
+      .every((segment) => segment.props.ordinaryInputEvents === true),
+  ).toBe(true)
   expect(screen.getByTestId("datetime-range-picker-input-start")).toBeTruthy()
   expect(screen.getByTestId("datetime-range-picker-input-end")).toBeTruthy()
   await view.unmount()

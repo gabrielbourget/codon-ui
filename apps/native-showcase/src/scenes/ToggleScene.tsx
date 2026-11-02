@@ -11,6 +11,8 @@ import {
   type ToggleSwitcherItem,
 } from "@codon-ui/react-native"
 
+import { ToggleCompositionScene } from "./ToggleCompositionScene"
+
 const MATCH_OPTIONS: readonly ToggleSwitcherItem[] = [
   {
     id: "and",
@@ -22,6 +24,7 @@ const MATCH_OPTIONS: readonly ToggleSwitcherItem[] = [
 ]
 
 export const ToggleScene = () => {
+  const [showComposition, setShowComposition] = useState(false)
   const [selected, setSelected] = useState(false)
   const [veto, setVeto] = useState(false)
   const [disabled, setDisabled] = useState(false)
@@ -53,6 +56,8 @@ export const ToggleScene = () => {
 
   return (
     <View style={styles.scene}>
+      <Button onPress={() => setShowComposition((current) => !current)}>Toggle complete toggle composition</Button>
+      {showComposition ? <ToggleCompositionScene /> : null}
       <Text elementType="h2" variant="h3">
         Toggle buttons
       </Text>

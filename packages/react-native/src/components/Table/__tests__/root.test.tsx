@@ -9,9 +9,11 @@ import {
   screen,
 } from "../../../collection/__tests__/nativeReceipts"
 import { NATIVE_DEFAULT_SLOT, NativeSelectableCollectionContext } from "../../../collection/context"
+import { captureNativeFocusTarget, focusNativeTarget } from "../../../input/focus"
 import { NativeFocusView } from "../../../input/NativeFocusView"
 import { NativeKeyboardScope } from "../../../input/NativeKeyboardScope"
 import { NativeThemeProvider } from "../../../theme"
+import { Button } from "../../Button/Button"
 import { NativeTablePropsContext, NativeTableStateContext, useNativeTable } from "../context"
 import { Table } from "../Table"
 import { TableBody } from "../TableBody"
@@ -67,6 +69,91 @@ const observeFocus = async (ref: React.RefObject<View | null>, focused: boolean,
   await act(() => host.props.onNativeFocusChange(event))
   return event
 }
+
+it.each([false, true])(
+  "preserves explicit native root focus admission on the original host with custom=%s",
+  async (custom) => {
+    const root = createRef<View>(),
+      child = createRef<View>(),
+      editor = createRef<TextInput>(),
+      changed = jest.fn()
+    const ownedColumns = [
+      {
+        ...columns[0],
+        cellRenderer: ({ row }: { row: (typeof items)[number] }) =>
+          row.id === "a" ? (
+            <>
+              <Button ref={child}>Original child</Button>
+              <TextInput ref={editor} testID="root-focus-editor" value="held" onChangeText={changed} />
+            </>
+          ) : (
+            row.name
+          ),
+      },
+    ]
+    const node = (admission: Pick<TNativeTableProps, "focusable" | "tabIndex"> = {}) => (
+      <NativeThemeProvider>
+        <Table ref={root} testID="root-focus-table" render={custom ? renderRoot : undefined} {...admission}>
+          <TableHeader
+            columns={columns}
+            render={(header) => (
+              <View {...header}>
+                <Probe />
+                {header.children}
+              </View>
+            )}
+          />
+          <TableBody items={items} columns={ownedColumns} />
+        </Table>
+      </NativeThemeProvider>
+    )
+    const view = await render(node())
+    const original = { root: root.current!, child: child.current!, editor: editor.current! },
+      host = () => screen.getByTestId("root-focus-table"),
+      captured = captureNativeFocusTarget(original.root),
+      childCaptured = captureNativeFocusTarget(original.child),
+      write = jest.spyOn(original.editor, "setNativeProps")
+    expect(captured?.()).toBe(true)
+    expect(childCaptured?.()).toBe(true)
+    expect(host().props).toMatchObject({ accessible: false, focusable: true, role: "grid", nativeTabStop: true })
+    await act(() => state.selectionManager.setFocusedKey("a"))
+    expect(host().props.nativeTabStop).toBe(false)
+    const cases = [
+      { props: { focusable: false }, expected: false },
+      { props: { tabIndex: -1 as const }, expected: false },
+      { props: { focusable: false, tabIndex: 0 as const }, expected: true },
+      { props: { focusable: true, tabIndex: -1 as const }, expected: false },
+      { props: {}, expected: true },
+    ]
+    for (const { props, expected } of cases) {
+      await view.rerender(node(props))
+      expect(host().props.focusable).toBe(expected)
+      expect(host().props.keyboardFocusable).toBe(expected)
+      expect(host().props).toMatchObject({ accessible: false, role: "grid", nativeTabStop: false })
+      if (expected) expect(captureNativeFocusTarget(original.root)?.()).toBe(true)
+      else {
+        expect(captured?.()).toBe(false)
+        expect(captureNativeFocusTarget(original.root)).toBeNull()
+        expect(focusNativeTarget(original.root)).toBe(false)
+      }
+      expect(childCaptured?.()).toBe(true)
+      expect(root.current).toBe(original.root)
+      expect(child.current).toBe(original.child)
+      expect(editor.current).toBe(original.editor)
+      expect(JSON.parse(host().props.nativeCollectionSemantics)).toMatchObject({
+        kind: "root",
+        rowCount: 3,
+        columnCount: 1,
+      })
+      expect(JSON.parse(host().props.nativeCollectionBinding).metadataTarget).toBeGreaterThan(0)
+      expect(screen.getByTestId("root-focus-editor").props.value).toBe("held")
+    }
+    await act(() => state.selectionManager.setFocusedKey(null))
+    expect(host().props.nativeTabStop).toBe(true)
+    expect(changed).not.toHaveBeenCalled()
+    expect(write).not.toHaveBeenCalled()
+  },
+)
 
 it("renders the four source fields over the real complete filtered state and keeps opaque bindings", async () => {
   await render(tree())

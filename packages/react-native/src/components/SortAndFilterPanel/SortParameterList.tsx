@@ -335,6 +335,7 @@ const List = ({
               </NativeFocusHost>
             </NativeCollectionItemBindingContext.Provider>
           </NativeCollectionSemanticsContext.Provider>
+          {dragAndDrop.accessibleDropChooser}
         </NativeDropIndicatorContext.Provider>
       </NativeDragAndDropContext.Provider>
     </ListContext.Provider>

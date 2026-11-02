@@ -230,5 +230,13 @@
       "react-aria-components/dist/private/intl/zh-CN.mjs.map": "9ae4d2f14c08e2fa6f7ce36419356c0e0aa78ec691342931393de397e7933e6d",
       "react-aria-components/dist/private/intl/zh-TW.mjs.map": "f9588101bcafafcf43bf058f3506ed05b971659bdac2319003ca5204eab11fb1"
     }
-  }
+  },
+  "nativePositionAmendments": [
+    {
+      "decision": "DEC.PHONE.POSITION_ROOT.01",
+      "sourceBaseline": "9cc699a4b50f749a2eebb3f3389a81cb123092a5",
+      "adaptation": "NativeFocusView descriptor-owned position presence replaces the patched Yoga field. Cooperating sticky/popLayout roots retain actual generated props/refs, final style and imperative restoration; other inherited APIs and native qualification remain unchanged.",
+      "files": {}
+    }
+  ]
 }

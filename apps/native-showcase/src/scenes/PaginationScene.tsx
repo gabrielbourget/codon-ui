@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { View } from "react-native"
+import { StyleSheet, View } from "react-native"
 
 import {
   AVAILABLE_THEMING_ORDER_CODES,
@@ -15,6 +15,21 @@ const allGroups: readonly TNativePaginationSubcomponent[] = [
   "page-input",
   "items-per-page",
 ]
+const PAGER_CUSTOMIZATIONS = [
+  ["separator", "Toggle pager separator styles"],
+  ["first", "Toggle pager first button styles"],
+  ["previous", "Toggle pager previous button styles"],
+  ["next", "Toggle pager next button styles"],
+  ["last", "Toggle pager last button styles"],
+  ["page", "Toggle pager page button styles"],
+  ["counter", "Toggle pager counter styles"],
+  ["pageField", "Toggle pager page field styles"],
+  ["sizeField", "Toggle pager size field styles"],
+  ["sizeSelect", "Toggle pager size select styles"],
+  ["overflow", "Toggle pager overflow button styles"],
+] as const
+type TPagerCustomization = (typeof PAGER_CUSTOMIZATIONS)[number][0]
+
 export const PaginationScene = () => {
   const [page, setPage] = useState(3),
     [size, setSize] = useState(10)
@@ -31,6 +46,7 @@ export const PaginationScene = () => {
   const [held, setHeld] = useState(false),
     [popup, setPopup] = useState(false)
   const [observedText, setObservedText] = useState("")
+  const [customizations, setCustomizations] = useState<readonly TPagerCustomization[]>([])
   const requestPage = (next: number) => {
     setRequests((values) => [...values, `page:${next}`])
     if (echo) setPage(next)
@@ -55,6 +71,7 @@ export const PaginationScene = () => {
     setHeld(false)
     setPopup(false)
     setObservedText("")
+    setCustomizations([])
   }
   return (
     <View style={{ gap: 12 }}>
@@ -69,6 +86,19 @@ export const PaginationScene = () => {
       <Button onPress={() => setRTL((value) => !value)}>Toggle pager RTL</Button>
       <Button onPress={() => setOrthogonal((value) => !value)}>Toggle pager geometry</Button>
       <Button onPress={() => setStyled((value) => !value)}>Toggle pager styles</Button>
+      {PAGER_CUSTOMIZATIONS.map(([key, label]) => (
+        <Button
+          key={key}
+          onPress={() =>
+            setCustomizations((values) =>
+              values.includes(key) ? values.filter((value) => value !== key) : [...values, key],
+            )
+          }
+        >
+          {label}
+        </Button>
+      ))}
+      <Text testID="pagination-customization-state">Pager customizations: {customizations.join(", ") || "none"}.</Text>
       <Button onPress={() => setGroups((value) => !value)}>Toggle pager groups</Button>
       <Button onPress={() => setEmpty((value) => !value)}>Toggle pager empty data</Button>
       <Button onPress={() => setLeft((value) => !value)}>Toggle pager consolidation</Button>
@@ -122,7 +152,32 @@ export const PaginationScene = () => {
           },
         }}
         customOptionsListStyles={styled ? { padding: 0 } : undefined}
+        customSeparatorStyles={customizations.includes("separator") ? styles.separator : undefined}
+        customFirstPageButtonStyles={customizations.includes("first") ? styles.first : undefined}
+        customPrevButtonStyles={customizations.includes("previous") ? styles.previous : undefined}
+        customNextButtonStyles={customizations.includes("next") ? styles.next : undefined}
+        customLastPageButtonStyles={customizations.includes("last") ? styles.last : undefined}
+        customPageNumberButtonStyles={customizations.includes("page") ? styles.page : undefined}
+        customPageCounterStyles={customizations.includes("counter") ? styles.counter : undefined}
+        customPageNumberInputFormFieldStyles={customizations.includes("pageField") ? styles.pageField : undefined}
+        customItemsPerPageFormFieldStyles={customizations.includes("sizeField") ? styles.sizeField : undefined}
+        customItemsPerPageSelectStyles={customizations.includes("sizeSelect") ? styles.sizeSelect : undefined}
+        customClickPopoverTriggerButtonStyles={customizations.includes("overflow") ? styles.overflow : undefined}
       />
     </View>
   )
 }
+
+const styles = StyleSheet.create({
+  separator: { width: 3, backgroundColor: "#087f8c" },
+  first: { borderWidth: 2, borderColor: "#be123c" },
+  previous: { borderWidth: 2, borderColor: "#d97706" },
+  next: { borderWidth: 2, borderColor: "#166534" },
+  last: { borderWidth: 2, borderColor: "#7c3aed" },
+  page: { backgroundColor: "#d1fae5", borderWidth: 2, borderColor: "#166534" },
+  counter: { padding: 7, borderWidth: 2, borderColor: "#7c3aed" },
+  pageField: { padding: 8, borderWidth: 2, borderColor: "#087f8c" },
+  sizeField: { padding: 9, borderWidth: 2, borderColor: "#d97706" },
+  sizeSelect: { backgroundColor: "#fff2cc", borderWidth: 2, borderColor: "#166534" },
+  overflow: { backgroundColor: "#ddeeff", borderWidth: 2, borderColor: "#174ea6" },
+})

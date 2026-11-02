@@ -6,13 +6,13 @@ import { NativeDialogFocusScope } from "../../input/NativeDialogFocusScope"
 import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeTheme, type TNativeTheme } from "../../theme"
 import { resolveNativeStyle } from "../colors"
-import { splitNativeTextStyle } from "../nativeTextStyle"
+import { splitNativeTextStyle, validateNativeFontWeight } from "../nativeTextStyle"
 
 const definedStyle = <T extends TextStyle | ViewStyle>(style: StyleProp<T>) =>
   Object.fromEntries(Object.entries(StyleSheet.flatten(style) ?? {}).filter(([, value]) => value !== undefined)) as T
 
-export const resolveQueryDialogStyle = (style: StyleProp<TextStyle>, theme: TNativeTheme) =>
-  splitNativeTextStyle(
+export const resolveQueryDialogStyle = (style: StyleProp<TextStyle>, theme: TNativeTheme) => {
+  const resolved = splitNativeTextStyle(
     resolveNativeStyle(
       [
         {
@@ -31,6 +31,9 @@ export const resolveQueryDialogStyle = (style: StyleProp<TextStyle>, theme: TNat
       "customDialogStyles",
     ),
   )
+  validateNativeFontWeight(resolved.text.fontWeight, "SortAndFilterPanel")
+  return resolved
+}
 
 // Keep focus paint on the original dialog. Descendant focus and focus requests are not :focus acknowledgements.
 export const QueryPanelDialog = ({ style, ...props }: Omit<ComponentProps<typeof NativeFocusHost>, "ref">) => {

@@ -2,6 +2,7 @@ import type { TNativeKeyScope } from "../keyScope"
 import {
   createNativeWindowPointers,
   dispatchNativeWindowPointer,
+  observeAcceptedNativeWindowPointer,
   type TNativeWindowPointerEvent,
 } from "../nativeWindowPointers"
 
@@ -305,4 +306,74 @@ it("retires a failed native observer without accepting pending native packets", 
   expect(f.pointers.error()).toBe("replaced native callback")
   expect(dispatchNativeWindowPointer(f.packet("end", [0]))).toBe(false)
   expect(tap.end).not.toHaveBeenCalled()
+})
+
+it("observes immutable accepted metadata before an earlier claim without changing original callback order or records", () => {
+  const f = fixture(),
+    order: string[] = []
+  f.add("first", 1, {
+    stopPropagation: true,
+    activate: (event) => {
+      order.push("first")
+      expect(event).toBe(packet)
+    },
+  })
+  const later = f.add("later", 2, { global: true })
+  const before = { registrations: f.pointers.registrations(), revision: f.pointers.revision() }
+  const release = observeAcceptedNativeWindowPointer((data) => {
+    order.push("observe")
+    expect(Object.isFrozen(data)).toBe(true)
+    expect(data).toEqual({
+      ownerId: f.ownerId,
+      windowId: f.windowId,
+      epoch: 1,
+      sequence: 1,
+      phase: "activation",
+      pointerType: "virtual",
+      target: 7,
+      timestamp: 1,
+    })
+    expect(data).not.toHaveProperty("preventDefault")
+    expect(data).not.toHaveProperty("registrations")
+  })
+  const packet = f.packet("activation", [0, -1], { pointerType: "virtual" })
+  try {
+    expect(dispatchNativeWindowPointer(packet)).toBe(true)
+    expect(order).toEqual(["observe", "first"])
+    expect(later.activate).not.toHaveBeenCalled()
+    expect(packet.preventDefault).not.toHaveBeenCalled()
+    expect(packet.stopPropagation).not.toHaveBeenCalled()
+    expect(f.pointers.registrations()).toEqual(before.registrations)
+    expect(f.pointers.revision()).toBe(before.revision)
+  } finally {
+    release()
+  }
+})
+
+it("does not publish rejected packets and keeps original activation delivery when a passive observer throws", () => {
+  const f = fixture(),
+    tap = f.add("tap", 1),
+    observe = jest.fn()
+  const release = observeAcceptedNativeWindowPointer(observe)
+  try {
+    const packet = f.packet("activation", [0], { pointerType: "virtual" })
+    dispatchNativeWindowPointer(packet)
+    expect(dispatchNativeWindowPointer(packet)).toBe(false)
+    expect(dispatchNativeWindowPointer(f.packet("activation", [0], { epoch: 0 }))).toBe(false)
+    expect(dispatchNativeWindowPointer(f.packet("activation", [0], { windowId: "foreign" }))).toBe(false)
+    expect(dispatchNativeWindowPointer(f.packet("activation", [0], { ownerId: "foreign" }))).toBe(false)
+    expect(observe).toHaveBeenCalledTimes(1)
+    const failure = observeAcceptedNativeWindowPointer(() => {
+      throw new Error("observer failed")
+    })
+    try {
+      const next = f.packet("activation", [0], { pointerType: "virtual" })
+      expect(() => dispatchNativeWindowPointer(next)).toThrow(AggregateError)
+      expect(tap.activate).toHaveBeenLastCalledWith(next)
+    } finally {
+      failure()
+    }
+  } finally {
+    release()
+  }
 })

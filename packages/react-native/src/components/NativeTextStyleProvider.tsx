@@ -7,11 +7,13 @@ const NativeInheritedTextStyleContext = createContext<
   Readonly<{ style: TextStyle; windowId: string | null }> | undefined
 >(undefined)
 
-export const useNativeInheritedTextStyle = () => {
+const useNativeTextStyleContext = () => {
   const inherited = useContext(NativeInheritedTextStyleContext)
   const windowId = useContext(NativeFloatingScopeContext)?.id ?? null
-  return inherited?.windowId === windowId ? inherited.style : undefined
+  return inherited?.windowId === windowId ? inherited : undefined
 }
+
+export const useNativeInheritedTextStyle = () => useNativeTextStyleContext()?.style
 
 // Style inheritance survives component-local typography providers, but not a new native window.
 export const NativeTextStyleProvider = ({
@@ -23,12 +25,15 @@ export const NativeTextStyleProvider = ({
   children?: ReactNode
   reset?: boolean
 }) => {
-  const inherited = useNativeInheritedTextStyle()
+  const inherited = useNativeTextStyleContext()
   const windowId = useContext(NativeFloatingScopeContext)?.id ?? null
   const authored = Object.fromEntries(Object.entries(style).filter(([, value]) => value != null))
   return (
     <NativeInheritedTextStyleContext.Provider
-      value={{ style: { ...(reset ? undefined : inherited), ...authored }, windowId }}
+      value={{
+        style: { ...(reset ? undefined : inherited?.style), ...authored },
+        windowId,
+      }}
     >
       {children}
     </NativeInheritedTextStyleContext.Provider>

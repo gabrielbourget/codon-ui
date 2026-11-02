@@ -25,15 +25,15 @@ public final class CUIKeyboardScopeManager extends ReactViewManager implements C
   private final ViewManagerDelegate<ReactViewGroup> inherited = new ViewManagerPropertyUpdater.GenericViewManagerDelegate<>(this);
   private final CUIKeyboardScopeManagerDelegate<ReactViewGroup, CUIKeyboardScopeManager> delegate = new CUIKeyboardScopeManagerDelegate<>(this) {
     @Override public void setProperty(ReactViewGroup view, String name, Object value) {
-      if ("dragBindings".equals(name) || "nativeTypographyWindow".equals(name) || "dialogScopes".equals(name) || "dialogRevision".equals(name) || "editorKeyboardBindings".equals(name) || "menuPointerPolicies".equals(name) || "menuPointerRevision".equals(name) || "pointerRegistrations".equals(name) || "pointerRevision".equals(name) || "ownerId".equals(name) || "enabled".equals(name) || "policies".equals(name) || "acceptedWindowId".equals(name) || "acceptedEpoch".equals(name) || "policyRevision".equals(name) || "floatingTargets".equals(name) || "observations".equals(name) || "observationRevision".equals(name)) super.setProperty(view, name, value);
+      if ("toolbarBindings".equals(name) || "dragBindings".equals(name) || "dialogScopes".equals(name) || "dialogRevision".equals(name) || "ordinaryEditorBindings".equals(name) || "menuPointerPolicies".equals(name) || "menuPointerRevision".equals(name) || "pointerRegistrations".equals(name) || "pointerRevision".equals(name) || "ownerId".equals(name) || "enabled".equals(name) || "policies".equals(name) || "acceptedWindowId".equals(name) || "acceptedEpoch".equals(name) || "policyRevision".equals(name) || "floatingTargets".equals(name) || "observations".equals(name) || "observationRevision".equals(name)) super.setProperty(view, name, value);
       else inherited.setProperty(view, name, value);
     }
   };
   @Override public String getName() { return NAME; }
   @Override protected ViewManagerDelegate<ReactViewGroup> getDelegate() { return delegate; }
   @Override public ReactViewGroup createViewInstance(ThemedReactContext context) { return new CUIKeyboardScope(context); }
+  @Override @ReactProp(name = "toolbarBindings") public void setToolbarBindings(ReactViewGroup view, String value) { ((CUIKeyboardScope)view).setToolbarBindings(value); }
   @Override @ReactProp(name = "dragBindings") public void setDragBindings(ReactViewGroup view,String value) { ((CUIKeyboardScope)view).dragInteractions.update(value==null?"[]":value); }
-  @Override @ReactProp(name = "nativeTypographyWindow") public void setNativeTypographyWindow(ReactViewGroup view, String value) {}
   @Override @ReactProp(name = "ownerId") public void setOwnerId(ReactViewGroup view, String value) { ((CUIKeyboardScope) view).setOwnerId(value); }
   @Override @ReactProp(name = "enabled", defaultBoolean = true) public void setEnabled(ReactViewGroup view, boolean value) { ((CUIKeyboardScope) view).setCaptureEnabled(value); }
   @Override @ReactProp(name = "acceptedWindowId") public void setAcceptedWindowId(ReactViewGroup view, String value) { ((CUIKeyboardScope) view).setAcceptedWindowId(value); }
@@ -88,13 +88,13 @@ public final class CUIKeyboardScopeManager extends ReactViewManager implements C
     }
     ((CUIKeyboardScope) view).setFloatingTargets(targets);
   }
-  @Override @ReactProp(name = "editorKeyboardBindings") public void setEditorKeyboardBindings(ReactViewGroup view, ReadableArray value) {
-    List<CUIEditorKeyboardBindings.Registration> registrations = new ArrayList<>();
+  @Override @ReactProp(name = "ordinaryEditorBindings") public void setOrdinaryEditorBindings(ReactViewGroup view, ReadableArray value) {
+    List<CUIOrdinaryEditorKeys.Registration> registrations = new ArrayList<>();
     if (value != null) for (int index = 0; index < value.size(); index++) {
       ReadableMap entry = value.getMap(index);
-      registrations.add(new CUIEditorKeyboardBindings.Registration(entry.getString("bindingId"), entry.getString("bindingRevision"), entry.getInt("targetTag"), entry.getString("moduleLease")));
+      registrations.add(new CUIOrdinaryEditorKeys.Registration(entry.getString("bindingId"), entry.getString("bindingRevision"), entry.getInt("targetTag"), entry.hasKey("subtree") && entry.getBoolean("subtree"), entry.hasKey("toolbarTargetOnly") && entry.getBoolean("toolbarTargetOnly"), entry.hasKey("toolbarSubtreeOnly") && entry.getBoolean("toolbarSubtreeOnly")));
     }
-    ((CUIKeyboardScope)view).editorKeyboard.update(registrations);
+    ((CUIKeyboardScope)view).ordinaryEditorKeys.update(registrations);
   }
   @Override @ReactProp(name = "policies") public void setPolicies(ReactViewGroup view, ReadableArray value) {
     List<CUIKeyboardScope.Policy> policies = new ArrayList<>();
@@ -105,21 +105,32 @@ public final class CUIKeyboardScopeManager extends ReactViewManager implements C
     }
     ((CUIKeyboardScope) view).setPolicies(policies);
   }
+  @Override public Map<String, Object> getExportedCustomBubblingEventTypeConstants() {
+    Map<String, Object> events = new HashMap<>(); Map<String, Object> existing = super.getExportedCustomBubblingEventTypeConstants();
+    if (existing != null) events.putAll(existing);
+    Map<String, String> gotCapture = new HashMap<>();
+    gotCapture.put("bubbled", "onGotPointerCapture"); gotCapture.put("captured", "onGotPointerCaptureCapture");
+    events.put("topGotPointerCapture", Collections.singletonMap("phasedRegistrationNames", gotCapture));
+    Map<String, String> lostCapture = new HashMap<>();
+    lostCapture.put("bubbled", "onLostPointerCapture"); lostCapture.put("captured", "onLostPointerCaptureCapture");
+    events.put("topLostPointerCapture", Collections.singletonMap("phasedRegistrationNames", lostCapture));
+    return events;
+  }
   @Override public Map<String, Object> getExportedCustomDirectEventTypeConstants() {
     Map<String, Object> events = new HashMap<>(); Map<String, Object> existing = super.getExportedCustomDirectEventTypeConstants();
     if (existing != null) events.putAll(existing);
+    events.put("topNativeToolbarKeyboard", Collections.singletonMap("registrationName", "onNativeToolbarKeyboard"));
+    events.put("topNativeToolbarStatus", Collections.singletonMap("registrationName", "onNativeToolbarStatus"));
     events.put("topNativeDragStatus", Collections.singletonMap("registrationName", "onNativeDragStatus"));
     events.put("topNativeDragAction", Collections.singletonMap("registrationName", "onNativeDragAction"));
     events.put("topNativeDialogStatus", Collections.singletonMap("registrationName", "onNativeDialogStatus"));
     events.put("topNativeDialogAction", Collections.singletonMap("registrationName", "onNativeDialogAction"));
-    events.put("topNativeEditorKey", Collections.singletonMap("registrationName", "onNativeEditorKey"));
-    events.put("topNativeEditorKeyboardStatus", Collections.singletonMap("registrationName", "onNativeEditorKeyboardStatus"));
-    events.put("topNativeEditorKeyboardDecision", Collections.singletonMap("registrationName", "onNativeEditorKeyboardDecision"));
     events.put("topNativeScopedKey", Collections.singletonMap("registrationName", "onNativeScopedKey"));
     events.put("topNativeInputModality", Collections.singletonMap("registrationName", "onNativeInputModality"));
     events.put("topNativeScopeStatus", Collections.singletonMap("registrationName", "onNativeScopeStatus"));
     events.put("topNativeFloatingObservation", Collections.singletonMap("registrationName", "onNativeFloatingObservation"));
     events.put("topNativeObservedKey", Collections.singletonMap("registrationName", "onNativeObservedKey"));
+    events.put("topNativeOrdinaryEditorStatus", Collections.singletonMap("registrationName", "onNativeOrdinaryEditorStatus"));
     events.put("topNativeObservationStatus", Collections.singletonMap("registrationName", "onNativeObservationStatus"));
     events.put("topNativeWindowPointer", Collections.singletonMap("registrationName", "onNativeWindowPointer"));
     events.put("topNativePointerStatus", Collections.singletonMap("registrationName", "onNativePointerStatus"));

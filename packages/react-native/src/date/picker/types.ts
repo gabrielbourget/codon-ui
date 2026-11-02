@@ -1,12 +1,12 @@
 import type { ReactElement, ReactNode, RefAttributes } from "react"
-import type { StyleProp, TextStyle, View } from "react-native"
+import type { PointerEvent, StyleProp, TextStyle, View } from "react-native"
 
 import type { TNativeSlotProps } from "../../collection/context"
 import type { TNativeFieldSemanticLabels } from "../../form/semantics"
-import type { TNativeFieldPointerEvent } from "../../input/fieldInput"
 import type { TNativeFocusViewProps } from "../../input/types"
 import type { TNativeFloatingPlacement } from "../../overlays/floating/placement"
 import type { TNativeTimePickerAppearanceProps } from "../field/appearance"
+import type { TNativeExtraFocusParticipants } from "../field/participants"
 import type { DateValue } from "../state/types"
 import type { DatePickerStateOptions, DatePickerState } from "../state/useDatePickerState"
 import type { DateRangePickerStateOptions, DateRangePickerState } from "../state/useDateRangePickerState"
@@ -18,8 +18,9 @@ export type TNativeDatePickerLabels = {
 }
 export type TNativeDatePickerAppearance = Omit<
   TNativeTimePickerAppearanceProps,
-  "labels" | "customInputIconGroupStyles" | "width" | "height"
+  "labels" | "customInputIconGroupStyles" | "width" | "height" | "textSize"
 > & {
+  textSize?: string
   multiMonth?: boolean
   dayLength?: "narrow" | "short" | "long"
   placement?: TNativeFloatingPlacement
@@ -61,6 +62,7 @@ type TDOMFocus =
 type TCommon<S> = Omit<TNativeFocusViewProps, "style" | "children"> &
   TNativeSlotProps &
   TNativeDatePickerAppearance & {
+    extraFocusParticipants?: TNativeExtraFocusParticipants
     "aria-describedby"?: string
     "aria-details"?: string
     ariaDescribedBy?: string | readonly string[]
@@ -69,7 +71,7 @@ type TCommon<S> = Omit<TNativeFocusViewProps, "style" | "children"> &
     form?: string
     id?: string
     "data-testid"?: string
-    onClick?: (event: TNativeFieldPointerEvent) => void
+    onClick?: (event: PointerEvent) => void
     onFocusChange?: (value: boolean) => void
     autoComplete?: string
     children?: ReactNode | ((state: TNativeDatePickerRenderState<S>) => ReactNode)

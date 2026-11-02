@@ -16,6 +16,11 @@ export type TNativeThumbnailShowcaseRenderingMode = (typeof AVAILABLE_THUMBNAIL_
 export type TNativeThumbnailShowcaseSecondaryItem = { content: ReactNode; id: Key }
 export type TNativeThumbnailShowcaseRenderSecondaryPlaceholderArgs = { index: number }
 export type TNativeThumbnailShowcaseRenderOverflowArgs = { hiddenItemCount: number }
+/**
+ * Equal or wrapped native columns with independent root, primary, row and slot styles.
+ * Native View positioning and constraints retain their native rules; browser grid placement is not implemented.
+ * Content, actions and refs remain caller-owned.
+ */
 export type TNativeThumbnailShowcaseProps = Omit<ViewProps, "children" | "style"> & {
   primaryContent?: ReactNode
   primaryPlaceholder: ReactNode

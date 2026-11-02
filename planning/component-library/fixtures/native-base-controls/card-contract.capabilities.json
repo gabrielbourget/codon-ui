@@ -632,7 +632,7 @@
       "nativeType": "number | `${number}%` | undefined",
       "disposition": "NATIVE_EQUIVALENT",
       "nativeOwner": "packages/react-native/src/components/Card/Card.tsx",
-      "expected": "Native zero/percentage/auto dimensions and nonnegative native radius; auto/10/raisedtrue/column-start/spacingunit\u00d73 defaults. Root custom then final style wins; native text inheritance preserves explicit child overrides and original refs. layoutMode owns the layout option."
+      "expected": "Native zero/percentage/auto dimensions and nonnegative native radius; auto/10/raisedtrue/column-start/spacingunit×3 defaults. Root custom then final style wins; native text inheritance preserves explicit child overrides and original refs. layoutMode owns the layout option."
     },
     "className": {
       "id": "CAP.card.067",
@@ -712,7 +712,7 @@
       "nativeType": "StyleProp<TextStyle>",
       "disposition": "NATIVE_EQUIVALENT",
       "nativeOwner": "packages/react-native/src/components/Card/Card.tsx",
-      "expected": "Native zero/percentage/auto dimensions and nonnegative native radius; auto/10/raisedtrue/column-start/spacingunit\u00d73 defaults. Root custom then final style wins; native text inheritance preserves explicit child overrides and original refs. layoutMode owns the layout option."
+      "expected": "Native zero/percentage/auto dimensions and nonnegative native radius; auto/10/raisedtrue/column-start/spacingunit×3 defaults. Root custom then final style wins; native text inheritance preserves explicit child overrides and original refs. layoutMode owns the layout option."
     },
     "dangerouslySetInnerHTML": {
       "id": "CAP.card.075",
@@ -942,7 +942,7 @@
       "nativeType": "TNativeDisplayDimension | undefined",
       "disposition": "NATIVE_EQUIVALENT",
       "nativeOwner": "packages/react-native/src/components/Card/Card.tsx",
-      "expected": "Native zero/percentage/auto dimensions and nonnegative native radius; auto/10/raisedtrue/column-start/spacingunit\u00d73 defaults. Root custom then final style wins; native text inheritance preserves explicit child overrides and original refs. layoutMode owns the layout option."
+      "expected": "Native zero/percentage/auto dimensions and nonnegative native radius; auto/10/raisedtrue/column-start/spacingunit×3 defaults. Root custom then final style wins; native text inheritance preserves explicit child overrides and original refs. layoutMode owns the layout option."
     },
     "hidden": {
       "id": "CAP.card.098",
@@ -1162,7 +1162,7 @@
       "nativeType": "\"position\" | \"size\" | undefined",
       "disposition": "NATIVE_EQUIVALENT",
       "nativeOwner": "packages/react-native/src/components/Card/Card.tsx",
-      "expected": "Native zero/percentage/auto dimensions and nonnegative native radius; auto/10/raisedtrue/column-start/spacingunit\u00d73 defaults. Root custom then final style wins; native text inheritance preserves explicit child overrides and original refs. layoutMode owns the layout option."
+      "expected": "Native zero/percentage/auto dimensions and nonnegative native radius; auto/10/raisedtrue/column-start/spacingunit×3 defaults. Root custom then final style wins; native text inheritance preserves explicit child overrides and original refs. layoutMode owns the layout option."
     },
     "layoutRoot": {
       "id": "CAP.card.120",
@@ -3162,7 +3162,7 @@
       "nativeType": "boolean | undefined",
       "disposition": "NATIVE_EQUIVALENT",
       "nativeOwner": "packages/react-native/src/components/Card/Card.tsx",
-      "expected": "Native zero/percentage/auto dimensions and nonnegative native radius; auto/10/raisedtrue/column-start/spacingunit\u00d73 defaults. Root custom then final style wins; native text inheritance preserves explicit child overrides and original refs. layoutMode owns the layout option."
+      "expected": "Native zero/percentage/auto dimensions and nonnegative native radius; auto/10/raisedtrue/column-start/spacingunit×3 defaults. Root custom then final style wins; native text inheritance preserves explicit child overrides and original refs. layoutMode owns the layout option."
     },
     "ref": {
       "id": "CAP.card.320",
@@ -3262,7 +3262,7 @@
       "nativeType": "StyleProp<TextStyle>",
       "disposition": "NATIVE_EQUIVALENT",
       "nativeOwner": "packages/react-native/src/components/Card/Card.tsx",
-      "expected": "Native zero/percentage/auto dimensions and nonnegative native radius; auto/10/raisedtrue/column-start/spacingunit\u00d73 defaults. Root custom then final style wins; native text inheritance preserves explicit child overrides and original refs. layoutMode owns the layout option."
+      "expected": "Native zero/percentage/auto dimensions and nonnegative native radius; auto/10/raisedtrue/column-start/spacingunit×3 defaults. Root custom then final style wins; native text inheritance preserves explicit child overrides and original refs. layoutMode owns the layout option."
     },
     "suppressContentEditableWarning": {
       "id": "CAP.card.330",
@@ -3452,7 +3452,7 @@
       "nativeType": "TNativeDisplayDimension | undefined",
       "disposition": "NATIVE_EQUIVALENT",
       "nativeOwner": "packages/react-native/src/components/Card/Card.tsx",
-      "expected": "Native zero/percentage/auto dimensions and nonnegative native radius; auto/10/raisedtrue/column-start/spacingunit\u00d73 defaults. Root custom then final style wins; native text inheritance preserves explicit child overrides and original refs. layoutMode owns the layout option."
+      "expected": "Native zero/percentage/auto dimensions and nonnegative native radius; auto/10/raisedtrue/column-start/spacingunit×3 defaults. Root custom then final style wins; native text inheritance preserves explicit child overrides and original refs. layoutMode owns the layout option."
     }
   },
   "nativeOnlyProps": {
@@ -4243,6 +4243,56 @@
           "status": "passed"
         }
       ]
+    }
+  ],
+  "nativeContractAmendments": [
+    {
+      "id": "DEC.PHONE.TYPOGRAPHY.01",
+      "authority": "Gabriel approval of explicit styling/discrete weights and resumed D2 migration; roadmap3.4.1.3.2",
+      "sourceBaseline": "e7da830237dfcf234be718bb4393533604949e46",
+      "scope": "PHONE-TYPE07: Card/shared Motion typography uses explicit owned styles, supported authored weights and the existing immediate mixer on the original animation timeline. The private host retains a reset boundary only beneath explicit legacy ancestry.",
+      "supersededRequirement": "Automatic raw-descendant native-tree typography and continuous fractional weight frames on migrated paths. Unsupported authored scalars require explicit migration; no rounding is introduced.",
+      "preserved": "Root/editor refs and identity, current controlled events, existing independent Text defaults, family/line metrics, computed/custom/final precedence, color/opacity/transform/projection clocks, delay/keyframe times/repeat/seek/cancel/replay/completion and Reduce Motion. Numeric spring generators retain their original curves/duration; categorical weight velocity is zero. No general Motion API reduction or native/SDK change occurs.",
+      "sourceChecks": [
+        {
+          "suite": "packages/react-native/src/motion/__tests__/value-animation.test.ts",
+          "covers": "Exact numeric/string/named/mixed endpoints, original keyframe times and playback, repeats/delays, scalar rejection, spring timing and instant/Reduce Motion."
+        },
+        {
+          "suite": "packages/react-native/src/motion/__tests__/visual-host.test.tsx",
+          "covers": "Real native value-driver to owned Text path, legacy ancestor retirement, explicit custom raw styles, original root/editor refs and controlled events."
+        },
+        {
+          "suite": "packages/react-native/src/motion/__tests__/visual-style.test.ts",
+          "covers": "Effective supported endpoint validation after existing precedence; no scalar rounding or unrelated style change."
+        }
+      ],
+      "canonicalEvidence": "Original refs, properties, owned assertions, native-only/source Motion options and historical evidence remain unchanged.",
+      "acceptance": "Source correspondence only. Native glyph/layout/scaling/input/AT/profile gates and ledger verdicts remain unchanged."
+    },
+    {
+      "id": "DEC.PHONE.TYPOGRAPHY.NATIVE_RETIREMENT.01",
+      "authority": "Gabriel selected Retire the native inheritance API (Recommended) on2026-10-31; roadmap3.4.1.3.2 PHONE-TYPE08",
+      "sourceBaseline": "63ae7187b2b539da7dd61a66810dd507d71476b0",
+      "scope": "Retire the shared native inheritance/registration/transport and temporary conditional JS bridge after all built-in owners have explicit style paths.",
+      "supersedes": "Only earlier D2 temporary legacy-boundary/wire expectations. Current controls assert explicit styles and metric updates, reset/window barriers, original refs/editors/events and absence of native transport. Shared control mapping and receipts are recorded in roadmap3.4.1.3.2 and experiments.",
+      "preserved": "Original canonical source refs, property/native-only counts, historical assertions/receipts and all platform verdicts. Native compiler, glyph/layout/scaling/input/AT/profile qualification remains OPEN."
+    },
+    {
+      "id": "DEC.PHONE.TYPOGRAPHY.STOCK_TYPES.01",
+      "authority": "Gabriel approved stock RN, explicit styling/discrete weights and native inheritance API retirement; roadmap3.4.1.3.2 PHONE-TYPE09",
+      "sourceBaseline": "a2cdaa48f2fb0ee33c26dbfa2c14cdb4d5470ee5",
+      "scope": "Remove only P01/P02 SDK typography hunks and remaining Android scalar adapters; restore stock style/theme fontWeight types for supported named/string/numeric endpoints. Fractional/custom numeric values require explicit migration.",
+      "sourceChecks": "182 cases/11 suites plus source/public types. Invalid untyped-input and overridden-value runtime checks retain their exact values/assertions through a private test helper; positive/negative public declarations cover the restored stock types.",
+      "preserved": "Explicit owned styling, override precedence, original refs/events/identity and other Motion clocks. Original canonical fields, sourceRefs, historical receipts and verdicts remain unchanged; native compiler/products and glyph/layout/scaling/input/AT/profile qualification remain OPEN."
+    },
+    {
+      "id": "DEC.PHONE.POSITION_ROOT.01",
+      "authority": "Gabriel approved the proposed sticky/popLayout cooperating NativeFocusView root contract: Proceed, I approve; roadmap3.4.1.3.4 PHONE-POS01",
+      "sourceBaseline": "9cc699a4b50f749a2eebb3f3389a81cb123092a5",
+      "scope": "A custom Card/context root participating in Motion popLayout must ultimately use NativeFocusView and forward original props/ref; Table sticky columns have the same bounded requirement. Custom core View/third-party roots for these features require explicit migration.",
+      "preserved": "Default roots, final native style/imperative precedence, omitted versus explicit relative position, original generated props/children/editor/ref/event identity, lease retirement/restoration and all other Motion/Table APIs. No automatic wrapper or ref proxy.",
+      "validation": "Owned descriptor/metadata controls, focused pop/sticky protocol and renderer controls, source/public types and normal hooks. Original sourceRefs, property inventories, received hashes, historical receipts and platform verdicts remain unchanged; native products and installed qualification remain OPEN."
     }
   ]
 }

@@ -31,9 +31,7 @@ final class CUIFormMetadataView extends CUICollectionNode implements UIManagerLi
   private int surface = -1;
   private long epoch, sequence, mountBatch;
   String ownedEditorBinding = "";
-  String fieldGroupBinding = "";
-  private Runnable fieldInputRefresh;
-  private String fieldInputOwner;
+  String ownedControlBinding = "";
   private JSONObject mountSnapshot;
   private String lastMount = "unmounted";
   private boolean observing, resumed, lastActive;
@@ -75,24 +73,6 @@ final class CUIFormMetadataView extends CUICollectionNode implements UIManagerLi
     catch (RuntimeException retired) { setSemanticContribution(null); }
     finally { refreshingSemantics = false; }
   }
-  void setFieldInputRefresh(Runnable refresh, String owner) { fieldInputRefresh = refresh; fieldInputOwner = owner; if (refresh != null) refresh.run(); }
-  private void refreshFieldInput() { if (fieldInputRefresh != null) fieldInputRefresh.run(); }
-  void clearFieldInputRefresh(String owner) { if (owner.equals(fieldInputOwner)) { fieldInputRefresh = null; fieldInputOwner = null; } }
-  void emitFieldInputRecord(String record) {
-    if (!fieldBinding || !(getContext() instanceof ReactContext)) return;
-    EventDispatcher dispatcher = UIManagerHelper.getEventDispatcherForReactTag((ReactContext)getContext(), getId());
-    if (dispatcher == null) return;
-    WritableMap data = Arguments.createMap(); data.putString("record", record);
-    dispatcher.dispatchEvent(new FieldInputRecordEvent(UIManagerHelper.getSurfaceId(this), getId(), data));
-  }
-  private static final class FieldInputRecordEvent extends Event<FieldInputRecordEvent> {
-    private final WritableMap data;
-    FieldInputRecordEvent(int surface, int tag, WritableMap data) { super(surface, tag); this.data = data; }
-    @Override public String getEventName() { return "topNativeFieldInputRecord"; }
-    @Override public boolean canCoalesce() { return false; }
-    @Override protected WritableMap getEventData() { return data; }
-  }
-
   CUIFormMetadataView(Context context, boolean fieldBinding) { super(context); this.fieldBinding = fieldBinding; }
   boolean isFieldBinding() { return fieldBinding; }
 
@@ -114,22 +94,20 @@ final class CUIFormMetadataView extends CUICollectionNode implements UIManagerLi
   }
   @Override protected void onAttachedToWindow() {
     super.onAttachedToWindow(); epoch++; window = CUIInputWindow.identity(this); signature = ""; connect();
-    publish(true, lastMount); refreshFieldInput();
+    publish(true, lastMount);
   }
   @Override protected void onDetachedFromWindow() {
     setSemanticContribution(null);
     resetSemanticAccessibilityFocus();
-    publish(false, "detached"); disconnect(); epoch++; signature = ""; super.onDetachedFromWindow(); refreshFieldInput();
+    publish(false, "detached"); disconnect(); epoch++; signature = ""; super.onDetachedFromWindow();
   }
   void retire() {
-    Runnable refresh = fieldInputRefresh; fieldInputRefresh = null; fieldInputOwner = null;
     setSemanticContribution(null); semanticRefresh = null; semanticOwner = null;
     publish(false, "retired"); disconnect(); epoch++; signature = ""; identity = ""; original.clear();
     ownerId = ""; descriptorId = ""; descriptorRevision = ""; originalTarget = 0;
     mountSnapshot = null; lastMount = "retired"; lastActive = false;
-    semanticBinding = ""; ownedEditorBinding = ""; fieldGroupBinding = "";
+    semanticBinding = ""; ownedEditorBinding = ""; ownedControlBinding = "";
     resetSemanticAccessibilityFocus();
-    if (refresh != null) refresh.run();
   }
 
   JSONObject formMountSnapshot() throws Exception {
@@ -140,12 +118,35 @@ final class CUIFormMetadataView extends CUICollectionNode implements UIManagerLi
     JSONObject current = formMountSnapshot();
     return CUIFormActionAdmission.same(expected, current) && current.getBoolean("complete") && current.getBoolean("active") ? original.get() : null;
   }
-  @Override public void onWindowFocusChanged(boolean focused) { super.onWindowFocusChanged(focused); publish(isAttachedToWindow(), lastMount); refreshSemantics(); refreshFieldInput(); }
-  @Override protected void onWindowVisibilityChanged(int visibility) { super.onWindowVisibilityChanged(visibility); publish(isAttachedToWindow(), lastMount); refreshSemantics(); refreshFieldInput(); }
-  @Override public void onHostResume() { resumed = true; publish(isAttachedToWindow(), lastMount); refreshSemantics(); refreshFieldInput(); }
-  @Override public void onHostPause() { resumed = false; publish(isAttachedToWindow(), lastMount); refreshSemantics(); refreshFieldInput(); }
-  @Override public void onHostDestroy() { resumed = false; setSemanticContribution(null); publish(false, "retired"); refreshFieldInput(); disconnect(); }
+  @Override public void onWindowFocusChanged(boolean focused) { super.onWindowFocusChanged(focused); publish(isAttachedToWindow(), lastMount); refreshSemantics(); }
+  @Override protected void onWindowVisibilityChanged(int visibility) { super.onWindowVisibilityChanged(visibility); publish(isAttachedToWindow(), lastMount); refreshSemantics(); }
+  @Override public void onHostResume() { resumed = true; publish(isAttachedToWindow(), lastMount); refreshSemantics(); }
+  @Override public void onHostPause() { resumed = false; publish(isAttachedToWindow(), lastMount); refreshSemantics(); }
+  @Override public void onHostDestroy() { resumed = false; setSemanticContribution(null); publish(false, "retired"); disconnect(); }
 
+  private static boolean strictDescendant(View child, View root) {
+    for (View parent = child.getParent() instanceof View ? (View)child.getParent() : null; parent != null;
+        parent = parent.getParent() instanceof View ? (View)parent.getParent() : null) if (parent == root) return true;
+    return false;
+  }
+  private boolean isOwnedRangeThumb(View target, int currentSurface) {
+    try {
+      if (!(target instanceof CUIFocusView) || !ownedEditorBinding.isEmpty() || !semanticBinding.isEmpty() || currentSurface <= 0) return false;
+      JSONObject value = new JSONObject(ownedControlBinding);
+      if (value.length() != 2 || !"range-thumb".equals(value.get("kind"))) return false;
+      Object tag = value.get("rootTarget");
+      if (!(tag instanceof Number)) return false;
+      double number = ((Number)tag).doubleValue();
+      if (!Double.isFinite(number) || number <= 0 || number > Integer.MAX_VALUE || Math.floor(number) != number) return false;
+      View root = manager.resolveView((int)number);
+      Object role = target.getTag(com.facebook.react.R.id.role);
+      if (role == null) role = target.getTag(com.facebook.react.R.id.accessibility_role);
+      boolean adjustable = role != null && ("adjustable".equalsIgnoreCase(role.toString()) || "slider".equalsIgnoreCase(role.toString()));
+      return root instanceof ReactViewGroup && !(root instanceof CUICollectionNode) && !(root instanceof CUIDateSegment) &&
+        root != target && root.isAttachedToWindow() && CUIInputWindow.identity(this).equals(CUIInputWindow.identity(root)) &&
+        strictDescendant(target, root) && strictDescendant(this, target) && adjustable;
+    } catch (Exception retired) { return false; }
+  }
   private void publish(boolean attached, String mountRevision) {
     if (ownerId == null || ownerId.isEmpty() || descriptorId.isEmpty() || descriptorRevision.isEmpty()) { mountSnapshot = null; return; }
     attached &= isAttachedToWindow();
@@ -155,12 +156,13 @@ final class CUIFormMetadataView extends CUICollectionNode implements UIManagerLi
       try { target = manager.resolveView(originalTarget); } catch (RuntimeException unavailable) { target = null; }
     }
     int currentSurface = UIManagerHelper.getSurfaceId(this);
-    String currentIdentity = new JSONArray().put(ownerId).put(descriptorId).put(descriptorRevision).put(originalTarget).put(ownedEditorBinding).toString();
+    String currentIdentity = new JSONArray().put(ownerId).put(descriptorId).put(descriptorRevision).put(originalTarget).put(ownedEditorBinding).put(ownedControlBinding).toString();
     if (!window.equals(currentWindow) || original.get() != target || !identity.equals(currentIdentity) || surface != currentSurface) {
       epoch++; window = currentWindow; original = new WeakReference<>(target); identity = currentIdentity; surface = currentSurface;
     }
     boolean ownedDate = fieldBinding && !ownedEditorBinding.isEmpty();
-    boolean correctType = ownedDate ? target != null && CUIOwnedDateField.resolve(manager, this, ownedEditorBinding, originalTarget, currentSurface) == target :
+    boolean ownedControl = fieldBinding && !ownedControlBinding.isEmpty();
+    boolean correctType = ownedControl ? isOwnedRangeThumb(target, currentSurface) : ownedDate ? target != null && CUIOwnedDateField.resolve(manager, this, ownedEditorBinding, originalTarget, currentSurface) == target :
       fieldBinding ? target instanceof ReactEditText : target instanceof ReactViewGroup && !(target instanceof CUICollectionNode);
     boolean metadataOnly = isMetadataOnly();
     boolean complete = attached && surface > 0 && !window.isEmpty() && target != null && target.isAttachedToWindow()
@@ -195,7 +197,7 @@ final class CUIFormMetadataView extends CUICollectionNode implements UIManagerLi
     data.putBoolean("active", active);
     dispatcher.dispatchEvent(new CommitEvent(surface, getId(), data));
   }
-  @Override public void didMountItems(UIManager manager) { if (this.manager == manager) { publish(true, "android-ui-mount-batch:" + ++mountBatch); refreshSemantics(); refreshFieldInput(); } }
+  @Override public void didMountItems(UIManager manager) { if (this.manager == manager) { publish(true, "android-ui-mount-batch:" + ++mountBatch); refreshSemantics(); } }
   @Override public void willDispatchViewUpdates(UIManager manager) {}
   @Override public void willMountItems(UIManager manager) {}
   @Override public void didDispatchMountItems(UIManager manager) {}

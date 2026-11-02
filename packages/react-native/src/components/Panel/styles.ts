@@ -4,6 +4,7 @@ import type { TNativeTheme } from "../../theme/types"
 import { AVAILABLE_CORNER_GEOMETRY_CODES } from "../../tokens/geometry"
 import { resolveNativeStyle, validateNativeColor } from "../colors"
 import { validateNativeDisplayDimension } from "../displayDimensions"
+import { validateNativeFontWeight } from "../nativeTextStyle"
 
 import { resolvePanelBoxShadow } from "./appearanceValues"
 import { resolvePanelFilters } from "./filters"
@@ -108,6 +109,7 @@ export const getNativePanelStyles = (props: TNativePanelProps, theme: TNativeThe
   const text = Object.fromEntries(
     Object.entries(style).filter(([key]) => TEXT_FIELDS.some((field) => field === key)),
   ) as TextStyle
+  validateNativeFontWeight(text.fontWeight, "Panel")
   const view = Object.fromEntries(
     Object.entries(style).filter(([key]) => !TEXT_FIELDS.some((field) => field === key)),
   ) as ViewStyle

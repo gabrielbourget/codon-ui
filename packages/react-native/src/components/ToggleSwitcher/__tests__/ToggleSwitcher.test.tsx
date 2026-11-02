@@ -31,9 +31,19 @@ const items: readonly ToggleSwitcherItem[] = [
   { id: "and", label: "Match all" },
   { id: "or", label: "Match any" },
 ]
-const Example = (props: Partial<ToggleSwitcherProps>) => (
-  <ToggleSwitcher accessibilityLabel="Match mode" items={items} {...props} />
-)
+const Example = (props: Partial<ToggleSwitcherProps>) => {
+  const theme = useNativeTheme()
+  // Static/end-point and surface-position assertions keep their existing oracles;
+  // the component paint suite exercises the independent CSS transition clocks.
+  return (
+    <NativeThemeProvider
+      mode={theme.mode}
+      overrides={{ ...theme, transitions: { backgroundColor: 0, borderColor: 0, color: 0, boxShadow: 0 } }}
+    >
+      <ToggleSwitcher accessibilityLabel="Match mode" items={items} {...props} />
+    </NativeThemeProvider>
+  )
+}
 const options = () => screen.getAllByTestId("toggle-switcher-option")
 const labels = () => screen.getAllByTestId("toggle-switcher-label")
 const part = (id: string) => screen.getByTestId(id, { includeHiddenElements: true })

@@ -3,6 +3,11 @@ import { createRef } from "react"
 import type { View } from "react-native"
 
 import { Button, focusNativeTarget, type TNativeButtonProps, type TNativeKeyboardData } from "../../.."
+import { NativeKeyboardScope } from "../../../input/NativeKeyboardScope"
+import {
+  NativeOrdinaryFieldGroupKeysContext,
+  NativeOrdinaryFocusParticipantsContext,
+} from "../../../input/ordinaryEditorKeys"
 import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
 
 const button = () => screen.getByRole("button")
@@ -307,3 +312,92 @@ it.each([{ focusable: false }, { tabIndex: -1 as const }])(
     expect(press).toHaveBeenCalledTimes(1)
   },
 )
+
+it.each(["Enter", " "])("keeps observed field-button %j activation on the original raw key release", async (name) => {
+  const native = jest.requireActual<typeof import("react-native")>("react-native")
+  const tags = new WeakMap<object, number>()
+  let serial = 100
+  const find = jest.spyOn(native, "findNodeHandle").mockImplementation((target) => {
+    if (!target || typeof target !== "object") return typeof target === "number" ? target : null
+    if (!tags.has(target)) tags.set(target, ++serial)
+    return tags.get(target)!
+  })
+  try {
+    const ref = createRef<View>(),
+      onPress = jest.fn()
+    await render(
+      <NativeKeyboardScope captureEnabled testID="field-host">
+        <NativeOrdinaryFieldGroupKeysContext.Provider value>
+          <NativeOrdinaryFocusParticipantsContext.Provider value={() => true}>
+            <Button ref={ref} onPress={onPress}>
+              Action
+            </Button>
+          </NativeOrdinaryFocusParticipantsContext.Provider>
+        </NativeOrdinaryFieldGroupKeysContext.Provider>
+      </NativeKeyboardScope>,
+    )
+    for (const ready of [false, true, true]) {
+      const host = screen.getByTestId("field-host").props
+      await act(() =>
+        host.onNativeScopeStatus({
+          nativeEvent: {
+            ownerId: host.ownerId,
+            windowId: "field-window",
+            epoch: 1,
+            policyRevision: host.policyRevision,
+            ready,
+            windowActive: true,
+          },
+        }),
+      )
+    }
+    const host = screen.getByTestId("field-host").props,
+      binding = host.ordinaryEditorBindings[0]
+    await act(() =>
+      host.onNativeOrdinaryEditorStatus({
+        nativeEvent: {
+          ...binding,
+          ownerId: host.ownerId,
+          target: binding.targetTag,
+          windowId: "field-window",
+          epoch: 1,
+          sequence: 1,
+          ready: true,
+          windowActive: true,
+          error: "",
+        },
+      }),
+    )
+    expect(button().props.capturedKeys).toContain(`0000:${name}`)
+    const ordinary = (phase: "down" | "up", eventId: number) => {
+      const original = key({ key: name, phase, nativeDefaultHandled: true })
+      return {
+        ...original,
+        target: ref.current,
+        currentTarget: ref.current,
+        nativeEvent: {
+          ...original.nativeEvent,
+          ...binding,
+          ownerId: host.ownerId,
+          target: binding.targetTag,
+          observerBindings: JSON.stringify([binding]),
+          windowId: "field-window",
+          epoch: 1,
+          eventId,
+          isComposing: false,
+          code: name === "Enter" ? "Enter" : "Space",
+          location: 0,
+        },
+      }
+    }
+    const down = ordinary("down", 1),
+      up = ordinary("up", 2)
+    await act(() => button().props.onNativeOrdinaryEditorKey(down))
+    await act(() => button().props.onNativeOrdinaryEditorKey(up))
+    expect(onPress).toHaveBeenCalledTimes(1)
+    expect(onPress).toHaveBeenCalledWith(up)
+    expect(up.target).toBe(ref.current)
+  } finally {
+    find.mockRestore()
+  }
+})

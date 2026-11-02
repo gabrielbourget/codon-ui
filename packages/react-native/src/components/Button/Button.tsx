@@ -14,10 +14,11 @@ import { NativePressable, type TNativePressableRender } from "../../input/Native
 import type { TNativeFocusEvent, TNativePressEvent, TNativeFocusViewProps } from "../../input/types"
 import { useNativeTheme } from "../../theme"
 import { NativeContentContext } from "../NativeContentContext"
+import { validateNativeFontWeight } from "../nativeTextStyle"
 import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
 
 import { getNativeButtonContent } from "./content"
-import { NativeButtonContext } from "./context"
+import { NativeButtonLabelContext, NATIVE_BUTTON_SELF_LABELLED_BY } from "./context"
 import { useNativeButtonMotion } from "./motion"
 import { getNativeButtonStyle } from "./styles"
 import type { TNativeButtonProps, TNativeButtonRef, TNativeButtonRenderState } from "./types"
@@ -46,6 +47,7 @@ type TNativeButtonInternalProps = Omit<TNativeButtonProps, "accessibilityState" 
       props: Parameters<TNativePressableRender>[0],
       state: TNativeButtonRenderState & { isFocusVisible: boolean },
     ) => ReturnType<TNativePressableRender>
+    nativeFocusOnPress?: boolean
     nativeProgrammaticFocusable?: boolean
     nativeTabStop?: boolean
     nativeOnFocusObserved?: (focused: boolean, event: TNativeFocusEvent) => void
@@ -69,6 +71,7 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
     nativeAnimate = false,
     render: _render,
     nativeProgrammaticFocusable,
+    nativeFocusOnPress,
     nativeOnFocusObserved,
     color,
     hoverColor,
@@ -113,6 +116,7 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
     ...rest
   } = props
   const theme = useNativeTheme()
+  // A legacy ancestor still needs this reset boundary to preserve independent Button text defaults.
   const blocked = isDisabled || isPending || !nativeInteraction
   const [pressed, setPressed] = useState(false)
   const [hovered, setHovered] = useState(false)
@@ -156,6 +160,7 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
   const resolved = nativeStyle
     ? nativeStyle(flags, focusVisible)
     : getNativeButtonStyle(theme, props, flags, focusVisible)
+  validateNativeFontWeight(resolved.textStyle.fontWeight, "Button")
   const { foregroundColor, viewStyle } = useNativeButtonMotion(
     resolved.viewStyle,
     resolved.foregroundColor,
@@ -190,6 +195,7 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
             : undefined
         }
         nativeProgrammaticFocusable={nativeProgrammaticFocusable}
+        nativeFocusOnPress={nativeFocusOnPress}
         onNativeFocusObserved={nativeOnFocusObserved}
         ref={ref}
         accessible={nativeAccessible}
@@ -334,8 +340,16 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
 NativeButton.displayName = "Button"
 export const Button: ForwardRefExoticComponent<TNativeButtonProps & RefAttributes<TNativeButtonRef>> = forwardRef(
   (props, ref) => {
-    const [merged, mergedRef] = useNativeContextProps(props, ref, NativeButtonContext)
-    const { slot: _slot, render, ...native } = merged
+    const [merged, mergedRef] = useNativeContextProps(props, ref, NativeButtonLabelContext)
+    const { slot: _slot, render, [NATIVE_BUTTON_SELF_LABELLED_BY]: labelledBySelf, ...native } = merged
+    const callerLabelledBy =
+      props.accessibilityLabelledBy !== undefined ||
+      props["aria-labelledby"] !== undefined ||
+      ("nativeLabelledBy" in props && props.nativeLabelledBy !== undefined)
+    if (labelledBySelf !== undefined && !callerLabelledBy) {
+      const finalId = native.id !== undefined ? native.id : native.nativeID
+      native.accessibilityLabelledBy = [...(finalId ? [finalId] : []), ...labelledBySelf]
+    }
     return <NativeButton {...native} nativeAnimate nativeRender={render} ref={mergedRef} />
   },
 )

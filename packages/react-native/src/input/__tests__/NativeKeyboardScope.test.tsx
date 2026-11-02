@@ -1,9 +1,22 @@
 import { act, render, screen } from "@testing-library/react-native"
 import { useLayoutEffect, useSyncExternalStore } from "react"
+import type { TextInput } from "react-native"
 
 import { NativeFloatingLayerHost, useNativeFloatingHost } from "../../overlays/floating/NativeFloatingLayerHost"
-import { useNativeKeyboardObservation, useNativeKeyScope, useNativeMenuPointerPolicy } from "../NativeKeyboardScope"
+import type { TNativeKeyScope } from "../keyScope"
+import { useNativeInputModalityWitness } from "../nativeInputModality"
+import type { TNativeInputModalityWitness } from "../nativeInputModality"
+import {
+  NativeKeyboardScope,
+  useNativeKeyboardObservation,
+  useNativeKeyPolicy,
+  useNativeKeyScope,
+  useNativeMenuPointerPolicy,
+  useNativeWindowPointers,
+} from "../NativeKeyboardScope"
 import type { TNativeMenuPointerEvent } from "../nativeMenuPointers"
+import type { TNativeWindowPointers } from "../nativeWindowPointers"
+import { useNativeOrdinaryEditorKeys, type TNativeOrdinaryEditorKeyEvent } from "../ordinaryEditorKeys"
 
 type THost = ReturnType<typeof useNativeFloatingHost>
 const PointerProbe = ({
@@ -369,4 +382,182 @@ it("connects Menu policy revisions and original packets to the native host witho
   await act(() => retainedCallback(original))
   expect(observe).toHaveBeenCalledTimes(2)
   expect(retire).toHaveBeenCalled()
+})
+
+it("retires ordinary editor callbacks immediately when logical window ownership is disabled", async () => {
+  // Explicit identity/status model; this case does not prove installed event delivery.
+  const editor = { _nativeTag: 17 } as unknown as TextInput
+  const observe = jest.fn()
+  let deliver: ReturnType<typeof useNativeOrdinaryEditorKeys> | undefined
+  const Editor = ({ policyEnabled }: { policyEnabled: boolean }) => {
+    useNativeKeyPolicy({
+      tokens: ["0000:ArrowUp"],
+      targetTag: 17,
+      excludeEditable: false,
+      isEnabled: policyEnabled,
+      lifetimeKey: "unrelated-policy",
+      canAct: () => true,
+      onKey: () => {},
+    })
+    const receive = useNativeOrdinaryEditorKeys(editor, true, "original", {
+      current: () => editor,
+      canAct: () => true,
+      receive: observe,
+    })
+    useLayoutEffect(() => {
+      deliver = receive
+    })
+    return null
+  }
+  const node = (captureEnabled: boolean, policyEnabled = false) => (
+    <NativeKeyboardScope captureEnabled={captureEnabled} testID="host">
+      <Editor policyEnabled={policyEnabled} />
+    </NativeKeyboardScope>
+  )
+  const result = await render(node(true))
+  await acknowledge()
+  const props = root().props
+  const binding = props.ordinaryEditorBindings[0]
+  await act(() =>
+    props.onNativeOrdinaryEditorStatus({
+      nativeEvent: {
+        ...binding,
+        target: 17,
+        ownerId: props.ownerId,
+        windowId: "native-window",
+        epoch: 1,
+        sequence: 1,
+        ready: true,
+        windowActive: true,
+        error: "",
+      },
+    }),
+  )
+  const event = (eventId: number) =>
+    ({
+      nativeEvent: {
+        ...binding,
+        kind: "keyboard",
+        ownerId: props.ownerId,
+        target: 17,
+        windowId: "native-window",
+        epoch: 1,
+        eventId,
+        key: "z",
+        code: "KeyZ",
+        location: 0,
+        nativeCode: 29,
+        characters: "z",
+        phase: "down",
+        repeat: false,
+        cancelled: false,
+        isComposing: false,
+        shiftKey: false,
+        altKey: false,
+        ctrlKey: false,
+        metaKey: false,
+        capsLock: false,
+        nativeModifierData: "0",
+        nativeDefaultHandled: false,
+        timestamp: eventId,
+      },
+      target: editor,
+      currentTarget: editor,
+      persist: jest.fn(),
+    }) as unknown as TNativeOrdinaryEditorKeyEvent
+  await act(() => deliver!(event(1)))
+  expect(observe).toHaveBeenCalledTimes(1)
+  // An unrelated pending policy revision must not suppress the editor observation.
+  await result.rerender(node(true, true))
+  await act(() => deliver!(event(2)))
+  expect(observe).toHaveBeenCalledTimes(2)
+  await result.rerender(node(false, true))
+  // The actual native window is still reported active; no new status is delivered.
+  await act(() => deliver!(event(3)))
+  expect(observe).toHaveBeenCalledTimes(2)
+})
+
+it("publishes genuine accepted keyboard chronology after virtual activation and rejects exact same-packet replay", async () => {
+  let input!: TNativeKeyScope,
+    pointers!: TNativeWindowPointers,
+    witness: TNativeInputModalityWitness | null = null
+  const Probe = () => {
+    input = useNativeKeyScope()!
+    pointers = useNativeWindowPointers()!
+    witness = useNativeInputModalityWitness(input)
+    return null
+  }
+  const view = await render(
+    <NativeKeyboardScope captureEnabled testID="host">
+      <Probe />
+    </NativeKeyboardScope>,
+  )
+  await act(() => {
+    pointers.register("existing-consumer", {
+      targetTag: 7,
+      global: true,
+      stopPropagation: true,
+      current: () => true,
+      start: () => true,
+      move: jest.fn(),
+      end: jest.fn(),
+      activate: jest.fn(),
+      retire: jest.fn(),
+    })
+    pointers.flush()
+  })
+  await acknowledge()
+  await act(() =>
+    root().props.onNativePointerStatus({
+      nativeEvent: {
+        ownerId: input.ownerId,
+        ...input.acknowledgedSession(),
+        revision: pointers.revision(),
+        ready: true,
+        error: "",
+      },
+    }),
+  )
+  const record = (timestamp: number) =>
+    act(() =>
+      root().props.onNativeInputModality({
+        nativeEvent: { ownerId: input.ownerId, ...input.acknowledgedSession(), origin: "keyboard", timestamp },
+      }),
+    )
+  await record(10)
+  const originalKeyboard = input.lastInput()
+  const first = witness as TNativeInputModalityWitness | null
+  expect(first?.origin).toBe("keyboard")
+  const data = {
+    ownerId: input.ownerId,
+    ...input.acknowledgedSession(),
+    sequence: 1,
+    phase: "activation",
+    pointerType: "virtual",
+    pointerId: -1,
+    isPrimary: true,
+    button: 0,
+    buttons: 0,
+    target: 7,
+    pageX: 0,
+    pageY: 0,
+    timestamp: 1,
+    registrations: pointers.registrations().map((entry) => ({
+      ...entry,
+      ownerId: input.ownerId,
+      epoch: input.acknowledgedSession().epoch,
+      revision: pointers.revision(),
+      depth: -1,
+    })),
+  }
+  await act(() => root().props.onNativeWindowPointer({ nativeEvent: data }))
+  expect((witness as TNativeInputModalityWitness | null)?.origin).toBe("virtual")
+  expect(input.lastInput()?.origin).toBe("keyboard")
+  const virtual = witness
+  await act(() => root().props.onNativeInputModality({ nativeEvent: originalKeyboard }))
+  expect(witness).toBe(virtual)
+  await record(11)
+  expect((witness as TNativeInputModalityWitness | null)?.origin).toBe("keyboard")
+  expect((witness as TNativeInputModalityWitness | null)!.revision).toBeGreaterThan(first!.revision)
+  await view.unmount()
 })

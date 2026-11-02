@@ -61,6 +61,7 @@ def command(root, name, args, cap=60, cwd=None, required=True, extra_env=None):
 def verify(root):
     assert not (root / "SEALED.json").exists()
     inputs = json.loads((root / "inputs.json").read_text())
+    assert inputs.get("profile") != "keyboard", "Retired same-event default-veto prototype; use ordinary Input/query and date-field coverage (roadmap 3.4.1.3.7)"
     for name, expected in inputs["sourceInputs"].items(): assert digest(REPO / name) == expected, name
     for name, expected in inputs["nativeProjectInputs"].items():
         if inputs.get("podsChecked") and name.endswith("Podfile.lock"): continue
@@ -70,6 +71,7 @@ def verify(root):
 
 
 def prepare(root, profile="metadata"):
+    assert profile != "keyboard", "Retired same-event default-veto prototype; see roadmap 3.4.1.3.7 for successor coverage"
     assert not root.exists()
     assert not subprocess.check_output(["git", "status", "--porcelain"], cwd=REPO)
     producer = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO, text=True).strip()
@@ -80,11 +82,10 @@ def prepare(root, profile="metadata"):
     if profile == "authoring": stage_names += ["AuthoringApp.tsx", "authoring.ts"]
     if profile == "time-entry": stage_names = ["SDKApp.tsx", "sdk.ts", "index.ts", "identity.ts"]
     if profile == "responder": stage_names = ["ResponderApp.tsx", "responder.ts", "index.ts", "identity.ts"]
-    if profile == "keyboard": stage_names = ["KeyboardApp.tsx", "keyboard.ts", "index.ts", "identity.ts"]
     if profile == "form": stage_names = ["FormApp.tsx", "form.ts", "index.ts", "identity.ts"]
     for name in stage_names:
         if name == "identity.ts": continue
-        source_name = ("authoring-index.ts" if profile == "authoring" else "form-index.ts" if profile == "form" else "keyboard-index.ts" if profile == "keyboard" else "responder-index.ts" if profile == "responder" else "index.ts") if name == "index.ts" else name
+        source_name = ("authoring-index.ts" if profile == "authoring" else "form-index.ts" if profile == "form" else "responder-index.ts" if profile == "responder" else "index.ts") if name == "index.ts" else name
         if profile == "time-entry":
             source_name = "sdk-index.ts" if name == "index.ts" else name
             shutil.copyfile(FIXTURE.parent / "native-time-picker" / source_name, STAGE / name)
@@ -117,7 +118,7 @@ def prove_android(root):
     with zipfile.ZipFile(apk) as archive:
         assert archive.read("assets/index.android.bundle") == bundle.read_bytes()
         dex = b"".join(archive.read(name) for name in archive.namelist() if name.startswith("classes") and name.endswith(".dex"))
-        native_classes = ["CUIEditorKeyboardDefaultsModule", "CUIEditorKeyboardBindings", "CUIEditorKeyboardDefaultFrames"] if inputs.get("profile") == "keyboard" else ["CUIFormMetadataView", "CUIFormDocumentModule"] if inputs.get("profile") in ["form", "responder"] else ["CUIDateSegment", "CUIDateSegmentManager", "CUIKeyboardScope"] if inputs.get("profile") == "time-entry" else ["CUICollectionRoot", "CUICollectionNode"]
+        native_classes = ["CUIFormMetadataView", "CUIFormDocumentModule"] if inputs.get("profile") in ["form", "responder"] else ["CUIDateSegment", "CUIDateSegmentManager", "CUIKeyboardScope"] if inputs.get("profile") == "time-entry" else ["CUICollectionRoot", "CUICollectionNode"]
         assert all(("Lcom/codonui/input/" + name + ";").encode() in dex for name in native_classes)
     data = json.loads(mapping.read_text())
     library, fixture, react = {}, {}, set()
@@ -164,7 +165,6 @@ def prove_ios(root):
     assert len(react) == 1 and "react@19.2.3" in next(iter(react))
     assert set(fixture) == set(inputs["stageInputs"])
     classes = ["CUIFormRoot", "CUIFieldBinding", "CUIFormMetadataView", "CUIFormDocument", "CUIFieldCustomContentLease"]
-    if inputs.get("profile") == "keyboard": classes += ["CUIEditorKeyboardDefaults", "CUIEditorKeyboardRecognizer"]
     if inputs.get("profile") == "time-entry": classes += ["CUIDateSegment", "CUIKeyboardScope"]
     symbols = subprocess.check_output(["/usr/bin/nm", "-gU", str(binary)], text=True)
     assert all("_OBJC_CLASS_$_" + name in symbols for name in classes)
@@ -185,7 +185,7 @@ def prove_ios(root):
 
 def ios(root):
     inputs = verify(root)
-    assert inputs["profile"] in ["form", "keyboard", "responder", "time-entry"] and time.time() < inputs["deadlineUnix"]
+    assert inputs["profile"] in ["form", "responder", "time-entry"] and time.time() < inputs["deadlineUnix"]
     lock = REPO / "apps/native-showcase/ios/Podfile.lock"
     ruby = LAB / "ruby-3.4.11/bin/ruby"
     def pod_lock(path):
@@ -205,8 +205,6 @@ def ios(root):
     assert all(name in generated.read_text() for name in ["CUIFormRoot", "CUIFieldBinding"])
     project = REPO / "apps/native-showcase/ios/Pods/Pods.xcodeproj/project.pbxproj"
     assert "CUIFormDocumentInspection.mm" in project.read_text()
-    if inputs["profile"] == "keyboard":
-        assert all(name in project.read_text() for name in ["CUIEditorKeyboardDefaults.mm", "CUIEditorKeyboardRecognizer.mm", "CUIEditorKeyboardDefaultRegistry.cpp"])
     (root / "ios-integration.json").write_text(json.dumps({"producer":inputs["producer"], "ownedChecksumChanges":changed, "allPinnedVersionsUnchanged":True, "actualInspectionUnitIncluded":True, "providerSHA256":digest(generated)}, indent=2) + "\n")
     extra = {"ENTRY_FILE":str(STAGE / "index.ts"), "FORCE_BUNDLING":"1", "EXTRA_PACKAGER_ARGS":"--max-workers 2"}
     command(root, "ios-build", ["/usr/bin/xcodebuild", "-jobs", "2", "-workspace", "CodonNativeShowcase.xcworkspace", "-scheme", "CodonNativeShowcase", "-configuration", "Release", "-sdk", "iphonesimulator", "-destination", "generic/platform=iOS Simulator", "-derivedDataPath", LAB / "ios-app-derived-data", "ARCHS=x86_64", "ONLY_ACTIVE_ARCH=YES", "CODE_SIGNING_ALLOWED=NO", "CODE_SIGNING_REQUIRED=NO", "SOURCEMAP_FILE=" + str(root / "ios-main.jsbundle.map"), "build"], min(2700, int(inputs["deadlineUnix"] - time.time())), REPO / "apps/native-showcase/ios", extra_env=extra)
@@ -217,7 +215,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("phase", choices=["prepare", "android", "prove-android", "ios", "prove-ios"])
     parser.add_argument("root", type=Path)
-    parser.add_argument("--profile", choices=["metadata", "authoring", "form", "keyboard", "responder", "time-entry"], default="metadata")
+    parser.add_argument("--profile", choices=["metadata", "authoring", "form", "responder", "time-entry"], default="metadata")
     args = parser.parse_args()
     root = args.root.resolve()
     if args.phase == "prepare": prepare(root, args.profile)

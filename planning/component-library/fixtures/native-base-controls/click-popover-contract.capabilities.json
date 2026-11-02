@@ -4713,5 +4713,51 @@
       "case": "floating nonmodal interaction delivers the background action when dismissing a nonmodal popover",
       "status": "passed"
     }
+  ],
+  "nativeContractAmendments": [
+    {
+      "id": "DEC.PHONE.TYPOGRAPHY.01",
+      "authority": "Gabriel approval of explicit styling/discrete weights and continued D2 owner migration; roadmap3.4.1.3.2",
+      "sourceBaseline": "70778fea6960a49bda8c5620bfedc0c2e38c8efb",
+      "scope": "PHONE-TYPE06: ClickPopover and its native dialog explicit owned typography and supported effective root/dialog weights. Floating bodies opt out at their existing window boundary; native dialogs retain a merged scope beneath an active legacy ancestor until migration.",
+      "supersededRequirement": "Automatic native-tree typography inheritance into arbitrary raw descendants on migrated paths. Caller raw Text supplies intended styles; owned text/controls keep explicit data and override precedence.",
+      "preserved": "Original root/dialog/arrow and renderer/ref owners, family/line metrics, foreground/color clocks, held editors, labels/heading/close contexts, measurement/margins/placement, focus/dismiss/window/scroll policy and touch/hover behavior. No D7 presentation/help compromise or public API/type change is introduced.",
+      "sourceChecks": [
+        {
+          "suite": "packages/react-native/src/components/Tooltip/__tests__/TooltipSurface.test.tsx",
+          "covers": "Both measured descriptions retain owned and explicit raw styles, nested scope absence, original description/editor/child/raw refs and controlled owner requests."
+        },
+        {
+          "suite": "packages/react-native/src/components/ClickPopover/__tests__/ClickPopover.context.test.tsx",
+          "covers": "Original compatible renderer refs, explicit direct/nested/raw text, held editor, heading/close contexts, standalone dialog legacy-to-migrated transition and root weight overrides."
+        },
+        {
+          "suite": "packages/react-native/src/components/Tooltip/__tests__/styles.test.ts",
+          "covers": "Supported Tooltip/Hover root/dialog weight identity and explicit scalar migration alongside unchanged geometry/paint defaults."
+        },
+        {
+          "suite": "packages/react-native/src/components/ClickPopover/__tests__/styles.test.ts",
+          "covers": "Supported root/dialog weight identity and explicit scalar migration alongside independent owner/placement/paint styles."
+        }
+      ],
+      "canonicalEvidence": "All original canonical refs, properties, assertion mappings and historical receipts remain unchanged. Existing case titles are retained and extended.",
+      "acceptance": "Source correspondence only. Native pixels/glyphs/layout/input/AT/profile/closure gates and all ledger verdicts remain unchanged."
+    },
+    {
+      "id": "DEC.PHONE.TYPOGRAPHY.NATIVE_RETIREMENT.01",
+      "authority": "Gabriel selected Retire the native inheritance API (Recommended) on2026-10-31; roadmap3.4.1.3.2 PHONE-TYPE08",
+      "sourceBaseline": "63ae7187b2b539da7dd61a66810dd507d71476b0",
+      "scope": "Retire the shared native inheritance/registration/transport and temporary conditional JS bridge after all built-in owners have explicit style paths.",
+      "supersedes": "Only earlier D2 temporary legacy-boundary/wire expectations. Current controls assert explicit styles and metric updates, reset/window barriers, original refs/editors/events and absence of native transport. Shared control mapping and receipts are recorded in roadmap3.4.1.3.2 and experiments.",
+      "preserved": "Original canonical source refs, property/native-only counts, historical assertions/receipts and all platform verdicts. Native compiler, glyph/layout/scaling/input/AT/profile qualification remains OPEN."
+    },
+    {
+      "id": "DEC.PHONE.TYPOGRAPHY.STOCK_TYPES.01",
+      "authority": "Gabriel approved stock RN, explicit styling/discrete weights and native inheritance API retirement; roadmap3.4.1.3.2 PHONE-TYPE09",
+      "sourceBaseline": "a2cdaa48f2fb0ee33c26dbfa2c14cdb4d5470ee5",
+      "scope": "Remove only P01/P02 SDK typography hunks and remaining Android scalar adapters; restore stock style/theme fontWeight types for supported named/string/numeric endpoints. Fractional/custom numeric values require explicit migration.",
+      "sourceChecks": "182 cases/11 suites plus source/public types. Invalid untyped-input and overridden-value runtime checks retain their exact values/assertions through a private test helper; positive/negative public declarations cover the restored stock types.",
+      "preserved": "Explicit owned styling, override precedence, original refs/events/identity and other Motion clocks. Original canonical fields, sourceRefs, historical receipts and verdicts remain unchanged; native compiler/products and glyph/layout/scaling/input/AT/profile qualification remain OPEN."
+    }
   ]
 }

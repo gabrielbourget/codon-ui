@@ -73,6 +73,23 @@ it("registers only actual original tags/insets and reuses an unchanged registrat
   expect(messages[0]).not.toHaveProperty("x")
   expect(messages[0]).not.toHaveProperty("y")
 })
+it("surfaces the native root migration error without retaining a lease and admits the replacement ref", () => {
+  const f = setup()
+  const original = f.target()
+  backend.tableStickyPresentation.mockImplementationOnce(() => {
+    throw new Error("Table sticky: use NativeFocusView as the actual root and forward its original props/ref")
+  })
+  expect(() => f.binding.synchronize(true, { top: 0 }, true)).toThrow("use NativeFocusView as the actual root")
+  expect(f.target()).toBe(original)
+  expect(backend.tableStickyPresentation).toHaveBeenCalledTimes(1)
+  f.replaceTarget(makeView(f.document))
+  f.binding.synchronize(true, { top: 0 }, true)
+  expect(messages.map((message) => message.action)).toEqual(["register"])
+  expect(messages[0].target).toBe(Native.findNodeHandle(f.target()))
+  expect(messages[0].target).not.toBe(Native.findNodeHandle(original))
+  f.binding.dispose()
+  expect(messages.map((message) => message.action)).toEqual(["register", "release"])
+})
 it("replaces a natively retired lease and a later epoch without reviving the old registration", () => {
   const f = setup()
   f.binding.synchronize(true, { top: 0 }, false)

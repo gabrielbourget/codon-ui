@@ -1,3 +1,4 @@
+import { validateNativeFontWeight } from "../../components/nativeTextStyle"
 import { complex } from "../kernel/engine/value/types/complex"
 import { normalizeNativeMotionKeyframeUnits } from "../measurement/isolatedGeometry"
 
@@ -284,6 +285,11 @@ export const resolveNativeMotionKeyframes = (
       if (frames[index] === null || frames[index] === undefined) frames[index] = frames[index - 1]
     if (frames.some((value) => value === null || value === undefined))
       throw new Error("Native motion: missing actual native initial value")
+    if (options.name === "fontWeight") {
+      frames.forEach((weight) => validateNativeFontWeight(weight, "Motion"))
+      options.context.resolutionTicket?.normalized(frames)
+      return { keyframes: frames }
+    }
     const hasVelocity = (options.type === "spring" || typeof options.type === "function") && options.velocity
     if (
       options.duration === 0 ||

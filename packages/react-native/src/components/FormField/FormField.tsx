@@ -7,7 +7,7 @@ import { useNativeTheme } from "../../theme"
 import { getNativeButtonContent } from "../Button/content"
 import { useNativeLinkColor } from "../Link/motion"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
-import { splitNativeTextStyle } from "../nativeTextStyle"
+import { splitNativeTextStyle, validateNativeFontWeight } from "../nativeTextStyle"
 import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
 import { Text } from "../Text/Text"
 
@@ -64,6 +64,7 @@ export const FormField = forwardRef<TNativeFormFieldRef, TNativeFormFieldProps>(
   const context = useNativeContentContext()
   const styles = getNativeFormFieldStyles(theme, props)
   const rootStyle = splitNativeTextStyle(styles.root)
+  validateNativeFontWeight(rootStyle.text.fontWeight, "FormField")
   const animatedForeground = useNativeLinkColor(styles.root.color ?? theme.colors.foreground, 250, textColorEasing)
   const foreground = styles.root.color === undefined && context ? context.foregroundColor : animatedForeground
   const mounted = useRef(true)

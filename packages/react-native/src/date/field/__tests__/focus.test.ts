@@ -201,3 +201,63 @@ it("rejects geometry when the renderer mutates the captured root snapshot in pla
   expect(await request).toBe(false)
   expect(value.requests).toEqual([])
 })
+
+it("advances only from the original input focus owner and never treats a request as observed focus", () => {
+  const value = setup()
+  const source = value.rows[0].original
+  expect(value.manager.focusFromInput(source, "next")).toBe(true)
+  expect(value.requests).toEqual([value.rows[1].original])
+  expect(value.native.focused()).toBe(source)
+  value.focused(value.rows[1].original)
+  expect(value.manager.focusFromInput(source, "next")).toBe(false)
+  expect(value.requests).toHaveLength(1)
+  expect(value.manager.focusFromInput(value.rows[1].original, "previous")).toBe(true)
+  expect(value.requests.at(-1)).toBe(source)
+})
+it.each(["replacement", "inactive", "guard", "retired"])("rejects an input focus request after %s", (change) => {
+  const value = setup(),
+    source = value.rows[0].original
+  if (change === "replacement")
+    value.replace({
+      ...value.current()!,
+      rows: value.rows.map((row, index) => (index ? row : { ...row, original: {} as View })),
+    })
+  if (change === "inactive") value.replace(null)
+  if (change === "guard") value.disabled.add(source)
+  if (change === "retired") value.manager.retire()
+  expect(value.manager.focusFromInput(source, "next")).toBe(false)
+  expect(value.requests).toEqual([])
+})
+
+it("resolves placeholder presses from actual descendant order rather than the previously focused segment", () => {
+  const value = setup(),
+    root = value.current()!.root,
+    before = {},
+    after = {},
+    separator = {}
+  Object.assign(root, {
+    childNodes: [before, value.rows[0].original, separator, value.rows[1].original, value.rows[2].original, after],
+  })
+  value.rows[0].isPlaceholder = false
+  value.focused(value.rows[2].original)
+  expect(value.manager.capturePress(separator)?.()).toBe(true)
+  expect(value.requests.at(-1)).toBe(value.rows[0].original)
+  expect(value.manager.capturePress(root)?.()).toBe(true)
+  expect(value.requests.at(-1)).toBe(value.rows[1].original)
+  expect(value.manager.capturePress(after)?.()).toBe(true)
+  expect(value.requests.at(-1)).toBe(value.rows[1].original)
+  expect(value.manager.capturePress({})).toBeNull()
+})
+it.each(["request", "guard", "epoch", "unmount"])("rejects delayed touch focus after %s invalidation", (change) => {
+  const value = setup(),
+    current = value.current()!
+  Object.assign(current.root, { childNodes: value.rows.map((row) => row.original) })
+  const focus = value.manager.capturePress(current.root)!
+  if (change === "request") value.manager.focusNext()
+  if (change === "guard") value.disabled.add(value.rows[1].original)
+  if (change === "epoch") value.rows[0].identity.epoch++
+  if (change === "unmount") value.manager.retire()
+  value.requests.splice(0)
+  expect(focus()).toBe(false)
+  expect(value.requests).toEqual([])
+})

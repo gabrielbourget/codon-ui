@@ -308,11 +308,19 @@ it("publishes only original view metadata and waits for native enrollment before
   expect(() => f.actions.dispatch(f.packet())).toThrow("authority")
   const serialized = JSON.parse(f.actions.bindings())
   expect(serialized).toEqual([
-    { ...metadata, moduleId: "native-module", bindingId: "collection", revision: "original", rootTarget: 20 },
+    {
+      ...metadata,
+      moduleId: "native-module",
+      bindingId: "collection",
+      revision: "original",
+      rootTarget: 20,
+      metadataRevision: 1,
+    },
   ])
   f.actions.acceptStatus(
     JSON.stringify({
       kind: "binding",
+      metadataRevision: 1,
       ownerId: "owner",
       windowId: "window",
       epoch: 1,
@@ -334,6 +342,26 @@ it("publishes only original view metadata and waits for native enrollment before
     previewY: 5,
   })
   expect(lease.ready()).toBe(false)
+  const acknowledge = (metadataRevision: number) =>
+    f.actions.acceptStatus(
+      JSON.stringify({
+        kind: "binding",
+        metadataRevision,
+        ownerId: "owner",
+        windowId: "window",
+        epoch: 1,
+        moduleId: "native-module",
+        bindingId: "collection",
+        revision: "original",
+        rootTarget: 20,
+        ready: true,
+        error: "",
+      }),
+    )
+  acknowledge(1)
+  expect(lease.ready()).toBe(false)
+  acknowledge(2)
+  expect(lease.ready()).toBe(true)
   expect(lease.current()).toBe(true)
   f.actions.dispatch(f.packet({ kind: "end" }, 2))
   expect(f.dispatch).toHaveBeenCalledTimes(2)
@@ -355,79 +383,8 @@ it("refuses stale member refs and wrong scope packets after native metadata chan
   f.actions.dispose()
 })
 
-it("owns an immutable current virtual-focus snapshot and rejects late or unenrolled native observations", () => {
-  const f = setup(),
-    observeFocus = jest.fn()
-  f.registration.unregister()
-  let live = true
-  const targets = [
-    { id: "source", tag: 30, descendants: false },
-    { id: "endpoint", tag: 40, descendants: true },
-  ]
-  const focus = {
-    sessionId: "virtual",
-    windowId: "window",
-    epoch: 1,
-    revision: 1,
-    source: targets[0],
-    selected: targets[1],
-    nativeSelection: true,
-    targets,
-  }
-  const metadata = {
-    draggable: true,
-    droppable: true,
-    members: [{ key: "number:0", instanceId: "row", targetTag: 30, handleTag: 0 }],
-    previewTarget: 0,
-    previewInstanceId: "",
-    previewX: 0,
-    previewY: 0,
-    virtualFocus: focus,
-  }
-  const lease = f.actions.register({
-    bindingId: "collection",
-    revision: "original",
-    rootTarget: 20,
-    itemTargets: new Set([30]),
-    native: metadata,
-    current: () => live,
-    retire: f.retire,
-    dispatch: f.dispatch,
-    observeFocus,
-  })
-  targets[1].tag = 41
-  expect(JSON.parse(f.actions.bindings())[0].virtualFocus.selected.tag).toBe(40)
-  const packet = {
-    kind: "virtualFocus",
-    ownerId: "owner",
-    windowId: "window",
-    epoch: 1,
-    moduleId: "native-module",
-    bindingId: "collection",
-    revision: "original",
-    rootTarget: 20,
-    sessionId: "virtual",
-    focusRevision: 1,
-    target: 40,
-  }
-  for (const change of [{ focusRevision: 2 }, { sessionId: "old" }, { target: 999 }, { epoch: 0 }])
-    f.actions.acceptStatus(JSON.stringify({ ...packet, ...change }))
-  expect(observeFocus).not.toHaveBeenCalled()
-  f.actions.acceptStatus(JSON.stringify(packet))
-  expect(observeFocus).toHaveBeenCalledWith("virtual", 40)
-  live = false
-  f.actions.acceptStatus(JSON.stringify(packet))
-  expect(observeFocus).toHaveBeenCalledTimes(1)
-  live = true
-  expect(() =>
-    lease.updateNative({ ...metadata, virtualFocus: { ...focus, targets: [targets[0], targets[0]] } }),
-  ).toThrow("focus target")
-  f.actions.dispose()
-})
-
-it("quietly retires only a virtual owner when lift eligibility leaves its still-attached window", () => {
+it("preserves ordinary bindings when lift eligibility leaves its still-attached window", () => {
   const f = setup()
-  const target = { id: "source", tag: 30, descendants: false }
   f.registration.updateNative({
     draggable: true,
     droppable: true,
@@ -436,16 +393,6 @@ it("quietly retires only a virtual owner when lift eligibility leaves its still-
     previewInstanceId: "",
     previewX: 0,
     previewY: 0,
-    virtualFocus: {
-      sessionId: "virtual",
-      windowId: "window",
-      epoch: 1,
-      revision: 1,
-      source: target,
-      selected: target,
-      nativeSelection: false,
-      targets: [target],
-    },
   })
   f.actions.acceptStatus(
     JSON.stringify({
@@ -460,9 +407,50 @@ it("quietly retires only a virtual owner when lift eligibility leaves its still-
       canDrop: true,
     }),
   )
-  expect(f.retire).toHaveBeenCalledTimes(1)
+  expect(f.retire).not.toHaveBeenCalled()
   expect(f.registration.current()).toBe(true)
   f.actions.dispatch(f.packet({ kind: "end" }))
   expect(f.dispatch).toHaveBeenCalledTimes(1)
+  f.actions.dispose()
+})
+
+it("requires fresh native admission after scope coverage and rejects the previous metadata acknowledgement", () => {
+  const f = setup()
+  f.registration.updateNative({
+    draggable: true,
+    droppable: true,
+    members: [{ key: "number:0", instanceId: "row", targetTag: 30, handleTag: 0 }],
+    previewTarget: 0,
+    previewInstanceId: "",
+    previewX: 0,
+    previewY: 0,
+  })
+  const previous = JSON.parse(f.actions.bindings())[0]
+  const acknowledge = (binding: object) =>
+    f.actions.acceptStatus(
+      JSON.stringify({
+        ...binding,
+        kind: "binding",
+        ownerId: "owner",
+        windowId: "window",
+        epoch: 1,
+        ready: true,
+        error: "",
+      }),
+    )
+  acknowledge(previous)
+  expect(f.registration.ready()).toBe(true)
+  f.actions.setEnabled(false)
+  expect(f.actions.bindings()).toBe("[]")
+  expect(f.registration.ready()).toBe(false)
+  f.actions.setEnabled(true)
+  expect(f.registration.current()).toBe(true)
+  expect(f.registration.ready()).toBe(false)
+  acknowledge(previous)
+  expect(f.registration.ready()).toBe(false)
+  const current = JSON.parse(f.actions.bindings())[0]
+  expect(current.metadataRevision).toBeGreaterThan(previous.metadataRevision)
+  acknowledge(current)
+  expect(f.registration.ready()).toBe(true)
   f.actions.dispose()
 })

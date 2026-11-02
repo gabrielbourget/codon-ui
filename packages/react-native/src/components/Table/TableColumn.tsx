@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useId, useRef, type ForwardedRef, type RefObject } from "react"
-import { findNodeHandle, type TextStyle, type View } from "react-native"
+import { findNodeHandle, Platform, type TextStyle, type View } from "react-native"
 
 import { NativeCollectionActionsContext } from "../../collection/actions"
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
@@ -14,6 +14,7 @@ import type { TNativeCollectionNode } from "../../collection/snapshot"
 import { nativeKeyTokens } from "../../input/keyScope"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { nativeViewProps } from "../../input/nativeViewProps"
+import { useNativeLocale } from "../../locale/NativeLocaleProvider"
 import { useNativeTheme } from "../../theme"
 import { NativeButton } from "../Button/Button"
 import { getNativeButtonContent } from "../Button/content"
@@ -21,11 +22,13 @@ import { resolveNativeStyle } from "../colors"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
 import { splitNativeTextStyle } from "../nativeTextStyle"
 
+import { nativeTableColumnDescription, nativeTableSortDirectionText } from "./announcements"
 import { NativeTableCellContext, useNativeTable } from "./context"
 import { NativeTableColumnResizeStateContext } from "./NativeResizableTableContainer"
 import { StickyColumnHost } from "./StickyColumnHost"
 import { resolveNativeTableStickyColumn } from "./stickyStyles"
 import { TableCellKeys } from "./TableCellKeys"
+import { NativeTableDescription, nativeTableDescriptionProps } from "./TableDescription"
 import type { TNativeTableColumnProps, TNativeTableColumnRenderState } from "./types"
 import { useTableAction } from "./useTableAction"
 import { useTableHover } from "./useTableHover"
@@ -70,6 +73,15 @@ const Column = (props: TNativeTableColumnProps, ref: ForwardedRef<View>, node: T
     measuredWidth = useRef<number | null>(null)
   const generated = useId()
   const nativeID = props.nativeID ?? `codon-column-${generated}`
+  const { locale } = useNativeLocale()
+  const sortDirection = table.primarySort?.column === node.key ? table.primarySort.direction : undefined
+  const sortDescription = nativeTableColumnDescription(
+    !!allowsSorting,
+    sortDirection,
+    locale,
+    Platform.OS === "android",
+  )
+  const sortDescriptionID = sortDescription ? `codon-column-sort-description-${generated}` : undefined
   const bindHeader = useCallback(
     (view: View | null) =>
       table.registerHeader(JSON.stringify(["column", columnID]), view ? (findNodeHandle(view) ?? 0) : 0),
@@ -130,7 +142,7 @@ const Column = (props: TNativeTableColumnProps, ref: ForwardedRef<View>, node: T
           }
           accessibilityValue={
             allowsSorting
-              ? { text: table.primarySort?.column === node.key ? table.primarySort.direction : "none" }
+              ? { text: sortDirection ? nativeTableSortDirectionText(sortDirection, locale) : "none" }
               : native.accessibilityValue
           }
           nativeStyle={(flags, visible) => ({
@@ -194,6 +206,9 @@ const Column = (props: TNativeTableColumnProps, ref: ForwardedRef<View>, node: T
             const styles = splitNativeTextStyle(sticky.style)
             const hostProps = {
               ...host,
+              ...nativeTableDescriptionProps(host, sortDescriptionID),
+              onClick: native.onClick,
+              onClickCapture: native.onClickCapture,
               nativeID,
               style: styles.view,
               capturedKeys: [
@@ -241,6 +256,7 @@ const Column = (props: TNativeTableColumnProps, ref: ForwardedRef<View>, node: T
             )
           }}
         />
+        <NativeTableDescription id={sortDescriptionID ?? ""} text={sortDescription} />
       </NativeCollectionSemanticsContext.Provider>
     </NativeCollectionItemBindingContext.Provider>
   )

@@ -29,7 +29,7 @@ type TFocusRuntime = Readonly<{
 
 type TFocusCapture = Readonly<{ rows: readonly TNativeDateFieldFocusRow[]; current: () => boolean }>
 
-const runtime: TFocusRuntime = {
+export const nativeDateFieldFocusRuntime: TFocusRuntime = {
   capture: captureNativeFocusTarget,
   focused: getNativeFocusedTarget,
   focus: focusNativeTarget,
@@ -51,7 +51,7 @@ export class NativeDateFieldFocusManager {
   #retired = false
   constructor(
     readonly current: () => TNativeDateFieldFocusSnapshot | null,
-    readonly native: TFocusRuntime = runtime,
+    readonly native: TFocusRuntime = nativeDateFieldFocusRuntime,
   ) {}
   retire = () => {
     this.#retired = true
@@ -105,6 +105,13 @@ export class NativeDateFieldFocusManager {
     const capture = this.#capture()
     return !!capture && this.#focus(capture, 0)
   }
+  focusFromInput = (original: View, kind: "next" | "previous") => {
+    this.#request++
+    const capture = this.#capture()
+    if (!capture || this.native.focused() !== original) return false
+    const index = capture.rows.findIndex((row) => row.original === original)
+    return index >= 0 && this.#focus(capture, index + (kind === "next" ? 1 : -1))
+  }
   focusNext = () => this.#logical(1)
   focusPrevious = () => this.#logical(-1)
   #logical = (direction: -1 | 1) => {
@@ -138,6 +145,34 @@ export class NativeDateFieldFocusManager {
       return false
     const positions = rectangles.map((rect) => rect.x)
     return this.#focus(capture, nativeDateFieldVisualIndex(positions, positions[index], direction))
+  }
+  capturePress = (target: object): (() => boolean) | null => {
+    const request = ++this.#request,
+      capture = this.#capture(),
+      root = this.current()?.root
+    if (!capture || !root) return null
+    let predecessor: View | null = null,
+      found = false
+    const visited = new Set<object>()
+    const walk = (node: object) => {
+      if (visited.has(node) || found) return
+      visited.add(node)
+      if (node === target) {
+        found = true
+        return
+      }
+      const row = capture.rows.find((row) => row.original === node)
+      if (row) predecessor = row.original
+      for (const child of (node as { childNodes?: Iterable<object> }).childNodes ?? []) walk(child)
+    }
+    walk(root)
+    if (!found) return null
+    const before = predecessor ? capture.rows.findIndex((row) => row.original === predecessor) : null
+    const index = nativeDateFieldPressIndex(
+      capture.rows.map((row) => row.isPlaceholder),
+      before,
+    )
+    return () => request === this.#request && this.#focus(capture, index)
   }
   focusFromPress = (predecessor: View | null) => {
     this.#request++

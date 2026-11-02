@@ -1,5 +1,42 @@
 import { codegenNativeComponent, type HostComponent, type ViewProps } from "react-native"
-import type { DirectEventHandler, Double, Int32, WithDefault } from "react-native/Libraries/Types/CodegenTypes"
+import type {
+  BubblingEventHandler,
+  DirectEventHandler,
+  Double,
+  Int32,
+  WithDefault,
+} from "react-native/Libraries/Types/CodegenTypes"
+
+// Registration metadata mirrors the locked stock PointerEvent serializer; the stock processor emits these events.
+type NativePointerCaptureData = Readonly<{
+  pointerId: Int32
+  pressure: Double
+  pointerType: string
+  clientX: Double
+  clientY: Double
+  x: Double
+  y: Double
+  pageX: Double
+  pageY: Double
+  screenX: Double
+  screenY: Double
+  offsetX: Double
+  offsetY: Double
+  width: Double
+  height: Double
+  tiltX: Int32
+  tiltY: Int32
+  detail: Int32
+  buttons: Int32
+  tangentialPressure: Double
+  twist: Int32
+  ctrlKey: boolean
+  shiftKey: boolean
+  altKey: boolean
+  metaKey: boolean
+  isPrimary: boolean
+  button: Int32
+}>
 
 export type NativeDragActionData = Readonly<{ packet: string }>
 export type NativeScopedKeyData = Readonly<{
@@ -197,36 +234,15 @@ export type NativeMenuPointerData = Readonly<{
   error: string
 }>
 
-export type NativeEditorKeyboardBinding = Readonly<{
+type NativeOrdinaryEditorBinding = Readonly<{
   bindingId: string
   bindingRevision: string
   targetTag: Int32
-  moduleLease: string
+  subtree: boolean
+  toolbarTargetOnly: boolean
+  toolbarSubtreeOnly: boolean
 }>
-export type NativeEditorKeyData = Readonly<{
-  ownerId: string
-  bindingId: string
-  bindingRevision: string
-  target: Int32
-  windowId: string
-  epoch: Double
-  eventId: Double
-  phase: "down" | "up" | "cancel"
-  key: string
-  code: string
-  nativeCode: Int32
-  location: Int32
-  repeat: boolean
-  cancelled: boolean
-  isComposing: boolean
-  shiftKey: boolean
-  altKey: boolean
-  ctrlKey: boolean
-  metaKey: boolean
-  capsLock: boolean
-  nativeModifierData: string
-  timestamp: Double
-}>
+
 export type NativeEditorKeyboardStatus = Readonly<{
   ownerId: string
   bindingId: string
@@ -239,33 +255,23 @@ export type NativeEditorKeyboardStatus = Readonly<{
   windowActive: boolean
   error: string
 }>
-export type NativeEditorKeyboardDecision = Readonly<{
-  ownerId: string
-  bindingId: string
-  bindingRevision: string
-  target: Int32
-  windowId: string
-  epoch: Double
-  eventId: Double
-  phase: "down" | "up" | "cancel"
-  decision: "allowed" | "prevented" | "unacknowledged" | "retired"
-  elapsedMs: Double
-}>
 
 export interface NativeProps extends ViewProps {
+  onGotPointerCapture?: BubblingEventHandler<NativePointerCaptureData>
+  onLostPointerCapture?: BubblingEventHandler<NativePointerCaptureData>
   onNativeDragAction?: DirectEventHandler<NativeDragActionData>
   onNativeDragStatus?: DirectEventHandler<NativeDragActionData>
   dragBindings?: WithDefault<string, "[]">
-  nativeTypographyWindow?: string
   ownerId: string
   dialogScopes?: ReadonlyArray<NativeDialogBinding>
   dialogRevision?: Double
   onNativeDialogStatus?: DirectEventHandler<NativeDialogStatus>
   onNativeDialogAction?: DirectEventHandler<NativeDialogAction>
-  editorKeyboardBindings?: ReadonlyArray<NativeEditorKeyboardBinding>
-  onNativeEditorKey?: DirectEventHandler<NativeEditorKeyData>
-  onNativeEditorKeyboardStatus?: DirectEventHandler<NativeEditorKeyboardStatus>
-  onNativeEditorKeyboardDecision?: DirectEventHandler<NativeEditorKeyboardDecision>
+  toolbarBindings?: WithDefault<string, "[]">
+  onNativeToolbarKeyboard?: DirectEventHandler<NativeDragActionData>
+  onNativeToolbarStatus?: DirectEventHandler<NativeDragActionData>
+  ordinaryEditorBindings?: ReadonlyArray<NativeOrdinaryEditorBinding>
+  onNativeOrdinaryEditorStatus?: DirectEventHandler<NativeEditorKeyboardStatus>
   enabled?: WithDefault<boolean, true>
   policies?: ReadonlyArray<NativeKeyPolicy>
   acceptedWindowId?: string

@@ -9,12 +9,11 @@ import {
 import { Easing, Text as RNText, type TextProps, type TextStyle } from "react-native"
 
 import { useNativeContextProps } from "../../collection/context"
-import { NativeFloatingScopeContext } from "../../overlays/floating/scope"
 import { useNativeTheme } from "../../theme"
 import { resolveNativeStyle, validateNativeColor } from "../colors"
 import { useNativeLinkColor } from "../Link/motion"
-import { NativeContentContext, NativeTextLayoutContext, useNativeContentContext } from "../NativeContentContext"
-import { splitNativeTextStyle } from "../nativeTextStyle"
+import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
+import { splitNativeTextStyle, validateNativeFontWeight } from "../nativeTextStyle"
 import { useNativeInheritedTextStyle } from "../NativeTextStyleProvider"
 
 import { NativeHeadingBindingContext, NativeHeadingContext } from "./context"
@@ -54,9 +53,6 @@ export const NativeText = forwardRef<
     const theme = useNativeTheme()
     const content = useNativeContentContext()
     const inherited = useNativeInheritedTextStyle()
-    const textLayout = useContext(NativeTextLayoutContext)
-    const windowId = useContext(NativeFloatingScopeContext)?.id ?? null
-    const currentTextLayout = textLayout?.windowId === windowId ? textLayout : undefined
     const foreground = color ?? content?.foregroundColor ?? theme.colors.foreground
     validateNativeColor(foreground, "Text", "color")
     const family = variant.startsWith("d") ? "display" : variant.startsWith("h") ? "heading" : "body"
@@ -70,8 +66,9 @@ export const NativeText = forwardRef<
       fontFamily:
         theme.typography.fontFamilies[family] ??
         (family === "display" ? theme.typography.fontFamilies.heading : undefined) ??
-        theme.typography.fontFamilies.body,
-      lineHeight: theme.typography.lineHeight,
+        theme.typography.fontFamilies.body ??
+        inherited?.fontFamily,
+      lineHeight: theme.typography.lineHeight ?? inherited?.lineHeight,
     }
     const computed = { ...inherited, ...defaultStyle }
     const merged = resolveNativeStyle([computed, custom, final], "Text", "resolvedStyle")
@@ -79,6 +76,7 @@ export const NativeText = forwardRef<
       ...merged,
       ...Object.fromEntries(Object.entries(computed).filter(([key]) => merged[key as keyof TextStyle] === undefined)),
     }
+    validateNativeFontWeight(resolved.fontWeight, "Text")
     const authoredColor = resolveNativeStyle([custom, final], "Text", "authoredStyle").color ?? color
     // Content providers carry the current parent paint, including each animated frame.
     const inheritedAnimation = authoredColor === undefined && content !== undefined
@@ -100,8 +98,6 @@ export const NativeText = forwardRef<
 
     const nativeProps: TextProps & RefAttributes<TNativeTextRef> = {
       ...rest,
-      numberOfLines: rest.numberOfLines ?? currentTextLayout?.numberOfLines,
-      ellipsizeMode: rest.ellipsizeMode ?? currentTextLayout?.ellipsizeMode,
       ref,
       role: semanticRole,
       accessibilityRole,

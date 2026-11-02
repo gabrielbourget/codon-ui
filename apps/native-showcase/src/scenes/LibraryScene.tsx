@@ -14,6 +14,14 @@ import {
   useNativeTheme,
 } from "@codon-ui/react-native"
 
+const BUTTON_DIMENSIONS = [
+  { label: "default", width: undefined, height: undefined },
+  { label: "160 by 48", width: 160, height: 48 },
+  { label: "full width by 56", width: "100%", height: 56 },
+  { label: "zero", width: 0, height: 0 },
+  { label: "auto", width: "auto", height: "auto" },
+] as const
+
 const SceneControl = ({
   label,
   selected = false,
@@ -43,6 +51,9 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
   const [orderIndex, setOrderIndex] = useState(0)
   const [geometryIndex, setGeometryIndex] = useState(1)
   const [outlined, setOutlined] = useState(false)
+  const [unordered, setUnordered] = useState(false)
+  const [dimensionIndex, setDimensionIndex] = useState(0)
+  const [buttonCustom, setButtonCustom] = useState(false)
   const [disabled, setDisabled] = useState(false)
   const [pending, setPending] = useState(false)
   const [keyboardFocusable, setKeyboardFocusable] = useState(true)
@@ -56,9 +67,12 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
   const [closeActions, setCloseActions] = useState(0)
   const [placeholderCentered, setPlaceholderCentered] = useState(false)
   const [placeholderEmpty, setPlaceholderEmpty] = useState(false)
+  const [placeholderCustom, setPlaceholderCustom] = useState(false)
+  const [placeholderFinal, setPlaceholderFinal] = useState(false)
   const variant = AVAILABLE_FONT_VARIANTS[variantIndex]
   const weight = AVAILABLE_FONT_WEIGHTS[weightIndex]
-  const order = AVAILABLE_THEMING_ORDER_CODES[orderIndex]
+  const order = unordered ? undefined : AVAILABLE_THEMING_ORDER_CODES[orderIndex]
+  const dimensions = BUTTON_DIMENSIONS[dimensionIndex]
   const geometry = AVAILABLE_CORNER_GEOMETRY_CODES[geometryIndex]
 
   return (
@@ -67,9 +81,12 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
         Native Text and Button
       </Text>
       <Text testID="library-state">
-        Library action count: {count}. Order: {order}. Mode: {outlined ? "outline" : "fill"}. State:{" "}
+        Library action count: {count}. Order: {order ?? "none"}. Mode: {outlined ? "outline" : "fill"}. State:{" "}
         {disabled ? "disabled" : pending ? "pending" : "enabled"}. Keyboard focus:{" "}
         {keyboardFocusable ? "enabled" : "excluded"}.
+      </Text>
+      <Text testID="library-button-customization">
+        Button dimensions: {dimensions.label}. Custom style layer: {buttonCustom ? "enabled" : "off"}.
       </Text>
       <View style={styles.controls}>
         <SceneControl
@@ -88,6 +105,20 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
         <SceneControl
           label="Next button order"
           onPress={() => setOrderIndex((index) => (index + 1) % AVAILABLE_THEMING_ORDER_CODES.length)}
+        />
+        <SceneControl
+          label="Toggle button default palette"
+          selected={unordered}
+          onPress={() => setUnordered((value) => !value)}
+        />
+        <SceneControl
+          label="Next button dimensions"
+          onPress={() => setDimensionIndex((index) => (index + 1) % BUTTON_DIMENSIONS.length)}
+        />
+        <SceneControl
+          label="Toggle button custom styles"
+          selected={buttonCustom}
+          onPress={() => setButtonCustom((value) => !value)}
         />
         <SceneControl
           label="Toggle button outline"
@@ -135,7 +166,20 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
           selected={placeholderEmpty}
           onPress={() => setPlaceholderEmpty((value) => !value)}
         />
+        <SceneControl
+          label="Toggle placeholder custom styles"
+          selected={placeholderCustom}
+          onPress={() => setPlaceholderCustom((value) => !value)}
+        />
+        <SceneControl
+          label="Toggle placeholder final styles"
+          selected={placeholderFinal}
+          onPress={() => setPlaceholderFinal((value) => !value)}
+        />
       </View>
+      <Text testID="placeholder-customization-state">
+        Placeholder custom: {String(placeholderCustom)}. Final: {String(placeholderFinal)}.
+      </Text>
       <Text>
         Text variant {variant}; weight {weight}; button geometry {geometry}.
       </Text>
@@ -156,13 +200,22 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
       <Text>
         Parent text with <Text fontWeight="bold">nested bold content</Text> and inherited foreground.
       </Text>
-      <PlaceholderText testID="library-placeholder" align={placeholderCentered ? "center" : "left"} onPress={increment}>
+      <PlaceholderText
+        testID="library-placeholder"
+        align={placeholderCentered ? "center" : "left"}
+        onPress={increment}
+        customStyles={placeholderCustom ? [styles.placeholderCustom, { paddingVertical: 4 }] : undefined}
+        style={placeholderFinal ? [styles.placeholderFinal] : undefined}
+      >
         {placeholderEmpty ? "" : "Choose an item"}
       </PlaceholderText>
       <Text testID="library-release">Last release: {lastRelease}</Text>
       <Button
         accessibilityLabel="Library action"
         testID="library-button"
+        width={dimensions.width}
+        height={dimensions.height}
+        customStyles={buttonCustom ? styles.buttonCustom : undefined}
         render={(props, state) => (
           <NativeFocusView {...props} nativeID={`library-button-${state.isPending ? "pending" : "ready"}`} />
         )}
@@ -261,6 +314,16 @@ const styles = StyleSheet.create({
   scene: { gap: 10 },
   controls: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   control: { minHeight: Platform.OS === "ios" ? 44 : 48, padding: 10, justifyContent: "center", borderRadius: 5 },
+  buttonCustom: {
+    padding: 11,
+    paddingHorizontal: 11,
+    borderWidth: 2,
+    borderColor: "#087f8c",
+    color: "#be123c",
+    fontSize: 18,
+  },
   constraint: { gap: 10 },
   closePreview: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 10 },
+  placeholderCustom: { color: "#a66b00", fontSize: 18, padding: 2 },
+  placeholderFinal: { color: "#7e22ce", fontSize: 22 },
 })

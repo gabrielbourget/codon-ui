@@ -10,7 +10,7 @@ import { resolveNativeStyle, validateNativeColor } from "../colors"
 import { validateNativeDisplayDimension } from "../displayDimensions"
 import { useNativeLinkColor } from "../Link/motion"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
-import { splitNativeTextStyle } from "../nativeTextStyle"
+import { splitNativeTextStyle, validateNativeFontWeight } from "../nativeTextStyle"
 import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
 import { NativeText as Text } from "../Text/Text"
 
@@ -75,6 +75,8 @@ export const Counter = forwardRef<TNativeCounterRef, TNativeCounterProps>((props
     "Counter",
     "style",
   )
+  const rootTypography = splitNativeTextStyle(viewStyle).text
+  validateNativeFontWeight(rootTypography.fontWeight, "Counter")
   const foreground = useNativeLinkColor(
     rootColor ?? context?.foregroundColor ?? theme.colors.foreground,
     250,
@@ -101,7 +103,7 @@ export const Counter = forwardRef<TNativeCounterRef, TNativeCounterProps>((props
   const identity = testID ?? aliasID ?? "counter"
   return (
     <NativeContentContext.Provider value={{ foregroundColor: foreground, isButton: context?.isButton ?? false }}>
-      <NativeTextStyleProvider style={{ ...splitNativeTextStyle(viewStyle).text, color: foreground }}>
+      <NativeTextStyleProvider style={{ ...rootTypography, color: foreground }}>
         <NativeFocusHost
           {...rootProps}
           ref={ref}

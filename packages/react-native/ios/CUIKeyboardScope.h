@@ -1,12 +1,11 @@
 #import <React/RCTViewComponentView.h>
 @class CUIMenuPointerPolicies;
 @class CUIDialogFocusScopes;
-@class CUIVirtualDragFocus;
+@class CUIOrdinaryEditorKeys;
 
 @interface CUIKeyboardScope : RCTViewComponentView
 - (NSDictionary *)activationSession;
-- (CUIVirtualDragFocus *)virtualDragFocus;
-- (NSString *)dragMountWitness;
+- (CUIOrdinaryEditorKeys *)ordinaryEditorKeys;
 - (BOOL)dragCaptureReady;
 - (BOOL)dragEnabled;
 - (int32_t)dragSurfaceId;
@@ -16,3 +15,15 @@
 - (CUIMenuPointerPolicies *)menuPointers;
 - (CUIDialogFocusScopes *)dialogFocusScopes;
 @end
+
+NSString *CUIKeyboardToolbarRoute(UIPress *press);
+void CUIKeyboardToolbarDidEmit(UIPress *press);
+BOOL CUIRouteOriginalToolbarKey(UIView *target, UIPress *press, BOOL down, BOOL repeat, BOOL cancelled, BOOL handled);
+
+BOOL CUIKeyboardToolbarCancelledOriginal(UIPress *press);
+
+NSString *CUIKeyboardToolbarDateRoute(UIPress *press);
+
+void CUIKeyboardPrepareToolbarDate(UIPress *press, NSString *phase, BOOL repeat);
+
+BOOL CUIKeyboardToolbarDateOwnsOriginal(UIView *target, UIPress *press);

@@ -44,9 +44,11 @@ import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../o
 import { useNativeTheme } from "../../theme"
 import { getNativeButtonContent } from "../Button/content"
 import { NativeFloatingSurface } from "../ClickPopover/ClickPopover"
+import { NativePopoverContext, type TNativePopoverContextProps } from "../ClickPopover/context"
 import { resolveNativeStyle } from "../colors"
 import { NativeContentContext } from "../NativeContentContext"
 import { splitNativeTextStyle } from "../nativeTextStyle"
+import { useNativeInheritedTextStyle } from "../NativeTextStyleProvider"
 
 import {
   NativeMenuActionsContext,
@@ -79,7 +81,20 @@ const keyTokens = ["ArrowDown", "ArrowUp", "Home", "End", "PageDown", "PageUp"]
   .concat(nativeKeyTokens("a").filter((token) => token.startsWith("0010:") || token.startsWith("0001:")))
 
 export const Menu = forwardRef<TNativeMenuRef, TNativeMenuProps>((authoredProps, forwardedRef) => {
-  const [props, ref] = useNativeContextProps(authoredProps, forwardedRef, NativeMenuContext)
+  const [menuProps, menuRef] = useNativeContextProps(authoredProps, forwardedRef, NativeMenuContext)
+  const [props, ref] = useNativeContextProps(
+    {
+      ...menuProps,
+      accessibilityLabel: menuProps["aria-label"] ?? menuProps.accessibilityLabel,
+      "aria-label": undefined,
+      accessibilityLabelledBy: menuProps["aria-labelledby"] ?? menuProps.accessibilityLabelledBy,
+      "aria-labelledby": undefined,
+      style: [menuProps.customStyles, menuProps.style],
+    },
+    menuRef,
+    NativePopoverContext,
+  )
+  const rootStyle = (props as { style?: TNativePopoverContextProps["style"] }).style
   const {
     slot: _slot,
     menuListSlot,
@@ -97,6 +112,7 @@ export const Menu = forwardRef<TNativeMenuRef, TNativeMenuProps>((authoredProps,
     onOpenChange,
     customStyles,
     style,
+    clearContexts,
     ...surface
   } = props
   const trigger = useNativeDialogTrigger()
@@ -127,7 +143,11 @@ export const Menu = forwardRef<TNativeMenuRef, TNativeMenuProps>((authoredProps,
   const localRootState = useNativeMenuTriggerState({ isOpen: open, onOpenChange: request })
   const rootState = ((contextOwned || submenu) && inheritedRootState) || localRootState
   const theme = useNativeTheme()
-  const styles = getNativeMenuStyles(theme, { ...props, customMenuStyles: undefined })
+  const styles = getNativeMenuStyles(theme, {
+    ...props,
+    customMenuStyles: undefined,
+    style: typeof rootStyle === "function" ? undefined : rootStyle,
+  })
   const list = useRef<View>(null)
   const [listDefaults, defaultsRef] = useNativeContextProps<TNativeMenuListProps, View, Partial<TNativeMenuListProps>>(
     {
@@ -160,6 +180,9 @@ export const Menu = forwardRef<TNativeMenuRef, TNativeMenuProps>((authoredProps,
         <NativeFloatingSurface
           {...surface}
           ref={ref}
+          nativeRender={props.render}
+          nativeStyle={typeof rootStyle === "function" ? rootStyle : undefined}
+          nativeClearContexts={clearContexts}
           testID={props.testID ?? props["data-testid"] ?? "menu"}
           isOpen={open}
           onOpenChange={request}
@@ -212,6 +235,7 @@ export const Menu = forwardRef<TNativeMenuRef, TNativeMenuProps>((authoredProps,
                     styles,
                   }}
                   listProps={listProps}
+                  hasDynamicRootStyle={typeof rootStyle === "function"}
                   listRef={listRef}
                   root={list}
                   initialTarget={initialTarget}
@@ -234,6 +258,7 @@ type TListProps = Pick<
 > & {
   props: TNativeMenuProps
   listProps: TNativeMenuListProps
+  hasDynamicRootStyle: boolean
   listRef: Ref<View>
   selectionMode: NonNullable<TNativeMenuProps["selectionMode"]>
   shouldCloseOnSelect: boolean
@@ -247,6 +272,7 @@ type TListProps = Pick<
 }
 const NativeMenuList = (props: TListProps) => {
   const theme = useNativeTheme()
+  const inheritedTextStyle = useNativeInheritedTextStyle()
   const triggerLabelledBy = useContext(NativeMenuTriggerNamingContext)
   const direction = useContext(NativeMenuDirectionContext) ?? (I18nManager.isRTL ? "rtl" : "ltr")
   const rootStrategy = useNativeMenuFocusStrategy()
@@ -313,7 +339,11 @@ const NativeMenuList = (props: TListProps) => {
   const manager = state.selectionManager
   if (!NATIVE_MENU_SELECTION_MODES.includes(manager.selectionMode))
     throw new TypeError("Menu: unsupported selectionMode")
-  const defaultListStyle = { ...props.styles.list.view, ...props.styles.list.text }
+  const defaultListStyle = {
+    ...props.styles.list.view,
+    ...props.styles.list.text,
+    ...(props.hasDynamicRootStyle ? inheritedTextStyle : undefined),
+  }
   const authoredListStyle =
     typeof props.listProps.style === "function"
       ? props.listProps.style({ isEmpty: collection.size === 0, defaultStyle: defaultListStyle })
@@ -333,10 +363,15 @@ const NativeMenuList = (props: TListProps) => {
   } | null>(null)
   const setActive = (key: TNativeMenuKey | null) => manager.setFocusedKey(key)
   const logicalMembers: TNativeCollectionNode<object>[] = []
+  const separatorPositions = new Map<TNativeMenuKey, { beforeOrdinal: number; order: number }>()
+  let logicalOrder = 0
   let logicalKey = collection.getFirstKey()
   while (logicalKey !== null) {
     const node = collection.getItem(logicalKey)!
+    if (node.type === "separator")
+      separatorPositions.set(node.key, { beforeOrdinal: logicalMembers.length, order: logicalOrder })
     if (node.type === "item") logicalMembers.push(node)
+    logicalOrder++
     logicalKey = collection.getKeyAfter(logicalKey)
   }
   const ordered = logicalMembers.flatMap((node) => {
@@ -792,6 +827,12 @@ const NativeMenuList = (props: TListProps) => {
                       parentTarget: targetTag,
                       ordinal: logicalMembers.findIndex((node) => node.key === row.id),
                     } satisfies TNativeCollectionSemantics),
+                  separatorSemantics: (node) => {
+                    const position = separatorPositions.get(node.key)
+                    return position
+                      ? JSON.stringify({ kind: "list-separator", parentTarget: targetTag, ...position })
+                      : ""
+                  },
                   requestFocus: (row) => withNativeAdmission(row, () => requestFocus(row.id)),
                   pointerHandoff: (hitPath, isCurrent) => {
                     if (!isCurrent()) return false

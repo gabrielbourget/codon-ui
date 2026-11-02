@@ -33,6 +33,7 @@ type TOwner = {
   rowHeaderColumns: ReadonlySet<string>
   layout?: TNativeCollectionLayoutDelegate
   receipt: TNativeCollectionSessionSnapshot<unknown>["receipt"]
+  direction?: "ltr" | "rtl"
   allowItemDescendantKeys?: boolean
   canAct?: () => boolean
 }
@@ -51,6 +52,8 @@ type TNativeTableKeyboard = {
   hasSearch: boolean
   typeaheadEnabled: boolean
 }
+const isOwnerRTL = (owner: TOwner) => (owner.direction === undefined ? I18nManager.isRTL : owner.direction === "rtl")
+
 export const useNativeCollectionKeyboard = (owner: TOwner): TNativeTableKeyboard => {
   const actions = useContext(NativeCollectionActionsContext)!
   const scope = useNativeKeyScope()
@@ -312,7 +315,7 @@ export const useNativeCollectionKeyboard = (owner: TOwner): TNativeTableKeyboard
       const key =
         owner.manager.focusedKey ??
         owner.manager.firstSelectedKey ??
-        getNativeTableNavigationKey(owner, null, "ArrowDown", I18nManager.isRTL)
+        getNativeTableNavigationKey(owner, null, "ArrowDown", isOwnerRTL(owner))
       owner.manager.setFocused(true)
       if (key != null) {
         owner.manager.setFocusedKey(key)
@@ -380,7 +383,7 @@ export const useNativeCollectionKeyboard = (owner: TOwner): TNativeTableKeyboard
         if (!nativeTableCellContains(entry.view, active)) return
         const children = getNativeTableCellFocusTargets(entry.view)
         const index = children.indexOf(active)
-        const next = children[index + ((data.key === "ArrowRight") !== I18nManager.isRTL ? 1 : -1)]
+        const next = children[index + ((data.key === "ArrowRight") !== isOwnerRTL(owner) ? 1 : -1)]
         if (next) {
           event.preventDefault()
           event.stopPropagation()
@@ -406,7 +409,7 @@ export const useNativeCollectionKeyboard = (owner: TOwner): TNativeTableKeyboard
           owner,
           cellKey ?? manager.focusedKey,
           key,
-          I18nManager.isRTL,
+          isOwnerRTL(owner),
           modifier,
           owner.props.shouldFocusWrap,
         )
@@ -415,11 +418,11 @@ export const useNativeCollectionKeyboard = (owner: TOwner): TNativeTableKeyboard
         manager.setFocusedKey(
           next,
           key === "ArrowLeft"
-            ? I18nManager.isRTL
+            ? isOwnerRTL(owner)
               ? "first"
               : "last"
             : key === "ArrowRight"
-              ? I18nManager.isRTL
+              ? isOwnerRTL(owner)
                 ? "last"
                 : "first"
               : undefined,
@@ -456,7 +459,7 @@ export const useNativeCollectionKeyboard = (owner: TOwner): TNativeTableKeyboard
           owner,
           from,
           key as (typeof NATIVE_TABLE_NAVIGATION_KEYS)[number],
-          I18nManager.isRTL,
+          isOwnerRTL(owner),
           token[isApple ? 3 : 2] === "1",
           owner.props.shouldFocusWrap,
         ) != null

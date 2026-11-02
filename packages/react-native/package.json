@@ -81,7 +81,6 @@
       "modulesProvider": {
         "CUIMotionSnapshot": "CUIMotionSnapshot",
         "CUIFormDocument": "CUIFormDocument",
-        "CUIEditorKeyboardDefaults": "CUIEditorKeyboardDefaults",
         "CUIDragAndDrop": "CUIDragAndDrop"
       },
       "componentProvider": {
@@ -94,8 +93,7 @@
         "CUICollectionNode": "CUICollectionNode",
         "CUIFormRoot": "CUIFormRoot",
         "CUIFieldBinding": "CUIFieldBinding",
-        "CUIDateSegment": "CUIDateSegment",
-        "CUIClampHost": "CUIClampHost"
+        "CUIDateSegment": "CUIDateSegment"
       }
     }
   }

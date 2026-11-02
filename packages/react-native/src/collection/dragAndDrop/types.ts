@@ -1,5 +1,5 @@
 /* Copyright 2020 Adobe. Licensed under Apache-2.0; see ../LICENSE.react-aria.md. */
-import type { ReactElement, RefObject } from "react"
+import type { RefObject } from "react"
 import type { View } from "react-native"
 
 import type { TNativeCollectionKey } from "../snapshot"
@@ -72,11 +72,11 @@ export type TNativeReorderDropEvent = {
   dropOperation: TNativeDropOperation
   target: TNativeItemDropTarget
 }
-export type TNativeDragPreviewRenderer = (
-  items: TNativeDragItem[],
-  callback: (node: View | null, x?: number, y?: number) => void,
-) => void
-export type TNativeDragPreviewContent = ReactElement | { element: ReactElement; x: number; y: number }
+export type TNativePreparedDragPreview = Readonly<{
+  ref: RefObject<View | null>
+  x?: number
+  y?: number
+}>
 export type TNativeDropTargetDelegate = {
   getDropTargetFromPoint: (
     x: number,
@@ -89,7 +89,7 @@ export type TNativeDraggableCollectionProps<T = object> = {
   onDragMove?: (event: TNativeDraggableCollectionMoveEvent) => void
   onDragEnd?: (event: TNativeDraggableCollectionEndEvent) => void
   getItems: (keys: Set<TNativeCollectionKey>, items: T[]) => TNativeDragItem[]
-  preview?: RefObject<TNativeDragPreviewRenderer | null>
+  preparedDragPreview?: TNativePreparedDragPreview
   getAllowedDropOperations?: () => TNativeDropOperation[]
 }
 export type TNativeDroppableCollectionProps = {

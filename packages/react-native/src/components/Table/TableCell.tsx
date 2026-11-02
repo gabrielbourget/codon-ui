@@ -16,16 +16,14 @@ import { NativeFocusView } from "../../input/NativeFocusView"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { NativePressable } from "../../input/NativePressable"
 import { nativeViewProps } from "../../input/nativeViewProps"
-import { NativeFloatingScopeContext } from "../../overlays/floating/scope"
 import { useNativeTheme } from "../../theme"
-import { getNativeButtonContent } from "../Button/content"
 import { resolveNativeStyle } from "../colors"
-import { NativeContentContext, NativeTextLayoutContext, useNativeContentContext } from "../NativeContentContext"
+import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
 import { splitNativeTextStyle } from "../nativeTextStyle"
 
 import { NativeTableCellContext, useNativeTable } from "./context"
 import { NativeTableColumnResizeStateContext } from "./NativeResizableTableContainer"
-import { TableCellContent } from "./TableCellContent"
+import { useTableCellContent } from "./TableCellContent"
 import { TableCellKeys } from "./TableCellKeys"
 import type { TNativeTableCellProps, TNativeTableCellRenderState } from "./types"
 import { useTableAction } from "./useTableAction"
@@ -54,7 +52,6 @@ const Cell = (props: TNativeTableCellProps, ref: ForwardedRef<View>, node: TNati
   const [focused, setFocused] = useState(false)
   const [focusVisible, setFocusVisible] = useState(false)
   const content = useNativeContentContext()
-  const windowId = useContext(NativeFloatingScopeContext)?.id ?? null
   const theme = useNativeTheme()
   const actions = useContext(NativeCollectionActionsContext)
   const isRowHeader = table.rowHeaderColumns.has(columnID)
@@ -90,7 +87,7 @@ const Cell = (props: TNativeTableCellProps, ref: ForwardedRef<View>, node: TNati
           justifyContent: "center",
           color: content?.foregroundColor,
           textAlign,
-          overflow: truncate ? "hidden" : "visible",
+          overflow: "visible",
         },
         authored,
         layout
@@ -134,6 +131,13 @@ const Cell = (props: TNativeTableCellProps, ref: ForwardedRef<View>, node: TNati
     level,
     defaultChildren: undefined,
   }
+  const cellContent = useTableCellContent({
+    children: typeof children === "function" ? children(renderState) : children,
+    textStyle: styles.text,
+    maxLines,
+    truncate,
+    canAct: action.isActive,
+  })
   const { defaultChildren: _defaultChildren, ...renderValues } = renderState
   const rendered = (
     <NativeTableCellContext.Provider value={{ node, target, width }}>
@@ -146,11 +150,7 @@ const Cell = (props: TNativeTableCellProps, ref: ForwardedRef<View>, node: TNati
         }}
       >
         <NativeCollectionRendererContext.Provider value={DefaultNativeCollectionRenderer}>
-          <NativeTextLayoutContext.Provider value={undefined}>
-            <TableCellContent maxLines={maxLines} truncate={truncate} windowId={windowId}>
-              {getNativeButtonContent(typeof children === "function" ? children(renderState) : children, styles.text)}
-            </TableCellContent>
-          </NativeTextLayoutContext.Provider>
+          {cellContent.content}
         </NativeCollectionRendererContext.Provider>
       </NativeContentContext.Provider>
     </NativeTableCellContext.Provider>
@@ -179,11 +179,25 @@ const Cell = (props: TNativeTableCellProps, ref: ForwardedRef<View>, node: TNati
           {...nativeViewProps(native)}
           ref={mergedRef}
           accessible
+          accessibilityActions={[
+            ...(native.accessibilityActions ?? []).filter((candidate) => candidate.name !== cellContent.action?.name),
+            ...(cellContent.action ? [cellContent.action] : []),
+          ]}
+          onAccessibilityAction={(event) => {
+            native.onAccessibilityAction?.(event)
+            if (!event.isDefaultPrevented() && event.nativeEvent.actionName === cellContent.action?.name)
+              cellContent.toggle()
+          }}
           nativeInteraction={false}
           nativeProgrammaticFocusable
           nativeTabStop={table.manager.focusedKey === node.key}
           nativeRender={(props) => {
-            const hostProps = { ...props, capturedKeys: scope ? [] : table.keyboard.keysFor(node.key) }
+            const hostProps = {
+              ...props,
+              onClick: native.onClick,
+              onClickCapture: native.onClickCapture,
+              capturedKeys: scope ? [] : table.keyboard.keysFor(node.key),
+            }
             return render ? render(hostProps, renderValues) : <NativeFocusView {...hostProps} />
           }}
           onFocus={(event) => {

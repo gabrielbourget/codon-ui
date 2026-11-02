@@ -671,3 +671,96 @@ it("NATIVE.link.palette mixes transparent visited roles with premultiplied alpha
     processColor("rgba(255, 255, 255, 0.15)"),
   )
 })
+
+it.each(["light", "dark"] as const)(
+  "PHONE-THEME resolves visited roles live without changing Link state/ref/navigation in %s",
+  async (mode) => {
+    const ref = createRef<TNativeLinkRef>()
+    const onPress = jest.fn((value) => value.preventDefault())
+    const node = (visitedForeground?: LinkProps["color"], props: Partial<LinkProps> = {}) => (
+      <NativeThemeProvider mode={mode} overrides={{ actions: { primary: { visitedForeground } } }}>
+        <Link href="original" ref={ref} order="primary" isVisited onPress={onPress} {...props}>
+          Visited destination
+        </Link>
+      </NativeThemeProvider>
+    )
+    const result = await render(node("purple"))
+    const original = ref.current
+    expect(original).toBeTruthy()
+    expect(screen.getByText("Visited destination")).toHaveStyle({ color: "purple" })
+    await result.rerender(node("orange"))
+    expect(ref.current).toBe(original)
+    expect(screen.getByText("Visited destination")).toHaveStyle({ color: "orange" })
+    await result.rerender(node("purple", { visitedColor: "green" }))
+    expect(screen.getByText("Visited destination")).toHaveStyle({ color: "green" })
+    await result.rerender(node("purple", { color: "red", visitedColor: "green" }))
+    expect(screen.getByText("Visited destination")).toHaveStyle({ color: "red" })
+    await result.rerender(node("purple", { customStyles: { color: "blue" }, style: { color: "orange" } }))
+    expect(screen.getByText("Visited destination")).toHaveStyle({ color: "orange" })
+    await result.rerender(node("purple", { isVisited: false }))
+    expect(screen.getByText("Visited destination")).toHaveStyle({
+      color: resolveNativeTheme(mode).actions.primary.background,
+    })
+    await result.rerender(node("purple"))
+    await fireEvent(screen.getByTestId("link"), "hoverIn", {})
+    expect(screen.getByText("Visited destination")).toHaveStyle({
+      color: resolveNativeTheme(mode).actions.primary.hoverBackground,
+    })
+    await fireEvent(screen.getByTestId("link"), "pressIn", event())
+    expect(screen.getByText("Visited destination")).toHaveStyle({
+      color: resolveNativeTheme(mode).actions.primary.pressedBackground,
+    })
+    await fireEvent(screen.getByTestId("link"), "pressOut", event())
+    await fireEvent(screen.getByTestId("link"), "hoverOut", {})
+    const originalEvent = event(100)
+    await fireEvent.press(screen.getByTestId("link"), originalEvent)
+    expect(onPress.mock.calls[0][0].nativeEvent.timestamp).toBe(100)
+    expect(onPress.mock.calls[0][0].isDefaultPrevented()).toBe(true)
+    expect(originalEvent.defaultPrevented).toBe(true)
+    expect(onPress).toHaveBeenCalledTimes(1)
+    expect(Linking.openURL).not.toHaveBeenCalled()
+    expect(ref.current).toBe(original)
+    await result.rerender(node(undefined))
+    expect(screen.getByText("Visited destination")).not.toHaveStyle({ color: "purple" })
+  },
+)
+
+it("PHONE-THEME supports native opaque visited roles and rejects invalid effective colors", async () => {
+  const opaque = PlatformColor("systemBlueColor")
+  const result = await render(
+    <NativeThemeProvider overrides={{ actions: { primary: { visitedForeground: opaque } } }}>
+      <Link href="x" order="primary" isVisited>
+        Opaque visit
+      </Link>
+    </NativeThemeProvider>,
+  )
+  expect(screen.getByText("Opaque visit")).toHaveStyle({ color: opaque })
+  await result.unmount()
+  await expect(
+    render(
+      <NativeThemeProvider overrides={{ actions: { primary: { visitedForeground: "not-a-color" } } }}>
+        <Link href="x" order="primary" isVisited>
+          Invalid
+        </Link>
+      </NativeThemeProvider>,
+    ),
+  ).rejects.toThrow(/Link.*color/)
+})
+
+it.each(
+  (["light", "dark"] as const).flatMap((mode) =>
+    (["secondary", "tertiary", "quaternary", "quintenary"] as const).map((order) => [mode, order] as const),
+  ),
+)("PHONE-THEME applies and removes the visited override for %s/%s", async (mode, order) => {
+  const node = (visitedForeground?: string) => (
+    <NativeThemeProvider mode={mode} overrides={{ actions: { [order]: { visitedForeground } } }}>
+      <Link href="original" order={order} isVisited>
+        Other ordered visit
+      </Link>
+    </NativeThemeProvider>
+  )
+  const result = await render(node("purple"))
+  expect(screen.getByText("Other ordered visit")).toHaveStyle({ color: "purple" })
+  await result.rerender(node(undefined))
+  expect(screen.getByText("Other ordered visit")).not.toHaveStyle({ color: "purple" })
+})

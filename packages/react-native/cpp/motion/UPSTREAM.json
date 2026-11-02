@@ -1078,5 +1078,17 @@
     "packageArtifactRef": "react-native@0.86.3/ReactAndroid/src/main/java/com/facebook/react/bridge/ReadableNativeMap.kt",
     "sha256": "4c80db0b298f8cdad23bc0eff746100118351c109ee90fccb2d7b7b232bfef0b",
     "behavior": "First Java read memoizes keys/local values; later native writes do not invalidate that Java cache. Actual original Card crash in evidence3.31.103."
-  }
+  },
+  "nativePositionAmendments": [
+    {
+      "decision": "DEC.PHONE.POSITION_ROOT.01",
+      "sourceBaseline": "9cc699a4b50f749a2eebb3f3389a81cb123092a5",
+      "adaptation": "NativeFocusView descriptor-owned position presence replaces the patched Yoga field. Cooperating sticky/popLayout roots retain actual generated props/refs, final style and imperative restoration; other inherited APIs and native qualification remain unchanged.",
+      "files": {
+        "PopStyle.cpp": "9c3839aa3336a5dd5f8a0364efd015183d4cefdd5867c938f18cd711853a2964",
+        "PopStyle.h": "f5f4e8a2404fdab4a855899e04b3026743956f4a8d6ba225f11bf1906f9a277d",
+        "PopPresentation.cpp": "e18704fb7160b00f842592d87ae3b128a7b1786e30b248e4863a02f535915811"
+      }
+    }
+  ]
 }

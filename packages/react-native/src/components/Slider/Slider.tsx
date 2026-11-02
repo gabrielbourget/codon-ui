@@ -1,20 +1,42 @@
-import { forwardRef, useLayoutEffect, useRef, useState, type ReactElement, type RefAttributes } from "react"
-import { I18nManager, View, type ViewStyle } from "react-native"
+import {
+  forwardRef,
+  useCallback,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactElement,
+  type RefAttributes,
+} from "react"
+import { View, type ViewStyle } from "react-native"
 
+import { useNativeCollectionRefs, useNativeContextProps } from "../../collection/context"
+import { nativeAccessibilityIDs, nativeCompositeLabelProps } from "../../input/accessibilityReferences"
+import { focusNativeTarget } from "../../input/focus"
+import { NativeFocusHost } from "../../input/NativeFocusView"
+import { useNativeLocale } from "../../locale/NativeLocaleProvider"
 import { useNativeTheme } from "../../theme"
 import { resolveNativeStyle, validateNativeColor } from "../colors"
 import { validateNativeDisplayDimension } from "../displayDimensions"
 import { getNativeControlRadius, nativeControlTarget } from "../selection"
 import { Text } from "../Text/Text"
 
+import { NativeSliderContext, NativeSliderStateContext } from "./context"
 import { sliderInset, useNativeSliderGesture } from "./gesture"
+import { getSliderKeyCommand, SLIDER_KEY_TOKENS } from "./keyboard"
 import { useNativeSliderState } from "./state"
 import { getSliderThumbStyles } from "./styles"
+import { NativeSliderThumbForm } from "./thumbForm"
+import { NativeSliderThumbPaint } from "./thumbPaint"
 import type { TNativeSliderProps, TNativeSliderRef, TNativeSliderValue } from "./types"
+import { useNativeSliderHosts } from "./useNativeSliderHosts"
 
 type TSize = { width: number; height: number }
-const SliderRoot = forwardRef<TNativeSliderRef, TNativeSliderProps>((props, ref) => {
+const SliderRoot = forwardRef<TNativeSliderRef, TNativeSliderProps>((ownProps, forwardedRef) => {
+  const [props, ref] = useNativeContextProps(ownProps, forwardedRef, NativeSliderContext)
   const {
+    slot: _slot,
+    render,
     value: _value,
     defaultValue: _defaultValue,
     onChange: _onChange,
@@ -24,12 +46,13 @@ const SliderRoot = forwardRef<TNativeSliderRef, TNativeSliderProps>((props, ref)
     step: _step,
     isDisabled = false,
     orientation = "horizontal",
-    direction = I18nManager.isRTL ? "rtl" : "ltr",
+    direction: explicitDirection,
     locale: _locale,
     formatOptions: _formatOptions,
     label,
     labelID,
     thumbAriaLabels,
+    thumbNames,
     thumbColor: _thumbColor,
     trackColor,
     geometry = "round",
@@ -49,24 +72,66 @@ const SliderRoot = forwardRef<TNativeSliderRef, TNativeSliderProps>((props, ref)
     style,
     accessibilityLabel,
     accessibilityHint,
+    accessibilityLabelledBy,
+    "aria-labelledby": ariaLabelledBy,
+    "aria-describedby": ariaDescribedBy,
+    "aria-details": ariaDetails,
     "aria-label": aliasLabel,
     testID,
     "data-testid": aliasID,
     ...rest
   } = props
-  const name = accessibilityLabel ?? aliasLabel ?? label
-  if (typeof name !== "string" || !name.trim())
+  const explicitName = accessibilityLabel ?? aliasLabel
+  const name = explicitName ?? label
+  const labelledBy = nativeAccessibilityIDs(labelID ?? accessibilityLabelledBy ?? ariaLabelledBy)?.filter((id) =>
+    id.trim(),
+  )
+  const describedBy = nativeAccessibilityIDs(ariaDescribedBy)
+  const detailsBy = nativeAccessibilityIDs(ariaDetails)
+  const relationshipID = useId()
+  if (
+    (name !== undefined && typeof name !== "string") ||
+    (!(typeof name === "string" && name.trim()) && !labelledBy?.length)
+  )
     throw new TypeError("Slider: a nonempty native name or label is required")
   for (const [key, dimension] of Object.entries({ width, height, maxWidth }))
     validateNativeDisplayDimension(dimension, "Slider", key)
+  if (thumbNames !== undefined && (!Array.isArray(thumbNames) || thumbNames.some((name) => typeof name !== "string")))
+    throw new TypeError("Slider: thumbNames must be an array of strings")
   validateNativeColor(trackColor, "Slider", "trackColor")
   const theme = useNativeTheme()
-  const numeric = useNativeSliderState(props)
+  const inheritedLocale = useNativeLocale()
+  const direction = explicitDirection ?? inheritedLocale.direction
+  const numeric = useNativeSliderState({ ...props, locale: props.locale ?? inheritedLocale.locale })
   const state = numeric.state
+  const rootNode = useRef<View>(null)
+  const lastRoot = useRef<View>(null)
+  const [rootRevision, setRootRevision] = useState(0)
+  const bindRoot = useCallback((node: View | null) => {
+    rootNode.current = node
+    if (node && lastRoot.current !== node) {
+      lastRoot.current = node
+      setRootRevision((revision) => revision + 1)
+    }
+  }, [])
+  const rootRef = useNativeCollectionRefs(ref, bindRoot)
+  const keyboardAction = useRef<{ index: number } | null>(null)
+  const [keyboardRevision, setKeyboardRevision] = useState(0)
+  const observedNumericRevision = useRef(numeric.revision.current)
+  useLayoutEffect(() => {
+    if (observedNumericRevision.current !== numeric.revision.current) {
+      observedNumericRevision.current = numeric.revision.current
+      setKeyboardRevision((revision) => revision + 1)
+    }
+  })
+  useLayoutEffect(() => {
+    if (__DEV__ && render && !rootNode.current)
+      console.warn("Slider: custom render must forward its ref and props to the actual native root View.")
+  }, [render])
   const target = nativeControlTarget()
   const track = useRef<View>(null)
-  const targetRefs = useRef(new Map<number, View>())
-  const bodyRefs = useRef(new Map<number, View>())
+  const trackLifetime: { target: View | null } = { target: null }
+  const { targetRefs, bodyRefs, lifetimeFor, bindTarget, bindBody } = useNativeSliderHosts()
   const [bodySizes, setBodySizes] = useState<Record<number, TSize>>({})
   const [targetSizes, setTargetSizes] = useState<Record<number, TSize>>({})
   const [trackSize, setTrackSize] = useState<TSize>({ width: 0, height: 0 })
@@ -82,6 +147,7 @@ const SliderRoot = forwardRef<TNativeSliderRef, TNativeSliderProps>((props, ref)
   const gesture = useNativeSliderGesture(
     numeric,
     track,
+    trackLifetime,
     targetRefs,
     bodyRefs,
     orientation,
@@ -118,8 +184,9 @@ const SliderRoot = forwardRef<TNativeSliderRef, TNativeSliderProps>((props, ref)
     : state.values.map((_, index) => state.getThumbValueLabel(index)).join(" – ")
   if (typeof output !== "string") throw new TypeError("Slider: customOutputFormatter must return a string")
   useLayoutEffect(() => {
-    if (state.focusedThumb !== undefined && !isDisabled) targetRefs.current.get(state.focusedThumb)?.focus()
-  }, [state.focusedThumb, isDisabled])
+    if (state.focusedThumb !== undefined && !isDisabled)
+      focusNativeTarget(targetRefs.current.get(state.focusedThumb) ?? null)
+  }, [state.focusedThumb, isDisabled, rootRevision])
   const remember = (setter: typeof setBodySizes, index: number, size: TSize) =>
     setter((old) => {
       if (
@@ -139,8 +206,8 @@ const SliderRoot = forwardRef<TNativeSliderRef, TNativeSliderProps>((props, ref)
   }, [state.values.length])
   const extent = vertical ? trackSize.height : trackSize.width
   const inset = sliderInset(extent, maxTarget)
-  return (
-    <View {...rest} ref={ref} testID={identity} accessible={false} style={rootStyle}>
+  const content = (
+    <>
       <View
         accessible={false}
         style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}
@@ -168,14 +235,24 @@ const SliderRoot = forwardRef<TNativeSliderRef, TNativeSliderProps>((props, ref)
         </Text>
       </View>
       <View
-        ref={track}
+        ref={(node) => {
+          if (node) {
+            trackLifetime.target = node
+            track.current = node
+          } else {
+            const original = trackLifetime.target
+            trackLifetime.target = null
+            if (track.current === original) track.current = null
+          }
+        }}
         testID={`${identity}-track`}
         accessible={false}
         collapsable={false}
         style={trackStyle}
         {...gesture.handlers}
         onLayout={({ nativeEvent: { layout } }) =>
-          track.current &&
+          trackLifetime.target &&
+          trackLifetime.target === track.current &&
           [layout.width, layout.height].every((value) => Number.isFinite(value) && value >= 0) &&
           setTrackSize((old) =>
             old.width === layout.width && old.height === layout.height
@@ -198,8 +275,32 @@ const SliderRoot = forwardRef<TNativeSliderRef, TNativeSliderProps>((props, ref)
           }}
         />
         {state.values.map((current, index) => {
-          const lifetime: { target: View | null; body: View | null } = { target: null, body: null }
+          const lifetime = lifetimeFor(index)
           const enabled = state.isThumbEditable(index)
+          const numericRevision = numeric.revision.current
+          const thumbRevision = numeric.thumbRevisions.current.get(index) ?? 0
+          const canUseKey = () =>
+            !!rootNode.current &&
+            !!lifetime.target &&
+            lifetime.target === targetRefs.current.get(index) &&
+            numeric.revision.current === numericRevision &&
+            (numeric.thumbRevisions.current.get(index) ?? 0) === thumbRevision &&
+            index < state.values.length &&
+            state.isThumbEditable(index)
+          const thumbName = thumbAriaLabels?.[index] || `Slider Thumb ${index + 1}`
+          const thumbLabel = labelledBy?.length
+            ? explicitName
+              ? `${explicitName}, ${thumbName}`
+              : thumbName
+            : `${name}, ${thumbName}`
+          const thumbIdentity = nativeCompositeLabelProps(
+            {
+              nativeID: `${relationshipID}:thumb:${index}`,
+              accessibilityLabel: thumbLabel,
+              nativeLabelledBy: labelledBy,
+            },
+            `${relationshipID}:thumb:${index}`,
+          )
           const thumb = getSliderThumbStyles(
             theme,
             props,
@@ -216,27 +317,63 @@ const SliderRoot = forwardRef<TNativeSliderRef, TNativeSliderProps>((props, ref)
             ? [...(current < upper ? [{ name: "increment" }] : []), ...(current > lower ? [{ name: "decrement" }] : [])]
             : []
           return (
-            <View
+            <NativeFocusHost
               key={index}
-              ref={(node) => {
-                if (node) {
-                  lifetime.target = node
-                  targetRefs.current.set(index, node)
-                } else {
-                  const old = lifetime.target
-                  lifetime.target = null
-                  if (targetRefs.current.get(index) === old) targetRefs.current.delete(index)
-                }
-              }}
+              ref={bindTarget(index)}
               testID={`${identity}-thumb-${index + 1}-target`}
               accessible
               accessibilityRole="adjustable"
               focusable={enabled}
-              accessibilityLabel={`${name}, ${thumbAriaLabels?.[index] || `Slider Thumb ${index + 1}`}`}
+              {...thumbIdentity}
+              accessibilityLabel={thumbLabel}
+              nativeDescribedBy={describedBy}
+              nativeDetailsBy={detailsBy}
               accessibilityHint={accessibilityHint}
               accessibilityState={{ disabled: !enabled }}
               accessibilityValue={{ min: lower, max: upper, now: current, text: state.getThumbValueLabel(index) }}
               accessibilityActions={actions}
+              nativeKeyPolicy={{
+                tokens: SLIDER_KEY_TOKENS,
+                isEnabled: enabled,
+                lifetimeKey: JSON.stringify([
+                  rootRevision,
+                  keyboardRevision,
+                  numericRevision,
+                  thumbRevision,
+                  numeric.model.key,
+                  state.values.length,
+                  index,
+                  orientation,
+                  direction,
+                ]),
+                canAct: canUseKey,
+                onKey: (event, frame) => {
+                  if (!frame.admitted || event.nativeEvent.phase !== "down" || !canUseKey()) return
+                  const command = getSliderKeyCommand(event.nativeEvent, state, index, direction)
+                  if (!command) return
+                  const action = { index }
+                  keyboardAction.current = action
+                  state.setThumbDragging(index, true)
+                  try {
+                    command()
+                  } catch (error) {
+                    if (keyboardAction.current === action) {
+                      keyboardAction.current = null
+                      numeric.cancelThumb(index)
+                    }
+                    throw error
+                  }
+                  if (keyboardAction.current === action) {
+                    keyboardAction.current = null
+                    state.setThumbDragging(index, false)
+                  }
+                },
+                onRetire: () => {
+                  if (keyboardAction.current?.index !== index) return
+                  keyboardAction.current = null
+                  numeric.cancelThumb(index)
+                },
+              }}
               onAccessibilityAction={({ nativeEvent: { actionName } }) => {
                 if (
                   !lifetime.target ||
@@ -277,17 +414,8 @@ const SliderRoot = forwardRef<TNativeSliderRef, TNativeSliderProps>((props, ref)
                 remember(setTargetSizes, index, { width: layout.width, height: layout.height })
               }
             >
-              <View
-                ref={(node) => {
-                  if (node) {
-                    lifetime.body = node
-                    bodyRefs.current.set(index, node)
-                  } else {
-                    const old = lifetime.body
-                    lifetime.body = null
-                    if (bodyRefs.current.get(index) === old) bodyRefs.current.delete(index)
-                  }
-                }}
+              <NativeSliderThumbPaint
+                ref={bindBody(index)}
                 testID={`${identity}-thumb-${index + 1}`}
                 accessible={false}
                 pointerEvents="none"
@@ -298,15 +426,40 @@ const SliderRoot = forwardRef<TNativeSliderRef, TNativeSliderProps>((props, ref)
                   remember(setBodySizes, index, { width: layout.width, height: layout.height })
                 }
               />
-            </View>
+              <NativeSliderThumbForm
+                index={index}
+                name={thumbNames?.[index]}
+                state={state}
+                root={rootNode}
+                thumbs={targetRefs}
+              />
+            </NativeFocusHost>
           )
         })}
       </View>
-    </View>
+    </>
   )
+  const rootProps = {
+    ...rest,
+    ref: rootRef,
+    testID: identity,
+    accessible: false,
+    accessibilityLabelledBy,
+    "aria-labelledby": ariaLabelledBy,
+    collapsable: false,
+    style: rootStyle,
+    children: content,
+  }
+  const root = render ? render(rootProps, { orientation, isDisabled, state }) : <View {...rootProps} />
+  return <NativeSliderStateContext.Provider value={state}>{root}</NativeSliderStateContext.Provider>
 })
 SliderRoot.displayName = "Slider"
 
-export const Slider = SliderRoot as <T extends TNativeSliderValue = readonly number[]>(
-  props: TNativeSliderProps<T> & RefAttributes<TNativeSliderRef>,
-) => ReactElement | null
+export const Slider = SliderRoot as {
+  <T extends TNativeSliderValue = readonly number[]>(
+    props: TNativeSliderProps<T> & { slot: null } & RefAttributes<TNativeSliderRef>,
+  ): ReactElement | null
+  <T extends TNativeSliderValue = TNativeSliderValue>(
+    props: TNativeSliderProps<T> & RefAttributes<TNativeSliderRef>,
+  ): ReactElement | null
+}

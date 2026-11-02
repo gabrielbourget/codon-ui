@@ -10,7 +10,7 @@ import { NativeButtonContext } from "../Button/context"
 import { resolveNativeStyle } from "../colors"
 import { useNativeLinkColor } from "../Link/motion"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
-import { splitNativeTextStyle } from "../nativeTextStyle"
+import { splitNativeTextStyle, validateNativeFontWeight } from "../nativeTextStyle"
 import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
 import { NativeHeadingBindingContext, NativeHeadingContext } from "../Text/context"
 
@@ -65,6 +65,7 @@ export const NativePopoverDialog = forwardRef<
   const labelledBy =
     ownLabelledBy ?? (!label && titleID ? titleID : (props["aria-labelledby"] ?? props.accessibilityLabelledBy))
   const resolved = splitNativeTextStyle(resolveNativeStyle([nativeBaselineStyle, style], "ClickPopover", "dialog"))
+  validateNativeFontWeight(resolved.text.fontWeight, "ClickPopover")
   const ownColor = resolveNativeStyle(style, "ClickPopover", "dialogStyle").color
   const currentForeground = useNativeLinkColor(
     ownColor ?? inherited?.foregroundColor ?? resolved.text.color ?? theme.colors.foreground,

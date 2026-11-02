@@ -1,4 +1,13 @@
-import { useContext, useId, useInsertionEffect, useRef, useState, useSyncExternalStore, type ForwardedRef } from "react"
+import {
+  useContext,
+  useId,
+  useInsertionEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ForwardedRef,
+  type ComponentProps,
+} from "react"
 import { Platform, View, type ColorValue, type PointerEvent } from "react-native"
 
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
@@ -18,10 +27,11 @@ import { NativeFocusView, NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { nativeViewProps } from "../../input/nativeViewProps"
 import type { TNativePressEvent } from "../../input/types"
+import { useNativeLocale } from "../../locale/NativeLocaleProvider"
 import { NativeMotionOwnerHost } from "../../motion/owner/NativeMotionOwnerHost"
 import { useNativeTheme } from "../../theme"
 import { Button, NativeButton } from "../Button/Button"
-import { NativeButtonContext } from "../Button/context"
+import { NativeButtonContext, NATIVE_BUTTON_SELF_LABELLED_BY } from "../Button/context"
 import { encodeCollectionKey } from "../collection"
 import { resolveNativeStyle } from "../colors"
 import { openNativeLink } from "../Link/navigation"
@@ -36,6 +46,7 @@ import {
   NATIVE_TAG_GROUP_POINTER_TYPES,
 } from "../TagGroup/intent"
 
+import { nativeTableExpansionLabel } from "./announcements"
 import { NativeTableOptionsContext, useNativeTable } from "./context"
 import { getNativeTableColumns, renderNativeTableValue } from "./rendering"
 import { TableSelectionCheckbox } from "./SelectionCheckbox"
@@ -97,6 +108,11 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
   const renderer = useContext(NativeCollectionRendererContext)
   const nativeCellFocus = useContext(NativeCollectionCellFocusContext)
   const ordinal = table.rows.findIndex((row) => row.key === node.key)
+  const { locale } = useNativeLocale()
+  const generatedRowID = useId()
+  const rowNativeID =
+    native.nativeID ?? (table.state.treeColumn != null ? `codon-table-row-${generatedRowID}` : undefined)
+  const chevronNativeID = `codon-table-chevron-${generatedRowID}`
   const original = useRef<View | null>(null)
   const navigation = useRef(props)
   useInsertionEffect(() => {
@@ -197,7 +213,7 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
         phase,
         pointerType: source.pointerType,
         key: source.key,
-        shouldSelectOnPressUp: false,
+        shouldSelectOnPressUp: current.dragAndDrop.dragEnabled,
         primaryAtStart: origin.primary,
         suppressed: source.suppressed || (phase === "release" && origin.long),
       })
@@ -233,6 +249,45 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
       if (phase === "release") row.props.onPress?.(event)
     })
   }
+  const chevronProps: Partial<
+    Pick<
+      ComponentProps<typeof NativeButton>,
+      | "nativeID"
+      | "aria-label"
+      | "accessibilityLabelledBy"
+      | "isDisabled"
+      | "nativeTabStop"
+      | "nativeFocusOnPress"
+      | "onPress"
+    >
+  > & { [NATIVE_BUTTON_SELF_LABELLED_BY]?: readonly string[] } =
+    table.state.treeColumn == null
+      ? {}
+      : {
+          nativeID: chevronNativeID,
+          [NATIVE_BUTTON_SELF_LABELLED_BY]: rowNativeID ? [rowNativeID] : [],
+          "aria-label": nativeTableExpansionLabel(table.state.expandedKeys.has(node.key), locale),
+          accessibilityLabelledBy: [chevronNativeID, ...(rowNativeID ? [rowNativeID] : [])],
+          isDisabled: table.manager.isDisabled(node.key),
+          nativeTabStop: false,
+          nativeFocusOnPress: false,
+          onPress: (event) => {
+            if (event.defaultPrevented || event.isDefaultPrevented?.()) return
+            event.persist?.()
+            action.request((current, row) => {
+              if (
+                event.defaultPrevented ||
+                event.isDefaultPrevented?.() ||
+                current.state.treeColumn == null ||
+                current.manager.isDisabled(row.key)
+              )
+                return
+              current.state.toggleKey(row.key)
+              current.manager.setFocused(true)
+              current.manager.setFocusedKey(row.key)
+            })
+          },
+        }
   const styles = splitNativeTextStyle(
     resolveNativeStyle(
       [
@@ -277,6 +332,7 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
         <NativeButton
           {...nativeViewProps(native)}
           ref={rowRef}
+          nativeID={rowNativeID}
           testID={native.testID ?? aliasID ?? `table-row-${encodeCollectionKey(node.key)}`}
           nativeRole="row"
           nativeAccessible={false}
@@ -332,7 +388,10 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
               <NativeMotionOwnerHost
                 {...props}
                 motion={{ layout: true }}
-                nativeRender={(host) => (render ? render(host, values) : <NativeFocusView {...host} />)}
+                nativeRender={(host) => {
+                  const hostProps = { ...host, onClick: native.onClick, onClickCapture: native.onClickCapture }
+                  return render ? render(hostProps, values) : <NativeFocusView {...hostProps} />
+                }}
                 nativeFocusWithinObservation
                 nativeOnFocusWithin={(event) =>
                   setFocusWithin({ within: event.nativeEvent.within, origin: event.nativeEvent.origin })
@@ -422,7 +481,7 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
         >
           <NativeContentContext.Provider value={{ foregroundColor, isButton: false, textStyle: styles.text }}>
             <NativeButtonContext.Provider
-              value={{ slots: { [NATIVE_DEFAULT_SLOT]: {}, drag: draggable.dragButtonProps } }}
+              value={{ slots: { [NATIVE_DEFAULT_SLOT]: {}, chevron: chevronProps, drag: draggable.dragButtonProps } }}
             >
               <renderer.CollectionBranch collection={table.collection} parent={node} />
             </NativeButtonContext.Provider>

@@ -1,8 +1,8 @@
 import "../../../collection/__tests__/nativeReceipts"
 
 import { cleanup } from "@testing-library/react-native"
-import { useRef } from "react"
-import { type View } from "react-native"
+import { createRef, useRef } from "react"
+import { AccessibilityInfo, findNodeHandle, TextInput, type View } from "react-native"
 
 import {
   actWithNativeCollections as act,
@@ -20,6 +20,9 @@ import { QuerySortParameterList } from "../../SortAndFilterPanel/SortParameterLi
 import { Table } from "../Table"
 import { TableBody } from "../TableBody"
 import { TableHeader } from "../TableHeader"
+import { TableRow } from "../TableRow"
+
+import { CellFixtureBody } from "./fixtures/TableCellFixture"
 
 jest.mock("../../../input/specs/NativeCUIDragAndDrop", () => ({
   __esModule: true,
@@ -123,6 +126,7 @@ it("connects the original Table rows, typed zero/empty keys, reserved drag colum
         moduleId: "native-module",
         bindingId: data.bindingId,
         revision: data.revision,
+        metadataRevision: data.metadataRevision,
         rootTarget: data.rootTarget,
         ready: true,
         error: "",
@@ -249,6 +253,7 @@ it("connects Sort to the canonical text payload and controller-owned reorder cal
       moduleId: "native-module",
       bindingId: data.bindingId,
       revision: data.revision,
+      metadataRevision: data.metadataRevision,
       rootTarget: data.rootTarget,
       ready: true,
       error: "",
@@ -319,3 +324,160 @@ it("connects Sort to the canonical text payload and controller-owned reorder cal
   actions.dispose()
   restore()
 })
+
+it.each(["ordinary-release", "drag-release", "drag-cancel", "drag-space", "drag-enter"] as const)(
+  "preserves controlled selection and original callbacks for %s",
+  async (cycle) => {
+    jest.useFakeTimers()
+    const restore = installTags(),
+      actions = scope()
+    jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
+    try {
+      const order: string[] = [],
+        events: unknown[] = [],
+        requests: Array<"all" | Set<string | number>> = [],
+        ref = createRef<View>(),
+        editor = createRef<TextInput>()
+      const keyboardCycle = cycle === "drag-space" || cycle === "drag-enter"
+      const record = (name: string) => (event: unknown) => {
+        order.push(name)
+        events.push(event)
+      }
+      const ownedColumns = [
+        { ...columns[0], cellRenderer: () => <TextInput ref={editor} testID="drag-selection-editor" value="held" /> },
+      ]
+      const Owner = () => {
+        const { dragAndDropHooks } = useNativeDragAndDrop({
+          getItems: (keys) => [...keys].map((key) => ({ "text/plain": String(key) })),
+        })
+        return (
+          <NativeThemeProvider>
+            <Table
+              dragAndDropHooks={cycle === "ordinary-release" ? undefined : dragAndDropHooks}
+              selectionMode="multiple"
+              selectionBehavior="replace"
+              selectedKeys={new Set(["a", "b"])}
+              onSelectionChange={(keys) => {
+                order.push("selection")
+                requests.push(keys)
+              }}
+            >
+              <TableHeader columns={columns} />
+              <CellFixtureBody>
+                <TableRow
+                  ref={ref}
+                  testID="drag-selection-row"
+                  id="a"
+                  item={{ id: "a", name: "Alpha" }}
+                  columns={ownedColumns}
+                  onPressStart={record("start")}
+                  onPressUp={record("up")}
+                  onPressEnd={record("end")}
+                  onPress={record("press")}
+                  onPressChange={(value) => order.push(`change:${value}`)}
+                  onAction={keyboardCycle ? () => order.push("action") : undefined}
+                />
+                <TableRow testID="drag-selection-other" id="b" item={{ id: "b", name: "Beta" }} columns={columns} />
+              </CellFixtureBody>
+            </Table>
+          </NativeThemeProvider>
+        )
+      }
+      await render(
+        <NativeDragActionsContext.Provider value={actions}>
+          <Owner />
+        </NativeDragActionsContext.Provider>,
+      )
+      const original = ref.current,
+        originalEditor = editor.current,
+        host = () => screen.getByTestId("drag-selection-row").props,
+        tag = findNodeHandle(original),
+        event = (timestamp: number) => ({
+          persist: jest.fn(),
+          target: tag,
+          currentTarget: tag,
+          nativeEvent: { target: tag, timestamp, identifier: 0, locationX: 0, locationY: 0, pageX: 0, pageY: 0 },
+        }),
+        keyEvent = (phase: "down" | "up", timestamp: number) => ({
+          persist: jest.fn(),
+          preventDefault: jest.fn(),
+          stopPropagation: jest.fn(),
+          isDefaultPrevented: () => false,
+          nativeEvent: {
+            kind: "keyboard",
+            ownerId: host().ownerId,
+            target: tag,
+            key: cycle === "drag-space" ? " " : "Enter",
+            nativeCode: cycle === "drag-space" ? 44 : 40,
+            phase,
+            repeat: false,
+            cancelled: false,
+            shiftKey: false,
+            altKey: false,
+            ctrlKey: false,
+            metaKey: false,
+            nativeDefaultHandled: true,
+            timestamp,
+          },
+        }),
+        down = keyboardCycle ? keyEvent("down", 0) : event(0),
+        end = keyboardCycle ? keyEvent("up", 200) : event(200),
+        write = jest.spyOn(originalEditor!, "setNativeProps")
+      if (keyboardCycle) await act(() => host().onNativeKey(down))
+      else {
+        await act(() =>
+          host().onPointerDown({
+            nativeEvent: {
+              pointerType: "mouse",
+              target: tag,
+              shiftKey: false,
+              ctrlKey: false,
+              metaKey: false,
+              altKey: false,
+            },
+          }),
+        )
+        await act(() => host().onResponderGrant(down))
+      }
+      expect(events).toHaveLength(1)
+      expect(events[0]).toBe(down)
+      expect(order).toEqual(
+        cycle === "ordinary-release" || cycle === "drag-space"
+          ? ["selection", "start", "change:true"]
+          : ["start", "change:true"],
+      )
+      expect(requests).toHaveLength(cycle === "ordinary-release" || cycle === "drag-space" ? 1 : 0)
+      await act(() => jest.advanceTimersByTime(200))
+      if (keyboardCycle) await act(() => host().onNativeKey(end))
+      else if (cycle === "drag-cancel") await act(() => host().onResponderTerminate(end))
+      else await act(() => host().onResponderRelease(end))
+      await act(() => jest.runOnlyPendingTimers())
+      expect(order).toEqual(
+        cycle === "drag-cancel"
+          ? ["start", "change:true", "end", "change:false"]
+          : cycle === "ordinary-release" || cycle === "drag-space"
+            ? ["selection", "start", "change:true", "up", "end", "change:false", "press"]
+            : cycle === "drag-enter"
+              ? ["start", "change:true", "up", "end", "change:false", "action", "press"]
+              : ["start", "change:true", "up", "end", "change:false", "selection", "press"],
+      )
+      expect(events).toHaveLength(cycle === "drag-cancel" ? 2 : 4)
+      events.forEach((event, index) => expect(event).toBe(index === 0 ? down : end))
+      expect(requests.map((keys) => (keys === "all" ? keys : { keys: [...keys], size: keys.size }))).toEqual(
+        cycle === "drag-cancel" || cycle === "drag-enter" ? [] : [{ keys: ["a"], size: 1 }],
+      )
+      expect(host().accessibilityState.selected).toBe(true)
+      expect(screen.getByTestId("drag-selection-other").props.accessibilityState.selected).toBe(true)
+      expect(ref.current).toBe(original)
+      expect(editor.current).toBe(originalEditor)
+      expect(screen.getByTestId("drag-selection-editor").props.value).toBe("held")
+      expect(write).not.toHaveBeenCalled()
+    } finally {
+      await cleanup()
+      actions.dispose()
+      jest.clearAllTimers()
+      jest.useRealTimers()
+      restore()
+    }
+  },
+)

@@ -10,6 +10,7 @@ import {
   type TNativeTagProps,
   type TNativeTagRef,
   type TNativeTagStyleState,
+  type NativeThemeOverrides,
 } from "../../.."
 
 beforeEach(() => {
@@ -598,4 +599,151 @@ it.each([
   { backgroundColorTransition: { easing: "bounce" } },
 ] as unknown as TNativeTagProps[])("NATIVE.tag.004 rejects invalid native calibration %j", async (props) => {
   await expect(render(<Tag {...props} />)).rejects.toThrow(/Tag:/)
+})
+
+it("PHONE-THEME uses independent Tag channels, shadow delay defaults and per-Tag zero precedence across live removal", async () => {
+  jest.mocked(AccessibilityInfo.isReduceMotionEnabled).mockResolvedValue(false)
+  const stop = jest.fn()
+  const timing = jest.spyOn(Animated, "timing").mockImplementation(() => ({ start: jest.fn(), stop, reset: jest.fn() }))
+  const node = (transitions: NativeThemeOverrides["transitions"], color: string, raised: boolean, local?: number) => (
+    <NativeThemeProvider overrides={{ transitions }}>
+      <Tag
+        raised={raised}
+        color={color}
+        border={{ borderWidth: 1, borderColor: color }}
+        style={{ color, shadowOpacity: color === "red" ? 0.1 : color === "blue" ? 0.2 : color === "green" ? 0.3 : 0.4 }}
+        backgroundColorTransition={local}
+      >
+        Channels
+      </Tag>
+    </NativeThemeProvider>
+  )
+  const initial = { backgroundColor: 11, color: 22, borderColor: 33, boxShadow: { delay: 7 } }
+  const result = await render(node(initial, "red", false))
+  await result.rerender(node(initial, "blue", true))
+  let configs = timing.mock.calls.map((value) => value[1])
+  for (const duration of [11, 22, 33]) expect(configs.some((value) => value.duration === duration)).toBe(true)
+  expect(configs.some((value) => value.duration === 450 && value.delay === 7)).toBe(true)
+  timing.mockClear()
+  await result.rerender(node({ backgroundColor: 111, color: 222, borderColor: 333, boxShadow: 444 }, "green", false, 0))
+  configs = timing.mock.calls.map((value) => value[1])
+  for (const duration of [222, 333, 444]) expect(configs.some((value) => value.duration === duration)).toBe(true)
+  expect(configs.some((value) => value.duration === 111)).toBe(false)
+  timing.mockClear()
+  await result.rerender(node(undefined, "purple", true))
+  configs = timing.mock.calls.map((value) => value[1])
+  expect(configs.some((value) => value.duration === 250)).toBe(true)
+  expect(configs.some((value) => value.duration === 450)).toBe(true)
+  expect(configs.every((value) => [250, 450].includes(value.duration ?? -1) && value.delay === 0)).toBe(true)
+  await result.unmount()
+  expect(stop).toHaveBeenCalled()
+})
+
+it("PHONE-THEME preserves Tag native wrapping, semantics, refs and repeated owner veto under Reduce Motion", async () => {
+  const ref = createRef<TNativeTagRef>()
+  const onPress = jest.fn()
+  const timing = jest.spyOn(Animated, "timing")
+  const label = "Une longue étiquette remains complete under caller constraints"
+  const node = (mode: "light" | "dark", color: string) => (
+    <NativeThemeProvider
+      mode={mode}
+      overrides={{ transitions: { backgroundColor: "1s", color: 300, borderColor: 400, boxShadow: 500 } }}
+    >
+      <Tag
+        ref={ref}
+        pressable
+        isPressed={false}
+        id={0}
+        onPress={onPress}
+        width={140}
+        inactiveColor={color}
+        accessibilityLabel="Original tag"
+      >
+        {label}
+      </Tag>
+    </NativeThemeProvider>
+  )
+  const result = await render(node("light", "red"))
+  const original = ref.current
+  expect(original).toBeTruthy()
+  expect(screen.getByText(label).props.numberOfLines).toBeUndefined()
+  expect(screen.getByText(label).props.allowFontScaling).not.toBe(false)
+  await fireEvent.press(screen.getByTestId("tag"))
+  await result.rerender(node("dark", "blue"))
+  await fireEvent.press(screen.getByTestId("tag"))
+  expect(ref.current).toBe(original)
+  expect(onPress.mock.calls).toEqual([[0], [0]])
+  expect(screen.getByRole("button", { name: "Original tag" }).props.accessibilityState.checked).toBe(false)
+  expect(screen.getByTestId("tag")).toHaveStyle({ width: 140, backgroundColor: "blue" })
+  expect(timing).not.toHaveBeenCalled()
+})
+
+it("PHONE-THEME retargets a live Tag timing override from current paint and obeys live Reduce Motion", async () => {
+  jest.mocked(AccessibilityInfo.isReduceMotionEnabled).mockResolvedValue(false)
+  const subscriptions = jest.spyOn(AccessibilityInfo, "addEventListener")
+  const onPress = jest.fn()
+  const node = (duration: number, isPressed: boolean) => (
+    <NativeThemeProvider overrides={{ transitions: { backgroundColor: duration } }}>
+      <Tag pressable isPressed={isPressed} onPress={onPress} inactiveColor="red" activeColor="blue">
+        Held
+      </Tag>
+    </NativeThemeProvider>
+  )
+  const result = await render(node(1000, false))
+  await result.rerender(node(1000, true))
+  await act(() => jest.advanceTimersByTime(500))
+  const before = processColor(StyleSheet.flatten(screen.getByTestId("tag").props.style).backgroundColor)
+  expect(before).not.toBe(processColor("red"))
+  expect(before).not.toBe(processColor("blue"))
+  await result.rerender(node(2000, false))
+  expect(processColor(StyleSheet.flatten(screen.getByTestId("tag").props.style).backgroundColor)).toBe(before)
+  await act(() => jest.advanceTimersByTime(2100))
+  expect(processColor(StyleSheet.flatten(screen.getByTestId("tag").props.style).backgroundColor)).toBe(
+    processColor("red"),
+  )
+  await result.rerender(node(2000, true))
+  await act(() => jest.advanceTimersByTime(80))
+  const changed = subscriptions.mock.calls.at(-1)![1] as unknown as (value: boolean) => void
+  await act(() => changed(true))
+  expect(screen.getByTestId("tag")).toHaveStyle({ backgroundColor: "blue" })
+  expect(screen.getByTestId("tag").props.accessibilityState.checked).toBe(true)
+  expect(onPress).not.toHaveBeenCalled()
+})
+
+it.each([NaN, Infinity, -1, "-1s", { easing: "spring" }])(
+  "PHONE-THEME rejects unsupported Tag transition settings %p",
+  async (value) => {
+    await expect(
+      render(
+        <NativeThemeProvider overrides={{ transitions: { color: value as never } }}>
+          <Tag>Invalid timing</Tag>
+        </NativeThemeProvider>,
+      ),
+    ).rejects.toThrow(/Tag:.*transition/)
+  },
+)
+
+it("PHONE-THEME zero channels finish immediately and opaque colors retain native identity under nonzero roles", async () => {
+  jest.mocked(AccessibilityInfo.isReduceMotionEnabled).mockResolvedValue(false)
+  const timing = jest.spyOn(Animated, "timing")
+  const node = (duration: number, color: TNativeTagProps["color"], raised: boolean) => (
+    <NativeThemeProvider
+      overrides={{
+        transitions: { backgroundColor: duration, color: duration, borderColor: duration, boxShadow: duration },
+      }}
+    >
+      <Tag color={color} border={{ borderWidth: 1, borderColor: color }} style={{ color }} raised={raised}>
+        Native colors
+      </Tag>
+    </NativeThemeProvider>
+  )
+  const result = await render(node(0, "red", false))
+  await result.rerender(node(0, "blue", true))
+  expect(screen.getByTestId("tag")).toHaveStyle({ backgroundColor: "blue", borderColor: "blue", elevation: 2 })
+  expect(screen.getByText("Native colors")).toHaveStyle({ color: "blue" })
+  const opaque = PlatformColor("systemBlueColor")
+  await result.rerender(node(900, opaque, true))
+  expect(screen.getByTestId("tag")).toHaveStyle({ backgroundColor: opaque, borderColor: opaque })
+  expect(screen.getByText("Native colors")).toHaveStyle({ color: opaque })
+  expect(timing).not.toHaveBeenCalled()
 })

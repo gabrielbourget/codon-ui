@@ -1,17 +1,26 @@
 import { Time } from "@internationalized/date"
 import { useCallback, useEffect, useState, type Ref } from "react"
 import type { View } from "react-native"
-import { Pressable, Text } from "react-native"
+import { Pressable, StyleSheet, Text } from "react-native"
 import { SafeAreaInsetsContext } from "react-native-safe-area-context"
 
 import {
   TimePicker,
+  NativeTimeFieldText,
   NativeThemeProvider,
   NativeLocaleProvider,
   NativeOverlayProvider,
   NativeFloatingLayerHost,
   type TNativeTimePickerValue,
 } from "../../../index"
+
+const geometries = ["rounded", "round", "orthogonal"] as const
+const textSizes = ["medium", "large", "small"] as const
+const inspectionStyles = StyleSheet.create({
+  root: { margin: 6, padding: 2, color: "#b00020" },
+  group: { borderWidth: 3, padding: 0, color: "#008000" },
+  input: { padding: 0, color: "#0000ff" },
+})
 
 export const TimePickerFixture = ({
   rootRef,
@@ -27,6 +36,10 @@ export const TimePickerFixture = ({
   const [readOnly, setReadOnly] = useState(false)
   const [disabled, setDisabled] = useState(false)
   const [large, setLarge] = useState(false)
+  const [customStyles, setCustomStyles] = useState(false)
+  const [customIcon, setCustomIcon] = useState(false)
+  const [geometry, setGeometry] = useState(0)
+  const [textSize, setTextSize] = useState(0)
   useEffect(() => {
     let live = true
     void response?.then((next) => {
@@ -49,6 +62,10 @@ export const TimePickerFixture = ({
     { label: "Toggle time read only", run: () => setReadOnly((current) => !current) },
     { label: "Toggle time disabled", run: () => setDisabled((current) => !current) },
     { label: "Toggle time large fixture", run: () => setLarge((current) => !current) },
+    { label: "Toggle time style owners", run: () => setCustomStyles((current) => !current) },
+    { label: "Toggle time custom icon", run: () => setCustomIcon((current) => !current) },
+    { label: "Next time geometry", run: () => setGeometry((current) => (current + 1) % geometries.length) },
+    { label: "Next time text size", run: () => setTextSize((current) => (current + 1) % textSizes.length) },
     {
       label: "Reset time scene",
       run: () => {
@@ -59,6 +76,10 @@ export const TimePickerFixture = ({
         setReadOnly(false)
         setDisabled(false)
         setLarge(false)
+        setCustomStyles(false)
+        setCustomIcon(false)
+        setGeometry(0)
+        setTextSize(0)
       },
     },
   ]
@@ -70,6 +91,14 @@ export const TimePickerFixture = ({
             <NativeFloatingLayerHost testID="temporal-host">
               <Text testID="temporal-time-owner">
                 {JSON.stringify({ value: value?.toString() ?? null, requests, echo, dark, readOnly, disabled, large })}
+              </Text>
+              <Text testID="temporal-time-appearance">
+                {JSON.stringify({
+                  customStyles,
+                  customIcon,
+                  geometry: geometries[geometry],
+                  textSize: large ? "large" : textSizes[textSize],
+                })}
               </Text>
               {controls.map(({ label, run }) => (
                 <Pressable key={label} role="button" accessibilityLabel={label} onPress={run}>
@@ -84,7 +113,19 @@ export const TimePickerFixture = ({
                 onChange={change}
                 granularity="second"
                 hourCycle={24}
-                textSize={large ? "large" : "medium"}
+                textSize={large ? "large" : textSizes[textSize]}
+                geometry={geometries[geometry]}
+                customStyles={customStyles ? [inspectionStyles.root, { padding: 0 }] : undefined}
+                style={customStyles ? { margin: 0 } : undefined}
+                customInputIconGroupStyles={customStyles ? [inspectionStyles.group] : undefined}
+                customInputStyles={customStyles ? [inspectionStyles.input] : undefined}
+                ComponentIcon={
+                  customIcon ? (
+                    <NativeTimeFieldText slot={null} testID="temporal-time-custom-icon" accessible={false}>
+                      Clock
+                    </NativeTimeFieldText>
+                  ) : undefined
+                }
                 isReadOnly={readOnly}
                 isDisabled={disabled}
               />

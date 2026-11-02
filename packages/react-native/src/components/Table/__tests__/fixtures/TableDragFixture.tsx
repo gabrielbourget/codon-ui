@@ -1,8 +1,8 @@
 import { useRef, useState } from "react"
-import { ScrollView, type TextInput } from "react-native"
+import { ScrollView, type View, type TextInput } from "react-native"
 
 import { Button, Input, Text } from "../../../.."
-import { useNativeDragAndDrop, NativeDropIndicator } from "../../../../collection/dragAndDrop/hooks"
+import { useNativeDragAndDrop, NativeDropIndicator, NativeDragPreview } from "../../../../collection/dragAndDrop/hooks"
 import type {
   TNativeDropEvent,
   TNativeDropItem,
@@ -51,10 +51,12 @@ export const TableDragFixture = () => {
     [scrolled, setScrolled] = useState(false),
     [draft, setDraft] = useState(""),
     [events, setEvents] = useState<string[]>([]),
-    [payloads, setPayloads] = useState<string[]>([])
+    [payloads, setPayloads] = useState<string[]>([]),
+    [previewReady, setPreviewReady] = useState(false)
   const retained = useRef<TNativeDropItem[]>([]),
     nextKey = useRef(0),
-    editor = useRef<TextInput | null>(null)
+    editor = useRef<TextInput | null>(null),
+    preview = useRef<View | null>(null)
   const record = (value: string) => setEvents((previous) => [...previous, value])
   const keep = (event: TNativeDropEvent) => {
     retained.current.push(...event.items)
@@ -96,11 +98,8 @@ export const TableDragFixture = () => {
     onDrop: keep,
     onReorder: reorder,
     onItemDrop: (event) => record(`item:${JSON.stringify(event.target.key)}`),
-    renderDragPreview: (items) => ({
-      element: <Text testID="table-authored-preview">{items.length} original payloads</Text>,
-      x: 8,
-      y: 8,
-    }),
+    preparedDragPreview: { ref: preview, x: 8, y: 8 },
+    isDisabled: !previewReady,
     renderDropIndicator: (target) => <NativeDropIndicator target={target} testID="table-authored-indicator" />,
   })
   const { dragAndDropHooks: destination } = useNativeDragAndDrop<TRow>({
@@ -118,6 +117,12 @@ export const TableDragFixture = () => {
   })
   const content = (
     <>
+      <NativeDragPreview
+        ref={preview}
+        onLayout={(event) => setPreviewReady(event.nativeEvent.layout.width > 0 && event.nativeEvent.layout.height > 0)}
+      >
+        <Text testID="table-authored-preview">Prepared original payloads</Text>
+      </NativeDragPreview>
       <Text elementType="h2">Original Table drag/drop</Text>
       <Button onPress={() => setMounted((value) => !value)}>Mount or retire drag tables</Button>
       <Button onPress={() => setScrolled((value) => !value)}>Toggle original scroll renderer</Button>

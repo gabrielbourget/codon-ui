@@ -58,6 +58,27 @@ static void validateOwnedDateField(const TFabricFormDocument &document, const CU
   }
 }
 
+static void validateOwnedRangeThumb(const TFabricFormDocument &document, const CUIFieldBindingProps &field,
+    Tag metadata, std::unordered_set<Tag> &editorTargets) {
+  const auto binding = folly::parseJson(field.ownedControlBinding);
+  const auto fail = [] { throw std::runtime_error("Native form: invalid owned range thumb"); };
+  if (!binding.isObject() || binding.size() != 2 || binding.at("kind") != "range-thumb" ||
+      !binding.at("rootTarget").isNumber() || !field.ownedEditorBinding.empty() || !field.semanticBinding.empty()) fail();
+  const auto number = binding.at("rootTarget").asDouble();
+  if (!std::isfinite(number) || number <= 0 || number > 2147483647.0 || std::floor(number) != number) fail();
+  const auto root = static_cast<Tag>(number), original = field.editorTarget;
+  if (!document.positions.contains(root) || !document.positions.contains(original) || original == root ||
+      original == metadata || !isFormDocumentDescendant(document, original, root) ||
+      !isFormDocumentDescendant(document, metadata, original)) fail();
+  const auto &rootNode = document.preorder[document.positions.at(root)].node;
+  const auto rootName = std::string_view(rootNode->getComponentName());
+  const auto &control = document.preorder[document.positions.at(original)].node;
+  if ((rootName != "View" && rootName != "CUIFocusView") || std::string_view(control->getComponentName()) != "CUIFocusView") fail();
+  const auto &props = *static_cast<const CUIFocusViewProps *>(control->getProps().get());
+  const bool adjustable = props.role == Role::Slider || (props.role == Role::None && props.accessibilityRole == "adjustable");
+  if (!props.accessible || !adjustable || !editorTargets.insert(original).second) fail();
+}
+
 std::string NativeFormDocumentSession::identityFor(const ShadowNodeFamily::Shared &family) {
   if (!family || identity_.empty()) throw std::runtime_error("Native form: retired document identity");
   std::lock_guard lock(mutex_);
@@ -114,6 +135,11 @@ std::string queryFabricFormDocument(const UIManager &manager, SurfaceId surface,
       ("hidden", node.getTraits().check(ShadowNodeTraits::Trait::Hidden))
       ("displayNone", style && style->yogaStyle.display() == facebook::yoga::Display::None));
     const auto name = std::string_view(node.getComponentName());
+    if (name == "CUIFocusView") {
+      const auto &control = *static_cast<const CUIFocusViewProps *>(node.getProps().get());
+      nodes[nodes.size() - 1]["rangeThumb"] = control.accessible &&
+        (control.role == Role::Slider || (control.role == Role::None && control.accessibilityRole == "adjustable"));
+    }
     if (name == "CUIDateSegment") {
       const auto &segment = *static_cast<const CUIDateSegmentProps *>(node.getProps().get());
       nodes[nodes.size() - 1]["dateSegmentOwner"] = segment.ownerId;
@@ -139,7 +165,6 @@ std::string queryFabricFormDocument(const UIManager &manager, SurfaceId surface,
     if (field) {
       nodes[nodes.size() - 1]["fieldSemantics"] = field->semanticBinding;
       if (!field->ownedEditorBinding.empty()) nodes[nodes.size() - 1]["ownedEditorBinding"] = field->ownedEditorBinding;
-      if (!field->fieldGroupBinding.empty()) nodes[nodes.size() - 1]["fieldGroupBinding"] = field->fieldGroupBinding;
     }
     if (name == "CUIFocusView") nodes[nodes.size() - 1]["collectionBinding"] =
       static_cast<const CUIFocusViewProps *>(node.getProps().get())->nativeCollectionBinding;
@@ -159,7 +184,10 @@ std::string queryFabricFormDocument(const UIManager &manager, SurfaceId surface,
         throw std::runtime_error("Native form: invalid original form root");
       forms.push_back(std::move(descriptor));
     } else {
-      if (!field->ownedEditorBinding.empty()) {
+      if (!field->ownedControlBinding.empty()) {
+        validateOwnedRangeThumb(document, *field, node.getTag(), editorTargets);
+        descriptor["ownedControlBinding"] = field->ownedControlBinding;
+      } else if (!field->ownedEditorBinding.empty()) {
         validateOwnedDateField(document, *field, node.getTag(), editorTargets);
         descriptor["ownedEditorBinding"] = field->ownedEditorBinding;
       } else {

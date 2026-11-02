@@ -7,7 +7,7 @@
 #import "CUIKeyboardScope.h"
 #import <React/RCTScheduler.h>
 #import <React/RCTSurfacePresenter.h>
-#include "../cpp/drag/ActionMount.h"
+#include "../cpp/drag/ActionRuntime.h"
 
 namespace {
 class DragActionJSI final : public facebook::react::NativeCUIDragAndDropSpecJSI {
@@ -104,7 +104,7 @@ RCT_EXPORT_MODULE(CUIDragAndDrop)
       return NSThread.isMainThread && current() && scope.dragCaptureReady && scope.tag == id.scopeTarget &&
         [session[@"scopeOwnerId"] isEqual:@(id.ownerId.c_str())] && [session[@"windowId"] isEqual:@(id.windowId.c_str())] &&
         [session[@"epoch"] longLongValue] == id.epoch;
-    }, [scope] { return std::string(scope.dragMountWitness.UTF8String ?: ""); });
+    });
   return @(response.c_str());
 }
 - (NSString *)getLease { return _action->ready() ? @(_action->moduleId.c_str()) : @""; }

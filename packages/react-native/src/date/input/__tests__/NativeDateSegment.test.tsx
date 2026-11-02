@@ -6,7 +6,7 @@ import { focusNativeTarget, getNativeFocusedTarget } from "../../../input/focus"
 import { Commands } from "../../../input/specs/CUIDateSegmentNativeComponent"
 import { NativeDateSegment, type TNativeDateSegmentRef, type TNativeDateSegmentInput } from "../NativeDateSegment"
 
-import { packet } from "./packet"
+import { packet, keyPacket } from "./packet"
 
 jest.mock("../../../input/specs/CUIDateSegmentNativeComponent", () => ({
   __esModule: true,
@@ -275,3 +275,140 @@ it("drops an admitted private input after its field context is removed, preservi
   expect(callback).toHaveBeenCalledTimes(1)
   expect(callback).toHaveBeenCalledWith(ordinary)
 })
+
+it("admits input/composition through its original lease across the retired legacy flag", async () => {
+  const callback = jest.fn()
+  const node = (ordinaryInputEvents: boolean) => (
+    <NativeDateSegment
+      {...props}
+      ordinaryInputEvents={ordinaryInputEvents}
+      testID="segment"
+      onNativeSegmentInput={callback}
+    />
+  )
+  const view = await render(node(true))
+  await send()
+  callback.mockClear()
+  for (const [index, kind] of ["marked", "unmark", "insert", "delete"].entries()) {
+    const event = await send({ kind, sequence: index + 2, focused: true })
+    expect(callback).toHaveBeenLastCalledWith(event)
+    expect(callback.mock.calls.at(-1)![0]).toBe(event)
+  }
+  await view.rerender(node(false))
+  await send({ epoch: 5, sequence: 7 })
+  callback.mockClear()
+  await send({ kind: "insert", epoch: 5, sequence: 8, focused: true })
+  expect(callback).toHaveBeenCalledTimes(1)
+})
+it("retires the old input-delivery generation without changing the original host or accepting framed ordinary input", async () => {
+  const callback = jest.fn(),
+    ref = createRef<TNativeDateSegmentRef>()
+  const view = await render(<NativeDateSegment {...props} ref={ref} testID="segment" onNativeSegmentInput={callback} />)
+  await send()
+  const original = ref.current,
+    previous = screen.getByTestId("segment").props.bindingRevision
+  await view.rerender(
+    <NativeDateSegment {...props} ordinaryInputEvents ref={ref} testID="segment" onNativeSegmentInput={callback} />,
+  )
+  expect(ref.current).toBe(original)
+  expect(screen.getByTestId("segment").props.bindingRevision).not.toBe(previous)
+  callback.mockClear()
+  await send({ bindingRevision: previous, kind: "insert", sequence: 2, focused: true })
+  expect(callback).not.toHaveBeenCalled()
+  await send({ epoch: 5, sequence: 3 })
+  callback.mockClear()
+  const framed = {
+    nativeEvent: {
+      ...packet({
+        bindingRevision: screen.getByTestId("segment").props.bindingRevision,
+        epoch: 5,
+        sequence: 4,
+        kind: "insert",
+        focused: true,
+      }),
+      fieldDispatch: "legacy-packet",
+    },
+  } as unknown as TNativeDateSegmentInput
+  await act(() => screen.getByTestId("segment").props.onNativeSegmentInput(framed))
+  expect(callback).not.toHaveBeenCalled()
+})
+
+it("retires queued input across a locale change while preserving the original native segment", async () => {
+  const ref = createRef<TNativeDateSegmentRef>(),
+    callback = jest.fn()
+  const view = await render(
+    <NativeDateSegment {...props} ordinaryInputEvents ref={ref} testID="segment" onNativeSegmentInput={callback} />,
+  )
+  await send()
+  const original = ref.current,
+    previous = screen.getByTestId("segment").props.bindingRevision
+  await view.rerender(
+    <NativeDateSegment
+      {...props}
+      locale="ar-EG"
+      ordinaryInputEvents
+      ref={ref}
+      testID="segment"
+      onNativeSegmentInput={callback}
+    />,
+  )
+  expect(ref.current).toBe(original)
+  expect(screen.getByTestId("segment").props.bindingRevision).not.toBe(previous)
+  callback.mockClear()
+  await send({ bindingRevision: previous, kind: "insert", sequence: 2, focused: true })
+  expect(callback).not.toHaveBeenCalled()
+  await send({ epoch: 5, sequence: 3 })
+  const event = await send({ epoch: 5, sequence: 4, kind: "insert", focused: true })
+  expect(callback).toHaveBeenLastCalledWith(event)
+})
+
+it("forwards the original ordinary key event and retires old mode/window generations", async () => {
+  const callback = jest.fn(),
+    ref = createRef<TNativeDateSegmentRef>()
+  const node = (ordinaryGroupEvents: boolean) => (
+    <NativeDateSegment
+      {...props}
+      ref={ref}
+      testID="segment"
+      ordinaryGroupEvents={ordinaryGroupEvents}
+      onNativeDateKey={callback}
+    />
+  )
+  const view = await render(node(true))
+  await send()
+  const original = ref.current
+  const event = {
+    nativeEvent: keyPacket({ bindingRevision: screen.getByTestId("segment").props.bindingRevision }),
+    stopPropagation: jest.fn(),
+  }
+  await act(() => screen.getByTestId("segment").props.onNativeDateKey(event))
+  expect(callback).toHaveBeenCalledWith(event)
+  expect(callback.mock.calls[0][0]).toBe(event)
+  callback.mockClear()
+  await act(() => screen.getByTestId("segment").props.onNativeDateKey(event))
+  expect(event.stopPropagation).toHaveBeenCalledTimes(1)
+  expect(callback).not.toHaveBeenCalled()
+  await view.rerender(node(false))
+  await act(() =>
+    screen
+      .getByTestId("segment")
+      .props.onNativeDateKey({ ...event, nativeEvent: { ...event.nativeEvent, sequence: 3 } }),
+  )
+  expect(callback).not.toHaveBeenCalled()
+  expect(ref.current).toBe(original)
+})
+it.each(["mouse", "touch", "pen"])(
+  "keeps an owned %s segment hit out of group placeholder redirection",
+  async (pointerType) => {
+    const ref = createRef<TNativeDateSegmentRef>()
+    await render(<NativeDateSegment {...props} ref={ref} testID="segment" ordinaryGroupEvents />)
+    await send()
+    const event = { nativeEvent: { pointerType, button: 0 }, stopPropagation: jest.fn() }
+    await act(() => screen.getByTestId("segment").props.onPointerDown(event))
+    expect(event.stopPropagation).toHaveBeenCalledTimes(1)
+    expect(Commands.requestSegmentFocus).toHaveBeenCalledTimes(pointerType === "mouse" ? 1 : 0)
+    if (pointerType === "mouse") expect(jest.mocked(Commands.requestSegmentFocus).mock.calls[0][0]).toBe(ref.current)
+    await act(() => screen.getByTestId("segment").props.onClick(event))
+    expect(event.stopPropagation).toHaveBeenCalledTimes(2)
+  },
+)

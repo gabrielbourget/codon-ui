@@ -34,6 +34,13 @@ export const ValidShowcase = <ThumbnailShowcase {...showcaseProps} />
 export const SecondaryShowcase = (
   <ThumbnailShowcase primaryPlaceholder={0} renderingMode={THUMBNAIL_SHOWCASE_RENDERING_MODE__SECONDARY} width={0} />
 )
+export const PositionedShowcase = (
+  <ThumbnailShowcase
+    primaryPlaceholder={null}
+    style={{ position: "absolute", top: 0, left: 0, width: 0 }}
+    secondaryRowStyle={{ position: "relative", maxWidth: "100%" }}
+  />
+)
 // @ts-expect-error The primary placeholder is a required contract even in secondary mode.
 export const MissingShowcasePlaceholder = <ThumbnailShowcase />
 // @ts-expect-error Modes retain the canonical finite vocabulary.
@@ -46,6 +53,18 @@ export const DOMShowcaseClass = <ThumbnailShowcase primaryPlaceholder={null} cla
 export const DOMShowcaseSlotClass = <ThumbnailShowcase primaryPlaceholder={null} secondarySlotClassName="slot" />
 // @ts-expect-error Native event payloads replace DOM click events.
 export const DOMShowcaseEvent = <ThumbnailShowcase primaryPlaceholder={null} onClick={() => undefined} />
+export const DOMShowcaseGridAreas = (
+  // @ts-expect-error Named browser grid areas are outside the native column contract.
+  <ThumbnailShowcase primaryPlaceholder={null} style={{ gridTemplateAreas: '"main side"' }} />
+)
+export const DOMShowcaseGridTracks = (
+  // @ts-expect-error Native columns are equal tracks rather than arbitrary CSS grid templates.
+  <ThumbnailShowcase primaryPlaceholder={null} secondaryRowStyle={{ gridTemplateColumns: "1fr 2fr" }} />
+)
+export const DOMShowcaseGridSpan = (
+  // @ts-expect-error Browser grid spanning is outside the native slot placement contract.
+  <ThumbnailShowcase primaryPlaceholder={null} secondarySlotStyle={{ gridColumn: "span 2" }} />
+)
 // @ts-expect-error Explicit content owners replace free root children.
 export const ReplacedShowcaseChildren = <ThumbnailShowcase primaryPlaceholder={null}>Other</ThumbnailShowcase>
 // @ts-expect-error Secondary identities remain explicit React keys.

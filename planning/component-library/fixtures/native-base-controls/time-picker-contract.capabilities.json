@@ -1,0 +1,2282 @@
+{
+  "canonicalSourceRef": "ddc9f066f67af4742e05e04bd870726141c44129",
+  "nativeBaseline": "4b497c0e2f3427b905ef003720869186519be65e",
+  "authority": "Complete TimePicker foundation3.5.52 directly approved2026-10-22, source-first public integration3.31.132.5/3.31.133/3.31.145; FIN-R03/FIN-TM05 and approved DEC.PHONE.TIME_INPUT.01 / DEC.PHONE.GROUP_EVENTS.01 / PHONE-EDIT02/04/05A/05C/06 ordinary events and explicit original participant/host boundaries. Standard native root prop forwarding follows the standing conventional-native grant. No new behavior compromise or source/native acceptance narrowing.",
+  "scope": "Complete TimePicker G01 SOURCE correspondence candidate only; main alone adopts after integration/hooks/consumer reconciliation. Other date/range G01 and native/product/installed/profile/closure remain separate.",
+  "families": {
+    "root": {
+      "canonicalPropertyCount": 118,
+      "nativePropertyCount": 139,
+      "props": {
+        "aria-describedby": {
+          "canonicalType": "string | undefined",
+          "optional": true,
+          "nativeProp": "aria-describedby",
+          "nativeType": "string | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/field/NativeTimePickerRenderer.tsx",
+          "expectedGroup": "labels"
+        },
+        "aria-details": {
+          "canonicalType": "string | undefined",
+          "optional": true,
+          "nativeProp": "aria-details",
+          "nativeType": "string | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/field/NativeTimePickerRenderer.tsx",
+          "expectedGroup": "labels"
+        },
+        "aria-label": {
+          "canonicalType": "string | undefined",
+          "optional": true,
+          "nativeProp": "aria-label",
+          "nativeType": "string | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/field/NativeTimePickerRenderer.tsx",
+          "expectedGroup": "labels"
+        },
+        "aria-labelledby": {
+          "canonicalType": "string | undefined",
+          "optional": true,
+          "nativeProp": "aria-labelledby",
+          "nativeType": "string | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/field/NativeTimePickerRenderer.tsx",
+          "expectedGroup": "labels"
+        },
+        "autoFocus": {
+          "canonicalType": "boolean | undefined",
+          "optional": true,
+          "nativeProp": "autoFocus",
+          "nativeType": "boolean | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/field/ordinaryGroup.ts",
+          "expectedGroup": "events"
+        },
+        "children": {
+          "canonicalType": "import(\"node_modules/.pnpm/react-aria-components@1.17.0_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/react-aria-components/dist/types/src/utils\").ChildrenOrFunction<DateFieldRenderProps>",
+          "optional": true,
+          "nativeProp": "children",
+          "nativeType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").ReactNode | ((state: TNativeTimeFieldRenderState) => import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").ReactNode)",
+          "disposition": "SOURCE_OWNED_FIXED_SCAFFOLD",
+          "nativeOwner": "packages/react-native/src/date/field/useTimeField.ts",
+          "expectedGroup": "context",
+          "expected": "Canonical TimePicker passes generated DateInput/clock children after rest props, so inherited children does not replace the scaffold. Native does the same. Extra label/text/error content belongs in render around native.children. The maintained public declaration example is corrected to that actual existing renderer path; no runtime child-support promise is invented."
+        },
+        "className": {
+          "canonicalType": "import(\"node_modules/.pnpm/react-aria-components@1.17.0_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/react-aria-components/dist/types/src/utils\").ClassNameOrFunction<DateFieldRenderProps> | undefined",
+          "optional": true,
+          "nativeProp": "style",
+          "nativeType": "import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").StyleProp<import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").TextStyle> | ((state: TNativeTimeFieldStyleState) => import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").StyleProp<import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").TextStyle>)",
+          "disposition": "APPROVED_NATIVE_STYLE_OWNER",
+          "nativeOwner": "packages/react-native/src/date/field/appearance.ts",
+          "expectedGroup": "style"
+        },
+        "ComponentIcon": {
+          "canonicalType": "ReactNode",
+          "optional": true,
+          "nativeProp": "ComponentIcon",
+          "nativeType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").ReactNode",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/field/NativeTimePickerRenderer.tsx",
+          "expectedGroup": "labels"
+        },
+        "customInputIconGroupStyles": {
+          "canonicalType": "CSSProperties | undefined",
+          "optional": true,
+          "nativeProp": "customInputIconGroupStyles",
+          "nativeType": "import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").StyleProp<import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").TextStyle>",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/field/appearance.ts",
+          "expectedGroup": "style"
+        },
+        "customInputStyles": {
+          "canonicalType": "CSSProperties | undefined",
+          "optional": true,
+          "nativeProp": "customInputStyles",
+          "nativeType": "import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").StyleProp<import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").TextStyle>",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/field/appearance.ts",
+          "expectedGroup": "style"
+        },
+        "customStyles": {
+          "canonicalType": "CSSProperties | undefined",
+          "optional": true,
+          "nativeProp": "customStyles",
+          "nativeType": "import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").StyleProp<import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").TextStyle>",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/field/appearance.ts",
+          "expectedGroup": "style"
+        },
+        "data-testid": {
+          "canonicalType": "string | undefined",
+          "optional": true,
+          "nativeProp": "data-testid",
+          "nativeType": "string | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "defaultValue": {
+          "canonicalType": "T | null | undefined",
+          "optional": true,
+          "nativeProp": "defaultValue",
+          "nativeType": "T | null | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useTimeFieldState.ts",
+          "expectedGroup": "value"
+        },
+        "dir": {
+          "canonicalType": "string | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_LOCALE_PROVIDER",
+          "nativeOwner": "packages/react-native/src/locale/NativeLocaleProvider.tsx",
+          "expectedGroup": "locale"
+        },
+        "enableFocusStyle": {
+          "canonicalType": "boolean | undefined",
+          "optional": true,
+          "nativeProp": "enableFocusStyle",
+          "nativeType": "boolean | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/field/appearance.ts",
+          "expectedGroup": "style"
+        },
+        "errorState": {
+          "canonicalType": "boolean | undefined",
+          "optional": true,
+          "nativeProp": "errorState",
+          "nativeType": "boolean | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/field/appearance.ts",
+          "expectedGroup": "style"
+        },
+        "form": {
+          "canonicalType": "string | undefined",
+          "optional": true,
+          "nativeProp": "form",
+          "nativeType": "string | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/form/useTimeField.tsx",
+          "expectedGroup": "form"
+        },
+        "geometry": {
+          "canonicalType": "\"orthogonal\" | \"rounded\" | \"round\" | undefined",
+          "optional": true,
+          "nativeProp": "geometry",
+          "nativeType": "\"orthogonal\" | \"rounded\" | \"round\" | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/field/appearance.ts",
+          "expectedGroup": "style"
+        },
+        "granularity": {
+          "canonicalType": "\"hour\" | \"minute\" | \"second\" | undefined",
+          "optional": true,
+          "nativeProp": "granularity",
+          "nativeType": "\"hour\" | \"minute\" | \"second\" | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/entry/useNativeDateSegmentEntry.ts",
+          "expectedGroup": "entry"
+        },
+        "height": {
+          "canonicalType": "string | number | undefined",
+          "optional": true,
+          "nativeProp": "height",
+          "nativeType": "import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").DimensionValue | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/field/appearance.ts",
+          "expectedGroup": "style"
+        },
+        "hidden": {
+          "canonicalType": "boolean | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "hideTimeZone": {
+          "canonicalType": "boolean | undefined",
+          "optional": true,
+          "nativeProp": "hideTimeZone",
+          "nativeType": "boolean | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/entry/useNativeDateSegmentEntry.ts",
+          "expectedGroup": "entry"
+        },
+        "hourCycle": {
+          "canonicalType": "12 | 24 | undefined",
+          "optional": true,
+          "nativeProp": "hourCycle",
+          "nativeType": "12 | 24 | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/entry/useNativeDateSegmentEntry.ts",
+          "expectedGroup": "entry"
+        },
+        "id": {
+          "canonicalType": "string | undefined",
+          "optional": true,
+          "nativeProp": "id",
+          "nativeType": "string | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/field/NativeTimePickerRenderer.tsx",
+          "expectedGroup": "labels"
+        },
+        "inert": {
+          "canonicalType": "boolean | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "isDisabled": {
+          "canonicalType": "boolean | undefined",
+          "optional": true,
+          "nativeProp": "isDisabled",
+          "nativeType": "boolean | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/field/ordinaryGroup.ts",
+          "expectedGroup": "events"
+        },
+        "isInvalid": {
+          "canonicalType": "boolean | undefined",
+          "optional": true,
+          "nativeProp": "isInvalid",
+          "nativeType": "boolean | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/form/useTimeField.tsx",
+          "expectedGroup": "form"
+        },
+        "isReadOnly": {
+          "canonicalType": "boolean | undefined",
+          "optional": true,
+          "nativeProp": "isReadOnly",
+          "nativeType": "boolean | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/field/ordinaryGroup.ts",
+          "expectedGroup": "events"
+        },
+        "isRequired": {
+          "canonicalType": "boolean | undefined",
+          "optional": true,
+          "nativeProp": "isRequired",
+          "nativeType": "boolean | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/form/useTimeField.tsx",
+          "expectedGroup": "form"
+        },
+        "labels": {
+          "canonicalType": "Partial<import(\"packages/react/src/components/TimePicker/labels\").TTimePickerLabels> | undefined",
+          "optional": true,
+          "nativeProp": "labels",
+          "nativeType": "Partial<{ inputIconGroupAriaLabel: string; }> | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/field/NativeTimePickerRenderer.tsx",
+          "expectedGroup": "labels"
+        },
+        "lang": {
+          "canonicalType": "string | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_LOCALE_PROVIDER",
+          "nativeOwner": "packages/react-native/src/locale/NativeLocaleProvider.tsx",
+          "expectedGroup": "locale"
+        },
+        "maxValue": {
+          "canonicalType": "TimeValue | null | undefined",
+          "optional": true,
+          "nativeProp": "maxValue",
+          "nativeType": "TimeValue | null | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useTimeFieldState.ts",
+          "expectedGroup": "value"
+        },
+        "minValue": {
+          "canonicalType": "TimeValue | null | undefined",
+          "optional": true,
+          "nativeProp": "minValue",
+          "nativeType": "TimeValue | null | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useTimeFieldState.ts",
+          "expectedGroup": "value"
+        },
+        "name": {
+          "canonicalType": "string | undefined",
+          "optional": true,
+          "nativeProp": "name",
+          "nativeType": "string | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/form/useTimeField.tsx",
+          "expectedGroup": "form"
+        },
+        "offsetFocusRing": {
+          "canonicalType": "boolean | undefined",
+          "optional": true,
+          "nativeProp": "offsetFocusRing",
+          "nativeType": "boolean | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/field/appearance.ts",
+          "expectedGroup": "style"
+        },
+        "onAnimationEnd": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onAnimationEndCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onAnimationIteration": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onAnimationIterationCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onAnimationStart": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onAnimationStartCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onAuxClick": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onAuxClickCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onBlur": {
+          "canonicalType": "((e: import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").FocusEvent<Element, Element>) => void) | undefined",
+          "optional": true,
+          "nativeProp": "onBlur",
+          "nativeType": "((event: import(\"packages/react-native/src/input/types\").TNativeFocusEvent) => void) | null | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/field/ordinaryGroup.ts",
+          "expectedGroup": "events"
+        },
+        "onChange": {
+          "canonicalType": "((value: import(\"node_modules/.pnpm/react-stately@3.46.0_react@19.2.7/node_modules/react-stately/dist/types/exports/useTimeFieldState\").MappedTimeValue<T> | null) => void) | undefined",
+          "optional": true,
+          "nativeProp": "onChange",
+          "nativeType": "((value: import(\"packages/react-native/src/date/state/types\").MappedTimeValue<T> | null) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useTimeFieldState.ts",
+          "expectedGroup": "value"
+        },
+        "onClick": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": "onClick",
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").PointerEvent) => void) | undefined",
+          "disposition": "APPROVED_ORDINARY_POINTER_EVENT",
+          "nativeOwner": "packages/react-native/src/date/field/ordinaryGroup.ts",
+          "expectedGroup": "events",
+          "expected": "DEC.PHONE.GROUP_EVENTS.01 / PHONE-EDIT04/05A/05C/06 retire nativeEvent.fieldDispatch and same-event JS veto. Original native PointerEvent fields replace the packet; controlled requests/explicit actions retain owner semantics. Native root event identity and standard targets remain; installed delivery is separate."
+        },
+        "onClickCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onContextMenu": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onContextMenuCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onDoubleClick": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onDoubleClickCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onFocus": {
+          "canonicalType": "((e: import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").FocusEvent<Element, Element>) => void) | undefined",
+          "optional": true,
+          "nativeProp": "onFocus",
+          "nativeType": "((event: import(\"packages/react-native/src/input/types\").TNativeFocusEvent) => void) | null | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/field/ordinaryGroup.ts",
+          "expectedGroup": "events"
+        },
+        "onFocusChange": {
+          "canonicalType": "((isFocused: boolean) => void) | undefined",
+          "optional": true,
+          "nativeProp": "onFocusChange",
+          "nativeType": "((focused: boolean) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/field/ordinaryGroup.ts",
+          "expectedGroup": "events"
+        },
+        "onGotPointerCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onGotPointerCaptureCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onKeyDown": {
+          "canonicalType": "((e: import(\"node_modules/.pnpm/@react-types+shared@3.34.0_react@19.2.7/node_modules/@react-types/shared/src/events\").KeyboardEvent) => void) | undefined",
+          "optional": true,
+          "nativeProp": "onKeyDown",
+          "nativeType": "((event: import(\"packages/react-native/src/input/types\").TNativeKeyboardEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/field/ordinaryGroup.ts",
+          "expectedGroup": "events"
+        },
+        "onKeyUp": {
+          "canonicalType": "((e: import(\"node_modules/.pnpm/@react-types+shared@3.34.0_react@19.2.7/node_modules/@react-types/shared/src/events\").KeyboardEvent) => void) | undefined",
+          "optional": true,
+          "nativeProp": "onKeyUp",
+          "nativeType": "((event: import(\"packages/react-native/src/input/types\").TNativeKeyboardEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/field/ordinaryGroup.ts",
+          "expectedGroup": "events"
+        },
+        "onLostPointerCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onLostPointerCaptureCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onMouseDown": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onMouseDownCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onMouseEnter": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onMouseLeave": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onMouseMove": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onMouseMoveCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onMouseOut": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onMouseOutCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onMouseOver": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onMouseOverCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onMouseUp": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onMouseUpCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onPointerCancel": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": "onPointerCancel",
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").PointerEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onPointerCancelCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": "onPointerCancelCapture",
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").PointerEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onPointerDown": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": "onPointerDown",
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").PointerEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onPointerDownCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": "onPointerDownCapture",
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").PointerEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onPointerEnter": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": "onPointerEnter",
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").PointerEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onPointerLeave": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": "onPointerLeave",
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").PointerEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onPointerMove": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": "onPointerMove",
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").PointerEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onPointerMoveCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": "onPointerMoveCapture",
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").PointerEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onPointerOut": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onPointerOutCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onPointerOver": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onPointerOverCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onPointerUp": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": "onPointerUp",
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").PointerEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onPointerUpCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": "onPointerUpCapture",
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").PointerEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onScroll": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").UIEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onScrollCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").UIEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onTouchCancel": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": "onTouchCancel",
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onTouchCancelCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onTouchEnd": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": "onTouchEnd",
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onTouchEndCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": "onTouchEndCapture",
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onTouchMove": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": "onTouchMove",
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onTouchMoveCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onTouchStart": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": "onTouchStart",
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onTouchStartCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onTransitionCancel": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onTransitionCancelCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onTransitionEnd": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onTransitionEndCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onTransitionRun": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onTransitionRunCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onTransitionStart": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onTransitionStartCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onWheel": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").WheelEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onWheelCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").WheelEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "placeholderValue": {
+          "canonicalType": "T | undefined",
+          "optional": true,
+          "nativeProp": "placeholderValue",
+          "nativeType": "T | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useTimeFieldState.ts",
+          "expectedGroup": "value"
+        },
+        "render": {
+          "canonicalType": "import(\"node_modules/.pnpm/react-aria-components@1.17.0_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/react-aria-components/dist/types/src/utils\").DOMRenderFunction<\"div\", DateFieldRenderProps> | undefined",
+          "optional": true,
+          "nativeProp": "render",
+          "nativeType": "((props: import(\"packages/react-native/src/input/types\").TNativeFocusViewProps & import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").RefAttributes<View>, state: TNativeTimeFieldRenderState) => import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").ReactElement) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/field/useTimeField.ts",
+          "expectedGroup": "context"
+        },
+        "shouldForceLeadingZeros": {
+          "canonicalType": "boolean | undefined",
+          "optional": true,
+          "nativeProp": "shouldForceLeadingZeros",
+          "nativeType": "boolean | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/entry/useNativeDateSegmentEntry.ts",
+          "expectedGroup": "entry"
+        },
+        "slot": {
+          "canonicalType": "string | null | undefined",
+          "optional": true,
+          "nativeProp": "slot",
+          "nativeType": "string | null | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/field/useTimeField.ts",
+          "expectedGroup": "context"
+        },
+        "style": {
+          "canonicalType": "(CSSProperties | ((values: DateFieldRenderProps & { defaultStyle: CSSProperties; }) => CSSProperties | undefined)) | undefined",
+          "optional": true,
+          "nativeProp": "style",
+          "nativeType": "import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").StyleProp<import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").TextStyle> | ((state: TNativeTimeFieldStyleState) => import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").StyleProp<import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").TextStyle>)",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/field/appearance.ts",
+          "expectedGroup": "style"
+        },
+        "successState": {
+          "canonicalType": "boolean | undefined",
+          "optional": true,
+          "nativeProp": "successState",
+          "nativeType": "boolean | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/field/appearance.ts",
+          "expectedGroup": "style"
+        },
+        "textSize": {
+          "canonicalType": "string | undefined",
+          "optional": true,
+          "nativeProp": "textSize",
+          "nativeType": "string | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/field/appearance.ts",
+          "expectedGroup": "style"
+        },
+        "translate": {
+          "canonicalType": "\"yes\" | \"no\" | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "nativeType": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "validate": {
+          "canonicalType": "((value: import(\"node_modules/.pnpm/react-stately@3.46.0_react@19.2.7/node_modules/react-stately/dist/types/exports/useTimeFieldState\").MappedTimeValue<T>) => import(\"node_modules/.pnpm/@react-types+shared@3.34.0_react@19.2.7/node_modules/@react-types/shared/src/inputs\").ValidationError | true | null | undefined) | undefined",
+          "optional": true,
+          "nativeProp": "validate",
+          "nativeType": "((value: import(\"packages/react-native/src/date/state/types\").MappedTimeValue<T>) => import(\"node_modules/.pnpm/@react-types+shared@3.34.0_react@19.2.3/node_modules/@react-types/shared/src/inputs\").ValidationError | true | null | undefined) | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/form/useTimeField.tsx",
+          "expectedGroup": "form"
+        },
+        "validationBehavior": {
+          "canonicalType": "\"native\" | \"aria\" | undefined",
+          "optional": true,
+          "nativeProp": "validationBehavior",
+          "nativeType": "\"native\" | \"aria\" | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/form/useTimeField.tsx",
+          "expectedGroup": "form"
+        },
+        "value": {
+          "canonicalType": "T | null | undefined",
+          "optional": true,
+          "nativeProp": "value",
+          "nativeType": "T | null | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useTimeFieldState.ts",
+          "expectedGroup": "value"
+        },
+        "warningState": {
+          "canonicalType": "boolean | undefined",
+          "optional": true,
+          "nativeProp": "warningState",
+          "nativeType": "boolean | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/field/appearance.ts",
+          "expectedGroup": "style"
+        },
+        "width": {
+          "canonicalType": "string | number | undefined",
+          "optional": true,
+          "nativeProp": "width",
+          "nativeType": "import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").DimensionValue | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/field/appearance.ts",
+          "expectedGroup": "style"
+        }
+      },
+      "nativeOnlyProps": {
+        "accessibilityActions": {
+          "nativeType": "readonly Readonly<{ name: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").AccessibilityActionName | string; label?: string | undefined; }>[] | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "accessibilityElementsHidden": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "accessibilityHint": {
+          "nativeType": "string | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "accessibilityIgnoresInvertColors": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "accessibilityLabel": {
+          "nativeType": "string | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "accessibilityLabelledBy": {
+          "nativeType": "string | string[] | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "accessibilityLanguage": {
+          "nativeType": "string | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "accessibilityLargeContentTitle": {
+          "nativeType": "string | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "accessibilityLiveRegion": {
+          "nativeType": "\"none\" | \"polite\" | \"assertive\" | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "accessibilityRespondsToUserInteraction": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "accessibilityRole": {
+          "nativeType": "import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").AccessibilityRole | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "accessibilityShowsLargeContentViewer": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "accessibilityState": {
+          "nativeType": "import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").AccessibilityState | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "accessibilityValue": {
+          "nativeType": "import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").AccessibilityValue | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "accessibilityViewIsModal": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "accessible": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/date/field/NativeTimePickerRenderer.tsx",
+          "expectedGroup": "nativeHost",
+          "expected": "Published native boolean retains explicit true/false and defaults to false. The renderer must not force the authored value away. Both controls preserve original root/segments, held value/no requests and cleanup in dedicated fail-before/pass-after source cases. Installed focus/AT grouping is separate."
+        },
+        "aria-busy": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/date/field/NativeTimePickerRenderer.tsx",
+          "expectedGroup": "labels"
+        },
+        "aria-checked": {
+          "nativeType": "boolean | \"mixed\" | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/date/field/NativeTimePickerRenderer.tsx",
+          "expectedGroup": "labels"
+        },
+        "aria-disabled": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/date/field/NativeTimePickerRenderer.tsx",
+          "expectedGroup": "labels"
+        },
+        "aria-expanded": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/date/field/NativeTimePickerRenderer.tsx",
+          "expectedGroup": "labels"
+        },
+        "aria-hidden": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/date/field/NativeTimePickerRenderer.tsx",
+          "expectedGroup": "labels"
+        },
+        "aria-live": {
+          "nativeType": "\"polite\" | \"assertive\" | \"off\" | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/date/field/NativeTimePickerRenderer.tsx",
+          "expectedGroup": "labels"
+        },
+        "aria-modal": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/date/field/NativeTimePickerRenderer.tsx",
+          "expectedGroup": "labels"
+        },
+        "aria-selected": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/date/field/NativeTimePickerRenderer.tsx",
+          "expectedGroup": "labels"
+        },
+        "aria-valuemax": {
+          "nativeType": "number | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/date/field/NativeTimePickerRenderer.tsx",
+          "expectedGroup": "labels"
+        },
+        "aria-valuemin": {
+          "nativeType": "number | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/date/field/NativeTimePickerRenderer.tsx",
+          "expectedGroup": "labels"
+        },
+        "aria-valuenow": {
+          "nativeType": "number | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/date/field/NativeTimePickerRenderer.tsx",
+          "expectedGroup": "labels"
+        },
+        "aria-valuetext": {
+          "nativeType": "string | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/date/field/NativeTimePickerRenderer.tsx",
+          "expectedGroup": "labels"
+        },
+        "ariaDescribedBy": {
+          "nativeType": "string | readonly string[] | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "ariaDetails": {
+          "nativeType": "string | readonly string[] | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "autoComplete": {
+          "nativeType": "string | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "collapsable": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "collapsableChildren": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "extraFocusParticipants": {
+          "nativeType": "import(\"packages/react-native/src/date/field/participants\").TNativeExtraFocusParticipants | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/date/field/useParticipants.ts",
+          "expectedGroup": "events",
+          "expected": "Approved ordinary genuine native input/composition and two-phase key/standard pointer observations preserve original payloads/targets, current callbacks, composing/readonly/disabled guards and source callback order. Retired fieldDispatch/same-event JS native-default veto is not promised. Explicit extraFocusParticipants and same-window NativeFloatingLayerHost preserve original refs; unlisted controls stay independent. No installed fast-entry/IME/focus/AT result follows."
+        },
+        "focusable": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/date/field/NativeTimePickerRenderer.tsx",
+          "expectedGroup": "nativeHost",
+          "expected": "Published native boolean retains explicit true/false and defaults to false. The renderer must not force the authored value away. Both controls preserve original root/segments, held value/no requests and cleanup in dedicated fail-before/pass-after source cases. Installed focus/AT grouping is separate."
+        },
+        "hasTVPreferredFocus": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "hitSlop": {
+          "nativeType": "number | import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").Insets | null | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "importantForAccessibility": {
+          "nativeType": "\"yes\" | \"no\" | \"auto\" | \"no-hide-descendants\" | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "isTVSelectable": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "nativeAccessibilityLabels": {
+          "nativeType": "Partial<import(\"packages/react-native/src/form/semantics\").TNativeFieldSemanticLabels> | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "nativeFormActionBinding": {
+          "nativeType": "string | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "nativeID": {
+          "nativeType": "string | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "needsOffscreenAlphaCompositing": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onAccessibilityAction": {
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").AccessibilityActionEvent) => void) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onAccessibilityEscape": {
+          "nativeType": "(() => void) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onAccessibilityTap": {
+          "nativeType": "(() => void) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onLayout": {
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").LayoutChangeEvent) => void) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onMagicTap": {
+          "nativeType": "(() => void) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onMoveShouldSetResponder": {
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onMoveShouldSetResponderCapture": {
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onNativeFormActionStatus": {
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").NativeSyntheticEvent<import(\"packages/react-native/src/input/specs/CUIFocusViewNativeComponent\").NativeFormActionStatus>) => void) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onPointerEnterCapture": {
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").PointerEvent) => void) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onPointerLeaveCapture": {
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").PointerEvent) => void) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onResponderEnd": {
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onResponderGrant": {
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onResponderMove": {
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onResponderReject": {
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onResponderRelease": {
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onResponderStart": {
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onResponderTerminate": {
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onResponderTerminationRequest": {
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onStartShouldSetResponder": {
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onStartShouldSetResponderCapture": {
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "pointerEvents": {
+          "nativeType": "\"box-none\" | \"none\" | \"box-only\" | \"auto\" | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "removeClippedSubviews": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "renderToHardwareTextureAndroid": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "role": {
+          "nativeType": "import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").Role | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "screenReaderFocusable": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "shouldRasterizeIOS": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "tabIndex": {
+          "nativeType": "0 | -1 | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "testID": {
+          "nativeType": "string | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "tvParallaxMagnification": {
+          "nativeType": "number | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "tvParallaxShiftDistanceX": {
+          "nativeType": "number | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "tvParallaxShiftDistanceY": {
+          "nativeType": "number | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "tvParallaxTiltAngle": {
+          "nativeType": "number | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        }
+      }
+    }
+  },
+  "expectedGroups": {
+    "value": {
+      "owner": "packages/react-native/src/date/state/useTimeFieldState.ts",
+      "expected": "Complete pinned class-preserving Time/CalendarDateTime/ZonedDateTime value/default/null/partial/placeholder/min/max state. Owner veto retains the displayed owner value and repeats copied class-preserving requests. Date/calendar/zone fields, DST and current callback ownership remain; no scalar/string coercion."
+    },
+    "entry": {
+      "owner": "packages/react-native/src/date/entry/useNativeDateSegmentEntry.ts",
+      "expected": "Pinned localized numeric prefixes/zero/bounds/restart, editable segment limits, AM/PM, composition/unmark, Backspace/empty previous, arrows/Page/Home/End and placeholder confirmation. Actual original segment hosts admit native window/epoch/instance/serial leases. Ordinary input may request guarded later focus; only actual callbacks prove completion."
+    },
+    "style": {
+      "owner": "packages/react-native/src/date/field/appearance.ts",
+      "expected": "Separate computed/custom/final outer root, input-icon group and input/segment owners. Width/height preserve zero/native dimensions. style callback receives complete current field flags/state and empty defaultStyle, not authored computed dimensions. Approved native styles replace CSS class functions. Native b11/b10/b9, rounded/round/orthogonal, validation precedence, authored text inheritance/local precedence, existing border250ms/group foreground350ms/ReduceMotion/lifetime behavior remain; pixels are separate."
+    },
+    "context": {
+      "owner": "packages/react-native/src/date/field/useTimeField.ts",
+      "expected": "Existing NativeTimeFieldContext merges default/named/null props, original root refs, callbacks, validation/form defaults and explicit false/null ownership. Complete field/state/group/input/label/description/error slots retain their original native refs. Custom render receives original root props and generated children; it preserves them while authoring extra descendants. Arbitrary children prop cannot replace the canonical wrapper-owned scaffold."
+    },
+    "events": {
+      "owner": "packages/react-native/src/date/field/ordinaryGroup.ts",
+      "expected": "Approved ordinary genuine native input/composition and two-phase key/standard pointer observations preserve original payloads/targets, current callbacks, composing/readonly/disabled guards and source callback order. Retired fieldDispatch/same-event JS native-default veto is not promised. Explicit extraFocusParticipants and same-window NativeFloatingLayerHost preserve original refs; unlisted controls stay independent. No installed fast-entry/IME/focus/AT result follows."
+    },
+    "form": {
+      "owner": "packages/react-native/src/form/useTimeField.tsx",
+      "expected": "Existing NativeForm owns original logical field/segment bindings, time-only serialization for every owner class, empty null entries, disabled exclusion/read-only inclusion, custom/server/required/range validation and controlled reset veto. First editable original segment owns invalid focus. Current native semantic IDs/labels/descriptions/errors retain exact original refs and empty values."
+    },
+    "locale": {
+      "owner": "packages/react-native/src/locale/NativeLocaleProvider.tsx",
+      "expected": "Existing approved NativeLocaleProvider supplies host Intl locale, replacement/cleanup and script-derived direction; pinned date/number formatting and all34 field/spinbutton dictionaries stay intact. Native locale/provider/native accessibility language replace browser lang/dir attributes, without a per-field DOM attribute promise."
+    },
+    "labels": {
+      "owner": "packages/react-native/src/date/field/NativeTimePickerRenderer.tsx",
+      "expected": "Independent inputIconGroupAriaLabel nullish default/empty values and root/accessibility relationship aliases retain original ownership. Label/description/error/state contexts and semantic metadata map the same native segment/field roots. Falsy ComponentIcon selects the exact default clock; authored icon children keep their original objects."
+    },
+    "nativeHost": {
+      "owner": "packages/react-native/src/input/NativeFocusView.tsx",
+      "expected": "Standing conventional-native host/style/ref/event approval replaces browser-only hidden/inert/translate, mouse/aux/context/double click and CSS animation/transition/scroll/wheel capture surfaces. Declared RN pointer/touch/responder/accessibility fields retain native applicability and original payloads; DOM event/attribute props are rejected. Outer native View and owned segment refs remain actual originals. Defaults stay focusable=false/accessible=false, explicit published native booleans remain caller-owned."
+    }
+  },
+  "inheritedStateSurfaces": {
+    "renderState": {
+      "canonicalCount": 5,
+      "nativeCount": 5,
+      "props": {
+        "isDisabled": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "isInvalid": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "isReadOnly": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "isRequired": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "state": {
+          "canonicalType": "import(\"node_modules/.pnpm/react-stately@3.46.0_react@19.2.7/node_modules/react-stately/dist/types/exports/useDateFieldState\").DateFieldState",
+          "nativeType": "import(\"packages/react-native/src/date/state/useDateFieldState\").DateFieldState",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        }
+      }
+    },
+    "dateFieldState": {
+      "canonicalCount": 30,
+      "nativeCount": 30,
+      "props": {
+        "calendar": {
+          "canonicalType": "import(\"node_modules/.pnpm/@internationalized+date@3.12.1/node_modules/@internationalized/date/dist/types/src/types\").Calendar",
+          "nativeType": "import(\"node_modules/.pnpm/@internationalized+date@3.12.1/node_modules/@internationalized/date/dist/types/src/types\").Calendar",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "clearSegment": {
+          "canonicalType": "(type: import(\"node_modules/.pnpm/react-stately@3.46.0_react@19.2.7/node_modules/react-stately/dist/types/exports/useDateFieldState\").DateSegmentType) => void",
+          "nativeType": "(type: import(\"packages/react-native/src/date/state/useDateFieldState\").DateSegmentType) => void",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "commitValidation": {
+          "canonicalType": "() => void",
+          "nativeType": "() => void",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "confirmPlaceholder": {
+          "canonicalType": "() => void",
+          "nativeType": "() => void",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "dateFormatter": {
+          "canonicalType": "import(\"node_modules/.pnpm/@internationalized+date@3.12.1/node_modules/@internationalized/date/dist/types/src/DateFormatter\").DateFormatter",
+          "nativeType": "import(\"node_modules/.pnpm/@internationalized+date@3.12.1/node_modules/@internationalized/date/dist/types/src/DateFormatter\").DateFormatter",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "dateValue": {
+          "canonicalType": "Date",
+          "nativeType": "Date",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "decrement": {
+          "canonicalType": "(type: import(\"node_modules/.pnpm/react-stately@3.46.0_react@19.2.7/node_modules/react-stately/dist/types/exports/useDateFieldState\").DateSegmentType) => void",
+          "nativeType": "(type: import(\"packages/react-native/src/date/state/useDateFieldState\").DateSegmentType) => void",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "decrementPage": {
+          "canonicalType": "(type: import(\"node_modules/.pnpm/react-stately@3.46.0_react@19.2.7/node_modules/react-stately/dist/types/exports/useDateFieldState\").DateSegmentType) => void",
+          "nativeType": "(type: import(\"packages/react-native/src/date/state/useDateFieldState\").DateSegmentType) => void",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "decrementToMin": {
+          "canonicalType": "(type: import(\"node_modules/.pnpm/react-stately@3.46.0_react@19.2.7/node_modules/react-stately/dist/types/exports/useDateFieldState\").DateSegmentType) => void",
+          "nativeType": "(type: import(\"packages/react-native/src/date/state/useDateFieldState\").DateSegmentType) => void",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "defaultValue": {
+          "canonicalType": "import(\"node_modules/.pnpm/react-stately@3.46.0_react@19.2.7/node_modules/react-stately/dist/types/exports/useDateFieldState\").DateValue | null",
+          "nativeType": "import(\"packages/react-native/src/date/state/types\").DateValue | null",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "displayValidation": {
+          "canonicalType": "import(\"node_modules/.pnpm/@react-types+shared@3.34.0_react@19.2.7/node_modules/@react-types/shared/src/inputs\").ValidationResult",
+          "nativeType": "Readonly<{ isInvalid: boolean; validationDetails: import(\"packages/react-native/src/components/ComboBox/state/types\").ValidityState; validationErrors: string[]; }>",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "formatValue": {
+          "canonicalType": "(fieldOptions: import(\"node_modules/.pnpm/react-stately@3.46.0_react@19.2.7/node_modules/react-stately/dist/types/src/datepicker/utils\").FieldOptions) => string",
+          "nativeType": "(fieldOptions: import(\"packages/react-native/src/date/state/utils\").FieldOptions) => string",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "getDateFormatter": {
+          "canonicalType": "(locale: string, formatOptions: import(\"node_modules/.pnpm/react-stately@3.46.0_react@19.2.7/node_modules/react-stately/dist/types/src/datepicker/utils\").FormatterOptions) => import(\"node_modules/.pnpm/@internationalized+date@3.12.1/node_modules/@internationalized/date/dist/types/src/DateFormatter\").DateFormatter",
+          "nativeType": "(locale: string, formatOptions: import(\"packages/react-native/src/date/state/utils\").FormatterOptions) => import(\"node_modules/.pnpm/@internationalized+date@3.12.1/node_modules/@internationalized/date/dist/types/src/DateFormatter\").DateFormatter",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "granularity": {
+          "canonicalType": "import(\"node_modules/.pnpm/react-stately@3.46.0_react@19.2.7/node_modules/react-stately/dist/types/exports/useDateFieldState\").Granularity",
+          "nativeType": "import(\"packages/react-native/src/date/state/types\").Granularity",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "increment": {
+          "canonicalType": "(type: import(\"node_modules/.pnpm/react-stately@3.46.0_react@19.2.7/node_modules/react-stately/dist/types/exports/useDateFieldState\").DateSegmentType) => void",
+          "nativeType": "(type: import(\"packages/react-native/src/date/state/useDateFieldState\").DateSegmentType) => void",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "incrementPage": {
+          "canonicalType": "(type: import(\"node_modules/.pnpm/react-stately@3.46.0_react@19.2.7/node_modules/react-stately/dist/types/exports/useDateFieldState\").DateSegmentType) => void",
+          "nativeType": "(type: import(\"packages/react-native/src/date/state/useDateFieldState\").DateSegmentType) => void",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "incrementToMax": {
+          "canonicalType": "(type: import(\"node_modules/.pnpm/react-stately@3.46.0_react@19.2.7/node_modules/react-stately/dist/types/exports/useDateFieldState\").DateSegmentType) => void",
+          "nativeType": "(type: import(\"packages/react-native/src/date/state/useDateFieldState\").DateSegmentType) => void",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "isDisabled": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "isInvalid": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "isReadOnly": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "isRequired": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "maxGranularity": {
+          "canonicalType": "import(\"node_modules/.pnpm/react-stately@3.46.0_react@19.2.7/node_modules/react-stately/dist/types/exports/useDateFieldState\").Granularity | \"year\" | \"month\"",
+          "nativeType": "\"year\" | \"month\" | import(\"packages/react-native/src/date/state/types\").Granularity",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "realtimeValidation": {
+          "canonicalType": "import(\"node_modules/.pnpm/@react-types+shared@3.34.0_react@19.2.7/node_modules/@react-types/shared/src/inputs\").ValidationResult",
+          "nativeType": "Readonly<{ isInvalid: boolean; validationDetails: import(\"packages/react-native/src/components/ComboBox/state/types\").ValidityState; validationErrors: string[]; }>",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "resetValidation": {
+          "canonicalType": "() => void",
+          "nativeType": "() => void",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "segments": {
+          "canonicalType": "import(\"node_modules/.pnpm/react-stately@3.46.0_react@19.2.7/node_modules/react-stately/dist/types/exports/useDateFieldState\").DateSegment[]",
+          "nativeType": "import(\"packages/react-native/src/date/state/useDateFieldState\").DateSegment[]",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "setSegment": {
+          "canonicalType": "{ (type: \"era\", value: string): void; (type: import(\"node_modules/.pnpm/react-stately@3.46.0_react@19.2.7/node_modules/react-stately/dist/types/exports/useDateFieldState\").DateSegmentType, value: number): void; }",
+          "nativeType": "{ (type: \"era\", value: string): void; (type: import(\"packages/react-native/src/date/state/useDateFieldState\").DateSegmentType, value: number): void; }",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "setValue": {
+          "canonicalType": "(value: import(\"node_modules/.pnpm/react-stately@3.46.0_react@19.2.7/node_modules/react-stately/dist/types/exports/useDateFieldState\").DateValue | null) => void",
+          "nativeType": "(value: import(\"packages/react-native/src/date/state/types\").DateValue | null) => void",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "updateValidation": {
+          "canonicalType": "(result: import(\"node_modules/.pnpm/@react-types+shared@3.34.0_react@19.2.7/node_modules/@react-types/shared/src/inputs\").ValidationResult) => void",
+          "nativeType": "(result: import(\"packages/react-native/src/components/ComboBox/state/types\").ValidationResult) => void",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "validationState": {
+          "canonicalType": "import(\"node_modules/.pnpm/@react-types+shared@3.34.0_react@19.2.7/node_modules/@react-types/shared/src/inputs\").ValidationState | null",
+          "nativeType": "(\"valid\" | \"invalid\") | null",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "value": {
+          "canonicalType": "import(\"node_modules/.pnpm/react-stately@3.46.0_react@19.2.7/node_modules/react-stately/dist/types/exports/useDateFieldState\").DateValue | null",
+          "nativeType": "import(\"packages/react-native/src/date/state/types\").DateValue | null",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        }
+      }
+    },
+    "segment": {
+      "canonicalCount": 8,
+      "nativeCount": 8,
+      "props": {
+        "isEditable": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "isPlaceholder": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "maxValue": {
+          "canonicalType": "number | undefined",
+          "nativeType": "number | undefined",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "minValue": {
+          "canonicalType": "number | undefined",
+          "nativeType": "number | undefined",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "placeholder": {
+          "canonicalType": "string",
+          "nativeType": "string",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "text": {
+          "canonicalType": "string",
+          "nativeType": "string",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "type": {
+          "canonicalType": "import(\"node_modules/.pnpm/react-stately@3.46.0_react@19.2.7/node_modules/react-stately/dist/types/exports/useDateFieldState\").DateSegmentType",
+          "nativeType": "import(\"packages/react-native/src/date/state/useDateFieldState\").DateSegmentType",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        },
+        "value": {
+          "canonicalType": "number | null | undefined",
+          "nativeType": "number | null | undefined",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDateFieldState.ts"
+        }
+      }
+    },
+    "displayValidation": {
+      "canonicalCount": 3,
+      "nativeCount": 3,
+      "props": {
+        "isInvalid": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/components/ComboBox/state/useFormValidationState.ts"
+        },
+        "validationDetails": {
+          "canonicalType": "ValidityState",
+          "nativeType": "Readonly<{ badInput: boolean; customError: boolean; patternMismatch: boolean; rangeOverflow: boolean; rangeUnderflow: boolean; stepMismatch: boolean; tooLong: boolean; tooShort: boolean; typeMismatch: boolean; valueMissing: boolean; valid: boolean; }>",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/components/ComboBox/state/useFormValidationState.ts"
+        },
+        "validationErrors": {
+          "canonicalType": "string[]",
+          "nativeType": "string[]",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/components/ComboBox/state/useFormValidationState.ts"
+        }
+      }
+    },
+    "realtimeValidation": {
+      "canonicalCount": 3,
+      "nativeCount": 3,
+      "props": {
+        "isInvalid": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/components/ComboBox/state/useFormValidationState.ts"
+        },
+        "validationDetails": {
+          "canonicalType": "ValidityState",
+          "nativeType": "Readonly<{ badInput: boolean; customError: boolean; patternMismatch: boolean; rangeOverflow: boolean; rangeUnderflow: boolean; stepMismatch: boolean; tooLong: boolean; tooShort: boolean; typeMismatch: boolean; valueMissing: boolean; valid: boolean; }>",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/components/ComboBox/state/useFormValidationState.ts"
+        },
+        "validationErrors": {
+          "canonicalType": "string[]",
+          "nativeType": "string[]",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/components/ComboBox/state/useFormValidationState.ts"
+        }
+      }
+    },
+    "validationDetails": {
+      "canonicalCount": 11,
+      "nativeCount": 11,
+      "props": {
+        "badInput": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/components/ComboBox/state/useFormValidationState.ts"
+        },
+        "customError": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/components/ComboBox/state/useFormValidationState.ts"
+        },
+        "patternMismatch": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/components/ComboBox/state/useFormValidationState.ts"
+        },
+        "rangeOverflow": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/components/ComboBox/state/useFormValidationState.ts"
+        },
+        "rangeUnderflow": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/components/ComboBox/state/useFormValidationState.ts"
+        },
+        "stepMismatch": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/components/ComboBox/state/useFormValidationState.ts"
+        },
+        "tooLong": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/components/ComboBox/state/useFormValidationState.ts"
+        },
+        "tooShort": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/components/ComboBox/state/useFormValidationState.ts"
+        },
+        "typeMismatch": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/components/ComboBox/state/useFormValidationState.ts"
+        },
+        "valid": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/components/ComboBox/state/useFormValidationState.ts"
+        },
+        "valueMissing": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/components/ComboBox/state/useFormValidationState.ts"
+        }
+      }
+    },
+    "timeFieldStateContext": {
+      "canonicalCount": 31,
+      "nativeCount": 31,
+      "includesDateFieldState": 30,
+      "additional": {
+        "timeValue": {
+          "canonicalType": "Time",
+          "nativeType": "Time",
+          "nativeOwner": "packages/react-native/src/date/state/useTimeFieldState.ts",
+          "expected": "Existing full TimeFieldState adds timeValue. Runtime null/partial values and time-only form serialization follow the original source, not a fabricated nonnull conversion."
+        }
+      }
+    }
+  },
+  "stateAndEntryExpected": "All pinned partial/calendar/date/time/zone/null value algebra, state methods/defaults/segments, validation results and source prefix/key semantics remain complete. Effects use the existing approved controlled/form backend. Original callbacks/ref/lease/lifetime and locale/guard retirement are preserved by the current ordinary group path. Source methods/shape do not establish native transport/focus/IME/AT.",
+  "canonicalInputsSHA256": {
+    "packages/react/src/components/TimePicker/DefaultClockIcon.tsx": "0eb37749937a5bd8c3b487063a91c1194097e18c80b59f85191e9bbbf27656a8",
+    "packages/react/src/components/TimePicker/TimePicker.tsx": "507a8a90e8e324120fd14d9c4db60de8b4a5251b9f454b2564d9c6491e291c67",
+    "packages/react/src/components/TimePicker/TimePickerStyles.module.css": "fefd9a061d2dce85c05fdab77626d477f84a27a91603349d902847f4e6c821e8",
+    "packages/react/src/components/TimePicker/__tests__/TimePicker.test.tsx": "e7202fb3c248228b9c0e6e11cac8818ac610fcbe393f0b7c43b3905fe57972d9",
+    "packages/react/src/components/TimePicker/helpers.tsx": "4ae019d5f13cc0eb401ba68aaa013c9f9b2495c5ebe2818677dee67971ff774c",
+    "packages/react/src/components/TimePicker/index.ts": "7c7322ff563c4be1796bbde38c1085f2b2328f00f5ad548b2eb4e543fb197b7d",
+    "packages/react/src/components/TimePicker/labels.ts": "8e79c2625f0fdfed575e7fbbefa03d8cf16c7cd01ba272ca434117c879d1dd57"
+  },
+  "statePinnedAuthoredInputsSHA256": {
+    "packages/react-native/src/date/state/IncompleteDate.ts": "2f6a71c989198de4694d9109eead8599971326abf367941f012184d0e4b973ca",
+    "packages/react-native/src/date/state/messages.ts": "281d7487f37aa3da49711fc13e4c7b16e2a9caaf417774d2270c01e1e6fabe50",
+    "packages/react-native/src/date/state/placeholders.ts": "98de0b62d08152d8a751fbe0e32047a4497030feb2d959d302b480c5045a9b10",
+    "packages/react-native/src/date/state/types.ts": "8f9ab0432bb58bdd1f06e3071d1378c93e9778531ae0a6b33313979120251fbe",
+    "packages/react-native/src/date/state/useDateFieldState.ts": "123f39f6a0a774d876f9472d45e08a200d3906ac7c372d92962a63db720f45a8",
+    "packages/react-native/src/date/state/useDatePickerState.ts": "e6e988306c05742952f52376578254de434f7f07e4046db910801061b06064e7",
+    "packages/react-native/src/date/state/useDateRangePickerState.ts": "8a2719ab826a7b8183f0f1927f0f3c411f77e0ad79b0dd4d22af1b947f9c1883",
+    "packages/react-native/src/date/state/useTimeFieldState.ts": "7a3ae097de994debdbf028dae0e3b882d554e071c34030c70f597b8424d70295",
+    "packages/react-native/src/date/state/utils.ts": "b1200c1c58cd6ae461f583a59e198ad58b2b7e28d3b4d7032e641161267467b6"
+  },
+  "unchangedFoundationBackendsSHA256": {
+    "packages/react-native/src/collection/state/useControlledState.ts": "f2e07fa657ec08798969a452b255c1bf3c39a8af1a605dc6d316d0f7fc739b34",
+    "packages/react-native/src/components/ComboBox/state/useFormValidationState.ts": "ca8ad2f9ff04c37255c880f6f30097cc49d78d167673e06f17bfc238f5a93e51"
+  },
+  "unchangedEntryCoreInputsSHA256": {
+    "packages/react-native/src/date/entry/useNativeDateSegmentEntry.ts": "cfd29e8a30d47c60f43ab9acd27f403dfd7764dac2857073422632712791591b",
+    "packages/react-native/src/date/entry/messages.ts": "9c5d3551e3d8d40dcf92a5fa0dbacce6f3c6ea31cf3c3af570b1bb31261cdbf9",
+    "packages/react-native/src/date/entry/spinMessages.ts": "9fe490816f067ab49f11b869f7e9d77e590af5f0706721aed82976d79790e26d",
+    "packages/react-native/src/date/entry/groupKey.ts": "8759a73ebc38a8bd91b0763fa77ed7bb3a6dd815b305884e2944a000ab9efbd3"
+  },
+  "upstreamMetadata": {
+    "packages/react-native/src/date/state/UPSTREAM.json": {
+      "sha256": "d38a9b01e00e00e77a85ac3a6546b39162ae9be4b6e2ec275cce5c11ffb58e02",
+      "scope": "Immutable upstream/source-map provenance; authored receiver hashes are historical and not blanket current identity"
+    },
+    "packages/react-native/src/date/entry/UPSTREAM.json": {
+      "sha256": "936233188d31e68f1ecf71d4d8be9f7c4a204bb92380d610fa3b881a4d3b5aaa",
+      "scope": "Immutable upstream/source-map provenance; authored receiver hashes are historical and not blanket current identity"
+    }
+  },
+  "canonicalAssertions": [
+    {
+      "id": "CAP.time-picker.001",
+      "title": "renders.",
+      "sourceSuite": "packages/react/src/components/TimePicker/__tests__/TimePicker.test.tsx",
+      "evidence": "Existing fifteen-case canonical baseline, complete native renderer/appearance controls and current focused root/render probes, at source tier only."
+    },
+    {
+      "id": "CAP.time-picker.002",
+      "title": "responds to height and width props.",
+      "sourceSuite": "packages/react/src/components/TimePicker/__tests__/TimePicker.test.tsx",
+      "evidence": "Existing fifteen-case canonical baseline, complete native renderer/appearance controls and current focused root/render probes, at source tier only."
+    },
+    {
+      "id": "CAP.time-picker.003",
+      "title": "responds to text size props.",
+      "sourceSuite": "packages/react/src/components/TimePicker/__tests__/TimePicker.test.tsx",
+      "evidence": "Existing fifteen-case canonical baseline, complete native renderer/appearance controls and current focused root/render probes, at source tier only."
+    },
+    {
+      "id": "CAP.time-picker.004",
+      "title": "responds to corner geometry props.",
+      "sourceSuite": "packages/react/src/components/TimePicker/__tests__/TimePicker.test.tsx",
+      "evidence": "Existing fifteen-case canonical baseline, complete native renderer/appearance controls and current focused root/render probes, at source tier only."
+    },
+    {
+      "id": "CAP.time-picker.005",
+      "title": "responds to focus props.",
+      "sourceSuite": "packages/react/src/components/TimePicker/__tests__/TimePicker.test.tsx",
+      "evidence": "Existing fifteen-case canonical baseline, complete native renderer/appearance controls and current focused root/render probes, at source tier only."
+    },
+    {
+      "id": "CAP.time-picker.006",
+      "title": "responds to canonical disabled prop.",
+      "sourceSuite": "packages/react/src/components/TimePicker/__tests__/TimePicker.test.tsx",
+      "evidence": "Existing fifteen-case canonical baseline, complete native renderer/appearance controls and current focused root/render probes, at source tier only."
+    },
+    {
+      "id": "CAP.time-picker.007",
+      "title": "responds to canonical readonly prop.",
+      "sourceSuite": "packages/react/src/components/TimePicker/__tests__/TimePicker.test.tsx",
+      "evidence": "Existing fifteen-case canonical baseline, complete native renderer/appearance controls and current focused root/render probes, at source tier only."
+    },
+    {
+      "id": "CAP.time-picker.008",
+      "title": "forwards granularity to the underlying time field.",
+      "sourceSuite": "packages/react/src/components/TimePicker/__tests__/TimePicker.test.tsx",
+      "evidence": "Existing fifteen-case canonical baseline, complete native renderer/appearance controls and current focused root/render probes, at source tier only."
+    },
+    {
+      "id": "CAP.time-picker.009",
+      "title": "responds to form element status props.",
+      "sourceSuite": "packages/react/src/components/TimePicker/__tests__/TimePicker.test.tsx",
+      "evidence": "Existing fifteen-case canonical baseline, complete native renderer/appearance controls and current focused root/render probes, at source tier only."
+    },
+    {
+      "id": "CAP.time-picker.010",
+      "title": "gives error validation state precedence over warning and success states.",
+      "sourceSuite": "packages/react/src/components/TimePicker/__tests__/TimePicker.test.tsx",
+      "evidence": "Existing fifteen-case canonical baseline, complete native renderer/appearance controls and current focused root/render probes, at source tier only."
+    },
+    {
+      "id": "CAP.time-picker.011",
+      "title": "responds to custom style props.",
+      "sourceSuite": "packages/react/src/components/TimePicker/__tests__/TimePicker.test.tsx",
+      "evidence": "Existing fifteen-case canonical baseline, complete native renderer/appearance controls and current focused root/render probes, at source tier only."
+    },
+    {
+      "id": "CAP.time-picker.012",
+      "title": "accepts custom labels for its internal control group.",
+      "sourceSuite": "packages/react/src/components/TimePicker/__tests__/TimePicker.test.tsx",
+      "evidence": "Existing fifteen-case canonical baseline, complete native renderer/appearance controls and current focused root/render probes, at source tier only."
+    },
+    {
+      "id": "CAP.time-picker.013",
+      "title": "renders a custom icon when ComponentIcon is provided.",
+      "sourceSuite": "packages/react/src/components/TimePicker/__tests__/TimePicker.test.tsx",
+      "evidence": "Existing fifteen-case canonical baseline, complete native renderer/appearance controls and current focused root/render probes, at source tier only."
+    },
+    {
+      "id": "CAP.time-picker.014",
+      "title": "merges native className and style without losing computed root styles.",
+      "sourceSuite": "packages/react/src/components/TimePicker/__tests__/TimePicker.test.tsx",
+      "evidence": "Existing fifteen-case canonical baseline, complete native renderer/appearance controls and current focused root/render probes, at source tier only."
+    },
+    {
+      "id": "CAP.time-picker.015",
+      "title": "does not leak wrapper props onto the root element.",
+      "sourceSuite": "packages/react/src/components/TimePicker/__tests__/TimePicker.test.tsx",
+      "evidence": "Existing fifteen-case canonical baseline, complete native renderer/appearance controls and current focused root/render probes, at source tier only."
+    }
+  ],
+  "ownedCSS": {
+    "source": "packages/react/src/components/TimePicker/TimePickerStyles.module.css",
+    "owner": "packages/react-native/src/date/field/appearance.ts",
+    "expected": "Root auto dimensions/row alignment/radius, disabled opacity, separate group and input padding, three geometries, observed focus/offset/false, error > warning > success, b11/b10/b9 segment font, placeholder italic12, exact default clock15, root/group border250ms and group text350ms transitions; outlines/icon switch immediately. Existing motion/ReduceMotion/retirement source controls retain all authored edges/colors/direction semantics. Native pointer cursor is a host boundary; installed scaling/layout/pixels remain open."
+  },
+  "defaults": {
+    "hourCycle": 24,
+    "shouldForceLeadingZeros": true,
+    "granularity": "minute",
+    "value": "Controlled if value defined, including null; otherwise defaultValue then null",
+    "textSize": "medium/b10",
+    "geometry": "rounded",
+    "rootFocusable": false,
+    "rootAccessible": false,
+    "clock": "Exact native SVG15 unless truthy ComponentIcon",
+    "labels": {
+      "inputIconGroupAriaLabel": "TimePicker Input Icon Group"
+    },
+    "styleDefaultStyle": "Empty field defaultStyle; computed/custom dimensions merged outside it"
+  },
+  "evidenceReuse": {
+    "currentSourceProducer": "98b7db9a874be678d51684e603265393cb4ab917",
+    "currentReceipt": "/tmp/codon-stock-reverify-source.json",
+    "currentCases": "75 distinct existing Time field cases:42 renderer,11 context,6 lifecycle,13 ordinaryGroup,3 useParticipants. Old42 renderer case bodies remain byte-identical except trailing blank. New native root boolean branches preserve default false; existing source proofs are not rerun.",
+    "foundation": "experiments3.31.104 retains50 focused foundation cases, including12 full pinned class/locale traces. All nine authored state inputs and both shared state/form backend inputs remain exact; do not add overlapping case counts or claim a fresh run.",
+    "entry": "experiments3.31.106/3.31.110 and immutable date/entry/UPSTREAM.json retain complete source entry/key/name oracles. Core entered-key/dictionaries match their authored hashes; changed ordinary receiver/participant mechanisms instead use current75 cases and PHONE-EDIT05A/05C/06. Historical source hashes are never overwritten.",
+    "G03G05": "FIN-R03/FIN-TM05 current source scopes retain original roots/segments, locale/controlled-value/ref/IME and explicit participant/host/endpoint obligations. Matching native products/installed default/focus/IME remain independently unqualified.",
+    "sharedDrag": "Main STOCK-R01156-case successor reconciles nativeDragActions c84e6d32; original98b whole batch failure remains preserved. Already adopted FIN-COMPACT01 input differences are unrelated index-exported source, referenced rather than reverified.",
+    "currentSourceChangeScope": "Final textSize-only normalization maps existing small/large/medium/default inputs to their identical existing appearance outputs; unusual canonical strings use the already-existing b10 fallback. New explicit accessible/focusable branches preserve old default false. No state/entry/form/locale/participant/native behavior implementation changed."
+  },
+  "sourceFindings": {
+    "dynamicTextSize": "Canonical textSize is string, with unrecognized values falling back to b10. Original native public types restricted it to three literals although the renderer already used b10 fallback. A TimePicker-only prop alias admits the canonical string; a local renderer adapter normalizes to the unchanged shared appearance literals. Shared date/range appearance types and runtime are untouched. Dedicated public type positive fails before and passes after; actual canonical/native fallback and original hosts are asserted.",
+    "focusable": "Default host forced false after spreading published native prop. Repair preserves props.focusable ?? false. Dedicated genuine red/green verifies explicit true/false/default with held value and original root/segment.",
+    "accessible": "Root props replaced published accessible with false. Repair preserves props.accessible ?? false. Dedicated genuine red/green retains original hosts/owner values and default false; installed grouping/AT remains separate.",
+    "publicFixture": "Type-only context example put slot nodes in ignored children; use existing render/native.children composition instead. Existing runtime slot/context controls remain intact. No new runtime child API.",
+    "canonicalProbeTypeBoundary": "Final probe reads the declared DateFieldState segments rather than runtime-only timeValue on the renderer state. NativeTimeFieldStateContext retains its declared31-member TimeFieldState including timeValue. The revised actual canonical probe is rerun after that correction and after adding the dynamic-size control."
+  },
+  "newProof": {
+    "nativeFocusBefore": "/tmp/codon-lane4-time-root-before.json",
+    "nativeFocusAfter": "/tmp/codon-lane4-time-root-after.json",
+    "nativeAccessibleBefore": "/tmp/codon-lane4-time-accessible-before.json",
+    "nativeAccessibleAfter": "/tmp/codon-lane4-time-accessible-after.json",
+    "nativeTextSize": "/tmp/codon-lane4-time-size-runtime.json",
+    "textSizeTypesBefore": "/tmp/codon-lane4-time-size-types-before-result.json",
+    "actualCanonical": "/tmp/codon-lane4-time-root-canonical-size.json",
+    "nativeTypes": "/tmp/codon-lane4-time-types-size-final-result.json",
+    "canonicalTypes": "/tmp/codon-lane4-time-oracle-types-size-result.json",
+    "tier": "Focused source/red-green/canonical/public types; no build/native execution",
+    "declarations": "/tmp/codon-lane4-time-declarations-result.json",
+    "declarationIdentitiesSHA256": {
+      "/tmp/codon-lane4-time-declarations/components/TimePicker/types.d.ts": "517a4f74da1664472a620ec81599ca62e7211ef6a9441f79f55937b02fb9e088",
+      "/tmp/codon-lane4-time-declarations/date/field/NativeTimePickerRenderer.d.ts": "952ce291233e504fb6e04c33ba16fcbbe41a062dfc5cb66779896ad101629bad"
+    }
+  },
+  "coverage": {
+    "canonicalDeclarations": 118,
+    "nativeDeclarations": 139,
+    "nativeOnlyRows": 75,
+    "renderFlags": 5,
+    "dateFieldStateMembers": 30,
+    "timeFieldContextStateMembers": 31,
+    "segmentMembers": 8,
+    "validationDetailMembers": 11,
+    "canonicalRootAssertions": 15,
+    "unclassified": 0
+  },
+  "status": "SOURCE_CANDIDATE_PENDING_MAIN_ADOPTION",
+  "publicExports": {
+    "canonicalIndex": ["TimePicker", "TimePickerProps"],
+    "nativeIndex": [
+      "TimePicker",
+      "TNativeTimePickerProps",
+      "TimePickerProps",
+      "TNativeTimePickerRef",
+      "TNativeTimePickerRenderState",
+      "TNativeTimePickerStyleState",
+      "TNativeTimePickerTextSize",
+      "TNativeTimePickerLabels",
+      "TPartialNativeTimePickerLabels",
+      "TNativeTimePickerValue",
+      "TIME_PICKER_SIZE__SM",
+      "TIME_PICKER_SIZE__MD",
+      "TIME_PICKER_SIZE__LG",
+      "AVAILABLE_TIMEPICKER_TEXT_SIZES",
+      "NativeTimeFieldContext",
+      "NativeTimeFieldStateContext",
+      "NativeTimeFieldLabel",
+      "NativeTimeFieldText",
+      "NativeTimeFieldError"
+    ],
+    "expected": "Existing native public aliases/context/slots/actual View refs remain. The three standard size constants and convenience size union remain small/medium/large; the component prop separately admits the canonical string fallback. No export is removed or renamed; no new exported symbol or dependency."
+  }
+}

@@ -9,6 +9,7 @@ import type {
 } from "react-native/Libraries/Types/CodegenTypes"
 
 export type NativeKeyData = Readonly<{
+  localFrame?: string
   kind: string
   ownerId: string
   target: Int32
@@ -28,17 +29,26 @@ export type NativeKeyData = Readonly<{
   timestamp: Double
 }>
 
-export type NativeFieldKeyData = Readonly<{
-  fieldDispatch: string
+export type NativeOrdinaryEditorKeyData = Readonly<{
+  toolbarRoute?: string
+  observerBindings: string
+  bindingId: string
+  bindingRevision: string
+  windowId: string
+  epoch: Double
+  eventId: Double
   kind: string
   ownerId: string
   target: Int32
   key: string
+  code: string
+  location: Int32
   nativeCode: Int32
   characters: string
   phase: "down" | "up"
   repeat: boolean
   cancelled: boolean
+  isComposing: boolean
   shiftKey: boolean
   altKey: boolean
   ctrlKey: boolean
@@ -168,6 +178,7 @@ export interface NativeProps extends ViewProps {
   nativeFocusWithinBinding?: string
   onNativeFocusWithin?: DirectEventHandler<NativeFocusWithinData>
   nativeFormActionBinding?: string
+  nativeKeyBinding?: string
   onNativeFormActionStatus?: DirectEventHandler<NativeFormActionStatus>
   nativeCollectionBinding?: string
   nativeCollectionSemantics?: string
@@ -180,8 +191,6 @@ export interface NativeProps extends ViewProps {
   nativeMotionColorObservation?: WithDefault<boolean, false>
   nativeMotionVisible?: WithDefault<boolean, true>
   nativeMotionProjectionRevision?: string
-  nativeTypographyStyle?: string
-  nativeTypographyWindow?: string
   nativeForegroundComposition?: WithDefault<boolean, false>
   nativeMotionDrawingOwner?: WithDefault<boolean, false>
   nativeMotionProjectionRadii?: string
@@ -202,7 +211,8 @@ export interface NativeProps extends ViewProps {
   onNativeMotionColors?: DirectEventHandler<NativeMotionColors>
   onNativeActivation?: DirectEventHandler<NativeActivationData>
   onNativeKey?: DirectEventHandler<NativeKeyData>
-  onNativeFieldKey?: BubblingEventHandler<NativeFieldKeyData>
+  onNativeDateKey?: BubblingEventHandler<NativeKeyData>
+  onNativeOrdinaryEditorKey?: BubblingEventHandler<NativeOrdinaryEditorKeyData>
   onNativeFocusChange?: DirectEventHandler<NativeFocusData>
 }
 

@@ -1,5 +1,6 @@
 import { PlatformColor } from "react-native"
 
+import { untypedFontWeight } from "../../components/__tests__/untypedFontWeight"
 import { buildNativeMotionOrigin, buildNativeMotionTransform } from "../visual/nativeTransform"
 import { resolveNativeMotionVisualStyle } from "../visual/styles"
 import type {
@@ -70,6 +71,26 @@ it("applies computed/custom/final precedence, then resolved motion styles", () =
   )
   expect(resolved.view).toEqual({ width: 0, opacity: 0, transform: [{ translateX: 10 }] })
   expect(resolved.text).toEqual({ color: "blue", fontSize: 0 })
+})
+
+it("validates effective authored font weights without rounding unused overrides or changing other styles", () => {
+  expect(
+    resolveNativeMotionVisualStyle(
+      {},
+      { fontWeight: untypedFontWeight(750.5) },
+      { fontWeight: "700" },
+      { opacity: 0.5 },
+    ),
+  ).toEqual({
+    view: { opacity: 0.5 },
+    text: { fontWeight: "700" },
+  })
+  expect(() => resolveNativeMotionVisualStyle({}, {}, { fontWeight: untypedFontWeight(750.5) }, {})).toThrow(
+    "fontWeight must use a stock React Native weight",
+  )
+  expect(() => resolveNativeMotionVisualStyle({}, {}, {}, { fontWeight: untypedFontWeight(550) })).toThrow(
+    "fontWeight must use a stock React Native weight",
+  )
 })
 it("preserves opaque static native colors and lets removed typography restore native defaults", () => {
   const opaque = PlatformColor("labelColor")

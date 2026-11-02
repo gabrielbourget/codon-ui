@@ -38,7 +38,7 @@ import { NativeMotionOwnerHost } from "../../motion/owner/NativeMotionOwnerHost"
 import { useNativeTheme } from "../../theme"
 import { getNativeCardStyle } from "../Card/styles"
 import { resolveNativeStyle } from "../colors"
-import { splitNativeTextStyle } from "../nativeTextStyle"
+import { splitNativeTextStyle, validateNativeFontWeight } from "../nativeTextStyle"
 import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
 import { QueryGlyph } from "../SortAndFilterPanel/glyphs"
 import { Text } from "../Text/Text"
@@ -99,6 +99,7 @@ const RowContent = ({
     owner.props.customItemStyles,
   )
   const icon = calibrated({}, owner.props.customItemIconStyles)
+  validateNativeFontWeight(row.text.fontWeight, "SortParameterList")
   const text = calibrated({}, owner.props.customItemTextStyles)
   const drop = droppable.dropProps
   const pressable = nativeVirtualDrag.isDragging() ? drop : draggable.dragProps
@@ -226,6 +227,7 @@ const Row = (props: TItemProps, ref: ForwardedRef<View>, node: TNativeCollection
         dragAndDrop={dragAndDrop}
         forwarded={ref}
       />
+      {dragAndDrop.accessibleDropChooser}
     </NativeDragAndDropContext.Provider>
   )
 }
@@ -282,6 +284,7 @@ export const SortParameterList = (props: TNativeSortParameterListProps) => {
     },
     [customStyles, style],
   )
+  validateNativeFontWeight(root.text.fontWeight, "SortParameterList")
   return (
     <NativeCollectionBuilder<object>
       content={

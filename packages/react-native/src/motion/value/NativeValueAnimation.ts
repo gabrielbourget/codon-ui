@@ -6,6 +6,7 @@ import type {
   ValueAnimationOptions,
 } from "../kernel"
 import { getFinalKeyframe } from "../kernel/engine/animation/keyframes/get-final"
+import { mixImmediate } from "../kernel/engine/utils/mix/immediate"
 import { nativeMotionRuntime } from "../kernel/nativeRuntime"
 
 import { canAnimateNativeKeyframes, resolveNativeMotionKeyframes } from "./keyframes"
@@ -109,7 +110,10 @@ export class NativeValueAnimation implements AnimationPlaybackControlsWithThen {
     }
     const resolvedAt = time.now()
     options.startTime = options.startTime ?? (resolvedAt - this.createdAt > 40 ? resolvedAt : this.createdAt)
-    if (!canAnimateNativeKeyframes(options.keyframes, options.name ?? "", options.type, options.velocity)) {
+    if (
+      options.name !== "fontWeight" &&
+      !canAnimateNativeKeyframes(options.keyframes, options.name ?? "", options.type, options.velocity)
+    ) {
       if (!options.delay) options.onUpdate?.(this.finalValue(resolved))
       options.keyframes[0] = options.keyframes[options.keyframes.length - 1]
       options.duration = 0
@@ -146,7 +150,7 @@ export class NativeValueAnimation implements AnimationPlaybackControlsWithThen {
     options.onCancel = () => {
       if (currentPlayback()) cancel?.()
     }
-    const animation = new JSAnimation(options)
+    const animation = new JSAnimation(options, options.name === "fontWeight" ? mixImmediate : undefined)
     this.inner = animation
     if (!this.current(generation)) {
       animation.stop()
@@ -281,6 +285,7 @@ export class NativeValueAnimation implements AnimationPlaybackControlsWithThen {
     return () => this.stop()
   }
   getGeneratorVelocity() {
-    return this.playback().getGeneratorVelocity()
+    const playback = this.playback()
+    return this.options.name === "fontWeight" ? 0 : playback.getGeneratorVelocity()
   }
 }

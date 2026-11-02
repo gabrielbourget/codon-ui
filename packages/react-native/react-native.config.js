@@ -8,7 +8,7 @@ export default {
         libraryName: "CodonNativeOverlay",
         cmakeListsPath: "src/main/jni/overlay/CMakeLists.txt",
         componentDescriptors: [
-          "CUIOwnedTypographyFocusComponentDescriptor",
+          "CUIOwnedFocusViewComponentDescriptor",
           "CUIKeyboardScopeComponentDescriptor",
           "CUICollectionRootComponentDescriptor",
           "CUICollectionNodeComponentDescriptor",
@@ -18,7 +18,6 @@ export default {
           "CUIOwnedOverlayHostComponentDescriptor",
           "CUIOwnedOverlayViewportComponentDescriptor",
           "CUIOwnedOverlaySlotComponentDescriptor",
-          "CUIOwnedClampHostComponentDescriptor",
         ],
       },
       ios: { podspecPath: "./CodonNativeInput.podspec" },

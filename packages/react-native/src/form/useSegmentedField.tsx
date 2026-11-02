@@ -12,7 +12,6 @@ import {
 import { findNodeHandle, type View } from "react-native"
 
 import type { TimeFieldState } from "../date/state/useTimeFieldState"
-import type { TNativeFieldInputMetadata } from "../input/fieldInputBinding"
 import type { NativeFormCommitData } from "../input/specs/CUIFormRootNativeComponent"
 
 import { NativeFormRegistryContext } from "./context"
@@ -49,7 +48,6 @@ export const useNativeSegmentedFieldForm = (
   currentOriginal: () => TOriginalDateField | null,
   isFocusObserved: () => boolean,
   semanticBinding = "",
-  fieldInput?: TNativeFieldInputMetadata,
 ) => {
   const registry = useContext(NativeFormRegistryContext)
   const ownerId = useId()
@@ -205,13 +203,8 @@ export const useNativeSegmentedFieldForm = (
       formId={props.form ?? ""}
       ownedEditorBinding={ownedEditorBinding}
       semanticBinding={semanticBinding}
-      fieldGroupBinding={fieldInput?.binding(ownerId)}
-      onNativeFieldInputRecord={(event) => {
-        fieldInput?.receive(event)
-        fieldInput?.record?.(event)
-      }}
       onNativeFormCommit={(event) => {
-        if (receive(event.nativeEvent)) fieldInput?.commit(receipt.current?.getSnapshot() ?? event.nativeEvent)
+        receive(event.nativeEvent)
       }}
     />
   )

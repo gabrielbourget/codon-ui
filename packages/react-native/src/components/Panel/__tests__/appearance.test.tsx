@@ -5,12 +5,16 @@ import {
   Animated,
   processColor,
   StyleSheet,
+  Text as RNText,
   TextInput,
+  View as RNView,
   type View,
   type ViewStyle,
 } from "react-native"
 
+import { NativeFocusView } from "../../../input/NativeFocusView"
 import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
+import { NativeTextStyleProvider } from "../../NativeTextStyleProvider"
 import { Text } from "../../Text/Text"
 import { Panel } from "../Panel"
 import type { TNativePanelProps } from "../types"
@@ -279,7 +283,7 @@ it("transitions mixed percentage dimensions in the actual modal viewport and kee
   expect(f.root.current).toBe(root)
 })
 
-it("transitions authored spacing, borders, opacity and scalar typography on the existing hosts", async () => {
+it("transitions authored spacing, borders, opacity and supported typography on the existing hosts", async () => {
   const f = await setup(),
     root = f.root.current,
     editor = f.editor.current
@@ -342,8 +346,7 @@ it("transitions authored spacing, borders, opacity and scalar typography on the 
   expect(processColor(current.borderColor)).not.toBe(processColor("blue"))
   expect(text.fontSize).toBeGreaterThan(12)
   expect(text.fontSize).toBeLessThan(32)
-  expect(text.fontWeight).toBeGreaterThan(400)
-  expect(text.fontWeight).toBeLessThan(800)
+  expect(text.fontWeight).toBe("800")
   expect(text.letterSpacing).toBeGreaterThan(0)
   expect(text.letterSpacing).toBeLessThan(4)
   expect(text.lineHeight).toBeGreaterThan(18)
@@ -528,51 +531,103 @@ it("resolves omitted border, outline and shadow colors from the same Panel foreg
   expect(style().boxShadow[0].color).toBe("blue")
 })
 
-it("interpolates font weight continuously with metrics and restores the authored final value", async () => {
+it("applies weight endpoints immediately while font size retains its independent transition", async () => {
   const f = await setup()
   await f.rerender(f.node({ customStyles: { fontWeight: "400", fontSize: 12 } }))
   await advance(375)
-  await f.rerender(f.node({ customStyles: { fontWeight: "800", fontSize: 32 } }))
-  await advance(175)
-  const text = StyleSheet.flatten(screen.getByText("Raw styled phrase", hidden).props.style)
-  expect(text.fontWeight).toBeGreaterThan(400)
-  expect(text.fontWeight).toBeLessThan(800)
-  expect(text.fontSize).toBeGreaterThan(12)
-  expect(text.fontSize).toBeLessThan(32)
-  expect((text.fontWeight - 400) / 400).toBeCloseTo((text.fontSize - 12) / 20, 6)
-  expect(JSON.parse(row("panel").props.nativeTypographyStyle).fontWeight).toBe(text.fontWeight)
-  await advance(200)
-  expect(StyleSheet.flatten(screen.getByText("Raw styled phrase", hidden).props.style).fontWeight).toBe("800")
-})
-
-it("retargets fractional and named font weights from the current style and clears back to the original default", async () => {
-  const f = await setup()
-  const weight = () => StyleSheet.flatten(screen.getByText("Raw styled phrase", hidden).props.style).fontWeight
-  await f.rerender(f.node({ customStyles: { fontWeight: "normal" } }))
-  await advance(375)
   const root = f.root.current,
     editor = f.editor.current
-  await f.rerender(f.node({ customStyles: { fontWeight: 750.5 } }))
+  await f.rerender(f.node({ customStyles: { fontWeight: "800", fontSize: 32 } }))
+  const text = () => StyleSheet.flatten(screen.getByText("Raw styled phrase", hidden).props.style)
+  expect(text().fontWeight).toBe("800")
+  expect(row("panel").props.nativeTypographyStyle).toBeUndefined()
   await advance(175)
-  const current = weight()
-  expect(current).toBeGreaterThan(400)
-  expect(current).toBeLessThan(750.5)
-  expect(current % 100).not.toBe(0)
-  await f.rerender(f.node({ customStyles: { fontWeight: "bold" } }))
-  expect(weight()).toBe(current)
-  await advance(375)
-  expect(weight()).toBe("bold")
-  await f.rerender(f.node({ customStyles: { fontWeight: 750.123456789 } }))
-  await advance(375)
-  expect(weight()).toBe(750.123456789)
-  expect(JSON.parse(row("panel").props.nativeTypographyStyle).fontWeight).toBe(750.123456789)
+  expect(text().fontWeight).toBe("800")
+  expect(text().fontSize).toBeGreaterThan(12)
+  expect(text().fontSize).toBeLessThan(32)
+  await f.rerender(f.node({ customStyles: { fontWeight: "600", fontSize: 32 } }))
+  expect(text().fontWeight).toBe("600")
+  await advance(200)
+  expect(text()).toMatchObject({ fontWeight: "600", fontSize: 32 })
+  expect(f.root.current).toBe(root)
+  expect(f.editor.current).toBe(editor)
+  expect(row("held").props.value).toBe("held")
+  expect(f.change).not.toHaveBeenCalled()
+})
+
+it("switches named and numeric supported weights without rounding and clears to the original default", async () => {
+  const f = await setup()
+  const weight = () => StyleSheet.flatten(screen.getByText("Raw styled phrase", hidden).props.style).fontWeight
+  const root = f.root.current,
+    editor = f.editor.current
+  for (const fontWeight of ["normal", 500, "bold", "800"] as const) {
+    await f.rerender(f.node({ customStyles: { fontWeight } }))
+    expect(weight()).toBe(fontWeight)
+    await advance(175)
+    expect(weight()).toBe(fontWeight)
+  }
   await f.rerender(f.node({ customStyles: { fontWeight: undefined } }))
-  await advance(375)
   expect(weight()).toBe("400")
   expect(f.root.current).toBe(root)
   expect(f.editor.current).toBe(editor)
   expect(row("held").props.value).toBe("held")
   expect(f.change).not.toHaveBeenCalled()
+})
+
+it("keeps explicit raw and owned text styles without exporting a native descendant typography scope", async () => {
+  const childRef = createRef<RNText>()
+  const content = (
+    <RNView>
+      <RNText ref={childRef} testID="raw-custom" style={{ fontWeight: "500", color: "green" }}>
+        Explicit raw text
+      </RNText>
+      <Text testID="owned-custom" customStyles={{ fontWeight: "700" }}>
+        Owned text
+      </Text>
+      <NativeTextStyleProvider style={{ letterSpacing: 3 }}>
+        <NativeFocusView testID="nested-explicit">
+          <RNText>Nested raw text</RNText>
+        </NativeFocusView>
+      </NativeTextStyleProvider>
+    </RNView>
+  )
+  const node = (fontWeight: "600" | "800", letterSpacing: number) => (
+    <NativeOverlayProvider>
+      <Panel accessibilityLabel="Explicit typography" isOpen customStyles={{ fontWeight, letterSpacing }}>
+        {content}
+      </Panel>
+    </NativeOverlayProvider>
+  )
+  const f = await render(node("800", 2))
+  const original = childRef.current
+  expect(original).not.toBeNull()
+  expect(row("raw-custom")).toHaveStyle({ fontWeight: "500", color: "green" })
+  expect(row("owned-custom")).toHaveStyle({ fontWeight: "700", letterSpacing: 2 })
+  expect(row("panel").props.nativeTypographyStyle).toBeUndefined()
+  expect(row("nested-explicit").props.nativeTypographyStyle).toBeUndefined()
+  await f.rerender(node("600", 0))
+  expect(childRef.current).toBe(original)
+  await advance(175)
+  const spacing = StyleSheet.flatten(row("owned-custom").props.style).letterSpacing
+  expect(spacing).toBeGreaterThan(0)
+  expect(spacing).toBeLessThan(2)
+  await advance(200)
+  expect(row("owned-custom")).toHaveStyle({ fontWeight: "700", letterSpacing: 0 })
+  expect(row("raw-custom")).toHaveStyle({ fontWeight: "500", color: "green" })
+})
+
+it("keeps explicitly styled raw text outside Panel without native typography transport", async () => {
+  await render(
+    <NativeTextStyleProvider style={{ fontWeight: "600" }}>
+      <NativeFocusView testID="independent-owner">
+        <RNText testID="standalone-explicit" style={{ fontWeight: "600" }}>
+          Explicit outside Panel
+        </RNText>
+      </NativeFocusView>
+    </NativeTextStyleProvider>,
+  )
+  expect(row("independent-owner").props.nativeTypographyStyle).toBeUndefined()
+  expect(row("standalone-explicit")).toHaveStyle({ fontWeight: "600" })
 })
 
 it("retires the appearance clock and its listeners when the original Panel unmounts", async () => {

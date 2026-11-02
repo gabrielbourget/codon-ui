@@ -2,6 +2,7 @@
 import type { EasingFunction } from "../../../utils/index"
 import { easeInOut, easingDefinitionToFunction, isEasingArray } from "../../../utils/index"
 import { interpolate } from "../../utils/interpolate"
+import type { MixerFactory } from "../../utils/mix/types"
 import { defaultOffset } from "../keyframes/offsets/default"
 import { convertOffsetToTimes } from "../keyframes/offsets/time"
 import type { AnimationState, KeyframeGenerator, ValueAnimationOptions } from "../types"
@@ -10,12 +11,10 @@ export function defaultEasing(values: unknown[], easing?: EasingFunction): Easin
   return values.map(() => easing || easeInOut).splice(0, values.length - 1)
 }
 
-export function keyframes<T>({
-  duration = 300,
-  keyframes: keyframeValues,
-  times,
-  ease = "easeInOut",
-}: ValueAnimationOptions<T>): KeyframeGenerator<T> {
+export function keyframes<T>(
+  { duration = 300, keyframes: keyframeValues, times, ease = "easeInOut" }: ValueAnimationOptions<T>,
+  mixer?: MixerFactory<T>,
+): KeyframeGenerator<T> {
   /**
    * Easing functions can be externally defined as strings. Here we convert them
    * into actual functions.
@@ -43,6 +42,7 @@ export function keyframes<T>({
 
   const mapTimeToKeyframe = interpolate<T>(absoluteTimes, keyframeValues, {
     ease: Array.isArray(easingFunctions) ? easingFunctions : defaultEasing(keyframeValues, easingFunctions),
+    mixer,
   })
 
   return {

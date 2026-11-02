@@ -2,7 +2,7 @@ import type { GestureResponderEvent, NativeSyntheticEvent, View, ViewProps } fro
 
 import type { NativeFocusData, NativeKeyData, NativeFormActionStatus } from "./specs/CUIFocusViewNativeComponent"
 
-export type TNativeKeyboardData = Omit<NativeKeyData, "kind"> & Readonly<{ kind: "keyboard" }>
+export type TNativeKeyboardData = Omit<NativeKeyData, "kind" | "localFrame"> & Readonly<{ kind: "keyboard" }>
 export type TNativeKeyboardEvent = NativeSyntheticEvent<TNativeKeyboardData>
 export const NATIVE_ACTIVATION_SOURCES = ["android-click", "ios-accessibility-activate"] as const
 export type TNativeActivationSource = (typeof NATIVE_ACTIVATION_SOURCES)[number]

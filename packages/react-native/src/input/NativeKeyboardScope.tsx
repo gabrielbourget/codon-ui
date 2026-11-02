@@ -24,15 +24,24 @@ import { createNativeKeyScope, type TNativeKeyPolicy, type TNativeKeyScope } fro
 import { NativeDialogRegistryContext } from "./NativeDialogFocusScope"
 import { createNativeDragActions, NativeDragActionsContext } from "./nativeDragActions"
 import { dispatchNativeGestureWindow } from "./nativeGestureObservation"
+import { attachNativeInputModalityWitness, recordAcceptedNativeInputModality } from "./nativeInputModality"
 import { createNativeMenuPointers, type TNativeMenuPointerPolicy, type TNativeMenuPointers } from "./nativeMenuPointers"
+import { createNativeToolbarKeyboard, NativeToolbarKeyboardContext } from "./nativeToolbarKeyboard"
 import { nativeViewProps, NativeViewContextBoundary } from "./nativeViewProps"
 import {
   createNativeWindowPointers,
   dispatchNativeWindowPointer,
   type TNativeWindowPointers,
 } from "./nativeWindowPointers"
+import { createNativeOrdinaryEditorKeys, NativeOrdinaryEditorKeysContext } from "./ordinaryEditorKeys"
 import ScopeHost, { type NativeScopedKeyData } from "./specs/CUIKeyboardScopeNativeComponent"
 import type { TNativeKeyboardData } from "./types"
+
+export {
+  useNativeToggleGroupNavigation,
+  useNativeToggleGroupKeyboardListeners,
+  useNativeToolbarKeyboard,
+} from "./nativeToolbarKeyboard"
 
 type TScopedKeyboardEvent = NativeSyntheticEvent<Omit<NativeScopedKeyData, "kind"> & Pick<TNativeKeyboardData, "kind">>
 const isKeyboardEvent = (event: NativeSyntheticEvent<NativeScopedKeyData>): event is TScopedKeyboardEvent =>
@@ -117,10 +126,10 @@ export const useNativeKeyPolicy = (policy: TNativeKeyPolicy) => {
   })
 }
 
-type TNativeKeyboardScopeProps = ViewProps & { captureEnabled: boolean; nativeTypographyWindow?: string }
+type TNativeKeyboardScopeProps = ViewProps & { captureEnabled: boolean }
 
 export const NativeKeyboardScope = forwardRef<View, TNativeKeyboardScopeProps>(
-  ({ captureEnabled, nativeTypographyWindow, ...props }, forwardedRef) => {
+  ({ captureEnabled, ...props }, forwardedRef) => {
     const ownerId = useId()
     const [scope] = useState(() => createNativeKeyScope(ownerId))
     const [dragActions] = useState(() => createNativeDragActions(scope))
@@ -129,6 +138,22 @@ export const NativeKeyboardScope = forwardRef<View, TNativeKeyboardScopeProps>(
     const [menuPointers] = useState(() => createNativeMenuPointers(scope))
     const [observations] = useState(createNativeFloatingObservations)
     const [keyboardObservations] = useState(() => createNativeKeyboardObservations(ownerId))
+    const ordinaryKeysEnabled = useRef(captureEnabled)
+    useInsertionEffect(() => {
+      ordinaryKeysEnabled.current = captureEnabled
+    }, [captureEnabled])
+    const [ordinaryEditorKeys] = useState(() =>
+      createNativeOrdinaryEditorKeys(ownerId, () => ({
+        ...scope.acknowledgedSession(),
+        active: ordinaryKeysEnabled.current && scope.isWindowActive() !== false,
+      })),
+    )
+    const [toolbarKeyboard] = useState(() =>
+      createNativeToolbarKeyboard(ownerId, () => ({
+        ...scope.acknowledgedSession(),
+        active: ordinaryKeysEnabled.current && scope.isWindowActive() === true,
+      })),
+    )
     const attached = useRef(false)
     const releaseRef = useRef<(() => void) | undefined>(undefined)
     useSyncExternalStore(scope.subscribe, scope.snapshot, scope.snapshot)
@@ -138,7 +163,13 @@ export const NativeKeyboardScope = forwardRef<View, TNativeKeyboardScopeProps>(
     useSyncExternalStore(menuPointers.subscribe, menuPointers.snapshot, menuPointers.snapshot)
     useSyncExternalStore(observations.subscribe, observations.snapshot, observations.snapshot)
     useSyncExternalStore(keyboardObservations.subscribe, keyboardObservations.snapshot, keyboardObservations.snapshot)
+    useSyncExternalStore(toolbarKeyboard.subscribe, toolbarKeyboard.snapshot, toolbarKeyboard.snapshot)
+    useSyncExternalStore(ordinaryEditorKeys.subscribe, ordinaryEditorKeys.snapshot, ordinaryEditorKeys.snapshot)
     useInsertionEffect(() => scope.setEnabled(captureEnabled), [scope, captureEnabled])
+    useInsertionEffect(
+      () => (captureEnabled ? attachNativeInputModalityWitness(scope) : undefined),
+      [scope, captureEnabled],
+    )
     useInsertionEffect(() => dragActions.setEnabled(captureEnabled), [dragActions, captureEnabled])
     useInsertionEffect(() => pointers.setEnabled(captureEnabled), [pointers, captureEnabled])
     useInsertionEffect(() => menuPointers.setEnabled(captureEnabled), [menuPointers, captureEnabled])
@@ -150,6 +181,9 @@ export const NativeKeyboardScope = forwardRef<View, TNativeKeyboardScopeProps>(
     useInsertionEffect(() => () => dialogs.dispose(), [dialogs])
     useInsertionEffect(() => () => observations.dispose(), [observations])
     useInsertionEffect(() => () => keyboardObservations.dispose(), [keyboardObservations])
+    useInsertionEffect(() => () => toolbarKeyboard.dispose(), [toolbarKeyboard])
+    useInsertionEffect(() => () => ordinaryEditorKeys.dispose(), [ordinaryEditorKeys])
+    useLayoutEffect(() => toolbarKeyboard.setEnabled(captureEnabled), [toolbarKeyboard, captureEnabled])
     useLayoutEffect(() => {
       dragActions.flush()
     }, [dragActions, captureEnabled])
@@ -196,104 +230,123 @@ export const NativeKeyboardScope = forwardRef<View, TNativeKeyboardScopeProps>(
               <NativeMenuPointersContext.Provider value={menuPointers}>
                 <NativeFloatingObservationsContext.Provider value={observations}>
                   <NativeKeyboardObservationsContext.Provider value={keyboardObservations}>
-                    <NativeViewContextBoundary>
-                      <ScopeHost
-                        {...nativeViewProps(props)}
-                        onTouchMove={(event) => {
-                          props.onTouchMove?.(event)
-                          dispatchNativeGestureWindow(scope, event, "move")
-                        }}
-                        onTouchEnd={(event) => {
-                          props.onTouchEnd?.(event)
-                          dispatchNativeGestureWindow(scope, event, "end")
-                        }}
-                        onTouchCancel={(event) => {
-                          props.onTouchCancel?.(event)
-                          dispatchNativeGestureWindow(scope, event, "cancel")
-                        }}
-                        onPointerMove={(event) => {
-                          props.onPointerMove?.(event)
-                          dispatchNativeGestureWindow(scope, event, "move")
-                        }}
-                        onPointerUp={(event) => {
-                          props.onPointerUp?.(event)
-                          dispatchNativeGestureWindow(scope, event, "end")
-                        }}
-                        onPointerCancel={(event) => {
-                          props.onPointerCancel?.(event)
-                          dispatchNativeGestureWindow(scope, event, "cancel")
-                        }}
-                        ref={setRef}
-                        ownerId={ownerId}
-                        dragBindings={dragActions.bindings()}
-                        onNativeDragStatus={(event) => {
-                          if (attached.current) dragActions.acceptStatus(event.nativeEvent.packet)
-                        }}
-                        onNativeDragAction={(event) => {
-                          if (attached.current) dragActions.dispatch(event.nativeEvent.packet)
-                        }}
-                        dialogScopes={dialogs.bindings()}
-                        dialogRevision={dialogs.revision()}
-                        onNativeDialogStatus={(event) => {
-                          if (attached.current) dialogs.acceptStatus(event.nativeEvent)
-                        }}
-                        onNativeDialogAction={(event) => {
-                          if (attached.current) dialogs.acceptAction(event.nativeEvent)
-                        }}
-                        enabled={captureEnabled}
-                        nativeTypographyWindow={nativeTypographyWindow}
-                        policies={scope.policies()}
-                        acceptedWindowId={session.windowId}
-                        acceptedEpoch={session.epoch}
-                        policyRevision={scope.policyRevision()}
-                        floatingTargets={observations.targets()}
-                        observations={keyboardObservations.registrations()}
-                        observationRevision={keyboardObservations.revision()}
-                        pointerRegistrations={pointers.registrations()}
-                        pointerRevision={pointers.revision()}
-                        menuPointerPolicies={menuPointers.policies()}
-                        menuPointerRevision={menuPointers.revision()}
-                        onNativeMenuPointer={(event) => {
-                          if (attached.current) menuPointers.dispatch(event)
-                        }}
-                        onNativeWindowPointer={(event) => {
-                          if (attached.current) dispatchNativeWindowPointer(event)
-                        }}
-                        onNativePointerStatus={(event) => {
-                          if (attached.current) pointers.acceptStatus(event.nativeEvent)
-                        }}
-                        onNativeObservedKey={(event) => {
-                          if (attached.current) keyboardObservations.dispatch(event)
-                        }}
-                        onNativeObservationStatus={(event) => {
-                          if (attached.current) keyboardObservations.acceptStatus(event.nativeEvent)
-                        }}
-                        onNativeFloatingObservation={(event) => {
-                          const data = event.nativeEvent
-                          const session = scope.acknowledgedSession()
-                          if (
-                            attached.current &&
-                            captureEnabled &&
-                            scope.isWindowActive() === true &&
-                            data.ownerId === ownerId &&
-                            data.windowId === session.windowId &&
-                            data.epoch === session.epoch
-                          )
-                            observations.dispatch(data)
-                        }}
-                        onNativeScopeStatus={(event) => {
-                          if (attached.current) scope.acceptNativeStatus(event.nativeEvent)
-                        }}
-                        onNativeInputModality={(event) => {
-                          if (attached.current) scope.recordInput(event.nativeEvent)
-                        }}
-                        onNativeScopedKey={(event) => {
-                          if (!attached.current || !isKeyboardEvent(event)) return
-                          const data = event.nativeEvent
-                          scope.dispatch(data.policyId, event, data)
-                        }}
-                      />
-                    </NativeViewContextBoundary>
+                    <NativeOrdinaryEditorKeysContext.Provider value={ordinaryEditorKeys}>
+                      <NativeToolbarKeyboardContext.Provider value={toolbarKeyboard}>
+                        <NativeViewContextBoundary>
+                          <ScopeHost
+                            {...nativeViewProps(props)}
+                            onTouchMove={(event) => {
+                              props.onTouchMove?.(event)
+                              dispatchNativeGestureWindow(scope, event, "move")
+                            }}
+                            onTouchEnd={(event) => {
+                              props.onTouchEnd?.(event)
+                              dispatchNativeGestureWindow(scope, event, "end")
+                            }}
+                            onTouchCancel={(event) => {
+                              props.onTouchCancel?.(event)
+                              dispatchNativeGestureWindow(scope, event, "cancel")
+                            }}
+                            onPointerMove={(event) => {
+                              props.onPointerMove?.(event)
+                              dispatchNativeGestureWindow(scope, event, "move")
+                            }}
+                            onPointerUp={(event) => {
+                              props.onPointerUp?.(event)
+                              dispatchNativeGestureWindow(scope, event, "end")
+                            }}
+                            onPointerCancel={(event) => {
+                              props.onPointerCancel?.(event)
+                              dispatchNativeGestureWindow(scope, event, "cancel")
+                            }}
+                            ref={setRef}
+                            ownerId={ownerId}
+                            toolbarBindings={toolbarKeyboard.bindings()}
+                            onNativeToolbarKeyboard={(event) => {
+                              if (attached.current) toolbarKeyboard.dispatch(event)
+                            }}
+                            onNativeToolbarStatus={(event) => {
+                              if (attached.current) toolbarKeyboard.acceptStatus(event.nativeEvent.packet)
+                            }}
+                            ordinaryEditorBindings={ordinaryEditorKeys.bindings()}
+                            onNativeOrdinaryEditorStatus={(event) => {
+                              if (attached.current) ordinaryEditorKeys.acceptStatus(event.nativeEvent)
+                            }}
+                            dragBindings={dragActions.bindings()}
+                            onNativeDragStatus={(event) => {
+                              if (attached.current) dragActions.acceptStatus(event.nativeEvent.packet)
+                            }}
+                            onNativeDragAction={(event) => {
+                              if (attached.current) dragActions.dispatch(event.nativeEvent.packet)
+                            }}
+                            dialogScopes={dialogs.bindings()}
+                            dialogRevision={dialogs.revision()}
+                            onNativeDialogStatus={(event) => {
+                              if (attached.current) dialogs.acceptStatus(event.nativeEvent)
+                            }}
+                            onNativeDialogAction={(event) => {
+                              if (attached.current) dialogs.acceptAction(event.nativeEvent)
+                            }}
+                            enabled={captureEnabled}
+                            policies={scope.policies()}
+                            acceptedWindowId={session.windowId}
+                            acceptedEpoch={session.epoch}
+                            policyRevision={scope.policyRevision()}
+                            floatingTargets={observations.targets()}
+                            observations={keyboardObservations.registrations()}
+                            observationRevision={keyboardObservations.revision()}
+                            pointerRegistrations={pointers.registrations()}
+                            pointerRevision={pointers.revision()}
+                            menuPointerPolicies={menuPointers.policies()}
+                            menuPointerRevision={menuPointers.revision()}
+                            onNativeMenuPointer={(event) => {
+                              if (attached.current) menuPointers.dispatch(event)
+                            }}
+                            onNativeWindowPointer={(event) => {
+                              if (attached.current) dispatchNativeWindowPointer(event)
+                            }}
+                            onNativePointerStatus={(event) => {
+                              if (attached.current) pointers.acceptStatus(event.nativeEvent)
+                            }}
+                            onNativeObservedKey={(event) => {
+                              if (attached.current) keyboardObservations.dispatch(event)
+                            }}
+                            onNativeObservationStatus={(event) => {
+                              if (attached.current) keyboardObservations.acceptStatus(event.nativeEvent)
+                            }}
+                            onNativeFloatingObservation={(event) => {
+                              const data = event.nativeEvent
+                              const session = scope.acknowledgedSession()
+                              if (
+                                attached.current &&
+                                captureEnabled &&
+                                scope.isWindowActive() === true &&
+                                data.ownerId === ownerId &&
+                                data.windowId === session.windowId &&
+                                data.epoch === session.epoch
+                              )
+                                observations.dispatch(data)
+                            }}
+                            onNativeScopeStatus={(event) => {
+                              if (attached.current) scope.acceptNativeStatus(event.nativeEvent)
+                            }}
+                            onNativeInputModality={(event) => {
+                              if (!attached.current) return
+                              const data = event.nativeEvent
+                              const previous = scope.lastInput()
+                              scope.recordInput(data)
+                              if (previous !== data && scope.lastInput() === data)
+                                recordAcceptedNativeInputModality(scope, data)
+                            }}
+                            onNativeScopedKey={(event) => {
+                              if (!attached.current || !isKeyboardEvent(event)) return
+                              const data = event.nativeEvent
+                              scope.dispatch(data.policyId, event, data)
+                            }}
+                          />
+                        </NativeViewContextBoundary>
+                      </NativeToolbarKeyboardContext.Provider>
+                    </NativeOrdinaryEditorKeysContext.Provider>
                   </NativeKeyboardObservationsContext.Provider>
                 </NativeFloatingObservationsContext.Provider>
               </NativeMenuPointersContext.Provider>

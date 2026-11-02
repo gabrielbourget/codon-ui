@@ -50,6 +50,7 @@ export const AlertDialog = forwardRef<TNativeAlertDialogRef, TNativeAlertDialogP
       props={{ ...props, testID: identity, isScrollable: true }}
       open={state.open}
       requestClose={() => state.request(false)}
+      requestOpen={state.request}
       panelRef={ref}
       initialFocusRef={props.initialFocusRef ?? heading}
       radiusMultiplier={2}

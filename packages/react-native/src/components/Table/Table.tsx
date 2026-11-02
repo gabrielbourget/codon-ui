@@ -1,5 +1,5 @@
 import { useCallback, useContext, useId, useInsertionEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
-import { findNodeHandle, View } from "react-native"
+import { findNodeHandle, I18nManager, Platform, Text as NativeText, View } from "react-native"
 
 import { NativeCollectionActionsContext } from "../../collection/actions"
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
@@ -28,16 +28,19 @@ import { useControlledState } from "../../collection/state/useControlledState"
 import { useMultipleSelectionState } from "../../collection/state/useMultipleSelectionState"
 import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
 import { NativeFocusView } from "../../input/NativeFocusView"
+import { useNativeInputModalityWitness } from "../../input/nativeInputModality"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { nativeViewProps } from "../../input/nativeViewProps"
 import type { TNativeFocusEvent } from "../../input/types"
-import { useNativeLocale } from "../../locale/NativeLocaleProvider"
+import { useInheritedNativeLocale, useNativeLocale } from "../../locale/NativeLocaleProvider"
+import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../overlays/floating/scope"
 import { useNativeTheme } from "../../theme"
 import { resolveNativeStyle } from "../colors"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
 import { splitNativeTextStyle } from "../nativeTextStyle"
 import { Pagination } from "../Pagination/Pagination"
 
+import { nativeTableLongPressDescription } from "./announcements"
 import {
   NativeTableContext,
   NativeTableOptionsContext,
@@ -58,8 +61,10 @@ import { NativeTableCollection } from "./state/TableCollection"
 import { useNativeTableColumnResizeState } from "./state/useTableColumnResizeState"
 import { useNativeTableState, useNativeFilteredTableState } from "./state/useTableState"
 import { resolveNativeTableStickyOptions } from "./stickyStyles"
+import { NativeTableDescription } from "./TableDescription"
 import { TableTypeahead } from "./TableTypeahead"
 import type { TNativeTableProps, TNativeTableReceivedProps, TNativeTableRenderState } from "./types"
+import { useNativeTableAnnouncements } from "./useTableAnnouncements"
 import { useTableKeyboard } from "./useTableKeyboard"
 
 const Receiver = <T extends object>({
@@ -204,10 +209,42 @@ const Receiver = <T extends object>({
   const [isFocusVisible, setFocusVisible] = useState(false)
   const observedFocus = useRef(false)
   const input = useNativeKeyScope()
+  const floating = useContext(NativeFloatingScopeContext),
+    window = useContext(NativeFloatingWindowContext)
+  const { locale: announcementLocale } = useNativeLocale()
+  const inheritedLocale = useInheritedNativeLocale()
+  const direction = inheritedLocale?.direction ?? (I18nManager.isRTL ? "rtl" : "ltr")
+  const canAnnounce = useCallback(
+    () =>
+      !!root.current &&
+      (findNodeHandle(root.current) ?? 0) > 0 &&
+      input?.isWindowActive() !== false &&
+      floating?.canAct() !== false &&
+      window?.() !== false,
+    [input, floating, window],
+  )
+  const sortDescription = useNativeTableAnnouncements(state, {
+    locale: announcementLocale,
+    confirmed: receipt.status === "confirmed",
+    target,
+    windowIdentity: receipt.lease ? JSON.stringify([receipt.lease.windowId, receipt.lease.epoch]) : "",
+    canAct: canAnnounce,
+  })
+  const sortDescriptionID = `codon-table-sort-description-${generatedID}`
   const subscribeStickyLifetime = useCallback(
     (listener: () => void) => input?.subscribe(listener) ?? (() => {}),
     [input],
   )
+  const inputWitness = useNativeInputModalityWitness(input)
+  const interactionOrigin = inputWitness?.origin ?? input?.lastInput()?.origin ?? null
+  const selectionDescription = nativeTableLongPressDescription(
+    manager,
+    !!onRowAction,
+    interactionOrigin,
+    announcementLocale,
+    Platform.OS === "ios" || Platform.OS === "android",
+  )
+  const selectionDescriptionID = `codon-table-selection-description-${generatedID}`
   useLayoutEffect(
     () =>
       input?.subscribe(() => {
@@ -228,7 +265,6 @@ const Receiver = <T extends object>({
     [],
   )
   const rows = collection.rows.filter((node) => node.type === "item")
-  const { direction } = useNativeLocale()
   const [treeDropTargetDelegate] = useState(() => new NativeTreeDropTargetDelegate())
   const ListDelegate = dragAndDropHooks?.ListDropTargetDelegate ?? NativeListDropTargetDelegate
   treeDropTargetDelegate.setup(
@@ -244,6 +280,7 @@ const Receiver = <T extends object>({
   const headerCount = collection.headerRows.length
   const columnCount = collection.columnCount
   const sourceKeyboard = useTableKeyboard({
+    direction: inheritedLocale?.direction,
     collection,
     manager,
     rows,
@@ -317,16 +354,21 @@ const Receiver = <T extends object>({
       : typeof native.accessibilityLabelledBy === "string"
         ? [native.accessibilityLabelledBy]
         : native.accessibilityLabelledBy
+  const rootNativeProps = nativeViewProps({ ...native, id: providedID ?? retainedID.current })
   const hostProps = {
-    ...nativeViewProps({ ...native, id: providedID ?? retainedID.current }),
+    ...rootNativeProps,
     ref: mergedRef,
     testID: rootTestID,
     accessibilityLabelledBy: labelledBy ? [...labelledBy] : undefined,
     nativeLabelledBy: labelledBy,
-    nativeDescribedBy: nativeAccessibilityIDs(ariaDescribedBy ?? nativeDescribedBy),
+    nativeDescribedBy: [
+      ...(sortDescription ? [sortDescriptionID] : []),
+      ...(selectionDescription ? [selectionDescriptionID] : []),
+      ...(nativeAccessibilityIDs(ariaDescribedBy ?? nativeDescribedBy) ?? []),
+    ],
     nativeDetailsBy: nativeAccessibilityIDs(ariaDetails ?? nativeDetails),
-    accessible: false,
-    focusable: true,
+    accessible: false as const,
+    focusable: rootNativeProps.focusable ?? true,
     nativeTabStop: manager.focusedKey == null,
     capturedKeys: [...keyboard.keysFor(null), ...(dragAndDrop.collectionProps.capturedKeys ?? [])],
     onKeyDown: (event: Parameters<typeof keyboard.onKeyDown>[0]) => {
@@ -448,6 +490,20 @@ const Receiver = <T extends object>({
                       {render ? render(hostProps, renderState) : <NativeFocusView {...hostProps} />}
                     </NativeCollectionItemBindingContext.Provider>
                   </NativeCollectionSemanticsContext.Provider>
+                  {sortDescription && (
+                    <View
+                      nativeID={sortDescriptionID}
+                      testID="table-sort-description"
+                      accessible={false}
+                      pointerEvents="none"
+                      accessibilityElementsHidden
+                      importantForAccessibility="no-hide-descendants"
+                      style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", opacity: 0 }}
+                    >
+                      <NativeText accessible={false}>{sortDescription}</NativeText>
+                    </View>
+                  )}
+                  <NativeTableDescription id={selectionDescriptionID} text={selectionDescription} />
                   {queryControls?.pagination && (
                     <View style={{ flexShrink: 0, flexDirection: "row", justifyContent: "flex-end", paddingTop: 5 }}>
                       <Pagination
@@ -458,8 +514,8 @@ const Receiver = <T extends object>({
                       />
                     </View>
                   )}
-                  {dragAndDrop.preview}
                 </View>
+                {dragAndDrop.accessibleDropChooser}
               </NativeDropIndicatorContext.Provider>
             </NativeDragAndDropContext.Provider>
           </NativeTableContext.Provider>

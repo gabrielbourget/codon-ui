@@ -407,7 +407,7 @@
         "does not restart an unchanged layout deadline when paint is retargeted",
         "finishes current appearance when Reduce Motion becomes enabled",
         "transitions mixed percentage dimensions in the actual modal viewport and keeps auto discrete",
-        "transitions authored spacing, borders, opacity and scalar typography on the existing hosts",
+        "transitions authored spacing, borders, opacity and supported typography on the existing hosts",
         "adds and removes the complete raised shadow list without jumping to the destination",
         "retargets an interrupted property without restarting unrelated nested-shadow and spacing deadlines",
         "transitions removed overrides to their current shorthand defaults then restores the original style shape",
@@ -415,11 +415,13 @@
         "retargets a removed longhand when its shorthand changes during the running transition",
         "uses live viewport measurements during a mixed-unit transition without extending its deadline",
         "resolves omitted border, outline and shadow colors from the same Panel foreground",
-        "interpolates font weight continuously with metrics and restores the authored final value",
-        "retargets fractional and named font weights from the current style and clears back to the original default",
+        "applies weight endpoints immediately while font size retains its independent transition",
+        "switches named and numeric supported weights without rounding and clears to the original default",
         "retires the appearance clock and its listeners when the original Panel unmounts",
         "does not animate changed appearance or construct children while closed",
-        "keeps the maintained scene's held editor through a complete appearance toggle"
+        "keeps the maintained scene's held editor through a complete appearance toggle",
+        "keeps explicit raw and owned text styles without exporting a native descendant typography scope",
+        "keeps explicitly styled raw text outside Panel without native typography transport"
       ]
     },
     {
@@ -495,5 +497,61 @@
       ]
     }
   ],
-  "reactIdentity": "React-managed key on both public components; native forwarded ref resolves the original View and retires normally."
+  "reactIdentity": "React-managed key on both public components; native forwarded ref resolves the original View and retires normally.",
+  "nativeContractAmendments": [
+    {
+      "id": "DEC.PHONE.TYPOGRAPHY.01",
+      "authority": "Gabriel direct approval of explicit styling and discrete weights, 2026-10-31; roadmap3.4.1.3.2",
+      "sourceBaseline": "05ce1a30eaeea56eb6be1d5c70847101857e80b6",
+      "scope": "First Panel/Sort typography slice only. Existing explicit style providers retain owned content; raw custom text needs explicit styling. Font weight takes the supported authored endpoint immediately while unrelated transitions retain their deadlines. Unsupported scalar weights require explicit migration, with no rounding.",
+      "supersededRequirement": "Continuous fractional-weight interpolation and automatic undeclared-field typography inheritance through arbitrary raw descendants under Panel/Sort, formerly accepted in roadmap3.5.39.5. Other source owners and SDK readers remain unchanged.",
+      "nativeCaseReplacements": [
+        {
+          "previous": "transitions authored spacing, borders, opacity and scalar typography on the existing hosts",
+          "current": "transitions authored spacing, borders, opacity and supported typography on the existing hosts"
+        },
+        {
+          "previous": "interpolates font weight continuously with metrics and restores the authored final value",
+          "current": "applies weight endpoints immediately while font size retains its independent transition"
+        },
+        {
+          "previous": "retargets fractional and named font weights from the current style and clears back to the original default",
+          "current": "switches named and numeric supported weights without rounding and clears to the original default"
+        }
+      ],
+      "canonicalEvidence": "Original canonical reference, property inventory, assertions and browser/C++ scalar controls remain historical and unchanged.",
+      "acceptance": "Remap affected G01/G03/G04/G05 source correspondence only; no aggregate gate is promoted. Current glyph/layout/scaling/AT/motion/profile and installed G07/G08 evidence remain OPEN.",
+      "sourceChecks": [
+        {
+          "suite": "packages/react-native/src/components/Panel/__tests__/numeric-appearance.test.ts",
+          "cases": [
+            "keeps the supported authored weight %s without creating a fractional animation",
+            "requires an explicit migration for unsupported authored font weight %s"
+          ],
+          "covers": "Panel root and Sort customDialogStyles validation; authored supported values remain exact and unsupported values fail explicitly."
+        },
+        {
+          "suite": "packages/react-native/src/components/SortAndFilterPanel/__tests__/panel.test.tsx",
+          "cases": ["retains both filter scroll owners and the same editor through dialog style and metadata changes"],
+          "covers": "Panel/dialog native typography scope is absent while owned header styles, independent Button defaults, draft/editor identity and scroll owners remain."
+        }
+      ]
+    },
+    {
+      "id": "DEC.PHONE.TYPOGRAPHY.NATIVE_RETIREMENT.01",
+      "authority": "Gabriel selected Retire the native inheritance API (Recommended) on2026-10-31; roadmap3.4.1.3.2 PHONE-TYPE08",
+      "sourceBaseline": "63ae7187b2b539da7dd61a66810dd507d71476b0",
+      "scope": "Retire the shared native inheritance/registration/transport and temporary conditional JS bridge after all built-in owners have explicit style paths.",
+      "supersedes": "Only earlier D2 temporary legacy-boundary/wire expectations. Current controls assert explicit styles and metric updates, reset/window barriers, original refs/editors/events and absence of native transport. Shared control mapping and receipts are recorded in roadmap3.4.1.3.2 and experiments.",
+      "preserved": "Original canonical source refs, property/native-only counts, historical assertions/receipts and all platform verdicts. Native compiler, glyph/layout/scaling/input/AT/profile qualification remains OPEN."
+    },
+    {
+      "id": "DEC.PHONE.TYPOGRAPHY.STOCK_TYPES.01",
+      "authority": "Gabriel approved stock RN, explicit styling/discrete weights and native inheritance API retirement; roadmap3.4.1.3.2 PHONE-TYPE09",
+      "sourceBaseline": "a2cdaa48f2fb0ee33c26dbfa2c14cdb4d5470ee5",
+      "scope": "Remove only P01/P02 SDK typography hunks and remaining Android scalar adapters; restore stock style/theme fontWeight types for supported named/string/numeric endpoints. Fractional/custom numeric values require explicit migration.",
+      "sourceChecks": "182 cases/11 suites plus source/public types. Invalid untyped-input and overridden-value runtime checks retain their exact values/assertions through a private test helper; positive/negative public declarations cover the restored stock types.",
+      "preserved": "Explicit owned styling, override precedence, original refs/events/identity and other Motion clocks. Original canonical fields, sourceRefs, historical receipts and verdicts remain unchanged; native compiler/products and glyph/layout/scaling/input/AT/profile qualification remain OPEN."
+    }
+  ]
 }

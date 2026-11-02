@@ -1,5 +1,6 @@
 #include "PopPresentation.h"
 #include "PopStyle.h"
+#include "../input/PositionOwnership.h"
 
 #include <folly/json.h>
 #include <react/renderer/core/ComponentDescriptor.h>
@@ -115,7 +116,7 @@ std::string NativePopPresentation::request(const std::string &encoded) {
     const auto family = frame.snapshot.target->getFamilyShared();
     const auto *props = dynamic_cast<const YogaStylableProps *>(frame.snapshot.target->getProps().get());
     if (!props) throw std::runtime_error("Native popLayout: actual style props unavailable");
-    captureNativePopStyle(*props);
+    captureNativePopStyle(*props, codon::input::requireNativePositionPresence(frame.snapshot.target->getProps()));
     auto response = encodeNativePopFrame(frame);
     response["requestId"] = readString(request, "requestId");
     const auto lease = std::to_string(++sequence);
@@ -216,7 +217,7 @@ RootShadowNode::Unshared NativePopPresentation::shadowTreeWillCommit(
       if (entry.active) {
         const auto *props = dynamic_cast<const YogaStylableProps *>(authored.get());
         if (!props) throw std::runtime_error("Native popLayout: style family changed");
-        const auto style = captureNativePopStyle(*props);
+        const auto style = captureNativePopStyle(*props, codon::input::requireNativePositionPresence(authored));
         output = patch(*node, authored, entry.style);
         authored_.insert_or_assign(output.get(), Authored{output, family, lease, style});
       }

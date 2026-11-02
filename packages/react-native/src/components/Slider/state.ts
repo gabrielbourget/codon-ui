@@ -33,6 +33,7 @@ export const useNativeSliderState = (props: TNativeSliderProps) => {
   const [disabledThumbs, setDisabledThumbs] = useState<readonly number[]>([])
   const disabledRef = useRef<readonly number[]>([])
   const mounted = useRef(true)
+  const [, refreshAfterReconnect] = useState(0)
   const proposal = useRef([...values])
   const draggingRef = useRef<readonly number[]>([])
   const latest = useRef({ props, model, values, formatter, disabledThumbs })
@@ -72,7 +73,9 @@ export const useNativeSliderState = (props: TNativeSliderProps) => {
     previous.current = { key: model.key, count: values.length, disabled: props.isDisabled, values, disabledThumbs }
   })
   useLayoutEffect(() => {
+    const reconnecting = !mounted.current
     mounted.current = true
+    if (reconnecting) refreshAfterReconnect((revision) => revision + 1)
     return () => {
       mounted.current = false
       revision.current++

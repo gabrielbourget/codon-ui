@@ -23,7 +23,15 @@ const ITEMS = [
   { id: "e", name: "E" },
 ] as const
 
-type TFrame = { width: number; height: number }
+const GALLERY_CUSTOMIZATIONS = [
+  ["root", "Toggle gallery root styles"],
+  ["primary", "Toggle gallery primary slot styles"],
+  ["row", "Toggle gallery row styles"],
+  ["secondary", "Toggle gallery secondary slot styles"],
+] as const
+type TGalleryCustomization = (typeof GALLERY_CUSTOMIZATIONS)[number][0]
+const POSITIONS = ["flow", "relative", "absolute"] as const
+type TFrame = { x: number; y: number; width: number; height: number }
 const GalleryCell = ({
   name,
   disabled,
@@ -68,6 +76,8 @@ export const GalleryScene = () => {
   const [reordered, setReordered] = useState(false)
   const [zero, setZero] = useState(false)
   const [custom, setCustom] = useState(false)
+  const [customizations, setCustomizations] = useState<readonly TGalleryCustomization[]>([])
+  const [positionIndex, setPositionIndex] = useState(0)
   const [disabled, setDisabled] = useState(false)
   const [lifetime, setLifetime] = useState(0)
   const [actions, setActions] = useState(0)
@@ -77,14 +87,20 @@ export const GalleryScene = () => {
   const recordFrame =
     (key: string) =>
     ({ nativeEvent: { layout } }: LayoutChangeEvent) => {
+      const x = Math.round(layout.x * 1000) / 1000
+      const y = Math.round(layout.y * 1000) / 1000
       const width = Math.round(layout.width * 1000) / 1000
       const height = Math.round(layout.height * 1000) / 1000
       setFrames((current) =>
-        current[key]?.width === width && current[key]?.height === height
+        current[key]?.x === x &&
+        current[key]?.y === y &&
+        current[key]?.width === width &&
+        current[key]?.height === height
           ? current
-          : { ...current, [key]: { width, height } },
+          : { ...current, [key]: { x, y, width, height } },
       )
     }
+  const position = POSITIONS[positionIndex]
   const mode = AVAILABLE_THUMBNAIL_SHOWCASE_RENDERING_MODES[modeIndex]
   const kind = PRIMARY_KINDS[primaryIndex]
   const source = reordered ? [ITEMS[1], ITEMS[0], ...ITEMS.slice(2)] : [...ITEMS]
@@ -119,10 +135,13 @@ export const GalleryScene = () => {
         {zero ? 0 : 280}. Custom: {String(custom)}. Disabled: {String(disabled)}. Actions: {actions}. Overflow actions:{" "}
         {overflowActions}. Lifetime: {lifetime}.
       </Text>
+      <Text testID="gallery-customization-state">
+        Gallery customizations: {customizations.join(", ") || "none"}. Positioning: {position}.
+      </Text>
       <Text testID="gallery-frames">
         Last native frames:{" "}
         {Object.entries(frames)
-          .map(([name, frame]) => `${name} ${frame.width} x ${frame.height}`)
+          .map(([name, frame]) => `${name} ${frame.width} x ${frame.height} at ${frame.x}, ${frame.y}`)
           .join("; ") || "unmeasured"}
         .
       </Text>
@@ -147,85 +166,120 @@ export const GalleryScene = () => {
         <Button onPress={() => setReordered((value) => !value)}>Reorder gallery items</Button>
         <Button onPress={() => setZero((value) => !value)}>Toggle gallery zero width</Button>
         <Button onPress={() => setCustom((value) => !value)}>Toggle gallery styles</Button>
+        {GALLERY_CUSTOMIZATIONS.map(([key, label]) => (
+          <Button
+            key={key}
+            onPress={() =>
+              setCustomizations((values) =>
+                values.includes(key) ? values.filter((value) => value !== key) : [...values, key],
+              )
+            }
+          >
+            {label}
+          </Button>
+        ))}
+        <Button onPress={() => setPositionIndex((value) => (value + 1) % POSITIONS.length)}>
+          Next gallery positioning
+        </Button>
         <Button onPress={() => setDisabled((value) => !value)}>Toggle gallery actions disabled</Button>
         <Button onPress={() => setLifetime((value) => value + 1)}>Restart gallery content</Button>
       </View>
-      <ThumbnailShowcase
-        key={lifetime}
-        testID="gallery-example"
-        width={zero ? 0 : 280}
-        renderingMode={mode}
-        primaryContent={primaryContent}
-        primaryPlaceholder={
-          <View
-            testID="gallery-primary-placeholder"
-            style={[styles.fill, { backgroundColor: theme.colors.controlTrackBackground }]}
-            onLayout={recordFrame("primary-placeholder")}
-          >
-            <Text>No primary media / aucun média principal</Text>
-          </View>
-        }
-        secondaryItems={selected.map((item) => ({
-          id: item.id,
-          content: (
-            <GalleryCell
-              name={item.name}
-              disabled={disabled}
-              onAction={() => setActions((value) => value + 1)}
-              onLayout={recordFrame(item.name)}
-            />
-          ),
-        }))}
-        secondarySlotCount={SLOT_COUNTS[slotIndex]}
-        secondaryColumnCount={COLUMNS[columnIndex]}
-        renderSecondaryPlaceholder={({ index }) => (
-          <View
-            testID="gallery-secondary-placeholder"
-            style={[styles.fill, { backgroundColor: theme.colors.controlTrackBackground }]}
-            onLayout={recordFrame(`empty-${index}`)}
-          >
-            <Text>·{index}</Text>
-          </View>
-        )}
-        renderOverflow={
-          overflow
-            ? ({ hiddenItemCount }) => (
-                <Button
-                  testID="gallery-overflow"
-                  accessibilityLabel={`Gallery overflow ${hiddenItemCount}`}
-                  width="100%"
-                  height="100%"
-                  geometry="orthogonal"
-                  raised={false}
-                  style={{ padding: 0 }}
-                  isDisabled={disabled}
-                  onLayout={recordFrame("overflow")}
-                  onPress={() => setOverflowActions((value) => value + 1)}
-                >
-                  +{hiddenItemCount}
-                </Button>
-              )
-            : undefined
-        }
-        style={[
-          custom ? { width: 260, gap: 12, padding: 5, borderWidth: 1, borderColor: theme.colors.controlBorder } : {},
-          zero ? { width: 0 } : {},
-        ]}
-        primarySlotStyle={
-          custom
-            ? { aspectRatio: 2, borderRadius: 5, borderWidth: 2, borderColor: theme.colors.controlSelectedBackground }
-            : undefined
-        }
-        secondaryRowStyle={
-          custom
-            ? { padding: 4, columnGap: 4, rowGap: 6, backgroundColor: theme.colors.controlTrackBackground }
-            : undefined
-        }
-        secondarySlotStyle={
-          custom ? { width: 40, borderRadius: 5, borderWidth: 1, borderColor: theme.colors.controlBorder } : undefined
-        }
-        onLayout={recordFrame("root")}
-      />
+      <View
+        testID="gallery-position-host"
+        style={[styles.positionHost, position === "absolute" ? styles.absoluteHost : undefined]}
+        onLayout={recordFrame("host")}
+      >
+        <ThumbnailShowcase
+          key={lifetime}
+          testID="gallery-example"
+          width={zero ? 0 : 280}
+          renderingMode={mode}
+          primaryContent={primaryContent}
+          primaryPlaceholder={
+            <View
+              testID="gallery-primary-placeholder"
+              style={[styles.fill, { backgroundColor: theme.colors.controlTrackBackground }]}
+              onLayout={recordFrame("primary-placeholder")}
+            >
+              <Text>No primary media / aucun média principal</Text>
+            </View>
+          }
+          secondaryItems={selected.map((item) => ({
+            id: item.id,
+            content: (
+              <GalleryCell
+                name={item.name}
+                disabled={disabled}
+                onAction={() => setActions((value) => value + 1)}
+                onLayout={recordFrame(item.name)}
+              />
+            ),
+          }))}
+          secondarySlotCount={SLOT_COUNTS[slotIndex]}
+          secondaryColumnCount={COLUMNS[columnIndex]}
+          renderSecondaryPlaceholder={({ index }) => (
+            <View
+              testID="gallery-secondary-placeholder"
+              style={[styles.fill, { backgroundColor: theme.colors.controlTrackBackground }]}
+              onLayout={recordFrame(`empty-${index}`)}
+            >
+              <Text>·{index}</Text>
+            </View>
+          )}
+          renderOverflow={
+            overflow
+              ? ({ hiddenItemCount }) => (
+                  <Button
+                    testID="gallery-overflow"
+                    accessibilityLabel={`Gallery overflow ${hiddenItemCount}`}
+                    width="100%"
+                    height="100%"
+                    geometry="orthogonal"
+                    raised={false}
+                    style={{ padding: 0 }}
+                    isDisabled={disabled}
+                    onLayout={recordFrame("overflow")}
+                    onPress={() => setOverflowActions((value) => value + 1)}
+                  >
+                    +{hiddenItemCount}
+                  </Button>
+                )
+              : undefined
+          }
+          style={[
+            custom ? { width: 260, gap: 12, padding: 5, borderWidth: 1, borderColor: theme.colors.controlBorder } : {},
+            customizations.includes("root") ? styles.customRoot : undefined,
+            position === "relative"
+              ? styles.relativePosition
+              : position === "absolute"
+                ? styles.absolutePosition
+                : undefined,
+            zero ? { width: 0 } : {},
+          ]}
+          primarySlotStyle={[
+            custom
+              ? { aspectRatio: 2, borderRadius: 5, borderWidth: 2, borderColor: theme.colors.controlSelectedBackground }
+              : undefined,
+            customizations.includes("primary") ? styles.customPrimary : undefined,
+          ]}
+          secondaryRowStyle={[
+            custom
+              ? { padding: 4, columnGap: 4, rowGap: 6, backgroundColor: theme.colors.controlTrackBackground }
+              : undefined,
+            customizations.includes("row") ? styles.customRow : undefined,
+          ]}
+          secondarySlotStyle={[
+            custom
+              ? { width: 40, borderRadius: 5, borderWidth: 1, borderColor: theme.colors.controlBorder }
+              : undefined,
+            customizations.includes("secondary") ? styles.customSecondary : undefined,
+          ]}
+          onLayout={recordFrame("root")}
+        />
+      </View>
+      <Text>
+        Positioned previews use their containing host; absolute positioning reserves 640 logical units for inspection.
+      </Text>
       <Text>
         Slot and column counts are separate. Reordering and layout changes preserve keyed child state; restart or Reset
         scene begins a new lifetime. Width0 keeps its authored value while padding, borders and gaps retain their own
@@ -240,4 +294,12 @@ const styles = StyleSheet.create({
   scene: { gap: 10 },
   controls: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   fill: { width: "100%", height: "100%" },
+  positionHost: { position: "relative" },
+  absoluteHost: { minHeight: 640 },
+  relativePosition: { position: "relative", top: 8, left: 8 },
+  absolutePosition: { position: "absolute", top: 12, left: 12 },
+  customRoot: { padding: 7, borderWidth: 2, borderColor: "#087f8c", gap: 14 },
+  customPrimary: { aspectRatio: 2, borderWidth: 3, borderColor: "#be123c", borderRadius: 8 },
+  customRow: { padding: 6, columnGap: 8, rowGap: 12, borderWidth: 2, borderColor: "#7c3aed" },
+  customSecondary: { width: 48, borderWidth: 2, borderColor: "#166534", borderRadius: 7 },
 })

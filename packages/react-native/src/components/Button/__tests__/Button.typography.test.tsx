@@ -1,8 +1,18 @@
 import { fireEvent, render, screen } from "@testing-library/react-native"
-import { Fragment, useState } from "react"
-import { AccessibilityInfo, PlatformColor, StyleSheet } from "react-native"
+import { createRef, Fragment, useState } from "react"
+import { AccessibilityInfo, PlatformColor, StyleSheet, Text as RNText, View } from "react-native"
 
-import { Button, NativeThemeProvider, Text, type TNativeButtonStyleState } from "../../.."
+import {
+  Button,
+  NativeFocusView,
+  NativeThemeProvider,
+  Text,
+  type TNativeButtonProps,
+  type TNativeButtonStyleState,
+} from "../../.."
+import { untypedFontWeight } from "../../__tests__/untypedFontWeight"
+import { NativeTextStyleProvider } from "../../NativeTextStyleProvider"
+import { NativeButton } from "../Button"
 
 beforeEach(() => jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true))
 afterEach(() => jest.restoreAllMocks())
@@ -194,3 +204,158 @@ it("updates render-state typography without changing pending/disabled or press c
   await fireEvent(root, "press", { nativeEvent: { timestamp: 1 } })
   expect(onPress).toHaveBeenCalledTimes(1)
 })
+
+it.each([false, true])(
+  "keeps explicit content and original refs without a native typography scope (custom renderer: %s)",
+  async (customRenderer) => {
+    const rootRef = createRef<View>()
+    const childRef = createRef<RNText>()
+    const content = (
+      <View>
+        <RNText ref={childRef} testID="raw-custom" style={{ fontWeight: "500", color: "green" }}>
+          Explicit raw text
+        </RNText>
+        <Text testID="owned-custom" customStyles={{ fontWeight: "700" }}>
+          Owned text
+        </Text>
+        <NativeTextStyleProvider style={{ letterSpacing: 3 }}>
+          <NativeFocusView testID="nested-explicit" />
+        </NativeTextStyleProvider>
+      </View>
+    )
+    const renderer: TNativeButtonProps["render"] = customRenderer
+      ? (props) => <NativeFocusView {...props} />
+      : undefined
+    const node = (fontWeight: "600" | "800") => (
+      <NativeTextStyleProvider style={{ fontWeight: "900" }}>
+        <NativeTextStyleProvider style={{ fontWeight: "900" }}>
+          <NativeFocusView testID="independent-owner" />
+        </NativeTextStyleProvider>
+        <Button ref={rootRef} render={renderer} customStyles={{ fontWeight, letterSpacing: 2 }}>
+          Owned phrase
+          {content}
+        </Button>
+      </NativeTextStyleProvider>
+    )
+    const view = await render(node("800"))
+    const originalRoot = rootRef.current
+    const originalChild = childRef.current
+    expect(originalRoot).not.toBeNull()
+    expect(originalChild).not.toBeNull()
+    expect(screen.getByRole("button").props.nativeTypographyStyle).toBeUndefined()
+    expect(screen.getByTestId("nested-explicit").props.nativeTypographyStyle).toBeUndefined()
+    expect(screen.getByTestId("independent-owner").props.nativeTypographyStyle).toBeUndefined()
+    expect(screen.getByText("Owned phrase")).toHaveStyle({ fontWeight: "800", letterSpacing: 2 })
+    expect(screen.getByTestId("owned-custom")).toHaveStyle({ fontWeight: "700", letterSpacing: 2 })
+    expect(screen.getByTestId("raw-custom")).toHaveStyle({ fontWeight: "500", color: "green" })
+    await view.rerender(node("600"))
+    expect(rootRef.current).toBe(originalRoot)
+    expect(childRef.current).toBe(originalChild)
+    expect(screen.getByText("Owned phrase")).toHaveStyle({ fontWeight: "600", letterSpacing: 2 })
+    expect(screen.getByTestId("owned-custom")).toHaveStyle({ fontWeight: "700", letterSpacing: 2 })
+    expect(screen.getByTestId("raw-custom")).toHaveStyle({ fontWeight: "500", color: "green" })
+    await view.unmount()
+    expect(rootRef.current).toBeNull()
+    expect(childRef.current).toBeNull()
+  },
+)
+
+it("keeps independent Button defaults through explicit ancestor metric updates without native transport", async () => {
+  const rootRef = createRef<View>()
+  const childRef = createRef<RNText>()
+  const node = (lineHeight: number) => (
+    <NativeTextStyleProvider style={{ fontWeight: "900", lineHeight }}>
+      <NativeFocusView testID="ancestor-owner">
+        <Button ref={rootRef}>
+          Independent defaults
+          <RNText ref={childRef} style={{ fontWeight: "500", color: "green" }}>
+            Explicit raw text
+          </RNText>
+        </Button>
+      </NativeFocusView>
+    </NativeTextStyleProvider>
+  )
+  const view = await render(node(38))
+  const root = rootRef.current
+  const child = childRef.current
+  expect(root).not.toBeNull()
+  expect(child).not.toBeNull()
+  const inherited = () => screen.getByTestId("ancestor-owner").props.nativeTypographyStyle
+  const boundary = () => screen.getByRole("button").props.nativeTypographyStyle
+  expect(inherited()).toBeUndefined()
+  expect(boundary()).toBeUndefined()
+  expect(screen.getByText("Independent defaults")).toHaveStyle({
+    fontWeight: "400",
+    fontStyle: "normal",
+    letterSpacing: 0,
+    textAlign: "center",
+  })
+  expect(StyleSheet.flatten(screen.getByText("Independent defaults").props.style).lineHeight).toBeUndefined()
+  await view.rerender(node(42))
+  expect(inherited()).toBeUndefined()
+  expect(boundary()).toBeUndefined()
+  await view.rerender(node(28))
+  expect(inherited()).toBeUndefined()
+  expect(boundary()).toBeUndefined()
+  expect(rootRef.current).toBe(root)
+  expect(childRef.current).toBe(child)
+  expect(screen.getByText("Independent defaults")).toHaveStyle({
+    fontWeight: "400",
+    fontStyle: "normal",
+    letterSpacing: 0,
+    textAlign: "center",
+  })
+  expect(StyleSheet.flatten(screen.getByText("Independent defaults").props.style).lineHeight).toBeUndefined()
+  expect(screen.getByText("Explicit raw text")).toHaveStyle({ fontWeight: "500", color: "green" })
+})
+
+it("retains exact supported weight endpoints through final style and theme updates", async () => {
+  const node = (fontWeight: "normal" | "bold" | "semibold" | 500 | "800") => (
+    <NativeThemeProvider overrides={{ typography: { fontWeights: { regular: fontWeight } } }}>
+      <Button customStyles={{ fontWeight: "700" }} style={{ fontWeight: undefined }}>
+        Theme weight
+      </Button>
+      <Button customStyles={{ fontWeight: "700" }} style={() => ({ fontWeight })}>
+        Final weight
+      </Button>
+    </NativeThemeProvider>
+  )
+  const view = await render(node("normal"))
+  for (const fontWeight of ["bold", "semibold", 500, "800"] as const) {
+    await view.rerender(node(fontWeight))
+    expect(screen.getByText("Theme weight")).toHaveStyle({ fontWeight })
+    expect(screen.getByText("Final weight")).toHaveStyle({ fontWeight })
+  }
+})
+
+it.each(["custom", "final", "composed"] as const)(
+  "requires an explicit migration for an unsupported %s weight",
+  async (owner) => {
+    const fontWeight = untypedFontWeight(750.5)
+    await expect(
+      render(
+        owner === "composed" ? (
+          <NativeButton
+            nativeStyle={() => ({
+              viewStyle: {},
+              textStyle: { fontWeight },
+              foregroundColor: "black",
+              target: 44,
+            })}
+          >
+            Scalar weight
+          </NativeButton>
+        ) : (
+          <Button
+            customStyles={owner === "custom" ? { fontWeight } : undefined}
+            style={owner === "final" ? () => ({ fontWeight }) : undefined}
+          >
+            Scalar weight
+          </Button>
+        ),
+      ),
+    ).rejects.toThrow(
+      "Button: fontWeight must use a stock React Native weight; migrate custom scalar weights explicitly",
+    )
+  },
+)

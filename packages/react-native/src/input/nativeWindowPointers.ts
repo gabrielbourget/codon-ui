@@ -4,6 +4,19 @@ import type { TNativeKeyScope } from "./keyScope"
 import type { NativePointerStatus, NativeWindowPointerData } from "./specs/CUIKeyboardScopeNativeComponent"
 
 export type TNativeWindowPointerEvent = NativeSyntheticEvent<NativeWindowPointerData>
+export type TAcceptedNativeWindowPointer = Readonly<
+  Pick<
+    NativeWindowPointerData,
+    "ownerId" | "windowId" | "epoch" | "sequence" | "phase" | "pointerType" | "target" | "timestamp"
+  >
+>
+const acceptedObservers = new Set<(data: TAcceptedNativeWindowPointer) => void>()
+export const observeAcceptedNativeWindowPointer = (observe: (data: TAcceptedNativeWindowPointer) => void) => {
+  acceptedObservers.add(observe)
+  return () => {
+    acceptedObservers.delete(observe)
+  }
+}
 type TRegistration = {
   targetTag: number
   global: boolean
@@ -55,6 +68,25 @@ export const dispatchNativeWindowPointer = (event: TNativeWindowPointerEvent) =>
   )
   let claimed = false
   const errors: unknown[] = []
+  if (acceptedObservers.size) {
+    const accepted = Object.freeze({
+      ownerId: data.ownerId,
+      windowId: data.windowId,
+      epoch: data.epoch,
+      sequence: data.sequence,
+      phase: data.phase,
+      pointerType: data.pointerType,
+      target: data.target,
+      timestamp: data.timestamp,
+    })
+    for (const observe of [...acceptedObservers]) {
+      try {
+        observe(accepted)
+      } catch (error) {
+        errors.push(error)
+      }
+    }
+  }
   for (const { entry, id, depth } of selected) {
     const current = () => entry.id === id && entry.current()
     if (!current()) continue

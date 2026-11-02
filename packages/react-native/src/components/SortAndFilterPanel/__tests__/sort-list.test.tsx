@@ -8,6 +8,7 @@ import type * as RN from "react-native"
 import {
   actWithNativeCollections as collectionAct,
   renderWithNativeCollections as collectionRender,
+  fireEventWithNativeCollections as fireEvent,
   screen,
 } from "../../../collection/__tests__/nativeReceipts"
 import { nativeVirtualDrag } from "../../../collection/dragAndDrop/virtualDrag"
@@ -79,6 +80,10 @@ jest.mock("../../../input/specs/NativeCUIDragAndDrop", () => ({
     readText: jest.fn(),
   },
 }))
+jest.mock("react-native-safe-area-context", () => {
+  const { View } = jest.requireActual("react-native")
+  return { SafeAreaProvider: View, SafeAreaView: View }
+})
 const NativeThemeProvider = (props: ComponentProps<typeof ThemeProvider>) => (
   <ThemeProvider {...props}>
     <NativeDragActionsContext.Provider value={mockDragFixture.actions}>
@@ -87,9 +92,9 @@ const NativeThemeProvider = (props: ComponentProps<typeof ThemeProvider>) => (
   </ThemeProvider>
 )
 const act = async <T,>(callback: () => T | Promise<T>): Promise<T> => {
-  mockDragFixture.ready()
+  await rawAct(() => mockDragFixture.ready())
   const value = await collectionAct(callback)
-  mockDragFixture.ready()
+  await collectionAct(() => mockDragFixture.ready())
   return value
 }
 const render: typeof collectionRender = async (element, options) => {
@@ -181,26 +186,11 @@ const expectFocus = (host: THost) => {
   expect(call?.[0] === mockViews.get(host.props.ownerId)).toBe(true)
   expect(call?.[1]).toBe(host.props.ownerId)
 }
-const acknowledgeRequestedFocus = async () => {
-  const call = jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)
-  expect(call).toBeDefined()
-  const [view, ownerId] = call!
-  const receiver = mockFocusReceivers.get(ownerId)!()
-  await act(() =>
-    (receiver.onNativeFocusChange as (event: object) => void)({
-      nativeEvent: {
-        ownerId,
-        target: jest.requireActual<typeof RN>("react-native").findNodeHandle(view),
-        isFocused: true,
-        isFocusVisible: true,
-      },
-    }),
-  )
-}
 beforeEach(() => {
   jest.useFakeTimers()
   jest.clearAllMocks()
   jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
+  jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => {})
   mockViews.clear()
   mockFocusReceivers.clear()
   mockAttachments.length = 0
@@ -390,53 +380,50 @@ it("keeps a physical sort option attached across current metadata updates and de
   expect(mockAttachments.filter((event) => event.ownerId === ownerId && !event.attached)).toHaveLength(1)
 })
 
-it("reorders on Enter release through the native collection admission while a held owner keeps its order", async () => {
+const showChooser = async () => {
+  expect(screen.getAllByTestId("native-drop-chooser-window", { includeHiddenElements: true })).toHaveLength(1)
+  const modal = screen.getByTestId("native-drop-chooser-window", { includeHiddenElements: true })
+  const dismissed = modal.props.onDismiss as () => void
+  await fireEvent(modal, "show")
+  return dismissed
+}
+const confirmChoice = async (label: string) => {
+  await fireEvent.press(screen.getByRole("button", { name: label }))
+  await fireEvent.press(screen.getByRole("button", { name: "Drop" }))
+}
+
+it("opens the chooser on Enter release and reorders only after dismissal while retaining the held owner", async () => {
   const onReorder = jest.fn()
   await render(tree({ ...props(), onReorder }))
   const original = mockViews.get(option().props.ownerId)
   await observe(option())
   await key(option(), "Enter")
-  expect(screen.queryByTestId("query-sort-drop-indicator")).toBeNull()
+  expect(nativeVirtualDrag.pendingRequest()).toBeNull()
   await key(option(), "Enter", tag(option()), true, "up")
-  expect(screen.getAllByTestId("query-sort-drop-indicator")).toHaveLength(3)
-  expect(screen.queryByTestId("query-sort-option-")).toBeNull()
-  await key(option(), "End")
-  await acknowledgeRequestedFocus()
+  const dismissed = await showChooser()
+  expect(nativeVirtualDrag.active()).toBeNull()
+  await confirmChoice("Insert after Sort Parameter - Name - Descending")
   expect(onReorder).not.toHaveBeenCalled()
-  await key(option(), "Enter", tag(option()), true, "up")
+  await act(dismissed)
   expect(onReorder).toHaveBeenCalledTimes(1)
   expect(onReorder).toHaveBeenCalledWith("", "name", "after")
   expect(JSON.parse(option().props.nativeCollectionSemantics).ordinal).toBe(0)
-  expect(mockViews.get(option().props.ownerId) === original).toBe(true)
-  await act(() => jest.advanceTimersByTime(50))
-  expectFocus(option())
-  expect(screen.queryByTestId("query-sort-drop-indicator")).toBeNull()
+  expect(mockViews.get(option().props.ownerId)).toBe(original)
 })
 
-it("navigates valid insertion positions, cycles Tab through the source and collection, and cancels with Escape", async () => {
+it("offers labeled logical insertion choices and cancels without changing the query", async () => {
   const onReorder = jest.fn()
   const third = { ...rows[1], id: "third", criteriaID: "third", criteriaName: "Third" }
   await render(tree({ ...props(), onReorder, sortParameterList: [...rows, third] }))
-  await observe(option("name"))
+  const original = mockViews.get(option("name").props.ownerId)
   await key(option("name"), "Enter", tag(option("name")), true, "up")
-  await key(option("name"), "Home")
-  await acknowledgeRequestedFocus()
+  await showChooser()
   expect(screen.getByRole("button", { name: "Insert before Sort Parameter - City - Ascending" })).toBeOnTheScreen()
-  const tab = await key(option("name"), "Tab")
-  expect(tab.defaultPrevented).toBe(true)
-  expectFocus(option("name"))
-  await key(option("name"), "Tab", tag(option("name")), true, "down", true)
-  await key(option("name"), "Home")
-  await key(option("name"), "Enter", tag(option("name")), true, "up")
-  expect(onReorder).toHaveBeenCalledWith("name", "", "before")
-  await key(option("name"), "Enter", tag(option("name")), true, "up")
-  await key(option("name"), "ArrowDown")
-  await key(option("name"), "ArrowUp")
-  await acknowledgeRequestedFocus()
-  await key(option("name"), "Escape")
-  expect(onReorder).toHaveBeenCalledTimes(1)
-  expect(screen.queryByTestId("query-sort-drop-indicator")).toBeNull()
-  expectFocus(option("name"))
+  expect(screen.getByRole("button", { name: "Insert after Sort Parameter - Third - Descending" })).toBeOnTheScreen()
+  await fireEvent.press(screen.getByRole("button", { name: "Cancel" }))
+  expect(nativeVirtualDrag.pendingRequest()).toBeNull()
+  expect(onReorder).not.toHaveBeenCalled()
+  expect(mockViews.get(option("name").props.ownerId)).toBe(original)
 })
 
 it("leaves nested button Enter and an unconfigured list outside the reorder interaction", async () => {
@@ -453,36 +440,25 @@ it("leaves nested button Enter and an unconfigured list outside the reorder inte
   expect(option().props.accessibilityActions).toBeUndefined()
 })
 
-it("drops before and after current targets through the actual native accessibility action", async () => {
+it("chooses before and after current targets from the original native accessibility action", async () => {
   const onReorder = jest.fn()
   await render(tree({ ...props(), onReorder }))
-  const begin = async (id: string) =>
-    act(() => option(id).props.onAccessibilityAction({ nativeEvent: { actionName: "activate" } }))
-  const drop = async (label: string) => {
-    const host = screen.getByRole("button", { name: label })
-    await act(() =>
-      host.props.onNativeActivation({
-        nativeEvent: {
-          ownerId: host.props.ownerId,
-          target: tag(host),
-          activationId: 1,
-          kind: "activation",
-          source: "ios-accessibility-activate",
-          scopeOwnerId: "sort-drag-owner",
-          windowId: "sort-window",
-          epoch: 1,
-        },
-      }),
-    )
+  const begin = async (id: string) => {
+    await act(() => option(id).props.onAccessibilityAction({ nativeEvent: { actionName: "activate" } }))
+    return showChooser()
   }
-  await begin("")
-  await drop("Insert after Sort Parameter - Name - Descending")
+  const firstDismissed = await begin("")
+  await confirmChoice("Insert after Sort Parameter - Name - Descending")
+  expect(onReorder).not.toHaveBeenCalled()
+  await act(firstDismissed)
   expect(onReorder).toHaveBeenLastCalledWith("", "name", "after")
-  await begin("name")
-  await drop("Insert before Sort Parameter - City - Ascending")
+  const secondDismissed = await begin("name")
+  await confirmChoice("Insert before Sort Parameter - City - Ascending")
+  expect(onReorder).toHaveBeenCalledTimes(1)
+  await act(secondDismissed)
   expect(onReorder).toHaveBeenLastCalledWith("name", "", "before")
   await begin("")
-  await begin("")
+  await fireEvent.press(screen.getByRole("button", { name: "Cancel" }))
   expect(onReorder).toHaveBeenCalledTimes(2)
 })
 
@@ -775,21 +751,25 @@ it.each(["outside", "terminate", "multitouch"])(
   },
 )
 
-it("retires a queued drop after owner close or original source removal", async () => {
+it("retires a confirmed chooser after owner close or original source removal", async () => {
   const onReorder = jest.fn()
   let open = true
   const value = { ...props(), onReorder, canAct: () => open },
     view = await render(tree(value))
   await key(option(), "Enter", tag(option()), true, "up")
-  await key(option(), "End")
-  await key(option(), "Enter", tag(option()), false, "up")
+  const firstDismissed = await showChooser()
+  await confirmChoice("Insert after Sort Parameter - Name - Descending")
   open = false
-  await act(() => {})
+  await act(firstDismissed)
   expect(onReorder).not.toHaveBeenCalled()
+  expect(nativeVirtualDrag.pendingRequest()).toBeNull()
   open = true
+  await view.rerender(tree(value))
   await key(option(), "Enter", tag(option()), true, "up")
-  await key(option(), "End")
+  const secondDismissed = await showChooser()
+  await confirmChoice("Insert after Sort Parameter - Name - Descending")
   await view.rerender(tree({ ...value, sortParameterList: [rows[1]] }))
-  await key(option("name"), "Enter", tag(option("name")), true, "up")
+  await act(secondDismissed)
   expect(onReorder).not.toHaveBeenCalled()
+  expect(nativeVirtualDrag.pendingRequest()).toBeNull()
 })

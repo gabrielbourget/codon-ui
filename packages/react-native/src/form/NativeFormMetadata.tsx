@@ -28,8 +28,7 @@ type TFieldProps = Pick<
   | "formId"
   | "semanticBinding"
   | "ownedEditorBinding"
-  | "fieldGroupBinding"
-  | "onNativeFieldInputRecord"
+  | "ownedControlBinding"
   | "onNativeFormCommit"
 > & { metadataRef?: Ref<ComponentRef<typeof Field>> }
 

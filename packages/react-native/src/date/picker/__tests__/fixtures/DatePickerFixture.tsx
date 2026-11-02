@@ -1,6 +1,6 @@
 import { CalendarDate, CalendarDateTime, parseZonedDateTime } from "@internationalized/date"
 import { useEffect, useRef, useState, type ComponentProps, type Ref } from "react"
-import { ScrollView, View, type TextInput } from "react-native"
+import { ScrollView, StyleSheet, View, type TextInput } from "react-native"
 
 import {
   Button,
@@ -23,6 +23,29 @@ const values = [
   new CalendarDateTime(2024, 11, 1, 13, 45, 7),
   parseZonedDateTime("2024-11-01T13:45:07[America/New_York]"),
 ]
+const inspectionStyles = StyleSheet.create({
+  root: { padding: 2, margin: 6 },
+  group: { padding: 4 },
+  input: { padding: 0 },
+})
+const customAppearance = {
+  customStyles: [inspectionStyles.root, { margin: 0 }],
+  style: { padding: 0 },
+  customInputButtonGroupStyles: [inspectionStyles.group, { padding: 0 }],
+  customInputStyles: [inspectionStyles.input, { paddingHorizontal: 0 }],
+  customButtonStyles: { padding: 5 },
+  customPopoverStyles: { borderWidth: 2 },
+  customDialogStyles: { padding: 7 },
+  customCalendarStyles: { padding: 8 },
+  customCalendarHeaderStyles: { fontSize: 27 },
+  customCalendarPrevBtnStyles: { padding: 9 },
+  customCalendarNextBtnStyles: { padding: 10 },
+  customCalendarGridStyles: { padding: 11 },
+  customCalendarGridHeaderStyles: { paddingTop: 12 },
+  customCalendarGridHeaderCellStyles: { padding: 13 },
+  customCalendarGridBodyStyles: { paddingBottom: 14 },
+  customCalendarGridBodyCellStyles: { padding: 15 },
+}
 const locales = ["en-US", "ar-EG", "ja-JP-u-ca-japanese"] as const
 const interval = (start: TNativeDateTimePickerValue) => ({
   start,
@@ -66,6 +89,7 @@ export const DatePickerFixture = ({
     [dark, setDark] = useState(false),
     [large, setLarge] = useState(false),
     [custom, setCustom] = useState(false),
+    [customStyles, setCustomStyles] = useState(false),
     [nonContiguous, setNonContiguous] = useState(false),
     [months, setMonths] = useState(false),
     [firstMonday, setMonday] = useState(false)
@@ -111,6 +135,7 @@ export const DatePickerFixture = ({
               <Button onPress={() => setDark((current) => !current)}>Toggle date theme</Button>
               <Button onPress={() => setLarge((current) => !current)}>Toggle date large text fixture</Button>
               <Button onPress={() => setCustom((current) => !current)}>Toggle date root renderer</Button>
+              <Button onPress={() => setCustomStyles((current) => !current)}>Toggle date style owners</Button>
               <Button onPress={() => setNonContiguous((current) => !current)}>Toggle noncontiguous ranges</Button>
               <Button onPress={() => setMonths((current) => !current)}>Toggle date month count</Button>
               <Button onPress={() => setMonday((current) => !current)}>Toggle Monday first</Button>
@@ -125,13 +150,14 @@ export const DatePickerFixture = ({
             </View>
             <Text testID="date-fixture-state">
               Class {["CalendarDate", "CalendarDateTime", "ZonedDateTime"][sample]}. Locale {locales[locale]}. Veto{" "}
-              {String(veto)}. Read only {String(readOnly)}. Disabled {String(disabled)}. Date{" "}
-              {value?.toString() ?? "null"}. Range{" "}
+              {String(veto)}. Custom styles {String(customStyles)}. Read only {String(readOnly)}. Disabled{" "}
+              {String(disabled)}. Date {value?.toString() ?? "null"}. Range{" "}
               {range ? `${range.start.toString()} / ${range.end.toString()}` : "null"}.
             </Text>
             <NativeForm onSubmit={submit}>
               <DateTimePicker
                 ref={single}
+                {...(customStyles ? customAppearance : {})}
                 accessibilityLabel="Single date"
                 name="date"
                 value={value}
@@ -151,6 +177,7 @@ export const DatePickerFixture = ({
               />
               <DateTimeRangePicker
                 ref={pair}
+                {...(customStyles ? customAppearance : {})}
                 accessibilityLabel="Date interval"
                 startName="endpoint"
                 endName="endpoint"

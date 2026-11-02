@@ -1,12 +1,13 @@
 import type { ReactElement, ReactNode, RefAttributes } from "react"
-import type { StyleProp, TextStyle, View } from "react-native"
+import type { PointerEvent, StyleProp, TextStyle, View } from "react-native"
 
 import type { TNativeSlotProps } from "../../collection/context"
 import type { TNativeFieldSemanticLabels } from "../../form/semantics"
-import type { TNativeFieldPointerEvent } from "../../input/fieldInput"
 import type { TNativeFocusViewProps } from "../../input/types"
 import type { TimePickerProps, TimeValue } from "../state/types"
 import type { DateFieldState } from "../state/useDateFieldState"
+
+import type { TNativeExtraFocusParticipants } from "./participants"
 
 export type TNativeTimeFieldRenderState = Readonly<{
   state: DateFieldState
@@ -30,8 +31,9 @@ export type TNativeTimeFieldProps<T extends TimeValue = TimeValue> = Omit<TNativ
     | "onKeyUp"
   > &
   TNativeSlotProps & {
+    extraFocusParticipants?: TNativeExtraFocusParticipants
     onFocusChange?: (focused: boolean) => void
-    onClick?: (event: TNativeFieldPointerEvent) => void
+    onClick?: (event: PointerEvent) => void
     id?: string
     name?: string
     form?: string

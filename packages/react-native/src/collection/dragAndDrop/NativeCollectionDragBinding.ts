@@ -8,6 +8,7 @@ import type { TNativeDragActionPacket, TNativeDragActions, TNativeDragViewBindin
 import NativeModule from "../../input/specs/NativeCUIDragAndDrop"
 import type { TNativeKeyboardEvent } from "../../input/types"
 import type { TNativeCollectionScrollHost, TNativeCollectionLayoutDelegate } from "../renderer"
+import { getNativeCollectionMetadataIdentity } from "../snapshot"
 import type { TNativeCollectionKey } from "../snapshot"
 
 import { NativeDragController } from "./controller"
@@ -169,7 +170,18 @@ export class NativeCollectionDragBinding {
   }
   logicalCurrent = () => this.roles.size > 0 && !!this.root.current && this.currentOwner()
   current = () => this.logicalCurrent() && this.root.current === this.bound && !!this.lease?.current()
-  ready = () => this.current() && !!this.lease?.ready() && this.scope?.window().canLift === true
+  ready = () => {
+    const prepared = this.preparedPreview()
+    return (
+      this.current() &&
+      !!this.lease?.ready() &&
+      this.scope?.window().canLift === true &&
+      (!this.source?.preparedDragPreview || !!prepared) &&
+      prepared?.view === this.preview?.view &&
+      prepared?.x === this.preview?.x &&
+      prepared?.y === this.preview?.y
+    )
+  }
   retire = () => {
     for (const pending of this.pendingDrops) pending.finish()
     this.renderRequest = null
@@ -223,20 +235,22 @@ export class NativeCollectionDragBinding {
       this.publish()
     }
   }
-  setPreview(view: View | null, x = 0, y = 0) {
-    if (!view) this.preview = null
-    else {
-      if (!Number.isFinite(x) || !Number.isFinite(y)) throw new Error("Native drag preview: finite offsets required")
-      this.preview = {
-        view,
-        id: this.preview?.view === view ? this.preview.id : `${this.id}:preview:${++this.rowSerial}`,
-        x,
-        y,
-      }
-    }
-    this.publish()
+  private preparedPreview() {
+    const prepared = this.source?.preparedDragPreview
+    const view = prepared?.ref.current ?? null
+    const x = prepared?.x ?? 0,
+      y = prepared?.y ?? 0
+    if (!Number.isFinite(x) || !Number.isFinite(y)) throw new Error("Native drag preview: finite offsets required")
+    return view ? { view, x, y } : null
   }
   private metadata(): TNativeDragViewBinding {
+    const preview = this.preparedPreview()
+    this.preview = preview
+      ? {
+          ...preview,
+          id: this.preview?.view === preview.view ? this.preview.id : `${this.id}:preview:${++this.rowSerial}`,
+        }
+      : null
     const members = [...this.rows.values()].flatMap((row) => {
       const source = this.view(row, "source"),
         target = this.view(row, "target")
@@ -268,7 +282,11 @@ export class NativeCollectionDragBinding {
     if (host && this.scroll?.host !== host) this.scroll = { host, id: `${this.id}:scroll:${++this.rowSerial}` }
     if (!host) this.scroll = null
     return {
-      draggable: this.sourceEnabled && !!this.source && !this.source.isDisabled,
+      draggable:
+        this.sourceEnabled &&
+        !!this.source &&
+        !this.source.isDisabled &&
+        (!this.source.preparedDragPreview || !!preview),
       droppable: this.targetEnabled && !!this.target && !this.target.isDisabled,
       members,
       scrollTarget: this.scroll ? (findNodeHandle(this.scroll.host as View) ?? 0) : 0,
@@ -277,11 +295,9 @@ export class NativeCollectionDragBinding {
       previewInstanceId: this.preview?.id ?? "",
       previewX: this.preview?.x ?? 0,
       previewY: this.preview?.y ?? 0,
-      virtualFocus: nativeVirtualDrag.focusManifest(this),
     }
   }
   publish = () => {
-    for (const pending of this.pendingDrops) pending.check()
     if (this.dropFocus && this.target && this.target.collection !== this.dropFocus.snapshot.collection)
       this.updateDropFocus()
     if (!this.logicalCurrent()) {
@@ -320,9 +336,9 @@ export class NativeCollectionDragBinding {
         current: () => this.logicalCurrent() && this.root.current === view,
         retire: this.retire,
         dispatch: this.dispatch,
-        observeFocus: (sessionId, tag) => nativeVirtualDrag.observeNativeFocus(this, sessionId, tag),
       })
     else this.lease.updateNative(metadata)
+    for (const pending of this.pendingDrops) pending.check()
     nativeVirtualDrag.reconcile(this)
   }
   detach(unmounted = false) {
@@ -490,6 +506,45 @@ export class NativeCollectionDragBinding {
       else focusNativeTarget(this.rowView(key))
     }
   }
+  retainAccessibleDropSource(key: TNativeCollectionKey, kind: "source" | "handle") {
+    const root = this.root.current
+    const row = this.rows.get(key)
+    const original = kind === "handle" ? this.handleView(key) : this.rowView(key)
+    return () =>
+      !!original &&
+      this.logicalCurrent() &&
+      this.root.current === root &&
+      this.rows.get(key) === row &&
+      (kind === "handle" ? this.handleView(key) : this.rowView(key)) === original &&
+      this.sourceEnabled &&
+      !!this.source &&
+      !this.source.isDisabled &&
+      !this.source.selectionManager.isDisabled(key) &&
+      !!this.source.collection.getItem(key)
+  }
+  retainAccessibleDropTarget(target: TNativeDropTarget) {
+    const root = this.root.current
+    const original = target.type === "item" ? this.targetView(target.key) : root
+    const node = target.type === "item" ? this.target?.collection.getItem(target.key) : null
+    const descriptor = node && getNativeCollectionMetadataIdentity(node)?.descriptorId
+    const window = this.scope?.window()
+    return () =>
+      this.logicalCurrent() &&
+      this.root.current === root &&
+      this.targetEnabled &&
+      this.scope?.window().windowId === window?.windowId &&
+      this.scope?.window().surfaceId === window?.surfaceId &&
+      this.scope?.window().scopeTarget === window?.scopeTarget &&
+      !!this.target &&
+      !this.target.isDisabled &&
+      (target.type === "root" ||
+        (!!node &&
+          (descriptor
+            ? getNativeCollectionMetadataIdentity(this.target.collection.getItem(target.key) ?? {})?.descriptorId ===
+              descriptor
+            : this.target.collection.getItem(target.key) === node))) &&
+      (!original || (target.type === "item" ? this.targetView(target.key) : this.root.current) === original)
+  }
   sourceOwner() {
     return this.nativeSource
   }
@@ -506,7 +561,10 @@ export class NativeCollectionDragBinding {
     operations: TNativeDropOperation[],
   ) {
     if (!this.nativeTarget.current() || !this.session(id, operations)) return "cancel" as const
-    return this.controller.targetAt(id, this.nativeTarget, target, types, operations)
+    const operation = this.controller.targetAt(id, this.nativeTarget, target, types, operations)
+    if (operation !== "cancel" && target?.type === "item" && !this.targetView(target.key))
+      this.requestOffscreenTarget(id, target.key)
+    return operation
   }
   virtualDrop(id: string, items: TNativeDropItem[], point: TNativeDragPoint) {
     return this.controller.drop(id, items, point)
@@ -571,18 +629,20 @@ export class NativeCollectionDragBinding {
     if (target && !valid(target) && valid({ type: "root" })) target = { type: "root" }
     const operation = this.controller.targetAt(id, this.nativeTarget, target, types, allowed)
     if (operation !== "cancel" && target?.type === "item" && !this.targetView(target.key)) {
-      const prior = this.renderRequest
-      if (prior?.session !== id || prior.key !== target.key || prior.layout !== this.dropOptions.layoutDelegate) {
-        this.renderRequest = { session: id, key: target.key, layout: this.dropOptions.layoutDelegate }
-        this.dropOptions.layoutDelegate?.requestRendering?.(target.key)
-        const scrolling = this.dropOptions.layoutDelegate?.scrollToKey?.(target.key)
-        if (scrolling && typeof scrolling.then === "function")
-          scrolling.catch((error) => {
-            if (this.nativeTarget.current()) this.failure(error)
-          })
-      }
+      this.requestOffscreenTarget(id, target.key)
     }
     return operation
+  }
+  private requestOffscreenTarget(id: string, key: TNativeCollectionKey) {
+    const prior = this.renderRequest
+    if (prior?.session === id && prior.key === key && prior.layout === this.dropOptions.layoutDelegate) return
+    this.renderRequest = { session: id, key, layout: this.dropOptions.layoutDelegate }
+    this.dropOptions.layoutDelegate?.requestRendering?.(key)
+    const scrolling = this.dropOptions.layoutDelegate?.scrollToKey?.(key)
+    if (scrolling && typeof scrolling.then === "function")
+      scrolling.catch((error) => {
+        if (this.nativeTarget.current()) this.failure(error)
+      })
   }
   private prepareDrop(target: TNativeDropTarget, internal: boolean, sourceKeys: Set<TNativeCollectionKey>) {
     const root = this.root.current,
@@ -669,23 +729,28 @@ export class NativeCollectionDragBinding {
           return { items: [], operations: [] }
         const old = this.controller.activeSession()
         if (old && !old.source) this.controller.retireSession(old.id)
+        if (!this.ready())
+          throw new Error("Native drag source: prepared original preview is not currently acknowledged")
+        const expectedPreview = this.preparedPreview()
+        if (source.preparedDragPreview && !expectedPreview)
+          throw new Error("Native drag preview: prepared original view required before lift")
         const lifted = this.controller.lift(identity.sessionId, this.nativeSource, row.key, {
           ...point,
           type: "dragstart",
         })
-        const preview = source.preview?.current
-        preview?.(lifted.items, (view, x, y) => {
-          if (
-            this.current() &&
-            (view === null || this.source?.preview?.current === preview) &&
-            this.controller.activeSession() === lifted.session
-          )
-            this.setPreview(view, x, y)
-        })
+        const currentPreview = this.preparedPreview()
+        if (
+          currentPreview?.view !== expectedPreview?.view ||
+          currentPreview?.x !== expectedPreview?.x ||
+          currentPreview?.y !== expectedPreview?.y
+        ) {
+          this.controller.retireSession(lifted.session.id)
+          throw new Error("Native drag preview: prepared original changed during lift")
+        }
         return {
           items: lifted.transferItems!.map((item) => Object.entries(item).map(([type, data]) => ({ type, data }))),
           operations: lifted.allowedOperations,
-          previewExpected: !!source.preview?.current,
+          previewExpected: !!source.preparedDragPreview,
         }
       }
       if (identity.kind === "move")
@@ -697,7 +762,6 @@ export class NativeCollectionDragBinding {
       if (identity.kind === "end") {
         if (payload.external && this.controller.activeSession()?.source) return { ended: false }
         const operation = offered([payload.operation])[0]
-        this.setPreview(null)
         return { ended: this.controller.end(identity.sessionId, point, operation) }
       }
       if (identity.kind === "activate") {

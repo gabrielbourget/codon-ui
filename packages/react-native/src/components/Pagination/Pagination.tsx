@@ -6,6 +6,7 @@ import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeTheme } from "../../theme"
 import { LineSegment } from "../LineSegment/LineSegment"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
+import { validateNativeFontWeight } from "../nativeTextStyle"
 import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
 
 import { NativePaginationCounter, NativePaginationInput, NativePaginationPageSize } from "./Fields"
@@ -126,6 +127,7 @@ export const Pagination = forwardRef<TNativePaginationRef, TNativePaginationProp
     context = useNativeContentContext(),
     labels = resolveNativePaginationLabels(props),
     styles = getNativePaginationStyles(theme, props, context?.foregroundColor)
+  validateNativeFontWeight(styles.root.text.fontWeight, "Pagination")
   const latest = useRef(props),
     live = useRef(false),
     draftValue = useRef<number | null>(1)

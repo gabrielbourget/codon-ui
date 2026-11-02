@@ -195,8 +195,34 @@ export const FullNativeMenuState = () => {
   trigger?.openSubmenu(0, 0)
   return null
 }
-// @ts-expect-error Separator axis semantics have no public native implementation yet; the inherited capability remains OPEN.
-export const pendingSeparatorAxis = <MenuSeparator orientation="vertical" />
+export const nativeSeparator = (
+  <MenuSeparator
+    ref={ref}
+    orientation="vertical"
+    focusable={false}
+    tabIndex={-1}
+    labels={{ vertical: "Verticale" }}
+    ariaDescribedBy={["description"]}
+    aria-details="details"
+    descriptionLabel="Résumé"
+    accessibilityValue={{ text: "Authored value" }}
+    render={(props, state) => {
+      const noState: undefined = state
+      void noState
+      return <NativeFocusView {...props} />
+    }}
+  />
+)
+// @ts-expect-error Native separators have only the two implemented axes.
+export const invalidSeparatorAxis = <MenuSeparator orientation="diagonal" />
+// @ts-expect-error DOM tag selection maps to the explicit native renderer, not an HTML string.
+export const invalidSeparatorElement = <MenuSeparator elementType="hr" />
+// @ts-expect-error Localized orientation labels are strings.
+export const invalidSeparatorLabels = <MenuSeparator labels={{ vertical: 1 }} />
+// @ts-expect-error Separator hardware focus is owned by the noninteractive counterpart.
+export const invalidSeparatorFocus = <MenuSeparator focusable />
+// @ts-expect-error Separators cannot opt into hardware Tab traversal.
+export const invalidSeparatorTab = <MenuSeparator tabIndex={0} />
 // @ts-expect-error Header custom roots retain actual native refs.
 export const invalidHeaderRoot = <MenuHeader render={() => <NativeFocusView ref={createRef<HTMLElement>()} />} />
 void NativeMenuActionsContext

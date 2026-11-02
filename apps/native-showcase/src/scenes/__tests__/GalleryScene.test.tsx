@@ -99,3 +99,76 @@ it("exercises all modes, style owners, caller disabled guards and native frame r
   })
   expect(screen.getByTestId("gallery-frames")).toHaveTextContent(/root 0 x 0/)
 })
+
+it("keeps gallery customizations independent while preserving keyed child state and reset", async () => {
+  const press = await enter()
+  await measureGrid()
+  await press("Gallery A, count 0")
+  const childHost = screen.getByTestId("gallery-item-A").unstable_fiber?.stateNode
+  expect(childHost).toBeTruthy()
+  await press("Toggle gallery root styles")
+  expect(screen.getByTestId("gallery-example")).toHaveStyle({ padding: 7, borderColor: "#087f8c", gap: 14 })
+  await press("Toggle gallery primary slot styles")
+  expect(screen.getByTestId("thumbnail-showcase-primary")).toHaveStyle({
+    aspectRatio: 2,
+    borderWidth: 3,
+    borderColor: "#be123c",
+  })
+  await press("Toggle gallery row styles")
+  expect(screen.getByTestId("thumbnail-showcase-grid")).toHaveStyle({ columnGap: 8, rowGap: 12 })
+  expect(screen.getByTestId("thumbnail-showcase-grid").parent).toHaveStyle({ padding: 6, borderColor: "#7c3aed" })
+  await press("Toggle gallery secondary slot styles")
+  for (const slot of screen.getAllByTestId("thumbnail-showcase-secondary-slot")) {
+    expect(slot).toHaveStyle({ width: 48, borderWidth: 2, borderColor: "#166534" })
+  }
+  await measureGrid(252)
+  await press("Reorder gallery items")
+  await press("Dark theme")
+  expect(screen.getByRole("button", { name: "Gallery A, count 1" })).toBeOnTheScreen()
+  expect(screen.getByTestId("gallery-item-A").unstable_fiber?.stateNode).toBe(childHost)
+  expect(screen.getByTestId("gallery-state")).toHaveTextContent(/Actions: 1.*Overflow actions: 0/)
+  await press("Toggle gallery primary slot styles")
+  expect(screen.getByTestId("thumbnail-showcase-primary")).toHaveStyle({ aspectRatio: 1 })
+  expect(screen.getByTestId("gallery-example")).toHaveStyle({ padding: 7 })
+  expect(screen.getByTestId("thumbnail-showcase-grid").parent).toHaveStyle({ padding: 6 })
+  expect(screen.getAllByTestId("thumbnail-showcase-secondary-slot")[0]).toHaveStyle({ width: 48 })
+  await press("Reset scene")
+  await press("Gallery scene")
+  expect(screen.getByTestId("gallery-customization-state")).toHaveTextContent(
+    "Gallery customizations: none. Positioning: flow.",
+  )
+  expect(screen.getByTestId("gallery-example")).toHaveStyle({ width: 280, gap: 10 })
+  expect(screen.getByRole("button", { name: "Gallery A, count 0" })).toBeOnTheScreen()
+})
+
+it("retains gallery positioning customization and position-only frame updates without losing keyed actions or authored zero", async () => {
+  const press = await enter()
+  await measureGrid()
+  await press("Gallery A, count 0")
+  const childHost = screen.getByTestId("gallery-item-A").unstable_fiber?.stateNode
+  expect(childHost).toBeTruthy()
+  await press("Next gallery positioning")
+  expect(screen.getByTestId("gallery-example")).toHaveStyle({ position: "relative", top: 8, left: 8 })
+  await fireEvent(screen.getByTestId("gallery-example"), "layout", {
+    nativeEvent: { layout: { x: 8, y: 8, width: 280, height: 360 } },
+  })
+  expect(screen.getByTestId("gallery-frames")).toHaveTextContent(/root 280 x 360 at 8, 8\./)
+  await press("Next gallery positioning")
+  expect(screen.getByTestId("gallery-position-host")).toHaveStyle({ position: "relative", minHeight: 640 })
+  expect(screen.getByTestId("gallery-example")).toHaveStyle({ position: "absolute", top: 12, left: 12 })
+  await fireEvent(screen.getByTestId("gallery-example"), "layout", {
+    nativeEvent: { layout: { x: 12, y: 12, width: 280, height: 360 } },
+  })
+  expect(screen.getByTestId("gallery-frames")).toHaveTextContent(/root 280 x 360 at 12, 12\./)
+  await press("Toggle gallery styles")
+  await press("Toggle gallery root styles")
+  await press("Toggle gallery zero width")
+  expect(screen.getByTestId("gallery-example")).toHaveStyle({ position: "absolute", width: 0, padding: 7 })
+  expect(screen.getByRole("button", { name: "Gallery A, count 1" })).toBeOnTheScreen()
+  expect(screen.getByTestId("gallery-item-A").unstable_fiber?.stateNode).toBe(childHost)
+  expect(screen.getByTestId("gallery-state")).toHaveTextContent(/Actions: 1.*Overflow actions: 0/)
+  await press("Next gallery positioning")
+  expect(screen.getByTestId("gallery-example")).not.toHaveStyle({ position: "absolute" })
+  expect(screen.getByTestId("gallery-example")).toHaveStyle({ width: 0 })
+  expect(screen.getByTestId("gallery-position-host")).not.toHaveStyle({ minHeight: 640 })
+})

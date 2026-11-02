@@ -1,19 +1,13 @@
 import { useCallback, useRef, useState } from "react"
-import { findNodeHandle, Platform, Text, type TextStyle } from "react-native"
+import { Platform, Text, type TextStyle } from "react-native"
 
-import {
-  activeNativeFieldInputEvent,
-  moveNativeFieldFocus,
-  receiveNativeFieldKey,
-  type TNativeFieldInputScope,
-  type TNativeFieldKeyEvent,
-} from "../../input/fieldInput"
 import { getNativeDateSegmentSemantics } from "../entry/semantics"
 import { useNativeDateSegmentEntry } from "../entry/useNativeDateSegmentEntry"
 import { NativeDateSegment, type TNativeDateSegmentInput, type TNativeDateSegmentRef } from "../input/NativeDateSegment"
 import type { DateFieldState, DateSegment } from "../state/useDateFieldState"
 
 import type { getNativeTimePickerAppearance } from "./appearance"
+import type { NativeDateFieldFocusManager } from "./focus"
 import type { NativeDateFieldHostSet } from "./hostSet"
 
 type TProps = {
@@ -24,8 +18,9 @@ type TProps = {
   locale: string
   direction: "ltr" | "rtl"
   hostSet: NativeDateFieldHostSet
-  scope: TNativeFieldInputScope | null
-  outerTarget: number
+  inputFocus?: Pick<NativeDateFieldFocusManager, "focusFromInput">
+  ordinaryGroupEvents?: boolean
+  pickerKeyboard?: boolean
   appearance: Pick<
     ReturnType<typeof getNativeTimePickerAppearance>,
     "text" | "placeholder" | "segment" | "focusedSegment"
@@ -46,8 +41,7 @@ export const NativeTimePickerSegment = (props: TProps) => {
     ownerId,
     segmentId,
     hostSet,
-    scope,
-    outerTarget,
+    inputFocus,
     appearance,
     inheritedText,
     testID,
@@ -55,10 +49,12 @@ export const NativeTimePickerSegment = (props: TProps) => {
   const original = useRef<TNativeDateSegmentRef | null>(null)
   const [focused, setFocused] = useState(false)
   const composing = useRef(false)
+  const inputOrigin = useRef<TNativeDateSegmentRef | null>(null)
   const navigate = (kind: "next" | "previous") => {
-    const event = scope && activeNativeFieldInputEvent(scope)
-    if (!scope || !event) throw new Error("time-field-original-input-dispatch-required")
-    moveNativeFieldFocus(scope, event, { groupTarget: outerTarget, kind })
+    if (inputFocus && inputOrigin.current) {
+      inputFocus.focusFromInput(inputOrigin.current, kind)
+      return
+    }
   }
   const entry = useNativeDateSegmentEntry(segment, state, locale, {
     focusNext: () => navigate("next"),
@@ -85,25 +81,31 @@ export const NativeTimePickerSegment = (props: TProps) => {
     if (!original.current) return
     const data = event.nativeEvent
     hostSet.receive(segmentId, original.current, data)
-    if (data.kind === "status") {
-      if (!data.active || !data.focused) {
+    const previousInputOrigin = inputOrigin.current
+    inputOrigin.current = inputFocus ? original.current : null
+    try {
+      if (data.kind === "status") {
+        if (!data.active || !data.focused) {
+          setFocused(false)
+          composing.current = false
+        }
+      } else if (data.kind === "focus") {
+        setFocused(true)
+        entry.focus()
+      } else if (data.kind === "blur") {
         setFocused(false)
         composing.current = false
-      }
-    } else if (data.kind === "focus") {
-      setFocused(true)
-      entry.focus()
-    } else if (data.kind === "blur") {
-      setFocused(false)
-      composing.current = false
-    } else if (data.kind === "marked") {
-      composing.current = true
-      entry.compositionText(data.text)
-    } else if (data.kind === "unmark") {
-      composing.current = false
-      entry.input(data.text)
-    } else if (data.kind === "insert") entry.input(data.text)
-    else if (data.kind === "delete") entry.backspace()
+      } else if (data.kind === "marked") {
+        composing.current = true
+        entry.compositionText(data.text)
+      } else if (data.kind === "unmark") {
+        composing.current = false
+        entry.input(data.text)
+      } else if (data.kind === "insert") entry.input(data.text)
+      else if (data.kind === "delete") entry.backspace()
+    } finally {
+      inputOrigin.current = previousInputOrigin
+    }
   }
   const numeric = state.dateFormatter.resolvedOptions()[segment.type as "hour" | "minute" | "second"]
   const text = (
@@ -140,6 +142,18 @@ export const NativeTimePickerSegment = (props: TProps) => {
       segmentReadOnly={state.isReadOnly || !segment.isEditable}
       segmentEditable
       segmentPlaceholder={segment.isPlaceholder}
+      ordinaryInputEvents={!!inputFocus}
+      ordinaryGroupEvents={props.ordinaryGroupEvents}
+      pickerKeyboard={props.pickerKeyboard}
+      onNativeDateKey={(event) => {
+        const previous = inputOrigin.current
+        inputOrigin.current = original.current
+        try {
+          if (event.nativeEvent.phase === "down") entry.keyDown(event, event.nativeEvent.isComposing)
+        } finally {
+          inputOrigin.current = previous
+        }
+      }}
       accessible
       role={semantics.role === "spinbutton" ? "spinbutton" : undefined}
       accessibilityLabel={semantics.label}
@@ -167,18 +181,6 @@ export const NativeTimePickerSegment = (props: TProps) => {
         else if (event.nativeEvent.actionName === "decrement") entry.adjust("decrement")
       }}
       onNativeSegmentInput={receive}
-      onNativeFieldKey={(raw) => {
-        const target = original.current && findNodeHandle(original.current)
-        if (!scope || !target) return
-        const event = raw as unknown as TNativeFieldKeyEvent
-        receiveNativeFieldKey(scope, event, {
-          target,
-          group: false,
-          run: () => {
-            if (event.nativeEvent.phase === "down") entry.keyDown(event, composing.current)
-          },
-        })
-      }}
       testID={testID}
       style={[appearance.segment, focused ? appearance.focusedSegment : undefined]}
     >

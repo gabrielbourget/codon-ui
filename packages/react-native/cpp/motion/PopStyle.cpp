@@ -35,11 +35,11 @@ template <typename T> folly::dynamic encodeLength(T value) {
 }
 } // namespace
 
-folly::dynamic captureNativePopStyle(const facebook::react::YogaStylableProps &props) {
+folly::dynamic captureNativePopStyle(const facebook::react::YogaStylableProps &props, bool authoredPosition) {
   const auto &style = props.yogaStyle;
   const auto position = style.positionType();
   folly::dynamic result = folly::dynamic::object
-      ("position", !props.cuiHasAuthoredPosition && position == y::PositionType::Relative ? folly::dynamic(nullptr) :
+      ("position", !authoredPosition && position == y::PositionType::Relative ? folly::dynamic(nullptr) :
           folly::dynamic(position == y::PositionType::Absolute ? "absolute" :
               position == y::PositionType::Static ? "static" : "relative"))
       ("width", encodeLength(style.dimension(y::Dimension::Width)))

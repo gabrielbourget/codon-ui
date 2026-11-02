@@ -42,11 +42,22 @@ export type TNativeFontVariant = (typeof AVAILABLE_FONT_VARIANTS)[number]
 export const AVAILABLE_FONT_WEIGHTS = ["light", "regular", "medium", "semibold", "bold", "extrabold"] as const
 export type TNativeFontWeight = (typeof AVAILABLE_FONT_WEIGHTS)[number]
 
+export type TNativeThemeTransition =
+  | number
+  | `${number}ms`
+  | `${number}s`
+  | Readonly<{
+      duration?: number | `${number}ms` | `${number}s`
+      delay?: number | `${number}ms` | `${number}s`
+      easing?: "linear" | "ease" | "ease-in" | "ease-out" | "ease-in-out"
+    }>
+
 export type TNativeActionTheme = Readonly<{
   background: ColorValue
   hoverBackground: ColorValue
   pressedBackground: ColorValue
   foreground: ColorValue
+  visitedForeground?: ColorValue
   border: ColorValue
   outlineBackground: ColorValue
   outlineHoverBackground: ColorValue
@@ -61,9 +72,11 @@ export type TNativeTheme = Readonly<{
     statusSuccess: ColorValue
     overlayBackdrop: ColorValue
     background: ColorValue
+    surfaceMuted: ColorValue
     foreground: ColorValue
     controlBackground: ColorValue
     controlForeground: ColorValue
+    controlDraggedBackground?: ColorValue
     controlBorder: ColorValue
     borderMuted: ColorValue
     focusRing: ColorValue
@@ -81,6 +94,12 @@ export type TNativeTheme = Readonly<{
     validationSuccessBorder: ColorValue
   }>
   actions: Readonly<Record<TThemingOrderCode, TNativeActionTheme>>
+  transitions?: Readonly<{
+    backgroundColor?: TNativeThemeTransition
+    color?: TNativeThemeTransition
+    borderColor?: TNativeThemeTransition
+    boxShadow?: TNativeThemeTransition
+  }>
   spacing: Readonly<{ unit: number }>
   radius: Readonly<{ rounded: number; round: number }>
   opacity: Readonly<{ disabled: number }>
@@ -95,6 +114,7 @@ export type TNativeTheme = Readonly<{
 export type TNativeThemeOverrides = Readonly<{
   colors?: Partial<TNativeTheme["colors"]>
   actions?: Partial<Record<TThemingOrderCode, Partial<TNativeActionTheme>>>
+  transitions?: TNativeTheme["transitions"]
   spacing?: Partial<TNativeTheme["spacing"]>
   radius?: Partial<TNativeTheme["radius"]>
   opacity?: Partial<TNativeTheme["opacity"]>

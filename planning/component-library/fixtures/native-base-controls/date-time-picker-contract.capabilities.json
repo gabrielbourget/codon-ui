@@ -1,0 +1,2347 @@
+{
+  "canonicalSourceRef": "ddc9f066f67af4742e05e04bd870726141c44129",
+  "nativeBaseline": "4fa90a3fd58f00a5c9f6fbb8f6b6ad0a62db22bb",
+  "targetCell": "CAT.date-time-picker.G01",
+  "authority": "Full family source approval3.5.53.24 (2026-10-25), existing3.5.53.1\u2013.25 complete source contract, FIN-R03/FIN-TM05 and explicit DEC.PHONE.DATE_INPUT.01 / DEC.PHONE.GROUP_EVENTS.01 / PHONE-EDIT03/04/05C/06 ordinary-event/original-ref/participant/host/active-endpoint amendments. Preserve canonical source and every native/owner/physical failure/deferral.",
+  "scope": "Complete G01 source counterpart candidate only. Exact lane6 shared dependency is applied and joint public/renderer/state/fallback contracts pass; main alone integrates/adopts after normal hooks and consumer/graph reconciliation. No native/product/installed/profile/closure promotion.",
+  "families": {
+    "root": {
+      "canonicalPropertyCount": 139,
+      "nativePropertyCount": 159,
+      "props": {
+        "aria-describedby": {
+          "canonicalType": "string | undefined",
+          "optional": true,
+          "nativeProp": "aria-describedby",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "labels",
+          "nativeType": "string | undefined"
+        },
+        "aria-details": {
+          "canonicalType": "string | undefined",
+          "optional": true,
+          "nativeProp": "aria-details",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "labels",
+          "nativeType": "string | undefined"
+        },
+        "aria-label": {
+          "canonicalType": "string | undefined",
+          "optional": true,
+          "nativeProp": "aria-label",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "labels",
+          "nativeType": "string | undefined"
+        },
+        "aria-labelledby": {
+          "canonicalType": "string | undefined",
+          "optional": true,
+          "nativeProp": "aria-labelledby",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "labels",
+          "nativeType": "string | undefined"
+        },
+        "autoComplete": {
+          "canonicalType": "string | undefined",
+          "optional": true,
+          "nativeProp": "autoComplete",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/form/datePicker.ts",
+          "expectedGroup": "form",
+          "nativeType": "string | undefined"
+        },
+        "autoFocus": {
+          "canonicalType": "boolean | undefined",
+          "optional": true,
+          "nativeProp": "autoFocus",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/NativeDatePickerView.tsx",
+          "expectedGroup": "events",
+          "nativeType": "boolean | undefined"
+        },
+        "children": {
+          "canonicalType": "import(\"node_modules/.pnpm/react-aria-components@1.17.0_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/react-aria-components/dist/types/src/utils\").ChildrenOrFunction<DatePickerRenderProps>",
+          "optional": true,
+          "nativeProp": "children",
+          "disposition": "SOURCE_OWNED_FIXED_SCAFFOLD",
+          "nativeOwner": "packages/react-native/src/date/picker/NativeDatePickerView.tsx",
+          "expectedGroup": "context",
+          "expected": "Actual canonical wrapper supplies its generated DateInput/trigger/popover/calendar after rest props. Inherited children does not replace it. Native does the same; custom root composition preserves native.children instead. No new arbitrary-child promise.",
+          "nativeType": "ReactNode | ((state: Readonly<{ state: DatePickerState; isFocusWithin: boolean; isFocusVisible: boolean; isOpen: boolean; isDisabled: boolean; isReadOnly: boolean; isRequired: boolean; isInvalid: boolean; }>) => ReactNode)"
+        },
+        "className": {
+          "canonicalType": "import(\"node_modules/.pnpm/react-aria-components@1.17.0_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/react-aria-components/dist/types/src/utils\").ClassNameOrFunction<DatePickerRenderProps> | undefined",
+          "optional": true,
+          "nativeProp": "style",
+          "disposition": "APPROVED_NATIVE_STYLE_OWNER",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "style",
+          "nativeType": "StyleProp<TextStyle> | ((state: Readonly<{ state: DatePickerState; isFocusWithin: boolean; isFocusVisible: boolean; isOpen: boolean; isDisabled: boolean; isReadOnly: boolean; isRequired: boolean; isInvalid: boolean; }> & { defaultStyle: TextStyle; }) => StyleProp<TextStyle>)"
+        },
+        "ComponentIcon": {
+          "canonicalType": "ReactNode",
+          "optional": true,
+          "nativeProp": "ComponentIcon",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "labels",
+          "nativeType": "ReactNode"
+        },
+        "customButtonStyles": {
+          "canonicalType": "CSSProperties | undefined",
+          "optional": true,
+          "nativeProp": "customButtonStyles",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "style",
+          "nativeType": "StyleProp<TextStyle>"
+        },
+        "customCalendarGridBodyCellStyles": {
+          "canonicalType": "CSSProperties | undefined",
+          "optional": true,
+          "nativeProp": "customCalendarGridBodyCellStyles",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "style",
+          "nativeType": "StyleProp<TextStyle>"
+        },
+        "customCalendarGridBodyStyles": {
+          "canonicalType": "CSSProperties | undefined",
+          "optional": true,
+          "nativeProp": "customCalendarGridBodyStyles",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "style",
+          "nativeType": "StyleProp<TextStyle>"
+        },
+        "customCalendarGridHeaderCellStyles": {
+          "canonicalType": "CSSProperties | undefined",
+          "optional": true,
+          "nativeProp": "customCalendarGridHeaderCellStyles",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "style",
+          "nativeType": "StyleProp<TextStyle>"
+        },
+        "customCalendarGridHeaderStyles": {
+          "canonicalType": "CSSProperties | undefined",
+          "optional": true,
+          "nativeProp": "customCalendarGridHeaderStyles",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "style",
+          "nativeType": "StyleProp<TextStyle>"
+        },
+        "customCalendarGridStyles": {
+          "canonicalType": "CSSProperties | undefined",
+          "optional": true,
+          "nativeProp": "customCalendarGridStyles",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "style",
+          "nativeType": "StyleProp<TextStyle>"
+        },
+        "customCalendarHeaderStyles": {
+          "canonicalType": "CSSProperties | undefined",
+          "optional": true,
+          "nativeProp": "customCalendarHeaderStyles",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "style",
+          "nativeType": "StyleProp<TextStyle>"
+        },
+        "customCalendarNextBtnStyles": {
+          "canonicalType": "CSSProperties | undefined",
+          "optional": true,
+          "nativeProp": "customCalendarNextBtnStyles",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "style",
+          "nativeType": "StyleProp<TextStyle>"
+        },
+        "customCalendarPrevBtnStyles": {
+          "canonicalType": "CSSProperties | undefined",
+          "optional": true,
+          "nativeProp": "customCalendarPrevBtnStyles",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "style",
+          "nativeType": "StyleProp<TextStyle>"
+        },
+        "customCalendarStyles": {
+          "canonicalType": "CSSProperties | undefined",
+          "optional": true,
+          "nativeProp": "customCalendarStyles",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "style",
+          "nativeType": "StyleProp<TextStyle>"
+        },
+        "customDialogStyles": {
+          "canonicalType": "CSSProperties | undefined",
+          "optional": true,
+          "nativeProp": "customDialogStyles",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "style",
+          "nativeType": "StyleProp<TextStyle>"
+        },
+        "customInputButtonGroupStyles": {
+          "canonicalType": "CSSProperties | undefined",
+          "optional": true,
+          "nativeProp": "customInputButtonGroupStyles",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "style",
+          "nativeType": "StyleProp<TextStyle>"
+        },
+        "customInputStyles": {
+          "canonicalType": "CSSProperties | undefined",
+          "optional": true,
+          "nativeProp": "customInputStyles",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "style",
+          "nativeType": "StyleProp<TextStyle>"
+        },
+        "customPopoverStyles": {
+          "canonicalType": "CSSProperties | undefined",
+          "optional": true,
+          "nativeProp": "customPopoverStyles",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "style",
+          "nativeType": "StyleProp<TextStyle>"
+        },
+        "customStyles": {
+          "canonicalType": "CSSProperties | undefined",
+          "optional": true,
+          "nativeProp": "customStyles",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "style",
+          "nativeType": "StyleProp<TextStyle>"
+        },
+        "data-testid": {
+          "canonicalType": "string | undefined",
+          "optional": true,
+          "nativeProp": "data-testid",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": "string | undefined"
+        },
+        "dayLength": {
+          "canonicalType": "\"narrow\" | \"short\" | \"long\" | undefined",
+          "optional": true,
+          "nativeProp": "dayLength",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/calendar/NativeDateCalendar.tsx",
+          "expectedGroup": "calendar",
+          "nativeType": "\"narrow\" | \"short\" | \"long\" | undefined"
+        },
+        "defaultOpen": {
+          "canonicalType": "boolean | undefined",
+          "optional": true,
+          "nativeProp": "defaultOpen",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/NativeDatePickerView.tsx",
+          "expectedGroup": "events",
+          "nativeType": "boolean | undefined"
+        },
+        "defaultValue": {
+          "canonicalType": "T | null | undefined",
+          "optional": true,
+          "nativeProp": "defaultValue",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts",
+          "expectedGroup": "value",
+          "nativeType": "T | null | undefined"
+        },
+        "dir": {
+          "canonicalType": "string | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_LOCALE_PROVIDER",
+          "nativeOwner": "packages/react-native/src/locale/NativeLocaleProvider.tsx",
+          "expectedGroup": "locale",
+          "nativeType": null
+        },
+        "enableFocusStyle": {
+          "canonicalType": "boolean | undefined",
+          "optional": true,
+          "nativeProp": "enableFocusStyle",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "style",
+          "nativeType": "boolean | undefined"
+        },
+        "errorState": {
+          "canonicalType": "boolean | undefined",
+          "optional": true,
+          "nativeProp": "errorState",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "style",
+          "nativeType": "boolean | undefined"
+        },
+        "firstDayOfWeek": {
+          "canonicalType": "\"sun\" | \"mon\" | \"tue\" | \"wed\" | \"thu\" | \"fri\" | \"sat\" | undefined",
+          "optional": true,
+          "nativeProp": "firstDayOfWeek",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/calendar/NativeDateCalendar.tsx",
+          "expectedGroup": "calendar",
+          "nativeType": "\"sun\" | \"mon\" | \"tue\" | \"wed\" | \"thu\" | \"fri\" | \"sat\" | undefined"
+        },
+        "form": {
+          "canonicalType": "string | undefined",
+          "optional": true,
+          "nativeProp": "form",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/form/datePicker.ts",
+          "expectedGroup": "form",
+          "nativeType": "string | undefined"
+        },
+        "geometry": {
+          "canonicalType": "\"orthogonal\" | \"rounded\" | \"round\" | undefined",
+          "optional": true,
+          "nativeProp": "geometry",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "style",
+          "nativeType": "\"orthogonal\" | \"rounded\" | \"round\" | undefined"
+        },
+        "granularity": {
+          "canonicalType": "\"day\" | \"hour\" | \"minute\" | \"second\" | undefined",
+          "optional": true,
+          "nativeProp": "granularity",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/entry/useNativeDateSegmentEntry.ts",
+          "expectedGroup": "entry",
+          "nativeType": "import(\"packages/react-native/src/date/state/types\").Granularity | undefined"
+        },
+        "hidden": {
+          "canonicalType": "boolean | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "hideTimeZone": {
+          "canonicalType": "boolean | undefined",
+          "optional": true,
+          "nativeProp": "hideTimeZone",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/entry/useNativeDateSegmentEntry.ts",
+          "expectedGroup": "entry",
+          "nativeType": "boolean | undefined"
+        },
+        "hourCycle": {
+          "canonicalType": "12 | 24 | undefined",
+          "optional": true,
+          "nativeProp": "hourCycle",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/entry/useNativeDateSegmentEntry.ts",
+          "expectedGroup": "entry",
+          "expected": "Apply wrapper authored/default value before base context merging, exactly as canonical. Native caller previously let context12/false replace default24/true; two local caller corrections and genuine before/after/current actual canonical probes preserve explicit12/false and original roots/segments without requests.",
+          "nativeType": "12 | 24 | undefined"
+        },
+        "id": {
+          "canonicalType": "string | undefined",
+          "optional": true,
+          "nativeProp": "id",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "labels",
+          "nativeType": "string | undefined"
+        },
+        "inert": {
+          "canonicalType": "boolean | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "isDateUnavailable": {
+          "canonicalType": "((date: DateValue) => boolean) | undefined",
+          "optional": true,
+          "nativeProp": "isDateUnavailable",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/calendar/NativeDateCalendar.tsx",
+          "expectedGroup": "calendar",
+          "nativeType": "((date: DateValue) => boolean) | undefined"
+        },
+        "isDisabled": {
+          "canonicalType": "boolean | undefined",
+          "optional": true,
+          "nativeProp": "isDisabled",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/NativeDatePickerView.tsx",
+          "expectedGroup": "events",
+          "nativeType": "boolean | undefined"
+        },
+        "isInvalid": {
+          "canonicalType": "boolean | undefined",
+          "optional": true,
+          "nativeProp": "isInvalid",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/form/datePicker.ts",
+          "expectedGroup": "form",
+          "nativeType": "boolean | undefined"
+        },
+        "isOpen": {
+          "canonicalType": "boolean | undefined",
+          "optional": true,
+          "nativeProp": "isOpen",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/NativeDatePickerView.tsx",
+          "expectedGroup": "events",
+          "nativeType": "boolean | undefined"
+        },
+        "isReadOnly": {
+          "canonicalType": "boolean | undefined",
+          "optional": true,
+          "nativeProp": "isReadOnly",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/NativeDatePickerView.tsx",
+          "expectedGroup": "events",
+          "nativeType": "boolean | undefined"
+        },
+        "isRequired": {
+          "canonicalType": "boolean | undefined",
+          "optional": true,
+          "nativeProp": "isRequired",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/form/datePicker.ts",
+          "expectedGroup": "form",
+          "nativeType": "boolean | undefined"
+        },
+        "labels": {
+          "canonicalType": "Partial<import(\"packages/react/src/components/DateTimePicker/labels\").TDateTimePickerLabels> | undefined",
+          "optional": true,
+          "nativeProp": "labels",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "labels",
+          "nativeType": "Partial<TNativeDatePickerLabels> | undefined"
+        },
+        "lang": {
+          "canonicalType": "string | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_LOCALE_PROVIDER",
+          "nativeOwner": "packages/react-native/src/locale/NativeLocaleProvider.tsx",
+          "expectedGroup": "locale",
+          "nativeType": null
+        },
+        "maxValue": {
+          "canonicalType": "DateValue | null | undefined",
+          "optional": true,
+          "nativeProp": "maxValue",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts",
+          "expectedGroup": "value",
+          "nativeType": "DateValue | null | undefined"
+        },
+        "minValue": {
+          "canonicalType": "DateValue | null | undefined",
+          "optional": true,
+          "nativeProp": "minValue",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts",
+          "expectedGroup": "value",
+          "nativeType": "DateValue | null | undefined"
+        },
+        "multiMonth": {
+          "canonicalType": "boolean | undefined",
+          "optional": true,
+          "nativeProp": "multiMonth",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/calendar/NativeDateCalendar.tsx",
+          "expectedGroup": "calendar",
+          "nativeType": "boolean | undefined"
+        },
+        "name": {
+          "canonicalType": "string | undefined",
+          "optional": true,
+          "nativeProp": "name",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/form/datePicker.ts",
+          "expectedGroup": "form",
+          "nativeType": "string | undefined"
+        },
+        "offsetFocusRing": {
+          "canonicalType": "boolean | undefined",
+          "optional": true,
+          "nativeProp": "offsetFocusRing",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "style",
+          "nativeType": "boolean | undefined"
+        },
+        "onAnimationEnd": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onAnimationEndCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onAnimationIteration": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onAnimationIterationCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onAnimationStart": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onAnimationStartCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").AnimationEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onAuxClick": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onAuxClickCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onBlur": {
+          "canonicalType": "((e: import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").FocusEvent<Element, Element>) => void) | undefined",
+          "optional": true,
+          "nativeProp": "onBlur",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/NativeDatePickerView.tsx",
+          "expectedGroup": "events",
+          "nativeType": "((event: import(\"packages/react-native/src/input/types\").TNativeFocusEvent) => void) | null | undefined"
+        },
+        "onChange": {
+          "canonicalType": "((value: import(\"node_modules/.pnpm/react-stately@3.46.0_react@19.2.7/node_modules/react-stately/dist/types/exports/useDateFieldState\").MappedDateValue<T> | null) => void) | undefined",
+          "optional": true,
+          "nativeProp": "onChange",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts",
+          "expectedGroup": "value",
+          "nativeType": "((value: import(\"packages/react-native/src/date/state/types\").MappedDateValue<T> | null) => void) | undefined"
+        },
+        "onClick": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": "onClick",
+          "disposition": "APPROVED_ORDINARY_NATIVE_POINTER",
+          "nativeOwner": "packages/react-native/src/date/picker/NativeDatePickerView.tsx",
+          "expectedGroup": "events",
+          "expected": "DEC.PHONE.GROUP_EVENTS.01 / PHONE-EDIT04/05C/06 replace the retired fieldDispatch packet and same-event JS veto with original native PointerEvent fields and owner-controlled requests, retaining original refs/target/identity and endpoint/lifetime guards.",
+          "nativeType": "((event: PointerEvent) => void) | undefined"
+        },
+        "onClickCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onContextMenu": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onContextMenuCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onDoubleClick": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onDoubleClickCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onFocus": {
+          "canonicalType": "((e: import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").FocusEvent<Element, Element>) => void) | undefined",
+          "optional": true,
+          "nativeProp": "onFocus",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/NativeDatePickerView.tsx",
+          "expectedGroup": "events",
+          "nativeType": "((event: import(\"packages/react-native/src/input/types\").TNativeFocusEvent) => void) | null | undefined"
+        },
+        "onFocusChange": {
+          "canonicalType": "((isFocused: boolean) => void) | undefined",
+          "optional": true,
+          "nativeProp": "onFocusChange",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/NativeDatePickerView.tsx",
+          "expectedGroup": "events",
+          "nativeType": "((value: boolean) => void) | undefined"
+        },
+        "onGotPointerCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onGotPointerCaptureCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onKeyDown": {
+          "canonicalType": "((e: import(\"node_modules/.pnpm/@react-types+shared@3.34.0_react@19.2.7/node_modules/@react-types/shared/src/events\").KeyboardEvent) => void) | undefined",
+          "optional": true,
+          "nativeProp": "onKeyDown",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/NativeDatePickerView.tsx",
+          "expectedGroup": "events",
+          "nativeType": "((event: import(\"packages/react-native/src/input/types\").TNativeKeyboardEvent) => void) | undefined"
+        },
+        "onKeyUp": {
+          "canonicalType": "((e: import(\"node_modules/.pnpm/@react-types+shared@3.34.0_react@19.2.7/node_modules/@react-types/shared/src/events\").KeyboardEvent) => void) | undefined",
+          "optional": true,
+          "nativeProp": "onKeyUp",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/NativeDatePickerView.tsx",
+          "expectedGroup": "events",
+          "nativeType": "((event: import(\"packages/react-native/src/input/types\").TNativeKeyboardEvent) => void) | undefined"
+        },
+        "onLostPointerCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onLostPointerCaptureCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onMouseDown": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onMouseDownCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onMouseEnter": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onMouseLeave": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onMouseMove": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onMouseMoveCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onMouseOut": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onMouseOutCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onMouseOver": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onMouseOverCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onMouseUp": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onMouseUpCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").MouseEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onOpenChange": {
+          "canonicalType": "((isOpen: boolean) => void) | undefined",
+          "optional": true,
+          "nativeProp": "onOpenChange",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/NativeDatePickerView.tsx",
+          "expectedGroup": "events",
+          "nativeType": "((isOpen: boolean) => void) | undefined"
+        },
+        "onPointerCancel": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": "onPointerCancel",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": "((event: PointerEvent) => void) | undefined"
+        },
+        "onPointerCancelCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": "onPointerCancelCapture",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": "((event: PointerEvent) => void) | undefined"
+        },
+        "onPointerDown": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": "onPointerDown",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": "((event: PointerEvent) => void) | undefined"
+        },
+        "onPointerDownCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": "onPointerDownCapture",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": "((event: PointerEvent) => void) | undefined"
+        },
+        "onPointerEnter": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": "onPointerEnter",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": "((event: PointerEvent) => void) | undefined"
+        },
+        "onPointerLeave": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": "onPointerLeave",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": "((event: PointerEvent) => void) | undefined"
+        },
+        "onPointerMove": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": "onPointerMove",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": "((event: PointerEvent) => void) | undefined"
+        },
+        "onPointerMoveCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": "onPointerMoveCapture",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": "((event: PointerEvent) => void) | undefined"
+        },
+        "onPointerOut": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onPointerOutCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onPointerOver": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onPointerOverCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onPointerUp": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": "onPointerUp",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": "((event: PointerEvent) => void) | undefined"
+        },
+        "onPointerUpCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").PointerEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": "onPointerUpCapture",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": "((event: PointerEvent) => void) | undefined"
+        },
+        "onScroll": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").UIEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onScrollCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").UIEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onTouchCancel": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": "onTouchCancel",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => void) | undefined"
+        },
+        "onTouchCancelCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onTouchEnd": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": "onTouchEnd",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => void) | undefined"
+        },
+        "onTouchEndCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": "onTouchEndCapture",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => void) | undefined"
+        },
+        "onTouchMove": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": "onTouchMove",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => void) | undefined"
+        },
+        "onTouchMoveCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onTouchStart": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": "onTouchStart",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => void) | undefined"
+        },
+        "onTouchStartCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").TouchEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onTransitionCancel": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onTransitionCancelCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onTransitionEnd": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onTransitionEndCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onTransitionRun": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onTransitionRunCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onTransitionStart": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onTransitionStartCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").TransitionEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onWheel": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").WheelEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "onWheelCapture": {
+          "canonicalType": "import(\"node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index\").WheelEventHandler<HTMLDivElement> | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "pageBehavior": {
+          "canonicalType": "import(\"node_modules/.pnpm/react-stately@3.46.0_react@19.2.7/node_modules/react-stately/dist/types/exports/useCalendarState\").PageBehavior | undefined",
+          "optional": true,
+          "nativeProp": "pageBehavior",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/calendar/NativeDateCalendar.tsx",
+          "expectedGroup": "calendar",
+          "nativeType": "import(\"node_modules/.pnpm/react-stately@3.46.0_react@19.2.3/node_modules/react-stately/dist/types/src/calendar/types\").PageBehavior | undefined"
+        },
+        "placeholderValue": {
+          "canonicalType": "T | null | undefined",
+          "optional": true,
+          "nativeProp": "placeholderValue",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts",
+          "expectedGroup": "value",
+          "nativeType": "T | null | undefined"
+        },
+        "placement": {
+          "canonicalType": "\"bottom\" | \"bottom left\" | \"bottom right\" | \"bottom start\" | \"bottom end\" | \"top\" | \"top left\" | \"top right\" | \"top start\" | \"top end\" | \"left\" | \"left top\" | \"left bottom\" | \"start\" | \"start top\" | \"start bottom\" | \"right\" | \"right top\" | \"right bottom\" | \"end\" | \"end top\" | \"end bottom\" | undefined",
+          "optional": true,
+          "nativeProp": "placement",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "style",
+          "nativeType": "\"bottom\" | \"bottom left\" | \"bottom right\" | \"bottom start\" | \"bottom end\" | \"top\" | \"top left\" | \"top right\" | \"top start\" | \"top end\" | \"left\" | \"left top\" | \"left bottom\" | \"start\" | \"start top\" | \"start bottom\" | \"right\" | \"right top\" | \"right bottom\" | \"end\" | \"end top\" | \"end bottom\" | undefined"
+        },
+        "render": {
+          "canonicalType": "import(\"node_modules/.pnpm/react-aria-components@1.17.0_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/react-aria-components/dist/types/src/utils\").DOMRenderFunction<\"div\", DatePickerRenderProps> | undefined",
+          "optional": true,
+          "nativeProp": "render",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/NativeDatePickerView.tsx",
+          "expectedGroup": "context",
+          "nativeType": "((props: TNativeFocusViewProps & RefAttributes<View>, state: Readonly<{ state: DatePickerState; isFocusWithin: boolean; isFocusVisible: boolean; isOpen: boolean; isDisabled: boolean; isReadOnly: boolean; isRequired: boolean; isInvalid: boolean; }>) => ReactElement) | undefined"
+        },
+        "shouldCloseOnSelect": {
+          "canonicalType": "boolean | (() => boolean) | undefined",
+          "optional": true,
+          "nativeProp": "shouldCloseOnSelect",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/calendar/NativeDateCalendar.tsx",
+          "expectedGroup": "calendar",
+          "nativeType": "boolean | (() => boolean) | undefined"
+        },
+        "shouldForceLeadingZeros": {
+          "canonicalType": "boolean | undefined",
+          "optional": true,
+          "nativeProp": "shouldForceLeadingZeros",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/entry/useNativeDateSegmentEntry.ts",
+          "expectedGroup": "entry",
+          "expected": "Apply wrapper authored/default value before base context merging, exactly as canonical. Native caller previously let context12/false replace default24/true; two local caller corrections and genuine before/after/current actual canonical probes preserve explicit12/false and original roots/segments without requests.",
+          "nativeType": "boolean | undefined"
+        },
+        "slot": {
+          "canonicalType": "string | null | undefined",
+          "optional": true,
+          "nativeProp": "slot",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/NativeDatePickerView.tsx",
+          "expectedGroup": "context",
+          "nativeType": "string | null | undefined"
+        },
+        "style": {
+          "canonicalType": "(CSSProperties | ((values: DatePickerRenderProps & { defaultStyle: CSSProperties; }) => CSSProperties | undefined)) | undefined",
+          "optional": true,
+          "nativeProp": "style",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "style",
+          "nativeType": "StyleProp<TextStyle> | ((state: Readonly<{ state: DatePickerState; isFocusWithin: boolean; isFocusVisible: boolean; isOpen: boolean; isDisabled: boolean; isReadOnly: boolean; isRequired: boolean; isInvalid: boolean; }> & { defaultStyle: TextStyle; }) => StyleProp<TextStyle>)"
+        },
+        "successState": {
+          "canonicalType": "boolean | undefined",
+          "optional": true,
+          "nativeProp": "successState",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "style",
+          "nativeType": "boolean | undefined"
+        },
+        "textSize": {
+          "canonicalType": "string | undefined",
+          "optional": true,
+          "nativeProp": "textSize",
+          "nativeTypeAtBaseline": "\"small\" | \"medium\" | \"large\" | undefined",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "style",
+          "expected": "Canonical string admission and medium/b10 fallback are implemented by the exact lane6 shared type/appearance candidate. Standard exported constants remain small/medium/large. Actual canonical field/calendar probes and four distinct lane6 root/fallback positives preserve local style precedence and original hosts.",
+          "nativeType": "string | undefined"
+        },
+        "translate": {
+          "canonicalType": "\"yes\" | \"no\" | undefined",
+          "optional": true,
+          "nativeProp": null,
+          "disposition": "APPROVED_NATIVE_HOST_BOUNDARY",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost",
+          "nativeType": null
+        },
+        "validate": {
+          "canonicalType": "((value: import(\"node_modules/.pnpm/react-stately@3.46.0_react@19.2.7/node_modules/react-stately/dist/types/exports/useDateFieldState\").MappedDateValue<T>) => import(\"node_modules/.pnpm/@react-types+shared@3.34.0_react@19.2.7/node_modules/@react-types/shared/src/inputs\").ValidationError | true | null | undefined) | undefined",
+          "optional": true,
+          "nativeProp": "validate",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/form/datePicker.ts",
+          "expectedGroup": "form",
+          "nativeType": "((value: import(\"packages/react-native/src/date/state/types\").MappedDateValue<T>) => import(\"node_modules/.pnpm/@react-types+shared@3.34.0_react@19.2.3/node_modules/@react-types/shared/src/inputs\").ValidationError | true | null | undefined) | undefined"
+        },
+        "validationBehavior": {
+          "canonicalType": "\"native\" | \"aria\" | undefined",
+          "optional": true,
+          "nativeProp": "validationBehavior",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/form/datePicker.ts",
+          "expectedGroup": "form",
+          "nativeType": "\"native\" | \"aria\" | undefined"
+        },
+        "value": {
+          "canonicalType": "T | null | undefined",
+          "optional": true,
+          "nativeProp": "value",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts",
+          "expectedGroup": "value",
+          "nativeType": "T | null | undefined"
+        },
+        "warningState": {
+          "canonicalType": "boolean | undefined",
+          "optional": true,
+          "nativeProp": "warningState",
+          "disposition": "NATIVE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "style",
+          "nativeType": "boolean | undefined"
+        }
+      },
+      "nativeOnlyProps": {
+        "accessibilityActions": {
+          "nativeType": "readonly Readonly<{ name: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").AccessibilityActionName | string; label?: string | undefined; }>[] | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "accessibilityElementsHidden": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "accessibilityHint": {
+          "nativeType": "string | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "accessibilityIgnoresInvertColors": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "accessibilityLabel": {
+          "nativeType": "string | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "accessibilityLabelledBy": {
+          "nativeType": "string | string[] | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "accessibilityLanguage": {
+          "nativeType": "string | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "accessibilityLargeContentTitle": {
+          "nativeType": "string | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "accessibilityLiveRegion": {
+          "nativeType": "\"none\" | \"polite\" | \"assertive\" | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "accessibilityRespondsToUserInteraction": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "accessibilityRole": {
+          "nativeType": "import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").AccessibilityRole | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "accessibilityShowsLargeContentViewer": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "accessibilityState": {
+          "nativeType": "import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").AccessibilityState | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "accessibilityValue": {
+          "nativeType": "import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").AccessibilityValue | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "accessibilityViewIsModal": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "accessible": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "NATIVE_ROOT_PROP_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/picker/NativeDatePickerView.tsx",
+          "expectedGroup": "nativeHost",
+          "expected": "The exact lane6 candidate forwards props.accessible ??false on original single/range roots and custom-render props. Authored true/false/default, original root/method/segment identities, original touch payload, final renderer precedence and cleanup pass at source tier. Native AT grouping remains unqualified."
+        },
+        "aria-busy": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "labels"
+        },
+        "aria-checked": {
+          "nativeType": "boolean | \"mixed\" | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "labels"
+        },
+        "aria-disabled": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "labels"
+        },
+        "aria-expanded": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "labels"
+        },
+        "aria-hidden": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "labels"
+        },
+        "aria-live": {
+          "nativeType": "\"polite\" | \"assertive\" | \"off\" | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "labels"
+        },
+        "aria-modal": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "labels"
+        },
+        "aria-selected": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "labels"
+        },
+        "aria-valuemax": {
+          "nativeType": "number | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "labels"
+        },
+        "aria-valuemin": {
+          "nativeType": "number | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "labels"
+        },
+        "aria-valuenow": {
+          "nativeType": "number | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "labels"
+        },
+        "aria-valuetext": {
+          "nativeType": "string | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/date/picker/appearance.ts",
+          "expectedGroup": "labels"
+        },
+        "ariaDescribedBy": {
+          "nativeType": "string | readonly string[] | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "ariaDetails": {
+          "nativeType": "string | readonly string[] | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "collapsable": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "collapsableChildren": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "extraFocusParticipants": {
+          "nativeType": "TNativeExtraFocusParticipants | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/date/picker/NativeDatePickerView.tsx",
+          "expectedGroup": "events"
+        },
+        "focusable": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/date/picker/NativeDatePickerView.tsx",
+          "expectedGroup": "nativeHost",
+          "expected": "Already forwarded with source native tabIndex precedence:defined tabIndex selects !tabIndex, otherwise props.focusable ??false. No TimePicker-style repair is needed here; preserve current behavior."
+        },
+        "hasTVPreferredFocus": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "hitSlop": {
+          "nativeType": "number | import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").Insets | null | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "importantForAccessibility": {
+          "nativeType": "\"yes\" | \"no\" | \"auto\" | \"no-hide-descendants\" | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "isTVSelectable": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "nativeAccessibilityLabels": {
+          "nativeType": "Partial<TNativeFieldSemanticLabels> | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "nativeFormActionBinding": {
+          "nativeType": "string | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "nativeID": {
+          "nativeType": "string | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "needsOffscreenAlphaCompositing": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onAccessibilityAction": {
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").AccessibilityActionEvent) => void) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onAccessibilityEscape": {
+          "nativeType": "(() => void) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onAccessibilityTap": {
+          "nativeType": "(() => void) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onLayout": {
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").LayoutChangeEvent) => void) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onMagicTap": {
+          "nativeType": "(() => void) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onMoveShouldSetResponder": {
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onMoveShouldSetResponderCapture": {
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onNativeFormActionStatus": {
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").NativeSyntheticEvent<import(\"packages/react-native/src/input/specs/CUIFocusViewNativeComponent\").NativeFormActionStatus>) => void) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onPointerEnterCapture": {
+          "nativeType": "((event: PointerEvent) => void) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onPointerLeaveCapture": {
+          "nativeType": "((event: PointerEvent) => void) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onResponderEnd": {
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onResponderGrant": {
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onResponderMove": {
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onResponderReject": {
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onResponderRelease": {
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onResponderStart": {
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onResponderTerminate": {
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => void) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onResponderTerminationRequest": {
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onStartShouldSetResponder": {
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "onStartShouldSetResponderCapture": {
+          "nativeType": "((event: import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").GestureResponderEvent) => boolean) | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "pointerEvents": {
+          "nativeType": "\"box-none\" | \"none\" | \"box-only\" | \"auto\" | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "removeClippedSubviews": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "renderToHardwareTextureAndroid": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "role": {
+          "nativeType": "import(\"node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/types/index\").Role | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "screenReaderFocusable": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "shouldRasterizeIOS": {
+          "nativeType": "boolean | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "tabIndex": {
+          "nativeType": "0 | -1 | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "testID": {
+          "nativeType": "string | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "tvParallaxMagnification": {
+          "nativeType": "number | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "tvParallaxShiftDistanceX": {
+          "nativeType": "number | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "tvParallaxShiftDistanceY": {
+          "nativeType": "number | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        },
+        "tvParallaxTiltAngle": {
+          "nativeType": "number | undefined",
+          "optional": true,
+          "disposition": "EXISTING_NATIVE_OWNER",
+          "nativeOwner": "packages/react-native/src/input/NativeFocusView.tsx",
+          "expectedGroup": "nativeHost"
+        }
+      }
+    }
+  },
+  "expectedGroups": {
+    "value": {
+      "owner": "packages/react-native/src/date/state/useDatePickerState.ts",
+      "expected": "Original CalendarDate/CalendarDateTime/ZonedDateTime, calendars/zones and mapped owner callbacks stay intact. Defined null overrides defaultValue, controlled veto retains displayed owner and repeats requests; source internal partial/date/time drafts remain independent. Range preserves separate original endpoint times, ordered/reversed/partial-range behavior and complete-value callback boundaries."
+    },
+    "calendar": {
+      "owner": "packages/react-native/src/date/calendar/NativeDateCalendar.tsx",
+      "expected": "Full existing neutral pinned Calendar/RangeCalendar state renders locale seven-column weeks, all real month rows, outside/visible/today/disabled/unavailable/invalid/selected/boundary states. firstDayOfWeek/pageBehavior/calendar replacement and source two-month single versus one-month range defaults remain. Original day/week/Home/End/Page/Shift-year/Enter/Space/Alt-arrow/range-anchor-Escape,200ms touch-versus-scroll, reverse/range boundary dragging and noncontiguous rules retain guarded native original owners. Installed layout/pointer/key/focus is independent."
+    },
+    "entry": {
+      "owner": "packages/react-native/src/date/entry/useNativeDateSegmentEntry.ts",
+      "expected": "Complete pinned localized digit/prefix/zero/bounds/restart/AM-PM/era/placeholder/composition/readonly entry and source key algorithms. Existing native owned segments preserve original refs/leases, guarded ordinary events and later focus requests. Range focus stays within the original active input; no input/selection write, mirrored editor or transaction-veto promise."
+    },
+    "context": {
+      "owner": "packages/react-native/src/date/picker/NativeDatePickerView.tsx",
+      "expected": "Existing default/named/null picker contexts merge original props/refs/callbacks. Wrappers apply authored hourCycle ??24 and shouldForceLeadingZeros ??true before base context merge, matching actual canonical wrappers; explicit12/false still wins. Appearance and final style calibration stay before base contexts. Eight current render flags and full23/26-member state remain. Custom roots retain supplied props/ref/generated children; fixed wrapper children cannot be replaced by the inherited children prop."
+    },
+    "events": {
+      "owner": "packages/react-native/src/date/picker/NativeDatePickerView.tsx",
+      "expected": "Approved ordinary segment/composition and genuine two-phase key/native pointer events preserve original payloads/targets/current callbacks/leases, guards and callback order. DEC.PHONE.GROUP_EVENTS.01 retires fieldDispatch/same-event JS native-default veto. Existing explicit extraFocusParticipants and same-window NativeFloatingLayerHost keep original refs; unlisted controls remain independent and range navigation cannot cross input endpoints. Observed callbacks alone prove focus completion; source models are not installed proof."
+    },
+    "style": {
+      "owner": "packages/react-native/src/date/picker/appearance.ts",
+      "expected": "All15 custom owners remain independent:root/input/trigger/input-button group/popover/dialog/calendar/heading/previous/next/grid/grid-header/header-cell/body/day. Computed/custom/final root styles, callbacks/defaultStyle, explicit zero and local overrides retain actual ownership. Native b11/b10/b9 covers input/headings/weekdays/days; canonical arbitrary string fallback is medium/b10. Geometry, disabled/focus/offset/validation roles and existing250ms border/350ms group text motion/ReduceMotion/retirement remain. Numbered selected/boundary light100/200 and dark400/500 map existing native roles/mixes; add no theme roles or pixel claim."
+    },
+    "form": {
+      "owner": "packages/react-native/src/form/datePicker.ts",
+      "expected": "Existing NativeForm submits exact DateValue.toString entries, single name or ordered startName/endName including duplicates; disabled excludes, readonly includes. Custom/server/min/max/unavailable/required/range validation, native metadata and owner-veto reset keep original root/segment/form refs and source request order.",
+      "additionalOwner": "packages/react-native/src/form/useSegmentedField.tsx"
+    },
+    "labels": {
+      "owner": "packages/react-native/src/date/picker/appearance.ts",
+      "expected": "Three independent partial labels/defaults preserve explicit empty strings. Native field/root/segment/heading/description/error/state relationships retain localized current IDs and original refs. Truthy ComponentIcon keeps original content; falsy values use the exact calendar15 glyph. Previous/next preserve15-unit2-stroke chevrons."
+    },
+    "locale": {
+      "owner": "packages/react-native/src/locale/NativeLocaleProvider.tsx",
+      "expected": "Approved NativeLocaleProvider supplies host Intl locale and script direction with replacement/cleanup. Same pinned date/number/calendar APIs and all34 dictionaries remain. Native locale/provider/accessibility-language owners replace browser lang/dir attributes; no locale truncation or global Intl patch."
+    },
+    "nativeHost": {
+      "owner": "packages/react-native/src/input/NativeFocusView.tsx",
+      "expected": "Existing conventional-native host/style/ref/event/accessibility contracts replace browser-only hidden/inert/translate, mouse/aux/context/double click and CSS animation/transition/scroll/wheel capture. Declared native pointer/touch/responder/accessibility options retain platform applicability and original payloads. Actual outer View/segment refs stay original; default nonaccessible group and native focusable/tabIndex rules stay explicit. Source proof closes no native transport/AT/appearance gate."
+    }
+  },
+  "inheritedStateSurfaces": {
+    "renderState": {
+      "canonicalCount": 8,
+      "nativeCount": 8,
+      "props": {
+        "isDisabled": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "isFocusVisible": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "isFocusWithin": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "isInvalid": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "isOpen": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "isReadOnly": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "isRequired": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "state": {
+          "canonicalType": "import(\"node_modules/.pnpm/react-stately@3.46.0_react@19.2.7/node_modules/react-stately/dist/types/exports/useDatePickerState\").DatePickerState",
+          "nativeType": "DatePickerState",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        }
+      }
+    },
+    "pickerState": {
+      "canonicalCount": 23,
+      "nativeCount": 23,
+      "props": {
+        "close": {
+          "canonicalType": "() => void",
+          "nativeType": "() => void",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "commitValidation": {
+          "canonicalType": "() => void",
+          "nativeType": "() => void",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "dateValue": {
+          "canonicalType": "DateValue | null",
+          "nativeType": "DateValue | null",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "defaultValue": {
+          "canonicalType": "DateValue | null",
+          "nativeType": "DateValue | null",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "displayValidation": {
+          "canonicalType": "import(\"node_modules/.pnpm/@react-types+shared@3.34.0_react@19.2.7/node_modules/@react-types/shared/src/inputs\").ValidationResult",
+          "nativeType": "Readonly<{ isInvalid: boolean; validationDetails: import(\"packages/react-native/src/components/ComboBox/state/types\").ValidityState; validationErrors: string[]; }>",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "formatValue": {
+          "canonicalType": "(locale: string, fieldOptions: import(\"node_modules/.pnpm/react-stately@3.46.0_react@19.2.7/node_modules/react-stately/dist/types/src/datepicker/utils\").FieldOptions) => string",
+          "nativeType": "(locale: string, fieldOptions: import(\"packages/react-native/src/date/state/utils\").FieldOptions) => string",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "getDateFormatter": {
+          "canonicalType": "(locale: string, formatOptions: import(\"node_modules/.pnpm/react-stately@3.46.0_react@19.2.7/node_modules/react-stately/dist/types/src/datepicker/utils\").FormatterOptions) => import(\"node_modules/.pnpm/@internationalized+date@3.12.1/node_modules/@internationalized/date/dist/types/src/DateFormatter\").DateFormatter",
+          "nativeType": "(locale: string, formatOptions: import(\"packages/react-native/src/date/state/utils\").FormatterOptions) => import(\"node_modules/.pnpm/@internationalized+date@3.12.1/node_modules/@internationalized/date/dist/types/src/DateFormatter\").DateFormatter",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "granularity": {
+          "canonicalType": "import(\"node_modules/.pnpm/react-stately@3.46.0_react@19.2.7/node_modules/react-stately/dist/types/exports/useDateFieldState\").Granularity",
+          "nativeType": "import(\"packages/react-native/src/date/state/types\").Granularity",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "hasTime": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "isInvalid": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "isOpen": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "open": {
+          "canonicalType": "() => void",
+          "nativeType": "() => void",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "realtimeValidation": {
+          "canonicalType": "import(\"node_modules/.pnpm/@react-types+shared@3.34.0_react@19.2.7/node_modules/@react-types/shared/src/inputs\").ValidationResult",
+          "nativeType": "Readonly<{ isInvalid: boolean; validationDetails: import(\"packages/react-native/src/components/ComboBox/state/types\").ValidityState; validationErrors: string[]; }>",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "resetValidation": {
+          "canonicalType": "() => void",
+          "nativeType": "() => void",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "setDateValue": {
+          "canonicalType": "(value: DateValue) => void",
+          "nativeType": "(value: DateValue) => void",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "setOpen": {
+          "canonicalType": "(isOpen: boolean) => void",
+          "nativeType": "(isOpen: boolean) => void",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "setTimeValue": {
+          "canonicalType": "(value: import(\"node_modules/.pnpm/react-stately@3.46.0_react@19.2.7/node_modules/react-stately/dist/types/exports/useTimeFieldState\").TimeValue) => void",
+          "nativeType": "(value: import(\"packages/react-native/src/date/state/types\").TimeValue) => void",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "setValue": {
+          "canonicalType": "(value: DateValue | null) => void",
+          "nativeType": "(value: DateValue | null) => void",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "timeValue": {
+          "canonicalType": "import(\"node_modules/.pnpm/react-stately@3.46.0_react@19.2.7/node_modules/react-stately/dist/types/exports/useTimeFieldState\").TimeValue | null",
+          "nativeType": "import(\"packages/react-native/src/date/state/types\").TimeValue | null",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "toggle": {
+          "canonicalType": "() => void",
+          "nativeType": "() => void",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "updateValidation": {
+          "canonicalType": "(result: import(\"node_modules/.pnpm/@react-types+shared@3.34.0_react@19.2.7/node_modules/@react-types/shared/src/inputs\").ValidationResult) => void",
+          "nativeType": "(result: import(\"packages/react-native/src/components/ComboBox/state/types\").ValidationResult) => void",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "validationState": {
+          "canonicalType": "import(\"node_modules/.pnpm/@react-types+shared@3.34.0_react@19.2.7/node_modules/@react-types/shared/src/inputs\").ValidationState | null",
+          "nativeType": "(\"valid\" | \"invalid\") | null",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "value": {
+          "canonicalType": "DateValue | null",
+          "nativeType": "DateValue | null",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        }
+      }
+    },
+    "displayValidation": {
+      "canonicalCount": 3,
+      "nativeCount": 3,
+      "props": {
+        "isInvalid": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "validationDetails": {
+          "canonicalType": "ValidityState",
+          "nativeType": "Readonly<{ badInput: boolean; customError: boolean; patternMismatch: boolean; rangeOverflow: boolean; rangeUnderflow: boolean; stepMismatch: boolean; tooLong: boolean; tooShort: boolean; typeMismatch: boolean; valueMissing: boolean; valid: boolean; }>",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "validationErrors": {
+          "canonicalType": "string[]",
+          "nativeType": "string[]",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        }
+      }
+    },
+    "realtimeValidation": {
+      "canonicalCount": 3,
+      "nativeCount": 3,
+      "props": {
+        "isInvalid": {
+          "canonicalType": "boolean",
+          "nativeType": "boolean",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "validationDetails": {
+          "canonicalType": "ValidityState",
+          "nativeType": "Readonly<{ badInput: boolean; customError: boolean; patternMismatch: boolean; rangeOverflow: boolean; rangeUnderflow: boolean; stepMismatch: boolean; tooLong: boolean; tooShort: boolean; typeMismatch: boolean; valueMissing: boolean; valid: boolean; }>",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        },
+        "validationErrors": {
+          "canonicalType": "string[]",
+          "nativeType": "string[]",
+          "disposition": "PINNED_FULL_STATE_EQUIVALENT",
+          "nativeOwner": "packages/react-native/src/date/state/useDatePickerState.ts"
+        }
+      }
+    }
+  },
+  "canonicalInputsSHA256": {
+    "packages/react/src/components/DateTimePicker/CalendarStyles.module.css": "dfc5d586b1ba4e90525b223a228d23b93f5ccd99fe823953fc5c10f46ca3b9bf",
+    "packages/react/src/components/DateTimePicker/DateTimePicker.tsx": "bde2bbbed56e3b5fa6fd6488011e795aa5039124b3ea1b1dedc9ae4cb1f8299f",
+    "packages/react/src/components/DateTimePicker/DateTimePickerStyles.module.css": "adc13532002dc178ed145666e764e5365cc1f63f6f3c8f7fa87cd92c21f9fec7",
+    "packages/react/src/components/DateTimePicker/DefaultDateTimePickerIcons.tsx": "031e7f744d5c5d9f1fa6110b9bf78abe52cf93fade4d9ffd18586a401a9366e4",
+    "packages/react/src/components/DateTimePicker/__tests__/DateTimePicker.test.tsx": "f180b5c70988558bbf7a9a02949d21178802ce3d054162fc0f91e672ced35c50",
+    "packages/react/src/components/DateTimePicker/helpers.tsx": "f77d620228d7f6207db5060ccaf34ed88fdd188fb3fd005f15c08197234e7876",
+    "packages/react/src/components/DateTimePicker/index.ts": "0f2edc24932397ecc107e642f10469f109180f7f0125f6a29d86d16ee1119c61",
+    "packages/react/src/components/DateTimePicker/labels.ts": "8a62e7318c003d56a407af4194cb3eda37587aa3ffb57de935360ae2333d395c"
+  },
+  "supplementalCanonicalInputsSHA256": {
+    "packages/react/src/components/DateTimePicker/__tests__/DateTimePicker.keyboard.test.tsx": "b93f5ffe1f1dd2de75f4d83b2bf28ada6d3aeb46b9103a0dcd8da55237ceb5e5"
+  },
+  "canonicalAssertions": [
+    {
+      "sourceCase": "3.5.53.1",
+      "family": "single",
+      "title": "renders.",
+      "sourceSuite": "packages/react/src/components/DateTimePicker/__tests__/DateTimePicker.test.tsx",
+      "nativeMapping": "Complete approved fifteen-case mapping in roadmap3.5.53, current original source identities and retained calendar/entry/renderer proof; no native UX claim."
+    },
+    {
+      "sourceCase": "3.5.53.2",
+      "family": "single",
+      "title": "responds to text size props.",
+      "sourceSuite": "packages/react/src/components/DateTimePicker/__tests__/DateTimePicker.test.tsx",
+      "nativeMapping": "Complete approved fifteen-case mapping in roadmap3.5.53, current original source identities and retained calendar/entry/renderer proof; no native UX claim."
+    },
+    {
+      "sourceCase": "3.5.53.3",
+      "family": "single",
+      "title": "responds to corner geometry props.",
+      "sourceSuite": "packages/react/src/components/DateTimePicker/__tests__/DateTimePicker.test.tsx",
+      "nativeMapping": "Complete approved fifteen-case mapping in roadmap3.5.53, current original source identities and retained calendar/entry/renderer proof; no native UX claim."
+    },
+    {
+      "sourceCase": "3.5.53.4",
+      "family": "single",
+      "title": "responds to canonical disabled prop.",
+      "sourceSuite": "packages/react/src/components/DateTimePicker/__tests__/DateTimePicker.test.tsx",
+      "nativeMapping": "Complete approved fifteen-case mapping in roadmap3.5.53, current original source identities and retained calendar/entry/renderer proof; no native UX claim."
+    },
+    {
+      "sourceCase": "3.5.53.5",
+      "family": "single",
+      "title": "responds to canonical readonly prop.",
+      "sourceSuite": "packages/react/src/components/DateTimePicker/__tests__/DateTimePicker.test.tsx",
+      "nativeMapping": "Complete approved fifteen-case mapping in roadmap3.5.53, current original source identities and retained calendar/entry/renderer proof; no native UX claim."
+    },
+    {
+      "sourceCase": "3.5.53.6",
+      "family": "single",
+      "title": "responds to isOpen prop.",
+      "sourceSuite": "packages/react/src/components/DateTimePicker/__tests__/DateTimePicker.test.tsx",
+      "nativeMapping": "Complete approved fifteen-case mapping in roadmap3.5.53, current original source identities and retained calendar/entry/renderer proof; no native UX claim."
+    },
+    {
+      "sourceCase": "3.5.53.7",
+      "family": "single",
+      "title": "responds to focus props.",
+      "sourceSuite": "packages/react/src/components/DateTimePicker/__tests__/DateTimePicker.test.tsx",
+      "nativeMapping": "Complete approved fifteen-case mapping in roadmap3.5.53, current original source identities and retained calendar/entry/renderer proof; no native UX claim."
+    },
+    {
+      "sourceCase": "3.5.53.8",
+      "family": "single",
+      "title": "responds to form element status props.",
+      "sourceSuite": "packages/react/src/components/DateTimePicker/__tests__/DateTimePicker.test.tsx",
+      "nativeMapping": "Complete approved fifteen-case mapping in roadmap3.5.53, current original source identities and retained calendar/entry/renderer proof; no native UX claim."
+    },
+    {
+      "sourceCase": "3.5.53.9",
+      "family": "single",
+      "title": "gives error validation state precedence over warning and success states.",
+      "sourceSuite": "packages/react/src/components/DateTimePicker/__tests__/DateTimePicker.test.tsx",
+      "nativeMapping": "Complete approved fifteen-case mapping in roadmap3.5.53, current original source identities and retained calendar/entry/renderer proof; no native UX claim."
+    },
+    {
+      "sourceCase": "3.5.53.10",
+      "family": "single",
+      "title": "calendar state styles use numbered palette tokens.",
+      "sourceSuite": "packages/react/src/components/DateTimePicker/__tests__/DateTimePicker.test.tsx",
+      "nativeMapping": "Complete approved fifteen-case mapping in roadmap3.5.53, current original source identities and retained calendar/entry/renderer proof; no native UX claim."
+    },
+    {
+      "sourceCase": "3.5.53.11",
+      "family": "single",
+      "title": "responds to custom style props.",
+      "sourceSuite": "packages/react/src/components/DateTimePicker/__tests__/DateTimePicker.test.tsx",
+      "nativeMapping": "Complete approved fifteen-case mapping in roadmap3.5.53, current original source identities and retained calendar/entry/renderer proof; no native UX claim."
+    },
+    {
+      "sourceCase": "3.5.53.12",
+      "family": "single",
+      "title": "accepts custom labels for its internal controls.",
+      "sourceSuite": "packages/react/src/components/DateTimePicker/__tests__/DateTimePicker.test.tsx",
+      "nativeMapping": "Complete approved fifteen-case mapping in roadmap3.5.53, current original source identities and retained calendar/entry/renderer proof; no native UX claim."
+    },
+    {
+      "sourceCase": "3.5.53.13",
+      "family": "single",
+      "title": "renders a custom trigger icon when ComponentIcon is provided.",
+      "sourceSuite": "packages/react/src/components/DateTimePicker/__tests__/DateTimePicker.test.tsx",
+      "nativeMapping": "Complete approved fifteen-case mapping in roadmap3.5.53, current original source identities and retained calendar/entry/renderer proof; no native UX claim."
+    },
+    {
+      "sourceCase": "3.5.53.14",
+      "family": "single",
+      "title": "merges native className and style without losing computed root styles.",
+      "sourceSuite": "packages/react/src/components/DateTimePicker/__tests__/DateTimePicker.test.tsx",
+      "nativeMapping": "Complete approved fifteen-case mapping in roadmap3.5.53, current original source identities and retained calendar/entry/renderer proof; no native UX claim."
+    },
+    {
+      "sourceCase": "3.5.53.15",
+      "family": "single",
+      "title": "does not leak wrapper props onto the root element.",
+      "sourceSuite": "packages/react/src/components/DateTimePicker/__tests__/DateTimePicker.test.tsx",
+      "nativeMapping": "Complete approved fifteen-case mapping in roadmap3.5.53, current original source identities and retained calendar/entry/renderer proof; no native UX claim."
+    }
+  ],
+  "ownedCSS": {
+    "files": [
+      "packages/react/src/components/DateTimePicker/DateTimePickerStyles.module.css",
+      "packages/react/src/components/DateTimePicker/CalendarStyles.module.css"
+    ],
+    "nativeOwners": [
+      "packages/react-native/src/date/picker/appearance.ts",
+      "packages/react-native/src/date/calendar/NativeDateCalendar.tsx",
+      "packages/react-native/src/date/calendar/NativeCalendarMonth.tsx",
+      "packages/react-native/src/date/calendar/NativeCalendarDay.tsx"
+    ],
+    "expected": "Every wrapper/calendar selector maps the approved independent native surfaces, explicit active/disabled/readonly/focus/selected/invalid/unavailable/outside/boundary/range states, numbered role mixes, row/week/day/grid geometry, token typography, padding/radius/motion/ReduceMotion and default15-unit icons. Root body text and explicit child variants keep source precedence. Browser cursor/data/class composition follows native host/style equivalents; physical scaling/pixels/appearance remain separate required gates."
+  },
+  "defaults": {
+    "multiMonth": true,
+    "dayLength": "narrow",
+    "hourCycle": 24,
+    "shouldForceLeadingZeros": true,
+    "textSize": "medium/b10, including unrecognized and empty canonical strings",
+    "placement": "bottom / existing native placement equivalent",
+    "value": "Defined class/null controlled, otherwise defaultValue; range retains internal endpoint draft until complete request",
+    "styleDefaultStyle": "Current owned native root defaultStyle; computed/custom/final ownership retained",
+    "rootAccessible": "false by default; authored true/false preserved by exact lane6 candidate",
+    "contextOrder": "Wrapper defaults and appearance calibration precede base context merge; explicit caller overrides remain authoritative"
+  },
+  "stateInputsSHA256": {
+    "packages/react-native/src/date/state/IncompleteDate.ts": "2f6a71c989198de4694d9109eead8599971326abf367941f012184d0e4b973ca",
+    "packages/react-native/src/date/state/messages.ts": "281d7487f37aa3da49711fc13e4c7b16e2a9caaf417774d2270c01e1e6fabe50",
+    "packages/react-native/src/date/state/placeholders.ts": "98de0b62d08152d8a751fbe0e32047a4497030feb2d959d302b480c5045a9b10",
+    "packages/react-native/src/date/state/types.ts": "8f9ab0432bb58bdd1f06e3071d1378c93e9778531ae0a6b33313979120251fbe",
+    "packages/react-native/src/date/state/useDateFieldState.ts": "123f39f6a0a774d876f9472d45e08a200d3906ac7c372d92962a63db720f45a8",
+    "packages/react-native/src/date/state/useDatePickerState.ts": "e6e988306c05742952f52376578254de434f7f07e4046db910801061b06064e7",
+    "packages/react-native/src/date/state/useDateRangePickerState.ts": "8a2719ab826a7b8183f0f1927f0f3c411f77e0ad79b0dd4d22af1b947f9c1883",
+    "packages/react-native/src/date/state/useTimeFieldState.ts": "7a3ae097de994debdbf028dae0e3b882d554e071c34030c70f597b8424d70295",
+    "packages/react-native/src/date/state/utils.ts": "b1200c1c58cd6ae461f583a59e198ad58b2b7e28d3b4d7032e641161267467b6"
+  },
+  "neutralCalendarProvenance": {
+    "path": "packages/react-native/src/date/calendar/UPSTREAM.json",
+    "sha256": "9e92c84d553b0305e0b778b82efef08d6b1d8ccce111d32a98879f227e2bb849",
+    "approval": "Gabriel: Approve full family source scope; roadmap3.5.53.24,2026-10-25",
+    "scope": "Same neutral pinned calendar/range-calendar3.46.0 state and date3.12.1 values, retained exact source/map identities and dictionaries. Immutable provenance is not blanket current transport/native proof."
+  },
+  "sourceFindings": {
+    "callerDefaults": "Two native callers applied wrapper hour/zero defaults after base context merge, contrary to actual canonical wrappers. Component-local correction installs authored/default values before useNativeContextProps. Native two-case before fails and after passes; actual canonical two-case comparison passes, preserving explicit12/false, original roots/segments and zero requests.",
+    "sharedSeam": "Root accessible forwarding and canonical string-size admission/appearance normalization belong exclusively to lane6. They are explicit dependencies, not candidate failures or waived capability."
+  },
+  "evidenceReuse": {
+    "currentProducer": "98b7db9a874be678d51684e603265393cb4ab917",
+    "receipt": "/tmp/codon-stock-reverify-source.json",
+    "scope": "Retain seven unchanged date/range renderer cases and16 current ordinary-input cases at their existing scoped source tier, with full current field/participant/entry dependencies referenced. No existing passed check is repeated. Two caller defaults change only context12/false precedence; old default/explicit cases stay unchanged.",
+    "fullComposition": "FIN-TM05 experiments3.31.217 retains263 date source and nine actual public/maintained composition controls in exact scopes, including unchanged state/calendar/appearance and its calendar value-boundary amendment. Later PHONE-EDIT03/04/05C/06 controls replace affected ordinary event/participant/SDK seams; no old synchronous packet contract is claimed.",
+    "state": "All nine pinned authored state files still match; old actual canonical25-family transaction controls and full entry/calendar/range/validation/state proof remain at original scopes. Preserve internal partial/null/draft and DST callback order, rather than equating state shape with native input.",
+    "failures": "Original whole98b batch failure and historical native/transport/IME/default/focus/AT/physical/owner deferrals remain preserved. Main STOCK-R01156-case c84 drag successor owns its changed shared seam."
+  },
+  "newProof": {
+    "callerBefore": "/tmp/codon-lane4-date-defaults-before.json",
+    "callerAfter": "/tmp/codon-lane4-date-defaults-after.json",
+    "canonicalDefaults": "/tmp/codon-lane4-date-canonical-defaults-adopt.json",
+    "canonicalFallback": "/tmp/codon-lane4-date-canonical-fallback-adopt.json",
+    "independentTypes": "/tmp/codon-lane4-date-types-adopt-result.json",
+    "canonicalTypes": "/tmp/codon-lane4-date-oracle-types-final-result.json",
+    "combinedNativeTypes": "/tmp/codon-lane4-date-types-combined-result.json",
+    "positiveFallbackDeclarations": "packages/react-native/type-tests/date-picker-fallback-contracts.tsx",
+    "sharedCaseReuse": "Four distinct new lane6 positives across accessibility and corrected fallback selectors, not six or a single four-green rerun; original partial failures retained.",
+    "declarationEmission": "/tmp/codon-lane4-date-declarations-combined-result.json",
+    "declarationIdentitiesSHA256": {
+      "/tmp/codon-lane4-date-declarations-combined/date/picker/types.d.ts": "78a332bef91272ea71a76eb1dc5fac2adc09464ef199efe04a4aee24d815a538",
+      "/tmp/codon-lane4-date-declarations-combined/components/DateTimePicker/DateTimePicker.d.ts": "0dcb204562887003ce0e2ee1eed42ab0a246bc435fa70df042052960c4f47e16"
+    }
+  },
+  "sharedDependency": {
+    "owner": "lane6, coordinator main integrates/adopts",
+    "baselineFilesSHA256": {
+      "packages/react-native/src/date/picker/NativeDatePickerView.tsx": "66d36b7fa610b8806ec009263ba9814b22c5bb072de8c136cdf31647239da940",
+      "packages/react-native/src/date/picker/types.ts": "c2e59ab4d6921e6ddfbed3be553ca83ee759c1ead77489d0114a114d9043a78e",
+      "packages/react-native/src/date/picker/appearance.ts": "52c2725c08d8706fe71cd457dcf4413b74307dee2eca06f34a0f6d624e3bce39"
+    },
+    "expectations": "/tmp/codon-lane4-date-interface-expectations.json",
+    "status": "EXACT_CANDIDATE_AND_JOINT_DECLARATION_PROOF_VERIFIED_PENDING_MAIN_ADOPTION",
+    "closureRequirements": [
+      "Main normal coordinated hooks and sole ledger adoption",
+      "Changed runtime/declaration archive/current emitted public types/frozen consumers/installed JS/both platform graphs",
+      "Native/product/installed/profile/closure obligations remain separate"
+    ],
+    "patch": "/tmp/codon-lane6-date-range-shared-final.patch",
+    "patchSHA256": "26823fa5118aa40ed7484a9f31e1b5b4a755d101c1981a6531f2ed75e358892a",
+    "candidateFilesSHA256": {
+      "packages/react-native/src/date/picker/NativeDatePickerView.tsx": "d49757851757db6458056a301094b51b27cd984703ae10c131e6065cfa7498ec",
+      "packages/react-native/src/date/picker/appearance.ts": "9008ce69936875af0c175a964bef860f8207a29795eb4caff188acb01773451c",
+      "packages/react-native/src/date/picker/types.ts": "6323d425d3f76a1af82793c625b04593f67505dbff4a8030a0df4827fcbda99b",
+      "packages/react-native/src/date/picker/__tests__/root-contract.test.tsx": "ccbeb4648acdefb9c6a2d90e9ec9bd2a85e05f6706bbeb085bcc176257b0df37",
+      "packages/react-native/src/date/picker/__tests__/root-contract.contracts.tsx": "2ea5274b4640a8bbf485f6850c142e213c96018150d1af7130ac13bc0a4276f5"
+    },
+    "sourceReceipt": "/tmp/codon-lane6-date-range-shared-final.json",
+    "integrationReceipt": "/tmp/codon-lane4-date-shared-integration.json"
+  },
+  "coverage": {
+    "canonicalDeclarations": 139,
+    "nativeDeclarations": 159,
+    "nativeOnlyRows": 74,
+    "renderStateMembers": 8,
+    "pickerStateMembers": 23,
+    "canonicalRootAssertions": 15,
+    "unclassified": 0,
+    "pendingSharedObligations": 0
+  },
+  "status": "WHOLE_SOURCE_CONTRACT_RECONCILED_READY_FOR_MAIN_ADOPTION",
+  "inheritedValidationDetails": {
+    "canonicalCount": 11,
+    "nativeCount": 11,
+    "members": [
+      "badInput",
+      "customError",
+      "patternMismatch",
+      "rangeOverflow",
+      "rangeUnderflow",
+      "stepMismatch",
+      "tooLong",
+      "tooShort",
+      "typeMismatch",
+      "valid",
+      "valueMissing"
+    ],
+    "nativeOwner": "packages/react-native/src/components/ComboBox/state/useFormValidationState.ts",
+    "expected": "Same existing complete FormValidationState/ValidationResult flags and source commit/reset/update ordering; native date-state extends that unchanged approved backend."
+  },
+  "publicBoundary": {
+    "canonicalExport": "Actual canonical wrapper is FC<Props<DateValue>>; generic helper props retain their own source identities.",
+    "nativeExistingExport": "Retain the previously adopted generic native prop/actual View-ref signatures and public aliases; no new callback-narrowing claim or consumer API change is introduced in this pass.",
+    "commonSourceGuarantee": "All three supported DateValue classes, calendars/zones and existing controlled-owner request behavior remain; actual class identity proofs are retained independently from type inference.",
+    "componentTypeDiff": "No new exported native symbol or signature change in the caller patch; only lane6 restores the canonical string-size admission."
+  },
+  "nativeCandidateInputsSHA256": {
+    "packages/react-native/src/components/DateTimePicker/DateTimePicker.tsx": "ea1e3f30fa2ace17d279d1332036689a4f36a075f75d5df05a14bcdd3eee8a80",
+    "packages/react-native/src/date/picker/NativeDatePickerView.tsx": "d49757851757db6458056a301094b51b27cd984703ae10c131e6065cfa7498ec",
+    "packages/react-native/src/date/picker/types.ts": "6323d425d3f76a1af82793c625b04593f67505dbff4a8030a0df4827fcbda99b",
+    "packages/react-native/src/date/picker/appearance.ts": "9008ce69936875af0c175a964bef860f8207a29795eb4caff188acb01773451c"
+  },
+  "dependencyTopology": {
+    "receipt": "/tmp/codon-lane4-date-dependency-topology.json",
+    "scope": "Final joint gates use independent real dependency directories copied from lane6 frozen offline install. All18 consumed package manifest/versions and root lock match earlier inputs; main metadata samples unchanged. Initial offline installer token-helper failure is preserved; no credentials/config/network change."
+  }
+}

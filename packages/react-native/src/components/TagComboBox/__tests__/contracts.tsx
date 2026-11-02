@@ -82,3 +82,33 @@ export const domPickerRoot = (
   // @ts-expect-error Custom picker roots retain original native View refs.
   <TagComboBox {...base} render={(props) => <NativeFocusView {...props} ref={createRef<HTMLElement>()} />} />
 )
+
+export const explicitOwnedTypography = (
+  <TagComboBox
+    {...base}
+    selectedItems={items as readonly (typeof items)[number][]}
+    customStyles={[{ fontStyle: "italic", letterSpacing: 3 }, { letterSpacing: 0 }]}
+    customTagGroupStyles={{ fontStyle: "normal" }}
+    customTagProps={{ customStyles: { fontStyle: "italic", letterSpacing: 5 } }}
+    render={(native, state) => {
+      const flags: boolean[] = [state.isOpen, state.isDisabled, state.isReadOnly, state.isRequired, state.isInvalid]
+      return <NativeFocusView {...native} accessibilityHint={flags.some(Boolean) ? "Active" : "Idle"} />
+    }}
+  />
+)
+// @ts-expect-error Caller group customization cannot replace wrapper-owned removal behavior.
+export const foreignGroupRemoval = <TagComboBox {...base} customTagGroupProps={{ onRemove: () => {} }} />
+// @ts-expect-error Item identity belongs to getItemKey, not nested visual customization.
+export const foreignTagIdentity = <TagComboBox {...base} customTagProps={{ id: "replacement" }} />
+// @ts-expect-error CSS class strings do not replace explicit native style owners.
+export const browserRootClass = <TagComboBox {...base} className="browser-only" />
+
+export const sourceSinglePicker = (
+  <TagComboBox {...base} selectionMode="single" customComboBoxProps={{ selectionMode: "single" }} />
+)
+// @ts-expect-error The selected tag array is multi-valued, but its inner picker keeps the source single-key contract.
+export const foreignPickerSelectionMode = <TagComboBox {...base} selectionMode="multiple" />
+// @ts-expect-error Nested picker customization retains the same single-key contract.
+export const nestedMultiplePicker = <TagComboBox {...base} customComboBoxProps={{ selectionMode: "multiple" }} />
+// @ts-expect-error Item authoring belongs to outer children rather than an ignored nested scaffold prop.
+export const nestedItemScaffold = <TagComboBox {...base} customComboBoxProps={{ children: "Ignored replacement" }} />

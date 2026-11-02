@@ -81,3 +81,5 @@ export const useNativeLocale = (): TNativeLocale => {
   const hostLocale = useHostLocale()
   return useMemo(() => inherited ?? resolveNativeLocale(hostLocale), [inherited, hostLocale])
 }
+
+export const useInheritedNativeLocale = (): TNativeLocale | null => useContext(NativeLocaleContext)

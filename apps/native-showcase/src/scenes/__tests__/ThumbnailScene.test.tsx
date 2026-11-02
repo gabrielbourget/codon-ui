@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, userEvent } from "@testing-library/react-native"
-import { Dimensions } from "react-native"
+import { Dimensions, type ImageProps } from "react-native"
 import { SafeAreaInsetsContext } from "react-native-safe-area-context"
 
 import { NativeShowcase } from "../NativeShowcase"
@@ -21,6 +21,14 @@ const image = () => screen.getByTestId("thumbnail-example")
 const load = async (width = 48, height = 24) =>
   fireEvent(image(), "load", { nativeEvent: { source: { width, height, uri: image().props.src } } })
 const fail = async () => fireEvent(image(), "error", { nativeEvent: { error: "fixture decode failure" } })
+const resolveNativeSources = jest.requireActual<{
+  getImageSourcesFromImageProps: (props: ImageProps) => readonly {
+    uri: string
+    scale?: number
+    width?: number
+    height?: number
+  }[]
+}>("react-native/Libraries/Image/ImageSourceUtils").getImageSourcesFromImageProps
 
 it("retains fallback progress and caller values through equivalent lists, theme/window/fixture changes and reset", async () => {
   const press = await enter()
@@ -91,4 +99,107 @@ it("exercises native/adapter style and alt ownership, zero geometry receipts and
   await press("Restart thumbnail lifetime")
   expect(screen.getByTestId("thumbnail-state")).toHaveTextContent(/Lifetime: 1/)
   expect(image().props.src).toBe("data:image/png;base64,AA==")
+})
+
+it("prepares native density source candidates and exact src precedence without inventing decode events", async () => {
+  const press = await enter()
+  const originalSrc = image().props.src
+  await press("Next thumbnail density set")
+  const complete = resolveNativeSources(image().props)
+  expect(complete.map((source) => source.scale)).toEqual([1, 2, 3])
+  expect(new Set(complete.map((source) => source.uri)).size).toBe(3)
+  expect(complete.every((source) => source.width === 32 && source.height === 32)).toBe(true)
+  expect(complete.map((source) => source.uri)).not.toContain(originalSrc)
+  expect(image()).toHaveStyle({ width: 32, height: 32 })
+  expect(image().props.accessibilityLabel).toBe("Thumbnail preview / aperçu")
+  await press("Next thumbnail density set")
+  const withSrc = resolveNativeSources(image().props)
+  expect(withSrc.map((source) => source.scale)).toEqual([2, 3, 1])
+  expect(withSrc[2].uri).toBe(originalSrc)
+  const host = image().unstable_fiber?.stateNode
+  expect(host).toBeTruthy()
+  await press("Toggle equivalent thumbnail candidates")
+  await press("Dark theme")
+  expect(image().unstable_fiber?.stateNode).toBe(host)
+  expect(resolveNativeSources(image().props)).toEqual(withSrc)
+  const window = Dimensions.get("window")
+  try {
+    await act(() => Dimensions.set({ window: { ...window, scale: 2 } }))
+    expect(screen.getByTestId("thumbnail-density-state")).toHaveTextContent(/Window scale: 2/)
+    expect(resolveNativeSources(image().props)).toEqual(withSrc)
+  } finally {
+    await act(() => Dimensions.set({ window }))
+  }
+  expect(screen.getByTestId("thumbnail-state")).toHaveTextContent(/Errors: 0\. Loads: 0/)
+  expect(screen.getByTestId("thumbnail-density-state")).toHaveTextContent(/Last native source: none/)
+})
+
+it("keeps a caller-selected density alternative authoritative through adapter state, accessibility, zero and reset", async () => {
+  const press = await enter()
+  const candidateSrc = image().props.src
+  await press("Next thumbnail density set")
+  await press("Toggle caller-selected thumbnail src")
+  const selectedSrc = image().props.src
+  expect(selectedSrc).not.toBe(candidateSrc)
+  expect(image().props.srcSet).toBeUndefined()
+  expect(resolveNativeSources(image().props).map((source) => source.uri)).toEqual([selectedSrc])
+  await load(48, 24)
+  expect(screen.getByTestId("thumbnail-density-state")).toHaveTextContent(/Last native source: landscape src/)
+  await press("Toggle thumbnail renderer")
+  const adapterHost = image().unstable_fiber?.stateNode
+  expect(adapterHost).toBeTruthy()
+  await press("Toggle equivalent thumbnail candidates")
+  await press("Toggle empty thumbnail alt")
+  await press("Toggle thumbnail zero size")
+  await press("Dark theme")
+  expect(image().unstable_fiber?.stateNode).toBe(adapterHost)
+  expect(image().props.src).toBe(selectedSrc)
+  expect(image().props.srcSet).toBeUndefined()
+  expect(image().props.accessibilityLabel).toBe("")
+  expect(image().props.accessible).toBe(false)
+  expect(image()).toHaveStyle({ width: 0, height: 0 })
+  expect(screen.getByTestId("thumbnail-state")).toHaveTextContent(/Errors: 0\. Loads: 1/)
+  await press("Toggle caller-selected thumbnail src")
+  expect(image().props.src).toBe(candidateSrc)
+  expect(resolveNativeSources(image().props).map((source) => source.scale)).toEqual([1, 2, 3])
+  await press("Reset scene")
+  await press("Thumbnail scene")
+  expect(image().props.src).toBe(candidateSrc)
+  expect(image().props.srcSet).toBeUndefined()
+  expect(screen.getByTestId("thumbnail-density-state")).toHaveTextContent(/Density set: off.*Last native source: none/)
+})
+
+it("retires replaced density callbacks and preserves genuine source reporting, candidate fallback and explicit zero", async () => {
+  const press = await enter()
+  await press("Next thumbnail density set")
+  const retired = image().props
+  const retiredURI = resolveNativeSources(retired)[0].uri
+  await press("Next thumbnail density set")
+  await act(() => {
+    retired.onLoad({ nativeEvent: { source: { uri: retiredURI, width: 32, height: 32 } } })
+    retired.onError({ nativeEvent: { error: "retired density attempt" } })
+  })
+  expect(screen.getByTestId("thumbnail-state")).toHaveTextContent(/Errors: 0\. Loads: 0/)
+  await press("Toggle thumbnail zero size")
+  expect(image().props.width).toBe(0)
+  expect(image().props.height).toBe(0)
+  expect(image()).toHaveStyle({ width: 0, height: 0 })
+  await press("Toggle thumbnail zero size")
+  expect(image()).toHaveStyle({ width: 32, height: 32 })
+  const reportedURI = resolveNativeSources(image().props)[0].uri
+  await fireEvent(image(), "load", { nativeEvent: { source: { uri: reportedURI, width: 64, height: 64 } } })
+  expect(screen.getByTestId("thumbnail-density-state")).toHaveTextContent(/Last native source: density 2x, 64 pixels/)
+  expect(screen.getByTestId("thumbnail-state")).toHaveTextContent(/Errors: 0\. Loads: 1\. Last load: 64 x 64/)
+  await fail()
+  await fail()
+  await fail()
+  expect(screen.getByTestId("thumbnail-fallback")).toBeOnTheScreen()
+  expect(screen.queryByTestId("thumbnail-example")).toBeNull()
+  expect(screen.getByTestId("thumbnail-state")).toHaveTextContent(/Errors: 3\. Loads: 1/)
+  await press("Toggle zero thumbnail fallback")
+  expect(screen.getByText("0")).toBeOnTheScreen()
+  await press("Toggle caller-selected thumbnail src")
+  expect(image().props.srcSet).toBeUndefined()
+  expect(screen.queryByTestId("thumbnail-fallback")).toBeNull()
+  expect(screen.getByTestId("thumbnail-state")).toHaveTextContent(/Errors: 3\. Loads: 1/)
 })

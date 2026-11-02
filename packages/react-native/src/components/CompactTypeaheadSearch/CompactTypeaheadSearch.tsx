@@ -316,7 +316,11 @@ const CompactContent = <T extends object>({
               testID="type-ahead-search-options"
               accessibilityLabel={labels.suggestionsListAriaLabel}
               shouldFocusWrap={props.shouldFocusWrap ?? true}
-              style={styles.list}
+              style={({ defaultStyle, isFocused }) => [
+                isFocused ? { outlineWidth: 1.5, outlineColor: theme.colors.focusRing } : undefined,
+                defaultStyle,
+                styles.list,
+              ]}
               renderEmptyState={() => statusBlock("empty", null, labels.status.emptyListMessage)}
             />
           )}
@@ -499,6 +503,7 @@ const CompactTypeaheadSearchInner = <T extends object>(
         const root = {
           ...nativeViewProps(nativeProps),
           ...native,
+          focusable: props.focusable ?? native.focusable,
           nativeFocusWithinObservation: true,
           nativeOnFocusWithin: (event: TNativeFocusWithinEvent) => {
             rootWithin.current = event.nativeEvent.within

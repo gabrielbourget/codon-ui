@@ -1,6 +1,6 @@
 import { createNativeDateSegmentLease } from "../lease"
 
-import { packet } from "./packet"
+import { packet, keyPacket } from "./packet"
 
 const lease = () =>
   createNativeDateSegmentLease({ ownerId: "owner", segmentId: "hour", bindingRevision: "binding", target: 71 })
@@ -105,4 +105,44 @@ it("rejects another SDK instance for the same numeric tag and owner", () => {
   const binding = lease()
   binding.accept(packet())
   expect(binding.accept(packet({ nativeInstance: "replacement-instance", sequence: 2, epoch: 5 }))).toBe(false)
+})
+
+it("accepts genuine key phases without requiring a paired key-down on the same native target", () => {
+  const binding = lease()
+  expect(binding.acceptKey(keyPacket())).toBe(false)
+  binding.accept(packet())
+  const original = keyPacket({ phase: "up", cancelled: true })
+  expect(binding.acceptKey(original)).toBe(true)
+  expect(binding.acceptKey(original)).toBe(false)
+  expect(binding.acceptKey(keyPacket({ sequence: 3, repeat: true }))).toBe(true)
+  expect(binding.accept(packet({ kind: "focus", focused: true, sequence: 4 }))).toBe(true)
+  expect(binding.acceptKey(keyPacket({ sequence: 4 }))).toBe(false)
+})
+it.each([
+  { ownerId: "foreign" },
+  { segmentId: "minute" },
+  { bindingRevision: "retired" },
+  { target: 72 },
+  { nativeInstance: "replacement" },
+  { surfaceId: 2 },
+  { windowId: "foreign" },
+  { epoch: 5 },
+  { sequence: Infinity },
+  { timestamp: -1 },
+  { phase: "invented" },
+  { cancelled: true },
+])("rejects stale or malformed raw key identity: %o", (extra) => {
+  const binding = lease()
+  binding.accept(packet())
+  expect(binding.acceptKey(keyPacket(extra as Parameters<typeof keyPacket>[0]))).toBe(false)
+})
+it("retires queued key observations after a focus guard/window generation changes", () => {
+  const binding = lease()
+  binding.accept(packet())
+  binding.invalidate()
+  expect(binding.acceptKey(keyPacket())).toBe(false)
+  binding.accept(packet({ epoch: 5, sequence: 3 }))
+  expect(binding.acceptKey(keyPacket({ epoch: 5, sequence: 4 }))).toBe(true)
+  binding.retire()
+  expect(binding.acceptKey(keyPacket({ epoch: 5, sequence: 5 }))).toBe(false)
 })

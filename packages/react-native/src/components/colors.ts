@@ -101,7 +101,7 @@ export const resolveNativeStyle = <T extends TextStyle | ViewStyle>(
     for (const [index, shadow] of values.boxShadow.entries()) {
       validateNativeShadowColors(shadow, component, `${field}.boxShadow[${index}]`, true)
     }
-  } else if (typeof values.boxShadow === "string") {
+  } else if (typeof values.boxShadow === "string" && values.boxShadow.trim() !== "none") {
     for (const [index, shadow] of splitNativeStyleString(values.boxShadow, /,/).entries()) {
       validateNativeShadowColors(shadow, component, `${field}.boxShadow[${index}]`, true)
     }

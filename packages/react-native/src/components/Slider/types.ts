@@ -1,5 +1,7 @@
+import type { ReactElement, RefAttributes } from "react"
 import type { ColorValue, StyleProp, TextStyle, View, ViewProps, ViewStyle } from "react-native"
 
+import type { TNativeSlotProps } from "../../collection/context"
 import type { TCornerGeometry } from "../../tokens/geometry"
 import type { TThemingOrderCode } from "../../tokens/theme-order"
 import type { TNativeDisplayDimension } from "../displayDimensions"
@@ -42,6 +44,10 @@ export type TNativeSliderRenderState = Readonly<{
   state: TNativeSliderState
 }>
 export type TNativeSliderStyleState = TNativeSliderRenderState & { defaultStyle: ViewStyle }
+export type TNativeSliderRootRender = (
+  props: ViewProps & RefAttributes<TNativeSliderRef>,
+  state: TNativeSliderRenderState,
+) => ReactElement
 
 type TSliderValueProps<T extends TNativeSliderValue> = {
   value?: T
@@ -53,6 +59,156 @@ type TNamedSlider =
   | { accessibilityLabel: string; "aria-label"?: string; label?: string }
   | { accessibilityLabel?: string; "aria-label": string; label?: string }
   | { accessibilityLabel?: string; "aria-label"?: string; label: string }
+  | { slot: string; accessibilityLabel?: string; "aria-label"?: string; label?: string }
+  | { labelID: string; accessibilityLabel?: string; "aria-label"?: string; label?: string }
+  | {
+      accessibilityLabelledBy: NonNullable<ViewProps["accessibilityLabelledBy"]>
+      accessibilityLabel?: string
+      "aria-label"?: string
+      label?: string
+    }
+  | { "aria-labelledby": string; accessibilityLabel?: string; "aria-label"?: string; label?: string }
+type TNativeSliderUnsupportedRootProps = {
+  [TKey in
+    | "translate"
+    | "inert"
+    | "defaultChecked"
+    | "autoCapitalize"
+    | "contentEditable"
+    | "enterKeyHint"
+    | "spellCheck"
+    | "autoCorrect"
+    | "unselectable"
+    | "inputMode"
+    | "onChangeCapture"
+    | "aria-activedescendant"
+    | "aria-atomic"
+    | "aria-autocomplete"
+    | "aria-braillelabel"
+    | "aria-brailleroledescription"
+    | "aria-colcount"
+    | "aria-colindex"
+    | "aria-colindextext"
+    | "aria-colspan"
+    | "aria-controls"
+    | "aria-current"
+    | "aria-description"
+    | "aria-errormessage"
+    | "aria-flowto"
+    | "aria-haspopup"
+    | "aria-invalid"
+    | "aria-keyshortcuts"
+    | "aria-level"
+    | "aria-multiline"
+    | "aria-multiselectable"
+    | "aria-orientation"
+    | "aria-owns"
+    | "aria-placeholder"
+    | "aria-posinset"
+    | "aria-pressed"
+    | "aria-readonly"
+    | "aria-relevant"
+    | "aria-required"
+    | "aria-roledescription"
+    | "aria-rowcount"
+    | "aria-rowindex"
+    | "aria-rowindextext"
+    | "aria-rowspan"
+    | "aria-setsize"
+    | "aria-sort"
+    | "contextMenu"
+    | "popover"
+    | "popoverTargetAction"
+    | "popoverTarget"
+    | "onToggle"
+    | "onBeforeToggle"
+    | "suppressContentEditableWarning"
+    | "suppressHydrationWarning"
+    | "nonce"
+    | "radioGroup"
+    | "about"
+    | "content"
+    | "datatype"
+    | "inlist"
+    | "prefix"
+    | "property"
+    | "rel"
+    | "resource"
+    | "rev"
+    | "typeof"
+    | "vocab"
+    | "autoSave"
+    | "color"
+    | "itemProp"
+    | "itemScope"
+    | "itemType"
+    | "itemID"
+    | "itemRef"
+    | "results"
+    | "security"
+    | "is"
+    | "exportparts"
+    | "part"
+    | "dir"
+    | "hidden"
+    | "lang"
+    | "title"
+    | "accessKey"
+    | "autoFocus"
+    | "dangerouslySetInnerHTML"
+    | `on${
+        | "AuxClick"
+        | "ContextMenu"
+        | "DoubleClick"
+        | "Wheel"
+        | "Scroll"
+        | "ScrollEnd"
+        | "Copy"
+        | "Cut"
+        | "Paste"
+        | "CompositionEnd"
+        | "CompositionStart"
+        | "CompositionUpdate"
+        | "BeforeInput"
+        | "Input"
+        | "Reset"
+        | "Submit"
+        | "Invalid"
+        | "Load"
+        | "Error"
+        | "Abort"
+        | "CanPlay"
+        | "CanPlayThrough"
+        | "DurationChange"
+        | "Emptied"
+        | "Encrypted"
+        | "Ended"
+        | "LoadedData"
+        | "LoadedMetadata"
+        | "LoadStart"
+        | "Pause"
+        | "Play"
+        | "Playing"
+        | "Progress"
+        | "RateChange"
+        | "Seeked"
+        | "Seeking"
+        | "Stalled"
+        | "Suspend"
+        | "TimeUpdate"
+        | "VolumeChange"
+        | "Waiting"
+        | "Select"
+        | "AnimationStart"
+        | "AnimationEnd"
+        | "AnimationIteration"
+        | "TransitionCancel"
+        | "TransitionEnd"
+        | "TransitionRun"
+        | "TransitionStart"
+        | "KeyPress"}${"" | "Capture"}`]?: never
+}
+
 export type TNativeSliderProps<T extends TNativeSliderValue = TNativeSliderValue> = Omit<
   ViewProps,
   | "children"
@@ -72,8 +228,11 @@ export type TNativeSliderProps<T extends TNativeSliderValue = TNativeSliderValue
   | "aria-valuetext"
   | "aria-disabled"
 > &
+  TNativeSliderUnsupportedRootProps &
   TNamedSlider &
+  TNativeSlotProps &
   TSliderValueProps<T> & {
+    render?: TNativeSliderRootRender
     minValue?: number
     maxValue?: number
     step?: number
@@ -83,7 +242,10 @@ export type TNativeSliderProps<T extends TNativeSliderValue = TNativeSliderValue
     locale?: string
     formatOptions?: Intl.NumberFormatOptions
     labelID?: string
+    "aria-describedby"?: string
+    "aria-details"?: string
     thumbAriaLabels?: readonly string[]
+    thumbNames?: readonly string[]
     thumbColor?: ColorValue
     trackColor?: ColorValue
     geometry?: TCornerGeometry

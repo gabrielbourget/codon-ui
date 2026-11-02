@@ -205,6 +205,7 @@ export type {
 } from "./components/FormField/types"
 
 export { Slider } from "./components/Slider/Slider"
+export { NativeSliderContext, NativeSliderStateContext } from "./components/Slider/context"
 export type {
   TNativeSliderProps,
   TNativeSliderProps as SliderProps,
@@ -212,6 +213,7 @@ export type {
   TNativeSliderState,
   TNativeSliderRenderState,
   TNativeSliderStyleState,
+  TNativeSliderRootRender,
   TNativeSliderValue,
   TNativeSliderOrientation,
   TNativeSliderDirection,
@@ -237,6 +239,7 @@ export type {
   TNativeTheme as NativeTheme,
   TNativeThemeOverrides as NativeThemeOverrides,
   TNativeThemeMode as NativeThemeMode,
+  TNativeThemeTransition as NativeThemeTransition,
 } from "./theme"
 
 export { Text } from "./components/Text/Text"
@@ -353,7 +356,7 @@ export {
 } from "./components/Menu/content"
 export type { TNativeMenuTextProps } from "./components/Menu/content"
 export type { TNativeRootMenuTriggerState, TNativeSubmenuTriggerState } from "./components/Menu/triggerState"
-export { NATIVE_MENU_ITEM_VARIANTS } from "./components/Menu/types"
+export { NATIVE_MENU_ITEM_VARIANTS, NATIVE_MENU_SEPARATOR_ORIENTATIONS } from "./components/Menu/types"
 export type {
   TNativeMenuProps,
   TNativeMenuProps as MenuProps,
@@ -366,6 +369,8 @@ export type {
   TNativeMenuItemVariant as MenuItemVariant,
   TNativeMenuSeparatorProps,
   TNativeMenuSeparatorProps as MenuSeparatorProps,
+  TNativeMenuSeparatorOrientation,
+  TNativeMenuSeparatorLabels,
   TNativeMenuSectionProps,
   TNativeMenuHeaderProps,
   TNativeMenuListProps,
@@ -447,6 +452,43 @@ export type {
   TNativeToggleSwitcherRootStyle,
   TNativeToggleSwitcherOptionStyle,
 } from "./components/ToggleSwitcher/types"
+export { NativeToggleButtonContext } from "./components/ToggleButton/context"
+export { ToggleButtonGroup } from "./components/ToggleButtonGroup/ToggleButtonGroup"
+export {
+  NativeToggleButtonGroupContext,
+  NativeToggleButtonGroupStateContext,
+} from "./components/ToggleButtonGroup/context"
+export type {
+  TNativeToggleButtonGroupProps,
+  TNativeToggleButtonGroupProps as ToggleButtonGroupProps,
+  TNativeToggleButtonGroupRef,
+  TNativeToggleButtonGroupRenderState,
+  TNativeToggleButtonGroupStyleState,
+  TNativeToggleButtonGroupRootProps,
+  TNativeToggleGroupOrientation,
+} from "./components/ToggleButtonGroup/types"
+export type {
+  TNativeToggleGroupKey,
+  TNativeToggleGroupSelectionMode,
+  TNativeToggleGroupState,
+  TNativeToggleGroupStateOptions,
+} from "./components/ToggleButtonGroup/state"
+export { NativeToggleButtonGroupKeyboardScope } from "./components/ToggleButtonGroup/NativeToggleButtonGroupKeyboardScope"
+export type { TNativeToggleButtonGroupKeyboardScopeProps } from "./components/ToggleButtonGroup/NativeToggleButtonGroupKeyboardScope"
+export { SelectionIndicator } from "./components/SelectionIndicator/SelectionIndicator"
+export { NativeSelectionIndicatorPropsContext } from "./components/SelectionIndicator/context"
+export type {
+  TNativeSelectionIndicatorProps,
+  TNativeSelectionIndicatorProps as SelectionIndicatorProps,
+  TNativeSelectionIndicatorRef,
+  TNativeSelectionIndicatorRenderState,
+  TNativeSelectionIndicatorTransitionProperty,
+} from "./components/SelectionIndicator/types"
+export { SharedElementTransition } from "./components/SharedElementTransition/SharedElementTransition"
+export type {
+  TNativeSharedElementTransitionProps,
+  TNativeSharedElementTransitionProps as SharedElementTransitionProps,
+} from "./components/SharedElementTransition/SharedElementTransition"
 export { ToggleButton } from "./components/ToggleButton/ToggleButton"
 export type {
   TNativeToggleButtonProps,
@@ -846,6 +888,12 @@ export type {
   TNativeModalProps as ModalProps,
   TNativeModalRef,
   TNativeModalRootStyle,
+  TNativeModalViewportProps,
+  TNativeModalViewportProps as ModalViewportProps,
+  TNativeModalState,
+  TNativeModalState as ModalState,
+  TNativeModalRenderState,
+  TNativeModalRenderState as ModalRenderState,
 } from "./components/Modal/types"
 
 export { AlertDialog } from "./components/AlertDialog/AlertDialog"

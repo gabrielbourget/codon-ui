@@ -24,7 +24,7 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
   private final ViewManagerDelegate<ReactViewGroup> inherited = new ViewManagerPropertyUpdater.GenericViewManagerDelegate<>(this);
   private final CUIFocusViewManagerDelegate<ReactViewGroup, CUIFocusViewManager> delegate = new CUIFocusViewManagerDelegate<>(this) {
     @Override public void setProperty(ReactViewGroup view, String name, Object value) {
-      if ("nativeTypographyStyle".equals(name) || "nativeTypographyWindow".equals(name) || "nativeForegroundComposition".equals(name) || "nativeFocusWithinBinding".equals(name) || "nativeFormActionBinding".equals(name) || "nativeCollectionSemantics".equals(name) || "nativeCollectionBinding".equals(name) || "nativeMotionDrawingOwner".equals(name) || "nativeMotionProjectionRadii".equals(name) || "nativeMotionProjectionRevision".equals(name) || "nativeMotionVisible".equals(name) || "ownerId".equals(name) || "keyboardFocusable".equals(name) || "nativePressable".equals(name) || "nativeMotionGeometryBinding".equals(name) || "nativeMotionGeometryRevision".equals(name) || "nativeMotionGeometryObserveFrames".equals(name) || "nativeMotionColorObservation".equals(name) || "nativeNavigation".equals(name) || "nativeNavigationLabel".equals(name) || "capturedKeys".equals(name) || "nativeLabelledBy".equals(name) || "nativeDescribedBy".equals(name) || "nativeDetailsBy".equals(name) || "nativeDescriptionTag".equals(name) || "nativeDescriptionLabel".equals(name) || "nativeDetailsLabel".equals(name) || "nativeScrollAnchorTag".equals(name) || "nativeScrollAnchorKey".equals(name) || "nativeScrollAnchorRevision".equals(name)) super.setProperty(view, name, value);
+      if ("nativeKeyBinding".equals(name) || "nativeForegroundComposition".equals(name) || "nativeFocusWithinBinding".equals(name) || "nativeFormActionBinding".equals(name) || "nativeCollectionSemantics".equals(name) || "nativeCollectionBinding".equals(name) || "nativeMotionDrawingOwner".equals(name) || "nativeMotionProjectionRadii".equals(name) || "nativeMotionProjectionRevision".equals(name) || "nativeMotionVisible".equals(name) || "ownerId".equals(name) || "keyboardFocusable".equals(name) || "nativePressable".equals(name) || "nativeMotionGeometryBinding".equals(name) || "nativeMotionGeometryRevision".equals(name) || "nativeMotionGeometryObserveFrames".equals(name) || "nativeMotionColorObservation".equals(name) || "nativeNavigation".equals(name) || "nativeNavigationLabel".equals(name) || "capturedKeys".equals(name) || "nativeLabelledBy".equals(name) || "nativeDescribedBy".equals(name) || "nativeDetailsBy".equals(name) || "nativeDescriptionTag".equals(name) || "nativeDescriptionLabel".equals(name) || "nativeDetailsLabel".equals(name) || "nativeScrollAnchorTag".equals(name) || "nativeScrollAnchorKey".equals(name) || "nativeScrollAnchorRevision".equals(name)) super.setProperty(view, name, value);
       else inherited.setProperty(view, name, value);
     }
   };
@@ -41,6 +41,9 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
 
   @Override @ReactProp(name = "ownerId")
   public void setOwnerId(ReactViewGroup view, String value) { ((CUIFocusView) view).setOwnerId(value); }
+
+  @Override @ReactProp(name = "nativeKeyBinding")
+  public void setNativeKeyBinding(ReactViewGroup view, String value) { ((CUIFocusView)view).setNativeKeyBinding(value); }
 
   @Override @ReactProp(name = "nativeFocusWithinBinding")
   public void setNativeFocusWithinBinding(ReactViewGroup view, String value) { ((CUIFocusView)view).setNativeFocusWithinBinding(value); }
@@ -78,8 +81,6 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
   @Override @ReactProp(name = "nativeMotionProjectionRevision")
   public void setNativeMotionProjectionRevision(ReactViewGroup view, String revision) { ((CUIFocusView)view).setNativeMotionProjectionRevision(revision); }
 
-  @Override @ReactProp(name = "nativeTypographyStyle") public void setNativeTypographyStyle(ReactViewGroup view, String value) {}
-  @Override @ReactProp(name = "nativeTypographyWindow") public void setNativeTypographyWindow(ReactViewGroup view, String value) {}
   @Override @ReactProp(name = "nativeForegroundComposition", defaultBoolean = false)
   public void setNativeForegroundComposition(ReactViewGroup view, boolean value) { ((CUIFocusView)view).setNativeForegroundComposition(value); }
   @Override @ReactProp(name = "filter", customType = "Filter")
@@ -127,6 +128,7 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
     ((CUIFocusView) view).synchronizeMotionColors();
     ((CUIFocusView) view).synchronizeMotionGeometry();
     ((CUIFocusView) view).synchronizeFormAction();
+    ((CUIFocusView) view).synchronizeLocalKeys();
     ((CUIFocusView) view).synchronizeFocusWithin();
   }
 
@@ -176,8 +178,10 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
   @Override public Map<String, Object> getExportedCustomBubblingEventTypeConstants() {
     Map<String, Object> events = new HashMap<>(); Map<String, Object> inherited = super.getExportedCustomBubblingEventTypeConstants();
     if (inherited != null) events.putAll(inherited);
-    Map<String, String> phases = new HashMap<>(); phases.put("bubbled", "onNativeFieldKey"); phases.put("captured", "onNativeFieldKeyCapture");
-    events.put("topNativeFieldKey", Collections.singletonMap("phasedRegistrationNames", phases)); return events;
+    Map<String,String> datePhases=new HashMap<>();datePhases.put("bubbled","onNativeDateKey");datePhases.put("captured","onNativeDateKeyCapture");
+    events.put("topNativeDateKey",Collections.singletonMap("phasedRegistrationNames",datePhases));
+    Map<String, String> ordinary = new HashMap<>(); ordinary.put("bubbled", "onNativeOrdinaryEditorKey"); ordinary.put("captured", "onNativeOrdinaryEditorKeyCapture");
+    events.put("topNativeOrdinaryEditorKey", Collections.singletonMap("phasedRegistrationNames", ordinary)); return events;
   }
   @Override public Map<String, Object> getExportedCustomDirectEventTypeConstants() {
     Map<String, Object> events = new HashMap<>();
@@ -198,6 +202,7 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
     ((CUIFocusView)view).setMotionContentInsets(0, 0, 0, 0);
     ((CUIFocusView)view).retireFocusWithin();
     ((CUIFocusView)view).retireFormAction();
+    ((CUIFocusView)view).retireLocalKeys();
     ((CUIFocusView)view).retireMotionDrawing();
     ((CUIFocusView)view).retireForeground();
     return super.prepareToRecycleView(context, view);
@@ -206,6 +211,7 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
   @Override public void onDropViewInstance(ReactViewGroup view) {
     ((CUIFocusView) view).retireFocusWithin();
     ((CUIFocusView) view).retireFormAction();
+    ((CUIFocusView) view).retireLocalKeys();
     ((CUIFocusView) view).retireMotionDrawing();
     ((CUIFocusView) view).retireForeground();
     ((CUIFocusView) view).cancelHeldKeys();

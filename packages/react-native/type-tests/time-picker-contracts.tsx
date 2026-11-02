@@ -1,5 +1,6 @@
 import { CalendarDateTime, Time, parseZonedDateTime } from "@internationalized/date"
 import { createRef } from "react"
+import type { TextInput, View } from "react-native"
 
 import {
   TimePicker,
@@ -8,6 +9,7 @@ import {
   NativeTimeFieldLabel,
   NativeTimeFieldText,
   NativeTimeFieldError,
+  NativeFocusView,
   type TimePickerProps,
   type TNativeTimePickerRef,
 } from "../src"
@@ -33,11 +35,16 @@ export const RenderStyle = (
 export const ContextField = (
   <NativeLocaleProvider locale="ar-EG">
     <NativeTimeFieldContext.Provider value={{ isReadOnly: true }}>
-      <TimePicker>
-        <NativeTimeFieldLabel>Time</NativeTimeFieldLabel>
-        <NativeTimeFieldText slot="description">Choose a time</NativeTimeFieldText>
-        <NativeTimeFieldError />
-      </TimePicker>
+      <TimePicker
+        render={(native) => (
+          <NativeFocusView {...native}>
+            <NativeTimeFieldLabel>Time</NativeTimeFieldLabel>
+            {native.children}
+            <NativeTimeFieldText slot="description">Choose a time</NativeTimeFieldText>
+            <NativeTimeFieldError />
+          </NativeFocusView>
+        )}
+      />
     </NativeTimeFieldContext.Provider>
   </NativeLocaleProvider>
 )
@@ -52,3 +59,34 @@ export const InvalidStyle = <TimePicker customStyles={{ fontSize: "1rem" }} />
 export const InvalidCycle = <TimePicker hourCycle={13} />
 // @ts-expect-error Native components do not expose DOM class plumbing.
 export const InvalidClass = <TimePicker className="clock" />
+
+export const TimePickerOrdinaryPointer = (
+  <TimePicker
+    onClick={(event) => {
+      event.nativeEvent.pointerId.toFixed()
+      event.nativeEvent.pointerType.toUpperCase()
+      // @ts-expect-error The native transaction packet and synchronous veto contract are retired.
+      void event.nativeEvent.fieldDispatch
+    }}
+  />
+)
+
+export const ExplicitExtraFocus = <TimePicker extraFocusParticipants={[createRef<TextInput>(), createRef<View>()]} />
+// @ts-expect-error Explicit participants retain original native refs rather than numeric tags or descriptors.
+export const InvalidExtraFocus = <TimePicker extraFocusParticipants={[{ current: 42 }]} />
+
+export const ExplicitRootFocusability = <TimePicker focusable accessible />
+export const NativeRootRenderState = (
+  <TimePicker
+    render={(native, { state, isDisabled, isReadOnly, isRequired, isInvalid }) => {
+      const flags: boolean[] = [isDisabled, isReadOnly, isRequired, isInvalid]
+      state.segments.forEach((segment) => segment.isEditable.valueOf())
+      return <NativeFocusView {...native} accessibilityHint={flags.some(Boolean) ? "Guarded" : "Ready"} />
+    }}
+  />
+)
+// @ts-expect-error Custom renderer roots retain original native View props and refs.
+export const BrowserRootRenderer = <TimePicker render={(native) => <div {...native} />} />
+
+const canonicalDynamicTextSize: string = "owner-defined-size"
+export const CanonicalTextSizeFallback = <TimePicker textSize={canonicalDynamicTextSize} />

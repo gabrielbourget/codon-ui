@@ -30,8 +30,7 @@ export interface NativeProps extends ViewProps {
   formId: string
   semanticBinding?: string
   ownedEditorBinding?: string
-  fieldGroupBinding?: string
-  onNativeFieldInputRecord?: DirectEventHandler<Readonly<{ record: string }>>
+  ownedControlBinding?: string
 }
 
 export default codegenNativeComponent<NativeProps>("CUIFieldBinding") as HostComponent<NativeProps>

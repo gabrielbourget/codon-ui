@@ -524,7 +524,13 @@
         "local imports; repository formatting and type-only imports; native-safe strict types",
         "Type-only generic widening for native recursive array/object values; pinned runtime algorithms unchanged"
       ],
-      "receivedSha256": "c034bac64843f743e24fae3981fe1ced8cb9a9608766d5f7727aaa23c9fa75d4"
+      "receivedSha256": "c034bac64843f743e24fae3981fe1ced8cb9a9608766d5f7727aaa23c9fa75d4",
+      "nativeTypographyAmendments": [
+        {
+          "id": "DEC.PHONE.TYPOGRAPHY.01",
+          "scope": "PHONE-TYPE07: optional private per-animation mixer for discrete native font weights. Default mixers, numeric generator curves, playback controls and original source/received hashes remain unchanged."
+        }
+      ]
     },
     {
       "file": "engine/animation/keyframes/get-final.ts",
@@ -560,7 +566,13 @@
         "React Native __DEV__ replaces Node environment access",
         "Type-only generic widening for native recursive array/object values; pinned runtime algorithms unchanged"
       ],
-      "receivedSha256": "520b7b0ed10dba46989722ff827da435043ea80c71b58f0d9bcfffd9c1145910"
+      "receivedSha256": "520b7b0ed10dba46989722ff827da435043ea80c71b58f0d9bcfffd9c1145910",
+      "nativeTypographyAmendments": [
+        {
+          "id": "DEC.PHONE.TYPOGRAPHY.01",
+          "scope": "PHONE-TYPE07: optional private per-animation mixer for discrete native font weights. Default mixers, numeric generator curves, playback controls and original source/received hashes remain unchanged."
+        }
+      ]
     },
     {
       "file": "engine/value/index.ts",

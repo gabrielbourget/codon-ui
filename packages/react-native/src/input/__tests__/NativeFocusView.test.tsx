@@ -1,13 +1,6 @@
 import { act, render, screen } from "@testing-library/react-native"
 import { createRef } from "react"
-import {
-  processColor,
-  Text as CoreText,
-  TextInput,
-  View,
-  type NativeSyntheticEvent,
-  type TextStyle,
-} from "react-native"
+import { Text as CoreText, TextInput, View, type NativeSyntheticEvent, type TextStyle } from "react-native"
 
 import { NativeTextStyleProvider } from "../../components/NativeTextStyleProvider"
 import { NativeFloatingScopeContext } from "../../overlays/floating/scope"
@@ -15,6 +8,7 @@ import { inspectNativeAccessibility, registerNativeAccessibilityInspector } from
 import { nativeAccessibilityIDs } from "../accessibilityReferences"
 import { blurNativeTarget, focusNativeTarget, registerNativeFocusTarget } from "../focus"
 import { NativeFocusHost, NativeFocusView } from "../NativeFocusView"
+import { NativeOrdinaryFieldGroupKeysContext } from "../ordinaryEditorKeys"
 import {
   Commands,
   type NativeAccessibilityData,
@@ -442,15 +436,15 @@ it.each(["android", "ios"] as const)(
   },
 )
 
-it("binds full inherited typography to the original generated host and retires it at a different window", async () => {
+it("keeps explicitly styled original text and editor identities without native typography transport across windows", async () => {
   const root = createRef<View>(),
     editor = createRef<TextInput>(),
     changed = jest.fn()
   const fields: TextStyle = {
     color: "red",
-    fontFamily: "Original variable face",
+    fontFamily: "Original supported face",
     fontSize: 19.25,
-    fontWeight: 750.123456789,
+    fontWeight: "700",
     fontStyle: "italic",
     fontVariant: ["tabular-nums"],
     letterSpacing: 0,
@@ -474,7 +468,9 @@ it("binds full inherited typography to the original generated host and retires i
       <NativeTextStyleProvider style={style}>
         <NativeFloatingScopeContext.Provider value={{ id: windowId, canAct: () => true }}>
           <NativeFocusHost ref={root} testID="focus">
-            <CoreText testID="original-core-text">Original text receiver</CoreText>
+            <CoreText testID="original-core-text" style={style}>
+              Original text receiver
+            </CoreText>
             <TextInput ref={editor} testID="original-core-editor" value="" onChangeText={changed} />
           </NativeFocusHost>
         </NativeFloatingScopeContext.Provider>
@@ -487,24 +483,15 @@ it("binds full inherited typography to the original generated host and retires i
     originalText = screen.getByTestId("original-core-text")
   expect(originalRoot).not.toBeNull()
   expect(originalEditor).not.toBeNull()
-  expect(JSON.parse(host().props.nativeTypographyStyle)).toEqual({
-    ...fields,
-    color: processColor("red"),
-    textDecorationColor: processColor("blue"),
-    textShadowColor: processColor("green"),
-    textAlignVertical: "center",
-    selectable: false,
-    verticalAlign: undefined,
-    userSelect: undefined,
-    padding: undefined,
-  })
-  expect(host().props.nativeTypographyWindow).toBe("original-window")
-  expect(originalText.props.style).toBeUndefined()
+  expect(host().props.nativeTypographyStyle).toBeUndefined()
+  expect(host().props.nativeTypographyWindow).toBeUndefined()
+  expect(originalText.props.style).toBe(fields)
   await view.rerender(tree("original-window", { fontWeight: "normal", letterSpacing: 0 }))
-  expect(JSON.parse(host().props.nativeTypographyStyle)).toEqual({ fontWeight: "normal", letterSpacing: 0 })
+  expect(host().props.nativeTypographyStyle).toBeUndefined()
+  expect(originalText.props.style).toEqual({ fontWeight: "normal", letterSpacing: 0 })
   await view.rerender(tree("different-window", fields))
   expect(host().props.nativeTypographyStyle).toBeUndefined()
-  expect(host().props.nativeTypographyWindow).toBe("different-window")
+  expect(host().props.nativeTypographyWindow).toBeUndefined()
   expect(root.current).toBe(originalRoot)
   expect(editor.current).toBe(originalEditor)
   expect(screen.getByTestId("original-core-text")).toBe(originalText)
@@ -513,4 +500,62 @@ it("binds full inherited typography to the original generated host and retires i
   await view.unmount()
   expect(root.current).toBeNull()
   expect(editor.current).toBeNull()
+})
+
+it("forwards original descendant date-key events without claiming their owner or replaying them after detach", async () => {
+  const receive = jest.fn()
+  const view = await render(
+    <NativeFocusHost testID="focus" focusable={false} nativeOrdinaryGroupKeyHandler={receive} />,
+  )
+  const handle = host().props.onNativeDateKey
+  const original = nativeEvent(keyData("original-segment", { phase: "up", cancelled: true }))
+  await act(() => handle(original))
+  expect(receive).toHaveBeenCalledTimes(1)
+  expect(receive.mock.calls[0][0]).toBe(original)
+  await view.unmount()
+  await act(() => handle(original))
+  expect(receive).toHaveBeenCalledTimes(1)
+})
+
+it.each([false, true])("retains original pointer phases with ordinary field keys %s", async (fieldKeys) => {
+  const first = jest.fn(),
+    latest = jest.fn(),
+    ref = createRef<View>()
+  const node = (receive: typeof first) => (
+    <NativeOrdinaryFieldGroupKeysContext.Provider value={fieldKeys}>
+      <NativeFocusHost
+        ref={ref}
+        testID="focus"
+        onPointerDown={receive}
+        onPointerUp={receive}
+        onPointerCancel={receive}
+        onClick={receive}
+      />
+    </NativeOrdinaryFieldGroupKeysContext.Provider>
+  )
+  await render(node(first))
+  const original = ref.current
+  for (const phase of ["onPointerDown", "onPointerUp", "onPointerCancel", "onClick"]) {
+    const event = { target: original, currentTarget: original, nativeEvent: { pointerId: 7, pointerType: "touch" } }
+    await act(() => host().props[phase](event))
+    expect(first.mock.calls.at(-1)![0]).toBe(event)
+  }
+  await screen.rerender(node(latest))
+  const event = { nativeEvent: { pointerId: 8, pointerType: "mouse" } }
+  await act(() => host().props.onPointerDown(event))
+  expect(first).toHaveBeenCalledTimes(4)
+  expect(latest.mock.calls[0][0]).toBe(event)
+  expect(ref.current).toBe(original)
+  expect(host().props.onNativeFieldKey).toBeUndefined()
+})
+it("retains programmatic negative-tab focus within its ordinary field-key boundary", async () => {
+  const ref = createRef<View>()
+  await render(
+    <NativeOrdinaryFieldGroupKeysContext.Provider value>
+      <NativeFocusHost ref={ref} testID="focus" tabIndex={-1} />
+    </NativeOrdinaryFieldGroupKeysContext.Provider>,
+  )
+  expect(host().props.keyboardFocusable).toBe(true)
+  expect(host().props.nativeTabStop).toBe(false)
+  expect(focusNativeTarget(ref.current)).toBe(true)
 })

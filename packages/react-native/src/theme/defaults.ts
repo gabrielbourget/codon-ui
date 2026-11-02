@@ -11,6 +11,7 @@ const lightTheme: TNativeTheme = {
     statusSuccess: "#2f7d18",
     overlayBackdrop: "rgba(0, 0, 0, 0.3)",
     background: "#ffffff",
+    surfaceMuted: "#f7f7f7",
     foreground: "#171717",
     controlBackground: "#ffffff",
     controlForeground: "#171717",
@@ -146,6 +147,7 @@ const darkTheme: TNativeTheme = {
     statusSuccess: "#6ad060",
     overlayBackdrop: "rgba(0, 0, 0, 0.3)",
     background: "#171717",
+    surfaceMuted: "#202020",
     foreground: "#ffffff",
     controlBackground: "#171717",
     controlForeground: "#ffffff",
@@ -296,6 +298,11 @@ export const resolveNativeTheme = (mode: TNativeThemeMode, overrides: TNativeThe
     ...defaults,
     colors: mergeDefinedOverrides(defaults.colors, overrides.colors),
     actions,
+    ...(overrides.transitions === undefined
+      ? {}
+      : {
+          transitions: mergeDefinedOverrides<NonNullable<TNativeTheme["transitions"]>>({}, overrides.transitions),
+        }),
     spacing: mergeDefinedOverrides(defaults.spacing, overrides.spacing),
     radius: mergeDefinedOverrides(defaults.radius, overrides.radius),
     opacity: mergeDefinedOverrides(defaults.opacity, overrides.opacity),

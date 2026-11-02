@@ -1,6 +1,6 @@
 import UIKit
 import CodonNativeInput
 
-func checkNativePublicModule(_ view: UIView) -> Bool {
-  CUIValidateVirtualDragAccessibilityView(view)
+func checkNativePublicModule(_ request: CUIBackdropCaptureRequest) -> UIView? {
+  request.target
 }

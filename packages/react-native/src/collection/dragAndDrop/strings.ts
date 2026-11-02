@@ -1,8 +1,11 @@
-/* Copyright Adobe. Apache-2.0; see ../LICENSE.react-aria.md. Pinned react-aria3.48.0 dnd locale data. */
+/* Copyright Adobe. Apache-2.0; see ../LICENSE.react-aria.md. Pinned react-aria3.48.0 dnd locale data with owned chooser labels. */
 import type { TNativeDragMessage } from "./messages"
 
 export const nativeDragMessages: Record<string, Record<string, TNativeDragMessage>> = {
   "ar-AE": {
+    chooseDropTarget: "اختر موضع الإفلات",
+    confirmDrop: "إفلات",
+    cancelDrop: "إلغاء",
     dragDescriptionKeyboard: `\u{627}\u{636}\u{63A}\u{637} Enter \u{644}\u{628}\u{62F}\u{621} \u{627}\u{644}\u{633}\u{62D}\u{628}.`,
     dragDescriptionKeyboardAlt: `\u{627}\u{636}\u{63A}\u{637} \u{639}\u{644}\u{649} Alt + Enter \u{644}\u{628}\u{62F}\u{621} \u{627}\u{644}\u{633}\u{62D}\u{628}.`,
     dragDescriptionLongPress: `\u{627}\u{636}\u{63A}\u{637} \u{628}\u{627}\u{633}\u{62A}\u{645}\u{631}\u{627}\u{631} \u{644}\u{628}\u{62F}\u{621} \u{627}\u{644}\u{633}\u{62D}\u{628}.`,
@@ -59,6 +62,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
       `\u{623}\u{62F}\u{62E}\u{644} \u{628}\u{64A}\u{646} ${args.beforeItemText} \u{648} ${args.afterItemText}`,
   },
   "bg-BG": {
+    chooseDropTarget: "Изберете място за пускане",
+    confirmDrop: "Пускане",
+    cancelDrop: "Отказ",
     dragDescriptionKeyboard: `\u{41D}\u{430}\u{442}\u{438}\u{441}\u{43D}\u{435}\u{442}\u{435} \u{201E}Enter\u{201C}, \u{437}\u{430} \u{434}\u{430} \u{437}\u{430}\u{43F}\u{43E}\u{447}\u{43D}\u{435}\u{442}\u{435} \u{434}\u{430} \u{43F}\u{43B}\u{44A}\u{437}\u{433}\u{430}\u{442}\u{435}.`,
     dragDescriptionKeyboardAlt: `\u{41D}\u{430}\u{442}\u{438}\u{441}\u{43D}\u{435}\u{442}\u{435} Alt + Enter, \u{437}\u{430} \u{434}\u{430} \u{437}\u{430}\u{43F}\u{43E}\u{447}\u{43D}\u{435}\u{442}\u{435} \u{434}\u{430} \u{43F}\u{43B}\u{44A}\u{437}\u{433}\u{430}\u{442}\u{435}.`,
     dragDescriptionLongPress: `\u{41D}\u{430}\u{442}\u{438}\u{441}\u{43D}\u{435}\u{442}\u{435} \u{43F}\u{440}\u{43E}\u{434}\u{44A}\u{43B}\u{436}\u{438}\u{442}\u{435}\u{43B}\u{43D}\u{43E}, \u{437}\u{430} \u{434}\u{430} \u{437}\u{430}\u{43F}\u{43E}\u{447}\u{43D}\u{435}\u{442}\u{435} \u{434}\u{430} \u{43F}\u{43B}\u{44A}\u{437}\u{433}\u{430}\u{442}\u{435}.`,
@@ -123,6 +129,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
       `\u{412}\u{43C}\u{44A}\u{43A}\u{43D}\u{438} \u{43C}\u{435}\u{436}\u{434}\u{443} ${args.beforeItemText} \u{438} ${args.afterItemText}`,
   },
   "cs-CZ": {
+    chooseDropTarget: "Vyberte cíl přetažení",
+    confirmDrop: "Pustit",
+    cancelDrop: "Zrušit",
     dragDescriptionKeyboard: `Stisknut\xedm kl\xe1vesy Enter za\u{10D}nete s p\u{159}etahov\xe1n\xedm.`,
     dragDescriptionKeyboardAlt: `Stisknut\xedm Alt + Enter zah\xe1j\xedte p\u{159}etahov\xe1n\xed.`,
     dragDescriptionLongPress: `Dlouh\xfdm stisknut\xedm zah\xe1j\xedte p\u{159}etahov\xe1n\xed.`,
@@ -169,6 +178,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
     insertBetween: (args) => `Vlo\u{17E}it mezi ${args.beforeItemText} a ${args.afterItemText}`,
   },
   "da-DK": {
+    chooseDropTarget: "Vælg et sted at slippe",
+    confirmDrop: "Slip",
+    cancelDrop: "Annuller",
     dragDescriptionKeyboard: `Tryk p\xe5 Enter for at starte med at tr\xe6kke.`,
     dragDescriptionKeyboardAlt: `Tryk p\xe5 Alt + Enter for at starte med at tr\xe6kke.`,
     dragDescriptionLongPress: `Tryk l\xe6nge for at starte med at tr\xe6kke.`,
@@ -214,6 +226,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
     insertBetween: (args) => `Inds\xe6t mellem ${args.beforeItemText} og ${args.afterItemText}`,
   },
   "de-DE": {
+    chooseDropTarget: "Ablageziel auswählen",
+    confirmDrop: "Ablegen",
+    cancelDrop: "Abbrechen",
     dragDescriptionKeyboard: `Dr\xfccken Sie die Eingabetaste, um den Ziehvorgang zu starten.`,
     dragDescriptionKeyboardAlt: `Alt + Eingabe dr\xfccken, um den Ziehvorgang zu starten.`,
     dragDescriptionLongPress: `Lang dr\xfccken, um mit dem Ziehen zu beginnen.`,
@@ -259,6 +274,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
     insertBetween: (args) => `Zwischen ${args.beforeItemText} und ${args.afterItemText} einf\xfcgen`,
   },
   "el-GR": {
+    chooseDropTarget: "Επιλέξτε προορισμό απόθεσης",
+    confirmDrop: "Απόθεση",
+    cancelDrop: "Ακύρωση",
     dragDescriptionKeyboard: `\u{3A0}\u{3B1}\u{3C4}\u{3AE}\u{3C3}\u{3C4}\u{3B5} Enter \u{3B3}\u{3B9}\u{3B1} \u{3AD}\u{3BD}\u{3B1}\u{3C1}\u{3BE}\u{3B7} \u{3C4}\u{3B7}\u{3C2} \u{3BC}\u{3B5}\u{3C4}\u{3B1}\u{3C6}\u{3BF}\u{3C1}\u{3AC}\u{3C2}.`,
     dragDescriptionKeyboardAlt: `\u{3A0}\u{3B1}\u{3C4}\u{3AE}\u{3C3}\u{3C4}\u{3B5} Alt + Enter \u{3B3}\u{3B9}\u{3B1} \u{3AD}\u{3BD}\u{3B1}\u{3C1}\u{3BE}\u{3B7} \u{3C4}\u{3B7}\u{3C2} \u{3BC}\u{3B5}\u{3C4}\u{3B1}\u{3C6}\u{3BF}\u{3C1}\u{3AC}\u{3C2}.`,
     dragDescriptionLongPress: `\u{3A0}\u{3B1}\u{3C4}\u{3AE}\u{3C3}\u{3C4}\u{3B5} \u{3C0}\u{3B1}\u{3C1}\u{3B1}\u{3C4}\u{3B5}\u{3C4}\u{3B1}\u{3BC}\u{3AD}\u{3BD}\u{3B1} \u{3B3}\u{3B9}\u{3B1} \u{3BD}\u{3B1} \u{3BE}\u{3B5}\u{3BA}\u{3B9}\u{3BD}\u{3AE}\u{3C3}\u{3B5}\u{3C4}\u{3B5} \u{3C4}\u{3B7} \u{3BC}\u{3B5}\u{3C4}\u{3B1}\u{3C6}\u{3BF}\u{3C1}\u{3AC}.`,
@@ -324,6 +342,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
       `\u{395}\u{3B9}\u{3C3}\u{3B1}\u{3B3}\u{3C9}\u{3B3}\u{3AE} \u{3BC}\u{3B5}\u{3C4}\u{3B1}\u{3BE}\u{3CD} ${args.beforeItemText} \u{3BA}\u{3B1}\u{3B9} ${args.afterItemText}`,
   },
   "en-US": {
+    chooseDropTarget: "Choose drop target",
+    confirmDrop: "Drop",
+    cancelDrop: "Cancel",
     dragItem: (args) => `Drag ${args.itemText}`,
     dragSelectedItems: (args, formatter) =>
       `Drag ${formatter.plural(args.count, {
@@ -369,6 +390,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
     insertAfter: (args) => `Insert after ${args.itemText}`,
   },
   "es-ES": {
+    chooseDropTarget: "Elegir destino",
+    confirmDrop: "Soltar",
+    cancelDrop: "Cancelar",
     dragDescriptionKeyboard: `Pulse Intro para empezar a arrastrar.`,
     dragDescriptionKeyboardAlt: `Pulse Intro para empezar a arrastrar.`,
     dragDescriptionLongPress: `Mantenga pulsado para comenzar a arrastrar.`,
@@ -414,6 +438,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
     insertBetween: (args) => `Insertar entre ${args.beforeItemText} y ${args.afterItemText}`,
   },
   "et-EE": {
+    chooseDropTarget: "Vali kukutamise sihtkoht",
+    confirmDrop: "Kukuta",
+    cancelDrop: "Tühista",
     dragDescriptionKeyboard: `Lohistamise alustamiseks vajutage klahvi Enter.`,
     dragDescriptionKeyboardAlt: `Lohistamise alustamiseks vajutage klahvikombinatsiooni Alt + Enter.`,
     dragDescriptionLongPress: `Vajutage pikalt lohistamise alustamiseks.`,
@@ -459,6 +486,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
     insertBetween: (args) => `Sisesta ${args.beforeItemText} ja ${args.afterItemText} vahele`,
   },
   "fi-FI": {
+    chooseDropTarget: "Valitse pudotuskohde",
+    confirmDrop: "Pudota",
+    cancelDrop: "Peruuta",
     dragDescriptionKeyboard: `Aloita vet\xe4minen painamalla Enter-n\xe4pp\xe4int\xe4.`,
     dragDescriptionKeyboardAlt: `Aloita vet\xe4minen painamalla Alt + Enter -n\xe4pp\xe4inyhdistelm\xe4\xe4.`,
     dragDescriptionLongPress: `Aloita vet\xe4minen pit\xe4m\xe4ll\xe4 painettuna.`,
@@ -504,6 +534,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
     insertBetween: (args) => `Lis\xe4\xe4 kohteiden ${args.beforeItemText} ja ${args.afterItemText} v\xe4liin`,
   },
   "fr-FR": {
+    chooseDropTarget: "Choisir la destination",
+    confirmDrop: "Déposer",
+    cancelDrop: "Annuler",
     dragDescriptionKeyboard: `Appuyez sur Entr\xe9e pour commencer le d\xe9placement.`,
     dragDescriptionKeyboardAlt: `Appuyez sur Alt\xa0+\xa0Entr\xe9e pour commencer \xe0 faire glisser.`,
     dragDescriptionLongPress: `Appuyez de mani\xe8re prolong\xe9e pour commencer \xe0 faire glisser.`,
@@ -549,6 +582,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
     insertBetween: (args) => `Ins\xe9rer entre ${args.beforeItemText} et ${args.afterItemText}`,
   },
   "he-IL": {
+    chooseDropTarget: "בחירת יעד לשחרור",
+    confirmDrop: "שחרור",
+    cancelDrop: "ביטול",
     dragDescriptionKeyboard: `\u{5D4}\u{5E7}\u{5E9} \u{5E2}\u{5DC} Enter \u{5DB}\u{5D3}\u{5D9} \u{5DC}\u{5D4}\u{5EA}\u{5D7}\u{5D9}\u{5DC} \u{5DC}\u{5D2}\u{5E8}\u{5D5}\u{5E8}.`,
     dragDescriptionKeyboardAlt: `\u{5D4}\u{5E7}\u{5E9} Alt + Enter \u{5DB}\u{5D3}\u{5D9} \u{5DC}\u{5D4}\u{5EA}\u{5D7}\u{5D9}\u{5DC} \u{5DC}\u{5D2}\u{5E8}\u{5D5}\u{5E8}.`,
     dragDescriptionLongPress: `\u{5DC}\u{5D7}\u{5E5} \u{5DC}\u{5D7}\u{5D9}\u{5E6}\u{5D4} \u{5D0}\u{5E8}\u{5D5}\u{5DB}\u{5D4} \u{5DB}\u{5D3}\u{5D9} \u{5DC}\u{5D4}\u{5EA}\u{5D7}\u{5D9}\u{5DC} \u{5DC}\u{5D2}\u{5E8}\u{5D5}\u{5E8}.`,
@@ -608,6 +644,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
       `\u{5D4}\u{5D5}\u{5E1}\u{5E3} \u{5D1}\u{5D9}\u{5DF} ${args.beforeItemText} \u{5DC}\u{5D1}\u{5D9}\u{5DF} ${args.afterItemText}`,
   },
   "hr-HR": {
+    chooseDropTarget: "Odaberite odredište ispuštanja",
+    confirmDrop: "Ispusti",
+    cancelDrop: "Odustani",
     dragDescriptionKeyboard: `Pritisnite Enter da biste po\u{10D}eli povla\u{10D}iti.`,
     dragDescriptionKeyboardAlt: `Pritisnite Alt + Enter za po\u{10D}etak povla\u{10D}enja.`,
     dragDescriptionLongPress: `Dugo pritisnite za po\u{10D}etak povla\u{10D}enja.`,
@@ -653,6 +692,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
     insertBetween: (args) => `Umetnite izme\u{111}u stavki ${args.beforeItemText} i ${args.afterItemText}`,
   },
   "hu-HU": {
+    chooseDropTarget: "Válasszon célhelyet",
+    confirmDrop: "Elhelyezés",
+    cancelDrop: "Mégse",
     dragDescriptionKeyboard: `Nyomja le az Enter billenty\u{171}t a h\xfaz\xe1s megkezd\xe9s\xe9hez.`,
     dragDescriptionKeyboardAlt: `Nyomja le az Alt + Enter billenty\u{171}ket a h\xfaz\xe1s megkezd\xe9s\xe9hez.`,
     dragDescriptionLongPress: `Hosszan nyomja meg a h\xfaz\xe1s elind\xedt\xe1s\xe1hoz.`,
@@ -698,6 +740,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
     insertBetween: (args) => `Besz\xfar\xe1s ${args.beforeItemText} \xe9s ${args.afterItemText} k\xf6z\xe9`,
   },
   "it-IT": {
+    chooseDropTarget: "Scegli la destinazione",
+    confirmDrop: "Rilascia",
+    cancelDrop: "Annulla",
     dragDescriptionKeyboard: `Premi Invio per iniziare a trascinare.`,
     dragDescriptionKeyboardAlt: `Premi Alt + Invio per iniziare a trascinare.`,
     dragDescriptionLongPress: `Premi a lungo per iniziare a trascinare.`,
@@ -743,6 +788,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
     insertBetween: (args) => `Inserisci tra ${args.beforeItemText} e ${args.afterItemText}`,
   },
   "ja-JP": {
+    chooseDropTarget: "ドロップ先を選択",
+    confirmDrop: "ドロップ",
+    cancelDrop: "キャンセル",
     dragDescriptionKeyboard: `Enter \u{30AD}\u{30FC}\u{3092}\u{62BC}\u{3057}\u{3066}\u{30C9}\u{30E9}\u{30C3}\u{30B0}\u{3092}\u{958B}\u{59CB}\u{3057}\u{3066}\u{304F}\u{3060}\u{3055}\u{3044}\u{3002}`,
     dragDescriptionKeyboardAlt: `Alt+Enter \u{30AD}\u{30FC}\u{3092}\u{62BC}\u{3057}\u{3066}\u{30C9}\u{30E9}\u{30C3}\u{30B0}\u{3092}\u{958B}\u{59CB}\u{3057}\u{307E}\u{3059}\u{3002}`,
     dragDescriptionLongPress: `\u{9577}\u{62BC}\u{3057}\u{3057}\u{3066}\u{30C9}\u{30E9}\u{30C3}\u{30B0}\u{3092}\u{958B}\u{59CB}\u{3057}\u{307E}\u{3059}\u{3002}`,
@@ -789,6 +837,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
       `${args.beforeItemText} \u{3068} ${args.afterItemText} \u{306E}\u{9593}\u{306B}\u{633F}\u{5165}`,
   },
   "ko-KR": {
+    chooseDropTarget: "놓을 대상 선택",
+    confirmDrop: "놓기",
+    cancelDrop: "취소",
     dragDescriptionKeyboard: `\u{B4DC}\u{B798}\u{ADF8}\u{B97C} \u{C2DC}\u{C791}\u{D558}\u{B824}\u{BA74} Enter\u{B97C} \u{B204}\u{B974}\u{C138}\u{C694}.`,
     dragDescriptionKeyboardAlt: `\u{B4DC}\u{B798}\u{ADF8}\u{B97C} \u{C2DC}\u{C791}\u{D558}\u{B824}\u{BA74} Alt + Enter\u{B97C} \u{B204}\u{B974}\u{C2ED}\u{C2DC}\u{C624}.`,
     dragDescriptionLongPress: `\u{B4DC}\u{B798}\u{ADF8}\u{B97C} \u{C2DC}\u{C791}\u{D558}\u{B824}\u{BA74} \u{AE38}\u{AC8C} \u{B204}\u{B974}\u{C2ED}\u{C2DC}\u{C624}.`,
@@ -835,6 +886,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
       `${args.beforeItemText} \u{BC0F} ${args.afterItemText} \u{C0AC}\u{C774}\u{C5D0} \u{C0BD}\u{C785}`,
   },
   "lt-LT": {
+    chooseDropTarget: "Pasirinkite numetimo vietą",
+    confirmDrop: "Numesti",
+    cancelDrop: "Atšaukti",
     dragDescriptionKeyboard: `Paspauskite \u{201E}Enter\u{201C}, kad prad\u{117}tum\u{117}te vilkti.`,
     dragDescriptionKeyboardAlt: `Paspauskite \u{201E}Alt + Enter\u{201C}, kad prad\u{117}tum\u{117}te vilkti.`,
     dragDescriptionLongPress: `Palaikykite nuspaud\u{119}, kad prad\u{117}tum\u{117}te vilkti.`,
@@ -880,6 +934,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
     insertBetween: (args) => `\u{12E}terpti tarp ${args.beforeItemText} ir ${args.afterItemText}`,
   },
   "lv-LV": {
+    chooseDropTarget: "Izvēlieties nomešanas vietu",
+    confirmDrop: "Nomest",
+    cancelDrop: "Atcelt",
     dragDescriptionKeyboard: `Nospiediet Enter, lai s\u{101}ktu vilk\u{161}anu.`,
     dragDescriptionKeyboardAlt: `Nospiediet tausti\u{146}u kombin\u{101}ciju Alt+Enter, lai s\u{101}ktu vilk\u{161}anu.`,
     dragDescriptionLongPress: `Turiet nospiestu, lai s\u{101}ktu vilk\u{161}anu.`,
@@ -925,6 +982,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
     insertBetween: (args) => `Ievietojiet starp ${args.beforeItemText} un ${args.afterItemText}`,
   },
   "nb-NO": {
+    chooseDropTarget: "Velg slippmål",
+    confirmDrop: "Slipp",
+    cancelDrop: "Avbryt",
     dragDescriptionKeyboard: `Trykk p\xe5 Enter for \xe5 begynne \xe5 dra.`,
     dragDescriptionKeyboardAlt: `Trykk p\xe5 Alt + Enter for \xe5 begynne \xe5 dra.`,
     dragDescriptionLongPress: `Trykk lenge for \xe5 begynne \xe5 dra.`,
@@ -970,6 +1030,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
     insertBetween: (args) => `Sett inn mellom ${args.beforeItemText} og ${args.afterItemText}`,
   },
   "nl-NL": {
+    chooseDropTarget: "Kies een neerzetdoel",
+    confirmDrop: "Neerzetten",
+    cancelDrop: "Annuleren",
     dragDescriptionKeyboard: `Druk op Enter om te slepen.`,
     dragDescriptionKeyboardAlt: `Druk op Alt + Enter om te slepen.`,
     dragDescriptionLongPress: `Houd lang ingedrukt om te slepen.`,
@@ -1015,6 +1078,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
     insertBetween: (args) => `Plaatsen tussen ${args.beforeItemText} en ${args.afterItemText}`,
   },
   "pl-PL": {
+    chooseDropTarget: "Wybierz miejsce upuszczenia",
+    confirmDrop: "Upuść",
+    cancelDrop: "Anuluj",
     dragDescriptionKeyboard: `Naci\u{15B}nij Enter, aby rozpocz\u{105}\u{107} przeci\u{105}ganie.`,
     dragDescriptionKeyboardAlt: `Naci\u{15B}nij Alt + Enter, aby rozpocz\u{105}\u{107} przeci\u{105}ganie.`,
     dragDescriptionLongPress: `Naci\u{15B}nij i przytrzymaj, aby rozpocz\u{105}\u{107} przeci\u{105}ganie.`,
@@ -1060,6 +1126,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
     insertBetween: (args) => `Umie\u{15B}\u{107} mi\u{119}dzy ${args.beforeItemText} i ${args.afterItemText}`,
   },
   "pt-BR": {
+    chooseDropTarget: "Escolher destino",
+    confirmDrop: "Soltar",
+    cancelDrop: "Cancelar",
     dragDescriptionKeyboard: `Pressione Enter para come\xe7ar a arrastar.`,
     dragDescriptionKeyboardAlt: `Pressione Alt + Enter para come\xe7ar a arrastar.`,
     dragDescriptionLongPress: `Pressione e segure para come\xe7ar a arrastar.`,
@@ -1105,6 +1174,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
     insertBetween: (args) => `Inserir entre ${args.beforeItemText} e ${args.afterItemText}`,
   },
   "pt-PT": {
+    chooseDropTarget: "Escolher destino",
+    confirmDrop: "Largar",
+    cancelDrop: "Cancelar",
     dragDescriptionKeyboard: `Prima Enter para iniciar o arrasto.`,
     dragDescriptionKeyboardAlt: `Prima Alt + Enter para iniciar o arrasto.`,
     dragDescriptionLongPress: `Prima longamente para come\xe7ar a arrastar.`,
@@ -1150,6 +1222,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
     insertBetween: (args) => `Inserir entre ${args.beforeItemText} e ${args.afterItemText}`,
   },
   "ro-RO": {
+    chooseDropTarget: "Alegeți destinația plasării",
+    confirmDrop: "Plasați",
+    cancelDrop: "Anulați",
     dragDescriptionKeyboard: `Ap\u{103}sa\u{21B}i pe Enter pentru a \xeencepe glisarea.`,
     dragDescriptionKeyboardAlt: `Ap\u{103}sa\u{21B}i pe Alt + Enter pentru a \xeencepe glisarea.`,
     dragDescriptionLongPress: `Ap\u{103}sa\u{21B}i lung pentru a \xeencepe glisarea.`,
@@ -1195,6 +1270,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
     insertBetween: (args) => `Insera\u{21B}i \xeentre ${args.beforeItemText} \u{219}i ${args.afterItemText}`,
   },
   "ru-RU": {
+    chooseDropTarget: "Выберите место размещения",
+    confirmDrop: "Разместить",
+    cancelDrop: "Отмена",
     dragDescriptionKeyboard: `\u{41D}\u{430}\u{436}\u{43C}\u{438}\u{442}\u{435} \u{43A}\u{43B}\u{430}\u{432}\u{438}\u{448}\u{443} Enter \u{434}\u{43B}\u{44F} \u{43D}\u{430}\u{447}\u{430}\u{43B}\u{430} \u{43F}\u{435}\u{440}\u{435}\u{442}\u{430}\u{441}\u{43A}\u{438}\u{432}\u{430}\u{43D}\u{438}\u{44F}.`,
     dragDescriptionKeyboardAlt: `\u{41D}\u{430}\u{436}\u{43C}\u{438}\u{442}\u{435} Alt + Enter, \u{447}\u{442}\u{43E}\u{431}\u{44B} \u{43D}\u{430}\u{447}\u{430}\u{442}\u{44C} \u{43F}\u{435}\u{440}\u{435}\u{442}\u{430}\u{441}\u{43A}\u{438}\u{432}\u{430}\u{442}\u{44C}.`,
     dragDescriptionLongPress: `\u{41D}\u{430}\u{436}\u{43C}\u{438}\u{442}\u{435} \u{438} \u{443}\u{434}\u{435}\u{440}\u{436}\u{438}\u{432}\u{430}\u{439}\u{442}\u{435}, \u{447}\u{442}\u{43E}\u{431}\u{44B} \u{43D}\u{430}\u{447}\u{430}\u{442}\u{44C} \u{43F}\u{435}\u{440}\u{435}\u{442}\u{430}\u{441}\u{43A}\u{438}\u{432}\u{430}\u{442}\u{44C}.`,
@@ -1261,6 +1339,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
       `\u{412}\u{441}\u{442}\u{430}\u{432}\u{438}\u{442}\u{44C} \u{43C}\u{435}\u{436}\u{434}\u{443} ${args.beforeItemText} \u{438} ${args.afterItemText}`,
   },
   "sk-SK": {
+    chooseDropTarget: "Vyberte cieľ presunutia",
+    confirmDrop: "Pustiť",
+    cancelDrop: "Zrušiť",
     dragDescriptionKeyboard: `Stla\u{10D}en\xedm kl\xe1vesu Enter za\u{10D}nete pres\xfavanie.`,
     dragDescriptionKeyboardAlt: `Stla\u{10D}en\xedm kl\xe1vesov Alt + Enter za\u{10D}nete pres\xfavanie.`,
     dragDescriptionLongPress: `Dlh\xfdm stla\u{10D}en\xedm za\u{10D}nete pres\xfavanie.`,
@@ -1306,6 +1387,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
     insertBetween: (args) => `Vlo\u{17E}i\u{165} medzi polo\u{17E}ky ${args.beforeItemText} a ${args.afterItemText}`,
   },
   "sl-SI": {
+    chooseDropTarget: "Izberite cilj spuščanja",
+    confirmDrop: "Spusti",
+    cancelDrop: "Prekliči",
     dragDescriptionKeyboard: `Pritisnite tipko Enter za za\u{10D}etek vle\u{10D}enja.`,
     dragDescriptionKeyboardAlt: `Pritisnite tipki Alt + Enter za za\u{10D}etek vle\u{10D}enja.`,
     dragDescriptionLongPress: `Pritisnite in zadr\u{17E}ite za za\u{10D}etek vle\u{10D}enja.`,
@@ -1351,6 +1435,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
     insertBetween: (args) => `Vstavi med ${args.beforeItemText} in ${args.afterItemText}`,
   },
   "sr-SP": {
+    chooseDropTarget: "Изаберите одредиште испуштања",
+    confirmDrop: "Испусти",
+    cancelDrop: "Откажи",
     dragDescriptionKeyboard: `Pritisnite Enter da biste zapo\u{10D}eli prevla\u{10D}enje.`,
     dragDescriptionKeyboardAlt: `Pritisnite Alt + Enter da biste zapo\u{10D}eli prevla\u{10D}enje.`,
     dragDescriptionLongPress: `Pritisnite dugo da biste zapo\u{10D}eli prevla\u{10D}enje.`,
@@ -1396,6 +1483,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
     insertBetween: (args) => `Umetnite izme\u{111}u ${args.beforeItemText} i ${args.afterItemText}`,
   },
   "sv-SE": {
+    chooseDropTarget: "Välj släppmål",
+    confirmDrop: "Släpp",
+    cancelDrop: "Avbryt",
     dragDescriptionKeyboard: `Tryck p\xe5 enter f\xf6r att b\xf6rja dra.`,
     dragDescriptionKeyboardAlt: `Tryck p\xe5 Alt + Retur f\xf6r att b\xf6rja dra.`,
     dragDescriptionLongPress: `Tryck l\xe4nge f\xf6r att b\xf6rja dra.`,
@@ -1441,6 +1531,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
     insertBetween: (args) => `Infoga mellan ${args.beforeItemText} och ${args.afterItemText}`,
   },
   "tr-TR": {
+    chooseDropTarget: "Bırakma hedefini seçin",
+    confirmDrop: "Bırak",
+    cancelDrop: "İptal",
     dragDescriptionKeyboard: `S\xfcr\xfcklemeyi ba\u{15F}latmak i\xe7in Enter'a bas\u{131}n.`,
     dragDescriptionKeyboardAlt: `S\xfcr\xfcklemeyi ba\u{15F}latmak i\xe7in Alt + Enter'a bas\u{131}n.`,
     dragDescriptionLongPress: `S\xfcr\xfcklemeye ba\u{15F}lamak i\xe7in uzun bas\u{131}n.`,
@@ -1486,6 +1579,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
     insertBetween: (args) => `${args.beforeItemText} ve ${args.afterItemText} aras\u{131}na gir`,
   },
   "uk-UA": {
+    chooseDropTarget: "Виберіть місце розміщення",
+    confirmDrop: "Розмістити",
+    cancelDrop: "Скасувати",
     dragDescriptionKeyboard: `\u{41D}\u{430}\u{442}\u{438}\u{441}\u{43D}\u{456}\u{442}\u{44C} Enter, \u{449}\u{43E}\u{431} \u{43F}\u{43E}\u{447}\u{430}\u{442}\u{438} \u{43F}\u{435}\u{440}\u{435}\u{442}\u{44F}\u{433}\u{443}\u{432}\u{430}\u{43D}\u{43D}\u{44F}.`,
     dragDescriptionKeyboardAlt: `\u{41D}\u{430}\u{442}\u{438}\u{441}\u{43D}\u{456}\u{442}\u{44C} Alt + Enter, \u{449}\u{43E}\u{431} \u{43F}\u{43E}\u{447}\u{430}\u{442}\u{438} \u{43F}\u{435}\u{440}\u{435}\u{442}\u{44F}\u{433}\u{443}\u{432}\u{430}\u{43D}\u{43D}\u{44F}.`,
     dragDescriptionLongPress: `\u{41D}\u{430}\u{442}\u{438}\u{441}\u{43D}\u{456}\u{442}\u{44C} \u{456} \u{443}\u{442}\u{440}\u{438}\u{43C}\u{443}\u{439}\u{442}\u{435}, \u{449}\u{43E}\u{431} \u{43F}\u{43E}\u{447}\u{430}\u{442}\u{438} \u{43F}\u{435}\u{440}\u{435}\u{442}\u{44F}\u{433}\u{443}\u{432}\u{430}\u{43D}\u{43D}\u{44F}.`,
@@ -1553,6 +1649,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
       `\u{412}\u{441}\u{442}\u{430}\u{432}\u{438}\u{442}\u{438} \u{43C}\u{456}\u{436} ${args.beforeItemText} \u{456} ${args.afterItemText}`,
   },
   "zh-CN": {
+    chooseDropTarget: "选择放置目标",
+    confirmDrop: "放置",
+    cancelDrop: "取消",
     dragDescriptionKeyboard: `\u{6309} Enter \u{5F00}\u{59CB}\u{62D6}\u{52A8}\u{3002}`,
     dragDescriptionKeyboardAlt: `\u{6309} Alt + Enter \u{5F00}\u{59CB}\u{62D6}\u{52A8}\u{3002}`,
     dragDescriptionLongPress: `\u{957F}\u{6309}\u{4EE5}\u{5F00}\u{59CB}\u{62D6}\u{52A8}\u{3002}`,
@@ -1599,6 +1698,9 @@ export const nativeDragMessages: Record<string, Record<string, TNativeDragMessag
       `\u{63D2}\u{5165}\u{5230} ${args.beforeItemText} \u{548C} ${args.afterItemText} \u{4E4B}\u{95F4}`,
   },
   "zh-TW": {
+    chooseDropTarget: "選擇放置目標",
+    confirmDrop: "放置",
+    cancelDrop: "取消",
     dragDescriptionKeyboard: `\u{6309} Enter \u{9375}\u{4EE5}\u{958B}\u{59CB}\u{62D6}\u{66F3}\u{3002}`,
     dragDescriptionKeyboardAlt: `\u{6309} Alt+Enter \u{9375}\u{4EE5}\u{958B}\u{59CB}\u{62D6}\u{66F3}\u{3002}`,
     dragDescriptionLongPress: `\u{9577}\u{6309}\u{4EE5}\u{958B}\u{59CB}\u{62D6}\u{66F3}\u{3002}`,

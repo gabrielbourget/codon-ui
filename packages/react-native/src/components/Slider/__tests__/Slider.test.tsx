@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native"
 import { createRef, useState } from "react"
-import { Platform, PlatformColor, StyleSheet, type MeasureOnSuccessCallback } from "react-native"
+import { AccessibilityInfo, Platform, PlatformColor, StyleSheet, type MeasureOnSuccessCallback } from "react-native"
 
 import {
   NativeThemeProvider,
@@ -9,7 +9,19 @@ import {
   type TNativeSliderRef,
   type TNativeSliderStyleState,
 } from "../../.."
+import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
 import { resolveNativeTheme } from "../../../theme/defaults"
+
+jest.mock("../../../input/specs/CUIFocusViewNativeComponent", () => ({
+  __esModule: true,
+  default: jest.requireActual("react-native").View,
+  Commands: {
+    requestKeyboardFocus: jest.fn(),
+    requestKeyboardBlur: jest.fn(),
+    requestContainerFocus: jest.fn(),
+    inspectAccessibility: jest.fn(),
+  },
+}))
 
 type TFrame = [number, number, number, number]
 const nativeMethods: { measure: jest.Mock; focus: jest.Mock } = jest.requireActual(
@@ -39,6 +51,7 @@ const action = (name: string, index = 1) =>
   fireEvent(target(index), "accessibilityAction", { nativeEvent: { actionName: name } })
 beforeEach(() => {
   jest.replaceProperty(Platform, "OS", "android")
+  jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
   frames = {
     "slider-track": [100, 200, 300, 48],
     "slider-thumb-1-target": [100, 200, 48, 48],
@@ -56,6 +69,7 @@ beforeEach(() => {
     else resolve()
   })
   nativeMethods.focus.mockClear()
+  jest.mocked(Commands.requestKeyboardFocus).mockClear()
 })
 afterEach(() => jest.restoreAllMocks())
 
@@ -642,22 +656,23 @@ it("rejects stale layout/focus/action callbacks across removal and reinsertion",
     ended = jest.fn()
   const show = (values: number[]) => <Slider {...name} value={values} onChange={changed} onChangeEnd={ended} />
   const { rerender } = await render(show([0, 50]))
+  const oldOwner = target(2).props.ownerId
   const oldBody = body(2).props.onLayout,
     oldTarget = target(2).props.onLayout,
-    oldFocus = target(2).props.onFocus,
+    oldFocus = target(2).props.onNativeFocusChange,
     oldAction = target(2).props.onAccessibilityAction
   await rerender(show([0]))
   await rerender(show([0, 50]))
   await act(() => {
     oldBody({ nativeEvent: { layout: { width: 200, height: 200 } } })
     oldTarget({ nativeEvent: { layout: { width: 200, height: 200 } } })
-    oldFocus()
+    oldFocus({ nativeEvent: { ownerId: oldOwner, isFocused: true, target: 42 } })
     oldAction({ nativeEvent: { actionName: "increment" } })
   })
   expect(target(2)).toHaveStyle({ width: 48, height: 48 })
   expect(changed).not.toHaveBeenCalled()
   expect(ended).not.toHaveBeenCalled()
-  expect(nativeMethods.focus).not.toHaveBeenCalled()
+  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
 })
 
 it("ignores invalid native geometry and retains the last valid coordinate surface", async () => {
@@ -675,7 +690,10 @@ it("forwards native contextual hints and requests the first thumb ref from its l
   expect(target().props.accessibilityHint).toBe("Adjust this range")
   expect(target(2).props.accessibilityHint).toBe("Adjust this range")
   await fireEvent.press(screen.getByTestId("slider-label"))
-  expect(nativeMethods.focus).toHaveBeenCalledTimes(1)
+  expect(Commands.requestKeyboardFocus).toHaveBeenCalledTimes(1)
+  const [original, owner] = jest.mocked(Commands.requestKeyboardFocus).mock.calls[0]
+  expect((original as unknown as { props: { testID: string } }).props.testID).toBe("slider-thumb-1-target")
+  expect(owner).toBe(target().props.ownerId)
 })
 
 it("supports a fixed zero domain without NaN placement or fabricated changes", async () => {

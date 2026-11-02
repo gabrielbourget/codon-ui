@@ -113,3 +113,18 @@ export const MissingSelectionOwner = (
 )
 // @ts-expect-error Native roots do not receive DOM refs.
 export const DOMRef = <CompactTypeaheadSearch ref={createRef<HTMLDivElement>()} />
+
+export const SingleTagPicker = (
+  <TagComboBox
+    {...tags}
+    selectedItems={items as readonly TItem[]}
+    selectionMode="single"
+    customComboBoxProps={{ selectionMode: "single" }}
+  />
+)
+// @ts-expect-error The multi-valued tag owner retains a single-key picker.
+export const MultipleTagPicker = <TagComboBox {...tags} selectionMode="multiple" />
+// @ts-expect-error Nested customization cannot replace the single-key picker policy.
+export const NestedMultipleTagPicker = <TagComboBox {...tags} customComboBoxProps={{ selectionMode: "multiple" }} />
+// @ts-expect-error Collection children belong to the outer compound.
+export const NestedTagChildren = <TagComboBox {...tags} customComboBoxProps={{ children: "Ignored scaffold" }} />

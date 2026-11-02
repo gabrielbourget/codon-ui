@@ -24,12 +24,15 @@ const milliseconds = (value: TNativeTagDuration) => {
     throw new TypeError("Tag: transition timing must be finite and nonnegative in ms/s")
   return duration
 }
-export const resolveNativeTagTransition = (value: TNativeTagTransition = 250) => {
+export const resolveNativeTagTransition = (
+  value: TNativeTagTransition | undefined = undefined,
+  defaultDuration = 250,
+) => {
   const options = typeof value === "object" ? value : { duration: value }
   const easing = options.easing ?? "ease-in-out"
   if (!AVAILABLE_NATIVE_TAG_EASINGS.includes(easing)) throw new TypeError("Tag: unsupported transition easing")
   return {
-    duration: milliseconds(options.duration ?? 250),
+    duration: milliseconds(options.duration ?? defaultDuration),
     delay: milliseconds(options.delay ?? 0),
     easing: EASINGS[easing],
   }

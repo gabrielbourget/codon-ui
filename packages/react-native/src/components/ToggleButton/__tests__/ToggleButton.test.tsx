@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, userEvent } from "@testing-library/react-native"
 import { createRef, useState, type ComponentProps } from "react"
-import { PlatformColor, StyleSheet, View } from "react-native"
+import { AccessibilityInfo, PlatformColor, StyleSheet, View } from "react-native"
 
 import {
   AVAILABLE_THEMING_ORDER_CODES,
@@ -15,7 +15,10 @@ import {
 } from "../../.."
 import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
 
-beforeEach(() => jest.useFakeTimers())
+beforeEach(() => {
+  jest.useFakeTimers()
+  jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
+})
 afterEach(() => {
   jest.restoreAllMocks()
   jest.useRealTimers()

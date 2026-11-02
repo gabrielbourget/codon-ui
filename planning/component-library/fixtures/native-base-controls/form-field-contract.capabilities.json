@@ -3443,5 +3443,49 @@
         }
       ]
     }
+  ],
+  "nativeContractAmendments": [
+    {
+      "id": "DEC.PHONE.TYPOGRAPHY.01",
+      "authority": "Gabriel approval of explicit styling/discrete weights and continued D2 owner migration, 2026-10-31; roadmap3.4.1.3.2",
+      "sourceBaseline": "e94b98d3a71eb657fb840a5b73069a5d5c4380e2",
+      "scope": "PHONE-TYPE04: non-reset FormField/Counter/CircularProgress native typography owner family. Omit automatic requests on migrated paths; preserve the existing merged boundary while a native ancestor remains unmigrated. Effective FormField/Counter root weights retain supported values or require explicit scalar migration.",
+      "supersededRequirement": "Automatic native-tree inheritance through arbitrary raw Text children on migrated paths. Callers supply intended raw styles. Owned labels/messages/description/counts/content and existing SVG typography use explicit context/style owners; no SVG peer font contract is changed.",
+      "preserved": "Original FormField root/slot ownership, required marker, severity order, label targets/relationships, controlled editor values/events, actual refs and independent Button defaults. Counter value/max/ring/status/color and ordinary empty-child behavior; CircularProgress original root/label refs, renderer/context/range/locale/semantic state, SVG geometry and styles remain unchanged.",
+      "sourceChecks": [
+        {
+          "suite": "packages/react-native/src/components/FormField/__tests__/typography.test.tsx",
+          "covers": "Standalone/migrated nested family without typography requests, explicit inherited metrics/overrides/raw styles, original held editor/ref ownership, independent Button defaults, all three legacy ancestor transitions, effective root weight migration."
+        },
+        {
+          "suite": "packages/react-native/src/components/Counter/__tests__/Counter.test.tsx",
+          "previous": "supplies its current root typography to the original native host while preserving raw children and editor ownership",
+          "current": "supplies explicit owned typography while preserving authored raw styles and editor ownership"
+        },
+        {
+          "suite": "packages/react-native/src/components/CircularProgress/__tests__/CircularProgress.context.test.tsx",
+          "previous": "supplies its current root foreground to the original native typography receiver",
+          "current": "supplies its current root foreground explicitly to the owned label without a native typography request"
+        }
+      ],
+      "canonicalEvidence": "All original FormField canonical sourceRefs, inventories, dispositions, assertions and historical receipts remain unchanged; native case replacements are explicit amendments only.",
+      "acceptance": "Affected source correspondence only. No ledger verdict promotion, native rendering/input/AT/profile qualification, SDK/native/schema/dependency change or acceptance relaxation beyond approved D2 raw-style/weight differences."
+    },
+    {
+      "id": "DEC.PHONE.TYPOGRAPHY.NATIVE_RETIREMENT.01",
+      "authority": "Gabriel selected Retire the native inheritance API (Recommended) on2026-10-31; roadmap3.4.1.3.2 PHONE-TYPE08",
+      "sourceBaseline": "63ae7187b2b539da7dd61a66810dd507d71476b0",
+      "scope": "Retire the shared native inheritance/registration/transport and temporary conditional JS bridge after all built-in owners have explicit style paths.",
+      "supersedes": "Only earlier D2 temporary legacy-boundary/wire expectations. Current controls assert explicit styles and metric updates, reset/window barriers, original refs/editors/events and absence of native transport. Shared control mapping and receipts are recorded in roadmap3.4.1.3.2 and experiments.",
+      "preserved": "Original canonical source refs, property/native-only counts, historical assertions/receipts and all platform verdicts. Native compiler, glyph/layout/scaling/input/AT/profile qualification remains OPEN."
+    },
+    {
+      "id": "DEC.PHONE.TYPOGRAPHY.STOCK_TYPES.01",
+      "authority": "Gabriel approved stock RN, explicit styling/discrete weights and native inheritance API retirement; roadmap3.4.1.3.2 PHONE-TYPE09",
+      "sourceBaseline": "a2cdaa48f2fb0ee33c26dbfa2c14cdb4d5470ee5",
+      "scope": "Remove only P01/P02 SDK typography hunks and remaining Android scalar adapters; restore stock style/theme fontWeight types for supported named/string/numeric endpoints. Fractional/custom numeric values require explicit migration.",
+      "sourceChecks": "182 cases/11 suites plus source/public types. Invalid untyped-input and overridden-value runtime checks retain their exact values/assertions through a private test helper; positive/negative public declarations cover the restored stock types.",
+      "preserved": "Explicit owned styling, override precedence, original refs/events/identity and other Motion clocks. Original canonical fields, sourceRefs, historical receipts and verdicts remain unchanged; native compiler/products and glyph/layout/scaling/input/AT/profile qualification remain OPEN."
+    }
   ]
 }

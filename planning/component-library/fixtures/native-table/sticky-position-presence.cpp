@@ -1,5 +1,5 @@
 #include <react/featureflags/ReactNativeFeatureFlags.h>
-#include <react/renderer/components/view/YogaStylableProps.h>
+#include "../../../../packages/react-native/cpp/input/PositionDescriptor.h"
 #include <react/renderer/core/RawPropsParser.h>
 #include <memory>
 #include <stdexcept>
@@ -9,55 +9,51 @@ int nativeTableStickyPositionPresenceControls() {
   using namespace facebook::react;
   ContextContainer container;
   const PropsParserContext context{-1, container};
-  RawPropsParser parser;
-  parser.prepare<YogaStylableProps>();
-  const auto parse = [&](const YogaStylableProps &source, folly::dynamic values) {
-    RawProps raw{values};
-    raw.parse(parser);
-    auto next = std::make_unique<YogaStylableProps>(context, source, raw);
-    if (ReactNativeFeatureFlags::enableCppPropsIteratorSetter()) {
-      for (const auto &entry : values.items()) {
-        const auto &name = entry.first.getString();
-        next->setProp(context, RAW_PROPS_KEY_HASH(name), name.c_str(), RawValue(entry.second));
-      }
-    }
-    return next;
+  auto sharedContainer = std::make_shared<ContextContainer>();
+  ComponentDescriptorParameters parameters{};
+  parameters.contextContainer = sharedContainer;
+  CUIOwnedFocusViewComponentDescriptor descriptor(parameters);
+  const auto parse = [&](const Props::Shared &source, folly::dynamic values) {
+    return descriptor.cloneProps(context, source, RawProps(values));
+  };
+  const auto authored = [](const Props::Shared &props) {
+    return codon::input::requireNativePositionPresence(props);
+  };
+  const auto style = [](const Props::Shared &props) -> const CUIFocusViewProps & {
+    return static_cast<const CUIFocusViewProps &>(*props);
   };
   int checks = 0;
   const auto require = [&](bool accepted) {
     checks++;
     if (!accepted) throw std::runtime_error("Table sticky: authored-position control failed");
   };
-  const YogaStylableProps initial;
-  require(!initial.cuiHasAuthoredPosition);
+  const auto initial = parse(nullptr, folly::dynamic::object());
+  require(!authored(initial));
   const auto omitted = parse(initial, folly::dynamic::object());
-  require(!omitted->cuiHasAuthoredPosition);
-  const auto relative = parse(initial, folly::dynamic::object("position", "relative")("top", 7));
-  require(relative->cuiHasAuthoredPosition);
-  require(relative->yogaStyle.positionType() == omitted->yogaStyle.positionType());
-  const auto partial = parse(*relative, folly::dynamic::object("width", 53));
-  require(partial->cuiHasAuthoredPosition);
-  require(partial->yogaStyle.dimension(facebook::yoga::Dimension::Width).value().unwrap() == 53);
-  require(partial->yogaStyle.position(facebook::yoga::Edge::Top).value().unwrap() == 7);
-  const auto cleared = parse(*partial, folly::dynamic::object("position", nullptr));
-  require(!cleared->cuiHasAuthoredPosition);
-  require(cleared->yogaStyle.positionType() == initial.yogaStyle.positionType());
-  require(cleared->yogaStyle.dimension(facebook::yoga::Dimension::Width).value().unwrap() == 53);
-  require(relative->cuiHasAuthoredPosition);
-  const auto absolute = parse(initial, folly::dynamic::object("position", "absolute"));
-  require(absolute->cuiHasAuthoredPosition);
-  require(absolute->yogaStyle.positionType() == facebook::yoga::PositionType::Absolute);
-  const auto copied = parse(*absolute, folly::dynamic::object());
-  require(copied->cuiHasAuthoredPosition);
-  require(copied->yogaStyle.positionType() == facebook::yoga::PositionType::Absolute);
-  YogaStylableProps iterator;
-  iterator.setProp(context, CONSTEXPR_RAW_PROPS_KEY_HASH("position"), "position", RawValue(folly::dynamic("relative")));
-  require(iterator.cuiHasAuthoredPosition);
-  require(iterator.yogaStyle.positionType() == initial.yogaStyle.positionType());
-  iterator.setProp(context, CONSTEXPR_RAW_PROPS_KEY_HASH("width"), "width", RawValue(folly::dynamic(61)));
-  require(iterator.cuiHasAuthoredPosition);
-  iterator.setProp(context, CONSTEXPR_RAW_PROPS_KEY_HASH("position"), "position", RawValue(folly::dynamic(nullptr)));
-  require(!iterator.cuiHasAuthoredPosition);
-  require(iterator.yogaStyle.dimension(facebook::yoga::Dimension::Width).value().unwrap() == 61);
+  require(!authored(omitted));
+  for (const char *position : {"relative", "absolute", "static"}) {
+    const auto selected = parse(initial, folly::dynamic::object("position", position)("top", 7));
+    require(authored(selected));
+    const auto partial = parse(selected, folly::dynamic::object("width", 53));
+    require(authored(partial));
+    require(style(partial).yogaStyle.positionType() == style(selected).yogaStyle.positionType());
+    require(style(partial).yogaStyle.dimension(facebook::yoga::Dimension::Width).value().unwrap() == 53);
+    require(style(partial).yogaStyle.position(facebook::yoga::Edge::Top).value().unwrap() == 7);
+    const auto cleared = parse(partial, folly::dynamic::object("position", nullptr));
+    require(!authored(cleared));
+    require(style(cleared).yogaStyle.positionType() == style(initial).yogaStyle.positionType());
+    require(style(cleared).yogaStyle.dimension(facebook::yoga::Dimension::Width).value().unwrap() == 53);
+    require(authored(selected));
+  }
+  const auto relative = parse(initial, folly::dynamic::object("position", "relative"));
+  require(style(relative).yogaStyle.positionType() == style(initial).yogaStyle.positionType());
+  const auto temporary = parse(initial, folly::dynamic::object("position", "absolute"));
+  const auto restored = parse(temporary, folly::dynamic::object("position", nullptr));
+  require(!authored(restored));
+  require(!authored(initial));
+  bool rejected = false;
+  try { authored(std::make_shared<CUIFocusViewProps>()); }
+  catch (const std::invalid_argument &) { rejected = true; }
+  require(rejected);
   return checks;
 }

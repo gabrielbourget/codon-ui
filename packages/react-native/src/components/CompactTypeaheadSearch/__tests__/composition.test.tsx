@@ -593,3 +593,95 @@ it("retains the public compact search's original refs, held query and typed sele
   expect(root.current).toBeNull()
   expect(editor.current).toBeNull()
 })
+
+it("preserves the public inherited root renderer, native layout events and held editor through owner updates", async () => {
+  const root = createRef<View>(),
+    editor = createRef<TextInput>()
+  const seen = jest.fn(),
+    styleState = jest.fn(),
+    firstLayout = jest.fn(),
+    nextLayout = jest.fn(),
+    query = jest.fn()
+  const node = (isReadOnly: boolean, onLayout: (event: unknown) => void) =>
+    wrap(
+      <PublicCompactTypeaheadSearch
+        ref={root}
+        inputRef={editor}
+        accessibilityLabel="Rendered search"
+        items={items}
+        inputValue="held"
+        onInputChange={query}
+        isRequired
+        isReadOnly={isReadOnly}
+        width={0}
+        customStyles={{ marginTop: 5 }}
+        onLayout={onLayout}
+        style={(state) => {
+          styleState(state)
+          return { ...state.defaultStyle, marginTop: 11 }
+        }}
+        render={(native, state) => {
+          seen(state)
+          return <NativeFocusHost {...native} testID="rendered-public-search" />
+        }}
+      />,
+    )
+  const view = await render(node(false, firstLayout))
+  const originals = [root.current, editor.current]
+  originals.forEach((original) => expect(original).not.toBeNull())
+  expect(row("rendered-public-search")).toHaveStyle({ width: 0, marginTop: 11 })
+  expect(styleState.mock.calls.at(-1)?.[0]).toMatchObject({ defaultStyle: { width: 0, marginTop: 5 } })
+  expect(seen.mock.calls.at(-1)?.[0]).toMatchObject({ isRequired: true, isReadOnly: false, isDisabled: false })
+  const firstEvent = { nativeEvent: { layout: { x: 1, y: 2, width: 0, height: 40 } } }
+  await fireEvent(row("rendered-public-search"), "layout", firstEvent)
+  expect(firstLayout).toHaveBeenCalledTimes(1)
+  expect(firstLayout).toHaveBeenCalledWith(firstEvent)
+  await view.rerender(node(true, nextLayout))
+  expect(root.current).toBe(originals[0])
+  expect(editor.current).toBe(originals[1])
+  expect(row("type-ahead-search-input").props.value).toBe("held")
+  expect(query).not.toHaveBeenCalled()
+  expect(seen.mock.calls.at(-1)?.[0]).toMatchObject({ isRequired: true, isReadOnly: true, isDisabled: false })
+  const nextEvent = { nativeEvent: { layout: { x: 3, y: 4, width: 0, height: 44 } } }
+  await fireEvent(row("rendered-public-search"), "layout", nextEvent)
+  expect(nextLayout).toHaveBeenCalledTimes(1)
+  expect(nextLayout).toHaveBeenCalledWith(nextEvent)
+  expect(firstLayout).toHaveBeenCalledTimes(1)
+  await view.unmount()
+  expect(root.current).toBeNull()
+  expect(editor.current).toBeNull()
+})
+
+it("honors explicit native root focusability without replacing the held public editor", async () => {
+  const root = createRef<View>(),
+    editor = createRef<TextInput>()
+  const node = (focusable?: boolean) =>
+    wrap(
+      <PublicCompactTypeaheadSearch
+        ref={root}
+        inputRef={editor}
+        accessibilityLabel="Focusable search root"
+        inputValue="held"
+        items={items}
+        focusable={focusable}
+      />,
+    )
+  const view = await render(node())
+  const originalRoot = root.current,
+    originalEditor = editor.current
+  expect(originalRoot).not.toBeNull()
+  expect(originalEditor).not.toBeNull()
+  expect(row("type-ahead-search").props.focusable).toBe(false)
+  await view.rerender(node(true))
+  expect(row("type-ahead-search").props.focusable).toBe(true)
+  expect(root.current).toBe(originalRoot)
+  expect(editor.current).toBe(originalEditor)
+  expect(row("type-ahead-search-input").props.value).toBe("held")
+  await view.rerender(node(false))
+  expect(row("type-ahead-search").props.focusable).toBe(false)
+  expect(root.current).toBe(originalRoot)
+  expect(editor.current).toBe(originalEditor)
+  await view.unmount()
+  expect(root.current).toBeNull()
+  expect(editor.current).toBeNull()
+})

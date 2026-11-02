@@ -1,5 +1,6 @@
 import { resolveNativeTheme } from "../../../theme/defaults"
 import { AVAILABLE_THEMING_ORDER_CODES } from "../../../tokens/theme-order"
+import { untypedFontWeight } from "../../__tests__/untypedFontWeight"
 import { getNativeClickPopoverStyles } from "../styles"
 
 const theme = resolveNativeTheme("light")
@@ -8,6 +9,25 @@ const styles = (
   side: Parameters<typeof getNativeClickPopoverStyles>[2] = "bottom",
   direction: "ltr" | "rtl" = "ltr",
 ) => getNativeClickPopoverStyles(theme, props, side, direction, 300)
+
+it("preserves supported root/dialog weight endpoints and requires explicit scalar migration", () => {
+  expect(
+    styles({
+      customStyles: { fontWeight: untypedFontWeight(750.5) },
+      style: { fontWeight: "700" },
+      customDialogStyles: { fontWeight: 500 },
+    }),
+  ).toMatchObject({
+    rootText: { fontWeight: "700" },
+    dialogText: { fontWeight: 500 },
+  })
+  expect(() => styles({ style: { fontWeight: untypedFontWeight(750.5) } })).toThrow(
+    "fontWeight must use a stock React Native weight",
+  )
+  expect(() => styles({ customDialogStyles: { fontWeight: untypedFontWeight(750.5) } })).toThrow(
+    "fontWeight must use a stock React Native weight",
+  )
+})
 
 it.each(["light", "dark"] as const)("retains the three independent default style owners in %s mode", (mode) => {
   const current = resolveNativeTheme(mode)

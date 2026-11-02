@@ -3,6 +3,7 @@ import type { TextStyle, ViewStyle } from "react-native"
 import type { TNativeClickPopoverArrowStyle, TNativeClickPopoverProps } from "../../components/ClickPopover/types"
 import { resolveNativeStyle, validateNativeColor } from "../../components/colors"
 import { validateNativeDisplayDimension } from "../../components/displayDimensions"
+import { validateNativeFontWeight } from "../../components/nativeTextStyle"
 import type { TNativeTheme } from "../../theme/types"
 import { AVAILABLE_THEMING_ORDER_CODES } from "../../tokens/theme-order"
 
@@ -203,6 +204,8 @@ export const getNativeFloatingSurfaceStyles = (
   delete arrowView.color
   const rootSplit = textAndView(root)
   const dialogSplit = textAndView(dialog)
+  validateNativeFontWeight(rootSplit.text.fontWeight, component)
+  validateNativeFontWeight(dialogSplit.text.fontWeight ?? rootSplit.text.fontWeight, component)
   const margins = {
     top: resolveMargin(root, "top", rtl, hostWidth, component),
     right: resolveMargin(root, "right", rtl, hostWidth, component),

@@ -40,18 +40,6 @@ export type TNativeDragViewBinding = Readonly<{
   previewInstanceId: string
   previewX: number
   previewY: number
-  virtualFocus?: TNativeVirtualDragFocus | null
-}>
-export type TNativeVirtualDragFocusTarget = Readonly<{ id: string; tag: number; descendants: boolean }>
-export type TNativeVirtualDragFocus = Readonly<{
-  sessionId: string
-  windowId: string
-  epoch: number
-  revision: number
-  source: TNativeVirtualDragFocusTarget
-  selected: TNativeVirtualDragFocusTarget | null
-  nativeSelection: boolean
-  targets: readonly TNativeVirtualDragFocusTarget[]
 }>
 export type TNativeDragWindow = Readonly<{
   windowId: string
@@ -71,7 +59,6 @@ export type TNativeDragActionRegistration = Readonly<{
   current: () => boolean
   retire: () => void
   dispatch: (packet: TNativeDragActionPacket, current: () => boolean) => unknown
-  observeFocus?: (sessionId: string, targetTag: number) => void
 }>
 const object = (value: unknown): Record<string, unknown> => {
   if (!value || typeof value !== "object" || Array.isArray(value))
@@ -105,7 +92,13 @@ export const parseNativeDragAction = (encoded: string): TNativeDragActionPacket 
 }
 
 export const createNativeDragActions = (scope: TNativeKeyScope) => {
-  type TEntry = { moduleId: string; value: TNativeDragActionRegistration; live: boolean; nativeReady: boolean }
+  type TEntry = {
+    moduleId: string
+    value: TNativeDragActionRegistration
+    live: boolean
+    nativeReady: boolean
+    nativeRevision: number
+  }
   const entries = new Map<string, TEntry>()
   const listeners = new Set<() => void>()
   let revision = 0,
@@ -171,51 +164,9 @@ export const createNativeDragActions = (scope: TNativeKeyScope) => {
       keys.add(`${member.key}:${member.role ?? "both"}`)
       instances.add(member.instanceId)
     }
-    if (value.virtualFocus) {
-      const focus = value.virtualFocus,
-        ids = new Set<string>(),
-        tags = new Set<number>()
-      if (
-        !value.draggable ||
-        typeof focus.sessionId !== "string" ||
-        !focus.sessionId ||
-        typeof focus.windowId !== "string" ||
-        !focus.windowId ||
-        !focus.source ||
-        !positive(focus.epoch) ||
-        !positive(focus.revision) ||
-        typeof focus.nativeSelection !== "boolean" ||
-        !Array.isArray(focus.targets)
-      )
-        throw new Error("Native drag action: invalid virtual focus owner")
-      for (const entry of focus.targets) {
-        if (
-          typeof entry.id !== "string" ||
-          !entry.id ||
-          !target(entry.tag) ||
-          typeof entry.descendants !== "boolean" ||
-          ids.has(entry.id) ||
-          tags.has(entry.tag)
-        )
-          throw new Error("Native drag action: invalid original virtual focus target")
-        ids.add(entry.id)
-        tags.add(entry.tag)
-      }
-      for (const entry of [focus.source, focus.selected].filter((entry) => entry != null))
-        if (!focus.targets.some((candidate) => candidate.id === entry.id && candidate.tag === entry.tag))
-          throw new Error("Native drag action: virtual focus target is not enrolled")
-    }
     return {
       ...value,
       members: value.members.map((member) => ({ ...member })),
-      virtualFocus: value.virtualFocus
-        ? {
-            ...value.virtualFocus,
-            source: { ...value.virtualFocus.source },
-            selected: value.virtualFocus.selected ? { ...value.virtualFocus.selected } : null,
-            targets: value.virtualFocus.targets.map((entry) => ({ ...entry })),
-          }
-        : value.virtualFocus,
     }
   }
   return {
@@ -234,6 +185,12 @@ export const createNativeDragActions = (scope: TNativeKeyScope) => {
     setEnabled: (next: boolean) => {
       if (enabled === next) return
       enabled = next
+      if (!next)
+        for (const entry of entries.values()) {
+          if (!entry.value.native) continue
+          entry.nativeReady = false
+          entry.nativeRevision++
+        }
       revision++
     },
     bindings: () =>
@@ -249,6 +206,7 @@ export const createNativeDragActions = (scope: TNativeKeyScope) => {
                       bindingId: entry.value.bindingId,
                       revision: entry.value.revision,
                       rootTarget: entry.value.rootTarget,
+                      metadataRevision: entry.nativeRevision,
                     },
                   ]
                 : [],
@@ -298,8 +256,6 @@ export const createNativeDragActions = (scope: TNativeKeyScope) => {
             entry.value.retire()
           }
         }
-        if (window.canLift && !next.canLift)
-          for (const entry of entries.values()) if (entry.value.native?.virtualFocus) entry.value.retire()
         if (JSON.stringify(next) !== JSON.stringify(window)) {
           window = next
           changed()
@@ -315,22 +271,15 @@ export const createNativeDragActions = (scope: TNativeKeyScope) => {
         status.rootTarget !== entry.value.rootTarget
       )
         return
+      if (
+        entry.value.native &&
+        ["binding", "retired"].includes(String(status.kind)) &&
+        status.metadataRevision !== entry.nativeRevision
+      )
+        return
       if (status.kind === "retired") {
         entry.value.retire()
         changed()
-        return
-      }
-      if (status.kind === "virtualFocus") {
-        const focus = entry.value.native?.virtualFocus
-        if (
-          current(entry) &&
-          focus &&
-          status.sessionId === focus.sessionId &&
-          status.focusRevision === focus.revision &&
-          target(status.target) &&
-          focus.targets.some((candidate) => candidate.tag === status.target)
-        )
-          entry.value.observeFocus?.(focus.sessionId, status.target)
         return
       }
       if (status.kind !== "binding" || typeof status.ready !== "boolean" || typeof status.error !== "string")
@@ -363,6 +312,7 @@ export const createNativeDragActions = (scope: TNativeKeyScope) => {
         },
         live: true,
         nativeReady: false,
+        nativeRevision: 1,
       }
       entries.set(value.bindingId, entry)
       changed()
@@ -381,6 +331,7 @@ export const createNativeDragActions = (scope: TNativeKeyScope) => {
             itemTargets: new Set(checked.members.map((member) => member.targetTag)),
           }
           entry.nativeReady = false
+          entry.nativeRevision++
           changed()
         },
         unregister: () => {
