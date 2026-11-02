@@ -92,7 +92,7 @@ public final class CUIKeyboardScopeManager extends ReactViewManager implements C
     if (value != null) for (int index = 0; index < value.size(); index++) {
       ReadableMap policy = value.getMap(index); Set<String> tokens = new HashSet<>(); ReadableArray keys = policy.getArray("tokens");
       for (int key = 0; key < keys.size(); key++) tokens.add(keys.getString(key));
-      policies.add(new CUIKeyboardScope.Policy(policy.getString("id"), tokens, policy.getBoolean("excludeEditable"), policy.getBoolean("excludeComposing"), policy.getInt("targetTag")));
+      policies.add(new CUIKeyboardScope.Policy(policy.getString("id"), tokens, policy.getBoolean("excludeEditable"), policy.getBoolean("excludeComposing"), policy.getInt("targetTag"), policy.hasKey("originalEditorAction") && policy.getBoolean("originalEditorAction")));
     }
     ((CUIKeyboardScope) view).setPolicies(policies);
   }

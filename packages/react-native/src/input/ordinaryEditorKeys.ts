@@ -12,6 +12,7 @@ type TOptions<TTarget extends View, TReceiver extends View = TTarget> = {
   canAct: () => boolean
   subtree?: boolean
   toolbar?: boolean
+  originalEditorAction?: boolean
   currentTarget?: () => TReceiver | null
   receive: (event: TNativeOrdinaryEditorKeyEvent<TTarget, TReceiver>) => void
   receiveDate?: (event: TNativeToolbarDateKeyEvent) => void
@@ -28,6 +29,14 @@ export type TNativeToolbarDateKeyEvent = NativeSyntheticEvent<
   Omit<NativeDateSegmentKeyData, "kind"> & { kind: "keyboard" }
 > & { target: View; currentTarget: View }
 
+type TOriginalFocusCapture = (original: TextInput, expected: { windowId: string }) => (() => boolean) | null
+const originalFocusCaptures = new WeakMap<object, TOriginalFocusCapture>()
+export const captureNativeOrdinaryEditorFocus = (
+  registry: object | null,
+  original: TextInput,
+  expected: { windowId: string },
+) => (registry ? (originalFocusCaptures.get(registry)?.(original, expected) ?? null) : null)
+
 export const createNativeOrdinaryEditorKeys = (ownerId: string, session: () => TSession) => {
   type TEntry = {
     bindingId: string
@@ -38,6 +47,7 @@ export const createNativeOrdinaryEditorKeys = (ownerId: string, session: () => T
     observers: Set<string>
     toolbarKeys: Set<string>
     toolbarObservers: Set<string>
+    actionKeys: Set<string>
     ready: boolean
     sequence: number
     windowId: string
@@ -58,8 +68,30 @@ export const createNativeOrdinaryEditorKeys = (ownerId: string, session: () => T
   const purpose = (entry: TEntry) => ({
     toolbarTargetOnly: entry.keys.size > 0 && entry.toolbarKeys.size === entry.keys.size,
     toolbarSubtreeOnly: entry.observers.size > 0 && entry.toolbarObservers.size === entry.observers.size,
+    ...(entry.actionKeys.size ? { originalEditorAction: true } : {}),
   })
-  return {
+  const captureOriginalFocus = (original: TextInput, expected: { windowId: string }): (() => boolean) | null => {
+    const entry = targets.get(original)
+    if (!entry) return null
+    const revision = entry.bindingRevision
+    const epoch = entry.epoch
+    const admitted = () => {
+      const current = session()
+      return (
+        !disposed &&
+        targets.get(original) === entry &&
+        entry.ready &&
+        entry.bindingRevision === revision &&
+        current.active &&
+        expected.windowId === entry.windowId &&
+        expected.windowId === current.windowId &&
+        entry.epoch === epoch &&
+        entry.epoch === current.epoch
+      )
+    }
+    return admitted() ? admitted : null
+  }
+  const registry = {
     snapshot: () => version,
     subscribe: (listener: () => void) => {
       listeners.add(listener)
@@ -73,6 +105,35 @@ export const createNativeOrdinaryEditorKeys = (ownerId: string, session: () => T
         subtree: entry.observers.size > 0,
         ...purpose(entry),
       })),
+    isCurrentActionBinding: (
+      original: View,
+      frame: {
+        ownerId: string
+        bindingId: string
+        bindingRevision: string
+        targetTag: number
+        windowId: string
+        epoch: number
+      },
+    ) => {
+      const entry = targets.get(original),
+        current = session()
+      return (
+        !disposed &&
+        !!entry &&
+        entry.ready &&
+        current.active &&
+        entry.original === original &&
+        frame.ownerId === ownerId &&
+        frame.bindingId === entry.bindingId &&
+        frame.bindingRevision === entry.bindingRevision &&
+        frame.targetTag === entry.targetTag &&
+        frame.windowId === entry.windowId &&
+        frame.windowId === current.windowId &&
+        frame.epoch === entry.epoch &&
+        frame.epoch === current.epoch
+      )
+    },
     register: <TTarget extends View, TReceiver extends View = TTarget>(
       key: string,
       options: TOptions<TTarget, TReceiver>,
@@ -92,6 +153,7 @@ export const createNativeOrdinaryEditorKeys = (ownerId: string, session: () => T
         observers: new Set(),
         toolbarKeys: new Set(),
         toolbarObservers: new Set(),
+        actionKeys: new Set(),
         ready: false,
         sequence: 0,
         windowId: "",
@@ -101,6 +163,7 @@ export const createNativeOrdinaryEditorKeys = (ownerId: string, session: () => T
       const previousPurpose = JSON.stringify(purpose(entry))
       entry.keys.add(key)
       if (options.toolbar) entry.toolbarKeys.add(key)
+      if (options.originalEditorAction) entry.actionKeys.add(key)
       if (options.subtree) {
         entry.observers.add(key)
         if (options.toolbar) entry.toolbarObservers.add(key)
@@ -207,8 +270,27 @@ export const createNativeOrdinaryEditorKeys = (ownerId: string, session: () => T
             observerSession?.ownerId === ownerId &&
             observerSession.windowId === entry.windowId &&
             observerSession.epoch === entry.epoch
+          let scopedAction = false
+          if (options.subtree && typeof data.originalEditorAction === "string") {
+            try {
+              const action = JSON.parse(data.originalEditorAction)
+              scopedAction =
+                action?.ownerId === data.ownerId &&
+                action.windowId === data.windowId &&
+                action.epoch === data.epoch &&
+                typeof action.policyId === "string" &&
+                Number.isSafeInteger(action.dispatchId) &&
+                action.dispatchId > 0 &&
+                observerSession?.ownerId === ownerId &&
+                observerSession.windowId === entry.windowId &&
+                observerSession.epoch === entry.epoch
+            } catch {
+              return false
+            }
+          }
+          const scopedOriginal = scopedToolbar || scopedAction
           const toolbarIdentity = JSON.stringify([data.ownerId, data.windowId, data.epoch])
-          const previousEventId = scopedToolbar ? (toolbarEventIds.get(toolbarIdentity) ?? 0) : eventId
+          const previousEventId = scopedOriginal ? (toolbarEventIds.get(toolbarIdentity) ?? 0) : eventId
           if (
             disposed ||
             entries.get(key) !== entry ||
@@ -219,13 +301,13 @@ export const createNativeOrdinaryEditorKeys = (ownerId: string, session: () => T
             (options.subtree ? !observed : event.target !== options.original) ||
             event.currentTarget !== (options.currentTarget ? options.currentTarget() : options.original) ||
             data.kind !== "keyboard" ||
-            (data.ownerId !== ownerId && !scopedToolbar) ||
+            (data.ownerId !== ownerId && !scopedOriginal) ||
             (!options.subtree &&
               (data.bindingId !== entry.bindingId || data.bindingRevision !== entry.bindingRevision)) ||
             data.target !== findNodeHandle(event.target as View) ||
             data.windowId !== entry.windowId ||
             data.windowId !== current.windowId ||
-            (data.epoch !== entry.epoch && !scopedToolbar) ||
+            (data.epoch !== entry.epoch && !scopedOriginal) ||
             entry.epoch !== current.epoch ||
             (data.phase !== "down" && data.phase !== "up") ||
             (data.phase === "down" && data.cancelled) ||
@@ -233,7 +315,7 @@ export const createNativeOrdinaryEditorKeys = (ownerId: string, session: () => T
             data.eventId <= previousEventId
           )
             return false
-          if (scopedToolbar) toolbarEventIds.set(toolbarIdentity, data.eventId)
+          if (scopedOriginal) toolbarEventIds.set(toolbarIdentity, data.eventId)
           else eventId = data.eventId
           event.persist?.()
           // The native event already proceeds independently; there is no default acknowledgment.
@@ -248,6 +330,7 @@ export const createNativeOrdinaryEditorKeys = (ownerId: string, session: () => T
           entry.keys.delete(key)
           entry.observers.delete(key)
           entry.toolbarKeys.delete(key)
+          entry.actionKeys.delete(key)
           entry.toolbarObservers.delete(key)
           if (!entry.keys.size) {
             targets.delete(options.original)
@@ -284,6 +367,8 @@ export const createNativeOrdinaryEditorKeys = (ownerId: string, session: () => T
       listeners.clear()
     },
   }
+  originalFocusCaptures.set(registry, captureOriginalFocus)
+  return registry
 }
 
 export const NativeOrdinaryFocusParticipantsContext = createContext<((target: object) => boolean) | null>(null)
@@ -315,6 +400,7 @@ export const useNativeOrdinaryEditorKeys = <TTarget extends View, TReceiver exte
       canAct: () => current.current.canAct(),
       subtree: options.subtree,
       toolbar: options.toolbar,
+      originalEditorAction: options.originalEditorAction,
       ...(options.currentTarget ? { currentTarget: () => current.current.currentTarget?.() ?? null } : {}),
       receive: (event) => current.current.receive(event),
       receiveDate: (event) => current.current.receiveDate?.(event),
@@ -324,7 +410,7 @@ export const useNativeOrdinaryEditorKeys = <TTarget extends View, TReceiver exte
       if (lease.current === registration) lease.current = null
       registration.unregister()
     }
-  }, [registry, key, target, enabled, revisionKey, options.subtree, options.toolbar])
+  }, [registry, key, target, enabled, revisionKey, options.subtree, options.toolbar, options.originalEditorAction])
   return Object.assign((event: NativeSyntheticEvent<NativeOrdinaryEditorKeyData>) => lease.current?.receive(event), {
     receiveDate: (event: NativeSyntheticEvent<NativeDateSegmentKeyData>) =>
       lease.current ? registry?.receiveDate(key, event) : false,

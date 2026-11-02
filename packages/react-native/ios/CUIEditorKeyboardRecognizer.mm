@@ -28,6 +28,9 @@
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)recognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)other { return YES; }
 - (BOOL)canPreventGestureRecognizer:(UIGestureRecognizer *)other { return NO; }
 - (BOOL)canBePreventedByGestureRecognizer:(UIGestureRecognizer *)other { return NO; }
+- (BOOL)capturesPressCode:(UIKeyboardHIDUsage)code {
+  return [_heldCodes containsObject:@(code)] && (self.state == UIGestureRecognizerStateBegan || self.state == UIGestureRecognizerStateChanged);
+}
 - (void)pressesBegan:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event
 {
   BOOL prevented = NO;
@@ -35,8 +38,20 @@
     if (!press.key || !_admission(press)) continue;
     NSNumber *code = @(press.key.keyCode);
     BOOL repeat = [_heldCodes containsObject:code];
-    [_heldCodes addObject:code];
-    prevented |= _dispatch(press, @"down", repeat);
+    NSNumber *prepared = self.prepareOriginalEditorPress ? self.prepareOriginalEditorPress(press, @"down", repeat) : nil;
+    if (prepared) {
+      if (prepared.boolValue) {
+        [_heldCodes addObject:code];
+        self.state = self.state == UIGestureRecognizerStatePossible ? UIGestureRecognizerStateBegan : UIGestureRecognizerStateChanged;
+      } else {
+        [self ignorePress:press forEvent:event];
+      }
+      // The native capture/ignore decision precedes both asynchronous deliveries.
+      prevented |= _dispatch(press, @"down", repeat);
+    } else {
+      [_heldCodes addObject:code];
+      prevented |= _dispatch(press, @"down", repeat);
+    }
   }
   if (prevented) self.state = self.state == UIGestureRecognizerStatePossible ? UIGestureRecognizerStateBegan : UIGestureRecognizerStateChanged;
 }
@@ -53,5 +68,8 @@
 }
 - (void)pressesEnded:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event { [self finishPresses:presses cancelled:NO]; }
 - (void)pressesCancelled:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event { [self finishPresses:presses cancelled:YES]; }
-- (void)reset { [_heldCodes removeAllObjects]; [super reset]; }
+- (void)reset {
+  if (self.retireOriginalEditorPresses) self.retireOriginalEditorPresses();
+  [_heldCodes removeAllObjects]; [super reset];
+}
 @end

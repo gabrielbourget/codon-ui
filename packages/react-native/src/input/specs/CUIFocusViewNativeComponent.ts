@@ -30,6 +30,7 @@ export type NativeKeyData = Readonly<{
 }>
 
 export type NativeOrdinaryEditorKeyData = Readonly<{
+  originalEditorAction?: string
   toolbarRoute?: string
   observerBindings: string
   bindingId: string
@@ -57,6 +58,21 @@ export type NativeOrdinaryEditorKeyData = Readonly<{
   nativeModifierData: string
   nativeDefaultHandled: boolean
   timestamp: Double
+}>
+
+export type NativeResponderCohortData = Readonly<{
+  ownerId: string
+  bindingId: string
+  target: Int32
+  sourceTarget: Int32
+  surfaceId: Int32
+  identifier: Int32
+  cycleId: Double
+  cohort: string
+  phase: string
+  windowId: string
+  scopeOwnerId: string
+  epoch: Double
 }>
 
 export type NativeActivationData = Readonly<{
@@ -185,6 +201,7 @@ export interface NativeProps extends ViewProps {
   keyboardFocusable?: WithDefault<boolean, true>
   nativeTabStop?: WithDefault<boolean, true>
   nativePressable?: WithDefault<boolean, false>
+  nativeResponderCohortBinding?: string
   nativeMotionGeometryBinding?: string
   nativeMotionGeometryRevision?: string
   nativeMotionGeometryObserveFrames?: WithDefault<boolean, true>
@@ -210,6 +227,7 @@ export interface NativeProps extends ViewProps {
   onNativeMotionGeometry?: DirectEventHandler<NativeMotionGeometry>
   onNativeMotionColors?: DirectEventHandler<NativeMotionColors>
   onNativeActivation?: DirectEventHandler<NativeActivationData>
+  onNativeResponderCohort?: DirectEventHandler<NativeResponderCohortData>
   onNativeKey?: DirectEventHandler<NativeKeyData>
   onNativeDateKey?: BubblingEventHandler<NativeKeyData>
   onNativeOrdinaryEditorKey?: BubblingEventHandler<NativeOrdinaryEditorKeyData>

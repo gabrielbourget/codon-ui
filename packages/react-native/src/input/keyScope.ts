@@ -8,6 +8,7 @@ export type TNativeKeyPolicy = Readonly<{
   lifetimeKey: string
   targetTag?: number
   excludeComposing?: boolean
+  originalEditorAction?: boolean
   canAct: () => boolean
   onKey: (event: TNativeKeyboardEvent) => void
 }>
@@ -17,6 +18,7 @@ export type TNativeKeyPolicySnapshot = Readonly<{
   excludeEditable: boolean
   excludeComposing: boolean
   targetTag: number
+  originalEditorAction?: boolean
 }>
 
 export const nativeKeyToken = (
@@ -64,6 +66,7 @@ export const createNativeKeyScope = (ownerId: string) => {
       policy.isEnabled,
       policy.lifetimeKey,
       policy.targetTag,
+      policy.originalEditorAction === true,
     ])
   const policies = (): readonly TNativeKeyPolicySnapshot[] =>
     !enabled || disposed
@@ -77,6 +80,7 @@ export const createNativeKeyScope = (ownerId: string) => {
             excludeEditable: policy.excludeEditable,
             excludeComposing: policy.excludeComposing ?? true,
             targetTag: policy.targetTag ?? 0,
+            ...(policy.originalEditorAction ? { originalEditorAction: true } : {}),
           }))
   const flush = () => {
     const signature = JSON.stringify([

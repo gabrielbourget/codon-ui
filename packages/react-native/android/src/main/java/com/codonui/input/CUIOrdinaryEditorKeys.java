@@ -109,6 +109,12 @@ final class CUIOrdinaryEditorKeys {
     for (Registration registration : registrations) if (registration.subtree && (!registration.toolbarSubtreeOnly || toolbarObservation) && original(registration) != null) selected = registration;
     return selected;
   }
+  org.json.JSONObject actionBinding(View focused, KeyEvent event) {
+    Registration registration=forFocus(focused,event);
+    if (registration==null || focused==null || registration.targetTag!=focused.getId() || original(registration)!=focused) return null;
+    try { return new org.json.JSONObject().put("bindingId",registration.id).put("bindingRevision",registration.revision); }
+    catch (org.json.JSONException unavailable) { return null; }
+  }
   static void dispatch(List<CUIKeyboardScope> scopes, KeyEvent event, View focused, boolean captured) {
     dispatch(scopes,event,focused,captured,false);
   }
@@ -119,11 +125,17 @@ final class CUIOrdinaryEditorKeys {
     if (!lifecycleCancelled && CUIKeyboardScope.toolbarCancelledOriginal(focused,event)) return;
     CUIOrdinaryEditorKeys owner = null; Registration registration = null;
     CUIKeyboardScope toolbarOwner=CUIKeyboardScope.toolbarOriginalOwner(focused,event);
+    String actionMetadata=CUIKeyboardScope.originalEditorActionForOriginal(focused,event);
+    String actionOwner="";
+    if (actionMetadata!=null) try { actionOwner=new org.json.JSONObject(actionMetadata).getString("ownerId"); } catch (org.json.JSONException invalid) { return; }
     int bestPriority=0;
     for (CUIKeyboardScope candidate : scopes) {
       Registration match = candidate.ordinaryEditorKeys.forFocus(focused,event);
       if (match == null) continue;
-      if (toolbarOwner == null) {
+      if (!actionOwner.isEmpty()) {
+        if (!actionOwner.equals(candidate.menuPointerOwnerId()) || match.targetTag!=focused.getId()) continue;
+        if (owner!=null) return;owner=candidate.ordinaryEditorKeys;registration=match;
+      } else if (toolbarOwner == null) {
         if (owner != null) return;
         owner=candidate.ordinaryEditorKeys; registration=match;
       } else {
@@ -161,7 +173,7 @@ final class CUIOrdinaryEditorKeys {
     String toolbarRoute=CUIKeyboardScope.toolbarRouteForOriginal(original,event);
     org.json.JSONArray observers = new org.json.JSONArray();
     try {
-      if (toolbarRoute != null) for (CUIKeyboardScope candidate : CUIInputWindow.scopes(scope)) candidate.ordinaryEditorKeys.appendToolbarObservers(observers);
+      if (toolbarRoute != null || CUIKeyboardScope.originalEditorActionForOriginal(original,event)!=null) for (CUIKeyboardScope candidate : CUIInputWindow.scopes(scope)) candidate.ordinaryEditorKeys.appendToolbarObservers(observers);
       else for (Registration candidate : registrations) if (candidate.subtree && original(candidate) != null)
         observers.put(new org.json.JSONObject().put("bindingId", candidate.id).put("bindingRevision", candidate.revision).put("targetTag", candidate.targetTag));
     } catch (org.json.JSONException invalid) { return; }
@@ -179,6 +191,8 @@ final class CUIOrdinaryEditorKeys {
     data.putString("nativeModifierData", Integer.toUnsignedString(event.getMetaState()));
     data.putBoolean("nativeDefaultHandled", captured); data.putDouble("timestamp", event.getEventTime());
     if (toolbarRoute != null) data.putString("toolbarRoute",toolbarRoute);
+    String action=CUIKeyboardScope.originalEditorActionForOriginal(original,event);
+    if (action!=null) data.putString("originalEditorAction",action);
     boolean emitted=scope.emitOrdinaryEditorKey(original.getId(), data);
     if (toolbarRoute != null && emitted) CUIKeyboardScope.toolbarOriginalDidEmit(original,event);
   }

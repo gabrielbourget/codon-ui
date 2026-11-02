@@ -10,6 +10,10 @@
 
 using namespace facebook::react;
 
+@interface CUIOrdinaryEditorKeys ()
+- (void)dispatchPress:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat captured:(BOOL)captured originalObservation:(BOOL)originalObservation;
+@end
+
 @implementation CUIOrdinaryEditorKeys {
   __weak UIView *_scope;
   NSDictionary *(^_session)(void);
@@ -20,6 +24,7 @@ using namespace facebook::react;
   NSMutableSet<NSString *> *_resolved;
   NSMutableDictionary<NSString *, NSString *> *_published;
   std::unordered_map<Tag, std::weak_ptr<const EventEmitter>> _emitters;
+  NSMapTable<UIPress *, NSDictionary *> *_originalDispatches;
   std::unordered_map<std::string, std::weak_ptr<const EventEmitter>> _originalEmitters;
   NSUInteger _sequence, _eventId, _structureRevision;
   BOOL _awaitingMount;
@@ -35,6 +40,7 @@ using namespace facebook::react;
 }
 - (NSString *)identity:(NSDictionary *)binding { return [NSString stringWithFormat:@"%@/%@", binding[@"bindingId"], binding[@"bindingRevision"]]; }
 - (BOOL)hasBindings { return _bindings.count > 0; }
+- (BOOL)hasOriginalActionBindings { for (NSDictionary *binding in _bindings) if ([binding[@"originalEditorAction"] boolValue]) return YES; return NO; }
 - (BOOL)canObserveTarget:(UIView *)target {
   if (!_ready() || !target) return NO;
   for (NSDictionary *binding in _bindings) if ([self original:binding] == target) return YES;
@@ -129,6 +135,14 @@ using namespace facebook::react;
   result[@"observerBindings"] = [[NSString alloc] initWithData:encoded encoding:NSUTF8StringEncoding];
   return result;
 }
+- (NSDictionary *)actionBindingForPress:(UIPress *)press {
+  NSDictionary *binding=[self bindingForPress:press];
+  return binding && [binding[@"targetTag"] isEqual:binding[@"originalTarget"]] ? binding : nil;
+}
+- (UIView *)actionOriginalForPress:(UIPress *)press {
+  NSDictionary *binding=[self actionBindingForPress:press];
+  return binding ? [self original:binding] : nil;
+}
 - (BOOL)acceptsPress:(UIPress *)press { return [self bindingForPress:press] != nil; }
 - (void)publish
 {
@@ -163,10 +177,31 @@ using namespace facebook::react;
 }
 - (void)dispatchPress:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat captured:(BOOL)captured
 {
+  [self dispatchPress:press phase:phase repeat:repeat captured:captured originalObservation:NO];
+}
+- (void)dispatchOriginalObservedPress:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat captured:(BOOL)captured
+{
+  [self dispatchPress:press phase:phase repeat:repeat captured:captured originalObservation:YES];
+}
+- (void)dispatchPress:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat captured:(BOOL)captured originalObservation:(BOOL)originalObservation
+{
   if (![phase isEqualToString:@"cancel"] && CUIKeyboardToolbarCancelledOriginal(press)) return;
   NSDictionary *binding = [self bindingForPress:press];
   if (!binding || ![@[@"down", @"up", @"cancel"] containsObject:phase]) return;
   NSString *toolbarRoute=CUIKeyboardToolbarRoute(press);
+  NSString *editorAction=CUIKeyboardOriginalEditorAction(press);
+  if (editorAction) {
+    NSDictionary *action=[NSJSONSerialization JSONObjectWithData:[editorAction dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
+    if (![action[@"ownerId"] isEqual:_session()[@"scopeOwnerId"]]) return;
+    if ([action[@"targetTag"] integerValue]!=[binding[@"originalTarget"] integerValue]) {
+      if ([action[@"admitted"] boolValue]) return;
+      editorAction=nil;
+    }
+    NSMutableArray *observers=[NSMutableArray new];
+    for (CUIKeyboardScope *scope in CUIInputScopes(_scope.window)) [[scope ordinaryEditorKeys] appendToolbarObservers:observers];
+    NSData *encoded=[NSJSONSerialization dataWithJSONObject:observers options:0 error:nil];
+    NSMutableDictionary *scoped=[binding mutableCopy]; scoped[@"observerBindings"]=[[NSString alloc] initWithData:encoded encoding:NSUTF8StringEncoding]; binding=scoped;
+  }
   if (toolbarRoute) {
     NSDictionary *route=[NSJSONSerialization JSONObjectWithData:[toolbarRoute dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
     CUIOrdinaryEditorKeys *winner=nil; NSInteger best=0;
@@ -185,6 +220,12 @@ using namespace facebook::react;
   const auto found = _emitters.find([binding[@"originalTarget"] intValue]);
   const auto emitter = found == _emitters.end() ? nullptr : found->second.lock();
   if (!emitter) return;
+  NSDictionary *previous=[_originalDispatches objectForKey:press];
+  if ([previous[@"timestamp"] doubleValue]==press.timestamp && [previous[@"phase"] isEqual:phase]) return;
+  if (originalObservation || [self hasOriginalActionBindings]) {
+    if (!_originalDispatches) _originalDispatches=[NSMapTable weakToStrongObjectsMapTable];
+    [_originalDispatches setObject:@{@"timestamp":@(press.timestamp),@"phase":phase} forKey:press];
+  }
   NSDictionary *session = _session(); UIKey *key = press.key; const auto flags = key.modifierFlags;
   UIView *original = [_scope.window viewWithTag:[binding[@"originalTarget"] integerValue]];
   captured = captured || ([original isKindOfClass:CUIFocusView.class] && [(CUIFocusView *)original capturesObservedKey:key]);
@@ -204,6 +245,7 @@ using namespace facebook::react;
     ("capsLock", static_cast<bool>(flags & UIKeyModifierAlphaShift))("nativeModifierData", std::to_string(static_cast<uint64_t>(flags)))
     ("nativeDefaultHandled", static_cast<bool>(captured))("timestamp", press.timestamp * 1000);
   if (toolbarRoute) data["toolbarRoute"]=toolbarRoute.UTF8String;
+  if (editorAction) data["originalEditorAction"]=editorAction.UTF8String;
   emitter->dispatchEvent("nativeOrdinaryEditorKey", std::move(data), RawEvent::Category::Discrete,
       HighResTimeStamp::fromDOMHighResTimeStamp(press.timestamp * 1000));
   if (toolbarRoute) CUIKeyboardToolbarDidEmit(press);

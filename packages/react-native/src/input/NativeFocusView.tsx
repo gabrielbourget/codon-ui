@@ -226,6 +226,10 @@ export const NativeFocusHost = forwardRef<
     Partial<Pick<TNativeToolbarListenerProps, "onNativeOrdinaryEditorKeyCapture" | "onNativeDateKeyCapture">> & {
       nativePressable?: boolean
       nativeKeyPolicy?: TNativeLocalKeyPolicy
+      nativeResponderCohortBinding?: string
+      onNativeResponderCohort?: (
+        event: NativeSyntheticEvent<import("./specs/CUIFocusViewNativeComponent").NativeResponderCohortData>,
+      ) => void
       onNativeDateKey?: TNativeToolbarListenerProps["onNativeDateKey"]
       nativeOrdinaryGroupKeyHandler?: (event: TNativeKeyboardEvent) => void
       onNativeOrdinaryEditorKey?: (
@@ -276,6 +280,7 @@ export const NativeFocusHost = forwardRef<
     tabIndex,
     capturedKeys,
     onNativeActivation,
+    onNativeResponderCohort,
     onNativeAccessibilitySnapshot,
     nativeMotionColorObservation = false,
     nativeMotionGeometryObservation = false,
@@ -677,6 +682,9 @@ export const NativeFocusHost = forwardRef<
           if (target && event.nativeEvent.target === findNodeHandle(target))
             receiveNativeAccessibilityInspection(target, event)
           onNativeAccessibilitySnapshot?.(event)
+        }}
+        onNativeResponderCohort={(event) => {
+          if (attached.current && event.nativeEvent.ownerId === ownerId) onNativeResponderCohort?.(event)
         }}
         onNativeActivation={(event) => {
           const data = event.nativeEvent

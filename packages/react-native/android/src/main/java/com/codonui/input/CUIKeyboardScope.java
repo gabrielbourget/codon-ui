@@ -412,19 +412,27 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
     final boolean excludeEditable;
     final int targetTag;
     final boolean excludeComposing;
+    final boolean originalEditorAction;
     Policy(String id, Set<String> tokens, boolean excludeEditable, boolean excludeComposing, int targetTag) {
+      this(id,tokens,excludeEditable,excludeComposing,targetTag,false);
+    }
+    Policy(String id, Set<String> tokens, boolean excludeEditable, boolean excludeComposing, int targetTag, boolean originalEditorAction) {
       this.id = id; this.tokens = new HashSet<>(tokens); this.excludeEditable = excludeEditable;
       this.targetTag = targetTag;
       this.excludeComposing = excludeComposing;
+      this.originalEditorAction = originalEditorAction;
     }
     @Override public boolean equals(Object other) {
       if (!(other instanceof Policy)) return false;
       Policy policy = (Policy) other;
-      return id.equals(policy.id) && tokens.equals(policy.tokens) && excludeEditable == policy.excludeEditable && excludeComposing == policy.excludeComposing && targetTag == policy.targetTag;
+      return id.equals(policy.id) && tokens.equals(policy.tokens) && excludeEditable == policy.excludeEditable && excludeComposing == policy.excludeComposing && targetTag == policy.targetTag && originalEditorAction == policy.originalEditorAction;
     }
-    @Override public int hashCode() { return Objects.hash(id, tokens, excludeEditable, excludeComposing, targetTag); }
+    @Override public int hashCode() { return Objects.hash(id, tokens, excludeEditable, excludeComposing, targetTag, originalEditorAction); }
   }
   private static final class Hold {
+    final Policy policy;
+    org.json.JSONObject originalBinding;
+    final java.lang.ref.WeakReference<View> original;
     final String policyId;
     final String ownerId;
     final int focusedTarget;
@@ -434,6 +442,7 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
     final double epoch;
     final double policyRevision;
     Hold(Policy policy, String ownerId, View focused, KeyEvent event, String windowId, double epoch, double policyRevision) {
+      this.policy=policy; this.original=new java.lang.ref.WeakReference<>(focused);
       this.policyId = policy.id; this.ownerId = ownerId; this.focusedTarget = focused == null ? View.NO_ID : focused.getId(); this.event = new KeyEvent(event);
       this.windowId = windowId; this.epoch = epoch; this.policyRevision = policyRevision;
     }
@@ -443,6 +452,10 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
   private boolean captureEnabled = true;
   private List<Policy> policies = new ArrayList<>();
   private final SparseArray<Hold> held = new SparseArray<>();
+  private long originalEditorDispatchId;
+  private static KeyEvent originalEditorActionEvent;
+  private static org.json.JSONObject originalEditorActionFrame;
+  private static boolean originalEditorDispatchAdmission;
   private double windowEpoch;
   private double acceptedEpoch = -1;
   private double policyRevision;
@@ -595,6 +608,7 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
     boolean outer = CUIInputWindow.beginKey(this);
     try {
       View toolbarOriginalFocus=getRootView().findFocus();
+      boolean originalEditorCaptured=outer && dispatchOriginalEditorAction(event,toolbarOriginalFocus);
       Boolean toolbarRoute=outer ? dispatchToolbarKey(event, toolbarOriginalFocus) : null;
       if (outer && Boolean.FALSE.equals(toolbarRoute)) toolbarOriginalEvent=event;
       if (outer && down) {
@@ -612,12 +626,15 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
         for (CUIKeyboardScope scope : CUIInputWindow.scopes(this)) alreadyHeld |= scope.held.get(event.getKeyCode()) != null;
         if (!alreadyHeld) return super.dispatchKeyEvent(event);
       }
-      boolean captured = Boolean.TRUE.equals(toolbarRoute) || (toolbarOriginalEvent != event && dispatchCapturedKey(event));
+      boolean captured;
+      originalEditorDispatchAdmission=outer && toolbarRoute==null;
+      try { captured = originalEditorCaptured || Boolean.TRUE.equals(toolbarRoute) || (toolbarOriginalEvent != event && dispatchCapturedKey(event)); }
+      finally { originalEditorDispatchAdmission=false; }
       if (outer && captured && focused instanceof CUIDateSegment) ((CUIDateSegment)focused).observeCapturedOrdinaryKey(event);
       else if (outer && down && Boolean.FALSE.equals(toolbarRoute) && focused instanceof CUIDateSegment) ((CUIDateSegment)focused).observeToolbarOrdinaryKey(event,false);
       if (outer) CUIOrdinaryEditorKeys.dispatch(CUIInputWindow.scopes(this), event, toolbarRoute != null ? toolbarOriginalFocus : getRootView().findFocus(), captured);
       return captured || super.dispatchKeyEvent(event);
-    } finally { if (outer) { if (toolbarOriginalEvent == event) toolbarOriginalEvent=null; if (toolbarObservedOriginalEvent == event) toolbarObservedOriginalEvent=null; toolbarDispatchHold=null; } CUIInputWindow.endKey(this); }
+    } finally { if (outer) { if (toolbarOriginalEvent == event) toolbarOriginalEvent=null; if (toolbarObservedOriginalEvent == event) toolbarObservedOriginalEvent=null; toolbarDispatchHold=null; originalEditorActionEvent=null; originalEditorActionFrame=null; } CUIInputWindow.endKey(this); }
   }
   private void observeKey(KeyEvent event, View focused, long eventId, boolean captured) {
     if (!captureReady() || event.isCanceled() || observations.isEmpty()) return;
@@ -647,6 +664,26 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
     data.putString("nativeModifierData", Integer.toUnsignedString(event.getMetaState())); data.putBoolean("defaultCaptured", captured); data.putDouble("timestamp", event.getEventTime());
     emit("topNativeObservedKey", data);
   }
+  private boolean originalEditorPolicyStillWins(KeyEvent event, View focused) {
+    for (CUIKeyboardScope scope : CUIInputWindow.scopes(this)) if (scope!=this && scope.policyOrder>policyOrder && scope.localPolicyFor(event,focused)!=null) return false;
+    return true;
+  }
+  private boolean dispatchOriginalEditorAction(KeyEvent event, View focused) {
+    CUIKeyboardScope owner=null;
+    for (CUIKeyboardScope scope : CUIInputWindow.scopes(this)) {
+      Hold old=scope.held.get(event.getKeyCode());
+      if (old!=null && old.policy.originalEditorAction && event.getAction()==KeyEvent.ACTION_DOWN && event.getRepeatCount()==0) { scope.held.remove(event.getKeyCode());old=null; }
+      if (old!=null) { if (old.policy.originalEditorAction) owner=scope; else return false; break; }
+      Policy policy=scope.localPolicyFor(event,focused);
+      if (policy!=null && (owner==null || scope.policyOrder>owner.policyOrder)) owner=scope;
+    }
+    if (owner==null) return false;
+    Hold heldPolicy=owner.held.get(event.getKeyCode());
+    Policy policy=heldPolicy!=null ? heldPolicy.policy : owner.localPolicyFor(event,focused);
+    if (policy==null || !policy.originalEditorAction) return false;
+    originalEditorDispatchAdmission=true;
+    try { return owner.capture(event,focused); } finally { originalEditorDispatchAdmission=false; }
+  }
   private boolean dispatchCapturedKey(KeyEvent event) {
     if (toolbarOriginalEvent == event) return false;
     if (!isAttachedToWindow() || !hasWindowFocus() || (event.getAction() != KeyEvent.ACTION_DOWN && event.getAction() != KeyEvent.ACTION_UP)) return false;
@@ -668,12 +705,31 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
     if (hold == null && down) {
       Policy policy = localPolicyFor(event, focused);
       if (policy == null) return false;
+      if (policy.originalEditorAction && (!originalEditorDispatchAdmission || focused == null || focused.getId()!=policy.targetTag || !ordinaryEditorKeys.canObserveTarget(focused))) return false;
       hold = new Hold(policy, ownerId, focused, event, CUIInputWindow.identity(this), windowEpoch, policyRevision);
+      if (policy.originalEditorAction) { hold.originalBinding=ordinaryEditorKeys.actionBinding(focused,event); if (hold.originalBinding==null) return false; }
       hold.retired = event.getRepeatCount() > 0;
       held.put(code, hold);
     }
     if (hold == null) return false;
     hold.event = new KeyEvent(event);
+    if (hold.policy.originalEditorAction) {
+      if (originalEditorActionEvent==event && originalEditorActionFrame!=null) return originalEditorActionFrame.optBoolean("admitted");
+      org.json.JSONObject binding=ordinaryEditorKeys.actionBinding(focused,event);
+      boolean fresh=binding!=null && hold.originalBinding!=null && binding.optString("bindingId").equals(hold.originalBinding.optString("bindingId")) && binding.optString("bindingRevision").equals(hold.originalBinding.optString("bindingRevision")) && originalEditorDispatchAdmission && captureReady() && focused!=null && focused==hold.original.get() && focused.getId()==hold.policy.targetTag &&
+        ordinaryEditorKeys.canObserveTarget(focused) && hold.policy.equals(localPolicyFor(event,focused)) && originalEditorPolicyStillWins(event,focused) && hold.epoch==windowEpoch && hold.policyRevision==policyRevision && hold.windowId.equals(CUIInputWindow.identity(this));
+      if (!fresh || event.isCanceled()) hold.retired=true;
+      boolean admitted=down && !hold.retired && fresh && !event.isCanceled();
+      try {
+        originalEditorActionEvent=event;
+        originalEditorActionFrame=new org.json.JSONObject().put("ownerId",hold.ownerId).put("policyId",hold.policyId).put("policyRevision",hold.policyRevision)
+          .put("windowId",hold.windowId).put("epoch",hold.epoch).put("targetTag",hold.policy.targetTag).put("bindingId",hold.originalBinding.optString("bindingId")).put("bindingRevision",hold.originalBinding.optString("bindingRevision")).put("dispatchId",++originalEditorDispatchId)
+          .put("admitted",admitted).put("isComposing",focused instanceof EditText && ((EditText)focused).getText()!=null && BaseInputConnection.getComposingSpanStart(((EditText)focused).getText())>=0);
+        if (admitted) emitKey(hold,true,false);
+      } catch (org.json.JSONException unavailable) { originalEditorActionFrame=null; }
+      if (!down) held.remove(code);
+      return admitted;
+    }
     if (!hold.retired) emitKey(hold, down, event.isCanceled());
     if (!down) held.remove(code);
     return true;
@@ -706,6 +762,10 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
     return super.dispatchGenericMotionEvent(event);
   }
 
+  static String originalEditorActionForOriginal(View original, KeyEvent event) {
+    if (original==null || originalEditorActionEvent!=event || originalEditorActionFrame==null || originalEditorActionFrame.optInt("targetTag")!=original.getId() || !originalEditorActionFrame.optString("windowId").equals(CUIInputWindow.identity(original))) return null;
+    return originalEditorActionFrame.toString();
+  }
   private WritableMap baseData() {
     WritableMap data = Arguments.createMap(); data.putString("ownerId", ownerId); data.putInt("target", getId()); return data;
   }
@@ -726,7 +786,16 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
     data.putBoolean("shiftKey", event.isShiftPressed()); data.putBoolean("altKey", event.isAltPressed());
     data.putBoolean("ctrlKey", event.isCtrlPressed()); data.putBoolean("metaKey", event.isMetaPressed()); data.putBoolean("capsLock", event.isCapsLockOn());
     data.putString("nativeModifierData", Integer.toUnsignedString(event.getMetaState())); data.putBoolean("nativeDefaultHandled", true);
-    data.putDouble("timestamp", cancelled ? SystemClock.uptimeMillis() : event.getEventTime()); emit("topNativeScopedKey", data);
+    data.putDouble("timestamp", cancelled ? SystemClock.uptimeMillis() : event.getEventTime());
+    if (hold.policy.originalEditorAction && originalEditorActionFrame!=null) {
+      try {
+        originalEditorActionFrame.put("key",CUIInputWindow.keyName(event)).put("nativeCode",event.getKeyCode()).put("characters",characters).put("repeat",down && event.getRepeatCount()>0)
+          .put("shiftKey",event.isShiftPressed()).put("altKey",event.isAltPressed()).put("ctrlKey",event.isCtrlPressed()).put("metaKey",event.isMetaPressed()).put("capsLock",event.isCapsLockOn())
+          .put("nativeModifierData",Integer.toUnsignedString(event.getMetaState())).put("timestamp",event.getEventTime());
+        data.putString("originalEditorAction",originalEditorActionFrame.toString());
+      } catch (org.json.JSONException unavailable) { return; }
+    }
+    emit("topNativeScopedKey", data);
   }
   private void emit(String name, WritableMap data) {
     ThemedReactContext context = (ThemedReactContext) getContext(); EventDispatcher dispatcher = UIManagerHelper.getEventDispatcherForReactTag(context, getId());
@@ -754,6 +823,7 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
     }
     @Override public String getEventName() { return name; }
     @Override public boolean canCoalesce() { return false; }
+    @Override protected int getEventCategory() { return data.hasKey("originalEditorAction") ? com.facebook.react.uimanager.events.EventCategoryDef.DISCRETE : super.getEventCategory(); }
     @Override protected WritableMap getEventData() { return data; }
     @Override protected boolean experimental_isSynchronous() { return synchronous; }
   }
@@ -761,7 +831,7 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
     retireToolbarHeld();
     for (int index = 0; index < held.size(); index++) {
       Hold hold = held.valueAt(index);
-      if (!hold.retired) emitKey(hold, false, true);
+      if (!hold.retired && !hold.policy.originalEditorAction) emitKey(hold, false, true);
       hold.retired = true;
     }
   }
@@ -794,6 +864,7 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
     ScopeEvent(int surface, int tag, String name, WritableMap data) { super(surface, tag); this.name = name; this.data = data; }
     @Override public String getEventName() { return name; }
     @Override public boolean canCoalesce() { return false; }
+    @Override protected int getEventCategory() { return data.hasKey("originalEditorAction") ? com.facebook.react.uimanager.events.EventCategoryDef.DISCRETE : super.getEventCategory(); }
     @Override protected WritableMap getEventData() { return data; }
   }
 }

@@ -31,6 +31,7 @@ import { CardScene } from "./CardScene"
 import { CarouselScene } from "./CarouselScene"
 import { CircularCounterScene } from "./CircularCounterScene"
 import { ClickPopoverScene } from "./ClickPopoverScene"
+import { ComboBoxScene } from "./ComboBoxScene"
 import { DisplayScene } from "./DisplayScene"
 import { FormDocumentScene } from "./FormDocumentScene"
 import { FormFieldScene } from "./FormFieldScene"
@@ -177,6 +178,7 @@ export const NativeShowcase = () => {
     | "library"
     | "controls"
     | "select"
+    | "combo-box"
     | "multiline"
     | "number"
     | "overlay"
@@ -252,6 +254,11 @@ export const NativeShowcase = () => {
                 onPress={() => setScene("multiline")}
               />
               <FixtureAction label="Select scene" selected={scene === "select"} onPress={() => setScene("select")} />
+              <FixtureAction
+                label="ComboBox scene"
+                selected={scene === "combo-box"}
+                onPress={() => setScene("combo-box")}
+              />
               <FixtureAction
                 label="Breadcrumbs scene"
                 selected={scene === "breadcrumbs"}
@@ -428,6 +435,8 @@ export const NativeShowcase = () => {
                 <MultilineRadioScene />
               ) : scene === "select" ? (
                 <SelectScene />
+              ) : scene === "combo-box" ? (
+                <ComboBoxScene />
               ) : scene === "controls" ? (
                 <BasicControlsScene />
               ) : scene === "library" ? (

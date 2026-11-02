@@ -37,6 +37,22 @@ it("opens the private TagComboBox owner scene through normal navigation", async 
   expect(screen.getByTestId("tag-combo-owner-state")).toHaveTextContent(/Selected: empty.*Open: false/)
 })
 
+it("opens the public ComboBox scene through normal navigation and resets its owner", async () => {
+  await renderShowcase()
+  const user = userEvent.setup()
+  await user.press(screen.getByRole("button", { name: "ComboBox scene" }))
+  expect(screen.getByTestId("public-combo-state")).toHaveTextContent(/Selection: number:0.*Open: false/)
+  await user.press(screen.getByRole("button", { name: "Choose typed item" }))
+  expect(screen.getByLabelText("Public ComboBox query")).toHaveDisplayValue("")
+  await fireEvent.changeText(screen.getByLabelText("Public ComboBox query"), "held query")
+  await user.press(screen.getByRole("button", { name: "Close public ComboBox" }))
+  await user.press(screen.getByRole("button", { name: "Reset scene" }))
+  expect(screen.queryByTestId("public-combo-state")).toBeNull()
+  expect(screen.getByTestId("theme-preview")).toBeOnTheScreen()
+  await user.press(screen.getByRole("button", { name: "ComboBox scene" }))
+  expect(screen.getByTestId("public-combo-state")).toHaveTextContent(/Query: "".*Selection: number:0.*Open: false/)
+})
+
 it("opens the public Carousel family and retains its owner while hiding and restoring the viewport", async () => {
   await renderShowcase()
   const user = userEvent.setup()

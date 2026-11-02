@@ -11,6 +11,7 @@
 #import <UIKit/UIGestureRecognizerSubclass.h>
 #import <objc/runtime.h>
 #import <React/RCTMountingTransactionObserving.h>
+#include <react/renderer/core/EventEmitter.h>
 #import <React/RCTComponentViewProtocol.h>
 #import <react/renderer/components/view/ViewProps.h>
 #import <react/renderer/components/CodonNativeInputSpec/ComponentDescriptors.h>
@@ -71,6 +72,10 @@ static UIView *CUIFirstResponder(UIView *root)
 
 @interface CUIKeyHold : NSObject
 @property(nonatomic, strong) UIPress *press;
+@property(nonatomic, weak) UIView *originalEditor;
+@property(nonatomic, assign) BOOL originalCaptured;
+@property(nonatomic, copy) NSDictionary *originalAction;
+@property(nonatomic, copy) NSDictionary *originalBinding;
 @property(nonatomic, copy) NSString *policyId;
 @property(nonatomic, copy) NSString *ownerId;
 @property(nonatomic, assign) NSInteger focusedTarget;
@@ -82,6 +87,7 @@ static UIView *CUIFirstResponder(UIView *root)
 @implementation CUIKeyHold
 @end
 
+static char CUIOriginalEditorPreparedKey;
 static char CUIToolbarPressRouteKey;
 static char CUIToolbarPreparedPressKey;
 static NSNumber *CUIPrepareToolbarPress(UIPress *press, NSString *phase, BOOL repeat);
@@ -95,6 +101,14 @@ static NSNumber *CUIPrepareToolbarPress(UIPress *press, NSString *phase, BOOL re
 - (void)prepareHold:(CUIKeyHold *)hold;
 - (NSString *)localPolicyForPress:(UIPress *)press focused:(UIView *)focused;
 - (NSInteger)policyOrder;
+- (NSDictionary *)policyWithId:(NSString *)identity;
+- (NSDictionary *)prepareOriginalEditorPress:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat;
+- (NSNumber *)prepareOriginalEditorCapture:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat;
+- (void)markOriginalEditorInactive;
+- (void)resumeOriginalEditorSession;
+- (NSDictionary *)dispatchOriginalEditorPress:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat;
+- (BOOL)hasOriginalEditorHold:(UIPress *)press;
+- (void)retireOriginalEditorHeld;
 - (BOOL)toolbarAcceptsPress:(UIPress *)press;
 - (NSNumber *)dispatchToolbarPress:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat;
 - (BOOL)toolbarNavigationForPress:(UIPress *)press;
@@ -213,6 +227,14 @@ static void CUIObserveCapturedDatePress(UIPress *press, NSString *phase, BOOL ca
 @end
 
 @implementation CUIKeyboardScope {
+  NSMutableDictionary<NSNumber *, CUIKeyHold *> *_originalEditorHeld;
+  NSUInteger _originalEditorDispatchId;
+  NSMutableSet<NSNumber *> *_originalEditorLogicalHeld;
+  NSMutableDictionary<NSNumber *, NSNumber *> *_originalEditorIgnored;
+  NSMapTable<UIPress *, NSDictionary *> *_originalEditorLogicalRecords;
+  __weak UIWindow *_originalEditorInactiveWindow;
+  BOOL _originalEditorWasInactive;
+  NSUInteger _originalEditorActivationEpoch;
   NSArray<CUIToolbarBinding *> *_toolbars;
   NSMutableDictionary<NSNumber *, CUIToolbarHold *> *_toolbarHeld;
   NSUInteger _toolbarSequence, _toolbarEventId;
@@ -309,17 +331,26 @@ static void CUIObserveCapturedDatePress(UIPress *press, NSString *phase, BOOL ca
     }];
     _editorKeyboard = [[CUIEditorKeyboardRecognizer alloc] initWithAdmission:^BOOL(UIPress *press) {
       CUIKeyboardScope *scope = weakSelf;
-      return scope && ([scope toolbarAcceptsPress:press] || [scope->_ordinaryEditorKeys acceptsPress:press]);
+      return scope && ([scope toolbarAcceptsPress:press] || [scope->_ordinaryEditorKeys acceptsPress:press] || [scope hasOriginalEditorHold:press]);
     } dispatch:^BOOL(UIPress *press, NSString *phase, BOOL repeat) {
       CUIKeyboardScope *scope = weakSelf;
+      if (scope && ([scope->_ordinaryEditorKeys hasOriginalActionBindings] || [scope hasOriginalEditorHold:press])) {
+        NSDictionary *physical=CUIInputKeyboardPressFrame(press,phase);
+        if (physical) repeat=[physical[@"repeat"] boolValue];
+      }
+      NSDictionary *originalAction=scope ? [scope dispatchOriginalEditorPress:press phase:phase repeat:repeat] : nil;
       NSNumber *toolbar=scope ? CUIPrepareToolbarPress(press,phase,repeat) : nil;
       if (scope && [scope->_ordinaryEditorKeys acceptsPress:press]) {
-        BOOL captured = NO;
+        BOOL captured = [originalAction[@"captured"] boolValue];
         for (id<CUIKeyboardObservationScope> observer in CUIInputScopes(scope.window)) captured |= [observer capturesObservedPress:press];
         [scope->_ordinaryEditorKeys dispatchPress:press phase:phase repeat:repeat captured:captured];
       }
-      return toolbar ? toolbar.boolValue : NO;
+      return toolbar.boolValue || (scope && [originalAction[@"ownerId"] isEqual:scope->_ownerId] && [originalAction[@"captured"] boolValue]);
     }];
+    _editorKeyboard.retireOriginalEditorPresses = ^{ [weakSelf retireOriginalEditorHeld]; };
+    _editorKeyboard.prepareOriginalEditorPress = ^NSNumber *(UIPress *press, NSString *phase, BOOL repeat) {
+      return [weakSelf prepareOriginalEditorCapture:press phase:phase repeat:repeat];
+    };
     _editorKeyboard.enabled = NO;
     _floating = [[CUIFloatingObserver alloc] initWithHost:self publish:^(NSDictionary *sample) {
       CUIKeyboardScope *scope = weakSelf;
@@ -771,11 +802,21 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
   else binding.last=context.nextFocusedView;
 }
 
-- (BOOL)hasKeyboardObservations { return _observations.count > 0 && [self captureReady]; }
-- (BOOL)capturesObservedPress:(UIPress *)press { return _keyboard.held[@(press.key.keyCode)] != nil || [self hasPolicyForPress:press]; }
+- (BOOL)hasKeyboardObservations { return (_observations.count > 0 && [self captureReady]) || [_ordinaryEditorKeys hasOriginalActionBindings] || _originalEditorHeld.count > 0 || _originalEditorIgnored.count > 0; }
+- (BOOL)capturesObservedPress:(UIPress *)press {
+  if (_keyboard.held[@(press.key.keyCode)]) return YES;
+  CUIKeyHold *hold = _originalEditorHeld[@(press.key.keyCode)];
+  if (hold.originalCaptured && [hold.windowId isEqual:CUIInputWindowIdentity(press.window)] && [_editorKeyboard capturesPressCode:press.key.keyCode]) return YES;
+  NSString *identity = [self policyForPress:press];
+  if (!identity) return NO;
+  if (![[self policyWithId:identity][@"originalEditorAction"] boolValue]) return YES;
+  if (hold) return NO;
+  NSDictionary *logical = [_originalEditorLogicalRecords objectForKey:press];
+  return !CUIInputKeyboardRepeating(press.window, press.key.keyCode) || (_originalEditorActivationEpoch > 0 && [logical[@"first"] boolValue]);
+}
 - (void)observePress:(UIPress *)press repeat:(BOOL)repeat eventId:(NSUInteger)eventId captured:(BOOL)captured
 {
-  if (!_eventEmitter || ![self hasKeyboardObservations] || press.window != self.window) return;
+  if (!_eventEmitter || !_observations.count || ![self captureReady] || press.window != self.window) return;
   UIView *focused = CUIInputFocusedView(self.window);
   CUIKeyboardScopeEventEmitter::OnNativeObservedKey data{};
   for (NSDictionary *observation in _observations) {
@@ -815,6 +856,139 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
   return policy;
 }
 - (NSInteger)policyOrder { return _policyOrder; }
+- (NSDictionary *)policyWithId:(NSString *)identity
+{
+  for (NSDictionary *policy in _policies) if ([policy[@"id"] isEqual:identity]) return policy;
+  return nil;
+}
+- (BOOL)hasOriginalEditorHold:(UIPress *)press { return press.key && _originalEditorHeld[@(press.key.keyCode)] != nil; }
+- (void)retireOriginalEditorHeld { for (CUIKeyHold *hold in _originalEditorHeld.allValues) hold.retired=YES; }
+- (NSDictionary *)prepareOriginalEditorPress:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat
+{
+  if (!press.key) return nil;
+  NSDictionary *prepared=objc_getAssociatedObject(press,&CUIOriginalEditorPreparedKey);
+  if ([prepared[@"timestamp"] doubleValue]==press.timestamp && [prepared[@"phase"] isEqual:phase]) return prepared[@"frame"];
+  CUIKeyboardScope *owner=nil; CUIKeyHold *hold=nil; NSNumber *code=@(press.key.keyCode);
+  for (CUIKeyboardScope *scope in CUIInputScopes(press.window)) if (scope->_originalEditorHeld[code]) { owner=scope;hold=scope->_originalEditorHeld[code];break; }
+  BOOL down=[phase isEqual:@"down"];
+  NSDictionary *physical=CUIInputKeyboardPressFrame(press,phase);
+  if (physical) repeat=[physical[@"repeat"] boolValue];
+  if (!owner && down) {
+    for (CUIKeyboardScope *scope in CUIInputScopes(press.window)) {
+      BOOL opted=NO; for (NSDictionary *entry in scope->_policies) opted|=[entry[@"originalEditorAction"] boolValue];
+      if (!opted) continue;
+      NSString *identity=[scope policyForPress:press]; NSDictionary *policy=[scope policyWithId:identity];
+      if (identity && [policy[@"originalEditorAction"] boolValue]) { owner=scope;break; }
+    }
+  }
+  if (!owner) return nil;
+  UIView *original=[owner->_ordinaryEditorKeys actionOriginalForPress:press];
+  NSDictionary *originalBinding=[owner->_ordinaryEditorKeys actionBindingForPress:press];
+  UIView *focused=CUIFirstResponder(owner.window);
+  NSString *identity=[owner policyForPress:press]; NSDictionary *policy=[owner policyWithId:identity];
+  BOOL composing=[focused conformsToProtocol:@protocol(UITextInput)] && ((id<UITextInput>)focused).markedTextRange != nil;
+  if (!hold) {
+    if (!original || [policy[@"targetTag"] integerValue]!=original.tag || ![focused isDescendantOfView:original]) return nil;
+    hold=[CUIKeyHold new];hold.press=press;hold.policyId=identity;hold.originalEditor=original;hold.originalBinding=originalBinding;hold.focusedTarget=original.tag;
+    NSDictionary *logical=[owner->_originalEditorLogicalRecords objectForKey:press];
+    BOOL freshSession=owner->_originalEditorActivationEpoch > 0 && [logical[@"first"] boolValue];
+    hold.retired=repeat && !freshSession;
+    [owner prepareHold:hold]; if (!owner->_originalEditorHeld) owner->_originalEditorHeld=[NSMutableDictionary new];owner->_originalEditorHeld[code]=hold;
+  }
+  BOOL fresh=[owner captureReady] && [hold.originalBinding[@"bindingId"] isEqual:originalBinding[@"bindingId"]] && [hold.originalBinding[@"bindingRevision"] isEqual:originalBinding[@"bindingRevision"]] && hold.originalEditor==original && original && original.window==owner.window &&
+    [focused isDescendantOfView:original] && !composing && [identity isEqual:hold.policyId] && [policy[@"originalEditorAction"] boolValue] &&
+    [policy[@"tokens"] containsObject:CUIInputKeyToken(press.key)] && hold.epoch==owner->_windowEpoch && hold.policyRevision==owner->_policyRevision && [hold.windowId isEqual:CUIInputWindowIdentity(owner.window)];
+  if (!fresh || [phase isEqual:@"cancel"]) hold.retired=YES;
+  BOOL admitted=down && fresh && !hold.retired;
+  if (admitted) hold.originalCaptured=YES;
+  BOOL captured=hold.originalCaptured && [hold.windowId isEqual:CUIInputWindowIdentity(press.window)] &&
+    (admitted || [owner->_editorKeyboard capturesPressCode:press.key.keyCode]);
+  NSMutableDictionary *frame=[@{@"ownerId":hold.ownerId ?: @"",@"policyId":hold.policyId ?: @"",@"policyRevision":@(hold.policyRevision),@"windowId":hold.windowId ?: @"",@"epoch":@(hold.epoch),@"targetTag":@(hold.focusedTarget),@"bindingId":hold.originalBinding[@"bindingId"] ?: @"",@"bindingRevision":hold.originalBinding[@"bindingRevision"] ?: @"",@"dispatchId":@(++owner->_originalEditorDispatchId),@"admitted":@(admitted),@"captured":@(captured),@"isComposing":@(composing)} mutableCopy];
+  hold.press=press;hold.originalAction=frame;
+  objc_setAssociatedObject(press,&CUIOriginalEditorPreparedKey,@{@"timestamp":@(press.timestamp),@"phase":phase,@"frame":hold.originalAction},OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+  if (!down) [owner->_originalEditorHeld removeObjectForKey:code];
+  return hold.originalAction;
+}
+
+- (NSDictionary *)dispatchOriginalEditorPress:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat
+{
+  NSDictionary *frame=[self prepareOriginalEditorPress:press phase:phase repeat:repeat];
+  NSDictionary *prepared=objc_getAssociatedObject(press,&CUIOriginalEditorPreparedKey);
+  if ([frame[@"ownerId"] isEqual:_ownerId] && [frame[@"admitted"] boolValue] && ![prepared[@"emitted"] boolValue]) {
+    for (CUIKeyboardScope *owner in CUIInputScopes(press.window)) {
+      if (![owner->_ownerId isEqual:frame[@"ownerId"]]) continue;
+      CUIKeyHold *hold=owner->_originalEditorHeld[@(press.key.keyCode)];
+      if (hold && hold.originalAction==frame) {
+        NSMutableDictionary *delivered=[prepared mutableCopy]; delivered[@"emitted"]=@YES;
+        objc_setAssociatedObject(press,&CUIOriginalEditorPreparedKey,delivered,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        NSDictionary *physical=CUIInputKeyboardPressFrame(press,phase);
+        [owner emitKey:hold down:YES repeat:physical ? [physical[@"repeat"] boolValue] : repeat cancelled:NO];
+        delivered[@"frame"]=hold.originalAction;
+        objc_setAssociatedObject(press,&CUIOriginalEditorPreparedKey,delivered,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+      }
+      break;
+    }
+  }
+  return [objc_getAssociatedObject(press,&CUIOriginalEditorPreparedKey) objectForKey:@"frame"];
+}
+- (NSNumber *)prepareOriginalEditorCapture:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat
+{
+  if (![_ordinaryEditorKeys hasOriginalActionBindings] && !_originalEditorHeld.count && !_originalEditorIgnored.count) return nil;
+  CUIRefreshKeyboardObservation(self.window);
+  NSDictionary *physical=CUIInputKeyboardPressFrame(press,phase);
+  NSDictionary *action=[self prepareOriginalEditorPress:press phase:phase repeat:repeat];
+  NSNumber *toolbar=CUIPrepareToolbarPress(press,phase,physical ? [physical[@"repeat"] boolValue] : repeat);
+  BOOL actionOwner=!action || [action[@"ownerId"] isEqual:_ownerId];
+  BOOL captured=actionOwner && ([action[@"captured"] boolValue] || toolbar.boolValue || [self capturesObservedPress:press]);
+  if (!captured && [phase isEqual:@"down"] && physical) {
+    if (!_originalEditorIgnored) _originalEditorIgnored=[NSMutableDictionary new];
+    _originalEditorIgnored[@(press.key.keyCode)]=physical[@"sequence"];
+  }
+  return @(captured);
+}
+- (void)observeOriginalEditorPress:(UIPress *)press phase:(NSString *)phase frame:(NSDictionary *)frame
+{
+  if (![_ordinaryEditorKeys hasOriginalActionBindings] && !_originalEditorHeld.count && !_originalEditorIgnored.count) return;
+  NSNumber *code=@(press.key.keyCode);
+  if (!_originalEditorLogicalHeld) _originalEditorLogicalHeld=[NSMutableSet new];
+  if (!_originalEditorLogicalRecords) _originalEditorLogicalRecords=[NSMapTable weakToStrongObjectsMapTable];
+  if ([phase isEqual:@"down"]) {
+    BOOL first=![_originalEditorLogicalHeld containsObject:code];
+    [_originalEditorLogicalHeld addObject:code];
+    [_originalEditorLogicalRecords setObject:@{@"first":@(first),@"timestamp":@(press.timestamp)} forKey:press];
+    NSNumber *ignored=_originalEditorIgnored[code];
+    if (ignored && [ignored isEqual:frame[@"sequence"]] && [_ordinaryEditorKeys acceptsPress:press])
+      [_ordinaryEditorKeys dispatchOriginalObservedPress:press phase:phase repeat:[frame[@"repeat"] boolValue] captured:NO];
+    return;
+  }
+  [_originalEditorLogicalHeld removeObject:code];
+  if (_originalEditorHeld[code]) {
+    NSDictionary *action=[self dispatchOriginalEditorPress:press phase:phase repeat:NO];
+    if ([_ordinaryEditorKeys acceptsPress:press])
+      [_ordinaryEditorKeys dispatchOriginalObservedPress:press phase:phase repeat:NO captured:[action[@"captured"] boolValue]];
+    CUIRefreshKeyboardObservation(self.window);
+    return;
+  }
+  NSNumber *ignored=_originalEditorIgnored[code];
+  if (!ignored || ![ignored isEqual:frame[@"sequence"]]) return;
+  [_originalEditorIgnored removeObjectForKey:code];
+  // UIKit no longer calls this recognizer for ignored presses. This is the real terminal edge.
+  if ([_ordinaryEditorKeys acceptsPress:press]) [_ordinaryEditorKeys dispatchOriginalObservedPress:press phase:phase repeat:NO captured:NO];
+}
+- (void)markOriginalEditorInactive
+{
+  if ([_ordinaryEditorKeys hasOriginalActionBindings] || _originalEditorHeld.count) {
+    _originalEditorWasInactive=YES; _originalEditorInactiveWindow=self.window;
+  }
+}
+- (void)resumeOriginalEditorSession
+{
+  if (!_originalEditorWasInactive || self.window != _originalEditorInactiveWindow || !self.window.isKeyWindow || !_applicationActive || !_sceneActive) return;
+  _originalEditorWasInactive=NO; _originalEditorActivationEpoch++;
+  [_originalEditorHeld removeAllObjects]; [_originalEditorIgnored removeAllObjects];
+  [_originalEditorLogicalHeld removeAllObjects]; [_originalEditorLogicalRecords removeAllObjects];
+}
+
 - (NSString *)localPolicyForPress:(UIPress *)press focused:(UIView *)focused
 {
   if (![self captureReady] || !press.key || press.window != self.window) return nil;
@@ -839,7 +1013,8 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)recognizer shouldReceivePress:(UIPress *)press
 {
   if (press.key && self.window.isKeyWindow) [self recordModality:@"keyboard"];
-  return [self policyForPress:press] != nil;
+  NSString *policy=[self policyForPress:press];
+  return policy && ![[self policyWithId:policy][@"originalEditorAction"] boolValue];
 }
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)recognizer shouldReceiveTouch:(UITouch *)touch
 {
@@ -864,6 +1039,16 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
   if (!_eventEmitter || !hold.press.key) return;
   UIKey *key = hold.press.key;
   UIKeyModifierFlags flags = key.modifierFlags;
+  if (hold.originalAction) {
+    NSMutableDictionary *frame=[hold.originalAction mutableCopy];
+    [frame addEntriesFromDictionary:@{@"key":CUIInputKeyName(key),@"nativeCode":@((int)key.keyCode),@"characters":key.characters ?: @"",@"repeat":@(repeat),@"shiftKey":@((flags & UIKeyModifierShift)!=0),@"altKey":@((flags & UIKeyModifierAlternate)!=0),@"ctrlKey":@((flags & UIKeyModifierControl)!=0),@"metaKey":@((flags & UIKeyModifierCommand)!=0),@"capsLock":@((flags & UIKeyModifierAlphaShift)!=0),@"nativeModifierData":[NSString stringWithFormat:@"%llu",(unsigned long long)flags],@"timestamp":@(hold.press.timestamp*1000)}];
+    hold.originalAction=frame;
+    NSData *encoded=[NSJSONSerialization dataWithJSONObject:frame options:0 error:nil]; if (!encoded) return;
+    NSString *metadata=[[NSString alloc] initWithData:encoded encoding:NSUTF8StringEncoding];
+    folly::dynamic packet=folly::dynamic::object("kind","keyboard")("ownerId",hold.ownerId.UTF8String ?: "")("policyId",hold.policyId.UTF8String ?: "")("target",(int)self.tag)("focusedTarget",(int)hold.focusedTarget)("windowId",hold.windowId.UTF8String ?: "")("epoch",hold.epoch)("policyRevision",hold.policyRevision)("key",CUIInputKeyName(key).UTF8String ?: "")("nativeCode",(int)key.keyCode)("characters",key.characters.UTF8String ?: "")("phase","down")("repeat",(bool)repeat)("cancelled",false)("shiftKey",(bool)(flags & UIKeyModifierShift))("altKey",(bool)(flags & UIKeyModifierAlternate))("ctrlKey",(bool)(flags & UIKeyModifierControl))("metaKey",(bool)(flags & UIKeyModifierCommand))("capsLock",(bool)(flags & UIKeyModifierAlphaShift))("nativeModifierData",std::to_string((uint64_t)flags))("nativeDefaultHandled",true)("timestamp",hold.press.timestamp*1000)("originalEditorAction",metadata.UTF8String);
+    _eventEmitter->dispatchEvent("nativeScopedKey",std::move(packet),RawEvent::Category::Discrete,HighResTimeStamp::fromDOMHighResTimeStamp(hold.press.timestamp*1000));
+    return;
+  }
   CUIKeyboardScopeEventEmitter::OnNativeScopedKey data{};
   data.kind = "keyboard";
   data.ownerId = hold.ownerId.UTF8String ?: "";
@@ -904,13 +1089,13 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
   for (const auto &policy : next.policies) {
     NSMutableArray *tokens = [NSMutableArray array];
     for (const auto &token : policy.tokens) [tokens addObject:[NSString stringWithUTF8String:token.c_str()]];
-    [policies addObject:@{@"id": [NSString stringWithUTF8String:policy.id.c_str()], @"tokens": tokens, @"excludeEditable": @(policy.excludeEditable), @"excludeComposing": @(policy.excludeComposing), @"targetTag": @(policy.targetTag)}];
+    [policies addObject:@{@"id": [NSString stringWithUTF8String:policy.id.c_str()], @"tokens": tokens, @"excludeEditable": @(policy.excludeEditable), @"excludeComposing": @(policy.excludeComposing), @"targetTag": @(policy.targetTag), @"originalEditorAction": @(policy.originalEditorAction == true)}];
   }
   NSString *accepted = [NSString stringWithUTF8String:next.acceptedWindowId.c_str()];
-  if (![_ownerId isEqualToString:owner] || !next.enabled || ![_policies isEqual:policies] || _acceptedEpoch != next.acceptedEpoch || ![_acceptedWindowId isEqualToString:accepted] || _policyRevision != next.policyRevision) { [_keyboard retireHeld]; [self retireToolbarHeld]; }
+  if (![_ownerId isEqualToString:owner] || !next.enabled || ![_policies isEqual:policies] || _acceptedEpoch != next.acceptedEpoch || ![_acceptedWindowId isEqualToString:accepted] || _policyRevision != next.policyRevision) { [_keyboard retireHeld]; [self retireOriginalEditorHeld]; [self retireToolbarHeld]; }
   NSMutableArray *ordinary = [NSMutableArray new];
   for (const auto &entry : next.ordinaryEditorBindings) [ordinary addObject:@{
-    @"bindingId": @(entry.bindingId.c_str()), @"bindingRevision": @(entry.bindingRevision.c_str()), @"targetTag": @(entry.targetTag), @"subtree": @(entry.subtree), @"toolbarTargetOnly": @(entry.toolbarTargetOnly), @"toolbarSubtreeOnly": @(entry.toolbarSubtreeOnly)
+    @"bindingId": @(entry.bindingId.c_str()), @"bindingRevision": @(entry.bindingRevision.c_str()), @"targetTag": @(entry.targetTag), @"subtree": @(entry.subtree), @"toolbarTargetOnly": @(entry.toolbarTargetOnly), @"toolbarSubtreeOnly": @(entry.toolbarSubtreeOnly), @"originalEditorAction": @(entry.originalEditorAction == true)
   }];
   [_ordinaryEditorKeys update:ordinary];
   [self updateToolbarBindings:@(next.toolbarBindings.c_str())];
@@ -953,32 +1138,34 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
 }
 - (void)windowDeactivated:(NSNotification *)notification
 {
-  if (notification.object == self.window) { [_keyboard retireHeld]; [self retireToolbarHeld]; _keyboard.enabled = NO; _keyboard.enabled = YES; _editorKeyboard.enabled = NO; _editorKeyboard.enabled = _captureEnabled && ([_ordinaryEditorKeys hasBindings] || _toolbars.count > 0); _windowEpoch++; [self publishStatus]; }
+  if (notification.object == self.window) { [self markOriginalEditorInactive]; [_keyboard retireHeld]; [self retireOriginalEditorHeld]; [self retireToolbarHeld]; _keyboard.enabled = NO; _keyboard.enabled = YES; _editorKeyboard.enabled = NO; _editorKeyboard.enabled = _captureEnabled && ([_ordinaryEditorKeys hasBindings] || _toolbars.count > 0); _windowEpoch++; [self publishStatus]; }
 }
 - (void)windowActivated:(NSNotification *)notification
 {
-  if (notification.object == self.window) { _windowEpoch++; [self publishStatus]; }
+  if (notification.object == self.window) { [self resumeOriginalEditorSession]; _windowEpoch++; [self publishStatus]; }
 }
-- (void)applicationDeactivated:(NSNotification *)notification { _applicationActive = NO; [_keyboard retireHeld]; [self retireToolbarHeld]; _keyboard.enabled = NO; _keyboard.enabled = YES; _editorKeyboard.enabled = NO; _editorKeyboard.enabled = _captureEnabled && ([_ordinaryEditorKeys hasBindings] || _toolbars.count > 0); _windowEpoch++; [self publishStatus]; }
-- (void)applicationActivated:(NSNotification *)notification { _applicationActive = YES; _windowEpoch++; [self publishStatus]; }
+- (void)applicationDeactivated:(NSNotification *)notification { [self markOriginalEditorInactive]; _applicationActive = NO; [_keyboard retireHeld]; [self retireOriginalEditorHeld]; [self retireToolbarHeld]; _keyboard.enabled = NO; _keyboard.enabled = YES; _editorKeyboard.enabled = NO; _editorKeyboard.enabled = _captureEnabled && ([_ordinaryEditorKeys hasBindings] || _toolbars.count > 0); _windowEpoch++; [self publishStatus]; }
+- (void)applicationActivated:(NSNotification *)notification { _applicationActive = YES; [self resumeOriginalEditorSession]; _windowEpoch++; [self publishStatus]; }
 - (void)sceneDeactivated:(NSNotification *)notification
 {
-  if (notification.object == self.window.windowScene) { _sceneActive = NO; [_keyboard retireHeld]; [self retireToolbarHeld]; _keyboard.enabled = NO; _keyboard.enabled = YES; _editorKeyboard.enabled = NO; _editorKeyboard.enabled = _captureEnabled && ([_ordinaryEditorKeys hasBindings] || _toolbars.count > 0); _windowEpoch++; [self publishStatus]; }
+  if (notification.object == self.window.windowScene) { [self markOriginalEditorInactive]; _sceneActive = NO; [_keyboard retireHeld]; [self retireOriginalEditorHeld]; [self retireToolbarHeld]; _keyboard.enabled = NO; _keyboard.enabled = YES; _editorKeyboard.enabled = NO; _editorKeyboard.enabled = _captureEnabled && ([_ordinaryEditorKeys hasBindings] || _toolbars.count > 0); _windowEpoch++; [self publishStatus]; }
 }
 - (void)sceneActivated:(NSNotification *)notification
 {
-  if (notification.object == self.window.windowScene) { _sceneActive = YES; _windowEpoch++; [self publishStatus]; }
+  if (notification.object == self.window.windowScene) { _sceneActive = YES; [self resumeOriginalEditorSession]; _windowEpoch++; [self publishStatus]; }
 }
 - (void)layoutSubviews { [super layoutSubviews]; [_dragInteractions refreshWindow]; [_dialogs refresh]; [_ordinaryEditorKeys publish]; [self publishToolbarStatus]; CUIRefreshWindowPointerObservation(self.window); }
 - (void)didMoveToWindow
 {
   [super didMoveToWindow];
   if (_boundWindow != self.window) {
-    [_keyboard retireHeld]; [self retireToolbarHeld];
+    [_keyboard retireHeld]; [self retireOriginalEditorHeld]; [self retireToolbarHeld];
     [_boundWindow removeGestureRecognizer:_keyboard];
     [_boundWindow removeGestureRecognizer:_editorKeyboard];
     CUIUnregisterInputScope(_boundWindow, self);
     _boundWindow = self.window;
+    _originalEditorActivationEpoch=0; _originalEditorWasInactive=NO; _originalEditorInactiveWindow=nil;
+    [_originalEditorLogicalHeld removeAllObjects]; [_originalEditorLogicalRecords removeAllObjects];
     _sceneActive = self.window.windowScene == nil || self.window.windowScene.activationState == UISceneActivationStateForegroundActive;
     _windowEpoch++;
     if (_boundWindow) {
@@ -992,13 +1179,16 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
 }
 - (void)prepareForRecycle
 {
+  _originalEditorActivationEpoch=0; _originalEditorWasInactive=NO; _originalEditorInactiveWindow=nil;
+  [_originalEditorHeld removeAllObjects]; [_originalEditorIgnored removeAllObjects];
+  [_originalEditorLogicalHeld removeAllObjects]; [_originalEditorLogicalRecords removeAllObjects];
   [_ordinaryEditorKeys update:@[]];
   [self retireToolbarHeld]; _toolbars=@[]; [_toolbarHeld removeAllObjects];
   _dragSurfaceId = 0;
   [_dragInteractions invalidate]; _dragInteractions = [[CUIDragInteractions alloc] initWithScope:self];
   [_dialogs invalidate];
   [_floating invalidate]; _floatingTargets = @[];
-  [_keyboard retireHeld]; [self retireToolbarHeld];
+  [_keyboard retireHeld]; [self retireOriginalEditorHeld]; [self retireToolbarHeld];
   [_boundWindow removeGestureRecognizer:_keyboard];
   [_boundWindow removeGestureRecognizer:_editorKeyboard];
   CUIUnregisterInputScope(_boundWindow, self);
@@ -1082,4 +1272,12 @@ BOOL CUIKeyboardToolbarDateOwnsOriginal(UIView *target, UIPress *press)
 {
   CUIToolbarHold *hold=objc_getAssociatedObject(press,&CUIToolbarPressRouteKey);
   return hold.original == target && [hold.scope toolbarRouteForHold:hold] != nil;
+}
+
+NSString *CUIKeyboardOriginalEditorAction(UIPress *press)
+{
+  NSDictionary *frame=objc_getAssociatedObject(press,&CUIOriginalEditorPreparedKey)[@"frame"];
+  if (!frame) return nil;
+  NSData *encoded=[NSJSONSerialization dataWithJSONObject:frame options:0 error:nil];
+  return encoded ? [[NSString alloc] initWithData:encoded encoding:NSUTF8StringEncoding] : nil;
 }

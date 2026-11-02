@@ -4,6 +4,8 @@
 - (BOOL)hasKeyboardObservations;
 - (BOOL)capturesObservedPress:(UIPress *)press;
 - (void)observePress:(UIPress *)press repeat:(BOOL)repeat eventId:(NSUInteger)eventId captured:(BOOL)captured;
+@optional
+- (void)observeOriginalEditorPress:(UIPress *)press phase:(NSString *)phase frame:(NSDictionary *)frame;
 @end
 
 @protocol CUIWindowPointerScope
