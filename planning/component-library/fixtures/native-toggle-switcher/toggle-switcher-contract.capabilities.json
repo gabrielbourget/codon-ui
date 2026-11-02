@@ -1,0 +1,2143 @@
+{
+  "cell": "CAT.toggle-switcher.G01",
+  "status": "COMPLETE_APPROVED_G01_SOURCE_CORRESPONDENCE",
+  "canonicalProperties": 300,
+  "canonicalCases": 16,
+  "canonicalExpectExpressions": 78,
+  "ownFields": 25,
+  "nativeInheritedFields": 50,
+  "descriptionDetailFields": 2,
+  "sharedGenericExcludedCanonicalFields": 205,
+  "nativeMouseCounterparts": 12,
+  "reactKey": 1,
+  "protectedRootSemanticAndClassFields": 5,
+  "profileApproval": "Sentinel_fa049075eeb4819199d83e63a61c5800: I approve, forwarded by parent; shared native View-root boundary including ToggleSwitcher",
+  "profileExceptionColorRetained": true,
+  "genericDragClassification": {
+    "classification": "inherited generic HTML root protocol covered by new shared native View-root boundary; no actual component/native drag feature waived",
+    "canonicalAuthority": "canonical TToggleSwitcherProps inherits these only through div attributes; own25 fields and component implementation have no drag/reorder mode; experiments3.6 explicit-items contract marks gesture-specific drag scenarios N/A",
+    "retained": "caller-driven item reorder retains IDs/selection/label instances; native parent/child drag/drop controls and callbacks remain their owners; no native responder or drag backend is changed"
+  },
+  "fields": {
+    "about": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2756,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "accessKey": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2729,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-activedescendant": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2428,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-atomic": {
+      "type": "Booleanish | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2430,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-autocomplete": {
+      "type": "\"none\" | \"list\" | \"inline\" | \"both\" | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2432,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-braillelabel": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2437,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-brailleroledescription": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2443,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-busy": {
+      "type": "Booleanish | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2448,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "aria-checked": {
+      "type": "boolean | \"true\" | \"false\" | \"mixed\" | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2449,
+      "disposition": "EXISTING_OWNED_NONACCESSIBLE_ROOT_AND_NAMED_CHECKED_OPTION_SEMANTIC_COUNTERPART"
+    },
+    "aria-colcount": {
+      "type": "number | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2454,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-colindex": {
+      "type": "number | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2459,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-colindextext": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2464,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-colspan": {
+      "type": "number | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2469,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-controls": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2474,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-current": {
+      "type": "boolean | \"time\" | \"true\" | \"false\" | \"page\" | \"step\" | \"location\" | \"date\" | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2479,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-describedby": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2481,
+      "disposition": "IMPLEMENTED_EXISTING_NATIVE_DESCRIPTION_DETAIL_REFERENCE_ROUTE"
+    },
+    "aria-description": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2486,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-details": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2491,
+      "disposition": "IMPLEMENTED_EXISTING_NATIVE_DESCRIPTION_DETAIL_REFERENCE_ROUTE"
+    },
+    "aria-disabled": {
+      "type": "Booleanish | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2496,
+      "disposition": "EXISTING_OWNED_NONACCESSIBLE_ROOT_AND_NAMED_CHECKED_OPTION_SEMANTIC_COUNTERPART"
+    },
+    "aria-dropeffect": {
+      "type": "\"link\" | \"none\" | \"copy\" | \"execute\" | \"move\" | \"popup\" | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2501,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-errormessage": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2506,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-expanded": {
+      "type": "Booleanish | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2511,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "aria-flowto": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2513,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-grabbed": {
+      "type": "Booleanish | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2518,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-haspopup": {
+      "type": "boolean | \"dialog\" | \"menu\" | \"true\" | \"false\" | \"grid\" | \"listbox\" | \"tree\" | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2523,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-hidden": {
+      "type": "Booleanish | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2525,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "aria-invalid": {
+      "type": "boolean | \"true\" | \"false\" | \"grammar\" | \"spelling\" | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2530,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-keyshortcuts": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2535,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-label": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2537,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "aria-labelledby": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2542,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "aria-level": {
+      "type": "number | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2547,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-live": {
+      "type": "\"off\" | \"assertive\" | \"polite\" | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2549,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "aria-modal": {
+      "type": "Booleanish | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2551,
+      "disposition": "IMPLEMENTED_EXISTING_NATIVE_ACCESSIBILITY_VIEW_IS_MODAL_ALIAS_WITH_NATIVE_PRECEDENCE"
+    },
+    "aria-multiline": {
+      "type": "Booleanish | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2553,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-multiselectable": {
+      "type": "Booleanish | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2555,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-orientation": {
+      "type": "\"horizontal\" | \"vertical\" | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2557,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-owns": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2559,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-placeholder": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2565,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-posinset": {
+      "type": "number | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2570,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-pressed": {
+      "type": "boolean | \"true\" | \"false\" | \"mixed\" | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2575,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-readonly": {
+      "type": "Booleanish | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2580,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-relevant": {
+      "type": "\"text\" | \"additions\" | \"additions removals\" | \"additions text\" | \"all\" | \"removals\" | \"removals additions\" | \"removals text\" | \"text additions\" | \"text removals\" | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2585,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-required": {
+      "type": "Booleanish | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2601,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-roledescription": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2603,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-rowcount": {
+      "type": "number | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2605,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-rowindex": {
+      "type": "number | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2610,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-rowindextext": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2615,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-rowspan": {
+      "type": "number | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2620,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-selected": {
+      "type": "Booleanish | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2625,
+      "disposition": "EXISTING_OWNED_NONACCESSIBLE_ROOT_AND_NAMED_CHECKED_OPTION_SEMANTIC_COUNTERPART"
+    },
+    "aria-setsize": {
+      "type": "number | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2630,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-sort": {
+      "type": "\"none\" | \"ascending\" | \"descending\" | \"other\" | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2635,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "aria-valuemax": {
+      "type": "number | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2637,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "aria-valuemin": {
+      "type": "number | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2639,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "aria-valuenow": {
+      "type": "number | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2641,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "aria-valuetext": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2646,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "autoCapitalize": {
+      "type": "\"off\" | \"none\" | \"on\" | \"sentences\" | \"words\" | \"characters\" | (string & {}) | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2732,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "autoCorrect": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2769,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "autoFocus": {
+      "type": "boolean | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2733,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "autoSave": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2772,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "className": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2734,
+      "disposition": "EXISTING_NATIVE_STYLE_SLOT_COUNTERPART"
+    },
+    "color": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/tmp/codon-lane4-switcher-g01-fe60b3c1/packages/react/src/components/ToggleSwitcher/helpers.ts",
+      "line": 66,
+      "disposition": "COMPLETE_OWNED_NATIVE_COUNTERPART; color/styles/guards/items retained"
+    },
+    "content": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2759,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "contentEditable": {
+      "type": "Booleanish | \"inherit\" | \"plaintext-only\" | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2735,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "contextMenu": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2736,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "customClassName": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/tmp/codon-lane4-switcher-g01-fe60b3c1/packages/react/src/components/ToggleSwitcher/helpers.ts",
+      "line": 79,
+      "disposition": "COMPLETE_OWNED_NATIVE_COUNTERPART; color/styles/guards/items retained"
+    },
+    "customOptionClassName": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/tmp/codon-lane4-switcher-g01-fe60b3c1/packages/react/src/components/ToggleSwitcher/helpers.ts",
+      "line": 80,
+      "disposition": "COMPLETE_OWNED_NATIVE_COUNTERPART; color/styles/guards/items retained"
+    },
+    "customOptionStyles": {
+      "type": "CSSProperties | undefined",
+      "required": false,
+      "declaration": "/tmp/codon-lane4-switcher-g01-fe60b3c1/packages/react/src/components/ToggleSwitcher/helpers.ts",
+      "line": 77,
+      "disposition": "COMPLETE_OWNED_NATIVE_COUNTERPART; color/styles/guards/items retained"
+    },
+    "customSelectedOptionClassName": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/tmp/codon-lane4-switcher-g01-fe60b3c1/packages/react/src/components/ToggleSwitcher/helpers.ts",
+      "line": 81,
+      "disposition": "COMPLETE_OWNED_NATIVE_COUNTERPART; color/styles/guards/items retained"
+    },
+    "customSelectedOptionStyles": {
+      "type": "CSSProperties | undefined",
+      "required": false,
+      "declaration": "/tmp/codon-lane4-switcher-g01-fe60b3c1/packages/react/src/components/ToggleSwitcher/helpers.ts",
+      "line": 78,
+      "disposition": "COMPLETE_OWNED_NATIVE_COUNTERPART; color/styles/guards/items retained"
+    },
+    "customStyles": {
+      "type": "CSSProperties | undefined",
+      "required": false,
+      "declaration": "/tmp/codon-lane4-switcher-g01-fe60b3c1/packages/react/src/components/ToggleSwitcher/helpers.ts",
+      "line": 76,
+      "disposition": "COMPLETE_OWNED_NATIVE_COUNTERPART; color/styles/guards/items retained"
+    },
+    "dangerouslySetInnerHTML": {
+      "type": "{ __html: string | TrustedHTML; } | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2206,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "data-testid": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/tmp/codon-lane4-switcher-g01-fe60b3c1/packages/react/src/components/ToggleSwitcher/helpers.ts",
+      "line": 57,
+      "disposition": "COMPLETE_OWNED_NATIVE_COUNTERPART; color/styles/guards/items retained"
+    },
+    "datatype": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2760,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "defaultChecked": {
+      "type": "boolean | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2724,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "defaultSelectedKey": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/tmp/codon-lane4-switcher-g01-fe60b3c1/packages/react/src/components/ToggleSwitcher/helpers.ts",
+      "line": 60,
+      "disposition": "COMPLETE_OWNED_NATIVE_COUNTERPART; color/styles/guards/items retained"
+    },
+    "dir": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2737,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "draggable": {
+      "type": "Booleanish | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2738,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "enableFocusStyle": {
+      "type": "boolean | undefined",
+      "required": false,
+      "declaration": "/tmp/codon-lane4-switcher-g01-fe60b3c1/packages/react/src/components/ToggleSwitcher/helpers.ts",
+      "line": 70,
+      "disposition": "COMPLETE_OWNED_NATIVE_COUNTERPART; color/styles/guards/items retained"
+    },
+    "enterKeyHint": {
+      "type": "\"search\" | \"enter\" | \"done\" | \"go\" | \"next\" | \"previous\" | \"send\" | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2739,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "exportparts": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2803,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "fontSize": {
+      "type": "string | number | undefined",
+      "required": false,
+      "declaration": "/tmp/codon-lane4-switcher-g01-fe60b3c1/packages/react/src/components/ToggleSwitcher/helpers.ts",
+      "line": 73,
+      "disposition": "COMPLETE_OWNED_NATIVE_COUNTERPART; color/styles/guards/items retained"
+    },
+    "geometry": {
+      "type": "\"orthogonal\" | \"rounded\" | \"round\" | undefined",
+      "required": false,
+      "declaration": "/tmp/codon-lane4-switcher-g01-fe60b3c1/packages/react/src/components/ToggleSwitcher/helpers.ts",
+      "line": 67,
+      "disposition": "COMPLETE_OWNED_NATIVE_COUNTERPART; color/styles/guards/items retained"
+    },
+    "height": {
+      "type": "string | number | undefined",
+      "required": false,
+      "declaration": "/tmp/codon-lane4-switcher-g01-fe60b3c1/packages/react/src/components/ToggleSwitcher/helpers.ts",
+      "line": 64,
+      "disposition": "COMPLETE_OWNED_NATIVE_COUNTERPART; color/styles/guards/items retained"
+    },
+    "hidden": {
+      "type": "boolean | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2740,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "id": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2741,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "inert": {
+      "type": "boolean | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2787,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "inlist": {
+      "type": "any",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2761,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "inputMode": {
+      "type": "\"search\" | \"text\" | \"none\" | \"tel\" | \"url\" | \"email\" | \"numeric\" | \"decimal\" | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2793,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "is": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2798,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "isDisabled": {
+      "type": "boolean | undefined",
+      "required": false,
+      "declaration": "/tmp/codon-lane4-switcher-g01-fe60b3c1/packages/react/src/components/ToggleSwitcher/helpers.ts",
+      "line": 62,
+      "disposition": "COMPLETE_OWNED_NATIVE_COUNTERPART; color/styles/guards/items retained"
+    },
+    "isReadOnly": {
+      "type": "boolean | undefined",
+      "required": false,
+      "declaration": "/tmp/codon-lane4-switcher-g01-fe60b3c1/packages/react/src/components/ToggleSwitcher/helpers.ts",
+      "line": 63,
+      "disposition": "COMPLETE_OWNED_NATIVE_COUNTERPART; color/styles/guards/items retained"
+    },
+    "itemID": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2777,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "itemProp": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2774,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "itemRef": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2778,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "items": {
+      "type": "TToggleSwitcherItem[]",
+      "required": true,
+      "declaration": "/tmp/codon-lane4-switcher-g01-fe60b3c1/packages/react/src/components/ToggleSwitcher/helpers.ts",
+      "line": 58,
+      "disposition": "COMPLETE_OWNED_NATIVE_COUNTERPART; color/styles/guards/items retained"
+    },
+    "itemScope": {
+      "type": "boolean | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2775,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "itemType": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2776,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "key": {
+      "type": "Key | null | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 249,
+      "disposition": "REACT_RECONCILIATION_IDENTITY"
+    },
+    "lang": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2742,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "nonce": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2743,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "offsetFocusRing": {
+      "type": "boolean | undefined",
+      "required": false,
+      "declaration": "/tmp/codon-lane4-switcher-g01-fe60b3c1/packages/react/src/components/ToggleSwitcher/helpers.ts",
+      "line": 71,
+      "disposition": "COMPLETE_OWNED_NATIVE_COUNTERPART; color/styles/guards/items retained"
+    },
+    "onAbort": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2263,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onAbortCapture": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2266,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onAnimationEnd": {
+      "type": "AnimationEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2395,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onAnimationEndCapture": {
+      "type": "AnimationEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2396,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onAnimationIteration": {
+      "type": "AnimationEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2397,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onAnimationIterationCapture": {
+      "type": "AnimationEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2398,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onAnimationStart": {
+      "type": "AnimationEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2391,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onAnimationStartCapture": {
+      "type": "AnimationEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2394,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onAuxClick": {
+      "type": "MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2309,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onAuxClickCapture": {
+      "type": "MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2312,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onBeforeInput": {
+      "type": "InputEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2237,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onBeforeInputCapture": {
+      "type": "FormEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2238,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onBeforeToggle": {
+      "type": "ToggleEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2402,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onBlur": {
+      "type": "FocusEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2231,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onBlurCapture": {
+      "type": "FocusEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2232,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onCanPlay": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2267,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onCanPlayCapture": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2268,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onCanPlayThrough": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2269,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onCanPlayThroughCapture": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2270,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onChangeCapture": {
+      "type": "FormEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2236,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onClick": {
+      "type": "MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2313,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onClickCapture": {
+      "type": "MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2314,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onCompositionEnd": {
+      "type": "CompositionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2219,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onCompositionEndCapture": {
+      "type": "CompositionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2222,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onCompositionStart": {
+      "type": "CompositionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2223,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onCompositionStartCapture": {
+      "type": "CompositionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2224,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onCompositionUpdate": {
+      "type": "CompositionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2225,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onCompositionUpdateCapture": {
+      "type": "CompositionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2226,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onContextMenu": {
+      "type": "MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2315,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onContextMenuCapture": {
+      "type": "MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2316,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onCopy": {
+      "type": "ClipboardEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2211,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onCopyCapture": {
+      "type": "ClipboardEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2214,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onCut": {
+      "type": "ClipboardEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2215,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onCutCapture": {
+      "type": "ClipboardEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2216,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onDoubleClick": {
+      "type": "MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2317,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onDoubleClickCapture": {
+      "type": "MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2318,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onDrag": {
+      "type": "DragEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2319,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onDragCapture": {
+      "type": "DragEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2320,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onDragEnd": {
+      "type": "DragEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2321,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onDragEndCapture": {
+      "type": "DragEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2322,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onDragEnter": {
+      "type": "DragEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2323,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onDragEnterCapture": {
+      "type": "DragEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2324,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onDragExit": {
+      "type": "DragEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2325,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onDragExitCapture": {
+      "type": "DragEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2326,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onDragLeave": {
+      "type": "DragEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2327,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onDragLeaveCapture": {
+      "type": "DragEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2328,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onDragOver": {
+      "type": "DragEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2329,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onDragOverCapture": {
+      "type": "DragEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2330,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onDragStart": {
+      "type": "DragEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2331,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onDragStartCapture": {
+      "type": "DragEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2332,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onDrop": {
+      "type": "DragEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2333,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onDropCapture": {
+      "type": "DragEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2334,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onDurationChange": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2271,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onDurationChangeCapture": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2272,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onEmptied": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2273,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onEmptiedCapture": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2274,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onEncrypted": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2275,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onEncryptedCapture": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2276,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onEnded": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2277,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onEndedCapture": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2278,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onError": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2251,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onErrorCapture": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2252,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onFocus": {
+      "type": "FocusEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2227,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onFocusCapture": {
+      "type": "FocusEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2230,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onGotPointerCapture": {
+      "type": "PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2377,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onGotPointerCaptureCapture": {
+      "type": "PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2378,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onInput": {
+      "type": "FormEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2239,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onInputCapture": {
+      "type": "FormEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2240,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onInvalid": {
+      "type": "FormEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2245,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onInvalidCapture": {
+      "type": "FormEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2246,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onKeyDown": {
+      "type": "KeyboardEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2253,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onKeyDownCapture": {
+      "type": "KeyboardEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2256,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onKeyPress": {
+      "type": "KeyboardEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2257,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onKeyPressCapture": {
+      "type": "KeyboardEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2259,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onKeyUp": {
+      "type": "KeyboardEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2261,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onKeyUpCapture": {
+      "type": "KeyboardEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2262,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onLoad": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2247,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onLoadCapture": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2250,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onLoadedData": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2279,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onLoadedDataCapture": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2280,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onLoadedMetadata": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2281,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onLoadedMetadataCapture": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2282,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onLoadStart": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2283,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onLoadStartCapture": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2284,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onLostPointerCapture": {
+      "type": "PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2379,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onLostPointerCaptureCapture": {
+      "type": "PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2380,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onMouseDown": {
+      "type": "MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2335,
+      "disposition": "EXISTING_ORIGINAL_NATIVE_POINTER_EVENT_COUNTERPART"
+    },
+    "onMouseDownCapture": {
+      "type": "MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2336,
+      "disposition": "EXISTING_ORIGINAL_NATIVE_POINTER_EVENT_COUNTERPART"
+    },
+    "onMouseEnter": {
+      "type": "MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2337,
+      "disposition": "EXISTING_ORIGINAL_NATIVE_POINTER_EVENT_COUNTERPART"
+    },
+    "onMouseLeave": {
+      "type": "MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2338,
+      "disposition": "EXISTING_ORIGINAL_NATIVE_POINTER_EVENT_COUNTERPART"
+    },
+    "onMouseMove": {
+      "type": "MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2339,
+      "disposition": "EXISTING_ORIGINAL_NATIVE_POINTER_EVENT_COUNTERPART"
+    },
+    "onMouseMoveCapture": {
+      "type": "MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2340,
+      "disposition": "EXISTING_ORIGINAL_NATIVE_POINTER_EVENT_COUNTERPART"
+    },
+    "onMouseOut": {
+      "type": "MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2341,
+      "disposition": "EXISTING_ORIGINAL_NATIVE_POINTER_EVENT_COUNTERPART"
+    },
+    "onMouseOutCapture": {
+      "type": "MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2342,
+      "disposition": "EXISTING_ORIGINAL_NATIVE_POINTER_EVENT_COUNTERPART"
+    },
+    "onMouseOver": {
+      "type": "MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2343,
+      "disposition": "EXISTING_ORIGINAL_NATIVE_POINTER_EVENT_COUNTERPART"
+    },
+    "onMouseOverCapture": {
+      "type": "MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2344,
+      "disposition": "EXISTING_ORIGINAL_NATIVE_POINTER_EVENT_COUNTERPART"
+    },
+    "onMouseUp": {
+      "type": "MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2345,
+      "disposition": "EXISTING_ORIGINAL_NATIVE_POINTER_EVENT_COUNTERPART"
+    },
+    "onMouseUpCapture": {
+      "type": "MouseEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2346,
+      "disposition": "EXISTING_ORIGINAL_NATIVE_POINTER_EVENT_COUNTERPART"
+    },
+    "onPaste": {
+      "type": "ClipboardEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2217,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onPasteCapture": {
+      "type": "ClipboardEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2218,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onPause": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2285,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onPauseCapture": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2286,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onPlay": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2287,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onPlayCapture": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2288,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onPlaying": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2289,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onPlayingCapture": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2290,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onPointerCancel": {
+      "type": "PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2369,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onPointerCancelCapture": {
+      "type": "PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2370,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onPointerDown": {
+      "type": "PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2361,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onPointerDownCapture": {
+      "type": "PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2364,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onPointerEnter": {
+      "type": "PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2371,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onPointerLeave": {
+      "type": "PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2372,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onPointerMove": {
+      "type": "PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2365,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onPointerMoveCapture": {
+      "type": "PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2366,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onPointerOut": {
+      "type": "PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2375,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onPointerOutCapture": {
+      "type": "PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2376,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onPointerOver": {
+      "type": "PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2373,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onPointerOverCapture": {
+      "type": "PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2374,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onPointerUp": {
+      "type": "PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2367,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onPointerUpCapture": {
+      "type": "PointerEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2368,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onProgress": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2291,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onProgressCapture": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2292,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onRateChange": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2293,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onRateChangeCapture": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2294,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onReset": {
+      "type": "FormEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2241,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onResetCapture": {
+      "type": "FormEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2242,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onScroll": {
+      "type": "UIEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2381,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onScrollCapture": {
+      "type": "UIEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2384,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onScrollEnd": {
+      "type": "UIEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2385,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onScrollEndCapture": {
+      "type": "UIEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2386,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onSeeked": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2295,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onSeekedCapture": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2296,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onSeeking": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2297,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onSeekingCapture": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2298,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onSelect": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2347,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onSelectCapture": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2350,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onSelectionChange": {
+      "type": "((key: string) => void) | undefined",
+      "required": false,
+      "declaration": "/tmp/codon-lane4-switcher-g01-fe60b3c1/packages/react/src/components/ToggleSwitcher/helpers.ts",
+      "line": 61,
+      "disposition": "COMPLETE_OWNED_NATIVE_COUNTERPART; color/styles/guards/items retained"
+    },
+    "onStalled": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2299,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onStalledCapture": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2300,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onSubmit": {
+      "type": "FormEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2243,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onSubmitCapture": {
+      "type": "FormEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2244,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onSuspend": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2301,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onSuspendCapture": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2302,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onTimeUpdate": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2303,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onTimeUpdateCapture": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2304,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onToggle": {
+      "type": "ToggleEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2399,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onTouchCancel": {
+      "type": "TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2351,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onTouchCancelCapture": {
+      "type": "TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2354,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onTouchEnd": {
+      "type": "TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2355,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onTouchEndCapture": {
+      "type": "TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2356,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onTouchMove": {
+      "type": "TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2357,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onTouchMoveCapture": {
+      "type": "TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2358,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onTouchStart": {
+      "type": "TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2359,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onTouchStartCapture": {
+      "type": "TouchEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2360,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "onTransitionCancel": {
+      "type": "TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2403,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onTransitionCancelCapture": {
+      "type": "TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2406,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onTransitionEnd": {
+      "type": "TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2407,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onTransitionEndCapture": {
+      "type": "TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2408,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onTransitionRun": {
+      "type": "TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2409,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onTransitionRunCapture": {
+      "type": "TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2410,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onTransitionStart": {
+      "type": "TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2411,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onTransitionStartCapture": {
+      "type": "TransitionEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2412,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onVolumeChange": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2305,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onVolumeChangeCapture": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2306,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onWaiting": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2307,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onWaitingCapture": {
+      "type": "ReactEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2308,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onWheel": {
+      "type": "WheelEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2387,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "onWheelCapture": {
+      "type": "WheelEventHandler<HTMLDivElement> | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2390,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "optionFontWeight": {
+      "type": "TToggleSwitcherFontWeight | undefined",
+      "required": false,
+      "declaration": "/tmp/codon-lane4-switcher-g01-fe60b3c1/packages/react/src/components/ToggleSwitcher/helpers.ts",
+      "line": 74,
+      "disposition": "COMPLETE_OWNED_NATIVE_COUNTERPART; color/styles/guards/items retained"
+    },
+    "order": {
+      "type": "\"primary\" | \"secondary\" | \"tertiary\" | \"quaternary\" | \"quintenary\" | undefined",
+      "required": false,
+      "declaration": "/tmp/codon-lane4-switcher-g01-fe60b3c1/packages/react/src/components/ToggleSwitcher/helpers.ts",
+      "line": 68,
+      "disposition": "COMPLETE_OWNED_NATIVE_COUNTERPART; color/styles/guards/items retained"
+    },
+    "part": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2807,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "popover": {
+      "type": "\"\" | \"auto\" | \"manual\" | \"hint\" | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2782,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "popoverTarget": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2786,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "popoverTargetAction": {
+      "type": "\"toggle\" | \"show\" | \"hide\" | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2785,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "prefix": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2762,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "property": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2763,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "radioGroup": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2750,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "raised": {
+      "type": "boolean | undefined",
+      "required": false,
+      "declaration": "/tmp/codon-lane4-switcher-g01-fe60b3c1/packages/react/src/components/ToggleSwitcher/helpers.ts",
+      "line": 69,
+      "disposition": "COMPLETE_OWNED_NATIVE_COUNTERPART; color/styles/guards/items retained"
+    },
+    "rel": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2764,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "resource": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2765,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "results": {
+      "type": "number | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2779,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "rev": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2766,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "role": {
+      "type": "AriaRole | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2753,
+      "disposition": "EXISTING_OWNED_NONACCESSIBLE_ROOT_AND_NAMED_CHECKED_OPTION_SEMANTIC_COUNTERPART"
+    },
+    "security": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2780,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "selectedKey": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/tmp/codon-lane4-switcher-g01-fe60b3c1/packages/react/src/components/ToggleSwitcher/helpers.ts",
+      "line": 59,
+      "disposition": "COMPLETE_OWNED_NATIVE_COUNTERPART; color/styles/guards/items retained"
+    },
+    "selectedOptionFontWeight": {
+      "type": "TToggleSwitcherFontWeight | undefined",
+      "required": false,
+      "declaration": "/tmp/codon-lane4-switcher-g01-fe60b3c1/packages/react/src/components/ToggleSwitcher/helpers.ts",
+      "line": 75,
+      "disposition": "COMPLETE_OWNED_NATIVE_COUNTERPART; color/styles/guards/items retained"
+    },
+    "slot": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2744,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "spellCheck": {
+      "type": "Booleanish | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2745,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "style": {
+      "type": "CSSProperties | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2746,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "suppressContentEditableWarning": {
+      "type": "boolean | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2727,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "suppressHydrationWarning": {
+      "type": "boolean | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2728,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "tabIndex": {
+      "type": "number | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2747,
+      "disposition": "SOURCE_SUPPORTED_NATIVE_HOST_COUNTERPART"
+    },
+    "title": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2748,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "translate": {
+      "type": "\"yes\" | \"no\" | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2749,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "typeof": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2767,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "unselectable": {
+      "type": "\"off\" | \"on\" | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2781,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "uppercase": {
+      "type": "boolean | undefined",
+      "required": false,
+      "declaration": "/tmp/codon-lane4-switcher-g01-fe60b3c1/packages/react/src/components/ToggleSwitcher/helpers.ts",
+      "line": 72,
+      "disposition": "COMPLETE_OWNED_NATIVE_COUNTERPART; color/styles/guards/items retained"
+    },
+    "vocab": {
+      "type": "string | undefined",
+      "required": false,
+      "declaration": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.pnpm/@types+react@19.2.2/node_modules/@types/react/index.d.ts",
+      "line": 2768,
+      "disposition": "APPROVED_SHARED_GENERIC_VIEW_ROOT_BOUNDARY; literal browser protocol rejected, native component/leaf behavior retained"
+    },
+    "width": {
+      "type": "string | number | undefined",
+      "required": false,
+      "declaration": "/tmp/codon-lane4-switcher-g01-fe60b3c1/packages/react/src/components/ToggleSwitcher/helpers.ts",
+      "line": 65,
+      "disposition": "COMPLETE_OWNED_NATIVE_COUNTERPART; color/styles/guards/items retained"
+    }
+  },
+  "canonicalSourceRef": "ddc9f066f67af4742e05e04bd870726141c44129",
+  "sealedSourceCorrespondence": {
+    "path": "/tmp/codon-lane4-switcher-approved-boundary/whole-g01-correspondence.json",
+    "sha256": "a8edaed5671013294f789cd78735dd074f8580a2b57f5fd0fc612292fce87817",
+    "candidateSHA256": "5d2cde2769f6b3d91ba3b32a62480a757605e72615585031de8f577f9743e831",
+    "allOriginal300FieldsUnchanged": true
+  },
+  "currentMainIntegration": {
+    "base": "869472d03f72d5688ed6ac244de791d55a88686d",
+    "sourceProofBridge": "/tmp/codon-switcher-adoption-20261102/source-proof-bridge.json",
+    "nativeScopeCaptureSchemaJavaPASSSeconds": 21.227,
+    "nativeStandardFocusPASSSeconds": 9.041,
+    "currentNative225AndSpecs13Unchanged": true,
+    "currentArtifactTuple": "/tmp/codon-switcher-adoption-20261102/consumer-final-inputs.json",
+    "G01RootAdoptionPending": true,
+    "qualification": "Source/normalcompiler prerequisite only; configuredpointer/key/default/focus/AT/appearance/profile/closure remain separate",
+    "rootAdoptionPending": false,
+    "adoptedEvidenceId": "FIN-SWITCHER01",
+    "normalHooksGate": "Successful ROOT normal-hook local commit required; all actual native/installed/profile/closure obligations stay OPEN"
+  }
+}

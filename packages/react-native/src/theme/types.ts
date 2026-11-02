@@ -72,6 +72,7 @@ export type TNativeTheme = Readonly<{
     statusSuccess: ColorValue
     overlayBackdrop: ColorValue
     background: ColorValue
+    surfaceMuted: ColorValue
     foreground: ColorValue
     controlBackground: ColorValue
     controlForeground: ColorValue

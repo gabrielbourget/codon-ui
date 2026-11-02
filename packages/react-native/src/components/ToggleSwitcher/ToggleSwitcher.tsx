@@ -1,7 +1,15 @@
-import { forwardRef, useEffect, useMemo, useRef, useState } from "react"
+import { forwardRef, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
 import { View, useWindowDimensions, type TextStyle, type ViewStyle } from "react-native"
 
+import { useNativeCollectionRefs } from "../../collection/context"
+import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
 import { NativeFocusHost } from "../../input/NativeFocusView"
+import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
+import {
+  NativeOrdinaryFieldGroupKeysContext,
+  NativeOrdinaryFocusParticipantsContext,
+} from "../../input/ordinaryEditorKeys"
+import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../overlays/floating/scope"
 import { useNativeTheme } from "../../theme"
 import { NativeButton } from "../Button/Button"
 import { getNativeButtonContent } from "../Button/content"
@@ -9,6 +17,7 @@ import type { TNativeButtonRenderState } from "../Button/types"
 import { resolveNativeStyle, validateNativeColor } from "../colors"
 import { validateNativeDisplayDimension } from "../displayDimensions"
 import { getNativeControlRadius, getNativeControlRootStyle, nativeControlTarget } from "../selection"
+import { useTableHover } from "../Table/useTableHover"
 
 import { useNativeSwitcherLayout } from "./layout"
 import {
@@ -18,6 +27,8 @@ import {
   type TNativeSwitcherFrame,
   type TNativeSwitcherMotion,
 } from "./motion"
+import { useNativeSwitcherOptionPaint, useNativeSwitcherRootPaint } from "./paint"
+import { useNativeSwitcherRootKeys } from "./rootKeys"
 import { nativeSwitcherWeight, splitNativeSwitcherOptionStyle } from "./styles"
 import type {
   TNativeToggleSwitcherItem,
@@ -49,8 +60,10 @@ const SwitcherOption = ({
   onNaturalSize,
   onIntrinsicWidth,
   measurementSignature,
+  onOriginal,
 }: {
   item: TNativeToggleSwitcherItem
+  onOriginal: (key: string, original: View | null) => void
   selected: boolean
   disabled: boolean
   readOnly: boolean
@@ -73,6 +86,26 @@ const SwitcherOption = ({
 }) => {
   const theme = useNativeTheme()
   const split = splitNativeSwitcherOptionStyle(optionStyle)
+  const optionRef = useRef<View>(null)
+  const bindOriginal = useCallback(
+    (original: View | null) => {
+      optionRef.current = original
+      onOriginal(item.id, original)
+    },
+    [item.id, onOriginal],
+  )
+  const input = useNativeKeyScope()
+  const floatingScope = useContext(NativeFloatingScopeContext)
+  const floatingWindow = useContext(NativeFloatingWindowContext)
+  const hover = useTableHover(
+    optionRef,
+    () =>
+      !disabled &&
+      input?.isWindowActive() !== false &&
+      floatingScope?.canAct() !== false &&
+      floatingWindow?.() !== false,
+    {},
+  )
   const rootStyle = (flags: Omit<TNativeButtonRenderState, "foregroundColor">) =>
     getNativeControlRootStyle(
       "ToggleSwitcher",
@@ -102,8 +135,17 @@ const SwitcherOption = ({
       undefined,
       { ...flags, isSelected: selected },
     )
+  const paint = useNativeSwitcherOptionPaint(
+    rootStyle({
+      isHovered: hover.isPointerOver,
+      isPressed: false,
+      isFocused: false,
+      isDisabled: disabled,
+      isPending: false,
+    }).backgroundColor,
+    split.text.color ?? theme.colors.controlForeground,
+  )
   const foreground = split.text.color ?? theme.colors.controlForeground
-  const optionRef = useRef<View>(null)
   const labelRef = useRef<View>(null)
   useNativeSwitcherIntrinsicWidth(
     optionRef,
@@ -129,7 +171,7 @@ const SwitcherOption = ({
   }, [measurementSignature, columnWidth])
   return (
     <NativeButton
-      ref={optionRef}
+      ref={bindOriginal}
       slot={null}
       isDisabled={disabled}
       nativeInteraction={!readOnly}
@@ -139,6 +181,8 @@ const SwitcherOption = ({
       testID={identity + "-option"}
       onLayout={(event) => onFrame(event.nativeEvent.layout)}
       onPress={onPress}
+      onPointerEnter={hover.onPointerEnter}
+      onPointerLeave={hover.onPointerLeave}
       nativeRender={(props) => (
         <NativeFocusHost
           {...props}
@@ -149,7 +193,7 @@ const SwitcherOption = ({
         />
       )}
       nativeStyle={(flags) => ({
-        viewStyle: rootStyle(flags),
+        viewStyle: { ...rootStyle(flags), backgroundColor: paint.backgroundColor },
         textStyle: split.text,
         foregroundColor: foreground,
         target: nativeControlTarget(),
@@ -158,7 +202,7 @@ const SwitcherOption = ({
       {(flags) => {
         const root = rootStyle(flags)
         const surfaceStyle: ViewStyle = {
-          backgroundColor: root.backgroundColor,
+          backgroundColor: paint.backgroundColor,
           borderRadius: root.borderRadius,
           borderTopLeftRadius: root.borderTopLeftRadius,
           borderTopRightRadius: root.borderTopRightRadius,
@@ -189,7 +233,7 @@ const SwitcherOption = ({
               onLayout={(event) => onLabel(event.nativeEvent.layout)}
               style={{ flexShrink: 1, zIndex: 1 }}
             >
-              {getNativeButtonContent(item.label, split.text)}
+              {getNativeButtonContent(item.label, { ...split.text, color: paint.color })}
             </View>
           </>
         )
@@ -226,7 +270,17 @@ export const ToggleSwitcher = forwardRef<TNativeToggleSwitcherRef, TNativeToggle
     "data-testid": aliasID,
     accessibilityLabel,
     "aria-label": aliasLabel,
+    "aria-describedby": descriptionReferences,
+    "aria-details": detailReferences,
+    "aria-modal": modalAlias,
+    accessibilityViewIsModal,
     onLayout,
+    onFocus,
+    onBlur,
+    onKeyDown,
+    onKeyDownCapture,
+    onKeyUp,
+    onKeyUpCapture,
     ...rest
   } = props
   if (!Array.isArray(items)) throw new TypeError("ToggleSwitcher: items must be an array")
@@ -240,6 +294,30 @@ export const ToggleSwitcher = forwardRef<TNativeToggleSwitcherRef, TNativeToggle
   if (!Number.isFinite(fontSize) || fontSize < 0)
     throw new TypeError("ToggleSwitcher: fontSize must be finite and nonnegative")
   validateNativeColor(color, "ToggleSwitcher", "color")
+  const rootRef = useRef<View>(null)
+  const mergedRootRef = useNativeCollectionRefs(ref, rootRef)
+  const optionRefs = useRef(new Map<string, View>())
+  const inheritedParticipants = useContext(NativeOrdinaryFocusParticipantsContext)
+  const hasRootKeys = !!(onKeyDown || onKeyDownCapture || onKeyUp || onKeyUpCapture)
+  const ownsOriginal = useCallback(
+    (target: object) =>
+      target === rootRef.current || [...optionRefs.current.values()].some((original) => original === target),
+    [],
+  )
+  const participants = useCallback(
+    (target: object) => ownsOriginal(target) || !!inheritedParticipants?.(target),
+    [ownsOriginal, inheritedParticipants],
+  )
+  const bindOption = useCallback((key: string, original: View | null) => {
+    if (original) optionRefs.current.set(key, original)
+    else optionRefs.current.delete(key)
+  }, [])
+  const rootKeys = useNativeSwitcherRootKeys(rootRef, ownsOriginal, {
+    onKeyDown,
+    onKeyDownCapture,
+    onKeyUp,
+    onKeyUpCapture,
+  })
   const theme = useNativeTheme()
   const dimensions = useWindowDimensions()
   const [localKey, setLocalKey] = useState(() => defaultSelectedKey ?? items.find((item) => !item.disabled)?.id ?? "")
@@ -253,8 +331,8 @@ export const ToggleSwitcher = forwardRef<TNativeToggleSwitcherRef, TNativeToggle
         maxWidth: "100%",
         padding: 2,
         borderWidth: 1,
-        backgroundColor: theme.mode === "dark" ? "#202020" : "#f7f7f7",
-        borderColor: theme.mode === "dark" ? "#3d3d3d" : "#c6c6c6",
+        backgroundColor: theme.colors.surfaceMuted,
+        borderColor: theme.colors.borderMuted,
         borderRadius: getNativeControlRadius(theme, geometry),
         opacity: isDisabled || isReadOnly ? theme.opacity.disabled : 1,
         ...(raised
@@ -336,92 +414,105 @@ export const ToggleSwitcher = forwardRef<TNativeToggleSwitcherRef, TNativeToggle
   const reduced = useNativeSwitcherReducedMotion()
   const constrainedHeight = rootStyle.height !== undefined && rootStyle.height !== null && rootStyle.height !== "auto"
   const motion = useNativeSwitcherMotion()
+  const paintedRoot = useNativeSwitcherRootPaint(rootStyle)
   const identity = testID ?? aliasID ?? "toggle-switcher"
   return (
-    <View
-      {...rest}
-      ref={ref}
-      accessible={false}
-      accessibilityLabel={accessibilityLabel ?? aliasLabel}
-      accessibilityState={{ disabled: isDisabled }}
-      aria-disabled={isDisabled}
-      testID={identity}
-      onLayout={(event) => {
-        layout.root(event.nativeEvent.layout)
-        onLayout?.(event)
-      }}
-      style={{
-        ...rootStyle,
-        width: rootStyle.width === undefined ? layout.desiredWidth : rootStyle.width,
-        flexDirection: "column",
-      }}
-    >
-      <View
-        testID={identity + "-row"}
-        onLayout={(event) => layout.row(event.nativeEvent.layout)}
-        style={{
-          flexDirection,
-          flexWrap,
-          gap,
-          columnGap,
-          rowGap,
-          justifyContent,
-          alignItems,
-          alignContent,
-          alignSelf: "stretch",
-          flexGrow: constrainedHeight ? 1 : 0,
-        }}
-      >
-        {items.map((item) => {
-          const isSelected = item.id === selected
-          const text: TextStyle = {
-            fontSize,
-            color: isSelected
-              ? (color ?? (order ? theme.actions[order].background : theme.colors.controlSelectedBackground))
-              : (rootForeground ?? theme.colors.controlForeground),
-            fontWeight: nativeSwitcherWeight(
-              theme,
-              isSelected ? selectedOptionFontWeight : optionFontWeight,
-              isSelected,
-            ),
-            textTransform: uppercase ? "uppercase" : "none",
-          }
-          return (
-            <SwitcherOption
-              key={item.id}
-              item={item}
-              selected={isSelected}
-              disabled={isDisabled || !!item.disabled}
-              readOnly={isReadOnly}
-              columnWidth={layout.columnWidth}
-              constrainedHeight={constrainedHeight}
-              geometry={geometry}
-              enableFocusStyle={enableFocusStyle}
-              offsetFocusRing={offsetFocusRing}
-              reduced={reduced}
-              motion={motion}
-              frame={layout.frames.get(item.id)}
-              identity={identity}
-              optionStyle={{ ...text, ...common, ...(isSelected ? selectedStyles : {}) }}
-              onFrame={(frame) => {
-                layout.option(item.id, frame)
-                if ((isSelected ? (selectedStyles.width ?? common.width) : common.width) !== undefined)
-                  layout.natural(item.id, frame, true)
-              }}
-              onLabel={(size) => layout.label(item.id, size)}
-              onNaturalSize={(size) => layout.natural(item.id, size)}
-              onIntrinsicWidth={(width) => layout.intrinsic(item.id, width)}
-              measurementSignature={signature}
-              onPress={() => {
-                if (isDisabled || isReadOnly || item.disabled || item.id === selected) return
-                if (selectedKey === undefined) setLocalKey(item.id)
-                onSelectionChange?.(item.id)
-              }}
-            />
-          )
-        })}
-      </View>
-    </View>
+    <NativeOrdinaryFocusParticipantsContext.Provider value={hasRootKeys ? participants : inheritedParticipants}>
+      <NativeOrdinaryFieldGroupKeysContext.Provider value>
+        <NativeFocusHost
+          {...rest}
+          {...rootKeys}
+          ref={mergedRootRef}
+          focusable={props.focusable ?? props.tabIndex !== undefined}
+          onBubbledFocus={onFocus}
+          onBubbledBlur={onBlur}
+          accessible={false}
+          accessibilityLabel={accessibilityLabel ?? aliasLabel}
+          nativeDescribedBy={nativeAccessibilityIDs(descriptionReferences)}
+          nativeDetailsBy={nativeAccessibilityIDs(detailReferences)}
+          accessibilityViewIsModal={accessibilityViewIsModal ?? modalAlias}
+          accessibilityState={{ disabled: isDisabled }}
+          aria-disabled={isDisabled}
+          testID={identity}
+          onLayout={(event) => {
+            layout.root(event.nativeEvent.layout)
+            onLayout?.(event)
+          }}
+          style={{
+            ...paintedRoot,
+            width: rootStyle.width === undefined ? layout.desiredWidth : rootStyle.width,
+            flexDirection: "column",
+          }}
+        >
+          <View
+            testID={identity + "-row"}
+            onLayout={(event) => layout.row(event.nativeEvent.layout)}
+            style={{
+              flexDirection,
+              flexWrap,
+              gap,
+              columnGap,
+              rowGap,
+              justifyContent,
+              alignItems,
+              alignContent,
+              alignSelf: "stretch",
+              flexGrow: constrainedHeight ? 1 : 0,
+            }}
+          >
+            {items.map((item) => {
+              const isSelected = item.id === selected
+              const text: TextStyle = {
+                fontSize,
+                color: isSelected
+                  ? (color ?? (order ? theme.actions[order].background : theme.colors.controlSelectedBackground))
+                  : (rootForeground ?? theme.colors.controlForeground),
+                fontWeight: nativeSwitcherWeight(
+                  theme,
+                  isSelected ? selectedOptionFontWeight : optionFontWeight,
+                  isSelected,
+                ),
+                textTransform: uppercase ? "uppercase" : "none",
+              }
+              return (
+                <SwitcherOption
+                  key={item.id}
+                  onOriginal={bindOption}
+                  item={item}
+                  selected={isSelected}
+                  disabled={isDisabled || !!item.disabled}
+                  readOnly={isReadOnly}
+                  columnWidth={layout.columnWidth}
+                  constrainedHeight={constrainedHeight}
+                  geometry={geometry}
+                  enableFocusStyle={enableFocusStyle}
+                  offsetFocusRing={offsetFocusRing}
+                  reduced={reduced}
+                  motion={motion}
+                  frame={layout.frames.get(item.id)}
+                  identity={identity}
+                  optionStyle={{ ...text, ...common, ...(isSelected ? selectedStyles : {}) }}
+                  onFrame={(frame) => {
+                    layout.option(item.id, frame)
+                    if ((isSelected ? (selectedStyles.width ?? common.width) : common.width) !== undefined)
+                      layout.natural(item.id, frame, true)
+                  }}
+                  onLabel={(size) => layout.label(item.id, size)}
+                  onNaturalSize={(size) => layout.natural(item.id, size)}
+                  onIntrinsicWidth={(width) => layout.intrinsic(item.id, width)}
+                  measurementSignature={signature}
+                  onPress={() => {
+                    if (isDisabled || isReadOnly || item.disabled || item.id === selected) return
+                    if (selectedKey === undefined) setLocalKey(item.id)
+                    onSelectionChange?.(item.id)
+                  }}
+                />
+              )
+            })}
+          </View>
+        </NativeFocusHost>
+      </NativeOrdinaryFieldGroupKeysContext.Provider>
+    </NativeOrdinaryFocusParticipantsContext.Provider>
   )
 })
 ToggleSwitcher.displayName = "ToggleSwitcher"

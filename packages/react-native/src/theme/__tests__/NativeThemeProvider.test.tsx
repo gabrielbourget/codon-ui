@@ -20,6 +20,26 @@ const renderTheme = async (props: TNativeThemeProviderProps = {}) =>
   )
 
 describe("NativeThemeProvider public contract", () => {
+  it.each(["light", "dark"] as const)("keeps the approved muted surface independent in %s mode", async (mode) => {
+    const view = await renderTheme({ mode })
+    expect(readTheme().colors.surfaceMuted).toBe(mode === "light" ? "#f7f7f7" : "#202020")
+    const overrides = Object.freeze({ colors: Object.freeze({ surfaceMuted: "purple", background: "orange" }) })
+    await view.rerender(
+      <NativeThemeProvider mode={mode} overrides={overrides}>
+        <ThemeProbe />
+      </NativeThemeProvider>,
+    )
+    expect(readTheme().colors).toMatchObject({ surfaceMuted: "purple", background: "orange" })
+    await view.rerender(
+      <NativeThemeProvider mode={mode} overrides={{ colors: { surfaceMuted: undefined, background: "orange" } }}>
+        <ThemeProbe />
+      </NativeThemeProvider>,
+    )
+    expect(readTheme().colors.surfaceMuted).toBe(mode === "light" ? "#f7f7f7" : "#202020")
+    expect(readTheme().colors.background).toBe("orange")
+    expect(overrides.colors).toEqual({ surfaceMuted: "purple", background: "orange" })
+  })
+
   it.each(["light", "dark"] as const)("keeps the muted border independent in %s mode", async (mode) => {
     const view = await renderTheme({ mode })
     expect(readTheme().colors.borderMuted).toBe(mode === "light" ? "#c6c6c6" : "#3d3d3d")
