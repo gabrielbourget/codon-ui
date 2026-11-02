@@ -35,7 +35,7 @@ public final class CUIFieldBindingManager extends ReactViewManager implements CU
   @Override @ReactProp(name = "semanticBinding") public void setSemanticBinding(ReactViewGroup view, String value) { ((CUIFormMetadataView)view).setSemanticBinding(value == null ? "" : value); }
   @Override @ReactProp(name = "ownedEditorBinding") public void setOwnedEditorBinding(ReactViewGroup view, String value) { ((CUIFormMetadataView)view).ownedEditorBinding = value == null ? "" : value; }
   @Override @ReactProp(name = "ownedControlBinding") public void setOwnedControlBinding(ReactViewGroup view, String value) { ((CUIFormMetadataView)view).ownedControlBinding = value == null ? "" : value; }
-  @Override protected void onAfterUpdateTransaction(ReactViewGroup view) { super.onAfterUpdateTransaction(view); ((CUICollectionNode)view).enforceMetadata(); }
+  @Override protected void onAfterUpdateTransaction(ReactViewGroup view) { super.onAfterUpdateTransaction(view); ((CUIFormMetadataView)view).enforceMetadata(); }
   @Override public void onDropViewInstance(ReactViewGroup view) { ((CUIFormMetadataView)view).retire(); super.onDropViewInstance(view); }
   @Override public Map<String, Object> getExportedCustomDirectEventTypeConstants() {
     Map<String, Object> events = new HashMap<>(); Map<String, Object> inherited = super.getExportedCustomDirectEventTypeConstants();

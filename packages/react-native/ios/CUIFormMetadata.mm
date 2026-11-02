@@ -1,4 +1,5 @@
 #import "CUIFormMetadata.h"
+#import "CUICollectionNode.h"
 #import "CUIInputWindow.h"
 #import "CUIOwnedDateField.h"
 #import "CUIFocusView.h"
@@ -38,6 +39,8 @@ using namespace facebook::react;
 - (instancetype)initWithFrame:(CGRect)frame
 {
   if (self = [super initWithFrame:frame]) {
+    self.ownerId = @""; self.descriptorId = @""; self.descriptorRevision = @"";
+    self.alpha = 0; self.userInteractionEnabled = NO;
     _windowId = @""; _signature = @""; _identity = @""; _surface = -1;
     _lastMount = @"unmounted";
     self.semanticBinding = @"";
@@ -49,6 +52,25 @@ using namespace facebook::react;
       [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(environmentChanged:) name:name object:nil];
   }
   return self;
+}
+- (BOOL)isAccessibilityElement { return NO; }
+- (BOOL)accessibilityElementsHidden { return YES; }
+- (NSArray *)accessibilityElements { return @[]; }
+- (NSInteger)accessibilityElementCount { return 0; }
+- (id)accessibilityElementAtIndex:(NSInteger)index { return nil; }
+- (NSInteger)indexOfAccessibilityElement:(id)element { return NSNotFound; }
+- (BOOL)canBecomeFocused { return NO; }
+- (BOOL)canBecomeFirstResponder { return NO; }
+- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event { return nil; }
+- (void)finalizeUpdates:(RNComponentViewUpdateMask)updateMask
+{
+  [super finalizeUpdates:updateMask];
+  self.alpha = 0; self.userInteractionEnabled = NO;
+}
+- (BOOL)isMetadataOnly
+{
+  return self.alpha == 0 && CGSizeEqualToSize(self.bounds.size, CGSizeZero) && !self.userInteractionEnabled &&
+    !self.isAccessibilityElement && self.accessibilityElementsHidden && self.accessibilityElementCount == 0;
 }
 - (BOOL)isFieldBinding { return NO; }
 - (NSString *)semanticBinding { return _semanticBinding ?: @""; }
@@ -134,7 +156,7 @@ using namespace facebook::react;
     UIView *root = [self.window viewWithTag:[rootTag integerValue]];
     id element = [(CUIFocusView *)original accessibilityElement];
     return root != original && [root isKindOfClass:RCTViewComponentView.class] &&
-      ![root isKindOfClass:CUICollectionMetadataView.class] && ![root isKindOfClass:RCTTextInputComponentView.class] &&
+      ![root isKindOfClass:CUIFormMetadataView.class] && ![root isKindOfClass:CUICollectionMetadataView.class] && ![root isKindOfClass:RCTTextInputComponentView.class] &&
       ![root isKindOfClass:CUIDateSegment.class] && root.window == self.window &&
       [original isDescendantOfView:root] && self != original && [self isDescendantOfView:original] &&
       ([element accessibilityTraits] & UIAccessibilityTraitAdjustable);
@@ -162,7 +184,7 @@ using namespace facebook::react;
   BOOL correctType = ownedControl ? [self isOwnedRangeThumb:original surface:surface] : ownedDate ? CUIResolveOwnedDateField(self, self.ownedEditorBinding, self.originalTarget, surface) == original && original != nil :
     [self isFieldBinding] ? [original isKindOfClass:RCTTextInputComponentView.class] &&
       ([editor isKindOfClass:UITextField.class] || [editor isKindOfClass:UITextView.class]) :
-      [original isKindOfClass:RCTViewComponentView.class] && ![original isKindOfClass:CUICollectionMetadataView.class];
+      [original isKindOfClass:RCTViewComponentView.class] && ![original isKindOfClass:CUIFormMetadataView.class] && ![original isKindOfClass:CUICollectionMetadataView.class];
   BOOL metadataOnly = self.isMetadataOnly;
   BOOL complete = attached && surface > 0 && _windowId.length && original.window == self.window && editor.window == self.window && correctType && metadataOnly;
   BOOL active = complete && _applicationActive && UIApplication.sharedApplication.applicationState == UIApplicationStateActive && editor.window.isKeyWindow &&
@@ -215,6 +237,7 @@ using namespace facebook::react;
   _epoch++; _boundWindow = nil; _boundOriginal = nil; _boundEditor = nil; _windowId = @""; _signature = @""; _identity = @""; _surface = -1;
   _mountSnapshot = nil; _lastMount = @"retired"; _lastActive = NO;
   _transactionWitness = nil;
+  self.ownerId = @""; self.descriptorId = @""; self.descriptorRevision = @"";
   self.originalTarget = 0;
   self.ownedEditorBinding = @"";
   self.ownedControlBinding = @"";

@@ -31,7 +31,7 @@ public final class CUIFormRootManager extends ReactViewManager implements CUIFor
   @Override @ReactProp(name = "descriptorRevision") public void setDescriptorRevision(ReactViewGroup view, String value) { ((CUIFormMetadataView)view).descriptorRevision = value == null ? "" : value; }
   @Override @ReactProp(name = "formTarget") public void setFormTarget(ReactViewGroup view, int value) { ((CUIFormMetadataView)view).originalTarget = value; }
   @Override @ReactProp(name = "formId") public void setFormId(ReactViewGroup view, String value) {}
-  @Override protected void onAfterUpdateTransaction(ReactViewGroup view) { super.onAfterUpdateTransaction(view); ((CUICollectionNode)view).enforceMetadata(); }
+  @Override protected void onAfterUpdateTransaction(ReactViewGroup view) { super.onAfterUpdateTransaction(view); ((CUIFormMetadataView)view).enforceMetadata(); }
   @Override public void onDropViewInstance(ReactViewGroup view) { ((CUIFormMetadataView)view).retire(); super.onDropViewInstance(view); }
   @Override public Map<String, Object> getExportedCustomDirectEventTypeConstants() {
     Map<String, Object> events = new HashMap<>(); Map<String, Object> inherited = super.getExportedCustomDirectEventTypeConstants();

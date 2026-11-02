@@ -988,7 +988,7 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
   }];
   _menuPointerRegistrations = menuPointers;
   NSMutableArray *floating = [NSMutableArray array];
-  for (const auto &target : next.floatingTargets) [floating addObject:@{ @"id": [NSString stringWithUTF8String:target.id.c_str()], @"targetTag": @(target.targetTag), @"descriptionTag": @(target.descriptionTag), @"descriptionLabel": [NSString stringWithUTF8String:target.descriptionLabel.c_str()] }];
+  for (const auto &target : next.floatingTargets) [floating addObject:@{ @"id": [NSString stringWithUTF8String:target.id.c_str()], @"targetTag": @(target.targetTag) }];
   _floatingTargets = floating;
   NSMutableArray *dialogs = [NSMutableArray new];
   for (const auto &binding : next.dialogScopes) {

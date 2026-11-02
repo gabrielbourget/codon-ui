@@ -263,18 +263,15 @@ it("finishes current appearance when Reduce Motion becomes enabled", async () =>
   expect(style().width).toBe(400)
   expect(processColor(style().backgroundColor)).toBe(processColor("blue"))
 })
-it("transitions mixed percentage dimensions in the actual modal viewport and keeps auto discrete", async () => {
+it("uses native percentage and auto dimensions without viewport interpolation", async () => {
   const f = await setup(),
     root = f.root.current
   await fireEvent(row("panel-floating-host"), "layout", {
     nativeEvent: { layout: { x: 0, y: 0, width: 800, height: 600 } },
   })
   await f.rerender(f.node({ width: "50%" }))
-  expect(style().width).toBe(200)
-  await advance(175)
-  expect(style().width).toBeGreaterThan(200)
-  expect(style().width).toBeLessThan(400)
-  await advance(200)
+  expect(style().width).toBe("50%")
+  await advance(375)
   expect(style().width).toBe("50%")
   await f.rerender(f.node({ width: "auto" }))
   expect(style().width).toBe("auto")
@@ -474,7 +471,7 @@ it("retargets a removed longhand when its shorthand changes during the running t
   expect(style().paddingLeft).toBeUndefined()
 })
 
-it("uses live viewport measurements during a mixed-unit transition without extending its deadline", async () => {
+it("leaves percentages with their native parent through viewport changes", async () => {
   const f = await setup()
   const viewport = (width: number) =>
     fireEvent(row("panel-floating-host"), "layout", {
@@ -485,8 +482,8 @@ it("uses live viewport measurements during a mixed-unit transition without exten
   await advance(175)
   const previous = style().width
   await viewport(1200)
-  expect(style().width).toBeGreaterThan(previous)
-  expect(style().width).toBeLessThan(600)
+  expect(previous).toBe("50%")
+  expect(style().width).toBe(previous)
   await advance(200)
   expect(style().width).toBe("50%")
 })

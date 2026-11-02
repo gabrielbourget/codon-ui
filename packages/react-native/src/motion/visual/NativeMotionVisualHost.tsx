@@ -20,11 +20,9 @@ import type { NativeProjectionStyle } from "../projection/types"
 
 import { NativeMotionVisualState } from "./state"
 import { resolveNativeMotionVisualStyle } from "./styles"
-import type { TNativeMotionVisualHostProps, TNativeMotionVisualValues } from "./types"
+import type { TNativeMotionVisualHostProps } from "./types"
 
-const NO_MEASUREMENT = Object.freeze({ values: null, revision: undefined })
-const emptyMeasurement = () => NO_MEASUREMENT
-const noMeasurementSubscription = () => () => {}
+const noProjectionSubscription = () => () => {}
 const NO_PROJECTION: Readonly<{ style: NativeProjectionStyle; visible: boolean; radii: string }> = Object.freeze({
   style: Object.freeze({}),
   visible: true,
@@ -43,7 +41,6 @@ export const NativeMotionVisualHost = forwardRef<TNativeFocusViewRef, TNativeMot
       transformTemplate,
       onUpdate,
       children,
-      measurement,
       motionOwner,
       projection,
       nativeRender,
@@ -65,14 +62,9 @@ export const NativeMotionVisualHost = forwardRef<TNativeFocusViewRef, TNativeMot
     )
     const values = useSyncExternalStore(visual.subscribe, visual.getSnapshot, visual.getSnapshot)
     const projected = useSyncExternalStore(
-      projection?.subscribe ?? noMeasurementSubscription,
+      projection?.subscribe ?? noProjectionSubscription,
       projection?.getSnapshot ?? emptyProjection,
       emptyProjection,
-    )
-    const measured = useSyncExternalStore(
-      measurement?.subscribe ?? noMeasurementSubscription,
-      measurement?.getSnapshot ?? emptyMeasurement,
-      emptyMeasurement,
     )
     const actual = useRef<TNativeFocusViewRef | null>(null)
     const committedStyle = useRef({ computedStyles, customStyles, style, transformTemplate })
@@ -117,7 +109,6 @@ export const NativeMotionVisualHost = forwardRef<TNativeFocusViewRef, TNativeMot
           visual.detach()
           projection?.detach()
           motionOwner?.detach()
-          measurement?.detach()
           releaseCaller()
           return
         }
@@ -133,7 +124,7 @@ export const NativeMotionVisualHost = forwardRef<TNativeFocusViewRef, TNativeMot
             authored.computedStyles,
             authored.customStyles,
             authored.style,
-            { ...visual.getSnapshot(), ...measurement?.getSnapshot().values } as TNativeMotionVisualValues,
+            visual.getSnapshot(),
             authored.transformTemplate,
           )
           const nextStyle: Record<string, unknown> = { ...latest.view, ...snapshot.style }
@@ -147,32 +138,23 @@ export const NativeMotionVisualHost = forwardRef<TNativeFocusViewRef, TNativeMot
           })
         })
         const retire = visual.attach()
-        const retireMeasurement = measurement?.attach(target)
         publishCaller(target)
         return () => {
           retire()
           retireWriter?.()
           retireProjection?.()
           retireOwner?.()
-          retireMeasurement?.()
           if (actual.current === target) {
             actual.current = null
             releaseCaller()
           }
         }
       },
-      [visual, measurement, motionOwner, projection, publishCaller, releaseCaller],
+      [visual, motionOwner, projection, publishCaller, releaseCaller],
     )
-    const resolved = resolveNativeMotionVisualStyle(
-      computedStyles,
-      customStyles,
-      style,
-      { ...values, ...measured.values } as TNativeMotionVisualValues,
-      transformTemplate,
-    )
+    const resolved = resolveNativeMotionVisualStyle(computedStyles, customStyles, style, values, transformTemplate)
     const host = {
       ...props,
-      nativeMotionGeometryRevision: measured.revision ?? props.nativeMotionGeometryRevision,
       nativeMotionGeometryObservation: true,
       nativeMotionColorObservation: true,
       nativeMotionDrawingOwner: true,

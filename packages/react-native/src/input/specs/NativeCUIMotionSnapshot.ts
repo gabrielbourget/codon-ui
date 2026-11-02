@@ -2,7 +2,6 @@ import type { TurboModule } from "react-native"
 import { TurboModuleRegistry } from "react-native"
 
 export interface Spec extends TurboModule {
-  getSnapshot(request: string): Promise<string>
   backdropFrame(request: string): Promise<string>
   getInitialValue(request: string): Promise<string>
   evaluateLayout(request: string): Promise<string>

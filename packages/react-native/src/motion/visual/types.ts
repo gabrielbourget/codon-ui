@@ -3,7 +3,6 @@ import type { ComponentProps, ReactElement } from "react"
 import type { StyleProp, TextStyle, ViewStyle } from "react-native"
 
 import type { NativeFocusHost } from "../../input/NativeFocusView"
-import type { NativeMotionMeasurementState } from "../measurement"
 import type { NativeMotionOwner } from "../owner/NativeMotionOwner"
 import type { NativeProjectionState } from "../projection/NativeProjectionState"
 
@@ -72,7 +71,6 @@ export type TNativeMotionVisualHostProps = Omit<ComponentProps<typeof NativeFocu
   nativeRender?: (props: ComponentProps<typeof NativeFocusHost>) => ReactElement
   motionOwner?: NativeMotionOwner
   projection?: NativeProjectionState
-  measurement?: NativeMotionMeasurementState
   computedStyles?: StyleProp<TextStyle>
   customStyles?: StyleProp<TextStyle>
   style?: StyleProp<TextStyle>

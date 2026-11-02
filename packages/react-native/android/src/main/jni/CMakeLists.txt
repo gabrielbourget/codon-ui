@@ -35,8 +35,7 @@ add_library(codon_motion SHARED
   "${CODON_MOTION_DIR}/InitialValueQuery.cpp"
   "${CODON_MOTION_DIR}/InitialValueStyle.cpp"
   "${CODON_MOTION_DIR}/NativeLayoutState.cpp"
-  "${CODON_MOTION_DIR}/GeometryQuery.cpp"
-  "${CODON_MOTION_DIR}/SnapshotQuery.cpp")
+  "${CODON_MOTION_DIR}/GeometryQuery.cpp")
 target_include_directories(codon_motion PRIVATE "${CODON_MOTION_DIR}" "${CODEGEN_DIR}"
   "${CUI_SAFE_AREA_CPP_DIR}" "${CUI_SAFE_AREA_CODEGEN_DIR}"
   "${CUI_TELEPORT_CPP_DIR}" "${CUI_TELEPORT_CODEGEN_DIR}"

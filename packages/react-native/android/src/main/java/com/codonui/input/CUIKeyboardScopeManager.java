@@ -84,7 +84,7 @@ public final class CUIKeyboardScopeManager extends ReactViewManager implements C
   @Override @ReactProp(name = "floatingTargets") public void setFloatingTargets(ReactViewGroup view, ReadableArray value) {
     List<CUIFloatingObserver.Target> targets = new ArrayList<>();
     if (value != null) for (int index = 0; index < value.size(); index++) {
-      ReadableMap target = value.getMap(index); targets.add(new CUIFloatingObserver.Target(target.getString("id"), target.getInt("targetTag"), target.getInt("descriptionTag")));
+      ReadableMap target = value.getMap(index); targets.add(new CUIFloatingObserver.Target(target.getString("id"), target.getInt("targetTag")));
     }
     ((CUIKeyboardScope) view).setFloatingTargets(targets);
   }

@@ -1,6 +1,8 @@
 package com.codonui.input;
 
 import android.content.Context;
+import android.graphics.Rect;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.accessibility.AccessibilityNodeInfo;
 import com.facebook.react.bridge.Arguments;
@@ -16,11 +18,13 @@ import com.facebook.react.uimanager.events.EventDispatcher;
 import com.facebook.react.views.textinput.ReactEditText;
 import com.facebook.react.views.view.ReactViewGroup;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 @androidx.annotation.OptIn(markerClass = com.facebook.react.common.annotations.UnstableReactNativeAPI.class)
-final class CUIFormMetadataView extends CUICollectionNode implements UIManagerListener, LifecycleEventListener {
+final class CUIFormMetadataView extends ReactViewGroup implements UIManagerListener, LifecycleEventListener {
+  String ownerId = "", descriptorId = "", descriptorRevision = "";
   interface SemanticContribution { void retire(); }
   int originalTarget;
   String semanticBinding = "";
@@ -73,8 +77,21 @@ final class CUIFormMetadataView extends CUICollectionNode implements UIManagerLi
     catch (RuntimeException retired) { setSemanticContribution(null); }
     finally { refreshingSemantics = false; }
   }
-  CUIFormMetadataView(Context context, boolean fieldBinding) { super(context); this.fieldBinding = fieldBinding; }
+  CUIFormMetadataView(Context context, boolean fieldBinding) { super(context); this.fieldBinding = fieldBinding; enforceMetadata(); }
   boolean isFieldBinding() { return fieldBinding; }
+
+  void enforceMetadata() {
+    setAlpha(0); setFocusable(false); setFocusableInTouchMode(false); setClickable(false); setLongClickable(false);
+    setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
+    setRemoveClippedSubviews(false);
+  }
+  boolean isMetadataOnly() {
+    return getAlpha() == 0 && getWidth() == 0 && getHeight() == 0 && !isFocusable() && !isClickable()
+      && getImportantForAccessibility() == View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS;
+  }
+  @Override public boolean requestFocus(int direction, Rect previous) { return false; }
+  @Override public boolean dispatchTouchEvent(MotionEvent event) { return false; }
+  @Override public void addChildrenForAccessibility(ArrayList<View> children) {}
 
   private void connect() {
     if (manager != null || !isAttachedToWindow() || !(getContext() instanceof ReactContext)) return;
@@ -142,7 +159,7 @@ final class CUIFormMetadataView extends CUICollectionNode implements UIManagerLi
       Object role = target.getTag(com.facebook.react.R.id.role);
       if (role == null) role = target.getTag(com.facebook.react.R.id.accessibility_role);
       boolean adjustable = role != null && ("adjustable".equalsIgnoreCase(role.toString()) || "slider".equalsIgnoreCase(role.toString()));
-      return root instanceof ReactViewGroup && !(root instanceof CUICollectionNode) && !(root instanceof CUIDateSegment) &&
+      return root instanceof ReactViewGroup && !(root instanceof CUIFormMetadataView) && !(root instanceof CUICollectionNode) && !(root instanceof CUIDateSegment) &&
         root != target && root.isAttachedToWindow() && CUIInputWindow.identity(this).equals(CUIInputWindow.identity(root)) &&
         strictDescendant(target, root) && strictDescendant(this, target) && adjustable;
     } catch (Exception retired) { return false; }
@@ -163,7 +180,7 @@ final class CUIFormMetadataView extends CUICollectionNode implements UIManagerLi
     boolean ownedDate = fieldBinding && !ownedEditorBinding.isEmpty();
     boolean ownedControl = fieldBinding && !ownedControlBinding.isEmpty();
     boolean correctType = ownedControl ? isOwnedRangeThumb(target, currentSurface) : ownedDate ? target != null && CUIOwnedDateField.resolve(manager, this, ownedEditorBinding, originalTarget, currentSurface) == target :
-      fieldBinding ? target instanceof ReactEditText : target instanceof ReactViewGroup && !(target instanceof CUICollectionNode);
+      fieldBinding ? target instanceof ReactEditText : target instanceof ReactViewGroup && !(target instanceof CUIFormMetadataView) && !(target instanceof CUICollectionNode);
     boolean metadataOnly = isMetadataOnly();
     boolean complete = attached && surface > 0 && !window.isEmpty() && target != null && target.isAttachedToWindow()
       && window.equals(CUIInputWindow.identity(target)) && correctType && metadataOnly;

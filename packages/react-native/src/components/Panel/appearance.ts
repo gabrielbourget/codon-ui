@@ -9,22 +9,12 @@ import {
   getPanelAppearanceDefault,
   type TPanelAppearanceBounds,
 } from "./appearanceValues"
-import {
-  getPanelLayoutLength,
-  getPanelLayoutLengths,
-  isPanelSizeLength,
-  mixPanelLayoutLength,
-  type TPanelLayoutLength,
-  type TPanelLayoutLengths,
-  type TPanelViewportDefaults,
-} from "./layoutLengths"
 import { createPanelNativeColorMixer } from "./nativeColors"
 import { panelRadiusNeedsMeasurement, resolvePanelRadii } from "./radii"
 
-type TStyles = { view: ViewStyle; text: TextStyle; lengths: TPanelLayoutLengths }
+type TStyles = { view: ViewStyle; text: TextStyle }
 type TTrack = {
   mix: (progress: number) => unknown
-  mixLength?: (progress: number) => TPanelLayoutLength
   started: number
   duration: number
   reverseStart: unknown
@@ -51,14 +41,12 @@ export const useNativePanelAppearance = (
   textDefaults: TextStyle,
   colorTarget?: RefObject<View | null>,
   colorScopeKnown?: () => boolean,
-  viewportDefaults?: TPanelViewportDefaults,
 ) => {
-  const lengths = getPanelLayoutLengths(view, bounds, viewportDefaults)
   const [clock] = useState(() => new Animated.Value(0))
-  const [rendered, setRendered] = useState<TStyles>({ view, text, lengths })
+  const [rendered, setRendered] = useState<TStyles>({ view, text })
   const [nativeError, setNativeError] = useState<Error | null>(null)
   const owner = useRef({
-    target: { view, text, lengths },
+    target: { view, text },
     tracks: new Map<string, TTrack>(),
     clock,
     bounds: { ...bounds },
@@ -74,7 +62,7 @@ export const useNativePanelAppearance = (
   useLayoutEffect(() => {
     const current = owner.current
     current.active = true
-    const signature = JSON.stringify([view, text, lengths, reduced, bounds, textDefaults])
+    const signature = JSON.stringify([view, text, reduced, bounds, textDefaults])
     if (current.signature === signature) return
     current.signature = signature
     Object.assign(current.bounds, bounds)
@@ -86,7 +74,6 @@ export const useNativePanelAppearance = (
       const result = {
         view: { ...current.target.view },
         text: { ...current.target.text },
-        lengths: { ...current.target.lengths },
       }
       for (const [key, track] of current.tracks) {
         const [part, field] = key.split(":") as [keyof TStyles, string]
@@ -96,7 +83,6 @@ export const useNativePanelAppearance = (
           current.tracks.delete(key)
         } else {
           Object.assign(result[part], { [field]: track.mix(ease(progress)) })
-          if (track.mixLength) result.lengths[field] = track.mixLength(ease(progress))
         }
       }
       if (
@@ -115,7 +101,7 @@ export const useNativePanelAppearance = (
     current.sample = sample
     const now = Date.now()
     const previous = sample(now)
-    const target = { view, text, lengths }
+    const target = { view, text }
     for (const part of ["view", "text"] as const) {
       const before = (part === "view" ? gapLonghands(previous.view) : previous.text) as Record<string, unknown>
       const after = (part === "view" ? gapLonghands(target.view) : target.text) as Record<string, unknown>
@@ -135,14 +121,8 @@ export const useNativePanelAppearance = (
         const last = after[field] ?? getPanelAppearanceDefault(field, after, textDefaults, current.bounds.border)
         const prior =
           priorTarget[field] ?? getPanelAppearanceDefault(field, priorTarget, textDefaults, current.bounds.border)
-        const firstLength =
-          part === "view" ? (previous.lengths[field] ?? getPanelLayoutLength(field, first)) : undefined
-        const lastLength = part === "view" ? (lengths[field] ?? getPanelLayoutLength(field, last)) : undefined
-        const priorLength =
-          part === "view" ? (current.target.lengths[field] ?? getPanelLayoutLength(field, prior)) : undefined
         const equal = (a: unknown, b: unknown) => arePanelAppearanceValuesEqual(field, a, b)
-        if (equal(priorLength ?? prior, lastLength ?? last)) continue
-        const mixLength = firstLength && lastLength ? mixPanelLayoutLength(firstLength, lastLength) : undefined
+        if (equal(prior, last)) continue
         let mix = createPanelAppearanceMixer(field, first, last, current.bounds, text.color ?? textDefaults.color)
         const nativeColor =
           !mix && colorTarget && colorScopeKnown?.() !== false && !arePanelAppearanceValuesEqual(field, first, last)
@@ -162,9 +142,9 @@ export const useNativePanelAppearance = (
               )
             : undefined
         mix ??= nativeColor?.mix
-        if ((mix || mixLength) && !equal(firstLength ?? first, lastLength ?? last)) {
+        if (mix && !equal(first, last)) {
           const priorTrack = current.tracks.get(key)
-          const reversing = priorTrack && equal(priorTrack.reverseStart, lastLength ?? last)
+          const reversing = priorTrack && equal(priorTrack.reverseStart, last)
           // CSS Transitions §3 shortens an interrupted transition returning to its logical start.
           const reverseFactor = reversing
             ? Math.min(
@@ -179,13 +159,12 @@ export const useNativePanelAppearance = (
           priorTrack?.release?.()
           if (reverseFactor > 0)
             current.tracks.set(key, {
-              mix: mix ?? (() => last),
-              mixLength,
+              mix,
               started: now,
               duration: DURATION * reverseFactor,
-              reverseStart: reversing ? priorTrack.target : (firstLength ?? first),
+              reverseStart: reversing ? priorTrack.target : first,
               reverseFactor,
-              target: lastLength ?? last,
+              target: last,
               release: nativeColor?.release,
             })
           else {
@@ -265,18 +244,6 @@ export const useNativePanelAppearance = (
     ...rendered,
     view: drawing.view,
     radii: drawing.radii,
-    layoutLengths: Object.entries(rendered.lengths).flatMap(([field, length]) => {
-      if (
-        !length ||
-        (!owner.current.tracks.has(`view:${field}`) && !(length.hasPercentage && isPanelSizeLength(field)))
-      )
-        return []
-      if (field !== "inset") return [{ field, ...length }]
-      // The shorthand has two percentage bases; retain more-specific authored axes.
-      return ["insetInline", "insetBlock"].flatMap((axis) =>
-        rendered.view[axis as keyof ViewStyle] === undefined ? [{ field: axis, ...length }] : [],
-      )
-    }),
     needsRadiusObservation: panelRadiusNeedsMeasurement(view) || panelRadiusNeedsMeasurement(rendered.view),
     needsContentObservation:
       hasPercentageGap(view) ||

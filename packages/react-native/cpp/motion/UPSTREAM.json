@@ -724,14 +724,6 @@
       "sha256": "8678da9e00ccaf6c90de2f862998db95bbe6d7d5c4390261406cd21aef394846"
     },
     {
-      "file": "SnapshotQuery.cpp",
-      "sha256": "b45229fd0786930319e537fb6a5fdde92912768b71bbe0e70c7a886906cfcb15"
-    },
-    {
-      "file": "SnapshotQuery.h",
-      "sha256": "b9bb3b4c0fc7d0720c8f3384db610315920a60e2f9da3863ce0f01319c887833"
-    },
-    {
       "file": "PopFrame.cpp",
       "sha256": "2c0253a6a6ce264e1544923be6d4d9ef1a3e0fbcebd1791f8f0db4030f05bc1d"
     },

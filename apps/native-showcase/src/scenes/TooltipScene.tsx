@@ -26,6 +26,7 @@ export const TooltipScene = () => {
   const [orderIndex, setOrderIndex] = useState(0)
   const [mounted, setMounted] = useState(true)
   const editor = useRef<TextInput>(null)
+  const editorHelp = useRef<View>(null)
   const request = (next: boolean, set: (value: boolean) => void) => {
     setRequests((value) => value + 1)
     if (echo) set(next)
@@ -59,7 +60,9 @@ export const TooltipScene = () => {
           {echo ? "echoes" : "declines"}. Draft: {draft || "empty"}.
         </Text>
         <Button onPress={() => setOpen(true)}>Show tooltip explicitly</Button>
-        <Button onPress={() => setHoverOpen(true)}>Show editor description explicitly</Button>
+        <Button ref={editorHelp} onPress={() => setHoverOpen(true)}>
+          Show editor help explicitly
+        </Button>
         <Button onPress={() => setEcho((value) => !value)}>Toggle description echo</Button>
         <Button onPress={() => setStyled((value) => !value)}>Toggle description styles</Button>
         <Button onPress={() => setOrthogonal((value) => !value)}>Toggle description geometry</Button>
@@ -98,7 +101,7 @@ export const TooltipScene = () => {
               <TextInput
                 ref={editor}
                 testID="tooltip-scene-editor"
-                accessibilityLabel="Raw described editor"
+                accessibilityLabel="Draft editor"
                 accessibilityHint="Retained editor hint"
                 value={draft}
                 onChangeText={setDraft}
@@ -111,7 +114,7 @@ export const TooltipScene = () => {
               testID="hover-scene-surface"
               isOpen={hoverOpen}
               onOpenChange={(next) => request(next, setHoverOpen)}
-              triggerRef={editor}
+              triggerRef={editorHelp}
               descriptionLabel="Editor details"
               showOverlayArrow={!arrow}
             >
