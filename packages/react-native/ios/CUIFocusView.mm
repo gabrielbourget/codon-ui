@@ -92,6 +92,14 @@ using namespace facebook::react;
 @end
 
 @interface CUIFocusView () <RCTCUIFocusViewViewProtocol, RCTMountingTransactionObserving>
+- (NSDictionary *)localKeyEnvironment;
+- (void)emitLocalKeyStatus:(NSDictionary *)snapshot;
+- (void)configureLocalKeys:(NSString *)encoded;
+- (BOOL)localKeysEligible;
+- (void)synchronizeLocalKeyWindow;
+- (void)localKeyWindowActivityChanged:(NSNotification *)notification;
+- (BOOL)localKeySuppressed:(NSNumber *)code;
+- (void)cancelHeldKeys;
 @end
 
 @implementation CUIFocusView {
@@ -123,6 +131,15 @@ using namespace facebook::react;
   NSString *_motionProjectionRevision;
   CUIFormActionLease *_formAction;
   CUIFocusWithinObserver *_focusWithin;
+  CUIFormActionLease *_localKeyLease;
+  NSSet<NSString *> *_localKeyTokens;
+  NSMutableDictionary<NSNumber *, NSDictionary *> *_localKeySuppressed;
+  NSMutableDictionary<NSNumber *, NSDictionary *> *_localKeySequences;
+  NSMutableSet<NSNumber *> *_localKeyFreshStarts;
+  BOOL _localKeyWindowWasInactive;
+  BOOL _localKeyReactivationPending;
+  __weak UIWindow *_localKeyWindow;
+  NSUInteger _localKeyEventId;
   SurfaceId _formActionSurface;
   CUIFocusViewEventEmitter::OnNativeFocusChangeOrigin _origin;
 }
@@ -169,6 +186,9 @@ using namespace facebook::react;
     _motionGeometry = [[CUIMotionGeometryObserver alloc] initWithRoot:self emit:^(NSDictionary *data) { [weakSelf emitMotionGeometry:data]; }];
     _formActionSurface = -1;
     [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(applicationWillResignActive:) name:UIApplicationWillResignActiveNotification object:nil];
+    for (NSString *name in @[UIApplicationDidBecomeActiveNotification, UISceneWillDeactivateNotification,
+        UISceneDidActivateNotification, UIWindowDidBecomeKeyNotification, UIWindowDidResignKeyNotification])
+      [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(localKeyWindowActivityChanged:) name:name object:nil];
   }
   return self;
 }
@@ -617,6 +637,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 {
   _formActionSurface = transaction.getSurfaceId();
   [_formAction snapshot];
+  [_localKeyLease snapshot];
   [_focusWithin schedule];
   [_motionGeometry captureKind:@"mount-after" requestId:@"" transaction:[NSString stringWithFormat:@"ios-surface:%d:mount:%lld", transaction.getSurfaceId(), (long long)transaction.getNumber()]];
 }
@@ -650,6 +671,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
   [super traitCollectionDidChange:previousTraitCollection];
   [_motionColors synchronize];
   [_formAction snapshot];
+  [_localKeyLease snapshot];
 }
 
 - (void)tintColorDidChange
@@ -657,6 +679,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
   [super tintColorDidChange];
   [_motionColors synchronize];
   [_formAction snapshot];
+  [_localKeyLease snapshot];
 }
 
 - (BOOL)accessibilityActivate
@@ -701,6 +724,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
   if (_focusAcknowledged == focused) return;
   _focusAcknowledged = focused;
   CUIAdvanceInputRevision(self.window);
+  [_localKeyLease snapshot];
   if (!focused) [self cancelHeldKeys];
   const auto origin = _origin;
   if (!focused) _origin = CUIFocusViewEventEmitter::OnNativeFocusChangeOrigin::Unknown;
@@ -786,6 +810,90 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
   RCTCUIFocusViewHandleCommand(self, commandName, args);
 }
 
+- (void)synchronizeLocalKeyWindow
+{
+  UIWindow *next=_localKeyLease ? self.window : nil;
+  if (_localKeyWindow == next) return;
+  CUIUnregisterLocalKeyboardObservation(_localKeyWindow,self);
+  _localKeyWindow=next;
+  if (next && _localKeyWindowWasInactive) _localKeyReactivationPending = YES;
+  CUIRegisterLocalKeyboardObservation(next,self);
+}
+- (BOOL)localKeySuppressed:(NSNumber *)code
+{
+  NSDictionary *retired=_localKeySuppressed[code];
+  if (!retired) return NO;
+  NSUInteger observed=CUIInputKeyboardSequence(self.window,(UIKeyboardHIDUsage)code.integerValue);
+  if ([retired[@"sequence"] unsignedIntegerValue] > 0 && observed > 0 &&
+      [retired[@"windowId"] isEqual:CUIInputWindowIdentity(self.window)] &&
+      observed != [retired[@"sequence"] unsignedIntegerValue]) {
+    [_localKeySuppressed removeObjectForKey:code];
+    return NO;
+  }
+  return YES;
+}
+- (NSDictionary *)localKeyEnvironment
+{
+  NSMutableDictionary *value=[[self formActionEnvironment] mutableCopy];
+  UIView *focused=CUIInputFocusedView(self.window);
+  value[@"enabled"]=@(_keyboardFocusable && !(self.accessibilityTraits & UIAccessibilityTraitNotEnabled));
+  value[@"focusedTarget"]=@(focused ? MAX(0,focused.tag) : 0);
+  value[@"isComposing"]=@([focused conformsToProtocol:@protocol(UITextInput)] && ((id<UITextInput>)focused).markedTextRange != nil);
+  return value;
+}
+- (void)emitLocalKeyStatus:(NSDictionary *)snapshot
+{
+  if (_localKeyReactivationPending && [snapshot[@"active"] boolValue]) {
+    // Approved reactivation policy: a fresh local session may admit a still-held key.
+    if (!_localKeyFreshStarts) _localKeyFreshStarts = [NSMutableSet new];
+    [_localKeyFreshStarts addObjectsFromArray:_localKeySuppressed.allKeys];
+    [_localKeySuppressed removeAllObjects];
+    _localKeyWindowWasInactive = NO;
+    _localKeyReactivationPending = NO;
+  }
+  if (!_eventEmitter) return;
+  NSData *json=[NSJSONSerialization dataWithJSONObject:snapshot options:0 error:nil]; if (!json) return;
+  CUIFocusViewEventEmitter::OnNativeKey value{};
+  value.kind="key-status"; value.ownerId=_ownerId.UTF8String; value.target=(int)self.tag;
+  value.localFrame=std::string((const char *)json.bytes,json.length);
+  std::static_pointer_cast<const CUIFocusViewEventEmitter>(_eventEmitter)->onNativeKey(value);
+}
+- (void)configureLocalKeys:(NSString *)encoded
+{
+  id binding=encoded.length ? [NSJSONSerialization JSONObjectWithData:[encoded dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil] : nil;
+  if (![binding isKindOfClass:NSDictionary.class] || ![binding[@"tokens"] isKindOfClass:NSArray.class]) {
+    if (_localKeyLease) [self cancelHeldKeys];
+    [_localKeyLease invalidate]; _localKeyLease=nil; _localKeyTokens=nil;
+    [_localKeyFreshStarts removeAllObjects]; _localKeyWindowWasInactive = NO; _localKeyReactivationPending = NO;
+    [self synchronizeLocalKeyWindow];
+    return;
+  }
+  NSMutableSet *tokens=[NSMutableSet new];
+  for (id token in binding[@"tokens"]) if ([token isKindOfClass:NSString.class]) [tokens addObject:token];
+  _localKeyTokens=tokens;
+  if (!_localKeySuppressed) _localKeySuppressed=[NSMutableDictionary new];
+  if (!_localKeySequences) _localKeySequences=[NSMutableDictionary new];
+  if (!_localKeyLease) {
+    __weak CUIFocusView *weakSelf=self;
+    _localKeyLease=[[CUIFormActionLease alloc] initWithRoot:self environment:^NSDictionary * { return [weakSelf localKeyEnvironment]; }
+      emit:^(NSDictionary *snapshot) {
+        CUIFocusView *view=weakSelf; if (!view) return;
+        if ([snapshot[@"active"] boolValue] && !view->_localKeyReactivationPending)
+          [view->_localKeyFreshStarts removeAllObjects];
+        [view cancelHeldKeys];
+        [view emitLocalKeyStatus:snapshot];
+      }];
+  }
+  [self synchronizeLocalKeyWindow];
+  [_localKeyLease configure:encoded];
+}
+- (BOOL)localKeysEligible
+{
+  NSDictionary *value=[_localKeyLease snapshot];
+  return [value[@"active"] boolValue] && [value[@"attached"] boolValue] && [value[@"enabled"] boolValue] &&
+    [value[@"focusedTarget"] integerValue] == self.tag && ![value[@"isComposing"] boolValue];
+}
+
 - (NSString *)captureToken:(UIKey *)key
 {
   UIKeyModifierFlags flags = key.modifierFlags;
@@ -796,7 +904,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 
 - (void)emitKey:(UIPress *)press down:(BOOL)down repeat:(BOOL)repeat cancelled:(BOOL)cancelled handled:(BOOL)handled
 {
-  if (CUIRouteOriginalToolbarKey(self,press,down,repeat,cancelled,handled)) return;
+  if (!_localKeyLease && CUIRouteOriginalToolbarKey(self,press,down,repeat,cancelled,handled)) return;
   UIKey *key = press.key;
   if (!key || !_eventEmitter) return;
   UIKeyModifierFlags flags = key.modifierFlags;
@@ -818,12 +926,23 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
   value.nativeModifierData = std::to_string((unsigned long long)flags);
   value.nativeDefaultHandled = handled;
   value.timestamp = (cancelled ? NSProcessInfo.processInfo.systemUptime : press.timestamp) * 1000;
+  if (_localKeyLease) {
+    NSMutableDictionary *frame=[[_localKeyLease snapshot] mutableCopy];
+    if (!frame) return;
+    [self emitLocalKeyStatus:frame];
+    frame[@"eventId"]=@(++_localKeyEventId);
+    frame[@"admitted"]=@(down && !cancelled && handled && [self localKeysEligible] && [_localKeyTokens containsObject:[self captureToken:key]] && ![self localKeySuppressed:@(key.keyCode)]);
+    NSData *json=[NSJSONSerialization dataWithJSONObject:frame options:0 error:nil]; if (!json) return;
+    value.localFrame=std::string((const char *)json.bytes,json.length);
+  }
   std::static_pointer_cast<const CUIFocusViewEventEmitter>(_eventEmitter)->onNativeKey(value);
 }
 
 - (BOOL)capturesObservedKey:(UIKey *)key
 {
   NSNumber *code = @(key.keyCode);
+  if (_localKeyLease) return _keyboardFocusable && [self localKeysEligible] &&
+    (!CUIInputKeyboardRepeating(self.window,key.keyCode) || [_consumed containsObject:code] || [_localKeyFreshStarts containsObject:code]) && ![self localKeySuppressed:code] && [_localKeyTokens containsObject:[self captureToken:key]];
   return _keyboardFocusable && (self.isFirstResponder || self.isFocused) && (_held[code] ? [_consumed containsObject:code] : [_capturedKeys containsObject:[self captureToken:key]]);
 }
 
@@ -831,17 +950,26 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 {
   NSMutableSet<UIPress *> *unhandled = [NSMutableSet set];
   for (UIPress *press in presses) {
-    if (!press.key || !_keyboardFocusable || (!self.isFirstResponder && !self.isFocused)) {
+    NSDictionary *physical=_localKeyLease && press.key ? CUIInputKeyboardPressFrame(press,cancelled ? @"cancel" : down ? @"down" : @"up") : nil;
+    if (!press.key || !_keyboardFocusable || (!self.isFirstResponder && !self.isFocused) || (_localKeyLease && !physical)) {
       [unhandled addObject:press];
       continue;
     }
     NSNumber *code = @(press.key.keyCode);
-    BOOL repeat = down && _held[code] != nil;
+    BOOL repeat = down && (_localKeyLease ? [physical[@"repeat"] boolValue] : _held[code] != nil);
     BOOL handled = [_consumed containsObject:code];
+    if (_localKeyLease && down) {
+      BOOL eligible=[self localKeysEligible];
+      BOOL fresh=[_localKeyFreshStarts containsObject:code];
+      [_localKeyFreshStarts removeObject:code];
+      handled=eligible && (!repeat || [_consumed containsObject:code] || fresh) && ![self localKeySuppressed:code] && [_localKeyTokens containsObject:[self captureToken:press.key]];
+      if (repeat && !handled) _localKeySuppressed[code]=@{@"windowId":CUIInputWindowIdentity(self.window),@"sequence":physical[@"sequence"] ?: @0};
+    }
     if (down) {
-      if (!repeat) handled = [_capturedKeys containsObject:[self captureToken:press.key]];
+      if (!_localKeyLease && !repeat) handled = [_capturedKeys containsObject:[self captureToken:press.key]];
       _held[code] = press;
-      if (handled) [_consumed addObject:code];
+      if (_localKeyLease) _localKeySequences[code]=@{@"windowId":CUIInputWindowIdentity(self.window),@"sequence":physical[@"sequence"] ?: @0};
+      if (handled) [_consumed addObject:code]; else if (_localKeyLease) [_consumed removeObject:code];
     }
     _origin = CUIFocusViewEventEmitter::OnNativeFocusChangeOrigin::Keyboard;
     CUIRecordWindowModality(self.window, @"keyboard");
@@ -849,6 +977,9 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
     if (!down) {
       [_held removeObjectForKey:code];
       [_consumed removeObject:code];
+      [_localKeySuppressed removeObjectForKey:code];
+      [_localKeySequences removeObjectForKey:code];
+      [_localKeyFreshStarts removeObject:code];
     }
     if (!handled) [unhandled addObject:press];
   }
@@ -876,6 +1007,14 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 
 - (void)cancelHeldKeys
 {
+  if (_localKeyLease) {
+    NSDictionary *held=[_held copy]; NSSet *consumed=[_consumed copy];
+    for (NSNumber *code in held) _localKeySuppressed[code]=_localKeySequences[code] ?: @{@"windowId":CUIInputWindowIdentity(self.window),@"sequence":@0};
+    [_localKeySequences removeAllObjects];
+    [_held removeAllObjects]; [_consumed removeAllObjects];
+    for (NSNumber *code in held) [self emitKey:held[code] down:NO repeat:NO cancelled:YES handled:[consumed containsObject:code]];
+    return;
+  }
   for (NSNumber *code in _held.allKeys) {
     [self emitKey:_held[code] down:NO repeat:NO cancelled:YES handled:[_consumed containsObject:code]];
   }
@@ -883,8 +1022,25 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
   [_consumed removeAllObjects];
 }
 
+- (void)localKeyWindowActivityChanged:(NSNotification *)notification
+{
+  if (!_localKeyLease) return;
+  if ([notification.object isKindOfClass:UIWindowScene.class] && notification.object != self.window.windowScene) return;
+  if ([notification.object isKindOfClass:UIWindow.class] && notification.object != self.window) return;
+  if ([notification.name isEqual:UISceneWillDeactivateNotification] || [notification.name isEqual:UIWindowDidResignKeyNotification]) {
+    _localKeyWindowWasInactive = YES;
+    _localKeyReactivationPending = NO;
+  } else if (_localKeyWindowWasInactive) _localKeyReactivationPending = YES;
+  NSDictionary *snapshot = [_localKeyLease snapshot];
+  if (snapshot) [self emitLocalKeyStatus:snapshot];
+}
+
 - (void)applicationWillResignActive:(NSNotification *)notification
 {
+  if (_localKeyLease) {
+    _localKeyWindowWasInactive = YES;
+    _localKeyReactivationPending = NO;
+  }
   [self cancelHeldKeys];
   [_scrollAnchor invalidate];
 }
@@ -930,6 +1086,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
   _nativeDetailsLabel = [NSString stringWithUTF8String:next.nativeDetailsLabel.c_str()];
   if (!_keyboardFocusable) [self resignFirstResponder];
   [super updateProps:props oldProps:oldProps];
+  [self configureLocalKeys:[NSString stringWithUTF8String:next.nativeKeyBinding.c_str()]];
   _nativeMotionVisible = next.nativeMotionVisible;
   _motionProjectionRevision = [NSString stringWithUTF8String:next.nativeMotionProjectionRevision.c_str()];
   [super setHidden:_authoredHidden || !_nativeMotionVisible];
@@ -965,9 +1122,15 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 - (void)didMoveToWindow
 {
   [super didMoveToWindow];
+  if (_localKeyLease && !self.window) {
+    _localKeyWindowWasInactive = YES;
+    _localKeyReactivationPending = NO;
+  }
+  [self synchronizeLocalKeyWindow];
   [_motionGeometry windowChanged];
   [_motionColors synchronize];
   [_formAction snapshot];
+  [_localKeyLease snapshot];
   [_focusWithin schedule];
   if (!self.window) {
     [_scrollAnchor invalidate];
@@ -980,7 +1143,8 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 - (void)prepareForRecycle
 {
   [_focusWithin invalidate]; _focusWithin = nil;
-  [_formAction invalidate]; _formAction = nil; _formActionSurface = -1;
+  [_formAction invalidate]; _formAction = nil;
+  [_localKeyLease invalidate]; _localKeyLease=nil; _localKeyTokens=nil; [self synchronizeLocalKeyWindow]; [_localKeySuppressed removeAllObjects]; [_localKeySequences removeAllObjects]; [_localKeyFreshStarts removeAllObjects]; _localKeyWindowWasInactive = NO; _localKeyReactivationPending = NO; _formActionSurface = -1;
   [_motionGeometry invalidate];
   [_motionColors invalidate];
   [_scrollAnchor invalidate];
@@ -1010,6 +1174,8 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 {
   [_focusWithin invalidate];
   [_formAction invalidate];
+  [_localKeyLease invalidate];
+  CUIUnregisterLocalKeyboardObservation(_localKeyWindow,self);
   [_scrollAnchor invalidate];
   [NSNotificationCenter.defaultCenter removeObserver:self];
 }

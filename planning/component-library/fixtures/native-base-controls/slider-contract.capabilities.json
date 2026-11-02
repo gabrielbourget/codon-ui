@@ -1,0 +1,173 @@
+{
+  "cell": "CAT.slider.G01",
+  "canonicalSourceRef": "ddc9f066f67af4742e05e04bd870726141c44129",
+  "status": "IMPLEMENTED_SOURCE_CURRENT_PRODUCER_NATIVE_PREREQUISITE_PASS_G01_OPEN_REQUIRED_ACTUAL_HIT_LAYOUT",
+  "sourceBase": "87bb958b2658051bac6453db57b9a77e0b5333b5",
+  "ownerCumulativePatchSHA256": "c8d781fe69ef5f8c92e4564e2e29d33510cc37c100a14512741659e84b154293",
+  "appliedCoexistencePatchSHA256": "ac38be8b9473c76dbcb2dcfe2f289effe7bea891f23b459844ad698c813d5b15",
+  "canonicalRootCases": 14,
+  "originalNativeCasesRetained": 56,
+  "sourceOwnerCombinedCases": 187,
+  "sourceOwnerCombinedSuites": 11,
+  "sourceOwnerSliderCases": 133,
+  "sourceOwnerSharedCases": 54,
+  "mergedSourcePublicTypesPASSSeconds": 13.695,
+  "sourceRequirements": [
+    {
+      "requirement": "CAP.slider.001\u2013.003 render/dimensions/maxWidth",
+      "sourceCounterpartAndProof": "Existing native View root, nominal width/maxWidth300, explicit0/percent/auto, independent vertical150 fallback; original canonical-mapping assertions remain in Slider.test.tsx. Custom compatible root forwards actual props/ref/children.",
+      "remainingBoundary": "Exact arbitrary transformed/positioned hit geometry requires installed layout evidence; CSS expressions remain the standing native-dimension disposition."
+    },
+    {
+      "requirement": "CAP.slider.004\u2013.007 track/geometry/order/drag paint",
+      "sourceCounterpartAndProof": "Existing separate3-unit rail and three geometries, five action pairs and both modes retained. New optional neutral drag role affects unordered dragging only. Five theme cases prove omitted-role defaults, live replacement/removal, explicit/custom precedence, ordered independence and opaque ColorValue identity.",
+      "remainingBoundary": "Actual raster/customization observation remains open; no new palette/default values."
+    },
+    {
+      "requirement": "CAP.slider.008\u2013.011 shadow/focus/disabled",
+      "sourceCounterpartAndProof": "Original shadow, outline/offset, explicit false and disabled takeover cases preserved. Same one NativeFocusHost is the original adjustable target; painted child stays passive. State finite/editability/lifetime guards remain.",
+      "remainingBoundary": "Native focus/AT appearance and interaction require current installed proof."
+    },
+    {
+      "requirement": "CAP.slider.012\u2013.014 five style owners/aliases/final precedence",
+      "sourceCounterpartAndProof": "Original assertions preserved, including explicit name order `Quantity, First`, root IDs/events/ref and consumption. New relationship code was corrected after the preserved CAP014 assertion caught a name-order regression; current full cohort is green. No assertion was relaxed.",
+      "remainingBoundary": "Native styling/ref methods remain separate. Root `src/index.ts` needs main\u2019s coexistence merge with its newer committed overlay exports."
+    },
+    {
+      "requirement": "CAP.slider.values scalar/array/default/zero/empty/veto",
+      "sourceCounterpartAndProof": "Original56-case suite remains, including original array identity/contents, scalar/array payloads, bounds/neighbor projection, owner veto/echo and once-only end ordering. Context callbacks preserve actual scalar/array owner shape.",
+      "remainingBoundary": "Missing reset baseline now follows the explicit approved skip-only-that-member rule below; no NaN or invented finite fallback is emitted."
+    },
+    {
+      "requirement": "CAP.slider.gestures coordinates/nearest/grab offset/multi-pointer/retirement",
+      "sourceCounterpartAndProof": "Existing cases preserve measured coordinate and pointer invariants, target minimums, endpoint insets, delayed/final measurement, cancellation and current owner authority. Added original-track leases retire callbacks across actual root replacement.",
+      "remainingBoundary": "Real transformed hit-region/raster/native responder arbitration remains G01\u2019s explicit required native-layout verification boundary plus G02/G07/G08 scenarios; this source packet does not close it."
+    },
+    {
+      "requirement": "CAP.slider.state-format state/formatters/naming/actions",
+      "sourceCounterpartAndProof": "Existing public state methods and disposable output formatter input retained. Context exposes exact current isolated state; nested context restores outer state. Original per-thumb actions use the same finite/editability path and stale-target guards.",
+      "remainingBoundary": "Native original-host accessibility action delivery/spoken values must be observed."
+    },
+    {
+      "requirement": "Inherited root render/state context",
+      "sourceCounterpartAndProof": "Compatible custom native root replacement now receives merged actual View ref/props, owned children and current render state; five root-render cases prove original refs and consumer editor state, dropped-ref warning, stale-track retirement and nested state isolation.",
+      "remainingBoundary": "Unsupported renderer dropping the real ref is diagnosed rather than replaced with a fabricated object. Native layout remains separate."
+    },
+    {
+      "requirement": "Inherited prop/slot context and callback types",
+      "sourceCounterpartAndProof": "Existing useNativeContextProps/useNativeCollectionRefs implement default/named/null/missing slots, props/style/event/ref merge and caller precedence. Six cases plus real scalar-form case prove exact original events/values/callback owners/current refs. Unanchored callback default is canonical number-or-array; locally anchored scalar/array remain precise; slot=null retains precise independent array default. Original unsafe number[] probe now fails TS2322.",
+      "remainingBoundary": "Main must refresh emitted declarations/frozen consumer identity because runtime/barrel/public types changed. No implicit scalar exclusion or payload conversion."
+    },
+    {
+      "requirement": "Inherited automatic I18n",
+      "sourceCounterpartAndProof": "Existing NativeLocaleProvider supplies live locale and direction, with independent explicit overrides. Four locale cases preserve refs/formatting/RTL and resolve all three queued measurement callbacks: same-direction locale replacement completes; direction replacement retires.",
+      "remainingBoundary": "Actual Intl/platform rendering and native direction/keyboard scenarios remain separate."
+    },
+    {
+      "requirement": "Inherited form/name/numeric submit/reset",
+      "sourceCounterpartAndProof": "One metadata member under each actual original adjustable host uses unchanged lane4 strict private range-thumb admission, current numeric String values, thumbNames, unnamed/disabled membership and exact object/revision receipts. Nearest actual NativeForm only: hasFormAssociation=false/formId=\"\". Upstream thumb form selector is not forwarded by the canonical wrapper; parent\u2019s mapping explicitly resolves it without new API. Twenty cases include native-order submit/reset, duplicates/short/surplus names, latest owners/defaults, root/host retirement, Activity reconnect, disabled and scalar context.",
+      "remainingBoundary": "Ordinary finite defaults and approved grown/short-default missing members are source-ready; the new native-order containing-form case proves skip does not abort the later resets or Form.onReset. Native codegen/compilation/original-form document/installed submit-reset remain main-owned."
+    },
+    {
+      "requirement": "Inherited label/description/details IDs",
+      "sourceCounterpartAndProof": "Existing nativeCompositeLabelProps/nativeAccessibilityIDs route labelID > native alias > aria alias and description/details to the same original thumb host. Unique private self-ID composes own per-thumb name with referenced group labels. Five cases cover current clearing/override/context/name requirements and original refs without hidden proxies. Explicit literal name order remains unchanged.",
+      "remainingBoundary": "Source only proves routing. Real original-node materialization, retirement, resolved label/description/details and speech remain unexecuted installed obligations; shared backend bytes unchanged."
+    },
+    {
+      "requirement": "Inherited CSS background transition",
+      "sourceCounterpartAndProof": "Private thumb paint reuses already-approved Tag motion helpers: canonical250ms ease-in-out default, optional existing theme background clock, current-paint retarget, interruptions, conservative/live Reduce Motion and opaque values. Five clock cases plus theme cases pass.",
+      "remainingBoundary": "Actual native frame/raster/Reduce Motion qualification remains separate; no native clock infrastructure introduced."
+    },
+    {
+      "requirement": "Inherited generic View-root browser/advanced-ARIA",
+      "sourceCounterpartAndProof": "Shared approval Sentinel_fa049075eeb4819199d83e63a61c5800 applies once to Slider. A private optional-never type rejects186 fields: the same188 Toaster exclusions with meaningful Slider defaultValue/onChange/slot retained, plus existing owned-children markup rejection. Ten public JSX/spread-negative cases were unused/red before explicit declarations and green after; existing scalar/array/slot/label/ref/native positive fixtures still pass. Native README documents supported counterparts and no partial inert claim.",
+      "remainingBoundary": "No meaningful Slider label/role/state/focus/keyboard/form/adjustment/child-control behavior is waived. This type/docs-only amendment does not settle the standalone key route."
+    },
+    {
+      "requirement": "Inherited modifier/composition-aware keyboard",
+      "sourceCounterpartAndProof": "Existing actual NativeFocusHost now receives the stable private nativeKeyPolicy. Only the original admitted local down frame authorizes a numeric transaction; standalone and hosted controls share the same route. Explicit plain/Shift tokens cover arrows, page/home/end, step/pageSize, RTL/vertical/neighbor bounds, scalar/array/veto/echo/latest callbacks and once-only request/end. Native binding/window/surface/epoch/sequence/eventId and actual composition/focus/target guards remain.27 new component cases plus27 real shared-session controls and27 legacy focus controls pass together.",
+      "remainingBoundary": "Native codegen/compilation and installed defaults/composition/physical reentry remain required. The accepted fresh-session risk is documented explicitly; no arbitrary JS veto or host requirement."
+    }
+  ],
+  "ownerHandoff": {
+    "path": "/tmp/codon-lane2-slider-g01-current/handoff.md",
+    "sha256": "27509735820803e4c9bff3982025a0087be17583024ffcaf55d3d0160f146c4c"
+  },
+  "standaloneInterface": {
+    "path": "/tmp/codon-lane2-slider-g01-current/standalone-interface.md",
+    "sha256": "5212fafdaaa1cd10a47090acf086db600255a5c50d8c9641a741319e673b225e"
+  },
+  "approvedPolicies": [
+    "Sentinel_5ae1ade0d358819195ac40e6dd8bd99f",
+    "Sentinel_c8c6c34740e481918f9cd3f7a54df5c7",
+    "Sentinel_fa049075eeb4819199d83e63a61c5800",
+    "Sentinel_202eb539e8708191b385c34d3d98fa82"
+  ],
+  "nativePrerequisite": {
+    "status": "PASS_ROOT_EXECUTED_EXACT_CURRENT_PROPOSAL",
+    "proposal": "/tmp/codon-slider-adoption-20261102/native-prerequisite-proposal.json",
+    "proposalSHA256": "904289fdb55096cded42b0b7c8f78ce3bb98a7ea856692d82f4182f89601d191",
+    "controller": "/tmp/codon-slider-adoption-20261102/native-controller-UNRUN.py",
+    "controllerSHA256": "2a843acded5a6788d3056f5971c94acc048f28bbb9ab4c98344ebe520007db55",
+    "offlineInputs": "/tmp/codon-slider-adoption-20261102/native-offline-preflight/inputs.json",
+    "offlineInputsSHA256": "712faa629480ab1f4bd701757684516710097c87e3e0014235e7fe257672c7b7",
+    "offlineSummary": {
+      "proposalSHA256": "904289fdb55096cded42b0b7c8f78ce3bb98a7ea856692d82f4182f89601d191",
+      "atUTC": "2026-11-02T05:40:26.520475+00:00",
+      "status": "PASS",
+      "errors": [],
+      "nativeCommandsExecuted": 0,
+      "qualification": "Concrete inputs/argv existence and file hashes only; does not establish compiler success or transitive SDK completeness",
+      "fileCount": 3386,
+      "directoryCount": 112,
+      "generatedPaths": 29,
+      "manifestSHA256": "712faa629480ab1f4bd701757684516710097c87e3e0014235e7fe257672c7b7"
+    },
+    "ownedHeaderAliasesVerified": 89,
+    "scope": "ONEinitial180sTOTAL10cleanup;13specschema/bothgens/3changedios/1realproductionCppstockNDK/full91Java;Root900ledgeronly",
+    "previousPreflightProposalSupersededUnexecuted": "b42ef5b0be5e058532d724083bb0d1c61021888e7161245c5c324282a560966c",
+    "workerNativeExecutions": 0,
+    "G01": "OPEN_actualtransformedthumbhitlayoutcannotbeclosedbycompiler",
+    "initialUnexecutedAdmissionStatus": "FINAL_CURRENT_MAIN_ALL_INPUTS_PASS_UNEXECUTED_ROOT_ONLY",
+    "execution": {
+      "status": "PASS_ROOT_EXECUTED_EXACT_CURRENT_PROPOSAL",
+      "receipt": "/tmp/codon-slider-adoption-20261102/native-execution-UNRUN/result.json",
+      "receiptSHA256": "91bbb9c19d955edd6cd326c8ac8039c1a3ad939b0d4c1bea6114d2c61a6913b2",
+      "seconds": 41.718,
+      "proposalSHA256": "904289fdb55096cded42b0b7c8f78ce3bb98a7ea856692d82f4182f89601d191",
+      "stages": [
+        "schema",
+        "ios-codegen",
+        "android-codegen",
+        "CUIFocusView-syntax",
+        "CUIInputWindow-syntax",
+        "CUIFormMetadata-syntax",
+        "FormDocumentQuery-NDK-syntax",
+        "android-javac"
+      ],
+      "nativeSourceFiles": 225,
+      "specFiles": 13,
+      "appBuilds": 0,
+      "deviceActions": 0,
+      "retries": 0,
+      "budgetRemainingSeconds": 858.282,
+      "qualification": "Schema/codegen/compiler source correspondence only; required G01 actual transformed/repositioned-thumb hit-layout remains OPEN"
+    }
+  },
+  "nativeLayout": {
+    "requiredWithinG01": true,
+    "status": "UNPROVED_NO_NATIVE_ACTIONS",
+    "authority": "roadmap3.5.12 CAP.slider.gestures and CAP.slider.inherited; ownerhandoff\u00a73/\u00a76",
+    "predicate": "Actual arbitrary repositioned/transformed thumb style and originalnativehit-region coupling, not source/compiler inference",
+    "existingWitness": "SL-A01 repeatedSystemUIANRbeforeSlidernavigation;zeroactions;all1276cellsOPEN",
+    "outsideCompilerGrant": true,
+    "finiteProposal": "/tmp/codon-slider-adoption-20261102/native-layout-execution-proposal.json",
+    "currentFixtureWitnessMissing": true,
+    "noGateRelocationOrWaiver": true
+  },
+  "currentProducerTuple": "/tmp/codon-slider-adoption-20261102/consumer-final-inputs.json",
+  "historicalFailures": "Alloriginalsource/form/ref/name/type/NaN/retirement/native/SL-A01/observer/physical/signing/owner-visualscope preserved",
+  "workerNativeOrProductOrDeviceActions": 0,
+  "rootAdoption": "NoG01PASSfromcompileronly; normalhookssourcecommitmaypreserveG01OPEN",
+  "sourceRequirementsIntegrationReconciliation": "The15 owner source mapping rows retain original receipt wording/history. ROOT current native prerequisite PASS41.718s resolves their codegen/compilation prerequisites only; actual installed/layout/input/AT obligations retain stated scopes."
+}

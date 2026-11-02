@@ -132,7 +132,8 @@ export class NativeFormController {
         !binding ||
         !descriptorMatches(binding.descriptor, candidate) ||
         binding.descriptor.hasFormAssociation !== candidate.hasFormAssociation ||
-        (binding.descriptor.ownedEditorBinding ?? "") !== (candidate.ownedEditorBinding ?? "")
+        (binding.descriptor.ownedEditorBinding ?? "") !== (candidate.ownedEditorBinding ?? "") ||
+        (binding.descriptor.ownedControlBinding ?? "") !== (candidate.ownedControlBinding ?? "")
       )
         return retired("native-document-field-registration-incomplete")
     }

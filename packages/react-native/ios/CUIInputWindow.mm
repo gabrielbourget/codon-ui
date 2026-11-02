@@ -12,6 +12,8 @@ void CUIReportInputFocusChanged(UIView *target, BOOL focused)
 
 @interface CUIPassiveKeyboardObserver : UIGestureRecognizer <UIGestureRecognizerDelegate>
 @property(nonatomic, strong) NSMutableSet<NSNumber *> *held;
+@property(nonatomic, strong) NSMutableDictionary<NSNumber *, NSNumber *> *sequences;
+@property(nonatomic, strong) NSMutableSet<NSNumber *> *repeating;
 @property(nonatomic, strong) NSMapTable<UIPress *, NSDictionary *> *records;
 - (void)observePress:(UIPress *)press phase:(NSString *)phase;
 @end
@@ -32,6 +34,8 @@ void CUIReportInputFocusChanged(UIView *target, BOOL focused)
 @property(nonatomic, strong) NSMapTable<UIView *, NSNumber *> *scopeOrder;
 @property(nonatomic, assign) NSUInteger nextScopeOrder;
 @property(nonatomic, assign) NSUInteger observedEventId;
+@property(nonatomic, assign) NSUInteger physicalKeySequence;
+@property(nonatomic, strong) NSHashTable<UIView *> *localKeyboardOwners;
 @property(nonatomic, strong) CUIPassiveKeyboardObserver *keyboardObserver;
 @property(nonatomic, strong) CUIPassiveWindowPointerObserver *pointerObserver;
 @property(nonatomic, assign) NSUInteger pointerSequence;
@@ -49,6 +53,7 @@ static CUIWindowInputState *CUIWindowInput(UIWindow *window)
     state.identity = NSUUID.UUID.UUIDString;
     state.modality = @"unknown";
     state.scopes = NSHashTable.weakObjectsHashTable;
+    state.localKeyboardOwners = NSHashTable.weakObjectsHashTable;
     state.scopeOrder = NSMapTable.weakToStrongObjectsMapTable;
     objc_setAssociatedObject(window, CUIWindowInputKey, state, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
   }
@@ -229,7 +234,7 @@ void CUIRefreshKeyboardObservation(UIWindow *window)
 {
   if (!window) return;
   CUIWindowInputState *state = CUIWindowInput(window);
-  BOOL enabled = NO;
+  BOOL enabled = state.localKeyboardOwners.allObjects.count > 0;
   for (id<CUIKeyboardObservationScope> scope in CUIInputScopes(window)) enabled |= [scope hasKeyboardObservations];
   if (enabled && !state.keyboardObserver) {
     state.keyboardObserver = [CUIPassiveKeyboardObserver new];
@@ -245,6 +250,34 @@ void CUIObserveKeyboardPress(UIPress *press, NSString *phase)
   [CUIWindowInput(press.window).keyboardObserver observePress:press phase:phase];
 }
 
+void CUIRegisterLocalKeyboardObservation(UIWindow *window, UIView *owner)
+{
+  if (!window || !owner) return;
+  [CUIWindowInput(window).localKeyboardOwners addObject:owner];
+  CUIRefreshKeyboardObservation(window);
+}
+void CUIUnregisterLocalKeyboardObservation(UIWindow *window, UIView *owner)
+{
+  if (!window || !owner) return;
+  [CUIWindowInput(window).localKeyboardOwners removeObject:owner];
+  CUIRefreshKeyboardObservation(window);
+}
+NSDictionary *CUIInputKeyboardPressFrame(UIPress *press, NSString *phase)
+{
+  CUIPassiveKeyboardObserver *observer=CUIWindowInput(press.window).keyboardObserver;
+  [observer observePress:press phase:phase];
+  return [[observer.records objectForKey:press] copy];
+}
+NSUInteger CUIInputKeyboardSequence(UIWindow *window, UIKeyboardHIDUsage code)
+{
+  CUIPassiveKeyboardObserver *observer=CUIWindowInput(window).keyboardObserver;
+  return [observer.held containsObject:@(code)] ? [observer.sequences[@(code)] unsignedIntegerValue] : 0;
+}
+BOOL CUIInputKeyboardRepeating(UIWindow *window, UIKeyboardHIDUsage code)
+{
+  return [CUIWindowInput(window).keyboardObserver.repeating containsObject:@(code)];
+}
+
 @implementation CUIPassiveKeyboardObserver
 - (instancetype)init
 {
@@ -254,6 +287,8 @@ void CUIObserveKeyboardPress(UIPress *press, NSString *phase)
     self.delaysTouchesEnded = NO;
     self.delegate = self;
     _held = [NSMutableSet set];
+    _sequences = [NSMutableDictionary new];
+    _repeating = [NSMutableSet new];
     _records = [NSMapTable weakToStrongObjectsMapTable];
   }
   return self;
@@ -274,12 +309,16 @@ void CUIObserveKeyboardPress(UIPress *press, NSString *phase)
   NSDictionary *record = [self.records objectForKey:press];
   if ([record[@"timestamp"] doubleValue] == press.timestamp && [record[@"phase"] isEqual:phase]) return;
   // The original field responder and UIKit's passive recognizer can see the same press.
-  [self.records setObject:@{@"timestamp":@(press.timestamp), @"phase":phase} forKey:press];
   NSNumber *code = @(press.key.keyCode);
-  if (![phase isEqual:@"down"]) { [self.held removeObject:code]; return; }
-  BOOL repeat = [self.held containsObject:code];
-  [self.held addObject:code];
   CUIWindowInputState *state = CUIWindowInput(window);
+  BOOL down=[phase isEqual:@"down"];
+  BOOL repeat=down && [self.held containsObject:code];
+  if (repeat) [self.repeating addObject:code]; else [self.repeating removeObject:code];
+  if (down && !repeat) self.sequences[code]=@(++state.physicalKeySequence);
+  [self.records setObject:@{@"timestamp":@(press.timestamp), @"phase":phase,
+      @"sequence":self.sequences[code] ?: @0, @"repeat":@(repeat)} forKey:press];
+  if (!down) { [self.held removeObject:code]; return; }
+  [self.held addObject:code];
   NSArray *scopes = CUIInputScopes(window);
   UIView *focused = CUIInputFocusedView(window);
   BOOL captured = [focused isKindOfClass:CUIFocusView.class] && [(CUIFocusView *)focused capturesObservedKey:press.key];
@@ -294,7 +333,12 @@ void CUIObserveKeyboardPress(UIPress *press, NSString *phase)
 }
 - (void)pressesEnded:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event { [self finishPresses:presses phase:@"up"]; }
 - (void)pressesCancelled:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event { [self finishPresses:presses phase:@"cancel"]; }
-- (void)reset { [self.held removeAllObjects]; [self.records removeAllObjects]; [super reset]; }
+- (void)reset
+{
+  // A local lease must not turn a recognizer reset into an invented physical release.
+  if (!CUIWindowInput((UIWindow *)self.view).localKeyboardOwners.allObjects.count) { [self.held removeAllObjects]; [self.repeating removeAllObjects]; }
+  [self.records removeAllObjects]; [super reset];
+}
 @end
 
 NSString *CUIInputKeyName(UIKey *key)

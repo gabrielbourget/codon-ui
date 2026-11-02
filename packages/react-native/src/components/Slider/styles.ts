@@ -26,11 +26,11 @@ export const getSliderThumbStyles = (
   if (custom.width !== undefined) paint.width = "100%"
   if (custom.height !== undefined) paint.height = "100%"
   const action = props.order ? theme.actions[props.order] : undefined
-  const color =
-    props.thumbColor ??
-    (dragging
-      ? (action?.hoverBackground ?? (theme.mode === "dark" ? "#9e9e9e" : "#474747"))
-      : (action?.background ?? theme.colors.controlForeground))
+  const neutralDragged = theme.mode === "dark" ? "#9e9e9e" : "#474747"
+  const dragged = props.order
+    ? (action?.hoverBackground ?? neutralDragged)
+    : (theme.colors.controlDraggedBackground ?? neutralDragged)
+  const color = props.thumbColor ?? (dragging ? dragged : (action?.background ?? theme.colors.controlForeground))
   return {
     layout: {
       width: Math.max(target, size.width),

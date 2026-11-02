@@ -26,6 +26,11 @@ NSArray<UIView *> *CUIInputScopes(UIWindow *window);
 NSInteger CUINextInputPolicyOrder(UIWindow *window);
 void CUIRefreshKeyboardObservation(UIWindow *window);
 void CUIObserveKeyboardPress(UIPress *press, NSString *phase);
+void CUIRegisterLocalKeyboardObservation(UIWindow *window, UIView *owner);
+void CUIUnregisterLocalKeyboardObservation(UIWindow *window, UIView *owner);
+NSDictionary *CUIInputKeyboardPressFrame(UIPress *press, NSString *phase);
+NSUInteger CUIInputKeyboardSequence(UIWindow *window, UIKeyboardHIDUsage code);
+BOOL CUIInputKeyboardRepeating(UIWindow *window, UIKeyboardHIDUsage code);
 void CUIRefreshWindowPointerObservation(UIWindow *window);
 void CUIActivateWindowPointer(UIView *target);
 

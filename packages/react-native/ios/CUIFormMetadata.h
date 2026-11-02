@@ -8,6 +8,7 @@
 @property (nonatomic, assign) NSInteger originalTarget;
 @property (nonatomic, copy) NSString *semanticBinding;
 @property (nonatomic, copy) NSString *ownedEditorBinding;
+@property (nonatomic, copy) NSString *ownedControlBinding;
 - (BOOL)isFieldBinding;
 - (NSDictionary *)formMountSnapshot;
 - (NSString *)formTransactionWitness;

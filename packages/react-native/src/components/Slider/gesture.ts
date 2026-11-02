@@ -9,6 +9,7 @@ type TPoint = { id: string; x: number; y: number }
 type TRect = { x: number; y: number; width: number; height: number }
 type TCycle = {
   token: number
+  originalTrack: View
   revision: number
   points: TPoint[]
   ended: boolean
@@ -32,6 +33,7 @@ export const sliderInset = (extent: number, target: number) => (extent > target 
 export const useNativeSliderGesture = (
   numeric: ReturnType<typeof useNativeSliderState>,
   track: { current: View | null },
+  renderTrack: { target: View | null },
   targets: { current: Map<number, View> },
   bodies: { current: Map<number, View> },
   orientation: TNativeSliderOrientation,
@@ -54,7 +56,8 @@ export const useNativeSliderGesture = (
   useLayoutEffect(() => {
     if (
       cycles.current.size &&
-      (previous.current.config !== config ||
+      ([...cycles.current.values()].some((cycle) => cycle.originalTrack !== track.current) ||
+        previous.current.config !== config ||
         previous.current.revision !== numeric.revision.current ||
         numeric.state.isDisabled)
     )
@@ -71,6 +74,10 @@ export const useNativeSliderGesture = (
   }, [])
   const valid = (cycle: TCycle, id: string) => {
     if (!mounted.current || cycles.current.get(id) !== cycle) return false
+    if (cycle.originalTrack !== track.current) {
+      cycles.current.delete(id)
+      return false
+    }
     const numeric = latest.current.numeric
     if (
       cycle.revision !== numeric.revision.current ||
@@ -106,14 +113,16 @@ export const useNativeSliderGesture = (
     const percent = cycle.startPercent! + (reverse ? -delta : delta)
     state.setThumbPercent(cycle.index, Math.min(1, Math.max(0, percent)))
   }
+  const isOriginalTrack = () => renderTrack.target !== null && renderTrack.target === track.current
   const start = (event: GestureResponderEvent) => {
-    if (latest.current.numeric.state.isDisabled || !track.current) return
+    if (!isOriginalTrack() || latest.current.numeric.state.isDisabled || !track.current) return
     for (const point of points(event)) {
       const existing = cycles.current.get(point.id)
       if (existing && !existing.ended && valid(existing, point.id)) continue
       if (existing) cycles.current.delete(point.id)
       const cycle: TCycle = {
         token: ++token.current,
+        originalTrack: track.current,
         revision: latest.current.numeric.revision.current,
         points: [],
         ended: false,
@@ -190,6 +199,7 @@ export const useNativeSliderGesture = (
     }
   }
   const move = (event: GestureResponderEvent, ended = false) => {
+    if (!isOriginalTrack()) return
     for (const point of points(event)) {
       const cycle = cycles.current.get(point.id)
       if (!cycle || !valid(cycle, point.id)) continue
@@ -214,25 +224,27 @@ export const useNativeSliderGesture = (
     | "onResponderTerminationRequest"
   > = {
     onStartShouldSetResponderCapture: () =>
+      isOriginalTrack() &&
       !latest.current.numeric.state.isDisabled &&
       latest.current.numeric.state.values.some((_, index) => latest.current.numeric.state.isThumbEditable(index)),
-    onMoveShouldSetResponderCapture: () => cycles.current.size > 0,
+    onMoveShouldSetResponderCapture: () => isOriginalTrack() && cycles.current.size > 0,
     onResponderGrant: (event) => {
       start(event)
       // RN consumes this return value to block native ScrollView interception.
-      return cycles.current.size > 0
+      return isOriginalTrack() && cycles.current.size > 0
     },
     onResponderStart: start,
     onResponderMove: (event) => move(event),
     onResponderEnd: (event) => move(event, true),
     onResponderRelease: (event) => move(event, true),
     onResponderTerminate: () => {
+      if (!isOriginalTrack()) return
       for (const [id, cycle] of cycles.current) {
         if (cycle.frame) finish(cycle, id)
         else cycles.current.delete(id)
       }
     },
-    onResponderTerminationRequest: () => cycles.current.size === 0,
+    onResponderTerminationRequest: () => !isOriginalTrack() || cycles.current.size === 0,
   }
   return { handlers, retire }
 }

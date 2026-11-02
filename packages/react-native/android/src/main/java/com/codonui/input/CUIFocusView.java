@@ -62,6 +62,10 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   private String nativeScrollAnchorKey = "";
   private String nativeScrollAnchorRevision = "";
   private CUIFormActionLease formAction;
+  private CUIFormActionLease localKeyLease;
+  private Set<String> localKeyTokens = new HashSet<>();
+  private final Set<Integer> localKeySuppressed = new HashSet<>();
+  private long localKeyEventId;
   private CUIFocusWithinObserver focusWithin;
 
   public CUIFocusView(ThemedReactContext context) {
@@ -125,6 +129,52 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   void synchronizeFormAction() { if (formAction != null) formAction.snapshot(); }
   void retireFormAction() { if (formAction != null) formAction.invalidate(); formAction = null; }
   org.json.JSONObject formActionSnapshot() { return formAction == null ? null : formAction.snapshot(); }
+  private org.json.JSONObject localKeyEnvironment() throws org.json.JSONException {
+    View focused = getRootView().findFocus();
+    boolean composing = false;
+    if (focused instanceof android.widget.EditText) {
+      android.text.Editable text = ((android.widget.EditText)focused).getText();
+      composing = text != null && android.view.inputmethod.BaseInputConnection.getComposingSpanStart(text) >= 0;
+    }
+    if (focused instanceof CUIDateSegment) composing = ((CUIDateSegment)focused).isSegmentComposing();
+    return formActionEnvironment().put("enabled", keyboardFocusable && isEnabled())
+      .put("focusedTarget", focused == null ? 0 : Math.max(0,focused.getId())).put("isComposing",composing);
+  }
+  private void emitLocalKeyStatus(org.json.JSONObject snapshot) {
+    if (snapshot == null) return;
+    WritableMap data = baseData(); data.putString("kind","key-status"); data.putString("localFrame",snapshot.toString());
+    emit("topNativeKey",data);
+  }
+  void setNativeKeyBinding(String encoded) {
+    try {
+      org.json.JSONObject binding = new org.json.JSONObject(encoded);
+      org.json.JSONArray tokens = binding.getJSONArray("tokens");
+      Set<String> next = new HashSet<>();
+      for (int index=0;index<tokens.length();index++) next.add(tokens.getString(index));
+      localKeyTokens=next;
+      if (localKeyLease == null) {
+        java.lang.ref.WeakReference<CUIFocusView> weak=new java.lang.ref.WeakReference<>(this);
+        localKeyLease=new CUIFormActionLease(this, () -> {
+          CUIFocusView view=weak.get();
+          if (view == null) throw new IllegalStateException("local-key-target-retired");
+          return view.localKeyEnvironment();
+        }, snapshot -> {
+          CUIFocusView view=weak.get(); if (view == null) return;
+          view.cancelHeldKeys(); view.emitLocalKeyStatus(snapshot);
+        });
+      }
+      localKeyLease.configure(encoded);
+    } catch (Exception invalid) { retireLocalKeys(); }
+  }
+  void synchronizeLocalKeys() { if (localKeyLease != null) localKeyLease.snapshot(); }
+  void retireLocalKeys() {
+    if (localKeyLease != null) { cancelHeldKeys(); localKeyLease.invalidate(); }
+    localKeyLease=null; localKeyTokens.clear();
+  }
+  private boolean localKeysEligible(org.json.JSONObject snapshot) {
+    return snapshot != null && snapshot.optBoolean("attached") && snapshot.optBoolean("active") && snapshot.optBoolean("enabled") &&
+      snapshot.optInt("focusedTarget") == getId() && !snapshot.optBoolean("isComposing");
+  }
   void setNativeFocusWithinBinding(String binding) {
     if (binding == null || binding.isEmpty()) { retireFocusWithin(); return; }
     if (focusWithin == null) {
@@ -192,7 +242,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   void synchronizeMotionColors() { motionColors.updateOwner(ownerId, nativeMotionColorObservation); motionColors.synchronize(); }
   void invalidateMotionColors() { motionColors.invalidate(); }
   void sampleMotionColors(String owner, String requestId, String request) { synchronizeMotionColors(); motionColors.sample(owner, requestId, request); }
-  @Override protected void onAttachedToWindow() { super.onAttachedToWindow(); foreground.attached(); if (motionColors != null) motionColors.attached(); if (motionGeometry != null) motionGeometry.attached(); if (formAction != null) formAction.attachmentChanged(true); synchronizeFocusWithin(); }
+  @Override protected void onAttachedToWindow() { super.onAttachedToWindow(); foreground.attached(); if (motionColors != null) motionColors.attached(); if (motionGeometry != null) motionGeometry.attached(); if (formAction != null) formAction.attachmentChanged(true); if (localKeyLease != null) localKeyLease.attachmentChanged(true); synchronizeFocusWithin(); }
   @Override protected void drawableStateChanged() { super.drawableStateChanged(); if (motionColors != null) motionColors.synchronize(); }
   @Override protected void onConfigurationChanged(android.content.res.Configuration configuration) { super.onConfigurationChanged(configuration); if (motionColors != null) motionColors.synchronize(); }
 
@@ -371,7 +421,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   }
 
   private void emitKey(KeyEvent event, boolean down, boolean cancelled, boolean handled) {
-    if (CUIKeyboardScope.routeOriginalToolbarKey(this,event,down,cancelled,handled)) return;
+    if (localKeyLease == null && CUIKeyboardScope.routeOriginalToolbarKey(this,event,down,cancelled,handled)) return;
     WritableMap data = baseData();
     data.putString("kind", "keyboard");
     data.putString("key", CUIInputWindow.keyName(event));
@@ -391,10 +441,23 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
     data.putString("nativeModifierData", Integer.toUnsignedString(event.getMetaState()));
     data.putBoolean("nativeDefaultHandled", handled);
     data.putDouble("timestamp", cancelled ? SystemClock.uptimeMillis() : event.getEventTime());
+    if (localKeyLease != null) {
+      org.json.JSONObject snapshot=localKeyLease.snapshot();
+      if (snapshot == null) return;
+      emitLocalKeyStatus(snapshot);
+      try {
+        org.json.JSONObject frame=new org.json.JSONObject(snapshot.toString());
+        frame.put("eventId",++localKeyEventId).put("admitted",down && !cancelled && handled && localKeysEligible(snapshot) &&
+          !localKeySuppressed.contains(event.getKeyCode()) && localKeyTokens.contains(CUIInputWindow.keyToken(event)));
+        data.putString("localFrame",frame.toString());
+      } catch (org.json.JSONException unavailable) { return; }
+    }
     emit("topNativeKey", data);
   }
 
   boolean capturesObservedKey(KeyEvent event) {
+    if (localKeyLease != null) return keyboardFocusable && localKeysEligible(localKeyLease.snapshot()) &&
+      (event.getRepeatCount()==0 || consumed.contains(event.getKeyCode())) && !localKeySuppressed.contains(event.getKeyCode()) && localKeyTokens.contains(CUIInputWindow.keyToken(event));
     return keyboardFocusable && isFocused() && (held.get(event.getKeyCode()) != null ? consumed.contains(event.getKeyCode()) : capturedKeys.contains(CUIInputWindow.keyToken(event)));
   }
   String fieldInputOwnerId() { return ownerId; }
@@ -409,10 +472,17 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
     int code = event.getKeyCode();
     boolean down = event.getAction() == KeyEvent.ACTION_DOWN;
     boolean handled = consumed.contains(code);
+    if (localKeyLease != null && down) {
+      org.json.JSONObject snapshot=localKeyLease.snapshot();
+      if (event.getRepeatCount()==0) localKeySuppressed.remove(code);
+      else if (held.get(code)==null) localKeySuppressed.add(code);
+      handled=localKeysEligible(snapshot) && (event.getRepeatCount()==0 || consumed.contains(code)) && !localKeySuppressed.contains(code) && localKeyTokens.contains(CUIInputWindow.keyToken(event));
+      if (down && event.getRepeatCount()>0 && !handled) localKeySuppressed.add(code);
+    }
     if (down) {
-      if (held.get(code) == null) handled = capturedKeys.contains(CUIInputWindow.keyToken(event));
+      if (localKeyLease == null && held.get(code) == null) handled = capturedKeys.contains(CUIInputWindow.keyToken(event));
       held.put(code, new KeyEvent(event));
-      if (handled) consumed.add(code);
+      if (handled) consumed.add(code); else if (localKeyLease != null) consumed.remove(code);
     }
     origin = "keyboard";
     CUIInputWindow.record(this, "keyboard");
@@ -420,11 +490,19 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
     if (!down) {
       held.remove(code);
       consumed.remove(code);
+      localKeySuppressed.remove(code);
     }
     return handled || super.dispatchKeyEvent(event);
   }
 
   void cancelHeldKeys() {
+    if (localKeyLease != null) {
+      SparseArray<KeyEvent> retiring=held.clone(); Set<Integer> captured=new HashSet<>(consumed);
+      for (int index=0;index<retiring.size();index++) localKeySuppressed.add(retiring.keyAt(index));
+      held.clear(); consumed.clear();
+      for (int index=0;index<retiring.size();index++) emitKey(retiring.valueAt(index),false,true,captured.contains(retiring.keyAt(index)));
+      return;
+    }
     for (int index = 0; index < held.size(); index++) {
       int code = held.keyAt(index);
       emitKey(held.valueAt(index), false, true, consumed.contains(code));
@@ -436,6 +514,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   @Override
   protected void onFocusChanged(boolean focused, int direction, Rect previous) {
     super.onFocusChanged(focused, direction, previous);
+    synchronizeLocalKeys();
     if (!focused) cancelHeldKeys();
     WritableMap data = baseData();
     data.putBoolean("isFocused", focused);
@@ -464,6 +543,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
     foreground.detached();
     if (focusWithin != null) focusWithin.detached();
     if (formAction != null) formAction.attachmentChanged(false);
+    if (localKeyLease != null) localKeyLease.attachmentChanged(false);
     motionGeometry.detached();
     motionColors.detached();
     scrollAnchor.invalidate();
@@ -480,6 +560,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
     if (!focused) scrollAnchor.invalidate();
     if (!focused) cancelHeldKeys();
     super.onWindowFocusChanged(focused);
+    synchronizeLocalKeys();
     if (focusWithin != null) focusWithin.sample();
     motionColors.synchronize();
   }

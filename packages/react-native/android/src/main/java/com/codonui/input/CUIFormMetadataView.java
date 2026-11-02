@@ -31,6 +31,7 @@ final class CUIFormMetadataView extends CUICollectionNode implements UIManagerLi
   private int surface = -1;
   private long epoch, sequence, mountBatch;
   String ownedEditorBinding = "";
+  String ownedControlBinding = "";
   private JSONObject mountSnapshot;
   private String lastMount = "unmounted";
   private boolean observing, resumed, lastActive;
@@ -105,7 +106,7 @@ final class CUIFormMetadataView extends CUICollectionNode implements UIManagerLi
     publish(false, "retired"); disconnect(); epoch++; signature = ""; identity = ""; original.clear();
     ownerId = ""; descriptorId = ""; descriptorRevision = ""; originalTarget = 0;
     mountSnapshot = null; lastMount = "retired"; lastActive = false;
-    semanticBinding = ""; ownedEditorBinding = "";
+    semanticBinding = ""; ownedEditorBinding = ""; ownedControlBinding = "";
     resetSemanticAccessibilityFocus();
   }
 
@@ -123,6 +124,29 @@ final class CUIFormMetadataView extends CUICollectionNode implements UIManagerLi
   @Override public void onHostPause() { resumed = false; publish(isAttachedToWindow(), lastMount); refreshSemantics(); }
   @Override public void onHostDestroy() { resumed = false; setSemanticContribution(null); publish(false, "retired"); disconnect(); }
 
+  private static boolean strictDescendant(View child, View root) {
+    for (View parent = child.getParent() instanceof View ? (View)child.getParent() : null; parent != null;
+        parent = parent.getParent() instanceof View ? (View)parent.getParent() : null) if (parent == root) return true;
+    return false;
+  }
+  private boolean isOwnedRangeThumb(View target, int currentSurface) {
+    try {
+      if (!(target instanceof CUIFocusView) || !ownedEditorBinding.isEmpty() || !semanticBinding.isEmpty() || currentSurface <= 0) return false;
+      JSONObject value = new JSONObject(ownedControlBinding);
+      if (value.length() != 2 || !"range-thumb".equals(value.get("kind"))) return false;
+      Object tag = value.get("rootTarget");
+      if (!(tag instanceof Number)) return false;
+      double number = ((Number)tag).doubleValue();
+      if (!Double.isFinite(number) || number <= 0 || number > Integer.MAX_VALUE || Math.floor(number) != number) return false;
+      View root = manager.resolveView((int)number);
+      Object role = target.getTag(com.facebook.react.R.id.role);
+      if (role == null) role = target.getTag(com.facebook.react.R.id.accessibility_role);
+      boolean adjustable = role != null && ("adjustable".equalsIgnoreCase(role.toString()) || "slider".equalsIgnoreCase(role.toString()));
+      return root instanceof ReactViewGroup && !(root instanceof CUICollectionNode) && !(root instanceof CUIDateSegment) &&
+        root != target && root.isAttachedToWindow() && CUIInputWindow.identity(this).equals(CUIInputWindow.identity(root)) &&
+        strictDescendant(target, root) && strictDescendant(this, target) && adjustable;
+    } catch (Exception retired) { return false; }
+  }
   private void publish(boolean attached, String mountRevision) {
     if (ownerId == null || ownerId.isEmpty() || descriptorId.isEmpty() || descriptorRevision.isEmpty()) { mountSnapshot = null; return; }
     attached &= isAttachedToWindow();
@@ -132,12 +156,13 @@ final class CUIFormMetadataView extends CUICollectionNode implements UIManagerLi
       try { target = manager.resolveView(originalTarget); } catch (RuntimeException unavailable) { target = null; }
     }
     int currentSurface = UIManagerHelper.getSurfaceId(this);
-    String currentIdentity = new JSONArray().put(ownerId).put(descriptorId).put(descriptorRevision).put(originalTarget).put(ownedEditorBinding).toString();
+    String currentIdentity = new JSONArray().put(ownerId).put(descriptorId).put(descriptorRevision).put(originalTarget).put(ownedEditorBinding).put(ownedControlBinding).toString();
     if (!window.equals(currentWindow) || original.get() != target || !identity.equals(currentIdentity) || surface != currentSurface) {
       epoch++; window = currentWindow; original = new WeakReference<>(target); identity = currentIdentity; surface = currentSurface;
     }
     boolean ownedDate = fieldBinding && !ownedEditorBinding.isEmpty();
-    boolean correctType = ownedDate ? target != null && CUIOwnedDateField.resolve(manager, this, ownedEditorBinding, originalTarget, currentSurface) == target :
+    boolean ownedControl = fieldBinding && !ownedControlBinding.isEmpty();
+    boolean correctType = ownedControl ? isOwnedRangeThumb(target, currentSurface) : ownedDate ? target != null && CUIOwnedDateField.resolve(manager, this, ownedEditorBinding, originalTarget, currentSurface) == target :
       fieldBinding ? target instanceof ReactEditText : target instanceof ReactViewGroup && !(target instanceof CUICollectionNode);
     boolean metadataOnly = isMetadataOnly();
     boolean complete = attached && surface > 0 && !window.isEmpty() && target != null && target.isAttachedToWindow()

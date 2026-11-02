@@ -205,6 +205,7 @@ export type {
 } from "./components/FormField/types"
 
 export { Slider } from "./components/Slider/Slider"
+export { NativeSliderContext, NativeSliderStateContext } from "./components/Slider/context"
 export type {
   TNativeSliderProps,
   TNativeSliderProps as SliderProps,
@@ -212,6 +213,7 @@ export type {
   TNativeSliderState,
   TNativeSliderRenderState,
   TNativeSliderStyleState,
+  TNativeSliderRootRender,
   TNativeSliderValue,
   TNativeSliderOrientation,
   TNativeSliderDirection,

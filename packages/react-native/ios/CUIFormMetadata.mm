@@ -1,6 +1,8 @@
 #import "CUIFormMetadata.h"
 #import "CUIInputWindow.h"
 #import "CUIOwnedDateField.h"
+#import "CUIFocusView.h"
+#import <cmath>
 #import <React/RCTMountingTransactionObserving.h>
 #import <React/RCTTextInputComponentView.h>
 #import <react/renderer/components/CodonNativeInputSpec/EventEmitters.h>
@@ -40,6 +42,7 @@ using namespace facebook::react;
     _lastMount = @"unmounted";
     self.semanticBinding = @"";
     self.ownedEditorBinding = @"";
+    self.ownedControlBinding = @"";
     _applicationActive = UIApplication.sharedApplication.applicationState == UIApplicationStateActive;
     for (NSString *name in @[UIApplicationWillResignActiveNotification, UIApplicationDidBecomeActiveNotification,
         UISceneWillDeactivateNotification, UISceneDidActivateNotification, UIWindowDidBecomeKeyNotification, UIWindowDidResignKeyNotification])
@@ -118,6 +121,25 @@ using namespace facebook::react;
   _windowId = self.window ? CUIInputWindowIdentity(self.window) : @"";
   [self publish:self.window != nil surface:_surface mount:_lastMount];
 }
+- (BOOL)isOwnedRangeThumb:(UIView *)original surface:(SurfaceId)surface
+{
+  @try {
+    if (![original isKindOfClass:CUIFocusView.class] || self.ownedEditorBinding.length || self.semanticBinding.length || surface <= 0) return NO;
+    id value = [NSJSONSerialization JSONObjectWithData:[self.ownedControlBinding dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
+    if (![value isKindOfClass:NSDictionary.class] || [value count] != 2 || ![value[@"kind"] isEqual:@"range-thumb"]) return NO;
+    id rootTag = value[@"rootTarget"];
+    if (![rootTag isKindOfClass:NSNumber.class] || CFGetTypeID((__bridge CFTypeRef)rootTag) == CFBooleanGetTypeID()) return NO;
+    double number = [rootTag doubleValue];
+    if (!std::isfinite(number) || number <= 0 || number > INT_MAX || std::floor(number) != number) return NO;
+    UIView *root = [self.window viewWithTag:[rootTag integerValue]];
+    id element = [(CUIFocusView *)original accessibilityElement];
+    return root != original && [root isKindOfClass:RCTViewComponentView.class] &&
+      ![root isKindOfClass:CUICollectionMetadataView.class] && ![root isKindOfClass:RCTTextInputComponentView.class] &&
+      ![root isKindOfClass:CUIDateSegment.class] && root.window == self.window &&
+      [original isDescendantOfView:root] && self != original && [self isDescendantOfView:original] &&
+      ([element accessibilityTraits] & UIAccessibilityTraitAdjustable);
+  } @catch (NSException *retired) { return NO; }
+}
 - (void)publish:(BOOL)attached surface:(SurfaceId)surface mount:(NSString *)mount
 {
   if (!_eventEmitter || !self.ownerId.length || !self.descriptorId.length || !self.descriptorRevision.length) { _mountSnapshot = nil; return; }
@@ -127,7 +149,7 @@ using namespace facebook::react;
     original = bound.tag == self.originalTarget && bound.window == self.window ? bound : [self.window viewWithTag:self.originalTarget];
   }
   attached &= self.window != nil;
-  NSData *identityData = [NSJSONSerialization dataWithJSONObject:@[self.ownerId, self.descriptorId, self.descriptorRevision, @(self.originalTarget), self.ownedEditorBinding ?: @""] options:0 error:nil];
+  NSData *identityData = [NSJSONSerialization dataWithJSONObject:@[self.ownerId, self.descriptorId, self.descriptorRevision, @(self.originalTarget), self.ownedEditorBinding ?: @"", self.ownedControlBinding ?: @""] options:0 error:nil];
   if (!identityData) return;
   NSString *identity = [[NSString alloc] initWithData:identityData encoding:NSUTF8StringEncoding];
   UIView *editor = [self isFieldBinding] && [original isKindOfClass:RCTTextInputComponentView.class] ?
@@ -136,7 +158,8 @@ using namespace facebook::react;
     _epoch++; _boundOriginal = original; _boundEditor = editor; _identity = identity; _surface = surface;
   }
   BOOL ownedDate = [self isFieldBinding] && self.ownedEditorBinding.length;
-  BOOL correctType = ownedDate ? CUIResolveOwnedDateField(self, self.ownedEditorBinding, self.originalTarget, surface) == original && original != nil :
+  BOOL ownedControl = [self isFieldBinding] && self.ownedControlBinding.length;
+  BOOL correctType = ownedControl ? [self isOwnedRangeThumb:original surface:surface] : ownedDate ? CUIResolveOwnedDateField(self, self.ownedEditorBinding, self.originalTarget, surface) == original && original != nil :
     [self isFieldBinding] ? [original isKindOfClass:RCTTextInputComponentView.class] &&
       ([editor isKindOfClass:UITextField.class] || [editor isKindOfClass:UITextView.class]) :
       [original isKindOfClass:RCTViewComponentView.class] && ![original isKindOfClass:CUICollectionMetadataView.class];
@@ -194,6 +217,7 @@ using namespace facebook::react;
   _transactionWitness = nil;
   self.originalTarget = 0;
   self.ownedEditorBinding = @"";
+  self.ownedControlBinding = @"";
   self.semanticBinding = @"";
   [super prepareForRecycle];
 }
@@ -239,6 +263,7 @@ using namespace facebook::react;
   self.descriptorRevision = [NSString stringWithUTF8String:value.descriptorRevision.c_str()];
   self.originalTarget = value.editorTarget;
   self.ownedEditorBinding = [NSString stringWithUTF8String:value.ownedEditorBinding.c_str()];
+  self.ownedControlBinding = [NSString stringWithUTF8String:value.ownedControlBinding.c_str()];
   self.semanticBinding = [NSString stringWithUTF8String:value.semanticBinding.c_str()];
   [super updateProps:props oldProps:oldProps];
 }

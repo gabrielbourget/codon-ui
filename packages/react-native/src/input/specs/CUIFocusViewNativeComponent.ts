@@ -9,6 +9,7 @@ import type {
 } from "react-native/Libraries/Types/CodegenTypes"
 
 export type NativeKeyData = Readonly<{
+  localFrame?: string
   kind: string
   ownerId: string
   target: Int32
@@ -177,6 +178,7 @@ export interface NativeProps extends ViewProps {
   nativeFocusWithinBinding?: string
   onNativeFocusWithin?: DirectEventHandler<NativeFocusWithinData>
   nativeFormActionBinding?: string
+  nativeKeyBinding?: string
   onNativeFormActionStatus?: DirectEventHandler<NativeFormActionStatus>
   nativeCollectionBinding?: string
   nativeCollectionSemantics?: string

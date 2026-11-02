@@ -1,4 +1,5 @@
 import { decodeNativeDateFieldBinding } from "./dateSegments"
+import { decodeNativeRangeThumbBinding } from "./rangeThumb"
 
 export type TNativeFormDocumentNode = Readonly<{
   target: number
@@ -7,6 +8,7 @@ export type TNativeFormDocumentNode = Readonly<{
   hidden: boolean
   displayNone: boolean
   dateSegmentOwner?: string
+  rangeThumb?: boolean
 }>
 export type TNativeFormDescriptor = Readonly<{
   ownerId: string
@@ -18,7 +20,7 @@ export type TNativeFormDescriptor = Readonly<{
   formId: string
 }>
 export type TNativeFieldDescriptor = TNativeFormDescriptor &
-  Readonly<{ hasFormAssociation: boolean; ownedEditorBinding?: string }>
+  Readonly<{ hasFormAssociation: boolean; ownedEditorBinding?: string; ownedControlBinding?: string }>
 export type TNativeFormDocument = Readonly<{
   documentId: string
   surfaceId: number
@@ -87,6 +89,9 @@ export const decodeNativeFormDocument = (
         hidden: boolean(node.hidden),
         displayNone: boolean(node.displayNone),
         ...(node.component === "CUIDateSegment" ? { dateSegmentOwner: text(node.dateSegmentOwner) } : {}),
+        ...(node.component === "CUIFocusView" && node.rangeThumb !== undefined
+          ? { rangeThumb: boolean(node.rangeThumb) }
+          : {}),
       }),
     )
   }
@@ -125,6 +130,35 @@ export const decodeNativeFormDocument = (
     const result = descriptor(value, "CUIFieldBinding")
     const editor = nodes[positions.get(result.target) ?? -1]
     const owned = object(value).ownedEditorBinding
+    const control = object(value).ownedControlBinding
+    if (control !== undefined && control !== "") {
+      if (owned !== undefined && owned !== "") fail()
+      const encoded = text(control)
+      const binding = decodeNativeRangeThumbBinding(encoded)
+      const root = nodes[positions.get(binding.rootTarget) ?? -1]
+      const descendant = (target: number, ancestor: number) => {
+        let current = nodes[positions.get(target) ?? -1]?.parent ?? 0
+        while (current) {
+          if (current === ancestor) return true
+          current = nodes[positions.get(current) ?? -1]?.parent ?? 0
+        }
+        return false
+      }
+      if (
+        editor?.component !== "CUIFocusView" ||
+        editor.rangeThumb !== true ||
+        !root ||
+        !["View", "CUIFocusView"].includes(root.component) ||
+        !descendant(result.target, binding.rootTarget) ||
+        !descendant(result.metadataTarget, result.target)
+      )
+        fail()
+      return Object.freeze({
+        ...result,
+        hasFormAssociation: boolean(object(value).hasFormAssociation),
+        ownedControlBinding: encoded,
+      })
+    }
     if (owned !== undefined && owned !== "") {
       const encoded = text(owned),
         binding = decodeNativeDateFieldBinding(encoded)
