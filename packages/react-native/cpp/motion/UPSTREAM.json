@@ -1,5 +1,5 @@
 {
-  "scope": "Private immutable Fabric isolated-layout query with independently owned Yoga stages, state-adopted layouts and audited intrinsic callbacks; scoped authored/presentation separation, CUI drawing and actual initial values. No mounted measurement styles or editor/ref replacement. Complete native fidelity, unsupported authority, continuous overlap, current consumers/products and full Card remain required.",
+  "scope": "Retained actual Fabric snapshots, viewport, pop presentation and native style services. Scratch Yoga, hypothetical layout, initial-value queries and custom intrinsic/font-reflection providers are retired. Drawing/backdrop/foreground and installed fidelity remain independently required.",
   "reactNative": "0.86.3",
   "sourceInputs": [
     {
@@ -672,21 +672,10 @@
   "license": "LICENSE.react-native.md",
   "remaining": [
     "Installed actual UIKit/Android owner/ref/window/revision delivery, lazy registration and shrinker proof",
-    "Actual cached-editor/progress service delivery, native span/paint non-mutation, named-family registry/cache isolation, actual text-manager custom callback audit and full native intrinsic/attachment/baseline fidelity",
-    "Actual native adopted-state/constructor/RTL layout correspondence, zero-size named Teleport registry authority and editor themed-layout override authority remain required after source ports",
-    "Full style/keyframe/value adapter and source-equivalent MotionValue notifications",
     "Matching consumer/products, actual mounted/presentation fidelity, large-tree and frame performance",
     "Actual general-pop family/generation/window/ref restoration and pending-branch/module teardown proof; exact owned elliptical/shadow drawing and actual frame costs remain required after the private source integration"
   ],
   "authoredFiles": [
-    {
-      "file": "FabricLayout.cpp",
-      "sha256": "d5a070ec9ce82e2d248acdcf2cfbfb9389e49cb82771405a5464c688525b4905"
-    },
-    {
-      "file": "FabricLayout.h",
-      "sha256": "1875ab01b5f4b5e67e9637b8ce434548ff76bc16f1954b6d69e7d8dcd207372c"
-    },
     {
       "file": "FabricSnapshot.cpp",
       "sha256": "d00a9e3849673dbf0316ec9f6023a300657159e73b3bc47e91b4b7eb4f9afa71"
@@ -700,28 +689,12 @@
       "sha256": "0f05827a1672dc097ca67f6685c02d61bc95e29f6bef732d1ef614b567fcc33d"
     },
     {
-      "file": "NativeIntrinsics.cpp",
-      "sha256": "4b619e56cae3b3062fef3446f9458b1301184feafc09ef59e8ac7ec3f9a9f5fe"
-    },
-    {
-      "file": "NativeIntrinsics.h",
-      "sha256": "2bac2439662bf631277b08c2032afa59468a4d590e2d79083e28b732290558f7"
-    },
-    {
       "file": "NativeStyle.cpp",
       "sha256": "07464b5711b4b8725706ccd6b5271b2820fb43462a0741164d6b4cc63f027cb4"
     },
     {
       "file": "NativeStyle.h",
       "sha256": "495b738d6db3e85efcf248d3bfdbd4d4068cc39809b4a403fecfb5153683e8e7"
-    },
-    {
-      "file": "ScratchYoga.cpp",
-      "sha256": "0abf678e399afdb24cda6ead61102ebdf7f5b76b98ef805e7ee191549baee39a"
-    },
-    {
-      "file": "ScratchYoga.h",
-      "sha256": "8678da9e00ccaf6c90de2f862998db95bbe6d7d5c4390261406cd21aef394846"
     },
     {
       "file": "PopFrame.cpp",
@@ -733,19 +706,19 @@
     },
     {
       "file": "PopStyle.cpp",
-      "sha256": "86ab0edac1499ce86f94729f26a511f81b89cdcd1aa7d04b22e305753ed9b7c9"
+      "sha256": "9c3839aa3336a5dd5f8a0364efd015183d4cefdd5867c938f18cd711853a2964"
     },
     {
       "file": "PopStyle.h",
-      "sha256": "f566b29ad791edcebf1289d441aa38e11e1877cd2c7a38d61e48e7896ba3597f"
+      "sha256": "f5f4e8a2404fdab4a855899e04b3026743956f4a8d6ba225f11bf1906f9a277d"
     },
     {
       "file": "PopPresentation.cpp",
-      "sha256": "80952e1fbffe37bd5afd62c5d6d5678f396efadb6a79c55f3af3d463b0ab5323"
+      "sha256": "bc939eea44235041b6e1fe0b83ee2b3c92c0be8cb9fe57f16d9b37f0d32ca057"
     },
     {
       "file": "PopPresentation.h",
-      "sha256": "66a0fccf4c87a98547bc2cb9c9304a5006d166acdef70cb4ffa2e01a6cecdcd8"
+      "sha256": "07f7850ab3fcdb36e1a00872e465d9b99c9c4e76d582f725a3ab08c41edac4c2"
     },
     {
       "file": "ViewportQuery.cpp",
@@ -754,90 +727,34 @@
     {
       "file": "ViewportQuery.h",
       "sha256": "e3e705e4d138e5a9205b2bfe2dd818155ca088a916b58a0dcccb1b4161e651f8"
-    },
-    {
-      "file": "InitialValueQuery.cpp",
-      "sha256": "b55679c0f8c780d0880070d5c2ad1907ef2ee5fa64cd09b2b6bc1981d036a5e1"
-    },
-    {
-      "file": "InitialValueQuery.h",
-      "sha256": "a6f92efcdf00d574b2bb4d011fb813d5fa4dc23569f3e1cc7c0d9ac2db67328d"
-    },
-    {
-      "file": "InitialValueStyle.cpp",
-      "sha256": "a749a239a85ff5ac570b986708f55177d887c92b46f1ccbd83af608e14971d36"
-    },
-    {
-      "file": "NativeLayoutState.cpp",
-      "sha256": "a376823e107e7a789f036d2c886e90accad26a792dce55168f6e928e167aa550"
-    },
-    {
-      "file": "NativeLayoutState.h",
-      "sha256": "08f7ac5a01742d1a1e08efe67d6580517fdd97a173ee948fde8503677cd3876b"
-    },
-    {
-      "file": "GeometryQuery.cpp",
-      "sha256": "0092c87b2f8e47d4f7c6f3afe608244464de00b80691a63fb495b4b444b0aa98"
-    },
-    {
-      "file": "GeometryQuery.h",
-      "sha256": "402fb6354c467b2a24997e3776a238ab55e4ccf73786cbcc5d396e39ec04e433"
-    },
-    {
-      "file": "NativeYogaNames.h",
-      "sha256": "6b068f2e95f8ea27a301ee89634789d06ec6e91bedaace5ee892faf02be27fb3"
-    },
-    {
-      "file": "NativeMeasuredEdges.h",
-      "sha256": "5a9a1c6ce8242810e7f081228dd5dc3245cab48ccff9f30b437bfc5155d7cac3"
-    },
-    {
-      "file": "NativeTransformValue.h",
-      "sha256": "99665f3ffd8a7afb658240e1ec755a008f399c30447e27604f2d4cf02c61bf63"
     }
   ],
   "licenseSha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93",
   "androidAuthoredFiles": [
     {
-      "file": "android/src/main/java/com/codonui/input/CUIMotionIntrinsics.java",
-      "sha256": "2038b51d9345491690645e2780408e5555fd48ce78ba2b5af72ab2c625e53019"
-    },
-    {
-      "file": "android/src/main/jni/MotionIntrinsicsJNI.cpp",
-      "sha256": "cecdf658f38c2293a4f1d47e129b4dc19ed6cf651d2649efcb8acfb688ae98da"
-    },
-    {
-      "file": "android/src/main/jni/MotionIntrinsicsJNI.h",
-      "sha256": "57bd097049066a8f1e48fa63b6165fe9837d4eefe1d79eb942d4857a44c06d49"
-    },
-    {
       "file": "android/src/main/jni/CMakeLists.txt",
-      "sha256": "3f483bf3645db9b27fa25f7fe8fbb45cbe937a9318ed19dc4fab41223ef6297b"
+      "sha256": "3ed1846c4ca6618bb00262753c61386657138c617869005d36b86efa5d471867"
     },
     {
       "file": "android/src/main/consumer-rules.pro",
-      "sha256": "6ce8ffc472dd1292431c63cbab62ce199eeb3516bde28d67b8a62c14495f0bae"
+      "sha256": "879eb42fd8e20992a9be730280d43515d143844bdcf95994f640c7e8f4c829b3"
     },
     {
       "file": "android/src/main/java/com/codonui/input/CUIMotionGeometryObserver.java",
-      "sha256": "dc92fd3cc56e33435e3d295ad7c62ffa11b86058ff5bbd6ef430905eee0e93f2",
+      "sha256": "1fe5a177787002ceb7be98af51054582a4855e7d02babfd8b958167627442c3e",
       "scope": "Private actual native geometry/mount observation. Capture retains its actual View/attached bit outside WritableNativeMap; no read of a late-appended attached key after the bridge read cache materializes."
     },
     {
       "file": "android/src/main/jni/MotionSnapshotJNI.cpp",
-      "sha256": "73da6357a49618531bdac13c471852f273b3eddcfcf8c8ae6221e61ba072712d"
+      "sha256": "3bc9882fa525ef28b74d82de7bff59eb41c12bffa2f38ca16df53d393133273e"
     },
     {
       "file": "android/src/main/java/com/codonui/input/CUIMotionSnapshotModule.java",
-      "sha256": "e5adb10d11d08c70313cd5d24f1585f93396435c569dd505ef51d36fca4c984c"
+      "sha256": "466cf0d05bf5eed1ea922b8da4b3f99fb428d85dc2d82c7101eea553412d5668"
     },
     {
       "file": "android/build.gradle",
-      "sha256": "48a0e840e33b981e3f21500b750e6b02d7cce114ddef9109d9e65eda788f5249"
-    },
-    {
-      "file": "android/src/main/java/com/codonui/input/CUIMotionFontSnapshot.java",
-      "sha256": "b4c7c194b2724891219fee04d2de75c6952d292cbfdc3e71f588d7b43d77627d"
+      "sha256": "18f81aec6d6d760bc88749f72490d06a1f841c0ddaeb00e6fcfa6458e86e546f"
     }
   ],
   "cachedSpanPolicy": {
@@ -871,11 +788,11 @@
   "popFrameFiles": [
     {
       "file": "ios/CUIMotionSnapshot.mm",
-      "sha256": "51ca1be6e1ee2d79d5388106bb52ecf4245e12cfe8990bdfbc5c99c25d7c30a9"
+      "sha256": "8d88ef238bcba00956a012b8a646825f0453dd61811155e4a369fbf859a9c1af"
     },
     {
       "file": "src/input/specs/NativeCUIMotionSnapshot.ts",
-      "sha256": "5f5133d0396e988629d2b54e59f2c3156e46ebb693e116951f6d0bc451224f80"
+      "sha256": "3b9d0e90b897ceda36ce013371f59364f61fbf53b720c4cab866f70eee4f0665"
     }
   ],
   "drawingAuthoredFiles": [
@@ -1082,5 +999,19 @@
         "PopPresentation.cpp": "e18704fb7160b00f842592d87ae3b128a7b1786e30b248e4863a02f535915811"
       }
     }
-  ]
+  ],
+  "explicitValueContract": {
+    "approved": "2026-11-02",
+    "hypotheticalLayout": "retired",
+    "initialValues": "explicit authored values or identity defaults; no native computed-style decomposition",
+    "mountedFontLayout": "ordinary RN layout retained",
+    "presenceProjectionStickyEffects": "retained, installed qualification still required",
+    "sourceInputs": "Pinned inputs and earlier evidence boundaries remain historical; they do not certify the current candidate.",
+    "historicalRetiredSections": [
+      "cachedSpanPolicy",
+      "isolatedGeometryBoundary",
+      "computedValuesBoundary",
+      "peerStateInputs"
+    ]
+  }
 }

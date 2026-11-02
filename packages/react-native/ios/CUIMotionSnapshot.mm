@@ -2,8 +2,6 @@
 #import <React/RCTInvalidating.h>
 #import <React/RCTAssert.h>
 #import <React/RCTSurfacePresenter.h>
-#import <React/RCTScheduler.h>
-#import <React/RCTConversions.h>
 #import "CUIFocusView.h"
 #import "CUIMotionGeometryObserver.h"
 #import "CUITableStickyPresentation.h"
@@ -11,20 +9,12 @@
 #include "../cpp/motion/PopFrame.h"
 #include "../cpp/motion/PopPresentation.h"
 #include "../cpp/motion/ViewportQuery.h"
-#include "../cpp/motion/InitialValueQuery.h"
-#include "../cpp/motion/GeometryQuery.h"
-#include "../cpp/motion/NativeIntrinsics.h"
-#import "CUIMotionIntrinsicText.h"
 #include <react/renderer/uimanager/UIManagerBinding.h>
 #include <folly/json.h>
 #include <atomic>
 #include <cmath>
 #include <climits>
 #include <stdexcept>
-#include <iomanip>
-#include <limits>
-#include <locale>
-#include <sstream>
 
 @interface CUIMotionSnapshot : NativeCUIMotionSnapshotSpecBase <NativeCUIMotionSnapshotSpec, RCTInvalidating>
 @end
@@ -215,81 +205,6 @@ RCT_EXPORT_MODULE(CUIMotionSnapshot)
   if (!_backdrop) _backdrop = [CUIBackdropRenderer new];
   [_backdrop request:encoded presenter:[(id)_presenter isKindOfClass:RCTSurfacePresenter.class] ?
       (RCTSurfacePresenter *)_presenter : nil resolve:resolve reject:reject];
-}
-
-- (void)getInitialValue:(NSString *)encoded resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
-  [self readOwnedSnapshot:encoded kind:1 resolve:resolve reject:reject];
-}
-
-- (void)evaluateLayout:(NSString *)encoded resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
-  [self readOwnedSnapshot:encoded kind:2 resolve:resolve reject:reject];
-}
-
-- (void)readOwnedSnapshot:(NSString *)encoded kind:(NSInteger)kind resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
-  RCTAssertMainQueue();
-  @try {
-    if (!_valid->load() || ![(id)_presenter isKindOfClass:RCTSurfacePresenter.class]) @throw [NSException exceptionWithName:@"CUI.MotionSnapshot" reason:@"motion-module-unavailable" userInfo:nil];
-    NSError *parseError = nil;
-    id request = [NSJSONSerialization JSONObjectWithData:[encoded dataUsingEncoding:NSUTF8StringEncoding] options:0 error:&parseError];
-    if (parseError || ![request isKindOfClass:NSDictionary.class]) @throw [NSException exceptionWithName:@"CUI.MotionSnapshot" reason:@"motion-request-invalid" userInfo:nil];
-    id rawTarget = request[@"target"], nonce = request[@"requestId"];
-    if (![rawTarget isKindOfClass:NSNumber.class] || CFGetTypeID((__bridge CFTypeRef)rawTarget) == CFBooleanGetTypeID() || !std::isfinite([rawTarget doubleValue]) || [rawTarget doubleValue] <= 0 || [rawTarget doubleValue] > INT_MAX || [rawTarget doubleValue] != std::floor([rawTarget doubleValue]) || ![nonce isKindOfClass:NSString.class] || ![nonce length]) @throw [NSException exceptionWithName:@"CUI.MotionSnapshot" reason:@"motion-request-invalid" userInfo:nil];
-    RCTSurfacePresenter *presenter = (RCTSurfacePresenter *)_presenter;
-    UIView *view = [presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[rawTarget integerValue]];
-    if (![view isKindOfClass:CUIFocusView.class]) @throw [NSException exceptionWithName:@"CUI.MotionSnapshot" reason:@"motion-actual-view-unavailable" userInfo:nil];
-    NSDictionary *identity = [(CUIFocusView *)view motionSnapshotIdentity];
-    if (!CUISnapshotIdentityMatches(request, identity)) @throw [NSException exceptionWithName:@"CUI.MotionSnapshot" reason:@"motion-owner-mismatch" userInfo:nil];
-    RCTScheduler *scheduler = presenter.scheduler;
-    if (!scheduler) @throw [NSException exceptionWithName:@"CUI.MotionSnapshot" reason:@"motion-scheduler-unavailable" userInfo:nil];
-    auto manager = scheduler.uiManager;
-    if (!manager) @throw [NSException exceptionWithName:@"CUI.MotionSnapshot" reason:@"motion-Fabric-unavailable" userInfo:nil];
-    try {
-      NSString *name = kind == 1 ? request[@"name"] : nil;
-      if (kind == 1 && (![name isKindOfClass:NSString.class] || !name.length)) throw std::invalid_argument("motion-value-name-invalid");
-      __block std::string result;
-      [view.traitCollection performAsCurrentTraitCollection:^{
-        const auto readColor = [view](facebook::react::SharedColor color) -> folly::dynamic {
-          UIColor *source = color ? RCTUIColorFromSharedColor(color) : UIColor.clearColor;
-          UIColor *resolved = [source resolvedColorWithTraitCollection:view.traitCollection];
-          CGFloat red, green, blue, alpha;
-          const BOOL available = resolved && [resolved getRed:&red green:&green blue:&blue alpha:&alpha];
-          const BOOL wide = resolved && CGColorSpaceIsWideGamutRGB(CGColorGetColorSpace(resolved.CGColor));
-          if (!available || wide || !std::isfinite(red) || !std::isfinite(green) || !std::isfinite(blue) || !std::isfinite(alpha) ||
-              red < 0 || red > 1 || green < 0 || green > 1 || blue < 0 || blue > 1 || alpha < 0 || alpha > 1)
-            throw std::runtime_error(wide ? "unsupported-native-color-space" : "unresolved-native-color");
-          std::ostringstream encodedColor;
-          encodedColor.imbue(std::locale::classic());
-          encodedColor << std::setprecision(std::numeric_limits<CGFloat>::max_digits10)
-              << "rgba(" << red * 255 << ", " << green * 255 << ", " << blue * 255 << ", " << alpha << ')';
-          return encodedColor.str();
-        };
-        const auto factory = [](const codon::motion::TNativeFabricSnapshot &snapshot,
-            const codon::motion::TNativeScratchPropsResolver &props, const codon::motion::TNativeFabricReadGuard &check) {
-          codon::motion::TNativeIsolatedIntrinsicServices services;
-          services.isolateEditorText = CUIIsolateMotionEditorText;
-          return codon::motion::createNativeIntrinsicResolver(snapshot, snapshot.target->getContextContainer(), services, check, props);
-        };
-        if (kind == 2) {
-          std::lock_guard sessionLock(_pop->mutex);
-          if (_pop->retired) throw std::runtime_error("motion-module-retired");
-          const auto authored = [session = _pop](const facebook::react::ShadowNode &node) {
-            return session->presentation ? session->presentation->authoredProps(node) : node.getProps();
-          };
-          result = codon::motion::queryNativeEvaluatedLayout(*manager, [rawTarget intValue],
-              [identity[@"ownerId"] UTF8String], [identity[@"bindingId"] UTF8String], [identity[@"nativeViewRevision"] UTF8String], [encoded UTF8String], factory, readColor, authored);
-        } else result = codon::motion::queryNativeInitialValue(*manager, [rawTarget intValue],
-            [identity[@"ownerId"] UTF8String], [identity[@"bindingId"] UTF8String], [identity[@"nativeViewRevision"] UTF8String], [name UTF8String], readColor);
-      }];
-      if (!_valid->load() || [presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[rawTarget integerValue]] != view || !CUISnapshotIdentityMatches(identity, [(CUIFocusView *)view motionSnapshotIdentity])) throw std::runtime_error("motion-owner-retired");
-      NSData *data = [[NSString stringWithUTF8String:result.c_str()] dataUsingEncoding:NSUTF8StringEncoding];
-      NSMutableDictionary *response = [[NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:&parseError] mutableCopy];
-      if (!response || parseError) throw std::runtime_error("motion-snapshot-invalid");
-      [response addEntriesFromDictionary:identity]; response[@"requestId"] = nonce;
-      NSData *serialized = [NSJSONSerialization dataWithJSONObject:response options:NSJSONWritingSortedKeys error:&parseError];
-      if (!serialized || parseError) throw std::runtime_error("motion-snapshot-invalid");
-      resolve([[NSString alloc] initWithData:serialized encoding:NSUTF8StringEncoding]);
-    } catch (const std::exception &failure) { reject(kind == 2 ? @"E_CUI_MOTION_LAYOUT" : @"E_CUI_MOTION_INITIAL_VALUE", [NSString stringWithUTF8String:failure.what()], nil); }
-  } @catch (NSException *failure) { reject(kind == 2 ? @"E_CUI_MOTION_LAYOUT" : @"E_CUI_MOTION_INITIAL_VALUE", failure.reason, nil); }
 }
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:(const facebook::react::ObjCTurboModule::InitParams &)params {

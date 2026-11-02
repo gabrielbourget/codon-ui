@@ -10,6 +10,7 @@ export type {
   TNativeCarouselLabels,
   TNativeCarouselLabels as CarouselLabels,
   TNativeCarouselContext,
+  TNativeCarouselScrollOptions,
   TNativeCarouselControlComponent,
   TNativeCarouselControlComponent as CarouselControlComponent,
   TNativeCarouselControlComponentProps,
@@ -19,10 +20,6 @@ export type {
   TNativeCarouselDotsProps,
   TNativeCarouselDotsProps as CarouselDotsProps,
 } from "./components/Carousel/carouselTypes"
-export type { EmblaCarouselType as TNativeCarouselApi } from "./components/Carousel/engine/EmblaCarousel"
-export type { EmblaOptionsType as TNativeCarouselOptions } from "./components/Carousel/engine/Options"
-export type { EmblaPluginType as TNativeCarouselPlugin } from "./components/Carousel/engine/Plugins"
-export type { EmblaEventType as TNativeCarouselEvent } from "./components/Carousel/engine/EventHandler"
 export type {
   TNativeCarouselCloseButtonProps,
   TNativeCarouselCloseButtonProps as CarouselCloseButtonProps,

@@ -31,6 +31,8 @@ export type TNativeMotionVelocities = Partial<Record<keyof TNativeMotionStyleVal
   Record<string, number | undefined>
 export type TNativeMotionVariantLabels = string | string[]
 export type TNativeMotionDynamicOption<T> = (index: number, total: number) => T
+/** Animated endpoints need explicit compatible values. Auto and mixed-unit layout
+ * interpolation are unsupported; use mounted layout and explicit dimensions. */
 export type TNativeMotionTargetValues = {
   [Key in keyof TNativeMotionStyleValues]?:
     | Exclude<TNativeMotionStyleValues[Key], undefined>

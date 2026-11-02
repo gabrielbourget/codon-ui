@@ -91,6 +91,7 @@ export type TNativeToggleSwitcherProps = Omit<
     isDisabled?: boolean
     isReadOnly?: boolean
     height?: TNativeDisplayDimension
+    /** A bounded width shares space equally; an auto/unbounded root uses natural option widths. */
     width?: TNativeDisplayDimension
     color?: ColorValue
     geometry?: TCornerGeometry

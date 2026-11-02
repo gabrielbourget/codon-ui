@@ -23,7 +23,6 @@ import type { TNativeMotionTarget } from "../../motion/animation/types"
 import { useNativeMotionReducedMotion } from "../../motion/config"
 import { motionValue } from "../../motion/kernel"
 import type { MotionValue } from "../../motion/kernel"
-import { readNativeMotionInitialValue } from "../../motion/measurement/initialValue"
 import { NativeMotionOwnerHost } from "../../motion/owner/NativeMotionOwnerHost"
 import { animateNativeMotionValue } from "../../motion/value/animateValue"
 import { useNativeTheme } from "../../theme"
@@ -256,29 +255,24 @@ export const SelectionIndicator = forwardRef<TNativeSelectionIndicatorRef, TNati
         }
         void readNativeMotionGeometry(root, { isCurrent: valid, onCancel: () => () => {} })
           .then(
-            async (record) => {
+            (record) => {
               if (!valid() || !record.attached || record.error || !record.snapshot) return
               geometry.current = record
               const expected = scope.peek()
               if (!expected) return
               const restored = Object.fromEntries(
-                await Promise.all(
-                  Object.keys(expected.values).map(async (name) => [
-                    name,
-                    current.current.resolved[name as keyof TextStyle] ??
-                      (await readNativeMotionInitialValue(root, name, undefined, {
-                        isCurrent: valid,
-                        onCancel: () => () => {},
-                      })),
-                  ]),
-                ),
+                Object.keys(expected.values)
+                  .filter((name) => current.current.resolved[name as keyof TextStyle] != null)
+                  .map((name) => [name, current.current.resolved[name as keyof TextStyle]]),
               )
               if (!valid() || scope.peek() !== expected) return
               const previous = scope.take(originalWindow(record))
               initialized.current = true
               if (!previous) return
               restoration.current = restored
-              const from: Record<string, unknown> = { ...previous.values }
+              const from: Record<string, unknown> = Object.fromEntries(
+                Object.keys(restored).map((name) => [name, previous.values[name]]),
+              )
               if (previous.translates && current.current.transitionProperties.includes("translate")) {
                 const next = rectangle(record)
                 translateX.set(previous.rectangle[0]! - next[0]!)

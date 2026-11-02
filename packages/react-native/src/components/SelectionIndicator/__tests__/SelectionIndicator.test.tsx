@@ -10,7 +10,6 @@ import type { TNativeMotionGeometryRecord } from "../../../input/motionGeometry"
 import { NativeFocusHost } from "../../../input/NativeFocusView"
 import { NativeMotionConfig } from "../../../motion/config"
 import { frameData, MotionGlobalConfig, time } from "../../../motion/kernel"
-import * as InitialValue from "../../../motion/measurement/initialValue"
 import { SharedElementTransition } from "../../SharedElementTransition/SharedElementTransition"
 import { ToggleButton } from "../../ToggleButton/ToggleButton"
 import { renderWithToggleKeyboard } from "../../ToggleButtonGroup/__tests__/keyboard-fixture"
@@ -374,8 +373,7 @@ it("does not apply an incoming snapshot to a receiver declaring none", async () 
   expect(Geometry.readNativeMotionGeometry).not.toHaveBeenCalled()
 })
 
-it("restores an absent authored property from the actual new native host and removes the temporary binding", async () => {
-  const nativeRead = jest.spyOn(InitialValue, "readNativeMotionInitialValue").mockResolvedValue(0.6)
+it("keeps an absent destination property on its ordinary native style without transferring outgoing paint", async () => {
   const ref = createRef<View>()
   const node = (second: boolean) => (
     <SharedElementTransition>
@@ -394,11 +392,10 @@ it("restores an absent authored property from the actual new native host and rem
   await flush(1016)
   await screen.rerender(node(true))
   await settle()
-  expect(nativeRead).toHaveBeenCalledWith(ref.current, "opacity", undefined, expect.any(Object))
+  expect(style().opacity).toBeUndefined()
   await flush(1032)
   await flush(1132)
-  expect(style().opacity).toBeGreaterThan(0.2)
-  expect(style().opacity).toBeLessThan(0.6)
+  expect(style().opacity).toBeUndefined()
   await flush(1332)
   await flush(1348)
   expect(style().opacity).toBeUndefined()
@@ -590,14 +587,14 @@ it("composes controlled typed selection veto and echo with the same group member
       <Draft />
     </ToggleButtonGroup>
   )
-  await render(node([0]))
+  const rendered = await renderWithToggleKeyboard(node([0]))
   await flush(1016)
   const originalRoot = root.current,
     originalMember = member.current,
     originalEditor = editor.current
   await fireEvent.changeText(screen.getByTestId("draft"), "kept draft")
   const activate = async (activationId: number) => {
-    const button = screen.getByRole("button", { name: "String" })
+    const button = screen.getByRole("radio", { name: "String" })
     const event = {
       persist: jest.fn(),
       nativeEvent: {
@@ -621,7 +618,7 @@ it("composes controlled typed selection veto and echo with the same group member
   expect(screen.queryByTestId("second")).toBeNull()
   expect(screen.getByTestId("first")).toBeOnTheScreen()
   nextX = 50
-  await screen.rerender(node(["0"]))
+  await rendered.rerender(node(["0"]))
   await settle()
   await flush(1032)
   expect(screen.queryByTestId("first")).toBeNull()
@@ -629,14 +626,14 @@ it("composes controlled typed selection veto and echo with the same group member
   const originalIndicator = indicator.current
   expect(originalIndicator).not.toBeNull()
   await flush(1332)
-  await screen.rerender(node(["0"]))
+  await rendered.rerender(node(["0"]))
   expect(root.current).toBe(originalRoot)
   expect(member.current).toBe(originalMember)
   expect(editor.current).toBe(originalEditor)
   expect(indicator.current).toBe(originalIndicator)
   expect(screen.getByTestId("draft")).toHaveDisplayValue("kept draft")
-  expect(screen.getByRole("button", { name: "Number" }).props.accessibilityState.checked).toBe(false)
-  expect(screen.getByRole("button", { name: "String" }).props.accessibilityState.checked).toBe(true)
+  expect(screen.getByRole("radio", { name: "Number" }).props.accessibilityState.checked).toBe(false)
+  expect(screen.getByRole("radio", { name: "String" }).props.accessibilityState.checked).toBe(true)
 })
 
 it("retires an unconsumed snapshot after exit completes instead of handing off a long-hidden indicator", async () => {

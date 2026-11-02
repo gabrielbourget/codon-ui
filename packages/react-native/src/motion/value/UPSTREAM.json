@@ -1,5 +1,5 @@
 {
-  "status": "Private native value/keyframe backend; actual geometry, complete owner/renderer/Card and installed acceptance remain required",
+  "status": "Explicit compatible value/keyframe backend; native colors, mounted geometry, presence/projection and installed acceptance remain required",
   "package": {
     "name": "motion-dom",
     "version": "12.40.0",
@@ -65,12 +65,12 @@
   "files": [
     {
       "file": "NativeValueAnimation.ts",
-      "receivedSha256": "adf9b18a048304fc1fcfee96d833cce7a8768d66bb513314c1f554a92c3e2a60",
+      "receivedSha256": "ff93cbda3bcfba0f249d1e759d098805d01cd95bfc5b45263937c5566bca6812",
       "kind": "authored-native-adapter"
     },
     {
       "file": "animateValue.ts",
-      "receivedSha256": "ed46d69f244a880ef2013e17353dabf588356bcdace63814ae2794c81e64af33",
+      "receivedSha256": "fdf896833904bc482fbe6f44942235557550d1a08a0a2fb6099d89b92d2fdab9",
       "kind": "authored-native-adapter"
     },
     {
@@ -80,7 +80,7 @@
     },
     {
       "file": "keyframes.ts",
-      "receivedSha256": "4675ef466e571dad9bd134222deb551d09406c1bba84cf109167059298863e48",
+      "receivedSha256": "8b6a85677962531486ed473a2298c7326fd4a4c27da239fa226de2e3b5f771d4",
       "kind": "authored-native-adapter"
     },
     {
@@ -90,37 +90,48 @@
     },
     {
       "file": "types.ts",
-      "receivedSha256": "711b8071a39b8a2c3697b535a04e4aab7024caecc52338aa0c2e386016720d06",
-      "kind": "authored-native-adapter"
-    },
-    {
-      "file": "isolated-probe.ts",
-      "receivedSha256": "51135fdb0512c1d5dd4c6d01c0d8304c5bb8405df8e8d6a665f8281c4c5ee41b",
+      "receivedSha256": "d8e886a8453d3217ccff4bd6c69eb9661dbc535293cdcc640be2007bf3f5c0c8",
       "kind": "authored-native-adapter"
     },
     {
       "file": "resolution-batch.ts",
-      "receivedSha256": "43a89c47e501cae0a40e054f1be1c44a185bb861bcad9638080cd0320e95df58",
+      "receivedSha256": "643a8ae86496ba6788f3e122eceb748ddc6c45738af4e328014605ffd4e6dc6d",
       "kind": "authored-native-adapter"
     },
     {
       "file": "targetKeyframes.ts",
       "receivedSha256": "5f2908983a2758f8dd5e8b6d1f21fbde48c83e4b6923a49bcc0bed36a94d6122",
       "kind": "authored-native-adapter"
+    },
+    {
+      "file": "initialValue.ts",
+      "receivedSha256": "7de9a86a84a4420cb781fad36ca12ca4eefa6da481327961588460ccbd798bd1",
+      "kind": "authored-native-adapter"
+    },
+    {
+      "file": "units.ts",
+      "receivedSha256": "f50ce95f21246877d233b8bc920eec6c63a670d46347d52b033bb8c70fba350d",
+      "kind": "authored-native-adapter"
     }
   ],
   "adaptations": [
     "Reuse the received JSAnimation driver and source transition/default/repeat/fast-path/playback semantics; no browser acceleration/handoff/DOM imports",
     "Native transform/origin/shadow/filter/font-variant arrays are scalar native values; nested arrays represent their keyframe sequences",
-    "Native asynchronous initial reads, actual color samplers and required geometry providers are cancellation/owner-generation guarded; no guessed initial bounds or native color fallback",
     "Static/single/instant endpoints retain original native representation; interpolated color/geometry results restore authored final values",
-    "Pending native measurement cannot be synchronously flushed as browser geometry can: private ready resolves before duration/iterationDuration/generator velocity are available, with explicit pending errors instead of invented metadata; time/speed/startTime/play/pause/complete requests queue in order",
     "Resolution failures reject ready/early finished and retire only their currently owned value control; stopped/cancelled source promises remain pending",
     "Actual native color queries release their timeout and cancellation listener on every terminal path; protocol/schema and public primitive APIs unchanged",
-    "Cohort registration before asynchronous initial/color resolution holds animation start until every reserved live member is normalized and settled; cancellation invalidates captures without resetting the original deadline",
-    "Original MotionValue public probes retain source callbacks and zero-velocity jumps while private render bindings mask temporary probe values; no cloned MotionValue or mounted target style",
     "Before geometry detection, numeric zero uses the existing pinned complex none-template algorithm only for valid native percentage fields and equivalent native translation/origin array leaves. Source-normalized zero endpoints remain normalized rather than restoring authored numeric zero; unsupported strings, CSS units, colors and unrelated structured fields retain their existing native authority guards.",
-    "Native scalar-array/keyframe classification is shared by the resolver and imperative/final setters through a pure module, retaining frozen array identity while keeping the orchestration graph free of React Native and DOM imports."
+    "Native scalar-array/keyframe classification is shared by the resolver and imperative/final setters through a pure module, retaining frozen array identity while keeping the orchestration graph free of React Native and DOM imports.",
+    "Initial values come from explicit motion values, initial targets or authored style, with identity defaults only. Auto/mixed-unit hypothetical layout, native initial reads and private probe masking are retired by approved contract.",
+    "Synchronous cohort registration holds playback until all live initial/color resolvers settle; cancellation and a fixed deadline remain, while unused hypothetical-stage captures are removed."
   ],
-  "verificationBoundary": "Pinned executable source models plus source-only bridge packets; no installed native color/geometry/sample/frame or complete Card acceptance claim"
+  "verificationBoundary": "Pinned executable source models plus source-only bridge packets; no installed native color/geometry/sample/frame or complete Card acceptance claim",
+  "explicitValueContract": {
+    "approved": "2026-11-02",
+    "hypotheticalLayout": "retired",
+    "initialValues": "explicit authored values or identity defaults; no native computed-style decomposition",
+    "mountedFontLayout": "ordinary RN layout retained",
+    "presenceProjectionStickyEffects": "retained, installed qualification still required",
+    "sourceInputs": "Pinned inputs and earlier evidence boundaries remain historical; they do not certify the current candidate."
+  }
 }

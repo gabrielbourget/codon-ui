@@ -8,12 +8,9 @@
 #include "PopFrame.h"
 #include "PopPresentation.h"
 #include "ViewportQuery.h"
-#include "InitialValueQuery.h"
 #include "MotionDrawingJNI.h"
 #include "BackdropJNI.h"
 #include "ForegroundJNI.h"
-#include "MotionIntrinsicsJNI.h"
-#include "GeometryQuery.h"
 #include "../../../../cpp/table/StickyPresentation.h"
 #include <folly/json.h>
 
@@ -27,37 +24,12 @@ static jni::local_ref<jstring> nativePopFrame(
   const auto uiManager = scopedManager(manager);
   return jni::make_jstring(codon::motion::queryNativePopFrame(*uiManager, request->toStdString()));
 }
-static jni::local_ref<jstring> nativeInitialValue(
-    jni::alias_ref<jclass>, jni::alias_ref<JFabricUIManager::javaobject> manager,
-    jint target, jni::alias_ref<jstring> owner, jni::alias_ref<jstring> binding,
-    jni::alias_ref<jstring> revision, jni::alias_ref<jstring> name) {
-  if (!owner || !binding || !revision || !name) throw std::invalid_argument("Native motion: initial value identity required");
-  return jni::make_jstring(codon::motion::queryNativeInitialValue(*scopedManager(manager), target,
-      owner->toStdString(), binding->toStdString(), revision->toStdString(), name->toStdString()));
-}
 static jni::local_ref<jstring> nativeViewport(
     jni::alias_ref<jclass>, jni::alias_ref<JFabricUIManager::javaobject> manager,
     jni::alias_ref<jstring> request) {
   if (!request) throw std::invalid_argument("Native viewport: request required");
   return jni::make_jstring(codon::motion::queryNativeViewport(*scopedManager(manager), request->toStdString()));
 }
-static jni::local_ref<jstring> nativeEvaluatedLayout(
-    jni::alias_ref<jclass>, jni::alias_ref<JFabricUIManager::javaobject> manager,
-    jint target, jni::alias_ref<jstring> owner, jni::alias_ref<jstring> binding,
-    jni::alias_ref<jstring> revision, jni::alias_ref<jobject> context, jni::alias_ref<jstring> request, jlong presentation) {
-  if (!owner || !binding || !revision || !context || !request)
-    throw std::invalid_argument("Native motion layout: actual owner/context required");
-  const auto factory = [context, manager](const codon::motion::TNativeFabricSnapshot &snapshot,
-      const codon::motion::TNativeScratchPropsResolver &props, const codon::motion::TNativeFabricReadGuard &check) {
-    return codon::motion::createAndroidIntrinsicResolver(snapshot, snapshot.target->getContextContainer(), context, manager, check, props);
-  };
-  const auto authored = [presentation](const ShadowNode &node) {
-    return presentation ? reinterpret_cast<codon::motion::NativePopPresentation *>(presentation)->authoredProps(node) : node.getProps();
-  };
-  return jni::make_jstring(codon::motion::queryNativeEvaluatedLayout(*scopedManager(manager), target,
-      owner->toStdString(), binding->toStdString(), revision->toStdString(), request->toStdString(), factory, {}, authored));
-}
-
 static jlong nativeCreatePop(jni::alias_ref<jclass>,
     jni::alias_ref<JFabricUIManager::javaobject> manager) {
   return reinterpret_cast<jlong>(new codon::motion::NativePopPresentation(scopedManager(manager)));
@@ -131,8 +103,6 @@ extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *) {
     registerBackdropNatives(jni::Environment::current());
     registerForegroundNatives(jni::Environment::current());
     jni::findClassStatic("com/codonui/input/CUIMotionSnapshotModule")->registerNatives({
-        makeNativeMethod("nativeInitialValue", nativeInitialValue),
-        makeNativeMethod("nativeEvaluatedLayout", nativeEvaluatedLayout),
         makeNativeMethod("nativePopFrame", nativePopFrame),
         makeNativeMethod("nativeViewport", nativeViewport),
         makeNativeMethod("nativeCreatePop", nativeCreatePop),

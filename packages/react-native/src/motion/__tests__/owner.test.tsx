@@ -274,32 +274,23 @@ it("keeps an ongoing owner lease through a caller ref/callback handoff", async (
   stop()
 })
 
-it("retires unresolved owned bindings and can resolve fresh geometry on a new attachment", async () => {
-  let initial = 20
-  const geometry = jest
-    .fn()
-    .mockImplementationOnce(() => new Promise(() => {}))
-    .mockImplementationOnce((_name: string, frames: readonly unknown[]) =>
-      Promise.resolve({ keyframes: [frames[0], 100], finalKeyframe: "auto" }),
-    )
-  const settings = options({ readValue: () => initial, resolveGeometry: geometry })
-  const owner = new NativeMotionOwner(settings),
+it("rejects implicit dimensions and accepts explicit numeric animation after attachment replacement", async () => {
+  const owner = new NativeMotionOwner(options()),
     controls = nativeAnimationControls(),
     stop = controls.mount()
   owner.attach(modeledRef())
   const unsubscribe = controls.subscribe(owner)
-  void controls.start({ width: "auto" })
-  expect(owner.getBindings()).not.toHaveProperty("width")
+  await expect(controls.start({ width: 100 })).rejects.toThrow("explicit initial value")
   owner.detach()
-  expect(owner.getValue("width")).toBeUndefined()
-  initial = 64
   owner.attach(modeledRef())
-  const pending = controls.start({ width: "auto", transition: { duration: 0.1, ease: "linear" } })
+  controls.set({ width: 64 })
+  const pending = controls.start({ width: 100, transition: { duration: 0.1, ease: "linear" } })
   await (owner.getValue("width")!.animation as NativeValueAnimation).ready
-  expect(owner.getBaseTarget("width")).toBe(64)
-  expect(owner.getBindings()).toHaveProperty("width")
+  await flush(1050)
+  expect(owner.getValue("width")!.get()).toBeCloseTo(82)
   await flush(1100)
   await pending
+  expect(owner.getValue("width")!.get()).toBe(100)
   owner.detach()
   unsubscribe()
   stop()
@@ -408,38 +399,26 @@ it("registers through the nearest variant node and retires its entering membersh
   parent.detach()
 })
 
-it("rejects absent native initial reads instead of guessing a starting value", async () => {
+it("requires an authored dimension instead of guessing a starting value", async () => {
   const owner = new NativeMotionOwner(options()),
     controls = nativeAnimationControls(),
     stop = controls.mount()
   owner.attach(modeledRef())
   const unsubscribe = controls.subscribe(owner)
-  await expect(controls.start({ height: 100 })).rejects.toThrow(/actual native initial-value reader unavailable/)
+  await expect(controls.start({ height: 100 })).rejects.toThrow(/explicit initial value/)
   expect(owner.getBindings()).not.toHaveProperty("height")
   owner.detach()
   unsubscribe()
   stop()
 })
 
-it("does not publish hydrated initial geometry while resolution is pending or fails", async () => {
-  let reject!: (reason: Error) => void
-  const geometry = jest.fn(
-    () =>
-      new Promise<never>((_resolve, fail) => {
-        reject = fail
-      }),
-  )
-  const owner = new NativeMotionOwner(options({ readValue: () => 20, resolveGeometry: geometry }))
-  const controls = nativeAnimationControls(),
+it("rejects incompatible endpoints without publishing a hypothetical layout", async () => {
+  const owner = new NativeMotionOwner(options({ base: { width: 20 } })),
+    controls = nativeAnimationControls(),
     stop = controls.mount()
   owner.attach(modeledRef())
   const unsubscribe = controls.subscribe(owner)
-  const pending = controls.start({ width: "auto" })
-  expect(geometry).toHaveBeenCalled()
-  expect(owner.getValue("width")?.get()).toBe(20)
-  expect(owner.getBindings()).not.toHaveProperty("width")
-  reject(new Error("native unavailable"))
-  await expect(pending).rejects.toThrow("native unavailable")
+  await expect(controls.start({ width: "auto" })).rejects.toThrow("explicit compatible keyframes")
   expect(owner.getBindings()).not.toHaveProperty("width")
   owner.detach()
   unsubscribe()

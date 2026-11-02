@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
+import { forwardRef, useCallback, useContext, useMemo, useRef, useState } from "react"
 import { View, useWindowDimensions, type TextStyle, type ViewStyle } from "react-native"
 
 import { useNativeCollectionRefs } from "../../collection/context"
@@ -37,7 +37,6 @@ import type {
   TNativeToggleSwitcherRef,
   TNativeToggleSwitcherRootStyle,
 } from "./types"
-import { useNativeSwitcherIntrinsicWidth } from "./useIntrinsicWidth"
 
 const SwitcherOption = ({
   item,
@@ -56,10 +55,6 @@ const SwitcherOption = ({
   identity,
   onPress,
   onFrame,
-  onLabel,
-  onNaturalSize,
-  onIntrinsicWidth,
-  measurementSignature,
   onOriginal,
 }: {
   item: TNativeToggleSwitcherItem
@@ -79,10 +74,6 @@ const SwitcherOption = ({
   identity: string
   onPress: () => void
   onFrame: (frame: TNativeSwitcherFrame) => void
-  onLabel: (size: { width: number; height: number }) => void
-  onNaturalSize: (size: { width: number; height: number }) => void
-  onIntrinsicWidth: (width: number) => void
-  measurementSignature: object
 }) => {
   const theme = useNativeTheme()
   const split = splitNativeSwitcherOptionStyle(optionStyle)
@@ -146,29 +137,6 @@ const SwitcherOption = ({
     split.text.color ?? theme.colors.controlForeground,
   )
   const foreground = split.text.color ?? theme.colors.controlForeground
-  const labelRef = useRef<View>(null)
-  useNativeSwitcherIntrinsicWidth(
-    optionRef,
-    measurementSignature,
-    split.view.width,
-    split.view.width == null && split.view.minWidth === undefined ? nativeControlTarget() : undefined,
-    onIntrinsicWidth,
-  )
-  useEffect(() => {
-    let active = true
-    const pending = requestAnimationFrame(() => {
-      optionRef.current?.measure((_x, _y, width, height) => {
-        if (active && (width > 0 || split.view.width === 0 || columnWidth === 0)) onNaturalSize({ width, height })
-      })
-      labelRef.current?.measure((_x, _y, width, height) => {
-        if (active) onLabel({ width, height })
-      })
-    })
-    return () => {
-      active = false
-      cancelAnimationFrame(pending)
-    }
-  }, [measurementSignature, columnWidth])
   return (
     <NativeButton
       ref={bindOriginal}
@@ -184,13 +152,7 @@ const SwitcherOption = ({
       onPointerEnter={hover.onPointerEnter}
       onPointerLeave={hover.onPointerLeave}
       nativeRender={(props) => (
-        <NativeFocusHost
-          {...props}
-          nativeMotionGeometryObservation
-          nativeMotionGeometryObserveFrames={false}
-          accessibilityState={{ checked: selected, disabled }}
-          aria-busy={undefined}
-        />
+        <NativeFocusHost {...props} accessibilityState={{ checked: selected, disabled }} aria-busy={undefined} />
       )}
       nativeStyle={(flags) => ({
         viewStyle: { ...rootStyle(flags), backgroundColor: paint.backgroundColor },
@@ -225,12 +187,10 @@ const SwitcherOption = ({
               />
             ) : null}
             <View
-              ref={labelRef}
               collapsable={false}
               testID={identity + "-label"}
               accessible={false}
               pointerEvents="none"
-              onLayout={(event) => onLabel(event.nativeEvent.layout)}
               style={{ flexShrink: 1, zIndex: 1 }}
             >
               {getNativeButtonContent(item.label, { ...split.text, color: paint.color })}
@@ -407,7 +367,7 @@ export const ToggleSwitcher = forwardRef<TNativeToggleSwitcherRef, TNativeToggle
   const layout = useNativeSwitcherLayout(
     signature,
     keys,
-    rootStyle.width !== undefined,
+    (rootStyle.width != null && rootStyle.width !== "auto") || rootStyle.alignSelf === "stretch",
     columnGap ?? gap,
     flexDirection === "column" || flexDirection === "column-reverse",
   )
@@ -435,12 +395,10 @@ export const ToggleSwitcher = forwardRef<TNativeToggleSwitcherRef, TNativeToggle
           aria-disabled={isDisabled}
           testID={identity}
           onLayout={(event) => {
-            layout.root(event.nativeEvent.layout)
             onLayout?.(event)
           }}
           style={{
             ...paintedRoot,
-            width: rootStyle.width === undefined ? layout.desiredWidth : rootStyle.width,
             flexDirection: "column",
           }}
         >
@@ -492,15 +450,7 @@ export const ToggleSwitcher = forwardRef<TNativeToggleSwitcherRef, TNativeToggle
                   frame={layout.frames.get(item.id)}
                   identity={identity}
                   optionStyle={{ ...text, ...common, ...(isSelected ? selectedStyles : {}) }}
-                  onFrame={(frame) => {
-                    layout.option(item.id, frame)
-                    if ((isSelected ? (selectedStyles.width ?? common.width) : common.width) !== undefined)
-                      layout.natural(item.id, frame, true)
-                  }}
-                  onLabel={(size) => layout.label(item.id, size)}
-                  onNaturalSize={(size) => layout.natural(item.id, size)}
-                  onIntrinsicWidth={(width) => layout.intrinsic(item.id, width)}
-                  measurementSignature={signature}
+                  onFrame={(frame) => layout.option(item.id, frame)}
                   onPress={() => {
                     if (isDisabled || isReadOnly || item.disabled || item.id === selected) return
                     if (selectedKey === undefined) setLocalKey(item.id)

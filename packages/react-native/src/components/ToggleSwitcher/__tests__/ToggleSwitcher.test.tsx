@@ -45,7 +45,6 @@ const Example = (props: Partial<ToggleSwitcherProps>) => {
   )
 }
 const options = () => screen.getAllByTestId("toggle-switcher-option")
-const labels = () => screen.getAllByTestId("toggle-switcher-label")
 const part = (id: string) => screen.getByTestId(id, { includeHiddenElements: true })
 const layout = async (
   node: ReturnType<typeof screen.getByTestId>,
@@ -59,8 +58,6 @@ const measure = async () => {
   await layout(screen.getByTestId("toggle-switcher-row"), 3, 3, 150, 44)
   await layout(options()[0], 0, 0, 60, 44)
   await layout(options()[1], 62, 0, 88, 44)
-  await layout(labels()[0], 5, 2, 50, 16)
-  await layout(labels()[1], 5, 2, 78, 16)
   await layout(screen.getByTestId("toggle-switcher"), 0, 0, 184, 50)
   await layout(screen.getByTestId("toggle-switcher-row"), 3, 3, 178, 44)
   await layout(options()[0], 0, 0, 88, 44)
@@ -336,23 +333,23 @@ it("NATIVE.switcher.selection retains a removed key while retiring its measured 
   expect(change).not.toHaveBeenCalled()
 })
 
-it("NATIVE.switcher.layout measures intrinsic equal columns, bounds them to actual row width and preserves authored label instances", async () => {
+it("NATIVE.switcher.layout divides bounded rows equally and preserves authored label instances", async () => {
   const initialize = jest.fn()
   const Label = () => {
     useState(() => initialize())
     return <Text>Stateful label</Text>
   }
   const choices = [{ id: "and", label: <Label /> }, items[1]]
-  const { rerender } = await render(<Example items={choices} />)
+  const { rerender } = await render(<Example items={choices} width="100%" />)
   await measure()
-  expect(screen.getByTestId("toggle-switcher")).toHaveStyle({ width: 184 })
+  expect(screen.getByTestId("toggle-switcher")).toHaveStyle({ width: "100%" })
   for (const option of options()) expect(option).toHaveStyle({ width: 88 })
   await layout(screen.getByTestId("toggle-switcher"), 0, 0, 210, 50)
-  expect(screen.getByTestId("toggle-switcher")).toHaveStyle({ width: 184 })
+  expect(screen.getByTestId("toggle-switcher")).toHaveStyle({ width: "100%" })
   await layout(screen.getByTestId("toggle-switcher"), 0, 0, 100, 50)
   await layout(screen.getByTestId("toggle-switcher-row"), 3, 3, 94, 44)
   for (const option of options()) expect(option).toHaveStyle({ width: 46 })
-  await rerender(<Example items={choices} fontSize={16} />)
+  await rerender(<Example items={choices} width="100%" fontSize={16} />)
   expect(initialize).toHaveBeenCalledTimes(1)
 })
 
@@ -368,43 +365,45 @@ it("NATIVE.switcher.guards cancels a started contact across read-only takeover a
   expect(change).not.toHaveBeenCalled()
 })
 
-it("NATIVE.switcher.layout ignores native floating-point noise without restarting intrinsic measurement", async () => {
+it("NATIVE.switcher.layout keeps natural option widths without a bounded root", async () => {
   await render(<Example />)
   await measure()
-  await layout(labels()[1], 5, 2, 78.00001, 16.00001)
-  expect(screen.getByTestId("toggle-switcher")).toHaveStyle({ width: 184 })
-  for (const option of options()) expect(option).toHaveStyle({ width: 88 })
-  await layout(labels()[1], 5, 2, 79, 16)
   expect(StyleSheet.flatten(screen.getByTestId("toggle-switcher").props.style).width).toBeUndefined()
+  for (const option of options()) expect(StyleSheet.flatten(option.props.style).width).toBeUndefined()
+  await layout(options()[0], 0, 0, 130, 44)
+  expect(StyleSheet.flatten(options()[1].props.style).width).toBeUndefined()
 })
 
-it("NATIVE.switcher.layout remeasures unchanged views and rejects callbacks from the retired measurement pass", async () => {
+it("shares a bounded RTL row after percentage gaps and honors caller option dimensions", async () => {
+  const { rerender } = await render(<Example width="100%" style={{ direction: "rtl", columnGap: "10%" }} />)
+  await layout(screen.getByTestId("toggle-switcher-row"), 0, 0, 200, 44)
+  for (const option of options()) expect(option).toHaveStyle({ width: 90 })
+  expect(screen.getByTestId("toggle-switcher")).toHaveStyle({ direction: "rtl" })
+  await rerender(<Example width="100%" customOptionStyles={{ width: 30, minWidth: 20, maxWidth: 40 }} />)
+  for (const option of options()) expect(option).toHaveStyle({ width: 30, minWidth: 20, maxWidth: 40 })
+})
+
+it("uses actual stretch width for vertical options and releases it when returning to natural layout", async () => {
+  const { rerender } = await render(<Example style={{ alignSelf: "stretch", flexDirection: "column" }} />)
+  await layout(screen.getByTestId("toggle-switcher-row"), 0, 0, 140, 90)
+  for (const option of options()) expect(option).toHaveStyle({ width: 140 })
+  await rerender(<Example fontSize={18} />)
+  for (const option of options()) expect(StyleSheet.flatten(option.props.style).width).toBeUndefined()
+  expect(screen.getByText("Match all")).toHaveStyle({ fontSize: 18 })
+})
+
+it("NATIVE.switcher.layout rejects stale layout callbacks after the width contract changes", async () => {
   const ref = createRef<View>()
-  const { rerender } = await render(<ToggleSwitcher ref={ref} items={items} />)
-  const pending: Array<Parameters<View["measure"]>[0]> = []
-  jest.spyOn(ref.current!, "measure").mockImplementation((callback) => pending.push(callback))
-  const initialFrames = jest.mocked(requestAnimationFrame).mock.calls.map(([callback]) => callback)
-  await act(() => initialFrames.forEach((callback) => callback(0)))
-  expect(pending).toHaveLength(4)
-  const old = pending.splice(0)
-  await rerender(<ToggleSwitcher ref={ref} items={items} fontSize={16} />)
-  const currentFrames = jest
-    .mocked(requestAnimationFrame)
-    .mock.calls.slice(initialFrames.length)
-    .map(([callback]) => callback)
-  await act(() => currentFrames.forEach((callback) => callback(0)))
-  expect(pending).toHaveLength(4)
-  await layout(screen.getByTestId("toggle-switcher"), 0, 0, 156, 50)
-  await layout(screen.getByTestId("toggle-switcher-row"), 3, 3, 150, 44)
-  await act(() => {
-    for (const [index, callback] of pending.entries()) {
-      const width = [60, 50, 88, 78][index]
-      callback(0, 0, width, index % 2 ? 16 : 44, 0, 0)
-    }
-  })
-  expect(screen.getByTestId("toggle-switcher")).toHaveStyle({ width: 184 })
-  await act(() => old.forEach((callback) => callback(0, 0, 999, 999, 0, 0)))
-  expect(screen.getByTestId("toggle-switcher")).toHaveStyle({ width: 184 })
+  const { rerender } = await render(<ToggleSwitcher ref={ref} items={items} width="100%" />)
+  const original = ref.current
+  const old = screen.getByTestId("toggle-switcher-row").props.onLayout
+  await layout(screen.getByTestId("toggle-switcher-row"), 0, 0, 150, 44)
+  for (const option of options()) expect(option).toHaveStyle({ width: 74 })
+  await rerender(<ToggleSwitcher ref={ref} items={items} width="100%" fontSize={16} />)
+  await layout(screen.getByTestId("toggle-switcher-row"), 0, 0, 180, 44)
+  await act(() => old({ nativeEvent: { layout: { x: 0, y: 0, width: 999, height: 44 } } }))
+  for (const option of options()) expect(option).toHaveStyle({ width: 89 })
+  expect(ref.current).toBe(original)
 })
 
 it.each([

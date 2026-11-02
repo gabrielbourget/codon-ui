@@ -19,8 +19,6 @@ import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../o
 import { useNativeMotionConfig, useNativeMotionReducedMotion } from "../config"
 import { useNativeMotionInteractions } from "../interactions/useNativeMotionInteractions"
 import { cancelFrame, frame } from "../kernel"
-import { readNativeMotionInitialValue } from "../measurement/initialValue"
-import { NativeMotionIsolatedGeometryState } from "../measurement/isolatedGeometry"
 import { NativePresenceContext, NativePopRootContext, useNativePresence } from "../presence/context"
 import { useNativeMotionPresence } from "../presence/useNativeMotionPresence"
 import { NativeLayoutGroupContext } from "../projection/NativeLayoutGroup"
@@ -41,14 +39,12 @@ const NativeMotionOwnerContext = createContext<TNativeMotionInitialContext & { o
 export type TNativeMotionOwnerHostProps = Omit<TNativeMotionVisualHostProps, "bindings" | "motionOwner"> & {
   motion: TNativeMotionOwnerProps
   values?: TNativeMotionOwnerOptions["values"]
-  readValue?: TNativeMotionOwnerOptions["readValue"]
-  resolveGeometry?: TNativeMotionOwnerOptions["resolveGeometry"]
   presence?: TNativeMotionOwnerOptions["presence"]
 }
 
 // Private composition uses the original native host/ref. No partial Card/public API is exported.
 export const NativeMotionOwnerHost = forwardRef<TNativeFocusViewRef, TNativeMotionOwnerHostProps>(
-  ({ motion, values, readValue, resolveGeometry, presence, ...visual }, ref) => {
+  ({ motion, values, presence, ...visual }, ref) => {
     const inherited = useContext(NativeMotionOwnerContext)
     const presenceContext = useContext(NativePresenceContext)
     const popRoot = useContext(NativePopRootContext)
@@ -68,23 +64,6 @@ export const NativeMotionOwnerHost = forwardRef<TNativeFocusViewRef, TNativeMoti
       values,
       config,
       reduced,
-      readValue:
-        readValue ??
-        ((name, endpoint, token) => {
-          const target = owner.current
-          if (!target) throw new Error("Native motion: actual initial-value owner unavailable")
-          return readNativeMotionInitialValue(target, name, endpoint, token)
-        }),
-      resolveGeometry,
-      evaluateGeometry: (name, frames, token, ticket) => {
-        const target = owner.current
-        if (!target) throw new Error("Native motion: actual isolated geometry owner unavailable")
-        return geometry.resolve(target, name, frames, token, ticket, (value, phase) =>
-          owner.isolatedProbe(name, value, phase, token),
-        )
-      },
-      transformTemplate: visual.transformTemplate,
-      onMeasurementError: (error) => setFailure({ error }),
       presence: presence ?? presenceContext ?? undefined,
       initialContext: inherited,
       base: Object.fromEntries(
@@ -102,10 +81,6 @@ export const NativeMotionOwnerHost = forwardRef<TNativeFocusViewRef, TNativeMoti
         windowIsActive?.() !== false,
     }
     const [owner] = useState(() => new NativeMotionOwner(options, parent))
-    const [geometry] = useState(
-      () => new NativeMotionIsolatedGeometryState(owner.buildIsolatedStage, owner.beginIsolatedTransforms),
-    )
-    useLayoutEffect(() => () => geometry.cancel(), [geometry])
     const initialContext = nativeInitialVariantContext(motion, inherited)
     const initialDependency = Array.isArray(initialContext.initial)
       ? initialContext.initial.join(" ")
