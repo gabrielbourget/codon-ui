@@ -1,14 +1,29 @@
-import { forwardRef, useCallback, useId, useLayoutEffect, useRef, useState } from "react"
-import { Platform, View, TextInput, type ColorValue } from "react-native"
+import {
+  forwardRef,
+  useContext,
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
+import { AccessibilityInfo, findNodeHandle, Platform, View, TextInput, type ColorValue } from "react-native"
 
 import { useNativeCollectionRefs } from "../../collection/context"
-import { NativeKeyboardScope } from "../../input/NativeKeyboardScope"
+import { nativeFieldAccessibilityProps } from "../../form/semantics"
+import { useNativeFieldSemantics } from "../../form/useFieldSemantics"
+import { useNativeNumberFieldForm } from "../../form/useNumberField"
+import { NativeKeyboardScope, useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { NativeButtonPressContext } from "../../input/nativePressCycle"
 import { useNativeOriginalEditorFocusBinding } from "../../input/ordinaryEditorKeys"
+import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../overlays/floating/scope"
 import { useNativeTheme } from "../../theme"
 import { NativeButton as Button } from "../Button/Button"
 import { NativeInput as Input } from "../Input/Input"
-import { useNumberInputState } from "../NumberInput/state"
+import { stepperValueText } from "../NumberInput/stepperNumber"
+import { useNativeStepperNumberFieldState } from "../NumberInput/stepperState"
 
 import { useNativeStepperKeys } from "./keys"
 import { useStepperRepeat } from "./repeat"
@@ -28,7 +43,7 @@ const Glyph = ({ plus, color }: { plus: boolean; color: ColorValue }) => (
 
 type TStepperControlsProps = {
   props: TNativeStepperProps
-  numeric: ReturnType<typeof useNumberInputState>
+  numeric: ReturnType<typeof useNativeStepperNumberFieldState>
   resolved: ReturnType<typeof getNativeStepperStyles>
   testID: string
   label: string
@@ -60,6 +75,48 @@ const StepperControls = forwardRef<TNativeStepperRef, TStepperControlsProps>(
       setOriginal(target)
     }, [])
     const editorRef = useNativeCollectionRefs(bindOriginal, ref)
+    const scope = useNativeKeyScope()
+    const floatingScope = useContext(NativeFloatingScopeContext)
+    const windowActive = useContext(NativeFloatingWindowContext)
+    const originalField = useMemo(
+      () => (original ? { editor: original, target: findNodeHandle(original) ?? 0 } : null),
+      [original],
+    )
+    const invalid = !!props.errorState || numeric.displayValidation.isInvalid
+    const semanticBinding = useNativeFieldSemantics({
+      labels: { role: "Number field" },
+      text: {},
+      flags: { disabled: isDisabled, readOnly: isReadOnly, required: numeric.isRequired, invalid, expanded: false },
+      activeDescendant: null,
+    })
+    const accessibility = nativeFieldAccessibilityProps(semanticBinding, label, inputProps.accessibilityHint)
+    const field = useNativeNumberFieldForm(
+      props,
+      numeric,
+      originalField,
+      () => originalRef.current,
+      () => originalRef.current === original && original?.isFocused() === true,
+      semanticBinding,
+    )
+    const spokenValue = stepperValueText(props.locale ?? "en-US", numeric.formatValue(numeric.formValue))
+    const previousSpokenValue = useRef(spokenValue)
+    useEffect(() => {
+      const changed = previousSpokenValue.current !== spokenValue
+      previousSpokenValue.current = spokenValue
+      if (
+        changed &&
+        numeric.isInputFocused &&
+        !isDisabled &&
+        original &&
+        originalRef.current === original &&
+        original.isFocused() &&
+        floatingScope?.canAct() !== false &&
+        windowActive?.() !== false &&
+        scope?.isNativeReady() &&
+        scope.isWindowActive()
+      )
+        AccessibilityInfo.announceForAccessibility(spokenValue)
+    }, [spokenValue, numeric.isInputFocused, isDisabled, original, scope, floatingScope, windowActive])
     const lifetimeKey = JSON.stringify([owner, numeric.configurationKey, isDisabled, isReadOnly])
     useNativeOriginalEditorFocusBinding(original, !isDisabled, lifetimeKey, {
       current: () => originalRef.current,
@@ -130,67 +187,83 @@ const StepperControls = forwardRef<TNativeStepperRef, TStepperControlsProps>(
             ...(numeric.canDecrement ? [{ name: "decrementValue", label: decrementLabel }] : []),
           ]
     return (
-      <View testID={`${testID}-group`} accessible={false} accessibilityLabel={groupLabel} style={groupStyle}>
-        {renderButton(-1)}
-        <Input
-          ref={editorRef}
-          testID={`${testID}-input`}
-          accessibilityLabel={label}
-          value={numeric.inputValue}
-          onChangeText={numeric.change}
-          isDisabled={isDisabled}
-          isReadOnly={isReadOnly}
-          placeholder={placeholder}
-          textSize={textSize}
-          geometry={geometry}
-          customStyles={inputStyle}
-          enableFocusStyle={false}
-          nativeAnimate={false}
-          nativeRender={(native) => {
-            const hostProps = { ...native, onNativeOrdinaryEditorKey: receiveOriginalKey }
-            return <TextInput {...hostProps} />
-          }}
-          submitBehavior="blurAndSubmit"
-          keyboardType={inputProps.keyboardType ?? (Platform.OS === "ios" ? "numbers-and-punctuation" : "numeric")}
-          returnKeyType={inputProps.returnKeyType}
-          autoFocus={inputProps.autoFocus}
-          selection={inputProps.selection}
-          selectTextOnFocus={inputProps.selectTextOnFocus}
-          allowFontScaling={inputProps.allowFontScaling}
-          maxFontSizeMultiplier={inputProps.maxFontSizeMultiplier}
-          placeholderTextColor={inputProps.placeholderTextColor}
-          selectionColor={inputProps.selectionColor}
-          selectionHandleColor={inputProps.selectionHandleColor}
-          cursorColor={inputProps.cursorColor}
-          underlineColorAndroid={inputProps.underlineColorAndroid}
-          accessibilityHint={inputProps.accessibilityHint}
-          onChange={inputProps.onChange}
-          onSelectionChange={inputProps.onSelectionChange}
-          onFocus={(event) => {
-            numeric.begin()
-            focusPart("input", true)
-            inputProps.onFocus?.(event)
-          }}
-          onBlur={(event) => {
-            focusPart("input", false)
-            inputProps.onBlur?.(event)
-          }}
-          onSubmitEditing={(event) => {
-            numeric.commit(event.nativeEvent.text)
-            inputProps.onSubmitEditing?.(event)
-          }}
-          onEndEditing={(event) => {
-            numeric.commit(event.nativeEvent.text)
-            inputProps.onEndEditing?.(event)
-          }}
-          accessibilityActions={actions}
-          onAccessibilityAction={({ nativeEvent: { actionName } }) => {
-            if (actionName === "incrementValue" && numeric.canIncrement) numeric.step(1)
-            if (actionName === "decrementValue" && numeric.canDecrement) numeric.step(-1)
-          }}
-        />
-        {renderButton(1)}
-      </View>
+      <>
+        <View testID={`${testID}-group`} accessible={false} accessibilityLabel={groupLabel} style={groupStyle}>
+          {renderButton(-1)}
+          <Input
+            ref={editorRef}
+            testID={`${testID}-input`}
+            accessibilityLabel={[
+              accessibility.accessibilityLabel,
+              invalid && numeric.displayValidation.validationErrors.join(" "),
+            ]
+              .filter(Boolean)
+              .join(", ")}
+            accessibilityHint={accessibility.accessibilityHint}
+            accessibilityValue={{
+              min: numeric.minValue,
+              max: numeric.maxValue,
+              now: numeric.formValue ?? undefined,
+              text: spokenValue,
+            }}
+            value={numeric.inputValue}
+            onChangeText={numeric.change}
+            isDisabled={isDisabled}
+            isReadOnly={isReadOnly}
+            placeholder={placeholder}
+            textSize={textSize}
+            geometry={geometry}
+            customStyles={inputStyle}
+            enableFocusStyle={false}
+            nativeAnimate={false}
+            nativeRender={(native) => {
+              const hostProps = { ...native, onNativeOrdinaryEditorKey: receiveOriginalKey }
+              return <TextInput {...hostProps} />
+            }}
+            submitBehavior="blurAndSubmit"
+            keyboardType={inputProps.keyboardType ?? (Platform.OS === "ios" ? "numbers-and-punctuation" : "numeric")}
+            returnKeyType={inputProps.returnKeyType}
+            autoFocus={inputProps.autoFocus}
+            selection={inputProps.selection}
+            selectTextOnFocus={inputProps.selectTextOnFocus}
+            allowFontScaling={inputProps.allowFontScaling}
+            maxFontSizeMultiplier={inputProps.maxFontSizeMultiplier}
+            placeholderTextColor={inputProps.placeholderTextColor}
+            selectionColor={inputProps.selectionColor}
+            selectionHandleColor={inputProps.selectionHandleColor}
+            cursorColor={inputProps.cursorColor}
+            underlineColorAndroid={inputProps.underlineColorAndroid}
+            onChange={inputProps.onChange}
+            onSelectionChange={inputProps.onSelectionChange}
+            onFocus={(event) => {
+              numeric.setFocused(true)
+              numeric.begin()
+              focusPart("input", true)
+              inputProps.onFocus?.(event)
+            }}
+            onBlur={(event) => {
+              numeric.setFocused(false)
+              focusPart("input", false)
+              inputProps.onBlur?.(event)
+            }}
+            onSubmitEditing={(event) => {
+              numeric.commit(event.nativeEvent.text)
+              inputProps.onSubmitEditing?.(event)
+            }}
+            onEndEditing={(event) => {
+              numeric.commit(event.nativeEvent.text)
+              inputProps.onEndEditing?.(event)
+            }}
+            accessibilityActions={actions}
+            onAccessibilityAction={({ nativeEvent: { actionName } }) => {
+              if (actionName === "incrementValue" && numeric.canIncrement) numeric.step(1)
+              if (actionName === "decrementValue" && numeric.canDecrement) numeric.step(-1)
+            }}
+          />
+          {renderButton(1)}
+        </View>
+        {field.metadata}
+      </>
     )
   },
 )
@@ -199,7 +272,7 @@ StepperControls.displayName = "StepperControls"
 
 export const Stepper = forwardRef<TNativeStepperRef, TNativeStepperProps>((props, ref) => {
   const theme = useNativeTheme()
-  const numeric = useNumberInputState(props)
+  const numeric = useNativeStepperNumberFieldState(props)
   const { isDisabled = false, isReadOnly = false, errorState = false, incrementLabel, decrementLabel } = props
   const label = props.accessibilityLabel ?? props["aria-label"]
   for (const [field, text] of [
@@ -230,9 +303,12 @@ export const Stepper = forwardRef<TNativeStepperRef, TNativeStepperProps>((props
     isFocused: focused && !isDisabled,
     isDisabled,
     isReadOnly,
-    isInvalid: errorState,
+    isInvalid: errorState || numeric.displayValidation.isInvalid,
   }
-  const resolved = useNativeStepperPaint(theme, getNativeStepperStyles(theme, props, state))
+  const resolved = useNativeStepperPaint(
+    theme,
+    getNativeStepperStyles(theme, { ...props, errorState: state.isInvalid }, state),
+  )
   const { color: _rootColor, ...rootStyle } = resolved.root
   const groupLabel = props.labels?.inputButtonGroupAriaLabel ?? "Stepper Input Button Group"
   if (typeof groupLabel !== "string") throw new TypeError("Stepper: group label must be a string")

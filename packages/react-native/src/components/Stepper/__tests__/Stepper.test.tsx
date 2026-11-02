@@ -3,6 +3,8 @@ import { createRef, useLayoutEffect, useState } from "react"
 import { Platform, PlatformColor, StyleSheet, View, type TextInput } from "react-native"
 
 import { NativeThemeProvider, Stepper, Text, type StepperProps, type TNativeStepperRef } from "../../.."
+import { NativeFormRegistryContext } from "../../../form/context"
+import { NativeFormRegistry } from "../../../form/registry"
 import * as focus from "../../../input/focus"
 import { NativeKeyboardScope } from "../../../input/NativeKeyboardScope"
 import type { TNativeAdmittedPress } from "../../../input/nativePressCycle"
@@ -1049,4 +1051,22 @@ it("STP.PRESS.04 respects the actual floating window activity and never resumes 
   await hold()
   await release()
   expect(changed.mock.calls).toEqual([[1]])
+})
+
+it("STP.PRESS.05 explicit Form reset retires an admitted repeating hold and its saved release", async () => {
+  const registry = new NativeFormRegistry(),
+    changed = jest.fn()
+  await render(
+    <NativeFormRegistryContext.Provider value={registry}>
+      <Stepper {...names} defaultValue={2} onChange={changed} />
+    </NativeFormRegistryContext.Provider>,
+  )
+  await hold()
+  await advance(600)
+  expect(changed.mock.calls).toEqual([[3]])
+  await act(() => [...registry.fields.values()][0].reset("native"))
+  await advance(1000)
+  await release()
+  expect(changed.mock.calls).toEqual([[3], [2]])
+  expect(input()).toHaveDisplayValue("2")
 })

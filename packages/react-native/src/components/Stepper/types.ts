@@ -4,9 +4,9 @@ import type { ColorValue, StyleProp, TextInput, ViewStyle } from "react-native"
 import type { TNativeOrdinaryEditorKeyEvent } from "../../input/ordinaryEditorKeys"
 import type { TThemingOrderCode } from "../../tokens/theme-order"
 import type { TNativeDisplayDimension } from "../displayDimensions"
+import type { TNativeStepperNumberFieldProps } from "../NumberInput/stepperTypes"
 import type {
   TNativeNumberInputInputProps,
-  TNativeNumberInputProps,
   TNativeNumberInputRef,
   TNativeNumberInputRenderState,
 } from "../NumberInput/types"
@@ -46,7 +46,7 @@ type TStepperBase<T> = T extends unknown
     >
   : never
 
-export type TNativeStepperProps = TStepperBase<TNativeNumberInputProps> &
+export type TNativeStepperProps = TStepperBase<TNativeStepperNumberFieldProps> &
   TNativeStepperKeyboardCallbacks & {
     inputProps?: TNativeStepperInputProps
     type?: TNativeStepperType

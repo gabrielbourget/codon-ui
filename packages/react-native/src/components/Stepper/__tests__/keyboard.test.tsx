@@ -3,6 +3,8 @@ import { createRef } from "react"
 import type { TextInput } from "react-native"
 
 import { Stepper, type StepperProps } from "../../.."
+import { NativeFormRegistryContext } from "../../../form/context"
+import { NativeFormRegistry } from "../../../form/registry"
 import type { TNativeStepperKeyboardEvent } from "../types"
 
 jest.mock("../../../input/specs/CUIFocusViewNativeComponent", () => ({
@@ -415,4 +417,27 @@ it("ST-KEY-13 rejecting a foreign action policy does not suppress its separately
   expect(change).not.toHaveBeenCalled()
   expect(observe.mock.calls[0][0]).toBe(event.original)
   expect(input()).toHaveDisplayValue("2")
+})
+
+it("ST-KEY-14 a same-value explicit Form reset retires saved actions and observations while preserving fresh keyboard use", async () => {
+  const registry = new NativeFormRegistry(),
+    change = jest.fn(),
+    observe = jest.fn()
+  await render(
+    <NativeFormRegistryContext.Provider value={registry}>
+      <Stepper {...names} ref={originalRef} defaultValue={2} onChange={change} onKeyDown={observe} />
+    </NativeFormRegistryContext.Provider>,
+  )
+  await acknowledge()
+  const old = packets(1),
+    original = originalRef.current
+  await act(() => [...registry.fields.values()][0].reset("native"))
+  await acknowledge(2)
+  await dispatch(old)
+  expect(change).not.toHaveBeenCalled()
+  expect(observe).not.toHaveBeenCalled()
+  await dispatch(packets(2))
+  expect(change.mock.calls).toEqual([[3]])
+  expect(observe).toHaveBeenCalledTimes(1)
+  expect(originalRef.current).toBe(original)
 })

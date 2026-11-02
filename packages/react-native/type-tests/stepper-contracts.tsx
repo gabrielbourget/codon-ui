@@ -64,11 +64,8 @@ accept({ ...names, style: ({ state }) => ({ opacity: state.canIncrement ? 1 : 0 
 accept({ ...names, width: "40px" })
 // @ts-expect-error unsupported browser class
 accept({ ...names, className: "stepper" })
-// @ts-expect-error browser form registration remains an open inherited mapping
 accept({ ...names, name: "quantity" })
-// @ts-expect-error nondecimal formatting remains an open inherited mapping
 accept({ ...names, formatOptions: { style: "currency", currency: "CAD" } })
-// @ts-expect-error browser non-snap validation remains an open inherited mapping
 accept({ ...names, commitBehavior: "validate" })
 // @ts-expect-error native editor ownership cannot be replaced
 accept({ ...names, inputProps: { value: "3" } })
@@ -82,3 +79,27 @@ accept({ ...names, children: <Text>Unexpected</Text> })
 accept({ ...names, orientation: "row" })
 // @ts-expect-error canonical icon names are PlusIcon/MinusIcon
 accept({ ...names, IncrementIcon: <Text>+</Text> })
+
+accept({
+  ...names,
+  formFieldId: "quantity",
+  form: "order",
+  isRequired: true,
+  validationBehavior: "native",
+  requiredErrorMessage: "Quantité requise",
+  validate: (value) => (value === null ? "Missing" : true),
+})
+accept({
+  ...names,
+  formatOptions: { style: "unit", unit: "liter", maximumSignificantDigits: 3 },
+  commitBehavior: "snap",
+})
+accept({
+  ...names,
+  formatOptions: { style: "percent" },
+  inputProps: { onKeyDown: (event) => event.currentTarget.focus() },
+})
+// @ts-expect-error form fields use declared string identities
+accept({ ...names, formFieldId: 5 })
+// @ts-expect-error native validation callbacks receive nullable numeric business values
+accept({ ...names, validate: (_value: string) => true })

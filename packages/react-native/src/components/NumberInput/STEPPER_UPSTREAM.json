@@ -1,0 +1,75 @@
+{
+  "packages": {
+    "react-stately": "3.46.0",
+    "react-aria": "3.48.0",
+    "@internationalized/number": "3.6.6"
+  },
+  "sources": {
+    "node_modules/.pnpm/react-stately@3.46.0_react@19.2.3/node_modules/react-stately/dist/private/numberfield/useNumberFieldState.mjs.map": {
+      "mapSHA256": "82986554e32a9d25c7e3e884713f4f6cb3b0ec5a85bac71f535b237d55aef946",
+      "sourceNames": ["packages/react-stately/src/numberfield/useNumberFieldState.ts"],
+      "sourceSHA256": ["cd890f9a4d3d6566d76c114b79b70c1f9362b8c153b983d191254634fc42c174"]
+    },
+    "node_modules/.pnpm/react-stately@3.46.0_react@19.2.3/node_modules/react-stately/dist/private/utils/number.mjs.map": {
+      "mapSHA256": "a71c0855b8b16090b7f8dea93117206e79c5af0c196071b56e46b4343bdd81e4",
+      "sourceNames": ["packages/react-stately/src/utils/number.ts"],
+      "sourceSHA256": ["7418e7272aa7bf3a064b8378459216538d9ad5a9b72305fb7583901081f9dc40"]
+    },
+    "node_modules/.pnpm/react-aria@3.48.0_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/react-aria/dist/private/numberfield/useNumberField.mjs.map": {
+      "mapSHA256": "5d82136deaa64386a0411f3b1ce6b44d77d7a1e7c7967801c2eba49e4cf6bed7",
+      "sourceNames": ["packages/react-aria/src/numberfield/useNumberField.ts"],
+      "sourceSHA256": ["2c9c338d00d405bd2855bde1328ce5f0109ead960a6413c771490bf8e0cfc8da"]
+    },
+    "node_modules/.pnpm/react-aria@3.48.0_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/react-aria/dist/private/spinbutton/useSpinButton.mjs.map": {
+      "mapSHA256": "5a483749e152f52907b66bad22523f18ea7e4019af0bdeb09cacd52c14b6592d",
+      "sourceNames": ["packages/react-aria/src/spinbutton/useSpinButton.ts"],
+      "sourceSHA256": ["adfd12a078f880785e068c9bb5e538c193a9f5736c797ba8b1fa43c3ccecb901"]
+    }
+  },
+  "emptyValueLocaleMaps": {
+    "intl/spinbutton/ar-AE.mjs.map": "b8db28f3899cc79ebeba9d880c7ff78a4ed5ea81076f7c0801d9a379a933176d",
+    "intl/spinbutton/bg-BG.mjs.map": "9925847f51165bf047b5065ddc95a809d54a3e67feec770b610c0fa15255c5da",
+    "intl/spinbutton/cs-CZ.mjs.map": "32ba392c0be70d999a233f7d170df701e4232052122b07462639aaabc59335f6",
+    "intl/spinbutton/da-DK.mjs.map": "38c966d5f66e4964413d7d38ed4934df7226f2ed9404147807da7a52f67f566c",
+    "intl/spinbutton/de-DE.mjs.map": "0bdae083cead433e1a7ce48a856720a93f260aa2a45441e2d7280351b90960a3",
+    "intl/spinbutton/el-GR.mjs.map": "f427bc4196d4a89f80ba7f3292e8934e6a2aac589e733ae4ff679212aebd0d12",
+    "intl/spinbutton/en-US.mjs.map": "558f5bf506bdce3806679f12e916ad65cade90b34926b790195ca598e5051ae3",
+    "intl/spinbutton/es-ES.mjs.map": "9e503a12a5b7bef9a56ba26e0a1f2d3ad88455b815d8e25e432174fad6ce0235",
+    "intl/spinbutton/et-EE.mjs.map": "49c5aeb6dd3689c4a91812ee971745cd0d8447d249a93692f812bcd60bebf848",
+    "intl/spinbutton/fi-FI.mjs.map": "8a109f69520a460337b94fc44597932fb6e15bb0330cadf7b508c90f9cb26fba",
+    "intl/spinbutton/fr-FR.mjs.map": "bbe7236675dd592b0978992ad241e572c96cd32c8a1b4ed708f60c13997fcf21",
+    "intl/spinbutton/he-IL.mjs.map": "fd291c57405a8bc190c74487e76bc69bc3fd5ffb24e2809482bc9d576d6b2bc2",
+    "intl/spinbutton/hr-HR.mjs.map": "86a30b27501315c794cd0406620a295a999e8fb366cbcd4fcad92109e7c9fce8",
+    "intl/spinbutton/hu-HU.mjs.map": "25821835abc391db1fd231e0236196d150961e97b1564a01ac7e247f70294a23",
+    "intl/spinbutton/it-IT.mjs.map": "eac13b4438f9fc7baeed803007e451a03675df78ebc15adeb74255edc2fdeb5e",
+    "intl/spinbutton/ja-JP.mjs.map": "9cf3bba44018d5e8cd7abb9260c023b466e0bdfebfc21f7bde6c9abf3fcb2968",
+    "intl/spinbutton/ko-KR.mjs.map": "c0d2e272b2a00a23c77264c943dc21e9bee7f9b88f989036c5f7faf4efbe698c",
+    "intl/spinbutton/lt-LT.mjs.map": "1fed5952b268da8256d3dde95bf822fb137cdc0965d56551a1c7edf6d403e4ae",
+    "intl/spinbutton/lv-LV.mjs.map": "69a739a714e921319574662317a3b8b91dcca2b7a733070b5e4eb518ebd91660",
+    "intl/spinbutton/nb-NO.mjs.map": "65fd54df735f302cd00ac49a81a07aab2df8de35ee370a4367ea821d80de09d3",
+    "intl/spinbutton/nl-NL.mjs.map": "6daa14e32d1e0ed5bc8d4d50599d1465b00943ee812aa4c5981aae3632649158",
+    "intl/spinbutton/pl-PL.mjs.map": "0c110826d0ad04fb9d1123ae7a579492eea7a33620ada83e55b4683c8c1b80dd",
+    "intl/spinbutton/pt-BR.mjs.map": "61d9865a2f4a4e7613b1e1d113616545c92962b5a81c37c69af4c3c6ee77f5c2",
+    "intl/spinbutton/pt-PT.mjs.map": "33b01039025be577a424a8af51339303b426596415e634851e8b08af26473459",
+    "intl/spinbutton/ro-RO.mjs.map": "39143cf580eea9b953121e2481a3a6ba8e08b24a01f4af3c0d80a8fdf9842302",
+    "intl/spinbutton/ru-RU.mjs.map": "57d9e812a6bd79501e8765acbf44b4f251e79da7ce02000bc3e0df3afe19c92f",
+    "intl/spinbutton/sk-SK.mjs.map": "a93d1c04e1b4248cd2d87b27b351f5ba82abbac3cbc01497621848bdff1c7786",
+    "intl/spinbutton/sl-SI.mjs.map": "341c6b6109c6011cb1db92dcabff403053556632d616030e881a2915f2db3f14",
+    "intl/spinbutton/sr-SP.mjs.map": "580730e07b1bd5e88912808efb9f4bf067b988f4a402b3c57130215eb61ee0f0",
+    "intl/spinbutton/sv-SE.mjs.map": "ccd3e514fe412109557da4efc57582c256d73da7635317666363483c53ba247d",
+    "intl/spinbutton/tr-TR.mjs.map": "0ff23ec62cd7e44543fef06a9ed7439fdb08e8d35534e411aa6fbad107401c0e",
+    "intl/spinbutton/uk-UA.mjs.map": "1fcd49a85b58d694be3d6ad4748176e4067be9116dc0f5b0fe7b1ac42d7f8b27",
+    "intl/spinbutton/zh-CN.mjs.map": "6d136547d5042461a035db89884518090cdc4b573421bf8cb67e7f4f271effe9",
+    "intl/spinbutton/zh-TW.mjs.map": "fbc24af516dc522b03fc8a6cd350067c6eb8ca6432d882a6c06f51048bf99215"
+  },
+  "license": "Apache-2.0;Adobe copyright retained in derived files",
+  "nativeAdaptations": [
+    "Owned nullable authoritative value remains distinct from parsed draft;native authoritative ingress is not silently clamped;initial explicit default/reset target follows snap|validate.",
+    "Permissive genuine native draft/IME and final text override;one-shot final and pending press lifecycle preserved.",
+    "Existing native controlled-state/validation/Form contexts replace web host utilities.",
+    "DOM temporary number-input range/step validity replaced with scalar flags and floating-point ULP tolerance;no browser validation-message strings invented.",
+    "Same-value reset advances configuration lifetime;native reset clears validation,programmatic reset preserves server errors.",
+    "Localized Empty and minus-sign accessibility text ported from pinned spinbutton messages;actual stock editor and supported native announcements only.",
+    "Private formValidation preserves independent original-control constraints when controlled isInvalid=false suppresses display validation;readonly visible text input remains barred from native Form validation,while numeric submission persists."
+  ]
+}
