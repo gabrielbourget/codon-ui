@@ -2,6 +2,7 @@
 #import "CUIFieldCustomContent.h"
 #import "CUIFieldSemantics.h"
 #import "CUIInputWindow.h"
+#import "CUIKeyboardScope.h"
 #import "CUIPhysicalKey.h"
 #include "../cpp/input/DateSegmentKeyPolicy.h"
 #import <React/RCTConversions.h>
@@ -40,6 +41,7 @@ using namespace facebook::react;
   NSString *_ownerId, *_segmentId, *_bindingRevision, *_displayText, *_locale, *_keyboardMode;
   NSMutableString *_document;
   NSMutableSet<NSNumber *> *_ordinaryHeldCodes;
+  NSMapTable<UIPress *, NSDictionary *> *_toolbarEmissions;
   NSRange _selection, _marked;
   NSUInteger _epoch, _sequence;
   SurfaceId _surface;
@@ -62,7 +64,7 @@ using namespace facebook::react;
   if (self = [super initWithFrame:frame]) {
     _props = std::make_shared<const CUIDateSegmentProps>();
     _ownerId = @""; _segmentId = @""; _bindingRevision = @""; _displayText = @""; _locale = @""; _keyboardMode = @"numeric";
-    _document = [NSMutableString new]; _ordinaryHeldCodes = [NSMutableSet new]; _marked = NSMakeRange(NSNotFound, 0);
+    _document = [NSMutableString new]; _ordinaryHeldCodes = [NSMutableSet new]; _toolbarEmissions=NSMapTable.weakToStrongObjectsMapTable; _marked = NSMakeRange(NSNotFound, 0);
     _surface = -1; _epoch = 1; _tokenizer = [[UITextInputStringTokenizer alloc] initWithTextInput:self];
     _readOnlyKeyboard = [[UIView alloc] initWithFrame:CGRectZero];
     _writingDirection = NSWritingDirectionNatural;
@@ -176,9 +178,14 @@ using namespace facebook::react;
 - (BOOL)emitOrdinaryPress:(UIPress *)press phase:(NSString *)phase cancelled:(BOOL)cancelled capturedByScope:(BOOL)capturedByScope
 {
   if (!_ordinaryGroupEvents || _disabled || ![self active] || !press.key || !self.window || press.window != self.window ||
-      (press.responder != self && !self.isFirstResponder) || !_eventEmitter) return NO;
+      (press.responder != self && !self.isFirstResponder && !CUIKeyboardToolbarDateOwnsOriginal(self,press)) || !_eventEmitter) return NO;
   UIKey *key = press.key; const auto flags = key.modifierFlags; const BOOL captured = capturedByScope || [self capturesOrdinaryKey:key];
+  CUIKeyboardPrepareToolbarDate(press,phase,[phase isEqualToString:@"down"] && [_ordinaryHeldCodes containsObject:@(key.keyCode)]);
+  NSString *toolbarRoute=CUIKeyboardToolbarDateRoute(press);
+  NSDictionary *previous=[_toolbarEmissions objectForKey:press];
+  if (toolbarRoute && [previous[@"timestamp"] doubleValue] == press.timestamp && [previous[@"phase"] isEqual:phase] && [previous[@"epoch"] unsignedIntegerValue] == _epoch && [previous[@"revision"] isEqual:_bindingRevision]) return captured;
   CUIDateSegmentEventEmitter::OnNativeDateKey data{};
+  if (toolbarRoute) data.toolbarRoute=toolbarRoute.UTF8String;
   data.kind="keyboard";data.ownerId=_ownerId.UTF8String;data.segmentId=_segmentId.UTF8String;data.bindingRevision=_bindingRevision.UTF8String;
   data.target=(int)self.tag;data.nativeInstance=[NSString stringWithFormat:@"uikit-date-segment:%p",self].UTF8String;
   data.surfaceId=_surface;data.windowId=CUIInputWindowIdentity(self.window).UTF8String;data.epoch=_epoch;data.sequence=++_sequence;
@@ -191,7 +198,12 @@ using namespace facebook::react;
   data.shiftKey=flags & UIKeyModifierShift;data.altKey=flags & UIKeyModifierAlternate;data.ctrlKey=flags & UIKeyModifierControl;data.metaKey=flags & UIKeyModifierCommand;
   data.capsLock=flags & UIKeyModifierAlphaShift;data.nativeModifierData=std::to_string((uint64_t)flags);data.nativeDefaultHandled=captured;
   std::static_pointer_cast<const CUIDateSegmentEventEmitter>(_eventEmitter)->onNativeDateKey(data);
+  if (toolbarRoute) [_toolbarEmissions setObject:@{@"timestamp":@(press.timestamp),@"phase":phase,@"epoch":@(_epoch),@"revision":_bindingRevision} forKey:press];
   return captured;
+}
+- (void)observeToolbarPress:(UIPress *)press phase:(NSString *)phase cancelled:(BOOL)cancelled captured:(BOOL)captured
+{
+  [self emitOrdinaryPress:press phase:phase cancelled:cancelled capturedByScope:captured];
 }
 - (void)observeCapturedPress:(UIPress *)press phase:(NSString *)phase cancelled:(BOOL)cancelled
 {

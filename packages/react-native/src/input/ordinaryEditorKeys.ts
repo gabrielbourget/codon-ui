@@ -1,6 +1,7 @@
 import { createContext, useContext, useId, useInsertionEffect, useLayoutEffect, useRef } from "react"
 import { findNodeHandle, type NativeSyntheticEvent, type TextInput, type View } from "react-native"
 
+import type { NativeDateSegmentKeyData } from "./specs/CUIDateSegmentNativeComponent"
 import type { NativeOrdinaryEditorKeyData } from "./specs/CUIFocusViewNativeComponent"
 import type { NativeEditorKeyboardStatus } from "./specs/CUIKeyboardScopeNativeComponent"
 
@@ -10,8 +11,10 @@ type TOptions<TTarget extends View, TReceiver extends View = TTarget> = {
   current: () => TTarget | null
   canAct: () => boolean
   subtree?: boolean
+  toolbar?: boolean
   currentTarget?: () => TReceiver | null
   receive: (event: TNativeOrdinaryEditorKeyEvent<TTarget, TReceiver>) => void
+  receiveDate?: (event: TNativeToolbarDateKeyEvent) => void
 }
 export type TNativeOrdinaryEditorKeyEvent<
   TTarget extends View = TextInput,
@@ -21,6 +24,10 @@ export type TNativeOrdinaryEditorKeyEvent<
   currentTarget: TReceiver
 }
 
+export type TNativeToolbarDateKeyEvent = NativeSyntheticEvent<
+  Omit<NativeDateSegmentKeyData, "kind"> & { kind: "keyboard" }
+> & { target: View; currentTarget: View }
+
 export const createNativeOrdinaryEditorKeys = (ownerId: string, session: () => TSession) => {
   type TEntry = {
     bindingId: string
@@ -29,12 +36,15 @@ export const createNativeOrdinaryEditorKeys = (ownerId: string, session: () => T
     original: View | TextInput
     keys: Set<string>
     observers: Set<string>
+    toolbarKeys: Set<string>
+    toolbarObservers: Set<string>
     ready: boolean
     sequence: number
     windowId: string
     epoch: number
   }
   const entries = new Map<string, TEntry>()
+  const dateReceivers = new Map<string, (event: NativeSyntheticEvent<NativeDateSegmentKeyData>) => boolean>()
   const targets = new Map<View | TextInput, TEntry>()
   const listeners = new Set<() => void>()
   let revision = 0
@@ -45,6 +55,10 @@ export const createNativeOrdinaryEditorKeys = (ownerId: string, session: () => T
     version++
     for (const listener of [...listeners]) listener()
   }
+  const purpose = (entry: TEntry) => ({
+    toolbarTargetOnly: entry.keys.size > 0 && entry.toolbarKeys.size === entry.keys.size,
+    toolbarSubtreeOnly: entry.observers.size > 0 && entry.toolbarObservers.size === entry.observers.size,
+  })
   return {
     snapshot: () => version,
     subscribe: (listener: () => void) => {
@@ -52,11 +66,12 @@ export const createNativeOrdinaryEditorKeys = (ownerId: string, session: () => T
       return () => listeners.delete(listener)
     },
     bindings: () =>
-      [...targets.values()].map(({ bindingId, bindingRevision, targetTag, observers }) => ({
-        bindingId,
-        bindingRevision,
-        targetTag,
-        subtree: observers.size > 0,
+      [...targets.values()].map((entry) => ({
+        bindingId: entry.bindingId,
+        bindingRevision: entry.bindingRevision,
+        targetTag: entry.targetTag,
+        subtree: entry.observers.size > 0,
+        ...purpose(entry),
       })),
     register: <TTarget extends View, TReceiver extends View = TTarget>(
       key: string,
@@ -75,38 +90,125 @@ export const createNativeOrdinaryEditorKeys = (ownerId: string, session: () => T
         original: options.original,
         keys: new Set(),
         observers: new Set(),
+        toolbarKeys: new Set(),
+        toolbarObservers: new Set(),
         ready: false,
         sequence: 0,
         windowId: "",
         epoch: 0,
       }
       const wasSubtree = entry.observers.size > 0
+      const previousPurpose = JSON.stringify(purpose(entry))
       entry.keys.add(key)
-      if (options.subtree) entry.observers.add(key)
+      if (options.toolbar) entry.toolbarKeys.add(key)
+      if (options.subtree) {
+        entry.observers.add(key)
+        if (options.toolbar) entry.toolbarObservers.add(key)
+      }
       entries.set(key, entry)
       targets.set(options.original, entry)
       let eventId = 0
-      if (!existing || wasSubtree !== entry.observers.size > 0) changed()
+      const toolbarEventIds = new Map<string, number>()
+      const dateSequences = new Map<string, number>()
+      const dateEpochs = new Map<string, number>()
+      if (!existing || wasSubtree !== entry.observers.size > 0 || previousPurpose !== JSON.stringify(purpose(entry)))
+        changed()
+      const receiveDate = (event: NativeSyntheticEvent<NativeDateSegmentKeyData>) => {
+        const data = event.nativeEvent,
+          current = session()
+        if (!options.toolbar || !options.subtree || !options.receiveDate || typeof data.toolbarRoute !== "string")
+          return false
+        let observer: { ownerId?: string; windowId?: string; epoch?: number } | undefined
+        try {
+          const route = JSON.parse(data.toolbarRoute)
+          if (!Array.isArray(route?.observerBindings)) return false
+          observer = route.observerBindings.find(
+            (binding: { bindingId?: string; bindingRevision?: string; targetTag?: number }) =>
+              binding?.bindingId === entry.bindingId &&
+              binding?.bindingRevision === entry.bindingRevision &&
+              binding?.targetTag === entry.targetTag,
+          )
+        } catch {
+          return false
+        }
+        const target = event.target as View
+        const identity = JSON.stringify([
+          data.ownerId,
+          data.segmentId,
+          data.bindingRevision,
+          data.nativeInstance,
+          data.windowId,
+          data.epoch,
+        ])
+        const instance = JSON.stringify([data.target, data.nativeInstance])
+        if (
+          disposed ||
+          entries.get(key) !== entry ||
+          !entry.ready ||
+          !current.active ||
+          options.current() !== options.original ||
+          !options.canAct() ||
+          event.currentTarget !== (options.currentTarget ? options.currentTarget() : options.original) ||
+          data.kind !== "keyboard" ||
+          data.target !== findNodeHandle(target) ||
+          data.windowId !== current.windowId ||
+          entry.windowId !== current.windowId ||
+          entry.epoch !== current.epoch ||
+          observer?.ownerId !== ownerId ||
+          observer.windowId !== entry.windowId ||
+          observer.epoch !== entry.epoch ||
+          !data.ownerId ||
+          !data.segmentId ||
+          !data.bindingRevision ||
+          !data.nativeInstance ||
+          !Number.isSafeInteger(data.epoch) ||
+          data.epoch < 0 ||
+          data.epoch < (dateEpochs.get(instance) ?? 0) ||
+          !Number.isSafeInteger(data.sequence) ||
+          data.sequence <= (dateSequences.get(identity) ?? 0) ||
+          (data.phase !== "down" && data.phase !== "up") ||
+          (data.phase === "down" && data.cancelled)
+        )
+          return false
+        dateEpochs.set(instance, data.epoch)
+        dateSequences.set(identity, data.sequence)
+        event.persist?.()
+        options.receiveDate(event as TNativeToolbarDateKeyEvent)
+        return true
+      }
+      if (options.toolbar) dateReceivers.set(key, receiveDate)
+
       return {
         receive: (event: NativeSyntheticEvent<NativeOrdinaryEditorKeyData>) => {
           const data = event.nativeEvent
           const current = session()
           let observed = false
+          let observerSession: { ownerId?: string; windowId?: string; epoch?: number } | undefined
           if (options.subtree) {
             try {
               const observers: unknown = JSON.parse(data.observerBindings)
               observed =
                 Array.isArray(observers) &&
-                observers.some(
-                  (value) =>
+                observers.some((value) => {
+                  const matches =
                     value?.bindingId === entry.bindingId &&
                     value?.bindingRevision === entry.bindingRevision &&
-                    value?.targetTag === entry.targetTag,
-                )
+                    value?.targetTag === entry.targetTag
+                  if (matches) observerSession = value
+                  return matches
+                })
             } catch {
               return false
             }
           }
+          const scopedToolbar =
+            options.toolbar &&
+            typeof data.toolbarRoute === "string" &&
+            observerSession?.ownerId === ownerId &&
+            observerSession.windowId === entry.windowId &&
+            observerSession.epoch === entry.epoch
+          const toolbarIdentity = JSON.stringify([data.ownerId, data.windowId, data.epoch])
+          const previousEventId = scopedToolbar ? (toolbarEventIds.get(toolbarIdentity) ?? 0) : eventId
           if (
             disposed ||
             entries.get(key) !== entry ||
@@ -117,21 +219,22 @@ export const createNativeOrdinaryEditorKeys = (ownerId: string, session: () => T
             (options.subtree ? !observed : event.target !== options.original) ||
             event.currentTarget !== (options.currentTarget ? options.currentTarget() : options.original) ||
             data.kind !== "keyboard" ||
-            data.ownerId !== ownerId ||
+            (data.ownerId !== ownerId && !scopedToolbar) ||
             (!options.subtree &&
               (data.bindingId !== entry.bindingId || data.bindingRevision !== entry.bindingRevision)) ||
             data.target !== findNodeHandle(event.target as View) ||
             data.windowId !== entry.windowId ||
             data.windowId !== current.windowId ||
-            data.epoch !== entry.epoch ||
-            data.epoch !== current.epoch ||
+            (data.epoch !== entry.epoch && !scopedToolbar) ||
+            entry.epoch !== current.epoch ||
             (data.phase !== "down" && data.phase !== "up") ||
             (data.phase === "down" && data.cancelled) ||
             !Number.isSafeInteger(data.eventId) ||
-            data.eventId <= eventId
+            data.eventId <= previousEventId
           )
             return false
-          eventId = data.eventId
+          if (scopedToolbar) toolbarEventIds.set(toolbarIdentity, data.eventId)
+          else eventId = data.eventId
           event.persist?.()
           // The native event already proceeds independently; there is no default acknowledgment.
           options.receive(event as TNativeOrdinaryEditorKeyEvent<TTarget, TReceiver>)
@@ -141,15 +244,21 @@ export const createNativeOrdinaryEditorKeys = (ownerId: string, session: () => T
           if (entries.get(key) !== entry) return
           entries.delete(key)
           const wasSubtree = entry.observers.size > 0
+          const previousPurpose = JSON.stringify(purpose(entry))
           entry.keys.delete(key)
           entry.observers.delete(key)
+          entry.toolbarKeys.delete(key)
+          entry.toolbarObservers.delete(key)
           if (!entry.keys.size) {
             targets.delete(options.original)
             changed()
-          } else if (wasSubtree !== entry.observers.size > 0) changed()
+          } else if (wasSubtree !== entry.observers.size > 0 || previousPurpose !== JSON.stringify(purpose(entry)))
+            changed()
         },
       }
     },
+    receiveDate: (key: string, event: NativeSyntheticEvent<NativeDateSegmentKeyData>) =>
+      dateReceivers.get(key)?.(event) ?? false,
     acceptStatus: (status: NativeEditorKeyboardStatus) => {
       if (disposed || status.ownerId !== ownerId) return
       const entry = [...targets.values()].find((entry) => entry.bindingId === status.bindingId)
@@ -170,6 +279,7 @@ export const createNativeOrdinaryEditorKeys = (ownerId: string, session: () => T
     dispose: () => {
       disposed = true
       entries.clear()
+      dateReceivers.clear()
       targets.clear()
       listeners.clear()
     },
@@ -204,14 +314,19 @@ export const useNativeOrdinaryEditorKeys = <TTarget extends View, TReceiver exte
       current: () => current.current.current(),
       canAct: () => current.current.canAct(),
       subtree: options.subtree,
+      toolbar: options.toolbar,
       ...(options.currentTarget ? { currentTarget: () => current.current.currentTarget?.() ?? null } : {}),
       receive: (event) => current.current.receive(event),
+      receiveDate: (event) => current.current.receiveDate?.(event),
     })
     lease.current = registration
     return () => {
       if (lease.current === registration) lease.current = null
       registration.unregister()
     }
-  }, [registry, key, target, enabled, revisionKey, options.subtree])
-  return (event: NativeSyntheticEvent<NativeOrdinaryEditorKeyData>) => lease.current?.receive(event)
+  }, [registry, key, target, enabled, revisionKey, options.subtree, options.toolbar])
+  return Object.assign((event: NativeSyntheticEvent<NativeOrdinaryEditorKeyData>) => lease.current?.receive(event), {
+    receiveDate: (event: NativeSyntheticEvent<NativeDateSegmentKeyData>) =>
+      lease.current ? registry?.receiveDate(key, event) : false,
+  })
 }

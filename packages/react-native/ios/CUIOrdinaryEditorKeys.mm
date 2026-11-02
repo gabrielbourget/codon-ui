@@ -3,6 +3,7 @@
 #import "CUIPhysicalKey.h"
 #import "CUIDateSegment.h"
 #import "CUIFocusView.h"
+#import "CUIKeyboardScope.h"
 #include <react/renderer/core/EventEmitter.h>
 #include <react/renderer/mounting/ShadowViewMutation.h>
 #include <unordered_map>
@@ -34,6 +35,11 @@ using namespace facebook::react;
 }
 - (NSString *)identity:(NSDictionary *)binding { return [NSString stringWithFormat:@"%@/%@", binding[@"bindingId"], binding[@"bindingRevision"]]; }
 - (BOOL)hasBindings { return _bindings.count > 0; }
+- (BOOL)canObserveTarget:(UIView *)target {
+  if (!_ready() || !target) return NO;
+  for (NSDictionary *binding in _bindings) if ([self original:binding] == target) return YES;
+  return NO;
+}
 - (void)update:(NSArray<NSDictionary *> *)bindings
 {
   if ([_bindings isEqual:bindings]) return;
@@ -101,6 +107,7 @@ using namespace facebook::react;
     original = original.superview;
   }
   if (!original || original == scope || [original isKindOfClass:CUIDateSegment.class]) return nil;
+  BOOL toolbarObservation=CUIKeyboardToolbarRoute(press) != nil;
   NSDictionary *selected = nil;
   NSMutableArray *observers = [NSMutableArray new];
   for (NSDictionary *binding in _bindings) {
@@ -108,8 +115,8 @@ using namespace facebook::react;
     if (!target) continue;
     // Native dispatch supplies the real target. React's genuine bubbling path
     // selects observing roots, including logical ancestors across portals.
-    if ([binding[@"subtree"] boolValue]) [observers addObject:binding];
-    if (target == original) {
+    if ([binding[@"subtree"] boolValue] && (![binding[@"toolbarSubtreeOnly"] boolValue] || toolbarObservation)) [observers addObject:binding];
+    if (target == original && (![binding[@"toolbarTargetOnly"] boolValue] || toolbarObservation)) {
       if (selected) return nil;
       selected = binding;
     }
@@ -138,10 +145,43 @@ using namespace facebook::react;
       @"sequence":@(++_sequence), @"ready":@(ready), @"windowActive":@(_scope.window.isKeyWindow), @"error":ready ? @"" : @"original-editor-unavailable"});
   }
 }
+- (NSInteger)toolbarPriorityForPress:(UIPress *)press owner:(NSString *)owner
+{
+  NSDictionary *binding=[self bindingForPress:press];
+  if (!binding) return 0;
+  if ([binding[@"targetTag"] isEqual:binding[@"originalTarget"]]) return 2;
+  return [_session()[@"scopeOwnerId"] isEqual:owner] ? 1 : 0;
+}
+- (void)appendToolbarObservers:(NSMutableArray *)observers
+{
+  NSDictionary *session=_session();
+  for (NSDictionary *binding in _bindings) if ([binding[@"subtree"] boolValue] && [self original:binding]) {
+    NSMutableDictionary *observer=[binding mutableCopy];
+    observer[@"ownerId"]=session[@"scopeOwnerId"] ?: @""; observer[@"windowId"]=session[@"windowId"] ?: @""; observer[@"epoch"]=session[@"epoch"] ?: @0;
+    [observers addObject:observer];
+  }
+}
 - (void)dispatchPress:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat captured:(BOOL)captured
 {
+  if (![phase isEqualToString:@"cancel"] && CUIKeyboardToolbarCancelledOriginal(press)) return;
   NSDictionary *binding = [self bindingForPress:press];
   if (!binding || ![@[@"down", @"up", @"cancel"] containsObject:phase]) return;
+  NSString *toolbarRoute=CUIKeyboardToolbarRoute(press);
+  if (toolbarRoute) {
+    NSDictionary *route=[NSJSONSerialization JSONObjectWithData:[toolbarRoute dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
+    CUIOrdinaryEditorKeys *winner=nil; NSInteger best=0;
+    for (CUIKeyboardScope *scope in CUIInputScopes(_scope.window)) {
+      CUIOrdinaryEditorKeys *candidate=[scope ordinaryEditorKeys]; NSInteger priority=[candidate toolbarPriorityForPress:press owner:route[@"ownerId"]];
+      if (!priority || priority < best) continue;
+      if (priority == best && winner) return;
+      winner=candidate; best=priority;
+    }
+    if (winner != self) return;
+    NSMutableArray *observers=[NSMutableArray new];
+    for (CUIKeyboardScope *scope in CUIInputScopes(_scope.window)) [[scope ordinaryEditorKeys] appendToolbarObservers:observers];
+    NSData *encoded=[NSJSONSerialization dataWithJSONObject:observers options:0 error:nil];
+    NSMutableDictionary *scoped=[binding mutableCopy]; scoped[@"observerBindings"]=[[NSString alloc] initWithData:encoded encoding:NSUTF8StringEncoding]; binding=scoped;
+  }
   const auto found = _emitters.find([binding[@"originalTarget"] intValue]);
   const auto emitter = found == _emitters.end() ? nullptr : found->second.lock();
   if (!emitter) return;
@@ -163,7 +203,9 @@ using namespace facebook::react;
     ("ctrlKey", static_cast<bool>(flags & UIKeyModifierControl))("metaKey", static_cast<bool>(flags & UIKeyModifierCommand))
     ("capsLock", static_cast<bool>(flags & UIKeyModifierAlphaShift))("nativeModifierData", std::to_string(static_cast<uint64_t>(flags)))
     ("nativeDefaultHandled", static_cast<bool>(captured))("timestamp", press.timestamp * 1000);
+  if (toolbarRoute) data["toolbarRoute"]=toolbarRoute.UTF8String;
   emitter->dispatchEvent("nativeOrdinaryEditorKey", std::move(data), RawEvent::Category::Discrete,
       HighResTimeStamp::fromDOMHighResTimeStamp(press.timestamp * 1000));
+  if (toolbarRoute) CUIKeyboardToolbarDidEmit(press);
 }
 @end

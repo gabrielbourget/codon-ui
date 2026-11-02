@@ -47,6 +47,7 @@ type TNativeButtonInternalProps = Omit<TNativeButtonProps, "accessibilityState" 
       props: Parameters<TNativePressableRender>[0],
       state: TNativeButtonRenderState & { isFocusVisible: boolean },
     ) => ReturnType<TNativePressableRender>
+    nativeFocusOnPress?: boolean
     nativeProgrammaticFocusable?: boolean
     nativeTabStop?: boolean
     nativeOnFocusObserved?: (focused: boolean, event: TNativeFocusEvent) => void
@@ -70,6 +71,7 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
     nativeAnimate = false,
     render: _render,
     nativeProgrammaticFocusable,
+    nativeFocusOnPress,
     nativeOnFocusObserved,
     color,
     hoverColor,
@@ -193,6 +195,7 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
             : undefined
         }
         nativeProgrammaticFocusable={nativeProgrammaticFocusable}
+        nativeFocusOnPress={nativeFocusOnPress}
         onNativeFocusObserved={nativeOnFocusObserved}
         ref={ref}
         accessible={nativeAccessible}

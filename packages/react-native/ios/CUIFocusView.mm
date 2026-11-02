@@ -792,6 +792,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 
 - (void)emitKey:(UIPress *)press down:(BOOL)down repeat:(BOOL)repeat cancelled:(BOOL)cancelled handled:(BOOL)handled
 {
+  if (CUIRouteOriginalToolbarKey(self,press,down,repeat,cancelled,handled)) return;
   UIKey *key = press.key;
   if (!key || !_eventEmitter) return;
   UIKeyModifierFlags flags = key.modifierFlags;

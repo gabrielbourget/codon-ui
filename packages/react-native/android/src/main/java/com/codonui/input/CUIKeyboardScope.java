@@ -34,7 +34,7 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
   long dragEpoch() { return dragInteractions.epoch(); }
   String dragWindowId() { return dragInteractions.window(); }
   void emitDragStatus(String record) { WritableMap data=Arguments.createMap(); data.putString("packet",record); emit("topNativeDragStatus",data); }
-  @Override public void didMountItems(UIManager manager) { if (manager == dragMountManager) { dragInteractions.refresh(); } ordinaryEditorKeys.publish(); }
+  @Override public void didMountItems(UIManager manager) { if (manager == dragMountManager) { dragInteractions.refresh(); } ordinaryEditorKeys.publish(); publishToolbarStatus(); }
   @Override public void willDispatchViewUpdates(UIManager manager) {}
   @Override public void willMountItems(UIManager manager) {}
   @Override public void didDispatchMountItems(UIManager manager) {}
@@ -52,6 +52,296 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
   String menuPointerOwnerId() { return ownerId; }
   double menuPointerEpoch() { return windowEpoch; }
   void emitMenuPointer(WritableMap data) { emit("topNativeMenuPointer", data); }
+  static final class Toolbar {
+    final String id, revision, orientation;
+    final int rootTag;
+    boolean resolved;
+    String failure="";
+    java.lang.ref.WeakReference<View> original, last;
+    Toolbar(org.json.JSONObject data) throws org.json.JSONException {
+      id=data.getString("bindingId"); revision=data.getString("bindingRevision"); rootTag=data.getInt("rootTarget");
+      orientation=data.getString("orientation");
+    }
+  }
+  private static final class ToolbarHold {
+    final Toolbar binding;
+    final View original;
+    final double epoch;
+    final String window;
+    String disposition="ordinary";
+    boolean consumed, retired;
+    int requestedTarget=-1;
+    boolean focusObserved;
+    KeyEvent event;
+    CUIKeyboardScope owner;
+    org.json.JSONObject route;
+    View observationTarget;
+    boolean originalForwarded, cancelForwarded;
+    ToolbarHold(Toolbar binding, View original, double epoch, String window) {
+      this.binding=binding; this.original=original; this.epoch=epoch; this.window=window;
+    }
+  }
+  private List<Toolbar> toolbars=new ArrayList<>();
+  private static ToolbarHold toolbarDispatchHold;
+  private final SparseArray<ToolbarHold> toolbarHeld=new SparseArray<>();
+  private long toolbarSequence, toolbarEventId;
+  private boolean toolbarMoving;
+  private android.view.ViewTreeObserver toolbarObserver;
+  private static KeyEvent toolbarOriginalEvent, toolbarObservedOriginalEvent;
+  private final android.view.ViewTreeObserver.OnGlobalFocusChangeListener toolbarFocusChanged=(before, after) -> {
+    if (toolbarMoving || !captureReady()) return;
+    Toolbar binding=nearestToolbar(after);
+    if (binding == null || !toolbars.contains(binding) || !toolbarEligible(binding, after)) return;
+    View last=binding.last == null ? null : binding.last.get();
+    if (nearestToolbar(before) != binding && toolbarEligible(binding, last)) {
+      toolbarMoving=true;
+      try { last.requestFocus(); } finally { toolbarMoving=false; }
+    } else binding.last=new java.lang.ref.WeakReference<>(after);
+  };
+  void setToolbarBindings(String value) {
+    List<Toolbar> next=new ArrayList<>();
+    try {
+      org.json.JSONArray data=new org.json.JSONArray(value == null ? "[]" : value);
+      for (int index=0; index<data.length(); index++) {
+        Toolbar binding=new Toolbar(data.getJSONObject(index));
+        for (Toolbar old : toolbars) if (old.id.equals(binding.id) && old.revision.equals(binding.revision) && old.rootTag == binding.rootTag) {
+          binding=old; break;
+        }
+        next.add(binding);
+      }
+    } catch (org.json.JSONException error) { next.clear(); }
+    if (!toolbars.equals(next)) retireToolbarHeld();
+    toolbars=next;
+    attachToolbarObserver();
+  }
+  private View toolbarRoot(Toolbar binding) {
+    View current=getRootView().findViewById(binding.rootTag);
+    if (!binding.resolved && current != null) { binding.resolved=true; binding.original=new java.lang.ref.WeakReference<>(current); }
+    View root=binding.original == null ? null : binding.original.get();
+    return root != null && root == current && root.isAttachedToWindow() && root.getRootView() == getRootView() && insideToolbarView(root, this) ? root : null;
+  }
+  private static boolean insideToolbarView(View target, View root) {
+    for (View view=target; view != null; view=view.getParent() instanceof View ? (View)view.getParent() : null) if (view == root) return true;
+    return false;
+  }
+  private Toolbar toolbarAt(View view) {
+    for (CUIKeyboardScope scope : CUIInputWindow.scopes(this)) if (scope.captureReady())
+      for (Toolbar binding : scope.toolbars) if (scope.toolbarRoot(binding) == view) return binding;
+    return null;
+  }
+  private static boolean originalToolbarRole(View view) {
+    Object role=view.getTag(com.facebook.react.R.id.role);
+    if (role == null) role=view.getTag(com.facebook.react.R.id.accessibility_role);
+    return role != null && "toolbar".equalsIgnoreCase(role.toString());
+  }
+  private boolean toolbarAncestor(View root) {
+    for (View view=root == null ? null : root.getParent() instanceof View ? (View)root.getParent() : null; view != null; view=view.getParent() instanceof View ? (View)view.getParent() : null)
+      if (toolbarAt(view) != null || originalToolbarRole(view)) return true;
+    return false;
+  }
+  private Toolbar nearestToolbar(View focused) {
+    if (focused == null || !captureReady()) return null;
+    for (View view=focused; view != null; view=view.getParent() instanceof View ? (View)view.getParent() : null) {
+      Toolbar binding=toolbarAt(view);
+      if (binding != null) {
+        if (!toolbarAncestor(view)) return binding;
+      } else if (originalToolbarRole(view)) return null;
+    }
+    return null;
+  }
+  private boolean toolbarEligible(Toolbar binding, View view) {
+    View root=toolbarRoot(binding);
+    if (view instanceof CUIDateSegment && (((CUIDateSegment)view).segmentDisabled || !((CUIDateSegment)view).segmentEditable)) return false;
+    if (root == null || view == null || view == root || !view.isFocusable() || !view.isEnabled() || !view.isShown() || !view.isAttachedToWindow() || nearestToolbar(view) != binding) return false;
+    for (View current=view; current != null; current=current.getParent() instanceof View ? (View)current.getParent() : null) {
+      if (current == root) return true;
+    }
+    return false;
+  }
+  private List<View> toolbarCandidates(Toolbar binding) {
+    View root=toolbarRoot(binding); List<View> result=new ArrayList<>();
+    if (root != null) for (View candidate : root.getFocusables(View.FOCUS_FORWARD)) if (toolbarEligible(binding, candidate) && !result.contains(candidate)) result.add(candidate);
+    return result;
+  }
+  private static boolean toolbarComposing(View focused) {
+    if (focused instanceof CUIDateSegment) return ((CUIDateSegment)focused).isSegmentComposing();
+    if (!(focused instanceof EditText)) return false;
+    Editable text=((EditText)focused).getText(); return text != null && BaseInputConnection.getComposingSpanStart(text) >= 0;
+  }
+  private Boolean dispatchToolbarKey(KeyEvent event, View focused) {
+    int code=event.getKeyCode(); boolean down=event.getAction() == KeyEvent.ACTION_DOWN;
+    CUIKeyboardScope owner=null; ToolbarHold hold=null;
+    for (CUIKeyboardScope scope : CUIInputWindow.scopes(this)) {
+      ToolbarHold candidate=scope.toolbarHeld.get(code);
+      if (candidate != null) { owner=scope; hold=candidate; break; }
+    }
+    if (hold == null && down && event.getRepeatCount() == 0) {
+      Toolbar binding=nearestToolbar(focused);
+      if (binding == null) return null;
+      for (CUIKeyboardScope scope : CUIInputWindow.scopes(this)) if (scope.toolbars.contains(binding)) { owner=scope; break; }
+      if (owner == null) return null;
+      hold=new ToolbarHold(binding, focused, owner.windowEpoch, CUIInputWindow.identity(owner));
+      hold.owner=owner;
+      owner.toolbarHeld.put(code, hold);
+    }
+    if (hold == null) return null;
+    hold.event=new KeyEvent(event);
+    toolbarDispatchHold=hold;
+    Toolbar binding=hold.binding;
+    if (!owner.captureReady() || owner.windowEpoch != hold.epoch || !hold.window.equals(CUIInputWindow.identity(owner)) || !owner.toolbars.contains(binding) || owner.toolbarRoot(binding) == null || !owner.toolbarEligible(binding, hold.original)) hold.retired=true;
+    boolean routing=hold.consumed || "tab".equals(hold.disposition);
+    int destination=-1;
+    if (!hold.retired && down) {
+      boolean unmodified=!event.isAltPressed() && !event.isCtrlPressed() && !event.isMetaPressed();
+      boolean tab=code == KeyEvent.KEYCODE_TAB && unmodified;
+      int delta=0;
+      if (unmodified && !event.isShiftPressed()) {
+        if ("vertical".equals(binding.orientation)) delta=code == KeyEvent.KEYCODE_DPAD_DOWN ? 1 : code == KeyEvent.KEYCODE_DPAD_UP ? -1 : 0;
+        else delta=code == KeyEvent.KEYCODE_DPAD_RIGHT ? (owner.toolbarRoot(binding).getLayoutDirection() == View.LAYOUT_DIRECTION_RTL ? -1 : 1) : code == KeyEvent.KEYCODE_DPAD_LEFT ? (owner.toolbarRoot(binding).getLayoutDirection() == View.LAYOUT_DIRECTION_RTL ? 1 : -1) : 0;
+      }
+      if (focused instanceof CUIDateSegment || (focused != null && focused.onCheckIsTextEditor())) delta=0;
+      if ((tab || delta != 0) && !toolbarComposing(focused) && owner.ordinaryEditorKeys.canObserveTarget(owner.toolbarRoot(binding))) {
+        List<View> candidates=owner.toolbarCandidates(binding); int index=candidates.indexOf(focused);
+        if (index >= 0 && !candidates.isEmpty()) {
+          View target=tab ? candidates.get(event.isShiftPressed() ? 0 : candidates.size()-1) : candidates.get(Math.max(0, Math.min(candidates.size()-1, index+delta)));
+          hold.requestedTarget=target.getId(); hold.disposition=tab ? "tab" : "arrow"; hold.consumed=!tab; routing=true;
+          owner.toolbarMoving=true;
+          boolean moved;
+          try { moved=target == focused || target.requestFocus(); } finally { owner.toolbarMoving=false; }
+          hold.focusObserved=getRootView().findFocus() == target;
+          if (moved && hold.focusObserved) {
+            destination=target.getId(); hold.disposition=tab ? "tab" : "arrow"; hold.consumed=!tab; routing=true;
+            // Tab's temporary edge must not replace the remembered reentry original.
+            binding.last=new java.lang.ref.WeakReference<>(tab ? focused : target);
+          } else { binding.failure=moved ? "original-toolbar-focus-completion-not-observed" : "original-toolbar-focus-request-refused"; owner.publishToolbarStatus(); }
+        }
+      }
+    }
+    if (!hold.retired) owner.emitToolbarKey(hold, event, destination, event.isCanceled());
+    if (!down) owner.toolbarHeld.remove(code);
+    return routing ? hold.consumed : null;
+  }
+  private void emitToolbarKey(ToolbarHold hold, KeyEvent event, int destination, boolean cancelled) {
+    try {
+      org.json.JSONObject data=toolbarPacket(hold.binding);
+      data.put("windowId",hold.window); data.put("epoch",hold.epoch); data.put("eventId",++toolbarEventId);
+      data.put("target",hold.original.getId()); data.put("focusedTarget",hold.original.getId()); data.put("requestedTarget",hold.requestedTarget); data.put("destinationTarget",destination); data.put("focusObserved",hold.focusObserved);
+      data.put("phase",event.getAction() == KeyEvent.ACTION_DOWN && !cancelled ? "down" : "up");
+      data.put("key",CUIInputWindow.keyName(event)); data.put("nativeCode",event.getKeyCode());
+      int unicode=event.getUnicodeChar(); String characters=event.getCharacters();
+      data.put("characters",characters != null ? characters : unicode != 0 && Character.isValidCodePoint(unicode) ? new String(Character.toChars(unicode)) : "");
+      data.put("repeat",event.getRepeatCount()>0); data.put("cancelled",cancelled); data.put("isComposing",toolbarComposing(hold.original));
+      data.put("shiftKey",event.isShiftPressed()); data.put("altKey",event.isAltPressed()); data.put("ctrlKey",event.isCtrlPressed()); data.put("metaKey",event.isMetaPressed()); data.put("capsLock",event.isCapsLockOn());
+      data.put("nativeModifierData",Integer.toUnsignedString(event.getMetaState())); data.put("nativeDefaultHandled",hold.consumed); data.put("disposition",hold.disposition); data.put("timestamp",event.getEventTime());
+      org.json.JSONArray path=new org.json.JSONArray();
+      for (View view=hold.original; view != null; view=view.getParent() instanceof View ? (View)view.getParent() : null) if (view.getId() > 0) path.put(view.getId());
+      data.put("physicalPath",path);
+      hold.observationTarget=event.getAction() == KeyEvent.ACTION_UP && !cancelled ? getRootView().findFocus() : hold.original;
+      hold.route=null;
+      if (nearestToolbar(hold.observationTarget) == hold.binding) {
+        org.json.JSONObject route=new org.json.JSONObject(data.toString()); org.json.JSONArray originalPath=new org.json.JSONArray();
+        for (View view=hold.observationTarget; view != null; view=view.getParent() instanceof View ? (View)view.getParent() : null) if (view.getId() > 0) originalPath.put(view.getId());
+        route.put("physicalPath",originalPath); hold.route=route;
+      }
+      emitToolbarPacket("topNativeToolbarKeyboard",data);
+    } catch (org.json.JSONException ignored) { }
+  }
+  private org.json.JSONObject toolbarPacket(Toolbar binding) throws org.json.JSONException {
+    org.json.JSONObject data=new org.json.JSONObject();
+    data.put("ownerId",ownerId); data.put("windowId",CUIInputWindow.identity(this)); data.put("epoch",windowEpoch);
+    data.put("bindingId",binding.id); data.put("bindingRevision",binding.revision); data.put("rootTarget",binding.rootTag); return data;
+  }
+  private void emitToolbarPacket(String name, org.json.JSONObject packet) {
+    WritableMap data=Arguments.createMap(); data.putString("packet",packet.toString()); emit(name,data);
+  }
+  private void publishToolbarStatus() {
+    for (int index=toolbarHeld.size()-1; index>=0; index--) {
+      ToolbarHold hold=toolbarHeld.valueAt(index);
+      if (!captureReady() || hold.epoch != windowEpoch || !toolbars.contains(hold.binding) || !toolbarEligible(hold.binding, hold.original)) {
+        hold.retired=true; toolbarHeld.removeAt(index);
+      }
+    }
+    for (Toolbar binding : toolbars) try {
+      org.json.JSONObject data=toolbarPacket(binding); data.put("sequence",++toolbarSequence);
+      View root=toolbarRoot(binding); data.put("nestedToolbar",root != null && toolbarAncestor(root));
+      data.put("observationReady",captureReady() && root != null && ordinaryEditorKeys.canObserveTarget(root));
+      data.put("ready",captureReady() && root != null && binding.failure.isEmpty() && ordinaryEditorKeys.canObserveTarget(root)); data.put("windowActive",windowActive());
+      data.put("error",root == null ? "original-toolbar-root-unavailable" : binding.failure); emitToolbarPacket("topNativeToolbarStatus",data);
+    } catch (org.json.JSONException ignored) { }
+  }
+  private static ToolbarHold originalToolbarHold(View original, KeyEvent event) {
+    if (original == null) return null;
+    ToolbarHold hold=toolbarDispatchHold;
+    if (hold != null && hold.event.getKeyCode() == event.getKeyCode() && insideToolbarView(hold.observationTarget == null ? hold.original : hold.observationTarget,original)) return hold;
+    for (CUIKeyboardScope scope : CUIInputWindow.scopes(original)) {
+      ToolbarHold candidate=scope.toolbarHeld.get(event.getKeyCode());
+      if (candidate != null && insideToolbarView(candidate.observationTarget == null ? candidate.original : candidate.observationTarget,original)) return candidate;
+    }
+    return null;
+  }
+  static boolean toolbarCancelledOriginal(View original, KeyEvent event) {
+    ToolbarHold hold=originalToolbarHold(original,event); return hold != null && hold.cancelForwarded;
+  }
+  static CUIKeyboardScope toolbarOriginalOwner(View original, KeyEvent event) {
+    ToolbarHold hold=originalToolbarHold(original,event); return hold == null || toolbarRouteForOriginal(original,event) == null ? null : hold.owner;
+  }
+  static String toolbarRouteForOriginal(View original, KeyEvent event) {
+    ToolbarHold hold=originalToolbarHold(original,event);
+    if (hold == null || hold.retired || hold.route == null || !hold.owner.captureReady() || hold.epoch != hold.owner.windowEpoch || !hold.owner.toolbars.contains(hold.binding) || !hold.owner.toolbarEligible(hold.binding,hold.original) || !hold.owner.ordinaryEditorKeys.canObserveTarget(hold.owner.toolbarRoot(hold.binding))) return null;
+    return hold.route.toString();
+  }
+  static String toolbarDateRouteForOriginal(View original, KeyEvent event) {
+    String encoded=toolbarRouteForOriginal(original,event); if (encoded == null) return null;
+    try {
+      org.json.JSONObject route=new org.json.JSONObject(encoded); org.json.JSONArray observers=new org.json.JSONArray();
+      for (CUIKeyboardScope scope : CUIInputWindow.scopes(original)) scope.ordinaryEditorKeys.appendToolbarObservers(observers);
+      route.put("observerBindings",observers); return route.toString();
+    } catch (org.json.JSONException invalid) { return null; }
+  }
+  static void toolbarOriginalDidEmit(View original, KeyEvent event) {
+    ToolbarHold hold=originalToolbarHold(original,event);
+    if (hold != null && toolbarRouteForOriginal(original,event) != null) {
+      hold.originalForwarded=true;
+      if (toolbarOriginalEvent == event) toolbarObservedOriginalEvent=event;
+    }
+  }
+  static boolean bypassObservedToolbarTabTarget(View target, KeyEvent event) {
+    ToolbarHold hold=toolbarDispatchHold;
+    return toolbarOriginalEvent == event && toolbarObservedOriginalEvent == event && event.getAction() == KeyEvent.ACTION_DOWN && event.getKeyCode() == KeyEvent.KEYCODE_TAB &&
+        hold != null && hold.originalForwarded && !hold.consumed && "tab".equals(hold.disposition) &&
+        target.getRootView() == hold.owner.getRootView() && toolbarRouteForOriginal(hold.original,event) != null;
+  }
+  static boolean routeOriginalToolbarKey(View target, KeyEvent event, boolean down, boolean cancelled, boolean handled) {
+    ToolbarHold hold=originalToolbarHold(target,event);
+    if (hold == null || !hold.originalForwarded) return false;
+    if (cancelled && !hold.cancelForwarded && toolbarRouteForOriginal(target,event) != null) {
+      hold.cancelForwarded=true;
+      hold.owner.emitToolbarKey(hold,event,-1,true);
+      CUIOrdinaryEditorKeys.dispatchToolbarCancellation(CUIInputWindow.scopes(target),event,hold.original,handled);
+      hold.retired=true;
+    }
+    return true;
+  }
+  private void retireToolbarHeld() {
+    for (int index=0; index<toolbarHeld.size(); index++) {
+      ToolbarHold hold=toolbarHeld.valueAt(index);
+      if (!hold.retired && hold.event != null) emitToolbarKey(hold, hold.event, -1, true);
+      hold.retired=true;
+    }
+    toolbarHeld.clear();
+    for (Toolbar binding : toolbars) binding.last=null;
+  }
+  private void attachToolbarObserver() {
+    if (!isAttachedToWindow() || toolbars.isEmpty()) return;
+    android.view.ViewTreeObserver next=getRootView().getViewTreeObserver();
+    if (toolbarObserver == next) return;
+    detachToolbarObserver(); toolbarObserver=next; toolbarObserver.addOnGlobalFocusChangeListener(toolbarFocusChanged);
+  }
+  private void detachToolbarObserver() {
+    if (toolbarObserver != null && toolbarObserver.isAlive()) toolbarObserver.removeOnGlobalFocusChangeListener(toolbarFocusChanged);
+    toolbarObserver=null;
+  }
+
   static final class Observation {
     final String id;
     final int targetTag;
@@ -192,6 +482,7 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
   void publishStatus() {
     dragInteractions.refreshWindow();
     ordinaryEditorKeys.publish();
+    publishToolbarStatus();
     CUIWindowPointers.refresh(this);
     menuPointers.update(menuPointerPolicies, menuPointerRevision);
     floating.update(floatingTargets, captureReady());
@@ -210,7 +501,7 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
       composing = text != null && BaseInputConnection.getComposingSpanStart(text) >= 0;
     }
     if (focused instanceof CUIDateSegment) composing = ((CUIDateSegment)focused).isSegmentComposing();
-    boolean editable = focused != null && focused.onCheckIsTextEditor();
+    boolean editable = focused instanceof CUIDateSegment || (focused != null && focused.onCheckIsTextEditor());
     String token = CUIInputWindow.keyToken(event);
     for (Policy policy : policies) {
       if (editable && policy.excludeEditable) continue;
@@ -246,25 +537,30 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
     if (down) recordModality("keyboard", event.getEventTime());
     boolean outer = CUIInputWindow.beginKey(this);
     try {
+      View toolbarOriginalFocus=getRootView().findFocus();
+      Boolean toolbarRoute=outer ? dispatchToolbarKey(event, toolbarOriginalFocus) : null;
+      if (outer && Boolean.FALSE.equals(toolbarRoute)) toolbarOriginalEvent=event;
       if (outer && down) {
-        View focused = getRootView().findFocus();
+        View focused = toolbarOriginalFocus;
         List<CUIKeyboardScope> scopes = CUIInputWindow.scopes(this);
         boolean captured = focused instanceof CUIFocusView && ((CUIFocusView) focused).capturesObservedKey(event);
         for (CUIKeyboardScope candidate : scopes) captured |= candidate.held.get(event.getKeyCode()) != null || candidate.localPolicyFor(event, focused) != null;
+        captured |= Boolean.TRUE.equals(toolbarRoute);
         long eventId = CUIInputWindow.nextObservedEvent(this);
         for (CUIKeyboardScope candidate : scopes) candidate.observeKey(event, focused, eventId, captured);
       }
-      View focused = getRootView().findFocus();
-      if (outer && focused instanceof CUIDateSegment && ((CUIDateSegment)focused).capturesOrdinaryEvent(event)) {
+      View focused = toolbarRoute != null ? toolbarOriginalFocus : getRootView().findFocus();
+      if (outer && toolbarRoute == null && focused instanceof CUIDateSegment && ((CUIDateSegment)focused).capturesOrdinaryEvent(event)) {
         boolean alreadyHeld = false;
         for (CUIKeyboardScope scope : CUIInputWindow.scopes(this)) alreadyHeld |= scope.held.get(event.getKeyCode()) != null;
         if (!alreadyHeld) return super.dispatchKeyEvent(event);
       }
-      boolean captured = dispatchCapturedKey(event);
+      boolean captured = Boolean.TRUE.equals(toolbarRoute) || (toolbarOriginalEvent != event && dispatchCapturedKey(event));
       if (outer && captured && focused instanceof CUIDateSegment) ((CUIDateSegment)focused).observeCapturedOrdinaryKey(event);
-      if (outer) CUIOrdinaryEditorKeys.dispatch(CUIInputWindow.scopes(this), event, getRootView().findFocus(), captured);
+      else if (outer && down && Boolean.FALSE.equals(toolbarRoute) && focused instanceof CUIDateSegment) ((CUIDateSegment)focused).observeToolbarOrdinaryKey(event,false);
+      if (outer) CUIOrdinaryEditorKeys.dispatch(CUIInputWindow.scopes(this), event, toolbarRoute != null ? toolbarOriginalFocus : getRootView().findFocus(), captured);
       return captured || super.dispatchKeyEvent(event);
-    } finally { CUIInputWindow.endKey(this); }
+    } finally { if (outer) { if (toolbarOriginalEvent == event) toolbarOriginalEvent=null; if (toolbarObservedOriginalEvent == event) toolbarObservedOriginalEvent=null; toolbarDispatchHold=null; } CUIInputWindow.endKey(this); }
   }
   private void observeKey(KeyEvent event, View focused, long eventId, boolean captured) {
     if (!captureReady() || event.isCanceled() || observations.isEmpty()) return;
@@ -295,6 +591,7 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
     emit("topNativeObservedKey", data);
   }
   private boolean dispatchCapturedKey(KeyEvent event) {
+    if (toolbarOriginalEvent == event) return false;
     if (!isAttachedToWindow() || !hasWindowFocus() || (event.getAction() != KeyEvent.ACTION_DOWN && event.getAction() != KeyEvent.ACTION_UP)) return false;
     View focused = getRootView().findFocus();
     int code = event.getKeyCode();
@@ -381,10 +678,12 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
     ThemedReactContext context = (ThemedReactContext) getContext(); EventDispatcher dispatcher = UIManagerHelper.getEventDispatcherForReactTag(context, getId());
     if (dispatcher != null) dispatcher.dispatchEvent(new ScopeEvent(UIManagerHelper.getSurfaceId(this), getId(), name, data));
   }
-  void emitOrdinaryEditorKey(int target, WritableMap data) {
+  boolean emitOrdinaryEditorKey(int target, WritableMap data) {
     ThemedReactContext context = (ThemedReactContext)getContext();
     EventDispatcher dispatcher = UIManagerHelper.getEventDispatcherForReactTag(context, target);
-    if (dispatcher != null) dispatcher.dispatchEvent(new EditorKeyboardEvent(UIManagerHelper.getSurfaceId(this), target, "topNativeOrdinaryEditorKey", data, false));
+    if (dispatcher == null) return false;
+    dispatcher.dispatchEvent(new EditorKeyboardEvent(UIManagerHelper.getSurfaceId(this), target, "topNativeOrdinaryEditorKey", data, false));
+    return true;
   }
   void emitOrdinaryEditorStatus(WritableMap data) { emitEditorKeyboard("topNativeOrdinaryEditorStatus", data, false); }
   void emitEditorKeyboard(String name, WritableMap data, boolean synchronous) {
@@ -405,13 +704,14 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
     @Override protected boolean experimental_isSynchronous() { return synchronous; }
   }
   void retireHeld() {
+    retireToolbarHeld();
     for (int index = 0; index < held.size(); index++) {
       Hold hold = held.valueAt(index);
       if (!hold.retired) emitKey(hold, false, true);
       hold.retired = true;
     }
   }
-  @Override protected void onLayout(boolean changed, int left, int top, int right, int bottom) { super.onLayout(changed, left, top, right, bottom); ordinaryEditorKeys.publish(); dialogs.attach(); dialogs.refresh(); }
+  @Override protected void onLayout(boolean changed, int left, int top, int right, int bottom) { super.onLayout(changed, left, top, right, bottom); ordinaryEditorKeys.publish(); publishToolbarStatus(); dialogs.attach(); dialogs.refresh(); }
   @Override public void onWindowFocusChanged(boolean focused) { retireHeld(); held.clear(); if (!focused) CUIInputWindow.clearPointers(this); windowEpoch++; super.onWindowFocusChanged(focused); publishStatus(); }
   @Override protected void onWindowVisibilityChanged(int visibility) {
     super.onWindowVisibilityChanged(visibility);
@@ -421,12 +721,13 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
     super.onAttachedToWindow();
     dragMountManager = UIManagerHelper.getUIManagerForReactTag((ThemedReactContext)getContext(), getId());
     if (dragMountManager != null) dragMountManager.addUIManagerEventListener(this);
-    boundRoot = getRootView(); CUIInputWindow.register(this); policyOrder = CUIInputWindow.nextPolicyOrder(this);
+    boundRoot = getRootView(); CUIInputWindow.register(this); attachToolbarObserver(); policyOrder = CUIInputWindow.nextPolicyOrder(this);
     ViewCompat.addOnUnhandledKeyEventListener(boundRoot, unhandled); windowEpoch++; publishStatus(); dialogs.attach();
   }
   @Override protected void onDetachedFromWindow() {
     dragInteractions.cancelPointer();
     if (dragMountManager != null) dragMountManager.removeUIManagerEventListener(this); dragMountManager = null;
+    detachToolbarObserver();
     dialogs.detach();
     floating.stop();
     menuPointers.dispose();

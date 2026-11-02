@@ -36,6 +36,7 @@ final class CUIDateSegment extends ReactViewGroup {
   CUIDateSegment(Context context) { super(context); Selection.setSelection(document, 0); }
   private InputMethodManager inputMethod() { return (InputMethodManager)getContext().getSystemService(Context.INPUT_METHOD_SERVICE); }
   private boolean active() { return isAttachedToWindow() && hasWindowFocus() && isShown(); }
+  private String toolbarEmission="";
   private boolean canEdit() { return active() && hasFocus() && !segmentDisabled && !segmentReadOnly && segmentEditable; }
   void configureIdentity(String owner, String segment, String revision) {
     if (ownerId.equals(owner) && segmentId.equals(segment) && bindingRevision.equals(revision)) return;
@@ -177,6 +178,9 @@ final class CUIDateSegment extends ReactViewGroup {
   boolean capturesOrdinaryEvent(KeyEvent event) {
     return ordinaryGroupEvents && active() && !segmentDisabled && capturesOrdinaryKey(event);
   }
+  void observeToolbarOrdinaryKey(KeyEvent event, boolean captured) {
+    emitOrdinaryKey(event,event.getAction() == KeyEvent.ACTION_DOWN,captured);
+  }
   void observeCapturedOrdinaryKey(KeyEvent event) {
     emitOrdinaryKey(event, event.getAction() == KeyEvent.ACTION_DOWN, true);
   }
@@ -185,7 +189,11 @@ final class CUIDateSegment extends ReactViewGroup {
     ReactContext context = (ReactContext)getContext();
     EventDispatcher dispatcher = UIManagerHelper.getEventDispatcherForReactTag(context,getId());
     if (dispatcher == null || ownerId.isEmpty() || segmentId.isEmpty()) return;
+    String toolbarRoute=CUIKeyboardScope.toolbarDateRouteForOriginal(this,event);
+    String emission=event.getDownTime()+":"+event.getEventTime()+":"+event.getKeyCode()+":"+down+":"+epoch+":"+bindingRevision;
+    if (toolbarRoute != null && emission.equals(toolbarEmission)) return;
     WritableMap data = Arguments.createMap(); int code = event.getKeyCode(), unicode = event.getUnicodeChar();
+    if (toolbarRoute != null) data.putString("toolbarRoute",toolbarRoute);
     data.putString("kind","keyboard"); data.putString("ownerId",ownerId); data.putString("segmentId",segmentId); data.putString("bindingRevision",bindingRevision);
     data.putInt("target",getId()); data.putString("nativeInstance","android-date-segment:"+Integer.toHexString(System.identityHashCode(this)));
     data.putInt("surfaceId",UIManagerHelper.getSurfaceId(this)); data.putString("windowId",CUIInputWindow.identity(this));
@@ -197,6 +205,7 @@ final class CUIDateSegment extends ReactViewGroup {
     data.putBoolean("ctrlKey",event.isCtrlPressed()); data.putBoolean("metaKey",event.isMetaPressed()); data.putBoolean("capsLock",event.isCapsLockOn());
     data.putString("nativeModifierData",Integer.toUnsignedString(event.getMetaState())); data.putBoolean("nativeDefaultHandled",captured);
     dispatcher.dispatchEvent(new SegmentEvent(UIManagerHelper.getSurfaceId(this),getId(),data,"topNativeDateKey"));
+    if (toolbarRoute != null) { toolbarEmission=emission; CUIKeyboardScope.toolbarOriginalDidEmit(this,event); }
   }
   @Override public boolean onKeyUp(int code, KeyEvent event) {
     if (ordinaryGroupEvents && active() && !segmentDisabled) {
@@ -206,6 +215,8 @@ final class CUIDateSegment extends ReactViewGroup {
     return super.onKeyUp(code,event);
   }
   @Override public boolean onKeyDown(int code, KeyEvent event) {
+    // Keep the original Tab default without a second edge-target observation or field edit.
+    if (CUIKeyboardScope.bypassObservedToolbarTabTarget(this,event)) return super.onKeyDown(code,event);
     if (ordinaryGroupEvents && active() && !segmentDisabled) {
       boolean captured = capturesOrdinaryKey(event); emitOrdinaryKey(event,true,captured);
       if (captured) return true;

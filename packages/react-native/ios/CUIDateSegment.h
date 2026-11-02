@@ -9,5 +9,6 @@
 - (BOOL)fieldSegmentReadOnly;
 - (NSString *)fieldOwnerId;
 - (BOOL)capturesOrdinaryKey:(UIKey *)key;
+- (void)observeToolbarPress:(UIPress *)press phase:(NSString *)phase cancelled:(BOOL)cancelled captured:(BOOL)captured;
 - (void)observeCapturedPress:(UIPress *)press phase:(NSString *)phase cancelled:(BOOL)cancelled;
 @end

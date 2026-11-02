@@ -7,6 +7,8 @@
 - (instancetype)initWithScope:(UIView *)scope session:(NSDictionary *(^)(void))session ready:(BOOL (^)(void))ready status:(void (^)(NSDictionary *))status;
 - (void)update:(NSArray<NSDictionary *> *)bindings;
 - (BOOL)hasBindings;
+- (BOOL)canObserveTarget:(UIView *)target;
+- (void)appendToolbarObservers:(NSMutableArray *)observers;
 - (BOOL)acceptsPress:(UIPress *)press;
 - (void)dispatchPress:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat captured:(BOOL)captured;
 - (void)publish;

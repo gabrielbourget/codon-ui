@@ -27,6 +27,7 @@ export type TNativeToggleButtonProps = Omit<
   | "render"
   | "children"
   | "slot"
+  | "id"
   | "style"
   | "width"
   | "height"
@@ -40,10 +41,13 @@ export type TNativeToggleButtonProps = Omit<
   | "aria-checked"
   | "aria-selected"
 > & {
+  slot?: string | null
+  id?: string | number
   isSelected?: boolean
   defaultSelected?: boolean
   onChange?: (selected: boolean) => void
   autoFocus?: boolean
+  preventFocusOnPress?: boolean
   width?: TNativeDisplayDimension
   height?: TNativeDisplayDimension
   children?: ReactNode | ((state: TNativeToggleButtonChildrenState) => ReactNode)

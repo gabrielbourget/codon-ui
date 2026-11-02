@@ -8,8 +8,12 @@
 #import "CUIEditorKeyboardRecognizer.h"
 #import "CUIOrdinaryEditorKeys.h"
 #import "CUIDateSegment.h"
+#import "CUIFocusView.h"
 #import <UIKit/UIGestureRecognizerSubclass.h>
+#import <objc/runtime.h>
 #import <React/RCTMountingTransactionObserving.h>
+#import <React/RCTComponentViewProtocol.h>
+#import <react/renderer/components/view/ViewProps.h>
 #import <react/renderer/components/CodonNativeInputSpec/ComponentDescriptors.h>
 #import <react/renderer/components/CodonNativeInputSpec/EventEmitters.h>
 #import <react/renderer/components/CodonNativeInputSpec/Props.h>
@@ -26,6 +30,37 @@ static UIView *CUIFirstResponder(UIView *root)
   return nil;
 }
 
+@interface CUIToolbarBinding : NSObject
+@property(nonatomic, copy) NSString *identity;
+@property(nonatomic, copy) NSString *revision;
+@property(nonatomic, assign) NSInteger rootTag;
+@property(nonatomic, copy) NSString *orientation;
+@property(nonatomic, weak) UIView *original;
+@property(nonatomic, weak) UIView *last;
+@property(nonatomic, assign) BOOL resolved;
+@property(nonatomic, copy) NSString *failure;
+@end
+@implementation CUIToolbarBinding
+@end
+@interface CUIToolbarHold : NSObject
+@property(nonatomic, strong) CUIToolbarBinding *binding;
+@property(nonatomic, strong) UIView *original;
+@property(nonatomic, weak) UIPress *press;
+@property(nonatomic, weak) CUIKeyboardScope *scope;
+@property(nonatomic, copy) NSDictionary *route;
+@property(nonatomic, assign) BOOL originalForwarded;
+@property(nonatomic, assign) BOOL cancelForwarded;
+@property(nonatomic, copy) NSString *window;
+@property(nonatomic, assign) double epoch;
+@property(nonatomic, copy) NSString *disposition;
+@property(nonatomic, assign) BOOL consumed;
+@property(nonatomic, assign) NSInteger requestedTarget;
+@property(nonatomic, assign) BOOL focusObserved;
+@property(nonatomic, assign) BOOL retired;
+@end
+@implementation CUIToolbarHold
+@end
+
 @interface CUIKeyHold : NSObject
 @property(nonatomic, strong) UIPress *press;
 @property(nonatomic, copy) NSString *policyId;
@@ -39,6 +74,10 @@ static UIView *CUIFirstResponder(UIView *root)
 @implementation CUIKeyHold
 @end
 
+static char CUIToolbarPressRouteKey;
+static char CUIToolbarPreparedPressKey;
+static NSNumber *CUIPrepareToolbarPress(UIPress *press, NSString *phase, BOOL repeat);
+
 @class CUIKeyboardRecognizer;
 @interface CUIKeyboardScope () <UIGestureRecognizerDelegate, CUIKeyboardObservationScope, CUIWindowPointerScope, RCTMountingTransactionObserving>
 - (NSString *)policyForPress:(UIPress *)press;
@@ -49,6 +88,19 @@ static UIView *CUIFirstResponder(UIView *root)
 - (NSString *)localPolicyForPress:(UIPress *)press focused:(UIView *)focused;
 - (NSInteger)policyOrder;
 - (void)emitMenuPointer:(NSDictionary *)packet;
+- (BOOL)toolbarAcceptsPress:(UIPress *)press;
+- (NSNumber *)dispatchToolbarPress:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat;
+- (BOOL)toolbarNavigationForPress:(UIPress *)press;
+- (void)retireToolbarHeld;
+- (NSString *)toolbarRouteForHold:(CUIToolbarHold *)hold;
+- (void)cancelOriginalToolbarHold:(CUIToolbarHold *)hold press:(UIPress *)press handled:(BOOL)handled;
+- (void)publishToolbarStatus;
+- (void)updateToolbarBindings:(NSString *)value;
+- (CUIToolbarBinding *)nearestToolbar:(UIView *)focused;
+- (BOOL)toolbarEligible:(CUIToolbarBinding *)binding view:(UIView *)view;
+- (BOOL)focusToolbar:(CUIToolbarBinding *)binding view:(UIView *)target;
+- (NSMutableDictionary *)toolbarPacket:(CUIToolbarBinding *)binding;
+- (void)emitToolbarKey:(CUIToolbarHold *)hold phase:(NSString *)phase repeat:(BOOL)repeat destination:(NSInteger)destination;
 @end
 
 @interface CUIKeyboardRecognizer : UIGestureRecognizer
@@ -146,6 +198,10 @@ static void CUIObserveCapturedDatePress(UIPress *press, NSString *phase, BOOL ca
 @end
 
 @implementation CUIKeyboardScope {
+  NSArray<CUIToolbarBinding *> *_toolbars;
+  NSMutableDictionary<NSNumber *, CUIToolbarHold *> *_toolbarHeld;
+  NSUInteger _toolbarSequence, _toolbarEventId;
+  BOOL _toolbarMoving;
   CUIEditorKeyboardRecognizer *_editorKeyboard;
   CUIOrdinaryEditorKeys *_ordinaryEditorKeys;
   CUIMenuPointerPolicies *_menuPointers;
@@ -185,6 +241,7 @@ static void CUIObserveCapturedDatePress(UIPress *press, NSString *phase, BOOL ca
 {
   if (self = [super initWithFrame:frame]) {
     _props = std::make_shared<const CUIKeyboardScopeProps>();
+    _toolbars=@[]; _toolbarHeld=[NSMutableDictionary new];
     _ownerId = @"";
     _dragInteractions = [[CUIDragInteractions alloc] initWithScope:self];
     _captureEnabled = YES;
@@ -240,16 +297,16 @@ static void CUIObserveCapturedDatePress(UIPress *press, NSString *phase, BOOL ca
     }];
     _editorKeyboard = [[CUIEditorKeyboardRecognizer alloc] initWithAdmission:^BOOL(UIPress *press) {
       CUIKeyboardScope *scope = weakSelf;
-      return scope && [scope->_ordinaryEditorKeys acceptsPress:press];
+      return scope && ([scope toolbarAcceptsPress:press] || [scope->_ordinaryEditorKeys acceptsPress:press]);
     } dispatch:^BOOL(UIPress *press, NSString *phase, BOOL repeat) {
       CUIKeyboardScope *scope = weakSelf;
+      NSNumber *toolbar=scope ? CUIPrepareToolbarPress(press,phase,repeat) : nil;
       if (scope && [scope->_ordinaryEditorKeys acceptsPress:press]) {
         BOOL captured = NO;
         for (id<CUIKeyboardObservationScope> observer in CUIInputScopes(scope.window)) captured |= [observer capturesObservedPress:press];
         [scope->_ordinaryEditorKeys dispatchPress:press phase:phase repeat:repeat captured:captured];
-        return NO;
       }
-      return NO;
+      return toolbar ? toolbar.boolValue : NO;
     }];
     _editorKeyboard.enabled = NO;
     _menuPointerRegistrations = @[];
@@ -284,6 +341,7 @@ static void CUIObserveCapturedDatePress(UIPress *press, NSString *phase, BOOL ca
   }
   return self;
 }
+- (CUIOrdinaryEditorKeys *)ordinaryEditorKeys { return _ordinaryEditorKeys; }
 - (NSDictionary *)activationSession
 {
   return @{ @"scopeOwnerId": _ownerId, @"windowId": CUIInputWindowIdentity(self.window), @"epoch": @(_windowEpoch) };
@@ -304,6 +362,7 @@ static void CUIObserveCapturedDatePress(UIPress *press, NSString *phase, BOOL ca
   _dragSurfaceId = transaction.getSurfaceId();
   [_dragInteractions refresh];
   [_ordinaryEditorKeys didMount:transaction];
+  [self publishToolbarStatus];
 }
 - (CUIMenuPointerPolicies *)menuPointers { return _menuPointers; }
 - (CUIDialogFocusScopes *)dialogFocusScopes { return _dialogs; }
@@ -351,6 +410,7 @@ static void CUIObserveCapturedDatePress(UIPress *press, NSString *phase, BOOL ca
   [_dragInteractions refreshWindow];
   [_dialogs refresh];
   [_ordinaryEditorKeys publish];
+  [self publishToolbarStatus];
   [_floating setTargets:_floatingTargets active:[self captureReady]];
   CUIRefreshKeyboardObservation(self.window);
   CUIRefreshWindowPointerObservation(self.window);
@@ -441,6 +501,236 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
   for (UIView *child in root.subviews) { UIView *found = CUIEditorViewWithTag(child, tag); if (found) return found; }
   return nil;
 }
+- (UIView *)toolbarRoot:(CUIToolbarBinding *)binding
+{
+  UIView *current = CUIEditorViewWithTag(self, binding.rootTag);
+  if (!binding.resolved && current) { binding.resolved=YES; binding.original=current; }
+  UIView *root=binding.original;
+  return root && root == current && root.window == self.window && [root isDescendantOfView:self] ? root : nil;
+}
+- (CUIToolbarBinding *)toolbarAt:(UIView *)view
+{
+  for (CUIKeyboardScope *scope in CUIInputScopes(self.window)) if ([scope captureReady])
+    for (CUIToolbarBinding *binding in scope->_toolbars) if ([scope toolbarRoot:binding] == view) return binding;
+  return nil;
+}
+- (BOOL)originalToolbarRole:(UIView *)view
+{
+  if (![view conformsToProtocol:@protocol(RCTComponentViewProtocol)]) return NO;
+  const auto props=std::dynamic_pointer_cast<const ViewProps>([(id<RCTComponentViewProtocol>)view props]);
+  return props && (props->role == Role::Toolbar || props->accessibilityRole == "toolbar");
+}
+- (BOOL)toolbarAncestor:(UIView *)root
+{
+  for (UIView *view=root.superview; view; view=view.superview) if ([self toolbarAt:view] || [self originalToolbarRole:view]) return YES;
+  return NO;
+}
+- (CUIToolbarBinding *)nearestToolbar:(UIView *)focused
+{
+  if (!focused || ![self captureReady]) return nil;
+  for (UIView *view=focused; view; view=view.superview) {
+    CUIToolbarBinding *binding=[self toolbarAt:view];
+    if (binding) { if (![self toolbarAncestor:view]) return binding; }
+    else if ([self originalToolbarRole:view]) return nil;
+  }
+  return nil;
+}
+- (BOOL)toolbarEligible:(CUIToolbarBinding *)binding view:(UIView *)view
+{
+  UIView *root=[self toolbarRoot:binding];
+  if (!root || !view || root == view || (view.accessibilityTraits & UIAccessibilityTraitNotEnabled) || ([view isKindOfClass:UIControl.class] && !((UIControl *)view).enabled) || view.window != self.window || [self nearestToolbar:view] != binding || !(view.canBecomeFirstResponder || view.canBecomeFocused)) return NO;
+  for (UIView *current=view; current; current=current.superview) {
+    if (current.hidden || current.alpha <= 0 || !current.userInteractionEnabled) return NO;
+    if (current == root) return YES;
+  }
+  return NO;
+}
+- (void)collectToolbar:(UIView *)view binding:(CUIToolbarBinding *)binding into:(NSMutableArray<UIView *> *)items
+{
+  if (!view || view.hidden || view.alpha <= 0 || !view.userInteractionEnabled) return;
+  if ([self toolbarEligible:binding view:view]) {
+    [items addObject:view];
+    // An original focusable host owns its internal native implementation descendants.
+    return;
+  }
+  if (view != [self toolbarRoot:binding] && [self nearestToolbar:view] != binding) return;
+  for (UIView *child in view.subviews) [self collectToolbar:child binding:binding into:items];
+}
+- (NSArray<UIView *> *)toolbarCandidates:(CUIToolbarBinding *)binding
+{
+  NSMutableArray *items=[NSMutableArray new]; [self collectToolbar:[self toolbarRoot:binding] binding:binding into:items]; return items;
+}
+- (BOOL)focusToolbar:(CUIToolbarBinding *)binding view:(UIView *)target
+{
+  if (_toolbarMoving || ![self toolbarEligible:binding view:target]) return NO;
+  _toolbarMoving=YES;
+  @try {
+    if ([target isKindOfClass:CUIFocusView.class]) [(CUIFocusView *)target requestKeyboardFocus:[(CUIFocusView *)target fieldInputOwnerId]];
+    else {
+      if (target.canBecomeFirstResponder) [target becomeFirstResponder];
+      UIFocusSystem *system=[UIFocusSystem focusSystemForEnvironment:target]; [system requestFocusUpdateToEnvironment:target]; [system updateFocusIfNeeded];
+    }
+    return (target.isFirstResponder || target.isFocused) && [self toolbarEligible:binding view:target];
+  } @finally { _toolbarMoving=NO; }
+}
+- (NSInteger)toolbarDelta:(CUIToolbarBinding *)binding key:(UIKey *)key
+{
+  UIKeyModifierFlags flags=key.modifierFlags;
+  if (flags & (UIKeyModifierAlternate | UIKeyModifierControl | UIKeyModifierCommand | UIKeyModifierShift)) return 0;
+  NSInteger code=key.keyCode;
+  if ([binding.orientation isEqualToString:@"vertical"]) return code == UIKeyboardHIDUsageKeyboardDownArrow ? 1 : code == UIKeyboardHIDUsageKeyboardUpArrow ? -1 : 0;
+  BOOL rtl=[self toolbarRoot:binding].effectiveUserInterfaceLayoutDirection == UIUserInterfaceLayoutDirectionRightToLeft;
+  return code == UIKeyboardHIDUsageKeyboardRightArrow ? (rtl ? -1 : 1) : code == UIKeyboardHIDUsageKeyboardLeftArrow ? (rtl ? 1 : -1) : 0;
+}
+- (BOOL)toolbarNavigationForPress:(UIPress *)press
+{
+  if (!press.key || ![self captureReady] || press.window != self.window) return NO;
+  UIView *focused=CUIInputFocusedView(self.window);
+  if ([focused conformsToProtocol:@protocol(UITextInput)] && ((id<UITextInput>)focused).markedTextRange) return NO;
+  CUIToolbarBinding *binding=[self nearestToolbar:focused];
+  CUIKeyboardScope *owner=nil;
+  for (CUIKeyboardScope *scope in CUIInputScopes(self.window)) if ([scope->_toolbars containsObject:binding]) { owner=scope; break; }
+  if (!owner || ![owner toolbarEligible:binding view:focused] || ![owner->_ordinaryEditorKeys canObserveTarget:[owner toolbarRoot:binding]]) return NO;
+  if ([focused conformsToProtocol:@protocol(UIKeyInput)] && press.key.keyCode != UIKeyboardHIDUsageKeyboardTab) return NO;
+  return [owner toolbarDelta:binding key:press.key] != 0 || (press.key.keyCode == UIKeyboardHIDUsageKeyboardTab && !(press.key.modifierFlags & (UIKeyModifierAlternate | UIKeyModifierControl | UIKeyModifierCommand)));
+}
+- (BOOL)toolbarAcceptsPress:(UIPress *)press
+{
+  if (!press.key || press.window != self.window) return NO;
+  if (_toolbarHeld[@(press.key.keyCode)]) return YES;
+  CUIToolbarBinding *binding=[self nearestToolbar:CUIInputFocusedView(self.window)];
+  return binding && [_toolbars containsObject:binding];
+}
+- (NSNumber *)dispatchToolbarPress:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat
+{
+  if (![self toolbarAcceptsPress:press]) return nil;
+  NSNumber *code=@(press.key.keyCode); CUIToolbarHold *hold=_toolbarHeld[code];
+  BOOL down=[phase isEqualToString:@"down"];
+  UIView *focused=CUIInputFocusedView(self.window);
+  if (!hold && down && !repeat) {
+    hold=[CUIToolbarHold new]; hold.scope=self; hold.binding=[self nearestToolbar:focused]; hold.original=focused;
+    hold.window=CUIInputWindowIdentity(self.window); hold.epoch=_windowEpoch; hold.disposition=@"ordinary"; hold.requestedTarget=-1; _toolbarHeld[code]=hold;
+  }
+  if (!hold) return nil;
+  hold.press=press;
+  objc_setAssociatedObject(press,&CUIToolbarPressRouteKey,hold,OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+  if (![self captureReady] || hold.epoch != _windowEpoch || ![hold.window isEqualToString:CUIInputWindowIdentity(self.window)] || ![_toolbars containsObject:hold.binding] || ![self toolbarRoot:hold.binding] || ![self toolbarEligible:hold.binding view:hold.original]) hold.retired=YES;
+  NSInteger destination=-1;
+  if (!hold.retired && down && [self toolbarNavigationForPress:press]) {
+    NSArray<UIView *> *items=[self toolbarCandidates:hold.binding]; NSUInteger index=[items indexOfObjectIdenticalTo:focused];
+    if (items.count && index != NSNotFound) {
+      BOOL tab=press.key.keyCode == UIKeyboardHIDUsageKeyboardTab;
+      NSInteger delta=[self toolbarDelta:hold.binding key:press.key];
+      UIView *target=tab ? (press.key.modifierFlags & UIKeyModifierShift ? items.firstObject : items.lastObject) : items[MAX(0,MIN((NSInteger)items.count-1,(NSInteger)index+delta))];
+      hold.requestedTarget=target.tag; hold.disposition=tab ? @"tab" : @"arrow"; hold.consumed=!tab;
+      hold.focusObserved=target == focused || [self focusToolbar:hold.binding view:target];
+      if (hold.focusObserved) {
+        destination=target.tag; hold.disposition=tab ? @"tab" : @"arrow"; hold.consumed=!tab;
+        hold.binding.last=tab ? focused : target;
+      } else { hold.binding.failure=@"original-toolbar-focus-completion-not-observed"; [self publishToolbarStatus]; }
+    }
+  }
+  if (!hold.retired) {
+    [self emitToolbarKey:hold phase:phase repeat:repeat destination:destination];
+    if ([hold.original isKindOfClass:CUIDateSegment.class] && [hold.disposition isEqualToString:@"tab"] && down) [(CUIDateSegment *)hold.original observeToolbarPress:press phase:phase cancelled:NO captured:NO];
+  }
+  if (!down) [_toolbarHeld removeObjectForKey:code];
+  return hold.consumed || [hold.disposition isEqualToString:@"tab"] ? @(hold.consumed) : nil;
+}
+- (NSMutableDictionary *)toolbarPacket:(CUIToolbarBinding *)binding
+{
+  return [@{ @"ownerId":_ownerId, @"bindingId":binding.identity, @"bindingRevision":binding.revision, @"rootTarget":@(binding.rootTag), @"windowId":CUIInputWindowIdentity(self.window), @"epoch":@(_windowEpoch) } mutableCopy];
+}
+- (void)emitToolbarPacket:(NSDictionary *)packet status:(BOOL)status
+{
+  if (!_eventEmitter) return;
+  NSData *json=[NSJSONSerialization dataWithJSONObject:packet options:0 error:nullptr]; if (!json) return;
+  std::string encoded((const char *)json.bytes,json.length);
+  auto emitter=std::static_pointer_cast<const CUIKeyboardScopeEventEmitter>(_eventEmitter);
+  if (status) { CUIKeyboardScopeEventEmitter::OnNativeToolbarStatus data{}; data.packet=encoded; emitter->onNativeToolbarStatus(data); }
+  else { CUIKeyboardScopeEventEmitter::OnNativeToolbarKeyboard data{}; data.packet=encoded; emitter->onNativeToolbarKeyboard(data); }
+}
+- (void)emitToolbarKey:(CUIToolbarHold *)hold phase:(NSString *)phase repeat:(BOOL)repeat destination:(NSInteger)destination
+{
+  UIKey *key=hold.press.key; UIKeyModifierFlags flags=key.modifierFlags;
+  UIView *original=hold.original; while (original && original.tag <= 0) original=original.superview;
+  if (!original) return;
+  NSMutableDictionary *data=[self toolbarPacket:hold.binding];
+  [data addEntriesFromDictionary:@{ @"windowId":hold.window, @"epoch":@(hold.epoch), @"eventId":@(++_toolbarEventId),
+    @"target":@(original.tag), @"focusedTarget":@(original.tag), @"requestedTarget":@(hold.requestedTarget), @"destinationTarget":@(destination), @"focusObserved":@(hold.focusObserved),
+    @"key":CUIInputKeyName(key), @"nativeCode":@(key.keyCode), @"characters":key.characters ?: @"",
+    @"phase":[phase isEqualToString:@"down"] ? @"down" : @"up", @"repeat":@(repeat), @"cancelled":@([phase isEqualToString:@"cancel"]),
+    @"isComposing":@([hold.original conformsToProtocol:@protocol(UITextInput)] && ((id<UITextInput>)hold.original).markedTextRange != nil),
+    @"shiftKey":@((flags & UIKeyModifierShift) != 0), @"altKey":@((flags & UIKeyModifierAlternate) != 0),
+    @"ctrlKey":@((flags & UIKeyModifierControl) != 0), @"metaKey":@((flags & UIKeyModifierCommand) != 0), @"capsLock":@((flags & UIKeyModifierAlphaShift) != 0),
+    @"nativeModifierData":[NSString stringWithFormat:@"%llu",(unsigned long long)flags], @"nativeDefaultHandled":@(hold.consumed),
+    @"disposition":hold.disposition, @"timestamp":@(hold.press.timestamp*1000) }];
+  NSMutableArray *path=[NSMutableArray new];
+  for (UIView *view=hold.original; view; view=view.superview) if (view.tag > 0) [path addObject:@(view.tag)];
+  data[@"physicalPath"]=path; hold.route=data;
+  [self emitToolbarPacket:data status:NO];
+}
+- (void)publishToolbarStatus
+{
+  for (NSNumber *code in _toolbarHeld.allKeys) {
+    CUIToolbarHold *hold=_toolbarHeld[code];
+    if (![self captureReady] || hold.epoch != _windowEpoch || ![_toolbars containsObject:hold.binding] || ![self toolbarEligible:hold.binding view:hold.original]) {
+      hold.retired=YES; [_toolbarHeld removeObjectForKey:code];
+    }
+  }
+  for (CUIToolbarBinding *binding in _toolbars) {
+    UIView *root=[self toolbarRoot:binding]; NSMutableDictionary *data=[self toolbarPacket:binding];
+    [data addEntriesFromDictionary:@{ @"sequence":@(++_toolbarSequence), @"observationReady":@([self captureReady] && root != nil && [_ordinaryEditorKeys canObserveTarget:root]), @"ready":@([self captureReady] && root != nil && !binding.failure.length && [_ordinaryEditorKeys canObserveTarget:root]), @"windowActive":@([self windowActive]), @"nestedToolbar":@(root && [self toolbarAncestor:root]), @"error":root ? (binding.failure ?: @"") : @"original-toolbar-root-unavailable" }];
+    [self emitToolbarPacket:data status:YES];
+  }
+}
+- (NSString *)toolbarRouteForHold:(CUIToolbarHold *)hold
+{
+  if (!hold || hold.retired || ![self captureReady] || hold.epoch != _windowEpoch || ![hold.window isEqualToString:CUIInputWindowIdentity(self.window)] || ![_toolbars containsObject:hold.binding] || ![self toolbarEligible:hold.binding view:hold.original] || ![_ordinaryEditorKeys canObserveTarget:[self toolbarRoot:hold.binding]] || !hold.route) return nil;
+  NSData *data=[NSJSONSerialization dataWithJSONObject:hold.route options:0 error:nil];
+  return data ? [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] : nil;
+}
+- (void)cancelOriginalToolbarHold:(CUIToolbarHold *)hold press:(UIPress *)press handled:(BOOL)handled
+{
+  if (hold.cancelForwarded || ![self toolbarRouteForHold:hold]) return;
+  hold.cancelForwarded=YES; hold.press=press;
+  [self emitToolbarKey:hold phase:@"cancel" repeat:NO destination:-1];
+  for (CUIKeyboardScope *scope in CUIInputScopes(self.window)) [[scope ordinaryEditorKeys] dispatchPress:press phase:@"cancel" repeat:NO captured:handled];
+  [_toolbarHeld removeObjectForKey:@(press.key.keyCode)];
+}
+- (void)retireToolbarHeld
+{
+  for (CUIToolbarHold *hold in _toolbarHeld.allValues) {
+    if (!hold.retired && hold.press) [self emitToolbarKey:hold phase:@"cancel" repeat:NO destination:-1];
+    hold.retired=YES;
+  }
+  [_toolbarHeld removeAllObjects];
+  for (CUIToolbarBinding *binding in _toolbars) binding.last=nil;
+}
+- (void)updateToolbarBindings:(NSString *)value
+{
+  NSData *json=[value dataUsingEncoding:NSUTF8StringEncoding]; id parsed=json ? [NSJSONSerialization JSONObjectWithData:json options:0 error:nil] : nil;
+  NSMutableArray *next=[NSMutableArray new];
+  if ([parsed isKindOfClass:NSArray.class]) for (id item in parsed) {
+    if (![item isKindOfClass:NSDictionary.class] || ![item[@"bindingId"] isKindOfClass:NSString.class] || ![item[@"bindingRevision"] isKindOfClass:NSString.class]) continue;
+    CUIToolbarBinding *binding=nil;
+    for (CUIToolbarBinding *old in _toolbars) if ([old.identity isEqual:item[@"bindingId"]] && [old.revision isEqual:item[@"bindingRevision"]] && old.rootTag == [item[@"rootTarget"] integerValue]) { binding=old; break; }
+    if (!binding) { binding=[CUIToolbarBinding new]; binding.identity=item[@"bindingId"]; binding.revision=item[@"bindingRevision"]; binding.rootTag=[item[@"rootTarget"] integerValue]; binding.orientation=item[@"orientation"]; }
+    [next addObject:binding];
+  }
+  if (![_toolbars isEqual:next]) [self retireToolbarHeld]; _toolbars=next;
+}
+- (void)didUpdateFocusInContext:(UIFocusUpdateContext *)context withAnimationCoordinator:(UIFocusAnimationCoordinator *)coordinator
+{
+  [super didUpdateFocusInContext:context withAnimationCoordinator:coordinator];
+  if (_toolbarMoving) return;
+  CUIToolbarBinding *binding=[self nearestToolbar:context.nextFocusedView];
+  if (!binding || ![_toolbars containsObject:binding] || ![self toolbarEligible:binding view:context.nextFocusedView]) return;
+  UIView *last=binding.last;
+  if ([self nearestToolbar:context.previouslyFocusedView] != binding && [self toolbarEligible:binding view:last]) [self focusToolbar:binding view:last];
+  else binding.last=context.nextFocusedView;
+}
+
 - (BOOL)hasKeyboardObservations { return _observations.count > 0 && [self captureReady]; }
 - (BOOL)capturesObservedPress:(UIPress *)press { return _keyboard.held[@(press.key.keyCode)] != nil || [self hasPolicyForPress:press]; }
 - (void)observePress:(UIPress *)press repeat:(BOOL)repeat eventId:(NSUInteger)eventId captured:(BOOL)captured
@@ -488,6 +778,7 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
 - (NSString *)localPolicyForPress:(UIPress *)press focused:(UIView *)focused
 {
   if (![self captureReady] || !press.key || press.window != self.window) return nil;
+  if ([self toolbarNavigationForPress:press]) return nil;
   BOOL composing = [focused conformsToProtocol:@protocol(UITextInput)] && ((id<UITextInput>)focused).markedTextRange != nil;
   BOOL editable = [focused conformsToProtocol:@protocol(UIKeyInput)];
   NSString *token = CUIInputKeyToken(press.key);
@@ -578,13 +869,14 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
     [policies addObject:@{@"id": [NSString stringWithUTF8String:policy.id.c_str()], @"tokens": tokens, @"excludeEditable": @(policy.excludeEditable), @"excludeComposing": @(policy.excludeComposing), @"targetTag": @(policy.targetTag)}];
   }
   NSString *accepted = [NSString stringWithUTF8String:next.acceptedWindowId.c_str()];
-  if (![_ownerId isEqualToString:owner] || !next.enabled || ![_policies isEqual:policies] || _acceptedEpoch != next.acceptedEpoch || ![_acceptedWindowId isEqualToString:accepted] || _policyRevision != next.policyRevision) [_keyboard retireHeld];
+  if (![_ownerId isEqualToString:owner] || !next.enabled || ![_policies isEqual:policies] || _acceptedEpoch != next.acceptedEpoch || ![_acceptedWindowId isEqualToString:accepted] || _policyRevision != next.policyRevision) { [_keyboard retireHeld]; [self retireToolbarHeld]; }
   NSMutableArray *ordinary = [NSMutableArray new];
   for (const auto &entry : next.ordinaryEditorBindings) [ordinary addObject:@{
-    @"bindingId": @(entry.bindingId.c_str()), @"bindingRevision": @(entry.bindingRevision.c_str()), @"targetTag": @(entry.targetTag), @"subtree": @(entry.subtree)
+    @"bindingId": @(entry.bindingId.c_str()), @"bindingRevision": @(entry.bindingRevision.c_str()), @"targetTag": @(entry.targetTag), @"subtree": @(entry.subtree), @"toolbarTargetOnly": @(entry.toolbarTargetOnly), @"toolbarSubtreeOnly": @(entry.toolbarSubtreeOnly)
   }];
   [_ordinaryEditorKeys update:ordinary];
-  _editorKeyboard.enabled = next.enabled && [_ordinaryEditorKeys hasBindings];
+  [self updateToolbarBindings:@(next.toolbarBindings.c_str())];
+  _editorKeyboard.enabled = next.enabled && ([_ordinaryEditorKeys hasBindings] || _toolbars.count > 0);
   _ownerId = owner;
   _captureEnabled = next.enabled;
   if (![_policies isEqual:policies]) _policyOrder = CUINextInputPolicyOrder(self.window);
@@ -633,29 +925,29 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
 }
 - (void)windowDeactivated:(NSNotification *)notification
 {
-  if (notification.object == self.window) { [_keyboard retireHeld]; _keyboard.enabled = NO; _keyboard.enabled = YES; _editorKeyboard.enabled = NO; _editorKeyboard.enabled = _captureEnabled && [_ordinaryEditorKeys hasBindings]; _windowEpoch++; [self publishStatus]; }
+  if (notification.object == self.window) { [_keyboard retireHeld]; [self retireToolbarHeld]; _keyboard.enabled = NO; _keyboard.enabled = YES; _editorKeyboard.enabled = NO; _editorKeyboard.enabled = _captureEnabled && ([_ordinaryEditorKeys hasBindings] || _toolbars.count > 0); _windowEpoch++; [self publishStatus]; }
 }
 - (void)windowActivated:(NSNotification *)notification
 {
   if (notification.object == self.window) { _windowEpoch++; [self publishStatus]; }
 }
-- (void)applicationDeactivated:(NSNotification *)notification { _applicationActive = NO; [_keyboard retireHeld]; _keyboard.enabled = NO; _keyboard.enabled = YES; _editorKeyboard.enabled = NO; _editorKeyboard.enabled = _captureEnabled && [_ordinaryEditorKeys hasBindings]; _windowEpoch++; [self publishStatus]; }
+- (void)applicationDeactivated:(NSNotification *)notification { _applicationActive = NO; [_keyboard retireHeld]; [self retireToolbarHeld]; _keyboard.enabled = NO; _keyboard.enabled = YES; _editorKeyboard.enabled = NO; _editorKeyboard.enabled = _captureEnabled && ([_ordinaryEditorKeys hasBindings] || _toolbars.count > 0); _windowEpoch++; [self publishStatus]; }
 - (void)applicationActivated:(NSNotification *)notification { _applicationActive = YES; _windowEpoch++; [self publishStatus]; }
 - (void)sceneDeactivated:(NSNotification *)notification
 {
-  if (notification.object == self.window.windowScene) { _sceneActive = NO; [_keyboard retireHeld]; _keyboard.enabled = NO; _keyboard.enabled = YES; _editorKeyboard.enabled = NO; _editorKeyboard.enabled = _captureEnabled && [_ordinaryEditorKeys hasBindings]; _windowEpoch++; [self publishStatus]; }
+  if (notification.object == self.window.windowScene) { _sceneActive = NO; [_keyboard retireHeld]; [self retireToolbarHeld]; _keyboard.enabled = NO; _keyboard.enabled = YES; _editorKeyboard.enabled = NO; _editorKeyboard.enabled = _captureEnabled && ([_ordinaryEditorKeys hasBindings] || _toolbars.count > 0); _windowEpoch++; [self publishStatus]; }
 }
 - (void)sceneActivated:(NSNotification *)notification
 {
   if (notification.object == self.window.windowScene) { _sceneActive = YES; _windowEpoch++; [self publishStatus]; }
 }
-- (void)layoutSubviews { [super layoutSubviews]; [_dragInteractions refreshWindow]; [_dialogs refresh]; [_ordinaryEditorKeys publish]; CUIRefreshWindowPointerObservation(self.window); CUIRefreshMenuPointerPolicies(self.window); }
+- (void)layoutSubviews { [super layoutSubviews]; [_dragInteractions refreshWindow]; [_dialogs refresh]; [_ordinaryEditorKeys publish]; [self publishToolbarStatus]; CUIRefreshWindowPointerObservation(self.window); CUIRefreshMenuPointerPolicies(self.window); }
 - (void)didMoveToWindow
 {
   [super didMoveToWindow];
   if (_boundWindow != self.window) {
     [_menuPointers invalidate];
-    [_keyboard retireHeld];
+    [_keyboard retireHeld]; [self retireToolbarHeld];
     [_boundWindow removeGestureRecognizer:_keyboard];
     [_boundWindow removeGestureRecognizer:_editorKeyboard];
     CUIUnregisterInputScope(_boundWindow, self);
@@ -674,12 +966,13 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
 - (void)prepareForRecycle
 {
   [_ordinaryEditorKeys update:@[]];
+  [self retireToolbarHeld]; _toolbars=@[]; [_toolbarHeld removeAllObjects];
   _dragSurfaceId = 0;
   [_dragInteractions invalidate]; _dragInteractions = [[CUIDragInteractions alloc] initWithScope:self];
   [_dialogs invalidate];
   [_menuPointers invalidate]; _menuPointerRegistrations = @[]; _menuPointerRevision = 0;
   [_floating invalidate]; _floatingTargets = @[];
-  [_keyboard retireHeld];
+  [_keyboard retireHeld]; [self retireToolbarHeld];
   [_boundWindow removeGestureRecognizer:_keyboard];
   [_boundWindow removeGestureRecognizer:_editorKeyboard];
   CUIUnregisterInputScope(_boundWindow, self);
@@ -709,3 +1002,59 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
 @end
 
 Class<RCTComponentViewProtocol> CUIKeyboardScopeCls(void) { return CUIKeyboardScope.class; }
+
+NSString *CUIKeyboardToolbarRoute(UIPress *press)
+{
+  CUIToolbarHold *hold=objc_getAssociatedObject(press,&CUIToolbarPressRouteKey);
+  return [hold.scope toolbarRouteForHold:hold];
+}
+void CUIKeyboardToolbarDidEmit(UIPress *press)
+{
+  CUIToolbarHold *hold=objc_getAssociatedObject(press,&CUIToolbarPressRouteKey);
+  if ([hold.scope toolbarRouteForHold:hold]) hold.originalForwarded=YES;
+}
+BOOL CUIRouteOriginalToolbarKey(UIView *target, UIPress *press, BOOL down, BOOL repeat, BOOL cancelled, BOOL handled)
+{
+  CUIToolbarHold *hold=objc_getAssociatedObject(press,&CUIToolbarPressRouteKey);
+  if (!hold.originalForwarded || hold.original != target) return NO;
+  if (cancelled) [hold.scope cancelOriginalToolbarHold:hold press:press handled:handled];
+  return YES;
+}
+
+static NSNumber *CUIPrepareToolbarPress(UIPress *press, NSString *phase, BOOL repeat)
+{
+  NSDictionary *record=objc_getAssociatedObject(press,&CUIToolbarPreparedPressKey);
+  if ([record[@"timestamp"] doubleValue] == press.timestamp && [record[@"phase"] isEqual:phase]) return [record[@"result"] isKindOfClass:NSNumber.class] ? record[@"result"] : nil;
+  NSNumber *result=nil;
+  for (CUIKeyboardScope *scope in CUIInputScopes(press.window)) if ([scope toolbarAcceptsPress:press]) { result=[scope dispatchToolbarPress:press phase:phase repeat:repeat]; break; }
+  objc_setAssociatedObject(press,&CUIToolbarPreparedPressKey,@{@"timestamp":@(press.timestamp),@"phase":phase,@"result":result ?: NSNull.null},OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+  return result;
+}
+BOOL CUIKeyboardToolbarCancelledOriginal(UIPress *press)
+{
+  CUIToolbarHold *hold=objc_getAssociatedObject(press,&CUIToolbarPressRouteKey); return hold.cancelForwarded;
+}
+
+NSString *CUIKeyboardToolbarDateRoute(UIPress *press)
+{
+  NSString *encoded=CUIKeyboardToolbarRoute(press); if (!encoded) return nil;
+  NSMutableDictionary *route=[[NSJSONSerialization JSONObjectWithData:[encoded dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil] mutableCopy];
+  NSMutableArray *observers=[NSMutableArray new];
+  for (CUIKeyboardScope *scope in CUIInputScopes(press.window)) [[scope ordinaryEditorKeys] appendToolbarObservers:observers];
+  route[@"observerBindings"]=observers;
+  NSData *json=[NSJSONSerialization dataWithJSONObject:route options:0 error:nil];
+  return json ? [[NSString alloc] initWithData:json encoding:NSUTF8StringEncoding] : nil;
+}
+
+void CUIKeyboardPrepareToolbarDate(UIPress *press, NSString *phase, BOOL repeat)
+{
+  CUIToolbarHold *hold=objc_getAssociatedObject(press,&CUIToolbarPressRouteKey);
+  if ([hold.route[@"phase"] isEqualToString:phase] && [hold.route[@"timestamp"] doubleValue] == press.timestamp*1000) return;
+  CUIPrepareToolbarPress(press,phase,repeat);
+}
+
+BOOL CUIKeyboardToolbarDateOwnsOriginal(UIView *target, UIPress *press)
+{
+  CUIToolbarHold *hold=objc_getAssociatedObject(press,&CUIToolbarPressRouteKey);
+  return hold.original == target && [hold.scope toolbarRouteForHold:hold] != nil;
+}

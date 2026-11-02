@@ -33,6 +33,7 @@ import {
 } from "./motionGeometry"
 import { registerNativeDescriptionSource, type TNativeDescriptionBinding } from "./nativeDescription"
 import { useNativeKeyScope } from "./NativeKeyboardScope"
+import { deliverNativeToolbarTargetKey, type TNativeToolbarListenerProps } from "./nativeToolbarKeyboard"
 import { nativeViewProps, NativeViewContextBoundary } from "./nativeViewProps"
 import {
   NativeOrdinaryFieldGroupKeysContext,
@@ -58,49 +59,52 @@ const isKeyboardEvent = (event: NativeSyntheticEvent<NativeKeyData>): event is T
 
 export const NativeFocusHost = forwardRef<
   TNativeFocusViewRef,
-  TNativeFocusViewProps & {
-    nativePressable?: boolean
-    nativeOrdinaryGroupKeyHandler?: (event: TNativeKeyboardEvent) => void
-    onNativeOrdinaryEditorKey?: (
-      event: NativeSyntheticEvent<import("./specs/CUIFocusViewNativeComponent").NativeOrdinaryEditorKeyData>,
-    ) => void
-    nativeTabStop?: boolean
-    nativeMotionColorObservation?: boolean
-    nativeMotionGeometryObservation?: boolean
-    nativeMotionGeometryObserveFrames?: boolean
-    nativeMotionGeometryRevision?: string
-    nativeMotionVisible?: boolean
-    nativeMotionProjectionRevision?: string
-    nativeForegroundComposition?: boolean
-    nativeMotionDrawingOwner?: boolean
-    nativeMotionProjectionRadii?: string
-    nativeFocusWithinObservation?: boolean
-    nativeOnFocusWithin?: (event: TNativeFocusWithinEvent) => void
-    nativeOnFocusWithinRetired?: () => void
-    nativeNavigation?: boolean
-    nativeNavigationLabel?: string
-    nativeLabelledBy?: readonly string[]
-    nativeDescribedBy?: readonly string[]
-    nativeDetailsBy?: readonly string[]
-    nativeDescriptionTag?: number
-    nativeDescriptionLabel?: string
-    nativeDetailsLabel?: string
-    nativeScrollAnchorTag?: number
-    nativeScrollAnchorKey?: string
-    nativeScrollAnchorRevision?: string
-    onBubbledFocus?: ViewProps["onFocus"]
-    onBubbledBlur?: ViewProps["onBlur"]
-    onNativeAccessibilitySnapshot?: (event: NativeSyntheticEvent<NativeAccessibilityData>) => void
-    onNativeActivation?: (event: TNativeActivationPacket) => void
-    capturedKeys?: readonly string[]
-    onClick?: { handle(event: PointerEvent | GestureResponderEvent): void }["handle"]
-  }
+  TNativeFocusViewProps &
+    Partial<Pick<TNativeToolbarListenerProps, "onNativeOrdinaryEditorKeyCapture" | "onNativeDateKeyCapture">> & {
+      nativePressable?: boolean
+      onNativeDateKey?: TNativeToolbarListenerProps["onNativeDateKey"]
+      nativeOrdinaryGroupKeyHandler?: (event: TNativeKeyboardEvent) => void
+      onNativeOrdinaryEditorKey?: (
+        event: NativeSyntheticEvent<import("./specs/CUIFocusViewNativeComponent").NativeOrdinaryEditorKeyData>,
+      ) => void
+      nativeTabStop?: boolean
+      nativeMotionColorObservation?: boolean
+      nativeMotionGeometryObservation?: boolean
+      nativeMotionGeometryObserveFrames?: boolean
+      nativeMotionGeometryRevision?: string
+      nativeMotionVisible?: boolean
+      nativeMotionProjectionRevision?: string
+      nativeForegroundComposition?: boolean
+      nativeMotionDrawingOwner?: boolean
+      nativeMotionProjectionRadii?: string
+      nativeFocusWithinObservation?: boolean
+      nativeOnFocusWithin?: (event: TNativeFocusWithinEvent) => void
+      nativeOnFocusWithinRetired?: () => void
+      nativeNavigation?: boolean
+      nativeNavigationLabel?: string
+      nativeLabelledBy?: readonly string[]
+      nativeDescribedBy?: readonly string[]
+      nativeDetailsBy?: readonly string[]
+      nativeDescriptionTag?: number
+      nativeDescriptionLabel?: string
+      nativeDetailsLabel?: string
+      nativeScrollAnchorTag?: number
+      nativeScrollAnchorKey?: string
+      nativeScrollAnchorRevision?: string
+      onBubbledFocus?: ViewProps["onFocus"]
+      onBubbledBlur?: ViewProps["onBlur"]
+      onNativeAccessibilitySnapshot?: (event: NativeSyntheticEvent<NativeAccessibilityData>) => void
+      onNativeActivation?: (event: TNativeActivationPacket) => void
+      capturedKeys?: readonly string[]
+      onClick?: { handle(event: PointerEvent | GestureResponderEvent): void }["handle"]
+    }
 >((props, forwardedRef) => {
   const {
     onKeyDown,
     onKeyUp,
     nativeOrdinaryGroupKeyHandler,
     onNativeOrdinaryEditorKey,
+    onNativeDateKey,
     onFocus,
     onBlur,
     focusable,
@@ -427,8 +431,14 @@ export const NativeFocusHost = forwardRef<
         }}
         onNativeOrdinaryEditorKey={(event) => {
           if (!attached.current) return
-          if (ordinaryOptions.current.ordinaryMember) receiveOrdinaryKey(event)
-          onNativeOrdinaryEditorKey?.(event)
+          const delivered = ordinaryOptions.current.ordinaryMember && receiveOrdinaryKey(event)
+          if (!delivered)
+            deliverNativeToolbarTargetKey(
+              nativeTarget.current,
+              event as Parameters<typeof deliverNativeToolbarTargetKey>[1],
+              ordinaryOptions.current,
+            )
+          if (!event.isPropagationStopped()) onNativeOrdinaryEditorKey?.(event)
         }}
         onNativeKey={(event) => {
           if (ordinaryOptions.current.ordinaryMember) return
@@ -438,7 +448,10 @@ export const NativeFocusHost = forwardRef<
           } else onKeyUp?.(event)
         }}
         onNativeDateKey={(event) => {
-          if (attached.current && isKeyboardEvent(event)) nativeOrdinaryGroupKeyHandler?.(event)
+          if (!attached.current || !isKeyboardEvent(event)) return
+          nativeOrdinaryGroupKeyHandler?.(event)
+          if (!event.isPropagationStopped?.())
+            onNativeDateKey?.(event as Parameters<NonNullable<typeof onNativeDateKey>>[0])
         }}
         onNativeFocusChange={(event) => {
           if (!attached.current || event.nativeEvent.ownerId !== ownerId) return

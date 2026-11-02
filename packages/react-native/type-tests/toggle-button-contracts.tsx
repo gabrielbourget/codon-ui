@@ -39,9 +39,15 @@ export const InvalidNullHeight = <ToggleButton height={null} />
 export const InvalidRef = <ToggleButton ref={createRef<{ tagName: string }>()} />
 // @ts-expect-error Browser classes are replaced by native styles.
 export const InvalidClass = <ToggleButton className="web" />
-// @ts-expect-error Upstream React Aria slot context is not a native host API.
-export const InvalidSlot = <ToggleButton slot="item" />
+export const SlottedToggle = <ToggleButton slot="item" id={0} />
+export const UnslottedToggle = <ToggleButton slot={null} id="" />
+// @ts-expect-error The approved native toggle slot is a string or explicit null.
+export const InvalidSlot = <ToggleButton slot={0} />
 // @ts-expect-error Native press payloads are not web PressEvents.
 export const InvalidPress = <ToggleButton onPress={(event: { pointerType: string }) => event.pointerType} />
 // @ts-expect-error Native render state makes no focus-visible modality claim.
 export const InvalidModality = <ToggleButton>{(state) => String(state.isFocusVisible)}</ToggleButton>
+
+export const PointerFocusOptOut = <ToggleButton preventFocusOnPress />
+// @ts-expect-error Pointer focus prevention is boolean.
+export const InvalidPointerFocusOptOut = <ToggleButton preventFocusOnPress="true" />

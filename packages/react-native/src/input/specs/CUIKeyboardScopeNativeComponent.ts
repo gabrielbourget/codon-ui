@@ -202,6 +202,8 @@ type NativeOrdinaryEditorBinding = Readonly<{
   bindingRevision: string
   targetTag: Int32
   subtree: boolean
+  toolbarTargetOnly: boolean
+  toolbarSubtreeOnly: boolean
 }>
 
 export type NativeEditorKeyboardStatus = Readonly<{
@@ -226,6 +228,9 @@ export interface NativeProps extends ViewProps {
   dialogRevision?: Double
   onNativeDialogStatus?: DirectEventHandler<NativeDialogStatus>
   onNativeDialogAction?: DirectEventHandler<NativeDialogAction>
+  toolbarBindings?: WithDefault<string, "[]">
+  onNativeToolbarKeyboard?: DirectEventHandler<NativeDragActionData>
+  onNativeToolbarStatus?: DirectEventHandler<NativeDragActionData>
   ordinaryEditorBindings?: ReadonlyArray<NativeOrdinaryEditorBinding>
   onNativeOrdinaryEditorStatus?: DirectEventHandler<NativeEditorKeyboardStatus>
   enabled?: WithDefault<boolean, true>

@@ -450,6 +450,40 @@ export type {
   TNativeToggleSwitcherRootStyle,
   TNativeToggleSwitcherOptionStyle,
 } from "./components/ToggleSwitcher/types"
+export { NativeToggleButtonContext } from "./components/ToggleButton/context"
+export { ToggleButtonGroup } from "./components/ToggleButtonGroup/ToggleButtonGroup"
+export {
+  NativeToggleButtonGroupContext,
+  NativeToggleButtonGroupStateContext,
+} from "./components/ToggleButtonGroup/context"
+export type {
+  TNativeToggleButtonGroupProps,
+  TNativeToggleButtonGroupProps as ToggleButtonGroupProps,
+  TNativeToggleButtonGroupRef,
+  TNativeToggleButtonGroupRenderState,
+  TNativeToggleButtonGroupStyleState,
+  TNativeToggleButtonGroupRootProps,
+  TNativeToggleGroupOrientation,
+} from "./components/ToggleButtonGroup/types"
+export type {
+  TNativeToggleGroupKey,
+  TNativeToggleGroupSelectionMode,
+  TNativeToggleGroupState,
+  TNativeToggleGroupStateOptions,
+} from "./components/ToggleButtonGroup/state"
+export { NativeToggleButtonGroupKeyboardScope } from "./components/ToggleButtonGroup/NativeToggleButtonGroupKeyboardScope"
+export type { TNativeToggleButtonGroupKeyboardScopeProps } from "./components/ToggleButtonGroup/NativeToggleButtonGroupKeyboardScope"
+export { SelectionIndicator } from "./components/SelectionIndicator/SelectionIndicator"
+export { NativeSelectionIndicatorPropsContext } from "./components/SelectionIndicator/context"
+export type {
+  TNativeSelectionIndicatorProps,
+  TNativeSelectionIndicatorProps as SelectionIndicatorProps,
+  TNativeSelectionIndicatorRef,
+  TNativeSelectionIndicatorRenderState,
+  TNativeSelectionIndicatorTransitionProperty,
+} from "./components/SelectionIndicator/types"
+export { SharedElementTransition } from "./components/SharedElementTransition/SharedElementTransition"
+export type { TNativeSharedElementTransitionProps } from "./components/SharedElementTransition/SharedElementTransition"
 export { ToggleButton } from "./components/ToggleButton/ToggleButton"
 export type {
   TNativeToggleButtonProps,

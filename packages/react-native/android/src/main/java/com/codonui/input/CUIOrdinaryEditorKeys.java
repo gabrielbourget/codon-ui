@@ -18,11 +18,11 @@ final class CUIOrdinaryEditorKeys {
   static final class Registration {
     final String id, revision;
     final int targetTag;
-    final boolean subtree;
+    final boolean subtree, toolbarTargetOnly, toolbarSubtreeOnly;
     WeakReference<View> original;
     String published = "";
-    Registration(String id, String revision, int targetTag, boolean subtree) { this.id = id; this.revision = revision; this.targetTag = targetTag; this.subtree = subtree; }
-    boolean matches(Registration other) { return id.equals(other.id) && revision.equals(other.revision) && targetTag == other.targetTag && subtree == other.subtree; }
+    Registration(String id, String revision, int targetTag, boolean subtree, boolean toolbarTargetOnly, boolean toolbarSubtreeOnly) { this.id = id; this.revision = revision; this.targetTag = targetTag; this.subtree = subtree; this.toolbarTargetOnly=toolbarTargetOnly; this.toolbarSubtreeOnly=toolbarSubtreeOnly; }
+    boolean matches(Registration other) { return id.equals(other.id) && revision.equals(other.revision) && targetTag == other.targetTag && subtree == other.subtree && toolbarTargetOnly == other.toolbarTargetOnly && toolbarSubtreeOnly == other.toolbarSubtreeOnly; }
   }
   private final CUIKeyboardScope scope;
   private List<Registration> registrations = new ArrayList<>();
@@ -36,7 +36,10 @@ final class CUIOrdinaryEditorKeys {
     conflictingIds.clear(); conflictingTargets.clear();
     for (Registration value : next) {
       Registration selected = value;
-      for (Registration old : registrations) if (value.matches(old)) { selected = old; break; }
+      for (Registration old : registrations) {
+        if (value.matches(old)) { selected = old; break; }
+        if (value.id.equals(old.id) && value.revision.equals(old.revision) && value.targetTag == old.targetTag) value.original=old.original;
+      }
       if (!ids.add(selected.id)) conflictingIds.add(selected.id);
       if (!targets.add(selected.targetTag)) conflictingTargets.add(selected.targetTag);
       retained.add(selected);
@@ -87,31 +90,61 @@ final class CUIOrdinaryEditorKeys {
       scope.emitOrdinaryEditorStatus(data);
     }
   }
-  private Registration forFocus(View focused) {
+  boolean canObserveTarget(View target) {
+    if (!scope.menuPointerCaptureReady() || target == null) return false;
+    for (Registration registration : registrations) if (original(registration) == target) return true;
+    return false;
+  }
+  private Registration forFocus(View focused, KeyEvent event) {
     if (!scope.menuPointerCaptureReady() || focused == null || focused instanceof CUIDateSegment) return null;
+    boolean toolbarObservation=CUIKeyboardScope.toolbarRouteForOriginal(focused,event) != null;
     Registration selected = null;
     for (Registration registration : registrations) {
       View target = original(registration);
-      if (target != focused) continue;
+      if (target != focused || (registration.toolbarTargetOnly && !toolbarObservation)) continue;
       if (selected != null) return null;
       selected = registration;
     }
     if (selected != null) return selected;
-    for (Registration registration : registrations) if (registration.subtree && original(registration) != null) selected = registration;
+    for (Registration registration : registrations) if (registration.subtree && (!registration.toolbarSubtreeOnly || toolbarObservation) && original(registration) != null) selected = registration;
     return selected;
   }
   static void dispatch(List<CUIKeyboardScope> scopes, KeyEvent event, View focused, boolean captured) {
+    dispatch(scopes,event,focused,captured,false);
+  }
+  static void dispatchToolbarCancellation(List<CUIKeyboardScope> scopes, KeyEvent event, View focused, boolean captured) {
+    dispatch(scopes,event,focused,captured,true);
+  }
+  private static void dispatch(List<CUIKeyboardScope> scopes, KeyEvent event, View focused, boolean captured, boolean lifecycleCancelled) {
+    if (!lifecycleCancelled && CUIKeyboardScope.toolbarCancelledOriginal(focused,event)) return;
     CUIOrdinaryEditorKeys owner = null; Registration registration = null;
+    CUIKeyboardScope toolbarOwner=CUIKeyboardScope.toolbarOriginalOwner(focused,event);
+    int bestPriority=0;
     for (CUIKeyboardScope candidate : scopes) {
-      Registration match = candidate.ordinaryEditorKeys.forFocus(focused);
+      Registration match = candidate.ordinaryEditorKeys.forFocus(focused,event);
       if (match == null) continue;
-      if (owner != null) return;
-      owner = candidate.ordinaryEditorKeys; registration = match;
+      if (toolbarOwner == null) {
+        if (owner != null) return;
+        owner=candidate.ordinaryEditorKeys; registration=match;
+      } else {
+        int priority=candidate.ordinaryEditorKeys.original(match) == focused ? 2 : candidate == toolbarOwner ? 1 : 0;
+        if (priority == 0 || priority < bestPriority) continue;
+        if (priority == bestPriority && owner != null) return;
+        owner=candidate.ordinaryEditorKeys; registration=match; bestPriority=priority;
+      }
     }
-    if (owner != null) owner.dispatch(registration, event, focused, captured);
+    if (owner != null) owner.dispatch(registration, event, focused, captured, lifecycleCancelled);
+  }
+  void appendToolbarObservers(org.json.JSONArray observers) throws org.json.JSONException {
+    for (Registration candidate : registrations) if (candidate.subtree && original(candidate) != null)
+      observers.put(new org.json.JSONObject().put("bindingId",candidate.id).put("bindingRevision",candidate.revision).put("targetTag",candidate.targetTag)
+        .put("ownerId",scope.menuPointerOwnerId()).put("windowId",CUIInputWindow.identity(scope)).put("epoch",scope.menuPointerEpoch()));
   }
   private void dispatch(Registration registration, KeyEvent event, View focused, boolean captured) {
-    if (forFocus(focused) != registration) return;
+    dispatch(registration,event,focused,captured,false);
+  }
+  private void dispatch(Registration registration, KeyEvent event, View focused, boolean captured, boolean lifecycleCancelled) {
+    if (forFocus(focused,event) != registration) return;
     View original = focused;
     while (original != null && original != scope) {
       try {
@@ -125,24 +158,28 @@ final class CUIOrdinaryEditorKeys {
     WritableMap data = identity(registration); int code = event.getKeyCode();
     int unicode = event.getUnicodeChar();
     String characters = unicode > 0 && Character.isValidCodePoint(unicode) ? new String(Character.toChars(unicode)) : "";
+    String toolbarRoute=CUIKeyboardScope.toolbarRouteForOriginal(original,event);
     org.json.JSONArray observers = new org.json.JSONArray();
     try {
-      for (Registration candidate : registrations) if (candidate.subtree && original(candidate) != null)
+      if (toolbarRoute != null) for (CUIKeyboardScope candidate : CUIInputWindow.scopes(scope)) candidate.ordinaryEditorKeys.appendToolbarObservers(observers);
+      else for (Registration candidate : registrations) if (candidate.subtree && original(candidate) != null)
         observers.put(new org.json.JSONObject().put("bindingId", candidate.id).put("bindingRevision", candidate.revision).put("targetTag", candidate.targetTag));
     } catch (org.json.JSONException invalid) { return; }
     data.putString("observerBindings", observers.toString()); data.putInt("target", original.getId());
     data.putString("kind", "keyboard"); data.putDouble("eventId", ++eventId);
     data.putString("key", CUIInputWindow.keyName(event)); data.putString("code", CUIPhysicalKey.code(code));
     data.putInt("nativeCode", code); data.putInt("location", CUIPhysicalKey.location(code)); data.putString("characters", characters);
-    data.putString("phase", event.getAction() == KeyEvent.ACTION_DOWN ? "down" : "up");
-    data.putBoolean("repeat", event.getAction() == KeyEvent.ACTION_DOWN && event.getRepeatCount() > 0);
-    data.putBoolean("cancelled", event.isCanceled());
+    data.putString("phase", event.getAction() == KeyEvent.ACTION_DOWN && !lifecycleCancelled ? "down" : "up");
+    data.putBoolean("repeat", event.getAction() == KeyEvent.ACTION_DOWN && !lifecycleCancelled && event.getRepeatCount() > 0);
+    data.putBoolean("cancelled", event.isCanceled() || lifecycleCancelled);
     Editable text = focused instanceof EditText ? ((EditText)focused).getText() : null;
     data.putBoolean("isComposing", text != null && BaseInputConnection.getComposingSpanStart(text) >= 0);
     data.putBoolean("shiftKey", event.isShiftPressed()); data.putBoolean("altKey", event.isAltPressed());
     data.putBoolean("ctrlKey", event.isCtrlPressed()); data.putBoolean("metaKey", event.isMetaPressed()); data.putBoolean("capsLock", event.isCapsLockOn());
     data.putString("nativeModifierData", Integer.toUnsignedString(event.getMetaState()));
     data.putBoolean("nativeDefaultHandled", captured); data.putDouble("timestamp", event.getEventTime());
-    scope.emitOrdinaryEditorKey(original.getId(), data);
+    if (toolbarRoute != null) data.putString("toolbarRoute",toolbarRoute);
+    boolean emitted=scope.emitOrdinaryEditorKey(original.getId(), data);
+    if (toolbarRoute != null && emitted) CUIKeyboardScope.toolbarOriginalDidEmit(original,event);
   }
 }

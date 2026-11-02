@@ -15,7 +15,7 @@ import Svg, { Path } from "react-native-svg"
 import { NativeCollectionActionsContext } from "../../collection/actions"
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
 import { createNativeCollectionLeaf } from "../../collection/CollectionBuilder"
-import { NativeSelectionIndicatorContext, useNativeCollectionRefs } from "../../collection/context"
+import { useNativeCollectionRefs } from "../../collection/context"
 import {
   DefaultNativeCollectionRenderer,
   NativeCollectionRendererContext,
@@ -31,6 +31,7 @@ import { NativeButtonContext } from "../Button/context"
 import type { TNativeButtonRenderState } from "../Button/types"
 import { encodeCollectionKey, validateCollectionKey } from "../collection"
 import { NativeContentContext } from "../NativeContentContext"
+import { NativeSelectionIndicatorProvider } from "../SelectionIndicator/context"
 
 import {
   NativeTagGroupActionsContext,
@@ -239,7 +240,7 @@ const TagReceiver = forwardRef<
     return (
       <NativeCollectionSemanticsContext.Provider value="">
         <NativeCollectionRendererContext.Provider value={DefaultNativeCollectionRenderer}>
-          <NativeSelectionIndicatorContext.Provider value={{ isSelected: state.isSelected }}>
+          <NativeSelectionIndicatorProvider isSelected={state.isSelected}>
             <NativeButtonContext.Provider value={{ slots: { remove: removeButtonProps } }}>
               <NativeContentContext.Provider value={{ foregroundColor: foreground, isButton: false }}>
                 <View
@@ -281,7 +282,7 @@ const TagReceiver = forwardRef<
                 </View>
               </NativeContentContext.Provider>
             </NativeButtonContext.Provider>
-          </NativeSelectionIndicatorContext.Provider>
+          </NativeSelectionIndicatorProvider>
         </NativeCollectionRendererContext.Provider>
       </NativeCollectionSemanticsContext.Provider>
     )

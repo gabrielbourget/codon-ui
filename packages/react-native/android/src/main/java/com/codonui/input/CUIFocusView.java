@@ -371,6 +371,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   }
 
   private void emitKey(KeyEvent event, boolean down, boolean cancelled, boolean handled) {
+    if (CUIKeyboardScope.routeOriginalToolbarKey(this,event,down,cancelled,handled)) return;
     WritableMap data = baseData();
     data.putString("kind", "keyboard");
     data.putString("key", CUIInputWindow.keyName(event));
@@ -400,6 +401,8 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
 
   @Override
   public boolean dispatchKeyEvent(KeyEvent event) {
+    // The original toolbar event was already emitted; retain this same key for the platform default.
+    if (CUIKeyboardScope.bypassObservedToolbarTabTarget(this,event)) return super.dispatchKeyEvent(event);
     if (!keyboardFocusable || !isFocused() || (event.getAction() != KeyEvent.ACTION_DOWN && event.getAction() != KeyEvent.ACTION_UP)) {
       return super.dispatchKeyEvent(event);
     }

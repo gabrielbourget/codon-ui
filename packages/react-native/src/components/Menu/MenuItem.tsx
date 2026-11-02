@@ -32,12 +32,12 @@ import { NativeButton } from "../Button/Button"
 import { getNativeButtonContent } from "../Button/content"
 import type { TNativeButtonRenderState } from "../Button/types"
 import { useNativeLinkColor } from "../Link/motion"
+import { NativeSelectionIndicatorProvider } from "../SelectionIndicator/context"
 import type { TNativeTextRef } from "../Text/types"
 
 import {
   NativeMenuTextContext,
   NativeMenuKeyboardShortcutContext,
-  NativeMenuSelectionIndicatorContext,
   NativeMenuTextBindingContext,
   type TNativeMenuTextSlot,
 } from "./content"
@@ -367,7 +367,7 @@ const MenuItemReceiver = forwardRef<
                     <NativeMenuKeyboardShortcutContext.Provider
                       value={{ nativeID: keyboardID, accessible: false, style: textStyle.current }}
                     >
-                      <NativeMenuSelectionIndicatorContext.Provider value={{ isSelected: selected }}>
+                      <NativeSelectionIndicatorProvider isSelected={selected}>
                         {icon !== undefined ? (
                           <View
                             testID="menu-item-icon"
@@ -377,7 +377,7 @@ const MenuItemReceiver = forwardRef<
                           </View>
                         ) : null}
                         {getNativeButtonContent(children, textStyle.current)}
-                      </NativeMenuSelectionIndicatorContext.Provider>
+                      </NativeSelectionIndicatorProvider>
                     </NativeMenuKeyboardShortcutContext.Provider>
                   </NativeMenuTextContext.Provider>
                 </NativeMenuTextBindingContext.Provider>

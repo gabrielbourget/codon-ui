@@ -33,6 +33,7 @@ export type NativeDateSegmentData = Readonly<{
 }>
 
 export type NativeDateSegmentKeyData = Readonly<{
+  toolbarRoute?: string
   kind: string
   ownerId: string
   segmentId: string

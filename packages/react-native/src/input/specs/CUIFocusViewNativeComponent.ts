@@ -29,6 +29,7 @@ export type NativeKeyData = Readonly<{
 }>
 
 export type NativeOrdinaryEditorKeyData = Readonly<{
+  toolbarRoute?: string
   observerBindings: string
   bindingId: string
   bindingRevision: string

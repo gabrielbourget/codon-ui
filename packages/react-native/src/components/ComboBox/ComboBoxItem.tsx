@@ -17,7 +17,7 @@ import { findNodeHandle, type View, type TextStyle, type StyleProp } from "react
 import { NativeCollectionActionsContext } from "../../collection/actions"
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
 import { createNativeCollectionLeaf } from "../../collection/CollectionBuilder"
-import { useNativeCollectionRefs, NATIVE_DEFAULT_SLOT, NativeSelectionIndicatorContext } from "../../collection/context"
+import { useNativeCollectionRefs, NATIVE_DEFAULT_SLOT } from "../../collection/context"
 import { NativeCollectionSemanticsContext, type TNativeCollectionSemantics } from "../../collection/semantics"
 import type { TNativeCollectionNode } from "../../collection/snapshot"
 import { focusNativeTarget } from "../../input/focus"
@@ -32,6 +32,7 @@ import type { TNativeButtonProps, TNativeButtonRenderState } from "../Button/typ
 import { useNativeContentContext } from "../NativeContentContext"
 import { splitNativeTextStyle } from "../nativeTextStyle"
 import { getNativeControlRootStyle, nativeControlTarget } from "../selection"
+import { NativeSelectionIndicatorProvider } from "../SelectionIndicator/context"
 import type { TNativeTextRef } from "../Text/types"
 
 import { NativeComboBoxListBehaviorContext } from "./CollectionComboBoxList"
@@ -483,14 +484,14 @@ const Receiver = forwardRef<View, TNativeComboBoxItemProps & { node: TNativeColl
                     },
                   }}
                 >
-                  <NativeSelectionIndicatorContext.Provider value={{ isSelected: selected }}>
+                  <NativeSelectionIndicatorProvider isSelected={selected}>
                     {getNativeButtonContent(
                       typeof children === "function"
                         ? children({ ...values(flags), defaultChildren: undefined })
                         : children,
                       textStyle.current,
                     )}
-                  </NativeSelectionIndicatorContext.Provider>
+                  </NativeSelectionIndicatorProvider>
                 </NativeComboBoxTextContext.Provider>
               </NativeComboBoxItemTextBindingContext.Provider>
             </NativeCollectionSemanticsContext.Provider>
