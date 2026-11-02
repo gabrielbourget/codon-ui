@@ -29,8 +29,6 @@ public final class CUIMotionSnapshotModule extends NativeCUIMotionSnapshotSpec {
       backdrop.request(request, promise);
     });
   }
-  private static native String nativeInitialValue(FabricUIManager manager, int target, String owner, String binding, String revision, String name);
-  private static native String nativeEvaluatedLayout(FabricUIManager manager, int target, String owner, String binding, String revision, Object context, String request, long presentation);
   private static native String nativePopFrame(FabricUIManager manager, String request);
   private static native String nativeViewport(FabricUIManager manager, String request);
   // Access is serialized with invalidate; the C++ owner retains the manager
@@ -135,53 +133,6 @@ public final class CUIMotionSnapshotModule extends NativeCUIMotionSnapshotSpec {
       Object value = request.get(key);
       if (!(value instanceof Number) || !Double.isFinite(((Number)value).doubleValue()) || request.getDouble(key) != identity.getDouble(key)) throw new IllegalStateException("motion-owner-mismatch");
     }
-  }
-
-  @Override public void getInitialValue(String encoded, Promise promise) {
-    readOwnedSnapshot(encoded, promise, 1);
-  }
-
-  @Override public void evaluateLayout(String encoded, Promise promise) {
-    readOwnedSnapshot(encoded, promise, 2);
-  }
-
-  private synchronized String evaluateOwnedLayout(FabricUIManager manager, int target, JSONObject identity, View view, String encoded) throws Exception {
-    if (!valid.get()) throw new IllegalStateException("motion-module-retired");
-    return nativeEvaluatedLayout(manager, target, identity.getString("ownerId"), identity.getString("bindingId"), identity.getString("nativeViewRevision"), view.getContext(), encoded, popHandle);
-  }
-
-  private void readOwnedSnapshot(String encoded, Promise promise, int kind) {
-    UiThreadUtil.runOnUiThread(() -> {
-      try {
-        boolean initialValue = kind == 1;
-        if (!valid.get() || !getReactApplicationContext().hasActiveReactInstance()) throw new IllegalStateException("motion-module-retired");
-        JSONObject request = new JSONObject(encoded);
-        Object rawTarget = request.get("target");
-        if (!(rawTarget instanceof Number)) throw new IllegalArgumentException("motion-target-invalid");
-        double numericTarget = ((Number)rawTarget).doubleValue();
-        if (!Double.isFinite(numericTarget) || numericTarget <= 0 || numericTarget > Integer.MAX_VALUE || numericTarget != Math.rint(numericTarget)) throw new IllegalArgumentException("motion-target-invalid");
-        Object nonce = request.get("requestId");
-        if (!(nonce instanceof String) || ((String)nonce).isEmpty()) throw new IllegalArgumentException("motion-request-invalid");
-        int target = (int)numericTarget;
-        UIManager manager = UIManagerHelper.getUIManagerForReactTag(getReactApplicationContext(), target);
-        if (!(manager instanceof FabricUIManager)) throw new IllegalStateException("motion-Fabric-unavailable");
-        View view = manager.resolveView(target);
-        if (!(view instanceof CUIFocusView)) throw new IllegalStateException("motion-actual-view-unavailable");
-        JSONObject identity = ((CUIFocusView)view).motionSnapshotIdentity();
-        validate(request, identity);
-        String name = initialValue ? request.getString("name") : null;
-        if (initialValue && name.isEmpty()) throw new IllegalArgumentException("motion-value-name-invalid");
-        JSONObject result = new JSONObject(kind == 2 ? evaluateOwnedLayout((FabricUIManager)manager, target,
-          identity, view, encoded) : nativeInitialValue((FabricUIManager)manager, target,
-          identity.getString("ownerId"), identity.getString("bindingId"), identity.getString("nativeViewRevision"), name));
-        if (!valid.get() || manager.resolveView(target) != view) throw new IllegalStateException("motion-owner-retired");
-        validate(identity, ((CUIFocusView)view).motionSnapshotIdentity());
-        for (String key : strings) result.put(key, identity.get(key));
-        for (String key : numbers) result.put(key, identity.get(key));
-        result.put("requestId", nonce);
-        promise.resolve(result.toString());
-      } catch (Exception failure) { promise.reject(kind == 2 ? "E_CUI_MOTION_LAYOUT" : "E_CUI_MOTION_INITIAL_VALUE", failure); }
-    });
   }
 
   @Override public synchronized void invalidate() {

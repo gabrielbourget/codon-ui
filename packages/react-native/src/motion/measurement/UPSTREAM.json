@@ -1,5 +1,5 @@
 {
-  "scope": "Private guarded actual-host initial values and isolated geometry. Initial margin scalars use the same immutable-input evaluator because mounted LayoutMetrics omits margin; unresolved/auto/ambiguous values reject. Original refs and native packet identities are retained. Source/compiler checks do not admit native fidelity or full Card.",
+  "scope": "Actual mounted target geometry for drag constraints remains. Hypothetical layout and native initial-value queries are retired; source inputs below are historical attribution, not active measurement capability.",
   "package": "motion-dom",
   "version": "12.40.0",
   "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
@@ -22,18 +22,20 @@
     }
   ],
   "remaining": [
-    "Actual installed geometry/probe/velocity/passive-effect scheduling and native presentation correspondence",
-    "Full native style-to-metric mapping, coupled intrinsic content, named-font/cache/custom callbacks and every unsupported authority gate",
-    "Matching current consumers/products and actual layout/drawing/presentation/performance acceptance"
+    "Installed original target/ref/window correspondence for mounted drag constraint geometry; no hypothetical layout or custom intrinsic provider contract remains."
   ],
   "authoredFiles": [
     {
-      "file": "initialValue.ts",
-      "sha256": "26344165e780f4984eab66a29158c84dd3ff0b58fea948a12ae26ee1e2db425f"
-    },
-    {
-      "file": "isolatedGeometry.ts",
-      "sha256": "5396a5806be4e0d6260542c6b204f81da165375dc0d507b61bbe708862165c1d"
+      "file": "targetGeometry.ts",
+      "sha256": "98a78526e2ecf246e0a4103d69f36121feef7af5ae5e328caad8113b06023f8f"
     }
-  ]
+  ],
+  "explicitValueContract": {
+    "approved": "2026-11-02",
+    "hypotheticalLayout": "retired",
+    "initialValues": "explicit authored values or identity defaults; no native computed-style decomposition",
+    "mountedFontLayout": "ordinary RN layout retained",
+    "presenceProjectionStickyEffects": "retained, installed qualification still required",
+    "sourceInputs": "Pinned inputs and earlier evidence boundaries remain historical; they do not certify the current candidate."
+  }
 }

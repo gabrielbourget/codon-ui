@@ -13,7 +13,6 @@ add_library(codon_motion SHARED
   DragActionJNI.cpp
   "${CMAKE_CURRENT_LIST_DIR}/../../../../cpp/form/FabricFormDocument.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../cpp/form/FormDocumentQuery.cpp"
-  MotionIntrinsicsJNI.cpp
   MotionDrawingJNI.cpp
   ForegroundJNI.cpp
   "${CMAKE_CURRENT_LIST_DIR}/../../../../cpp/overlay/ForegroundFilters.cpp"
@@ -21,24 +20,14 @@ add_library(codon_motion SHARED
   "${CMAKE_CURRENT_LIST_DIR}/../../../../cpp/backdrop/Gaussian.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../cpp/backdrop/ProjectedBlur.cpp"
   "${CODON_MOTION_DIR}/FabricSnapshot.cpp"
-  "${CODON_MOTION_DIR}/FabricLayout.cpp"
   "${CODON_MOTION_DIR}/NativeStyle.cpp"
-  "${CODON_MOTION_DIR}/NativeIntrinsics.cpp"
-  "${CODON_MOTION_DIR}/NativeIntrinsicSource.cpp"
-  "${CODON_MOTION_DIR}/ScratchYoga.cpp"
   "${CODON_MOTION_DIR}/PopFrame.cpp"
   "${CODON_MOTION_DIR}/PopStyle.cpp"
   "${CODON_MOTION_DIR}/PopPresentation.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../cpp/table/StickyStyle.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../cpp/table/StickyPresentation.cpp"
-  "${CODON_MOTION_DIR}/ViewportQuery.cpp"
-  "${CODON_MOTION_DIR}/InitialValueQuery.cpp"
-  "${CODON_MOTION_DIR}/InitialValueStyle.cpp"
-  "${CODON_MOTION_DIR}/NativeLayoutState.cpp"
-  "${CODON_MOTION_DIR}/GeometryQuery.cpp")
+  "${CODON_MOTION_DIR}/ViewportQuery.cpp")
 target_include_directories(codon_motion PRIVATE "${CODON_MOTION_DIR}" "${CODEGEN_DIR}"
-  "${CUI_SAFE_AREA_CPP_DIR}" "${CUI_SAFE_AREA_CODEGEN_DIR}"
-  "${CUI_TELEPORT_CPP_DIR}" "${CUI_TELEPORT_CODEGEN_DIR}"
   "${REACT_NATIVE_DIR}/ReactCommon"
   "${REACT_NATIVE_DIR}/ReactCommon/react/renderer/components/text/platform/android"
   "${REACT_NATIVE_DIR}/ReactCommon/react/renderer/components/scrollview/platform/android"

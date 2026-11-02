@@ -101,14 +101,13 @@ it.each([
   (name, frames) => {
     const original = [...frames]
     const actual = runPinned({ [name]: original })
-    const readValue = jest.fn(),
-      resolveGeometry = jest.fn()
+    const readValue = jest.fn()
     const result = resolveNativeMotionKeyframes(
       {
         name,
         keyframes: original,
         motionValue: motionValue<unknown>(0),
-        context: { isCurrent: () => true, readValue, resolveGeometry },
+        context: { isCurrent: () => true, readValue },
       },
       { isCurrent: () => true, onCancel: () => () => {} },
     ) as TNativeResolvedKeyframes
@@ -117,7 +116,6 @@ it.each([
     expect(result.keyframes).toEqual(actual.results[name].frames)
     expect(result.finalKeyframe).toBe(actual.results[name].final)
     expect(readValue).not.toHaveBeenCalled()
-    expect(resolveGeometry).not.toHaveBeenCalled()
     expect(original).toEqual([...frames])
   },
 )

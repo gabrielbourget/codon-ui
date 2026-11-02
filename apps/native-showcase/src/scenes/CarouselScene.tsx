@@ -19,7 +19,7 @@ export const CarouselScene = () => {
   const theme = useNativeTheme()
   const [items, setItems] = useState(initialItems)
   const [open, setOpen] = useState(true)
-  const [loop, setLoop] = useState(true)
+  const [align, setAlign] = useState<"start" | "center" | "end">("center")
   const [vertical, setVertical] = useState(false)
   const [manual, setManual] = useState(false)
   const [interactive, setInteractive] = useState(true)
@@ -42,12 +42,10 @@ export const CarouselScene = () => {
       </Text>
       <Text testID="carousel-scene-state">
         Selected: {selected + 1}. Items: {items.length}. Selection reports: {requests}. Viewport:{" "}
-        {viewport ? "attached" : "detached"}. Requested: {initialIndex + 1}. Snaps:{" "}
-        {context.current?.emblaApi?.scrollSnapList().length ?? 0}.
+        {viewport ? "attached" : "detached"}. Requested: {initialIndex + 1}. Mode: finite native paging.
       </Text>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 5 }}>
         <Button onPress={() => setOpen((value) => !value)}>{open ? "Hide carousel" : "Show carousel"}</Button>
-        <Button onPress={() => setLoop((value) => !value)}>Toggle loop</Button>
         <Button onPress={() => setVertical((value) => !value)}>Toggle axis</Button>
         <Button onPress={() => setManual((value) => !value)}>Toggle dot activation</Button>
         <Button onPress={() => setInteractive((value) => !value)}>Toggle passive dots</Button>
@@ -63,14 +61,14 @@ export const CarouselScene = () => {
           Add item
         </Button>
         <Button onPress={() => setItems((value) => value.slice(0, -1))}>Remove item</Button>
-        <Button onPress={() => context.current?.emblaApi?.scrollTo(0, true)}>Jump to first</Button>
-        <Button onPress={() => context.current?.emblaApi?.reInit({ align: "end" })}>Reinitialize alignment</Button>
+        <Button onPress={() => context.current?.scrollTo(0, { animated: false })}>Jump to first</Button>
+        <Button onPress={() => setAlign((value) => (value === "end" ? "center" : "end"))}>Change alignment</Button>
       </View>
       {open ? (
         <Carousel
           items={items}
           initialIndex={initialIndex}
-          loopEnabled={loop}
+          align={align}
           axis={vertical ? "y" : "x"}
           onIndexChange={onIndexChange}
           onViewportRefChange={onViewportRefChange}

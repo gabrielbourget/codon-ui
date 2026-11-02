@@ -11,7 +11,7 @@ export const owner = new NativeMotionOwner({
 export const host = <NativeMotionOwnerHost motion={{ initial: { x: 0 }, animate: { x: 100 } }} />
 // @ts-expect-error A real native ref is required, not a fabricated style/measure object.
 owner.attach({ style: {} })
-// @ts-expect-error Actual isolated geometry returns typed resolved keyframes.
+// @ts-expect-error Hypothetical geometry providers are not part of the explicit-value contract.
 export const invalidGeometry = <NativeMotionOwnerHost motion={{}} resolveGeometry={() => [1, 2]} />
 export const invalidCallback = (
   <NativeMotionOwnerHost

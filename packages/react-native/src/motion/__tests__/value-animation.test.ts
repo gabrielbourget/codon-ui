@@ -350,17 +350,16 @@ it("rejects asynchronous resolver errors and errors thrown while accepting their
   await expect(first.finished).rejects.toThrow("native query rejected")
   const second = animation({
     keyframes: [0, "auto"],
-    context: context({ resolveGeometry: async () => ({ keyframes: [0] }) }),
   }).control
-  await expect(second.ready).rejects.toThrow(/incomplete/)
-  await expect(second.finished).rejects.toThrow(/incomplete/)
+  await expect(second.ready).rejects.toThrow(/explicit compatible/)
+  await expect(second.finished).rejects.toThrow(/explicit compatible/)
 })
 it("releases a failed control assigned by MotionValue.start without stopping a replacement", async () => {
   const value = motionValue<unknown>(0)
   void value.start(animateNativeMotionValue("width", value, "auto", {}, context()))
   const failed = value.animation as NativeValueAnimation
   controls.push(failed)
-  await expect(failed.ready).rejects.toThrow(/actual native/)
+  await expect(failed.ready).rejects.toThrow(/explicit compatible/)
   await flush(1000)
   expect(value.isAnimating()).toBe(false)
 })
@@ -391,10 +390,9 @@ it("mixes native transform arrays with pinned recursive interpolation and restor
   await control.finished
   expect(value.get()).toBe(target)
 })
-it("uses final original geometry only on the appropriate repeat endpoint", async () => {
+it("uses explicit numeric values at the appropriate repeat endpoint", async () => {
   const { value, control } = animation({
-    keyframes: [0, "auto"],
-    context: context({ resolveGeometry: () => ({ keyframes: [0, 100], finalKeyframe: "auto" }) }),
+    keyframes: [0, 100],
     repeat: 1,
     repeatType: "reverse",
   })

@@ -6,7 +6,6 @@ import type { TNativeCounterProps } from "../Counter/types"
 import type { TNativeTextProps } from "../Text/types"
 
 import type { TNativeCarouselDotsActivationMode } from "./dotsModel"
-import type { EmblaCarouselType } from "./engine/EmblaCarousel"
 import type { TNativeCarouselControlLabels } from "./types"
 
 export type TNativeBaseCarouselItem = { ID?: string | number; publicId?: string | number }
@@ -23,15 +22,15 @@ export type TNativeCarouselLabels = {
   counter: { ariaLabel: string; counterText: string }
 }
 export type TNativePartialCarouselLabels = { [K in keyof TNativeCarouselLabels]?: Partial<TNativeCarouselLabels[K]> }
+export type TNativeCarouselScrollOptions = Readonly<{ animated?: boolean }>
 export type TNativeCarouselContext = {
-  emblaApi: EmblaCarouselType | null
   selectedIndex: number
   itemCount: number
   canScrollPrev: boolean
   canScrollNext: boolean
-  scrollPrev: () => void
-  scrollNext: () => void
-  scrollTo: (index: number) => void
+  scrollPrev: (options?: TNativeCarouselScrollOptions) => void
+  scrollNext: (options?: TNativeCarouselScrollOptions) => void
+  scrollTo: (index: number, options?: TNativeCarouselScrollOptions) => void
   getItemIDForIndex: (index: number) => string
   labels: TNativeCarouselLabels
 }
@@ -52,7 +51,7 @@ export type TNativeCarouselProps<TItem extends TNativeBaseCarouselItem> = {
   "data-testid"?: string
   items: TItem[]
   initialIndex?: number
-  loopEnabled?: boolean
+  loopEnabled?: false
   autoPlayEnabled?: boolean
   axis?: (typeof NATIVE_CAROUSEL_AXES)[number]
   align?: (typeof NATIVE_CAROUSEL_ALIGNMENTS)[number]

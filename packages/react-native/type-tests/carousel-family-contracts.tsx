@@ -8,9 +8,7 @@ import {
   CarouselNextButton,
   CarouselPrevButton,
   type CarouselProps,
-  type TNativeCarouselApi,
-  type TNativeCarouselOptions,
-  type TNativeCarouselPlugin,
+  type TNativeCarouselScrollOptions,
 } from "../src"
 
 const styles = StyleSheet.create({ viewport: { width: "100%" }, item: { flexBasis: "50%" } })
@@ -30,27 +28,12 @@ export const props: CarouselProps<{ ID: string; title: string }> = {
   },
   renderCarouselItem: ({ item, index, isSelected }) => <View testID={`${item.title}:${index}:${isSelected}`} />,
   chromeSlot: ({ context, slot }) => {
-    const api: TNativeCarouselApi | null = context.emblaApi
-    const plugin: TNativeCarouselPlugin = {
-      name: "owned",
-      options: {},
-      init: (owner) => {
-        const node: View = owner.rootNode()
-        void node
-      },
-      destroy: () => {},
-    }
-    const options: TNativeCarouselOptions = {
-      align: (view, snap, index) => (view - snap) / (index + 1),
-      breakpoints: { large: { when: (window) => window.width > 600, options: { loop: false } } },
-      container: (nodes) => nodes.container,
-      slides: () => [],
-    }
-    api?.reInit(options, [plugin])
-    api?.on("select", (owner, event) => {
-      const root: View = owner.rootNode()
-      void [root, event]
-    })
+    const options: TNativeCarouselScrollOptions = { animated: false }
+    context.scrollTo(0, options)
+    context.scrollNext()
+    context.scrollPrev(options)
+    // @ts-expect-error The raw Embla engine was retired by the finite native paging amendment.
+    void context.emblaApi
     void slot
     return (
       <>
@@ -73,9 +56,15 @@ type TBrowserDiv = HTMLDivElement & { querySelector: (selector: string) => unkno
 export const DomRef = <Carousel {...props} onViewportRefChange={(node: TBrowserDiv | null) => void node} />
 // @ts-expect-error CSS strings are not native style owners.
 export const Css = <Carousel {...props} customContainerStyles="display: flex" />
-// @ts-expect-error DOM query strings do not describe native original-node bindings.
-export const DomSelector: TNativeCarouselOptions = { container: ".container" }
-// @ts-expect-error Browser MediaQueryList strings cannot replace native window predicates.
-export const DomBreakpoint: TNativeCarouselOptions = { breakpoints: { "(min-width: 600px)": { loop: false } } }
-// @ts-expect-error Browser elements are not native nodes returned by the complete engine.
-export const DomNode: ReturnType<TNativeCarouselApi["rootNode"]> = {} as HTMLDivElement
+// @ts-expect-error Continuous looping is outside the approved finite native paging contract.
+export const Continuous = <Carousel {...props} loopEnabled />
+// @ts-expect-error Native command options do not expose Embla physics or observer switches.
+export const EngineOptions: TNativeCarouselScrollOptions = { watchDrag: false }
+// @ts-expect-error The retired raw engine type is no longer public.
+export type { TNativeCarouselApi } from "../src"
+// @ts-expect-error The retired plugin contract is no longer public.
+export type { TNativeCarouselPlugin } from "../src"
+// @ts-expect-error The retired engine options are no longer public.
+export type { TNativeCarouselOptions } from "../src"
+// @ts-expect-error The retired engine event bus is no longer public.
+export type { TNativeCarouselEvent } from "../src"

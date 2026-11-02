@@ -50,5 +50,13 @@
     "Existing same-window key, passive key observation, pointer and focus-within bindings",
     "Native React child/layout commit observations",
     "Existing native frame/window clocks and typed native breakpoint predicates"
-  ]
+  ],
+  "nativePagingRetirement": {
+    "date": "2026-11-02",
+    "baseline": "6c6f2d637015b93afd688009a531fba68467fc69",
+    "disposition": "The owner-approved finite native paging adapter replaces the adapted Embla engine and native document/window environment. The original upstream hashes and license remain historical provenance, not an inventory of current shipping engine files.",
+    "currentSource": ["Carousel.tsx", "useNativeCarouselPaging.ts", "pagingGeometry.ts"],
+    "retainedScope": "Measured heterogeneous slides, both axes, RTL, original keyed hosts, explicit native focus/keyboard owners, chrome and settled selection.",
+    "amendedScope": "Finite scrolling and stock momentum replace continuous loops and Embla physics; raw engine API, plugins, reInit/options/custom observers are retired."
+  }
 }

@@ -3,8 +3,6 @@ import { TurboModuleRegistry } from "react-native"
 
 export interface Spec extends TurboModule {
   backdropFrame(request: string): Promise<string>
-  getInitialValue(request: string): Promise<string>
-  evaluateLayout(request: string): Promise<string>
   getTargetGeometry(request: string): Promise<string>
   getPopFrame(request: string): string
   popPresentation(request: string): string

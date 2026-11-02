@@ -57,6 +57,7 @@ export const ToggleSwitcherFixture = ({ rootRef, labelRef }: { rootRef?: Ref<Vie
         </Pressable>
         <ToggleSwitcher
           ref={rootRef}
+          width="100%"
           items={items}
           selectedKey={selected}
           onSelectionChange={(next) => {

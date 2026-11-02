@@ -1,8 +1,8 @@
 import { validateNativeFontWeight } from "../../components/nativeTextStyle"
 import { complex } from "../kernel/engine/value/types/complex"
-import { normalizeNativeMotionKeyframeUnits } from "../measurement/isolatedGeometry"
 
 import type { TNativeMotionResolutionToken, TNativeMotionValueOptions, TNativeResolvedKeyframes } from "./types"
+import { normalizeNativeMotionKeyframeUnits } from "./units"
 
 export { nativeTargetKeyframes } from "./targetKeyframes"
 
@@ -239,22 +239,10 @@ const resolveLeaves = (
     const normalized = normalizeNativeMotionKeyframeUnits(options.name, resolved)
     transformed ||= normalized.some((value, index) => value !== resolved[index])
     resolved = normalizeZeroPercentages(options.name, normalized)
-    options.context.resolutionTicket?.normalized(resolved)
-    if (needsGeometry(resolved)) {
-      if (!options.context.resolveGeometry)
-        throw new Error(`Native motion: ${options.name} requires actual native keyframe geometry`)
-      const measured = options.context.resolutionTicket
-        ? options.context.resolveGeometry(options.name, resolved, token, options.context.resolutionTicket)
-        : options.context.resolveGeometry(options.name, resolved, token)
-      const accept = (result: TNativeResolvedKeyframes) => {
-        current(token)
-        result.keyframes.forEach(requireFinite)
-        if (result.keyframes.length !== resolved.length || needsGeometry(result.keyframes))
-          throw new Error("Native motion: incomplete native geometry resolution")
-        return { keyframes: result.keyframes, finalKeyframe: result.finalKeyframe ?? frames[frames.length - 1] }
-      }
-      return isThenable(measured) ? Promise.resolve(measured).then(accept) : accept(measured)
-    }
+    if (needsGeometry(resolved))
+      throw new Error(
+        `Native motion: ${options.name} requires explicit compatible keyframes; auto and mixed-unit layout measurement is not supported`,
+      )
     return { keyframes: resolved, ...(transformed ? { finalKeyframe: frames[frames.length - 1] } : {}) }
   }
   if (!colors.length) {
@@ -287,7 +275,6 @@ export const resolveNativeMotionKeyframes = (
       throw new Error("Native motion: missing actual native initial value")
     if (options.name === "fontWeight") {
       frames.forEach((weight) => validateNativeFontWeight(weight, "Motion"))
-      options.context.resolutionTicket?.normalized(frames)
       return { keyframes: frames }
     }
     const hasVelocity = (options.type === "spring" || typeof options.type === "function") && options.velocity
@@ -297,7 +284,6 @@ export const resolveNativeMotionKeyframes = (
       (!hasVelocity && frames.every((value) => value === frames[0]))
     ) {
       frames.forEach(requireFinite)
-      options.context.resolutionTicket?.normalized(frames)
       return { keyframes: frames }
     }
     return resolveLeaves(frames, options, token)

@@ -285,5 +285,13 @@
       "sha256": "9d9212bf93c0c2c8e65dcc557911a232444f8474fb15e44e71c224da87e232d1"
     }
   ],
-  "framerLicenseSha256": "5ff46083b88563822b0560dd6221ab89d2f74bc97a52d4c97a75020fd62c6f32"
+  "framerLicenseSha256": "5ff46083b88563822b0560dd6221ab89d2f74bc97a52d4c97a75020fd62c6f32",
+  "explicitValueContract": {
+    "approved": "2026-11-02",
+    "hypotheticalLayout": "retired",
+    "initialValues": "explicit authored values or identity defaults; no native computed-style decomposition",
+    "mountedFontLayout": "ordinary RN layout retained",
+    "presenceProjectionStickyEffects": "retained, installed qualification still required",
+    "sourceInputs": "Pinned inputs and earlier evidence boundaries remain historical; they do not certify the current candidate."
+  }
 }

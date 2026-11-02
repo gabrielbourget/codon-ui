@@ -81,8 +81,8 @@ it.each([
   [0, "10"],
   [[{ translateX: 10 }], [{ translateX: "50%" }]],
   [[{ scale: 1 }], [{ translateX: 10 }]],
-])("requires native geometry for incompatible units or structures %p -> %p", (from, to) => {
-  expect(() => resolveNativeMotionKeyframes(options([from, to]), token)).toThrow(/actual native keyframe geometry/)
+])("rejects incompatible explicit units or structures %p -> %p", (from, to) => {
+  expect(() => resolveNativeMotionKeyframes(options([from, to]), token)).toThrow(/explicit compatible keyframes/)
 })
 it("accepts matching native structures independent of object key order", () => {
   expect(
@@ -99,22 +99,6 @@ it("accepts matching native structures independent of object key order", () => {
       { offsetY: 20, offsetX: 30 },
     ],
   })
-})
-it("retains the original auto/percentage endpoint after actual geometry resolution", async () => {
-  const resolveGeometry = jest.fn(async () => ({ keyframes: [20, 80] }))
-  await expect(resolveNativeMotionKeyframes(options([20, "auto"], { resolveGeometry }), token)).resolves.toEqual({
-    keyframes: [20, 80],
-    finalKeyframe: "auto",
-  })
-  expect(resolveGeometry).toHaveBeenCalledWith("width", [20, "auto"], token)
-})
-it("rejects partial or still-unresolved geometry", async () => {
-  await expect(
-    resolveNativeMotionKeyframes(options([10, "50%"], { resolveGeometry: async () => ({ keyframes: [0] }) }), token),
-  ).rejects.toThrow(/incomplete/)
-  expect(() =>
-    resolveNativeMotionKeyframes(options([10, "50%"], { resolveGeometry: () => ({ keyframes: [0, "50%"] }) }), token),
-  ).toThrow(/incomplete/)
 })
 it("samples every structured native color endpoint and preserves authored final representation", async () => {
   const from = Object.freeze([{ offsetX: 0, offsetY: 2, color: Object.freeze({ semantic: ["labelColor"] }) }])
@@ -174,15 +158,6 @@ it("keeps a static or single opaque color in its original native representation 
   })
   expect(resolveColors).not.toHaveBeenCalled()
 })
-it("rejects non-finite values returned by a geometry provider", async () => {
-  await expect(
-    resolveNativeMotionKeyframes(
-      options([0, "auto"], { resolveGeometry: async () => ({ keyframes: [0, NaN] }) }),
-      token,
-    ),
-  ).rejects.toThrow(/finite/)
-})
-
 it.each([
   ["width", [0, "50%"], ["0%", "50%"]],
   ["height", ["50%", 0], ["50%", "0%"]],
@@ -204,11 +179,9 @@ it.each([
       ["25%", "0%", 0],
     ],
   ],
-])("normalizes valid native %s zero/percentage templates before requesting geometry", (name, frames, expected) => {
-  const resolveGeometry = jest.fn()
-  const result = resolveNativeMotionKeyframes(options(frames as unknown[], { resolveGeometry }, name as string), token)
+])("normalizes valid native %s zero/percentage templates without hypothetical geometry", (name, frames, expected) => {
+  const result = resolveNativeMotionKeyframes(options(frames as unknown[], {}, name as string), token)
   expect(result).toEqual({ keyframes: expected })
-  expect(resolveGeometry).not.toHaveBeenCalled()
 })
 it("keeps source-normalized zero endpoints, frozen native inputs and unchanged descriptor identity", () => {
   const from = Object.freeze([Object.freeze({ translateX: 0 }), Object.freeze({ scale: 1 })] as const)
@@ -248,7 +221,7 @@ it.each([
   ],
 ])("does not normalize unsupported native %s values %p", (name, frames) => {
   expect(() => resolveNativeMotionKeyframes(options(frames as unknown[], {}, name as string), token)).toThrow(
-    /actual native keyframe geometry/,
+    /explicit compatible keyframes/,
   )
 })
 it("keeps opaque and numeric native colors on the actual native color resolver", () => {
