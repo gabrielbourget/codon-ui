@@ -160,3 +160,120 @@ it("keeps the original editor while locale final payloads, owner veto and read-o
   await press("Increase controlled quantity")
   expect(state()).toHaveTextContent(/Value: 0.2.*Request: 0.3.*Requests: 3/)
 })
+
+const config = () => JSON.parse(screen.getByTestId("stepper-config").children.join(""))
+const callbacks = (): { generation: number; kind: string; data: unknown }[] =>
+  JSON.parse(screen.getByTestId("stepper-callbacks").children.join(""))
+
+it("exposes defaults once, keeps uncontrolled ownership honest, and retains receipts through editor replacement", async () => {
+  const press = await enter()
+  await press("Next stepper default")
+  await press("Next stepper default")
+  expect(editor()).toHaveDisplayValue("0")
+  await press("Toggle stepper controlled mode and remount")
+  expect(config()).toMatchObject({ generation: 1, ownership: "uncontrolled", defaultValue: 0.4 })
+  expect(editor()).toHaveDisplayValue("0.4")
+  await press("Next stepper default")
+  expect(config().defaultValue).toBeNull()
+  expect(editor()).toHaveDisplayValue("0.4")
+  expect(callbacks()).toEqual([])
+  await press("Increase controlled quantity")
+  expect(editor()).toHaveDisplayValue("0.5")
+  expect(state()).toHaveTextContent(/Value: uncontrolled.*Request: 0.5.*Requests: 1/)
+  expect(callbacks()).toEqual([{ generation: 1, kind: "request", data: 0.5 }])
+  await press("Remount stepper editor")
+  expect(editor()).toHaveDisplayValue("")
+  await press("Remove or reinsert stepper editor")
+  expect(screen.queryByTestId("stepper-example-input")).toBeNull()
+  expect(screen.getByTestId("stepper-refs")).toHaveTextContent(/"attached":false/)
+  await press("Remove or reinsert stepper editor")
+  expect(editor()).toHaveDisplayValue("")
+  expect(config()).toMatchObject({ generation: 3, mounted: true })
+  expect(callbacks()).toEqual([{ generation: 1, kind: "request", data: 0.5 }])
+  await press("Toggle stepper controlled mode and remount")
+  expect(editor()).toHaveDisplayValue("0")
+  expect(state()).toHaveTextContent(/Value: 0.*Requests: 1/)
+})
+
+it("exposes numeric and validation partitions and records a truthful unavailable native Form action", async () => {
+  const press = await enter()
+  await press("Next stepper numeric format")
+  expect(editor()).toHaveDisplayValue("0.00")
+  await press("Next stepper numeric format")
+  expect(editor().props.value).toMatch(/0.00/)
+  expect(config().format).toBe("currency")
+  await press("Next stepper numeric format")
+  await press("Next stepper numeric step")
+  expect(editor()).toHaveDisplayValue("0%")
+  expect(config().step).toBe("undefined")
+  await press("Increase controlled quantity")
+  expect(editor()).toHaveDisplayValue("1%")
+  expect(state()).toHaveTextContent(/Value: 0.01.*Requests: 1/)
+  await press("Next stepper numeric format")
+  expect(config().format).toBe("unit")
+  await press("Next stepper numeric format")
+  expect(config().format).toBe("significant")
+  await press("Toggle stepper commit validation")
+  await press("Toggle stepper aria validation")
+  await press("Toggle stepper required")
+  await press("Toggle stepper custom validation")
+  await press("Toggle stepper server error")
+  await press("Next stepper explicit invalid")
+  await press("Next stepper validation state")
+  await press("Toggle stepper zero selection")
+  expect(config()).toMatchObject({
+    commit: "validate",
+    validation: "aria",
+    required: true,
+    customValidation: true,
+    serverError: true,
+    isInvalid: false,
+    validationState: "valid",
+    selection: { start: 0, end: 0 },
+  })
+  expect(editor().props.selection).toEqual({ start: 0, end: 0 })
+  await press("Submit stepper form")
+  expect(screen.getByTestId("stepper-form-result")).toHaveTextContent(
+    /"status":"retired".*native-action-lease-unavailable/,
+  )
+  expect(callbacks().filter(({ kind }) => kind === "form:submit")).toEqual([])
+  expect(callbacks().filter(({ kind }) => kind === "request")).toHaveLength(1)
+})
+
+it("records final native payload order and exposes request-triggered removal without hiding late callback work", async () => {
+  const press = await enter()
+  await fireEvent(editor(), "focus", { nativeEvent: { target: 17 } })
+  await fireEvent.changeText(editor(), "0.3")
+  await fireEvent(editor(), "change", { nativeEvent: { text: "0.3", eventCount: 1, target: 17 } })
+  await fireEvent(editor(), "selectionChange", { nativeEvent: { selection: { start: 0, end: 0 }, target: 17 } })
+  await fireEvent(editor(), "submitEditing", { nativeEvent: { text: "0.4" } })
+  await fireEvent(editor(), "endEditing", { nativeEvent: { text: "0.3" } })
+  expect(callbacks().map(({ kind }) => kind)).toEqual([
+    "native:focus",
+    "raw",
+    "native:change",
+    "native:selection",
+    "request",
+    "native:submit",
+    "native:end",
+  ])
+  expect(callbacks().slice(4)).toEqual([
+    { generation: 0, kind: "request", data: 0.4 },
+    { generation: 0, kind: "native:submit", data: "0.4" },
+    { generation: 0, kind: "native:end", data: "0.3" },
+  ])
+  await press("Next stepper retirement on request")
+  await press("Next stepper retirement on request")
+  await press("Next stepper retirement on request")
+  expect(config().retireOnRequest).toBe("remove")
+  await press("Increase controlled quantity")
+  expect(screen.queryByTestId("stepper-example-input")).toBeNull()
+  expect(config()).toMatchObject({ mounted: false, retireOnRequest: "none" })
+  expect(state()).toHaveTextContent(/Value: 0.5.*Requests: 2/)
+  const afterRemoval = callbacks()
+  await act(() => jest.advanceTimersByTime(1500))
+  expect(callbacks()).toEqual(afterRemoval)
+  await press("Remove or reinsert stepper editor")
+  expect(editor()).toHaveDisplayValue("0.5")
+  expect(callbacks()).toEqual(afterRemoval)
+})
