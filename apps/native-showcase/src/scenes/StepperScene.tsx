@@ -371,6 +371,9 @@ export const StepperScene = () => {
           retireOnRequest: RETIREMENTS[retirementIndex],
         })}
       </Text>
+      <Text testID="stepper-presentation">
+        {JSON.stringify({ styles: custom ? "custom" : "default", icons: icons ? "custom" : "default" })}
+      </Text>
       <Text testID="stepper-refs">{JSON.stringify(refs)}</Text>
       <Text testID="stepper-callbacks">{JSON.stringify(receipts)}</Text>
       <Text testID="stepper-form-result">{JSON.stringify(formResult)}</Text>

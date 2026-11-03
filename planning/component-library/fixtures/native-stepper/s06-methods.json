@@ -1,0 +1,149 @@
+{
+  "cell": "CAT.stepper.G02",
+  "scope": "Exactly six S06 criteria only;no S01,S05 or keyboard methods changed",
+  "criteriaSource": "/tmp/codon-stepper-g02-closeout-20261103/installed-g02-oracles.json",
+  "criteriaSHA256": "30de5434c97f1aed78aae6578c1700c00052e78929d4ee1587bcc7f0ddc7b773",
+  "teardownAmendment": {
+    "path": "/tmp/codon-stepper-g02-closeout-20261103/teardown-observer/installed-action.json",
+    "SHA256": "51c461844683aaa3d050a89c17b4f96d49ea63c70a1212cf04c035667f2c072a"
+  },
+  "methods": [
+    {
+      "method": "StepperG02TrialTests/testS06HeldDisabled",
+      "criterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S06.hold-retire-disabled",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Press Next stepper retirement on request 1 times. Focus and native draft0.3.",
+        "oneAction": "Actual native touch hold over Increase controlled quantity through first repeat request, then keep held beyond another repeat interval and release.",
+        "nativeOracle": "After first request0.4 the armed guard/removal commits; no later step or keyboard reopening. Remove: actual editor detached. Guards: editor remains and both numeric buttons inert.",
+        "ownerOracle": "Exactly1 request, value0.4. Receipt from generation0 remains; arm returns none. No late mutation even after release and1500ms observation.",
+        "callbackOracle": "Request[0.4] only. Do not guard/filter stale callbacks in the fixture or accept a new request from a retired owner."
+      },
+      "status": "SOURCE_PREPARED_NOT_NATIVE_COMPILED_OR_EXECUTED",
+      "nativeEvidenceRequired": true,
+      "implementedPublicOracles": [
+        "One dirty-draft request0.4 with generation0 and controlled echo0.4.",
+        "Retirement arm resets to none;actual exposed editor removal/ref detachment or both buttons disabled/ref retained.",
+        "No new business/raw callback through release and1500ms;no reopened keyboard.",
+        "All raw callback and native traces remain visible as attachments."
+      ],
+      "externalDependency": "Actual admitted touch cohort must span first request retirement and another tick interval;independent original currentness/retirement proof.0.8s XCTest alone does not establish this."
+    },
+    {
+      "method": "StepperG02TrialTests/testS06HeldReadOnly",
+      "criterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S06.hold-retire-read-only",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Press Next stepper retirement on request 2 times. Focus and native draft0.3.",
+        "oneAction": "Actual native touch hold over Increase controlled quantity through first repeat request, then keep held beyond another repeat interval and release.",
+        "nativeOracle": "After first request0.4 the armed guard/removal commits; no later step or keyboard reopening. Remove: actual editor detached. Guards: editor remains and both numeric buttons inert.",
+        "ownerOracle": "Exactly1 request, value0.4. Receipt from generation0 remains; arm returns none. No late mutation even after release and1500ms observation.",
+        "callbackOracle": "Request[0.4] only. Do not guard/filter stale callbacks in the fixture or accept a new request from a retired owner."
+      },
+      "status": "SOURCE_PREPARED_NOT_NATIVE_COMPILED_OR_EXECUTED",
+      "nativeEvidenceRequired": true,
+      "implementedPublicOracles": [
+        "One dirty-draft request0.4 with generation0 and controlled echo0.4.",
+        "Retirement arm resets to none;actual exposed editor removal/ref detachment or both buttons disabled/ref retained.",
+        "No new business/raw callback through release and1500ms;no reopened keyboard.",
+        "All raw callback and native traces remain visible as attachments."
+      ],
+      "externalDependency": "Actual admitted touch cohort must span first request retirement and another tick interval;independent original currentness/retirement proof.0.8s XCTest alone does not establish this."
+    },
+    {
+      "method": "StepperG02TrialTests/testS06HeldRemoval",
+      "criterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S06.hold-retire-remove",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Press Next stepper retirement on request 3 times. Focus and native draft0.3.",
+        "oneAction": "Actual native touch hold over Increase controlled quantity through first repeat request, then keep held beyond another repeat interval and release.",
+        "nativeOracle": "After first request0.4 the armed guard/removal commits; no later step or keyboard reopening. Remove: actual editor detached. Guards: editor remains and both numeric buttons inert.",
+        "ownerOracle": "Exactly1 request, value0.4. Receipt from generation0 remains; arm returns none. No late mutation even after release and1500ms observation.",
+        "callbackOracle": "Request[0.4] only. Do not guard/filter stale callbacks in the fixture or accept a new request from a retired owner."
+      },
+      "status": "SOURCE_PREPARED_NOT_NATIVE_COMPILED_OR_EXECUTED",
+      "nativeEvidenceRequired": true,
+      "implementedPublicOracles": [
+        "One dirty-draft request0.4 with generation0 and controlled echo0.4.",
+        "Retirement arm resets to none;actual exposed editor removal/ref detachment or both buttons disabled/ref retained.",
+        "No new business/raw callback through release and1500ms;no reopened keyboard.",
+        "All raw callback and native traces remain visible as attachments."
+      ],
+      "externalDependency": "Actual admitted touch cohort must span first request retirement and another tick interval;independent original currentness/retirement proof.0.8s XCTest alone does not establish this."
+    },
+    {
+      "method": "StepperG02TrialTests/testS06EditorRemoval",
+      "criterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S06.editor-remove",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Active fresh native draft0.3 and a pending admitted press/key event; preserve original editor identity.",
+        "oneAction": "Remove or reinsert stepper editor.",
+        "nativeOracle": "Old original detached; replacement is a new generation/attachment. Reinsert mounts controlled0; no stale focus restore or keyboard reopening.",
+        "ownerOracle": "Owner0, no numeric request from replacement itself; old generation receipts cannot mutate later generation.",
+        "callbackOracle": "Any independently proven late original events must be rejected by runtime; do not manually invoke props. Scene owner persists so late callbacks, if any, remain visible in trace."
+      },
+      "status": "SOURCE_PREPARED_NOT_NATIVE_COMPILED_OR_EXECUTED",
+      "nativeEvidenceRequired": true,
+      "implementedPublicOracles": [
+        "Fresh native draft0.3 with owner0/request0 and original refs captured.",
+        "Genuine public removal/remount control is tapped without scroll/focus substitution after preparation.",
+        "Old ref detaches;replacement/reinsert increments generation and attachment exactly once,displays controlled0 and emits no fabricated request/raw input.",
+        "Post-retirement intervals preserve owner and old trace;new-generation positive control requests only0.1 under new generation."
+      ],
+      "externalDependency": "Coordinator must admit a concurrent native pending press/key producer through the actual retirement tap and independently prove original replacement/currentness/drain. The case/admission hash only selects the approved method;it is never proof that work was pending."
+    },
+    {
+      "method": "StepperG02TrialTests/testS06EditorReplacement",
+      "criterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S06.editor-replace",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Active fresh native draft0.3 and a pending admitted press/key event; preserve original editor identity.",
+        "oneAction": "Remount stepper editor.",
+        "nativeOracle": "Old original detached; replacement is a new generation/attachment. Reinsert mounts controlled0; no stale focus restore or keyboard reopening.",
+        "ownerOracle": "Owner0, no numeric request from replacement itself; old generation receipts cannot mutate later generation.",
+        "callbackOracle": "Any independently proven late original events must be rejected by runtime; do not manually invoke props. Scene owner persists so late callbacks, if any, remain visible in trace."
+      },
+      "status": "SOURCE_PREPARED_NOT_NATIVE_COMPILED_OR_EXECUTED",
+      "nativeEvidenceRequired": true,
+      "implementedPublicOracles": [
+        "Fresh native draft0.3 with owner0/request0 and original refs captured.",
+        "Genuine public removal/remount control is tapped without scroll/focus substitution after preparation.",
+        "Old ref detaches;replacement/reinsert increments generation and attachment exactly once,displays controlled0 and emits no fabricated request/raw input.",
+        "Post-retirement intervals preserve owner and old trace;new-generation positive control requests only0.1 under new generation."
+      ],
+      "externalDependency": "Coordinator must admit a concurrent native pending press/key producer through the actual retirement tap and independently prove original replacement/currentness/drain. The case/admission hash only selects the approved method;it is never proof that work was pending."
+    },
+    {
+      "method": "StepperG02TrialTests/testS06ObserveCoordinatorWholeSceneRetirement",
+      "criterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S06.whole-scene-unmount",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Active native hold/edit; snapshot owner/trace outside the retiring scene with an authorized observer.",
+        "oneAction": "Reset scene or navigate away through the actual host.",
+        "nativeOracle": "Actual native editor removed; no timer-driven/native action/focus request survives.",
+        "ownerOracle": "No business request after scene retirement, no keyboard reopening. Reenter is fresh scene0.",
+        "callbackOracle": "Requires external qualified observation because local trace unmounts; absence of a now-unmounted text node alone does not prove no callback.",
+        "executionDependency": "Coordinator owns an external existing native/callback observer or an exact additional approval/ownership transfer. No module-global observer or new general harness was added by this lane."
+      },
+      "status": "SOURCE_PREPARED_NOT_NATIVE_COMPILED_OR_EXECUTED",
+      "nativeEvidenceRequired": true,
+      "implementedPublicOracles": [
+        "Coordinator-performed pending-work whole-scene Reset/reentry remains mandatory;test is explicitly post-action observer only.",
+        "Retired owner/unmounted capture preserved with append-only complete callback prefix;late business callbacks rejected without suppressing terminal observations.",
+        "New scene generation0/controlled0/request0/current attached original,no keyboard reopening.",
+        "A genuine new-scene0.1 control remains isolated from retired capture;all native terminal ordering remains independently adjudicated."
+      ],
+      "externalDependency": "Existing native pending-work action,old-original retirement/currentness/queue drain,and native ordering evidence per original teardown amendment. No completed synchronous press then Reset or silent1500ms substitution."
+    }
+  ],
+  "caseSpecificAdmission": {
+    "CODON_STEPPER_S06_PENDING_CASE": "S06.editor-remove,S06.editor-replace orS06.whole-scene-unmount as appropriate",
+    "CODON_STEPPER_S06_PENDING_ADMISSION_SHA256": "Exact separately admitted pending-input producer plan. A hash does not attest to actual pending work or constitute installed proof.",
+    "existingWholeSceneBindings": [
+      "CODON_STEPPER_RETIRED_OWNER",
+      "CODON_STEPPER_RETIREMENT_RECEIPT_SHA256"
+    ],
+    "noNewNativeProducer": "No concurrent input/retirement provider is invented,implemented or executed by this packet."
+  },
+  "qualification": "All six remain OPEN_NOT_EXECUTED. iOS XCTest source assertions are preparatory;Android needs separately admitted equivalent delivery/evidence. No cell closure."
+}

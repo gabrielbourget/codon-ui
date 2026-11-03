@@ -1,0 +1,231 @@
+{
+  "cell": "CAT.stepper.G02",
+  "sourceBase": "1567b08b6c1121aa85c97e8ea95cd7b05a97f676",
+  "scene": "apps/native-showcase/src/scenes/StepperScene.tsx",
+  "sceneSHA256": "a7917a4e0ea881fa4078806ba6a88c5b6769ba2754b876927cce66ba31cf4f44",
+  "nativeSource": "planning/component-library/fixtures/native-stepper/StepperS03TrialTests.swift",
+  "status": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+  "scope": "S03 preparation subset for the delegated formatting,fresh-edit,endpoint and validation methods. Preserve the main finite criterion inventory and all existing failures; this file is not a replacement whole-cell ledger.",
+  "references": [
+    "roadmap.md#312-ownership-and-behavior",
+    "roadmap.md#32-native-scenario-matrix",
+    "roadmap.md#3511-stepper-capability-and-scenario-matrix",
+    "experiments.md#331281-stepper-numeric-and-form-source-integration",
+    "experiments.md#331283-stepper-approved-no-wheel-contract"
+  ],
+  "exclusions": [
+    "Coordinator's seven keyboard semantic methods; no Arrow/Page/Home/End/modifier/composition-key qualification",
+    "Other lanes' S01,S05,S06 methods",
+    "No wheel requirement under the approved no-wheel contract",
+    "No Android runner implementation,physical-device,IME,spoken accessibility,other profile or whole-cell qualification"
+  ],
+  "admission": {
+    "required": [
+      "CODON_STEPPER_SCENE_SHA256 equals sceneSHA256",
+      "CODON_STEPPER_PRODUCT_SHA256",
+      "CODON_STEPPER_INPUT_RECEIPT_SHA256",
+      "Coordinator prelaunches the exact matched product; observer never calls app.launch()"
+    ],
+    "freshMethods": [
+      "CODON_STEPPER_FRESH_PROCESS_RECEIPT_SHA256 plus coordinator verification of original process lifetime and zero earlier native editor input for each locale method; an environment hash alone is not fresh-process proof"
+    ],
+    "preparedProfile": "iOS P01 normal portrait; other required platform/profile obligations remain unchanged",
+    "execution": "Only the Mac coordinator compiles/installs/runs under its existing execution authorization; this preparation grants no new budget",
+    "originalSeams": "Retain separate genuine SDK original-editor/ref/event/default receipts; a stable positive JS-observed target alone does not prove SDK identity"
+  },
+  "unchangedMaintainedCaseLimitMilliseconds": 5000,
+  "methodExecutionAllowanceSeconds": 180,
+  "limits": "Each action is attempted once. Existing bounded wait/reveal helpers are admission/visibility waits, never behavior retries. Capture focused verdict before native Return; no failure-path blur/reset/retry.",
+  "nativeMethods": [
+    {
+      "id": "CAT.stepper.G02.S03.fresh-en",
+      "scenario": "S03",
+      "method": "testS03FreshUnpacedEnglishDraftAndFinalCommit",
+      "capability": "CAP.stepper.ownership",
+      "action": "Fresh admitted process; empty owner; one unpaced 0.4 entry",
+      "exactOracle": "While focused, field/native change/raw owner agree on 0.4; committed quantity remains null and no numeric request; actual Return commits exactly one 0.4 before original submit/end observers; refs remain unchanged",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.fresh-fr",
+      "scenario": "S03",
+      "method": "testS03FreshUnpacedFrenchDraftAndFinalCommit",
+      "capability": "CAP.stepper.ownership",
+      "action": "Fresh admitted process; fr-CA; empty owner; one unpaced 0,4 entry",
+      "exactOracle": "While focused, field/native change/raw owner agree on 0,4; committed quantity remains null; actual Return requests 0.4 exactly once and displays 0,4 with original final payloads",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.fraction-format",
+      "scenario": "S03",
+      "method": "testS03FixedFractionFormattingBothLocales",
+      "capability": "CAP.stepper.inherited",
+      "action": "decimal-2; programmatic -1,0,1 in en-US and fr-CA",
+      "exactOracle": "Exact -1.00/0.00/1.00 and -1,00/0,00/1,00; zero business requests and unchanged refs",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.currency-format",
+      "scenario": "S03",
+      "method": "testS03AccountingCurrencyFormattingBothLocales",
+      "capability": "CAP.stepper.inherited",
+      "action": "CAD accounting currency; programmatic -1,0,1 in both locales",
+      "exactOracle": "Exact currency/sign/parenthesis/nonbreaking-space output; zero business requests and unchanged refs",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.percent-format-step",
+      "scenario": "S03",
+      "method": "testS03PercentFormattingBothLocalesAndDefaultStep",
+      "capability": "CAP.stepper.inherited",
+      "action": "Percent in both locales; remove explicit step; activate increment then decrement",
+      "exactOracle": "Exact locale percent strings; requests exactly [0.01,0] and 1% then 0% in fr-CA spacing; no synthetic request from reformat",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.unit-format",
+      "scenario": "S03",
+      "method": "testS03UnitFormattingBothLocales",
+      "capability": "CAP.stepper.inherited",
+      "action": "Long liter unit; programmatic -1,0,1 in both locales",
+      "exactOracle": "Exact English/French singular/plural/space output; zero business requests and unchanged refs",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.significant-format",
+      "scenario": "S03",
+      "method": "testS03SignificantDigitsRoundOnlyAtFinalCommit",
+      "capability": "CAP.stepper.inherited",
+      "action": "Three significant digits; omitted step; fr-CA raw 0,12345",
+      "exactOracle": "Raw/native text remains 0,12345 until actual final event; exactly one request 0.123, final display 0,123, original final payload remains 0,12345",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.correction-empty-zero",
+      "scenario": "S03",
+      "method": "testS03CorrectionEmptyAndZeroRemainDistinct",
+      "capability": "CAP.stepper.ownership",
+      "action": "Empty owner; type 0.3; native delete/correction to 0.4; clear with native deletes; submit empty; enter and submit zero",
+      "exactOracle": "Each raw/native change pair agrees on actual text and stable positive target; empty same-value commit produces zero numeric requests; zero commits once and remains distinct from null",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.snap-validate",
+      "scenario": "S03",
+      "method": "testS03SnapAndValidatePreserveTheirFinalPayloads",
+      "capability": "CAP.stepper.inherited",
+      "action": "Actual 1.25 edits in snap then validate mode at bounds [-1,1],step0.1",
+      "exactOracle": "Exact requests [1,1.25]; original final texts remain 1.25; real native Form invalid result contains only rangeOverflow/stepMismatch flags; no business submit",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.maximum",
+      "scenario": "S03",
+      "method": "testS03MaximumStopsWithoutRequestAndReversesExactly",
+      "capability": "CAP.stepper.ownership",
+      "action": "Owner maximum1; real disabled increment attempt; decrement/increment",
+      "exactOracle": "No request at bound; exact [0.9,1] and final increment disabled",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.minimum",
+      "scenario": "S03",
+      "method": "testS03MinimumStopsWithoutRequestAndReversesExactly",
+      "capability": "CAP.stepper.ownership",
+      "action": "Owner minimum-1; real disabled decrement attempt; increment/decrement",
+      "exactOracle": "No request at bound; exact [-0.9,-1] and final decrement disabled",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.fractional-grid",
+      "scenario": "S03",
+      "method": "testS03FractionalGridUsesMinimumBaseAndAlignedMaximum",
+      "capability": "CAP.stepper.ownership",
+      "action": "step0.3,min-1,max1; owner maximum then decrement/decrement/increment/blocked increment; owner minimum and increment",
+      "exactOracle": "Exact requests [0.8,0.5,0.8,-0.7]; aligned maximum0.8, no endpoint or floating-point extra request",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.optional-bounds",
+      "scenario": "S03",
+      "method": "testS03MinimumOnlyMaximumOnlyAndUnboundedSteps",
+      "capability": "CAP.stepper.ownership",
+      "action": "Minimum-only,maximum-only,unbounded configurations; real outward stepping",
+      "exactOracle": "Exact requests [1.1,-1.1,1.1] and matching field values; no request fabricated by configuration/owner replacement",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.required-timing",
+      "scenario": "S03",
+      "method": "testS03RequiredNativeAndAriaValidationTiming",
+      "capability": "CAP.stepper.inherited",
+      "action": "Required empty quantity; actual native Form submit; switch to aria; zero then empty",
+      "exactOracle": "Native required error appears on invalid submit with exact valueMissing/Required result; aria clears on zero and shows immediately on empty; zero numeric requests",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.required-guards",
+      "scenario": "S03",
+      "method": "testS03ReadOnlyAndDisabledRequiredFormRules",
+      "capability": "CAP.stepper.inherited",
+      "action": "Required empty quantity; submit while readonly, then while disabled",
+      "exactOracle": "Actual submitted results and exactly two Form callbacks; readonly entries [[quantity,\"\"]],disabled entries []; original Form identity true; no numeric requests",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.validation-precedence",
+      "scenario": "S03",
+      "method": "testS03CustomServerAndExplicitValidationPrecedence",
+      "capability": "CAP.stepper.inherited",
+      "action": "Negative owner; custom native/aria validation; server error; explicit false/true/undefined and valid/invalid/undefined",
+      "exactOracle": "Native client display waits; aria client error is immediate; server replaces client; explicit false suppresses display and true asserts invalid; clearing explicit axes restores server error; no numeric requests",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.range-underflow",
+      "scenario": "S03",
+      "method": "testS03RangeUnderflowSurvivesExplicitInvalidFalse",
+      "capability": "CAP.stepper.inherited",
+      "action": "validate mode; omitted explicit step; actual -2 commit; explicit isInvalid=false; real native Form submit",
+      "exactOracle": "Exactly one -2 request and original final payload; visible controlled false preserved; Form invalid result has rangeUnderflow only and no business submit",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.range-overflow",
+      "scenario": "S03",
+      "method": "testS03RangeOverflowSurvivesExplicitInvalidFalse",
+      "capability": "CAP.stepper.inherited",
+      "action": "validate mode; omitted explicit step; actual 2 commit; explicit isInvalid=false; real native Form submit",
+      "exactOracle": "Exactly one 2 request and original final payload; Form invalid result has rangeOverflow only despite display false; no business submit",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.step-mismatch",
+      "scenario": "S03",
+      "method": "testS03StepMismatchSurvivesExplicitInvalidFalse",
+      "capability": "CAP.stepper.inherited",
+      "action": "validate mode; omitted explicit step/default numeric constraint1; actual 0.5 commit; explicit false; real native Form submit",
+      "exactOracle": "Exactly one 0.5 request and original final payload; Form invalid result has stepMismatch only despite display false; no business submit",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    }
+  ]
+}

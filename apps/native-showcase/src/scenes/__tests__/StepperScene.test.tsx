@@ -2,7 +2,10 @@ import { act, fireEvent, render, screen, userEvent } from "@testing-library/reac
 import { Dimensions } from "react-native"
 import { SafeAreaInsetsContext } from "react-native-safe-area-context"
 
+import { NativeThemeProvider } from "@codon-ui/react-native"
+
 import { NativeShowcase } from "../NativeShowcase"
+import { StepperScene } from "../StepperScene"
 
 beforeEach(() => {
   jest.useFakeTimers()
@@ -351,4 +354,30 @@ it("retains a late callback negative control after whole-scene unmount and isola
     afterUnmount: true,
   })
   expect(state()).toHaveTextContent(/Value: 0.1.*Requests: 1/)
+})
+
+it("exposes the current S05 styles and icons without changing the owner or editor", async () => {
+  await render(
+    <NativeThemeProvider>
+      <StepperScene />
+    </NativeThemeProvider>,
+  )
+  const user = userEvent.setup()
+  const press = (name: string) => user.press(screen.getByRole("button", { name }))
+  const presentation = () => JSON.parse(screen.getByTestId("stepper-presentation").children.join(""))
+  const original = editor()
+  const originalRefs = screen.getByTestId("stepper-refs").props.children
+  const originalCallbacks = callbacks()
+  expect(presentation()).toEqual({ styles: "default", icons: "default" })
+  await press("Toggle stepper styles")
+  expect(presentation()).toEqual({ styles: "custom", icons: "default" })
+  await press("Toggle stepper icons")
+  expect(presentation()).toEqual({ styles: "custom", icons: "custom" })
+  await press("Toggle stepper styles")
+  await press("Toggle stepper icons")
+  expect(presentation()).toEqual({ styles: "default", icons: "default" })
+  expect(editor()).toBe(original)
+  expect(state()).toHaveTextContent(/Value: 0.*Requests: 0/)
+  expect(callbacks()).toEqual(originalCallbacks)
+  expect(screen.getByTestId("stepper-refs").props.children).toEqual(originalRefs)
 })

@@ -1,0 +1,248 @@
+{
+  "cell": "CAT.stepper.G02",
+  "scope": "S02 only; no S03/S05/S06 modifications",
+  "newMethods": [
+    {
+      "method": "StepperG02TrialTests/testS02UpperBoundOutwardButton",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S02.bound-upper",
+      "route": "outward-button",
+      "sourceDisposition": "SOURCE_READY; genuine equivalent key remains S03-owned",
+      "originalCriteria": {
+        "key": "CAT.stepper.<platform>.<profile>.S02.bound-upper",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Set stepper maximum.",
+        "oneAction": "Attempt the bound-facing button and equivalent genuine native key as separate activations.",
+        "nativeOracle": "No out-of-range step; inward action remains available.",
+        "ownerOracle": "Owner remains bound; no same-value request.",
+        "callbackOracle": "Zero numeric requests for no-op bound actions; genuine key observations remain truthful."
+      },
+      "installedStatus": "NOT_RUN; no promotion",
+      "measurementBoundary": "Exact AX counterpart is separate from mandatory independent SDK text/selection/instance/action evidence."
+    },
+    {
+      "method": "StepperG02TrialTests/testS02LowerBoundOutwardButton",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S02.bound-lower",
+      "route": "outward-button",
+      "sourceDisposition": "SOURCE_READY; genuine equivalent key remains S03-owned",
+      "originalCriteria": {
+        "key": "CAT.stepper.<platform>.<profile>.S02.bound-lower",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Set stepper minimum.",
+        "oneAction": "Attempt the bound-facing button and equivalent genuine native key as separate activations.",
+        "nativeOracle": "No out-of-range step; inward action remains available.",
+        "ownerOracle": "Owner remains bound; no same-value request.",
+        "callbackOracle": "Zero numeric requests for no-op bound actions; genuine key observations remain truthful."
+      },
+      "installedStatus": "NOT_RUN; no promotion",
+      "measurementBoundary": "Exact AX counterpart is separate from mandatory independent SDK text/selection/instance/action evidence."
+    },
+    {
+      "method": "StepperG02TrialTests/testS02DisabledIncreaseButton",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S02.guard-disabled",
+      "route": "increase-button",
+      "sourceDisposition": "SOURCE_READY; disabled key/nonfocusability and actual AT legs remain external",
+      "originalCriteria": {
+        "key": "CAT.stepper.<platform>.<profile>.S02.guard-disabled",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Toggle stepper disabled.",
+        "oneAction": "Attempt each real action target in separate activations: plus, minus, genuine numeric key and platform adjustable increment/decrement.",
+        "nativeOracle": "Disabled: noneditable/nonfocusable numeric actions; readonly: editor observable/focusable by accepted contract but numeric actions blocked. No text mutation.",
+        "ownerOracle": "Owner0; request count0; guards never manufacture a value transition.",
+        "callbackOracle": "Zero request/raw changes from prohibited editing/actions; readonly genuine key observation may still reach root then input, but no numeric action. Disabled must not admit a key observer. Do not count a private accessibilityAction JS call as native delivery."
+      },
+      "installedStatus": "NOT_RUN; no promotion",
+      "measurementBoundary": "Exact AX counterpart is separate from mandatory independent SDK text/selection/instance/action evidence."
+    },
+    {
+      "method": "StepperG02TrialTests/testS02DisabledDecreaseButton",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S02.guard-disabled",
+      "route": "decrease-button",
+      "sourceDisposition": "SOURCE_READY; disabled key/nonfocusability and actual AT legs remain external",
+      "originalCriteria": {
+        "key": "CAT.stepper.<platform>.<profile>.S02.guard-disabled",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Toggle stepper disabled.",
+        "oneAction": "Attempt each real action target in separate activations: plus, minus, genuine numeric key and platform adjustable increment/decrement.",
+        "nativeOracle": "Disabled: noneditable/nonfocusable numeric actions; readonly: editor observable/focusable by accepted contract but numeric actions blocked. No text mutation.",
+        "ownerOracle": "Owner0; request count0; guards never manufacture a value transition.",
+        "callbackOracle": "Zero request/raw changes from prohibited editing/actions; readonly genuine key observation may still reach root then input, but no numeric action. Disabled must not admit a key observer. Do not count a private accessibilityAction JS call as native delivery."
+      },
+      "installedStatus": "NOT_RUN; no promotion",
+      "measurementBoundary": "Exact AX counterpart is separate from mandatory independent SDK text/selection/instance/action evidence."
+    },
+    {
+      "method": "StepperG02TrialTests/testS02ReadOnlyIncreaseButton",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S02.guard-read-only",
+      "route": "increase-button",
+      "sourceDisposition": "SOURCE_READY; existing genuine readonly key method retained; actual AT/focus legs external",
+      "originalCriteria": {
+        "key": "CAT.stepper.<platform>.<profile>.S02.guard-read-only",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Toggle stepper read-only.",
+        "oneAction": "Attempt each real action target in separate activations: plus, minus, genuine numeric key and platform adjustable increment/decrement.",
+        "nativeOracle": "Disabled: noneditable/nonfocusable numeric actions; readonly: editor observable/focusable by accepted contract but numeric actions blocked. No text mutation.",
+        "ownerOracle": "Owner0; request count0; guards never manufacture a value transition.",
+        "callbackOracle": "Zero request/raw changes from prohibited editing/actions; readonly genuine key observation may still reach root then input, but no numeric action. Disabled must not admit a key observer. Do not count a private accessibilityAction JS call as native delivery."
+      },
+      "installedStatus": "NOT_RUN; no promotion",
+      "measurementBoundary": "Exact AX counterpart is separate from mandatory independent SDK text/selection/instance/action evidence."
+    },
+    {
+      "method": "StepperG02TrialTests/testS02ReadOnlyDecreaseButton",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S02.guard-read-only",
+      "route": "decrease-button",
+      "sourceDisposition": "SOURCE_READY; existing genuine readonly key method retained; actual AT/focus legs external",
+      "originalCriteria": {
+        "key": "CAT.stepper.<platform>.<profile>.S02.guard-read-only",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Toggle stepper read-only.",
+        "oneAction": "Attempt each real action target in separate activations: plus, minus, genuine numeric key and platform adjustable increment/decrement.",
+        "nativeOracle": "Disabled: noneditable/nonfocusable numeric actions; readonly: editor observable/focusable by accepted contract but numeric actions blocked. No text mutation.",
+        "ownerOracle": "Owner0; request count0; guards never manufacture a value transition.",
+        "callbackOracle": "Zero request/raw changes from prohibited editing/actions; readonly genuine key observation may still reach root then input, but no numeric action. Disabled must not admit a key observer. Do not count a private accessibilityAction JS call as native delivery."
+      },
+      "installedStatus": "NOT_RUN; no promotion",
+      "measurementBoundary": "Exact AX counterpart is separate from mandatory independent SDK text/selection/instance/action evidence."
+    },
+    {
+      "method": "StepperG02TrialTests/testS02ObserveResponderCancellationBeforeFirstTick",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S02.cancel-responder-interruption",
+      "route": "post-action-observer",
+      "sourceDisposition": "OBSERVER_SOURCE_READY; actual active-gesture interruption/native retirement admission BLOCKED",
+      "originalCriteria": {
+        "key": "CAT.stepper.<platform>.<profile>.S02.cancel-responder-interruption",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Fresh focus and draft0.3; native press has started but no repeat tick has been admitted.",
+        "oneAction": "Cancel the real active gesture using responder-interruption.",
+        "nativeOracle": "Cancellation actually delivered by native responder/window path; no numeric release action. Record real keyboard/focus outcome.",
+        "ownerOracle": "Owner0 and request count0; draft follows approved native cancellation/blur sequence without an implicit numeric action.",
+        "callbackOracle": "Zero numeric requests; no release-only step or timer later. Native focus/end observations, if delivered, retain actual order.",
+        "executionDependency": "Coordinator supplies the supported real cancellation/window event path; private JS responder packet injection cannot qualify this case."
+      },
+      "installedStatus": "NOT_RUN; no promotion",
+      "measurementBoundary": "Exact AX counterpart is separate from mandatory independent SDK text/selection/instance/action evidence."
+    },
+    {
+      "method": "StepperG02TrialTests/testS02ObserveWindowCancellationBeforeFirstTick",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S02.cancel-window-deactivation",
+      "route": "post-action-observer",
+      "sourceDisposition": "OBSERVER_SOURCE_READY; actual active-gesture window deactivation/native retirement admission BLOCKED",
+      "originalCriteria": {
+        "key": "CAT.stepper.<platform>.<profile>.S02.cancel-window-deactivation",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Fresh focus and draft0.3; native press has started but no repeat tick has been admitted.",
+        "oneAction": "Cancel the real active gesture using window-deactivation.",
+        "nativeOracle": "Cancellation actually delivered by native responder/window path; no numeric release action. Record real keyboard/focus outcome.",
+        "ownerOracle": "Owner0 and request count0; draft follows approved native cancellation/blur sequence without an implicit numeric action.",
+        "callbackOracle": "Zero numeric requests; no release-only step or timer later. Native focus/end observations, if delivered, retain actual order.",
+        "executionDependency": "Coordinator supplies the supported real cancellation/window event path; private JS responder packet injection cannot qualify this case."
+      },
+      "installedStatus": "NOT_RUN; no promotion",
+      "measurementBoundary": "Exact AX counterpart is separate from mandatory independent SDK text/selection/instance/action evidence."
+    },
+    {
+      "method": "StepperG02TrialTests/testS02ObserveExactlyTwoDirtyHoldTicksEcho",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S02.held-dirty-echo",
+      "route": "strict-two-admitted-ticks-post-action",
+      "sourceDisposition": "OBSERVER_SOURCE_READY; native second-tick-controlled release/timing witness BLOCKED",
+      "originalCriteria": {
+        "key": "CAT.stepper.<platform>.<profile>.S02.held-dirty-echo",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Fresh focus and native draft0.3.",
+        "oneAction": "One native touch hold over Increase controlled quantity until two admitted repeat ticks, then release.",
+        "nativeOracle": "Touch initial delay600ms, subsequent cadence60ms; release after observed second tick, no extra release action. Use native gesture/admission receipts to distinguish ticks; deadlines do not redefine semantics.",
+        "ownerOracle": "First two request payloads [0.4, 0.5]; echo owner0.5, veto owner0. Editor matches authoritative owner after each request.",
+        "callbackOracle": "One request per admitted repeat tick until bound/cancel; no duplicate from release. Tick counts measured against native/JS actual admission, not sleeps. Fresh short-press case must pass independently.",
+        "timing": "Source timer values are contracts to compare with instrumented admitted ticks; scheduler latency is recorded separately."
+      },
+      "installedStatus": "NOT_RUN; no promotion",
+      "measurementBoundary": "Exact AX counterpart is separate from mandatory independent SDK text/selection/instance/action evidence."
+    },
+    {
+      "method": "StepperG02TrialTests/testS02ObserveExactlyTwoDirtyHoldTicksVeto",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S02.held-dirty-veto",
+      "route": "strict-two-admitted-ticks-post-action",
+      "sourceDisposition": "OBSERVER_SOURCE_READY; native second-tick-controlled release/timing witness BLOCKED",
+      "originalCriteria": {
+        "key": "CAT.stepper.<platform>.<profile>.S02.held-dirty-veto",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Toggle stepper owner veto. Fresh focus and native draft0.3.",
+        "oneAction": "One native touch hold over Increase controlled quantity until two admitted repeat ticks, then release.",
+        "nativeOracle": "Touch initial delay600ms, subsequent cadence60ms; release after observed second tick, no extra release action. Use native gesture/admission receipts to distinguish ticks; deadlines do not redefine semantics.",
+        "ownerOracle": "First two request payloads [0.4, 0.1]; echo owner0.5, veto owner0. Editor matches authoritative owner after each request.",
+        "callbackOracle": "One request per admitted repeat tick until bound/cancel; no duplicate from release. Tick counts measured against native/JS actual admission, not sleeps. Fresh short-press case must pass independently.",
+        "timing": "Source timer values are contracts to compare with instrumented admitted ticks; scheduler latency is recorded separately."
+      },
+      "installedStatus": "NOT_RUN; no promotion",
+      "measurementBoundary": "Exact AX counterpart is separate from mandatory independent SDK text/selection/instance/action evidence."
+    }
+  ],
+  "existingMethodsPreserved": [
+    {
+      "method": "StepperG02TrialTests/testS02FirstIncreaseEcho",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S02.first-button-dirty-increase",
+      "variant": "echo",
+      "status": "PREPARED_UNCOMPILED_NOT_EXECUTED",
+      "requiresIndependentNativeWitness": true
+    },
+    {
+      "method": "StepperG02TrialTests/testS02FirstDecreaseEcho",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S02.first-button-dirty-decrease",
+      "variant": "echo",
+      "status": "PREPARED_UNCOMPILED_NOT_EXECUTED",
+      "requiresIndependentNativeWitness": true
+    },
+    {
+      "method": "StepperG02TrialTests/testS02FirstIncreaseVeto",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S02.first-button-dirty-increase",
+      "variant": "veto",
+      "status": "PREPARED_UNCOMPILED_NOT_EXECUTED",
+      "requiresIndependentNativeWitness": true
+    },
+    {
+      "method": "StepperG02TrialTests/testS02FirstDecreaseVeto",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S02.first-button-dirty-decrease",
+      "variant": "veto",
+      "status": "PREPARED_UNCOMPILED_NOT_EXECUTED",
+      "requiresIndependentNativeWitness": true
+    },
+    {
+      "method": "StepperG02TrialTests/testS02HeldEcho",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S02.held-dirty-echo",
+      "variant": null,
+      "status": "PREPARED_UNCOMPILED_NOT_EXECUTED",
+      "requiresIndependentNativeWitness": true
+    },
+    {
+      "method": "StepperG02TrialTests/testS02HeldVeto",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S02.held-dirty-veto",
+      "variant": null,
+      "status": "PREPARED_UNCOMPILED_NOT_EXECUTED",
+      "requiresIndependentNativeWitness": true
+    },
+    {
+      "method": "StepperG02TrialTests/testS03ReadOnlyArrowUp",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S02.guard-read-only",
+      "variant": "genuine-key",
+      "status": "PREPARED_UNCOMPILED_NOT_EXECUTED",
+      "requiresIndependentNativeWitness": true
+    },
+    {
+      "method": "StepperG02TrialTests/testS02DragCancelBeforeFirstTick",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S02.cancel-drag-out-and-cancel",
+      "variant": null,
+      "status": "PREPARED_UNCOMPILED_NOT_EXECUTED",
+      "requiresIndependentNativeWitness": true
+    }
+  ],
+  "newPreviouslyUnmappedKeys": [
+    "CAT.stepper.<platform>.<profile>.S02.bound-lower",
+    "CAT.stepper.<platform>.<profile>.S02.bound-upper",
+    "CAT.stepper.<platform>.<profile>.S02.cancel-responder-interruption",
+    "CAT.stepper.<platform>.<profile>.S02.cancel-window-deactivation",
+    "CAT.stepper.<platform>.<profile>.S02.guard-disabled"
+  ],
+  "all11CaseKeysHaveSomeObserverAfterAdoption": true,
+  "warning": "A method mapping is not complete route preparation or installed evidence. Bound key, guard key/AT/focus and concurrent native cancellation/second-tick-release dependencies remain explicit.",
+  "original115OracleSHA256": "30de5434c97f1aed78aae6578c1700c00052e78929d4ee1587bcc7f0ddc7b773"
+}

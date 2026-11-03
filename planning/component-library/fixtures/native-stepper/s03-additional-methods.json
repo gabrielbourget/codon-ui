@@ -1,0 +1,228 @@
+{
+  "cell": "CAT.stepper.G02",
+  "scenario": "S03",
+  "sourceBase": "1567b08b6c1121aa85c97e8ea95cd7b05a97f676",
+  "scene": "apps/native-showcase/src/scenes/StepperScene.tsx",
+  "sceneSHA256": "a7917a4e0ea881fa4078806ba6a88c5b6769ba2754b876927cce66ba31cf4f44",
+  "nativeSource": "planning/component-library/fixtures/native-stepper/StepperS03AdditionalTrialTests.swift",
+  "status": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+  "firstPatchSHA256": "e309a189d0d8cedfba954dd1799cddf9362ae68b2830ebda920c5cfd866af902",
+  "scope": "Additional S03 public-outcome criteria only. Preserve the main finite criterion inventory,all original oracles/failures and the first patch unchanged. IDs below identify this preparation subset,not a replacement whole-cell matrix.",
+  "exclusions": [
+    "Coordinator's seven hardware-key semantic methods;no typeKey,Arrow/Page/Home/End/modifier/default or composition-key method",
+    "Other lanes' S01,S05,S06 methods;no ownership,keyboard-first action or teardown qualification",
+    "No native build/test/install/launch in cloud;no wheel scope"
+  ],
+  "admission": {
+    "required": [
+      "CODON_STEPPER_SCENE_SHA256 equals sceneSHA256",
+      "CODON_STEPPER_PRODUCT_SHA256",
+      "CODON_STEPPER_INPUT_RECEIPT_SHA256",
+      "Matched product prelaunched by coordinator;observer never launches a replacement"
+    ],
+    "profile": "Prepared iOS P01 normal portrait only;all other platform/profile requirements remain open",
+    "freshness": "These are independent parsing/selection/validation cases,not additional fresh-process verdicts. The original two fresh-process methods and their external admission/witness remain unchanged.",
+    "nativeEvidence": "XCTest traces do not replace genuine SDK original-editor/ref/event/default witnesses. Missing/retired Form admission is a test failure,not a substitute expected result."
+  },
+  "unchangedMaintainedCaseLimitMilliseconds": 5000,
+  "methodExecutionAllowanceSeconds": 180,
+  "nativeMethods": [
+    {
+      "id": "CAT.stepper.G02.S03.fraction-native-parse-en",
+      "method": "testS03FixedFractionNativeParseEnglish",
+      "criterion": "S03 numeric format/draft/commit; CAP.stepper.inherited",
+      "action": "decimal-2,en-US,omitted explicit step;native raw0.145",
+      "exactOracle": "Focused field/native change/raw owner0.145 with null quantity and zero requests;native Return requests0.15 once;display0.15;original final payloads0.145;refs unchanged",
+      "incrementFromFirstPatch": "First patch checks programmatic fixed-fraction displays,not native parsing/precision at commit",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.fraction-native-parse-fr",
+      "method": "testS03FixedFractionNativeParseFrench",
+      "criterion": "S03 numeric locale/format/draft/commit; CAP.stepper.inherited",
+      "action": "decimal-2,fr-CA,omitted step;native raw0,145",
+      "exactOracle": "Focused raw0,145;one request0.15;display0,15;original final payloads0,145;refs unchanged",
+      "incrementFromFirstPatch": "Adds the French genuine parsing/precision counterpart",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.currency-native-draft-en",
+      "method": "testS03CurrencyNativeNumericDraftEnglish",
+      "criterion": "S03 numeric format/draft/commit; CAP.stepper.inherited",
+      "action": "CAD accounting,en-US,omitted step;native numeric draft-0.4",
+      "exactOracle": "Raw/native text-0.4;quantity stays null before final;exactly one request-0.4;display(CA$0.40);original final payloads unchanged",
+      "incrementFromFirstPatch": "First patch formats programmatic values;this exercises a native numeric draft under currency options;it does not claim currency-affix typing",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.currency-native-draft-fr",
+      "method": "testS03CurrencyNativeNumericDraftFrench",
+      "criterion": "S03 numeric locale/format/draft/commit; CAP.stepper.inherited",
+      "action": "CAD accounting,fr-CA,omitted step;native numeric draft-0,4",
+      "exactOracle": "Exactly one numeric request-0.4;display(0,40\\u00a0$);raw/final payload-0,4;original refs unchanged",
+      "incrementFromFirstPatch": "Adds the French currency numeric-draft parser;formatted-affix typing remains unproven",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.percent-native-parse-en",
+      "method": "testS03PercentNativeParseEnglish",
+      "criterion": "S03 numeric format/draft/commit; CAP.stepper.inherited",
+      "action": "Percent,en-US,omitted step;native raw12",
+      "exactOracle": "Raw12 stays uncommitted while focused;actual Return requests0.12 once rather than12;display12%;original final payload12",
+      "incrementFromFirstPatch": "First patch percent case uses buttons/programmatic values,not percent parsing from native text",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.percent-native-parse-fr",
+      "method": "testS03PercentNativeParseFrench",
+      "criterion": "S03 numeric locale/format/draft/commit; CAP.stepper.inherited",
+      "action": "Percent,fr-CA,omitted step;native raw12",
+      "exactOracle": "One request0.12;display12\\u00a0%;raw/final payload12;refs unchanged",
+      "incrementFromFirstPatch": "Adds French native percent parsing",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.unit-native-draft-en",
+      "method": "testS03UnitNativeNumericDraftEnglish",
+      "criterion": "S03 numeric format/draft/commit; CAP.stepper.inherited",
+      "action": "Long liter unit,en-US,omitted step;native numeric draft0.4",
+      "exactOracle": "One request0.4;display0.4 liters;raw/final payload0.4;refs unchanged",
+      "incrementFromFirstPatch": "First patch checks programmatic unit displays;this enters a numeric draft under unit options,not a typed unit affix",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.unit-native-draft-fr",
+      "method": "testS03UnitNativeNumericDraftFrench",
+      "criterion": "S03 numeric locale/format/draft/commit; CAP.stepper.inherited",
+      "action": "Long liter unit,fr-CA,omitted step;native numeric draft0,4",
+      "exactOracle": "One request0.4;display0,4\\u00a0litre;raw/final payload0,4;refs unchanged",
+      "incrementFromFirstPatch": "Adds French native unit numeric-draft parsing",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.incomplete-drafts-en",
+      "method": "testS03IncompleteNativeDraftsEnglish",
+      "criterion": "S03 partial/invalid numeric draft/final commit; CAP.stepper.ownership",
+      "action": "Empty quantity;genuine unpaced -,.,-. drafts,each followed by actual Return",
+      "exactOracle": "Every focused raw/native text preserved;no numeric request before or after any final;each final restores empty/null;exact original submit/end payloads retained",
+      "incrementFromFirstPatch": "First patch correction/empty case starts with valid0.3/0.4;it does not cover unparseable partial drafts",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.incomplete-drafts-fr",
+      "method": "testS03IncompleteNativeDraftsFrench",
+      "criterion": "S03 locale/partial numeric draft/final commit; CAP.stepper.ownership",
+      "action": "fr-CA empty quantity;genuine -,comma,minus-comma partials",
+      "exactOracle": "Each raw/native payload remains exact;final restores empty with zero requests for all three;no numeric coercion to zero",
+      "incrementFromFirstPatch": "Adds French partial-token cases;does not claim marked-text IME composition",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.native-zero-selection",
+      "method": "testS03ExplicitZeroSelectionControlsNativeInsertion",
+      "criterion": "S03 native selection/edit/step; CAP.stepper.ownership",
+      "action": "Explicit scene selection{start:0,end:0};focus original zero-valued field;observe genuine native selection;type1 once;Return",
+      "exactOracle": "Raw/native field10 while owner0 and request count0;native final snaps to maximum1 and emits exactly one request1;no arrow/modifier semantic test",
+      "incrementFromFirstPatch": "Neither prior19 methods nor this method's scope includes the coordinator's hardware-key semantic methods",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.aria-validation-submit",
+      "method": "testS03AriaRequiredErrorDoesNotBlockNativeSubmit",
+      "criterion": "S03 native versus aria validation; CAP.stepper.inherited",
+      "action": "Required empty quantity in aria mode;native Form submit",
+      "exactOracle": "Visible Required/Invalid remains;actual submitted result and one original Form callback with entries[[quantity,\"\"]];zero numeric requests",
+      "incrementFromFirstPatch": "First patch verifies aria display timing,not whether aria validation permits native submission",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.native-client-validation-submit",
+      "method": "testS03NativeCustomErrorBlocksSubmit",
+      "criterion": "S03 custom validation/native Form; CAP.stepper.inherited",
+      "action": "Programmatic negative quantity;custom native validation;native Form submit",
+      "exactOracle": "Native display initially deferred;actual invalid result with customError only and exact nonnegative message;display commits;no business submit or numeric request",
+      "incrementFromFirstPatch": "First patch visible custom-error precedence does not assert native Form rejection for client validation",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.native-server-validation-submit",
+      "method": "testS03NativeServerErrorBlocksSubmit",
+      "criterion": "S03 server validation/native Form; CAP.stepper.inherited",
+      "action": "Existing server quantity error;native Form submit",
+      "exactOracle": "Actual invalid result,customError only,exact Server quantity error;zero business submit and zero numeric requests",
+      "incrementFromFirstPatch": "First patch checks server error display/precedence rather than actual native Form rejection",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.controlled-invalid-submit",
+      "method": "testS03ExplicitInvalidTrueBlocksNativeSubmit",
+      "criterion": "S03 controlled validation/native Form; CAP.stepper.inherited",
+      "action": "Explicit isInvalid=true on valid numeric zero;native Form submit",
+      "exactOracle": "Actual invalid result with customError only and empty errors;no numeric request/business submit",
+      "incrementFromFirstPatch": "First patch tests true's visible precedence and false's independent numeric constraints;this adds true's Form rejection",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.legacy-invalid-submit",
+      "method": "testS03LegacyInvalidValidationStateBlocksNativeSubmit",
+      "criterion": "S03 legacy validation/native Form; CAP.stepper.inherited",
+      "action": "validationState=invalid on valid zero;native Form submit",
+      "exactOracle": "Actual invalid result with customError only and empty errors;no numeric request/business submit",
+      "incrementFromFirstPatch": "Adds native Form behavior for the distinct supported legacy invalid-state axis",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.stepper.G02.S03.valid-commit-clears-client-error",
+      "method": "testS03ValidNativeCommitClearsClientValidation",
+      "criterion": "S03 validation correction/commit/native Form; CAP.stepper.inherited",
+      "action": "Native invalid custom validation at-1;clear owner;native0.4 edit/Return;native Form submit",
+      "exactOracle": "First invalid submit produces no business callback;valid native commit clears displayed client invalidity;exactly one0.4 request and one subsequent submitted callback/entries[[quantity,0.4 as string]]",
+      "incrementFromFirstPatch": "Adds correction from native invalid state to genuinely edited valid quantity;does not test S01 ownership handoff or S05 keyboard-first Form activation",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    }
+  ],
+  "unpreparedCriteria": [
+    {
+      "criterion": "Genuine IME marked-text/composition/cancellation and non-Latin keyboard input",
+      "status": "REQUIRES_NATIVE_INPUT_CAPABILITY",
+      "reason": "Ordinary typeText does not establish genuine composing/marked-text state. No JS packet,synthetic isComposing flag,paced replacement or warm repeat can substitute;coordinator/device lane must supply actual supported input and original native receipts."
+    },
+    {
+      "criterion": "Divergent/stale/duplicate native final-event payloads and original-event object identity",
+      "status": "REQUIRES_NATIVE_EVENT_WITNESS",
+      "reason": "Source cases retain the model/observer oracles. The public XCTest entry points cannot set arbitrary native submit/end payloads or prove SDK object identity;do not fabricate callbacks to claim native coverage."
+    },
+    {
+      "criterion": "Additional accepted locale/numbering systems and numeric configurations outside the committed scene controls",
+      "status": "REQUIRES_ASSIGNED_FIXTURE_AND_NATIVE_PRODUCT",
+      "reason": "The scene exposes only en-US/fr-CA,six format presets,steps0.1/undefined/0.3 and fixed-1/1 bound toggles. Other public variants need an assigned source-fixture amendment and a matching native product;this patch changes no scene/runtime identity."
+    },
+    {
+      "criterion": "Typing full currency/unit affixes and platform-specific formatted input",
+      "status": "REQUIRES_GENUINE_NATIVE_ENTRY_WITNESS",
+      "reason": "These new currency/unit methods cover genuine numeric drafts under the configured parser,not currency/unit-affix keyboard delivery. A supported actual platform input path and original native evidence remain required for any such criterion."
+    },
+    {
+      "criterion": "Server-error clearing specifically caused by user commit",
+      "status": "REQUIRES_FIXTURE_IDENTITY_REVIEW",
+      "reason": "StepperScene passes a new validationErrors object on each render while serverError=true;NativeForm forwards it and useFormValidationState treats a new object as fresh server errors. This scene cannot isolate a stable server-error context for clearing without an assigned fixture amendment. No runtime defect or native verdict is inferred from this source observation."
+    }
+  ]
+}
