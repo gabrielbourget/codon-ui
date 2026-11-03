@@ -4,6 +4,7 @@ const config: ExpoConfig = {
   name: "Codon Native Showcase",
   slug: "codon-native-showcase",
   version: "0.1.0",
+  scheme: "codon-showcase",
   platforms: ["ios", "android"],
   ios: { bundleIdentifier: "dev.codonui.showcase", supportsTablet: true },
   android: { package: "dev.codonui.showcase" },
