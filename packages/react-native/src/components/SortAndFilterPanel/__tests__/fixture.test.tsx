@@ -1,16 +1,23 @@
 import "../../../collection/__tests__/nativeReceipts"
 
-import { act, screen, within } from "@testing-library/react-native"
+import { act, cleanup, screen, within } from "@testing-library/react-native"
 import { useContext } from "react"
-import { Platform } from "react-native"
+import { AccessibilityInfo, Platform } from "react-native"
 
 import {
+  actWithNativeCollections as fixtureAct,
   fireEventWithNativeCollections as fireEvent,
   renderWithNativeCollections as render,
 } from "../../../collection/__tests__/nativeReceipts"
 import { NativeOverlayProvider, OverlayRegistryContext } from "../../../overlays/NativeOverlayProvider"
 
+import { SortAndFilterPanelFixture } from "./fixtures/PanelFixture"
 import QueryProbe from "./fixtures/QueryProbe"
+
+jest.mock("../../../input/specs/NativeCUIDragAndDrop", () => ({
+  __esModule: true,
+  default: { getLease: jest.fn(() => "g02-source-drag-module"), readGeometry: jest.fn() },
+}))
 
 jest.mock("react-native-safe-area-context", () => ({
   SafeAreaProvider: jest.requireActual("react-native").View,
@@ -132,3 +139,231 @@ it("keeps current control drafts and owner snapshots through theme/metadata refr
 })
 
 afterEach(() => jest.restoreAllMocks())
+
+describe("G02 fixture", () => {
+  const host = (id: string) => screen.getByTestId(id, { includeHiddenElements: true })
+  const owner = () => JSON.parse(host("query-panel-owner").props.children as string)
+  const pressControl = async (name: string) => {
+    const previous = screen.queryByTestId("sort-filter-panel-window", { includeHiddenElements: true })
+    const dismissed = previous?.props.onDismiss
+    await fireEvent.press(screen.getByRole("button", { name }))
+    if (previous && typeof dismissed === "function" && !owner().open) await fixtureAct(() => dismissed())
+  }
+  const present = async () => {
+    await fireEvent(host("sort-filter-panel-window"), "show")
+    await fireEvent(host("sort-filter-panel"), "layout", {
+      nativeEvent: { layout: { x: 0, y: 0, width: 350, height: 600 } },
+    })
+    for (const ready of [false, true]) {
+      const scope = host("sort-filter-panel-floating-host").props
+      await fixtureAct(() =>
+        scope.onNativeScopeStatus({
+          nativeEvent: {
+            ownerId: scope.ownerId,
+            windowId: "g02-source-window",
+            epoch: 1,
+            ready,
+            windowActive: true,
+            policyRevision: scope.policyRevision,
+          },
+        }),
+      )
+    }
+  }
+  const open = async () => {
+    await pressControl("Open query panel")
+    await present()
+  }
+  const confirmedArguments = () =>
+    owner().confirmed.filterGroups.map((group: { clauses: { argument: unknown }[] }) => group.clauses[0].argument)
+  beforeEach(() => {
+    jest.useFakeTimers()
+    jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
+  })
+  afterEach(async () => {
+    await cleanup()
+    await act(() => jest.runOnlyPendingTimers())
+    jest.clearAllTimers()
+    jest.useRealTimers()
+  })
+
+  it("records ordered Close, Cancel and Apply requests while a finite owner veto keeps the real panel visible", async () => {
+    await render(<SortAndFilterPanelFixture />)
+    await pressControl("Load confirmed query")
+    await pressControl("Veto next two closes")
+    await open()
+    await pressControl("Clear All")
+    await pressControl("Close Sort and Filter Panel")
+    expect(owner().open).toBe(true)
+    expect(screen.getByText("No sorting currently applied")).toBeOnTheScreen()
+    expect(owner().callbacks).toEqual([{ type: "open", next: false }])
+    await pressControl("Cancel")
+    expect(owner().open).toBe(true)
+    expect(owner().closeVetoesRemaining).toBe(0)
+    expect(screen.getAllByTestId("query-sort-entry")).toHaveLength(2)
+    expect(confirmedArguments()).toEqual([0, false])
+    expect(owner().requests).toEqual([])
+    await pressControl("Clear All")
+    await pressControl("Apply")
+    expect(owner().callbacks).toEqual([
+      { type: "open", next: false },
+      { type: "open", next: false },
+      { type: "apply", request: { sortInstructions: [], filterGroups: [] } },
+      { type: "open", next: false },
+    ])
+    expect(owner().open).toBe(false)
+    expect(owner().closeRequests).toBe(3)
+    expect(owner().requests).toEqual([{ sortInstructions: [], filterGroups: [] }])
+    expect(confirmedArguments()).toEqual([0, false])
+  })
+
+  it("retains exact repeated Apply requests through vetoes and confirms only after owner echo is enabled", async () => {
+    await render(<SortAndFilterPanelFixture />)
+    await pressControl("Load confirmed query")
+    await pressControl("Veto next two closes")
+    await open()
+    await pressControl("Clear All")
+    for (let index = 0; index < 3; index++) {
+      await pressControl("Apply")
+      expect(owner().requests).toHaveLength(index + 1)
+      expect(confirmedArguments()).toEqual([0, false])
+      expect(owner().open).toBe(index < 2)
+    }
+    expect(owner().callbacks.map((event: { type: string }) => event.type)).toEqual([
+      "apply",
+      "open",
+      "apply",
+      "open",
+      "apply",
+      "open",
+    ])
+    await pressControl("Toggle owner echo")
+    await open()
+    await pressControl("Clear All")
+    await pressControl("Apply")
+    expect(owner().confirmed).toEqual({ sortInstructions: [], filterGroups: [] })
+    expect(owner().requests).toHaveLength(4)
+    expect(owner().callbacks.slice(-2)).toEqual([
+      { type: "apply", request: { sortInstructions: [], filterGroups: [] } },
+      { type: "open", next: false },
+    ])
+  })
+
+  it.each(["Checkbox", "Toggle"] as const)(
+    "exposes the supported %s Boolean editor with raw false and a held owner",
+    async (mode) => {
+      await render(<SortAndFilterPanelFixture />)
+      await pressControl("Load confirmed query")
+      if (mode === "Toggle") await pressControl("Toggle Boolean editor")
+      await open()
+      const control = screen.getByRole(mode === "Checkbox" ? "checkbox" : "switch")
+      expect(control).not.toBeChecked()
+      expect(confirmedArguments()).toEqual([0, false])
+      await fireEvent.press(control)
+      expect(control).toBeChecked()
+      expect(confirmedArguments()).toEqual([0, false])
+      await pressControl("Apply")
+      expect(
+        owner().requests[0].filterGroups.map(
+          (group: { clauses: { argument: unknown }[] }) => group.clauses[0].argument,
+        ),
+      ).toEqual([0, true])
+      expect(confirmedArguments()).toEqual([0, false])
+      expect(owner().callbacks.map((event: { type: string }) => event.type)).toEqual(["apply", "open"])
+    },
+  )
+
+  it("refreshes metadata asynchronously while keeping the original dirty editor and emits current metadata on Apply", async () => {
+    await render(<SortAndFilterPanelFixture />)
+    await pressControl("Load text argument")
+    await pressControl("Refresh metadata after next open")
+    await open()
+    const editor = screen.getByLabelText("Filter Name by contained text")
+    await fireEvent.changeText(editor, " pending async ")
+    await fixtureAct(() => jest.advanceTimersByTime(3000))
+    expect(screen.getByLabelText("Filter Name refreshed by contained text")).toBe(editor)
+    expect(editor.props.value).toBe(" pending async ")
+    expect(owner().hostEvents).toEqual([{ action: "refresh-metadata", at: expect.any(Number) }])
+    expect(owner().callbacks).toEqual([])
+    await pressControl("Apply")
+    expect(owner().requests[0].filterGroups[0]).toMatchObject({
+      criteriaName: "Name refreshed",
+      queryKey: "events.name",
+      clauses: [{ argument: "pending async" }],
+    })
+    expect(confirmedArguments()).toEqual(["held"])
+  })
+
+  it("replaces owner arrays immutably after opening and rehydrates without inventing a public callback", async () => {
+    await render(<SortAndFilterPanelFixture />)
+    await pressControl("Load confirmed query")
+    await pressControl("Replace owner after next open")
+    await open()
+    const editor = screen.getByTestId("number-input-input")
+    await fireEvent.changeText(editor, "42")
+    expect(editor.props.value).toBe("42")
+    await fixtureAct(() => jest.advanceTimersByTime(3000))
+    expect(screen.getByTestId("number-input-input")).toBe(editor)
+    expect(editor.props.value).toBe("7")
+    expect(confirmedArguments()).toEqual([7, false])
+    expect(owner().hostEvents).toEqual([{ action: "replace-owner", at: expect.any(Number) }])
+    expect(owner().callbacks).toEqual([])
+    expect(owner().requests).toEqual([])
+    expect(owner().open).toBe(true)
+  })
+
+  it("removes the actual panel without a business callback and restores only on explicit host action", async () => {
+    await render(<SortAndFilterPanelFixture />)
+    await pressControl("Load confirmed query")
+    await pressControl("Unmount panel after next open")
+    await open()
+    await fireEvent.changeText(screen.getByTestId("number-input-input"), "42")
+    await fixtureAct(() => jest.advanceTimersByTime(3000))
+    expect(screen.queryByTestId("query-panel-dialog")).toBeNull()
+    expect(owner().panelMounted).toBe(false)
+    expect(owner().open).toBe(true)
+    expect(owner().callbacks).toEqual([])
+    expect(owner().requests).toEqual([])
+    expect(confirmedArguments()).toEqual([0, false])
+    await fixtureAct(() => jest.advanceTimersByTime(6000))
+    expect(owner().hostEvents).toEqual([{ action: "unmount-panel", at: expect.any(Number) }])
+    expect(owner().callbacks).toEqual([])
+    await pressControl("Restore query panel")
+    expect(owner().panelMounted).toBe(true)
+    expect(owner().open).toBe(false)
+    expect(screen.queryByTestId("query-panel-dialog")).toBeNull()
+    await pressControl("Reset query scene")
+    expect(owner()).toMatchObject({
+      confirmed: { sortInstructions: [], filterGroups: [] },
+      requests: [],
+      callbacks: [],
+      closeRequests: 0,
+      echo: false,
+      open: false,
+      panelMounted: true,
+      booleanToggle: false,
+      closeVetoesRemaining: 0,
+      pendingAction: null,
+      hostEvents: [],
+    })
+  })
+
+  it.each(["Replace owner", "Refresh metadata", "Unmount panel"])(
+    "retires queued %s work on an accepted close and does not replay it on reopen",
+    async (action) => {
+      await render(<SortAndFilterPanelFixture />)
+      await pressControl(`${action} after next open`)
+      await open()
+      await pressControl("Close Sort and Filter Panel")
+      expect(owner().pendingAction).toBeNull()
+      await fixtureAct(() => jest.advanceTimersByTime(6000))
+      expect(owner().hostEvents).toEqual([])
+      expect(owner().callbacks).toEqual([{ type: "open", next: false }])
+      await open()
+      await fixtureAct(() => jest.advanceTimersByTime(6000))
+      expect(owner().hostEvents).toEqual([])
+      expect(owner().panelMounted).toBe(true)
+      expect(owner().requests).toEqual([])
+    },
+  )
+})
