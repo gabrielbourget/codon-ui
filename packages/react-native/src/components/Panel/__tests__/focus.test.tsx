@@ -11,6 +11,7 @@ import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
 import { useNativeFloatingHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import { NativeFloatingScopeContext } from "../../../overlays/floating/scope"
 import { useNativeFloatingLayer } from "../../../overlays/floating/useFloatingLayer"
+import { NativePanelFocusIntentContext } from "../focus"
 import { Panel } from "../Panel"
 import type { TNativePanelProps } from "../types"
 
@@ -51,14 +52,14 @@ const flush = async () => {
   frames.clear()
   await act(() => pending.forEach((callback) => callback(0)))
 }
-const acknowledge = async (id: string, epoch = 1, active = true) => {
+const acknowledge = async (id: string, epoch = 1, active = true, windowId = id) => {
   for (const ready of [false, true]) {
     const host = row(id).props
     await act(() =>
       host.onNativeScopeStatus({
         nativeEvent: {
           ownerId: host.ownerId,
-          windowId: id,
+          windowId,
           epoch,
           ready,
           windowActive: active,
@@ -433,6 +434,76 @@ it("CAP.panel.focus.004 retires queued entry across background/active in one bat
   expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
   await flush()
   expect(Commands.requestKeyboardFocus).toHaveBeenCalledTimes(1)
+})
+
+it("retains completed initial entry across same-window reactivation without stealing descendant focus", async () => {
+  const f = setup(),
+    dialog = createRef<View>(),
+    later = createRef<View>()
+  const extra = (includeLater = false) => (
+    <>
+      <NativeDialogFocusScope rootRef={dialog}>
+        <NativeFocusView ref={dialog} testID="existing-dialog" />
+      </NativeDialogFocusScope>
+      {includeLater && (
+        <NativeDialogFocusScope rootRef={later}>
+          <NativeFocusView ref={later} testID="later-dialog" />
+        </NativeDialogFocusScope>
+      )}
+    </>
+  )
+  const { rerender } = await render(f.node({ initialFocusRef: f.first }, extra()))
+  await f.ready()
+  await flush()
+  await observe("first", f.first.current!)
+  await observe("second", f.second.current!)
+  const original = row("panel-floating-host").props.dialogScopes[0]
+  await act(() => appChanged("background"))
+  await acknowledge("panel-floating-host", 2, false)
+  await act(() => appChanged("active"))
+  await acknowledge("panel-floating-host", 3)
+  expect(getNativeFocusedTarget()).toBeNull()
+  await observe("second", f.second.current!)
+  await flush()
+  expect(Commands.requestKeyboardFocus).toHaveBeenCalledTimes(1)
+  expect(getNativeFocusedTarget()).toBe(f.second.current)
+  const resumed = row("panel-floating-host").props.dialogScopes[0]
+  expect(resumed.bindingId).not.toBe(original.bindingId)
+  expect(resumed.entryTargets[0].allowed).toBe(false)
+  await rerender(f.node({ initialFocusRef: f.first }, extra(true)))
+  expect(row("panel-floating-host").props.dialogScopes[0].entryTargets).toEqual([
+    expect.objectContaining({ targetTag: findNodeHandle(dialog.current), allowed: false }),
+    expect.objectContaining({ targetTag: findNodeHandle(later.current), allowed: true }),
+  ])
+})
+
+it("acquires a fresh initial target after explicit intent, actual window replacement and close/reopen", async () => {
+  const f = setup()
+  const node = (intent: string, open = true) => (
+    <NativePanelFocusIntentContext.Provider value={intent}>
+      {f.node({ initialFocusRef: f.first, isOpen: open })}
+    </NativePanelFocusIntentContext.Provider>
+  )
+  const { rerender } = await render(node("sort"))
+  await f.ready()
+  await flush()
+  await observe("first", f.first.current!)
+  await acknowledge("panel-floating-host", 2)
+  await flush()
+  expect(Commands.requestKeyboardFocus).toHaveBeenCalledTimes(1)
+  await rerender(node("filter"))
+  await flush()
+  expect(Commands.requestKeyboardFocus).toHaveBeenCalledTimes(2)
+  await acknowledge("panel-floating-host", 3, true, "replacement-window")
+  await flush()
+  expect(Commands.requestKeyboardFocus).toHaveBeenCalledTimes(3)
+  await rerender(node("filter", false))
+  await f.dismissed()
+  await rerender(node("filter"))
+  await f.ready()
+  await acknowledge("panel-floating-host", 4)
+  await flush()
+  expect(Commands.requestKeyboardFocus).toHaveBeenCalledTimes(4)
 })
 
 type TLayer = ReturnType<typeof useNativeFloatingLayer>

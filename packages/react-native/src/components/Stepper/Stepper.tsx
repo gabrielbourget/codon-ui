@@ -11,7 +11,6 @@ import {
 } from "react"
 import { AccessibilityInfo, findNodeHandle, Platform, View, TextInput, type ColorValue } from "react-native"
 
-import { useNativeCollectionRefs } from "../../collection/context"
 import { nativeFieldAccessibilityProps } from "../../form/semantics"
 import { useNativeFieldSemantics } from "../../form/useFieldSemantics"
 import { useNativeNumberFieldForm } from "../../form/useNumberField"
@@ -74,7 +73,41 @@ const StepperControls = forwardRef<TNativeStepperRef, TStepperControlsProps>(
       originalRef.current = target
       setOriginal(target)
     }, [])
-    const editorRef = useNativeCollectionRefs(bindOriginal, ref)
+    const publishedEditor = useRef<{
+      target: TNativeStepperRef
+      owner: typeof ref
+      release: () => void
+    } | null>(null)
+    useLayoutEffect(() => {
+      const target = originalRef.current
+      const published = publishedEditor.current
+      if (published && published.target === target && published.owner === ref) return
+      publishedEditor.current = null
+      published?.release()
+      if (!target || !ref) return
+      const owner = ref
+      let release: () => void
+      if (typeof owner === "function") {
+        const cleanup = owner(target)
+        release = typeof cleanup === "function" ? cleanup : () => owner(null)
+      } else {
+        owner.current = target
+        release = () => {
+          owner.current = null
+        }
+      }
+      // Stock TextInput replays its ref effect on event-count changes; publish committed host identity.
+      publishedEditor.current = { target, owner, release }
+    }, [original, ref])
+    useLayoutEffect(
+      () => () => {
+        originalRef.current = null
+        const published = publishedEditor.current
+        publishedEditor.current = null
+        published?.release()
+      },
+      [],
+    )
     const scope = useNativeKeyScope()
     const floatingScope = useContext(NativeFloatingScopeContext)
     const windowActive = useContext(NativeFloatingWindowContext)
@@ -191,7 +224,7 @@ const StepperControls = forwardRef<TNativeStepperRef, TStepperControlsProps>(
         <View testID={`${testID}-group`} accessible={false} accessibilityLabel={groupLabel} style={groupStyle}>
           {renderButton(-1)}
           <Input
-            ref={editorRef}
+            ref={bindOriginal}
             testID={`${testID}-input`}
             accessibilityLabel={[
               accessibility.accessibilityLabel,

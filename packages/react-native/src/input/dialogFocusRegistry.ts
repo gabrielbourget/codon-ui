@@ -111,8 +111,15 @@ export const createNativeDialogFocusRegistry = (scope: TNativeKeyScope) => {
           const target = entry.description.target()
           if (!valid(target)) return []
           const entryId = nativeId(entry, target, id)
-          if (entry.reservedIdentity !== entryId) {
-            entry.reservedIdentity = entryId
+          const reservationIdentity = JSON.stringify([
+            nodeIdentity(target.node!),
+            target.tag,
+            id,
+            scope.acknowledgedSession().windowId,
+          ])
+          // A fresh native epoch must not replay an existing Dialog's completed parent entry.
+          if (entry.reservedIdentity !== reservationIdentity) {
+            entry.reservedIdentity = reservationIdentity
             entry.reserved = owner.description.reserved()
           }
           return [

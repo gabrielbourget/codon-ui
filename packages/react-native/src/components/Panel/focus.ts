@@ -30,6 +30,7 @@ const sessionKey = (scope: TScope) => {
   const session = scope?.acknowledgedSession()
   return JSON.stringify([scope?.ownerId, session?.windowId, session?.epoch])
 }
+const windowKey = (scope: TScope) => JSON.stringify([scope?.ownerId, scope?.acknowledgedSession().windowId])
 
 // This hook runs before useOverlay so admission cannot hide the previously focused parent target first.
 export const useNativePanelReturnFocus = (open: boolean, restoreRef?: RefObject<TTarget | null>) => {
@@ -159,8 +160,8 @@ export const useNativePanelInitialFocus = (
   const intent = useContext(NativePanelFocusIntentContext)
   const revision = useSyncExternalStore(input?.subscribe ?? subscribeNone, input?.snapshot ?? zero, zero)
   const current = useRef({ open, ready, isActive, initialRef, intent, intentRevision: 0 })
-  const acquired = useRef<{ session: string; intentRevision: number } | null>(null)
-  const explicitObservation = useRef<{ target: TTarget; session: string; intentRevision: number } | null>(null)
+  const acquired = useRef<{ window: string; intentRevision: number } | null>(null)
+  const explicitObservation = useRef<{ target: TTarget; window: string; intentRevision: number } | null>(null)
   const appState = useRef(AppState.currentState)
   const appGeneration = useRef(0)
   const [appRevision, setAppRevision] = useState(0)
@@ -173,16 +174,17 @@ export const useNativePanelInitialFocus = (
     }
   })
   const session = sessionKey(input)
+  const focusWindow = windowKey(input)
   useLayoutEffect(() => {
     const observed = () => {
       const owner = current.current,
         target = owner.initialRef?.current
       if (!owner.open || !owner.isActive() || !input?.isNativeReady() || !target || getNativeFocusedTarget() !== target)
         return
-      const next = { target, session: sessionKey(input), intentRevision: owner.intentRevision }
+      const next = { target, window: windowKey(input), intentRevision: owner.intentRevision }
       if (
         explicitObservation.current?.target === target &&
-        explicitObservation.current.session === next.session &&
+        explicitObservation.current.window === next.window &&
         explicitObservation.current.intentRevision === next.intentRevision
       )
         return
@@ -211,14 +213,15 @@ export const useNativePanelInitialFocus = (
       !ready ||
       !isActive() ||
       !input?.isNativeReady() ||
-      (acquired.current?.session === session && acquired.current.intentRevision === current.current.intentRevision) ||
+      (acquired.current?.window === focusWindow &&
+        acquired.current.intentRevision === current.current.intentRevision) ||
       appState.current !== "active"
     )
       return
     dialogs?.flush()
     const ref = initialRef ?? root
     if (initialRef === undefined && root.current && dialogs?.hasEntryFor(findNodeHandle(root.current) ?? 0)) {
-      acquired.current = { session, intentRevision: current.current.intentRevision }
+      acquired.current = { window: focusWindow, intentRevision: current.current.intentRevision }
       return
     }
     const target = ref.current
@@ -244,16 +247,17 @@ export const useNativePanelInitialFocus = (
         return
       dialogs?.flush()
       if (initialRef === undefined && root.current && dialogs?.hasEntryFor(findNodeHandle(root.current) ?? 0)) {
-        acquired.current = { session, intentRevision }
+        acquired.current = { window: focusWindow, intentRevision }
         return
       }
-      if (focusNativeTarget(target)) acquired.current = { session, intentRevision }
+      // Reactivation retires pending requests, but does not start another entry into this open Panel.
+      if (focusNativeTarget(target)) acquired.current = { window: focusWindow, intentRevision }
     })
     return () => {
       retired = true
       cancelAnimationFrame(frame)
     }
-  }, [open, ready, isActive, initialRef, root, input, dialogs, revision, session, appRevision, intent])
+  }, [open, ready, isActive, initialRef, root, input, dialogs, revision, session, focusWindow, appRevision, intent])
   return useCallback(() => {
     const owner = current.current,
       observed = explicitObservation.current
@@ -262,7 +266,7 @@ export const useNativePanelInitialFocus = (
       !(
         observed &&
         observed.target === owner.initialRef.current &&
-        observed.session === sessionKey(input) &&
+        observed.window === windowKey(input) &&
         observed.intentRevision === owner.intentRevision
       )
     )
