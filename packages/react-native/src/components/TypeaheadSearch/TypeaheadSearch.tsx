@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -14,7 +15,6 @@ import {
 } from "react"
 import { ScrollView, TextInput, View, useWindowDimensions } from "react-native"
 
-import { useNativeCollectionRefs } from "../../collection/context"
 import { NativeKeyboardScope } from "../../input/NativeKeyboardScope"
 import { useNativeOriginalEditorEnterPolicy } from "../../input/originalEditorEnterPolicy"
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../overlays/floating/scope"
@@ -64,7 +64,41 @@ const NativeTypeaheadEditor = ({
     editor.current = target
     setOriginal(target)
   }, [])
-  const ref = useNativeCollectionRefs(inputRef, bind)
+  const publishedEditor = useRef<{
+    target: TextInput
+    owner: typeof inputRef
+    release: () => void
+  } | null>(null)
+  useLayoutEffect(() => {
+    const target = editor.current
+    const published = publishedEditor.current
+    if (published && published.target === target && published.owner === inputRef) return
+    publishedEditor.current = null
+    published?.release()
+    if (!target || !inputRef) return
+    const owner = inputRef
+    let release: () => void
+    if (typeof owner === "function") {
+      const cleanup = owner(target)
+      release = typeof cleanup === "function" ? cleanup : () => owner(null)
+    } else {
+      owner.current = target
+      release = () => {
+        owner.current = null
+      }
+    }
+    // Stock TextInput replays its ref effect on event-count changes; publish committed host identity.
+    publishedEditor.current = { target, owner, release }
+  }, [original, inputRef])
+  useLayoutEffect(
+    () => () => {
+      editor.current = null
+      const published = publishedEditor.current
+      publishedEditor.current = null
+      published?.release()
+    },
+    [],
+  )
   const owner = useRef({ inputRef, submissionOwner, queryOwner, revision: 0 })
   if (
     owner.current.inputRef !== inputRef ||
@@ -82,7 +116,7 @@ const NativeTypeaheadEditor = ({
   return (
     <NativeInput
       {...props}
-      ref={ref}
+      ref={bind}
       nativeRender={(host) => {
         const native = { ...host, onNativeOrdinaryEditorKey: receive }
         return <TextInput {...native} />
