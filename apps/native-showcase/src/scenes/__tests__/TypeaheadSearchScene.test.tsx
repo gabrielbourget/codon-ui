@@ -168,3 +168,120 @@ it("keeps native selection/key/end observations separate from held query and res
   await fireEvent(input(), "submitEditing", { nativeEvent: { text: "native submit", target: 7 } })
   expect(screen.getByTestId("inline-search-state")).toHaveTextContent(/Submitted: "held owner".*Submits: 1/)
 })
+
+const owner = () => JSON.parse(screen.getByTestId("inline-search-owner-json").props.children as string)
+
+it("exposes exact ordered callbacks and delayed owner echo without replacing the original editor", async () => {
+  const press = await enter()
+  const original = input()
+  await fireEvent(input(), "change", { nativeEvent: { text: "raw original", eventCount: 1, target: 7 } })
+  expect(owner().nativeTarget).toBe(7)
+  expect(owner().refTarget).toBeGreaterThan(0)
+  expect(owner()).toMatchObject({ query: "", requestDefined: false, selectionDefined: false, callbacks: [] })
+  await press("Toggle inline search veto")
+  await fireEvent.changeText(input(), "first held")
+  await fireEvent.changeText(input(), "  second held  ")
+  expect(input()).toBe(original)
+  expect(input()).toHaveDisplayValue("")
+  expect(owner().callbacks).toEqual([
+    { type: "input", value: "first held" },
+    { type: "input", value: "  second held  " },
+  ])
+  await press("Echo latest inline search request")
+  expect(input()).toBe(original)
+  expect(input()).toHaveDisplayValue("  second held  ")
+  await fireEvent(input(), "submitEditing", { nativeEvent: { text: "native final", target: 7 } })
+  expect(owner().callbacks).toEqual([
+    { type: "input", value: "first held" },
+    { type: "input", value: "  second held  " },
+    { type: "native-submit", value: "native final" },
+    { type: "submit", value: "second held" },
+  ])
+  expect(owner()).toMatchObject({ requests: 2, submits: 1 })
+})
+
+it("applies actual asynchronous relabel/replacement without changing query, selection or original ref", async () => {
+  const press = await enter()
+  const original = input()
+  await fireEvent.changeText(input(), "retained")
+  await fireEvent.press(alpha())
+  const before = owner()
+  await press("Queue inline search replacement")
+  expect(owner().replacementPending).toBe(true)
+  await act(() => jest.advanceTimersByTime(3000))
+  expect(screen.getByRole("radio", { name: /^Alpha wave refreshed/ })).toBeChecked()
+  expect(input()).toBe(original)
+  expect(input()).toHaveDisplayValue("retained")
+  expect(owner()).toMatchObject({
+    replacementPending: false,
+    refreshed: true,
+    hostEvents: ["replacement-queued", "replacement-completed"],
+  })
+  expect(owner().callbacks).toEqual(before.callbacks)
+  expect(owner().refEvents).toEqual(before.refEvents)
+  expect(owner().itemKeys).toEqual([0, "0", ""])
+})
+
+it("retires queued replacement and caller refs separately, with no fabricated selection or query change", async () => {
+  const press = await enter()
+  const original = input()
+  await fireEvent.changeText(input(), "survives")
+  await fireEvent.press(alpha())
+  const before = owner()
+  await press("Toggle inline search caller ref")
+  expect(input()).toBe(original)
+  expect(owner().refEvents.at(-1)).toEqual({ id: before.refEvents[0].id, attached: false })
+  await press("Toggle inline search caller ref")
+  expect(input()).toBe(original)
+  expect(owner().refEvents.at(-1)).toEqual({ id: before.refEvents[0].id, attached: true })
+  await press("Queue inline search replacement")
+  await press("Toggle inline search surface")
+  expect(screen.queryByTestId("typeahead-search-input")).toBeNull()
+  await act(() => jest.advanceTimersByTime(3000))
+  expect(owner()).toMatchObject({
+    refreshed: false,
+    replacementPending: false,
+    hostEvents: ["replacement-queued", "replacement-cancelled"],
+  })
+  expect(owner().callbacks).toEqual(before.callbacks)
+  await press("Toggle inline search surface")
+  expect(input()).not.toBe(original)
+  expect(input()).toHaveDisplayValue("survives")
+  expect(alpha()).not.toBeChecked()
+  expect(owner().callbacks).toEqual(before.callbacks)
+  expect(owner().refEvents.at(-1).id).not.toBe(before.refEvents[0].id)
+})
+
+it("distinguishes an empty query/request and null selection from never-defined state and reaches empty/null affordance fallbacks", async () => {
+  const press = await enter()
+  expect(owner()).toMatchObject({ request: null, requestDefined: false, selection: null, selectionDefined: false })
+  await fireEvent.changeText(input(), "")
+  await fireEvent.press(alpha())
+  await fireEvent.press(alpha())
+  expect(owner()).toMatchObject({ request: "", requestDefined: true, selection: null, selectionDefined: true })
+  expect(owner().callbacks).toEqual([
+    { type: "input", value: "" },
+    { type: "selection", value: 0 },
+    { type: "selection", value: null },
+  ])
+  for (let index = 0; index < 4; index++) await press("Next inline search affordance")
+  expect(screen.getByTestId("inline-search-state")).toHaveTextContent(/Affordance: empty/)
+  expect(screen.getByTestId("typeahead-search-default-search-icon", { includeHiddenElements: true })).toBeOnTheScreen()
+  await press("Next inline search affordance")
+  expect(screen.getByTestId("inline-search-state")).toHaveTextContent(/Affordance: null/)
+  expect(screen.getByTestId("typeahead-search-default-search-icon", { includeHiddenElements: true })).toBeOnTheScreen()
+})
+
+it("exposes distinct focus-boundary action oracles without changing the original query, selection or editor", async () => {
+  const press = await enter()
+  const original = input()
+  await press("Before inline search focus boundary")
+  await press("After inline search focus boundary")
+  expect(input()).toBe(original)
+  expect(owner()).toMatchObject({
+    query: "",
+    callbacks: [],
+    selections: 0,
+    hostEvents: ["before-boundary", "after-boundary"],
+  })
+})
