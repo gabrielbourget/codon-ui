@@ -1,7 +1,16 @@
-import { useCallback, useContext, useId, useInsertionEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+import {
+  memo,
+  useCallback,
+  useContext,
+  useId,
+  useInsertionEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 import { findNodeHandle, I18nManager, Platform, Text as NativeText, View } from "react-native"
 
-import { NativeCollectionActionsContext } from "../../collection/actions"
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
 import { NativeCollectionBuilder } from "../../collection/CollectionBuilder"
 import {
@@ -60,15 +69,78 @@ import { computeNextNativeTableSorts } from "./sorting"
 import { NativeTableCollection } from "./state/TableCollection"
 import { useNativeTableColumnResizeState } from "./state/useTableColumnResizeState"
 import { useNativeTableState, useNativeFilteredTableState } from "./state/useTableState"
+import { subscribeNativeTableStickyLifetime } from "./stickyLifetime"
 import { resolveNativeTableStickyOptions } from "./stickyStyles"
 import { NativeTableDescription } from "./TableDescription"
 import { TableTypeahead } from "./TableTypeahead"
 import type { TNativeTableProps, TNativeTableReceivedProps, TNativeTableRenderState } from "./types"
-import { useCollectionModelOwner } from "./useCollectionModelOwner"
+import { useCollectionModelOwner, useCollectionModelOwnerReceipt } from "./useCollectionModelOwner"
 import { useNativeTableAnnouncements } from "./useTableAnnouncements"
 import { useTableKeyboard } from "./useTableKeyboard"
 
 const emptyItems = Object.freeze([])
+
+type TTableHostProps = Parameters<NonNullable<TNativeTableReceivedProps<object>["render"]>>[0] & {
+  nativeDescribedBy?: readonly string[]
+}
+
+const TableOwnerHost = ({
+  hostProps,
+  renderState,
+  render,
+  semantics,
+  locale,
+  target,
+  canAct,
+  sortDescriptionID,
+  onOwnerReceipt,
+}: {
+  hostProps: TTableHostProps
+  renderState: TNativeTableRenderState
+  render: TNativeTableReceivedProps<object>["render"]
+  semantics: string
+  locale: string
+  target: number
+  canAct: () => boolean
+  sortDescriptionID: string
+  onOwnerReceipt?: () => void
+}) => {
+  const [ownerLifetime, binding] = useCollectionModelOwnerReceipt()
+  useLayoutEffect(() => onOwnerReceipt?.(), [ownerLifetime, binding, onOwnerReceipt])
+  const sortDescription = useNativeTableAnnouncements(renderState.state, {
+    locale,
+    confirmed: !!ownerLifetime,
+    target,
+    windowIdentity: ownerLifetime,
+    canAct,
+  })
+  const props = {
+    ...hostProps,
+    nativeDescribedBy: [...(sortDescription ? [sortDescriptionID] : []), ...(hostProps.nativeDescribedBy ?? [])],
+  }
+  return (
+    <>
+      <NativeCollectionSemanticsContext.Provider value={semantics}>
+        <NativeCollectionItemBindingContext.Provider value={binding}>
+          {render ? render(props, renderState) : <NativeFocusView {...props} />}
+        </NativeCollectionItemBindingContext.Provider>
+      </NativeCollectionSemanticsContext.Provider>
+      {sortDescription && (
+        <View
+          nativeID={sortDescriptionID}
+          testID="table-sort-description"
+          accessible={false}
+          pointerEvents="none"
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", opacity: 0 }}
+        >
+          <NativeText accessible={false}>{sortDescription}</NativeText>
+        </View>
+      )}
+    </>
+  )
+}
 
 const Receiver = <T extends object>({
   props: incoming,
@@ -191,7 +263,6 @@ const Receiver = <T extends object>({
         : { owner: renderOwner, host, width },
     )
   }
-  const actions = useContext(NativeCollectionActionsContext)!
   const theme = useNativeTheme()
   const parentContent = useNativeContentContext()
   const [{ originalRoot, target }, setRootTarget] = useState<{ originalRoot: View | null; target: number }>({
@@ -199,7 +270,7 @@ const Receiver = <T extends object>({
     target: 0,
   })
   const root = useRef<View | null>(null)
-  const ownerLifetime = useCollectionModelOwner(model, originalRoot, target)
+  useCollectionModelOwner(model, originalRoot, target)
   const [headerTargets, setHeaderTargets] = useState(new Map<string, number>())
   const bind = useCallback((view: View | null) => {
     root.current = view
@@ -236,16 +307,9 @@ const Receiver = <T extends object>({
       window?.() !== false,
     [input, floating, window],
   )
-  const sortDescription = useNativeTableAnnouncements(state, {
-    locale: announcementLocale,
-    confirmed: !!ownerLifetime,
-    target,
-    windowIdentity: ownerLifetime,
-    canAct: canAnnounce,
-  })
   const sortDescriptionID = `codon-table-sort-description-${generatedID}`
   const subscribeStickyLifetime = useCallback(
-    (listener: () => void) => input?.subscribe(listener) ?? (() => {}),
+    (listener: () => void) => subscribeNativeTableStickyLifetime(input, listener),
     [input],
   )
   const inputWitness = useNativeInputModalityWitness(input)
@@ -292,6 +356,8 @@ const Receiver = <T extends object>({
   )
   const headerCount = collection.headerRows.length
   const columnCount = collection.columnCount
+  const [, refreshOwnerReceipt] = useState(0)
+  const resumeOwnerFocus = useCallback(() => refreshOwnerReceipt((revision) => revision + 1), [])
   const sourceKeyboard = useTableKeyboard({
     direction: inheritedLocale?.direction,
     collection,
@@ -375,7 +441,6 @@ const Receiver = <T extends object>({
     accessibilityLabelledBy: labelledBy ? [...labelledBy] : undefined,
     nativeLabelledBy: labelledBy,
     nativeDescribedBy: [
-      ...(sortDescription ? [sortDescriptionID] : []),
       ...(selectionDescription ? [selectionDescriptionID] : []),
       ...(nativeAccessibilityIDs(ariaDescribedBy ?? nativeDescribedBy) ?? []),
     ],
@@ -490,32 +555,23 @@ const Receiver = <T extends object>({
                   testID={`${rootTestID}-shell`}
                   style={{ width: "100%", height: "100%", minHeight: 0, flexDirection: "column" }}
                 >
-                  <NativeCollectionSemanticsContext.Provider
-                    value={JSON.stringify({
+                  <TableOwnerHost
+                    hostProps={hostProps}
+                    renderState={renderState}
+                    render={render}
+                    semantics={JSON.stringify({
                       kind: "root",
                       rowCount: rows.length + headerCount,
                       columnCount,
                       hierarchical: state.treeColumn != null,
                       selectionMode: manager.selectionMode,
                     })}
-                  >
-                    <NativeCollectionItemBindingContext.Provider value={actions.bindingFor(null)}>
-                      {render ? render(hostProps, renderState) : <NativeFocusView {...hostProps} />}
-                    </NativeCollectionItemBindingContext.Provider>
-                  </NativeCollectionSemanticsContext.Provider>
-                  {sortDescription && (
-                    <View
-                      nativeID={sortDescriptionID}
-                      testID="table-sort-description"
-                      accessible={false}
-                      pointerEvents="none"
-                      accessibilityElementsHidden
-                      importantForAccessibility="no-hide-descendants"
-                      style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", opacity: 0 }}
-                    >
-                      <NativeText accessible={false}>{sortDescription}</NativeText>
-                    </View>
-                  )}
+                    locale={announcementLocale}
+                    target={target}
+                    canAct={canAnnounce}
+                    sortDescriptionID={sortDescriptionID}
+                    onOwnerReceipt={sourceKeyboard.requestedKey !== null ? resumeOwnerFocus : undefined}
+                  />
                   <NativeTableDescription id={selectionDescriptionID} text={selectionDescription} />
                   {queryControls?.pagination && (
                     <View style={{ flexShrink: 0, flexDirection: "row", justifyContent: "flex-end", paddingTop: 5 }}>
@@ -537,6 +593,8 @@ const Receiver = <T extends object>({
     </NativeTableColumnResizeStateContext.Provider>
   )
 }
+const MemoizedReceiver = memo(Receiver) as typeof Receiver
+
 export const Table = <T extends object = object>(authored: TNativeTableProps<T>) => {
   const theme = useNativeTheme()
   const sorting = authored.queryControls?.sorting
@@ -617,7 +675,9 @@ export const Table = <T extends object = object>(authored: TNativeTableProps<T>)
   return (
     <NativeTableOptionsContext.Provider value={options}>
       <NativeCollectionBuilder<object> items={items}>
-        {(collection, model) => <Receiver props={props} collection={collection} selection={selection} model={model} />}
+        {(collection, model) => (
+          <MemoizedReceiver props={props} collection={collection} selection={selection} model={model} />
+        )}
       </NativeCollectionBuilder>
     </NativeTableOptionsContext.Provider>
   )

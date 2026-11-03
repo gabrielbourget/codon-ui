@@ -443,6 +443,8 @@ export const useNativeCollectionKeyboard = (owner: TOwner): TNativeTableKeyboard
   }
   const keysFor = (from: TNativeCollectionKey | null) => {
     const isApple = Platform.OS === "ios"
+    const isRTL = isOwnerRTL(owner)
+    const arrowAvailability = new Map<string, boolean>()
     return getNativeTableKeyTokens(isApple).filter((token) => {
       const key = token.slice(5)
       if (key === "a") return owner.manager.selectionMode === "multiple" && !owner.props.disallowSelectAll
@@ -453,16 +455,25 @@ export const useNativeCollectionKeyboard = (owner: TOwner): TNativeTableKeyboard
           owner.manager.selectedKeys.size > 0
         )
       if (key === "Home" || key === "End") return from != null || token[0] !== "1"
-      return (
+      const global = token[isApple ? 3 : 2] === "1"
+      const wrap = owner.props.shouldFocusWrap
+      // Only equivalent arrow modifier variants in this synchronous call share a result.
+      const cacheKey = key.startsWith("Arrow") ? JSON.stringify([key, global, isRTL, wrap]) : null
+      if (cacheKey !== null) {
+        const cached = arrowAvailability.get(cacheKey)
+        if (cached !== undefined) return cached
+      }
+      const available =
         getNativeTableNavigationKey(
           owner,
           from,
           key as (typeof NATIVE_TABLE_NAVIGATION_KEYS)[number],
-          isOwnerRTL(owner),
-          token[isApple ? 3 : 2] === "1",
-          owner.props.shouldFocusWrap,
+          isRTL,
+          global,
+          wrap,
         ) != null
-      )
+      if (cacheKey !== null) arrowAvailability.set(cacheKey, available)
+      return available
     })
   }
   return {

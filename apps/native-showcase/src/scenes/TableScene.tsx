@@ -1,4 +1,4 @@
-import { useRef, useState } from "react"
+import { useCallback, useMemo, useRef, useState } from "react"
 import { ScrollView, View, type TextInput } from "react-native"
 
 import { Button, Input, Text } from "@codon-ui/react-native"
@@ -21,6 +21,7 @@ import { TableDragScene } from "./TableDragScene"
 import { TableVirtualizedScene } from "./TableVirtualizedScene"
 
 type TPerson = { id: string; name: string; active: boolean }
+type TTableModelOptions = Parameters<typeof createNativeTableHeaderModel>[1]
 const people: TPerson[] = Array.from({ length: 20 }, (_, index) => ({
   id: `person-${index}`,
   name: `Person ${index + 1}`,
@@ -53,40 +54,60 @@ export const TableScene = () => {
   const [widths, setWidths] = useState<Record<string, number>>({ name: 150, active: 100, draft: 190 })
   const [requests, setRequests] = useState<string[]>([])
   const [parameters, setParameters] = useState(initialParameters)
-  const record = (kind: string, value: unknown) =>
-    setRequests((previous) => [...previous, `${kind}:${JSON.stringify(value)}`])
-  const columns: TableColumnMetadata<TPerson>[] = [
-    {
-      id: "name",
-      name: "Name",
-      isRowHeader: true,
-      width: widths.name,
-      sort: { enabled: true, criteriaID: "name" },
-      filter: { enabled: true, criteriaID: "name", allowedOperationCodes: ["equal", "like", "not-equal"] },
-    },
-    { id: "active", name: "Active", width: widths.active },
-    {
-      id: "draft",
-      name: "Original editor",
-      width: widths.draft,
-      maxLines,
-      truncate,
-      cellRenderer: ({ row }) =>
-        row.id === "person-0" ? (
-          <View style={{ gap: 4 }}>
-            <Text>
-              First paragraph with <Text style={{ fontWeight: "bold" }}>inline text</Text>
-              {"\nand a hard break."}
-            </Text>
-            <Button onPress={() => record("widget", row.id)}>Original Table widget</Button>
-            <Input ref={editor} accessibilityLabel="Original Table editor" value={draft} onChangeText={setDraft} />
-            <Text>Final paragraph remains in the complete original content.</Text>
-          </View>
-        ) : (
-          ""
+  const record = useCallback(
+    (kind: string, value: unknown) => setRequests((previous) => [...previous, `${kind}:${JSON.stringify(value)}`]),
+    [],
+  )
+  const columns = useMemo<TableColumnMetadata<TPerson>[]>(
+    () => [
+      {
+        id: "name",
+        name: "Name",
+        isRowHeader: true,
+        width: widths.name,
+        sort: { enabled: true, criteriaID: "name" },
+        filter: { enabled: true, criteriaID: "name", allowedOperationCodes: ["equal", "like", "not-equal"] },
+      },
+      { id: "active", name: "Active", width: widths.active },
+      {
+        id: "draft",
+        name: "Original editor",
+        width: widths.draft,
+        maxLines,
+        truncate,
+        cellRenderer: ({ row }) =>
+          row.id === "person-0" ? (
+            <View style={{ gap: 4 }}>
+              <Text>
+                First paragraph with <Text style={{ fontWeight: "bold" }}>inline text</Text>
+                {"\nand a hard break."}
+              </Text>
+              <Button onPress={() => record("widget", row.id)}>Original Table widget</Button>
+              <Input ref={editor} accessibilityLabel="Original Table editor" value={draft} onChangeText={setDraft} />
+              <Text>Final paragraph remains in the complete original content.</Text>
+            </View>
+          ) : (
+            ""
+          ),
+      },
+    ],
+    [draft, maxLines, record, truncate, widths],
+  )
+  const items = useCallback(
+    (modelOptions: TTableModelOptions) =>
+      nativeTableChildren(
+        createNativeTableHeaderModel({ columns: columns }, modelOptions),
+        createNativeTableBodyModel(
+          {
+            items: empty ? [] : reversed ? [...people].reverse() : people,
+            columns: columns,
+            renderEmptyState: () => "No people",
+          },
+          modelOptions,
         ),
-    },
-  ]
+      ),
+    [columns, empty, reversed],
+  )
   return (
     <View style={{ gap: 10 }}>
       <Text elementType="h2">Table</Text>
@@ -163,19 +184,7 @@ export const TableScene = () => {
                 },
               },
             }}
-            items={(modelOptions) =>
-              nativeTableChildren(
-                createNativeTableHeaderModel({ columns: columns }, modelOptions),
-                createNativeTableBodyModel(
-                  {
-                    items: empty ? [] : reversed ? [...people].reverse() : people,
-                    columns: columns,
-                    renderEmptyState: () => "No people",
-                  },
-                  modelOptions,
-                ),
-              )
-            }
+            items={items}
           />
         </ScrollView>
       </ScrollView>
