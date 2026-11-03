@@ -277,3 +277,78 @@ it("records final native payload order and exposes request-triggered removal wit
   expect(editor()).toHaveDisplayValue("0.5")
   expect(callbacks()).toEqual(afterRemoval)
 })
+
+const teardown = (): {
+  owner: string
+  unmounted: boolean
+  callbacks: { generation: number; kind: string; data: unknown; afterUnmount: boolean }[]
+} => JSON.parse(screen.getByTestId("stepper-teardown").children.join(""))
+
+it("keeps the retired scene observation through reset and observes no late held request", async () => {
+  const press = await enter()
+  await press("Arm stepper scene teardown observation")
+  const observedOwner = teardown().owner
+  const event = {
+    persist: () => undefined,
+    currentTarget: 17,
+    target: 17,
+    nativeEvent: { target: 17, timestamp: 1, identifier: 0, locationX: 0, locationY: 0, pageX: 0, pageY: 0 },
+  }
+  for (const ready of [false, true]) {
+    const host = screen.getByTestId("stepper-example").props
+    await act(() =>
+      host.onNativeScopeStatus({
+        nativeEvent: {
+          ownerId: host.ownerId,
+          windowId: "stepper-scene-window",
+          epoch: 1,
+          policyRevision: host.policyRevision,
+          ready,
+          windowActive: true,
+        },
+      }),
+    )
+  }
+  await fireEvent(plus(), "responderGrant", event)
+  await act(() => jest.advanceTimersByTime(600))
+  await act(() => jest.advanceTimersByTime(60))
+  expect(state()).toHaveTextContent(/Value: 0.2.*Requests: 2/)
+  await press("Reset scene")
+  await act(() => jest.advanceTimersByTime(1500))
+  await press("Stepper scene")
+  expect(teardown()).toMatchObject({ owner: observedOwner, unmounted: true })
+  const observedRequests = teardown().callbacks.filter(({ kind }) => kind === "request")
+  expect(observedRequests.slice(0, 2)).toEqual([
+    { generation: 0, kind: "request", data: 0.1, afterUnmount: false },
+    { generation: 0, kind: "request", data: 0.2, afterUnmount: false },
+  ])
+  expect(observedRequests.every(({ afterUnmount }) => !afterUnmount)).toBe(true)
+  expect(state()).toHaveTextContent(/Value: 0.*Request: none.*Requests: 0/)
+})
+
+it("retains a late callback negative control after whole-scene unmount and isolates the next scene", async () => {
+  const press = await enter()
+  await press("Arm stepper scene teardown observation")
+  const observedOwner = teardown().owner
+  const lateSelection = editor().props.onSelectionChange
+  await press("Reset scene")
+  await act(() => lateSelection({ nativeEvent: { selection: { start: 0, end: 0 }, target: 17 } }))
+  await press("Stepper scene")
+  expect(teardown()).toEqual({
+    owner: observedOwner,
+    unmounted: true,
+    callbacks: [{ generation: 0, kind: "native:selection", data: { start: 0, end: 0 }, afterUnmount: true }],
+  })
+  await press("Increase controlled quantity")
+  await press("Read stepper scene teardown observation")
+  expect(teardown().callbacks).toHaveLength(1)
+  await act(() => lateSelection({ nativeEvent: { selection: { start: 1, end: 1 }, target: 17 } }))
+  await press("Read stepper scene teardown observation")
+  expect(teardown().callbacks[1]).toEqual({
+    generation: 0,
+    kind: "native:selection",
+    data: { start: 1, end: 1 },
+    afterUnmount: true,
+  })
+  expect(state()).toHaveTextContent(/Value: 0.1.*Requests: 1/)
+})

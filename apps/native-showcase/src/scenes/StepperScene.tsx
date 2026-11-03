@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useId, useLayoutEffect, useRef, useState } from "react"
 import { View } from "react-native"
 
 import {
@@ -35,9 +35,25 @@ const FORMATS: readonly { label: string; options?: Intl.NumberFormatOptions }[] 
 ]
 type TStepperKeyEvent = Parameters<NonNullable<TNativeStepperProps["onKeyDown"]>>[0]
 type TReceipt = { generation: number; kind: string; data: unknown }
+type TTeardownReceipt = {
+  owner: string
+  unmounted: boolean
+  callbacks: (TReceipt & { afterUnmount: boolean })[]
+}
+// One explicitly armed scene owner survives Reset scene for the G02 teardown observation.
+let lastTeardownReceipt: TTeardownReceipt | null = null
 
 export const StepperScene = () => {
   const theme = useNativeTheme()
+  const owner = useId()
+  const teardownReceipt = useRef<TTeardownReceipt | null>(null)
+  const [teardownSnapshot, setTeardownSnapshot] = useState(() => JSON.stringify(lastTeardownReceipt))
+  useLayoutEffect(
+    () => () => {
+      if (teardownReceipt.current) teardownReceipt.current.unmounted = true
+    },
+    [],
+  )
   const ref = useRef<TNativeStepperRef>(null)
   const form = useRef<View>(null)
   const events = useRef(new WeakMap<object, number>())
@@ -90,7 +106,12 @@ export const StepperScene = () => {
   const [sizeIndex, setSizeIndex] = useState(0)
   const [statusIndex, setStatusIndex] = useState(0)
   const [frame, setFrame] = useState("unmeasured")
-  const record = (kind: string, data: unknown) => setReceipts((current) => [...current, { generation, kind, data }])
+  const record = (kind: string, data: unknown) => {
+    const receipt = { generation, kind, data }
+    const observation = teardownReceipt.current
+    if (observation) observation.callbacks.push({ ...receipt, afterUnmount: observation.unmounted })
+    setReceipts((current) => [...current, receipt])
+  }
   const recordKey = (source: "root" | "input", phase: "down" | "up", event: TStepperKeyEvent) => {
     let identity = events.current.get(event)
     if (identity === undefined) {
@@ -318,6 +339,17 @@ export const StepperScene = () => {
         if (!mounted) setGeneration((current) => current + 1)
       })}
       {action("Remount stepper editor", () => setGeneration((current) => current + 1))}
+      {action("Arm stepper scene teardown observation", () => {
+        const observation: TTeardownReceipt = { owner, unmounted: false, callbacks: [] }
+        teardownReceipt.current = observation
+        lastTeardownReceipt = observation
+        setTeardownSnapshot(JSON.stringify(observation))
+      })}
+      {action("Read stepper scene teardown observation", () =>
+        setTeardownSnapshot(JSON.stringify(lastTeardownReceipt)),
+      )}
+      <Text>Arm before Reset scene, then reenter and read without arming again.</Text>
+      <Text testID="stepper-teardown">{teardownSnapshot}</Text>
       <Text testID="stepper-config">
         {JSON.stringify({
           generation,
