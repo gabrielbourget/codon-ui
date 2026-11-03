@@ -234,6 +234,11 @@ final class SortFilterG02TrialTests: XCTestCase {
         XCTAssertTrue(button("Close Sort and Filter Panel").exists)
         XCTAssertTrue(app.staticTexts["No sorting currently applied"].exists)
         tap("Cancel")
+        waitUntil("Cancel must restore both original sort rows while the close veto retains the panel") {
+            self.button("Close Sort and Filter Panel").exists &&
+                self.node("query-sort-option-count").exists &&
+                self.node("query-sort-option-name").exists
+        }
         XCTAssertTrue(button("Close Sort and Filter Panel").exists)
         XCTAssertTrue(node("query-sort-option-count").exists)
         XCTAssertTrue(node("query-sort-option-name").exists)
