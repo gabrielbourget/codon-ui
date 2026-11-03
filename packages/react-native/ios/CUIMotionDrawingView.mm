@@ -11,6 +11,7 @@
 #import <React/RCTBorderDrawing.h>
 #import <React/RCTBoxShadow.h>
 #import <React/RCTConversions.h>
+#import <React/RCTAssert.h>
 #import <React/RCTLinearGradient.h>
 #import <React/RCTRadialGradient.h>
 #import <react/featureflags/ReactNativeFeatureFlags.h>
@@ -234,6 +235,8 @@ static CUIMotionCornerCurves CUIUniformCornerCurve(BorderCurve curve) {
 
 @implementation CUIMotionDrawingView {
   BOOL _cuiDrawingEnabled;
+  BOOL _cuiHasInitialProps;
+  NSMutableArray<UIView<RCTComponentViewProtocol> *> *_cuiPendingChildren;
   CUIForegroundRenderer *_cuiForeground;
   CGFloat _cuiPaintOpacity;
   BOOL _cuiModeDecided;
@@ -247,6 +250,27 @@ static CUIMotionCornerCurves CUIUniformCornerCurve(BorderCurve curve) {
   NSMutableArray<CALayer *> *_cuiBackgroundImageLayers;
   UIView *_cuiContainerView;
   RCTSwiftUIContainerViewWrapper *_cuiSwiftUIWrapper;
+}
+
+// Fabric can insert descendants before this parent receives its initial props.
+// Keep original children unmounted until ownership selects their first receiver.
+- (void)mountChildComponentView:(UIView<RCTComponentViewProtocol> *)child index:(NSInteger)index {
+  if (!_cuiHasInitialProps) {
+    RCTAssert(child.superview == nil, @"Pending original child must not already be mounted");
+    if (!_cuiPendingChildren) _cuiPendingChildren = [NSMutableArray new];
+    [_cuiPendingChildren insertObject:child atIndex:index];
+    return;
+  }
+  [super mountChildComponentView:child index:index];
+}
+- (void)unmountChildComponentView:(UIView<RCTComponentViewProtocol> *)child index:(NSInteger)index {
+  if (!_cuiHasInitialProps) {
+    RCTAssert(index >= 0 && index < _cuiPendingChildren.count && _cuiPendingChildren[index] == child,
+        @"Pending original child must retain its Fabric index");
+    [_cuiPendingChildren removeObjectAtIndex:index];
+    return;
+  }
+  [super unmountChildComponentView:child index:index];
 }
 
 - (void)setCuiDrawingEnabled:(BOOL)enabled {
@@ -277,6 +301,13 @@ static CUIMotionCornerCurves CUIUniformCornerCurve(BorderCurve curve) {
     source.shadowOpacity = _props->shadowOpacity; source.shadowRadius = _props->shadowRadius;
     self.layer.shadowOpacity = 0;
     [_cuiForeground configure:*_props paintOpacity:_cuiPaintOpacity];
+  }
+  if (!_cuiHasInitialProps) {
+    _cuiHasInitialProps = YES;
+    NSArray<UIView<RCTComponentViewProtocol> *> *children = [_cuiPendingChildren copy];
+    _cuiPendingChildren = nil;
+    for (NSUInteger index = 0; index < children.count; index++)
+      [super mountChildComponentView:children[index] index:index];
   }
 }
 - (void)didMoveToWindow { [super didMoveToWindow]; [_cuiForeground synchronize]; }
@@ -363,6 +394,7 @@ static CUIMotionCornerCurves CUIUniformCornerCurve(BorderCurve curve) {
   _cuiBackgroundColorLayer = nil; _cuiBorderLayer = nil; _cuiOutlineLayer = nil; _cuiFilterLayer = nil;
   _cuiBoxShadowLayers = nil; _cuiBackgroundImageLayers = nil;
   _cuiRadii = nil; _cuiDrawingEnabled = NO; _cuiModeDecided = NO; _cuiDrawingDirty = NO;
+  _cuiHasInitialProps = NO; _cuiPendingChildren = nil;
   [super prepareForRecycle];
 }
 

@@ -10,6 +10,7 @@
 
 @interface CUIMotionDrawingView (CUIAssertionReads)
 - (facebook::react::BorderMetrics)cuiBorderMetrics;
+- (UIView *)currentContainerView;
 @end
 
 // Non-shipping unmounted UIKit fixture. Compilation does not execute these
@@ -32,6 +33,65 @@ void CUIAssertOwnedMotionDrawing() {
     return std::static_pointer_cast<const ViewProps>(descriptor.cloneProps(context, previous, std::move(raw)));
   };
   auto original = cloneProps(nullptr, RawProps{});
+  // Reproduce Fabric's descendant Insert before the parent's own Insert/props.
+  CUIMotionDrawingView *pending = [CUIMotionDrawingView new];
+  RCTViewComponentView *first = [RCTViewComponentView new];
+  RCTViewComponentView *second = [RCTViewComponentView new];
+  UITextField *dirty = [UITextField new];
+  dirty.text = @"original pending editor";
+  dirty.selectedTextRange = [dirty textRangeFromPosition:[dirty positionFromPosition:dirty.beginningOfDocument offset:2]
+      toPosition:[dirty positionFromPosition:dirty.beginningOfDocument offset:7]];
+  [first addSubview:dirty];
+  [pending mountChildComponentView:first index:0];
+  [pending mountChildComponentView:second index:0];
+  [pending unmountChildComponentView:second index:0];
+  [pending mountChildComponentView:second index:1];
+  NSCAssert(pending.subviews.count == 0 && first.superview == nil && second.superview == nil,
+      @"Original Fabric children must wait for initial ownership without an early native mount");
+  [pending setCuiDrawingEnabled:YES];
+  [pending setCuiForegroundEnabled:YES];
+  [pending updateProps:original oldProps:nullptr];
+  UIView *receiver = [pending currentContainerView];
+  NSCAssert(receiver != pending && receiver.subviews.count == 2 &&
+      receiver.subviews[0] == first && receiver.subviews[1] == second,
+      @"Child-first Fabric order must mount the same originals once into the foreground receiver");
+  [pending setCuiForegroundEnabled:YES];
+  [pending updateProps:original oldProps:original];
+  NSCAssert([pending currentContainerView] == receiver && receiver.subviews.count == 2 &&
+      [dirty.text isEqualToString:@"original pending editor"] && dirty.superview == first &&
+      [dirty offsetFromPosition:dirty.beginningOfDocument toPosition:dirty.selectedTextRange.start] == 2 &&
+      [dirty offsetFromPosition:dirty.beginningOfDocument toPosition:dirty.selectedTextRange.end] == 7,
+      @"Initial prop replay cannot remount originals or change dirty text/selection");
+  BOOL foregroundDisableRejected = NO;
+  @try { [pending setCuiForegroundEnabled:NO]; }
+  @catch (NSException *) { foregroundDisableRejected = YES; }
+  NSCAssert(foregroundDisableRejected, @"Foreground ownership must remain stable after initial admission");
+  [pending unmountChildComponentView:first index:0];
+  [pending unmountChildComponentView:second index:0];
+  [pending prepareForRecycle];
+  [pending mountChildComponentView:second index:0];
+  NSCAssert(second.superview == nil, @"Recycling must reset initial-props child admission");
+  [pending setCuiDrawingEnabled:YES];
+  [pending setCuiForegroundEnabled:YES];
+  [pending updateProps:original oldProps:nullptr];
+  NSCAssert([pending currentContainerView].subviews.count == 1 &&
+      [pending currentContainerView].subviews[0] == second,
+      @"Recycled ownership must mount only the new lifetime's queued original");
+  [pending unmountChildComponentView:second index:0];
+  [pending prepareForRecycle];
+  CUIMotionDrawingView *ordinary = [CUIMotionDrawingView new];
+  [ordinary mountChildComponentView:first index:0];
+  [ordinary setCuiDrawingEnabled:NO];
+  [ordinary setCuiForegroundEnabled:NO];
+  [ordinary updateProps:original oldProps:nullptr];
+  NSCAssert(first.superview == [ordinary currentContainerView] && [first.subviews containsObject:dirty],
+      @"Non-foreground hosts must flush originals through their unchanged core receiver");
+  BOOL lateForegroundRejected = NO;
+  @try { [ordinary setCuiForegroundEnabled:YES]; }
+  @catch (NSException *) { lateForegroundRejected = YES; }
+  NSCAssert(lateForegroundRejected, @"Actual late foreground enable after original mounting must still reject");
+  [ordinary unmountChildComponentView:first index:0];
+  [ordinary prepareForRecycle];
   auto props = cloneProps(original, RawProps(
       folly::dynamic::object("borderRadius", 16)("borderTopStartRadius", 7)
           ("backgroundColor", static_cast<int64_t>(0xffe0e8f0))("overflow", "hidden")));
