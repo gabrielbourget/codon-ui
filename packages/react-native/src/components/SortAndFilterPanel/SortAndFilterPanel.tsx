@@ -1,5 +1,5 @@
 import { useRef, type ReactNode, type RefObject } from "react"
-import { View, type StyleProp, type TextStyle } from "react-native"
+import { KeyboardAvoidingView, Platform, View, type StyleProp, type TextStyle } from "react-native"
 
 import { focusNativeTarget } from "../../input/focus"
 import { useNativeTheme } from "../../theme"
@@ -150,7 +150,15 @@ const QueryPanelBody = ({
       </QueryPanelDialog>
     </NativeContentContext.Provider>
   )
-  return <NativeTextStyleProvider style={style.text}>{content}</NativeTextStyleProvider>
+  return (
+    <KeyboardAvoidingView
+      testID="query-panel-keyboard-viewport"
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1, width: "100%" }}
+    >
+      <NativeTextStyleProvider style={style.text}>{content}</NativeTextStyleProvider>
+    </KeyboardAvoidingView>
+  )
 }
 
 // Private compound view; parent sort collection/reorder, temporal and native acceptance remain required.

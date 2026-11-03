@@ -2,7 +2,7 @@ import "../../../collection/__tests__/nativeReceipts"
 
 import { act, cleanup, screen, within } from "@testing-library/react-native"
 import { useContext } from "react"
-import { AccessibilityInfo, Platform } from "react-native"
+import { AccessibilityInfo, DeviceEventEmitter, Platform } from "react-native"
 
 import {
   actWithNativeCollections as fixtureAct,
@@ -247,6 +247,36 @@ describe("G02 fixture", () => {
       { type: "apply", request: { sortInstructions: [], filterGroups: [] } },
       { type: "open", next: false },
     ])
+  })
+
+  it("reserves the keyboard viewport without replacing the edited field and applies its current query on the first press", async () => {
+    jest.replaceProperty(Platform, "OS", "ios")
+    await render(<SortAndFilterPanelFixture />)
+    await pressControl("Load text argument")
+    await open()
+    const editor = screen.getByLabelText("Filter Name by contained text")
+    await fireEvent.changeText(editor, " first query ")
+    const viewport = host("query-panel-keyboard-viewport")
+    await fireEvent(viewport, "layout", {
+      persist: () => {},
+      nativeEvent: { layout: { x: 0, y: 0, width: 350, height: 844 } },
+    })
+    await fixtureAct(() =>
+      DeviceEventEmitter.emit("keyboardWillShow", {
+        duration: 0,
+        endCoordinates: { screenX: 0, screenY: 509, width: 390, height: 335 },
+      }),
+    )
+    expect(viewport).toHaveStyle({ paddingBottom: 335 })
+    expect(screen.getByLabelText("Filter Name by contained text")).toBe(editor)
+    expect(editor.props.value).toBe(" first query ")
+    expect(host("query-active-filters").props.keyboardShouldPersistTaps).toBe("always")
+    await pressControl("Apply")
+    expect(owner().open).toBe(false)
+    expect(owner().closeRequests).toBe(1)
+    expect(owner().requests).toHaveLength(1)
+    expect(owner().requests[0].filterGroups[0].clauses[0].argument).toBe("first query")
+    expect(owner().callbacks.map((event: { type: string }) => event.type)).toEqual(["apply", "open"])
   })
 
   it.each(["Checkbox", "Toggle"] as const)(
