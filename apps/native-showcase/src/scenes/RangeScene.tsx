@@ -11,6 +11,8 @@ import {
   type LinearProgressProps,
 } from "@codon-ui/react-native"
 
+import { LinearProgressG02Fixture } from "./LinearProgressG02Fixture"
+
 const renderRangeRoot = (
   props: Parameters<NonNullable<LinearProgressProps["render"]>>[0],
   { percentage }: { percentage: number | undefined },
@@ -104,6 +106,7 @@ export const RangeScene = () => {
         formatOptions={{ style: "decimal" }}
         valueLabel={authoredLabel ? String(value - 50) + " units" : undefined}
       />
+      <LinearProgressG02Fixture />
     </View>
   )
 }
