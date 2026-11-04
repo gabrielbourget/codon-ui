@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { StyleSheet, View } from "react-native"
 
 import {
@@ -6,6 +6,7 @@ import {
   Button,
   Pagination,
   Text,
+  type TNativeButtonProps,
   type TNativePaginationSubcomponent,
 } from "@codon-ui/react-native"
 
@@ -29,6 +30,7 @@ const PAGER_CUSTOMIZATIONS = [
   ["overflow", "Toggle pager overflow button styles"],
 ] as const
 type TPagerCustomization = (typeof PAGER_CUSTOMIZATIONS)[number][0]
+type TPagerReceipt = { sequence: number; kind: "button" | "page" | "size"; data: unknown; receivedAt: number }
 
 export const PaginationScene = () => {
   const [page, setPage] = useState(3),
@@ -46,12 +48,36 @@ export const PaginationScene = () => {
   const [held, setHeld] = useState(false),
     [popup, setPopup] = useState(false)
   const [observedText, setObservedText] = useState("")
+  const [veto, setVeto] = useState(false)
+  const [receipts, setReceipts] = useState<TPagerReceipt[]>([])
+  const receiptSequence = useRef(0)
+  const record = (kind: TPagerReceipt["kind"], data: unknown) => {
+    const receipt = { sequence: ++receiptSequence.current, kind, data, receivedAt: Date.now() }
+    setReceipts((values) => [...values, receipt])
+  }
+  const observeButton: NonNullable<TNativeButtonProps["onPress"]> = (event) => {
+    const preventedBefore = event.isDefaultPrevented?.() ?? event.defaultPrevented
+    if (veto) event.preventDefault()
+    // Snapshot the original public event without persisting or retaining it. SDK proof stays separate.
+    const native = event.nativeEvent
+    record("button", {
+      target: native.target,
+      timestamp: "timestamp" in native ? native.timestamp : null,
+      kind: "kind" in native ? native.kind : null,
+      source: "source" in native ? native.source : null,
+      observedAt: "observedAt" in native ? native.observedAt : null,
+      preventedBefore: !!preventedBefore,
+      preventedAfter: !!(event.isDefaultPrevented?.() ?? event.defaultPrevented),
+    })
+  }
   const [customizations, setCustomizations] = useState<readonly TPagerCustomization[]>([])
   const requestPage = (next: number) => {
+    record("page", next)
     setRequests((values) => [...values, `page:${next}`])
     if (echo) setPage(next)
   }
   const requestSize = (next: number) => {
+    record("size", next)
     setRequests((values) => [...values, `size:${next}`])
     if (echo) setSize(next)
   }
@@ -71,6 +97,9 @@ export const PaginationScene = () => {
     setHeld(false)
     setPopup(false)
     setObservedText("")
+    setVeto(false)
+    setReceipts([])
+    receiptSequence.current = 0
     setCustomizations([])
   }
   return (
@@ -80,7 +109,11 @@ export const PaginationScene = () => {
         Page: {page}. Size: {size}. Owner {echo ? "echoes" : "declines"}. Requests: {requests.join(", ") || "none"}.
         Last text event: {observedText || "empty"}.
       </Text>
+      <Text testID="pagination-behavior-owner">
+        {JSON.stringify({ page, size, echo, disabled, empty, rtl, groups, left, veto, requests })}
+      </Text>
       <Button onPress={() => setEcho((value) => !value)}>Toggle pager echo</Button>
+      <Button onPress={() => setVeto((value) => !value)}>Toggle pager action veto</Button>
       <Button onPress={() => setPage((value) => (value === 3 ? 8 : 3))}>Replace owner page</Button>
       <Button onPress={() => setDisabled((value) => !value)}>Toggle pager disabled</Button>
       <Button onPress={() => setRTL((value) => !value)}>Toggle pager RTL</Button>
@@ -145,6 +178,7 @@ export const PaginationScene = () => {
         style={styled ? { color: "orange" } : undefined}
         customPageNumberInputProps={{ testID: "pagination-scene-input", onChangeText: setObservedText }}
         customItemsPerPageSelectProps={{ testID: "pagination-scene-size" }}
+        customGeneralButtonProps={{ isDisabled: false, onPress: observeButton }}
         customClickPopoverProps={{
           ...(held ? { isOpen: popup } : {}),
           onOpenChange: (next) => {
@@ -164,6 +198,7 @@ export const PaginationScene = () => {
         customItemsPerPageSelectStyles={customizations.includes("sizeSelect") ? styles.sizeSelect : undefined}
         customClickPopoverTriggerButtonStyles={customizations.includes("overflow") ? styles.overflow : undefined}
       />
+      <Text testID="pagination-behavior-callbacks">{JSON.stringify(receipts)}</Text>
     </View>
   )
 }

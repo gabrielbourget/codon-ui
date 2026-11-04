@@ -1,0 +1,303 @@
+{
+  "cell": "CAT.thumbnail-showcase.G02",
+  "sourceBase": "1567b08b6c1121aa85c97e8ea95cd7b05a97f676",
+  "ledgerDispositionAtBase": "OPEN",
+  "status": "PREPARED_NOT_NATIVE_QUALIFIED",
+  "scope": "Passive native container/caller-action, content/placeholder/overflow, keyed lifetime and owner-change cohort using the unchanged Gallery scene. No new passing-cell backfill, G01/G05 promotion or whole-cell closeout.",
+  "authority": [
+    "roadmap.md#312-ownership-and-behavior",
+    "roadmap.md#32-native-scenario-matrix",
+    "roadmap.md#3510-thumbnail-showcase-capability-and-scenario-matrix"
+  ],
+  "scene": "apps/native-showcase/src/scenes/GalleryScene.tsx",
+  "sceneSHA256": "aab0296e6e0a517d05bbbe6751cf5ddf3c1013f8503aedc847234828cebbe2de",
+  "nativeSource": "planning/component-library/fixtures/native-thumbnail-showcase/ThumbnailShowcaseG02TrialTests.swift",
+  "originalOracleFiles": [
+    "packages/react-native/src/components/ThumbnailShowcase/__tests__/ThumbnailShowcase.test.tsx",
+    "apps/native-showcase/src/scenes/__tests__/GalleryScene.test.tsx"
+  ],
+  "unchangedOriginalRequirements": "All five pinned canonical cases, all eight accepted CAP rows, all 35 existing source cases, native-grid/zero/content/identity/action/measurement/host requirements and original source-case/process limits remain. GS-A01's five exact historical Android P01 cells retain their original identity and scope; this packet does not relabel them.",
+  "isolation": "Only this Swift fixture and criterion map are added. Existing Gallery scene, root harness, app/editor/production source, all excluded lanes, original tests, dependency pins and ledgers remain unchanged.",
+  "admission": {
+    "source": "Main binds full integration HEAD and actual source/product/SDK/input/profile tuple. Scene/manifests alone are not native evidence.",
+    "identities": [
+      "CODON_GALLERY_SCENE_SHA256",
+      "CODON_GALLERY_PRODUCT_SHA256",
+      "CODON_GALLERY_INPUT_MANIFEST_SHA256",
+      "CODON_GALLERY_SDK_OBSERVER_MANIFEST_SHA256"
+    ],
+    "beforeEachMethod": "Prepare a fresh default Gallery scene in the matched Release product: mode all, image primary, raw slots 4, columns default, items 5, overflow true, width owner 280, custom/disabled false, actions/overflowActions/lifetime 0, customization none, positioning flow, keyboard inactive. Each method has independent admission; do not run the whole class against leftover state.",
+    "nativeExecution": "Add the Swift fixture to the existing showcase UI-test target; select standard -only-testing methods within main's existing native budget. No cloud native build, simulator, test batch, new instrumentation/backend or process monitor is authorized.",
+    "provenance": "Input/observer hashes describe the planned cohort and instrument. Pair each method with genuine original SDK event/receiver/ref/view/window/lifetime evidence and actual mounted hierarchy/geometry/traits. XCTest labels/frames and existing onLayout text do not substitute for all of those records.",
+    "selectorGate": "Confirm the actual installed passive view/placeholder/slot hierarchy is exposed to the declared XCTest selectors. If passive containers are not enumerable, report that exact selector/evidence blocker and use only an already approved genuine SDK observation route; never replace counts with a JS-derived or historical-frame census.",
+    "profile": "Prepared iOS P01 normal portrait and keyboard-inactive genuine touch. Every other applicable profile/platform/physical obligation remains independent."
+  },
+  "limits": {
+    "unchangedSourceCaseMilliseconds": 5000,
+    "nativeMethodAllowanceSeconds": 180,
+    "nativeOutcomeWaitSeconds": 10,
+    "visibilitySwipes": 12
+  },
+  "observations": {
+    "existingOwner": "gallery-state is the unchanged caller configuration/counter source. In particular its Width field is declared owner width, not a claim about the current measured root box after custom padding/border/style.",
+    "existingChildren": "gallery-item-A/B/C/... have original caller-owned local counts in their labels. A has key number 0 and B has key empty string. Stable labels/testIDs do not by themselves prove original native view/ref identity.",
+    "existingFrames": "gallery-frames contains last native onLayout readbacks; entries may be historical after content unmount. The fixture preserves the full string but never treats it as a mounted-node census. Actual XCTest frames/identifiers/labels/counts, screenshots and hierarchy are separately attached.",
+    "sourceTier": "Five unchanged GalleryScene Jest cases are regression support only. Their original fireEvent layout measurements and window simulations remain source-model evidence, not installed geometry, native input or native qualification.",
+    "responsibility": "ThumbnailShowcase owns passive layout/content delegation. All touched Buttons remain the existing authored caller controls. No overflow navigation, selection, disabled API or duplicate action target is invented."
+  },
+  "nativeMethods": [
+    {
+      "method": "testS02FirstCallerTouchActsOnceWithoutDuplicateTarget",
+      "scenario": "S02",
+      "capabilities": ["CAP.thumbnail-showcase.native-host"],
+      "originalOracleNames": [
+        "NATIVE.thumbnail-showcase.content keeps caller actions and never creates a duplicate target"
+      ],
+      "action": "One original contact on caller item A",
+      "exactExpected": "Exactly one A target, child count A 1, B/C 0, parent actions 1, overflow actions 0.",
+      "requiredSDKWitness": "One original caller target/contact/action, no added passive-container action or duplicate receiver.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS02CanonicalFiveItemsFourSlotsKeepsOverflowOne",
+      "scenario": "S02",
+      "capabilities": ["CAP.thumbnail-showcase.004"],
+      "originalOracleNames": [
+        "CAP.thumbnail-showcase.004 replaces the final slot but preserves the canonical hidden count"
+      ],
+      "action": "Observe the default five items/four slots; one original overflow contact",
+      "exactExpected": "Four slots, only A/B/C plus caller overflow +1; D/E absent. One overflow action and zero item actions; preserve 5-4=1 despite replacement also hiding D.",
+      "requiredSDKWitness": "Actual mounted content/targets, correct native +1 label and one original overflow action, with no extra container receiver.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS01OmittedOverflowRendererKeepsTheFourthItem",
+      "scenario": "S01",
+      "capabilities": ["CAP.thumbnail-showcase.004"],
+      "originalOracleNames": [
+        "CAP.thumbnail-showcase.004 leaves the final visible item when no overflow renderer exists"
+      ],
+      "action": "Toggle existing overflow renderer off; one original D contact",
+      "exactExpected": "Four slots with D available and E absent; no overflow target or synthetic action; D increments once.",
+      "requiredSDKWitness": "Actual D receiver and absence of an invented overflow action/target; exact current mounted slots.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS01OneItemKeepsTheThreeExactPlaceholderIndexes",
+      "scenario": "S01",
+      "capabilities": ["CAP.thumbnail-showcase.002"],
+      "originalOracleNames": ["CAP.thumbnail-showcase.002 renders media and the exact remaining placeholder indexes"],
+      "action": "Toggle existing one-item input; one original A contact",
+      "exactExpected": "One item A, four slots, placeholders exactly indexes 1/2/3, no overflow; A acts once.",
+      "requiredSDKWitness": "Actual current placeholder/content nodes and original A action; historical frame logs cannot establish mounted counts.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS01EmptyItemsWithPrimaryMediaKeepFourPlaceholders",
+      "scenario": "S01",
+      "capabilities": ["CAP.thumbnail-showcase.002"],
+      "originalOracleNames": ["CAP.thumbnail-showcase.002 renders media and the exact remaining placeholder indexes"],
+      "action": "Set existing empty item input while keeping image primary",
+      "exactExpected": "Four secondary slots/placeholders, no A/overflow target and no action; media remains available.",
+      "requiredSDKWitness": "Actual current native primary and four placeholder nodes; no invented interactive wrapper.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS01NullishPrimaryWithoutItemsOmitsTheSecondaryRow",
+      "scenario": "S01",
+      "capabilities": ["CAP.thumbnail-showcase.001"],
+      "originalOracleNames": [
+        "CAP.thumbnail-showcase.001 uses nullish fallback for %s",
+        "CAP.thumbnail-showcase.001 renders only the primary placeholder when no media is available"
+      ],
+      "action": "Empty items; then existing undefined and null primary controls, checking each",
+      "exactExpected": "Primary placeholder present; secondary row and placeholders absent; zero actions. No nullish input is rewritten into a false/zero value.",
+      "requiredSDKWitness": "Actual primary-placeholder presence and native secondary unmount for both inputs; no action/extra native target.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS01FalsyPrimaryValuesStayAvailableMedia",
+      "scenario": "S01",
+      "capabilities": ["CAP.thumbnail-showcase.001"],
+      "originalOracleNames": ["CAP.thumbnail-showcase.001 preserves primary value %s as available media"],
+      "action": "Empty items; cycle existing zero/false/empty-string primary values, checking each",
+      "exactExpected": "No primary placeholder; four secondary placeholders for every falsy media input; zero renders literal 0; no synthetic action.",
+      "requiredSDKWitness": "Actual native mounted contents/placeholder counts and zero text; distinguish absent media from visually empty but authored media.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS01ModesMountOnlyTheirRequestedContent",
+      "scenario": "S01",
+      "capabilities": ["CAP.thumbnail-showcase.003"],
+      "originalOracleNames": ["CAP.thumbnail-showcase.003 mounts only the requested primary/secondary content"],
+      "action": "A contact; all to primary to secondary to all via existing controls; one new A contact in secondary",
+      "exactExpected": "Primary mode unmounts row/A without changing owner action count; secondary remounts A at 0 and omits primary. A action increments owner; all retains the still-mounted row/A count.",
+      "requiredSDKWitness": "Actual conditional mounts/unmounts, original receiver retirement/new child lifetime, and no hidden-content or wrapper action. Renderer-call suppression still needs matching native/runtime evidence.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS01SlotCountNormalizationKeepsRawCallerValues",
+      "scenario": "S01",
+      "capabilities": ["CAP.thumbnail-showcase.002", "CAP.thumbnail-showcase.004"],
+      "originalOracleNames": [
+        "CAP.thumbnail-showcase.002 normalizes slot count %s to %s",
+        "CAP.thumbnail-showcase.004 replaces the final slot but preserves the canonical hidden count"
+      ],
+      "action": "Cycle existing raw counts 2,0,2.9,NaN,Infinity and inspect each",
+      "exactExpected": "Raw inputs unchanged; native slot counts 2,0,2,4,4. Zero removes row; positive overflow labels +3,+3,+1,+1. No item/overflow action generated.",
+      "requiredSDKWitness": "Actual current slot/row/overflow nodes at every step; no JS-only count/geometry substitution. Other original normalization values remain required.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS01ReorderingNumberZeroAndEmptyKeysKeepsChildState",
+      "scenario": "S01",
+      "capabilities": ["CAP.thumbnail-showcase.002", "CAP.thumbnail-showcase.grid"],
+      "originalOracleNames": [
+        "NATIVE.thumbnail-showcase.grid preserves authored keyed state across reorder, columns and provider/style changes"
+      ],
+      "action": "Original A and B contacts; existing reorder exchanges source keys number 0 and empty string; one new A contact",
+      "exactExpected": "A/B counts 1/1 retained through reorder, parent actions stays 2; next A becomes 2 with B still 1 and parent actions 3.",
+      "requiredSDKWitness": "Bind original actual native child/view/ref identities to unchanged source keys and content; state must follow keys through reordering.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS01IndependentColumnCountsKeepTheFlatKeyedLifetime",
+      "scenario": "S01",
+      "capabilities": ["CAP.thumbnail-showcase.grid"],
+      "originalOracleNames": [
+        "NATIVE.thumbnail-showcase.grid preserves authored keyed state across reorder, columns and provider/style changes"
+      ],
+      "action": "A contact; cycle columns 2,3,6,default; one new A contact",
+      "exactExpected": "Column owner values stay literal; A count 1 and parent action count 1 persist through every change; next A becomes 2 once.",
+      "requiredSDKWitness": "Original native child identity and actual wrapped/equal-track layout through current measurement. State/count proof alone does not qualify all geometry.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS02CallerDisabledGuardsAndFirstReenabledActions",
+      "scenario": "S02",
+      "capabilities": ["CAP.thumbnail-showcase.native-host"],
+      "originalOracleNames": [
+        "NATIVE.thumbnail-showcase.content keeps caller actions and never creates a duplicate target",
+        "exercises all modes, style owners, caller disabled guards and native frame readouts"
+      ],
+      "action": "Disable existing authored caller Buttons; blocked center touches on A and overflow; reenable; distinct A and overflow contacts",
+      "exactExpected": "Actual caller targets disabled, blocked contacts add no item/overflow action. Reenabled A and overflow each act once; no wrapper-owned action or component-owned disabled API is invented.",
+      "requiredSDKWitness": "Actual disabled receiver/eligibility and original input/activation cohorts for both caller controls. This is delegation/reachability evidence, not Button G02 qualification.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS01IndependentStyleOwnersPreserveTheCallerChild",
+      "scenario": "S01",
+      "capabilities": ["CAP.thumbnail-showcase.slots", "CAP.thumbnail-showcase.grid"],
+      "originalOracleNames": [
+        "NATIVE.thumbnail-showcase.grid preserves authored keyed state across reorder, columns and provider/style changes",
+        "keeps gallery customizations independent while preserving keyed child state and reset"
+      ],
+      "action": "A contact; toggle existing root/primary/row/secondary customizations separately; one new A contact",
+      "exactExpected": "A count and parent action count retained through every customization; one subsequent action only. No paint/style acceptance inferred.",
+      "requiredSDKWitness": "Actual original child/root view lifetime and native interaction reachability; independent owner styles and full rendering remain separately required.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS12ThemeAndFixtureChangesRetainCallerStateAndReachability",
+      "scenario": "S12",
+      "capabilities": ["CAP.thumbnail-showcase.grid", "CAP.thumbnail-showcase.native-host"],
+      "originalOracleNames": [
+        "preserves keyed caller actions through reorder/columns/theme/window changes and explicit restart"
+      ],
+      "action": "A contact; Dark theme and Compact width; one new A contact",
+      "exactExpected": "A stays 1 and owner stays 1 across context changes; next A is 2, owner 2, overflow 0.",
+      "requiredSDKWitness": "Original native view/ref/window continuity and genuine post-change contact; actual profile/geometry/metadata obligations remain independent.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS01PositionChangesKeepTheOriginalKeyedCallerReachable",
+      "scenario": "S01",
+      "capabilities": ["CAP.thumbnail-showcase.005", "CAP.thumbnail-showcase.grid"],
+      "originalOracleNames": [
+        "retains gallery positioning customization and position-only frame updates without losing keyed actions or authored zero"
+      ],
+      "action": "A contact; existing flow to relative to absolute to flow controls; one new A contact",
+      "exactExpected": "Current positioning strings follow owner; A/owner counts retained at each stage; final new A contact acts once. Exact geometry is not inferred from those strings.",
+      "requiredSDKWitness": "Actual native positioned root/containing-host/child frames and original child lifetime, plus reachable native target after transitions.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS06ExplicitOwnerRestartBeginsOnlyTheRequestedChildLifetime",
+      "scenario": "S06",
+      "capabilities": ["CAP.thumbnail-showcase.grid"],
+      "originalOracleNames": [
+        "preserves keyed caller actions through reorder/columns/theme/window changes and explicit restart"
+      ],
+      "action": "A contact; deliberate existing Restart gallery content; first contact in new child lifetime",
+      "exactExpected": "Owner lifetime becomes 1 and total actions remains 1; child A resets to 0 only for requested remount. First new A becomes 1 while total actions becomes 2.",
+      "requiredSDKWitness": "Actual old receiver/view retirement and newly mounted child identity, with one genuinely new contact. Full stale-callback/lifetime coverage remains required.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    }
+  ],
+  "remainingRequired": [
+    {
+      "scenario": "S01",
+      "criteria": "All original content/value/default/normalization variants beyond the fixed Gallery inputs: false/zero/empty secondary content, nullish item delegation, bigint IDs, negative/fractional-under-one/-Infinity slot counts, zero/Fragment/noninteractive overflow and renderer-invocation suppression",
+      "status": "OPEN_ORIGINAL_FIXTURE_VARIANTS_REQUIRED",
+      "reason": "The original tests remain unchanged and required. Gallery cannot expose every authored-content variant; no variant is deleted or inferred from ordinary Buttons."
+    },
+    {
+      "scenario": "S01/S03",
+      "criteria": "Complete native root host events/names/optional semantics, no extra passive action/group/image target, actual refs/content lifetime and all supported omitted/default/explicit style/layout/alias/context axes",
+      "status": "OPEN_NATIVE_HOST_AND_CONTEXT_COHORT_REQUIRED",
+      "reason": "Exact mounted native targets, original event payload/ref identity and current native metadata require genuine observation. Caller counters alone do not prove those facts."
+    },
+    {
+      "scenario": "S02/S05",
+      "criteria": "Actual caller action reachability through original pointer/keyboard/default/focus/virtual input and first action with an already focused editor or applicable covered/nested window",
+      "status": "OPEN_NATIVE_INPUT_AND_EDITOR_LANE_REQUIRED",
+      "reason": "Prepared keyboard-inactive touches do not qualify other modalities or profiles. Component-owned activation remains governed by existing accepted scope; caller/host obligations are not waived."
+    },
+    {
+      "scenario": "S04/S12",
+      "criteria": "Actual zero/percentage/auto/dimension constraints, all four style owners, gap/track rounding/wrapping/empty final tracks, clipping, positioned containing host, RTL/window/density/text and every required profile",
+      "status": "OPEN_MATCHED_NATIVE_GEOMETRY_AND_PRESENTATION_REQUIRED",
+      "reason": "Original native equal/wrapped-grid contract DEC.PHONE.THUMBNAIL_GRID.01 stays in force. Source calculations, owner strings and a few attached frames do not certify the complete installed geometry or appearance contract."
+    },
+    {
+      "scenario": "S06",
+      "criteria": "Actual stale/duplicate/replaced/unmounted measurement and callback retirement, original root/child ref/key lifetime, in-flight equivalent versus incompatible parent change and post-retirement suppression",
+      "status": "OPEN_NATIVE_LIFETIME_AND_MEASUREMENT_COHORT_REQUIRED",
+      "reason": "The deliberate restart and ordinary state-retention methods cover only the stated subset. No stale native callback/event is injected or ignored to create a passing result."
+    },
+    {
+      "scenario": "platform/profile",
+      "criteria": "Every applicable Android/iOS/profile and physical/input/AT/closure obligation",
+      "status": "OPEN",
+      "reason": "No deferral or N/A is added. Prior matched GS-A01 observations and every historical failure keep their exact original scope."
+    }
+  ],
+  "cellAdoptionRule": "Keep CAT.thumbnail-showcase.G02 OPEN until every applicable original criterion has matched native evidence and ordinary main-owned adoption. Five reused source positives and uncompiled XCTest methods close no cell.",
+  "unchangedOriginalInputs": {
+    "packages/react-native/src/components/ThumbnailShowcase/__tests__/ThumbnailShowcase.test.tsx": "c5c553d08cf8f5ae1f23ae618db8833a51e70248595ca69fa0d035381991712a",
+    "apps/native-showcase/src/scenes/__tests__/GalleryScene.test.tsx": "4f292d791ea8234ec2b9868d7a269b5ee6b25b24998ffa5e0bf45ef9e763161b",
+    "apps/native-showcase/src/scenes/GalleryScene.tsx": "aab0296e6e0a517d05bbbe6751cf5ddf3c1013f8503aedc847234828cebbe2de",
+    "packages/react-native/src/components/ThumbnailShowcase/ThumbnailShowcase.tsx": "9b8b615ab6be39f2f04bfb0affb8bfb3b53c630dd623d5f38a00606ba6b1a629",
+    "packages/react-native/src/components/ThumbnailShowcase/types.ts": "d4a852c109c206e9d26149ea9a5ab8d6197f97f9e340ef146bdb07b792cbe998",
+    "packages/react-native/src/components/ThumbnailShowcase/styles.ts": "5ea567493af224727d9cefea8aaae40ea0176604691ef9824f33d5641db2bd3f",
+    "packages/react-native/src/components/ThumbnailShowcase/layout.tsx": "c3d12a8ed229b69a7f14fab9691b13b71418cb70bf99df19150ec359580ddc3b",
+    "packages/react/src/components/ThumbnailShowcase/__tests__/ThumbnailShowcase.test.tsx": "e3e4fee52caa4c1d93a30efba0249ca8d25be139063994104c81372cda88a135"
+  }
+}

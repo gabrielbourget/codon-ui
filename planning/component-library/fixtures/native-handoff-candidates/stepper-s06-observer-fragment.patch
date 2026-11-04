@@ -1,0 +1,204 @@
+--- a/StepperG02TrialTests.swift
++++ b/StepperG02TrialTests.swift
+@@ -304,9 +304,9 @@
+     func testS02FirstDecreaseVeto() throws { try firstRelease(false, veto: true) }
+     func testS02HeldEcho() throws { try held(false) }
+     func testS02HeldVeto() throws { try held(true) }
+-    func testS06HeldDisabled() throws { try held(false, retirement: 1) }
+-    func testS06HeldReadOnly() throws { try held(false, retirement: 2) }
+-    func testS06HeldRemoval() throws { try held(false, retirement: 3) }
++    func testS06HeldDisabled() throws { try s06HeldRetirement(1) }
++    func testS06HeldReadOnly() throws { try s06HeldRetirement(2) }
++    func testS06HeldRemoval() throws { try s06HeldRetirement(3) }
+     func testS03ArrowUp() throws { try key("ArrowUp", .upArrow, expected: 0.4) }
+     func testS03ArrowDown() throws { try key("ArrowDown", .downArrow, expected: 0.2) }
+     func testS03PageUp() throws { try key("PageUp", .pageUp, expected: 0.4) }
+@@ -343,22 +343,180 @@
+         try record("S02-real-drag-cancel")
+     }
+ 
++    private func s06Configuration() throws -> [String: Any] {
++        try XCTUnwrap(try json("stepper-config") as? [String: Any])
++    }
++    private func s06Refs() throws -> [String: Any] {
++        try XCTUnwrap(try json("stepper-refs") as? [String: Any])
++    }
++    private func s06Business(_ rows: [[String: Any]]) -> [[String: Any]] {
++        let kinds = Set(["request", "form:submit", "form:reset", "form:result"])
++        return rows.filter { kinds.contains($0["kind"] as? String ?? "") }
++    }
++    private func s06PendingAdmission(_ suffix: String) throws {
++        // These bindings prevent an unrelated cohort from being selected. A hash is not native proof.
++        // Coordinator must independently establish pending old-original work at the actual retirement action,
++        // then bind its action/currentness/retirement/drain evidence to these exact case and product identities.
++        let environment = ProcessInfo.processInfo.environment
++        XCTAssertEqual(environment["CODON_STEPPER_S06_PENDING_CASE"], "S06." + suffix)
++        let admission = try XCTUnwrap(environment["CODON_STEPPER_S06_PENDING_ADMISSION_SHA256"],
++                                   "Admit genuine pending input; a completed press followed by removal is insufficient")
++        XCTAssertNotNil(admission.range(of: "^[0-9a-f]{64}$", options: .regularExpression))
++    }
++    private func s06HeldRetirement(_ retirement: Int) throws {
++        XCTAssertTrue((1...3).contains(retirement))
++        try reset()
++        for _ in 0..<retirement { tap("Next stepper retirement on request") }
++        let suffix = ["hold-retire-disabled", "hold-retire-read-only", "hold-retire-remove"][retirement - 1]
++        let target = button("Increase controlled quantity")
++        let originalRefs = try s06Refs()
++        try exact(originalRefs["attached"], true)
++        let generation = try XCTUnwrap(try s06Configuration()["generation"] as? Int)
++        try prepareKeyboard("0.3", action: target); state("0", 0)
++        let rawBefore = try callbacks().filter { $0["kind"] as? String == "raw" }
++        try record("S06-" + suffix + "-before-hold")
++        // The scene applies the armed retirement on the first actual numeric request while still held.
++        // Independent input evidence must show that this is touch and remains down beyond the next tick.
++        target.press(forDuration: 0.8)
++        try exact(requestValues(), [0.4]); state("0.4", 1)
++        let requests = try callbacks().filter { $0["kind"] as? String == "request" }
++        try exact(requests.map { $0["generation"]! }, [generation])
++        let config = try s06Configuration()
++        try exact(config["retireOnRequest"], "none")
++        try exact(config["generation"], generation)
++        try exact(config["mounted"], retirement != 3)
++        if retirement == 3 {
++            XCTAssertFalse(editor().exists)
++            let currentRefs = try s06Refs()
++            try exact(currentRefs["attached"], false)
++            try exact(currentRefs["attachments"], originalRefs["attachments"]!)
++            try exact(currentRefs["detachments"], try XCTUnwrap(originalRefs["detachments"] as? Int) + 1)
++            XCTAssertFalse(app.keyboards.firstMatch.exists)
++        } else {
++            XCTAssertTrue(editor().exists)
++            XCTAssertEqual(editor().value as? String, "0.4")
++            XCTAssertFalse(target.isEnabled)
++            XCTAssertFalse(button("Decrease controlled quantity").isEnabled)
++            try exact(try s06Refs(), originalRefs)
++        }
++        let keyboardAfterRetirement = app.keyboards.firstMatch.exists
++        let businessAfterRetirement = s06Business(try callbacks())
++        try record("S06-" + suffix + "-after-release")
++        afterInterval()
++        try exact(s06Business(try callbacks()), businessAfterRetirement)
++        try exact(requestValues(), [0.4]); state("0.4", 1)
++        try exact(try callbacks().filter { $0["kind"] as? String == "raw" }, rawBefore)
++        if !keyboardAfterRetirement { XCTAssertFalse(app.keyboards.firstMatch.exists) }
++        if retirement != 3 { try exact(try s06Refs(), originalRefs) }
++        else { XCTAssertFalse(editor().exists) }
++        try record("S06-" + suffix + "-post-retirement")
++    }
++    private func s06EditorRetirement(_ replacement: Bool) throws {
++        try reset()
++        let suffix = replacement ? "editor-replace" : "editor-remove"
++        let action = button(replacement ? "Remount stepper editor" : "Remove or reinsert stepper editor")
++        let originalRefs = try s06Refs()
++        let originalGeneration = try XCTUnwrap(try s06Configuration()["generation"] as? Int)
++        try exact(originalRefs["attached"], true)
++        try prepareKeyboard("0.3", action: action); state("0", 0)
++        let before = try callbacks()
++        let rawBefore = before.filter { $0["kind"] as? String == "raw" }
++        try s06PendingAdmission(suffix)
++        try record("S06-" + suffix + "-before-retirement")
++        // No scrolling, focus change, finished hold, direct prop invocation or fabricated key packet here.
++        // The separately admitted producer must keep genuine old-editor press/key work pending at this tap.
++        XCTAssertTrue(action.isHittable)
++        action.tap()
++        let expectedGeneration = originalGeneration + (replacement ? 1 : 0)
++        waitUntil("The actual editor must retire") {
++            guard let config = try? self.s06Configuration(), let refs = try? self.s06Refs(),
++                  let detachments = refs["detachments"] as? Int,
++                  let oldDetachments = originalRefs["detachments"] as? Int else { return false }
++            return config["generation"] as? Int == expectedGeneration && detachments == oldDetachments + 1 &&
++                (replacement ? self.editor().exists : !self.editor().exists)
++        }
++        try exact(try s06Configuration()["mounted"], replacement)
++        let retiredRefs = try s06Refs()
++        try exact(retiredRefs["attached"], replacement)
++        try exact(retiredRefs["detachments"], try XCTUnwrap(originalRefs["detachments"] as? Int) + 1)
++        try exact(retiredRefs["attachments"], try XCTUnwrap(originalRefs["attachments"] as? Int) + (replacement ? 1 : 0))
++        try exact(Array(try callbacks().prefix(before.count)), before)
++        try exact(s06Business(try callbacks()), []); state("0", 0)
++        try exact(try callbacks().filter { $0["kind"] as? String == "raw" }, rawBefore)
++        XCTAssertFalse(app.keyboards.firstMatch.exists)
++        try record("S06-" + suffix + "-retired")
++        afterInterval()
++        try exact(s06Business(try callbacks()), []); state("0", 0)
++        XCTAssertFalse(app.keyboards.firstMatch.exists)
++        if !replacement {
++            XCTAssertFalse(editor().exists)
++            tap("Remove or reinsert stepper editor")
++            XCTAssertTrue(editor().waitForExistence(timeout: 10))
++        }
++        try exact(try s06Configuration()["generation"], originalGeneration + 1)
++        try exact(try s06Configuration()["mounted"], true)
++        XCTAssertEqual(editor().value as? String, "0")
++        let newRefs = try s06Refs()
++        try exact(newRefs["attached"], true)
++        try exact(newRefs["attachments"], try XCTUnwrap(originalRefs["attachments"] as? Int) + 1)
++        try exact(newRefs["detachments"], try XCTUnwrap(originalRefs["detachments"] as? Int) + 1)
++        try exact(s06Business(try callbacks()), []); state("0", 0)
++        XCTAssertFalse(app.keyboards.firstMatch.exists)
++        afterInterval()
++        try exact(s06Business(try callbacks()), []); state("0", 0)
++        try exact(try callbacks().filter { $0["kind"] as? String == "raw" }, rawBefore)
++        try exact(Array(try callbacks().prefix(before.count)), before)
++        XCTAssertEqual(editor().value as? String, "0")
++        XCTAssertFalse(app.keyboards.firstMatch.exists)
++        try record("S06-" + suffix + "-new-original")
++        // A new-generation positive control must not be mistaken for a late old-generation callback.
++        tap("Increase controlled quantity")
++        try exact(requestValues(), [0.1]); state("0.1", 1)
++        let requests = try callbacks().filter { $0["kind"] as? String == "request" }
++        try exact(requests.map { $0["generation"]! }, [originalGeneration + 1])
++        try record("S06-" + suffix + "-new-generation-control")
++    }
++    func testS06EditorRemoval() throws { try s06EditorRetirement(false) }
++    func testS06EditorReplacement() throws { try s06EditorRetirement(true) }
++
+     func testS06ObserveCoordinatorWholeSceneRetirement() throws {
+-        // Coordinator performs the admitted concurrent input + Reset/reentry before this post-action observer.
+-        // A completed synchronous press followed by Reset cannot satisfy pending-work admission.
++        // Coordinator performs genuine pending input + Reset/reentry before this post-action observer.
++        // Pending work, actual native detach/currentness and drain remain independent native proof.
++        try s06PendingAdmission("whole-scene-unmount")
+         let expectedOwner = try XCTUnwrap(ProcessInfo.processInfo.environment["CODON_STEPPER_RETIRED_OWNER"])
+         let witness = try XCTUnwrap(ProcessInfo.processInfo.environment["CODON_STEPPER_RETIREMENT_RECEIPT_SHA256"])
+         XCTAssertNotNil(witness.range(of: "^[0-9a-f]{64}$", options: .regularExpression))
+         tap("Read stepper scene teardown observation")
+         let before = try XCTUnwrap(try json("stepper-teardown") as? [String: Any])
+         try exact(before["owner"], expectedOwner); try exact(before["unmounted"], true)
+-        let rows = try XCTUnwrap(before["callbacks"] as? [[String: Any]])
+-        let business = Set(["request", "form:submit", "form:reset", "form:result"])
+-        XCTAssertTrue(rows.filter { $0["afterUnmount"] as? Bool == true && business.contains($0["kind"] as? String ?? "") }.isEmpty)
+-        state("0", 0); XCTAssertFalse(app.keyboards.firstMatch.exists)
++        let beforeRows = try XCTUnwrap(before["callbacks"] as? [[String: Any]])
++        XCTAssertTrue(beforeRows.filter { $0["afterUnmount"] as? Bool == true && !s06Business([$0]).isEmpty }.isEmpty)
++        try exact(try s06Configuration()["generation"], 0)
++        try exact(try s06Configuration()["mounted"], true)
++        try exact(try s06Refs()["attached"], true)
++        try exact(requestValues(), []); state("0", 0)
++        XCTAssertEqual(editor().value as? String, "0")
++        XCTAssertFalse(app.keyboards.firstMatch.exists)
++        try record("S06-retired-owner-before-observation")
+         afterInterval(); tap("Read stepper scene teardown observation")
+-        try exact(try json("stepper-teardown"), before)
+-        state("0", 0); XCTAssertFalse(app.keyboards.firstMatch.exists)
++        let after = try XCTUnwrap(try json("stepper-teardown") as? [String: Any])
++        let afterRows = try XCTUnwrap(after["callbacks"] as? [[String: Any]])
++        try exact(after["owner"], expectedOwner); try exact(after["unmounted"], true)
++        try exact(Array(afterRows.prefix(beforeRows.count)), beforeRows)
++        XCTAssertTrue(afterRows.filter { $0["afterUnmount"] as? Bool == true && !s06Business([$0]).isEmpty }.isEmpty)
++        // Preserve every terminal native observation; coordinator adjudicates it against the genuine native order.
++        // An unchanged capture or1500ms silence is not an SDK retirement/drain acknowledgment.
++        try exact(requestValues(), []); state("0", 0)
++        XCTAssertFalse(app.keyboards.firstMatch.exists)
+         try record("S06-retired-owner-post-action")
++        tap("Increase controlled quantity")
++        try exact(requestValues(), [0.1]); state("0.1", 1)
++        tap("Read stepper scene teardown observation")
++        let isolated = try XCTUnwrap(try json("stepper-teardown") as? [String: Any])
++        let isolatedRows = try XCTUnwrap(isolated["callbacks"] as? [[String: Any]])
++        try exact(isolated["owner"], expectedOwner)
++        try exact(Array(isolatedRows.prefix(afterRows.count)), afterRows)
++        XCTAssertTrue(isolatedRows.filter { $0["afterUnmount"] as? Bool == true && !s06Business([$0]).isEmpty }.isEmpty)
++        try record("S06-new-scene-isolated-control")
+     }
+ }
