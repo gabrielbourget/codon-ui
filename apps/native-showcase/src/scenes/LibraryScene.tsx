@@ -9,11 +9,12 @@ import {
   Button,
   CarouselCloseButton,
   NativeFocusView,
-  PlaceholderText,
   Text,
   useNativeTheme,
   type TNativeButtonProps,
 } from "@codon-ui/react-native"
+
+import { PlaceholderG02Fixture } from "./PlaceholderG02Fixture"
 
 type TButtonPressEvent = Parameters<NonNullable<TNativeButtonProps["onPress"]>>[0]
 type TButtonReceipt = { sequence: number; kind: string; receivedAt: number; data: unknown }
@@ -267,15 +268,14 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
       <Text>
         Parent text with <Text fontWeight="bold">nested bold content</Text> and inherited foreground.
       </Text>
-      <PlaceholderText
-        testID="library-placeholder"
+      <PlaceholderG02Fixture
         align={placeholderCentered ? "center" : "left"}
-        onPress={increment}
+        increment={increment}
         customStyles={placeholderCustom ? [styles.placeholderCustom, { paddingVertical: 4 }] : undefined}
         style={placeholderFinal ? [styles.placeholderFinal] : undefined}
       >
         {placeholderEmpty ? "" : "Choose an item"}
-      </PlaceholderText>
+      </PlaceholderG02Fixture>
       <Text testID="library-release">Last release: {lastRelease}</Text>
       <Button
         ref={bindButton}
