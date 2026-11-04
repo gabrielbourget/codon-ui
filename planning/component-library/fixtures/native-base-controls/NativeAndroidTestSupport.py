@@ -63,10 +63,11 @@ def stop_owned_process(process):
             os.killpg(process.pid, signal.SIGTERM)
         except ProcessLookupError:
             pass
-        until = time.monotonic() + 3
-        while group_present(process) and time.monotonic() < until:
-            process.poll()
-            time.sleep(0.02)
+        # Wait for the owned leader to become reapable before probing its exiting group.
+        try:
+            process.wait(timeout=3)
+        except subprocess.TimeoutExpired:
+            pass
         if group_present(process):
             try:
                 os.killpg(process.pid, signal.SIGKILL)

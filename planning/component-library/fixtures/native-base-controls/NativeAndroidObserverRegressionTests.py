@@ -12,7 +12,7 @@ from unittest.mock import patch
 
 
 root = Path(__file__).parent
-from NativeAndroidTestSupport import ClearSceneInterval, bounds, copy_node, focused_logcat_command, measured_bounds, parse_hierarchy, recorded_command, selected_scene
+from NativeAndroidTestSupport import ClearSceneInterval, bounds, copy_node, focused_logcat_command, measured_bounds, parse_hierarchy, recorded_command, selected_scene, stop_owned_process
 
 namespace = {"bounds": bounds, "copy_node": copy_node, "measured_bounds": measured_bounds}
 data = json.loads((root / "NativeAndroidObserverRegressions.json").read_text())
@@ -109,5 +109,45 @@ transport = json.loads((receipts / "transport-failure.json").read_text())
 assert transport["status"] == "FAILED_TRANSPORT" and transport["ownedGroupGone"] is True
 assert "deliberate observer transport failure" in transport["error"]
 checks += 1
+
+class ExitingLeader:
+    pid = 777777
+    reaped = False
+    term_sent = False
+
+    def poll(self):
+        return -15 if self.reaped else None
+
+    def wait(self, timeout):
+        assert self.term_sent and timeout == 3
+        self.reaped = True
+        return -15
+
+
+leader = ExitingLeader()
+def exiting_group_probe(pid, signal_number):
+    assert pid == leader.pid
+    if signal_number == 15:
+        leader.term_sent = True
+    elif signal_number == 0:
+        if leader.term_sent and not leader.reaped:
+            raise PermissionError("Exiting owned group cannot be probed before reaping")
+        if leader.reaped:
+            raise ProcessLookupError()
+    else:
+        raise AssertionError("Unexpected signal")
+
+
+with patch("NativeAndroidTestSupport.os.killpg", side_effect=exiting_group_probe):
+    assert stop_owned_process(leader) is True and leader.reaped
+checks += 1
+
+with patch("NativeAndroidTestSupport.os.killpg", side_effect=PermissionError("Denied group probe")):
+    try:
+        stop_owned_process(ExitingLeader())
+    except PermissionError:
+        checks += 1
+    else:
+        raise AssertionError("Permission denial was hidden")
 
 print(f"PASS: {checks} observer/admission/owned-command checks; no guest or native actions; receipts={receipts}")
