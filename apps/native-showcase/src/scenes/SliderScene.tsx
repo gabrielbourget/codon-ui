@@ -53,6 +53,8 @@ export const SliderScene = () => {
   const [thumbGeometry, setThumbGeometry] = useState("unmeasured")
   const [rootWindowFrame, setRootWindowFrame] = useState("unmeasured")
   const [nativeTouches, setNativeTouches] = useState<readonly string[]>([])
+  const [droppedLayoutReceipts, setDroppedLayoutReceipts] = useState(0)
+  const [scalarLayoutTop, setScalarLayoutTop] = useState(0)
   const invalidateMeasurement = useCallback(() => {
     measureRevision.current += 1
     for (const cancel of [...geometryCancellations.current]) cancel()
@@ -73,9 +75,10 @@ export const SliderScene = () => {
       rootTag: findNodeHandle(scalarRoot.current),
       ...receipt,
     })
-    setNativeTouches((old) => [...old.slice(-15), encoded])
+    if (touchSequence.current > 512) setDroppedLayoutReceipts(touchSequence.current - 512)
+    setNativeTouches((old) => [...old.slice(-511), encoded])
   }
-  const recordTouch = (phase: "start" | "end" | "cancel", event: GestureResponderEvent) => {
+  const recordTouch = (phase: "start" | "move" | "end" | "cancel", event: GestureResponderEvent) => {
     const { target, identifier, pageX, pageY, locationX, locationY, timestamp } = event.nativeEvent
     recordLayoutReceipt({ kind: "touch", phase, target, identifier, pageX, pageY, locationX, locationY, timestamp })
   }
@@ -165,6 +168,7 @@ export const SliderScene = () => {
           setRequests(0)
           setEnds(0)
           setNativeTouches([])
+          setDroppedLayoutReceipts(0)
           touchSequence.current = 0
           selectLayoutPreset("baseline")
         })}
@@ -192,6 +196,7 @@ export const SliderScene = () => {
         testID="slider-scalar"
         customThumbStyles={layoutPreset ? layoutThumbStyle(layoutPreset) : common.customThumbStyles}
         onTouchStart={(event) => recordTouch("start", event)}
+        onTouchMove={(event) => recordTouch("move", event)}
         onTouchEnd={(event) => recordTouch("end", event)}
         onTouchCancel={(event) => recordTouch("cancel", event)}
         accessibilityLabel="Scalar adjustment"
@@ -210,10 +215,39 @@ export const SliderScene = () => {
           setEnds((count) => count + 1)
         }}
         onLayout={({ nativeEvent: { layout } }) => {
+          setScalarLayoutTop(layout.y)
           const next = `${Number(layout.width.toFixed(3))} x ${Number(layout.height.toFixed(3))}`
           setFrame((old) => (old === next ? old : next))
         }}
       />
+      {layoutPreset && (
+        <Text
+          testID="slider-layout-held-json"
+          pointerEvents="none"
+          accessibilityLabel={JSON.stringify({
+            preset: layoutPreset,
+            rootTag: findNodeHandle(scalarRoot.current),
+            scalar: value,
+            requests,
+            ends,
+            dropped: droppedLayoutReceipts,
+            receipts: nativeTouches.map((receipt) => JSON.parse(receipt)),
+          })}
+          style={{
+            position: "absolute",
+            top: scalarLayoutTop - 28,
+            left: 0,
+            right: 0,
+            zIndex: 10,
+            fontSize: 10,
+            backgroundColor: theme.colors.background,
+          }}
+        >
+          Held witness: {layoutPreset}; scalar {value}; requests {requests}; ends {ends}; dropped{" "}
+          {droppedLayoutReceipts}.{"\n"}
+          {nativeTouches.length ? nativeTouches[nativeTouches.length - 1] : "No native touch yet."}
+        </Text>
+      )}
       <Slider
         {...common}
         testID="slider-range"

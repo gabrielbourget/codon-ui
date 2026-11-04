@@ -124,10 +124,26 @@ it("records original-root measurements and actual callback arguments while rejec
   await fireEvent(root, "touchStart", { nativeEvent })
   expect(witness()).toHaveTextContent(/"kind":"touch","phase":"start","target":901,"identifier":7/)
   expect(screen.getByTestId("slider-state")).toHaveTextContent(/Requests: 0.*Ends: 0/)
+  const held = () => JSON.parse(screen.getByTestId("slider-layout-held-json").props.accessibilityLabel)
+  expect(held()).toMatchObject({ preset: "translated", scalar: 0.5, requests: 0, ends: 0, dropped: 0 })
+  await fireEvent(root, "touchMove", { nativeEvent: { ...nativeEvent, pageX: 202.25, timestamp: 123.5 } })
+  expect(held().receipts).toEqual([
+    expect.objectContaining({ sequence: 1, phase: "start", target: 901, identifier: 7, pageX: 201.25, timestamp: 123 }),
+    expect.objectContaining({
+      sequence: 2,
+      phase: "move",
+      target: 901,
+      identifier: 7,
+      pageX: 202.25,
+      timestamp: 123.5,
+    }),
+  ])
+  expect(held()).toMatchObject({ scalar: 0.5, requests: 0, ends: 0, dropped: 0 })
   await fireEvent(scalar(), "accessibilityAction", { nativeEvent: { actionName: "increment" } })
-  expect(witness()).toHaveTextContent(/"sequence":2.*"kind":"request","value":0.55/)
-  expect(witness()).toHaveTextContent(/"sequence":3.*"kind":"change-end","value":0.55/)
+  expect(witness()).toHaveTextContent(/"sequence":3.*"kind":"request","value":0.55/)
+  expect(witness()).toHaveTextContent(/"sequence":4.*"kind":"change-end","value":0.55/)
   expect(screen.getByTestId("slider-state")).toHaveTextContent(/Scalar: 0.55.*Requests: 1.*Ends: 1/)
   await fireEvent(root, "touchEnd", { nativeEvent: { ...nativeEvent, timestamp: 124 } })
-  expect(witness()).toHaveTextContent(/"sequence":4.*"kind":"touch","phase":"end"/)
+  expect(witness()).toHaveTextContent(/"sequence":5.*"kind":"touch","phase":"end"/)
+  expect(held().receipts[4]).toMatchObject({ phase: "end", target: 901, identifier: 7, timestamp: 124 })
 })
