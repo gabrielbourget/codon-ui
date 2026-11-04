@@ -1,0 +1,671 @@
+{
+  "cell": "CAT.text-area.G02",
+  "originalOracles": "roadmap3.1.2/3.2.1-6;roadmap3.5.72;native-base-controls/text-area-contract.capabilities.json;FIN-EDIT01",
+  "sceneSHA256": "4e3f0ef02ec91201f51aa22b9759646f64a8b343ce34cc15d2523d96f18ff032",
+  "preparedMethodCount": 56,
+  "cases": [
+    {
+      "method": "testS01Initial",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S01.initial-empty-and-default",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs.",
+      "oneAction": "Observe actual initial editors.",
+      "nativeOracle": "draft and submit empty; uncontrolled long notes exact16-line default; actual96-unit draft height.",
+      "ownerOracle": "Empty controlled owners, zero submit count.",
+      "callbackOracle": "No raw/native-change/submit callback from initialization.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS01OwnerText",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S01.programmatic-owner-text",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs.",
+      "oneAction": "G02 set multiline owner text.",
+      "nativeOracle": "Actual draft/submit show exact requested owner string; original refs retained.",
+      "ownerOracle": "Exactly empty string distinct from undefined, or exact bilingual string.",
+      "callbackOracle": "No edit callback manufactured by programmatic change.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS01OwnerEmpty",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S01.programmatic-owner-empty",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set initial bilingual owner text.",
+      "oneAction": "G02 set multiline owner empty.",
+      "nativeOracle": "Actual draft/submit show exact requested owner string; original refs retained.",
+      "ownerOracle": "Exactly empty string distinct from undefined, or exact bilingual string.",
+      "callbackOracle": "No edit callback manufactured by programmatic change.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS01RepeatedVeto",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S01.controlled-repeated-veto",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner text and enable caller veto.",
+      "oneAction": "Two genuine single-character replacement requests X then Y.",
+      "nativeOracle": "Each native field returns to the held bilingual owner; keyboard remains active.",
+      "ownerOracle": "Owner never echoes either request.",
+      "callbackOracle": "Each last native change/raw pair is the genuine X/Y request, once; original refs retained.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS01DefaultOnce",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S01.uncontrolled-default-initializes-once",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs.",
+      "oneAction": "G02 next long default without remount.",
+      "nativeOracle": "Actual long native text stays original LONG_NOTES, not new prop.",
+      "ownerOracle": "Long field remains uncontrolled; config changes default only.",
+      "callbackOracle": "No raw/change; same original refs.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS01DefaultRemountReplacement",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S01.uncontrolled-default-remount-replacement",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Advance long default 1 times.",
+      "oneAction": "Explicitly remount editors.",
+      "nativeOracle": "Actual long editor initializes from current default; empty and undefined both native empty but distinct config.",
+      "ownerOracle": "Controlled owners stay empty.",
+      "callbackOracle": "No fabricated raw/change from remount; refs detach/reattach once.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS01DefaultRemountEmpty",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S01.uncontrolled-default-remount-empty",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Advance long default 2 times.",
+      "oneAction": "Explicitly remount editors.",
+      "nativeOracle": "Actual long editor initializes from current default; empty and undefined both native empty but distinct config.",
+      "ownerOracle": "Controlled owners stay empty.",
+      "callbackOracle": "No fabricated raw/change from remount; refs detach/reattach once.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS01DefaultRemountUndefined",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S01.uncontrolled-default-remount-undefined",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Advance long default 3 times.",
+      "oneAction": "Explicitly remount editors.",
+      "nativeOracle": "Actual long editor initializes from current default; empty and undefined both native empty but distinct config.",
+      "ownerOracle": "Controlled owners stay empty.",
+      "callbackOracle": "No fabricated raw/change from remount; refs detach/reattach once.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS03FreshUnpaced",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S03.fresh-unpaced-multiline",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs.",
+      "oneAction": "One unpaced typeText of original bilingual multiline string.",
+      "nativeOracle": "Exact intended native string while focused; keyboard active.",
+      "ownerOracle": "Draft owner exactly intended string.",
+      "callbackOracle": "Last genuine native-change and raw agree exactly, in native-change/raw order; event target correlates current ref.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS03ReturnNewline",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S03.default-return-newline",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Type A into default draft.",
+      "oneAction": "One actual Return via typeText newline.",
+      "nativeOracle": "Actual native text A\\n and keyboard remains active.",
+      "ownerOracle": "Draft exactly A\\n.",
+      "callbackOracle": "No native submit callback; genuine change/raw agreement.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS03BlurAndSubmit",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S03.submit-mode-blurAndSubmit",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Select explicit submit mode 0, type Bonjour final.",
+      "oneAction": "One actual Return.",
+      "nativeOracle": "Final submit text exact; blurAndSubmit closes keyboard; submit keeps keyboard; newline appends newline without submission.",
+      "ownerOracle": "Final controlled/submitted strings and count exact.",
+      "callbackOracle": "Final native submit payload exact once where applicable; final end payload exact after blur.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS03SubmitWithoutBlur",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S03.submit-mode-submit",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Select explicit submit mode 1, type Bonjour final.",
+      "oneAction": "One actual Return.",
+      "nativeOracle": "Final submit text exact; blurAndSubmit closes keyboard; submit keeps keyboard; newline appends newline without submission.",
+      "ownerOracle": "Final controlled/submitted strings and count exact.",
+      "callbackOracle": "Final native submit payload exact once where applicable; final end payload exact after blur.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS03ExplicitNewline",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S03.submit-mode-newline",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Select explicit submit mode 2, type Bonjour final.",
+      "oneAction": "One actual Return.",
+      "nativeOracle": "Final submit text exact; blurAndSubmit closes keyboard; submit keeps keyboard; newline appends newline without submission.",
+      "ownerOracle": "Final controlled/submitted strings and count exact.",
+      "callbackOracle": "Final native submit payload exact once where applicable; final end payload exact after blur.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS03SelectionCorrection",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S03.select-all-correction",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner.",
+      "oneAction": "Genuine Cmd+A then one unpaced correction.",
+      "nativeOracle": "Actual selection range covers full prior UTF16 string; corrected native value exact.",
+      "ownerOracle": "Corrected owner exact.",
+      "callbackOracle": "Genuine selection and native/raw callbacks, no synthetic selection assignment.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS03DeleteToEmpty",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S03.actual-delete-to-empty",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner and focus the original draft; select all through actual Cmd+A.",
+      "oneAction": "One actual Delete key.",
+      "nativeOracle": "Exact empty native string while focused, keyboard remains active and original ref is retained.",
+      "ownerOracle": "Authoritative owner becomes empty string, distinct from absent value.",
+      "callbackOracle": "Genuine native-change/raw empty payload exactly once; no blur-only or programmatic-clear substitution.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS03GenuineCopyPaste",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S03.genuine-copy-paste",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Type bilingual notes, select all and copy with the real UIKit Cmd+C route; clear only through external owner action, then refocus.",
+      "oneAction": "One genuine UIKit Cmd+V.",
+      "nativeOracle": "Exact multiline pasted native text, focused keyboard and retained original ref.",
+      "ownerOracle": "Exact owner agreement.",
+      "callbackOracle": "One new actual native-change/raw paste result; no typeText substitution for paste.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS03InternalScroll",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S03.long-native-internal-scroll",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs.",
+      "oneAction": "One actual swipe within long editor.",
+      "nativeOracle": "Actual long offset.y>0; full text retained; bounded native96-unit editor.",
+      "ownerOracle": "No controlled owner mutation.",
+      "callbackOracle": "Genuine long native-scroll receipt, no raw/native-change from scrolling.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS02Disabled",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S02.guard-disabled",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Enable Disabled.",
+      "oneAction": "Real tap on the current field; read-only remains inspectable without entering native editing.",
+      "nativeOracle": "Disabled stays unfocused without keyboard; readOnly permits inspection without edit.",
+      "ownerOracle": "No mutation.",
+      "callbackOracle": "No raw/native-change; source-native focus observed only if permitted.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS02DisabledFalse",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S02.guard-disabled-explicit-false",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Enable then disable Disabled.",
+      "oneAction": "One unpaced X input after explicit false.",
+      "nativeOracle": "Editing restored on original native ref.",
+      "ownerOracle": "Owner X exactly.",
+      "callbackOracle": "Native/raw X once; no manufactured change from flag update.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS02ReadOnly",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S02.guard-readonly",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner text for read-only inspection. Enable ReadOnly.",
+      "oneAction": "Real tap on the current field; read-only remains inspectable without entering native editing.",
+      "nativeOracle": "Disabled stays unfocused without keyboard; readOnly permits inspection without edit.",
+      "ownerOracle": "No mutation.",
+      "callbackOracle": "No raw/native-change; source-native focus observed only if permitted.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS02ReadOnlyFalse",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S02.guard-readonly-explicit-false",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Enable then disable ReadOnly.",
+      "oneAction": "One unpaced X input after explicit false.",
+      "nativeOracle": "Editing restored on original native ref.",
+      "ownerOracle": "Owner X exactly.",
+      "callbackOracle": "Native/raw X once; no manufactured change from flag update.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS02CombinedGuards",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S02.guard-both-flags",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs.",
+      "oneAction": "Enable both flags; clear disabled while readOnly remains; finally clear readOnly.",
+      "nativeOracle": "Disabled semantics dominate; readOnly remains guarded; both false restore real input.",
+      "ownerOracle": "No premature mutation; final X only.",
+      "callbackOracle": "No raw/change until actual enabled input; no fabricated flag-change callbacks.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS05GeometryRound",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S05.geometry-round",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner; veto true; perform0 prior Next radio geometry activations.",
+      "oneAction": "Next radio geometry.",
+      "nativeOracle": "Same live original editor and exact owner text; zero dimensions are actually zero and restored externally before any touch requirement.",
+      "ownerOracle": "Held bilingual owner; no implicit echo.",
+      "callbackOracle": "No raw/native-change from presentation; exactly next real X request while veto holds owner; refs retained.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS05GeometryOrthogonal",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S05.geometry-orthogonal",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner; veto true; perform1 prior Next radio geometry activations.",
+      "oneAction": "Next radio geometry.",
+      "nativeOracle": "Same live original editor and exact owner text; zero dimensions are actually zero and restored externally before any touch requirement.",
+      "ownerOracle": "Held bilingual owner; no implicit echo.",
+      "callbackOracle": "No raw/native-change from presentation; exactly next real X request while veto holds owner; refs retained.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS05GeometryRounded",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S05.geometry-rounded",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner; veto true; perform2 prior Next radio geometry activations.",
+      "oneAction": "Next radio geometry.",
+      "nativeOracle": "Same live original editor and exact owner text; zero dimensions are actually zero and restored externally before any touch requirement.",
+      "ownerOracle": "Held bilingual owner; no implicit echo.",
+      "callbackOracle": "No raw/native-change from presentation; exactly next real X request while veto holds owner; refs retained.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS05SizeSmall",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S05.size-small",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner; veto true; perform0 prior G02 next multiline text size activations.",
+      "oneAction": "G02 next multiline text size.",
+      "nativeOracle": "Same live original editor and exact owner text; zero dimensions are actually zero and restored externally before any touch requirement.",
+      "ownerOracle": "Held bilingual owner; no implicit echo.",
+      "callbackOracle": "No raw/native-change from presentation; exactly next real X request while veto holds owner; refs retained.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS05SizeLarge",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S05.size-large",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner; veto true; perform1 prior G02 next multiline text size activations.",
+      "oneAction": "G02 next multiline text size.",
+      "nativeOracle": "Same live original editor and exact owner text; zero dimensions are actually zero and restored externally before any touch requirement.",
+      "ownerOracle": "Held bilingual owner; no implicit echo.",
+      "callbackOracle": "No raw/native-change from presentation; exactly next real X request while veto holds owner; refs retained.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS05SizeMedium",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S05.size-medium",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner; veto true; perform2 prior G02 next multiline text size activations.",
+      "oneAction": "G02 next multiline text size.",
+      "nativeOracle": "Same live original editor and exact owner text; zero dimensions are actually zero and restored externally before any touch requirement.",
+      "ownerOracle": "Held bilingual owner; no implicit echo.",
+      "callbackOracle": "No raw/native-change from presentation; exactly next real X request while veto holds owner; refs retained.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS05Status1",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S05.status-1",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner; veto true; perform0 prior G02 next multiline status activations.",
+      "oneAction": "G02 next multiline status.",
+      "nativeOracle": "Same live original editor and exact owner text; zero dimensions are actually zero and restored externally before any touch requirement.",
+      "ownerOracle": "Held bilingual owner; no implicit echo.",
+      "callbackOracle": "No raw/native-change from presentation; exactly next real X request while veto holds owner; refs retained.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS05Status2",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S05.status-2",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner; veto true; perform1 prior G02 next multiline status activations.",
+      "oneAction": "G02 next multiline status.",
+      "nativeOracle": "Same live original editor and exact owner text; zero dimensions are actually zero and restored externally before any touch requirement.",
+      "ownerOracle": "Held bilingual owner; no implicit echo.",
+      "callbackOracle": "No raw/native-change from presentation; exactly next real X request while veto holds owner; refs retained.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS05Status3",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S05.status-3",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner; veto true; perform2 prior G02 next multiline status activations.",
+      "oneAction": "G02 next multiline status.",
+      "nativeOracle": "Same live original editor and exact owner text; zero dimensions are actually zero and restored externally before any touch requirement.",
+      "ownerOracle": "Held bilingual owner; no implicit echo.",
+      "callbackOracle": "No raw/native-change from presentation; exactly next real X request while veto holds owner; refs retained.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS05Status4",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S05.status-4",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner; veto true; perform3 prior G02 next multiline status activations.",
+      "oneAction": "G02 next multiline status.",
+      "nativeOracle": "Same live original editor and exact owner text; zero dimensions are actually zero and restored externally before any touch requirement.",
+      "ownerOracle": "Held bilingual owner; no implicit echo.",
+      "callbackOracle": "No raw/native-change from presentation; exactly next real X request while veto holds owner; refs retained.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS05Status5",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S05.status-5",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner; veto true; perform4 prior G02 next multiline status activations.",
+      "oneAction": "G02 next multiline status.",
+      "nativeOracle": "Same live original editor and exact owner text; zero dimensions are actually zero and restored externally before any touch requirement.",
+      "ownerOracle": "Held bilingual owner; no implicit echo.",
+      "callbackOracle": "No raw/native-change from presentation; exactly next real X request while veto holds owner; refs retained.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS05Status6",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S05.status-6",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner; veto true; perform5 prior G02 next multiline status activations.",
+      "oneAction": "G02 next multiline status.",
+      "nativeOracle": "Same live original editor and exact owner text; zero dimensions are actually zero and restored externally before any touch requirement.",
+      "ownerOracle": "Held bilingual owner; no implicit echo.",
+      "callbackOracle": "No raw/native-change from presentation; exactly next real X request while veto holds owner; refs retained.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS05Status7",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S05.status-7",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner; veto true; perform6 prior G02 next multiline status activations.",
+      "oneAction": "G02 next multiline status.",
+      "nativeOracle": "Same live original editor and exact owner text; zero dimensions are actually zero and restored externally before any touch requirement.",
+      "ownerOracle": "Held bilingual owner; no implicit echo.",
+      "callbackOracle": "No raw/native-change from presentation; exactly next real X request while veto holds owner; refs retained.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS05Status0",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S05.status-0",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner; veto true; perform7 prior G02 next multiline status activations.",
+      "oneAction": "G02 next multiline status.",
+      "nativeOracle": "Same live original editor and exact owner text; zero dimensions are actually zero and restored externally before any touch requirement.",
+      "ownerOracle": "Held bilingual owner; no implicit echo.",
+      "callbackOracle": "No raw/native-change from presentation; exactly next real X request while veto holds owner; refs retained.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS05StylesTrue",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S05.styles-true",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner; veto true; perform0 prior Toggle multiline styles activations.",
+      "oneAction": "Toggle multiline styles.",
+      "nativeOracle": "Same live original editor and exact owner text; zero dimensions are actually zero and restored externally before any touch requirement.",
+      "ownerOracle": "Held bilingual owner; no implicit echo.",
+      "callbackOracle": "No raw/native-change from presentation; exactly next real X request while veto holds owner; refs retained.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS05StylesFalse",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S05.styles-false",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner; veto true; perform1 prior Toggle multiline styles activations.",
+      "oneAction": "Toggle multiline styles.",
+      "nativeOracle": "Same live original editor and exact owner text; zero dimensions are actually zero and restored externally before any touch requirement.",
+      "ownerOracle": "Held bilingual owner; no implicit echo.",
+      "callbackOracle": "No raw/native-change from presentation; exactly next real X request while veto holds owner; refs retained.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS05Height144",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S05.height-144",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner; veto true; perform0 prior G02 next multiline height activations.",
+      "oneAction": "G02 next multiline height.",
+      "nativeOracle": "Same live original editor and exact owner text; zero dimensions are actually zero and restored externally before any touch requirement.",
+      "ownerOracle": "Held bilingual owner; no implicit echo.",
+      "callbackOracle": "No raw/native-change from presentation; exactly next real X request while veto holds owner; refs retained.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS05Height0",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S05.height-0",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner; veto true; perform1 prior G02 next multiline height activations.",
+      "oneAction": "G02 next multiline height.",
+      "nativeOracle": "Same live original editor and exact owner text; zero dimensions are actually zero and restored externally before any touch requirement.",
+      "ownerOracle": "Held bilingual owner; no implicit echo.",
+      "callbackOracle": "No raw/native-change from presentation; exactly next real X request while veto holds owner; refs retained.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS05Height96",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S05.height-96",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner; veto true; perform2 prior G02 next multiline height activations.",
+      "oneAction": "G02 next multiline height.",
+      "nativeOracle": "Same live original editor and exact owner text; zero dimensions are actually zero and restored externally before any touch requirement.",
+      "ownerOracle": "Held bilingual owner; no implicit echo.",
+      "callbackOracle": "No raw/native-change from presentation; exactly next real X request while veto holds owner; refs retained.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS05Width0",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S05.width-0",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner; veto true; perform0 prior G02 next multiline width activations.",
+      "oneAction": "G02 next multiline width.",
+      "nativeOracle": "Same live original editor and exact owner text; zero dimensions are actually zero and restored externally before any touch requirement.",
+      "ownerOracle": "Held bilingual owner; no implicit echo.",
+      "callbackOracle": "No raw/native-change from presentation; exactly next real X request while veto holds owner; refs retained.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS05WidthUndefined",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S05.width-undefined",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner; veto true; perform1 prior G02 next multiline width activations.",
+      "oneAction": "G02 next multiline width.",
+      "nativeOracle": "Same live original editor and exact owner text; zero dimensions are actually zero and restored externally before any touch requirement.",
+      "ownerOracle": "Held bilingual owner; no implicit echo.",
+      "callbackOracle": "No raw/native-change from presentation; exactly next real X request while veto holds owner; refs retained.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS05Width100Percent",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S05.width-100percent",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner; veto true; perform2 prior G02 next multiline width activations.",
+      "oneAction": "G02 next multiline width.",
+      "nativeOracle": "Same live original editor and exact owner text; zero dimensions are actually zero and restored externally before any touch requirement.",
+      "ownerOracle": "Held bilingual owner; no implicit echo.",
+      "callbackOracle": "No raw/native-change from presentation; exactly next real X request while veto holds owner; refs retained.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS05FocusStyleFalse",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S05.focusstyle-false",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner; veto true; perform0 prior G02 toggle multiline focus style activations.",
+      "oneAction": "G02 toggle multiline focus style.",
+      "nativeOracle": "Same live original editor and exact owner text; zero dimensions are actually zero and restored externally before any touch requirement.",
+      "ownerOracle": "Held bilingual owner; no implicit echo.",
+      "callbackOracle": "No raw/native-change from presentation; exactly next real X request while veto holds owner; refs retained.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS05FocusStyleTrue",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S05.focusstyle-true",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner; veto true; perform1 prior G02 toggle multiline focus style activations.",
+      "oneAction": "G02 toggle multiline focus style.",
+      "nativeOracle": "Same live original editor and exact owner text; zero dimensions are actually zero and restored externally before any touch requirement.",
+      "ownerOracle": "Held bilingual owner; no implicit echo.",
+      "callbackOracle": "No raw/native-change from presentation; exactly next real X request while veto holds owner; refs retained.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS05FocusOffsetFalse",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S05.focusoffset-false",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner; veto true; perform0 prior G02 toggle multiline focus offset activations.",
+      "oneAction": "G02 toggle multiline focus offset.",
+      "nativeOracle": "Same live original editor and exact owner text; zero dimensions are actually zero and restored externally before any touch requirement.",
+      "ownerOracle": "Held bilingual owner; no implicit echo.",
+      "callbackOracle": "No raw/native-change from presentation; exactly next real X request while veto holds owner; refs retained.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS05FocusOffsetTrue",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S05.focusoffset-true",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner; veto true; perform1 prior G02 toggle multiline focus offset activations.",
+      "oneAction": "G02 toggle multiline focus offset.",
+      "nativeOracle": "Same live original editor and exact owner text; zero dimensions are actually zero and restored externally before any touch requirement.",
+      "ownerOracle": "Held bilingual owner; no implicit echo.",
+      "callbackOracle": "No raw/native-change from presentation; exactly next real X request while veto holds owner; refs retained.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS05RendererTrue",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S05.renderer-true",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner; veto true; perform0 prior G02 toggle multiline renderer activations.",
+      "oneAction": "G02 toggle multiline renderer.",
+      "nativeOracle": "Same live original editor and exact owner text; zero dimensions are actually zero and restored externally before any touch requirement.",
+      "ownerOracle": "Held bilingual owner; no implicit echo.",
+      "callbackOracle": "No raw/native-change from presentation; exactly next real X request while veto holds owner; refs retained.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS05RendererFalse",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S05.renderer-false",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner; veto true; perform1 prior G02 toggle multiline renderer activations.",
+      "oneAction": "G02 toggle multiline renderer.",
+      "nativeOracle": "Same live original editor and exact owner text; zero dimensions are actually zero and restored externally before any touch requirement.",
+      "ownerOracle": "Held bilingual owner; no implicit echo.",
+      "callbackOracle": "No raw/native-change from presentation; exactly next real X request while veto holds owner; refs retained.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS05ContextTheme",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S05.context-theme",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner and veto; preserve live original ref/config.",
+      "oneAction": "Dark theme / Vertical blocked region / portrait-landscape-portrait as named.",
+      "nativeOracle": "Same live owner/editor and held text; actual context change; keyboard-active next local action works first time.",
+      "ownerOracle": "Held bilingual owner persists without app recreation.",
+      "callbackOracle": "No raw/change on context change; next X genuine request only; no remount.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS05ContextFixture",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S05.context-fixture",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner and veto; preserve live original ref/config.",
+      "oneAction": "Dark theme / Vertical blocked region / portrait-landscape-portrait as named.",
+      "nativeOracle": "Same live owner/editor and held text; actual context change; keyboard-active next local action works first time.",
+      "ownerOracle": "Held bilingual owner persists without app recreation.",
+      "callbackOracle": "No raw/change on context change; next X genuine request only; no remount.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS05ContextWindow",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S05.context-window",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner and veto; preserve live original ref/config.",
+      "oneAction": "Dark theme / Vertical blocked region / portrait-landscape-portrait as named.",
+      "nativeOracle": "Same live owner/editor and held text; actual context change; keyboard-active next local action works first time.",
+      "ownerOracle": "Held bilingual owner persists without app recreation.",
+      "callbackOracle": "No raw/change on context change; next X genuine request only; no remount.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS06RemoveReinsert",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S06.editor-remove-reinsert",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner; focus draft with local Remove action visible.",
+      "oneAction": "First keyboard-active local removal, then external reinsert.",
+      "nativeOracle": "All original editors retire; keyboard closes; reinserted fields are new refs and controlled owner is retained.",
+      "ownerOracle": "No phantom value or raw callback.",
+      "callbackOracle": "Exactly detached/attached ref boundary; no stale old-generation edit after boundary.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS06ExplicitRemount",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S06.editor-explicit-remount",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Set bilingual owner.",
+      "oneAction": "Explicit remount.",
+      "nativeOracle": "New actual refs; controlled owner retained, uncontrolled reinitialized.",
+      "ownerOracle": "No synthetic mutation.",
+      "callbackOracle": "No raw/native-change manufactured by remount.",
+      "status": "PREPARED_NOT_COMPILED_OR_INSTALLED",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json"
+    },
+    {
+      "method": "testS06ObserveSceneRetirement",
+      "caseKey": "CAT.text-area.<platform>.<profile>.S06.whole-scene-native-retirement",
+      "setup": "Fresh admitted Multiline/Radio scene; actual TextArea fields empty/empty/LONG_NOTES, veto false, disabled false, readOnly false, generation0, original native refs. Coordinator arms observation and admits pending original native edit before actual ancestor Reset/reentry.",
+      "oneAction": "Observe admitted old owner after native retirement ACK; no synchronous completed action substitute.",
+      "nativeOracle": "Old editor/window owner retired; next owner not focused by stale work.",
+      "ownerOracle": "Fresh next owner remains empty.",
+      "callbackOracle": "No old-owner input API callback after actual boundary; preserve independent native witness.",
+      "status": "PREPARED_POST_BOUNDARY_OBSERVER_NATIVE_ADMISSION_PENDING",
+      "authority": "roadmap3.1.2/3.2.1-6;FIN-EDIT01;original-oracles.json",
+      "externalAdmissionRequired": [
+        "CODON_TEXTAREA_RETIRED_OWNER",
+        "CODON_TEXTAREA_RETIREMENT_RECEIPT_SHA256"
+      ]
+    }
+  ],
+  "blockedNativeRoutes": [
+    {
+      "caseKey": "CAT.text-area.<platform>.<profile>.S03.ime-composition",
+      "status": "BLOCKED_ROUTE_NOT_ADMITTED",
+      "method": null,
+      "reason": "Original composition/selection ownership contract retained. Genuine active IME preedit/update/confirmation route and original event/ref witness must be admitted by coordinator; no JS packet, paced typing or fabricated composition event is supplied."
+    }
+  ],
+  "applicability": [
+    {
+      "scenario": "S04",
+      "verdict": "N/A",
+      "reason": "Standalone TextArea owns no collection or async selected key. Radio in shared scene is outside this cell."
+    },
+    {
+      "valueAxes": [
+        "null",
+        "false",
+        "numeric0",
+        "arrays"
+      ],
+      "verdict": "N/A",
+      "reason": "Original native TextInput value/defaultValue contract accepts string/undefined, not DOM number/array or null. Explicit empty string and default undefined are tested; false guards and zero dimensions are separately covered."
+    },
+    {
+      "hostFormAndDOMValidation": "N/A",
+      "reason": "Original approval delegates forms/schema/messages to host; no DOM form/validity API added."
+    },
+    {
+      "openCloseTriggerChains": "N/A",
+      "reason": "Standalone TextArea has no overlay/trigger. Native editor removal/ancestor teardown and valid explicit ref focus remain required."
+    }
+  ],
+  "qualification": "All cases remain OPEN/unexecuted. iOSpublic XCTest/caller receipts supplement independently admitted original-native event/ref/window/retirement evidence. Android/profile/physical legs remain required under original authority. No native build or guest action by lane.",
+  "batching": {
+    "selfContainedPublicOutcomeMethods": 55,
+    "postBoundaryObserverMethods": 1,
+    "IMEGenuineRouteBlocked": 1,
+    "compilerAndInstalledStatus": "UNEXECUTED",
+    "ordinarySelectors": "selected-methods.json",
+    "postBoundarySelectors": "retirement-methods.json",
+    "allSelectors": "all-methods.json"
+  }
+}
