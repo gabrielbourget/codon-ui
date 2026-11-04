@@ -1,15 +1,16 @@
 import { useLayoutEffect, useRef } from "react"
-import type { GestureResponderEvent, View, ViewProps } from "react-native"
+import { findNodeHandle, type GestureResponderEvent, type View, type ViewProps } from "react-native"
 
 import { closestSliderThumb } from "./model"
 import type { useNativeSliderState } from "./state"
 import type { TNativeSliderDirection, TNativeSliderOrientation } from "./types"
 
-type TPoint = { id: string; x: number; y: number }
+type TPoint = { id: string; x: number; y: number; target?: number }
 type TRect = { x: number; y: number; width: number; height: number }
 type TCycle = {
   token: number
   originalTrack: View
+  originalThumb?: { index: number; target: View }
   revision: number
   points: TPoint[]
   ended: boolean
@@ -24,7 +25,15 @@ const points = (event: GestureResponderEvent): TPoint[] => {
   const touches = event.nativeEvent.changedTouches?.length ? event.nativeEvent.changedTouches : [event.nativeEvent]
   return touches
     .filter((touch) => Number.isFinite(touch.pageX) && Number.isFinite(touch.pageY))
-    .map((touch) => ({ id: String(touch.identifier ?? 0), x: touch.pageX, y: touch.pageY }))
+    .map((touch) => {
+      const target = Number(touch.target)
+      return {
+        id: String(touch.identifier ?? 0),
+        x: touch.pageX,
+        y: touch.pageY,
+        target: Number.isSafeInteger(target) && target > 0 ? target : undefined,
+      }
+    })
 }
 const contains = (rect: TRect, point: TPoint) =>
   point.x >= rect.x && point.x <= rect.x + rect.width && point.y >= rect.y && point.y <= rect.y + rect.height
@@ -76,6 +85,11 @@ export const useNativeSliderGesture = (
     if (!mounted.current || cycles.current.get(id) !== cycle) return false
     if (cycle.originalTrack !== track.current) {
       cycles.current.delete(id)
+      return false
+    }
+    if (cycle.originalThumb && targets.current.get(cycle.originalThumb.index) !== cycle.originalThumb.target) {
+      cycles.current.delete(id)
+      if (cycle.index !== undefined) latest.current.numeric.cancelThumb(cycle.index)
       return false
     }
     const numeric = latest.current.numeric
@@ -130,6 +144,12 @@ export const useNativeSliderGesture = (
         thumbRevisions: new Map(latest.current.numeric.thumbRevisions.current),
       }
       cycles.current.set(point.id, cycle)
+      const nativeTrackHit = point.target !== undefined && point.target === findNodeHandle(cycle.originalTrack)
+      const nativeThumb =
+        point.target === undefined || nativeTrackHit
+          ? undefined
+          : [...targets.current].find(([, node]) => findNodeHandle(node) === point.target)
+      if (nativeThumb) cycle.originalThumb = { index: nativeThumb[0], target: nativeThumb[1] }
       const hits: { index: number; visual: boolean; rect: TRect }[] = []
       let remaining = targets.current.size + bodies.current.size + 1
       let measured: TRect | undefined
@@ -157,7 +177,8 @@ export const useNativeSliderGesture = (
                 Math.abs(position(b.rect) - (vertical ? point.y : point.x)) || b.index - a.index
             )
           })
-        const hit = visual[0] ?? targetHits[0]
+        // A transformed AABB can include points that the original native thumb never received.
+        const hit = nativeTrackHit ? undefined : nativeThumb ? { index: nativeThumb[0] } : (visual[0] ?? targetHits[0])
         const index = hit?.index ?? closestSliderThumb(state.values, state.getPercentValue(percent))
         if (
           index < 0 ||

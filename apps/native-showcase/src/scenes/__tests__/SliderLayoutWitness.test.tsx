@@ -177,6 +177,9 @@ it("records original-root measurements and actual callback arguments while rejec
   expect(witness()).toHaveTextContent(/"sequence":3.*"kind":"request","value":0.55/)
   expect(witness()).toHaveTextContent(/"sequence":4.*"kind":"change-end","value":0.55/)
   expect(screen.getByTestId("slider-state")).toHaveTextContent(/Scalar: 0.55.*Requests: 1.*Ends: 1/)
+  expect(screen.getByTestId("slider-layout-held-json")).toHaveTextContent(
+    /translated value0.55 req1 end1 drop0.*DOWN #1 root.*target901 id7.*page201.250,120.500 ts123/,
+  )
   await fireEvent(root, "touchEnd", { nativeEvent: { ...nativeEvent, timestamp: 124 } })
   expect(witness()).toHaveTextContent(/"sequence":5.*"kind":"touch","phase":"end"/)
   expect(held().receipts[4]).toMatchObject({ phase: "end", target: 901, identifier: 7, timestamp: 124 })

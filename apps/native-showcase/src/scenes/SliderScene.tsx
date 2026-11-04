@@ -151,6 +151,8 @@ export const SliderScene = () => {
       ? { width: 24, height: 24, minHeight: 0, borderRadius: 5, backgroundColor: theme.actions.primary.background }
       : undefined,
   }
+  const layoutReceipts = nativeTouches.map((receipt) => JSON.parse(receipt) as Record<string, unknown>)
+  const heldDown = layoutReceipts.find((receipt) => receipt.kind === "touch" && receipt.phase === "start")
   return (
     <View style={{ gap: 12 }}>
       <Text elementType="h2" variant="h3">
@@ -239,21 +241,25 @@ export const SliderScene = () => {
             requests,
             ends,
             dropped: droppedLayoutReceipts,
-            receipts: nativeTouches.map((receipt) => JSON.parse(receipt)),
+            receipts: layoutReceipts,
           })}
           style={{
             position: "absolute",
-            top: scalarLayoutTop - 28,
+            top: scalarLayoutTop - 32,
             left: 0,
             right: 0,
             zIndex: 10,
-            fontSize: 10,
+            height: 30,
+            fontSize: 9,
+            lineHeight: 10,
             backgroundColor: theme.colors.background,
           }}
         >
-          Held witness: {layoutPreset}; scalar {value}; requests {requests}; ends {ends}; dropped{" "}
-          {droppedLayoutReceipts}.{"\n"}
-          {nativeTouches.length ? nativeTouches[nativeTouches.length - 1] : "No native touch yet."}
+          {layoutPreset} value{value} req{requests} end{ends} drop{droppedLayoutReceipts}
+          {"\n"}
+          {heldDown
+            ? `DOWN #${heldDown.sequence} root${heldDown.rootTag} target${heldDown.target} id${heldDown.identifier}\npage${Number(heldDown.pageX).toFixed(3)},${Number(heldDown.pageY).toFixed(3)} ts${heldDown.timestamp}`
+            : "No native touch yet."}
         </Text>
       )}
       <Slider
