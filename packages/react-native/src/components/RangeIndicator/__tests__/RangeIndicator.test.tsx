@@ -459,6 +459,18 @@ it("switches progress between determinate and unknown state with no second acces
   expect(screen.getByTestId("linear-progress-bar", { includeHiddenElements: true })).toHaveStyle({ width: "75%" })
 })
 
+it("clears Android native value text when progress becomes indeterminate", async () => {
+  jest.replaceProperty(Platform, "OS", "android")
+  const { rerender } = await render(<LinearProgress aria-label="Transfer" value={25} />)
+  expect(screen.getByRole("progressbar")).toHaveAccessibilityValue({ now: 25, text: "25%" })
+  await rerender(<LinearProgress aria-label="Transfer" value={25} isIndeterminate />)
+  expect(screen.getByRole("progressbar").props.accessibilityValue).toEqual({ text: "" })
+  await rerender(<LinearProgress aria-label="Transfer" value={75} isIndeterminate />)
+  expect(screen.getByRole("progressbar").props.accessibilityValue).toEqual({ text: "" })
+  await rerender(<LinearProgress aria-label="Transfer" value={75} />)
+  expect(screen.getByRole("progressbar")).toHaveAccessibilityValue({ now: 75, text: "75%" })
+})
+
 it("keeps meter callback state determinate", async () => {
   const callback = jest.fn<ViewStyle, [TNativeMeterStyleState]>(() => ({}))
   await render(<Meter aria-label="Capacity" value={50} style={callback} />)
