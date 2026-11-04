@@ -57,6 +57,23 @@ final class SliderHitLayoutTrialTests: XCTestCase {
         XCTAssertEqual(XCTWaiter.wait(for: [gate], timeout: 10), .completed, message)
     }
 
+    private func revealScalarSetup() {
+        let scroll = app.scrollViews.firstMatch
+        XCTAssertTrue(scroll.exists)
+        for _ in 0..<12 {
+            let visible = scroll.frame.insetBy(dx: 4, dy: 20)
+            let scalar = node("slider-scalar").frame
+            let heldReceipt = node("slider-layout-held-json").frame
+            if visible.contains(scalar) && visible.contains(heldReceipt) { return }
+            // Scroll through the blank right gutter, outside the original slider's hit region.
+            let fromY: CGFloat = scalar.maxY > visible.maxY ? 0.75 : 0.25
+            let from = scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: fromY))
+            let to = scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: 0.50))
+            from.press(forDuration: 0.05, thenDragTo: to)
+        }
+        XCTFail("Original scalar and held receipt must be visible before measuring")
+    }
+
     private func number(_ row: [String: Any], _ key: String) throws -> Double {
         let value = try XCTUnwrap(row[key] as? NSNumber, "Missing numeric " + key).doubleValue
         XCTAssertTrue(value.isFinite, "Nonfinite " + key)
@@ -135,6 +152,7 @@ final class SliderHitLayoutTrialTests: XCTestCase {
         try exact(try state()["scalar"], 0.5)
         try exact(try state()["requests"], 0)
         try exact(try state()["ends"], 0)
+        revealScalarSetup()
         let baseline = try measure()
         tap("Use scalar layout translated")
         let translated = try measure()
