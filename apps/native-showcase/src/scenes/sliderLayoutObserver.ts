@@ -133,13 +133,17 @@ export const readSliderLayoutOriginalGeometry = async (root: View, token: TReadT
       finish(error instanceof Error ? error : failure(String(error)))
     }
   })
+  const originalsCurrent = current()
+  const currentViewport = originalsCurrent ? read() : null
   if (
-    !current() ||
-    JSON.stringify(read()) !== JSON.stringify(viewport) ||
+    !originalsCurrent ||
+    JSON.stringify(currentViewport) !== JSON.stringify(viewport) ||
     rootWindow.width !== viewport.root.width ||
     rootWindow.height !== viewport.root.height
   )
-    throw failure("actual native layout or original window frame changed during measurement")
+    throw failure(
+      `actual native layout or original window frame changed during measurement: ${JSON.stringify({ originalsCurrent, viewport, currentViewport, rootWindow })}`,
+    )
   const offset = { x: rootWindow.x - viewport.root.x, y: rootWindow.y - viewport.root.y }
   const windowBox = (rect: ReturnType<typeof box>) => ({ ...rect, x: rect.x + offset.x, y: rect.y + offset.y })
   return {

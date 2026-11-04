@@ -51,6 +51,7 @@ export const SliderScene = () => {
   const geometryCancellations = useRef(new Set<() => void>())
   const [layoutPreset, setLayoutPreset] = useState<TLayoutPreset | null>(null)
   const [thumbGeometry, setThumbGeometry] = useState("unmeasured")
+  const [thumbGeometryPending, setThumbGeometryPending] = useState(false)
   const [rootWindowFrame, setRootWindowFrame] = useState("unmeasured")
   const [nativeTouches, setNativeTouches] = useState<readonly string[]>([])
   const [droppedLayoutReceipts, setDroppedLayoutReceipts] = useState(0)
@@ -64,6 +65,7 @@ export const SliderScene = () => {
   const selectLayoutPreset = (preset: TLayoutPreset | null) => {
     invalidateMeasurement()
     setThumbGeometry("unmeasured")
+    setThumbGeometryPending(false)
     setRootWindowFrame("unmeasured")
     setLayoutPreset(preset)
   }
@@ -87,7 +89,7 @@ export const SliderScene = () => {
     if (!root || !layoutPreset) return
     invalidateMeasurement()
     const revision = measureRevision.current
-    setThumbGeometry("pending")
+    setThumbGeometryPending(true)
     const token = {
       isCurrent: () => scalarRoot.current === root && measureRevision.current === revision,
       onCancel: (listener: () => void) => {
@@ -99,9 +101,15 @@ export const SliderScene = () => {
     }
     try {
       const receipt = await readSliderLayoutOriginalGeometry(root, token)
-      if (token.isCurrent()) setThumbGeometry(JSON.stringify(receipt))
+      if (token.isCurrent()) {
+        setThumbGeometry(JSON.stringify(receipt))
+        setThumbGeometryPending(false)
+      }
     } catch (error) {
-      if (token.isCurrent()) setThumbGeometry(`unavailable: ${error instanceof Error ? error.message : String(error)}`)
+      if (token.isCurrent()) {
+        setThumbGeometry(`unavailable: ${error instanceof Error ? error.message : String(error)}`)
+        setThumbGeometryPending(false)
+      }
     }
   }
   const measureScalarRoot = () => {
@@ -281,7 +289,12 @@ export const SliderScene = () => {
         Scalar layout preset: {layoutPreset ?? "off"}. Original root window frame: {rootWindowFrame}. Original
         event/callback receipts: {nativeTouches.length ? nativeTouches.join(" | ") : "none"}.
       </Text>
-      <Text testID="slider-layout-native-geometry">Original native thumb geometry: {thumbGeometry}.</Text>
+      <Text
+        testID="slider-layout-native-geometry"
+        accessibilityLabel={`Original native thumb geometry: ${thumbGeometryPending ? "pending" : thumbGeometry}.`}
+      >
+        Original native thumb geometry: {thumbGeometry}.
+      </Text>
       <Text>
         The observer reads original stock native track, target and paint bounds, guarded by current root and preset.
         Missing or changing original hosts are reported as unavailable; authored styles are never measured geometry.

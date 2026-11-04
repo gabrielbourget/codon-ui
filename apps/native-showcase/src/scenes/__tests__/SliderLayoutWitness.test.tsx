@@ -3,6 +3,7 @@ import type { View } from "react-native"
 import { SafeAreaInsetsContext } from "react-native-safe-area-context"
 
 import { NativeShowcase } from "../NativeShowcase"
+import * as layoutObserver from "../sliderLayoutObserver"
 
 const scalar = () => screen.getByTestId("slider-scalar-thumb-1-target")
 const paint = () => screen.getByTestId("slider-scalar-thumb-1")
@@ -29,6 +30,39 @@ const originalHost = (element: ReturnType<typeof scalar>) => {
 }
 beforeEach(() => jest.useFakeTimers())
 afterEach(() => jest.useRealTimers())
+
+it("marks a fresh geometry read pending without replacing the measured output during acquisition", async () => {
+  const frame = { x: 26, y: 300, width: 300, height: 58 }
+  const bounds = { root: frame, track: frame, target: frame, paint: frame }
+  const receipt = {
+    coordinateSpace: "stock-native-viewport-bounds-with-original-root-window-offset",
+    targetID: "scalar:thumb:0",
+    tags: [101, 102, 103, 104],
+    viewport: bounds,
+    rootWindow: frame,
+    window: { track: frame, target: frame, paint: frame },
+    qualification: "fixture sequencing control",
+  }
+  const read = jest.spyOn(layoutObserver, "readSliderLayoutOriginalGeometry").mockResolvedValueOnce(receipt)
+  try {
+    const press = await enter()
+    await press("Prepare scalar layout witness")
+    await press("Measure scalar original thumb geometry")
+    const geometry = () => screen.getByTestId("slider-layout-native-geometry")
+    expect(geometry()).toHaveTextContent(`Original native thumb geometry: ${JSON.stringify(receipt)}.`)
+    let receive: ((value: typeof receipt) => void) | undefined
+    read.mockImplementationOnce(() => new Promise((resolve) => (receive = resolve)))
+    await press("Measure scalar original thumb geometry")
+    expect(geometry()).toHaveTextContent(`Original native thumb geometry: ${JSON.stringify(receipt)}.`)
+    expect(geometry().props.accessibilityLabel).toBe("Original native thumb geometry: pending.")
+    const next = { ...receipt, rootWindow: { ...frame, x: 42 } }
+    await act(() => receive?.(next))
+    expect(geometry()).toHaveTextContent(`Original native thumb geometry: ${JSON.stringify(next)}.`)
+    expect(geometry().props.accessibilityLabel).toBe(`Original native thumb geometry: ${JSON.stringify(next)}.`)
+  } finally {
+    read.mockRestore()
+  }
+})
 
 it("wires deterministic placement presets to the same original scalar target and paint without numeric requests", async () => {
   const press = await enter()
