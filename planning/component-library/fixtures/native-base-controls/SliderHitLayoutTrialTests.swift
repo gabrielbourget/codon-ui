@@ -254,4 +254,128 @@ final class SliderHitLayoutTrialTests: XCTestCase {
         try mark("CODON_SLIDER_FINAL_OUTCOME", ["owner": result, "events": rows,
                  "scope": "iOS P01 translated slice; independent held capture and remaining G01 matrix required"])
     }
+
+    func testP01RepositionedOriginalThumbHoldThenDrag() throws {
+        tap("Prepare scalar layout witness")
+        try exact(try state()["scalar"], 0.5)
+        try exact(try state()["requests"], 0)
+        try exact(try state()["ends"], 0)
+        revealScalarSetup()
+        let baseline = try measure()
+        tap("Use scalar layout repositioned")
+        let repositioned = try measure()
+        try exact(repositioned["tags"], try XCTUnwrap(baseline["tags"]))
+        try exact(repositioned["targetID"], try XCTUnwrap(baseline["targetID"]))
+        let before = try XCTUnwrap(baseline["window"] as? [String: Any])
+        let current = try XCTUnwrap(repositioned["window"] as? [String: Any])
+        sameFrame(try rect(repositioned, "rootWindow"), try rect(baseline, "rootWindow"))
+        let track = try rect(current, "track")
+        sameFrame(track, try rect(before, "track"))
+        for key in ["target", "paint"] {
+            let original = try rect(before, key)
+            let positioned = CGRect(x: track.minX + 0.35 * track.width - original.width / 2,
+                                    y: track.midY - original.height / 2,
+                                    width: original.width, height: original.height)
+            sameFrame(try rect(current, key), positioned)
+            XCTAssertGreaterThan(abs(positioned.midX - original.midX), 1)
+        }
+        let target = try rect(current, "target")
+        let paint = try rect(current, "paint")
+        let rootWindow = try rect(repositioned, "rootWindow")
+        let viewport = try XCTUnwrap(repositioned["viewport"] as? [String: Any])
+        let rootViewport = try rect(viewport, "root")
+        let pageOffset = CGPoint(x: rootWindow.minX - rootViewport.minX, y: rootWindow.minY - rootViewport.minY)
+        sameFrame(node("slider-scalar").frame, rootWindow)
+        sameFrame(node("slider-scalar-thumb-1-target").frame, target)
+        let start = CGPoint(x: paint.midX, y: paint.midY)
+        XCTAssertTrue(target.contains(start))
+        let inset: CGFloat = track.width > 44 ? 22 : 0
+        let span = track.width - 2 * inset
+        XCTAssertGreaterThan(span, 0)
+        let end = CGPoint(x: start.x + 0.2 * span, y: start.y)
+        let window = app.windows.firstMatch
+        XCTAssertTrue(window.frame.insetBy(dx: 1, dy: 1).contains(start))
+        XCTAssertTrue(window.frame.insetBy(dx: 1, dy: 1).contains(end))
+        XCTAssertTrue(track.contains(start))
+        XCTAssertTrue(track.contains(end))
+        let hud = node("slider-layout-held-json")
+        XCTAssertTrue(hud.exists, "The independent held-state capture needs the compact fixture receipt")
+        XCTAssertTrue(window.frame.contains(hud.frame), "Held receipt must be visible without scrolling during input")
+        try exact(try state()["scalar"], 0.5)
+        try exact(try state()["requests"], 0)
+        try exact(try state()["ends"], 0)
+        XCTAssertTrue(try events().isEmpty)
+        let origin = window.coordinate(withNormalizedOffset: .zero)
+        let from = origin.withOffset(CGVector(dx: start.x - window.frame.minX, dy: start.y - window.frame.minY))
+        let to = origin.withOffset(CGVector(dx: end.x - window.frame.minX, dy: end.y - window.frame.minY))
+        try mark("CODON_SLIDER_GESTURE_BEGIN", [
+            "admission": admission, "geometry": repositioned, "before": try state(),
+            "startPoints": [start.x, start.y], "endPoints": [end.x, end.y], "holdSeconds": holdSeconds,
+            "heldCheckpoint": "INDEPENDENT_CAPTURE_REQUIRED_NOT_ASSERTED_BY_THIS_METHOD"
+        ])
+        from.press(forDuration: holdSeconds, thenDragTo: to)
+        try mark("CODON_SLIDER_GESTURE_RETURN", ["owner": try state(), "events": try events()])
+        waitUntil("Original drag did not produce one end at 0.7") {
+            guard let row = try? self.state() else { return false }
+            return row["scalar"] as? Double == 0.7 && row["ends"] as? Int == 1
+        }
+        let result = try state()
+        try exact(result["scalar"], 0.7)
+        try exact(result["ends"], 1)
+        XCTAssertGreaterThan(try XCTUnwrap(result["requests"] as? Int), 0)
+        let rows = try events()
+        try exact(result["preset"], "repositioned")
+        let tags = try XCTUnwrap(repositioned["tags"] as? [Int])
+        try exact(result["rootTag"], tags[0])
+        for (index, row) in rows.enumerated() {
+            try exact(row["rootTag"], tags[0])
+            try exact(row["preset"], "repositioned")
+            try exact(row["sequence"], index + 1)
+        }
+        let touches = rows.filter { $0["kind"] as? String == "touch" }
+        let downs = touches.filter { $0["phase"] as? String == "start" }
+        XCTAssertEqual(downs.count, 1)
+        let down = try XCTUnwrap(downs.first, "Original DOWN was lost")
+        let moves = touches.filter { $0["phase"] as? String == "move" }
+        XCTAssertFalse(moves.isEmpty, "Actual native MOVE receipts are required")
+        let ups = touches.filter { $0["phase"] as? String == "end" }
+        XCTAssertEqual(ups.count, 1)
+        XCTAssertFalse(touches.contains { $0["phase"] as? String == "cancel" })
+        let up = try XCTUnwrap(ups.first)
+        try exact(down["target"], tags[2])
+        XCTAssertEqual(try number(down, "pageX") + Double(pageOffset.x), Double(start.x), accuracy: 1)
+        XCTAssertEqual(try number(down, "pageY") + Double(pageOffset.y), Double(start.y), accuracy: 1)
+        for row in moves + [up] {
+            try exact(row["identifier"], try XCTUnwrap(down["identifier"]))
+            try exact(row["target"], tags[2])
+            XCTAssertGreaterThanOrEqual(try number(row, "timestamp"), try number(down, "timestamp"))
+            XCTAssertLessThanOrEqual(try number(row, "timestamp"), try number(up, "timestamp"))
+        }
+        XCTAssertLessThan(try number(down, "sequence"), try number(try XCTUnwrap(moves.first), "sequence"))
+        XCTAssertLessThan(try number(try XCTUnwrap(moves.last), "sequence"), try number(up, "sequence"))
+        XCTAssertEqual(try number(up, "pageX") - number(down, "pageX"), Double(0.2 * span), accuracy: 1)
+        XCTAssertEqual(try number(up, "pageY"), try number(down, "pageY"), accuracy: 1)
+        let requests = rows.filter { $0["kind"] as? String == "request" }
+        let ends = rows.filter { $0["kind"] as? String == "change-end" }
+        try exact(result["requests"], requests.count)
+        XCTAssertEqual(ends.count, 1)
+        try exact(requests.last?["value"], 0.7)
+        try exact(ends.first?["value"], 0.7)
+        XCTAssertGreaterThan(try number(try XCTUnwrap(ends.first), "sequence"),
+                             try number(try XCTUnwrap(requests.last), "sequence"))
+        // The custom left percentage still owns visual placement after numeric owner echo.
+        let after = try measure()
+        try exact(after["tags"], tags)
+        try exact(after["targetID"], try XCTUnwrap(repositioned["targetID"]))
+        sameFrame(try rect(after, "rootWindow"), rootWindow)
+        let afterWindow = try XCTUnwrap(after["window"] as? [String: Any])
+        for key in ["track", "target", "paint"] {
+            sameFrame(try rect(afterWindow, key), try rect(current, key))
+        }
+        try exact(try state()["scalar"], 0.7)
+        try exact(try state()["ends"], 1)
+        try exact(try state()["requests"], try XCTUnwrap(result["requests"]))
+        try mark("CODON_SLIDER_FINAL_OUTCOME", ["owner": result, "events": rows, "geometryAfter": after,
+                 "scope": "iOS P01 repositioned slice; independent held capture and remaining G01 matrix required"])
+    }
 }
