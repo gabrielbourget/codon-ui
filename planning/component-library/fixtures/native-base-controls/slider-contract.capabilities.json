@@ -1,7 +1,7 @@
 {
   "cell": "CAT.slider.G01",
   "canonicalSourceRef": "ddc9f066f67af4742e05e04bd870726141c44129",
-  "status": "MERGED_SOURCE_RECONCILED_NONSHIPPING_LAYOUT_FIXTURE_PREPARED_G01_OPEN_REQUIRED_INSTALLED_HIT_LAYOUT",
+  "status": "BLOCKED_OWNER_STOP_INSTALLED_HIT_LAYOUT_UNVERIFIED",
   "sourceBase": "87bb958b2658051bac6453db57b9a77e0b5333b5",
   "ownerCumulativePatchSHA256": "c8d781fe69ef5f8c92e4564e2e29d33510cc37c100a14512741659e84b154293",
   "appliedCoexistencePatchSHA256": "ac38be8b9473c76dbcb2dcfe2f289effe7bea891f23b459844ad698c813d5b15",
@@ -156,7 +156,7 @@
   },
   "nativeLayout": {
     "requiredWithinG01": true,
-    "status": "UNPROVED_NO_NATIVE_ACTIONS",
+    "status": "BLOCKED_OWNER_STOP_SL_G01_STOP01",
     "authority": "roadmap3.5.12 CAP.slider.gestures and CAP.slider.inherited; ownerhandoff\u00a73/\u00a76",
     "predicate": "Actual arbitrary repositioned/transformed thumb style and originalnativehit-region coupling, not source/compiler inference",
     "existingWitness": "SL-A01 repeatedSystemUIANRbeforeSlidernavigation;zeroactions;all1276cellsOPEN",
@@ -284,5 +284,17 @@
     "nativeActions": 0,
     "ledgerChanges": 0,
     "G01": "OPEN_REQUIRED_ACTUAL_TRANSFORMED_REPOSITIONED_ORIGINAL_THUMB_HIT_LAYOUT"
+  },
+  "currentOwnerDisposition": {
+    "evidenceID": "SL-G01-STOP01",
+    "date": "2026-11-04",
+    "status": "BLOCKED",
+    "reason": "Owner directs stop and move to a different component after installed-verifier runtime/setup failures; final fresh method fails portrait admission with orientation unknown before gestures.",
+    "sourceFix": "b97737509fdd2a6be88f0febb1452e88cab6b0d6",
+    "sourceCasesPassed": 143,
+    "requiredBehaviorsUnchanged": true,
+    "originalFailuresPreserved": true,
+    "resumeRequiresNewOwnerDirection": true,
+    "evidence": "experiments.md#331288-slider-owner-block-and-next-behavior-cell"
   }
 }
