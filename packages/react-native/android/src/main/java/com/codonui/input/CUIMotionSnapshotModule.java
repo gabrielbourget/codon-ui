@@ -38,7 +38,8 @@ public final class CUIMotionSnapshotModule extends NativeCUIMotionSnapshotSpec {
   private FabricUIManager tableManager;
   private CUITableStickyPresentation tableDriver;
   private RuntimeException tableFailure;
-  private static native long nativeCreateTable(FabricUIManager manager, CUIMotionSnapshotModule module);
+  // Match fbjni's jobject descriptor; the sole caller passes this module instance.
+  private static native long nativeCreateTable(FabricUIManager manager, Object module);
   private static native String nativeTableRequest(long handle, String request);
   private static native String nativeTableTargets(long handle);
   private static native void nativeTableSynchronize(long handle);
