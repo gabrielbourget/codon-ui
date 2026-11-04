@@ -15,6 +15,7 @@ import {
 } from "@codon-ui/react-native"
 
 import { PlaceholderG02Fixture } from "./PlaceholderG02Fixture"
+import { TextG02ContextFixture } from "./TextG02ContextFixture"
 
 type TButtonPressEvent = Parameters<NonNullable<TNativeButtonProps["onPress"]>>[0]
 type TButtonReceipt = { sequence: number; kind: string; receivedAt: number; data: unknown }
@@ -400,6 +401,7 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
         separate.
       </Text>
       <Text testID="library-button-callbacks">{JSON.stringify(buttonReceipts)}</Text>
+      <TextG02ContextFixture increment={increment} />
     </View>
   )
 }

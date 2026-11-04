@@ -286,4 +286,150 @@ final class PlaceholderG02TrialTests: XCTestCase {
         XCTAssertEqual(try ownerCount(), ownerAtStart)
         try mark("placeholder-g02-after-held-removal", state())
     }
+
+    // Append inside PlaceholderG02TrialTests. Reuses its existing node/reveal/tap/int/mark/ownerCount helpers.
+    func testS03TextButtonContextDefaultExplicitTrueDefault() throws {
+        let textFixture = try XCTUnwrap(ProcessInfo.processInfo.environment["CODON_TEXT_CONTEXT_FIXTURE_SHA256"])
+        XCTAssertNotNil(textFixture.range(of: "^[0-9a-f]{64}$", options: .regularExpression))
+        tap("G02 prepare Text button context")
+        let owner = node("text-g02-context-owner")
+        let children = owner.descendants(matching: .any).matching(identifier: "text-g02-context-target")
+        let copy = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "Copy")).firstMatch
+        let content = "Choose a context item"
+
+        func contextState() throws -> [String: Any] {
+            let label = node("text-g02-context-state").label
+            let value = try XCTUnwrap(try JSONSerialization.jsonObject(with: Data(label.utf8)) as? [String: Any])
+            let receipts = try XCTUnwrap(value["receipts"] as? [[String: Any]])
+            XCTAssertEqual(try int(value, "parentOrdinary"), receipts.count)
+            for (index, receipt) in receipts.enumerated() {
+                XCTAssertEqual(try int(receipt, "sequence"), index + 1)
+                XCTAssertEqual(receipt["kind"] as? String, "parentPress")
+            }
+            return value
+        }
+        func receiptData(_ value: [String: Any]) throws -> Data {
+            try JSONSerialization.data(withJSONObject: try XCTUnwrap(value["receipts"]), options: .sortedKeys)
+        }
+        XCTAssertTrue(owner.waitForExistence(timeout: 10))
+        XCTAssertTrue(children.firstMatch.waitForExistence(timeout: 10))
+        XCTAssertTrue(node("text-g02-context-state").waitForExistence(timeout: 10))
+        let initial = try contextState()
+        let parentAtStart = try int(initial, "parentOrdinary")
+        let callerAtStart = try ownerCount()
+        XCTAssertEqual(initial["policy"] as? String, "default")
+        XCTAssertGreaterThan(try int(initial, "rootTag"), 0)
+        XCTAssertGreaterThan(try int(initial, "refIdentity"), 0)
+
+        func retainOriginal(_ value: [String: Any]) throws {
+            for key in ["rootTag", "refIdentity", "attaches", "detaches"] {
+                XCTAssertEqual(try int(value, key), try int(initial, key), "Changed original Text " + key)
+            }
+            XCTAssertEqual(children.count, 1, "Require the actual unique Text child of the original Button")
+            XCTAssertEqual(children.firstMatch.label, content)
+            let receipts = try XCTUnwrap(value["receipts"] as? [[String: Any]])
+            for receipt in receipts {
+                XCTAssertEqual(try int(receipt, "rootTag"), try int(initial, "rootTag"))
+                XCTAssertEqual(try int(receipt, "refIdentity"), try int(initial, "refIdentity"))
+                // Parent event targets remain original native data; they are not asserted to be the Text tag.
+            }
+            XCTAssertEqual(try ownerCount(), try callerAtStart + int(value, "parentOrdinary") - parentAtStart)
+        }
+        func capture(_ name: String, _ value: [String: Any]) throws {
+            let screenshot = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+            screenshot.name = name + "-screen"
+            screenshot.lifetime = .keepAlways
+            add(screenshot)
+            let hierarchy = XCTAttachment(string: app.debugDescription)
+            hierarchy.name = name + "-hierarchy"
+            hierarchy.lifetime = .keepAlways
+            add(hierarchy)
+            try mark(name, value)
+        }
+        func programmaticPolicy(_ label: String, _ policy: String) throws {
+            let before = try contextState()
+            let parentBefore = try int(before, "parentOrdinary")
+            tap(label)
+            waitUntil("Text context policy did not arrive") { (try? contextState()["policy"] as? String) == policy }
+            let changed = try contextState()
+            XCTAssertEqual(try int(changed, "parentOrdinary"), try int(before, "parentOrdinary"))
+            XCTAssertEqual(try receiptData(changed), try receiptData(before))
+            try retainOriginal(changed)
+            let fabricated = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                guard let current = try? contextState(), let count = current["parentOrdinary"] as? NSNumber else { return true }
+                return count.intValue != parentBefore
+            }, object: nil)
+            fabricated.isInverted = true
+            XCTAssertEqual(XCTWaiter.wait(for: [fabricated], timeout: 0.75), .completed,
+                           "Programmatic policy change fabricated an ordinary action")
+            let quiet = try contextState()
+            XCTAssertEqual(try receiptData(quiet), try receiptData(before))
+            try retainOriginal(quiet)
+            try mark("text-g02-context-programmatic-" + policy, quiet)
+        }
+        func observe(_ policy: String, _ enabled: Bool, _ name: String) throws {
+            reveal(owner)
+            XCTAssertEqual(children.count, 1)
+            let child = children.firstMatch
+            XCTAssertGreaterThan(child.frame.width, 0)
+            XCTAssertGreaterThan(child.frame.height, 0)
+            XCTAssertTrue(owner.frame.contains(child.frame), "Use the actual contained Text frame")
+            XCTAssertTrue(app.scrollViews.firstMatch.frame.insetBy(dx: 2, dy: 12).contains(child.frame))
+            let before = try contextState()
+            let parentBefore = try int(before, "parentOrdinary")
+            XCTAssertEqual(before["policy"] as? String, policy)
+            try retainOriginal(before)
+            try mark("text-g02-context-before-hold-" + name, before)
+            app.coordinate(withNormalizedOffset: .zero)
+                .withOffset(CGVector(dx: child.frame.midX, dy: child.frame.midY)).press(forDuration: 1.0)
+            if enabled {
+                XCTAssertTrue(copy.waitForExistence(timeout: 5), "Explicit true must expose real native Copy")
+                XCTAssertTrue(copy.isHittable)
+            } else {
+                let unexpectedCopy = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in copy.exists }, object: nil)
+                unexpectedCopy.isInverted = true
+                XCTAssertEqual(XCTWaiter.wait(for: [unexpectedCopy], timeout: 1), .completed,
+                               "Inherited Button default must suppress Copy")
+            }
+            let observed = try contextState()
+            try retainOriginal(observed)
+            try capture("text-g02-context-native-" + name, observed)
+            if enabled {
+                let parentBeforeCopy = try int(observed, "parentOrdinary")
+                copy.tap()
+                let copyAction = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                    guard let current = try? contextState(), let count = current["parentOrdinary"] as? NSNumber else { return true }
+                    return count.intValue != parentBeforeCopy
+                }, object: nil)
+                copyAction.isInverted = true
+                XCTAssertEqual(XCTWaiter.wait(for: [copyAction], timeout: 0.75), .completed,
+                               "Native Copy activation fabricated an ordinary parent action")
+                let copied = try contextState()
+                XCTAssertEqual(try receiptData(copied), try receiptData(observed))
+                try retainOriginal(copied)
+                try mark("text-g02-context-copy-activated-" + name, copied)
+            }
+            // The passive Text has no press/long-press handlers. Its real parent may act once on this hold.
+            let duplicate = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                guard let current = try? contextState(), let count = current["parentOrdinary"] as? NSNumber else { return true }
+                return count.intValue < parentBefore || count.intValue > parentBefore + 1
+            }, object: nil)
+            duplicate.isInverted = true
+            XCTAssertEqual(XCTWaiter.wait(for: [duplicate], timeout: 0.75), .completed)
+            let after = try contextState()
+            let delta = try int(after, "parentOrdinary") - int(before, "parentOrdinary")
+            XCTAssertGreaterThanOrEqual(delta, 0)
+            XCTAssertLessThanOrEqual(delta, 1)
+            try retainOriginal(after)
+            var receipt = after
+            receipt["observedParentOrdinaryDelta"] = delta
+            try mark("text-g02-context-after-hold-" + name, receipt)
+        }
+
+        try observe("default", false, "initial-default")
+        try programmaticPolicy("G02 enable Text context selection", "explicit-true")
+        try observe("explicit-true", true, "explicit-true")
+        try programmaticPolicy("G02 default Text context selection", "default")
+        try observe("default", false, "restored-default")
+    }
 }

@@ -2,6 +2,7 @@
 import argparse
 import hashlib
 import json
+import os
 import re
 import struct
 import subprocess
@@ -9,7 +10,9 @@ import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-ADB = "/Users/gabrielbourget/.local/share/codon-native-lab/sdk/platform-tools/adb"
+from NativeAndroidTestSupport import bounds, copy_node, measured_bounds, parse_hierarchy, recorded_command
+
+ADB = os.environ.get("CODON_ANDROID_ADB", "/Users/gabrielbourget/.local/share/codon-native-lab/sdk/platform-tools/adb")
 ORDER = [
     "Light theme", "Dark theme", "Compact width", "library-state", "Toggle placeholder alignment",
     "library-placeholder", "placeholder-g02-state", "G02 prepare placeholder",
@@ -30,23 +33,13 @@ def command(*argv, cap=15):
     timeout = min(cap, args.deadline_unix - time.time())
     assert timeout > 0, "Root work deadline exhausted; root still owns cleanup"
     actual = [ADB, "-s", args.serial, *map(str, argv)]
-    record = {"argv": actual, "startedEpoch": time.time(), "capSeconds": timeout}
     print(f"{prefix.name}: {' '.join(map(str, argv))}", flush=True)
-    output, error = b"", b""
-    try:
-        result = subprocess.run(actual, capture_output=True, timeout=timeout)
-        output, error = result.stdout, result.stderr
-        record.update(exitCode=result.returncode, status="TERMINAL")
-    except subprocess.TimeoutExpired as exc:
-        output, error = exc.stdout or b"", exc.stderr or b""
-        record.update(status="HOST_TIMEOUT_GUEST_OUTCOME_UNCERTAIN")
-        raise
-    finally:
-        prefix.with_suffix(".stdout").write_bytes(output)
-        prefix.with_suffix(".stderr").write_bytes(error)
-        record["endedEpoch"] = time.time()
-        prefix.with_suffix(".json").write_text(json.dumps(record, indent=2) + "\n")
-    assert result.returncode == 0, (actual, output.decode(errors="replace"), error.decode(errors="replace"))
+    record = recorded_command(actual, prefix, cap, args.deadline_unix)
+    assert record.get("ownedGroupGone") is True and "cleanupError" not in record, record
+    if record.get("timedOut"):
+        raise TimeoutError("Host command timed out; guest outcome remains uncertain")
+    output, error = prefix.with_suffix(".stdout").read_bytes(), prefix.with_suffix(".stderr").read_bytes()
+    assert record["exitCode"] == 0, (actual, output.decode(errors="replace"), error.decode(errors="replace"))
     return output
 
 
@@ -54,7 +47,7 @@ def tree():
     result = command("shell", "uiautomator", "dump", remote)
     assert b"dumped to" in result, result
     raw = command("shell", "cat", remote)
-    data = ET.fromstring(raw)
+    data = parse_hierarchy(raw)
     assert data.get("rotation") == "0", "Root must establish and admit native portrait before this cohort"
     assert not any("isn't responding" in n.get("text", "") for n in data.iter("node")), "Preserve stock ANR; do not dismiss it"
     return data
@@ -71,25 +64,14 @@ def find(data, key):
     return matches[0] if matches else None
 
 
-def measured_bounds(node, viewport=None):
-    assert node is not None
-    value = list(map(int, re.findall(r"-?\d+", node.get("bounds", ""))))
-    assert len(value) == 4 and value[2] >= value[0], node.attrib
-    # UiAutomator clips offscreen bottoms/tops independently; this is navigation metadata, never a touch target.
-    assert value[3] >= value[1] or (viewport is not None and (value[1] >= viewport[3] or value[3] <= viewport[1])), node.attrib
-    return value
 
 
-def bounds(node):
-    value = measured_bounds(node)
-    assert value[2] > value[0] and value[3] > value[1], node.attrib
-    return value
 
 
-def gutter_scroll(data, upward):
+def gutter_scroll(data, upward, original_id="library-placeholder"):
     viewport = bounds(find(data, "showcase-scroll"))
     x = viewport[0] + 8
-    original = find(data, "library-placeholder")
+    original = find(data, original_id)
     if original is not None:
         rect = measured_bounds(original, viewport)
         assert not rect[0] <= x <= rect[2], "No measured safe gutter outside original Text"
@@ -241,28 +223,6 @@ def selection_s03():
     owner_base = baseline()
     control("G02 absent placeholder callback")
     initial = state(ready()[0])
-    def copy_node(data, native_windows):
-        candidates = [n for n in data.iter("node") if n.get("resource-id") == "android:id/copy"]
-        if not candidates:
-            candidates = [n for n in data.iter("node") if (n.get("text") or n.get("content-desc", "")).casefold() == "copy"]
-        if not candidates:
-            assert native_windows["windowRoots"] > 0 and native_windows["windowNodes"], native_windows
-            for row in native_windows["windowNodes"]:
-                if row["visible"] and (row.get("id") == "android:id/copy" or (row.get("text") or row.get("description") or "").casefold() == "copy"):
-                    rect = list(map(int, row["bounds"].split()))
-                    assert len(rect) == 4
-                    candidates.append(ET.Element("node", {"resource-id": row.get("id") or "", "text": row.get("text") or "", "content-desc": row.get("description") or "", "enabled": str(row["enabled"]).lower(), "bounds": f"[{rect[0]},{rect[1]}][{rect[2]},{rect[3]}]", "native-window-id": str(row["windowId"])}))
-        if len(candidates) == 2:
-            # Stock floating toolbar exposes its labelled container and nested title as one action.
-            titles = [n for n in candidates if n.get("resource-id") == "android:id/floating_toolbar_menu_item_text" and n.get("text").casefold() == "copy"]
-            containers = [n for n in candidates if not n.get("text") and n.get("content-desc", "").casefold() == "copy"]
-            if len(titles) == len(containers) == 1:
-                title, container = titles[0], containers[0]
-                inner, outer = bounds(title), bounds(container)
-                if title.get("native-window-id") == container.get("native-window-id") and outer[0] <= inner[0] < inner[2] <= outer[2] and outer[1] <= inner[1] < inner[3] <= outer[3]:
-                    candidates = titles
-        assert len(candidates) <= 1, "Ambiguous native Copy action"
-        return candidates[0] if candidates else None
     def observe(name, enabled):
         data, node = ready()
         before = state(data)

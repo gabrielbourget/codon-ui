@@ -291,5 +291,51 @@
         ]
       }
     }
+  ],
+  "admissionCases": [
+    {
+      "name": "foundation",
+      "sourceRef": "/tmp/codon-placeholder-g02-android-installed-20261104/attempt-6/read-initial.stdout",
+      "sourceSHA256": "1b188be8b27ffbe9259d16364cf1826b4f3049fd091badcaf13958c529850b6e",
+      "raw": "<hierarchy rotation=\"0\"><node index=\"3\" text=\"\" resource-id=\"showcase-scroll\" class=\"android.widget.ScrollView\" package=\"dev.codonui.showcase\" content-desc=\"\" checkable=\"false\" checked=\"false\" clickable=\"false\" enabled=\"true\" focusable=\"true\" focused=\"false\" scrollable=\"true\" long-clickable=\"false\" password=\"false\" selected=\"false\" bounds=\"[0,136][720,1600]\" drawing-order=\"3\" hint=\"\" /><node index=\"4\" text=\"\" resource-id=\"\" class=\"android.widget.Button\" package=\"dev.codonui.showcase\" content-desc=\"Text/Button scene\" checkable=\"false\" checked=\"false\" clickable=\"true\" enabled=\"true\" focusable=\"true\" focused=\"false\" scrollable=\"false\" long-clickable=\"false\" password=\"false\" selected=\"false\" bounds=\"[277,366][515,450]\" drawing-order=\"5\" hint=\"\" /></hierarchy>",
+      "parseAccepted": true,
+      "sceneReady": false
+    },
+    {
+      "name": "transient-root",
+      "sourceRef": "/tmp/codon-placeholder-g02-android-installed-20261104/attempt-3/read-selected.stdout",
+      "sourceSHA256": "1772c2da5691533ceb26e58f965f1f197036a0b59ecdaa5c3627f7cc9e0daf83",
+      "raw": "<hierarchy rotation=\"0\"><node index=\"0\" text=\"\" resource-id=\"\" class=\"android.widget.FrameLayout\" package=\"dev.codonui.showcase\" content-desc=\"\" checkable=\"false\" checked=\"false\" clickable=\"false\" enabled=\"true\" focusable=\"false\" focused=\"false\" scrollable=\"false\" long-clickable=\"false\" password=\"false\" selected=\"false\" bounds=\"[0,0][720,1600]\" drawing-order=\"0\" hint=\"\" /></hierarchy>",
+      "parseAccepted": true,
+      "sceneReady": false
+    },
+    {
+      "name": "systemui-anr",
+      "sourceRef": "/tmp/codon-placeholder-g02-android-installed-20261104/attempt-7/health-read-3.stdout",
+      "sourceSHA256": "90143f045618b18145f33c52be49023616edc9dfc96c7cf850b5853b548b567d",
+      "raw": "<hierarchy rotation=\"0\"><node index=\"0\" text=\"System UI isn't responding\" resource-id=\"android:id/alertTitle\" class=\"android.widget.TextView\" package=\"android\" content-desc=\"\" checkable=\"false\" checked=\"false\" clickable=\"false\" enabled=\"true\" focusable=\"false\" focused=\"false\" scrollable=\"false\" long-clickable=\"false\" password=\"false\" selected=\"false\" bounds=\"[88,756][631,803]\" drawing-order=\"2\" hint=\"\" /></hierarchy>",
+      "parseAccepted": false,
+      "sceneReady": false
+    },
+    {
+      "name": "selected-scene",
+      "sourceRef": "/tmp/codon-placeholder-g02-android-installed-20261104/attempt-11/health-read-5.stdout",
+      "sourceSHA256": "2c583d3227633d8b2c5a3480835da188b68f1e6c91ae2092d0f3b0a3e404986c",
+      "raw": "<hierarchy rotation=\"0\"><node index=\"3\" text=\"\" resource-id=\"showcase-scroll\" class=\"android.widget.ScrollView\" package=\"dev.codonui.showcase\" content-desc=\"\" checkable=\"false\" checked=\"false\" clickable=\"false\" enabled=\"true\" focusable=\"true\" focused=\"false\" scrollable=\"true\" long-clickable=\"false\" password=\"false\" selected=\"false\" bounds=\"[0,136][720,1558]\" drawing-order=\"3\" hint=\"\" /><node index=\"4\" text=\"\" resource-id=\"\" class=\"android.widget.Button\" package=\"dev.codonui.showcase\" content-desc=\"Text/Button scene\" checkable=\"false\" checked=\"false\" clickable=\"true\" enabled=\"true\" focusable=\"true\" focused=\"false\" scrollable=\"false\" long-clickable=\"false\" password=\"false\" selected=\"true\" bounds=\"[277,366][515,450]\" drawing-order=\"5\" hint=\"\" /></hierarchy>",
+      "parseAccepted": true,
+      "sceneReady": true
+    },
+    {
+      "name": "empty-root",
+      "raw": "<hierarchy rotation=\"0\"/>",
+      "parseAccepted": false,
+      "sceneReady": false
+    },
+    {
+      "name": "missing-root",
+      "raw": "UI hierarchy dumped to: missing.xml",
+      "parseAccepted": false,
+      "sceneReady": false
+    }
   ]
 }

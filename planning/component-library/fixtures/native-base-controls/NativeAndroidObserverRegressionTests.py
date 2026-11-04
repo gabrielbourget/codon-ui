@@ -1,20 +1,20 @@
 """Replay saved Android observer failures without ADB, compilation or a guest."""
 
-import ast
 import copy
 import json
-import re
+import subprocess
+import sys
+import tempfile
+import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from unittest.mock import patch
 
 
 root = Path(__file__).parent
-source = ast.parse((root / "PlaceholderG02AndroidTests.py").read_text())
-helpers = [node for node in source.body if isinstance(node, ast.FunctionDef) and node.name in {"measured_bounds", "bounds"}]
-selection = next(node for node in source.body if isinstance(node, ast.FunctionDef) and node.name == "selection_s03")
-copy_query = next(node for node in selection.body if isinstance(node, ast.FunctionDef) and node.name == "copy_node")
-namespace = {"ET": ET, "re": re}
-exec(compile(ast.Module(body=helpers + [copy_query], type_ignores=[]), "saved-observer-helpers", "exec"), namespace)
+from NativeAndroidTestSupport import ClearSceneInterval, bounds, copy_node, focused_logcat_command, measured_bounds, parse_hierarchy, recorded_command, selected_scene
+
+namespace = {"bounds": bounds, "copy_node": copy_node, "measured_bounds": measured_bounds}
 data = json.loads((root / "NativeAndroidObserverRegressions.json").read_text())
 checks = 0
 
@@ -63,4 +63,51 @@ title["windowId"] = -888
 duplicate["windowNodes"].append(title)
 rejects(namespace["copy_node"], ET.Element("hierarchy"), duplicate)
 
-print(f"PASS: {checks} saved-observer checks; no native actions")
+for case in data["admissionCases"]:
+    try:
+        hierarchy = parse_hierarchy(case["raw"])
+    except (AssertionError, ET.ParseError):
+        assert case["parseAccepted"] is False, case["name"]
+    else:
+        assert case["parseAccepted"] is True, case["name"]
+        assert selected_scene(hierarchy, "Text/Button scene") == case["sceneReady"], case["name"]
+    checks += 1
+
+interval = ClearSceneInterval()
+for timestamp, ready, accepted in [(0, True, False), (14, True, False), (29, False, False), (30, True, False), (59, True, False), (60, True, True), (61, False, False), (71, True, False), (101, True, True)]:
+    assert interval.observe(timestamp, ready) == accepted
+    checks += 1
+
+logging = focused_logcat_command("adb", "emulator-5568")
+assert logging[-6:] == ["ActivityManager:E", "AndroidRuntime:E", "ReactNativeJS:E", "libc:F", "DEBUG:F", "*:S"]
+assert "*:W" not in logging and "ResourcesManager" not in " ".join(logging)
+checks += 1
+
+receipts = Path(tempfile.mkdtemp(prefix="codon-native-observer-regressions-"))
+success = recorded_command([sys.executable, "-c", "print('receipt-success')"], receipts / "success", 2, time.time() + 20)
+assert success["exitCode"] == 0 and success["ownedGroupGone"] is True
+assert (receipts / "success.stdout").read_text() == "receipt-success\n"
+checks += 1
+failed = recorded_command([sys.executable, "-c", "import sys;print('deliberate-failure', file=sys.stderr);sys.exit(7)"], receipts / "nonzero", 2, time.time() + 20)
+assert failed["exitCode"] == 7 and failed["ownedGroupGone"] is True
+assert "deliberate-failure" in (receipts / "nonzero.stderr").read_text()
+checks += 1
+timed_out = recorded_command([sys.executable, "-c", "import time;print('ready', flush=True);time.sleep(10)"], receipts / "timeout", 0.5, time.time() + 20)
+assert timed_out["timedOut"] is True and timed_out["ownedGroupGone"] is True and timed_out["exitCode"] != 0
+checks += 1
+rejects(recorded_command, [sys.executable, "-c", "raise AssertionError('must not start')"], receipts / "past-deadline", 2, time.time() - 1)
+not_started = json.loads((receipts / "past-deadline.json").read_text())
+assert not_started["status"] == "NOT_STARTED" and "pid" not in not_started
+with patch.object(subprocess.Popen, "communicate", side_effect=OSError("deliberate observer transport failure")):
+    try:
+        recorded_command([sys.executable, "-c", "import time;time.sleep(10)"], receipts / "transport-failure", 2, time.time() + 20)
+    except OSError:
+        pass
+    else:
+        raise AssertionError("Transport failure was hidden")
+transport = json.loads((receipts / "transport-failure.json").read_text())
+assert transport["status"] == "FAILED_TRANSPORT" and transport["ownedGroupGone"] is True
+assert "deliberate observer transport failure" in transport["error"]
+checks += 1
+
+print(f"PASS: {checks} observer/admission/owned-command checks; no guest or native actions; receipts={receipts}")
