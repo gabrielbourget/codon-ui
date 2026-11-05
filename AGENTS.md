@@ -151,6 +151,10 @@ appear, return to deliberate planning mode.
 Work in Deliberate Collaboration Mode by default. Do not independently edit files, run write commands, apply patches, or
 create commits unless asked to or operating inside an explicitly authorized Agentic Execution Mode run.
 
+## Native Cell Verification Admission
+
+Before every native component cell verification run, read the versioned [native cell checklist](planning/component-library/fixtures/native-base-controls/NativeCellVerificationChecklist.md) and the current risk selection in roadmap Sections 3.3.9–3.3.11. Prepare the complete cell's checks and compatible batches before opening a guest. Use `python3.13 -B planning/component-library/fixtures/native-base-controls/NativeCellVerification.py --plan <bound-plan.json> --receipt <fresh-preflight.json> --run` as the entry point. Native lifecycle drivers must call `load_admission` before SDK work and include the returned version/result/receipt in their admission record. Do not launch a cell driver directly or treat a preflight PASS as component qualification. Preserve reusable installed evidence at its actual input identities; a prior run cannot retroactively acquire preflight enforcement.
+
 ## Long-Running Verification Discipline
 
 Agentic runs must not lose time to stale or over-broad verification sessions.

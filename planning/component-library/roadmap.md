@@ -72,6 +72,7 @@ Lifecycle: **Active**. Owner: Gabriel Bourget. Reviewed: **2026-10-30**. Codon U
   - [3.3. Required Native Profiles](#33-required-native-profiles)
     - [3.3.9. Library-Wide Risk-Based Verification](#339-library-wide-risk-based-verification)
     - [3.3.10. Current Library Native Risk Selection](#3310-current-library-native-risk-selection)
+    - [3.3.11. Required Native Cell Preflight](#3311-required-native-cell-preflight)
   - [3.4. Execution Queue And Approval Boundary](#34-execution-queue-and-approval-boundary)
     - [3.4.1. Phone Experience And Complexity Accounting](#341-phone-experience-and-complexity-accounting)
       - [3.4.1.1. Counter Empty-Child Mobile Contract Proposal](#3411-counter-empty-child-mobile-contract-proposal)
@@ -494,6 +495,10 @@ Coverage is checked against the complete current React registry and pinned canon
 Current tracked Card risk books retain all 282 original rows: 281 OPEN/one existing N/A and nativeActions=0. Their separate verificationSelection metadata unselects 34 repeated profile projections while retaining four targeted P02 geometry/Fabric rows in addition to distinct baseline cases. The four rows may share one admitted window-transition cohort per OS; case count is not run count. Other six Card matrices and all owned motion/gesture/input/intrinsic/lifecycle assertions remain intact.
 
 <a id="execution-queue-and-approval-boundary"></a>
+
+#### 3.3.11. Required Native Cell Preflight
+
+`NATIVE-CELL-01` is required reading before every cell verification run: [versioned checklist](fixtures/native-base-controls/NativeCellVerificationChecklist.md). The private `NativeCellVerification.py` entry point checks the acknowledged checklist version/hash, actual source/fixture/observer/driver bindings, both-OS retained/selected/remaining evidence map, complete preparation/batching declaration, observer-bound control report, risk dispositions and cleanup-inclusive attempt limits before executing the existing lifecycle driver in the same process. The driver requires that admission and records its version, result and receipt. The gate's saved-data host controls exercise fractional crop rounding, out-of-row rejection, neighboring shadow contamination, opaque versus antialiased border samples, orientation namespaces, visibility and exact captured preference keys. Actual Java/Swift observer controls and reused native evidence are separately bound; these host controls alone establish no installed qualification. Rejection-path sentinel tests must show that a rejected plan never enters its driver and an admitted driver retains the same owner PID. Existing pre-policy runs retain their original status; no retrospective enforcement or PASS is invented.
 
 ### 3.4. Execution Queue And Approval Boundary
 
