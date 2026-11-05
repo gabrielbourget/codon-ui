@@ -517,11 +517,33 @@ public final class Actions extends Instrumentation {
     try{return meterG02BatchCurrent(automation);}
     finally{lpTarget=LP_TARGET;lpState=LP_STATE;lpName=LP_NAME;lpPrepareLabel="G02 prepare LinearProgress";lpMeterFixture=false;}
   }
+  private void meterSelectScene(UiAutomation automation,JSONObject result) throws Exception {
+    lpDeadline=Math.min(lpBatchDeadline,SystemClock.uptimeMillis()+90000);
+    JSONObject setup=new JSONObject();setup.put("actions",new JSONArray());setup.put("status","CHECKING_BEFORE_INPUT");result.put("setup",setup);lpCase=setup;
+    ReadinessGate gate=new ReadinessGate();
+    gate.admit(()->{
+      long clearSince=-1;
+      while(SystemClock.uptimeMillis()<lpDeadline){
+        JSONObject windows=lpWindows(automation);setup.put("lastWindows",windows);
+        AccessibilityNodeInfo root=automation.getRootInActiveWindow(),scroll=fresh(automation,"showcase-scroll");
+        boolean ready=root!=null&&root.refresh()&&"dev.codonui.showcase".contentEquals(root.getPackageName())&&scroll!=null&&scroll.refresh()&&scroll.isVisibleToUser()&&scroll.isEnabled();
+        Rect viewport=new Rect();if(scroll!=null)scroll.getBoundsInScreen(viewport);ready=ready&&!viewport.isEmpty();
+        if(!ready)clearSince=-1;
+        else {long now=SystemClock.uptimeMillis();if(clearSince<0)clearSince=now;setup.put("clearObservedMs",now-clearSince);if(now-clearSince>=30000)return true;}
+        lpSleep(250);
+      }
+      return false;
+    });
+    gate.run(()->lpClick(automation,"Progress/Meter scene"));
+    setup.put("status","READY_BEFORE_NAVIGATION");
+  }
+
   private JSONObject meterG02BatchCurrent(UiAutomation automation) throws Exception {
     long started=SystemClock.uptimeMillis();lpBatchDeadline=started+900000;JSONObject result=new JSONObject();JSONArray cases=new JSONArray();result.put("operation","meter-g02-batch");result.put("epochStartedMs",System.currentTimeMillis());result.put("methodLimitMs",180000);result.put("batchLimitMs",900000);result.put("cohorts",cases);result.put("ledgerPromotion",false);result.put("nativeActionSucceeded",false);result.put("status","STOP_UNSAFE");JSONObject profile=new JSONObject();android.util.DisplayMetrics metrics=getContext().getResources().getDisplayMetrics();profile.put("densityDpi",metrics.densityDpi);profile.put("pixelsPerLogicalPoint",metrics.density);profile.put("rawDensity","Instrumentation context DisplayMetrics");result.put("profile",profile);
-    String output=arguments.getString("outputDir","");if(!"/sdcard/Android/data/dev.codonui.lab.number/files/meter-g02-native-1".equals(output))throw new IllegalArgumentException("Fixed fresh Meter native output required");File external=getContext().getExternalFilesDir(null);if(external==null)throw new IllegalStateException("App external files unavailable");lpDirectory=new File(external,"meter-g02-native-1").getCanonicalFile();if(!lpDirectory.equals(new File(output).getCanonicalFile())||lpDirectory.exists()||!lpDirectory.mkdirs())throw new IllegalStateException("Fresh actual Meter native output directory required");result.put("outputDir",lpDirectory.toString());
+    String output=arguments.getString("outputDir","");String directoryName=new File(output).getName();if(!directoryName.matches("meter-g02-native-[A-Za-z0-9_-]+"))throw new IllegalArgumentException("Fresh Meter native output name required");File external=getContext().getExternalFilesDir(null);if(external==null)throw new IllegalStateException("App external files unavailable");lpDirectory=new File(external,directoryName).getCanonicalFile();if(!lpDirectory.equals(new File(output).getCanonicalFile())||lpDirectory.exists()||!lpDirectory.mkdirs())throw new IllegalStateException("Fresh actual Meter native output directory required");result.put("outputDir",lpDirectory.toString());
     boolean safe=true,failed=false;String[] names={"values","format","motion","events"};if(names.length!=4)throw new IllegalStateException("Exactly the four Meter G02 methods must be selected");result.put("selectedMethods",new JSONArray(java.util.Arrays.asList(names)));result.put("selectedMethodCount",names.length);
     try{
+      meterSelectScene(automation,result);
       lpAdmitConnection(automation,result);
       for(int i=0;i<names.length;i++){
         lpCase=new JSONObject();lpCase.put("name",names[i]);lpCase.put("startedEpochMs",System.currentTimeMillis());lpCase.put("observations",new JSONArray());lpCase.put("actions",new JSONArray());JSONObject states=new JSONObject();for(String key:new String[]{"ownerUpdates","flagUpdates","contacts","retirements","acknowledgments"})states.put(key,new JSONArray());lpCase.put("states",states);cases.put(lpCase);long methodStart=SystemClock.uptimeMillis();lpDeadline=Math.min(lpBatchDeadline,methodStart+180000);
@@ -531,7 +553,7 @@ public final class Actions extends Instrumentation {
         finally{lpCase.put("lastRawReceipts",lpLastReceipts);lpCase.put("elapsedMs",SystemClock.uptimeMillis()-methodStart);lpCase.put("finishedEpochMs",System.currentTimeMillis());writeJson(lpDirectory,"receipt.json",result);}
         if(!safe){for(int j=i+1;j<names.length;j++){JSONObject skipped=new JSONObject();skipped.put("name",names[j]);skipped.put("status","NOT_RUN_UNSAFE");skipped.put("error","Prior native infrastructure/unsafe condition stopped batch");cases.put(skipped);}break;}
       }
-      result.put("hasFailedCohorts",failed);result.put("nativeActionSucceeded",safe&&cases.length()==names.length);result.put("status",safe&&cases.length()==names.length?"NATIVE_BATCH_COMPLETE_PENDING_HOST_PAINT":"STOP_UNSAFE");
+      result.put("hasFailedCohorts",failed);result.put("nativeActionSucceeded",safe&&!failed&&cases.length()==names.length);result.put("status",safe&&!failed&&cases.length()==names.length?"NATIVE_BATCH_COMPLETE_PENDING_HOST_PAINT":"STOP_UNSAFE");
     }finally{result.put("epochFinishedMs",System.currentTimeMillis());result.put("elapsedMs",SystemClock.uptimeMillis()-started);writeJson(lpDirectory,"receipt.json",result);}
     return result;
   }

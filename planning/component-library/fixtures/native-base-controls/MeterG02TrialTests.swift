@@ -3,7 +3,7 @@ import UIKit
 
 // Four paired G02 cohorts. Product/source identity and guest lifecycle remain root-owned.
 final class MeterG02TrialTests: XCTestCase {
-    private let app = XCUIApplication(bundleIdentifier: "dev.codonui.showcase")
+    private var app: XCUIApplication!
     private let targetID = "meter-g02-target"
     private let stateID = "meter-g02-state"
     private var original: [String: Any] = [:]
@@ -11,16 +11,19 @@ final class MeterG02TrialTests: XCTestCase {
     override func setUpWithError() throws {
         continueAfterFailure = false
         executionTimeAllowance = 180
+        app = XCUIApplication(bundleIdentifier: "dev.codonui.showcase")
         for key in ["CODON_METER_FIXTURE_SHA256", "CODON_METER_SCENE_SHA256",
                     "CODON_METER_PRODUCT_SHA256", "CODON_METER_OBSERVER_MANIFEST_SHA256"] {
             let value = try XCTUnwrap(ProcessInfo.processInfo.environment[key], "Missing " + key)
             XCTAssertNotNil(value.range(of: "^[0-9a-f]{64}$", options: .regularExpression))
         }
-        XCTAssertEqual(app.state, .runningForeground, "Prelaunch the matched app and Range scene")
+        app.launch()
+        XCTAssertEqual(app.state, .runningForeground, "Actual matched app must launch")
         XCUIDevice.shared.orientation = .portrait
         wait("Portrait setup") { XCUIDevice.shared.orientation == .portrait }
         XCTAssertGreaterThan(app.windows.firstMatch.frame.height, app.windows.firstMatch.frame.width)
         XCTAssertFalse(app.keyboards.firstMatch.exists)
+        tap("Progress/Meter scene")
         tap("Light theme")
         tap("Live window")
         tap("G02 prepare Meter")
