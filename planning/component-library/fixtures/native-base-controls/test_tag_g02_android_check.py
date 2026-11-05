@@ -165,7 +165,7 @@ class BootDiagnosticControls(unittest.TestCase):
   tree=ast.parse(Path(__file__).with_name('NativeTagG02AndroidDriver.py').read_text());branch=tree.body[-1]
   class Clock:
    def time(self):return 198.373
-  ns={'outcome':'STOP_RuntimeError','guest_verified':False,'profile_settings':None,'serial_absent':True,'ports_free':True,'group_present':False,'cleanup_errors':[{'phase':'emulator-process','error':"PermissionError(1, 'Operation not permitted')"}],'time':Clock(),'end':1800}
+  ns={'passed_outcome':'TAG_G02_BATCH_PENDING_ROOT_REVIEW','outcome':'STOP_RuntimeError','guest_verified':False,'profile_settings':None,'serial_absent':True,'ports_free':True,'group_present':False,'cleanup_errors':[{'phase':'emulator-process','error':"PermissionError(1, 'Operation not permitted')"}],'time':Clock(),'end':1800}
   with self.assertRaises(SystemExit) as result:exec(compile(ast.Module(body=[branch],type_ignores=[]),'actual-final-exit-control','exec'),ns)
   self.assertEqual(result.exception.code,1)
  def test_actual_boot_diagnostic_stops_before_install_or_instrumentation(self):

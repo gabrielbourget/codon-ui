@@ -337,6 +337,7 @@ public final class Actions extends Instrumentation {
     lpLastReceipts=rows;
   }
   private AccessibilityNodeInfo lpVisible(UiAutomation automation,String id) throws Exception {
+    requireFixtureNavigation();
     for(int attempt=0;attempt<24;attempt++){
       lpBound();AccessibilityNodeInfo node=fresh(automation,id),scroll=fresh(automation,"showcase-scroll");
       if(scroll==null||!scroll.refresh()||!scroll.isVisibleToUser()||!scroll.isEnabled())throw new IllegalStateException("Actual responsive LinearProgress scroll host required");
@@ -350,6 +351,7 @@ public final class Actions extends Instrumentation {
     throw new IllegalStateException("LinearProgress actual visible node not reached within24 scrolls: "+id);
   }
   private void lpClick(UiAutomation automation,String label) throws Exception {
+    requireFixtureNavigation();
     label=lpFixtureControl(label);
     AccessibilityNodeInfo control=lpVisible(automation,label);if(!control.isEnabled()||!label.contentEquals(control.getContentDescription()==null?"":control.getContentDescription()))throw new IllegalStateException("Actual named fixture control required: "+label);
     boolean accepted=control.performAction(AccessibilityNodeInfo.ACTION_CLICK);JSONObject row=new JSONObject();row.put("action","ACTION_CLICK");row.put("label",label);row.put("accepted",accepted);row.put("nativeEpochMs",System.currentTimeMillis());lpActions().put(row);
@@ -597,8 +599,8 @@ public final class Actions extends Instrumentation {
     for(int i=0;i<nodes.length();i++){JSONObject node=nodes.getJSONObject(i);String text=node.optString("text","");if(text.contains("isn't responding")){alerts++;if("android:id/alertTitle".equals(node.optString("id"))&&"System UI isn't responding".equals(text)){title=node;titles++;}}
       if("android:id/aerr_wait".equals(node.optString("id"))&&"Wait".equals(text)&&node.optBoolean("enabled")&&node.optBoolean("visible")){wait=node;waits++;}}
     if(alerts==0)return false;
-    if(setup.optBoolean("systemUIWaitUsed")||alerts!=1||titles!=1||waits!=1||title.getInt("windowId")!=wait.getInt("windowId"))throw new IllegalStateException("Only one exact stock System UI Wait is admitted before component input; recurring/other ANR stops");
-    setup.put("systemUIWaitUsed",true);JSONObject recovery=new JSONObject();setup.put("systemUIRecovery",recovery);recovery.put("beforeWindows",windows);recovery.put("title",title);recovery.put("wait",wait);String image="setup-systemui-before-wait.png";tgShot(automation,image);recovery.put("png",image);tgPersist();Rect frame=Rect.unflattenFromString(wait.getString("bounds"));if(frame==null||frame.isEmpty())throw new IllegalStateException("Actual stock Wait bounds required");physicalSwipe(automation,frame,200,lpDeadline,lpActions(),"one startup SystemUI Wait");recovery.put("accepted",true);
+    if(setup.optBoolean("systemUIWaitUsed")||tgResult.optBoolean("systemUIWaitUsed")||alerts!=1||titles!=1||waits!=1||title.getInt("windowId")!=wait.getInt("windowId"))throw new IllegalStateException("Only one exact stock System UI Wait is admitted before component input; recurring/other ANR stops");
+    setup.put("systemUIWaitUsed",true);tgResult.put("systemUIWaitUsed",true);JSONObject recovery=new JSONObject();setup.put("systemUIRecovery",recovery);recovery.put("beforeWindows",windows);recovery.put("title",title);recovery.put("wait",wait);String image="setup-systemui-before-wait.png";tgShot(automation,image);recovery.put("png",image);tgPersist();Rect frame=Rect.unflattenFromString(wait.getString("bounds"));if(frame==null||frame.isEmpty())throw new IllegalStateException("Actual stock Wait bounds required");physicalSwipe(automation,frame,200,lpDeadline,lpActions(),"one startup SystemUI Wait");recovery.put("accepted",true);
     long until=Math.min(lpDeadline,SystemClock.uptimeMillis()+5000);while(SystemClock.uptimeMillis()<until){JSONObject after=tgStartupWindows(automation);recovery.put("lastWindows",after);boolean alert=false;JSONArray rows=after.getJSONArray("windowNodes");for(int i=0;i<rows.length();i++)if(rows.getJSONObject(i).optString("text","").contains("isn't responding"))alert=true;if(!alert){recovery.put("clearedUptimeMs",SystemClock.uptimeMillis());tgPersist();return true;}lpSleep(100);}throw new IllegalStateException("Stock Wait did not clear exact setup ANR within5s; no retry");
   }
   private static String tagOutputName(String remote) {
@@ -623,17 +625,18 @@ public final class Actions extends Instrumentation {
     action.put("selectionAcknowledgedUptimeMs",SystemClock.uptimeMillis());tgPersist();
   }
   private JSONObject tgSetupNode(AccessibilityNodeInfo node) throws Exception {JSONObject value=tgNode(node);value.put("packageName",node.getPackageName()==null?JSONObject.NULL:node.getPackageName().toString());return value;}
-  private void tgConnectionSetup(UiAutomation automation,long started) throws Exception {
+  private void tgConnectionSetup(UiAutomation automation,long started) throws Exception {tgConnectionSetup(automation,started,"Tag scene",TG_STATE,TG_TARGET,false);}
+  private void tgConnectionSetup(UiAutomation automation,long started,String sceneLabel,String stateId,String targetId,boolean placeholderSetup) throws Exception {
     lpDeadline=Math.min(lpBatchDeadline,started+90000);JSONObject setup=new JSONObject();tgResult.put("setup",setup);setup.put("status","RUNNING");setup.put("maximumMs",90000);setup.put("startedUptimeMs",SystemClock.uptimeMillis());setup.put("systemUIWaitUsed",false);setup.put("componentInputBeforeAdmission",false);setup.put("connectionCount",1);setup.put("actions",new JSONArray());lpCase=setup;
     try {
       long rootUntil=Math.min(lpDeadline,SystemClock.uptimeMillis()+15000);JSONObject initial=null;int queries=0;
       while(SystemClock.uptimeMillis()<rootUntil){lpBound();initial=tgStartupWindows(automation);queries++;setup.put("initialWindows",initial);if(initial.getInt("windowRoots")>0){tgStartupAnr(automation,setup,initial);break;}lpSleep(100);}
       setup.put("initialRootQueries",queries);if(initial==null||initial.getInt("windowRoots")==0)throw new IllegalStateException("No actual native app root within15s; no input");
-      tgClick(automation,"Tag scene");AccessibilityNodeInfo currentScene=fresh(automation,"Tag scene");if(currentScene==null||!currentScene.refresh()||!currentScene.isSelected())throw new IllegalStateException("Actual selected Tag scene required after single native selection");AccessibilityNodeInfo scene=AccessibilityNodeInfo.obtain(currentScene);
-      tgMarker=AccessibilityNodeInfo.obtain(tgVisible(automation,TG_STATE));tgOriginal=AccessibilityNodeInfo.obtain(tgVisible(automation,TG_TARGET));long clearSince=-1;int clearQueries=0;
+      tgClick(automation,sceneLabel);AccessibilityNodeInfo currentScene=fresh(automation,sceneLabel);if(currentScene==null||!currentScene.refresh()||!currentScene.isSelected())throw new IllegalStateException("Actual selected Tag scene required after single native selection");AccessibilityNodeInfo scene=AccessibilityNodeInfo.obtain(currentScene);
+      tgMarker=AccessibilityNodeInfo.obtain(placeholderSetup?lpVisible(automation,stateId):tgVisible(automation,stateId));tgOriginal=AccessibilityNodeInfo.obtain(placeholderSetup?lpVisible(automation,targetId):tgVisible(automation,targetId));long clearSince=-1;int clearQueries=0;
       while(SystemClock.uptimeMillis()<lpDeadline){lpBound();JSONObject windows=tgStartupWindows(automation);if(tgStartupAnr(automation,setup,windows)){clearSince=-1;continue;}if(windows.getInt("windowRoots")==0){clearSince=-1;lpSleep(100);continue;}
         if(!scene.refresh()||!scene.isSelected()||!tgOriginal.refresh()||!tgMarker.refresh())throw new IllegalStateException("Actual selected scene/target/state source retired during setup");AccessibilityNodeInfo scroll=fresh(automation,"showcase-scroll");if(scroll==null||!scroll.refresh()||!scroll.isEnabled()||!whollyVisible(tgOriginal,scroll))throw new IllegalStateException("Actual target/viewport not responsive and wholly visible during setup");
-        JSONObject observation=new JSONObject();observation.put("windows",lpWindows(automation));observation.put("scene",tgSetupNode(scene));observation.put("target",tgSetupNode(tgOriginal));observation.put("marker",tgSetupNode(tgMarker));observation.put("viewport",tgSetupNode(scroll));observation.put("state",tgRead());observation.put("nativeUptimeMs",SystemClock.uptimeMillis());if(clearSince<0){clearSince=observation.getLong("nativeUptimeMs");setup.put("firstClearObservation",observation);}setup.put("lastClearObservation",observation);long observedElapsed=observation.getLong("nativeUptimeMs")-clearSince;clearQueries++;setup.put("clearQueries",clearQueries);setup.put("clearObservedMs",observedElapsed);tgPersist();
+        JSONObject observation=new JSONObject();observation.put("windows",lpWindows(automation));observation.put("scene",tgSetupNode(scene));observation.put("target",tgSetupNode(tgOriginal));observation.put("marker",tgSetupNode(tgMarker));observation.put("viewport",tgSetupNode(scroll));observation.put("state",placeholderSetup?phtState(automation):tgRead());observation.put("nativeUptimeMs",SystemClock.uptimeMillis());if(clearSince<0){clearSince=observation.getLong("nativeUptimeMs");setup.put("firstClearObservation",observation);}setup.put("lastClearObservation",observation);long observedElapsed=observation.getLong("nativeUptimeMs")-clearSince;clearQueries++;setup.put("clearQueries",clearQueries);setup.put("clearObservedMs",observedElapsed);tgPersist();
         if(observedElapsed>=30000){setup.put("status","READY_FROM_ACTUAL_SINGLE_CONNECTION");long finishedUptimeMs=SystemClock.uptimeMillis();setup.put("finishedUptimeMs",finishedUptimeMs);setup.put("elapsedMs",finishedUptimeMs-setup.getLong("startedUptimeMs"));setup.put("nativeInputCounts",new JSONObject().put("sceneSelections",1).put("componentContacts",0).put("systemUIWait",setup.optBoolean("systemUIWaitUsed")?1:0));tgResult.put("connectionAdmission","READY_FROM_ACTUAL_NEW_CONNECTION");tgPersist();return;}lpSleep(250);
       }
       throw new IllegalStateException("No actual selected Tag/target/state/viewport clear30s interval within90s setup bound");
@@ -670,6 +673,7 @@ public final class Actions extends Instrumentation {
   private AccessibilityNodeInfo tgVisible(UiAutomation automation,String id) throws Exception {return tgVisible(automation,id,false);}
 
   private AccessibilityNodeInfo tgVisible(UiAutomation automation,String id,boolean partialCopy) throws Exception {
+    requireFixtureNavigation();
     if(partialCopy&&!"indicator-g04-long-copy".equals(id))throw new IllegalArgumentException("Only the original long-copy paragraph admits partial intersection");boolean searchDown=false;String previousDiscovery=null;int stable=0;
     for(int attempt=0;attempt<24;attempt++){
       lpBound();AccessibilityNodeInfo node=fresh(automation,id),scroll=fresh(automation,"showcase-scroll");if(scroll==null||!scroll.refresh()||(!partialCopy&&(!scroll.isVisibleToUser()||!scroll.isEnabled())))throw new IllegalStateException("Actual responsive native scroll viewport required");if(node!=null&&!node.refresh())node=null;Rect viewport=new Rect(),frame=new Rect();scroll.getBoundsInScreen(viewport);if(viewport.isEmpty())throw new IllegalStateException("Actual nonempty native viewport required");if(node!=null)node.getBoundsInScreen(frame);JSONObject row=new JSONObject();row.put("seeking",id);row.put("attempt",attempt);row.put("partialCopy",partialCopy);row.put("viewportBefore",viewport.flattenToString());row.put("frameBefore",node==null?JSONObject.NULL:frame.flattenToString());row.put("nodeVisibleBefore",node!=null&&node.isVisibleToUser());lpActions().put(row);
@@ -683,15 +687,125 @@ public final class Actions extends Instrumentation {
   }
 
   private void tgClick(UiAutomation automation,String label) throws Exception {
+    requireFixtureNavigation();
     AccessibilityNodeInfo control=tgVisible(automation,label);if(!control.isEnabled()||!label.contentEquals(control.getContentDescription()==null?"":control.getContentDescription()))throw new IllegalStateException("Actual named fixture control required: "+label);boolean accepted=control.performAction(AccessibilityNodeInfo.ACTION_CLICK);JSONObject row=new JSONObject();row.put("action","ACTION_CLICK");row.put("label",label);row.put("accepted",accepted);row.put("nativeEpochMs",System.currentTimeMillis());lpActions().put(row);if(!accepted)throw new IllegalStateException("Fixture ACTION_CLICK rejected: "+label);if(label.endsWith(" scene"))tgAwaitSelectedScene(automation,label,row);else lpSleep(200);
   }
 
+
+
+
+  private interface ReadinessProbe { boolean ready() throws Exception; }
+  private interface AdmittedAction { void run() throws Exception; }
+  private static final class ReadinessGate {
+    private boolean admitted=false;
+    void admit(ReadinessProbe probe) throws Exception {
+      admitted=false;
+      if(!probe.ready())throw new IllegalStateException("Actual readiness did not pass");
+      admitted=true;
+    }
+    void revoke() {admitted=false;}
+    void requireReady() {if(!admitted)throw new IllegalStateException("Readiness must pass before fixture navigation or input");}
+    void run(AdmittedAction action) throws Exception {requireReady();action.run();}
+  }
+  private static void admitPlaceholderReadiness(ReadinessGate navigation,ReadinessGate input,ReadinessProbe host,ReadinessProbe component) throws Exception {
+    navigation.revoke();input.revoke();
+    try{navigation.admit(host);input.admit(component);}catch(Exception|Error failure){navigation.revoke();input.revoke();throw failure;}
+  }
+  private boolean placeholderGuardActive=false;
+  private final ReadinessGate placeholderNavigationGate=new ReadinessGate();
+  private final ReadinessGate placeholderInputGate=new ReadinessGate();
+  private void requireFixtureNavigation() {if(placeholderGuardActive)placeholderNavigationGate.requireReady();}
+  private boolean placeholderHostReady(UiAutomation automation,long started) throws Exception {
+    lpDeadline=Math.min(lpBatchDeadline,started+90000);JSONObject admission=new JSONObject();admission.put("status","CHECKING");admission.put("fixtureNavigationBeforeReady",0);admission.put("testInputBeforeReady",0);admission.put("actions",new JSONArray());tgResult.put("preNavigationReadiness",admission);lpCase=admission;
+    long clearSince=-1;int count=0;
+    try {
+      while(SystemClock.uptimeMillis()<lpDeadline){
+        JSONObject windows=tgStartupWindows(automation);admission.put("lastWindows",windows);
+        if(tgStartupAnr(automation,admission,windows)){clearSince=-1;continue;}
+        AccessibilityNodeInfo root=automation.getRootInActiveWindow(),scroll=fresh(automation,"showcase-scroll"),control=fresh(automation,"Text/Button scene");
+        boolean ready=root!=null&&root.refresh()&&"dev.codonui.showcase".contentEquals(root.getPackageName())&&scroll!=null&&scroll.refresh()&&scroll.isVisibleToUser()&&scroll.isEnabled()&&control!=null&&control.refresh()&&control.isVisibleToUser()&&control.isEnabled()&&"dev.codonui.showcase".contentEquals(control.getPackageName());
+        Rect viewport=new Rect();if(scroll!=null)scroll.getBoundsInScreen(viewport);ready=ready&&!viewport.isEmpty();
+        if(!ready){clearSince=-1;lpSleep(100);continue;}
+        long now=SystemClock.uptimeMillis();if(clearSince<0)clearSince=now;count++;
+        admission.put("viewport",tgSetupNode(scroll));admission.put("sceneControl",tgSetupNode(control));admission.put("clearQueries",count);admission.put("clearObservedMs",now-clearSince);tgPersist();
+        if(now-clearSince>=30000){admission.put("status","READY");return true;}lpSleep(250);
+      }
+      throw new IllegalStateException("Actual app/window/control clear30s readiness did not pass before navigation");
+    } catch(Throwable error){admission.put("status","FAILED");admission.put("error",error.toString());try{admission.put("failureWindows",tgStartupWindows(automation));tgShot(automation,"pre-navigation-failure.png");}catch(Throwable capture){admission.put("captureError",capture.toString());}tgPersist();throw error;}
+  }
+
+  private JSONObject phtState(UiAutomation automation) throws Exception {
+    AccessibilityNodeInfo marker=fresh(automation,"placeholder-g02-state");
+    lpCheck(marker!=null&&marker.refresh()&&marker.getContentDescription()!=null,"Fresh actual Placeholder state required");
+    JSONObject state=new JSONObject(marker.getContentDescription().toString());
+    lpCheck(state.getInt("dropped")==0&&state.getLong("rootTag")>0&&state.getLong("refIdentity")>0,"Live original Placeholder binding/trace required");return state;
+  }
+  private void phtRetained(JSONObject original,JSONObject state) throws Exception {
+    for(String key:new String[]{"rootTag","refIdentity","attaches","detaches"})lpCheck(lpEqual(original.get(key),state.get(key)),"Original Placeholder binding changed: "+key);
+  }
+  private static int[] placeholderPaintRows(int[] pixels,int width,int color) {
+    if(width<=0||pixels.length%width!=0)throw new IllegalArgumentException("Whole positive raster rows required");
+    int count=0,bands=0;boolean previous=false;for(int y=0;y<pixels.length/width;y++){boolean painted=false;for(int x=0;x<width;x++)if(pixels[y*width+x]==color){count++;painted=true;}if(painted&&!previous)bands++;previous=painted;}return new int[]{count,bands};
+  }
+  private JSONObject phtObserve(UiAutomation automation,String name,int color,String expected,JSONObject original) throws Exception {
+    placeholderInputGate.requireReady();
+    lpSleep(350);AccessibilityNodeInfo target=lpVisible(automation,"library-placeholder");JSONObject before=phtState(automation);phtRetained(original,before);
+    lpCheck(target.refresh()&&target.getText()!=null&&expected.contentEquals(target.getText()),"Exact original Placeholder native text required");
+    Rect frame=new Rect();target.getBoundsInScreen(frame);JSONObject row=new JSONObject();row.put("name",name);row.put("state",before);row.put("target",tgNode(target));row.put("expectedARGB",color);row.put("nativeEpochMs",System.currentTimeMillis());
+    Bitmap image=automation.takeScreenshot();lpCheck(image!=null,"Native Placeholder image required");
+    try{lpCheck(image.getHeight()>image.getWidth()&&frame.left>=0&&frame.top>=0&&frame.right<=image.getWidth()&&frame.bottom<=image.getHeight(),"Actual visible portrait crop required");int[] pixels=new int[frame.width()*frame.height()];image.getPixels(pixels,0,frame.width(),frame.left,frame.top,frame.width(),frame.height());int[] paint=placeholderPaintRows(pixels,frame.width(),color);lpCheck(paint[0]>=5,"Expected opaque glyph paint absent");row.put("opaquePixelCount",paint[0]);row.put("paintedRowBands",paint[1]);row.put("frame",new JSONArray(new int[]{frame.left,frame.top,frame.width(),frame.height()}));row.put("png",name+".png");savePng(image,new File(lpDirectory,name+".png"));}finally{image.recycle();}
+    AccessibilityNodeInfo after=lpVisible(automation,"library-placeholder");Rect freshFrame=new Rect();after.getBoundsInScreen(freshFrame);lpCheck(frame.equals(freshFrame)&&expected.contentEquals(after.getText()),"Capture target/text/frame changed");phtRetained(original,phtState(automation));lpCase.getJSONArray("observations").put(row);return row;
+  }
+  private JSONObject phtPrepare(UiAutomation automation) throws Exception {
+    placeholderInputGate.requireReady();
+    lpClick(automation,"Live window");lpClick(automation,"Light theme");lpClick(automation,"Text/Button scene");awaitSceneSelection(()->{AccessibilityNodeInfo control=fresh(automation,"Text/Button scene");return control!=null&&control.refresh()&&control.isVisibleToUser()&&control.isEnabled()&&control.isSelected()&&"dev.codonui.showcase".contentEquals(control.getPackageName());},SystemClock::uptimeMillis,SystemClock::sleep,Math.min(lpDeadline,SystemClock.uptimeMillis()+5000));lpClick(automation,"Reset scene");lpClick(automation,"G02 prepare placeholder");lpSleep(500);
+
+    JSONObject state=phtState(automation);lpCheck(state.getInt("actions")==0&&state.getJSONArray("receipts").length()==0,"Fresh original Placeholder must be quiet");return state;
+  }
+  private void phtLight(UiAutomation automation) throws Exception {
+    JSONObject original=phtPrepare(automation);phtObserve(automation,"light-default",0xff707070,"Choose an item",original);
+    lpClick(automation,"Toggle placeholder alignment");phtObserve(automation,"light-center",0xff707070,"Choose an item",original);
+    lpClick(automation,"Toggle placeholder custom styles");JSONObject custom=phtObserve(automation,"light-custom",0xffa66b00,"Choose an item",original);
+    lpClick(automation,"Toggle placeholder final styles");JSONObject finalStyle=phtObserve(automation,"light-final",0xff7e22ce,"Choose an item",original);
+    lpCheck(finalStyle.getJSONArray("frame").getInt(3)>custom.getJSONArray("frame").getInt(3),"Final22 glyph layout must exceed custom18 layout");
+    lpClick(automation,"Toggle placeholder final styles");phtObserve(automation,"light-custom-restored",0xffa66b00,"Choose an item",original);
+    lpClick(automation,"Toggle placeholder custom styles");phtObserve(automation,"light-computed-restored",0xff707070,"Choose an item",original);
+    lpCheck(phtState(automation).getInt("actions")==0,"Style changes fabricated a caller action");
+  }
+  private void phtDark(UiAutomation automation) throws Exception {
+    JSONObject original=phtPrepare(automation);lpClick(automation,"Dark theme");phtObserve(automation,"dark-default",0xff878787,"Choose an item",original);
+    lpClick(automation,"Toggle placeholder custom styles");lpClick(automation,"Toggle placeholder final styles");phtObserve(automation,"dark-final",0xff7e22ce,"Choose an item",original);
+    lpClick(automation,"Light theme");phtObserve(automation,"light-explicit-retained",0xff7e22ce,"Choose an item",original);
+    lpClick(automation,"Toggle placeholder final styles");lpClick(automation,"Toggle placeholder custom styles");phtObserve(automation,"light-after-provider",0xff707070,"Choose an item",original);
+    lpClick(automation,"G02 scene placeholder content");lpClick(automation,"Toggle empty placeholder");AccessibilityNodeInfo empty=fresh(automation,"library-placeholder");lpCheck(empty==null||empty.getText()==null||empty.getText().length()==0,"Empty caller content must have no native glyphs");phtRetained(original,phtState(automation));lpClick(automation,"Toggle empty placeholder");phtObserve(automation,"empty-restored",0xff707070,"Choose an item",original);
+  }
+  private void phtNarrow(UiAutomation automation) throws Exception {
+    JSONObject original=phtPrepare(automation);phtObserve(automation,"full-default",0xff707070,"Choose an item",original);
+    lpClick(automation,"Toggle placeholder final styles");lpClick(automation,"G02 deferred placeholder content");lpSleep(500);JSONObject full=phtObserve(automation,"full-final-deferred",0xff7e22ce,"Deferred owner content",original);
+    lpClick(automation,"Vertical blocked region");
+    JSONObject narrow=phtObserve(automation,"narrow-final-deferred",0xff7e22ce,"Deferred owner content",original);
+    lpCheck(narrow.getJSONArray("frame").getInt(2)<full.getJSONArray("frame").getInt(2)&&narrow.getJSONArray("frame").getInt(3)>full.getJSONArray("frame").getInt(3)*1.5,"Measured narrower wrapped original Placeholder required");
+    AccessibilityNodeInfo target=lpVisible(automation,"library-placeholder");Rect frame=new Rect();target.getBoundsInScreen(frame);placeholderInputGate.requireReady();physicalSwipe(automation,frame,200,lpDeadline,lpActions(),"Original Placeholder first action");lpSleep(750);JSONObject after=phtState(automation);phtRetained(original,after);lpCheck(after.getInt("actions")==1&&after.getJSONArray("receipts").length()==3,"One original pressIn/pressOut/press required");
+    String[] kinds={"pressIn","pressOut","press"};for(int i=0;i<3;i++){JSONObject row=after.getJSONArray("receipts").getJSONObject(i);lpCheck(kinds[i].equals(row.getString("kind"))&&"original".equals(row.getString("callback"))&&!row.getBoolean("afterDetach")&&row.getJSONObject("native").getLong("target")==original.getLong("rootTag"),"Original native callback/target mismatch");}
+    phtObserve(automation,"narrow-after-first-action",0xff7e22ce,"Deferred owner content",original);
+    lpClick(automation,"Live window");lpClick(automation,"Reset scene");lpClick(automation,"G02 prepare placeholder");JSONObject reset=phtState(automation);lpCheck(reset.getInt("actions")==0,"Scene reset must restore caller state");phtObserve(automation,"reset-default",0xff707070,"Choose an item",reset);lpCase.put("requiredVisualReview","Inspect full original deferred phrase in both narrow PNGs: complete glyphs, wrapping, padding and unclipped first action; no OCR or AX-label-only appearance pass.");
+  }
+  private JSONObject placeholderG04Batch(UiAutomation automation) throws Exception {
+    long started=SystemClock.uptimeMillis();lpBatchDeadline=started+550000;JSONObject result=new JSONObject();result.put("operation","placeholder-g04-batch");result.put("nativeActionSucceeded",false);JSONArray cohorts=new JSONArray();result.put("cohorts",cohorts);
+    String remote=arguments.getString("outputDir","");String prefix="/sdcard/Android/data/dev.codonui.lab.number/files/";lpCheck(remote.startsWith(prefix)&&remote.substring(prefix.length()).matches("placeholder-g04-native-[A-Za-z0-9-]{1,80}"),"Fresh owned Placeholder output required");lpDirectory=new File(remote).getCanonicalFile();lpCheck(!lpDirectory.exists()&&lpDirectory.mkdirs(),"Never overwrite prior native evidence");result.put("outputDir",remote);
+    tgResult=result;tgDirectory=lpDirectory;
+    placeholderGuardActive=true;
+    try{admitPlaceholderReadiness(placeholderNavigationGate,placeholderInputGate,()->placeholderHostReady(automation,started),()->{tgConnectionSetup(automation,started,"Text/Button scene","placeholder-g02-state","library-placeholder",true);return true;});}catch(Throwable error){result.put("status","STOP_UNSAFE");result.put("error",error.toString());result.put("elapsedMs",SystemClock.uptimeMillis()-started);writeJson(lpDirectory,"receipt.json",result);return result;}
+    boolean failed=false;String[] names={"light-style","dark-and-reset","narrow-pane"};for(String name:names){lpCase=new JSONObject();lpCase.put("name",name);lpCase.put("actions",new JSONArray());lpCase.put("observations",new JSONArray());cohorts.put(lpCase);long begin=SystemClock.uptimeMillis();lpDeadline=Math.min(lpBatchDeadline,begin+180000);try{placeholderInputGate.run(()->{if(name.equals("light-style"))phtLight(automation);else if(name.equals("dark-and-reset"))phtDark(automation);else phtNarrow(automation);});lpCase.put("status","NATIVE_ASSERTIONS_PASSED_PENDING_HOST_REVIEW");}catch(Throwable error){failed=true;lpCase.put("status","FAILED_ASSERTION");lpCase.put("error",error.toString());}finally{lpCase.put("elapsedMs",SystemClock.uptimeMillis()-begin);writeJson(lpDirectory,"receipt.json",result);}if(failed)break;}
+    result.put("nativeActionSucceeded",!failed&&cohorts.length()==3);result.put("status",!failed?"NATIVE_ASSERTIONS_PASSED_PENDING_HOST_REVIEW":"FAILED_ASSERTION");result.put("elapsedMs",SystemClock.uptimeMillis()-started);writeJson(lpDirectory,"receipt.json",result);return result;
+  }
 
   public void onStart() {
     Bundle output=new Bundle();
     try {
       UiAutomation automation=getUiAutomation(); AccessibilityServiceInfo info=automation.getServiceInfo(); info.flags|=AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS|AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS; automation.setServiceInfo(info);
       String id=arguments.getString("id");String operation=arguments.getString("op","inspect");
+      if(operation.equals("placeholder-g04-batch")){JSONObject batch=placeholderG04Batch(automation);output.putString("codon",batch.toString());finish(batch.optBoolean("nativeActionSucceeded")?-1:1,output);return;}
       if(operation.equals("tag-g02-batch")){JSONObject batch=tagG02Batch(automation);JSONObject summary=new JSONObject();for(String key:new String[]{"operation","status","nativeActionSucceeded","outputDir"})summary.put(key,batch.get(key));summary.put("cohortCount",batch.getJSONArray("cohorts").length());output.putString("codon",summary.toString());finish(batch.optBoolean("nativeActionSucceeded")?-1:1,output);return;}
       if(operation.equals("meter-g02-batch")){JSONObject batch=meterG02Batch(automation);JSONObject summary=new JSONObject();for(String key:new String[]{"operation","status","nativeActionSucceeded","outputDir"})summary.put(key,batch.get(key));summary.put("cohortCount",batch.getJSONArray("cohorts").length());output.putString("codon",summary.toString());finish(batch.optBoolean("nativeActionSucceeded")?-1:1,output);return;}
       if(operation.equals("linear-progress-g02-batch")){JSONObject batch=linearProgressG02Batch(automation);JSONObject summary=new JSONObject();for(String key:new String[]{"operation","status","nativeActionSucceeded","outputDir"})summary.put(key,batch.get(key));summary.put("cohortCount",batch.getJSONArray("cohorts").length());output.putString("codon",summary.toString());finish(batch.optBoolean("nativeActionSucceeded")?-1:1,output);return;}

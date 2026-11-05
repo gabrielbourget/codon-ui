@@ -4,7 +4,9 @@ FIXTURE=pathlib.Path(__file__).resolve().parent
 sys.path.insert(0,str(FIXTURE))
 from NativeAndroidTestSupport import recorded_command
 from NativeCellVerification import load_admission
-admission=load_admission(__file__,"CAT.tag.G02",{"ios":[],"android":["tag-g02-observer-compile"]})
+cell=sys.argv[2] if len(sys.argv)>2 else "CAT.tag.G02"
+assert cell in ["CAT.tag.G02","CAT.placeholder-text.G04"]
+admission=load_admission(__file__,cell,{"ios":[],"android":["placeholder-g04-observer-compile" if cell=="CAT.placeholder-text.G04" else "tag-g02-observer-compile"]})
 ROOT=pathlib.Path(sys.argv[1]).resolve();OUT=ROOT/'compile-1';SDK=pathlib.Path('/Users/gabrielbourget/.local/share/codon-native-lab/sdk');JDK=pathlib.Path('/Users/gabrielbourget/.local/share/codon-native-lab/jdk/Contents/Home')
 start=time.time();work=start+120;end=start+150;steps=[];status='FAILED';error=None
 sha=lambda path:hashlib.sha256(pathlib.Path(path).read_bytes()).hexdigest()
@@ -29,7 +31,7 @@ try:
     with zipfile.ZipFile(OUT/'unsigned.apk','a',compression=zipfile.ZIP_DEFLATED) as archive:archive.write(OUT/'dex/classes.dex','classes.dex')
     run('align',[str(tools/'zipalign'),'-f','4',str(OUT/'unsigned.apk'),str(OUT/'inspector.apk')])
     run('sign',[str(tools/'apksigner'),'sign','--ks','/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/apps/native-showcase/android/app/debug.keystore','--ks-key-alias','androiddebugkey','--ks-pass','pass:android','--key-pass','pass:android',str(OUT/'inspector.apk')])
-    run('verify',[str(tools/'apksigner'),'verify','--verbose',str(OUT/'inspector.apk')]);status='PASS_TAG_G02_OBSERVER_COMPILE_ONLY'
+    run('verify',[str(tools/'apksigner'),'verify','--verbose',str(OUT/'inspector.apk')]);status='PASS_PLACEHOLDER_G04_OBSERVER_COMPILE_ONLY' if cell=='CAT.placeholder-text.G04' else 'PASS_TAG_G02_OBSERVER_COMPILE_ONLY'
 except BaseException as failure:error=repr(failure);raise
 finally:
     signal.setitimer(signal.ITIMER_REAL,0)
