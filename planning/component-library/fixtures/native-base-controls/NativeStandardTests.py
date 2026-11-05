@@ -178,7 +178,7 @@ def run_android(session, config, app, observer):
         with socket.socket() as probe:
             require(probe.connect_ex(("127.0.0.1", number)) != 0, "Selected emulator port in use")
     log = (session.output / "emulator.log").open("xb")
-    argv = [str(sdk / "emulator/emulator"), "-avd", config["avd"], "-port", str(port), "-no-snapshot-load", "-no-snapshot-save", "-cores", "2", "-memory", "2048", "-no-audio", "-no-boot-anim", "-gpu", config["gpu"]]
+    argv = [str(sdk / "emulator/emulator"), "-avd", config["avd"], "-port", str(port), "-no-snapshot-load", "-no-snapshot-save", "-cores", "2", "-memory", "2048", "-no-window", "-no-audio", "-no-boot-anim", "-gpu", config["gpu"]]
     session.emulator = subprocess.Popen(argv, env=session.env, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
     write(session.output / "emulator-owner.json", {"pid": session.emulator.pid, "processGroup": session.emulator.pid, "ownerPID": os.getpid(), "argv": argv, "avdHome": str(avd_home)})
     log.close();session.guest_owned = True

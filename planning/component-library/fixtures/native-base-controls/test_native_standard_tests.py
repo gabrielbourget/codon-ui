@@ -130,6 +130,7 @@ class StandardTests(unittest.TestCase):
         socket_control = MagicMock();socket_control.__enter__.return_value.connect_ex.return_value = 111
         with patch.object(NATIVE.socket, "socket", return_value=socket_control), patch.object(NATIVE.subprocess, "Popen", return_value=MagicMock(pid=12345)) as spawn:
             with self.assertRaisesRegex(ValueError, "stop before SDK wait"): NATIVE.run_android(session, config, {}, {})
+        self.assertIn("-no-window", spawn.call_args.args[0])
         environment = spawn.call_args.kwargs["env"]
         self.assertEqual(environment["ANDROID_AVD_HOME"], str(self.root))
         self.assertEqual(environment["ANDROID_USER_HOME"], str(self.root))
