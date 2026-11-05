@@ -31,6 +31,12 @@ public final class CUIFormDocumentModule extends NativeCUIFormDocumentSpec {
     return (int)value;
   }
 
+  private static boolean isComboBoxFormTrigger(CUIFormMetadataView metadata, View original) throws Exception {
+    if (!(original instanceof CUIFocusView)) return false;
+    JSONObject control = new JSONObject(metadata.ownedControlBinding);
+    return control.length() == 2 && "combo-box-trigger".equals(control.optString("kind"));
+  }
+
   private void refreshField(FabricUIManager manager, CUIFormMetadataView metadata, View editor, String owner, String descriptor) throws Exception {
     metadata.setSemanticContribution(null);
     JSONObject mount = metadata.formMountSnapshot();
@@ -58,6 +64,10 @@ public final class CUIFormDocumentModule extends NativeCUIFormDocumentSpec {
     };
     boolean dateField = editor instanceof CUIDateSegment;
     if (dateField != plan.has("dateField")) { metadata.resetSemanticAccessibilityFocus(); return; }
+    if (isComboBoxFormTrigger(metadata, editor)) {
+      // The trigger uses current RN field props; modal options own their separate focus.
+      metadata.resetSemanticAccessibilityFocus(); return;
+    }
     CUIFormMetadataView.SemanticContribution contribution = dateField ? CUIFieldSemantics.bindDateField(manager,
         CUIOwnedDateField.resolveAll(manager, metadata, metadata.ownedEditorBinding, editor.getId(), surface), plan, current) :
         CUIFieldSemantics.bindCoreActionGuard((ReactEditText)editor, plan, current);
@@ -91,7 +101,7 @@ public final class CUIFormDocumentModule extends NativeCUIFormDocumentSpec {
         if (!(selected instanceof FabricUIManager)) throw new IllegalStateException("field-Fabric-unavailable");
         FabricUIManager manager = (FabricUIManager)selected;
         View target = manager.resolveView(positiveInteger(mount, "target")), original = manager.resolveView(positiveInteger(mount, "originalTarget"));
-        if (!(target instanceof CUIFormMetadataView) || !((CUIFormMetadataView)target).isFieldBinding() || (!(original instanceof ReactEditText) && !(original instanceof CUIDateSegment)))
+        if (!(target instanceof CUIFormMetadataView) || !((CUIFormMetadataView)target).isFieldBinding() || (!(original instanceof ReactEditText) && !(original instanceof CUIDateSegment) && !isComboBoxFormTrigger((CUIFormMetadataView)target, original)))
           throw new IllegalStateException("field-binding-original-editor-retired");
         CUIFormMetadataView metadata = (CUIFormMetadataView)target; View editor = original;
         if (metadata.originalForMountSnapshot(mount) != editor || !metadata.semanticBinding.equals(request.getString("semanticBinding")))

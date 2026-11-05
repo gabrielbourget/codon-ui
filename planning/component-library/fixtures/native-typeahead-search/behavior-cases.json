@@ -1,0 +1,442 @@
+{
+  "cell": "CAT.typeahead-search.G02",
+  "base": "4cf735cbc549f51caee629595389e3b2381816ec",
+  "sceneSHA256": "8562a82eb666f9598ffb8b74f1d1bb72f5ff3b43a3b5f7a9fd354a7207277c99",
+  "status": "OPEN_NATIVE_QUALIFICATION_REQUIRED",
+  "scope": "All supported ownership/behavior axes under3.1.2/S01-S06;source/mock/compiler evidence never substitutes for installed native-dependent behavior.",
+  "fixtureDeadlineMilliseconds": 3000,
+  "unchangedMaintainedCaseLimitMilliseconds": 5000,
+  "nativeMethods": [
+    {
+      "id": "CAT.typeahead-search.G02.S01.veto-delayed-echo",
+      "scenario": "S01",
+      "method": "testS01ControlledVetoAndDelayedEcho",
+      "platforms": ["ios", "android"],
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "androidStatus": "REQUIRES_COORDINATOR_EXISTING_PLATFORM_RUNNER",
+      "actions": [
+        "empty controlled query;undefined request;two genuine single-character requests x,y while held",
+        "echo latest request explicitly;programmatic whitespace owner;Search once"
+      ],
+      "exactOracles": [
+        "native field and owner stay empty on both vetoes",
+        "exact callbacks input(x),input(y);echo changes query to y without request3",
+        "programmatic query preserves request count2;trimmed submission owner once;original ref unchanged"
+      ],
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.typeahead-search.G02.S01.typed-selection-null",
+      "scenario": "S01",
+      "method": "testS01TypedSelectionAndNull",
+      "platforms": ["ios", "android"],
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "androidStatus": "REQUIRES_COORDINATOR_EXISTING_PLATFORM_RUNNER",
+      "actions": ["activate numeric0 twice,string0,empty key on original native rows"],
+      "exactOracles": [
+        "exact selection trace [0,null,\"0\",\"\"]",
+        "empty query unchanged;zero query requests;undefined selection and explicit null distinguished"
+      ],
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.typeahead-search.G02.S02.disabled-independent-results",
+      "scenario": "S02",
+      "method": "testS02DisabledQueryKeepsIndependentResultsActive",
+      "platforms": ["ios", "android"],
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "androidStatus": "REQUIRES_COORDINATOR_EXISTING_PLATFORM_RUNNER",
+      "actions": ["set owner whitespace;disable query/search;activate original Alpha row;reenable and Search"],
+      "exactOracles": [
+        "input and Search disabled;no query/submit callbacks while disabled",
+        "row remains independently selectable,selection0 once",
+        "reenabled Search submits trimmed current owner once"
+      ],
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.typeahead-search.G02.S02.cancelled-press",
+      "scenario": "S02",
+      "method": "testS02CancelledOriginalRowPress",
+      "platforms": ["ios", "android"],
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "androidStatus": "REQUIRES_COORDINATOR_EXISTING_PLATFORM_RUNNER",
+      "actions": ["original touch DOWN on Alpha;drag outside its observed frame;UP outside"],
+      "exactOracles": [
+        "zero selection/query/submit callbacks",
+        "original press-cohort receipt proves down/cancel/end delivery;XCTest drag alone is not proof of held-DOWN continuity"
+      ],
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.typeahead-search.G02.S03.first-focused-unpaced-Search",
+      "scenario": "S03",
+      "method": "testS03FirstFocusedUnpacedInputAndSearch",
+      "platforms": ["ios", "android"],
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "androidStatus": "REQUIRES_COORDINATOR_EXISTING_PLATFORM_RUNNER",
+      "actions": [
+        "fresh scene;tap original input;one unpaced typeText(\" Native query text \")",
+        "capture immediate focused verdict;one Search tap while keyboard remains active"
+      ],
+      "exactOracles": [
+        "native value,stock onChange text,request,controlled owner equal full intended phrase while focused",
+        "native event target equals positive original inputRef SDK target;request count equals genuine native change count",
+        "one trimmed submit Native query text;no second tap or finish-editing substitute;original ref lifetime retained"
+      ],
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.typeahead-search.G02.S03.soft-submit-order",
+      "scenario": "S03",
+      "method": "testS03SoftSubmitObserverPrecedesBusinessCallback",
+      "platforms": ["ios", "android"],
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "androidStatus": "REQUIRES_COORDINATOR_EXISTING_PLATFORM_RUNNER",
+      "actions": ["fresh full unpaced phrase;actual soft Search key once"],
+      "exactOracles": [
+        "last callbacks native-submit(full original text),submit(trimmed controlled query) in that order",
+        "exactly one submit;onKeyPress observation never substitutes for native submit"
+      ],
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.typeahead-search.G02.S04.async-reorder-removal",
+      "scenario": "S04",
+      "method": "testS04AsyncReplacementReorderRemovalAndReinsertion",
+      "platforms": ["ios", "android"],
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "androidStatus": "REQUIRES_COORDINATOR_EXISTING_PLATFORM_RUNNER",
+      "actions": [
+        "select Alpha;queue real3000ms relabel/replacement;reverse;remove/reinsert numeric0;activate it once"
+      ],
+      "exactOracles": [
+        "replacement completes with same query,selection and original ref;no fabricated callback",
+        "keys remain typed and reorder to [\"\",\"0\",0]",
+        "reinserted selected row toggles to null;only two selection callbacks total"
+      ],
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.typeahead-search.G02.S04.six-status-lifetimes",
+      "scenario": "S04",
+      "method": "testS04EveryStatusRetainsEditorAndResetsOnlyResultsLifetime",
+      "platforms": ["ios", "android"],
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "androidStatus": "REQUIRES_COORDINATOR_EXISTING_PLATFORM_RUNNER",
+      "actions": [
+        "select Alpha;cycle idle,minimum-query,loading,error,empty,results;Search in each",
+        "raise threshold0->2->100;Search while query below100"
+      ],
+      "exactOracles": [
+        "same original Input/ref/query through every status",
+        "only results mounts rows;unmount clears internal selection without business callback",
+        "six ordinary submits plus seventh below threshold;no implicit minimum/status submit guard",
+        "first Alpha activation after results remount emits0 rather than null"
+      ],
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.typeahead-search.G02.S05.original-editor-result-keys",
+      "scenario": "S05",
+      "method": "testS05OriginalEditorAndResultKeyboardOwners",
+      "platforms": ["ios", "android"],
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "androidStatus": "REQUIRES_COORDINATOR_EXISTING_PLATFORM_RUNNER",
+      "actions": ["original focused input Return;activate Alpha;global Return,Down,Space,Escape"],
+      "exactOracles": [
+        "editor Return submits owner once",
+        "result Return toggles null;Down/Space selects string0;Escape clears null;four total selection callbacks",
+        "result keys never submit query;actual original key/default receipts required"
+      ],
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.typeahead-search.G02.S06.caller-ref-surface-retirement",
+      "scenario": "S06",
+      "method": "testS06CallerRefAndQueuedSurfaceTeardown",
+      "platforms": ["ios", "android"],
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "androidStatus": "REQUIRES_COORDINATOR_EXISTING_PLATFORM_RUNNER",
+      "actions": [
+        "detach/reattach caller ref around mounted original input",
+        "queue3000ms replacement;remove surface before deadline;wait original deadline;restore"
+      ],
+      "exactOracles": [
+        "caller ref detaches and reattaches same original target without editor replacement",
+        "canceled job never completes or mutates query/selection;exact queued/cancelled host trace",
+        "restore creates a new original input target but retains owner query;new results start unselected;no fabricated business callback"
+      ],
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.typeahead-search.G02.S06.scene-reset-queued-retirement",
+      "scenario": "S06",
+      "method": "testS06QueuedSceneResetDoesNotResurrectOwner",
+      "platforms": ["ios", "android"],
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "androidStatus": "REQUIRES_COORDINATOR_EXISTING_PLATFORM_RUNNER",
+      "actions": [
+        "queue replacement;assert it is pending immediately before Reset;Reset scene before deadline;wait;reenter"
+      ],
+      "exactOracles": [
+        "old owner/editor absent after deadline;no reopened keyboard",
+        "fresh owner starts query empty,request/selection undefined,zero callbacks/host events,unrefreshed data",
+        "old SDK ref/event lifetime remains retired with no stale callback after reset"
+      ],
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.typeahead-search.G02.S05.whole-collection-Tab",
+      "scenario": "S05",
+      "method": "testS05WholeCollectionTabEntryAndExit",
+      "platforms": ["ios", "android"],
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "androidStatus": "REQUIRES_COORDINATOR_EXISTING_PLATFORM_RUNNER",
+      "actions": [
+        "select Beta;Before anchor;Tab input,Tab Search,Tab selected result;Space;single Tab out;Return",
+        "After anchor;ShiftTab backward entry;Space;single ShiftTab out;Return"
+      ],
+      "exactOracles": [
+        "forward entry uses selected Beta;Space clears selection",
+        "one Tab exits whole collection to After anchor;Return fires after-boundary once,not row selection or query submit",
+        "backward no-selection entry uses last empty-key row;single ShiftTab exits to Search;Return submits current query once",
+        "retain raw actual native Tab request/default/focus destination receipts;no synthetic policy frame"
+      ],
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.typeahead-search.G02.S05.200-tail-home",
+      "scenario": "S05",
+      "method": "testS05TwoHundredVariableHeightResultsTailAndHome",
+      "platforms": ["ios", "android"],
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "androidStatus": "REQUIRES_COORDINATOR_EXISTING_PLATFORM_RUNNER",
+      "actions": ["load exact200 English/French variable-height results;select first;End,Space;Home,Space"],
+      "exactOracles": [
+        "End selects199;actual original selected tail row is fully contained by observed results viewport/window",
+        "Home selects0;exact selection count3;no viewport or workload reduction"
+      ],
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.typeahead-search.G02.S01.empty-repeated-submit",
+      "scenario": "S01",
+      "method": "testS01EmptyAndRepeatedSubmissionsDoNotInitializeOrMutateQuery",
+      "platforms": ["ios", "android"],
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "androidStatus": "REQUIRES_COORDINATOR_EXISTING_PLATFORM_RUNNER",
+      "actions": [
+        "Fresh empty required-controlled query;Search twice;programmatically set whitespace then Clear owner"
+      ],
+      "exactOracles": [
+        "Exact two submit(\"\") callbacks;repeated empty submission is allowed",
+        "query/request/selection defaults never fabricate input or selection callbacks",
+        "programmatic query/clear updates original editor without request;original ref retained"
+      ],
+      "verdict": "OPEN"
+    }
+  ],
+  "supplementalRequiredNativeCases": [
+    {
+      "id": "S03.Enter-native-event-variants",
+      "variantAxes": {
+        "modifiers": [
+          [],
+          ["shift"],
+          ["control"],
+          ["alt"],
+          ["meta"],
+          ["shift", "control"],
+          ["shift", "alt"],
+          ["shift", "meta"],
+          ["control", "alt"],
+          ["control", "meta"],
+          ["alt", "meta"],
+          ["shift", "control", "alt"],
+          ["shift", "control", "meta"],
+          ["shift", "alt", "meta"],
+          ["control", "alt", "meta"],
+          ["shift", "control", "alt", "meta"]
+        ],
+        "ordinaryEditorRepeat": [false, true],
+        "isComposing": [false, true],
+        "cancelled": [false, true]
+      },
+      "setup": "Original focused editor;authoritative whitespace owner;matched original ordinary-editor Enter receipt from current SDK producer. Reset each independent condition.",
+      "action": "Deliver one original Enter DOWN and corresponding UP with named variant;retain original target/window/epoch/physical event/default metadata. For noncomposing accepted editor repeat,each genuine key receives exactly one trimmed submit. Follow with a distinct original stock soft-submit.",
+      "oracle": "Composing/cancelled/unmatched/retired receipts produce no Enter submit;accepted current original Enter submits latest trimmed query once;onKeyPress remains observer only;distinct later stock observer is forwarded before its own business submit. Preserve actual producer contract and original matched receipt identities.",
+      "requiredInput": "Coordinator-approved original keyboard/IME producer;XCTest metadata/environment strings cannot synthesize admission.",
+      "status": "OPEN_NO_INSTALLED_RECEIPTS"
+    },
+    {
+      "id": "S05.result-key-variants",
+      "variantAxes": {
+        "key": ["ArrowDown", "ArrowUp", "Home", "End", "PageDown", "PageUp", "Escape", "Enter", " "],
+        "wrap": [true, false],
+        "repeat": [false, true],
+        "cancelled": [false, true],
+        "isComposing": [false, true]
+      },
+      "setup": "Original actual row focus;all3typed rows and actual200variable-height viewport;selected/null states as applicable.",
+      "action": "One genuine key action per named case. For page keys derive expected destination from original native measured row boxes/viewport using accepted source algorithm;do not author coordinates or shorten the200row workload.",
+      "oracle": "Arrows/Home/End/page/typeahead move original focus without selection callback;Enter/Space activate once per nonrepeat held-code lifetime;repeat cannot retoggle;Escape clears nonnull once;cancelled/composing/foreign/retired events never activate;unwrapped edge never requests opposite-edge focus.",
+      "requiredInput": "Actual focus target/default/phase/repeat/composition receipts plus measured original viewport;CUI held-DOWN continuity must be established separately.",
+      "status": "OPEN_NO_INSTALLED_RECEIPTS"
+    },
+    {
+      "id": "S05.typeahead-locale-timeout",
+      "variantAxes": {
+        "query": ["b", "Be", "rés"],
+        "locale": ["en", "fr"],
+        "originKey": [0, "0", ""],
+        "clearAfterMilliseconds": 1000
+      },
+      "setup": "Original result focus;long English/French rows;current locale/collator.",
+      "action": "Deliver an unpaced native character sequence,observe exact focus match;wait original1000ms search lifetime,then deliver another character.",
+      "oracle": "Pinned falsey-key origin/search order and locale folding preserved;focus-only/no selection callback;expired sequence does not concatenate;removal/replacement/unmount retires queued search work.",
+      "status": "OPEN_NO_INSTALLED_RECEIPTS"
+    },
+    {
+      "id": "S05.increment-decrement-and-interruption",
+      "variantAxes": {
+        "action": ["increment", "decrement"],
+        "wrap": [true, false],
+        "retirement": [
+          "none",
+          "row-removal",
+          "data-replacement",
+          "status-unmount",
+          "surface-unmount",
+          "caller-ref-change",
+          "ancestor-window-loss"
+        ]
+      },
+      "setup": "Actual row target and current native focus/measurement request;replacement during pending callback where applicable.",
+      "action": "Deliver original native accessibility focus action or start measured keyboard request,then named retirement before measurement completes.",
+      "oracle": "Current surviving target receives only valid native focus/scroll;no selection callback from focus;stale target/window/request/layout/generation produces no focus or business mutation;no reopened keyboard after teardown.",
+      "status": "OPEN_NO_INSTALLED_RECEIPTS"
+    },
+    {
+      "id": "S06.interrupted-gesture-retirement",
+      "variantAxes": {
+        "retirement": [
+          "reorder",
+          "row-removal",
+          "immutable-replacement",
+          "status-unmount",
+          "surface-unmount",
+          "scene-reset"
+        ],
+        "phase": ["before-UP", "native-cancel"]
+      },
+      "setup": "Original held touch/mouse cohort on exact result target;observe genuine DOWN without release.",
+      "action": "Apply named change while held,then original UP/cancel;do not fake press events or substitute a completed drag.",
+      "oracle": "No stale result activation or owner mutation;current legitimate first activation remains once-only;record original target/window/cohort lifetime.",
+      "requiredInput": "Coordinator must provide an admitted held-input/independent-action mechanism. Known CUA DOWN continuity remains unproven.",
+      "status": "OPEN_INPUT_MECHANISM_REQUIRED"
+    }
+  ],
+  "nativeMethodSequence": [
+    "TypeaheadG02TrialTests/testS03FirstFocusedUnpacedInputAndSearch",
+    "TypeaheadG02TrialTests/testS01ControlledVetoAndDelayedEcho",
+    "TypeaheadG02TrialTests/testS01TypedSelectionAndNull",
+    "TypeaheadG02TrialTests/testS02DisabledQueryKeepsIndependentResultsActive",
+    "TypeaheadG02TrialTests/testS02CancelledOriginalRowPress",
+    "TypeaheadG02TrialTests/testS03SoftSubmitObserverPrecedesBusinessCallback",
+    "TypeaheadG02TrialTests/testS04AsyncReplacementReorderRemovalAndReinsertion",
+    "TypeaheadG02TrialTests/testS04EveryStatusRetainsEditorAndResetsOnlyResultsLifetime",
+    "TypeaheadG02TrialTests/testS05OriginalEditorAndResultKeyboardOwners",
+    "TypeaheadG02TrialTests/testS06CallerRefAndQueuedSurfaceTeardown",
+    "TypeaheadG02TrialTests/testS06QueuedSceneResetDoesNotResurrectOwner",
+    "TypeaheadG02TrialTests/testS05WholeCollectionTabEntryAndExit",
+    "TypeaheadG02TrialTests/testS05TwoHundredVariableHeightResultsTailAndHome",
+    "TypeaheadG02TrialTests/testS01EmptyAndRepeatedSubmissionsDoNotInitializeOrMutateQuery"
+  ],
+  "sourceOnlyAcceptedAxes": [
+    {
+      "axis": "query/default ownership",
+      "contract": "Required controlled string inputValue and callable onInputChange;no defaultInputValue/controlled selection axis. Initial internal selection null;initial host observation remains undefined until callback. Native null/0/string0/empty callbacks exercised byS01."
+    },
+    {
+      "axis": "read-only/member guards",
+      "contract": "No accepted isReadOnly/default query/selectedKeys/disabledKeys props. isDisabled guards only editor/search;arbitrary item disabled data never becomes a row guard. N/A means unsupported API,not waiver of actual disabled behavior."
+    },
+    {
+      "axis": "pure iterable/key/text derivation",
+      "contract": "Reuse unchanged G01 owned assertions for optionalIterable/default id/ID/index fallback,duplicate rejection,nonfinite/negativezero keys,empty text,renderer original arguments and callback replacement. These remain byte-pinned source proof;actual native delivery cases are separate."
+    },
+    {
+      "axis": "false0empty-null affordances and label precedence",
+      "contract": "Unchanged component source plus changed maintained scene exercises truthy/custom/bigint and false/0/empty/null fallback. This is source content/default semantics;installed appearance/motion/AT gates stay separate."
+    },
+    {
+      "axis": "owned presentation",
+      "contract": "Inline always-mounted search;no public open/defaultOpen/modal/disclosure/Back/Close API. Owned overlay scenarios are N/A under3.5.14;parent-window loss still requires inherited guard/retirement proof."
+    }
+  ],
+  "productAndExecutionRequirements": [
+    "Coordinator alone may compile this source into the existing shared showcase UI-test target;no new runner/project. Swift has not been compiled by this source lane.",
+    "Apply exact scene/test/fixture postimages to a new matched source/product identity. Do not relabel frozen SFP/Stepper or older4cf735 scene products as current.",
+    "Recover shared app installation,prelaunch matched Release app,then execute the original first/fresh cohort before any warm variant. Do not launch a replacement from XCTest.",
+    "Record actual build/bundle/installed identities,platform/runtime/window/profile/theme/textscale,scene+Swift hashes,method/case IDs,owner callback traces,stock native input events,original ref/native event target agreement and raw key/gesture/default/focus/retirement receipts.",
+    "Environment variables admit source/product identities only. A64hex value,passing source mock or XCTest process/control handshake is never native delivery proof.",
+    "Run both supported iOS and Android/native input legs and every applicable accepted variant/profile. Unsupported tool transport or missing IME/held-DOWN mechanisms remain BLOCKED/OPEN;do not invent exclusions or drop supplemental cases.",
+    "Preserve native failures and first/warm classifications;stop first failed native method,retain raw result bundle/screen/hierarchy/logs and release only owned resources. No unchanged retry.",
+    "Whole G02 closes only when all applicable source and installed cases—including supplemental original-input/ref/keyboard/gesture variants—pass,or an exact preexisting owner disposition is linked."
+  ],
+  "knownCurrentBlocker": {
+    "checkedUTC": "2026-11-03T15:52:05.125480+00:00",
+    "source": "/tmp/codon-sfp-g02-install-diagnosis-20261103/registration-v1-cause-handoff.json",
+    "sharedInstallCorrection": "/tmp/codon-sfp-g02-install-diagnosis-20261103/fresh-install-action-v2.json",
+    "sharedInstallCorrectionStatus": "READY_MAIN_ONLY_UNEXECUTED_IN_LATEST_RECEIPT;not a successful install",
+    "priorCause": "Old install coordinator orphaned by device reboot;Code33 is established. Fresh live-client action supersedes the older no-correction handoff.",
+    "typeaheadProductEvidence": "No built/installed product contains this newly prepared8562a82e scene. Existing frozen v5 SFP/Stepper artifact must remain unchanged and cannot qualify this Typeahead fixture.",
+    "requiredCoordinatorAction": "Review/adopt exact4file packet,compile14methods in existing UI target,bind a new matched Typeahead scene/product identity and execute original native cohorts plus supplemental cases after shared install recovery.",
+    "actionStatus": "PENDING_COORDINATOR_PRODUCT_COMPILE_INSTALL_AND_ORIGINAL_INPUT_EVIDENCE;not denied or executed by lane",
+    "nativeActionsByLane": 0
+  },
+  "bounds": {
+    "noComboBoxWork": true,
+    "noPackageRuntimeEdits": true,
+    "noNativeExecution": true,
+    "noNewGeneralHarness": true,
+    "noMainWritesOrPublication": true
+  },
+  "executionCohorts": [
+    {
+      "id": "FIRST_COLD_FOCUSED",
+      "methods": ["TypeaheadG02TrialTests/testS03FirstFocusedUnpacedInputAndSearch"],
+      "precondition": "Matched app freshly prelaunched by coordinator,zero prior native editor input in this process. Never reinterpret a warm pass as this verdict."
+    },
+    {
+      "id": "INDEPENDENT_SOFT_SUBMIT",
+      "methods": ["TypeaheadG02TrialTests/testS03SoftSubmitObserverPrecedesBusinessCallback"],
+      "precondition": "Coordinator records actual first/warm process condition;fresh scene cannot by itself be called a cold process."
+    },
+    {
+      "id": "OWNERSHIP_AND_REPLACEMENT",
+      "methods": [
+        "TypeaheadG02TrialTests/testS01ControlledVetoAndDelayedEcho",
+        "TypeaheadG02TrialTests/testS01TypedSelectionAndNull",
+        "TypeaheadG02TrialTests/testS02DisabledQueryKeepsIndependentResultsActive",
+        "TypeaheadG02TrialTests/testS02CancelledOriginalRowPress",
+        "TypeaheadG02TrialTests/testS04AsyncReplacementReorderRemovalAndReinsertion",
+        "TypeaheadG02TrialTests/testS04EveryStatusRetainsEditorAndResetsOnlyResultsLifetime",
+        "TypeaheadG02TrialTests/testS05OriginalEditorAndResultKeyboardOwners",
+        "TypeaheadG02TrialTests/testS06CallerRefAndQueuedSurfaceTeardown",
+        "TypeaheadG02TrialTests/testS06QueuedSceneResetDoesNotResurrectOwner",
+        "TypeaheadG02TrialTests/testS05WholeCollectionTabEntryAndExit",
+        "TypeaheadG02TrialTests/testS05TwoHundredVariableHeightResultsTailAndHome",
+        "TypeaheadG02TrialTests/testS01EmptyAndRepeatedSubmissionsDoNotInitializeOrMutateQuery"
+      ],
+      "precondition": "Each method resets/reenters the scene;record process condition and use current product and original input mechanisms."
+    }
+  ],
+  "fixturesDoNotAddProductFetching": "The3second replacement is explicit maintained-host work;the Typeahead component still owns no fetching/filtering/debouncing controller.",
+  "admissionEnvironment": {
+    "CODON_TH_SCENE_SHA256": "8562a82eb666f9598ffb8b74f1d1bb72f5ff3b43a3b5f7a9fd354a7207277c99",
+    "CODON_TH_PRODUCT_SHA256": "Coordinator verified matched built/installed product manifest",
+    "CODON_TH_OBSERVER_MANIFEST_SHA256": "Coordinator verified compiled current14-method observer/schema manifest;not a prior warm input verdict"
+  }
+}

@@ -13,6 +13,13 @@ const activeFilters = {
   matchModeAriaLabel: ({ criteriaName }: { criteriaName: string }) => `${criteriaName} filter match mode`,
   joinOperators: { and: "Match all", or: "Match any" },
 }
+type TQueryFilteringLabels = Omit<TPartialNativeTableFilteringLabels, "argumentInput"> & {
+  argumentInput?: TPartialNativeTableFilteringLabels["argumentInput"] & {
+    multiInputFallbackPlaceholder?: (args: { position: number }) => string
+  }
+}
+const defaultMultiInputFallbackPlaceholder = ({ position }: { position: number }) => `Filter Argument #${position}`
+
 export type TPartialNativeSortAndFilterPanelLabels = Omit<TPartialQueryControlLabels, "form"> & {
   form?: TPartialQueryControlLabels["form"] & {
     addFilterCriteriaLabel?: string
@@ -21,11 +28,12 @@ export type TPartialNativeSortAndFilterPanelLabels = Omit<TPartialQueryControlLa
   activeFilters?: Omit<Partial<typeof activeFilters>, "joinOperators"> & {
     joinOperators?: Partial<typeof activeFilters.joinOperators>
   }
-  filtering?: TPartialNativeTableFilteringLabels
+  filtering?: TQueryFilteringLabels
   native?: { closeSortCriteria?: string; closeFilterCriteria?: string }
 }
 export const resolveNativeSortAndFilterPanelLabels = (labels?: TPartialNativeSortAndFilterPanelLabels) => {
   const queryLabels = resolveQueryControlLabels(labels)
+  const filtering = resolveNativeTableFilteringLabels(labels?.filtering)
   return {
     ...queryLabels,
     form: {
@@ -39,7 +47,14 @@ export const resolveNativeSortAndFilterPanelLabels = (labels?: TPartialNativeSor
       ...labels?.activeFilters,
       joinOperators: { ...activeFilters.joinOperators, ...labels?.activeFilters?.joinOperators },
     },
-    filtering: resolveNativeTableFilteringLabels(labels?.filtering),
+    filtering: {
+      ...filtering,
+      argumentInput: {
+        ...filtering.argumentInput,
+        multiInputFallbackPlaceholder:
+          labels?.filtering?.argumentInput?.multiInputFallbackPlaceholder ?? defaultMultiInputFallbackPlaceholder,
+      },
+    },
     native: {
       closeSortCriteria: "Close sort criteria",
       closeFilterCriteria: "Close filter criteria",

@@ -1,6 +1,6 @@
 import { act, render, screen } from "@testing-library/react-native"
 import { createRef, type ReactNode } from "react"
-import type { View } from "react-native"
+import type { TextInput, View } from "react-native"
 
 import {
   NativeCollectionActionAdmissionContext,
@@ -12,6 +12,9 @@ import {
   type TNativeCollectionRootProps,
 } from "../../../collection/renderer"
 import type { TNativeCollectionSnapshot } from "../../../collection/snapshot"
+import { NativeFormRegistryContext } from "../../../form/context"
+import { NativeForm } from "../../../form/NativeForm"
+import { NativeFormRegistry } from "../../../form/registry"
 import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
 import { NativeThemeProvider } from "../../../theme"
@@ -27,6 +30,10 @@ jest.mock("../../../input/specs/CUICollectionRootNativeComponent", () => ({
   default: jest.requireActual("react-native").View,
 }))
 jest.mock("../../../input/specs/CUIFieldBindingNativeComponent", () => ({
+  __esModule: true,
+  default: jest.requireActual("react-native").View,
+}))
+jest.mock("../../../input/specs/CUIFormRootNativeComponent", () => ({
   __esModule: true,
   default: jest.requireActual("react-native").View,
 }))
@@ -245,4 +252,78 @@ it("renders selected tags from their explicit data model and retains query seman
   expect(screen.getAllByText("Zero", hidden).length).toBeGreaterThan(0)
   expect(screen.getByLabelText("Query", hidden).props.accessibilityHint).toBe("Add a value")
   expect(f.owners.size).toBe(2)
+})
+
+it("keeps declared Form ownership, semantic text and reset requests with the original explicit-model editor", async () => {
+  const f = fixture(),
+    registry = new NativeFormRegistry(),
+    editor = createRef<TextInput>(),
+    requests: unknown[][] = []
+  const native = jest.requireActual<typeof import("react-native")>("react-native"),
+    inherited = jest.isMockFunction(native.findNodeHandle)
+      ? jest.mocked(native.findNodeHandle).getMockImplementation()!
+      : native.findNodeHandle,
+    targets = new WeakMap<object, number>()
+  let sequence = 600000
+  jest.spyOn(native, "findNodeHandle").mockImplementation((target) => {
+    const existing = inherited(target)
+    if (existing || !target || typeof target !== "object") return existing
+    if (!targets.has(target)) targets.set(target, ++sequence)
+    return targets.get(target)!
+  })
+  const content = (items: typeof values, value: string | number, inputValue: string) =>
+    f.wrap(
+      <NativeFormRegistryContext.Provider value={registry}>
+        <NativeForm id="editor-form" fieldOrder={["search"]}>
+          <NativeCollectionComboBox
+            items={items}
+            controlledItems={items}
+            getKey={getKey}
+            getTextValue={getTextValue}
+            formFieldId="search"
+            name="query"
+            nativeAccessibilityText={{ label: "Declared query", description: "Caller-owned results" }}
+            inputRef={editor}
+            inputLabel="Query"
+            closeLabel="Close"
+            value={value}
+            inputValue={inputValue}
+            onInputChange={(query) => requests.push(["query", query])}
+            onChange={(key) => requests.push(["selection", key])}
+          />
+        </NativeForm>
+      </NativeFormRegistryContext.Provider>,
+    )
+  try {
+    await render(content(values, 0, "initial owner"))
+    const original = editor.current
+    expect(original).not.toBeNull()
+    const form = () => registry.resolveForm("editor-form", null),
+      field = () => registry.fieldsFor(form())[0]!
+    expect(form().fieldOrder).toEqual(["search"])
+    expect(field().fieldId).toBe("search")
+    expect(field().formOwnerId).toBe(form().descriptor.ownerId)
+    expect(field().editor()).toBe(original)
+    expect(field().data.entries).toEqual([["query", "0"]])
+    expect(field().mount()).toBeNull()
+    await screen.rerender(content([values[1]!, values[0]!], "0", "held owner"))
+    expect(editor.current).toBe(original)
+    expect(screen.getByLabelText("Declared query", hidden).props.accessibilityHint).toBe("Caller-owned results")
+    expect(screen.getByDisplayValue("held owner", hidden)).toBeTruthy()
+    await act(() => field().reset("programmatic"))
+    expect(requests).toEqual([
+      ["query", "Zero"],
+      ["selection", 0],
+    ])
+    expect(field().data.entries).toEqual([["query", "0"]])
+    expect(screen.getByDisplayValue("held owner", hidden)).toBeTruthy()
+    expect(editor.current).toBe(original)
+    expect(f.admission.request).not.toHaveBeenCalled()
+    await screen.unmount()
+    expect(editor.current).toBeNull()
+    expect(registry.fields.size).toBe(0)
+    expect(registry.forms.size).toBe(0)
+  } finally {
+    jest.restoreAllMocks()
+  }
 })

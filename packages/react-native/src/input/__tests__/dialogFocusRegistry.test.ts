@@ -188,3 +188,45 @@ it("reserves initial explicit parent entry without removing the enclosing native
   f.registry.flush()
   expect(f.registry.bindings()[0].entryTargets[1].allowed).toBe(true)
 })
+
+it("retains existing parent reservations across an epoch while admitting a later Dialog and rejecting stale native actions", () => {
+  const f = setup(),
+    body = {}
+  let reserved = true
+  f.registry.registerOwner("panel", {
+    parentId: "",
+    target: () => ({ node: body, tag: 10 }),
+    reserved: () => reserved,
+    canAct: () => true,
+  })
+  f.registry.register("dialog", description(20, { ownerId: "panel" }))
+  f.registry.flush()
+  const original = f.registry.bindings()[0],
+    revision = f.registry.revision()
+  reserved = false
+  f.ready(2)
+  f.registry.flush()
+  const resumed = f.registry.bindings()[0]
+  expect(resumed.bindingId).not.toBe(original.bindingId)
+  expect(resumed.entryTargets[0].id).not.toBe(original.entryTargets[0].id)
+  expect(resumed.entryTargets[0].allowed).toBe(false)
+  expect(
+    f.registry.acceptAction({
+      ownerId: "scope",
+      windowId: "window",
+      epoch: 1,
+      revision,
+      id: "panel",
+      bindingId: original.bindingId,
+      phase: "entered",
+      target: 20,
+    }),
+  ).toBe(false)
+  f.registry.register("later-dialog", description(21, { ownerId: "panel" }))
+  f.registry.flush()
+  expect(f.registry.bindings()[0].entryTargets.map(({ allowed }) => allowed)).toEqual([false, true])
+  reserved = true
+  f.registry.register("dialog", description(20, { ownerId: "panel" }))
+  f.registry.flush()
+  expect(f.registry.bindings()[0].entryTargets[0].allowed).toBe(false)
+})

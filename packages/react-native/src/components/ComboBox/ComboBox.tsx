@@ -3,21 +3,39 @@ import {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useInsertionEffect,
   useRef,
   useState,
   type ReactElement,
   type Ref,
   type RefAttributes,
 } from "react"
-import { AccessibilityInfo, Modal, Platform, Pressable, View } from "react-native"
+import { AccessibilityInfo, Modal, Platform, View, type TextStyle } from "react-native"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 
+import { useNativeCollectionRefs } from "../../collection/context"
+import { nativeFieldAccessibilityProps } from "../../form/semantics"
+import { useNativeFieldSemantics } from "../../form/useFieldSemantics"
+import { useNativeSimpleComboBoxField } from "../../form/useSimpleComboBoxField"
+import { focusNativeTarget } from "../../input/focus"
+import { nativeKeyTokens } from "../../input/keyScope"
+import { NativeFocusHost, type TNativeLocalKeyEvent } from "../../input/NativeFocusView"
+import { NativeTargetKeyPolicy } from "../../input/NativeTargetKeyPolicy"
+import type { TNativeKeyboardEvent } from "../../input/types"
+import { useNativeMotionValue } from "../../motion/animation/hooks"
+import { NativeMotionOwnerHost } from "../../motion/owner/NativeMotionOwnerHost"
+import {
+  NativeFloatingWindowHost,
+  type TNativeFloatingWindowDismiss,
+} from "../../overlays/floating/NativeFloatingLayerHost"
+import { OverlayParentContext } from "../../overlays/NativeOverlayProvider"
 import { useOverlay } from "../../overlays/useOverlay"
 import { useNativeTheme } from "../../theme"
+import { NativeButton } from "../Button/Button"
 import { getNativeButtonContent } from "../Button/content"
 import { validateNativeColor } from "../colors"
+import { useNativeInputBorder } from "../Input/motion"
 import { NativeContentContext } from "../NativeContentContext"
-import { useNativeSelectionInteraction } from "../selection"
 import { Text } from "../Text/Text"
 import { PlaceholderText } from "../Text/variants/PlaceholderText/PlaceholderText"
 
@@ -48,6 +66,11 @@ const ComboBoxInner = <T,>(props: TNativeComboBoxProps<T>, ref: Ref<TNativeCombo
   validateNativeColor(theme.colors.background, "ComboBox", "windowBackground")
   const model = useComboBoxState(props)
   const trigger = useRef<View>(null)
+  const root = useRef<View>(null)
+  const rootRef = useNativeCollectionRefs(ref, root)
+  const floatingDismiss = useRef<TNativeFloatingWindowDismiss | null>(null)
+  const restoreKeyboard = useRef(true)
+  const rotateX = useNativeMotionValue<unknown>(0)
   const overlay = useOverlay(model.open, false, true, trigger)
   const mounted = useRef(true)
   const open = useRef(model.open)
@@ -59,11 +82,11 @@ const ComboBoxInner = <T,>(props: TNativeComboBoxProps<T>, ref: Ref<TNativeCombo
     const generation = epoch.current
     const first = requestAnimationFrame(() => {
       frames.current.delete(first)
-      if (!mounted.current || open.current || generation !== epoch.current) return
+      if (!mounted.current || open.current || generation !== epoch.current || !restoreKeyboard.current) return
       const second = requestAnimationFrame(() => {
         frames.current.delete(second)
         if (mounted.current && !open.current && generation === epoch.current && trigger.current)
-          AccessibilityInfo.sendAccessibilityEvent(trigger.current, "focus")
+          if (focusNativeTarget(trigger.current)) AccessibilityInfo.sendAccessibilityEvent(trigger.current, "focus")
       })
       frames.current.add(second)
     })
@@ -85,60 +108,131 @@ const ComboBoxInner = <T,>(props: TNativeComboBoxProps<T>, ref: Ref<TNativeCombo
       scheduled.clear()
     }
   }, [])
-  const { flags, handlers } = useNativeSelectionInteraction({}, !!props.isDisabled, false, () =>
-    model.requestOpen(true),
-  )
+  const [triggerFocused, setTriggerFocused] = useState(false)
   const state: TNativeComboBoxRenderState = {
     isOpen: model.open,
     isDisabled: !!props.isDisabled,
     isReadOnly: !!props.isReadOnly,
-    isInvalid: !!props.errorState,
+    isInvalid: !!props.errorState || model.displayValidation.isInvalid,
   }
   const styles = getNativeComboBoxStyles(
     theme,
-    props,
+    { ...props, errorState: state.isInvalid },
     state,
-    queryFocused || flags.isFocused,
-    flags.isPressed,
-    flags.isHovered,
+    queryFocused || triggerFocused,
+    false,
+    false,
   )
+  const groupStyle = useNativeInputBorder(styles.group)
+  const triggerForeground: TextStyle = { color: styles.button.color ?? styles.foreground }
+  const current = useRef({ model, props })
+  useInsertionEffect(() => {
+    current.current = { model, props }
+  })
+  const triggerKeys = ["ArrowDown", "ArrowUp"].flatMap(nativeKeyTokens)
+  const triggerKey = (event: TNativeKeyboardEvent | TNativeLocalKeyEvent) => {
+    const data = event.nativeEvent
+    if (
+      !mounted.current ||
+      current.current.props.isDisabled ||
+      data.cancelled ||
+      data.repeat ||
+      data.phase !== "down" ||
+      !data.nativeDefaultHandled
+    )
+      return
+    if (data.key === "ArrowDown" || data.key === "ArrowUp") {
+      event.preventDefault()
+      restoreKeyboard.current = true
+      current.current.model.requestOpen(true, data.key === "ArrowDown" ? "first" : "last")
+    }
+  }
   const identity = props.testID ?? props["data-testid"] ?? "combo-box"
+  const groupLabel =
+    props.labels && "inputButtonGroupAriaLabel" in props.labels
+      ? props.labels.inputButtonGroupAriaLabel
+      : "ComboBox Input Button Group"
+  const semantics = useNativeFieldSemantics({
+    text: { label, errorMessage: model.displayValidation.validationErrors.join(" ") },
+    flags: {
+      disabled: !!props.isDisabled,
+      readOnly: !!props.isReadOnly,
+      required: !!props.isRequired,
+      invalid: state.isInvalid,
+      expanded: model.open,
+    },
+    activeDescendant: null,
+  })
+  const field = useNativeSimpleComboBoxField(props, model, root, trigger, semantics)
+  const fieldAccessibility = field.participating
+    ? nativeFieldAccessibilityProps(semantics, label, props.accessibilityHint)
+    : {
+        accessibilityLabel: label,
+        accessibilityHint: props.accessibilityHint,
+        accessibilityState: { expanded: model.open },
+      }
   const close = () => {
-    if (overlay.isActive()) model.requestOpen(false)
+    if (overlay.isActive() && !floatingDismiss.current?.("keyboard")) model.requestOpen(false)
   }
   return (
     <View
-      ref={ref}
+      ref={rootRef}
       testID={identity}
       nativeID={props.nativeID}
       id={props.id}
       onLayout={props.onLayout}
       pointerEvents={props.pointerEvents}
-      collapsable={props.collapsable}
+      collapsable={field.participating ? false : props.collapsable}
       accessible={false}
       style={styles.root}
     >
       <View
         testID={`${identity}-group`}
-        style={[{ width: "100%", height: styles.root.height != null ? "100%" : undefined }, styles.group]}
+        accessible={false}
+        role="group"
+        accessibilityLabel={groupLabel}
+        style={[{ width: "100%", height: styles.root.height != null ? "100%" : undefined }, groupStyle]}
       >
         <NativeContentContext.Provider
           value={{ foregroundColor: styles.button.color ?? styles.foreground, isButton: true }}
         >
-          <Pressable
-            {...handlers}
+          <NativeButton
+            onPress={() => {
+              restoreKeyboard.current = true
+              model.requestOpen(true)
+            }}
+            onFocus={() => setTriggerFocused(true)}
+            onBlur={() => setTriggerFocused(false)}
+            raised={false}
+            enableFocusStyle={false}
+            customStyles={{ borderWidth: 0, padding: 0 }}
+            nativeRender={(native) => (
+              <NativeFocusHost
+                {...native}
+                style={[native.style, triggerForeground]}
+                capturedKeys={[...triggerKeys, ...nativeKeyTokens("Enter"), ...nativeKeyTokens(" ")]}
+                nativeKeyPolicy={{
+                  tokens: triggerKeys,
+                  isEnabled: !props.isDisabled,
+                  lifetimeKey: "combo-trigger",
+                  canAct: () => mounted.current && !current.current.props.isDisabled,
+                  onKey: triggerKey,
+                  onRetire: () => {},
+                }}
+              >
+                {native.children}
+                {field.metadata}
+              </NativeFocusHost>
+            )}
+            onKeyDown={triggerKey}
             ref={trigger}
-            accessible
-            role="button"
-            accessibilityRole="button"
-            accessibilityLabel={label}
-            accessibilityHint={props.accessibilityHint}
+            accessibilityLabel={fieldAccessibility.accessibilityLabel}
+            accessibilityHint={fieldAccessibility.accessibilityHint}
             accessibilityValue={{ text: model.query || props.placeholder || "" }}
-            accessibilityState={{ disabled: !!props.isDisabled, expanded: model.open }}
-            disabled={props.isDisabled}
-            focusable={!props.isDisabled}
+            accessibilityState={fieldAccessibility.accessibilityState}
+            isDisabled={props.isDisabled}
             testID={`${identity}-trigger`}
-            style={styles.button}
+            style={(button) => styles.buttonForState(button.isPressed, button.isHovered)}
           >
             {model.query ? (
               <Text
@@ -150,7 +244,16 @@ const ComboBoxInner = <T,>(props: TNativeComboBoxProps<T>, ref: Ref<TNativeCombo
             ) : (
               <PlaceholderText style={{ flex: 1 }}>{props.placeholder ?? ""}</PlaceholderText>
             )}
-            <View accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+            <NativeMotionOwnerHost
+              testID={`${identity}-icon`}
+              accessible={false}
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+              focusable={false}
+              computedStyles={{ alignItems: "center", justifyContent: "center" }}
+              values={{ rotateX }}
+              motion={{ animate: { rotateX: model.open ? 180 : 0 }, transition: { ease: "easeInOut", duration: 0.4 } }}
+            >
               {props.ComponentIcon === undefined ? (
                 <View
                   style={{
@@ -160,14 +263,24 @@ const ComboBoxInner = <T,>(props: TNativeComboBoxProps<T>, ref: Ref<TNativeCombo
                     borderBottomWidth: 1.5,
                     borderRightWidth: 1.5,
                     borderColor: styles.button.color ?? styles.foreground,
-                    transform: [{ rotate: model.open ? "225deg" : "45deg" }],
+                    transform: [{ rotate: "45deg" }],
                   }}
                 />
               ) : (
                 getNativeButtonContent(props.ComponentIcon)
               )}
-            </View>
-          </Pressable>
+            </NativeMotionOwnerHost>
+            <NativeTargetKeyPolicy
+              target={trigger}
+              tokens={triggerKeys}
+              isEnabled={!props.isDisabled}
+              lifetimeKey="combo-trigger"
+              excludeEditable
+              excludeComposing
+              canAct={() => mounted.current && !current.current.props.isDisabled}
+              onKey={triggerKey}
+            />
+          </NativeButton>
         </NativeContentContext.Provider>
       </View>
       <Modal
@@ -181,27 +294,44 @@ const ComboBoxInner = <T,>(props: TNativeComboBoxProps<T>, ref: Ref<TNativeCombo
         onRequestClose={close}
         onShow={overlay.shown}
         onDismiss={() => {
-          if (overlay.managed) overlay.dismissed()
-          else if (!open.current) restoreFocus()
+          if (overlay.managed) {
+            overlay.dismissed()
+            restoreFocus()
+          } else if (!open.current) restoreFocus()
         }}
       >
         {overlay.mounted && (
-          <SafeAreaProvider style={{ flex: 1 }}>
-            <ComboBoxOptions
-              props={props}
-              entries={model.entries}
-              selectedKey={model.selectedKey}
-              disabledKeys={model.disabledKeys}
-              identity={identity}
-              query={model.query}
-              styles={styles}
-              active={overlay.isActive}
-              focus={setQueryFocused}
-              change={model.requestInput}
-              close={close}
-              activate={model.activate}
-            />
-          </SafeAreaProvider>
+          <OverlayParentContext.Provider value={overlay.id}>
+            <SafeAreaProvider style={{ flex: 1 }}>
+              <NativeFloatingWindowHost
+                isWindowActive={() => model.open && overlay.isActive()}
+                dismissRef={floatingDismiss}
+                testID={`${identity}-floating-host`}
+                style={{ flex: 1 }}
+              >
+                <ComboBoxOptions
+                  props={props}
+                  entries={model.entries}
+                  selectedKey={model.selectedKey}
+                  disabledKeys={model.disabledKeys}
+                  identity={identity}
+                  query={model.query}
+                  styles={styles}
+                  strategy={model.focusStrategy.current}
+                  revert={model.revert}
+                  closeFromTab={(requestClose) => {
+                    restoreKeyboard.current = false
+                    if (requestClose) model.requestOpen(false)
+                  }}
+                  active={overlay.isActive}
+                  focus={setQueryFocused}
+                  change={model.requestInput}
+                  close={close}
+                  activate={model.activate}
+                />
+              </NativeFloatingWindowHost>
+            </SafeAreaProvider>
+          </OverlayParentContext.Provider>
         )}
       </Modal>
     </View>

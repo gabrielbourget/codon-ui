@@ -160,6 +160,72 @@ it("keeps unnamed/short-name members registered and ignores surplus names", asyn
   expect(result.field(1).data.entries).toEqual([["second", "20"]])
 })
 
+it("keeps original thumbs while explicit form ownership and declared field IDs replace the containing owner", async () => {
+  const registry = new NativeFormRegistry()
+  const ref = createRef<RN.View>()
+  const onChange = jest.fn(),
+    onChangeEnd = jest.fn()
+  const node = (form: string | undefined, fieldId: string, containedOrder: string[], otherOrder: string[]) => (
+    <NativeFormRegistryContext.Provider value={registry}>
+      <NativeForm id="contained" fieldOrder={containedOrder}>
+        <Slider
+          ref={ref}
+          label="Range"
+          value={[0.2, 0.8]}
+          defaultValue={[0.1, 0.9]}
+          step={0.1}
+          form={form}
+          formFieldId={fieldId}
+          thumbNames={["same", "same"]}
+          onChange={onChange}
+          onChangeEnd={onChangeEnd}
+        />
+      </NativeForm>
+      <NativeForm id="other" fieldOrder={otherOrder} />
+    </NativeFormRegistryContext.Provider>
+  )
+  const result = await render(node(undefined, "gain", ["gain"], []))
+  const root = ref.current
+  const fields = () => [...registry.fields.values()].sort((left, right) => left.fieldIndex! - right.fieldIndex!)
+  const form = (id: string) => [...registry.forms.values()].find((binding) => binding.descriptor.formId === id)!
+  const initial = fields()
+  const originals = initial.map((field) => field.editor())
+  expect(registry.fieldsFor(form("contained"))).toEqual(initial)
+  expect(initial.map((field) => [field.fieldId, field.fieldIndex, field.formOwnerId])).toEqual([
+    ["gain", 0, form("contained").descriptor.ownerId],
+    ["gain", 1, form("contained").descriptor.ownerId],
+  ])
+  await result.rerender(node("other", "volume", [], ["volume"]))
+  expect(ref.current).toBe(root)
+  expect(fields().map((field) => field.editor())).toEqual(originals)
+  expect(registry.fieldsFor(form("contained"))).toEqual([])
+  expect(registry.fieldsFor(form("other"))).toEqual(fields())
+  for (const field of fields()) {
+    expect(field.descriptor).toMatchObject({ hasFormAssociation: true, formId: "other" })
+    expect(field.fieldId).toBe("volume")
+    const metadata = result.container.queryAll(
+      (element) =>
+        element.props.descriptorId === field.descriptor.descriptorId &&
+        typeof element.props.onNativeFormCommit === "function",
+    )[0]
+    expect(metadata.props).toMatchObject({ hasFormAssociation: true, formId: "other" })
+  }
+  expect(screen.getByTestId("slider").props.form).toBeUndefined()
+  expect(screen.getByTestId("slider").props.formFieldId).toBeUndefined()
+  await act(() => initial.forEach((field) => field.reset("programmatic")))
+  expect(onChange).not.toHaveBeenCalled()
+  await result.rerender(node("", "volume", [], []))
+  expect(registry.fieldsFor(form("contained"))).toEqual([])
+  expect(registry.fieldsFor(form("other"))).toEqual([])
+  expect(fields().map((field) => field.descriptor.hasFormAssociation)).toEqual([true, true])
+  await result.rerender(node(undefined, "gain", ["gain"], []))
+  expect(ref.current).toBe(root)
+  expect(fields().map((field) => field.editor())).toEqual(originals)
+  expect(registry.fieldsFor(form("contained"))).toEqual(fields())
+  expect(onChange).not.toHaveBeenCalled()
+  expect(onChangeEnd).not.toHaveBeenCalled()
+})
+
 it("describes root and per-thumb disabled omission without inventing range validation", async () => {
   const result = await setup({ label: "Range", value: [0, 20], thumbNames: ["a", "b"] })
   await act(() => result.state().state.setThumbEditable(1, false))

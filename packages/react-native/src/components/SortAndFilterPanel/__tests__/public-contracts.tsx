@@ -30,6 +30,28 @@ const labels: SortAndFilterPanelLabels = resolveSortAndFilterPanelLabels({ filte
 const title: string = labels.filtering.popover.title
 const fallback: string = DEFAULT_SORT_AND_FILTER_PANEL_LABELS.filtering.popover.title
 const props: SortAndFilterPanelProps = {
+  title: "Query",
+  height: "100%",
+  width: 350,
+  horizontalGap: 8,
+  position: "right",
+  panelGeometry: "rounded",
+  raised: true,
+  overlayBlur: false,
+  isDismissable: true,
+  isKeyboardDismissDisabled: false,
+  booleanArgumentComponent: "Toggle",
+  customModalStyles: { letterSpacing: 1 },
+  customDialogStyles: { padding: 10, fontWeight: "600" },
+  customOverlayStyles: { opacity: 0.5 },
+  labels: {
+    form: { addSortCriteriaLabel: "" },
+    footer: { applyButton: "" },
+    filtering: { argumentInput: { multiInputFallbackPlaceholder: ({ position }) => String(position) } },
+  },
+  testID: "query-panel",
+  "data-testid": "query-alias",
+  children: "Unused canonical child",
   isOpen: true,
   onOpenChange: () => {},
   initialFocusTarget: target,
@@ -45,3 +67,10 @@ export const complete = <SortAndFilterPanel {...props} />
 // @ts-expect-error The wrapper exposes criteria focus targets rather than a public root ref.
 export const invalidRootRef = <SortAndFilterPanel {...props} ref={createRef<View>()} />
 void [item, title, fallback, AVAILABLE_SORT_AND_FILTER_PANEL_FOCUS_TARGETS]
+
+// @ts-expect-error Native Panel accepts stock RN dimensions rather than viewport CSS units.
+export const invalidViewportHeight = <SortAndFilterPanel {...props} height="100vh" />
+// @ts-expect-error Criteria focus targets stay bounded to the two original controls.
+export const invalidFocusTarget = <SortAndFilterPanel {...props} initialFocusTarget="search" />
+// @ts-expect-error The Boolean renderer choice remains the original Checkbox/Toggle union.
+export const invalidBooleanRenderer = <SortAndFilterPanel {...props} booleanArgumentComponent="Switch" />

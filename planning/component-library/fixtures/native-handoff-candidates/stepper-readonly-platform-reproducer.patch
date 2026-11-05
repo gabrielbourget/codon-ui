@@ -1,0 +1,79 @@
+--- /dev/null
++++ b/packages/react-native/src/components/Input/__tests__/readonly-platform.test.tsx
+@@ -0,0 +1,76 @@
++import { fireEvent, render, screen } from "@testing-library/react-native"
++import { Platform, TextInput } from "react-native"
++
++import { NativeInput } from "../Input"
++
++jest.unmock("react-native/Libraries/Components/TextInput/TextInput")
++jest.unmock("react-native/Libraries/Components/TextInput/TextInputState")
++
++type TField = { currentProps: { editable?: boolean } }
++const state = jest.requireActual<{
++  default: {
++    focusTextInput: (field: TField) => void
++    currentlyFocusedInput: () => TField | null
++    blurInput: (field: TField | null) => void
++  }
++}>("react-native/Libraries/Components/TextInput/TextInputState").default
++const commands = jest.requireActual<{ Commands: { focus: (field: TField) => void } }>(
++  "react-native/Libraries/Components/TextInput/RCTSingelineTextInputNativeComponent",
++).Commands
++
++beforeEach(() => {
++  jest.replaceProperty(Platform, "OS", "ios")
++  state.blurInput(state.currentlyFocusedInput())
++  jest.spyOn(commands, "focus").mockImplementation(() => undefined)
++})
++afterEach(() => {
++  state.blurInput(state.currentlyFocusedInput())
++  jest.restoreAllMocks()
++})
++
++it("diagnoses stock readonly props as noneditable despite the focusable declaration", async () => {
++  await render(<NativeInput isReadOnly value="Keep" testID="readonly" />)
++  const input = screen.getByTestId("readonly")
++  expect(input.props.focusable).toBe(true)
++  expect(input.props.editable).toBe(false)
++  const field = { currentProps: { editable: input.props.editable as boolean } }
++  state.focusTextInput(field)
++  expect(commands.focus).not.toHaveBeenCalled()
++  expect(state.currentlyFocusedInput()).not.toBe(field)
++})
++
++it("diagnoses why setting editable true alone cannot override stock readOnly", async () => {
++  await render(<TextInput testID="alias" editable readOnly value="Keep" />)
++  expect(screen.getByTestId("alias").props.editable).toBe(false)
++})
++
++it("has a positive control that stock focus commands reach an editable original", () => {
++  const field = { currentProps: { editable: true } }
++  state.focusTextInput(field)
++  expect(commands.focus).toHaveBeenCalledTimes(1)
++  expect(commands.focus).toHaveBeenCalledWith(field)
++  expect(state.currentlyFocusedInput()).toBe(field)
++})
++
++it("retains the existing readonly callback barrier and controlled value under forced source events", async () => {
++  const change = jest.fn()
++  const raw = jest.fn()
++  await render(<NativeInput isReadOnly value="Keep" onChange={change} onChangeText={raw} testID="readonly" />)
++  await fireEvent(screen.getByTestId("readonly"), "change", {
++    nativeEvent: { text: "Changed", eventCount: 1, target: 17 },
++  })
++  expect(change).not.toHaveBeenCalled()
++  expect(raw).not.toHaveBeenCalled()
++  expect(screen.getByTestId("readonly").props.text).toBe("Keep")
++  expect(screen.getByTestId("readonly").props.editable).toBe(false)
++})
++
++it("REQUIRED CONTRACT readonly original admits a genuine focus request while remaining noneditable", async () => {
++  await render(<NativeInput isReadOnly value="Keep" testID="readonly" />)
++  const input = screen.getByTestId("readonly")
++  expect(input.props.editable).toBe(false)
++  const field = { currentProps: { editable: input.props.editable as boolean } }
++  state.focusTextInput(field)
++  expect(commands.focus).toHaveBeenCalledTimes(1)
++  expect(commands.focus).toHaveBeenCalledWith(field)
++})

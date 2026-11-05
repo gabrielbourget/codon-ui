@@ -5,6 +5,7 @@ import { StyleSheet, type TextInput, type View } from "react-native"
 import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import { NativeFloatingScopeContext } from "../../../overlays/floating/scope"
 import { NativeThemeProvider } from "../../../theme"
+import { resolveNativeTableFilteringLabels } from "../../Table/filterLabels"
 import { BooleanFilterArgument } from "../BooleanArgument"
 import { ComboBoxFilterArgument } from "../ComboBoxArgument"
 import { ListFilterArgument } from "../ListArgument"
@@ -256,4 +257,46 @@ it("preserves Boolean row defaults and independent custom row/field/input owners
   })
   expect(StyleSheet.flatten(screen.getByTestId("form-field").props.style)).toMatchObject({ marginTop: 7 })
   expect(StyleSheet.flatten(screen.getByRole("checkbox").props.style)).toMatchObject({ marginLeft: 9 })
+})
+
+it("merges and consumes the canonical filter ComboBox group label on the original group", async () => {
+  const resolved = resolveNativeTableFilteringLabels({
+    argumentInput: { comboBox: { inputButtonGroupAriaLabel: "Argument choices" } },
+  })
+  expect(resolved.argumentInput.comboBox).toMatchObject({
+    inputButtonGroupAriaLabel: "Argument choices",
+    triggerButtonAriaLabel: "Show filter argument suggestions",
+    emptyListMessage: "No filter arguments remaining to select",
+  })
+  const props = {
+    inputLabel: "Edit argument",
+    closeLabel: "Close arguments",
+    argument: "",
+    availableFilterArguments: [{ id: "a", name: "Alpha" }],
+    onArgumentChange: jest.fn(),
+  }
+  const { rerender } = await render(
+    wrap(
+      <ComboBoxFilterArgument
+        {...props}
+        labels={{ label: resolved.argumentInput.label, ...resolved.argumentInput.comboBox }}
+      />,
+    ),
+  )
+  const group = () => screen.getByTestId("combo-box-group")
+  expect(group().props.accessibilityLabel).toBe("Argument choices")
+  expect(group().props.accessible).toBe(false)
+  expect(screen.getByRole("button", { name: "Show filter argument suggestions" })).toBeOnTheScreen()
+  await rerender(wrap(<ComboBoxFilterArgument {...props} />))
+  expect(group().props.accessibilityLabel).toBe("Filter argument combobox controls")
+  const empty = resolveNativeTableFilteringLabels({ argumentInput: { comboBox: { inputButtonGroupAriaLabel: "" } } })
+  await rerender(
+    wrap(
+      <ComboBoxFilterArgument
+        {...props}
+        labels={{ label: empty.argumentInput.label, ...empty.argumentInput.comboBox }}
+      />,
+    ),
+  )
+  expect(group().props.accessibilityLabel).toBe("")
 })

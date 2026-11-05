@@ -1,0 +1,203 @@
+{
+  "cell": "CAT.button.G02",
+  "sourceBase": "1567b08b6c1121aa85c97e8ea95cd7b05a97f676",
+  "ledgerDispositionAtBase": "OPEN",
+  "status": "PREPARED_NOT_NATIVE_QUALIFIED",
+  "scope": "First queued touch/guard/cancellation cohort plus preservation of its observations. This advances only the named OPEN Button G02 cell; it is not a complete replacement criterion inventory or a whole-cell closeout. Existing G01/G03/G05/G06 evidence, original tests and all failures remain unchanged.",
+  "authority": [
+    "roadmap.md#312-ownership-and-behavior",
+    "roadmap.md#32-native-scenario-matrix",
+    "roadmap.md#3521-native-interaction-and-viewport-backend-decision",
+    "roadmap.md#3522-native-activation-and-release-contract",
+    "roadmap.md#3569-button-complete-contract",
+    "fixtures/native-base-controls/button-contract.capabilities.json"
+  ],
+  "scene": "apps/native-showcase/src/scenes/LibraryScene.tsx",
+  "sceneSHA256": "acf215feaedcb1d80b5c8f1e35d4836eb86e1e844ed0f60e430d817ed0e57434",
+  "nativeSource": "planning/component-library/fixtures/native-button/ButtonG02TrialTests.swift",
+  "sourceVerifier": "apps/native-showcase/src/scenes/__tests__/ButtonBehaviorScene.test.tsx",
+  "unchangedOriginalOracleFile": "packages/react-native/src/components/Button/__tests__/Button.test.tsx",
+  "preparationPolicy": "Prioritize open/blocked cells; reuse existing public scene and original tests only. No passing-cell backfill or matrix promotion.",
+  "admission": {
+    "source": "Main verifies the full source/product/SDK/input tuple against the integration HEAD; scene SHA alone is insufficient.",
+    "identities": [
+      "CODON_BUTTON_SCENE_SHA256",
+      "CODON_BUTTON_PRODUCT_SHA256",
+      "CODON_BUTTON_INPUT_RECEIPT_SHA256",
+      "CODON_BUTTON_SDK_OBSERVER_MANIFEST_SHA256"
+    ],
+    "beforeEachMethod": "Coordinator prepares the matched Release product in the foreground default Text/Button scene with primary actions0, longActions0, guards false, long callback absent, takeover none and empty trace, then obtains genuine current native receiver/window binding. Each XCTest method has its own admission; do not run this whole class against leftover state.",
+    "nativeExecution": "Use the existing Xcode UI-test target/standard only-testing selection under main's existing budget. No new native execution, device, build, process monitor or budget is authorized by this packet.",
+    "originalWitness": "The observer-manifest hash binds the instrument, not future runtime evidence. App WeakMap tokens are JS observation identities; rootTag comes from public findNodeHandle. Pair genuine SDK object/target/lifetime/window/cohort records and actual timing/cancellation after any normal activation and for every contact before adopting a native result.",
+    "profile": "Prepared iOS P01 normal portrait. Main validates actual text/window/device profile. Android and all other applicable profiles remain independently required.",
+    "input": "Original native touch only for this cohort; keyboard/virtual activation must not masquerade as touch. No JS event injection, second failed-action tap, pretyping warm-up or failure-path reset."
+  },
+  "limits": {
+    "unchangedSourceCaseMilliseconds": 5000,
+    "nativeMethodAllowanceSeconds": 180,
+    "visibilitySwipes": 12,
+    "nativeOutcomeWaitSeconds": 10
+  },
+  "observationSchema": {
+    "owner": "library-button-behavior: actions, longActions, longPressEnabled, disabled, pending, pressStartTakeover, rootTag",
+    "trace": "library-button-callbacks: complete ordered sequence/kind/receivedAt/data records. Event data snapshot preserves actual target, kind, timestamp, source, observedAt and observed JS/native object tokens. No event.persist or event mutation in the observer.",
+    "clocks": "receivedAt is the JS callback-observation clock, not hardware input time. No hidden event truncation or fabricated native up/down.",
+    "eventOrdering": "Keep original pointer partial orders and exact semantic/raw forwarding. The existing short-press-before-delayed-out oracle remains; do not impose the idle virtual activation order on all touch events."
+  },
+  "nativeMethods": [
+    {
+      "id": "CAT.button.G02.S02.first-original-touch",
+      "method": "testS02FirstOriginalTouchBalancesCallbacksAndActsOnce",
+      "scenario": "S02",
+      "capabilities": ["CAP.button.027"],
+      "originalNativeOracleNames": ["emits balanced native press callbacks and one activation"],
+      "action": "One original, unpaced primary target tap from the admitted default scene",
+      "exactExpected": "Exactly one start/up/end/in/out/action; changes[true, false]; start/change/in and end/change/out order; unchanged forwarded JS event/native-object tokens at paired semantic/raw callbacks; actual SDK provenance remains mandatory",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.button.G02.S02.three-independent-contacts",
+      "method": "testS02ThreeDistinctTouchesProduceThreeActions",
+      "scenario": "S02",
+      "capabilities": ["CAP.button.027"],
+      "originalNativeOracleNames": ["emits balanced native press callbacks and one activation"],
+      "action": "Three separately defined contacts; verify each before the next",
+      "exactExpected": "Exactly three independent activations and balanced callback cohorts; no repeated tap after a failed first outcome",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.button.G02.S02.held-release-default",
+      "method": "testS02HeldReleaseWithoutLongActionActsOnce",
+      "scenario": "S02",
+      "capabilities": ["CAP.button.027"],
+      "originalNativeOracleNames": ["activates after a held press when no long-press action is configured"],
+      "action": "One 0.8 s original contact; no authored long callback",
+      "exactExpected": "One ordinary action after release, zero long action, one balanced cohort; external original SDK timing must establish held continuity",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.button.G02.S02.authored-long-action",
+      "method": "testS02AuthoredLongActionDoesNotAlsoActivateOrdinaryAction",
+      "scenario": "S02",
+      "capabilities": ["CAP.button.027"],
+      "originalNativeOracleNames": ["uses an authored long-press action without also activating the ordinary action"],
+      "action": "Enable the existing native onLongPress option through a scene control; one 0.8 s contact",
+      "exactExpected": "Exactly one authored long action, zero ordinary action, one balanced cohort; no fabricated native timing or release",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.button.G02.S02.disabled-first-reenable",
+      "method": "testS02DisabledGuardAndFirstReenabledTouch",
+      "scenario": "S02",
+      "capabilities": ["CAP.button.012", "CAP.button.027"],
+      "originalNativeOracleNames": ["suppresses activation/hover/press while disabled"],
+      "action": "Set disabled; one visible center-coordinate touch; clear disabled; one new original contact",
+      "exactExpected": "Disabled native target is disabled; zero press callbacks/action while blocked; first subsequent contact acts once; actual disabled/busy traits remain separately witnessed",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.button.G02.S02.pending-first-reenable",
+      "method": "testS02PendingGuardAndFirstReenabledTouch",
+      "scenario": "S02",
+      "capabilities": ["CAP.button.025", "CAP.button.027"],
+      "originalNativeOracleNames": ["suppresses activation/hover/press while pending"],
+      "action": "Set pending; one original target touch; clear pending; one new contact",
+      "exactExpected": "Pending does not become disabled; zero press callbacks/action while blocked; first subsequent contact acts once; original native busy/focus eligibility witness remains required",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.button.G02.S02.disabled-takeover",
+      "method": "testS02DisabledOwnerTakeoverCancelsCurrentContact",
+      "scenario": "S02",
+      "capabilities": ["CAP.button.012", "CAP.button.027"],
+      "originalNativeOracleNames": [
+        "suppresses activation/hover/press while disabled",
+        "does not activate a cancelled contact"
+      ],
+      "action": "Arm actual owner disabled update in onPressStart; one touch; clear guard; one distinct recovery touch",
+      "exactExpected": "Initial start/end/change balances once with no up/action; owner remains disabled; new contact after clearing acts once; full raw trace is retained without inventing a raw cancellation event",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.button.G02.S02.pending-takeover",
+      "method": "testS02PendingOwnerTakeoverCancelsCurrentContact",
+      "scenario": "S02",
+      "capabilities": ["CAP.button.025", "CAP.button.027"],
+      "originalNativeOracleNames": [
+        "cancels an active gesture when pending starts, balances end and allows a subsequent gesture"
+      ],
+      "action": "Arm pending update in onPressStart; one touch; clear pending; one distinct recovery touch",
+      "exactExpected": "First cohort balanced and suppressed; pending stays authoritative until cleared; subsequent independent contact acts once with no stale activation/end duplication",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.button.G02.S02.cancelled-original-contact",
+      "method": "testS02OriginalContactCancelledOutsideTargetDoesNotAct",
+      "scenario": "S02",
+      "capabilities": ["CAP.button.027"],
+      "originalNativeOracleNames": ["does not activate a cancelled contact"],
+      "action": "Original down then one drag outside observed target; release outside",
+      "exactExpected": "One balanced cancelled cohort; zero up/action; external SDK down/cancel/end/receiver records must establish actual cancellation",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "id": "CAT.button.G02.S12.live-context-retains-observations",
+      "method": "testS12LiveThemeAndFixtureRetainActionAndCallbackState",
+      "scenario": "S12",
+      "capabilities": ["CAP.button.027"],
+      "originalNativeOracleNames": ["emits balanced native press callbacks and one activation"],
+      "action": "One completed primary contact; existing Dark theme/Compact width controls; one new contact",
+      "exactExpected": "First action/trace/root tag retained through owner/context changes; second contact adds exactly one cohort; no geometry/style/physical-profile qualification inferred",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    }
+  ],
+  "remainingRequired": [
+    {
+      "scenario": "S01",
+      "criteria": "All supported omitted/default/explicit state and context/callback owner transitions beyond this cohort",
+      "status": "OPEN",
+      "reason": "No complete default/context/handler replacement cohort is asserted here; reuse existing source oracles and instantiate native-required cases before adoption."
+    },
+    {
+      "scenario": "S02/S05",
+      "criteria": "All approved Enter/Space modifier combinations, repeat/cancel/eligibility, actual mouse/pen hover and truthful virtual activation",
+      "status": "OPEN_NATIVE_CAPABILITIES_REQUIRED",
+      "reason": "Touch methods do not substitute for genuine keyboard, hover or SDK accessibility activation. Preserve all original event-arm/default/focus and physical-lane authority."
+    },
+    {
+      "scenario": "S05",
+      "criteria": "Actual first button action with a focused native editor and applicable nested/covered window context",
+      "status": "OPEN_ASSIGNED_FIXTURE_AND_NATIVE_WITNESS_REQUIRED",
+      "reason": "The current LibraryScene has no native editor/window chain for this condition; no finish-editing or warm substitute is added, and no excluded family's scene is changed."
+    },
+    {
+      "scenario": "S06",
+      "criteria": "Held-input window loss, receiver/handler replacement, unmount and post-retirement suppression",
+      "status": "OPEN_NATIVE_LIFETIME_WITNESS_REQUIRED",
+      "reason": "The first guard-takeover tests do not cover the whole lifetime matrix. Preserve genuine SDK event/ref/window witnesses and all original failure cases."
+    },
+    {
+      "scenario": "platform/profile",
+      "criteria": "Android plus every applicable retained profile and physical modality obligation",
+      "status": "OPEN",
+      "reason": "This source packet neither starts canceled Android work nor changes any owner deferral or platform/profile requirement."
+    }
+  ],
+  "cellAdoptionRule": "Keep CAT.button.G02 OPEN until every applicable original criterion, including the remaining native cases, has matching evidence and normal main adoption. Nine source fixture positives and unexecuted XCTest source do not qualify installed behavior.",
+  "unchangedOriginalInputs": {
+    "packages/react-native/src/components/Button/Button.tsx": "3e83f503a0e05a1881b7b8737bf240796b6db2ed3a7b296de41da76737c754b9",
+    "packages/react-native/src/components/Button/types.ts": "425822e91294bd7b6e5f8f0a44b8f2ff5e549d185a52091b59a537a096d56619",
+    "packages/react-native/src/components/Button/__tests__/Button.test.tsx": "1a89933375d5724c84af9ee9b91a2635193d93487427a110ba21ed20f5ec63d5",
+    "planning/component-library/fixtures/native-base-controls/button-contract.capabilities.json": "132f849d930b67c359c509b451dbfd032f104e291d4e52567fb3145a1dfef7b2"
+  }
+}

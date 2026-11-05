@@ -313,3 +313,212 @@ it("publishes admitted modality changes without retiring policies or native read
   expect(scope.policyRevision()).toBe(revision)
   expect(scope.isNativeReady()).toBe(true)
 })
+
+it.each([0, 32])("does not traverse policies or serialize unchanged publications with %i registrations", (count) => {
+  const scope = createNativeKeyScope("window")
+  const leases = Array.from({ length: count }, (_, index) => scope.register(`policy-${index}`, policy()))
+  ready(scope)
+  const session = scope.acknowledgedSession()
+  const initialInput = { ownerId: scope.ownerId, ...session, origin: "keyboard" as const, timestamp: 0 }
+  scope.recordInput(initialInput)
+  const listener = jest.fn()
+  scope.subscribe(listener)
+  const snapshot = scope.snapshot()
+  const policyRevision = scope.policyRevision()
+  const previousPolicies = scope.policies()
+  const latest = jest.fn()
+  for (const lease of leases)
+    lease.update(policy({ tokens: [...nativeKeyTokens("Escape").reverse(), "0000:Escape"], onKey: latest }))
+  let lastInput = initialInput
+  const serialization = jest.spyOn(JSON, "stringify")
+  const traversal = jest.spyOn(Map.prototype, "values")
+  let serializationCount = 0
+  let traversalCount = 0
+  try {
+    for (let timestamp = 1; timestamp <= 100; timestamp++) {
+      scope.flush()
+      lastInput = { ...initialInput, timestamp }
+      scope.recordInput(lastInput)
+    }
+    serializationCount = serialization.mock.calls.length
+    traversalCount = traversal.mock.calls.length
+  } finally {
+    serialization.mockRestore()
+    traversal.mockRestore()
+  }
+  expect(serializationCount).toBe(0)
+  expect(traversalCount).toBe(0)
+  expect(scope.snapshot()).toBe(snapshot)
+  expect(scope.policyRevision()).toBe(policyRevision)
+  expect(scope.policies()).toEqual(previousPolicies)
+  expect(scope.lastInput()).toBe(lastInput)
+  expect(scope.isNativeReady()).toBe(true)
+  expect(listener).not.toHaveBeenCalled()
+  if (count) {
+    const packet = event()
+    expect(scope.dispatch(previousPolicies[0]!.id, packet)).toBe(true)
+    expect(latest).toHaveBeenCalledTimes(1)
+    expect(latest.mock.calls[0][0]).toBe(packet)
+  }
+})
+
+it.each([
+  { lifetimeKey: "replacement" },
+  { tokens: ["0000:Enter"] },
+  { excludeEditable: true },
+  { isEnabled: false },
+  { targetTag: 17 },
+  { excludeComposing: false },
+  { originalEditorAction: true },
+])("publishes each changed wire policy synchronously on flush: %j", (change) => {
+  const scope = createNativeKeyScope("window")
+  const lease = register(scope, "escape", policy())
+  const listener = jest.fn()
+  scope.subscribe(listener)
+  const snapshot = scope.snapshot()
+  const policyRevision = scope.policyRevision()
+  const oldId = scope.policies()[0]!.id
+  lease.update(policy(change))
+  expect(scope.policyRevision()).toBe(policyRevision + 1)
+  expect(scope.isNativeReady()).toBe(false)
+  expect(scope.dispatch(oldId, event())).toBe(false)
+  expect(listener).not.toHaveBeenCalled()
+  scope.flush()
+  expect(scope.snapshot()).toBe(snapshot + 1)
+  expect(listener).toHaveBeenCalledTimes(1)
+  scope.flush()
+  expect(listener).toHaveBeenCalledTimes(1)
+})
+
+it("publishes initial, disabled-owner replacement, enabled and disposal revisions without losing no-ops", () => {
+  const scope = createNativeKeyScope("window")
+  const revisions: number[] = []
+  scope.subscribe(() => revisions.push(scope.snapshot()))
+  scope.flush()
+  scope.flush()
+  expect(revisions).toEqual([1])
+  const old = scope.register("escape", policy({ isEnabled: false }))
+  scope.flush()
+  const replacement = scope.register("escape", policy({ isEnabled: false }))
+  scope.flush()
+  expect(scope.policies()).toEqual([])
+  expect(revisions).toEqual([1, 2, 3])
+  const policyRevision = scope.policyRevision()
+  old.update(policy())
+  old.unregister()
+  replacement.update(policy({ isEnabled: false, onKey: jest.fn() }))
+  scope.setEnabled(true)
+  scope.flush()
+  expect(scope.policyRevision()).toBe(policyRevision)
+  expect(revisions).toEqual([1, 2, 3])
+  scope.setEnabled(false)
+  scope.flush()
+  scope.setEnabled(false)
+  scope.flush()
+  scope.setEnabled(true)
+  scope.flush()
+  replacement.unregister()
+  scope.flush()
+  expect(revisions).toEqual([1, 2, 3, 4, 5, 6])
+  scope.dispose()
+  expect(scope.snapshot()).toBe(7)
+  expect(scope.policyRevision()).toBe(policyRevision + 4)
+  expect(revisions).toEqual([1, 2, 3, 4, 5, 6])
+  scope.dispose()
+  scope.flush()
+  expect(scope.snapshot()).toBe(7)
+})
+
+it("publishes readiness, origin and physical/session transitions while rejecting stale status and input", () => {
+  const scope = createNativeKeyScope("window")
+  const current = policy()
+  register(scope, "escape", current)
+  const session = scope.acknowledgedSession()
+  const initialId = scope.policies()[0]!.id
+  const initialRevision = scope.snapshot()
+  const revisions: number[] = []
+  scope.subscribe(() => revisions.push(scope.snapshot()))
+  const status = {
+    ownerId: scope.ownerId,
+    ...session,
+    policyRevision: scope.policyRevision(),
+    ready: true,
+    windowActive: true,
+  }
+  scope.acceptNativeStatus(status)
+  scope.acceptNativeStatus({ ...status, ready: false })
+  scope.acceptNativeStatus({ ...status, ready: false })
+  scope.acceptNativeStatus(status)
+  for (const extra of [
+    { ownerId: "foreign" },
+    { epoch: session.epoch - 1 },
+    { windowId: "foreign" },
+    { policyRevision: status.policyRevision - 1 },
+  ])
+    scope.acceptNativeStatus({ ...status, ready: false, ...extra })
+  expect(revisions).toEqual([initialRevision + 1, initialRevision + 2])
+  expect(scope.isNativeReady()).toBe(true)
+  const keyboard = { ownerId: scope.ownerId, ...session, origin: "keyboard" as const, timestamp: 0 }
+  scope.recordInput(keyboard)
+  const sameOrigin = { ...keyboard, timestamp: 0 }
+  scope.recordInput(sameOrigin)
+  expect(scope.lastInput()).toBe(sameOrigin)
+  scope.recordInput({ ...keyboard, timestamp: -1 })
+  expect(scope.lastInput()).toBe(sameOrigin)
+  scope.recordInput({ ...keyboard, origin: "pointer", timestamp: 1 })
+  scope.acceptNativeStatus({ ...status, windowActive: false })
+  expect(scope.lastInput()).toBeNull()
+  expect(scope.dispatch(initialId, event())).toBe(false)
+  scope.acceptNativeStatus({ ...status, policyRevision: scope.policyRevision(), windowActive: false })
+  scope.acceptNativeStatus({ ...status, policyRevision: scope.policyRevision() })
+  expect(scope.dispatch(initialId, event())).toBe(false)
+  const packet = event()
+  expect(scope.dispatch(scope.policies()[0]!.id, packet)).toBe(true)
+  const returnedSession = scope.acknowledgedSession()
+  returnedSession.windowId = "caller mutation"
+  scope.flush()
+  scope.acceptNativeStatus({
+    ...status,
+    windowId: "replacement",
+    epoch: session.epoch + 1,
+    policyRevision: scope.policyRevision(),
+  })
+  scope.recordInput({ ...keyboard, timestamp: 2 })
+  expect(scope.lastInput()).toBeNull()
+  expect(scope.isNativeReady()).toBe(false)
+  ready(scope)
+  expect(scope.dispatch(initialId, event(), { ...session, policyRevision: status.policyRevision })).toBe(false)
+  expect(scope.dispatch(scope.policies()[0]!.id, packet)).toBe(true)
+  expect(current.onKey).toHaveBeenCalledTimes(2)
+  expect((current.onKey as jest.Mock).mock.calls.map(([received]) => received)).toEqual([packet, packet])
+  expect(revisions).toEqual(Array.from({ length: 8 }, (_, index) => initialRevision + index + 1))
+})
+
+it("keeps synchronous listener order and reentrant publication visible without republishing no-ops", () => {
+  const scope = createNativeKeyScope("window")
+  ready(scope)
+  const session = scope.acknowledgedSession()
+  const initialRevision = scope.snapshot()
+  const trace: [string, number][] = []
+  let nested = false
+  const keyboard = { ownerId: scope.ownerId, ...session, origin: "keyboard" as const, timestamp: 2 }
+  scope.subscribe(() => {
+    trace.push(["first", scope.snapshot()])
+    scope.flush()
+    if (!nested) {
+      nested = true
+      scope.recordInput(keyboard)
+    }
+  })
+  scope.subscribe(() => trace.push(["second", scope.snapshot()]))
+  scope.recordInput({ ...keyboard, origin: "pointer", timestamp: 1 })
+  expect(trace).toEqual([
+    ["first", initialRevision + 1],
+    ["first", initialRevision + 2],
+    ["second", initialRevision + 2],
+    ["second", initialRevision + 2],
+  ])
+  expect(scope.lastInput()).toBe(keyboard)
+  scope.flush()
+  expect(trace).toHaveLength(4)
+})

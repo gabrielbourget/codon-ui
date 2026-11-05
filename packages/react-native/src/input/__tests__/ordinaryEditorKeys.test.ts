@@ -1,6 +1,10 @@
 import type * as RN from "react-native"
 
-import { createNativeOrdinaryEditorKeys, type TNativeOrdinaryEditorKeyEvent } from "../ordinaryEditorKeys"
+import {
+  captureNativeOrdinaryEditorFocus,
+  createNativeOrdinaryEditorKeys,
+  type TNativeOrdinaryEditorKeyEvent,
+} from "../ordinaryEditorKeys"
 
 const setup = () => {
   const original = { _nativeTag: 17 } as unknown as RN.TextInput
@@ -252,4 +256,60 @@ it("admits only current native subtree observations and keeps the actual focused
   expect(observer.receive(event)).toBe(false)
   observer.unregister()
   expect(f.registry.bindings()).toEqual([f.binding])
+})
+
+it("acknowledges focus-only originals without delivering or persisting ordinary key packets", () => {
+  const f = setup()
+  f.lease.unregister()
+  const lease = f.registry.register("focus", {
+    original: f.original,
+    current: () => f.original,
+    canAct: () => true,
+    focusOnly: true,
+  })
+  const binding = f.registry.bindings()[0]
+  expect(captureNativeOrdinaryEditorFocus(f.registry, f.original, { windowId: "window" })).toBeNull()
+  f.registry.acceptStatus({ ...f.status, ...binding, sequence: 2 })
+  const capture = captureNativeOrdinaryEditorFocus(f.registry, f.original, { windowId: "window" })
+  expect(capture?.()).toBe(true)
+  const event = f.event()
+  Object.assign(event.nativeEvent, binding)
+  expect(lease.receive(event)).toBe(false)
+  expect(f.receive).not.toHaveBeenCalled()
+  expect(event.persist).not.toHaveBeenCalled()
+  expect(binding).not.toHaveProperty("originalEditorAction")
+  lease.unregister()
+  expect(capture?.()).toBe(false)
+})
+
+it("rejects current-ref and guard drift for acknowledged focus bindings", () => {
+  const f = setup()
+  const capture = captureNativeOrdinaryEditorFocus(f.registry, f.original, { windowId: "window" })
+  expect(capture?.()).toBe(true)
+  f.allow(false)
+  expect(capture?.()).toBe(false)
+  expect(captureNativeOrdinaryEditorFocus(f.registry, f.original, { windowId: "window" })).toBeNull()
+  f.allow(true)
+  f.replace(null)
+  expect(capture?.()).toBe(false)
+  expect(captureNativeOrdinaryEditorFocus(f.registry, f.original, { windowId: "window" })).toBeNull()
+})
+
+it("permanently retires focus leases across unregister and reacknowledged original replacement", () => {
+  const f = setup()
+  const old = captureNativeOrdinaryEditorFocus(f.registry, f.original, { windowId: "window" })
+  f.lease.unregister()
+  const lease = f.registry.register("replacement", {
+    original: f.original,
+    current: () => f.original,
+    canAct: () => true,
+    focusOnly: true,
+  })
+  const binding = f.registry.bindings()[0]
+  f.registry.acceptStatus({ ...f.status, ...binding, sequence: 2 })
+  expect(old?.()).toBe(false)
+  expect(captureNativeOrdinaryEditorFocus(f.registry, f.original, { windowId: "window" })?.()).toBe(true)
+  f.session.active = false
+  expect(captureNativeOrdinaryEditorFocus(f.registry, f.original, { windowId: "window" })).toBeNull()
+  lease.unregister()
 })

@@ -24,6 +24,7 @@ import {
   NativeCollectionActionAdmissionContext,
   NativeCollectionActions,
   NativeCollectionActionsContext,
+  type TNativeCollectionActionAdmission,
 } from "./actions"
 import { NativeCollectionNodeContext } from "./binding"
 import { useNativeCollectionRefs } from "./context"
@@ -37,6 +38,28 @@ import {
 
 const subscribeIdle = () => () => {}
 const idleSnapshot = () => 0
+const useNativeCollectionAdmissionReceipt = (
+  admission: TNativeCollectionActionAdmission | null,
+  actions: NativeCollectionActions | null,
+  node: TNativeCollectionNode<unknown> | null | undefined,
+) => {
+  const getSnapshot = useMemo<() => number | readonly [string, string]>(() => {
+    if (!admission || !actions || node === undefined) return admission?.getSnapshot ?? idleSnapshot
+    let previous: readonly [string, string] | undefined
+    let previousVersion: number | undefined
+    return () => {
+      const version = admission.getSnapshot()
+      if (previous && previousVersion === version) return previous
+      const lifetime = actions.ownerLifetime()
+      const binding = actions.bindingFor(node)
+      if (!previous || previous[0] !== lifetime || previous[1] !== binding) previous = [lifetime, binding]
+      previousVersion = version
+      return previous
+    }
+  }, [admission, actions, node])
+  useSyncExternalStore(admission?.subscribe ?? subscribeIdle, getSnapshot, idleSnapshot)
+}
+
 export type TNativeCollectionBuilderProps<T> = {
   items: readonly TNativeCollectionItem<T>[]
   children: (collection: TNativeCollectionSnapshot<T>, model: TNativeCollectionModelSnapshot<T>) => ReactNode
@@ -65,7 +88,7 @@ const NativeCollectionBuilderBody = <T,>({ items, children }: TNativeCollectionB
   const previous = useRef<TNativeCollectionSnapshot<T> | null>(null)
   const snapshot = useMemo(() => model.prepare(createNativeCollectionSnapshot(items, previous.current)), [model, items])
   const actions = useMemo(() => new NativeCollectionActions(model, admission, snapshot), [model, admission, snapshot])
-  useSyncExternalStore(admission?.subscribe ?? subscribeIdle, admission?.getSnapshot ?? idleSnapshot, idleSnapshot)
+  useNativeCollectionAdmissionReceipt(admission, actions, null)
   useLayoutEffect(() => {
     const disconnect = actions.connect()
     return () => {
@@ -108,9 +131,10 @@ export const createNativeCollectionLeaf = <T, P extends object, E>(
 ) => {
   const Result = forwardRef<E, P>((props, ref) => {
     const admission = useContext(NativeCollectionActionAdmissionContext)
-    // Cached receiver elements still need fresh native bindings; keep logical actions and item identity unchanged.
-    useSyncExternalStore(admission?.subscribe ?? subscribeIdle, admission?.getSnapshot ?? idleSnapshot, idleSnapshot)
+    const actions = useContext(NativeCollectionActionsContext)
     const node = useContext(NativeCollectionNodeContext)
+    // Cached receiver elements still need fresh native bindings; keep logical actions and item identity unchanged.
+    useNativeCollectionAdmissionReceipt(admission, actions, node ?? undefined)
     const wrap = useCapture?.()
     if (!node) {
       if (render.length >= 3) throw new Error("A native collection item requires an explicit model receiver")
@@ -135,24 +159,80 @@ export const useNativeCollectionOwnerRef = <T,>(
   forwardedRef?: Ref<View>,
 ) => {
   const admission = useContext(NativeCollectionActionAdmissionContext)
-  const [original, setOriginal] = useState<View | null>(null)
-  const bind = useCallback((host: View | null) => setOriginal(host), [])
+  const original = useRef<View | null>(null)
+  const committed = useRef(false)
+  const registration = useRef<{
+    admission: TNativeCollectionActionAdmission
+    binding: string
+    original: View
+    retire: () => void
+  } | null>(null)
+  const [, updateOriginal] = useState(0)
+  const bind = useCallback((host: View | null) => {
+    if (original.current === host) return
+    original.current = host
+    // Initial attachment is registered by this commit's layout effect without another owner render.
+    if (committed.current) updateOriginal((revision) => revision + 1)
+  }, [])
   const merged = useNativeCollectionRefs(forwardedRef, bind)
   const binding = useMemo(() => nativeCollectionOwnerBinding(snapshot), [snapshot])
   useLayoutEffect(() => {
-    if (original && admission) return admission.registerOwner(binding, original)
-  }, [admission, binding, original])
+    committed.current = true
+    return () => {
+      committed.current = false
+      const previous = registration.current
+      registration.current = null
+      previous?.retire()
+    }
+  }, [])
+  useLayoutEffect(() => {
+    const host = original.current
+    const previous = registration.current
+    if (previous?.admission === admission && previous?.binding === binding && previous?.original === host) return
+    registration.current = null
+    previous?.retire()
+    if (host && admission)
+      registration.current = { admission, binding, original: host, retire: admission.registerOwner(binding, host) }
+  })
   return merged
 }
 
 // Call only for the actual primary receiver, never inherited descendants such as a remove slot.
 export const useNativeCollectionReceiverRef = <T,>(node: TNativeCollectionNode<T>, forwardedRef?: Ref<View>) => {
   const actions = useContext(NativeCollectionActionsContext)
-  const [original, setOriginal] = useState<View | null>(null)
-  const bind = useCallback((host: View | null) => setOriginal(host), [])
+  const original = useRef<View | null>(null)
+  const committed = useRef(false)
+  const registration = useRef<{
+    actions: NativeCollectionActions
+    node: TNativeCollectionNode<T>
+    original: View
+    retire: () => void
+  } | null>(null)
+  const [, updateOriginal] = useState(0)
+  const bind = useCallback((host: View | null) => {
+    if (original.current === host) return
+    original.current = host
+    // The first attached ref is already available to this commit's layout effect.
+    if (committed.current) updateOriginal((revision) => revision + 1)
+  }, [])
   const merged = useNativeCollectionRefs(forwardedRef, bind)
   useLayoutEffect(() => {
-    if (original && actions) return actions.registerReceiver(node, original)
-  }, [actions, node, original])
+    committed.current = true
+    return () => {
+      committed.current = false
+      const previous = registration.current
+      registration.current = null
+      previous?.retire()
+    }
+  }, [])
+  useLayoutEffect(() => {
+    const host = original.current
+    const previous = registration.current
+    if (previous?.actions === actions && previous?.node === node && previous?.original === host) return
+    registration.current = null
+    previous?.retire()
+    if (host && actions)
+      registration.current = { actions, node, original: host, retire: actions.registerReceiver(node, host) }
+  })
   return merged
 }

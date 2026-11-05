@@ -1,9 +1,11 @@
+import { useLayoutEffect, useRef } from "react"
 import { processColor, type ColorValue, type TextStyle } from "react-native"
 
 import type { TNativeTheme } from "../../theme/types"
 import { resolveNativeStyle, validateNativeColor } from "../colors"
 import { validateNativeDisplayDimension } from "../displayDimensions"
 import { getNativeControlRadius } from "../selection"
+import { resolveNativeTagTransition, useNativeTagColor, useNativeTagReducedMotion } from "../Tag/motion"
 
 import type { TNativeStepperProps, TNativeStepperRenderState, TNativeStepperRootStyle } from "./types"
 
@@ -97,6 +99,8 @@ export const getNativeStepperStyles = (
     "Stepper",
     "customGroupStyles",
   )
+  const inheritedForeground = group.color ?? root.color
+  const foreground = inputColor ?? inheritedForeground
   const input = resolveNativeStyle<TextStyle>(
     [
       {
@@ -104,7 +108,8 @@ export const getNativeStepperStyles = (
         width: "auto",
         minWidth: 25,
         maxWidth: 40,
-        ...(inputColor === undefined ? {} : { borderColor: inputColor, color: inputColor }),
+        ...(inputColor === undefined ? {} : { borderColor: inputColor }),
+        ...(foreground === undefined ? {} : { color: foreground }),
         marginTop: type === "segmented" ? 0 : 2.5,
         marginBottom: type === "segmented" ? 0 : 2.5,
         marginLeft: 0,
@@ -119,7 +124,7 @@ export const getNativeStepperStyles = (
     [
       {
         aspectRatio: 1,
-        color: inputColor ?? color,
+        color: inputColor ?? color ?? inheritedForeground,
         ...(cohesive && outlined ? { backgroundColor: "transparent" } : {}),
       },
       props.customButtonStyles,
@@ -135,5 +140,56 @@ export const getNativeStepperStyles = (
     buttonColorMode: type === "segmented" && outlined ? ("outline" as const) : ("fill" as const),
     buttonTransparent: cohesive && outlined,
     buttonRaised: !cohesive,
+  }
+}
+
+const useStepperColorPaint = (
+  target: ColorValue | undefined,
+  timing: ReturnType<typeof resolveNativeTagTransition>,
+  reduced: boolean,
+) => {
+  const previous = useRef(target)
+  const concretePair = typeof processColor(previous.current) === "number" && typeof processColor(target) === "number"
+  const paint = useNativeTagColor(target, timing, reduced || !concretePair, true).rendered
+  useLayoutEffect(() => {
+    previous.current = target
+  }, [target])
+  // Keep literal final values and ownership gaps rather than reviving an old color after an unset/opaque endpoint.
+  return processColor(paint) === processColor(target) ? target : paint
+}
+
+export const useNativeStepperPaint = (
+  theme: TNativeTheme,
+  styles: ReturnType<typeof getNativeStepperStyles>,
+): ReturnType<typeof getNativeStepperStyles> => {
+  const reduced = useNativeTagReducedMotion()
+  const foregroundTiming = resolveNativeTagTransition(theme.transitions?.color)
+  const borderTiming = resolveNativeTagTransition(theme.transitions?.borderColor)
+  const rootBorder = useStepperColorPaint(styles.root.borderColor, borderTiming, reduced)
+  const groupBorder = useStepperColorPaint(styles.group.borderColor, borderTiming, reduced)
+  const inputForeground = useStepperColorPaint(
+    Object.hasOwn(styles.input, "color") ? styles.input.color : theme.colors.controlForeground,
+    foregroundTiming,
+    reduced,
+  )
+  const inputBorder = useStepperColorPaint(
+    Object.hasOwn(styles.input, "borderColor") ? styles.input.borderColor : theme.colors.controlBorder,
+    borderTiming,
+    reduced,
+  )
+  const buttonForeground = useStepperColorPaint(styles.button.color, foregroundTiming, reduced)
+  const buttonBorder = useStepperColorPaint(styles.button.borderColor, borderTiming, reduced)
+  const { color: _rootForeground, ...root } = styles.root
+  const { color: _groupForeground, ...group } = styles.group
+  return {
+    ...styles,
+    root: { ...root, ...(Object.hasOwn(root, "borderColor") ? { borderColor: rootBorder } : {}) },
+    group: { ...group, borderColor: groupBorder },
+    input: { ...styles.input, color: inputForeground, borderColor: inputBorder },
+    button: {
+      ...styles.button,
+      color: buttonForeground,
+      ...(Object.hasOwn(styles.button, "borderColor") ? { borderColor: buttonBorder } : {}),
+    },
   }
 }

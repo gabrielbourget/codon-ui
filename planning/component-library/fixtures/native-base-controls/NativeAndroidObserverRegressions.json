@@ -1,0 +1,341 @@
+{
+  "scope": "Projected actual native rows sufficient for the query regression; original full receipts remain in the indexed evidence cache. No guest execution.",
+  "clippedBounds": {
+    "sourceRef": "/tmp/codon-placeholder-g02-android-installed-20261104/attempt-8/first-s02/019.stdout",
+    "sourceSHA256": "57f267ae8eb505055e85bf3abddc337819d1a428175584a7767bfc472204292e",
+    "node": {
+      "index": "80",
+      "text": "Choose an item",
+      "resource-id": "library-placeholder",
+      "class": "android.view.View",
+      "package": "dev.codonui.showcase",
+      "content-desc": "",
+      "checkable": "false",
+      "checked": "false",
+      "clickable": "false",
+      "enabled": "true",
+      "focusable": "true",
+      "focused": "false",
+      "scrollable": "false",
+      "long-clickable": "false",
+      "password": "false",
+      "selected": "false",
+      "bounds": "[45,1596][674,1558]",
+      "drawing-order": "81",
+      "hint": ""
+    },
+    "viewport": {
+      "index": "3",
+      "text": "",
+      "resource-id": "showcase-scroll",
+      "class": "android.widget.ScrollView",
+      "package": "dev.codonui.showcase",
+      "content-desc": "",
+      "checkable": "false",
+      "checked": "false",
+      "clickable": "false",
+      "enabled": "true",
+      "focusable": "true",
+      "focused": "false",
+      "scrollable": "true",
+      "long-clickable": "false",
+      "password": "false",
+      "selected": "false",
+      "bounds": "[0,136][720,1558]",
+      "drawing-order": "3",
+      "hint": ""
+    }
+  },
+  "selectionCases": [
+    {
+      "name": "s03-native-default-p",
+      "sourceRef": "/tmp/codon-placeholder-g02-android-installed-20261104/attempt-11/selection-s03/s03-native-default-p.json",
+      "sourceSHA256": "d5db34b6e5a5211a70c6ca5344e1429afa40ef71d7a38a6be2dd9d1ce411b762",
+      "expectedCopy": true,
+      "native": {
+        "windowRoots": 5,
+        "windowNodes": [
+          {
+            "text": null,
+            "description": "Copy",
+            "class": "android.widget.LinearLayout",
+            "bounds": "114 675 217 759",
+            "enabled": true,
+            "visible": true,
+            "windowId": 2127
+          },
+          {
+            "id": "android:id/floating_toolbar_menu_item_text",
+            "text": "Copy",
+            "description": null,
+            "class": "android.widget.TextView",
+            "bounds": "142 675 198 759",
+            "enabled": true,
+            "visible": true,
+            "windowId": 2127
+          },
+          {
+            "id": "library-placeholder",
+            "text": "Choose an item",
+            "description": null,
+            "class": "android.widget.TextView",
+            "bounds": "99 773 621 802",
+            "enabled": true,
+            "visible": true,
+            "windowId": 2130
+          }
+        ]
+      }
+    },
+    {
+      "name": "s03-current-windows-default-p",
+      "sourceRef": "/tmp/codon-placeholder-g02-android-installed-20261104/attempt-11/selection-s03/s03-current-windows-default-p.json",
+      "sourceSHA256": "fc231cabb55514a527d0ad390c9c8d8e0c803c7fb0c363ebd532a2c76e98a2c8",
+      "expectedCopy": true,
+      "native": {
+        "windowRoots": 5,
+        "windowNodes": [
+          {
+            "text": null,
+            "description": "Copy",
+            "class": "android.widget.LinearLayout",
+            "bounds": "114 675 217 759",
+            "enabled": true,
+            "visible": true,
+            "windowId": 2151
+          },
+          {
+            "id": "android:id/floating_toolbar_menu_item_text",
+            "text": "Copy",
+            "description": null,
+            "class": "android.widget.TextView",
+            "bounds": "142 675 198 759",
+            "enabled": true,
+            "visible": true,
+            "windowId": 2151
+          },
+          {
+            "id": "library-placeholder",
+            "text": "Choose an item",
+            "description": null,
+            "class": "android.widget.TextView",
+            "bounds": "99 773 621 802",
+            "enabled": true,
+            "visible": true,
+            "windowId": 2152
+          }
+        ]
+      }
+    },
+    {
+      "name": "s03-native-false-p",
+      "sourceRef": "/tmp/codon-placeholder-g02-android-installed-20261104/attempt-11/selection-s03/s03-native-false-p.json",
+      "sourceSHA256": "5ba75bcf958162940b91b756f02b6059cdba9216ad5c6be50f5a66568a5325f1",
+      "expectedCopy": false,
+      "native": {
+        "windowRoots": 2,
+        "windowNodes": [
+          {
+            "id": "library-placeholder",
+            "text": "Choose an item",
+            "description": null,
+            "class": "android.widget.TextView",
+            "bounds": "99 839 621 868",
+            "enabled": true,
+            "visible": true,
+            "windowId": 2289
+          }
+        ]
+      }
+    },
+    {
+      "name": "s03-current-windows-false-p",
+      "sourceRef": "/tmp/codon-placeholder-g02-android-installed-20261104/attempt-11/selection-s03/s03-current-windows-false-p.json",
+      "sourceSHA256": "da8a8dab24e93b9dcad7fd3ded9a48e87065367c300421ec9dbc7c241b2f128b",
+      "expectedCopy": false,
+      "native": {
+        "windowRoots": 2,
+        "windowNodes": [
+          {
+            "id": "library-placeholder",
+            "text": "Choose an item",
+            "description": null,
+            "class": "android.widget.TextView",
+            "bounds": "99 839 621 868",
+            "enabled": true,
+            "visible": true,
+            "windowId": 2308
+          }
+        ]
+      }
+    },
+    {
+      "name": "s03-native-default-label",
+      "sourceRef": "/tmp/codon-placeholder-g02-android-installed-20261104/attempt-11/selection-s03/s03-native-default-label.json",
+      "sourceSHA256": "f0306d7364a14942a8b04973191913e8887c522e4408ef2e3ad5d82e9e510903",
+      "expectedCopy": false,
+      "native": {
+        "windowRoots": 2,
+        "windowNodes": [
+          {
+            "id": "library-placeholder",
+            "text": "Choose an item",
+            "description": null,
+            "class": "android.widget.TextView",
+            "bounds": "99 809 621 838",
+            "enabled": true,
+            "visible": true,
+            "windowId": 2438
+          }
+        ]
+      }
+    },
+    {
+      "name": "s03-current-windows-default-label",
+      "sourceRef": "/tmp/codon-placeholder-g02-android-installed-20261104/attempt-11/selection-s03/s03-current-windows-default-label.json",
+      "sourceSHA256": "c24aa9eb3572b6b841794fcacb624918d42a035e67919e3b635394ec5aeff713",
+      "expectedCopy": false,
+      "native": {
+        "windowRoots": 2,
+        "windowNodes": [
+          {
+            "id": "library-placeholder",
+            "text": "Choose an item",
+            "description": null,
+            "class": "android.widget.TextView",
+            "bounds": "99 809 621 838",
+            "enabled": true,
+            "visible": true,
+            "windowId": 2462
+          }
+        ]
+      }
+    },
+    {
+      "name": "s03-native-true-label",
+      "sourceRef": "/tmp/codon-placeholder-g02-android-installed-20261104/attempt-11/selection-s03/s03-native-true-label.json",
+      "sourceSHA256": "07f8c4cd8a43488170efbbcbfbb9e13b983a9345b88c7d2c4ccef4a86c9f98b1",
+      "expectedCopy": true,
+      "native": {
+        "windowRoots": 5,
+        "windowNodes": [
+          {
+            "text": null,
+            "description": "Copy",
+            "class": "android.widget.LinearLayout",
+            "bounds": "114 700 217 784",
+            "enabled": true,
+            "visible": true,
+            "windowId": 2579
+          },
+          {
+            "id": "android:id/floating_toolbar_menu_item_text",
+            "text": "Copy",
+            "description": null,
+            "class": "android.widget.TextView",
+            "bounds": "142 700 198 784",
+            "enabled": true,
+            "visible": true,
+            "windowId": 2579
+          },
+          {
+            "id": "library-placeholder",
+            "text": "Choose an item",
+            "description": null,
+            "class": "android.widget.TextView",
+            "bounds": "99 798 621 827",
+            "enabled": true,
+            "visible": true,
+            "windowId": 2571
+          }
+        ]
+      }
+    },
+    {
+      "name": "s03-current-windows-true-label",
+      "sourceRef": "/tmp/codon-placeholder-g02-android-installed-20261104/attempt-11/selection-s03/s03-current-windows-true-label.json",
+      "sourceSHA256": "9b70e3838a71e8c67566cab7b1ed12dde024c0a6522a73b4c1de9650f9c80f85",
+      "expectedCopy": true,
+      "native": {
+        "windowRoots": 5,
+        "windowNodes": [
+          {
+            "text": null,
+            "description": "Copy",
+            "class": "android.widget.LinearLayout",
+            "bounds": "114 700 217 784",
+            "enabled": true,
+            "visible": true,
+            "windowId": 2607
+          },
+          {
+            "id": "android:id/floating_toolbar_menu_item_text",
+            "text": "Copy",
+            "description": null,
+            "class": "android.widget.TextView",
+            "bounds": "142 700 198 784",
+            "enabled": true,
+            "visible": true,
+            "windowId": 2607
+          },
+          {
+            "id": "library-placeholder",
+            "text": "Choose an item",
+            "description": null,
+            "class": "android.widget.TextView",
+            "bounds": "99 798 621 827",
+            "enabled": true,
+            "visible": true,
+            "windowId": 2600
+          }
+        ]
+      }
+    }
+  ],
+  "admissionCases": [
+    {
+      "name": "foundation",
+      "sourceRef": "/tmp/codon-placeholder-g02-android-installed-20261104/attempt-6/read-initial.stdout",
+      "sourceSHA256": "1b188be8b27ffbe9259d16364cf1826b4f3049fd091badcaf13958c529850b6e",
+      "raw": "<hierarchy rotation=\"0\"><node index=\"3\" text=\"\" resource-id=\"showcase-scroll\" class=\"android.widget.ScrollView\" package=\"dev.codonui.showcase\" content-desc=\"\" checkable=\"false\" checked=\"false\" clickable=\"false\" enabled=\"true\" focusable=\"true\" focused=\"false\" scrollable=\"true\" long-clickable=\"false\" password=\"false\" selected=\"false\" bounds=\"[0,136][720,1600]\" drawing-order=\"3\" hint=\"\" /><node index=\"4\" text=\"\" resource-id=\"\" class=\"android.widget.Button\" package=\"dev.codonui.showcase\" content-desc=\"Text/Button scene\" checkable=\"false\" checked=\"false\" clickable=\"true\" enabled=\"true\" focusable=\"true\" focused=\"false\" scrollable=\"false\" long-clickable=\"false\" password=\"false\" selected=\"false\" bounds=\"[277,366][515,450]\" drawing-order=\"5\" hint=\"\" /></hierarchy>",
+      "parseAccepted": true,
+      "sceneReady": false
+    },
+    {
+      "name": "transient-root",
+      "sourceRef": "/tmp/codon-placeholder-g02-android-installed-20261104/attempt-3/read-selected.stdout",
+      "sourceSHA256": "1772c2da5691533ceb26e58f965f1f197036a0b59ecdaa5c3627f7cc9e0daf83",
+      "raw": "<hierarchy rotation=\"0\"><node index=\"0\" text=\"\" resource-id=\"\" class=\"android.widget.FrameLayout\" package=\"dev.codonui.showcase\" content-desc=\"\" checkable=\"false\" checked=\"false\" clickable=\"false\" enabled=\"true\" focusable=\"false\" focused=\"false\" scrollable=\"false\" long-clickable=\"false\" password=\"false\" selected=\"false\" bounds=\"[0,0][720,1600]\" drawing-order=\"0\" hint=\"\" /></hierarchy>",
+      "parseAccepted": true,
+      "sceneReady": false
+    },
+    {
+      "name": "systemui-anr",
+      "sourceRef": "/tmp/codon-placeholder-g02-android-installed-20261104/attempt-7/health-read-3.stdout",
+      "sourceSHA256": "90143f045618b18145f33c52be49023616edc9dfc96c7cf850b5853b548b567d",
+      "raw": "<hierarchy rotation=\"0\"><node index=\"0\" text=\"System UI isn't responding\" resource-id=\"android:id/alertTitle\" class=\"android.widget.TextView\" package=\"android\" content-desc=\"\" checkable=\"false\" checked=\"false\" clickable=\"false\" enabled=\"true\" focusable=\"false\" focused=\"false\" scrollable=\"false\" long-clickable=\"false\" password=\"false\" selected=\"false\" bounds=\"[88,756][631,803]\" drawing-order=\"2\" hint=\"\" /></hierarchy>",
+      "parseAccepted": false,
+      "sceneReady": false
+    },
+    {
+      "name": "selected-scene",
+      "sourceRef": "/tmp/codon-placeholder-g02-android-installed-20261104/attempt-11/health-read-5.stdout",
+      "sourceSHA256": "2c583d3227633d8b2c5a3480835da188b68f1e6c91ae2092d0f3b0a3e404986c",
+      "raw": "<hierarchy rotation=\"0\"><node index=\"3\" text=\"\" resource-id=\"showcase-scroll\" class=\"android.widget.ScrollView\" package=\"dev.codonui.showcase\" content-desc=\"\" checkable=\"false\" checked=\"false\" clickable=\"false\" enabled=\"true\" focusable=\"true\" focused=\"false\" scrollable=\"true\" long-clickable=\"false\" password=\"false\" selected=\"false\" bounds=\"[0,136][720,1558]\" drawing-order=\"3\" hint=\"\" /><node index=\"4\" text=\"\" resource-id=\"\" class=\"android.widget.Button\" package=\"dev.codonui.showcase\" content-desc=\"Text/Button scene\" checkable=\"false\" checked=\"false\" clickable=\"true\" enabled=\"true\" focusable=\"true\" focused=\"false\" scrollable=\"false\" long-clickable=\"false\" password=\"false\" selected=\"true\" bounds=\"[277,366][515,450]\" drawing-order=\"5\" hint=\"\" /></hierarchy>",
+      "parseAccepted": true,
+      "sceneReady": true
+    },
+    {
+      "name": "empty-root",
+      "raw": "<hierarchy rotation=\"0\"/>",
+      "parseAccepted": false,
+      "sceneReady": false
+    },
+    {
+      "name": "missing-root",
+      "raw": "UI hierarchy dumped to: missing.xml",
+      "parseAccepted": false,
+      "sceneReady": false
+    }
+  ]
+}

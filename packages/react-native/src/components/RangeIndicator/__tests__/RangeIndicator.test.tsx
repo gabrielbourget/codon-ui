@@ -459,6 +459,105 @@ it("switches progress between determinate and unknown state with no second acces
   expect(screen.getByTestId("linear-progress-bar", { includeHiddenElements: true })).toHaveStyle({ width: "75%" })
 })
 
+it("keeps a visible static Android unknown cue while motion preference is pending and follows live changes", async () => {
+  jest.replaceProperty(Platform, "OS", "android")
+  let resolvePreference: (enabled: boolean) => void = () => undefined
+  jest.mocked(AccessibilityInfo.isReduceMotionEnabled).mockReturnValue(
+    new Promise((resolve) => {
+      resolvePreference = resolve
+    }),
+  )
+  const ref = createRef<View>()
+  const view = await render(
+    <LinearProgress ref={ref} aria-label="Transfer" value={25} isIndeterminate barColor="#1357bd" />,
+  )
+  const original = ref.current
+  expect(original).not.toBeNull()
+  expect(screen.getByTestId("linear-progress-indeterminate", { includeHiddenElements: true }).props).not.toHaveProperty(
+    "animating",
+  )
+  expect(screen.getAllByRole("progressbar")).toHaveLength(1)
+  expect(screen.getByRole("progressbar").props.accessibilityValue).toEqual({ text: "" })
+  const indicator = screen.getByTestId("linear-progress-indeterminate", { includeHiddenElements: true })
+  expect(indicator.props.accessible).toBe(false)
+  expect(indicator).toHaveStyle({ flex: 1, alignItems: "center", justifyContent: "center" })
+  const cue = indicator.children.find((child) => typeof child !== "string")
+  if (!cue || typeof cue === "string") throw new Error("Actual static native cue is required")
+  expect(cue.props.accessible).toBe(false)
+  expect(cue).toHaveStyle({ width: 8, height: 8, borderRadius: 4, borderWidth: 1, borderColor: "#1357bd" })
+  await view.rerender(
+    <LinearProgress
+      ref={ref}
+      aria-label="Transfer"
+      value={75}
+      isIndeterminate
+      barColor="#1357bd"
+      customBarStyles={{ backgroundColor: "#802020" }}
+    />,
+  )
+  const currentIndicator = screen.getByTestId("linear-progress-indeterminate", { includeHiddenElements: true })
+  const currentCue = currentIndicator.children.find((child) => typeof child !== "string")
+  if (!currentCue || typeof currentCue === "string") throw new Error("Current static native cue is required")
+  expect(currentCue).toHaveStyle({ borderColor: "#802020" })
+  expect(ref.current).toBe(original)
+  expect(screen.queryByTestId("linear-progress-bar", { includeHiddenElements: true })).toBeNull()
+  await act(() => resolvePreference(false))
+  expect(screen.getByTestId("linear-progress-indeterminate", { includeHiddenElements: true }).props).toMatchObject({
+    animating: true,
+    hidesWhenStopped: false,
+    size: "small",
+    color: "#802020",
+  })
+  const registration = jest.mocked(AccessibilityInfo.addEventListener).mock.calls.at(-1)!
+  const listener = registration[1] as unknown as (enabled: boolean) => void
+  await act(() => listener(true))
+  expect(screen.getByTestId("linear-progress-indeterminate", { includeHiddenElements: true }).props).not.toHaveProperty(
+    "animating",
+  )
+  expect(screen.getAllByRole("progressbar")).toHaveLength(1)
+  await act(() => listener(false))
+  expect(screen.getByTestId("linear-progress-indeterminate", { includeHiddenElements: true }).props.animating).toBe(
+    true,
+  )
+  expect(ref.current).toBe(original)
+})
+
+it.each(["enabled", "failed-query"] as const)(
+  "retains the Android static unknown cue for %s Reduce Motion",
+  async (preference) => {
+    jest.replaceProperty(Platform, "OS", "android")
+    if (preference === "failed-query")
+      jest.mocked(AccessibilityInfo.isReduceMotionEnabled).mockRejectedValue(new Error("Preference unavailable"))
+    const timing = jest.spyOn(Animated, "timing")
+    await render(<LinearProgress aria-label="Transfer" value={25} isIndeterminate barColor="#1357bd" />)
+    expect(
+      screen.getByTestId("linear-progress-indeterminate", { includeHiddenElements: true }).props,
+    ).not.toHaveProperty("animating")
+    expect(timing).not.toHaveBeenCalled()
+    expect(screen.getAllByRole("progressbar")).toHaveLength(1)
+    expect(screen.getByRole("progressbar").props.accessibilityValue).toEqual({ text: "" })
+    expect(screen.queryByTestId("linear-progress-bar", { includeHiddenElements: true })).toBeNull()
+    const indicator = screen.getByTestId("linear-progress-indeterminate", { includeHiddenElements: true })
+    expect(indicator.props.accessible).toBe(false)
+    expect(indicator).toHaveStyle({ alignItems: "center", justifyContent: "center" })
+    const cue = indicator.children.find((child) => typeof child !== "string")
+    if (!cue || typeof cue === "string") throw new Error("Actual static native cue is required")
+    expect(cue).toHaveStyle({ width: 8, height: 8, borderColor: "#1357bd" })
+  },
+)
+
+it("clears Android native value text when progress becomes indeterminate", async () => {
+  jest.replaceProperty(Platform, "OS", "android")
+  const { rerender } = await render(<LinearProgress aria-label="Transfer" value={25} />)
+  expect(screen.getByRole("progressbar")).toHaveAccessibilityValue({ now: 25, text: "25%" })
+  await rerender(<LinearProgress aria-label="Transfer" value={25} isIndeterminate />)
+  expect(screen.getByRole("progressbar").props.accessibilityValue).toEqual({ text: "" })
+  await rerender(<LinearProgress aria-label="Transfer" value={75} isIndeterminate />)
+  expect(screen.getByRole("progressbar").props.accessibilityValue).toEqual({ text: "" })
+  await rerender(<LinearProgress aria-label="Transfer" value={75} />)
+  expect(screen.getByRole("progressbar")).toHaveAccessibilityValue({ now: 75, text: "75%" })
+})
+
 it("keeps meter callback state determinate", async () => {
   const callback = jest.fn<ViewStyle, [TNativeMeterStyleState]>(() => ({}))
   await render(<Meter aria-label="Capacity" value={50} style={callback} />)

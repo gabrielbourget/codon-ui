@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar"
-import { Fragment, useRef, useState, type PropsWithChildren } from "react"
+import { Fragment, useCallback, useRef, useState, type PropsWithChildren } from "react"
 import {
   KeyboardAvoidingView,
   Platform,
@@ -23,6 +23,8 @@ import {
 } from "@codon-ui/react-native"
 
 import { AVAILABLE_LAYOUT_FIXTURES, LAYOUT_FIXTURE_LABELS, type TLayoutFixture } from "../fixtures/layout"
+import type { TShowcaseRequest, TShowcaseScene } from "../harness/scenarioLink"
+import { useShowcaseLink } from "../harness/useShowcaseLink"
 
 import { AvatarScene } from "./AvatarScene"
 import { BasicControlsScene } from "./BasicControlsScene"
@@ -31,6 +33,7 @@ import { CardScene } from "./CardScene"
 import { CarouselScene } from "./CarouselScene"
 import { CircularCounterScene } from "./CircularCounterScene"
 import { ClickPopoverScene } from "./ClickPopoverScene"
+import { ComboBoxScene } from "./ComboBoxScene"
 import { DisplayScene } from "./DisplayScene"
 import { FormDocumentScene } from "./FormDocumentScene"
 import { FormFieldScene } from "./FormFieldScene"
@@ -171,48 +174,32 @@ export const NativeShowcase = () => {
   const [customized, setCustomized] = useState(false)
   const [fixture, setFixture] = useState<TLayoutFixture>("live")
   const [count, setCount] = useState(0)
-  const [scene, setScene] = useState<
-    | "form-document"
-    | "foundation"
-    | "library"
-    | "controls"
-    | "select"
-    | "multiline"
-    | "number"
-    | "overlay"
-    | "range"
-    | "display"
-    | "loading"
-    | "toggle"
-    | "avatar"
-    | "tag"
-    | "tag-group"
-    | "tag-combo-box"
-    | "carousel"
-    | "panel"
-    | "sort-filter"
-    | "table"
-    | "card"
-    | "link"
-    | "thumbnail"
-    | "gallery"
-    | "stepper"
-    | "slider"
-    | "field"
-    | "search"
-    | "circular"
-    | "tooltip"
-    | "popover"
-    | "breadcrumbs"
-    | "pagination"
-    | "toaster"
-    | "menu"
-  >("foundation")
+  const [scene, setScene] = useState<TShowcaseScene>("foundation")
+  const [sceneRevision, setSceneRevision] = useState(0)
+  const [controlsVisible, setControlsVisible] = useState(true)
+  const applyRequest = useCallback((request: TShowcaseRequest) => {
+    if (request.reset) {
+      setMode(request.theme ?? "light")
+      setCustomized(false)
+      setFixture(request.fixture ?? "live")
+      setCount(0)
+      setControlsVisible(request.controls !== "hidden")
+      setSceneRevision((value) => value + 1)
+    } else {
+      if (request.theme !== undefined) setMode(request.theme)
+      if (request.fixture !== undefined) setFixture(request.fixture)
+      if (request.controls !== undefined) setControlsVisible(request.controls === "shown")
+    }
+    setScene(request.scene)
+  }, [])
+  const linkError = useShowcaseLink(applyRequest)
   const reset = () => {
     setMode("light")
     setCustomized(false)
     setFixture("live")
     setCount(0)
+    setControlsVisible(true)
+    setSceneRevision((value) => value + 1)
     setScene("foundation")
   }
 
@@ -229,8 +216,17 @@ export const NativeShowcase = () => {
         <FloatingScope {...(sceneOwnsOverlay ? {} : { testID: "showcase-floating-host" })}>
           <ShowcaseSurface>
             <ThemeHeading />
-            <WindowMetadata width={dimensions.width} height={dimensions.height} fontScale={dimensions.fontScale} />
-            <View style={styles.controls}>
+            <WindowMetadata
+              width={dimensions.width}
+              height={dimensions.height}
+              fontScale={dimensions.fontScale}
+              scene={scene}
+            />
+            <HarnessMetadata scene={scene} fixture={fixture} error={linkError} />
+            {!controlsVisible && (
+              <FixtureAction label="Show harness controls" onPress={() => setControlsVisible(true)} />
+            )}
+            <View style={[styles.controls, !controlsVisible && styles.hiddenControls]}>
               <FixtureAction
                 label="Foundation scene"
                 selected={scene === "foundation"}
@@ -252,6 +248,11 @@ export const NativeShowcase = () => {
                 onPress={() => setScene("multiline")}
               />
               <FixtureAction label="Select scene" selected={scene === "select"} onPress={() => setScene("select")} />
+              <FixtureAction
+                label="ComboBox scene"
+                selected={scene === "combo-box"}
+                onPress={() => setScene("combo-box")}
+              />
               <FixtureAction
                 label="Breadcrumbs scene"
                 selected={scene === "breadcrumbs"}
@@ -343,7 +344,7 @@ export const NativeShowcase = () => {
               />
               <FixtureAction label="Gallery scene" selected={scene === "gallery"} onPress={() => setScene("gallery")} />
             </View>
-            <View style={styles.controls}>
+            <View style={[styles.controls, !controlsVisible && styles.hiddenControls]}>
               <FixtureAction label="Light theme" selected={mode === "light"} onPress={() => setMode("light")} />
               <FixtureAction label="Dark theme" selected={mode === "dark"} onPress={() => setMode("dark")} />
               <FixtureAction
@@ -353,7 +354,7 @@ export const NativeShowcase = () => {
               />
               <FixtureAction label="Reset scene" onPress={reset} />
             </View>
-            <View style={styles.controls}>
+            <View style={[styles.controls, !controlsVisible && styles.hiddenControls]}>
               {AVAILABLE_LAYOUT_FIXTURES.map((value) => (
                 <FixtureAction
                   key={value}
@@ -363,7 +364,7 @@ export const NativeShowcase = () => {
                 />
               ))}
             </View>
-            <SceneShell fixture={fixture}>
+            <SceneShell key={sceneRevision} fixture={fixture}>
               {scene === "form-document" ? (
                 <FormDocumentScene />
               ) : scene === "menu" ? (
@@ -428,6 +429,8 @@ export const NativeShowcase = () => {
                 <MultilineRadioScene />
               ) : scene === "select" ? (
                 <SelectScene />
+              ) : scene === "combo-box" ? (
+                <ComboBoxScene />
               ) : scene === "controls" ? (
                 <BasicControlsScene />
               ) : scene === "library" ? (
@@ -452,11 +455,47 @@ const ThemeHeading = () => {
   )
 }
 
-const WindowMetadata = ({ width, height, fontScale }: { width: number; height: number; fontScale: number }) => {
+const HarnessMetadata = ({
+  scene,
+  fixture,
+  error,
+}: {
+  scene: TShowcaseScene
+  fixture: TLayoutFixture
+  error: ReturnType<typeof useShowcaseLink>
+}) => {
+  const theme = useNativeTheme()
+  return (
+    <>
+      <Text testID="showcase-scenario" style={{ color: theme.colors.foreground }}>
+        Scene: {scene}. Theme: {theme.mode}. Fixture: {fixture}.
+      </Text>
+      {error && (
+        <Text testID="showcase-link-error" accessibilityRole="alert" style={{ color: theme.colors.foreground }}>
+          {error === "invalid-scenario-link"
+            ? "Invalid showcase scenario link. Current scene retained."
+            : "Launch link unavailable. Select a scene using the harness controls."}
+        </Text>
+      )}
+    </>
+  )
+}
+
+const WindowMetadata = ({
+  width,
+  height,
+  fontScale,
+  scene,
+}: {
+  width: number
+  height: number
+  fontScale: number
+  scene: TShowcaseScene
+}) => {
   const theme = useNativeTheme()
   return (
     <Text style={{ color: theme.colors.foreground }}>
-      Window {Math.round(width)} × {Math.round(height)} · font scale {fontScale} · {Platform.OS} · foundation
+      Window {Math.round(width)} × {Math.round(height)} · font scale {fontScale} · {Platform.OS} · {scene}
     </Text>
   )
 }
@@ -465,6 +504,7 @@ const styles = StyleSheet.create({
   surface: { flex: 1 },
   page: { gap: 15, padding: 15 },
   controls: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  hiddenControls: { display: "none" },
   action: {
     minHeight: Platform.OS === "ios" ? 44 : 48,
     justifyContent: "center",

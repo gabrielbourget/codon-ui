@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, userEvent } from "@testing-library/react-native"
+import { act, cleanup, fireEvent, render, screen, userEvent } from "@testing-library/react-native"
 import { createContext, createRef, useContext, useState } from "react"
 import { AccessibilityInfo, Platform, StyleSheet, type TextInput } from "react-native"
 
@@ -16,9 +16,23 @@ jest.mock("react-native-safe-area-context", () => {
   const { View } = jest.requireActual("react-native")
   return { SafeAreaProvider: View, SafeAreaView: View }
 })
-beforeEach(() => jest.useFakeTimers())
-afterEach(() => {
+beforeEach(() => {
+  jest.useFakeTimers()
+  // Source-renderer identities admit original editor registration; they do not acknowledge a native window.
+  const native = jest.requireActual<typeof import("react-native")>("react-native")
+  const tags = new WeakMap<object, number>()
+  let next = 1000
+  jest.spyOn(native, "findNodeHandle").mockImplementation((receiver) => {
+    if (!receiver || typeof receiver !== "object") return typeof receiver === "number" ? receiver : null
+    if (!tags.has(receiver)) tags.set(receiver, ++next)
+    return tags.get(receiver)!
+  })
+})
+afterEach(async () => {
+  await cleanup()
+  await act(() => jest.runOnlyPendingTimers())
   jest.restoreAllMocks()
+  jest.clearAllTimers()
   jest.useRealTimers()
 })
 type TChoice = { key: string | number; label: string }
@@ -36,7 +50,25 @@ const base: TNativeComboBoxProps<TChoice> = {
   closeLabel: "Close choices",
 }
 const press = async (name: string) => userEvent.setup().press(screen.getByRole("button", { name }))
-const choose = async (name = "String zero") => userEvent.setup().press(screen.getByRole("radio", { name }))
+const choose = async (name = "String zero") => {
+  const window = () => screen.getByTestId("combo-box-floating-host")
+  for (const ready of window().props.acceptedWindowId ? [true] : [false, true]) {
+    const props = window().props
+    await act(() =>
+      props.onNativeScopeStatus({
+        nativeEvent: {
+          ownerId: props.ownerId,
+          windowId: "source-combo-window",
+          epoch: 1,
+          ready,
+          windowActive: true,
+          policyRevision: props.policyRevision,
+        },
+      }),
+    )
+  }
+  await userEvent.setup().press(screen.getByRole("radio", { name }))
+}
 const edit = async (text: string) => fireEvent.changeText(screen.getByLabelText("Search choices"), text)
 
 // The first mounted picker competes with parallel package tests on shared CI.
@@ -511,6 +543,9 @@ describe("ComboBox customization contracts", () => {
       expect(screen.getByTestId(id, hidden)).toHaveStyle({ borderColor })
     await rerender(<ComboBox {...base} defaultOpen />)
     for (const id of ["combo-box-group", "combo-box-query-group"])
+      expect(screen.getByTestId(id, hidden)).toHaveStyle({ borderColor })
+    await act(() => jest.advanceTimersByTime(300))
+    for (const id of ["combo-box-group", "combo-box-query-group"])
       expect(screen.getByTestId(id, hidden)).toHaveStyle({ borderColor: "#9e9e9e" })
   })
 
@@ -557,13 +592,23 @@ describe("ComboBox customization contracts", () => {
     const { rerender } = await render(<ComboBox {...base} inputValue={summary} isOpen={false} />)
     expect(chevrons()).toHaveLength(1)
     expect(chevrons()[0]).toHaveStyle({ width: 8, height: 8, borderRightWidth: 1.5, transform: [{ rotate: "45deg" }] })
+    const indicator = () => screen.getByTestId("combo-box-icon", hidden)
+    expect(indicator()).toHaveStyle({ transform: [] })
     await rerender(<ComboBox {...base} inputValue={summary} isOpen />)
-    expect(chevrons()[0]).toHaveStyle({ transform: [{ rotate: "225deg" }] })
+    // Keyframe promises settle between frames before the default400ms animation can reach its endpoint.
+    await act(() => jest.advanceTimersByTimeAsync(500))
+    expect(indicator()).toHaveStyle({ transform: [{ rotateX: "180deg" }] })
+    expect(chevrons()[0]).toHaveStyle({ transform: [{ rotate: "45deg" }] })
+    await rerender(<ComboBox {...base} inputValue={summary} isOpen={false} />)
+    await act(() => jest.advanceTimersByTimeAsync(500))
+    expect(indicator()).toHaveStyle({ transform: [] })
     await rerender(
       <ComboBox {...base} inputValue={summary} isOpen ComponentIcon={<Text testID="authored-icon">Custom</Text>} />,
     )
     expect(chevrons()).toHaveLength(0)
     expect(screen.getByTestId("authored-icon", hidden)).toHaveTextContent("Custom")
+    await act(() => jest.advanceTimersByTimeAsync(500))
+    expect(indicator()).toHaveStyle({ transform: [{ rotateX: "180deg" }] })
     await rerender(<ComboBox {...base} inputValue={summary} isOpen ComponentIcon={null} />)
     expect(chevrons()).toHaveLength(0)
     expect(screen.queryByTestId("authored-icon", hidden)).toBeNull()

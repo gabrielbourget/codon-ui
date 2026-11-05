@@ -1,5 +1,5 @@
 import { forwardRef } from "react"
-import { View } from "react-native"
+import { Platform, View } from "react-native"
 
 import { useNativeTheme } from "../../theme"
 
@@ -23,12 +23,14 @@ export const LineSegment = forwardRef<TNativeLineSegmentRef, TNativeLineSegmentP
     ...rest
   } = props
   const theme = useNativeTheme()
+  // Android retains the previous content description when its label prop becomes absent.
+  const nativeLabel = accessibilityLabel ?? aliasLabel ?? (Platform.OS === "android" ? "" : undefined)
   return (
     <View
       {...rest}
       ref={ref}
       accessible={accessible}
-      accessibilityLabel={accessibilityLabel ?? aliasLabel}
+      accessibilityLabel={nativeLabel}
       testID={testID ?? aliasTestID ?? "line-segment"}
       style={getNativeLineSegmentStyle(theme, props)}
     />

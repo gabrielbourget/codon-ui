@@ -9,6 +9,7 @@ import { splitNativeTextStyle } from "../nativeTextStyle"
 import type { TAvailableListItem } from "../Table/filterMetadata"
 import type { TTableFilterDraftArgumentValue } from "../Table/queryTypes"
 
+import { DEFAULT_NON_TEMPORAL_FILTER_ARGUMENT_LABELS } from "./dispatchLabels"
 import { DEFAULT_FILTER_EDITOR_LABELS } from "./editorLabels"
 import type { TFilterArgumentChangeArgs } from "./OptionArguments"
 import { useFilterRequest, type TFilterAvailability } from "./requests"
@@ -19,16 +20,21 @@ export type TComboBoxFilterArgumentProps = TFilterAvailability & {
   filterArgumentSelectedKey?: string | null
   inputLabel: string
   closeLabel: string
-  labels?: { label: string; triggerButtonAriaLabel: string; emptyListMessage: string }
+  labels?: {
+    label: string
+    inputButtonGroupAriaLabel?: string
+    triggerButtonAriaLabel: string
+    emptyListMessage: string
+  }
   onArgumentChange: (args: TFilterArgumentChangeArgs) => void
   customFieldStyles?: StyleProp<TextStyle>
   customInputStyles?: StyleProp<TextStyle>
 }
 export const ComboBoxFilterArgument = forwardRef<TNativeComboBoxRef, TComboBoxFilterArgumentProps>((props, ref) => {
-  const labels = props.labels ?? {
+  const labels = {
     label: DEFAULT_FILTER_EDITOR_LABELS.label,
-    triggerButtonAriaLabel: "Show filter argument suggestions",
-    emptyListMessage: "No filter arguments remaining to select",
+    ...DEFAULT_NON_TEMPORAL_FILTER_ARGUMENT_LABELS.comboBox,
+    ...props.labels,
   }
   const request = useFilterRequest(props)
   const styles = splitNativeTextStyle(
@@ -48,6 +54,7 @@ export const ComboBoxFilterArgument = forwardRef<TNativeComboBoxRef, TComboBoxFi
         value={props.filterArgumentSelectedKey}
         inputValue={(props.argument ?? "") as string}
         accessibilityLabel={labels.triggerButtonAriaLabel}
+        labels={{ inputButtonGroupAriaLabel: labels.inputButtonGroupAriaLabel }}
         inputLabel={props.inputLabel}
         closeLabel={props.closeLabel}
         emptyListMessage={labels.emptyListMessage}

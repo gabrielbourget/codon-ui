@@ -1,6 +1,7 @@
 #import "CUIFormFieldFocus.h"
 #import "CUIFormMetadata.h"
 #import "CUIOwnedDateField.h"
+#import "CUIFocusView.h"
 #import <React/RCTTextInputComponentView.h>
 #import <React/RCTTextInputNativeCommands.h>
 
@@ -27,6 +28,23 @@ NSDictionary *CUIFocusFormField(RCTSurfacePresenter *presenter, NSDictionary *re
       CUIResolveOwnedDateField(metadata, binding, [field[@"target"] integerValue], [mount[@"surfaceId"] integerValue]) == original;
     return @{@"descriptorId":field[@"descriptorId"], @"descriptorRevision":field[@"descriptorRevision"],
       @"target":field[@"target"], @"mount":mount, @"requested":@(requested), @"current":@(current)};
+  }
+  NSDictionary *control = metadata.ownedControlBinding.length ?
+    [NSJSONSerialization JSONObjectWithData:[metadata.ownedControlBinding dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil] : nil;
+  if ([control isKindOfClass:NSDictionary.class] && [control count] == 2 && [control[@"kind"] isEqual:@"combo-box-trigger"]) {
+    CUIFocusView *trigger = [original isKindOfClass:CUIFocusView.class] ? (CUIFocusView *)original : nil;
+    NSString *owner = [trigger fieldInputOwnerId];
+    if (!trigger || !owner.length || metadata.ownedEditorBinding.length ||
+        ![metadata.ownedControlBinding isEqual:field[@"ownedControlBinding"]] || ![trigger canBecomeFirstResponder] ||
+        ([(id)trigger.accessibilityElement accessibilityTraits] & UIAccessibilityTraitNotEnabled))
+      @throw [NSException exceptionWithName:@"CUI.Form" reason:@"form-focus-owned-trigger-retired" userInfo:nil];
+    BOOL current = NO;
+    @try {
+      [trigger requestKeyboardFocus:owner];
+      current = isCurrent() && [metadata originalForMountSnapshot:mount] == trigger && [[trigger fieldInputOwnerId] isEqual:owner];
+    } @catch (NSException *retired) { current = NO; }
+    return @{@"descriptorId":field[@"descriptorId"], @"descriptorRevision":field[@"descriptorRevision"],
+      @"target":field[@"target"], @"mount":mount, @"requested":@YES, @"current":@(current)};
   }
   if (![original isKindOfClass:RCTTextInputComponentView.class] || metadata.ownedEditorBinding.length)
     @throw [NSException exceptionWithName:@"CUI.Form" reason:@"form-focus-original-editor-retired" userInfo:nil];

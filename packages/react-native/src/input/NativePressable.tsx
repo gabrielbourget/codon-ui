@@ -11,7 +11,7 @@ import {
   type ReactElement,
   type RefAttributes,
 } from "react"
-import type { GestureResponderEvent, MouseEvent, PressableProps, View } from "react-native"
+import { Platform, type GestureResponderEvent, type MouseEvent, type PressableProps, type View } from "react-native"
 
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../overlays/floating/scope"
 
@@ -20,6 +20,8 @@ import { nativeKeyTokens } from "./keyScope"
 import { NativeFocusView, type NativeFocusHost } from "./NativeFocusView"
 import { useNativeKeyScope } from "./NativeKeyboardScope"
 import { useNativeAndroidRipple, useNativePressability } from "./nativePressability"
+import { createNativeResponderCohorts, type TNativeAdmittedPress } from "./nativePressCycle"
+import { captureNativeOrdinaryEditorFocus, NativeOrdinaryEditorKeysContext } from "./ordinaryEditorKeys"
 import type {
   TNativeActivationEvent,
   TNativeFocusViewProps,
@@ -33,7 +35,7 @@ type TCallbacks = {
   onPress?: (event: TNativePressEvent) => void
   onPressUp?: (event: TNativePressEvent) => void
   onActivation?: (event: TNativeActivationEvent) => void
-  onPressIn?: (event: TNativeInteractionEvent) => void
+  onPressIn?: (event: TNativeInteractionEvent, admission?: TNativeAdmittedPress) => void
   onPressOut?: (event: TNativeInteractionEvent) => void
 }
 export type TNativePressableRender = (props: TNativeFocusViewProps & RefAttributes<View>) => ReactElement
@@ -68,11 +70,14 @@ export type TNativePressableProps = Omit<
     onFocusVisibilityChange?: (visible: boolean) => void
     nativeRender?: TNativePressableRender
     nativeFocusOnPress?: boolean
+    nativeObservePressCohort?: boolean
     nativeProgrammaticFocusable?: boolean
     nativeTabStop?: boolean
     onNativeFocusObserved?: (focused: boolean, event: TNativeFocusEvent) => void
   }
 type TCycle<E> = { event: E; cancelled: boolean; ended: boolean; upDelivered?: boolean }
+let responderBindings = 0
+const nextResponderBinding = () => `press-cohort:${++responderBindings}`
 const activationKeys = [...nativeKeyTokens("Enter"), ...nativeKeyTokens(" ")]
 const subscribeNothing = () => () => {}
 
@@ -81,6 +86,7 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
     nativeRender,
     nativeProgrammaticFocusable = false,
     nativeFocusOnPress,
+    nativeObservePressCohort = false,
     onNativeFocusObserved,
     activationBlocked: authoredActivationBlocked = false,
     nativeInteraction = true,
@@ -134,6 +140,11 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
   const scope = useContext(NativeFloatingScopeContext)
   const window = useContext(NativeFloatingWindowContext)
   const input = useNativeKeyScope()
+  const ordinaryEditors = useContext(NativeOrdinaryEditorKeysContext)
+  const cohorts = useRef(createNativeResponderCohorts())
+  const [responderBinding, setResponderBinding] = useState(nextResponderBinding)
+  const currentResponderBinding = useRef(responderBinding)
+  const grantedCohort = useRef<ReturnType<ReturnType<typeof createNativeResponderCohorts>["grant"]>>(null)
   const canAct = useCallback(
     () => scope?.canAct() !== false && window?.() !== false && input?.isWindowActive() !== false,
     [scope, window, input],
@@ -173,6 +184,8 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
     onBlur,
     onNativeFocusObserved,
     nativeFocusOnPress,
+    nativeObservePressCohort,
+    input,
     disabled,
     activationBlocked,
     canAct,
@@ -199,6 +212,8 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
       onBlur,
       onNativeFocusObserved,
       nativeFocusOnPress,
+      nativeObservePressCohort,
+      input,
       disabled,
       activationBlocked,
       canAct,
@@ -221,17 +236,23 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
     hoverTimer.current = null
   }, [])
   const cancel = useCallback(
-    (keyboardOnly = false) => {
-      if (!keyboardOnly && pointer.current && !pointer.current.ended)
+    (keyboardOnly: boolean | "pointer" = false) => {
+      const pointerOnly = keyboardOnly === "pointer"
+      const onlyKeyboard = keyboardOnly === true
+      if (!onlyKeyboard && pointer.current && !pointer.current.ended)
         current.current.ripple?.onPressOut(pointer.current.event)
-      for (const cycle of keyboardOnly ? [keyboard.current] : [keyboard.current, pointer.current]) {
+      for (const cycle of pointerOnly
+        ? [pointer.current]
+        : onlyKeyboard
+          ? [keyboard.current]
+          : [keyboard.current, pointer.current]) {
         if (!cycle || cycle.ended) continue
         cycle.cancelled = true
         cycle.ended = true
         setPressed(false)
         current.current.onPressCancel?.(cycle.event)
       }
-      if (!keyboardOnly) {
+      if (!onlyKeyboard && !pointerOnly) {
         clearHoverTimer()
         hoverIntent.current = false
         if (hover.current) {
@@ -250,6 +271,10 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
   }, [inputOrigin])
   useLayoutEffect(() => {
     if (!eligible || !keyboardEnabled) current.current.onFocusVisibilityChange?.(false)
+    if (!nativeObservePressCohort && Platform.OS === "android") {
+      cohorts.current.retire()
+      grantedCohort.current = null
+    }
     if (!eligible || disabled || activationBlocked) cancel()
     else if (!keyboardEnabled) cancel(true)
   })
@@ -270,6 +295,8 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
         }
       }
       attached.current = false
+      cohorts.current.retire()
+      grantedCohort.current = null
       keyboard.current = null
       pointer.current = null
       pointerFocusConsidered.current = false
@@ -286,9 +313,23 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
     },
     [],
   )
+  useLayoutEffect(
+    () => () => {
+      if (current.current.nativeObservePressCohort) {
+        cohorts.current.retire()
+        grantedCohort.current = null
+        cancel("pointer")
+      }
+    },
+    [cancel],
+  )
   const setRef = useCallback(
     (target: View | null) => {
       if (target && lastView.current && lastView.current !== target) {
+        cohorts.current.reset()
+        grantedCohort.current = null
+        currentResponderBinding.current = nextResponderBinding()
+        setResponderBinding(currentResponderBinding.current)
         cancel()
         focused.current = false
         observedOrigin.current = null
@@ -339,10 +380,43 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
       const original = view.current
       const retainedFocus = requestFocus && original ? captureNativeFocusTarget(original) : null
       event.persist?.()
-      pointer.current = { event, cancelled: false, ended: false }
+      const cycle = { event, cancelled: false, ended: false }
+      pointer.current = cycle
+      const originalInput = current.current.input
+      const session = originalInput?.acknowledgedSession()
+      const cohort = grantedCohort.current
+      const admission: TNativeAdmittedPress | undefined =
+        current.current.nativeObservePressCohort &&
+        (Platform.OS === "ios" || (Platform.OS === "android" && cohort && cohorts.current.current(cohort))) &&
+        original
+          ? {
+              cohort: Platform.OS === "ios" ? "responder" : cohort!.semanticCohort,
+              ...(Platform.OS === "android" ? { nativeCohort: cohort!.cohort } : {}),
+              originalReceiver: original,
+              captureEditorFocus: (editor) =>
+                cohort && originalInput
+                  ? captureNativeOrdinaryEditorFocus(ordinaryEditors, editor, { windowId: cohort.windowId })
+                  : null,
+              isCurrent: () => {
+                const currentSession = current.current.input?.acknowledgedSession()
+                return (
+                  pointer.current === cycle &&
+                  (Platform.OS !== "android" || (cohort !== null && cohorts.current.current(cohort))) &&
+                  !cycle.cancelled &&
+                  !cycle.ended &&
+                  view.current === original &&
+                  current.current.input === originalInput &&
+                  currentSession?.windowId === session?.windowId &&
+                  currentSession?.epoch === session?.epoch &&
+                  admitted()
+                )
+              },
+            }
+          : undefined
       setPressed(true)
       ripple?.onPressIn(event)
-      current.current.onPressIn?.(event)
+      if (admission) current.current.onPressIn?.(event, admission)
+      else current.current.onPressIn?.(event)
       if (
         requestFocus &&
         original &&
@@ -390,6 +464,31 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
       }}
       collapsable={false}
       nativePressable={nativeInteraction ? true : undefined}
+      nativeResponderCohortBinding={Platform.OS === "android" && nativeObservePressCohort ? responderBinding : ""}
+      onNativeResponderCohort={(event) => {
+        const data = event.nativeEvent
+        if (
+          data.bindingId !== currentResponderBinding.current ||
+          !current.current.nativeObservePressCohort ||
+          !attached.current
+        )
+          return
+        const session = input?.acknowledgedSession()
+        if (
+          data.phase !== "retire" &&
+          (!input ||
+            data.scopeOwnerId !== input.ownerId ||
+            data.windowId !== session?.windowId ||
+            data.epoch !== session.epoch ||
+            !input.isWindowActive())
+        )
+          return
+        cohorts.current.receive(data)
+        if (data.phase === "retire") {
+          grantedCohort.current = null
+          cancel("pointer")
+        }
+      }}
       focusable={keyboardEnabled || nativeProgrammaticFocusable}
       hitSlop={hitSlop}
       capturedKeys={nativeInteraction && keyboardEnabled ? activationKeys : []}
@@ -419,6 +518,7 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
         nativeInteraction
           ? (event) => {
               pointerFocusConsidered.current = false
+              grantedCohort.current = cohorts.current.grant(event.nativeEvent)
               observedOrigin.current = "pointer"
               current.current.onFocusVisibilityChange?.(false)
               handlers.onResponderGrant?.(event)
@@ -434,6 +534,8 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
                 handlers.onResponderRelease?.(event)
               } finally {
                 releasingPointer.current = null
+                cohorts.current.release()
+                grantedCohort.current = null
                 pointer.current = null
                 pointerFocusConsidered.current = false
               }
@@ -446,6 +548,8 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
               try {
                 handlers.onResponderTerminate?.(event)
               } finally {
+                cohorts.current.release()
+                grantedCohort.current = null
                 pointer.current = null
                 pointerFocusConsidered.current = false
               }

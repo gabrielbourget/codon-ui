@@ -1,0 +1,288 @@
+{
+  "cell": "CAT.link.G02",
+  "sourceBase": "1567b08b6c1121aa85c97e8ea95cd7b05a97f676",
+  "ledgerDispositionAtBase": "OPEN",
+  "status": "PREPARED_NOT_NATIVE_QUALIFIED",
+  "scope": "Native touch/interception/controlled-owner/guard/cancellation cohort using the existing Link scene unchanged. This is queued preparation for an OPEN cell, not new passing-cell evidence or whole-cell closure.",
+  "authority": [
+    "roadmap.md#312-ownership-and-behavior",
+    "roadmap.md#32-native-scenario-matrix",
+    "roadmap.md#358-link-capability-and-scenario-matrix",
+    "roadmap.md#35482-native-link-navigation-policy-decision",
+    "roadmap.md#3559-link-native-relationship-completion"
+  ],
+  "scene": "apps/native-showcase/src/scenes/LinkScene.tsx",
+  "sceneSHA256": "2e46badbba1cf12df3881c3b30221162ad7f8d9a8f7ea714c30db18f58471ce3",
+  "nativeSource": "planning/component-library/fixtures/native-link/LinkG02TrialTests.swift",
+  "originalOracleFiles": [
+    "packages/react-native/src/components/Link/__tests__/Link.test.tsx",
+    "packages/react-native/src/components/Link/__tests__/Link.input.test.tsx",
+    "packages/react-native/src/components/Link/__tests__/Link.relationships.test.tsx",
+    "apps/native-showcase/src/scenes/__tests__/LinkScene.test.tsx"
+  ],
+  "preparationPolicy": "Reuse an existing public scene and its six source checks. No new app scenario, observer, harness, source API, process monitor or passing-cell backfill is needed.",
+  "isolation": "Only this Swift fixture and criterion map are added. App/harness/editor/production/other lane files and all original tests, ledgers, source-case limits, dependency pins and acceptance criteria remain unchanged.",
+  "admission": {
+    "source": "Main binds full integration HEAD plus actual source/product/SDK/input/profile tuple. The scene hash and manifest environment variables describe admission inputs and never stand in for native execution proof.",
+    "identities": [
+      "CODON_LINK_SCENE_SHA256",
+      "CODON_LINK_PRODUCT_SHA256",
+      "CODON_LINK_INPUT_MANIFEST_SHA256",
+      "CODON_LINK_SDK_OBSERVER_MANIFEST_SHA256"
+    ],
+    "beforeEachMethod": "Coordinator prelaunches the matched Release product and prepares a fresh default Link scene: original codon-lab-unhandled URI, visited/echo/handoff/disabled/armed false, requests/errors 0, last absent, lastError none, relationships none, keyboard inactive. Every method has independent admission; never run the whole class on leftover state.",
+    "nativeExecution": "Use the existing showcase UI-test target and standard -only-testing selection under main's existing native budget. No cloud native build, simulator, native test batch, extra budget or new orchestration is authorized.",
+    "provenance": "Input/observer manifest hashes describe the planned cohort/instrument. Main must pair actual original SDK object/event/receiver/window/lifetime records, real timing/cancellation and OS/Linking URL-call evidence for every contact after any normal activation. Existing JS owner counters, target IDs, XCTest isEnabled and a lack of error do not prove those facts.",
+    "profile": "Prepared iOS P01 normal portrait with keyboard inactive, genuine native touch and current public fixture controls. Android, other applicable profiles and physical modality authority remain independently required."
+  },
+  "limits": {
+    "unchangedSourceCaseMilliseconds": 5000,
+    "nativeMethodAllowanceSeconds": 180,
+    "nativeOutcomeWaitSeconds": 10,
+    "visibilitySwipes": 12
+  },
+  "observations": {
+    "existingState": "link-state supplies the original visited/echo/handoff/disabled/request/last/error/target/relationship/armed values. The Swift fixture parses that fixed existing format and preserves the complete original text in attachments.",
+    "nativeSnapshot": "Actual XCTest target label/enabled/frame and window frame plus screenshots/hierarchy are retained. No new JS mirror, event injection, native object token or made-up timing witness is introduced.",
+    "sourceTier": "All six unchanged LinkScene source cases are regression support only. Their original stateful fireEvent navigation-veto seam, native-model scope handshakes and Linking spies remain source-only; they do not qualify installed input or URL handoff."
+  },
+  "nativeMethods": [
+    {
+      "method": "testS02FirstInterceptedTouchKeepsControlledFalse",
+      "scenario": "S02",
+      "capabilities": ["CAP.link.003", "CAP.link.navigation"],
+      "originalOracleNames": [
+        "CAP.link.003 retains controlled false visited state after successful and intercepted navigation",
+        "NATIVE.link.navigation preserves the original native event and calls the owner before one exact URL handoff"
+      ],
+      "action": "One genuine touch on the admitted default Link; existing scene intercepts onPress",
+      "exactExpected": "Exactly requests 1, visited false, errors 0, last equals the exact original codon-lab-unhandled URI.",
+      "requiredSDKWitness": "One original receiver/contact/callback, original payload identity and owner veto before zero actual URL calls.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS02RepeatedInterceptedTouchesDoNotInventVisitedState",
+      "scenario": "S02",
+      "capabilities": ["CAP.link.003", "CAP.link.navigation"],
+      "originalOracleNames": [
+        "CAP.link.003 retains controlled false visited state after successful and intercepted navigation",
+        "NATIVE.link.navigation honors repeated owner veto for %s without visited mutation"
+      ],
+      "action": "Two independently defined contacts; verify first outcome before second",
+      "exactExpected": "Requests 1 then 2; visited false, exact original last href, no error or fabricated history echo.",
+      "requiredSDKWitness": "Two distinct original contact/callback cohorts, preserved event identity and zero actual URL calls.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS01DirectOwnerVisitedReplacementMakesNoNavigationRequest",
+      "scenario": "S01",
+      "capabilities": ["CAP.link.003"],
+      "originalOracleNames": [
+        "CAP.link.003 retains controlled false visited state after successful and intercepted navigation"
+      ],
+      "action": "Owner toggles visited true; one intercepted touch; owner toggles false; one new touch",
+      "exactExpected": "Direct owner updates request nothing; touches retain the explicit owner true/false values and add exactly one request each.",
+      "requiredSDKWitness": "Original receiver remains live through replacements; no owner-independent visited/history mutation; zero actual URL calls.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS02ExplicitOwnerEchoChangesVisitedOnTheFirstContact",
+      "scenario": "S02",
+      "capabilities": ["CAP.link.003", "CAP.link.navigation"],
+      "originalOracleNames": [
+        "CAP.link.003 retains controlled false visited state after successful and intercepted navigation"
+      ],
+      "action": "Enable existing scene's explicit owner echo; two independent intercepted contacts",
+      "exactExpected": "First onPress owner update sets visited true, requests 1; second stays true, requests 2. No implicit component history mutation claimed.",
+      "requiredSDKWitness": "Exact original onPress callbacks and owner updates in order; zero actual URL calls.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS02EmptyDestinationVetoRetainsTheExactEmptyString",
+      "scenario": "S02",
+      "capabilities": ["CAP.link.navigation", "CAP.link.003"],
+      "originalOracleNames": ["NATIVE.link.navigation honors repeated owner veto for %s without visited mutation"],
+      "action": "Use existing destination control 1 time(s), then two original intercepted contacts",
+      "exactExpected": "Target/last remain exactly \"\"; destination change itself requests nothing; requests 1 then 2, visited false, errors 0.",
+      "requiredSDKWitness": "Exact original href, receiver/event objects and owner veto; zero actual URL calls, normalization or base resolution.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS02FragmentDestinationVetoRetainsTheExactFragment",
+      "scenario": "S02",
+      "capabilities": ["CAP.link.navigation", "CAP.link.003"],
+      "originalOracleNames": ["NATIVE.link.navigation honors repeated owner veto for %s without visited mutation"],
+      "action": "Use existing destination control 2 time(s), then two original intercepted contacts",
+      "exactExpected": "Target/last remain exactly \"#section\"; destination change itself requests nothing; requests 1 then 2, visited false, errors 0.",
+      "requiredSDKWitness": "Exact original href, receiver/event objects and owner veto; zero actual URL calls, normalization or base resolution.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS02RelativeDestinationVetoRetainsTheExactRelativeString",
+      "scenario": "S02",
+      "capabilities": ["CAP.link.navigation", "CAP.link.003"],
+      "originalOracleNames": ["NATIVE.link.navigation honors repeated owner veto for %s without visited mutation"],
+      "action": "Use existing destination control 3 time(s), then two original intercepted contacts",
+      "exactExpected": "Target/last remain exactly \"/relative\"; destination change itself requests nothing; requests 1 then 2, visited false, errors 0.",
+      "requiredSDKWitness": "Exact original href, receiver/event objects and owner veto; zero actual URL calls, normalization or base resolution.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS02DestinationReplacementUsesTheLatestOwnerString",
+      "scenario": "S02",
+      "capabilities": ["CAP.link.navigation", "CAP.link.003"],
+      "originalOracleNames": [
+        "retains repeated owner vetoes and current destinations across native activation without rewriting visited=false"
+      ],
+      "action": "One original default-URI contact; change existing destination to #section; one new contact",
+      "exactExpected": "Changing target makes no request and retains prior last URI; the next contact records exactly #section, requests 2, visited false.",
+      "requiredSDKWitness": "Actual new callback uses the current href without replacing the original receiver or admitting a stale input cohort; zero actual URL calls.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS02DisabledGuardAndFirstReenabledContact",
+      "scenario": "S02",
+      "capabilities": ["CAP.link.007"],
+      "originalOracleNames": ["CAP.link.007 suppresses disabled activation, long press and cancelled held gestures"],
+      "action": "Set controlled disabled; one visible center-coordinate target touch; clear guard; one distinct contact",
+      "exactExpected": "Native target disabled, zero callback/error/visited update while blocked; first subsequent enabled contact adds exactly one request.",
+      "requiredSDKWitness": "Actual disabled/focus eligibility/receiver facts and blocked contact; no original action or actual URL call while disabled; one genuinely new recovery contact.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS02PressStartGuardCancelsTheCurrentContactAndRecovers",
+      "scenario": "S02",
+      "capabilities": ["CAP.link.007"],
+      "originalOracleNames": ["CAP.link.007 suppresses disabled activation, long press and cancelled held gestures"],
+      "action": "Arm existing onPressIn disabled takeover; one original target contact; clear disabled; one new contact",
+      "exactExpected": "First contact consumes arm, owner disabled true, requests/errors 0; recovery contact requests once and keeps visited false.",
+      "requiredSDKWitness": "Actual down/press-in, owner takeover, native cancellation/end and suppressed old release; no invented raw press-out or URL call; fresh recovery cohort.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS02OriginalContactCancelledOutsideTheTargetDoesNotAct",
+      "scenario": "S02",
+      "capabilities": ["CAP.link.007"],
+      "originalOracleNames": ["CAP.link.007 suppresses disabled activation, long press and cancelled held gestures"],
+      "action": "One down/drag/release outside the observed target; one distinct recovery touch",
+      "exactExpected": "Cancelled original contact requests nothing; subsequent distinct contact requests once; visited/errors unchanged.",
+      "requiredSDKWitness": "Actual original contact/receiver and outside/cancel/end timing, no action/URL call from the cancelled cohort and no synthetic native cancellation event.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS01RelationshipChangesDoNotRequestNavigation",
+      "scenario": "S01",
+      "capabilities": ["CAP.link.010", "CAP.link.navigation"],
+      "originalOracleNames": [
+        "updates and clears relationships without replacing the ref or issuing an owner/navigation request"
+      ],
+      "action": "Existing alias/text/removal/native-attribute/empty/clear controls; then one first target touch",
+      "exactExpected": "Every metadata update requests nothing and retains visited false; next touch requests once on current href. No full metadata acceptance inferred.",
+      "requiredSDKWitness": "Original native receiver/ref and same-window target/relationship lifecycle; zero actual URL calls. Actual resolved native metadata remains independently required.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS12LiveContextChangesRetainOwnerAndNavigationCount",
+      "scenario": "S12",
+      "capabilities": ["CAP.link.003", "CAP.link.navigation"],
+      "originalOracleNames": [
+        "keeps repeated navigation vetoes and controlled false/empty values through theme/window/fixture changes and reset"
+      ],
+      "action": "First intercepted contact, Dark theme/Compact width/next order, then one new contact",
+      "exactExpected": "Context changes retain request count 1, visited false and exact last href; next contact increments to 2 once.",
+      "requiredSDKWitness": "Actual original receiver/ref/window continuity and one callback per contact; zero actual URL calls. No pixel, motion or complete profile qualification inferred.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS02DisabledGuardBlocksAnEnabledHandoff",
+      "scenario": "S02",
+      "capabilities": ["CAP.link.007", "CAP.link.navigation"],
+      "originalOracleNames": [
+        "CAP.link.007 suppresses disabled activation, long press and cancelled held gestures",
+        "NATIVE.link.navigation preserves the original native event and calls the owner before one exact URL handoff"
+      ],
+      "action": "Enable existing handoff control, then disabled; one blocked center-coordinate touch",
+      "exactExpected": "Handoff true and disabled true, target disabled, requests/errors 0 and visited false.",
+      "requiredSDKWitness": "Actual disabled original contact and zero owner callback AND zero OS/Linking URL calls. Zero UI error/count alone is insufficient.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS02PressStartGuardBlocksAnEnabledHandoff",
+      "scenario": "S02",
+      "capabilities": ["CAP.link.007", "CAP.link.navigation"],
+      "originalOracleNames": [
+        "CAP.link.007 suppresses disabled activation, long press and cancelled held gestures",
+        "NATIVE.link.navigation preserves the original native event and calls the owner before one exact URL handoff"
+      ],
+      "action": "Enable existing handoff control, arm onPressIn disabled takeover, then one original touch",
+      "exactExpected": "Handoff true; arm consumed; disabled true; requests/errors 0 and visited false.",
+      "requiredSDKWitness": "Actual original down/press-in, owner guard takeover/cancellation and zero owner callback AND zero actual URL calls; no fabricated raw event.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    }
+  ],
+  "remainingRequired": [
+    {
+      "scenario": "S01/S03",
+      "criteria": "Complete omitted/default/explicit/context/style/render/label/ref axes, focusability/default owner replacements and current callback replacement beyond this cohort",
+      "status": "OPEN",
+      "reason": "Existing full source/contract obligations remain. Current/default paint, native metadata and actual ref continuity cannot be inferred from owner state text or a stable testID."
+    },
+    {
+      "scenario": "S02",
+      "criteria": "Positive exact native URL handoff once after the original callback, all approved unchanged URI variants including empty/fragment/relative, synchronous throw/asynchronous rejection provenance across href changes and unmount",
+      "status": "OPEN_NATIVE_OS_CALL_AND_ERROR_COHORT_REQUIRED",
+      "reason": "Prepared interception/guard methods require zero actual URL calls and deliberately do not substitute for positive handoff. Preserve originating href/error identity and retirement requirements without assuming that a scheme is unhandled."
+    },
+    {
+      "scenario": "S02",
+      "criteria": "Original https://example.test veto variant and authored enabled/disabled long-press callback cohorts",
+      "status": "OPEN_ADDITIONAL_ORIGINAL_FIXTURE_VARIANTS_REQUIRED",
+      "reason": "Current unchanged scene exposes its four original destinations and no authored onLongPress control. These required source variants are not deleted, marked N/A or claimed by ordinary touches."
+    },
+    {
+      "scenario": "S02/S05",
+      "criteria": "Genuine Enter/Space/modifier/repeat/default/hover/pointer/focus/virtual activation and first action with native editor already focused",
+      "status": "OPEN_NATIVE_INPUT_AND_EDITOR_LANE_REQUIRED",
+      "reason": "A touch and source-model keyboard/activation handshake do not replace those modalities. No editor lane files are changed and no finish-editing warm-up is introduced."
+    },
+    {
+      "scenario": "S06",
+      "criteria": "Held-input window/receiver/callback replacement, actual foreign/inactive scope rejection, unmount, pending navigation/error retirement and post-retirement suppression",
+      "status": "OPEN_NATIVE_LIFETIME_WITNESSES_REQUIRED",
+      "reason": "One outside drag and one disabled takeover do not cover the full original lifetime matrix. Preserve genuine native witnesses, original failed actions and all exact oracles."
+    },
+    {
+      "scenario": "platform/profile",
+      "criteria": "Every applicable Android/iOS profile, actual label/description/details/current native metadata, paint/motion/pointer/input/AT and physical-lane obligations",
+      "status": "OPEN",
+      "reason": "Only the explicit owner-approved native OS URL exclusions in 3.5.48.2 apply. No other exclusion, physical deferral or profile obligation is changed by this packet."
+    }
+  ],
+  "cellAdoptionRule": "Keep CAT.link.G02 OPEN until every applicable original criterion has matching installed native evidence and ordinary main-owned adoption. Six existing source positives and uncompiled XCTest source close no cell.",
+  "unchangedOriginalInputs": {
+    "packages/react-native/src/components/Link/__tests__/Link.test.tsx": "b20d50da751e1fb40683f9804623b7a96f05b35d23091839bcf7a2453402e010",
+    "packages/react-native/src/components/Link/__tests__/Link.input.test.tsx": "e391ed130ff0da5a23c68985f72f8d8335deb3331488f8f67646ad14e5503015",
+    "packages/react-native/src/components/Link/__tests__/Link.relationships.test.tsx": "6c41c5ddce441b06c9dc1c9c6ad3ee8e16db4ea227d0207b0cd64b129f030a2a",
+    "apps/native-showcase/src/scenes/__tests__/LinkScene.test.tsx": "aa3c544f92cddb0a4443a14d35532caa7b7b4fbb115cf05759b3f43e4052c6f9",
+    "apps/native-showcase/src/scenes/LinkScene.tsx": "2e46badbba1cf12df3881c3b30221162ad7f8d9a8f7ea714c30db18f58471ce3",
+    "packages/react-native/src/components/Link/Link.tsx": "452c75157d09569f6e48b4dda55b6d752859259297dcded4da17009938c59d49",
+    "packages/react-native/src/components/Link/types.ts": "ec567cf67838b59463f3e76ce9d5499ef14e93e8c77d6a284a06630324b09eda",
+    "packages/react-native/src/components/Link/navigation.ts": "4d3617d6d9b3e9f2ee9f69d823a825f15d5a281cd6d4bb7b8625edaa63e06c8f",
+    "packages/react/src/components/Link/__tests__/Link.test.tsx": "e87f082b8beca593f7c3912d5ccde0c9486ca05d4d2158594606dfae11b3250d"
+  }
+}

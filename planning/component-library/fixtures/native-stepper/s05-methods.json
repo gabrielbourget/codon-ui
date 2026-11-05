@@ -1,0 +1,532 @@
+{
+  "cell": "CAT.stepper.G02",
+  "assignedCriteria": 32,
+  "sourceOracle": "/tmp/codon-stepper-g02-closeout-20261103/installed-g02-oracles.json",
+  "sourceOracleSHA256": "30de5434c97f1aed78aae6578c1700c00052e78929d4ee1587bcc7f0ddc7b773",
+  "methods": [
+    {
+      "method": "StepperG02TrialTests/testS05PresentationTypeCohesive",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S05.presentation-type-cohesive",
+      "originalCriterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S05.presentation-type-cohesive",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Set owner0.1; veto true; perform0 prior Toggle stepper type activations. Snapshot current original ref/count.",
+        "oneAction": "Toggle stepper type.",
+        "nativeOracle": "Actual editor remains same original; current type=cohesive; displayed0.1 localized0,1 for fr-CA. Actions remain real reachable targets under this supported presentation.",
+        "ownerOracle": "Owner0.1, request count unchanged through prop change; next numeric gesture requests0.2 once while veto keeps0.1.",
+        "callbackOracle": "Zero numeric/raw callbacks from presentation change; next gesture exactly request0.2. No remount or hidden second owner. Pixel/geometry acceptance remains in respective cells; this row proves behavior through the axis."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_COMPILED_OR_INSTALLED",
+      "requiredIndependentNativeWitness": true,
+      "requiresPresentationReceipt": false
+    },
+    {
+      "method": "StepperG02TrialTests/testS05PresentationTypeSegmented",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S05.presentation-type-segmented",
+      "originalCriterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S05.presentation-type-segmented",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Set owner0.1; veto true; perform1 prior Toggle stepper type activations. Snapshot current original ref/count.",
+        "oneAction": "Toggle stepper type.",
+        "nativeOracle": "Actual editor remains same original; current type=segmented; displayed0.1 localized0,1 for fr-CA. Actions remain real reachable targets under this supported presentation.",
+        "ownerOracle": "Owner0.1, request count unchanged through prop change; next numeric gesture requests0.2 once while veto keeps0.1.",
+        "callbackOracle": "Zero numeric/raw callbacks from presentation change; next gesture exactly request0.2. No remount or hidden second owner. Pixel/geometry acceptance remains in respective cells; this row proves behavior through the axis."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_COMPILED_OR_INSTALLED",
+      "requiredIndependentNativeWitness": true,
+      "requiresPresentationReceipt": false
+    },
+    {
+      "method": "StepperG02TrialTests/testS05PresentationOrientationVertical",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S05.presentation-orientation-vertical",
+      "originalCriterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S05.presentation-orientation-vertical",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Set owner0.1; veto true; perform0 prior Toggle stepper orientation activations. Snapshot current original ref/count.",
+        "oneAction": "Toggle stepper orientation.",
+        "nativeOracle": "Actual editor remains same original; current orientation=vertical; displayed0.1 localized0,1 for fr-CA. Actions remain real reachable targets under this supported presentation.",
+        "ownerOracle": "Owner0.1, request count unchanged through prop change; next numeric gesture requests0.2 once while veto keeps0.1.",
+        "callbackOracle": "Zero numeric/raw callbacks from presentation change; next gesture exactly request0.2. No remount or hidden second owner. Pixel/geometry acceptance remains in respective cells; this row proves behavior through the axis."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_COMPILED_OR_INSTALLED",
+      "requiredIndependentNativeWitness": true,
+      "requiresPresentationReceipt": false
+    },
+    {
+      "method": "StepperG02TrialTests/testS05PresentationOrientationHorizontal",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S05.presentation-orientation-horizontal",
+      "originalCriterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S05.presentation-orientation-horizontal",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Set owner0.1; veto true; perform1 prior Toggle stepper orientation activations. Snapshot current original ref/count.",
+        "oneAction": "Toggle stepper orientation.",
+        "nativeOracle": "Actual editor remains same original; current orientation=horizontal; displayed0.1 localized0,1 for fr-CA. Actions remain real reachable targets under this supported presentation.",
+        "ownerOracle": "Owner0.1, request count unchanged through prop change; next numeric gesture requests0.2 once while veto keeps0.1.",
+        "callbackOracle": "Zero numeric/raw callbacks from presentation change; next gesture exactly request0.2. No remount or hidden second owner. Pixel/geometry acceptance remains in respective cells; this row proves behavior through the axis."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_COMPILED_OR_INSTALLED",
+      "requiredIndependentNativeWitness": true,
+      "requiresPresentationReceipt": false
+    },
+    {
+      "method": "StepperG02TrialTests/testS05PresentationModeOutline",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S05.presentation-mode-outline",
+      "originalCriterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S05.presentation-mode-outline",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Set owner0.1; veto true; perform0 prior Toggle stepper color mode activations. Snapshot current original ref/count.",
+        "oneAction": "Toggle stepper color mode.",
+        "nativeOracle": "Actual editor remains same original; current mode=outline; displayed0.1 localized0,1 for fr-CA. Actions remain real reachable targets under this supported presentation.",
+        "ownerOracle": "Owner0.1, request count unchanged through prop change; next numeric gesture requests0.2 once while veto keeps0.1.",
+        "callbackOracle": "Zero numeric/raw callbacks from presentation change; next gesture exactly request0.2. No remount or hidden second owner. Pixel/geometry acceptance remains in respective cells; this row proves behavior through the axis."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_COMPILED_OR_INSTALLED",
+      "requiredIndependentNativeWitness": true,
+      "requiresPresentationReceipt": false
+    },
+    {
+      "method": "StepperG02TrialTests/testS05PresentationModeFill",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S05.presentation-mode-fill",
+      "originalCriterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S05.presentation-mode-fill",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Set owner0.1; veto true; perform1 prior Toggle stepper color mode activations. Snapshot current original ref/count.",
+        "oneAction": "Toggle stepper color mode.",
+        "nativeOracle": "Actual editor remains same original; current mode=fill; displayed0.1 localized0,1 for fr-CA. Actions remain real reachable targets under this supported presentation.",
+        "ownerOracle": "Owner0.1, request count unchanged through prop change; next numeric gesture requests0.2 once while veto keeps0.1.",
+        "callbackOracle": "Zero numeric/raw callbacks from presentation change; next gesture exactly request0.2. No remount or hidden second owner. Pixel/geometry acceptance remains in respective cells; this row proves behavior through the axis."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_COMPILED_OR_INSTALLED",
+      "requiredIndependentNativeWitness": true,
+      "requiresPresentationReceipt": false
+    },
+    {
+      "method": "StepperG02TrialTests/testS05PresentationOrderPrimary",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S05.presentation-order-primary",
+      "originalCriterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S05.presentation-order-primary",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Set owner0.1; veto true; perform0 prior Next stepper order activations. Snapshot current original ref/count.",
+        "oneAction": "Next stepper order.",
+        "nativeOracle": "Actual editor remains same original; current order=primary; displayed0.1 localized0,1 for fr-CA. Actions remain real reachable targets under this supported presentation.",
+        "ownerOracle": "Owner0.1, request count unchanged through prop change; next numeric gesture requests0.2 once while veto keeps0.1.",
+        "callbackOracle": "Zero numeric/raw callbacks from presentation change; next gesture exactly request0.2. No remount or hidden second owner. Pixel/geometry acceptance remains in respective cells; this row proves behavior through the axis."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_COMPILED_OR_INSTALLED",
+      "requiredIndependentNativeWitness": true,
+      "requiresPresentationReceipt": false
+    },
+    {
+      "method": "StepperG02TrialTests/testS05PresentationOrderSecondary",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S05.presentation-order-secondary",
+      "originalCriterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S05.presentation-order-secondary",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Set owner0.1; veto true; perform1 prior Next stepper order activations. Snapshot current original ref/count.",
+        "oneAction": "Next stepper order.",
+        "nativeOracle": "Actual editor remains same original; current order=secondary; displayed0.1 localized0,1 for fr-CA. Actions remain real reachable targets under this supported presentation.",
+        "ownerOracle": "Owner0.1, request count unchanged through prop change; next numeric gesture requests0.2 once while veto keeps0.1.",
+        "callbackOracle": "Zero numeric/raw callbacks from presentation change; next gesture exactly request0.2. No remount or hidden second owner. Pixel/geometry acceptance remains in respective cells; this row proves behavior through the axis."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_COMPILED_OR_INSTALLED",
+      "requiredIndependentNativeWitness": true,
+      "requiresPresentationReceipt": false
+    },
+    {
+      "method": "StepperG02TrialTests/testS05PresentationOrderTertiary",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S05.presentation-order-tertiary",
+      "originalCriterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S05.presentation-order-tertiary",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Set owner0.1; veto true; perform2 prior Next stepper order activations. Snapshot current original ref/count.",
+        "oneAction": "Next stepper order.",
+        "nativeOracle": "Actual editor remains same original; current order=tertiary; displayed0.1 localized0,1 for fr-CA. Actions remain real reachable targets under this supported presentation.",
+        "ownerOracle": "Owner0.1, request count unchanged through prop change; next numeric gesture requests0.2 once while veto keeps0.1.",
+        "callbackOracle": "Zero numeric/raw callbacks from presentation change; next gesture exactly request0.2. No remount or hidden second owner. Pixel/geometry acceptance remains in respective cells; this row proves behavior through the axis."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_COMPILED_OR_INSTALLED",
+      "requiredIndependentNativeWitness": true,
+      "requiresPresentationReceipt": false
+    },
+    {
+      "method": "StepperG02TrialTests/testS05PresentationOrderQuaternary",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S05.presentation-order-quaternary",
+      "originalCriterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S05.presentation-order-quaternary",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Set owner0.1; veto true; perform3 prior Next stepper order activations. Snapshot current original ref/count.",
+        "oneAction": "Next stepper order.",
+        "nativeOracle": "Actual editor remains same original; current order=quaternary; displayed0.1 localized0,1 for fr-CA. Actions remain real reachable targets under this supported presentation.",
+        "ownerOracle": "Owner0.1, request count unchanged through prop change; next numeric gesture requests0.2 once while veto keeps0.1.",
+        "callbackOracle": "Zero numeric/raw callbacks from presentation change; next gesture exactly request0.2. No remount or hidden second owner. Pixel/geometry acceptance remains in respective cells; this row proves behavior through the axis."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_COMPILED_OR_INSTALLED",
+      "requiredIndependentNativeWitness": true,
+      "requiresPresentationReceipt": false
+    },
+    {
+      "method": "StepperG02TrialTests/testS05PresentationOrderQuintenary",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S05.presentation-order-quintenary",
+      "originalCriterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S05.presentation-order-quintenary",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Set owner0.1; veto true; perform4 prior Next stepper order activations. Snapshot current original ref/count.",
+        "oneAction": "Next stepper order.",
+        "nativeOracle": "Actual editor remains same original; current order=quintenary; displayed0.1 localized0,1 for fr-CA. Actions remain real reachable targets under this supported presentation.",
+        "ownerOracle": "Owner0.1, request count unchanged through prop change; next numeric gesture requests0.2 once while veto keeps0.1.",
+        "callbackOracle": "Zero numeric/raw callbacks from presentation change; next gesture exactly request0.2. No remount or hidden second owner. Pixel/geometry acceptance remains in respective cells; this row proves behavior through the axis."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_COMPILED_OR_INSTALLED",
+      "requiredIndependentNativeWitness": true,
+      "requiresPresentationReceipt": false
+    },
+    {
+      "method": "StepperG02TrialTests/testS05PresentationOrderNone",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S05.presentation-order-none",
+      "originalCriterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S05.presentation-order-none",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Set owner0.1; veto true; perform5 prior Next stepper order activations. Snapshot current original ref/count.",
+        "oneAction": "Next stepper order.",
+        "nativeOracle": "Actual editor remains same original; current order=none; displayed0.1 localized0,1 for fr-CA. Actions remain real reachable targets under this supported presentation.",
+        "ownerOracle": "Owner0.1, request count unchanged through prop change; next numeric gesture requests0.2 once while veto keeps0.1.",
+        "callbackOracle": "Zero numeric/raw callbacks from presentation change; next gesture exactly request0.2. No remount or hidden second owner. Pixel/geometry acceptance remains in respective cells; this row proves behavior through the axis."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_COMPILED_OR_INSTALLED",
+      "requiredIndependentNativeWitness": true,
+      "requiresPresentationReceipt": false
+    },
+    {
+      "method": "StepperG02TrialTests/testS05PresentationGeometryRounded",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S05.presentation-geometry-rounded",
+      "originalCriterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S05.presentation-geometry-rounded",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Set owner0.1; veto true; perform0 prior Next stepper geometry activations. Snapshot current original ref/count.",
+        "oneAction": "Next stepper geometry.",
+        "nativeOracle": "Actual editor remains same original; current geometry=rounded; displayed0.1 localized0,1 for fr-CA. Actions remain real reachable targets under this supported presentation.",
+        "ownerOracle": "Owner0.1, request count unchanged through prop change; next numeric gesture requests0.2 once while veto keeps0.1.",
+        "callbackOracle": "Zero numeric/raw callbacks from presentation change; next gesture exactly request0.2. No remount or hidden second owner. Pixel/geometry acceptance remains in respective cells; this row proves behavior through the axis."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_COMPILED_OR_INSTALLED",
+      "requiredIndependentNativeWitness": true,
+      "requiresPresentationReceipt": false
+    },
+    {
+      "method": "StepperG02TrialTests/testS05PresentationGeometryOrthogonal",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S05.presentation-geometry-orthogonal",
+      "originalCriterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S05.presentation-geometry-orthogonal",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Set owner0.1; veto true; perform1 prior Next stepper geometry activations. Snapshot current original ref/count.",
+        "oneAction": "Next stepper geometry.",
+        "nativeOracle": "Actual editor remains same original; current geometry=orthogonal; displayed0.1 localized0,1 for fr-CA. Actions remain real reachable targets under this supported presentation.",
+        "ownerOracle": "Owner0.1, request count unchanged through prop change; next numeric gesture requests0.2 once while veto keeps0.1.",
+        "callbackOracle": "Zero numeric/raw callbacks from presentation change; next gesture exactly request0.2. No remount or hidden second owner. Pixel/geometry acceptance remains in respective cells; this row proves behavior through the axis."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_COMPILED_OR_INSTALLED",
+      "requiredIndependentNativeWitness": true,
+      "requiresPresentationReceipt": false
+    },
+    {
+      "method": "StepperG02TrialTests/testS05PresentationGeometryRound",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S05.presentation-geometry-round",
+      "originalCriterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S05.presentation-geometry-round",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Set owner0.1; veto true; perform2 prior Next stepper geometry activations. Snapshot current original ref/count.",
+        "oneAction": "Next stepper geometry.",
+        "nativeOracle": "Actual editor remains same original; current geometry=round; displayed0.1 localized0,1 for fr-CA. Actions remain real reachable targets under this supported presentation.",
+        "ownerOracle": "Owner0.1, request count unchanged through prop change; next numeric gesture requests0.2 once while veto keeps0.1.",
+        "callbackOracle": "Zero numeric/raw callbacks from presentation change; next gesture exactly request0.2. No remount or hidden second owner. Pixel/geometry acceptance remains in respective cells; this row proves behavior through the axis."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_COMPILED_OR_INSTALLED",
+      "requiredIndependentNativeWitness": true,
+      "requiresPresentationReceipt": false
+    },
+    {
+      "method": "StepperG02TrialTests/testS05PresentationSizeSmall",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S05.presentation-size-small",
+      "originalCriterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S05.presentation-size-small",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Set owner0.1; veto true; perform0 prior Next stepper text size activations. Snapshot current original ref/count.",
+        "oneAction": "Next stepper text size.",
+        "nativeOracle": "Actual editor remains same original; current size=small; displayed0.1 localized0,1 for fr-CA. Actions remain real reachable targets under this supported presentation.",
+        "ownerOracle": "Owner0.1, request count unchanged through prop change; next numeric gesture requests0.2 once while veto keeps0.1.",
+        "callbackOracle": "Zero numeric/raw callbacks from presentation change; next gesture exactly request0.2. No remount or hidden second owner. Pixel/geometry acceptance remains in respective cells; this row proves behavior through the axis."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_COMPILED_OR_INSTALLED",
+      "requiredIndependentNativeWitness": true,
+      "requiresPresentationReceipt": false
+    },
+    {
+      "method": "StepperG02TrialTests/testS05PresentationSizeLarge",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S05.presentation-size-large",
+      "originalCriterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S05.presentation-size-large",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Set owner0.1; veto true; perform1 prior Next stepper text size activations. Snapshot current original ref/count.",
+        "oneAction": "Next stepper text size.",
+        "nativeOracle": "Actual editor remains same original; current size=large; displayed0.1 localized0,1 for fr-CA. Actions remain real reachable targets under this supported presentation.",
+        "ownerOracle": "Owner0.1, request count unchanged through prop change; next numeric gesture requests0.2 once while veto keeps0.1.",
+        "callbackOracle": "Zero numeric/raw callbacks from presentation change; next gesture exactly request0.2. No remount or hidden second owner. Pixel/geometry acceptance remains in respective cells; this row proves behavior through the axis."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_COMPILED_OR_INSTALLED",
+      "requiredIndependentNativeWitness": true,
+      "requiresPresentationReceipt": false
+    },
+    {
+      "method": "StepperG02TrialTests/testS05PresentationSizeMedium",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S05.presentation-size-medium",
+      "originalCriterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S05.presentation-size-medium",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Set owner0.1; veto true; perform2 prior Next stepper text size activations. Snapshot current original ref/count.",
+        "oneAction": "Next stepper text size.",
+        "nativeOracle": "Actual editor remains same original; current size=medium; displayed0.1 localized0,1 for fr-CA. Actions remain real reachable targets under this supported presentation.",
+        "ownerOracle": "Owner0.1, request count unchanged through prop change; next numeric gesture requests0.2 once while veto keeps0.1.",
+        "callbackOracle": "Zero numeric/raw callbacks from presentation change; next gesture exactly request0.2. No remount or hidden second owner. Pixel/geometry acceptance remains in respective cells; this row proves behavior through the axis."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_COMPILED_OR_INSTALLED",
+      "requiredIndependentNativeWitness": true,
+      "requiresPresentationReceipt": false
+    },
+    {
+      "method": "StepperG02TrialTests/testS05PresentationStatusError",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S05.presentation-status-error",
+      "originalCriterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S05.presentation-status-error",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Set owner0.1; veto true; perform0 prior Next stepper status activations. Snapshot current original ref/count.",
+        "oneAction": "Next stepper status.",
+        "nativeOracle": "Actual editor remains same original; current status=error; displayed0.1 localized0,1 for fr-CA. Actions remain real reachable targets under this supported presentation.",
+        "ownerOracle": "Owner0.1, request count unchanged through prop change; next numeric gesture requests0.2 once while veto keeps0.1.",
+        "callbackOracle": "Zero numeric/raw callbacks from presentation change; next gesture exactly request0.2. No remount or hidden second owner. Pixel/geometry acceptance remains in respective cells; this row proves behavior through the axis."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_COMPILED_OR_INSTALLED",
+      "requiredIndependentNativeWitness": true,
+      "requiresPresentationReceipt": false
+    },
+    {
+      "method": "StepperG02TrialTests/testS05PresentationStatusWarning",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S05.presentation-status-warning",
+      "originalCriterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S05.presentation-status-warning",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Set owner0.1; veto true; perform1 prior Next stepper status activations. Snapshot current original ref/count.",
+        "oneAction": "Next stepper status.",
+        "nativeOracle": "Actual editor remains same original; current status=warning; displayed0.1 localized0,1 for fr-CA. Actions remain real reachable targets under this supported presentation.",
+        "ownerOracle": "Owner0.1, request count unchanged through prop change; next numeric gesture requests0.2 once while veto keeps0.1.",
+        "callbackOracle": "Zero numeric/raw callbacks from presentation change; next gesture exactly request0.2. No remount or hidden second owner. Pixel/geometry acceptance remains in respective cells; this row proves behavior through the axis."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_COMPILED_OR_INSTALLED",
+      "requiredIndependentNativeWitness": true,
+      "requiresPresentationReceipt": false
+    },
+    {
+      "method": "StepperG02TrialTests/testS05PresentationStatusSuccess",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S05.presentation-status-success",
+      "originalCriterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S05.presentation-status-success",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Set owner0.1; veto true; perform2 prior Next stepper status activations. Snapshot current original ref/count.",
+        "oneAction": "Next stepper status.",
+        "nativeOracle": "Actual editor remains same original; current status=success; displayed0.1 localized0,1 for fr-CA. Actions remain real reachable targets under this supported presentation.",
+        "ownerOracle": "Owner0.1, request count unchanged through prop change; next numeric gesture requests0.2 once while veto keeps0.1.",
+        "callbackOracle": "Zero numeric/raw callbacks from presentation change; next gesture exactly request0.2. No remount or hidden second owner. Pixel/geometry acceptance remains in respective cells; this row proves behavior through the axis."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_COMPILED_OR_INSTALLED",
+      "requiredIndependentNativeWitness": true,
+      "requiresPresentationReceipt": false
+    },
+    {
+      "method": "StepperG02TrialTests/testS05PresentationStatusNone",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S05.presentation-status-none",
+      "originalCriterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S05.presentation-status-none",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Set owner0.1; veto true; perform3 prior Next stepper status activations. Snapshot current original ref/count.",
+        "oneAction": "Next stepper status.",
+        "nativeOracle": "Actual editor remains same original; current status=none; displayed0.1 localized0,1 for fr-CA. Actions remain real reachable targets under this supported presentation.",
+        "ownerOracle": "Owner0.1, request count unchanged through prop change; next numeric gesture requests0.2 once while veto keeps0.1.",
+        "callbackOracle": "Zero numeric/raw callbacks from presentation change; next gesture exactly request0.2. No remount or hidden second owner. Pixel/geometry acceptance remains in respective cells; this row proves behavior through the axis."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_COMPILED_OR_INSTALLED",
+      "requiredIndependentNativeWitness": true,
+      "requiresPresentationReceipt": false
+    },
+    {
+      "method": "StepperG02TrialTests/testS05PresentationStylesCustom",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S05.presentation-styles-custom",
+      "originalCriterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S05.presentation-styles-custom",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Set owner0.1; veto true; perform0 prior Toggle stepper styles activations. Snapshot current original ref/count.",
+        "oneAction": "Toggle stepper styles.",
+        "nativeOracle": "Actual editor remains same original; current styles=custom; displayed0.1 localized0,1 for fr-CA. Actions remain real reachable targets under this supported presentation.",
+        "ownerOracle": "Owner0.1, request count unchanged through prop change; next numeric gesture requests0.2 once while veto keeps0.1.",
+        "callbackOracle": "Zero numeric/raw callbacks from presentation change; next gesture exactly request0.2. No remount or hidden second owner. Pixel/geometry acceptance remains in respective cells; this row proves behavior through the axis."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_COMPILED_OR_INSTALLED",
+      "requiredIndependentNativeWitness": true,
+      "requiresPresentationReceipt": true
+    },
+    {
+      "method": "StepperG02TrialTests/testS05PresentationStylesDefault",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S05.presentation-styles-default",
+      "originalCriterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S05.presentation-styles-default",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Set owner0.1; veto true; perform1 prior Toggle stepper styles activations. Snapshot current original ref/count.",
+        "oneAction": "Toggle stepper styles.",
+        "nativeOracle": "Actual editor remains same original; current styles=default; displayed0.1 localized0,1 for fr-CA. Actions remain real reachable targets under this supported presentation.",
+        "ownerOracle": "Owner0.1, request count unchanged through prop change; next numeric gesture requests0.2 once while veto keeps0.1.",
+        "callbackOracle": "Zero numeric/raw callbacks from presentation change; next gesture exactly request0.2. No remount or hidden second owner. Pixel/geometry acceptance remains in respective cells; this row proves behavior through the axis."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_COMPILED_OR_INSTALLED",
+      "requiredIndependentNativeWitness": true,
+      "requiresPresentationReceipt": true
+    },
+    {
+      "method": "StepperG02TrialTests/testS05PresentationIconsCustom",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S05.presentation-icons-custom",
+      "originalCriterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S05.presentation-icons-custom",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Set owner0.1; veto true; perform0 prior Toggle stepper icons activations. Snapshot current original ref/count.",
+        "oneAction": "Toggle stepper icons.",
+        "nativeOracle": "Actual editor remains same original; current icons=custom; displayed0.1 localized0,1 for fr-CA. Actions remain real reachable targets under this supported presentation.",
+        "ownerOracle": "Owner0.1, request count unchanged through prop change; next numeric gesture requests0.2 once while veto keeps0.1.",
+        "callbackOracle": "Zero numeric/raw callbacks from presentation change; next gesture exactly request0.2. No remount or hidden second owner. Pixel/geometry acceptance remains in respective cells; this row proves behavior through the axis."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_COMPILED_OR_INSTALLED",
+      "requiredIndependentNativeWitness": true,
+      "requiresPresentationReceipt": true
+    },
+    {
+      "method": "StepperG02TrialTests/testS05PresentationIconsDefault",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S05.presentation-icons-default",
+      "originalCriterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S05.presentation-icons-default",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Set owner0.1; veto true; perform1 prior Toggle stepper icons activations. Snapshot current original ref/count.",
+        "oneAction": "Toggle stepper icons.",
+        "nativeOracle": "Actual editor remains same original; current icons=default; displayed0.1 localized0,1 for fr-CA. Actions remain real reachable targets under this supported presentation.",
+        "ownerOracle": "Owner0.1, request count unchanged through prop change; next numeric gesture requests0.2 once while veto keeps0.1.",
+        "callbackOracle": "Zero numeric/raw callbacks from presentation change; next gesture exactly request0.2. No remount or hidden second owner. Pixel/geometry acceptance remains in respective cells; this row proves behavior through the axis."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_COMPILED_OR_INSTALLED",
+      "requiredIndependentNativeWitness": true,
+      "requiresPresentationReceipt": true
+    },
+    {
+      "method": "StepperG02TrialTests/testS05PresentationLocaleFrCa",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S05.presentation-locale-fr-CA",
+      "originalCriterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S05.presentation-locale-fr-CA",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Set owner0.1; veto true; perform0 prior Toggle stepper locale activations. Snapshot current original ref/count.",
+        "oneAction": "Toggle stepper locale.",
+        "nativeOracle": "Actual editor remains same original; current locale=fr-CA; displayed0.1 localized0,1 for fr-CA. Actions remain real reachable targets under this supported presentation.",
+        "ownerOracle": "Owner0.1, request count unchanged through prop change; next numeric gesture requests0.2 once while veto keeps0.1.",
+        "callbackOracle": "Zero numeric/raw callbacks from presentation change; next gesture exactly request0.2. No remount or hidden second owner. Pixel/geometry acceptance remains in respective cells; this row proves behavior through the axis."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_COMPILED_OR_INSTALLED",
+      "requiredIndependentNativeWitness": true,
+      "requiresPresentationReceipt": false
+    },
+    {
+      "method": "StepperG02TrialTests/testS05PresentationLocaleEnUs",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S05.presentation-locale-en-US",
+      "originalCriterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S05.presentation-locale-en-US",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Set owner0.1; veto true; perform1 prior Toggle stepper locale activations. Snapshot current original ref/count.",
+        "oneAction": "Toggle stepper locale.",
+        "nativeOracle": "Actual editor remains same original; current locale=en-US; displayed0.1 localized0,1 for fr-CA. Actions remain real reachable targets under this supported presentation.",
+        "ownerOracle": "Owner0.1, request count unchanged through prop change; next numeric gesture requests0.2 once while veto keeps0.1.",
+        "callbackOracle": "Zero numeric/raw callbacks from presentation change; next gesture exactly request0.2. No remount or hidden second owner. Pixel/geometry acceptance remains in respective cells; this row proves behavior through the axis."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_COMPILED_OR_INSTALLED",
+      "requiredIndependentNativeWitness": true,
+      "requiresPresentationReceipt": false
+    },
+    {
+      "method": "StepperG02TrialTests/testS05ExplicitWidthZero",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S05.explicit-width-zero",
+      "originalCriterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S05.explicit-width-zero",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Snapshot owner0/ref/count.",
+        "oneAction": "Toggle stepper zero width.",
+        "nativeOracle": "Actual root width0, not a minimum-size replacement. Restore width via external scene control before requiring touch reachability.",
+        "ownerOracle": "Owner0/ref retained, no request.",
+        "callbackOracle": "Zero numeric/raw callbacks from explicit constraint. Do not fabricate a hit on an unreachable zero-width target."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_COMPILED_OR_INSTALLED",
+      "requiredIndependentNativeWitness": true,
+      "requiresPresentationReceipt": false
+    },
+    {
+      "method": "StepperG02TrialTests/testS05ContextThemeRetention",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S05.context-theme",
+      "originalCriterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S05.context-theme",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Owner0.1, veto true, request count1; preserve live scene/ref/draft snapshot.",
+        "oneAction": "Dark theme.",
+        "nativeOracle": "Actual running scene remains same owner/editor; valid draft/state persists according to native edit/config model. Controls and Form action remain first-activation reachable with keyboard active.",
+        "ownerOracle": "Owner0.1, veto true, request count1 after context change; next request0.2 once without implicit echo.",
+        "callbackOracle": "No numeric callback for context change. Actual subsequent gesture requests0.2 exactly once. App recreation is a distinct lifecycle result and cannot be described as retention."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_COMPILED_OR_INSTALLED",
+      "requiredIndependentNativeWitness": true,
+      "requiresPresentationReceipt": false
+    },
+    {
+      "method": "StepperG02TrialTests/testS05ContextWindowRetention",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S05.context-window",
+      "originalCriterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S05.context-window",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Owner0.1, veto true, request count1; preserve live scene/ref/draft snapshot.",
+        "oneAction": "Portrait to landscape to portrait without Activity/app recreation.",
+        "nativeOracle": "Actual running scene remains same owner/editor; valid draft/state persists according to native edit/config model. Controls and Form action remain first-activation reachable with keyboard active.",
+        "ownerOracle": "Owner0.1, veto true, request count1 after context change; next request0.2 once without implicit echo.",
+        "callbackOracle": "No numeric callback for context change. Actual subsequent gesture requests0.2 exactly once. App recreation is a distinct lifecycle result and cannot be described as retention."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_COMPILED_OR_INSTALLED",
+      "requiredIndependentNativeWitness": true,
+      "requiresPresentationReceipt": false
+    },
+    {
+      "method": "StepperG02TrialTests/testS05ContextFixtureRetention",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S05.context-fixture",
+      "originalCriterion": {
+        "key": "CAT.stepper.<platform>.<profile>.S05.context-fixture",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Owner0.1, veto true, request count1; preserve live scene/ref/draft snapshot.",
+        "oneAction": "Vertical blocked region.",
+        "nativeOracle": "Actual running scene remains same owner/editor; valid draft/state persists according to native edit/config model. Controls and Form action remain first-activation reachable with keyboard active.",
+        "ownerOracle": "Owner0.1, veto true, request count1 after context change; next request0.2 once without implicit echo.",
+        "callbackOracle": "No numeric callback for context change. Actual subsequent gesture requests0.2 exactly once. App recreation is a distinct lifecycle result and cannot be described as retention."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_COMPILED_OR_INSTALLED",
+      "requiredIndependentNativeWitness": true,
+      "requiresPresentationReceipt": false
+    }
+  ],
+  "proofLimit": "All115criteria and independent original-native input/ref/window evidence remain authoritative. Public outcome methods cannot alone promote a cell. Zero width uses the real delivered onLayout channel and AX root frame if inspectable; independent original-root geometry witness remains required when AX omits a zero-width element.",
+  "fixtureMetadata": {
+    "path": "apps/native-showcase/src/scenes/StepperScene.tsx",
+    "newSelector": "stepper-presentation",
+    "fields": [
+      "styles",
+      "icons"
+    ],
+    "placement": "Below all interaction controls; original state receipt and control placement preserved.",
+    "requiredByCriteria": 4,
+    "sceneSHA256": "8da63cdb5325b62cf6348ffa1f71274caaed661afd543d52287d6e100eb01eb6"
+  }
+}

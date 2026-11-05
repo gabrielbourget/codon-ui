@@ -1,0 +1,215 @@
+{
+  "cell": "CAT.stepper.G02",
+  "sourceOraclePath": "/tmp/codon-stepper-g02-closeout-20261103/installed-g02-oracles.json",
+  "sourceOracleSHA256": "30de5434c97f1aed78aae6578c1700c00052e78929d4ee1587bcc7f0ddc7b773",
+  "exactNamedCriteria": 10,
+  "previousPreparedMethodCount": 29,
+  "candidatePreparedMethodCount": 39,
+  "previousUnmappedCriteria": 88,
+  "remainingUnmappedAfterAdoption": 78,
+  "rows": [
+    {
+      "method": "StepperG02TrialTests/testS01OwnerZero",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S01.owner-zero",
+      "originalCriteria": {
+        "key": "CAT.stepper.<platform>.<profile>.S01.owner-zero",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input.",
+        "oneAction": "Set stepper zero",
+        "nativeOracle": "Actual editor text '0'; numeric authoritative value matches without native edit events.",
+        "ownerOracle": "Requested value/count unchanged; generation/ref unchanged.",
+        "callbackOracle": "Zero request/raw callbacks from programmatic owner assignment."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_INSTALLED",
+      "requiredIndependentNativeEvidence": [
+        "Actual original SDK native editor instance/text/selection/focus before and after action; XCUI accessibility text is a separate projection.",
+        "Genuine target/frame/window/gesture admission and currentness bound to the recorded product/source/scene/consumer/profile identity.",
+        "No native edit/default event caused by the programmatic owner/default action."
+      ],
+      "preservedCallbackOracle": "Zero request/raw callbacks from programmatic owner assignment."
+    },
+    {
+      "method": "StepperG02TrialTests/testS01OwnerNull",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S01.owner-null",
+      "originalCriteria": {
+        "key": "CAT.stepper.<platform>.<profile>.S01.owner-null",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input.",
+        "oneAction": "Set stepper empty",
+        "nativeOracle": "Actual editor text ''; numeric authoritative value matches without native edit events.",
+        "ownerOracle": "Requested value/count unchanged; generation/ref unchanged.",
+        "callbackOracle": "Zero request/raw callbacks from programmatic owner assignment."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_INSTALLED",
+      "requiredIndependentNativeEvidence": [
+        "Actual original SDK native editor instance/text/selection/focus before and after action; XCUI accessibility text is a separate projection.",
+        "Genuine target/frame/window/gesture admission and currentness bound to the recorded product/source/scene/consumer/profile identity.",
+        "No native edit/default event caused by the programmatic owner/default action."
+      ],
+      "preservedCallbackOracle": "Zero request/raw callbacks from programmatic owner assignment."
+    },
+    {
+      "method": "StepperG02TrialTests/testS01OwnerMinimum",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S01.owner-minimum",
+      "originalCriteria": {
+        "key": "CAT.stepper.<platform>.<profile>.S01.owner-minimum",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input.",
+        "oneAction": "Set stepper minimum",
+        "nativeOracle": "Actual editor text '-1'; numeric authoritative value matches without native edit events.",
+        "ownerOracle": "Requested value/count unchanged; generation/ref unchanged.",
+        "callbackOracle": "Zero request/raw callbacks from programmatic owner assignment."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_INSTALLED",
+      "requiredIndependentNativeEvidence": [
+        "Actual original SDK native editor instance/text/selection/focus before and after action; XCUI accessibility text is a separate projection.",
+        "Genuine target/frame/window/gesture admission and currentness bound to the recorded product/source/scene/consumer/profile identity.",
+        "No native edit/default event caused by the programmatic owner/default action."
+      ],
+      "preservedCallbackOracle": "Zero request/raw callbacks from programmatic owner assignment."
+    },
+    {
+      "method": "StepperG02TrialTests/testS01OwnerMaximum",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S01.owner-maximum",
+      "originalCriteria": {
+        "key": "CAT.stepper.<platform>.<profile>.S01.owner-maximum",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input.",
+        "oneAction": "Set stepper maximum",
+        "nativeOracle": "Actual editor text '1'; numeric authoritative value matches without native edit events.",
+        "ownerOracle": "Requested value/count unchanged; generation/ref unchanged.",
+        "callbackOracle": "Zero request/raw callbacks from programmatic owner assignment."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_INSTALLED",
+      "requiredIndependentNativeEvidence": [
+        "Actual original SDK native editor instance/text/selection/focus before and after action; XCUI accessibility text is a separate projection.",
+        "Genuine target/frame/window/gesture admission and currentness bound to the recorded product/source/scene/consumer/profile identity.",
+        "No native edit/default event caused by the programmatic owner/default action."
+      ],
+      "preservedCallbackOracle": "Zero request/raw callbacks from programmatic owner assignment."
+    },
+    {
+      "method": "StepperG02TrialTests/testS01DefaultUndefined",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S01.default-undefined",
+      "originalCriteria": {
+        "key": "CAT.stepper.<platform>.<profile>.S01.default-undefined",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Press Next stepper default 0 times; switch using Toggle stepper controlled mode and remount.",
+        "oneAction": "Next stepper default",
+        "nativeOracle": "Initial uncontrolled editor ''; stays '' when default prop changes. Remount is a separate action and applies the then-current default.",
+        "ownerOracle": "Owner readout is uncontrolled; generation unchanged by default update; controlled value must not be presented as an uncontrolled mirror.",
+        "callbackOracle": "No numeric/raw callback from mount/default prop update. Explicit0/null differ from undefined."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_INSTALLED",
+      "requiredIndependentNativeEvidence": [
+        "Actual original SDK native editor instance/text/selection/focus before and after action; XCUI accessibility text is a separate projection.",
+        "Genuine target/frame/window/gesture admission and currentness bound to the recorded product/source/scene/consumer/profile identity.",
+        "No native edit/default event caused by the programmatic owner/default action."
+      ],
+      "preservedCallbackOracle": "No numeric/raw callback from mount/default prop update. Explicit0/null differ from undefined."
+    },
+    {
+      "method": "StepperG02TrialTests/testS01DefaultZero",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S01.default-zero",
+      "originalCriteria": {
+        "key": "CAT.stepper.<platform>.<profile>.S01.default-zero",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Press Next stepper default 1 times; switch using Toggle stepper controlled mode and remount.",
+        "oneAction": "Next stepper default",
+        "nativeOracle": "Initial uncontrolled editor '0'; stays '0' when default prop changes. Remount is a separate action and applies the then-current default.",
+        "ownerOracle": "Owner readout is uncontrolled; generation unchanged by default update; controlled value must not be presented as an uncontrolled mirror.",
+        "callbackOracle": "No numeric/raw callback from mount/default prop update. Explicit0/null differ from undefined."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_INSTALLED",
+      "requiredIndependentNativeEvidence": [
+        "Actual original SDK native editor instance/text/selection/focus before and after action; XCUI accessibility text is a separate projection.",
+        "Genuine target/frame/window/gesture admission and currentness bound to the recorded product/source/scene/consumer/profile identity.",
+        "No native edit/default event caused by the programmatic owner/default action."
+      ],
+      "preservedCallbackOracle": "No numeric/raw callback from mount/default prop update. Explicit0/null differ from undefined."
+    },
+    {
+      "method": "StepperG02TrialTests/testS01DefaultFraction",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S01.default-fraction",
+      "originalCriteria": {
+        "key": "CAT.stepper.<platform>.<profile>.S01.default-fraction",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Press Next stepper default 2 times; switch using Toggle stepper controlled mode and remount.",
+        "oneAction": "Next stepper default",
+        "nativeOracle": "Initial uncontrolled editor '0.4'; stays '0.4' when default prop changes. Remount is a separate action and applies the then-current default.",
+        "ownerOracle": "Owner readout is uncontrolled; generation unchanged by default update; controlled value must not be presented as an uncontrolled mirror.",
+        "callbackOracle": "No numeric/raw callback from mount/default prop update. Explicit0/null differ from undefined."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_INSTALLED",
+      "requiredIndependentNativeEvidence": [
+        "Actual original SDK native editor instance/text/selection/focus before and after action; XCUI accessibility text is a separate projection.",
+        "Genuine target/frame/window/gesture admission and currentness bound to the recorded product/source/scene/consumer/profile identity.",
+        "No native edit/default event caused by the programmatic owner/default action."
+      ],
+      "preservedCallbackOracle": "No numeric/raw callback from mount/default prop update. Explicit0/null differ from undefined."
+    },
+    {
+      "method": "StepperG02TrialTests/testS01DefaultNull",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S01.default-null",
+      "originalCriteria": {
+        "key": "CAT.stepper.<platform>.<profile>.S01.default-null",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Press Next stepper default 3 times; switch using Toggle stepper controlled mode and remount.",
+        "oneAction": "Next stepper default",
+        "nativeOracle": "Initial uncontrolled editor ''; stays '' when default prop changes. Remount is a separate action and applies the then-current default.",
+        "ownerOracle": "Owner readout is uncontrolled; generation unchanged by default update; controlled value must not be presented as an uncontrolled mirror.",
+        "callbackOracle": "No numeric/raw callback from mount/default prop update. Explicit0/null differ from undefined."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_INSTALLED",
+      "requiredIndependentNativeEvidence": [
+        "Actual original SDK native editor instance/text/selection/focus before and after action; XCUI accessibility text is a separate projection.",
+        "Genuine target/frame/window/gesture admission and currentness bound to the recorded product/source/scene/consumer/profile identity.",
+        "No native edit/default event caused by the programmatic owner/default action."
+      ],
+      "preservedCallbackOracle": "No numeric/raw callback from mount/default prop update. Explicit0/null differ from undefined."
+    },
+    {
+      "method": "StepperG02TrialTests/testS01ControlledEcho",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S01.controlled-echo",
+      "originalCriteria": {
+        "key": "CAT.stepper.<platform>.<profile>.S01.controlled-echo",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input.",
+        "oneAction": "Two separate fresh short releases on Increase controlled quantity, each an independently recorded activation.",
+        "nativeOracle": "Echo: editor0.1 then0.2. Veto: editor0 after each request.",
+        "ownerOracle": "Echo owner0.1 then0.2; veto owner stays0. Exactly2 requests.",
+        "callbackOracle": "Request payloads echo[0.1,0.2], veto[0.1,0.1]; zero raw callbacks from buttons. No release duplicate.",
+        "actionPartition": "Both activations must have separate native gesture IDs; one row records the required repeated-decline comparison."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_INSTALLED",
+      "requiredIndependentNativeEvidence": [
+        "Actual original SDK native editor instance/text/selection/focus before and after action; XCUI accessibility text is a separate projection.",
+        "Genuine target/frame/window/gesture admission and currentness bound to the recorded product/source/scene/consumer/profile identity.",
+        "Two distinct native gesture IDs, separately correlated to the first and second releases; public XCTest tap calls alone are insufficient."
+      ],
+      "preservedCallbackOracle": "Request payloads echo[0.1,0.2], veto[0.1,0.1]; zero raw callbacks from buttons. No release duplicate."
+    },
+    {
+      "method": "StepperG02TrialTests/testS01ControlledVeto",
+      "caseKey": "CAT.stepper.<platform>.<profile>.S01.controlled-veto",
+      "originalCriteria": {
+        "key": "CAT.stepper.<platform>.<profile>.S01.controlled-veto",
+        "status": "OPEN_NOT_EXECUTED",
+        "setup": "Fresh Stepper scene via Reset scene then Stepper scene. Controlled echo, value0, bounds[-1,1], step0.1, en-US decimal, generation0; no prior focused input. Toggle stepper owner veto.",
+        "oneAction": "Two separate fresh short releases on Increase controlled quantity, each an independently recorded activation.",
+        "nativeOracle": "Echo: editor0.1 then0.2. Veto: editor0 after each request.",
+        "ownerOracle": "Echo owner0.1 then0.2; veto owner stays0. Exactly2 requests.",
+        "callbackOracle": "Request payloads echo[0.1,0.2], veto[0.1,0.1]; zero raw callbacks from buttons. No release duplicate.",
+        "actionPartition": "Both activations must have separate native gesture IDs; one row records the required repeated-decline comparison."
+      },
+      "status": "PREPARED_SOURCE_ONLY_NOT_INSTALLED",
+      "requiredIndependentNativeEvidence": [
+        "Actual original SDK native editor instance/text/selection/focus before and after action; XCUI accessibility text is a separate projection.",
+        "Genuine target/frame/window/gesture admission and currentness bound to the recorded product/source/scene/consumer/profile identity.",
+        "Two distinct native gesture IDs, separately correlated to the first and second releases; public XCTest tap calls alone are insufficient."
+      ],
+      "preservedCallbackOracle": "Request payloads echo[0.1,0.2], veto[0.1,0.1]; zero raw callbacks from buttons. No release duplicate."
+    }
+  ],
+  "scope": "All ten S01 criteria prepared; original115 oracle bytes and status preserved. No G02 promotion or installed evidence inferred."
+}

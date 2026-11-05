@@ -1,13 +1,32 @@
-import { forwardRef, useLayoutEffect, useRef, useState } from "react"
-import { Platform, View, type ColorValue } from "react-native"
+import {
+  forwardRef,
+  useContext,
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
+import { AccessibilityInfo, findNodeHandle, Platform, View, TextInput, type ColorValue } from "react-native"
 
+import { nativeFieldAccessibilityProps } from "../../form/semantics"
+import { useNativeFieldSemantics } from "../../form/useFieldSemantics"
+import { useNativeNumberFieldForm } from "../../form/useNumberField"
+import { NativeKeyboardScope, useNativeKeyScope } from "../../input/NativeKeyboardScope"
+import { NativeButtonPressContext } from "../../input/nativePressCycle"
+import { useNativeOriginalEditorFocusBinding } from "../../input/ordinaryEditorKeys"
+import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../overlays/floating/scope"
 import { useNativeTheme } from "../../theme"
 import { NativeButton as Button } from "../Button/Button"
-import { Input } from "../Input/Input"
-import { useNumberInputState } from "../NumberInput/state"
+import { NativeInput as Input } from "../Input/Input"
+import { stepperValueText } from "../NumberInput/stepperNumber"
+import { useNativeStepperNumberFieldState } from "../NumberInput/stepperState"
 
+import { useNativeStepperKeys } from "./keys"
 import { useStepperRepeat } from "./repeat"
-import { getNativeStepperStyles } from "./styles"
+import { getNativeStepperStyles, useNativeStepperPaint } from "./styles"
 import type { TNativeStepperProps, TNativeStepperRef, TNativeStepperRenderState } from "./types"
 
 const Glyph = ({ plus, color }: { plus: boolean; color: ColorValue }) => (
@@ -21,22 +40,273 @@ const Glyph = ({ plus, color }: { plus: boolean; color: ColorValue }) => (
   </View>
 )
 
+type TStepperControlsProps = {
+  props: TNativeStepperProps
+  numeric: ReturnType<typeof useNativeStepperNumberFieldState>
+  resolved: ReturnType<typeof getNativeStepperStyles>
+  testID: string
+  label: string
+  groupLabel: string
+  focusPart: (part: string, active: boolean) => void
+}
+
+const StepperControls = forwardRef<TNativeStepperRef, TStepperControlsProps>(
+  ({ props, numeric, resolved, testID, label, groupLabel, focusPart }, ref) => {
+    const {
+      isDisabled = false,
+      isReadOnly = false,
+      geometry = "round",
+      textSize = "medium",
+      PlusIcon,
+      MinusIcon,
+      incrementLabel,
+      decrementLabel,
+      inputProps = {},
+      placeholder,
+    } = props
+    const { color: _groupColor, ...groupStyle } = resolved.group
+    const inputStyle = resolved.input
+    const owner = useId()
+    const originalRef = useRef<TextInput | null>(null)
+    const [original, setOriginal] = useState<TextInput | null>(null)
+    const bindOriginal = useCallback((target: TextInput | null) => {
+      originalRef.current = target
+      setOriginal(target)
+    }, [])
+    const publishedEditor = useRef<{
+      target: TNativeStepperRef
+      owner: typeof ref
+      release: () => void
+    } | null>(null)
+    useLayoutEffect(() => {
+      const target = originalRef.current
+      const published = publishedEditor.current
+      if (published && published.target === target && published.owner === ref) return
+      publishedEditor.current = null
+      published?.release()
+      if (!target || !ref) return
+      const owner = ref
+      let release: () => void
+      if (typeof owner === "function") {
+        const cleanup = owner(target)
+        release = typeof cleanup === "function" ? cleanup : () => owner(null)
+      } else {
+        owner.current = target
+        release = () => {
+          owner.current = null
+        }
+      }
+      // Stock TextInput replays its ref effect on event-count changes; publish committed host identity.
+      publishedEditor.current = { target, owner, release }
+    }, [original, ref])
+    useLayoutEffect(
+      () => () => {
+        originalRef.current = null
+        const published = publishedEditor.current
+        publishedEditor.current = null
+        published?.release()
+      },
+      [],
+    )
+    const scope = useNativeKeyScope()
+    const floatingScope = useContext(NativeFloatingScopeContext)
+    const windowActive = useContext(NativeFloatingWindowContext)
+    const originalField = useMemo(
+      () => (original ? { editor: original, target: findNodeHandle(original) ?? 0 } : null),
+      [original],
+    )
+    const invalid = !!props.errorState || numeric.displayValidation.isInvalid
+    const semanticBinding = useNativeFieldSemantics({
+      labels: { role: "Number field" },
+      text: {},
+      flags: { disabled: isDisabled, readOnly: isReadOnly, required: numeric.isRequired, invalid, expanded: false },
+      activeDescendant: null,
+    })
+    const accessibility = nativeFieldAccessibilityProps(semanticBinding, label, inputProps.accessibilityHint)
+    const field = useNativeNumberFieldForm(
+      props,
+      numeric,
+      originalField,
+      () => originalRef.current,
+      () => originalRef.current === original && original?.isFocused() === true,
+      semanticBinding,
+    )
+    const spokenValue = stepperValueText(props.locale ?? "en-US", numeric.formatValue(numeric.formValue))
+    const previousSpokenValue = useRef(spokenValue)
+    useEffect(() => {
+      const changed = previousSpokenValue.current !== spokenValue
+      previousSpokenValue.current = spokenValue
+      if (
+        changed &&
+        numeric.isInputFocused &&
+        !isDisabled &&
+        original &&
+        originalRef.current === original &&
+        original.isFocused() &&
+        floatingScope?.canAct() !== false &&
+        windowActive?.() !== false &&
+        scope?.isNativeReady() &&
+        scope.isWindowActive()
+      )
+        AccessibilityInfo.announceForAccessibility(spokenValue)
+    }, [spokenValue, numeric.isInputFocused, isDisabled, original, scope, floatingScope, windowActive])
+    const lifetimeKey = JSON.stringify([owner, numeric.configurationKey, isDisabled, isReadOnly])
+    useNativeOriginalEditorFocusBinding(original, !isDisabled, lifetimeKey, {
+      current: () => originalRef.current,
+      canAct: () => !isDisabled && originalRef.current === original,
+    })
+    const receiveOriginalKey = useNativeStepperKeys({
+      props,
+      numeric,
+      original,
+      currentOriginal: () => originalRef.current,
+      lifetimeKey,
+    })
+    const repeat = useStepperRepeat(numeric, isDisabled || isReadOnly, {
+      lifetimeKey,
+      originalEditor: () => originalRef.current,
+    })
+    const renderButton = (direction: -1 | 1) => {
+      const increment = direction === 1
+      const icon = increment ? PlusIcon : MinusIcon
+      return (
+        <NativeButtonPressContext.Provider
+          value={{
+            lifetimeKey: `${lifetimeKey}:${direction}`,
+            originalEditor: () => originalRef.current,
+            canAct: () => repeat.canAct(direction),
+            onPressStart: (event, admission) => repeat.start(direction, event, admission),
+          }}
+        >
+          <Button
+            slot={null}
+            testID={`${testID}-${increment ? "increment" : "decrement"}`}
+            accessibilityLabel={increment ? incrementLabel : decrementLabel}
+            isDisabled={isDisabled || isReadOnly || !(increment ? numeric.canIncrement : numeric.canDecrement)}
+            raised={resolved.buttonRaised}
+            transparent={resolved.buttonTransparent}
+            colorMode={resolved.buttonColorMode}
+            color={props.color}
+            order={props.order}
+            geometry={geometry}
+            enableFocusStyle={false}
+            customStyles={resolved.button}
+            onFocus={() => focusPart(increment ? "increment" : "decrement", true)}
+            onBlur={() => focusPart(increment ? "increment" : "decrement", false)}
+            onPressStart={(event) => repeat.prepare(direction, event)}
+            onPressUp={() => repeat.up(direction)}
+            onPressEnd={repeat.end}
+            onPress={() => repeat.release(direction)}
+          >
+            {({ foregroundColor }) => (
+              <View
+                accessible={false}
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+                pointerEvents="none"
+              >
+                {icon || <Glyph plus={increment} color={foregroundColor} />}
+              </View>
+            )}
+          </Button>
+        </NativeButtonPressContext.Provider>
+      )
+    }
+    const actions =
+      isDisabled || isReadOnly
+        ? []
+        : [
+            ...(numeric.canIncrement ? [{ name: "incrementValue", label: incrementLabel }] : []),
+            ...(numeric.canDecrement ? [{ name: "decrementValue", label: decrementLabel }] : []),
+          ]
+    return (
+      <>
+        <View testID={`${testID}-group`} accessible={false} accessibilityLabel={groupLabel} style={groupStyle}>
+          {renderButton(-1)}
+          <Input
+            ref={bindOriginal}
+            testID={`${testID}-input`}
+            accessibilityLabel={[
+              accessibility.accessibilityLabel,
+              invalid && numeric.displayValidation.validationErrors.join(" "),
+            ]
+              .filter(Boolean)
+              .join(", ")}
+            accessibilityHint={accessibility.accessibilityHint}
+            accessibilityValue={{
+              min: numeric.minValue,
+              max: numeric.maxValue,
+              now: numeric.formValue ?? undefined,
+              text: spokenValue,
+            }}
+            value={numeric.inputValue}
+            onChangeText={numeric.change}
+            isDisabled={isDisabled}
+            isReadOnly={isReadOnly}
+            placeholder={placeholder}
+            textSize={textSize}
+            geometry={geometry}
+            customStyles={inputStyle}
+            enableFocusStyle={false}
+            nativeAnimate={false}
+            nativeRender={(native) => {
+              const hostProps = { ...native, onNativeOrdinaryEditorKey: receiveOriginalKey }
+              return <TextInput {...hostProps} />
+            }}
+            submitBehavior="blurAndSubmit"
+            keyboardType={inputProps.keyboardType ?? (Platform.OS === "ios" ? "numbers-and-punctuation" : "numeric")}
+            returnKeyType={inputProps.returnKeyType}
+            autoFocus={inputProps.autoFocus}
+            selection={inputProps.selection}
+            selectTextOnFocus={inputProps.selectTextOnFocus}
+            allowFontScaling={inputProps.allowFontScaling}
+            maxFontSizeMultiplier={inputProps.maxFontSizeMultiplier}
+            placeholderTextColor={inputProps.placeholderTextColor}
+            selectionColor={inputProps.selectionColor}
+            selectionHandleColor={inputProps.selectionHandleColor}
+            cursorColor={inputProps.cursorColor}
+            underlineColorAndroid={inputProps.underlineColorAndroid}
+            onChange={inputProps.onChange}
+            onSelectionChange={inputProps.onSelectionChange}
+            onFocus={(event) => {
+              numeric.setFocused(true)
+              numeric.begin()
+              focusPart("input", true)
+              inputProps.onFocus?.(event)
+            }}
+            onBlur={(event) => {
+              numeric.setFocused(false)
+              focusPart("input", false)
+              inputProps.onBlur?.(event)
+            }}
+            onSubmitEditing={(event) => {
+              numeric.commit(event.nativeEvent.text)
+              inputProps.onSubmitEditing?.(event)
+            }}
+            onEndEditing={(event) => {
+              numeric.commit(event.nativeEvent.text)
+              inputProps.onEndEditing?.(event)
+            }}
+            accessibilityActions={actions}
+            onAccessibilityAction={({ nativeEvent: { actionName } }) => {
+              if (actionName === "incrementValue" && numeric.canIncrement) numeric.step(1)
+              if (actionName === "decrementValue" && numeric.canDecrement) numeric.step(-1)
+            }}
+          />
+          {renderButton(1)}
+        </View>
+        {field.metadata}
+      </>
+    )
+  },
+)
+
+StepperControls.displayName = "StepperControls"
+
 export const Stepper = forwardRef<TNativeStepperRef, TNativeStepperProps>((props, ref) => {
   const theme = useNativeTheme()
-  const numeric = useNumberInputState(props)
-  const {
-    isDisabled = false,
-    isReadOnly = false,
-    errorState = false,
-    geometry = "round",
-    textSize = "medium",
-    PlusIcon,
-    MinusIcon,
-    incrementLabel,
-    decrementLabel,
-    inputProps = {},
-    placeholder,
-  } = props
+  const numeric = useNativeStepperNumberFieldState(props)
+  const { isDisabled = false, isReadOnly = false, errorState = false, incrementLabel, decrementLabel } = props
   const label = props.accessibilityLabel ?? props["aria-label"]
   for (const [field, text] of [
     ["accessibilityLabel", label],
@@ -66,60 +336,18 @@ export const Stepper = forwardRef<TNativeStepperRef, TNativeStepperProps>((props
     isFocused: focused && !isDisabled,
     isDisabled,
     isReadOnly,
-    isInvalid: errorState,
+    isInvalid: errorState || numeric.displayValidation.isInvalid,
   }
-  const resolved = getNativeStepperStyles(theme, props, state)
+  const resolved = useNativeStepperPaint(
+    theme,
+    getNativeStepperStyles(theme, { ...props, errorState: state.isInvalid }, state),
+  )
   const { color: _rootColor, ...rootStyle } = resolved.root
-  const { color: _groupColor, ...groupStyle } = resolved.group
-  const inputStyle = resolved.input
   const groupLabel = props.labels?.inputButtonGroupAriaLabel ?? "Stepper Input Button Group"
   if (typeof groupLabel !== "string") throw new TypeError("Stepper: group label must be a string")
-  const repeat = useStepperRepeat(numeric, isDisabled || isReadOnly)
-  const renderButton = (direction: -1 | 1) => {
-    const increment = direction === 1
-    const icon = increment ? PlusIcon : MinusIcon
-    return (
-      <Button
-        slot={null}
-        testID={`${testID}-${increment ? "increment" : "decrement"}`}
-        accessibilityLabel={increment ? incrementLabel : decrementLabel}
-        isDisabled={isDisabled || isReadOnly || !(increment ? numeric.canIncrement : numeric.canDecrement)}
-        raised={resolved.buttonRaised}
-        transparent={resolved.buttonTransparent}
-        colorMode={resolved.buttonColorMode}
-        color={props.color}
-        order={props.order}
-        geometry={geometry}
-        enableFocusStyle={false}
-        customStyles={resolved.button}
-        onFocus={() => focusPart(increment ? "increment" : "decrement", true)}
-        onBlur={() => focusPart(increment ? "increment" : "decrement", false)}
-        onPressStart={() => repeat.start(direction)}
-        onPressEnd={repeat.stop}
-        onPress={() => repeat.release(direction)}
-      >
-        {({ foregroundColor }) => (
-          <View
-            accessible={false}
-            accessibilityElementsHidden
-            importantForAccessibility="no-hide-descendants"
-            pointerEvents="none"
-          >
-            {icon || <Glyph plus={increment} color={foregroundColor} />}
-          </View>
-        )}
-      </Button>
-    )
-  }
-  const actions =
-    isDisabled || isReadOnly
-      ? []
-      : [
-          ...(numeric.canIncrement ? [{ name: "incrementValue", label: incrementLabel }] : []),
-          ...(numeric.canDecrement ? [{ name: "decrementValue", label: decrementLabel }] : []),
-        ]
   return (
-    <View
+    <NativeKeyboardScope
+      captureEnabled
       testID={testID}
       nativeID={props.nativeID}
       id={props.id}
@@ -129,63 +357,17 @@ export const Stepper = forwardRef<TNativeStepperRef, TNativeStepperProps>((props
       accessible={false}
       style={rootStyle}
     >
-      <View testID={`${testID}-group`} accessible={false} accessibilityLabel={groupLabel} style={groupStyle}>
-        {renderButton(-1)}
-        <Input
-          ref={ref}
-          testID={`${testID}-input`}
-          accessibilityLabel={label}
-          value={numeric.inputValue}
-          onChangeText={numeric.change}
-          isDisabled={isDisabled}
-          isReadOnly={isReadOnly}
-          placeholder={placeholder}
-          textSize={textSize}
-          geometry={geometry}
-          customStyles={inputStyle}
-          enableFocusStyle={false}
-          submitBehavior="blurAndSubmit"
-          keyboardType={inputProps.keyboardType ?? (Platform.OS === "ios" ? "numbers-and-punctuation" : "numeric")}
-          returnKeyType={inputProps.returnKeyType}
-          autoFocus={inputProps.autoFocus}
-          selection={inputProps.selection}
-          selectTextOnFocus={inputProps.selectTextOnFocus}
-          allowFontScaling={inputProps.allowFontScaling}
-          maxFontSizeMultiplier={inputProps.maxFontSizeMultiplier}
-          placeholderTextColor={inputProps.placeholderTextColor}
-          selectionColor={inputProps.selectionColor}
-          selectionHandleColor={inputProps.selectionHandleColor}
-          cursorColor={inputProps.cursorColor}
-          underlineColorAndroid={inputProps.underlineColorAndroid}
-          accessibilityHint={inputProps.accessibilityHint}
-          onChange={inputProps.onChange}
-          onSelectionChange={inputProps.onSelectionChange}
-          onFocus={(event) => {
-            numeric.begin()
-            focusPart("input", true)
-            inputProps.onFocus?.(event)
-          }}
-          onBlur={(event) => {
-            focusPart("input", false)
-            inputProps.onBlur?.(event)
-          }}
-          onSubmitEditing={(event) => {
-            numeric.commit(event.nativeEvent.text)
-            inputProps.onSubmitEditing?.(event)
-          }}
-          onEndEditing={(event) => {
-            numeric.commit(event.nativeEvent.text)
-            inputProps.onEndEditing?.(event)
-          }}
-          accessibilityActions={actions}
-          onAccessibilityAction={({ nativeEvent: { actionName } }) => {
-            if (actionName === "incrementValue" && numeric.canIncrement) numeric.step(1)
-            if (actionName === "decrementValue" && numeric.canDecrement) numeric.step(-1)
-          }}
-        />
-        {renderButton(1)}
-      </View>
-    </View>
+      <StepperControls
+        ref={ref}
+        props={props}
+        numeric={numeric}
+        resolved={resolved}
+        testID={testID}
+        label={label!}
+        groupLabel={groupLabel}
+        focusPart={focusPart}
+      />
+    </NativeKeyboardScope>
   )
 })
 Stepper.displayName = "Stepper"

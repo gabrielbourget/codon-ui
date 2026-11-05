@@ -100,6 +100,14 @@ export const useNumberInputState = (props: TNativeNumberInputProps) => {
     pressEnd: () => {
       press.current.pending = false
     },
+    endpoint: (direction: -1 | 1) => {
+      if (blocked) return
+      const next = model.endpoint(direction)
+      if (next !== undefined) {
+        press.current = { pending: false, cancelled: false }
+        publish(next)
+      }
+    },
     step: (direction: -1 | 1, fromPress = false) => {
       const cancelled = fromPress && press.current.cancelled
       press.current.pending = false

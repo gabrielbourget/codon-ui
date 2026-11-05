@@ -40,6 +40,7 @@ type NativePointerCaptureData = Readonly<{
 
 export type NativeDragActionData = Readonly<{ packet: string }>
 export type NativeScopedKeyData = Readonly<{
+  originalEditorAction?: string
   kind: string
   ownerId: string
   policyId: string
@@ -71,6 +72,7 @@ export type NativeInputModalityData = Readonly<{
   timestamp: Double
 }>
 type NativeKeyPolicy = Readonly<{
+  originalEditorAction?: boolean
   id: string
   tokens: ReadonlyArray<string>
   excludeEditable: boolean
@@ -209,6 +211,7 @@ type NativeOrdinaryEditorBinding = Readonly<{
   subtree: boolean
   toolbarTargetOnly: boolean
   toolbarSubtreeOnly: boolean
+  originalEditorAction?: boolean
 }>
 
 export type NativeEditorKeyboardStatus = Readonly<{

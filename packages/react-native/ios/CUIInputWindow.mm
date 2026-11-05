@@ -314,6 +314,10 @@ BOOL CUIInputKeyboardRepeating(UIWindow *window, UIKeyboardHIDUsage code)
   if (down && !repeat) self.sequences[code]=@(++state.physicalKeySequence);
   [self.records setObject:@{@"timestamp":@(press.timestamp), @"phase":phase,
       @"sequence":self.sequences[code] ?: @0, @"repeat":@(repeat)} forKey:press];
+  for (id<CUIKeyboardObservationScope> scope in CUIInputScopes(window)) {
+    if ([scope respondsToSelector:@selector(observeOriginalEditorPress:phase:frame:)])
+      [scope observeOriginalEditorPress:press phase:phase frame:[self.records objectForKey:press]];
+  }
   if (!down) { [self.held removeObject:code]; return; }
   [self.held addObject:code];
   NSArray *scopes = CUIInputScopes(window);

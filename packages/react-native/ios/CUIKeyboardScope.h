@@ -25,3 +25,5 @@ NSString *CUIKeyboardToolbarDateRoute(UIPress *press);
 void CUIKeyboardPrepareToolbarDate(UIPress *press, NSString *phase, BOOL repeat);
 
 BOOL CUIKeyboardToolbarDateOwnsOriginal(UIView *target, UIPress *press);
+
+NSString *CUIKeyboardOriginalEditorAction(UIPress *press);

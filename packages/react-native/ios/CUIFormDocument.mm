@@ -63,6 +63,13 @@ static void CUIAdmitFormOriginals(RCTSurfacePresenter *presenter, NSDictionary *
 @interface CUIFormDocument : NativeCUIFormDocumentSpecBase <NativeCUIFormDocumentSpec, RCTInvalidating>
 @end
 
+static BOOL CUIIsComboBoxFormTrigger(CUIFormMetadataView *metadata, RCTViewComponentView *original)
+{
+  if (![original isKindOfClass:CUIFocusView.class]) return NO;
+  id control = [NSJSONSerialization JSONObjectWithData:[metadata.ownedControlBinding dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
+  return [control isKindOfClass:NSDictionary.class] && [control count] == 2 && [control[@"kind"] isEqual:@"combo-box-trigger"];
+}
+
 @implementation CUIFormDocument {
   id<RCTSurfacePresenterStub> _presenter;
   std::atomic<bool> _valid;
@@ -104,6 +111,10 @@ RCT_EXPORT_MODULE(CUIFormDocument)
   NSString *encoded = [metadata.semanticBinding copy], *revision = [metadata.descriptorRevision copy];
   NSDictionary *plan = [NSJSONSerialization JSONObjectWithData:[encoded dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
   if (![plan isKindOfClass:NSDictionary.class] || ![plan[@"text"] isKindOfClass:NSDictionary.class]) {
+    [metadata resetSemanticAccessibilityFocus]; return;
+  }
+  if (CUIIsComboBoxFormTrigger(metadata, core)) {
+    // The trigger uses current RN field props; modal options own their separate focus.
     [metadata resetSemanticAccessibilityFocus]; return;
   }
   id accessible = core.accessibilityElement;
@@ -159,7 +170,7 @@ RCT_EXPORT_MODULE(CUIFormDocument)
     RCTSurfacePresenter *presenter = (id)_presenter;
     CUIFieldBinding *metadata = (id)[presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[mount[@"target"] integerValue]];
     RCTViewComponentView *core = (id)[presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[mount[@"originalTarget"] integerValue]];
-    if (![metadata isKindOfClass:CUIFieldBinding.class] || (![core isKindOfClass:RCTTextInputComponentView.class] && ![core isKindOfClass:CUIDateSegment.class]) ||
+    if (![metadata isKindOfClass:CUIFieldBinding.class] || (![core isKindOfClass:RCTTextInputComponentView.class] && ![core isKindOfClass:CUIDateSegment.class] && !CUIIsComboBoxFormTrigger(metadata, core)) ||
         [metadata originalForMountSnapshot:mount] != core || ![metadata.semanticBinding isEqual:request[@"semanticBinding"]])
       @throw [NSException exceptionWithName:@"CUI.Field" reason:@"field-binding-original-editor-retired" userInfo:nil];
     NSString *owner = [metadata.ownerId copy], *descriptor = [metadata.descriptorId copy];

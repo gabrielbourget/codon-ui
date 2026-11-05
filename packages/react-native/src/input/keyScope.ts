@@ -8,6 +8,7 @@ export type TNativeKeyPolicy = Readonly<{
   lifetimeKey: string
   targetTag?: number
   excludeComposing?: boolean
+  originalEditorAction?: boolean
   canAct: () => boolean
   onKey: (event: TNativeKeyboardEvent) => void
 }>
@@ -17,6 +18,7 @@ export type TNativeKeyPolicySnapshot = Readonly<{
   excludeEditable: boolean
   excludeComposing: boolean
   targetTag: number
+  originalEditorAction?: boolean
 }>
 
 export const nativeKeyToken = (
@@ -34,7 +36,6 @@ export const createNativeKeyScope = (ownerId: string) => {
   const listeners = new Set<() => void>()
   let revision = 0
   let serial = 0
-  let published = ""
   let disposed = false
   let enabled = true
   let nativeRevision = 0
@@ -42,6 +43,15 @@ export const createNativeKeyScope = (ownerId: string) => {
   let session = { windowId: "", epoch: 0 }
   let input: NativeInputModalityData | null = null
   let physicalWindowActive: boolean | null = null
+  let published:
+    | Readonly<{
+        nativeRevision: number
+        session: typeof session
+        nativeReady: boolean
+        physicalWindowActive: boolean | null
+        origin: NativeInputModalityData["origin"] | null
+      }>
+    | undefined
   const changed = () => {
     nativeRevision++
     nativeReady = false
@@ -64,6 +74,7 @@ export const createNativeKeyScope = (ownerId: string) => {
       policy.isEnabled,
       policy.lifetimeKey,
       policy.targetTag,
+      policy.originalEditorAction === true,
     ])
   const policies = (): readonly TNativeKeyPolicySnapshot[] =>
     !enabled || disposed
@@ -77,18 +88,21 @@ export const createNativeKeyScope = (ownerId: string) => {
             excludeEditable: policy.excludeEditable,
             excludeComposing: policy.excludeComposing ?? true,
             targetTag: policy.targetTag ?? 0,
+            ...(policy.originalEditorAction ? { originalEditorAction: true } : {}),
           }))
   const flush = () => {
-    const signature = JSON.stringify([
-      policies(),
-      session,
-      nativeReady,
-      nativeRevision,
-      physicalWindowActive,
-      input?.origin ?? null,
-    ])
-    if (signature === published) return
-    published = signature
+    const origin = input?.origin ?? null
+    // Every policy mutation advances nativeRevision; session changes replace the owned object.
+    if (
+      published &&
+      published.nativeRevision === nativeRevision &&
+      published.session === session &&
+      published.nativeReady === nativeReady &&
+      published.physicalWindowActive === physicalWindowActive &&
+      published.origin === origin
+    )
+      return
+    published = { nativeRevision, session, nativeReady, physicalWindowActive, origin }
     revision++
     for (const listener of listeners) listener()
   }

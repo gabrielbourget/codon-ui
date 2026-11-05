@@ -1,0 +1,33 @@
+{
+  "purpose": "Owner-requested single-thread cutoff and source preservation",
+  "qualification": "No installed qualification or matrix promotion",
+  "patches": [
+    {
+      "file": "typeahead-g02-supplemental.patch",
+      "sha256": "51905d3c4e69e26292fc38411e4e9b5f014354cea4e4cd9588b0b6a61a940855",
+      "baseCommit": "547b4f79b0110fb625859f5dbeb28ff9f80549b0",
+      "disposition": "Unapplied; three coordinator source-test timeouts remain unresolved"
+    },
+    {
+      "file": "number-input-ref-g02.patch",
+      "sha256": "fac4900a064720a472df84896780165360360592c0b4ed9b0691365178e72b8d",
+      "baseCommit": "1567b08b6c1121aa85c97e8ea95cd7b05a97f676",
+      "disposition": "Unapplied; focused regressions pass but retained owning verification is incomplete"
+    },
+    {
+      "file": "stepper-readonly-platform-reproducer.patch",
+      "sha256": "8b7b9257c574e7c370efe1fdc31aac9bc679537ba423b1b2766a91c80ac64503",
+      "disposition": "Unapplied intentionally red test-only reproducer; no production solution"
+    },
+    {
+      "file": "stepper-s06-observer-fragment.patch",
+      "sha256": "0a4ea6a2b9cc752f60e85461cce96df5764f57dd15c3c6ece98fe0b52828775e",
+      "disposition": "Recovery fragment; six methods already integrated and compiled, not installed-qualified"
+    },
+    {
+      "file": "stepper-s06-source-tests.patch",
+      "sha256": "8c6145156b719e4358fc42f5451a453b9b95b93d6c6e13fe79621bc291908569",
+      "disposition": "Recovery source-model patch; current postimage differs, review before applying"
+    }
+  ]
+}

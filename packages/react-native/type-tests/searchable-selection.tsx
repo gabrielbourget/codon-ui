@@ -104,8 +104,32 @@ accept({ ...base, shouldFocusWrap: true })
 accept({ ...base, menuTrigger: "focus" })
 // @ts-expect-error no DOM class plumbing
 accept({ ...base, className: "web" })
-// @ts-expect-error no HTML forms
-accept({ ...base, name: "choice" })
+accept({
+  ...base,
+  name: "choice",
+  formFieldId: "choice",
+  form: "checkout",
+  formValue: "key",
+  isRequired: true,
+  validationBehavior: "native",
+  requiredErrorMessage: "Choose",
+  validate: ({ value, selectedKey, inputValue }) => (value === selectedKey && inputValue ? true : "Missing"),
+  onKeyDown: (event) => {
+    const original: TextInput = event.target
+    return original
+  },
+  inputProps: {
+    onKeyUp: (event) => {
+      const original: TextInput = event.currentTarget
+      return original
+    },
+  },
+})
+accept({ ...base, formValue: "text", isInvalid: false })
+// @ts-expect-error native Form serialization is key or text only
+accept({ ...base, formValue: "selection" })
+// @ts-expect-error explicit Form association uses its identifier, not a DOM form
+accept({ ...base, form: {} })
 // @ts-expect-error no portal placement
 accept({ ...base, portalContainer: {} })
 // @ts-expect-error editor value is owned by inputValue

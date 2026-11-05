@@ -1,0 +1,2124 @@
+diff --git a/apps/native-showcase/src/scenes/TypeaheadSearchScene.tsx b/apps/native-showcase/src/scenes/TypeaheadSearchScene.tsx
+--- a/apps/native-showcase/src/scenes/TypeaheadSearchScene.tsx
++++ b/apps/native-showcase/src/scenes/TypeaheadSearchScene.tsx
+@@ -1,13 +1,15 @@
+ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+-import { findNodeHandle, StyleSheet, View, type TextInput } from "react-native"
++import { findNodeHandle, StyleSheet, View, type GestureResponderEvent, type TextInput } from "react-native"
+ 
+ import {
+   AVAILABLE_CORNER_GEOMETRY_CODES,
+   AVAILABLE_TYPEAHEAD_SEARCH_STATUSES,
+   Button,
++  NativeLocaleProvider,
+   Text,
+   TypeaheadSearch,
+   useNativeTheme,
++  useNativeLocale,
+   type PartialTypeaheadSearchLabels,
+   type TNativeTypeaheadSearchKey,
+   type TNativeTypeaheadSearchRenderItemArgs,
+@@ -27,6 +29,30 @@
+       : `Result ${index} / résultat ${index}`,
+ }))
+ const REFRESHED: readonly TItem[] = ITEMS.map((item) => ({ ...item, name: `${item.name} refreshed` }))
++const SEARCH_ITEMS: readonly (readonly TItem[])[] = [
++  ITEMS,
++  [
++    { id: 0, name: "Beta numeric zero / première correspondance" },
++    { id: "0", name: "Beta string zero / deuxième correspondance" },
++    { id: "", name: "Beta empty key / troisième correspondance" },
++    { id: "alpha", name: "Alpha after timeout / après le délai" },
++  ],
++  [
++    { id: 0, name: "Résultat numeric zero / première correspondance" },
++    { id: "0", name: "RESULTAT string zero / deuxième correspondance" },
++    { id: "", name: "résultat empty key / troisième correspondance" },
++    { id: "alpha", name: "Alpha after timeout / après le délai" },
++  ],
++]
++const SUPPLEMENTAL_LOCALES = ["inherit", "en", "fr"] as const
++const RETIREMENTS = [
++  "reorder",
++  "row-removal",
++  "immutable-replacement",
++  "status-unmount",
++  "surface-unmount",
++  "caller-ref-change",
++] as const
+ const getKey = (item: TItem) => item.id
+ const getText = (item: TItem) => item.name
+ const renderItem = (item: TItem, args: TNativeTypeaheadSearchRenderItemArgs) => (
+@@ -52,6 +78,19 @@
+ 
+ export const TypeaheadSearchScene = () => {
+   const [query, setQuery] = useState("")
++  const inheritedLocale = useNativeLocale()
++  const [supplementalLocaleIndex, setSupplementalLocaleIndex] = useState(0)
++  const [supplementalDataset, setSupplementalDataset] = useState(0)
++  const [retirementIndex, setRetirementIndex] = useState(0)
++  const [touchArmed, setTouchArmed] = useState(false)
++  const [touchPending, setTouchPending] = useState(false)
++  const armedTouch = useRef(false)
++  const activeTouch = useRef<string | number | null>(null)
++  const touchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
++  const [touchEvents, setTouchEvents] = useState<
++    { phase: string; target: string | number; identifier: string | number; at: number }[]
++  >([])
++  const [retirementEvents, setRetirementEvents] = useState<{ action: string; source: string; at: number }[]>([])
+   const [callbacks, setCallbacks] = useState<{ type: string; value: string | number | null }[]>([])
+   const [refEvents, setRefEvents] = useState<{ id: number; attached: boolean }[]>([])
+   const refIDs = useRef(new WeakMap<TextInput, number>())
+@@ -138,14 +177,72 @@
+       setHostEvents((current) => [...current, "replacement-completed"])
+     }, 3000)
+   }
++  useEffect(() => {
++    setTouchPending(false)
++    setTouchArmed(false)
++    return () => {
++      if (touchTimer.current !== null) clearTimeout(touchTimer.current)
++      touchTimer.current = null
++      activeTouch.current = null
++      armedTouch.current = false
++    }
++  }, [lifetime, surfaceMounted])
++  const applyRetirement = (action: (typeof RETIREMENTS)[number], source: string) => {
++    if (action === "reorder") setReversed((value) => !value)
++    else if (action === "row-removal") setRemoved(true)
++    else if (action === "immutable-replacement") setRefreshed((value) => !value)
++    else if (action === "status-unmount") setStatusIndex(0)
++    else if (action === "surface-unmount") setSurfaceMounted(false)
++    else setCallerRef((value) => !value)
++    setRetirementEvents((current) => [...current, { action, source, at: Date.now() }])
++  }
++  const observeTouchStart = (event: GestureResponderEvent) => {
++    if (!armedTouch.current || touchTimer.current !== null) return
++    const point = event.nativeEvent.changedTouches?.[0] ?? event.nativeEvent
++    const action = RETIREMENTS[retirementIndex]
++    const identifier = point.identifier
++    armedTouch.current = false
++    activeTouch.current = identifier
++    setTouchArmed(false)
++    setTouchPending(true)
++    setTouchEvents((current) => [
++      ...current,
++      { phase: "start", target: point.target, identifier: point.identifier, at: Date.now() },
++    ])
++    // A passive original touch observer starts host work; it never captures or synthesizes the row press.
++    touchTimer.current = setTimeout(() => {
++      touchTimer.current = null
++      if (activeTouch.current !== identifier) return
++      setTouchPending(false)
++      applyRetirement(action, "held-touch")
++    }, 3000)
++  }
++  const observeTouchEnd = (event: GestureResponderEvent, cancelled: boolean) => {
++    if (activeTouch.current === null) return
++    const point =
++      event.nativeEvent.changedTouches?.find((touch) => touch.identifier === activeTouch.current) ?? event.nativeEvent
++    if (point.identifier !== activeTouch.current) return
++    setTouchEvents((current) => [
++      ...current,
++      { phase: cancelled ? "cancel" : "end", target: point.target, identifier: point.identifier, at: Date.now() },
++    ])
++    activeTouch.current = null
++    if (touchTimer.current !== null) {
++      clearTimeout(touchTimer.current)
++      touchTimer.current = null
++      setTouchPending(false)
++    }
++  }
+   const theme = useNativeTheme()
+   const items = useMemo(() => {
+     if (empty) return []
+-    let result = (many ? MANY : refreshed ? REFRESHED : ITEMS).filter((item) => !removed || item.id !== 0)
++    let result = (many ? MANY : refreshed ? REFRESHED : SEARCH_ITEMS[supplementalDataset]).filter(
++      (item) => !removed || item.id !== 0,
++    )
+     if (filter) result = result.filter((item) => item.name.toLowerCase().includes(query.trim().toLowerCase()))
+     if (reversed) result.reverse()
+     return result
+-  }, [empty, many, refreshed, removed, filter, query, reversed])
++  }, [empty, many, refreshed, removed, filter, query, reversed, supplementalDataset])
+   const status = AVAILABLE_TYPEAHEAD_SEARCH_STATUSES[statusIndex]
+   const affordance = AFFORDANCES[affordanceIndex]
+   return (
+@@ -154,6 +251,33 @@
+         Inline typeahead and caller-curated results
+       </Text>
+       <View style={styles.controls}>
++        <Button onPress={() => setSupplementalLocaleIndex((value) => (value + 1) % SUPPLEMENTAL_LOCALES.length)}>
++          Next inline search supplemental locale
++        </Button>
++        <Button onPress={() => setSupplementalDataset((value) => (value + 1) % SEARCH_ITEMS.length)}>
++          Next inline search supplemental dataset
++        </Button>
++        <Button onPress={() => setRetirementIndex((value) => (value + 1) % RETIREMENTS.length)}>
++          Next inline search retirement
++        </Button>
++        <Button
++          onPress={() => {
++            if (touchTimer.current !== null) clearTimeout(touchTimer.current)
++            touchTimer.current = null
++            activeTouch.current = null
++            armedTouch.current = true
++            setTouchArmed(true)
++            setTouchPending(false)
++            setTouchEvents([])
++            setRetirementEvents([])
++          }}
++        >
++          Arm inline search retirement on touch
++        </Button>
++        <Button onPress={() => applyRetirement(RETIREMENTS[retirementIndex], "host-control")}>
++          Apply inline search retirement now
++        </Button>
++
+         <Button onPress={() => setVeto((value) => !value)}>Toggle inline search veto</Button>
+         <Button onPress={() => setQuery("")}>Clear inline search owner</Button>
+         <Button
+@@ -211,97 +335,119 @@
+       <Button onPress={() => setHostEvents((current) => [...current, "before-boundary"])}>
+         Before inline search focus boundary
+       </Button>
+-      {surfaceMounted && (
+-        <TypeaheadSearch
+-          key={lifetime}
+-          testID="inline-search-example"
+-          inputRef={callerRef ? bindEditor : undefined}
+-          accessibilityLabel="Inline search input"
+-          inputValue={query}
+-          onInputChange={(next) => {
+-            record("input", next)
+-            setRequest(next)
+-            setRequests((value) => value + 1)
+-            if (!veto) setQuery(next)
+-          }}
+-          onSubmitQuery={(next) => {
+-            record("submit", next)
+-            setSubmitted(next)
+-            setSubmits((value) => value + 1)
+-          }}
+-          onSelectionChange={(next) => {
+-            record("selection", next)
+-            setSelection(next)
+-            setSelections((value) => value + 1)
+-          }}
+-          inputProps={{
+-            returnKeyType: "search",
+-            onChange: ({ nativeEvent }) => {
+-              setNativeText(nativeEvent.text)
+-              setNativeTarget(nativeEvent.target)
+-              setRefTarget(editor.current ? findNodeHandle(editor.current) : null)
+-              setNativeChanges((value) => value + 1)
+-            },
+-            onSelectionChange: ({ nativeEvent }) => setNativeSelection(nativeEvent.selection),
+-            onKeyPress: ({ nativeEvent }) => setNativeKey(nativeEvent.key),
+-            onEndEditing: ({ nativeEvent }) => setNativeEndText(nativeEvent.text),
+-            onSubmitEditing: ({ nativeEvent }) => {
+-              record("native-submit", nativeEvent.text)
+-              setNativeSubmit(nativeEvent.text)
+-            },
+-            onFocus: () => setFocusEvents((value) => value + 1),
+-          }}
+-          status={status}
+-          minimumInputLength={THRESHOLDS[thresholdIndex]}
+-          items={items}
+-          getItemKey={getKey}
+-          getItemTextValue={getText}
+-          renderItem={customRows ? renderItem : undefined}
+-          labels={localized ? FRENCH : undefined}
+-          geometry={AVAILABLE_CORNER_GEOMETRY_CODES[geometryIndex]}
+-          shouldFocusWrap={wrap}
+-          shouldAutoFocusInput={autoFocus}
+-          isDisabled={disabled}
+-          SearchIcon={
+-            affordance === "empty" ? (
+-              ""
+-            ) : affordance === "null" ? null : affordance === "custom" ? (
+-              <Text>Go</Text>
+-            ) : affordance === "falsy" ? (
+-              0
+-            ) : affordance === "bigint" ? (
+-              12n
+-            ) : undefined
+-          }
+-          LoadingIndicator={
+-            affordance === "empty" ? (
+-              ""
+-            ) : affordance === "null" ? null : affordance === "custom" ? (
+-              <Text>Working</Text>
+-            ) : affordance === "falsy" ? (
+-              false
+-            ) : affordance === "bigint" ? (
+-              13n
+-            ) : undefined
+-          }
+-          customStyles={
+-            custom
+-              ? { padding: 6, borderWidth: 1, borderColor: theme.colors.controlBorder, color: theme.colors.foreground }
+-              : undefined
+-          }
+-          style={zero ? { width: 0, height: 0, padding: 0, borderWidth: 0 } : undefined}
+-          customInputRowStyles={custom ? { gap: 3 } : undefined}
+-          customInputStyles={custom ? { fontSize: 18, paddingLeft: 15 } : undefined}
+-          customSearchButtonStyles={custom ? { width: 35, height: 35 } : undefined}
+-          customResultsContainerStyles={custom ? { height: 240, minHeight: 0, maxHeight: 240 } : undefined}
+-          customResultsListStyles={custom ? { gap: 15, padding: 5 } : undefined}
+-          onLayout={({ nativeEvent: { layout } }) => {
+-            const width = Math.round(layout.width * 1000) / 1000
+-            const height = Math.round(layout.height * 1000) / 1000
+-            setFrame((current) => (current?.width === width && current.height === height ? current : { width, height }))
+-          }}
+-        />
+-      )}
++      <NativeLocaleProvider
++        locale={
++          SUPPLEMENTAL_LOCALES[supplementalLocaleIndex] === "inherit"
++            ? inheritedLocale.locale
++            : SUPPLEMENTAL_LOCALES[supplementalLocaleIndex]
++        }
++      >
++        <View
++          testID="inline-search-touch-observer"
++          onTouchStart={observeTouchStart}
++          onTouchEnd={(event) => observeTouchEnd(event, false)}
++          onTouchCancel={(event) => observeTouchEnd(event, true)}
++        >
++          {surfaceMounted && (
++            <TypeaheadSearch
++              key={lifetime}
++              testID="inline-search-example"
++              inputRef={callerRef ? bindEditor : undefined}
++              accessibilityLabel="Inline search input"
++              inputValue={query}
++              onInputChange={(next) => {
++                record("input", next)
++                setRequest(next)
++                setRequests((value) => value + 1)
++                if (!veto) setQuery(next)
++              }}
++              onSubmitQuery={(next) => {
++                record("submit", next)
++                setSubmitted(next)
++                setSubmits((value) => value + 1)
++              }}
++              onSelectionChange={(next) => {
++                record("selection", next)
++                setSelection(next)
++                setSelections((value) => value + 1)
++              }}
++              inputProps={{
++                returnKeyType: "search",
++                onChange: ({ nativeEvent }) => {
++                  setNativeText(nativeEvent.text)
++                  setNativeTarget(nativeEvent.target)
++                  setRefTarget(editor.current ? findNodeHandle(editor.current) : null)
++                  setNativeChanges((value) => value + 1)
++                },
++                onSelectionChange: ({ nativeEvent }) => setNativeSelection(nativeEvent.selection),
++                onKeyPress: ({ nativeEvent }) => setNativeKey(nativeEvent.key),
++                onEndEditing: ({ nativeEvent }) => setNativeEndText(nativeEvent.text),
++                onSubmitEditing: ({ nativeEvent }) => {
++                  record("native-submit", nativeEvent.text)
++                  setNativeSubmit(nativeEvent.text)
++                },
++                onFocus: () => setFocusEvents((value) => value + 1),
++              }}
++              status={status}
++              minimumInputLength={THRESHOLDS[thresholdIndex]}
++              items={items}
++              getItemKey={getKey}
++              getItemTextValue={getText}
++              renderItem={customRows ? renderItem : undefined}
++              labels={localized ? FRENCH : undefined}
++              geometry={AVAILABLE_CORNER_GEOMETRY_CODES[geometryIndex]}
++              shouldFocusWrap={wrap}
++              shouldAutoFocusInput={autoFocus}
++              isDisabled={disabled}
++              SearchIcon={
++                affordance === "empty" ? (
++                  ""
++                ) : affordance === "null" ? null : affordance === "custom" ? (
++                  <Text>Go</Text>
++                ) : affordance === "falsy" ? (
++                  0
++                ) : affordance === "bigint" ? (
++                  12n
++                ) : undefined
++              }
++              LoadingIndicator={
++                affordance === "empty" ? (
++                  ""
++                ) : affordance === "null" ? null : affordance === "custom" ? (
++                  <Text>Working</Text>
++                ) : affordance === "falsy" ? (
++                  false
++                ) : affordance === "bigint" ? (
++                  13n
++                ) : undefined
++              }
++              customStyles={
++                custom
++                  ? {
++                      padding: 6,
++                      borderWidth: 1,
++                      borderColor: theme.colors.controlBorder,
++                      color: theme.colors.foreground,
++                    }
++                  : undefined
++              }
++              style={zero ? { width: 0, height: 0, padding: 0, borderWidth: 0 } : undefined}
++              customInputRowStyles={custom ? { gap: 3 } : undefined}
++              customInputStyles={custom ? { fontSize: 18, paddingLeft: 15 } : undefined}
++              customSearchButtonStyles={custom ? { width: 35, height: 35 } : undefined}
++              customResultsContainerStyles={custom ? { height: 240, minHeight: 0, maxHeight: 240 } : undefined}
++              customResultsListStyles={custom ? { gap: 15, padding: 5 } : undefined}
++              onLayout={({ nativeEvent: { layout } }) => {
++                const width = Math.round(layout.width * 1000) / 1000
++                const height = Math.round(layout.height * 1000) / 1000
++                setFrame((current) =>
++                  current?.width === width && current.height === height ? current : { width, height },
++                )
++              }}
++            />
++          )}
++        </View>
++      </NativeLocaleProvider>
+       <Button onPress={() => setHostEvents((current) => [...current, "after-boundary"])}>
+         After inline search focus boundary
+       </Button>
+@@ -358,6 +504,21 @@
+           focusEvents,
+         })}
+       </Text>
++      <Text testID="inline-search-supplemental-json">
++        {JSON.stringify({
++          locale: SUPPLEMENTAL_LOCALES[supplementalLocaleIndex],
++          effectiveLocale:
++            SUPPLEMENTAL_LOCALES[supplementalLocaleIndex] === "inherit"
++              ? inheritedLocale.locale
++              : SUPPLEMENTAL_LOCALES[supplementalLocaleIndex],
++          dataset: supplementalDataset,
++          retirement: RETIREMENTS[retirementIndex],
++          touchArmed,
++          touchPending,
++          touchEvents,
++          retirementEvents,
++        })}
++      </Text>
+       <Text testID="inline-search-content-end">
+         Query/status/results are caller-owned. Selection belongs to the results lifetime. Native text and submit
+         observations never overwrite the query. Installed first input, row activation, focus and complete
+diff --git a/apps/native-showcase/src/scenes/__tests__/TypeaheadSearchScene.test.tsx b/apps/native-showcase/src/scenes/__tests__/TypeaheadSearchScene.test.tsx
+--- a/apps/native-showcase/src/scenes/__tests__/TypeaheadSearchScene.test.tsx
++++ b/apps/native-showcase/src/scenes/__tests__/TypeaheadSearchScene.test.tsx
+@@ -285,3 +285,122 @@
+     hostEvents: ["before-boundary", "after-boundary"],
+   })
+ })
++
++const supplemental = () => JSON.parse(screen.getByTestId("inline-search-supplemental-json").props.children as string)
++const touch = (identifier: string | number = 0) => ({
++  nativeEvent: {
++    target: 77,
++    identifier,
++    timestamp: 1,
++    changedTouches: [{ target: 77, identifier, timestamp: 1 }],
++  },
++})
++
++it("passes mounted supplemental locale changes to the actual result collator and preserves typed selection and editor", async () => {
++  const OriginalCollator = Intl.Collator
++  const collator = jest
++    .spyOn(Intl, "Collator")
++    .mockImplementation((locales, options) => new OriginalCollator(locales, options))
++  const press = await enter()
++  const original = input()
++  await fireEvent.changeText(input(), "retained query")
++  await press("Next inline search supplemental locale")
++  await press("Next inline search supplemental dataset")
++  await fireEvent.press(screen.getByRole("radio", { name: /^Beta empty key/ }))
++  const before = owner()
++  expect(collator.mock.calls.some(([locale]) => locale === "en")).toBe(true)
++  expect(screen.getAllByTestId("typeahead-search-item")).toHaveLength(4)
++  await press("Next inline search supplemental locale")
++  await press("Next inline search supplemental dataset")
++  expect(collator.mock.calls.some(([locale]) => locale === "fr")).toBe(true)
++  expect(screen.getByRole("radio", { name: /^résultat empty key/ })).toBeChecked()
++  expect(screen.getByRole("radio", { name: /^Alpha after timeout/ })).toBeOnTheScreen()
++  expect(input()).toBe(original)
++  expect(input()).toHaveDisplayValue("retained query")
++  expect(owner().callbacks).toEqual(before.callbacks)
++  expect(owner().refEvents).toEqual(before.refEvents)
++  expect(screen.getByRole("button", { name: "Search" })).toBeOnTheScreen()
++})
++
++it.each(["reorder", "row-removal", "immutable-replacement", "status-unmount", "surface-unmount", "caller-ref-change"])(
++  "applies only the armed host %s job after an observed touch and the original3000ms deadline",
++  async (action) => {
++    const press = await enter()
++    const original = input()
++    for (let index = 0; index < 6 && supplemental().retirement !== action; index++)
++      await press("Next inline search retirement")
++    await press("Arm inline search retirement on touch")
++    const before = owner()
++    await fireEvent(screen.getByTestId("inline-search-touch-observer"), "touchStart", touch())
++    expect(supplemental().touchPending).toBe(true)
++    await act(() => jest.advanceTimersByTime(2999))
++    expect(supplemental().retirementEvents).toEqual([])
++    expect(alpha()).toBeOnTheScreen()
++    await act(() => jest.advanceTimersByTime(1))
++    expect(supplemental().retirementEvents).toEqual([
++      { action, source: "held-touch", at: supplemental().touchEvents[0].at + 3000 },
++    ])
++    expect(supplemental().touchPending).toBe(false)
++    expect(owner().callbacks).toEqual(before.callbacks)
++    if (action === "reorder") expect(screen.getAllByRole("radio")[0]).toHaveTextContent("Empty-key current")
++    else if (action === "row-removal") expect(screen.queryByRole("radio", { name: /^Alpha wave/ })).toBeNull()
++    else if (action === "immutable-replacement")
++      expect(screen.getByRole("radio", { name: /^Alpha wave refreshed/ })).toBeOnTheScreen()
++    else if (action === "status-unmount") expect(screen.getByTestId("typeahead-search-idle-state")).toBeOnTheScreen()
++    else if (action === "surface-unmount") expect(screen.queryByTestId("typeahead-search-input")).toBeNull()
++    else expect(owner().refEvents.at(-1)).toEqual({ id: before.refEvents[0].id, attached: false })
++    if (action !== "surface-unmount") expect(input()).toBe(original)
++  },
++)
++
++it.each(["touchEnd", "touchCancel"])("cancels armed host work on original %s before the deadline", async (phase) => {
++  const press = await enter()
++  const original = input()
++  await press("Arm inline search retirement on touch")
++  await fireEvent(screen.getByTestId("inline-search-touch-observer"), "touchStart", touch("0"))
++  await fireEvent(screen.getByTestId("inline-search-touch-observer"), phase, touch("0"))
++  expect(supplemental().touchEvents.map((event: { identifier: string | number }) => event.identifier)).toEqual([
++    "0",
++    "0",
++  ])
++  await act(() => jest.advanceTimersByTime(3000))
++  expect(supplemental().retirementEvents).toEqual([])
++  expect(supplemental().touchPending).toBe(false)
++  expect(alpha()).toBeOnTheScreen()
++  expect(input()).toBe(original)
++  expect(owner().callbacks).toEqual([])
++})
++
++it("retires armed touch work on surface restart and whole-scene removal", async () => {
++  const press = await enter()
++  await press("Arm inline search retirement on touch")
++  await fireEvent(screen.getByTestId("inline-search-touch-observer"), "touchStart", touch())
++  await press("Restart inline search surface")
++  await act(() => jest.advanceTimersByTime(3000))
++  expect(supplemental().retirementEvents).toEqual([])
++  expect(supplemental().touchPending).toBe(false)
++  expect(alpha()).toBeOnTheScreen()
++  await press("Arm inline search retirement on touch")
++  await fireEvent(screen.getByTestId("inline-search-touch-observer"), "touchStart", touch())
++  await press("Reset scene")
++  await act(() => jest.advanceTimersByTime(3000))
++  expect(screen.queryByTestId("inline-search-owner-json")).toBeNull()
++  await press("Inline search scene")
++  expect(supplemental().retirementEvents).toEqual([])
++  expect(supplemental().touchArmed).toBe(false)
++  expect(owner().callbacks).toEqual([])
++})
++
++it("does not cancel the original numeric-zero touch when a different string-zero token ends", async () => {
++  const press = await enter()
++  await press("Arm inline search retirement on touch")
++  await fireEvent(screen.getByTestId("inline-search-touch-observer"), "touchStart", touch(0))
++  await fireEvent(screen.getByTestId("inline-search-touch-observer"), "touchEnd", touch("0"))
++  expect(supplemental().touchPending).toBe(true)
++  await act(() => jest.advanceTimersByTime(3000))
++  expect(supplemental().retirementEvents).toEqual([
++    { action: "reorder", source: "held-touch", at: supplemental().touchEvents[0].at + 3000 },
++  ])
++  expect(supplemental().touchEvents).toHaveLength(1)
++  expect(owner().callbacks).toEqual([])
++})
+diff --git a/planning/component-library/fixtures/native-typeahead-search/behavior-cases.json b/planning/component-library/fixtures/native-typeahead-search/behavior-cases.json
+--- a/planning/component-library/fixtures/native-typeahead-search/behavior-cases.json
++++ b/planning/component-library/fixtures/native-typeahead-search/behavior-cases.json
+@@ -438,5 +438,1121 @@
+     "CODON_TH_SCENE_SHA256": "8562a82eb666f9598ffb8b74f1d1bb72f5ff3b43a3b5f7a9fd354a7207277c99",
+     "CODON_TH_PRODUCT_SHA256": "Coordinator verified matched built/installed product manifest",
+     "CODON_TH_OBSERVER_MANIFEST_SHA256": "Coordinator verified compiled current14-method observer/schema manifest;not a prior warm input verdict"
++  },
++  "supplementalPreparation": {
++    "base": "547b4f79b0110fb625859f5dbeb28ff9f80549b0",
++    "source": "TypeaheadG02SupplementalTrialTests.swift",
++    "class": "TypeaheadG02SupplementalTrialTests",
++    "status": "PREPARED_NOT_COMPILED_OR_EXECUTED",
++    "baselineRule": "Original TypeaheadG02TrialTests.swift and its14 methods/sequence remain byte-identical. Their original sceneSHA256 is retained. Rebuild/rebind the supplemental scene product separately; do not use its changed hash for a baseline receipt.",
++    "productAdmissionEnvironment": [
++      "CODON_TH_SUPPLEMENTAL_SCENE_SHA256",
++      "CODON_TH_PRODUCT_SHA256",
++      "CODON_TH_OBSERVER_MANIFEST_SHA256"
++    ],
++    "inputRule": "Identity strings admit the product only. Every prepared outcome requires its listed native receipt gates; no skipped gate, source mock, synthetic event or successful test return closes this cell.",
++    "sceneControls": {
++      "locale": "Next inline search supplemental locale cycles inherit/en/fr; default preserves inherited locale.",
++      "datasets": "Next inline search supplemental dataset cycles original typed3, three overlapping Beta matches plus Alpha sentinel, then three accent/case matches plus Alpha sentinel. Original200 variable-height rows are unchanged.",
++      "retirement": "Next inline search retirement cycles reorder,row-removal,immutable-replacement,status-unmount,surface-unmount,caller-ref-change. Apply inline search retirement now changes the host only; it never invokes business callbacks.",
++      "touch": "Arm inline search retirement on touch observes original bubbling native touchStart, waits original3000ms while the same identifier remains active, then changes the named host input. Original touchEnd/cancel before deadline cancels work. No responder capture/preventDefault/SDK changes. Surface restart/removal and scene cleanup cancel queued work.",
++      "trace": "inline-search-supplemental-json records configured locale/dataset/retirement and passive JS touch/host timestamps. It is not an SDK cohort, window, epoch, original keyboard receipt or measurement observer."
++    },
++    "baselineOrdinaryCoverage": [
++      {
++        "family": "S03.Enter-native-event-variants",
++        "method": "TypeaheadG02TrialTests/testS05OriginalEditorAndResultKeyboardOwners",
++        "variant": {
++          "modifiers": [],
++          "ordinaryEditorRepeat": false,
++          "isComposing": false,
++          "cancelled": false
++        }
++      },
++      {
++        "family": "S05.result-key-variants",
++        "method": "TypeaheadG02TrialTests/testS05OriginalEditorAndResultKeyboardOwners",
++        "variants": {
++          "dataset": "typed3",
++          "wrap": true,
++          "key": ["ArrowDown", "Enter", " ", "Escape"],
++          "repeat": false,
++          "cancelled": false,
++          "isComposing": false
++        }
++      },
++      {
++        "family": "S05.result-key-variants",
++        "method": "TypeaheadG02TrialTests/testS05TwoHundredVariableHeightResultsTailAndHome",
++        "variants": {
++          "dataset": "variable200",
++          "wrap": true,
++          "key": ["Home", "End", " "],
++          "repeat": false,
++          "cancelled": false,
++          "isComposing": false
++        }
++      }
++    ],
++    "preparedMethods": [
++      {
++        "method": "testS03EnterShift",
++        "id": "S03.Enter.shift",
++        "family": "S03.Enter-native-event-variants",
++        "variant": {
++          "modifiers": ["shift"],
++          "ordinaryEditorRepeat": false,
++          "isComposing": false,
++          "cancelled": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-EDITOR-SOFT"]
++      },
++      {
++        "method": "testS03EnterControl",
++        "id": "S03.Enter.control",
++        "family": "S03.Enter-native-event-variants",
++        "variant": {
++          "modifiers": ["control"],
++          "ordinaryEditorRepeat": false,
++          "isComposing": false,
++          "cancelled": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-EDITOR-SOFT"]
++      },
++      {
++        "method": "testS03EnterShiftControl",
++        "id": "S03.Enter.shift+control",
++        "family": "S03.Enter-native-event-variants",
++        "variant": {
++          "modifiers": ["shift", "control"],
++          "ordinaryEditorRepeat": false,
++          "isComposing": false,
++          "cancelled": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-EDITOR-SOFT"]
++      },
++      {
++        "method": "testS03EnterOption",
++        "id": "S03.Enter.alt",
++        "family": "S03.Enter-native-event-variants",
++        "variant": {
++          "modifiers": ["alt"],
++          "ordinaryEditorRepeat": false,
++          "isComposing": false,
++          "cancelled": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-EDITOR-SOFT"]
++      },
++      {
++        "method": "testS03EnterShiftOption",
++        "id": "S03.Enter.shift+alt",
++        "family": "S03.Enter-native-event-variants",
++        "variant": {
++          "modifiers": ["shift", "alt"],
++          "ordinaryEditorRepeat": false,
++          "isComposing": false,
++          "cancelled": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-EDITOR-SOFT"]
++      },
++      {
++        "method": "testS03EnterControlOption",
++        "id": "S03.Enter.control+alt",
++        "family": "S03.Enter-native-event-variants",
++        "variant": {
++          "modifiers": ["control", "alt"],
++          "ordinaryEditorRepeat": false,
++          "isComposing": false,
++          "cancelled": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-EDITOR-SOFT"]
++      },
++      {
++        "method": "testS03EnterShiftControlOption",
++        "id": "S03.Enter.shift+control+alt",
++        "family": "S03.Enter-native-event-variants",
++        "variant": {
++          "modifiers": ["shift", "control", "alt"],
++          "ordinaryEditorRepeat": false,
++          "isComposing": false,
++          "cancelled": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-EDITOR-SOFT"]
++      },
++      {
++        "method": "testS03EnterCommand",
++        "id": "S03.Enter.meta",
++        "family": "S03.Enter-native-event-variants",
++        "variant": {
++          "modifiers": ["meta"],
++          "ordinaryEditorRepeat": false,
++          "isComposing": false,
++          "cancelled": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-EDITOR-SOFT"]
++      },
++      {
++        "method": "testS03EnterShiftCommand",
++        "id": "S03.Enter.shift+meta",
++        "family": "S03.Enter-native-event-variants",
++        "variant": {
++          "modifiers": ["shift", "meta"],
++          "ordinaryEditorRepeat": false,
++          "isComposing": false,
++          "cancelled": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-EDITOR-SOFT"]
++      },
++      {
++        "method": "testS03EnterControlCommand",
++        "id": "S03.Enter.control+meta",
++        "family": "S03.Enter-native-event-variants",
++        "variant": {
++          "modifiers": ["control", "meta"],
++          "ordinaryEditorRepeat": false,
++          "isComposing": false,
++          "cancelled": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-EDITOR-SOFT"]
++      },
++      {
++        "method": "testS03EnterShiftControlCommand",
++        "id": "S03.Enter.shift+control+meta",
++        "family": "S03.Enter-native-event-variants",
++        "variant": {
++          "modifiers": ["shift", "control", "meta"],
++          "ordinaryEditorRepeat": false,
++          "isComposing": false,
++          "cancelled": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-EDITOR-SOFT"]
++      },
++      {
++        "method": "testS03EnterOptionCommand",
++        "id": "S03.Enter.alt+meta",
++        "family": "S03.Enter-native-event-variants",
++        "variant": {
++          "modifiers": ["alt", "meta"],
++          "ordinaryEditorRepeat": false,
++          "isComposing": false,
++          "cancelled": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-EDITOR-SOFT"]
++      },
++      {
++        "method": "testS03EnterShiftOptionCommand",
++        "id": "S03.Enter.shift+alt+meta",
++        "family": "S03.Enter-native-event-variants",
++        "variant": {
++          "modifiers": ["shift", "alt", "meta"],
++          "ordinaryEditorRepeat": false,
++          "isComposing": false,
++          "cancelled": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-EDITOR-SOFT"]
++      },
++      {
++        "method": "testS03EnterControlOptionCommand",
++        "id": "S03.Enter.control+alt+meta",
++        "family": "S03.Enter-native-event-variants",
++        "variant": {
++          "modifiers": ["control", "alt", "meta"],
++          "ordinaryEditorRepeat": false,
++          "isComposing": false,
++          "cancelled": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-EDITOR-SOFT"]
++      },
++      {
++        "method": "testS03EnterShiftControlOptionCommand",
++        "id": "S03.Enter.shift+control+alt+meta",
++        "family": "S03.Enter-native-event-variants",
++        "variant": {
++          "modifiers": ["shift", "control", "alt", "meta"],
++          "ordinaryEditorRepeat": false,
++          "isComposing": false,
++          "cancelled": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-EDITOR-SOFT"]
++      },
++      {
++        "method": "testS05Typed3WrappedArrowUp",
++        "id": "S05.results.typed3.wrap.ArrowUp",
++        "family": "S05.result-key-variants",
++        "variant": {
++          "dataset": "typed3",
++          "wrap": true,
++          "key": "ArrowUp",
++          "repeat": false,
++          "cancelled": false,
++          "isComposing": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS"]
++      },
++      {
++        "method": "testS05Typed3WrappedHome",
++        "id": "S05.results.typed3.wrap.Home",
++        "family": "S05.result-key-variants",
++        "variant": {
++          "dataset": "typed3",
++          "wrap": true,
++          "key": "Home",
++          "repeat": false,
++          "cancelled": false,
++          "isComposing": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS"]
++      },
++      {
++        "method": "testS05Typed3WrappedEnd",
++        "id": "S05.results.typed3.wrap.End",
++        "family": "S05.result-key-variants",
++        "variant": {
++          "dataset": "typed3",
++          "wrap": true,
++          "key": "End",
++          "repeat": false,
++          "cancelled": false,
++          "isComposing": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS"]
++      },
++      {
++        "method": "testS05Typed3WrappedPageDown",
++        "id": "S05.results.typed3.wrap.PageDown",
++        "family": "S05.result-key-variants",
++        "variant": {
++          "dataset": "typed3",
++          "wrap": true,
++          "key": "PageDown",
++          "repeat": false,
++          "cancelled": false,
++          "isComposing": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS", "TH-NATIVE-MEASUREMENTS"]
++      },
++      {
++        "method": "testS05Typed3WrappedPageUp",
++        "id": "S05.results.typed3.wrap.PageUp",
++        "family": "S05.result-key-variants",
++        "variant": {
++          "dataset": "typed3",
++          "wrap": true,
++          "key": "PageUp",
++          "repeat": false,
++          "cancelled": false,
++          "isComposing": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS", "TH-NATIVE-MEASUREMENTS"]
++      },
++      {
++        "method": "testS05Typed3UnwrappedArrowDown",
++        "id": "S05.results.typed3.nowrap.ArrowDown",
++        "family": "S05.result-key-variants",
++        "variant": {
++          "dataset": "typed3",
++          "wrap": false,
++          "key": "ArrowDown",
++          "repeat": false,
++          "cancelled": false,
++          "isComposing": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS"]
++      },
++      {
++        "method": "testS05Typed3UnwrappedArrowUp",
++        "id": "S05.results.typed3.nowrap.ArrowUp",
++        "family": "S05.result-key-variants",
++        "variant": {
++          "dataset": "typed3",
++          "wrap": false,
++          "key": "ArrowUp",
++          "repeat": false,
++          "cancelled": false,
++          "isComposing": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS"]
++      },
++      {
++        "method": "testS05Typed3UnwrappedHome",
++        "id": "S05.results.typed3.nowrap.Home",
++        "family": "S05.result-key-variants",
++        "variant": {
++          "dataset": "typed3",
++          "wrap": false,
++          "key": "Home",
++          "repeat": false,
++          "cancelled": false,
++          "isComposing": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS"]
++      },
++      {
++        "method": "testS05Typed3UnwrappedEnd",
++        "id": "S05.results.typed3.nowrap.End",
++        "family": "S05.result-key-variants",
++        "variant": {
++          "dataset": "typed3",
++          "wrap": false,
++          "key": "End",
++          "repeat": false,
++          "cancelled": false,
++          "isComposing": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS"]
++      },
++      {
++        "method": "testS05Typed3UnwrappedPageDown",
++        "id": "S05.results.typed3.nowrap.PageDown",
++        "family": "S05.result-key-variants",
++        "variant": {
++          "dataset": "typed3",
++          "wrap": false,
++          "key": "PageDown",
++          "repeat": false,
++          "cancelled": false,
++          "isComposing": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS", "TH-NATIVE-MEASUREMENTS"]
++      },
++      {
++        "method": "testS05Typed3UnwrappedPageUp",
++        "id": "S05.results.typed3.nowrap.PageUp",
++        "family": "S05.result-key-variants",
++        "variant": {
++          "dataset": "typed3",
++          "wrap": false,
++          "key": "PageUp",
++          "repeat": false,
++          "cancelled": false,
++          "isComposing": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS", "TH-NATIVE-MEASUREMENTS"]
++      },
++      {
++        "method": "testS05Typed3UnwrappedEscape",
++        "id": "S05.results.typed3.nowrap.Escape",
++        "family": "S05.result-key-variants",
++        "variant": {
++          "dataset": "typed3",
++          "wrap": false,
++          "key": "Escape",
++          "repeat": false,
++          "cancelled": false,
++          "isComposing": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS"]
++      },
++      {
++        "method": "testS05Typed3UnwrappedEnter",
++        "id": "S05.results.typed3.nowrap.Enter",
++        "family": "S05.result-key-variants",
++        "variant": {
++          "dataset": "typed3",
++          "wrap": false,
++          "key": "Enter",
++          "repeat": false,
++          "cancelled": false,
++          "isComposing": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS"]
++      },
++      {
++        "method": "testS05Typed3UnwrappedSpace",
++        "id": "S05.results.typed3.nowrap.Space",
++        "family": "S05.result-key-variants",
++        "variant": {
++          "dataset": "typed3",
++          "wrap": false,
++          "key": " ",
++          "repeat": false,
++          "cancelled": false,
++          "isComposing": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS"]
++      },
++      {
++        "method": "testS05Variable200WrappedArrowDown",
++        "id": "S05.results.variable200.wrap.ArrowDown",
++        "family": "S05.result-key-variants",
++        "variant": {
++          "dataset": "variable200",
++          "wrap": true,
++          "key": "ArrowDown",
++          "repeat": false,
++          "cancelled": false,
++          "isComposing": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS"]
++      },
++      {
++        "method": "testS05Variable200WrappedArrowUp",
++        "id": "S05.results.variable200.wrap.ArrowUp",
++        "family": "S05.result-key-variants",
++        "variant": {
++          "dataset": "variable200",
++          "wrap": true,
++          "key": "ArrowUp",
++          "repeat": false,
++          "cancelled": false,
++          "isComposing": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS"]
++      },
++      {
++        "method": "testS05Variable200WrappedPageDown",
++        "id": "S05.results.variable200.wrap.PageDown",
++        "family": "S05.result-key-variants",
++        "variant": {
++          "dataset": "variable200",
++          "wrap": true,
++          "key": "PageDown",
++          "repeat": false,
++          "cancelled": false,
++          "isComposing": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS", "TH-NATIVE-MEASUREMENTS"]
++      },
++      {
++        "method": "testS05Variable200WrappedPageUp",
++        "id": "S05.results.variable200.wrap.PageUp",
++        "family": "S05.result-key-variants",
++        "variant": {
++          "dataset": "variable200",
++          "wrap": true,
++          "key": "PageUp",
++          "repeat": false,
++          "cancelled": false,
++          "isComposing": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS", "TH-NATIVE-MEASUREMENTS"]
++      },
++      {
++        "method": "testS05Variable200WrappedEscape",
++        "id": "S05.results.variable200.wrap.Escape",
++        "family": "S05.result-key-variants",
++        "variant": {
++          "dataset": "variable200",
++          "wrap": true,
++          "key": "Escape",
++          "repeat": false,
++          "cancelled": false,
++          "isComposing": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS"]
++      },
++      {
++        "method": "testS05Variable200WrappedEnter",
++        "id": "S05.results.variable200.wrap.Enter",
++        "family": "S05.result-key-variants",
++        "variant": {
++          "dataset": "variable200",
++          "wrap": true,
++          "key": "Enter",
++          "repeat": false,
++          "cancelled": false,
++          "isComposing": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS"]
++      },
++      {
++        "method": "testS05Variable200UnwrappedArrowDown",
++        "id": "S05.results.variable200.nowrap.ArrowDown",
++        "family": "S05.result-key-variants",
++        "variant": {
++          "dataset": "variable200",
++          "wrap": false,
++          "key": "ArrowDown",
++          "repeat": false,
++          "cancelled": false,
++          "isComposing": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS"]
++      },
++      {
++        "method": "testS05Variable200UnwrappedArrowUp",
++        "id": "S05.results.variable200.nowrap.ArrowUp",
++        "family": "S05.result-key-variants",
++        "variant": {
++          "dataset": "variable200",
++          "wrap": false,
++          "key": "ArrowUp",
++          "repeat": false,
++          "cancelled": false,
++          "isComposing": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS"]
++      },
++      {
++        "method": "testS05Variable200UnwrappedHome",
++        "id": "S05.results.variable200.nowrap.Home",
++        "family": "S05.result-key-variants",
++        "variant": {
++          "dataset": "variable200",
++          "wrap": false,
++          "key": "Home",
++          "repeat": false,
++          "cancelled": false,
++          "isComposing": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS"]
++      },
++      {
++        "method": "testS05Variable200UnwrappedEnd",
++        "id": "S05.results.variable200.nowrap.End",
++        "family": "S05.result-key-variants",
++        "variant": {
++          "dataset": "variable200",
++          "wrap": false,
++          "key": "End",
++          "repeat": false,
++          "cancelled": false,
++          "isComposing": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS"]
++      },
++      {
++        "method": "testS05Variable200UnwrappedPageDown",
++        "id": "S05.results.variable200.nowrap.PageDown",
++        "family": "S05.result-key-variants",
++        "variant": {
++          "dataset": "variable200",
++          "wrap": false,
++          "key": "PageDown",
++          "repeat": false,
++          "cancelled": false,
++          "isComposing": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS", "TH-NATIVE-MEASUREMENTS"]
++      },
++      {
++        "method": "testS05Variable200UnwrappedPageUp",
++        "id": "S05.results.variable200.nowrap.PageUp",
++        "family": "S05.result-key-variants",
++        "variant": {
++          "dataset": "variable200",
++          "wrap": false,
++          "key": "PageUp",
++          "repeat": false,
++          "cancelled": false,
++          "isComposing": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS", "TH-NATIVE-MEASUREMENTS"]
++      },
++      {
++        "method": "testS05Variable200UnwrappedEscape",
++        "id": "S05.results.variable200.nowrap.Escape",
++        "family": "S05.result-key-variants",
++        "variant": {
++          "dataset": "variable200",
++          "wrap": false,
++          "key": "Escape",
++          "repeat": false,
++          "cancelled": false,
++          "isComposing": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS"]
++      },
++      {
++        "method": "testS05Variable200UnwrappedEnter",
++        "id": "S05.results.variable200.nowrap.Enter",
++        "family": "S05.result-key-variants",
++        "variant": {
++          "dataset": "variable200",
++          "wrap": false,
++          "key": "Enter",
++          "repeat": false,
++          "cancelled": false,
++          "isComposing": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS"]
++      },
++      {
++        "method": "testS05Variable200UnwrappedSpace",
++        "id": "S05.results.variable200.nowrap.Space",
++        "family": "S05.result-key-variants",
++        "variant": {
++          "dataset": "variable200",
++          "wrap": false,
++          "key": " ",
++          "repeat": false,
++          "cancelled": false,
++          "isComposing": false
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS"]
++      },
++      {
++        "method": "testS05SearchEnBNumericZero",
++        "id": "S05.search.en.b.n0",
++        "family": "S05.typeahead-locale-timeout",
++        "variant": {
++          "query": "b",
++          "locale": "en",
++          "originKey": 0,
++          "clearAfterMilliseconds": 1000
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS", "TH-NATIVE-UNPACED-RESULT-TEXT"]
++      },
++      {
++        "method": "testS05SearchEnBStringZero",
++        "id": "S05.search.en.b.s0",
++        "family": "S05.typeahead-locale-timeout",
++        "variant": {
++          "query": "b",
++          "locale": "en",
++          "originKey": "0",
++          "clearAfterMilliseconds": 1000
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS", "TH-NATIVE-UNPACED-RESULT-TEXT"]
++      },
++      {
++        "method": "testS05SearchEnBEmptyKey",
++        "id": "S05.search.en.b.empty",
++        "family": "S05.typeahead-locale-timeout",
++        "variant": {
++          "query": "b",
++          "locale": "en",
++          "originKey": "",
++          "clearAfterMilliseconds": 1000
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS", "TH-NATIVE-UNPACED-RESULT-TEXT"]
++      },
++      {
++        "method": "testS05SearchEnBeNumericZero",
++        "id": "S05.search.en.Be.n0",
++        "family": "S05.typeahead-locale-timeout",
++        "variant": {
++          "query": "Be",
++          "locale": "en",
++          "originKey": 0,
++          "clearAfterMilliseconds": 1000
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS", "TH-NATIVE-UNPACED-RESULT-TEXT"]
++      },
++      {
++        "method": "testS05SearchEnBeStringZero",
++        "id": "S05.search.en.Be.s0",
++        "family": "S05.typeahead-locale-timeout",
++        "variant": {
++          "query": "Be",
++          "locale": "en",
++          "originKey": "0",
++          "clearAfterMilliseconds": 1000
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS", "TH-NATIVE-UNPACED-RESULT-TEXT"]
++      },
++      {
++        "method": "testS05SearchEnBeEmptyKey",
++        "id": "S05.search.en.Be.empty",
++        "family": "S05.typeahead-locale-timeout",
++        "variant": {
++          "query": "Be",
++          "locale": "en",
++          "originKey": "",
++          "clearAfterMilliseconds": 1000
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS", "TH-NATIVE-UNPACED-RESULT-TEXT"]
++      },
++      {
++        "method": "testS05SearchEnAccentNumericZero",
++        "id": "S05.search.en.rés.n0",
++        "family": "S05.typeahead-locale-timeout",
++        "variant": {
++          "query": "rés",
++          "locale": "en",
++          "originKey": 0,
++          "clearAfterMilliseconds": 1000
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS", "TH-NATIVE-UNPACED-RESULT-TEXT"]
++      },
++      {
++        "method": "testS05SearchEnAccentStringZero",
++        "id": "S05.search.en.rés.s0",
++        "family": "S05.typeahead-locale-timeout",
++        "variant": {
++          "query": "rés",
++          "locale": "en",
++          "originKey": "0",
++          "clearAfterMilliseconds": 1000
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS", "TH-NATIVE-UNPACED-RESULT-TEXT"]
++      },
++      {
++        "method": "testS05SearchEnAccentEmptyKey",
++        "id": "S05.search.en.rés.empty",
++        "family": "S05.typeahead-locale-timeout",
++        "variant": {
++          "query": "rés",
++          "locale": "en",
++          "originKey": "",
++          "clearAfterMilliseconds": 1000
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS", "TH-NATIVE-UNPACED-RESULT-TEXT"]
++      },
++      {
++        "method": "testS05SearchFrBNumericZero",
++        "id": "S05.search.fr.b.n0",
++        "family": "S05.typeahead-locale-timeout",
++        "variant": {
++          "query": "b",
++          "locale": "fr",
++          "originKey": 0,
++          "clearAfterMilliseconds": 1000
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS", "TH-NATIVE-UNPACED-RESULT-TEXT"]
++      },
++      {
++        "method": "testS05SearchFrBStringZero",
++        "id": "S05.search.fr.b.s0",
++        "family": "S05.typeahead-locale-timeout",
++        "variant": {
++          "query": "b",
++          "locale": "fr",
++          "originKey": "0",
++          "clearAfterMilliseconds": 1000
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS", "TH-NATIVE-UNPACED-RESULT-TEXT"]
++      },
++      {
++        "method": "testS05SearchFrBEmptyKey",
++        "id": "S05.search.fr.b.empty",
++        "family": "S05.typeahead-locale-timeout",
++        "variant": {
++          "query": "b",
++          "locale": "fr",
++          "originKey": "",
++          "clearAfterMilliseconds": 1000
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS", "TH-NATIVE-UNPACED-RESULT-TEXT"]
++      },
++      {
++        "method": "testS05SearchFrBeNumericZero",
++        "id": "S05.search.fr.Be.n0",
++        "family": "S05.typeahead-locale-timeout",
++        "variant": {
++          "query": "Be",
++          "locale": "fr",
++          "originKey": 0,
++          "clearAfterMilliseconds": 1000
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS", "TH-NATIVE-UNPACED-RESULT-TEXT"]
++      },
++      {
++        "method": "testS05SearchFrBeStringZero",
++        "id": "S05.search.fr.Be.s0",
++        "family": "S05.typeahead-locale-timeout",
++        "variant": {
++          "query": "Be",
++          "locale": "fr",
++          "originKey": "0",
++          "clearAfterMilliseconds": 1000
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS", "TH-NATIVE-UNPACED-RESULT-TEXT"]
++      },
++      {
++        "method": "testS05SearchFrBeEmptyKey",
++        "id": "S05.search.fr.Be.empty",
++        "family": "S05.typeahead-locale-timeout",
++        "variant": {
++          "query": "Be",
++          "locale": "fr",
++          "originKey": "",
++          "clearAfterMilliseconds": 1000
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS", "TH-NATIVE-UNPACED-RESULT-TEXT"]
++      },
++      {
++        "method": "testS05SearchFrAccentNumericZero",
++        "id": "S05.search.fr.rés.n0",
++        "family": "S05.typeahead-locale-timeout",
++        "variant": {
++          "query": "rés",
++          "locale": "fr",
++          "originKey": 0,
++          "clearAfterMilliseconds": 1000
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS", "TH-NATIVE-UNPACED-RESULT-TEXT"]
++      },
++      {
++        "method": "testS05SearchFrAccentStringZero",
++        "id": "S05.search.fr.rés.s0",
++        "family": "S05.typeahead-locale-timeout",
++        "variant": {
++          "query": "rés",
++          "locale": "fr",
++          "originKey": "0",
++          "clearAfterMilliseconds": 1000
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS", "TH-NATIVE-UNPACED-RESULT-TEXT"]
++      },
++      {
++        "method": "testS05SearchFrAccentEmptyKey",
++        "id": "S05.search.fr.rés.empty",
++        "family": "S05.typeahead-locale-timeout",
++        "variant": {
++          "query": "rés",
++          "locale": "fr",
++          "originKey": "",
++          "clearAfterMilliseconds": 1000
++        },
++        "requiredGates": ["TH-NATIVE-KEY", "TH-NATIVE-FOCUS", "TH-NATIVE-UNPACED-RESULT-TEXT"]
++      },
++      {
++        "method": "testS06HeldTouchReorder",
++        "id": "S06.held.touch.reorder.before-UP",
++        "family": "S06.interrupted-gesture-retirement",
++        "variant": {
++          "pointer": "touch",
++          "retirement": "reorder",
++          "phase": "before-UP"
++        },
++        "requiredGates": ["TH-NATIVE-HELD-COHORT"]
++      },
++      {
++        "method": "testS06HeldTouchRowRemoval",
++        "id": "S06.held.touch.row-removal.before-UP",
++        "family": "S06.interrupted-gesture-retirement",
++        "variant": {
++          "pointer": "touch",
++          "retirement": "row-removal",
++          "phase": "before-UP"
++        },
++        "requiredGates": ["TH-NATIVE-HELD-COHORT"]
++      },
++      {
++        "method": "testS06HeldTouchImmutableReplacement",
++        "id": "S06.held.touch.immutable-replacement.before-UP",
++        "family": "S06.interrupted-gesture-retirement",
++        "variant": {
++          "pointer": "touch",
++          "retirement": "immutable-replacement",
++          "phase": "before-UP"
++        },
++        "requiredGates": ["TH-NATIVE-HELD-COHORT"]
++      },
++      {
++        "method": "testS06HeldTouchStatusUnmount",
++        "id": "S06.held.touch.status-unmount.before-UP",
++        "family": "S06.interrupted-gesture-retirement",
++        "variant": {
++          "pointer": "touch",
++          "retirement": "status-unmount",
++          "phase": "before-UP"
++        },
++        "requiredGates": ["TH-NATIVE-HELD-COHORT"]
++      },
++      {
++        "method": "testS06HeldTouchSurfaceUnmount",
++        "id": "S06.held.touch.surface-unmount.before-UP",
++        "family": "S06.interrupted-gesture-retirement",
++        "variant": {
++          "pointer": "touch",
++          "retirement": "surface-unmount",
++          "phase": "before-UP"
++        },
++        "requiredGates": ["TH-NATIVE-HELD-COHORT"]
++      }
++    ],
++    "nativeMethodSequence": [
++      "TypeaheadG02SupplementalTrialTests/testS03EnterShift",
++      "TypeaheadG02SupplementalTrialTests/testS03EnterControl",
++      "TypeaheadG02SupplementalTrialTests/testS03EnterShiftControl",
++      "TypeaheadG02SupplementalTrialTests/testS03EnterOption",
++      "TypeaheadG02SupplementalTrialTests/testS03EnterShiftOption",
++      "TypeaheadG02SupplementalTrialTests/testS03EnterControlOption",
++      "TypeaheadG02SupplementalTrialTests/testS03EnterShiftControlOption",
++      "TypeaheadG02SupplementalTrialTests/testS03EnterCommand",
++      "TypeaheadG02SupplementalTrialTests/testS03EnterShiftCommand",
++      "TypeaheadG02SupplementalTrialTests/testS03EnterControlCommand",
++      "TypeaheadG02SupplementalTrialTests/testS03EnterShiftControlCommand",
++      "TypeaheadG02SupplementalTrialTests/testS03EnterOptionCommand",
++      "TypeaheadG02SupplementalTrialTests/testS03EnterShiftOptionCommand",
++      "TypeaheadG02SupplementalTrialTests/testS03EnterControlOptionCommand",
++      "TypeaheadG02SupplementalTrialTests/testS03EnterShiftControlOptionCommand",
++      "TypeaheadG02SupplementalTrialTests/testS05Typed3WrappedArrowUp",
++      "TypeaheadG02SupplementalTrialTests/testS05Typed3WrappedHome",
++      "TypeaheadG02SupplementalTrialTests/testS05Typed3WrappedEnd",
++      "TypeaheadG02SupplementalTrialTests/testS05Typed3WrappedPageDown",
++      "TypeaheadG02SupplementalTrialTests/testS05Typed3WrappedPageUp",
++      "TypeaheadG02SupplementalTrialTests/testS05Typed3UnwrappedArrowDown",
++      "TypeaheadG02SupplementalTrialTests/testS05Typed3UnwrappedArrowUp",
++      "TypeaheadG02SupplementalTrialTests/testS05Typed3UnwrappedHome",
++      "TypeaheadG02SupplementalTrialTests/testS05Typed3UnwrappedEnd",
++      "TypeaheadG02SupplementalTrialTests/testS05Typed3UnwrappedPageDown",
++      "TypeaheadG02SupplementalTrialTests/testS05Typed3UnwrappedPageUp",
++      "TypeaheadG02SupplementalTrialTests/testS05Typed3UnwrappedEscape",
++      "TypeaheadG02SupplementalTrialTests/testS05Typed3UnwrappedEnter",
++      "TypeaheadG02SupplementalTrialTests/testS05Typed3UnwrappedSpace",
++      "TypeaheadG02SupplementalTrialTests/testS05Variable200WrappedArrowDown",
++      "TypeaheadG02SupplementalTrialTests/testS05Variable200WrappedArrowUp",
++      "TypeaheadG02SupplementalTrialTests/testS05Variable200WrappedPageDown",
++      "TypeaheadG02SupplementalTrialTests/testS05Variable200WrappedPageUp",
++      "TypeaheadG02SupplementalTrialTests/testS05Variable200WrappedEscape",
++      "TypeaheadG02SupplementalTrialTests/testS05Variable200WrappedEnter",
++      "TypeaheadG02SupplementalTrialTests/testS05Variable200UnwrappedArrowDown",
++      "TypeaheadG02SupplementalTrialTests/testS05Variable200UnwrappedArrowUp",
++      "TypeaheadG02SupplementalTrialTests/testS05Variable200UnwrappedHome",
++      "TypeaheadG02SupplementalTrialTests/testS05Variable200UnwrappedEnd",
++      "TypeaheadG02SupplementalTrialTests/testS05Variable200UnwrappedPageDown",
++      "TypeaheadG02SupplementalTrialTests/testS05Variable200UnwrappedPageUp",
++      "TypeaheadG02SupplementalTrialTests/testS05Variable200UnwrappedEscape",
++      "TypeaheadG02SupplementalTrialTests/testS05Variable200UnwrappedEnter",
++      "TypeaheadG02SupplementalTrialTests/testS05Variable200UnwrappedSpace",
++      "TypeaheadG02SupplementalTrialTests/testS05SearchEnBNumericZero",
++      "TypeaheadG02SupplementalTrialTests/testS05SearchEnBStringZero",
++      "TypeaheadG02SupplementalTrialTests/testS05SearchEnBEmptyKey",
++      "TypeaheadG02SupplementalTrialTests/testS05SearchEnBeNumericZero",
++      "TypeaheadG02SupplementalTrialTests/testS05SearchEnBeStringZero",
++      "TypeaheadG02SupplementalTrialTests/testS05SearchEnBeEmptyKey",
++      "TypeaheadG02SupplementalTrialTests/testS05SearchEnAccentNumericZero",
++      "TypeaheadG02SupplementalTrialTests/testS05SearchEnAccentStringZero",
++      "TypeaheadG02SupplementalTrialTests/testS05SearchEnAccentEmptyKey",
++      "TypeaheadG02SupplementalTrialTests/testS05SearchFrBNumericZero",
++      "TypeaheadG02SupplementalTrialTests/testS05SearchFrBStringZero",
++      "TypeaheadG02SupplementalTrialTests/testS05SearchFrBEmptyKey",
++      "TypeaheadG02SupplementalTrialTests/testS05SearchFrBeNumericZero",
++      "TypeaheadG02SupplementalTrialTests/testS05SearchFrBeStringZero",
++      "TypeaheadG02SupplementalTrialTests/testS05SearchFrBeEmptyKey",
++      "TypeaheadG02SupplementalTrialTests/testS05SearchFrAccentNumericZero",
++      "TypeaheadG02SupplementalTrialTests/testS05SearchFrAccentStringZero",
++      "TypeaheadG02SupplementalTrialTests/testS05SearchFrAccentEmptyKey",
++      "TypeaheadG02SupplementalTrialTests/testS06HeldTouchReorder",
++      "TypeaheadG02SupplementalTrialTests/testS06HeldTouchRowRemoval",
++      "TypeaheadG02SupplementalTrialTests/testS06HeldTouchImmutableReplacement",
++      "TypeaheadG02SupplementalTrialTests/testS06HeldTouchStatusUnmount",
++      "TypeaheadG02SupplementalTrialTests/testS06HeldTouchSurfaceUnmount"
++    ],
++    "unpreparedVariantPartitions": [
++      {
++        "family": "S03.Enter-native-event-variants",
++        "count": 112,
++        "selector": "At least one of ordinaryEditorRepeat,isComposing,cancelled is true; all16 modifier sets.",
++        "gate": "TH-NATIVE-KEY-VARIANTS"
++      },
++      {
++        "family": "S05.result-key-variants",
++        "count": 252,
++        "selector": "Both typed3 and variable200; at least one of repeat,cancelled,isComposing is true; all9 keys and2 wrap values.",
++        "gate": "TH-NATIVE-KEY-VARIANTS"
++      },
++      {
++        "family": "S05.increment-decrement-and-interruption",
++        "count": 28,
++        "selector": "All2 actions x2 wrap x7 retirement values; preserve independence of editor caller ref and result owner.",
++        "gate": "TH-NATIVE-AX-INTERRUPTION"
++      },
++      {
++        "family": "S06.interrupted-gesture-retirement",
++        "count": 19,
++        "selector": "Allmouse(6x2), touch native-cancel(6), touch scene-reset before-UP(1). Five other touch before-UP outcomes are prepared but remain cohort-gated.",
++        "gate": "TH-NATIVE-HELD-REMAINDER"
++      }
++    ],
++    "additionalOracleGates": [
++      {
++        "family": "S03.Enter-native-event-variants",
++        "gate": "TH-NATIVE-KEY-VARIANTS",
++        "oracle": "Unmatched/foreign/retired original events cannot submit; ordinary accepted repeat receives exactly one submit for each genuine Enter."
++      },
++      {
++        "family": "S05.typeahead-locale-timeout",
++        "gate": "TH-NATIVE-SEARCH-RETIREMENT",
++        "oracle": "Removal/replacement/unmount retire queued search work; no stale result focus or owner mutation."
++      }
++    ],
++    "nativeGates": [
++      {
++        "id": "TH-NATIVE-KEY",
++        "target": "Current original editor/result CUI keyboard producer",
++        "required": "Retain original target/window/epoch, key/code, DOWN/UP, modifier set, repeat, composing, cancellation, matched admission/default metadata and exact callback/focus outcome for each named case. Environment identities and XCTest typeKey calls are not delivery proof.",
++        "status": "OPEN_COORDINATOR_NATIVE_RECEIPTS_REQUIRED"
++      },
++      {
++        "id": "TH-NATIVE-EDITOR-SOFT",
++        "target": "Original stock editor soft-submit observer",
++        "required": "A later distinct stock soft-submit must retain original target/text and observer-before-business ordering. Do not reinterpret a UIKit soft-submit caused by the ordinary key as that distinct event.",
++        "status": "OPEN_COORDINATOR_NATIVE_RECEIPTS_REQUIRED"
++      },
++      {
++        "id": "TH-NATIVE-FOCUS",
++        "target": "Original result focus owner and SDK focus/default requests",
++        "required": "Actual current target/destination/window/epoch and original focus/default receipts must agree with UI focus. At an unwrapped edge prove no opposite-edge local focus request, allowing legitimate native default handling.",
++        "status": "OPEN_COORDINATOR_NATIVE_RECEIPTS_REQUIRED"
++      },
++      {
++        "id": "TH-NATIVE-MEASUREMENTS",
++        "target": "Original Results.page measureLayout callbacks and viewport",
++        "required": "Correlate all original 3/200 row boxes, actual viewport/content/layout generation and page request with the captured XCTest frames and source-derived destination. Do not drop offscreen rows, author boxes or substitute visible intersection height for viewport height. Missing or zero native frames fail the prepared method.",
++        "status": "OPEN_COORDINATOR_NATIVE_RECEIPTS_REQUIRED"
++      },
++      {
++        "id": "TH-NATIVE-UNPACED-RESULT-TEXT",
++        "target": "Original noneditable result focus character producer",
++        "required": "Establish actual unpaced b/Be/rés delivery to the original result owner, with one receipt per genuine character and the current locale/collator. XCTest typeText must fail visibly if unsupported; no paced typeKey loop, editor insertion, paste, fake event or authored frame is a substitute. A self-focus match requires positive original key delivery proof.",
++        "status": "OPEN_PRODUCER_CAPABILITY_AND_NATIVE_RECEIPTS_REQUIRED"
++      },
++      {
++        "id": "TH-NATIVE-HELD-COHORT",
++        "target": "Original held touch/mouse responder cohort",
++        "required": "Prove original DOWN/cohort/target/window/epoch remains continuous through the named host retirement and original UP/cancel. Passive JS touch timestamps and XCTest press duration alone do not qualify. The five prepared long presses are touch-only. Mouse may legitimately activate once on DOWN; reject only stale later activation.",
++        "status": "OPEN_COHORT_ADMISSION_AND_NATIVE_RECEIPTS_REQUIRED"
++      },
++      {
++        "id": "TH-NATIVE-AX-INTERRUPTION",
++        "target": "Original row increment/decrement action and pending native measurement",
++        "required": "For all 28 action/wrap/retirement combinations use an admitted native accessibility action or measured-key request, observe that the original measure callback is pending, apply retirement, then release that original callback. Never call JS accessibility props. Row removal may focus a valid survivor; caller editor-ref change alone must not invalidate an independent current result owner. Ancestor-window loss requires original window/epoch evidence. Public XCTest exposes no row increment/decrement action API or pending-measure release control.",
++        "status": "OPEN_ADMITTED_AX_AND_PENDING_MEASUREMENT_PRODUCER_REQUIRED"
++      },
++      {
++        "id": "TH-NATIVE-KEY-VARIANTS",
++        "target": "Original keyboard/IME repeat/cancel/composition/foreign/retired producer",
++        "required": "Supply the remaining 112 Enter axis combinations and 252 result-key combinations involving repeat/composition/cancellation, plus unmatched/foreign/retired negatives. Repeated complete typeKey calls are distinct DOWN/UP pairs, never autorepeat; environment flags cannot synthesize IME or cancellation. Retain original held-code identity so Enter/Space repeat cannot retoggle.",
++        "status": "OPEN_ADMITTED_KEYBOARD_IME_PRODUCER_REQUIRED"
++      },
++      {
++        "id": "TH-NATIVE-SEARCH-RETIREMENT",
++        "target": "Original pending search lifetime during removal/replacement/unmount",
++        "required": "Retain actual native character delivery and search lifetime, apply the named source retirement before its original timer settles, and prove no stale focus/owner/selection mutation. Existing generic replacement and queued-job tests do not qualify this search-specific gate.",
++        "status": "OPEN_NATIVE_SEARCH_RETIREMENT_RECEIPTS_REQUIRED"
++      },
++      {
++        "id": "TH-NATIVE-HELD-REMAINDER",
++        "target": "Held scene reset, mouse cohorts and native cancellation",
++        "required": "The remaining 19 pointer/retirement/phase combinations require an admitted independent actor for whole-scene Reset while held, original mouse DOWN/UP, and genuine native cancellation. Do not replace whole-scene reset with hiding this surface, use a completed drag as held continuity, or substitute JS cancel invocation.",
++        "status": "OPEN_INDEPENDENT_ACTOR_MOUSE_CANCEL_PRODUCER_REQUIRED"
++      }
++    ],
++    "coverageTotals": {
++      "preparedSupplementalMethods": 67,
++      "ordinaryEnterAxisCases": {
++        "baseline": 1,
++        "supplemental": 15,
++        "nativeProducerRequired": 112,
++        "total": 128
++      },
++      "resultKeyAxisCasesIncludingDatasets": {
++        "baseline": 7,
++        "supplemental": 29,
++        "nativeProducerRequired": 252,
++        "total": 288
++      },
++      "localeTimeoutAxisCases": {
++        "supplemental": 18,
++        "total": 18
++      },
++      "accessibilityInterruptionAxisCases": {
++        "nativeProducerRequired": 28,
++        "total": 28
++      },
++      "heldPointerAxisCases": {
++        "supplementalOutcomeChecks": 5,
++        "nativeProducerRequired": 19,
++        "total": 24
++      }
++    },
++    "cellVerdict": "OPEN_NATIVE_QUALIFICATION_REQUIRED",
++    "sceneSHA256": "4cd37d0cba8ed17e07d6d51490d748fdc0acf1f81600bedf357ac58df719a2a3",
++    "swiftSHA256": "8115ccaa2064b36fce5d8c0f2ec2456f85a8810f53f83fd04a01768b510702ae",
++    "baselineProductRequalification": "The frozen14-method runner binds the original8562scene product. After that cohort finishes, coordinator must explicitly rebind its scene guard to the supplemental4cd3product before using those methods to qualify this changed fixture. Keep original bodies/assertions and prior sealed receipts; never silently use original-product outcomes as complete evidence for the changed product. This lane does not edit that active runner."
+   }
+ }
+diff --git a/planning/component-library/fixtures/native-typeahead-search/TypeaheadG02SupplementalTrialTests.swift b/planning/component-library/fixtures/native-typeahead-search/TypeaheadG02SupplementalTrialTests.swift
+new file mode 100644
+--- /dev/null
++++ b/planning/component-library/fixtures/native-typeahead-search/TypeaheadG02SupplementalTrialTests.swift
+@@ -0,0 +1,455 @@
++import XCTest
++
++// Add to the existing showcase UI-test target. Only the coordinator compiles/runs it.
++// These outcome checks require the casebook's original event/focus/measurement receipts.
++// Admission hashes and passive JS touch traces never replace those native receipts.
++final class TypeaheadG02SupplementalTrialTests: XCTestCase {
++    private let app = XCUIApplication(bundleIdentifier: "dev.codonui.showcase")
++    private let sceneSHA = "4cd37d0cba8ed17e07d6d51490d748fdc0acf1f81600bedf357ac58df719a2a3"
++
++    override func setUpWithError() throws {
++        continueAfterFailure = false
++        executionTimeAllowance = 180
++        guard ProcessInfo.processInfo.environment["CODON_TH_6b4d0156b33fecaba79dc2b6418a839b5ca9aed8e1e9c097ed61b901b201fa88"] == sceneSHA else {
++            XCTFail("Bind the exact supplemental scene product before execution")
++            throw NSError(domain: "TypeaheadG02SupplementalAdmission", code: 1)
++        }
++        for key in ["CODON_TH_PRODUCT_SHA256", "CODON_TH_OBSERVER_MANIFEST_SHA256"] {
++            let value = try XCTUnwrap(ProcessInfo.processInfo.environment[key])
++            guard value.range(of: "^[0-9a-f]{64}$", options: .regularExpression) != nil else {
++                XCTFail("Invalid admission identity " + key)
++                throw NSError(domain: "TypeaheadG02SupplementalAdmission", code: 2)
++            }
++        }
++        guard [.runningForeground, .runningBackground, .runningBackgroundSuspended].contains(app.state) else {
++            XCTFail("Coordinator must prelaunch the matched product; no replacement launch")
++            throw NSError(domain: "TypeaheadG02SupplementalAdmission", code: 3)
++        }
++        app.activate()
++        XCTAssertEqual(app.state, .runningForeground)
++        tap("Reset scene"); tap("Inline search scene")
++        XCTAssertTrue(field.waitForExistence(timeout: 10))
++        try exact(try owner()["callbacks"], [])
++        try exact(try owner()["query"], "")
++        try exact(try supplemental()["locale"], "inherit")
++    }
++
++    override func tearDownWithError() throws {
++        let image = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
++        image.name = "typeahead-supplemental-final-screen"; image.lifetime = .keepAlways; add(image)
++        let tree = XCTAttachment(string: app.debugDescription)
++        tree.name = "typeahead-supplemental-final-native-hierarchy"; tree.lifetime = .keepAlways; add(tree)
++        // Preserve failure state: no blur, reset, retry, relaunch or fallback event producer.
++    }
++
++    private var field: XCUIElement { app.textFields.matching(identifier: "typeahead-search-input").firstMatch }
++    private var rows: [XCUIElement] {
++        app.descendants(matching: .any).matching(identifier: "typeahead-search-item").allElementsBoundByIndex
++    }
++    private func node(_ id: String) -> XCUIElement {
++        app.descendants(matching: .any).matching(identifier: id).firstMatch
++    }
++    private func button(_ label: String) -> XCUIElement {
++        app.buttons.matching(NSPredicate(format: "label == %@", label)).firstMatch
++    }
++    private func reveal(_ target: XCUIElement) {
++        for _ in 0..<10 {
++            if target.exists && target.isHittable { return }
++            guard let scroll = app.scrollViews.allElementsBoundByIndex.first(where: { $0.isHittable }) else { break }
++            if target.exists && target.frame.minY < scroll.frame.minY { scroll.swipeDown() }
++            else { scroll.swipeUp() }
++        }
++        XCTAssertTrue(target.exists && target.isHittable, "Unreachable original target: " + target.debugDescription)
++    }
++    private func tap(_ label: String) {
++        let target = button(label)
++        XCTAssertTrue(target.waitForExistence(timeout: 10), "Missing " + label)
++        reveal(target); target.tap()
++    }
++    private func json(_ id: String) throws -> [String: Any] {
++        let target = node(id)
++        XCTAssertTrue(target.waitForExistence(timeout: 10))
++        return try XCTUnwrap(try JSONSerialization.jsonObject(with: Data(target.label.utf8)) as? [String: Any])
++    }
++    private func owner() throws -> [String: Any] { try json("inline-search-owner-json") }
++    private func supplemental() throws -> [String: Any] { try json("inline-search-supplemental-json") }
++    private func exact(_ actual: Any?, _ expected: Any) throws {
++        let value = try XCTUnwrap(actual)
++        let left = try JSONSerialization.data(withJSONObject: ["value": value], options: .sortedKeys)
++        let right = try JSONSerialization.data(withJSONObject: ["value": expected], options: .sortedKeys)
++        XCTAssertEqual(String(decoding: left, as: UTF8.self), String(decoding: right, as: UTF8.self))
++    }
++    private func waitUntil(_ message: String, _ predicate: @escaping () -> Bool) {
++        let gate = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in predicate() }, object: nil)
++        XCTAssertEqual(XCTWaiter.wait(for: [gate], timeout: 10), .completed, message)
++    }
++    private func callback(_ type: String, _ value: Any) -> [String: Any] { ["type": type, "value": value] }
++    private func focusRow(_ index: Int) {
++        let target = rows[index]
++        reveal(target); target.tap()
++        tap("Before inline search focus boundary")
++        app.typeKey(.tab, modifierFlags: []) // Original editor.
++        app.typeKey(.tab, modifierFlags: []) // Original Search button.
++        app.typeKey(.tab, modifierFlags: []) // Selected original row; no direct focus injection.
++        waitUntil("Original selected row must own actual UI focus") { target.hasFocus }
++    }
++    private func unchangedBusiness(_ before: [String: Any]) throws {
++        let after = try owner()
++        for key in ["query", "request", "requestDefined", "requests", "submitted", "submitDefined", "submits", "selection", "selectionDefined", "selections", "callbacks"] {
++            try exact(after[key], try XCTUnwrap(before[key]))
++        }
++    }
++    private func record(_ stage: String, extra: [String: Any] = [:]) throws {
++        var payload: [String: Any] = [
++            "stage": stage, "sceneSHA256": sceneSHA, "capturedAt": Date().timeIntervalSince1970,
++            "owner": try owner(), "supplemental": try supplemental(),
++            "keyboardActive": app.keyboards.firstMatch.exists,
++            "fieldValue": field.exists ? field.value as? String ?? "" : "absent",
++            "scope": "Actual XCTest outcomes only; original native event/focus/cohort receipts remain mandatory"
++        ]
++        payload.merge(extra) { _, new in new }
++        let data = try JSONSerialization.data(withJSONObject: payload, options: [.prettyPrinted, .sortedKeys])
++        let attachment = XCTAttachment(data: data, uniformTypeIdentifier: "public.json")
++        attachment.name = stage; attachment.lifetime = .keepAlways; add(attachment)
++    }
++    private func editorEnter(_ flags: XCUIKeyModifierFlags, id: String) throws {
++        tap("Set inline search owner whitespace")
++        let before = try owner()
++        reveal(field); field.tap()
++        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 10))
++        app.typeKey(.return, modifierFlags: flags)
++        waitUntil("Original modified Enter must submit current owner once") { (try? self.owner()["submits"] as? Int) == 1 }
++        try exact(try owner()["query"], "  owner  ")
++        try exact(try owner()["requests"], 0)
++        try exact(try owner()["selections"], 0)
++        try exact(try owner()["callbacks"], [callback("submit", "owner")])
++        try exact(try owner()["refEvents"], try XCTUnwrap(before["refEvents"]))
++        try record(id)
++        // Distinct original soft-submit follows; refocus does not substitute for the Enter verdict above.
++        reveal(field); field.tap()
++        let soft = app.keyboards.buttons.matching(NSPredicate(format: "label IN %@", ["Search", "search", "Rechercher"])).firstMatch
++        XCTAssertTrue(soft.waitForExistence(timeout: 10)); soft.tap()
++        waitUntil("Distinct stock soft submit must follow the ordinary Enter") { (try? self.owner()["submits"] as? Int) == 2 }
++        try exact(try owner()["callbacks"], [callback("submit", "owner"),
++            callback("native-submit", "  owner  "), callback("submit", "owner")])
++        try record(id + "-distinct-soft-submit")
++    }
++    private func nativeKey(_ name: String) -> XCUIKeyboardKey {
++        switch name {
++        case "ArrowDown": return .downArrow
++        case "ArrowUp": return .upArrow
++        case "Home": return .home
++        case "End": return .end
++        case "PageDown": return .pageDown
++        case "PageUp": return .pageUp
++        case "Enter": return .return
++        case "Escape": return .escape
++        default: return .space
++        }
++    }
++    private func resultKey(_ name: String, many: Bool, wrap: Bool, id: String) throws {
++        if many { tap("Toggle inline search 200 items") }
++        if !wrap { tap("Toggle inline search focus wrap") }
++        let count = many ? 200 : 3
++        XCTAssertEqual(rows.count, count)
++        let origin = ["Home", "PageUp"].contains(name) ? count - 1 : name == "ArrowUp" && !wrap ? 1 : 0
++        focusRow(0)
++        if origin != 0 {
++            app.typeKey(origin == count - 1 ? .end : .downArrow, modifierFlags: [])
++            let target = rows[origin]
++            waitUntil("Original native setup navigation must reach the requested origin") { target.hasFocus }
++            waitUntil("The original origin must settle fully within the actual viewport") {
++                self.node("typeahead-search-results-container").frame.intersection(self.app.windows.firstMatch.frame).contains(target.frame)
++            }
++        }
++        let before = try owner()
++        let originalRows = rows
++        var expectedIndex = origin
++        var extra: [String: Any] = ["dataset": many ? "variable200" : "typed3", "wrap": wrap, "key": name, "origin": origin]
++        switch name {
++        case "ArrowDown": expectedIndex = (origin + 1) % count
++        case "ArrowUp": expectedIndex = (origin + count - 1) % count
++        case "Home": expectedIndex = 0
++        case "End": expectedIndex = count - 1
++        case "PageDown", "PageUp":
++            let viewport = node("typeahead-search-results-container").frame
++            let boxes = originalRows.map { $0.frame }
++            XCTAssertGreaterThan(viewport.height, 0)
++            XCTAssertEqual(boxes.count, count)
++            for index in boxes.indices {
++                XCTAssertTrue(boxes[index].minY.isFinite && boxes[index].height.isFinite)
++                XCTAssertGreaterThan(boxes[index].height, 0)
++                if index > 0 { XCTAssertGreaterThan(boxes[index].minY, boxes[index - 1].minY) }
++            }
++            if many { XCTAssertGreaterThan(Set(boxes.map { $0.height }).count, 1, "Keep all 200 variable-height rows") }
++            let direction = name == "PageDown" ? 1 : -1
++            let start = boxes[origin]
++            // Translation-invariant form of Results.page. Native content clamping gives the
++            // same bounded first/last candidate because all measured rows are within content.
++            let edge = direction > 0 ? start.minY - start.height + viewport.height : start.minY + start.height - viewport.height
++            while direction > 0 ? boxes[expectedIndex].minY < edge : boxes[expectedIndex].minY > edge {
++                let next = expectedIndex + direction
++                if next < 0 || next >= count { break }
++                expectedIndex = next
++            }
++            extra["viewport"] = [viewport.minX, viewport.minY, viewport.width, viewport.height]
++            extra["rowBoxes"] = boxes.map { [$0.minX, $0.minY, $0.width, $0.height] }
++            extra["expectedIndex"] = expectedIndex
++        default: break
++        }
++        try record(id + "-before", extra: extra)
++        app.typeKey(nativeKey(name), modifierFlags: [])
++        if ["Enter", " ", "Escape"].contains(name) {
++            try exact(try owner()["selection"], NSNull())
++            try exact(try owner()["callbacks"], [callback("selection", 0), callback("selection", NSNull())])
++            if name != "Escape" {
++                // A distinct completed DOWN/UP may activate again; this is not an autorepeat producer.
++                app.typeKey(nativeKey(name), modifierFlags: [])
++                try exact(try owner()["selection"], 0)
++                try exact(try owner()["callbacks"], [callback("selection", 0), callback("selection", NSNull()), callback("selection", 0)])
++            } else {
++                app.typeKey(.escape, modifierFlags: [])
++                try exact(try owner()["callbacks"], [callback("selection", 0), callback("selection", NSNull())])
++            }
++            try exact(try owner()["requests"], 0); try exact(try owner()["submits"], 0)
++        } else {
++            let destination = originalRows[expectedIndex]
++            waitUntil("Actual original destination must own UI focus") { destination.hasFocus }
++            try unchangedBusiness(before)
++            if ["Home", "End", "PageDown", "PageUp"].contains(name) {
++                let visible = node("typeahead-search-results-container").frame.intersection(app.windows.firstMatch.frame)
++                XCTAssertTrue(visible.contains(destination.frame), "Original focused row must be fully visible")
++            }
++            if !wrap && ["ArrowUp", "ArrowDown"].contains(name) {
++                app.typeKey(name == "ArrowUp" ? .home : .end, modifierFlags: [])
++                let edge = originalRows[name == "ArrowUp" ? 0 : count - 1]
++                waitUntil("Original boundary row must be focused before negative edge") { edge.hasFocus }
++                app.typeKey(nativeKey(name), modifierFlags: [])
++                XCTAssertFalse(originalRows[name == "ArrowUp" ? count - 1 : 0].hasFocus, "Unwrapped edge must not move to the opposite row")
++                try unchangedBusiness(before)
++                // Separate original focus/default receipts must prove no local opposite-edge request.
++            }
++        }
++        try exact(try owner()["refEvents"], try XCTUnwrap(before["refEvents"]))
++        try record(id + "-after", extra: extra)
++    }
++    private func search(_ query: String, locale: String, origin: Int, id: String) throws {
++        tap("Next inline search supplemental locale") // en.
++        if locale == "fr" { tap("Next inline search supplemental locale") }
++        tap("Next inline search supplemental dataset") // Three overlapping Beta matches + Alpha.
++        if query == "rés" { tap("Next inline search supplemental dataset") }
++        try exact(try supplemental()["effectiveLocale"], locale)
++        XCTAssertEqual(rows.count, 4)
++        focusRow(origin)
++        let before = try owner()
++        let originalRows = rows
++        app.typeText(query) // One unpaced native call; failure never falls back to paced/synthetic characters.
++        let expected = origin == 1 ? 1 : 0 // Preserve current truthy-key origin rule for numeric 0 and empty key.
++        waitUntil("Original locale search destination must own UI focus") { originalRows[expected].hasFocus }
++        try unchangedBusiness(before)
++        try record(id + "-match", extra: ["query": query, "locale": locale, "originIndex": origin, "expectedIndex": expected])
++        let expiry = expectation(description: "Original 1000ms search lifetime elapsed")
++        DispatchQueue.main.asyncAfter(deadline: .now() + 1.05) { expiry.fulfill() }
++        wait(for: [expiry], timeout: 2)
++        app.typeKey("a", modifierFlags: [])
++        waitUntil("Expired search must match Alpha; retained b/Be/res prefix would have no match") { originalRows[3].hasFocus }
++        try unchangedBusiness(before)
++        try exact(try owner()["refEvents"], try XCTUnwrap(before["refEvents"]))
++        try record(id + "-expired-to-alpha")
++    }
++    private func heldRetirement(_ action: String, id: String) throws {
++        for _ in 0..<6 {
++            let current = try supplemental()["retirement"] as? String
++            if current == action { break }
++            tap("Next inline search retirement")
++        }
++        try exact(try supplemental()["retirement"], action)
++        tap("Arm inline search retirement on touch")
++        let original = rows[0]
++        reveal(original)
++        let before = try owner()
++        try exact(try supplemental()["touchArmed"], true)
++        let originalFrame = original.frame
++        original.press(forDuration: 4) // One continuous original touch; no completed-drag substitute.
++        let state = try supplemental()
++        let touches = try XCTUnwrap(state["touchEvents"] as? [[String: Any]])
++        let start = try XCTUnwrap(touches.first)
++        try exact(start["phase"], "start")
++        let rawTarget = try XCTUnwrap(start["target"])
++        let numericTarget = (rawTarget as? NSNumber)?.doubleValue ?? Double(rawTarget as? String ?? "")
++        XCTAssertGreaterThan(try XCTUnwrap(numericTarget), 0)
++        let identifier = try XCTUnwrap(start["identifier"]) // Preserve the original string/numeric token.
++        let startedAt = try XCTUnwrap(start["at"] as? Double)
++        let retirements = try XCTUnwrap(state["retirementEvents"] as? [[String: Any]])
++        XCTAssertEqual(retirements.count, 1)
++        let retirement = try XCTUnwrap(retirements.first)
++        try exact(retirement["action"], action); try exact(retirement["source"], "held-touch")
++        let retiredAt = try XCTUnwrap(retirement["at"] as? Double)
++        XCTAssertGreaterThanOrEqual(retiredAt - startedAt, 3000)
++        for touch in touches.dropFirst() {
++            try exact(touch["identifier"], identifier)
++            XCTAssertGreaterThanOrEqual(try XCTUnwrap(touch["at"] as? Double), retiredAt, "No release/cancel before retirement")
++        }
++        try unchangedBusiness(before)
++        try exact(state["touchPending"], false)
++        switch action {
++        case "reorder": XCTAssertTrue(rows[0].label.hasPrefix("Empty-key current"))
++        case "row-removal": XCTAssertEqual(rows.count, 2); XCTAssertFalse(rows.contains { $0.label.hasPrefix("Alpha wave") })
++        case "immutable-replacement": XCTAssertTrue(rows[0].label.hasPrefix("Alpha wave refreshed"))
++        case "status-unmount": try exact(try owner()["status"], "idle"); XCTAssertEqual(rows.count, 0)
++        default: XCTAssertFalse(field.exists); XCTAssertEqual(rows.count, 0)
++        }
++        try record(id, extra: ["originalRowFrame": [originalFrame.minX, originalFrame.minY, originalFrame.width, originalFrame.height],
++            "receiptGate": "Original CUI DOWN/cohort/window/epoch/UP or cancel must independently prove continuity; JS trace is insufficient"])
++        // Verify the surviving/restored lifetime still accepts its first genuine activation once.
++        if action == "surface-unmount" { tap("Toggle inline search surface") }
++        if action == "status-unmount" {
++            for _ in 0..<5 { tap("Next inline search status") }
++        }
++        let current = rows[0]
++        reveal(current); current.tap()
++        let selectedKey: Any
++        if action == "reorder" { selectedKey = "" }
++        else if action == "row-removal" { selectedKey = "0" }
++        else { selectedKey = 0 }
++        try exact(try owner()["callbacks"], [callback("selection", selectedKey)])
++        try exact(try owner()["selection"], selectedKey)
++        try exact(try owner()["selections"], 1)
++        try exact(try owner()["requests"], 0); try exact(try owner()["submits"], 0)
++        try record(id + "-current-first-activation")
++    }
++
++    func testS03EnterShift() throws { try editorEnter([.shift], id: "S03.Enter.shift") }
++
++    func testS03EnterControl() throws { try editorEnter([.control], id: "S03.Enter.control") }
++
++    func testS03EnterShiftControl() throws { try editorEnter([.shift, .control], id: "S03.Enter.shift+control") }
++
++    func testS03EnterOption() throws { try editorEnter([.option], id: "S03.Enter.alt") }
++
++    func testS03EnterShiftOption() throws { try editorEnter([.shift, .option], id: "S03.Enter.shift+alt") }
++
++    func testS03EnterControlOption() throws { try editorEnter([.control, .option], id: "S03.Enter.control+alt") }
++
++    func testS03EnterShiftControlOption() throws { try editorEnter([.shift, .control, .option], id: "S03.Enter.shift+control+alt") }
++
++    func testS03EnterCommand() throws { try editorEnter([.command], id: "S03.Enter.meta") }
++
++    func testS03EnterShiftCommand() throws { try editorEnter([.shift, .command], id: "S03.Enter.shift+meta") }
++
++    func testS03EnterControlCommand() throws { try editorEnter([.control, .command], id: "S03.Enter.control+meta") }
++
++    func testS03EnterShiftControlCommand() throws { try editorEnter([.shift, .control, .command], id: "S03.Enter.shift+control+meta") }
++
++    func testS03EnterOptionCommand() throws { try editorEnter([.option, .command], id: "S03.Enter.alt+meta") }
++
++    func testS03EnterShiftOptionCommand() throws { try editorEnter([.shift, .option, .command], id: "S03.Enter.shift+alt+meta") }
++
++    func testS03EnterControlOptionCommand() throws { try editorEnter([.control, .option, .command], id: "S03.Enter.control+alt+meta") }
++
++    func testS03EnterShiftControlOptionCommand() throws { try editorEnter([.shift, .control, .option, .command], id: "S03.Enter.shift+control+alt+meta") }
++
++    func testS05Typed3WrappedArrowUp() throws { try resultKey("ArrowUp", many: false, wrap: true, id: "S05.results.typed3.wrap.ArrowUp") }
++
++    func testS05Typed3WrappedHome() throws { try resultKey("Home", many: false, wrap: true, id: "S05.results.typed3.wrap.Home") }
++
++    func testS05Typed3WrappedEnd() throws { try resultKey("End", many: false, wrap: true, id: "S05.results.typed3.wrap.End") }
++
++    func testS05Typed3WrappedPageDown() throws { try resultKey("PageDown", many: false, wrap: true, id: "S05.results.typed3.wrap.PageDown") }
++
++    func testS05Typed3WrappedPageUp() throws { try resultKey("PageUp", many: false, wrap: true, id: "S05.results.typed3.wrap.PageUp") }
++
++    func testS05Typed3UnwrappedArrowDown() throws { try resultKey("ArrowDown", many: false, wrap: false, id: "S05.results.typed3.nowrap.ArrowDown") }
++
++    func testS05Typed3UnwrappedArrowUp() throws { try resultKey("ArrowUp", many: false, wrap: false, id: "S05.results.typed3.nowrap.ArrowUp") }
++
++    func testS05Typed3UnwrappedHome() throws { try resultKey("Home", many: false, wrap: false, id: "S05.results.typed3.nowrap.Home") }
++
++    func testS05Typed3UnwrappedEnd() throws { try resultKey("End", many: false, wrap: false, id: "S05.results.typed3.nowrap.End") }
++
++    func testS05Typed3UnwrappedPageDown() throws { try resultKey("PageDown", many: false, wrap: false, id: "S05.results.typed3.nowrap.PageDown") }
++
++    func testS05Typed3UnwrappedPageUp() throws { try resultKey("PageUp", many: false, wrap: false, id: "S05.results.typed3.nowrap.PageUp") }
++
++    func testS05Typed3UnwrappedEscape() throws { try resultKey("Escape", many: false, wrap: false, id: "S05.results.typed3.nowrap.Escape") }
++
++    func testS05Typed3UnwrappedEnter() throws { try resultKey("Enter", many: false, wrap: false, id: "S05.results.typed3.nowrap.Enter") }
++
++    func testS05Typed3UnwrappedSpace() throws { try resultKey(" ", many: false, wrap: false, id: "S05.results.typed3.nowrap.Space") }
++
++    func testS05Variable200WrappedArrowDown() throws { try resultKey("ArrowDown", many: true, wrap: true, id: "S05.results.variable200.wrap.ArrowDown") }
++
++    func testS05Variable200WrappedArrowUp() throws { try resultKey("ArrowUp", many: true, wrap: true, id: "S05.results.variable200.wrap.ArrowUp") }
++
++    func testS05Variable200WrappedPageDown() throws { try resultKey("PageDown", many: true, wrap: true, id: "S05.results.variable200.wrap.PageDown") }
++
++    func testS05Variable200WrappedPageUp() throws { try resultKey("PageUp", many: true, wrap: true, id: "S05.results.variable200.wrap.PageUp") }
++
++    func testS05Variable200WrappedEscape() throws { try resultKey("Escape", many: true, wrap: true, id: "S05.results.variable200.wrap.Escape") }
++
++    func testS05Variable200WrappedEnter() throws { try resultKey("Enter", many: true, wrap: true, id: "S05.results.variable200.wrap.Enter") }
++
++    func testS05Variable200UnwrappedArrowDown() throws { try resultKey("ArrowDown", many: true, wrap: false, id: "S05.results.variable200.nowrap.ArrowDown") }
++
++    func testS05Variable200UnwrappedArrowUp() throws { try resultKey("ArrowUp", many: true, wrap: false, id: "S05.results.variable200.nowrap.ArrowUp") }
++
++    func testS05Variable200UnwrappedHome() throws { try resultKey("Home", many: true, wrap: false, id: "S05.results.variable200.nowrap.Home") }
++
++    func testS05Variable200UnwrappedEnd() throws { try resultKey("End", many: true, wrap: false, id: "S05.results.variable200.nowrap.End") }
++
++    func testS05Variable200UnwrappedPageDown() throws { try resultKey("PageDown", many: true, wrap: false, id: "S05.results.variable200.nowrap.PageDown") }
++
++    func testS05Variable200UnwrappedPageUp() throws { try resultKey("PageUp", many: true, wrap: false, id: "S05.results.variable200.nowrap.PageUp") }
++
++    func testS05Variable200UnwrappedEscape() throws { try resultKey("Escape", many: true, wrap: false, id: "S05.results.variable200.nowrap.Escape") }
++
++    func testS05Variable200UnwrappedEnter() throws { try resultKey("Enter", many: true, wrap: false, id: "S05.results.variable200.nowrap.Enter") }
++
++    func testS05Variable200UnwrappedSpace() throws { try resultKey(" ", many: true, wrap: false, id: "S05.results.variable200.nowrap.Space") }
++
++    func testS05SearchEnBNumericZero() throws { try search("b", locale: "en", origin: 0, id: "S05.search.en.b.n0") }
++
++    func testS05SearchEnBStringZero() throws { try search("b", locale: "en", origin: 1, id: "S05.search.en.b.s0") }
++
++    func testS05SearchEnBEmptyKey() throws { try search("b", locale: "en", origin: 2, id: "S05.search.en.b.empty") }
++
++    func testS05SearchEnBeNumericZero() throws { try search("Be", locale: "en", origin: 0, id: "S05.search.en.Be.n0") }
++
++    func testS05SearchEnBeStringZero() throws { try search("Be", locale: "en", origin: 1, id: "S05.search.en.Be.s0") }
++
++    func testS05SearchEnBeEmptyKey() throws { try search("Be", locale: "en", origin: 2, id: "S05.search.en.Be.empty") }
++
++    func testS05SearchEnAccentNumericZero() throws { try search("rés", locale: "en", origin: 0, id: "S05.search.en.rés.n0") }
++
++    func testS05SearchEnAccentStringZero() throws { try search("rés", locale: "en", origin: 1, id: "S05.search.en.rés.s0") }
++
++    func testS05SearchEnAccentEmptyKey() throws { try search("rés", locale: "en", origin: 2, id: "S05.search.en.rés.empty") }
++
++    func testS05SearchFrBNumericZero() throws { try search("b", locale: "fr", origin: 0, id: "S05.search.fr.b.n0") }
++
++    func testS05SearchFrBStringZero() throws { try search("b", locale: "fr", origin: 1, id: "S05.search.fr.b.s0") }
++
++    func testS05SearchFrBEmptyKey() throws { try search("b", locale: "fr", origin: 2, id: "S05.search.fr.b.empty") }
++
++    func testS05SearchFrBeNumericZero() throws { try search("Be", locale: "fr", origin: 0, id: "S05.search.fr.Be.n0") }
++
++    func testS05SearchFrBeStringZero() throws { try search("Be", locale: "fr", origin: 1, id: "S05.search.fr.Be.s0") }
++
++    func testS05SearchFrBeEmptyKey() throws { try search("Be", locale: "fr", origin: 2, id: "S05.search.fr.Be.empty") }
++
++    func testS05SearchFrAccentNumericZero() throws { try search("rés", locale: "fr", origin: 0, id: "S05.search.fr.rés.n0") }
++
++    func testS05SearchFrAccentStringZero() throws { try search("rés", locale: "fr", origin: 1, id: "S05.search.fr.rés.s0") }
++
++    func testS05SearchFrAccentEmptyKey() throws { try search("rés", locale: "fr", origin: 2, id: "S05.search.fr.rés.empty") }
++
++    func testS06HeldTouchReorder() throws { try heldRetirement("reorder", id: "S06.held.touch.reorder.before-UP") }
++
++    func testS06HeldTouchRowRemoval() throws { try heldRetirement("row-removal", id: "S06.held.touch.row-removal.before-UP") }
++
++    func testS06HeldTouchImmutableReplacement() throws { try heldRetirement("immutable-replacement", id: "S06.held.touch.immutable-replacement.before-UP") }
++
++    func testS06HeldTouchStatusUnmount() throws { try heldRetirement("status-unmount", id: "S06.held.touch.status-unmount.before-UP") }
++
++    func testS06HeldTouchSurfaceUnmount() throws { try heldRetirement("surface-unmount", id: "S06.held.touch.surface-unmount.before-UP") }
++}

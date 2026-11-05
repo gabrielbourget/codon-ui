@@ -11,6 +11,9 @@ import android.view.ViewParent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.LifecycleEventListener;
+import com.facebook.react.bridge.ReactContext;
+import com.facebook.react.common.LifecycleState;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.R;
 import com.facebook.react.internal.featureflags.ReactNativeFeatureFlags;
@@ -18,6 +21,9 @@ import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.UIManagerHelper;
 import com.facebook.react.uimanager.events.Event;
 import com.facebook.react.uimanager.events.EventDispatcher;
+import com.facebook.react.uimanager.events.EventDispatcherListener;
+import com.facebook.react.uimanager.events.TouchEvent;
+import com.facebook.react.uimanager.events.TouchEventType;
 import com.facebook.react.views.view.ReactViewGroup;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,6 +68,125 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   private final Set<Integer> localKeySuppressed = new HashSet<>();
   private long localKeyEventId;
   private CUIFocusWithinObserver focusWithin;
+
+  private String responderCohortBinding = "";
+  private EventDispatcher responderDispatcher;
+  private EventDispatcherListener responderListener;
+  private LifecycleEventListener responderLifecycle;
+  private boolean responderResumed;
+  private long responderGeneration;
+  private final java.util.Map<String, ResponderCohort> responderCohorts = new java.util.HashMap<>();
+
+  private static final class ResponderCohort {
+    final int surface, target, identifier;
+    final long generation;
+    final String cohort, window, scopeOwner;
+    final double epoch;
+    ResponderCohort(int surface, int target, int identifier, long generation, String cohort, String window, String scopeOwner, double epoch) {
+      this.surface = surface; this.target = target; this.identifier = identifier; this.generation = generation;
+      this.cohort = cohort; this.window = window; this.scopeOwner = scopeOwner; this.epoch = epoch;
+    }
+  }
+  private static String responderKey(int surface, int target, int identifier) { return surface + ":" + target + ":" + identifier; }
+  void setNativeResponderCohortBinding(String value) {
+    String next = value == null ? "" : value;
+    if (responderCohortBinding.equals(next)) return;
+    retireResponderCohorts(); responderCohortBinding = next; synchronizeResponderCohorts();
+  }
+  private boolean responderCohortActive() {
+    return !responderCohortBinding.isEmpty() && responderResumed && nativePressable && isEnabled() &&
+      isAttachedToWindow() && isShown() && hasWindowFocus() && getWindowVisibility() == View.VISIBLE;
+  }
+  void synchronizeResponderCohorts() {
+    if (responderCohortBinding.isEmpty() || !isAttachedToWindow()) { removeResponderCohortObserver(); return; }
+    EventDispatcher dispatcher = UIManagerHelper.getEventDispatcherForReactTag((ThemedReactContext)getContext(), getId());
+    if (dispatcher == responderDispatcher && responderListener != null) return;
+    removeResponderCohortObserver();
+    if (dispatcher == null) return;
+    responderDispatcher = dispatcher;
+    java.lang.ref.WeakReference<CUIFocusView> weak = new java.lang.ref.WeakReference<>(this);
+    responderListener = event -> { CUIFocusView view = weak.get(); if (view != null && event instanceof TouchEvent) view.observeResponderTouch((TouchEvent)event); };
+    dispatcher.addListener(responderListener);
+    ReactContext react = ((ThemedReactContext)getContext()).getReactApplicationContext();
+    responderResumed = react.getLifecycleState() == LifecycleState.RESUMED;
+    responderLifecycle = new LifecycleEventListener() {
+      @Override public void onHostResume() { CUIFocusView view = weak.get(); if (view != null) view.responderResumed = true; }
+      @Override public void onHostPause() { CUIFocusView view = weak.get(); if (view != null) { view.responderResumed = false; view.retireResponderCohorts(); } }
+      @Override public void onHostDestroy() { CUIFocusView view = weak.get(); if (view != null) view.removeResponderCohortObserver(); }
+    };
+    react.addLifecycleEventListener(responderLifecycle);
+  }
+  void removeResponderCohortObserver() {
+    retireResponderCohorts();
+    if (responderDispatcher != null && responderListener != null) responderDispatcher.removeListener(responderListener);
+    if (responderLifecycle != null) ((ReactContext)getContext()).removeLifecycleEventListener(responderLifecycle);
+    responderDispatcher = null; responderListener = null; responderLifecycle = null; responderResumed = false;
+  }
+  private void retireResponderCohorts() {
+    if (responderCohortBinding.isEmpty()) { responderCohorts.clear(); return; }
+    responderCohorts.clear();
+    ResponderCohort record = new ResponderCohort(UIManagerHelper.getSurfaceId(this), 0, -1, ++responderGeneration, "unknown", "", "", 0);
+    emitResponderCohort(record, "retire", 3);
+  }
+  private static String responderCohort(MotionEvent event, int index) {
+    switch (event.getToolType(index)) {
+      case MotionEvent.TOOL_TYPE_FINGER: return "touch";
+      case MotionEvent.TOOL_TYPE_MOUSE: return "mouse";
+      case MotionEvent.TOOL_TYPE_STYLUS:
+      case MotionEvent.TOOL_TYPE_ERASER: return "pen";
+      default:
+        if (event.isFromSource(android.view.InputDevice.SOURCE_MOUSE)) return "mouse";
+        if (event.isFromSource(android.view.InputDevice.SOURCE_STYLUS)) return "pen";
+        return "unknown";
+    }
+  }
+  private void observeResponderTouch(TouchEvent event) {
+    if (!responderCohortActive() || event.getSurfaceId() != UIManagerHelper.getSurfaceId(this)) return;
+    // Metadata never admits a press. The stock responder grant selects its receiver in JS.
+    TouchEventType type = event.getTouchEventType();
+    if (type == TouchEventType.MOVE) return;
+    MotionEvent motion = event.getMotionEvent();
+    int first = type == TouchEventType.CANCEL ? 0 : motion.getActionIndex();
+    int limit = type == TouchEventType.CANCEL ? motion.getPointerCount() : first + 1;
+    for (int index = first; index < limit; index++) {
+      // The stock TouchesHelper serializes exactly this native pointer id as identifier.
+      int identifier = motion.getPointerId(index);
+      String key = responderKey(event.getSurfaceId(), event.getViewTag(), identifier);
+      ResponderCohort record;
+      if (type == TouchEventType.START) {
+        String scopeOwner = ""; double epoch = 0;
+        for (View node = this; node != null; node = node.getParent() instanceof View ? (View)node.getParent() : null) {
+          if (node instanceof CUIKeyboardScope) { scopeOwner = ((CUIKeyboardScope)node).formActionOwnerId(); epoch = ((CUIKeyboardScope)node).formActionEpoch(); break; }
+        }
+        record = new ResponderCohort(event.getSurfaceId(), event.getViewTag(), identifier, ++responderGeneration,
+          responderCohort(motion, index), CUIInputWindow.identity(this), scopeOwner, epoch);
+        responderCohorts.put(key, record);
+      } else {
+        record = responderCohorts.remove(key);
+        if (record == null) continue;
+      }
+      // Listener runs before this SAME TouchEvent dispatch; Fabric preserves queue order.
+      emitResponderCohort(record, type == TouchEventType.START ? "start" : type == TouchEventType.CANCEL ? "cancel" : "end", event.getEventCategory());
+    }
+  }
+  private void emitResponderCohort(ResponderCohort record, String phase, int category) {
+    EventDispatcher dispatcher = UIManagerHelper.getEventDispatcherForReactTag((ThemedReactContext)getContext(), getId());
+    if (dispatcher == null) return;
+    WritableMap data = baseData();
+    data.putString("bindingId", responderCohortBinding); data.putInt("sourceTarget", record.target);
+    data.putInt("surfaceId", record.surface); data.putInt("identifier", record.identifier); data.putDouble("cycleId", record.generation);
+    data.putString("cohort", record.cohort); data.putString("phase", phase); data.putString("windowId", record.window);
+    data.putString("scopeOwnerId", record.scopeOwner); data.putDouble("epoch", record.epoch);
+    dispatcher.dispatchEvent(new ResponderCohortEvent(UIManagerHelper.getSurfaceId(this), getId(), data, category));
+  }
+  private static final class ResponderCohortEvent extends Event<ResponderCohortEvent> {
+    private final WritableMap data; private final int category;
+    ResponderCohortEvent(int surface, int target, WritableMap data, int category) { super(surface, target); this.data = data; this.category = category; }
+    @Override public String getEventName() { return "topNativeResponderCohort"; }
+    @Override public boolean canCoalesce() { return false; }
+    @Override protected WritableMap getEventData() { return data; }
+    @Override public int getEventCategory() { return category; }
+  }
 
   public CUIFocusView(ThemedReactContext context) {
     super(context);
@@ -238,7 +363,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   void synchronizeMotionColors() { motionColors.updateOwner(ownerId, nativeMotionColorObservation); motionColors.synchronize(); }
   void invalidateMotionColors() { motionColors.invalidate(); }
   void sampleMotionColors(String owner, String requestId, String request) { synchronizeMotionColors(); motionColors.sample(owner, requestId, request); }
-  @Override protected void onAttachedToWindow() { super.onAttachedToWindow(); CUICollectionRoot.originalLifecycleChanged(this); foreground.attached(); if (motionColors != null) motionColors.attached(); if (motionGeometry != null) motionGeometry.attached(); if (formAction != null) formAction.attachmentChanged(true); if (localKeyLease != null) localKeyLease.attachmentChanged(true); synchronizeFocusWithin(); }
+  @Override protected void onAttachedToWindow() { super.onAttachedToWindow(); synchronizeResponderCohorts(); CUICollectionRoot.originalLifecycleChanged(this); foreground.attached(); if (motionColors != null) motionColors.attached(); if (motionGeometry != null) motionGeometry.attached(); if (formAction != null) formAction.attachmentChanged(true); if (localKeyLease != null) localKeyLease.attachmentChanged(true); synchronizeFocusWithin(); }
   @Override protected void drawableStateChanged() { super.drawableStateChanged(); if (motionColors != null) motionColors.synchronize(); }
   @Override protected void onConfigurationChanged(android.content.res.Configuration configuration) { super.onConfigurationChanged(configuration); if (motionColors != null) motionColors.synchronize(); }
 
@@ -541,6 +666,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   @Override
   protected void onDetachedFromWindow() {
     CUICollectionRoot.originalLifecycleChanged(this);
+    removeResponderCohortObserver();
     foreground.detached();
     if (focusWithin != null) focusWithin.detached();
     if (formAction != null) formAction.attachmentChanged(false);
@@ -554,9 +680,15 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
     super.onDetachedFromWindow();
   }
 
+  @Override protected void onVisibilityChanged(View changedView, int visibility) {
+    super.onVisibilityChanged(changedView, visibility);
+    if (responderCohorts != null && !isShown()) retireResponderCohorts();
+  }
+
   @Override
   public void onWindowFocusChanged(boolean focused) {
     CUICollectionRoot.originalLifecycleChanged(this);
+    if (!focused) retireResponderCohorts();
     if (!focused) foreground.detached(); else foreground.attached();
     if (formAction != null) formAction.snapshot();
     if (!focused) scrollAnchor.invalidate();

@@ -1,5 +1,5 @@
-import { Fragment, useState } from "react"
-import { Platform, Pressable, StyleSheet, Text as CoreText, View } from "react-native"
+import { Fragment, useCallback, useRef, useState } from "react"
+import { findNodeHandle, Platform, Pressable, StyleSheet, Text as CoreText, View } from "react-native"
 
 import {
   AVAILABLE_CORNER_GEOMETRY_CODES,
@@ -9,10 +9,17 @@ import {
   Button,
   CarouselCloseButton,
   NativeFocusView,
-  PlaceholderText,
   Text,
   useNativeTheme,
+  type TNativeButtonProps,
 } from "@codon-ui/react-native"
+
+import { PlaceholderG02Fixture } from "./PlaceholderG02Fixture"
+import { TextG02ContextFixture } from "./TextG02ContextFixture"
+
+type TButtonPressEvent = Parameters<NonNullable<TNativeButtonProps["onPress"]>>[0]
+type TButtonReceipt = { sequence: number; kind: string; receivedAt: number; data: unknown }
+const PRESS_START_TAKEOVERS = ["none", "disabled", "pending"] as const
 
 const BUTTON_DIMENSIONS = [
   { label: "default", width: undefined, height: undefined },
@@ -58,6 +65,48 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
   const [pending, setPending] = useState(false)
   const [keyboardFocusable, setKeyboardFocusable] = useState(true)
   const [lastRelease, setLastRelease] = useState("none")
+  const [buttonActions, setButtonActions] = useState(0)
+  const [longPressEnabled, setLongPressEnabled] = useState(false)
+  const [longActions, setLongActions] = useState(0)
+  const [takeoverIndex, setTakeoverIndex] = useState(0)
+  const [buttonRootTag, setButtonRootTag] = useState<number | null>(null)
+  const buttonRef = useRef<View | null>(null)
+  const eventIdentities = useRef(new WeakMap<object, number>())
+  const nativeIdentities = useRef(new WeakMap<object, number>())
+  const nextIdentity = useRef(0)
+  const nextReceipt = useRef(0)
+  const [buttonReceipts, setButtonReceipts] = useState<TButtonReceipt[]>([])
+  const bindButton = useCallback((node: View | null) => {
+    buttonRef.current = node
+    setButtonRootTag(node === null ? null : findNodeHandle(node))
+  }, [])
+  const recordButton = (kind: string, data: unknown) => {
+    const receipt = { sequence: ++nextReceipt.current, kind, receivedAt: Date.now(), data }
+    setButtonReceipts((current) => [...current, receipt])
+  }
+  const observeButton = (kind: string, event: TButtonPressEvent) => {
+    const identity = (objects: WeakMap<object, number>, object: object) => {
+      let value = objects.get(object)
+      if (value === undefined) {
+        value = ++nextIdentity.current
+        objects.set(object, value)
+      }
+      return value
+    }
+    const native = event.nativeEvent
+    // Snapshot scalars synchronously without persisting, modifying or retaining a pooled event.
+    // These tokens identify observed JS objects; original SDK event/ref proof stays separate.
+    recordButton(kind, {
+      eventIdentity: identity(eventIdentities.current, event),
+      nativeIdentity: identity(nativeIdentities.current, native),
+      target: native.target,
+      rootTag: buttonRef.current === null ? null : findNodeHandle(buttonRef.current),
+      kind: "kind" in native ? native.kind : null,
+      timestamp: "timestamp" in native ? native.timestamp : null,
+      source: "source" in native ? native.source : null,
+      observedAt: "observedAt" in native ? native.observedAt : null,
+    })
+  }
   const [custom, setCustom] = useState(false)
   const [renderChildren, setRenderChildren] = useState(false)
   const [constrained, setConstrained] = useState(false)
@@ -87,6 +136,17 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
       </Text>
       <Text testID="library-button-customization">
         Button dimensions: {dimensions.label}. Custom style layer: {buttonCustom ? "enabled" : "off"}.
+      </Text>
+      <Text testID="library-button-behavior">
+        {JSON.stringify({
+          actions: buttonActions,
+          longActions,
+          longPressEnabled,
+          disabled,
+          pending,
+          pressStartTakeover: PRESS_START_TAKEOVERS[takeoverIndex],
+          rootTag: buttonRootTag,
+        })}
       </Text>
       <View style={styles.controls}>
         <SceneControl
@@ -135,6 +195,15 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
           onPress={() => setDisabled((value) => !value)}
         />
         <SceneControl label="Toggle library pending" selected={pending} onPress={() => setPending((value) => !value)} />
+        <SceneControl
+          label="Toggle library long press action"
+          selected={longPressEnabled}
+          onPress={() => setLongPressEnabled((value) => !value)}
+        />
+        <SceneControl
+          label="Next library button press-start takeover"
+          onPress={() => setTakeoverIndex((index) => (index + 1) % PRESS_START_TAKEOVERS.length)}
+        />
         <SceneControl
           label="Toggle library keyboard focus"
           selected={keyboardFocusable}
@@ -200,17 +269,17 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
       <Text>
         Parent text with <Text fontWeight="bold">nested bold content</Text> and inherited foreground.
       </Text>
-      <PlaceholderText
-        testID="library-placeholder"
+      <PlaceholderG02Fixture
         align={placeholderCentered ? "center" : "left"}
-        onPress={increment}
+        increment={increment}
         customStyles={placeholderCustom ? [styles.placeholderCustom, { paddingVertical: 4 }] : undefined}
         style={placeholderFinal ? [styles.placeholderFinal] : undefined}
       >
         {placeholderEmpty ? "" : "Choose an item"}
-      </PlaceholderText>
+      </PlaceholderG02Fixture>
       <Text testID="library-release">Last release: {lastRelease}</Text>
       <Button
+        ref={bindButton}
         accessibilityLabel="Library action"
         testID="library-button"
         width={dimensions.width}
@@ -225,8 +294,33 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
         isDisabled={disabled}
         isPending={pending}
         focusable={keyboardFocusable}
-        onPress={increment}
-        onPressUp={(event) => setLastRelease("kind" in event.nativeEvent ? event.nativeEvent.kind : "touch")}
+        onPress={(event) => {
+          observeButton("press", event)
+          setButtonActions((value) => value + 1)
+          increment()
+        }}
+        onPressStart={(event) => {
+          observeButton("press:start", event)
+          if (PRESS_START_TAKEOVERS[takeoverIndex] === "disabled") setDisabled(true)
+          if (PRESS_START_TAKEOVERS[takeoverIndex] === "pending") setPending(true)
+          setTakeoverIndex(0)
+        }}
+        onPressEnd={(event) => observeButton("press:end", event)}
+        onPressChange={(pressed) => recordButton("press:change", pressed)}
+        onPressIn={(event) => observeButton("native:pressIn", event)}
+        onPressOut={(event) => observeButton("native:pressOut", event)}
+        onPressUp={(event) => {
+          observeButton("press:up", event)
+          setLastRelease("kind" in event.nativeEvent ? event.nativeEvent.kind : "touch")
+        }}
+        onLongPress={
+          longPressEnabled
+            ? (event) => {
+                observeButton("long:press", event)
+                setLongActions((value) => value + 1)
+              }
+            : undefined
+        }
         raised={!custom}
         style={
           custom
@@ -306,6 +400,8 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
         Library scenes use native events, refs, roles and styles. Physical screen-reader and touch acceptance remain
         separate.
       </Text>
+      <Text testID="library-button-callbacks">{JSON.stringify(buttonReceipts)}</Text>
+      <TextG02ContextFixture increment={increment} />
     </View>
   )
 }

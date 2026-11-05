@@ -1,0 +1,285 @@
+{
+  "cell": "CAT.pagination.G02",
+  "sourceBase": "1567b08b6c1121aa85c97e8ea95cd7b05a97f676",
+  "ledgerDispositionAtBase": "OPEN",
+  "status": "PREPARED_NOT_NATIVE_QUALIFIED",
+  "scope": "Primary paging touch and controlled-owner cohort only. This advances an OPEN cell and preserves every original criterion, failure and passing-cell receipt. It does not close the whole behavior cell.",
+  "authority": [
+    "roadmap.md#312-ownership-and-behavior",
+    "roadmap.md#32-native-scenario-matrix",
+    "roadmap.md#3526-pagination-capability-contract",
+    "roadmap.md#3549-public-pagination-completion",
+    "roadmap.md#35491-complete-pagination-contract-reconciliation"
+  ],
+  "scene": "apps/native-showcase/src/scenes/PaginationScene.tsx",
+  "sceneSHA256": "ef6a6c716d7e970a71cc365c4de2670b0a3cf2e435598acb32490a48aeb83679",
+  "nativeSource": "planning/component-library/fixtures/native-pagination/PaginationG02TrialTests.swift",
+  "sourceVerifier": "apps/native-showcase/src/scenes/__tests__/PaginationBehaviorScene.test.tsx",
+  "originalOracleFiles": [
+    "packages/react-native/src/components/Pagination/__tests__/Pagination.test.tsx",
+    "packages/react-native/src/components/Pagination/__tests__/model.test.ts",
+    "apps/native-showcase/src/scenes/__tests__/PaginationScene.test.tsx"
+  ],
+  "unchangedOriginalRequirements": "All 30 canonical root cases, full 131760-case window oracle, approved current caller page/size authority, all inherited child/field/collection/overlay/native contracts, existing case/process limits, old failures and physical deferrals remain required and unchanged.",
+  "isolation": "No Button, ComboBox, Typeahead, Stepper, Slider, sort/filter, editor-component source or shared/root harness edits. Existing Pagination page-entry/size-field logic is reused unchanged and not exercised as a substitute for its required editor lane.",
+  "admission": {
+    "source": "Main binds full integration HEAD, actual source/SDK/product/input/profile tuple; a scene hash or environment variable alone does not prove a native outcome.",
+    "identities": [
+      "CODON_PAGINATION_SCENE_SHA256",
+      "CODON_PAGINATION_PRODUCT_SHA256",
+      "CODON_PAGINATION_INPUT_MANIFEST_SHA256",
+      "CODON_PAGINATION_SDK_OBSERVER_MANIFEST_SHA256"
+    ],
+    "beforeEachMethod": "Prepare a fresh default Pagination scene in the matched Release product: page 3, size 10, echo/groups/left true; disabled/empty/rtl/veto false; requests and callbacks empty; keyboard inactive. Each method has its own admission. Do not run the class against leftover state.",
+    "nativeExecution": "Add the Swift source to the existing UI-test target and use standard -only-testing selection within main's existing native budget. Cloud starts no native build, simulator, test batch or process monitor.",
+    "provenance": "Input/observer manifests describe the planned cohort and instrument, not future evidence. Pair actual SDK event/object/receiver/window/lifetime records, target/descendant correspondence, current/disabled metadata and timing for every original contact after any normal activation. JavaScript scalar readbacks and XCTest snapshots do not replace those records.",
+    "profile": "Prepared iOS P01 normal portrait, keyboard-inactive genuine native touch. Remaining applicable profiles, keyboard-active cases, Android and physical modality obligations remain independent."
+  },
+  "limits": {
+    "unchangedSourceCaseMilliseconds": 5000,
+    "nativeMethodAllowanceSeconds": 180,
+    "nativeOutcomeWaitSeconds": 10,
+    "visibilitySwipes": 12
+  },
+  "observations": {
+    "owner": "pagination-behavior-owner: complete current scene page/size/echo/disabled/empty/rtl/groups/left/veto/requests. No local page or size mirror is introduced.",
+    "callbacks": "pagination-behavior-callbacks: untruncated ordered sequence/kind/data/receivedAt rows. Public general-button onPress records original scalar payload then the existing page/size request callbacks append their values. receivedAt is JS observation time, not hardware input time.",
+    "veto": "The original public event's preventDefault is used only when explicitly armed. Observer neither persists nor retains nor injects native events. customGeneralButtonProps.isDisabled=false deliberately tests the authoritative global/edge guard.",
+    "nativeVsSource": "Ten source cases use normal userEvent gestures. The source-only veto case reuses the original Pagination oracle's public fireEvent event/prevention seam. The corresponding XCTest veto method uses one real target touch; source positives do not qualify installed behavior."
+  },
+  "nativeMethods": [
+    {
+      "method": "testS02CurrentPageTouchDoesNotRequestNavigation",
+      "scenario": "S02",
+      "capabilities": ["CAP.pagination.010", "CAP.pagination.025"],
+      "originalOracleNames": [
+        "CAP.pagination.010/.025/.026 leaves current page unchanged after requests until owner echo"
+      ],
+      "action": "One original touch on current page 3",
+      "exactExpected": "Owner page 3, no page request, one public button callback, actual current trait stays on page 3.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS02DifferentVisiblePageEchoesOnce",
+      "scenario": "S02",
+      "capabilities": ["CAP.pagination.026"],
+      "originalOracleNames": [
+        "CAP.pagination.010/.025/.026 leaves current page unchanged after requests until owner echo"
+      ],
+      "action": "One original touch on visible page 4",
+      "exactExpected": "Owner page 4, exactly page:4; button callback precedes request; actual current trait moves to page 4.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS02FirstRequestUsesCallerPage",
+      "scenario": "S02",
+      "capabilities": ["CAP.pagination.027"],
+      "originalOracleNames": [
+        "CAP.pagination.027 requests first/previous/next/last from the authoritative caller page"
+      ],
+      "action": "One original touch on pagination-first from owner page 3",
+      "exactExpected": "Exactly page:1, owner echoes 1, button callback before page request; native current trait follows owner.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS02PreviousRequestUsesCallerPage",
+      "scenario": "S02",
+      "capabilities": ["CAP.pagination.027"],
+      "originalOracleNames": [
+        "CAP.pagination.027 requests first/previous/next/last from the authoritative caller page"
+      ],
+      "action": "One original touch on pagination-previous from owner page 3",
+      "exactExpected": "Exactly page:2, owner echoes 2, button callback before page request; native current trait follows owner.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS02NextRequestUsesCallerPage",
+      "scenario": "S02",
+      "capabilities": ["CAP.pagination.027"],
+      "originalOracleNames": [
+        "CAP.pagination.027 requests first/previous/next/last from the authoritative caller page"
+      ],
+      "action": "One original touch on pagination-next from owner page 3",
+      "exactExpected": "Exactly page:4, owner echoes 4, button callback before page request; native current trait follows owner.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS02LastRequestUsesCallerPage",
+      "scenario": "S02",
+      "capabilities": ["CAP.pagination.027"],
+      "originalOracleNames": [
+        "CAP.pagination.027 requests first/previous/next/last from the authoritative caller page"
+      ],
+      "action": "One original touch on pagination-last from owner page 3",
+      "exactExpected": "Exactly page:20, owner echoes 20, button callback before page request; native current trait follows owner.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS02RepeatedDeclinedPageRequestsKeepCurrentPage",
+      "scenario": "S02",
+      "capabilities": ["CAP.pagination.010", "CAP.pagination.025", "CAP.pagination.026"],
+      "originalOracleNames": [
+        "CAP.pagination.010/.025/.026 leaves current page unchanged after requests until owner echo"
+      ],
+      "action": "Decline owner updates, then two independently defined original page-4 contacts; verify first outcome before second",
+      "exactExpected": "Requests [page:4,page:4], owner and actual current trait stay at 3; no local mirror or invented echo.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS02RestoredEchoUsesTheLatestOwnerPage",
+      "scenario": "S02",
+      "capabilities": ["CAP.pagination.010", "CAP.pagination.027"],
+      "originalOracleNames": [
+        "CAP.pagination.010/.025/.026 leaves current page unchanged after requests until owner echo",
+        "CAP.pagination.027 requests first/previous/next/last from the authoritative caller page"
+      ],
+      "action": "One declined Next contact; restore echo; two distinct Next contacts with each outcome checked",
+      "exactExpected": "Requests [page:4,page:4,page:5], final owner 5, no stale closure or drift.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS02FirstBoundaryRejectsBackwardContacts",
+      "scenario": "S02",
+      "capabilities": ["CAP.pagination.029", "CAP.pagination.027"],
+      "originalOracleNames": [
+        "CAP.pagination.004/.029 guards all actions and range boundaries despite a nested attempt to re-enable buttons"
+      ],
+      "action": "First reaches 1; center-coordinate touches on disabled First and Previous; distinct Next contact",
+      "exactExpected": "Blocked contacts add no callback/request; Next reaches 2; requests exactly [page:1,page:2].",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS02LastBoundaryRejectsForwardContacts",
+      "scenario": "S02",
+      "capabilities": ["CAP.pagination.029", "CAP.pagination.027"],
+      "originalOracleNames": [
+        "CAP.pagination.004/.029 guards all actions and range boundaries despite a nested attempt to re-enable buttons"
+      ],
+      "action": "Last reaches 20; center-coordinate touches on disabled Last and Next; distinct Previous contact",
+      "exactExpected": "Blocked contacts add no callback/request; Previous reaches 19; requests exactly [page:20,page:19].",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS02GlobalDisabledOverridesNestedPropsAndRecovers",
+      "scenario": "S02",
+      "capabilities": ["CAP.pagination.004"],
+      "originalOracleNames": [
+        "CAP.pagination.004/.029 guards all actions and range boundaries despite a nested attempt to re-enable buttons"
+      ],
+      "action": "Set global disabled while customGeneralButtonProps.isDisabled remains false; one blocked Next touch; clear global guard; one distinct Next contact",
+      "exactExpected": "All five sampled primary targets disabled, no blocked callback/request, first subsequent Next requests/echoes page 4 once.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS02AuthoredVetoRunsBeforePageRequest",
+      "scenario": "S02",
+      "capabilities": ["CAP.pagination.006", "CAP.pagination.026"],
+      "originalOracleNames": [
+        "preserves the original general-button event and allows an owner veto without changing the page"
+      ],
+      "action": "Enable authored public onPress veto; one genuine Next touch; clear veto; one distinct Next contact",
+      "exactExpected": "First original callback observes unprevented event then prevents it; no request/page change. Second contact adds one page:4 after its callback. Source event seam is not native qualification.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS01OwnerReplacementRequestsNothingAndUsesNewPage",
+      "scenario": "S01",
+      "capabilities": ["CAP.pagination.010", "CAP.pagination.027"],
+      "originalOracleNames": [
+        "CAP.pagination.010/.025/.026 leaves current page unchanged after requests until owner echo"
+      ],
+      "action": "Existing direct owner replacement changes 3 to 8; then one original Next touch",
+      "exactExpected": "No callback or request on owner replacement; actual current trait follows 8; first Next requests/echoes 9.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS01EmptyDataRetainsCallerUntilExplicitRequest",
+      "scenario": "S01",
+      "capabilities": ["CAP.pagination.010", "CAP.pagination.021", "CAP.pagination.022", "CAP.pagination.029"],
+      "originalOracleNames": [
+        "CAP.pagination.021/.022 preserves one-page/zero-item visibility, selected groups, deduplication and separators",
+        "retains caller page state while bounding only window placement during an independent page-size echo"
+      ],
+      "action": "Set zero items with showWithOnePage retained; touch page 1 explicitly; restore data",
+      "exactExpected": "Owner remains 3 with no normalization request on empty data; page 1 is not falsely current. Explicit touch requests/echoes 1; all four boundary controls disabled; restoring data emits nothing.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    },
+    {
+      "method": "testS12ContextChangesRetainPagingStateAndCallbacks",
+      "scenario": "S12",
+      "capabilities": ["CAP.pagination.010", "CAP.pagination.014", "CAP.pagination.027"],
+      "originalOracleNames": [
+        "CAP.pagination.010/.025/.026 leaves current page unchanged after requests until owner echo",
+        "keeps page requests owner-controlled and retains the independent draft through theme/style/owner changes"
+      ],
+      "action": "Next to 4; existing RTL/consolidation/group controls plus Dark theme/Compact width; one new Next contact",
+      "exactExpected": "Owner 4 and exact callback trace retained without synthetic requests; subsequent Next requests/echoes 5 once. No editor, style, geometry or full profile qualification inferred.",
+      "iOSStatus": "PREPARED_NOT_COMPILED_OR_EXECUTED",
+      "verdict": "OPEN"
+    }
+  ],
+  "remainingRequired": [
+    {
+      "scenario": "S01/S03",
+      "criteria": "All omitted/default/explicit axes and supported runtime page/size/count/options/labels/context/callback/ref changes beyond this primary cohort",
+      "status": "OPEN",
+      "reason": "The complete approved capability and inherited owner contracts remain required; no default/context/render/native relationship obligation is waived."
+    },
+    {
+      "scenario": "S02",
+      "criteria": "CAP.pagination.011/.012/.023/.024/.028 size selection, empty/localized independent page draft and Go submission, repeated size veto, size-before-page ordering with reentrant ownership/guard/unmount",
+      "status": "OPEN_EDITOR_AND_SELECTION_COHORT_REQUIRED",
+      "reason": "These remain with their original tests and editor/selection/native evidence. This patch changes no editor source or pipeline and does not infer them from primary paging."
+    },
+    {
+      "scenario": "S02/S05",
+      "criteria": "CAP.pagination.030 genuine overflow selection, held/declined popup state, full keyboard/modifier/typeahead/pointer/default/Tab/focus and virtual activation",
+      "status": "OPEN_NATIVE_INPUT_AND_OVERLAY_WITNESSES_REQUIRED",
+      "reason": "Primary Button touch does not substitute for actual collection/overlay readiness, receiver, focus, keyboard/hover/virtual or close ordering."
+    },
+    {
+      "scenario": "S05",
+      "criteria": "First primary paging action with an already focused native editor; applicable nested/covered windows",
+      "status": "OPEN_EDITOR_LANE_AND_NATIVE_WITNESS_REQUIRED",
+      "reason": "Keyboard-inactive touches do not cover or reset the original keyboard-active conditions."
+    },
+    {
+      "scenario": "S06",
+      "criteria": "Held input, current callback/ref replacement, overlay/window loss, unmount, stale policy rejection and post-retirement suppression",
+      "status": "OPEN_NATIVE_LIFETIME_COHORT_REQUIRED",
+      "reason": "No window transition, receiver replacement, gesture cancellation or SDK lifetime proof is fabricated by fixture state."
+    },
+    {
+      "scenario": "platform/profile",
+      "criteria": "Every applicable retained profile and platform, actual navigation/current-page/relationship/default-focus semantics and physical modality authority",
+      "status": "OPEN",
+      "reason": "XCTest isSelected and JS payloads cover only stated observations. Actual SDK metadata, Android, profile and physical-lane evidence stay required under existing decisions."
+    }
+  ],
+  "cellAdoptionRule": "Keep CAT.pagination.G02 OPEN until all applicable original criteria, including remaining cohorts, have matching installed evidence and ordinary main-owned adoption. No G01/G03/G05 backfill or promotion is claimed.",
+  "unchangedOriginalInputs": {
+    "packages/react-native/src/components/Pagination/__tests__/Pagination.test.tsx": "46a6ad0fbac7cf5d9cd0f4f0d337dff5e58ad85a0528f48818b730becd34f39b",
+    "packages/react-native/src/components/Pagination/__tests__/model.test.ts": "ed21d4e3aa2023613ee3530f74da5680f9f8cdd0e949cead94fd6ad7045c410c",
+    "apps/native-showcase/src/scenes/__tests__/PaginationScene.test.tsx": "4eaa57ac71aa190c021f0f7aa14487ae1940bb285edae40f8275e65277055d51",
+    "packages/react-native/src/components/Pagination/Pagination.tsx": "8c6dab2a228cb8a49c81da4ba524bed0b5d4d6ac604d2058d3e261c1a41e90f4",
+    "packages/react-native/src/components/Pagination/Primary.tsx": "af0ef2bf1d35f2a83d39dd839137f357f4219394fd09e0289d0777c04331b5d6",
+    "packages/react-native/src/components/Pagination/Action.tsx": "e702ff7d5962c90595033a66f8d3780f0092a933cc8eb54d84511db8b6353ee1",
+    "packages/react-native/src/components/Pagination/model.ts": "f8abc86c3205140e9be8e2b402120ae496a603e1000cdf6a5a177afeec5137f0",
+    "packages/react-native/src/components/Pagination/__tests__/fixtures/windowOracle.json": "fa6216bce93be726aa216a8c2ef1e457b205d54d5ca9c570f3d773d62044a6b5",
+    "packages/react/src/components/Pagination/__tests__/Pagination.test.tsx": "71b63210f0a7508959ced487625f337de2318f6a21ad6fec49e40ff776ae0ac9"
+  }
+}

@@ -1,20 +1,30 @@
 import {
   forwardRef,
+  useCallback,
+  useContext,
   useEffect,
+  useId,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
+  type ComponentProps,
   type ForwardedRef,
   type ReactElement,
   type RefAttributes,
 } from "react"
-import { ScrollView, View, useWindowDimensions } from "react-native"
+import { ScrollView, TextInput, View, useWindowDimensions } from "react-native"
 
+import { NativeKeyboardScope } from "../../input/NativeKeyboardScope"
+import { useNativeOriginalEditorEnterPolicy } from "../../input/originalEditorEnterPolicy"
+import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../overlays/floating/scope"
 import { useNativeTheme } from "../../theme"
 import { Button } from "../Button/Button"
 import { getNativeButtonContent } from "../Button/content"
-import { Input } from "../Input/Input"
+import { NativeInput } from "../Input/Input"
 import { NativeContentContext } from "../NativeContentContext"
+import { useNativeTagBoxShadow } from "../Tag/boxShadow"
+import { resolveNativeTagTransition, useNativeTagColor, useNativeTagReducedMotion } from "../Tag/motion"
 import { PlaceholderText } from "../Text/variants/PlaceholderText/PlaceholderText"
 
 import { NativeTypeaheadLoadingIndicator, NativeTypeaheadSearchIcon } from "./affordances"
@@ -31,10 +41,96 @@ import {
   type TTypeaheadViewport,
 } from "./types"
 
+type TTypeaheadEditorProps = ComponentProps<typeof NativeInput> & {
+  inputRef: TNativeTypeaheadSearchProps["inputRef"]
+  submitQuery: () => void
+  canSubmit: () => boolean
+  submissionOwner: TNativeTypeaheadSearchProps["onSubmitQuery"]
+  queryOwner: TNativeTypeaheadSearchProps["onInputChange"]
+}
+
+const NativeTypeaheadEditor = ({
+  inputRef,
+  submitQuery,
+  canSubmit,
+  submissionOwner,
+  queryOwner,
+  ...props
+}: TTypeaheadEditorProps) => {
+  const ownerId = useId()
+  const editor = useRef<TextInput | null>(null)
+  const [original, setOriginal] = useState<TextInput | null>(null)
+  const bind = useCallback((target: TextInput | null) => {
+    editor.current = target
+    setOriginal(target)
+  }, [])
+  const publishedEditor = useRef<{
+    target: TextInput
+    owner: typeof inputRef
+    release: () => void
+  } | null>(null)
+  useLayoutEffect(() => {
+    const target = editor.current
+    const published = publishedEditor.current
+    if (published && published.target === target && published.owner === inputRef) return
+    publishedEditor.current = null
+    published?.release()
+    if (!target || !inputRef) return
+    const owner = inputRef
+    let release: () => void
+    if (typeof owner === "function") {
+      const cleanup = owner(target)
+      release = typeof cleanup === "function" ? cleanup : () => owner(null)
+    } else {
+      owner.current = target
+      release = () => {
+        owner.current = null
+      }
+    }
+    // Stock TextInput replays its ref effect on event-count changes; publish committed host identity.
+    publishedEditor.current = { target, owner, release }
+  }, [original, inputRef])
+  useLayoutEffect(
+    () => () => {
+      editor.current = null
+      const published = publishedEditor.current
+      publishedEditor.current = null
+      published?.release()
+    },
+    [],
+  )
+  const owner = useRef({ inputRef, submissionOwner, queryOwner, revision: 0 })
+  if (
+    owner.current.inputRef !== inputRef ||
+    owner.current.submissionOwner !== submissionOwner ||
+    owner.current.queryOwner !== queryOwner
+  )
+    owner.current = { inputRef, submissionOwner, queryOwner, revision: owner.current.revision + 1 }
+  const receive = useNativeOriginalEditorEnterPolicy(original, {
+    enabled: !props.isDisabled,
+    lifetimeKey: `${ownerId}:${owner.current.revision}`,
+    current: () => editor.current,
+    canAct: canSubmit,
+    onSubmit: submitQuery,
+  })
+  return (
+    <NativeInput
+      {...props}
+      ref={bind}
+      nativeRender={(host) => {
+        const native = { ...host, onNativeOrdinaryEditorKey: receive }
+        return <TextInput {...native} />
+      }}
+    />
+  )
+}
+
 const NativeTypeaheadSearch = <T extends object>(
   props: TNativeTypeaheadSearchProps<T>,
   ref: ForwardedRef<TNativeTypeaheadSearchRef>,
 ) => {
+  const parentScope = useContext(NativeFloatingScopeContext)
+  const parentWindow = useContext(NativeFloatingWindowContext)
   const status = props.status ?? "results"
   if (typeof props.inputValue !== "string" || typeof props.onInputChange !== "function")
     throw new TypeError("TypeaheadSearch: inputValue and onInputChange are required controlled query props")
@@ -67,12 +163,16 @@ const NativeTypeaheadSearch = <T extends object>(
   const labels = resolveTypeaheadSearchLabels(props)
   const theme = useNativeTheme()
   const windowDimensions = useWindowDimensions()
-  const styles = getTypeaheadStyles(
-    theme,
-    props,
-    !props.isDisabled && (focused.input || focused.button),
-    windowDimensions.height,
+  const focusWithin = !props.isDisabled && (focused.input || focused.button)
+  const styles = useMemo(
+    () => getTypeaheadStyles(theme, props, focusWithin, windowDimensions.height),
+    [theme, props, focusWithin, windowDimensions.height],
   )
+  const reduced = useNativeTagReducedMotion()
+  const borderTiming = resolveNativeTagTransition(theme.transitions?.borderColor, 250)
+  const focusTiming = resolveNativeTagTransition(theme.transitions?.boxShadow, 450)
+  const borderColor = useNativeTagColor(styles.row.borderColor ?? "transparent", borderTiming, reduced, true).rendered
+  const boxShadow = useNativeTagBoxShadow(styles.row.boxShadow, focusTiming, reduced)
   const containerSignature = JSON.stringify(styles.container)
   const previousContainer = useRef(containerSignature)
   if (containerSignature !== previousContainer.current) {
@@ -96,7 +196,8 @@ const NativeTypeaheadSearch = <T extends object>(
               : undefined
   return (
     <NativeContentContext.Provider value={{ foregroundColor: styles.foreground, isButton: false }}>
-      <View
+      <NativeKeyboardScope
+        captureEnabled={parentScope?.canAct() !== false && parentWindow?.() !== false}
         ref={ref}
         testID={props.testID ?? props["data-testid"] ?? "typeahead-search"}
         nativeID={props.nativeID}
@@ -107,10 +208,14 @@ const NativeTypeaheadSearch = <T extends object>(
         accessibilityHint={props.accessibilityHint}
         style={styles.root}
       >
-        <View testID="typeahead-search-input-row" style={styles.row}>
-          <Input
+        <View testID="typeahead-search-input-row" style={{ ...styles.row, borderColor, boxShadow }}>
+          <NativeTypeaheadEditor
             {...nativeInput}
-            ref={props.inputRef}
+            inputRef={props.inputRef}
+            submissionOwner={props.onSubmitQuery}
+            queryOwner={props.onInputChange}
+            submitQuery={submit}
+            canSubmit={() => live() && parentScope?.canAct() !== false && parentWindow?.() !== false}
             testID="typeahead-search-input"
             accessibilityLabel={props.accessibilityLabel ?? props["aria-label"]}
             value={props.inputValue}
@@ -222,7 +327,7 @@ const NativeTypeaheadSearch = <T extends object>(
             )}
           </View>
         </ScrollView>
-      </View>
+      </NativeKeyboardScope>
     </NativeContentContext.Provider>
   )
 }

@@ -1,5 +1,8 @@
 import {
   forwardRef,
+  useContext,
+  useInsertionEffect,
+  useLayoutEffect,
   useEffect,
   useRef,
   useState,
@@ -7,10 +10,11 @@ import {
   type ReactNode,
   type RefAttributes,
 } from "react"
-import type { AccessibilityState, MouseEvent, ViewProps } from "react-native"
+import type { AccessibilityState, MouseEvent, TextInput, ViewProps } from "react-native"
 
 import { useNativeContextProps } from "../../collection/context"
 import { NativePressable, type TNativePressableRender } from "../../input/NativePressable"
+import { NativeButtonPressContext, prepareNativeButtonPressFocus } from "../../input/nativePressCycle"
 import type { TNativeFocusEvent, TNativePressEvent, TNativeFocusViewProps } from "../../input/types"
 import { useNativeTheme } from "../../theme"
 import { NativeContentContext } from "../NativeContentContext"
@@ -116,6 +120,25 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
     ...rest
   } = props
   const theme = useNativeTheme()
+  const nativePressOptions = useContext(NativeButtonPressContext)
+  const currentPressOptions = useRef(nativePressOptions)
+  const pressOptionsRevision = useRef(0)
+  const activePrivatePress = useRef<{ revision: number; editor: TextInput | null } | null>(null)
+  useInsertionEffect(() => {
+    if (currentPressOptions.current?.lifetimeKey !== nativePressOptions?.lifetimeKey) pressOptionsRevision.current++
+    currentPressOptions.current = nativePressOptions
+  })
+  useLayoutEffect(() => {
+    const active = activePrivatePress.current
+    if (active?.revision === pressOptionsRevision.current && active.editor !== nativePressOptions?.originalEditor())
+      pressOptionsRevision.current++
+  })
+  useLayoutEffect(
+    () => () => {
+      pressOptionsRevision.current++
+    },
+    [],
+  )
   // A legacy ancestor still needs this reset boundary to preserve independent Button text defaults.
   const blocked = isDisabled || isPending || !nativeInteraction
   const [pressed, setPressed] = useState(false)
@@ -196,6 +219,7 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
         }
         nativeProgrammaticFocusable={nativeProgrammaticFocusable}
         nativeFocusOnPress={nativeFocusOnPress}
+        nativeObservePressCohort={nativePressOptions !== null}
         onNativeFocusObserved={nativeOnFocusObserved}
         ref={ref}
         accessible={nativeAccessible}
@@ -225,14 +249,37 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
           )
           onLayout?.(event)
         }}
-        onPressIn={(event) => {
+        onPressIn={(event, admission) => {
           if (blocked) return
+          const options = currentPressOptions.current
+          const revision = pressOptionsRevision.current
+          const editor = options?.originalEditor() ?? null
+          const privateAdmission =
+            options && admission
+              ? {
+                  ...admission,
+                  isCurrent: () =>
+                    pressOptionsRevision.current === revision &&
+                    currentPressOptions.current?.lifetimeKey === options.lifetimeKey &&
+                    currentPressOptions.current.originalEditor() === editor &&
+                    currentPressOptions.current.canAct() &&
+                    admission.isCurrent(),
+                }
+              : undefined
+          activePrivatePress.current = privateAdmission ? { revision, editor } : null
+          const requestFocus =
+            options && privateAdmission ? prepareNativeButtonPressFocus(options, privateAdmission) : undefined
           event.persist?.()
           pressCycle.current = { event, cancelled: false, endDelivered: false }
           setPressed(true)
           onPressStart?.(event)
           onPressChange?.(true)
           onPressIn?.(event)
+          const latestOptions = currentPressOptions.current
+          if (latestOptions && privateAdmission?.isCurrent()) {
+            latestOptions.onPressStart(event as Parameters<typeof latestOptions.onPressStart>[0], privateAdmission)
+            if (privateAdmission.isCurrent()) requestFocus?.()
+          }
         }}
         onPressUp={(event) => {
           const cycle = pressCycle.current

@@ -1,10 +1,27 @@
-import { useRef, useState } from "react"
-import { View } from "react-native"
+import { useCallback, useEffect, useRef, useState } from "react"
+import { findNodeHandle, View, type GestureResponderEvent, type ViewStyle } from "react-native"
 
 import { Button, Slider, Text, useNativeTheme, type TNativeSliderState } from "@codon-ui/react-native"
 
+import { readSliderLayoutOriginalGeometry, SLIDER_LAYOUT_ROOT_ID } from "./sliderLayoutObserver"
+
 const ORDERS = [undefined, "primary", "secondary", "tertiary", "quaternary", "quintenary"] as const
 const GEOMETRIES = ["round", "rounded", "orthogonal"] as const
+const LAYOUT_PRESETS = ["baseline", "translated", "repositioned", "rotated-scaled"] as const
+type TLayoutPreset = (typeof LAYOUT_PRESETS)[number]
+const layoutThumbStyle = (preset: TLayoutPreset): ViewStyle => ({
+  width: 24,
+  height: 24,
+  minHeight: 0,
+  borderRadius: 5,
+  ...(preset === "repositioned" ? { left: "35%", top: "50%" } : {}),
+  transform: [
+    { translateX: "-50%" },
+    { translateY: "-50%" },
+    ...(preset === "translated" || preset === "rotated-scaled" ? [{ translateX: 48 }] : []),
+    ...(preset === "rotated-scaled" ? [{ rotate: "20deg" as const }, { scale: 1.25 }] : []),
+  ],
+})
 export const SliderScene = () => {
   const theme = useNativeTheme()
   const [value, setValue] = useState(0)
@@ -28,6 +45,83 @@ export const SliderScene = () => {
   const [memberDisabled, setMemberDisabled] = useState(false)
   const [frame, setFrame] = useState("unmeasured")
   const rangeState = useRef<TNativeSliderState | null>(null)
+  const scalarRoot = useRef<View | null>(null)
+  const measureRevision = useRef(0)
+  const touchSequence = useRef(0)
+  const geometryCancellations = useRef(new Set<() => void>())
+  const [layoutPreset, setLayoutPreset] = useState<TLayoutPreset | null>(null)
+  const [thumbGeometry, setThumbGeometry] = useState("unmeasured")
+  const [thumbGeometryPending, setThumbGeometryPending] = useState(false)
+  const [rootWindowFrame, setRootWindowFrame] = useState("unmeasured")
+  const [nativeTouches, setNativeTouches] = useState<readonly string[]>([])
+  const [droppedLayoutReceipts, setDroppedLayoutReceipts] = useState(0)
+  const [scalarLayoutTop, setScalarLayoutTop] = useState(0)
+  const invalidateMeasurement = useCallback(() => {
+    measureRevision.current += 1
+    for (const cancel of [...geometryCancellations.current]) cancel()
+    geometryCancellations.current.clear()
+  }, [])
+  useEffect(() => () => invalidateMeasurement(), [invalidateMeasurement])
+  const selectLayoutPreset = (preset: TLayoutPreset | null) => {
+    invalidateMeasurement()
+    setThumbGeometry("unmeasured")
+    setThumbGeometryPending(false)
+    setRootWindowFrame("unmeasured")
+    setLayoutPreset(preset)
+  }
+  const recordLayoutReceipt = (receipt: Readonly<Record<string, unknown>>) => {
+    if (!layoutPreset) return
+    const encoded = JSON.stringify({
+      sequence: ++touchSequence.current,
+      preset: layoutPreset,
+      rootTag: findNodeHandle(scalarRoot.current),
+      ...receipt,
+    })
+    if (touchSequence.current > 512) setDroppedLayoutReceipts(touchSequence.current - 512)
+    setNativeTouches((old) => [...old.slice(-511), encoded])
+  }
+  const recordTouch = (phase: "start" | "move" | "end" | "cancel", event: GestureResponderEvent) => {
+    const { target, identifier, pageX, pageY, locationX, locationY, timestamp } = event.nativeEvent
+    recordLayoutReceipt({ kind: "touch", phase, target, identifier, pageX, pageY, locationX, locationY, timestamp })
+  }
+  const measureOriginalThumbs = async () => {
+    const root = scalarRoot.current
+    if (!root || !layoutPreset) return
+    invalidateMeasurement()
+    const revision = measureRevision.current
+    setThumbGeometryPending(true)
+    const token = {
+      isCurrent: () => scalarRoot.current === root && measureRevision.current === revision,
+      onCancel: (listener: () => void) => {
+        geometryCancellations.current.add(listener)
+        return () => {
+          geometryCancellations.current.delete(listener)
+        }
+      },
+    }
+    try {
+      const receipt = await readSliderLayoutOriginalGeometry(root, token)
+      if (token.isCurrent()) {
+        setThumbGeometry(JSON.stringify(receipt))
+        setThumbGeometryPending(false)
+      }
+    } catch (error) {
+      if (token.isCurrent()) {
+        setThumbGeometry(`unavailable: ${error instanceof Error ? error.message : String(error)}`)
+        setThumbGeometryPending(false)
+      }
+    }
+  }
+  const measureScalarRoot = () => {
+    const original = scalarRoot.current
+    if (!original) return
+    invalidateMeasurement()
+    const revision = measureRevision.current
+    original.measureInWindow((x, y, width, height) => {
+      if (scalarRoot.current !== original || revision !== measureRevision.current) return
+      setRootWindowFrame(JSON.stringify({ rootTag: findNodeHandle(original), x, y, width, height }))
+    })
+  }
   const action = (label: string, onPress: () => void) => (
     <Button order="primary" raised={false} accessibilityLabel={label} onPress={onPress}>
       {label}
@@ -57,32 +151,117 @@ export const SliderScene = () => {
       ? { width: 24, height: 24, minHeight: 0, borderRadius: 5, backgroundColor: theme.actions.primary.background }
       : undefined,
   }
+  const layoutReceipts = nativeTouches.map((receipt) => JSON.parse(receipt) as Record<string, unknown>)
+  const heldDown = layoutReceipts.find((receipt) => receipt.kind === "touch" && receipt.phase === "start")
   return (
     <View style={{ gap: 12 }}>
       <Text elementType="h2" variant="h3">
         Native Slider
       </Text>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+        {action("Prepare scalar layout witness", () => {
+          setValue(0.5)
+          setVeto(false)
+          setDisabled(false)
+          setVertical(false)
+          setRtl(false)
+          setZero(false)
+          setCustom(false)
+          setFrench(false)
+          setPercent(false)
+          setShadow(true)
+          setFocus(true)
+          setOrderIndex(0)
+          setGeometryIndex(0)
+          setRequest("none")
+          setEnd("none")
+          setRequests(0)
+          setEnds(0)
+          setNativeTouches([])
+          setDroppedLayoutReceipts(0)
+          touchSequence.current = 0
+          selectLayoutPreset("baseline")
+        })}
+        {LAYOUT_PRESETS.map((preset) => (
+          <Button
+            key={preset}
+            order="primary"
+            raised={false}
+            accessibilityLabel={`Use scalar layout ${preset}`}
+            onPress={() => selectLayoutPreset(preset)}
+          >
+            Use scalar layout {preset}
+          </Button>
+        ))}
+        {action("Measure scalar original root", measureScalarRoot)}
+        {action("Measure scalar original thumb geometry", () => {
+          void measureOriginalThumbs()
+        })}
+        {action("Disable scalar layout witness", () => selectLayoutPreset(null))}
+      </View>
       <Slider
         {...common}
+        ref={scalarRoot}
+        nativeID={layoutPreset ? SLIDER_LAYOUT_ROOT_ID : undefined}
         testID="slider-scalar"
+        customThumbStyles={layoutPreset ? layoutThumbStyle(layoutPreset) : common.customThumbStyles}
+        onTouchStart={(event) => recordTouch("start", event)}
+        onTouchMove={(event) => recordTouch("move", event)}
+        onTouchEnd={(event) => recordTouch("end", event)}
+        onTouchCancel={(event) => recordTouch("cancel", event)}
         accessibilityLabel="Scalar adjustment"
         label="Scalar adjustment"
         thumbAriaLabels={["Scalar handle"]}
         value={value}
         onChange={(next) => {
+          recordLayoutReceipt({ kind: "request", value: next })
           setRequest(`scalar ${next}`)
           setRequests((count) => count + 1)
           if (!veto) setValue(next)
         }}
         onChangeEnd={(next) => {
+          recordLayoutReceipt({ kind: "change-end", value: next })
           setEnd(`scalar ${next}`)
           setEnds((count) => count + 1)
         }}
         onLayout={({ nativeEvent: { layout } }) => {
+          setScalarLayoutTop(layout.y)
           const next = `${Number(layout.width.toFixed(3))} x ${Number(layout.height.toFixed(3))}`
           setFrame((old) => (old === next ? old : next))
         }}
       />
+      {layoutPreset && (
+        <Text
+          testID="slider-layout-held-json"
+          pointerEvents="none"
+          accessibilityLabel={JSON.stringify({
+            preset: layoutPreset,
+            rootTag: findNodeHandle(scalarRoot.current),
+            scalar: value,
+            requests,
+            ends,
+            dropped: droppedLayoutReceipts,
+            receipts: layoutReceipts,
+          })}
+          style={{
+            position: "absolute",
+            top: scalarLayoutTop - 32,
+            left: 0,
+            right: 0,
+            zIndex: 10,
+            height: 30,
+            fontSize: 9,
+            lineHeight: 10,
+            backgroundColor: theme.colors.background,
+          }}
+        >
+          {layoutPreset} value{value} req{requests} end{ends} drop{droppedLayoutReceipts}
+          {"\n"}
+          {heldDown
+            ? `DOWN #${heldDown.sequence} root${heldDown.rootTag} target${heldDown.target} id${heldDown.identifier}\npage${Number(heldDown.pageX).toFixed(3)},${Number(heldDown.pageY).toFixed(3)} ts${heldDown.timestamp}`
+            : "No native touch yet."}
+        </Text>
+      )}
       <Slider
         {...common}
         testID="slider-range"
@@ -112,6 +291,20 @@ export const SliderScene = () => {
         {percent ? "percent" : "decimal"}. Member disabled: {String(memberDisabled)}.
       </Text>
       <Text testID="slider-frame">Last native scalar root: {frame}.</Text>
+      <Text testID="slider-layout-witness">
+        Scalar layout preset: {layoutPreset ?? "off"}. Original root window frame: {rootWindowFrame}. Original
+        event/callback receipts: {nativeTouches.length ? nativeTouches.join(" | ") : "none"}.
+      </Text>
+      <Text
+        testID="slider-layout-native-geometry"
+        accessibilityLabel={`Original native thumb geometry: ${thumbGeometryPending ? "pending" : thumbGeometry}.`}
+      >
+        Original native thumb geometry: {thumbGeometry}.
+      </Text>
+      <Text>
+        The observer reads original stock native track, target and paint bounds, guarded by current root and preset.
+        Missing or changing original hosts are reported as unavailable; authored styles are never measured geometry.
+      </Text>
       <Text>
         Track presses select the nearest handle. Dragging retains the grab offset; separate request/end receipts keep
         owner veto visible. Two independent handles retain adjacent bounds. Native frame receipts never feed numeric
