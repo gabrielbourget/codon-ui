@@ -19,6 +19,18 @@
         "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/indicator-G07-G08-reused-release-gates-20261105/objects/0dc565313f3d61aa92c53b3a19f4c9158c085d0d06ea729bc06eee7018bd1604",
         "sha256": "0dc565313f3d61aa92c53b3a19f4c9158c085d0d06ea729bc06eee7018bd1604"
       }
+    },
+    "CAT.line-segment.G09": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/display-G09-final-component-closeout-20261105/objects/7337411515c58b398012a769b591bcbda7e70090b6759266e462da7dd2a7235d",
+        "sha256": "7337411515c58b398012a769b591bcbda7e70090b6759266e462da7dd2a7235d"
+      }
+    },
+    "CAT.indicator.G09": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/display-G09-final-component-closeout-20261105/objects/23e719d7489a355a56f7282e4de2a15ba96fa869c3c59d9ecf97cc6cddf4e745",
+        "sha256": "23e719d7489a355a56f7282e4de2a15ba96fa869c3c59d9ecf97cc6cddf4e745"
+      }
     }
   }
 }
