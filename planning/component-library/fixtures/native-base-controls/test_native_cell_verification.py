@@ -233,6 +233,19 @@ class NativeCellAdmissionTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             NativeCellDiagnostics.export_commands(Path("closed.xcresult"), Path("output"), "launch")
 
+    def test_observer_build_admits_only_explicit_startup_probe_or_existing_methods(self):
+        with patch.object(sys, "path", [str(GATE.parent), *sys.path]), patch.object(sys, "argv", ["build", str(self.root)]):
+            from NativeIndicatorG04ObserverBuild import validate_observer_selection
+        selected = ["IndicatorG04TrialTests/testI10ShapeGeometry", "IndicatorG04TrialTests/testI11CallbackFinalStyle"]
+        original = selected + ["Original/testCase" + str(index) for index in range(9)]
+        probe = "IndicatorG04AXInitializationProbe/testAXInitializationOnly"
+        validate_observer_selection({"compiledMethods": original, "selectedMethods": selected})
+        diagnostic = {"compiledMethods": original + [probe], "selectedMethods": [probe], "purpose": "AX_STARTUP_DIAGNOSTIC_ONLY"}
+        validate_observer_selection(diagnostic)
+        for change in [{"purpose": "qualification"}, {"selectedMethods": ["Unbound/testCase"]}, {"compiledMethods": original}, {"compiledMethods": original + [original[0]]}]:
+            with self.subTest(change=change), self.assertRaises(AssertionError):
+                validate_observer_selection({**diagnostic, **change})
+
     def test_driver_exit_codes_preserve_sdk_failure_and_reject_incomplete_results(self):
         for sdk, coverage, cleanup, expected in [(65, False, True, 65), (0, False, True, 1), (0, True, False, 1), (None, False, True, 1), (-9, False, True, 1), (0, True, True, 0)]:
             with self.subTest(sdk=sdk, coverage=coverage, cleanup=cleanup):

@@ -23,6 +23,19 @@ def cutoff(_signum, _frame):
     raise TimeoutError("Mechanical240s observer work cutoff;60s cleanup reserved")
 
 
+def validate_observer_selection(request):
+    probe = "IndicatorG04AXInitializationProbe/testAXInitializationOnly"
+    selected = request["selectedMethods"]
+    compiled = request["compiledMethods"]
+    assert len(compiled) in [11, 12] and len(set(compiled)) == len(compiled)
+    assert all(method in compiled for method in selected)
+    assert (len(compiled) == 12) == (probe in compiled)
+    if selected == [probe]:
+        assert request.get("purpose") == "AX_STARTUP_DIAGNOSTIC_ONLY"
+    else:
+        assert selected == ["IndicatorG04TrialTests/testI10ShapeGeometry", "IndicatorG04TrialTests/testI11CallbackFinalStyle"]
+
+
 if __name__ == "__main__":
     assert not any((ROOT / name).exists() for name in ["observer-build.log", "observer-build-result.json", "observer-build-active.json", "observer-identity.json", "observer-derived-data"]), "Never overwrite an uncertain observer build"
     request = json.loads((ROOT / "observer-build-request.json").read_text())
@@ -33,7 +46,7 @@ if __name__ == "__main__":
     assert app["indicatorFixtureSHA256"] == request["indicatorFixtureSHA256"] and app["displaySceneSHA256"] == request["displaySceneSHA256"]
     request["productManifestSHA256"] = app["manifestSHA256"]
     assert request["compiledSources"] == ["CodonNativeComponents.swift"]
-    assert len(request["compiledMethods"]) == 11 and request["selectedMethods"] == ['IndicatorG04TrialTests/testI10ShapeGeometry', 'IndicatorG04TrialTests/testI11CallbackFinalStyle']
+    validate_observer_selection(request)
     assert app["sourceRevision"] == request["witnessProductSourceRevision"] == "199492e878712c5fe22ec07ad758b901fdd8245f"
     assert request["standaloneNativePaintOracleCompiled"] is False
     assert sha(Path(request["sourcePath"])) == request["sourceSHA256"]
