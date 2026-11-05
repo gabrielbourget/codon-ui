@@ -1,0 +1,32 @@
+{
+  "controlsOnly": true,
+  "qualificationEvidence": false,
+  "runtimeDependsOnOriginalArtifacts": false,
+  "sdk65": {
+    "origin": {
+      "path": "/tmp/codon-indicator-g04-ios-auto-scene-20261105/installed-P01-attempt-1/steps.json",
+      "sha256": "8b094ceb18638ccc58d8ad8fc2216b482be4bc1ecac9bfb5020587195e38d459"
+    },
+    "selectedFieldsCopiedVerbatim": {
+      "name": "indicator",
+      "exitCode": 65,
+      "seconds": 848.4020149707794,
+      "startedUTC": "2026-11-05T06:14:14.394943+00:00",
+      "endedUTC": "2026-11-05T06:28:22.795629+00:00"
+    }
+  },
+  "nativeTimeoutDespiteRawPassed": {
+    "origin": {
+      "path": "/tmp/codon-indicator-g04-ios-fixture-regression-20261105/installed-P01-attempt-1/indicator.log",
+      "sha256": "1b23ce333ad5523cde804ef0b52c461503a4f64911642788f0688bb7ff516363"
+    },
+    "selectedMethods": [
+      "IndicatorG04TrialTests/testI06ShapeAndCallbackFinalStyle"
+    ],
+    "rawLinesCopiedVerbatim": [
+      "Test Case '-[CodonNativeComponents.IndicatorG04TrialTests testI06ShapeAndCallbackFinalStyle]' exceeded execution time allowance of 3 minutes. The test may have hung; check Xcode's test report for additional diagnostics. If the test requires additional time, use -[XCTestCase executionTimeAllowance] or one of xcodebuild's command-line overrides.",
+      "Test Case '-[CodonNativeComponents.IndicatorG04TrialTests testI06ShapeAndCallbackFinalStyle]' passed (209.779 seconds)."
+    ],
+    "scope": "RawPassed label plus native allowance exceeded must remain failure; synthetic one-test Passing summary used only as hostile offline control."
+  }
+}
