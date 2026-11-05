@@ -1,0 +1,113 @@
+{
+  "kind": "DATA_ONLY_SAVED_FAILURE_CONTROLS_NOT_INSTALLED_PROOF",
+  "systemUIRecovery": {
+    "sourcePath": "/tmp/codon-tag-g02-execution-20261105/android-installed-2/setup-systemui-recovery.json",
+    "sourceSHA256": "c370ec86ff9ec5de18e0140282f23d408feb95443a57193520d7ca4e3bad4818",
+    "record": {
+      "atUTC": "2026-11-05T14:51:28.750432+00:00",
+      "phase": "initial-hierarchy",
+      "alert": {
+        "index": "0",
+        "text": "System UI isn't responding",
+        "resource-id": "android:id/alertTitle",
+        "class": "android.widget.TextView",
+        "package": "android",
+        "content-desc": "",
+        "checkable": "false",
+        "checked": "false",
+        "clickable": "false",
+        "enabled": "true",
+        "focusable": "false",
+        "focused": "false",
+        "scrollable": "false",
+        "long-clickable": "false",
+        "password": "false",
+        "selected": "false",
+        "bounds": "[88,735][631,782]",
+        "drawing-order": "2",
+        "hint": ""
+      },
+      "action": {
+        "index": "1",
+        "text": "Wait",
+        "resource-id": "android:id/aerr_wait",
+        "class": "android.widget.Button",
+        "package": "android",
+        "content-desc": "",
+        "checkable": "false",
+        "checked": "false",
+        "clickable": "true",
+        "enabled": "true",
+        "focusable": "true",
+        "focused": "false",
+        "scrollable": "false",
+        "long-clickable": "false",
+        "password": "false",
+        "selected": "false",
+        "bounds": "[46,892][673,976]",
+        "drawing-order": "2",
+        "hint": ""
+      },
+      "scope": "One shared stock Wait during initial or selected-scene setup, before component input; recurring/other/in-case ANR still stops",
+      "componentCriteriaChanged": false
+    }
+  },
+  "uncertainSequence": [
+    {
+      "sourcePath": "/tmp/codon-tag-g02-execution-20261105/android-installed-2/hierarchy-readiness-1.json",
+      "sourceSHA256": "ded060c84a8547808444b0b346e32119204d3fc366b2ee8250fd0d527ad49456",
+      "record": {
+        "argv": [
+          "/Users/gabrielbourget/.local/share/codon-native-lab/sdk/platform-tools/adb",
+          "-s",
+          "emulator-5568",
+          "shell",
+          "uiautomator dump /sdcard/codon-tag-setup.xml"
+        ],
+        "status": "HOST_TIMEOUT_GUEST_OUTCOME_UNCERTAIN",
+        "startedEpoch": 1793890252.5579462,
+        "endedEpoch": 1793890267.58957,
+        "exitCode": -15,
+        "ownedGroupGone": true,
+        "timedOut": true
+      }
+    },
+    {
+      "sourcePath": "/tmp/codon-tag-g02-execution-20261105/android-installed-2/hierarchy-readiness-2.json",
+      "sourceSHA256": "b11971a0c1f6708c49285594b181f6b63cb5be2b543ff738dfadebe51f87e13b",
+      "record": {
+        "argv": [
+          "/Users/gabrielbourget/.local/share/codon-native-lab/sdk/platform-tools/adb",
+          "-s",
+          "emulator-5568",
+          "shell",
+          "uiautomator dump /sdcard/codon-tag-setup.xml"
+        ],
+        "status": "TERMINAL",
+        "startedEpoch": 1793890268.6043808,
+        "endedEpoch": 1793890281.2667708,
+        "exitCode": 0,
+        "ownedGroupGone": true
+      }
+    },
+    {
+      "sourcePath": "/tmp/codon-tag-g02-execution-20261105/android-installed-2/hierarchy-readiness-3.json",
+      "sourceSHA256": "d95f8ffec4e16819122e1cbd307d29dbc4e856068df07cb4a408c3fcc0da4352",
+      "record": {
+        "argv": [
+          "/Users/gabrielbourget/.local/share/codon-native-lab/sdk/platform-tools/adb",
+          "-s",
+          "emulator-5568",
+          "shell",
+          "uiautomator dump /sdcard/codon-tag-setup.xml"
+        ],
+        "status": "HOST_TIMEOUT_GUEST_OUTCOME_UNCERTAIN",
+        "startedEpoch": 1793890289.760542,
+        "endedEpoch": 1793890304.772854,
+        "exitCode": -15,
+        "ownedGroupGone": true,
+        "timedOut": true
+      }
+    }
+  ]
+}

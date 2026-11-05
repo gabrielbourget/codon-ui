@@ -122,6 +122,23 @@ it("CAP.indicator.005 consumes wrapper props and forwards native identity/layout
     expect(root.props[prop]).toBeUndefined()
 })
 
+it("NATIVE.display.003 clears the forwarded View ref on unmount without fabricating layout delivery", async () => {
+  const ref = createRef<TNativeIndicatorRef>()
+  const layout = jest.fn()
+  const { unmount } = await render(<Indicator ref={ref} onLayout={layout} />)
+  const nativeRef = ref.current
+  expect(nativeRef).not.toBeNull()
+  expect(typeof nativeRef?.measure).toBe("function")
+  const event = { nativeEvent: { layout: { x: 2, y: 4, width: 10, height: 10 } } }
+  await fireEvent(screen.getByTestId("indicator"), "layout", event)
+  expect(layout).toHaveBeenCalledTimes(1)
+  expect(layout.mock.calls[0]?.[0]).toBe(event)
+  await unmount()
+  expect(ref.current).toBeNull()
+  expect(layout).toHaveBeenCalledTimes(1)
+  expect(layout.mock.calls[0]?.[0]).toBe(event)
+})
+
 it.each(AVAILABLE_INDICATOR_SHAPES)(
   "NATIVE.display.001 uses current theme radii and foreground for shape %s",
   async (shape) => {

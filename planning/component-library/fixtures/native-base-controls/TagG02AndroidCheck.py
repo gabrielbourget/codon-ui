@@ -79,8 +79,38 @@ def check_cohort(cohort,density,root=None):
   require(abs(rows[1]['state']['frameHeight']*density-(long[3]-long[1]))<=1,'Actual onLayout/native long height mismatch')
  return {'name':name,'status':'AUTOMATED_PENDING_ROOT_VISUAL_AND_SOURCE_JOIN','observationCount':len(rows),'nativeSeconds':cohort['elapsedMs']/1000,'images':images}
 
+def verify_setup(setup):
+ require(setup.get('status')=='READY_FROM_ACTUAL_SINGLE_CONNECTION' and setup.get('connectionCount')==1,'Actual single-connection setup missing')
+ require(setup.get('maximumMs')==90000 and 0<=setup['elapsedMs']<=90000 and setup['finishedUptimeMs']-setup['startedUptimeMs']==setup['elapsedMs'],'Setup missing/over90s or inconsistent timestamps')
+ require(setup.get('componentInputBeforeAdmission') is False,'Component input preceded actual scene admission')
+ require(setup.get('clearQueries',0)>=2 and setup.get('clearObservedMs',0)>=30000,'Actual sustained30s native scene admission missing')
+ counts=setup['nativeInputCounts'];require(counts=={'sceneSelections':1,'componentContacts':0,'systemUIWait':1 if setup.get('systemUIWaitUsed') else 0},'Missing/wrong native setup input counts')
+ clicks=[a for a in setup['actions'] if a.get('action')=='ACTION_CLICK'];require(len(clicks)==1 and clicks[0].get('label')=='Tag scene' and clicks[0].get('accepted') is True,'Actual single Tag scene selection missing')
+ waits=[a for a in setup['actions'] if a.get('label')=='one startup SystemUI Wait'];require(len(waits)==counts['systemUIWait'] and all(a.get('exitCode')==0 for a in waits),'Stock Wait input receipt mismatch')
+ require(not any(a.get('label') in ['tag-example','tag-status'] for a in setup['actions']),'Unexpected component contact during setup')
+ first=setup['firstClearObservation'];last=setup['lastClearObservation'];require(last['nativeUptimeMs']-first['nativeUptimeMs']>=30000,'Native observed admission interval shorter than30s')
+ for observation in [first,last]:
+  windows=observation['windows'];require(windows.get('windowRoots',0)>0 and windows.get('windowNodes'),'Actual native root/windows missing')
+  require(not any("isn't responding" in str(n.get('text') or '') for n in windows['windowNodes']),'ANR in actual admitted windows')
+  for kind in ['scene','target','marker','viewport']:require(observation[kind].get('packageName')=='dev.codonui.showcase','Wrong actual app native root/package')
+  scene=observation['scene'];require(scene.get('contentDescription')=='Tag scene' and scene.get('selected') is True,'Actual selected Tag scene required')
+  target=observation['target'];require(target.get('id')=='tag-example' and target.get('className')=='android.widget.Button' and target.get('contentDescription')=='Controlled tag' and target.get('enabled') is True and target.get('visible') is True,'Actual enabled Tag target missing')
+  marker=observation['marker'];require(marker.get('id')=='tag-state' and isinstance(marker.get('text'),str) and marker['text'],'Actual refreshed Tag state required')
+  viewport=observation['viewport'];require(viewport.get('id')=='showcase-scroll' and viewport.get('enabled') is True and viewport.get('visible') is True,'Actual enabled native viewport missing')
+  frame=rect(target['bounds']);outer=rect(viewport['bounds']);require(outer[0]<=frame[0] and frame[2]<=outer[2] and outer[1]<=frame[1] and frame[3]<=outer[3],'Setup target clipped/outside actual viewport')
+  for expected_id in ['tag-example','showcase-scroll']:require(sum(n.get('id')==expected_id for n in windows['windowNodes'])==1,'Missing/ambiguous actual native setup node '+expected_id)
+  verify_state(observation['state'],0,False,True,'default')
+ if counts['systemUIWait']:
+  recovery=setup['systemUIRecovery'];require(recovery.get('accepted') is True and recovery.get('png')=='setup-systemui-before-wait.png','Missing actual preserved stock Wait')
+  title=recovery['title'];wait=recovery['wait'];require(title.get('id')=='android:id/alertTitle' and title.get('text')=="System UI isn't responding" and wait.get('id')=='android:id/aerr_wait' and wait.get('text')=='Wait' and wait.get('enabled') is True and title['windowId']==wait['windowId'],'Wrong ANR/action; no arbitrary dismissal')
+  require(recovery.get('beforeWindows',{}).get('windowRoots',0)>0 and recovery.get('lastWindows',{}).get('windowRoots',0)>0 and recovery.get('clearedUptimeMs') is not None,'Missing before/cleared native ANR evidence')
+  require(not any("isn't responding" in str(n.get('text') or '') for n in recovery['lastWindows']['windowNodes']),'ANR remained after Wait')
+ return {'status':'PASS_ACTUAL_SINGLE_CONNECTION_ADMISSION','clearObservedMs':setup['clearObservedMs'],'nativeInputCounts':counts,'systemUIWaitUsed':setup['systemUIWaitUsed']}
+
 def reconcile(raw,density,root=None):
  require(density>0,'Actual positive device density required')
+ setup_result=verify_setup(raw['setup'])
+ if root is not None and raw['setup'].get('systemUIWaitUsed'): setup_result['recoveryImage']=png_identity(root,raw['setup']['systemUIRecovery']['png'])
  require(raw.get('operation')=='tag-g02-batch' and raw.get('connectionAdmission')=='READY_FROM_ACTUAL_NEW_CONNECTION','New actual connection admission missing')
  require(raw.get('methodLimitMs')==180000 and raw.get('batchLimitMs')==560000 and 0<=raw['elapsedMs']<=560000,'Original native method/batch limits changed or exceeded')
  require([row['name'] for row in raw['cohorts']]==COHORTS,'Exactly the three selected independent cohorts required')
@@ -89,7 +119,7 @@ def reconcile(raw,density,root=None):
   try: results.append(check_cohort(cohort,density,root))
   except (ValueError,KeyError,TypeError,OSError,struct.error) as error: results.append({'name':cohort.get('name'),'status':'FAILED','error':str(error)});errors.append(str(error))
  require(raw.get('nativeActionSucceeded') is True and raw.get('hasFailedCohorts') is False and raw.get('status')=='NATIVE_COMPLETE_PENDING_HOST_VISUAL_AND_SOURCE_JOIN','Native batch failed/incomplete')
- return {'status':'AUTOMATED_TAG_G02_PENDING_VISUAL_AND_SOURCE_JOIN' if not errors else 'FAILED','cohorts':results,'errors':errors,'remaining':['Root inspects actual long-French PNG for full wrapping/unclipped reachable first action','Join bound existing source62/scene6 for unexposed JS ref/callback retirement predicates; native identity is AccessibilityNodeInfo, not JS ref','Corresponding representative iOS evidence and root whole-cell acceptance review']}
+ return {'status':'AUTOMATED_TAG_G02_PENDING_VISUAL_AND_SOURCE_JOIN' if not errors else 'FAILED','setup':setup_result,'cohorts':results,'errors':errors,'remaining':['Root inspects actual long-French PNG for full wrapping/unclipped reachable first action','Join bound existing source62/scene6 for unexposed JS ref/callback retirement predicates; native identity is AccessibilityNodeInfo, not JS ref','Corresponding representative iOS evidence and root whole-cell acceptance review']}
 
 def main():
  parser=argparse.ArgumentParser();parser.add_argument('--input',type=Path,required=True);parser.add_argument('--out',type=Path,required=True);parser.add_argument('--density',type=Path,required=True);args=parser.parse_args();require(not args.out.exists(),'Fresh host output required');args.out.mkdir(parents=True)

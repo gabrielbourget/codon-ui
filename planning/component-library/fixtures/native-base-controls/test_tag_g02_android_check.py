@@ -43,4 +43,89 @@ class Controls(unittest.TestCase):
  def test_method_limit_negative(self):self.changed(lambda r:r['cohorts'][0].update(elapsedMs=180001))
  def test_missing_cohort_negative(self):self.changed(lambda r:r['cohorts'].pop())
  def test_duplicate_native_negative(self):self.changed(lambda r:r['cohorts'][0]['observations'][0]['windows']['windowNodes'].append({'id':'tag-example'}))
+def setup_sample():
+ node=lambda key,**rest:dict({'id':key,'packageName':'dev.codonui.showcase','enabled':True,'visible':True,'bounds':'0 0 400 800'},**rest)
+ observation={'windows':{'windowRoots':1,'windowNodes':[{'id':'tag-example'},{'id':'showcase-scroll'}]},'scene':node(None,contentDescription='Tag scene',selected=True),'target':node('tag-example',className='android.widget.Button',contentDescription='Controlled tag',bounds='10 20 170 60'),'marker':node('tag-state',text='Actual refresh synthetic control',visible=False),'viewport':node('showcase-scroll'),'state':{'requests':0,'owner':False,'echo':True,'exposed':'default','id':'number 0','last':'none','armed':False,'rawText':'Synthetic schema control only'},'nativeUptimeMs':1000}
+ last=copy.deepcopy(observation);last['nativeUptimeMs']=31000
+ return {'status':'READY_FROM_ACTUAL_SINGLE_CONNECTION','connectionCount':1,'maximumMs':90000,'elapsedMs':32000,'startedUptimeMs':0,'finishedUptimeMs':32000,'componentInputBeforeAdmission':False,'clearQueries':2,'clearObservedMs':30000,'nativeInputCounts':{'sceneSelections':1,'componentContacts':0,'systemUIWait':0},'systemUIWaitUsed':False,'actions':[{'action':'ACTION_CLICK','label':'Tag scene','accepted':True}],'firstClearObservation':observation,'lastClearObservation':last}
+
+original_sample=sample
+def sample():
+ raw=original_sample();raw['setup']=setup_sample();return raw
+
+class SetupControls(unittest.TestCase):
+ def rejects(self,change):
+  row=setup_sample();change(row)
+  with self.assertRaises((ValueError,KeyError)):m.verify_setup(row)
+ def test_actual_same_connection_positive(self):self.assertEqual(m.verify_setup(setup_sample())['status'],'PASS_ACTUAL_SINGLE_CONNECTION_ADMISSION')
+ def test_wrong_root_package(self):self.rejects(lambda r:r['lastClearObservation']['viewport'].update(packageName='com.android.launcher3'))
+ def test_wrong_scene(self):self.rejects(lambda r:r['lastClearObservation']['scene'].update(selected=False))
+ def test_missing_actual_target(self):self.rejects(lambda r:r['lastClearObservation'].pop('target'))
+ def test_missing_native_counts(self):self.rejects(lambda r:r.pop('nativeInputCounts'))
+ def test_setup_timeout(self):self.rejects(lambda r:r.update(elapsedMs=90001,finishedUptimeMs=90001))
+ def test_short_actual_interval(self):self.rejects(lambda r:r['lastClearObservation'].update(nativeUptimeMs=30999))
+ def test_native_anr(self):self.rejects(lambda r:r['lastClearObservation']['windows']['windowNodes'].append({'text':"System UI isn't responding"}))
+ def test_component_input_before_admission(self):self.rejects(lambda r:r.update(componentInputBeforeAdmission=True))
+ def test_duplicate_scene_selection(self):self.rejects(lambda r:r['actions'].append({'action':'ACTION_CLICK','label':'Tag scene','accepted':True}))
+ def test_offscreen_retained_marker_positive(self):self.assertEqual(m.verify_setup(setup_sample())['status'],'PASS_ACTUAL_SINGLE_CONNECTION_ADMISSION')
+ def test_exact_saved_wait_positive(self):
+  import xml.etree.ElementTree as ET
+  fixture=__import__('json').loads(Path(__file__).with_name('TagG02AndroidFailureControls.json').read_text())
+  recovery=fixture['systemUIRecovery']['record'];row=setup_sample();row['systemUIWaitUsed']=True;row['nativeInputCounts']['systemUIWait']=1;row['actions'].append({'label':'one startup SystemUI Wait','exitCode':0})
+  convert=lambda d:{'id':d['resource-id'],'text':d['text'],'enabled':d['enabled']=='true','windowId':1}
+  row['systemUIRecovery']={'accepted':True,'png':'setup-systemui-before-wait.png','title':convert(recovery['alert']),'wait':convert(recovery['action']),'beforeWindows':{'windowRoots':1},'lastWindows':{'windowRoots':1,'windowNodes':[]},'clearedUptimeMs':500}
+  self.assertEqual(m.verify_setup(row)['status'],'PASS_ACTUAL_SINGLE_CONNECTION_ADMISSION')
+  row['systemUIRecovery']['title']['text']="Phone isn't responding"
+  with self.assertRaises(ValueError):m.verify_setup(row)
+ def test_saved_uncertain_sequence_stops(self):
+  import ast,json
+  fixture=json.loads(Path(__file__).with_name('TagG02AndroidFailureControls.json').read_text());first,second,third=[row['record'] for row in fixture['uncertainSequence']]
+  self.assertTrue(first['timedOut']);self.assertGreater(second['startedEpoch'],first['endedEpoch']);self.assertTrue(third['timedOut'])
+  tree=ast.parse(Path(__file__).with_name('NativeTagG02AndroidDriver.py').read_text());function=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='run')
+  class FakePath:
+   def __truediv__(self,name):return self
+  ns={'print':lambda *a,**k:None,'json':json,'now':lambda:'offline','recorded_command':lambda *a,**k:dict(first),'root':FakePath(),'work':100,'cleanup_deadline':120,'env':{},'rows':[],'write':lambda *a:None}
+  exec(compile(ast.Module(body=[function],type_ignores=[]),'actual-run-control','exec'),ns)
+  with self.assertRaisesRegex(AssertionError,'Uncertain SDK command outcome'):ns['run']('saved-failure',['adb','shell','historical-query'],15)
+
+
+class SourceClockControls(unittest.TestCase):
+ def test_java_observation_and_finish_clocks_are_coupled(self):
+  source=Path(__file__).with_name("android-native-inspector")/"Actions.java"
+  text=source.read_text()
+  self.assertIn('long observedElapsed=observation.getLong("nativeUptimeMs")-clearSince;',text)
+  self.assertIn('setup.put("clearObservedMs",observedElapsed)',text)
+  self.assertIn('if(observedElapsed>=30000)',text)
+  pair='long finishedUptimeMs=SystemClock.uptimeMillis();setup.put("finishedUptimeMs",finishedUptimeMs);setup.put("elapsedMs",finishedUptimeMs-setup.getLong("startedUptimeMs"));'
+  self.assertEqual(text.count(pair),2)
+
+class BootDiagnosticControls(unittest.TestCase):
+ def test_actual_boot_diagnostic_stops_before_install_or_instrumentation(self):
+  import ast,json,tempfile,time
+  tree=ast.parse(Path(__file__).with_name('NativeTagG02AndroidDriver.py').read_text());body=next(n for n in tree.body if isinstance(n,ast.Try))
+  class Finished(Exception):pass
+  commands=[];launched=[]
+  class Process:
+   pid=123
+  class Subprocess:
+   PIPE=-1;STDOUT=-2
+   def Popen(self,argv,**kwargs):launched.append(argv);return Process()
+  with tempfile.TemporaryDirectory() as temporary:
+   root=Path(temporary);(root/'devices-before.stdout').write_text('List of devices attached\n')
+   ns={'free_ports':lambda:True,'run':lambda name,argv,cap:commands.append((name,argv,cap)) or {'exitCode':0},'adb':'/offline/adb','root':root,'sdk':Path('/offline/sdk'),'boot_diagnostic':True,'subprocess':Subprocess(),'env':{},'children':[],'write':lambda *a:None,'now':lambda:'offline','print':lambda *a,**k:None,'time':time,'work':time.time()+120,'A':lambda *args:list(args),'BootDiagnosticFinished':Finished}
+   try:
+    with self.assertRaises(Finished):exec(compile(ast.Module(body=body.body,type_ignores=[]),'actual-boot-diagnostic-control','exec'),ns)
+   finally:
+    if 'log' in ns:ns['log'].close()
+  self.assertEqual([row[0] for row in commands],['devices-before','wait-for-device'])
+  self.assertEqual(commands[-1][2],90)
+  self.assertEqual(launched[0][-1],'-show-kernel')
+ def test_actual_diagnostic_deadlines_reserve_cleanup(self):
+  import ast
+  tree=ast.parse(Path(__file__).with_name('NativeTagG02AndroidDriver.py').read_text())
+  expressions={n.targets[0].id:n.value for n in tree.body if isinstance(n,ast.Assign) and isinstance(n.targets[0],ast.Name) and n.targets[0].id in ['work','end']}
+  for diagnostic,expected in [(True,(220,340)),(False,(1780,1900))]:
+   values=tuple(eval(compile(ast.Expression(expressions[name]),'actual-deadline-control','eval'),{'start':100,'boot_diagnostic':diagnostic}) for name in ['work','end'])
+   self.assertEqual(values,expected);self.assertEqual(values[1]-values[0],120)
+
 if __name__=='__main__':unittest.main()
