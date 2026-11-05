@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react-native"
 import { createRef } from "react"
-import { PlatformColor, StyleSheet } from "react-native"
+import { Platform, PlatformColor, StyleSheet } from "react-native"
 
 import {
   AVAILABLE_LINE_SEGMENT_DIRECTIONS,
@@ -171,4 +171,24 @@ it("NATIVE.display.003 preserves decorative defaults and explicit empty name/ide
   expect(root.props.accessible).toBe(false)
   expect(root.props.accessibilityLabel).toBe("")
   expect(screen.queryByTestId("fallback")).toBeNull()
+})
+
+it("clears a removed Android label while retaining native and alias precedence", async () => {
+  const originalPlatform = Platform.OS
+  Object.defineProperty(Platform, "OS", { configurable: true, value: "android" })
+  try {
+    const { rerender } = await render(
+      <LineSegment accessible accessibilityLabel="Native boundary" aria-label="Alias boundary" />,
+    )
+    expect(screen.getByTestId("line-segment").props.accessibilityLabel).toBe("Native boundary")
+    await rerender(<LineSegment accessible aria-label="Alias boundary" />)
+    expect(screen.getByTestId("line-segment").props.accessibilityLabel).toBe("Alias boundary")
+    await rerender(<LineSegment accessibilityLabel="" aria-label="Alias boundary" />)
+    expect(screen.getByTestId("line-segment").props.accessibilityLabel).toBe("")
+    await rerender(<LineSegment />)
+    expect(screen.getByTestId("line-segment").props.accessibilityLabel).toBe("")
+    expect(screen.getByTestId("line-segment").props.accessible).toBe(false)
+  } finally {
+    Object.defineProperty(Platform, "OS", { configurable: true, value: originalPlatform })
+  }
 })
