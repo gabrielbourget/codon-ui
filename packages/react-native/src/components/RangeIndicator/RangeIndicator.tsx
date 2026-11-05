@@ -167,15 +167,34 @@ export const RangeIndicator = forwardRef<View, TRangeIndicatorProps>((props, ref
           style={{ flex: 1, overflow: "hidden", borderRadius: trackStyle.borderRadius, direction: "ltr" }}
         >
           {isIndeterminate ? (
-            <ActivityIndicator
-              accessible={false}
-              testID={`${identity}-indeterminate`}
-              animating={!reduceMotion}
-              hidesWhenStopped={false}
-              size="small"
-              color={barStyle.backgroundColor}
-              style={{ flex: 1, transform: [{ scale: 0.4 }] }}
-            />
+            Platform.OS === "android" && reduceMotion ? (
+              <View
+                accessible={false}
+                testID={`${identity}-indeterminate`}
+                style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+              >
+                <View
+                  accessible={false}
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: 4,
+                    borderWidth: 1,
+                    borderColor: barStyle.backgroundColor,
+                  }}
+                />
+              </View>
+            ) : (
+              <ActivityIndicator
+                accessible={false}
+                testID={`${identity}-indeterminate`}
+                animating={!reduceMotion}
+                hidesWhenStopped={false}
+                size="small"
+                color={barStyle.backgroundColor}
+                style={{ flex: 1, transform: [{ scale: 0.4 }] }}
+              />
+            )
           ) : (
             <Animated.View
               accessible={false}
