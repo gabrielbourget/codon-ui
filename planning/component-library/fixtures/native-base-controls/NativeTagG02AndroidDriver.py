@@ -13,6 +13,7 @@ boot_diagnostic=args.boot_diagnostic
 admission=load_admission(__file__,'CAT.tag.G02',{'ios':[],'android':[] if boot_diagnostic else ['baseline-actions','guard-cancel-lifetime','long-label-wrap']})
 class BootDiagnosticFinished(Exception):pass
 prepared=json.loads(args.prepared.read_text());assert prepared['status']=='ROOT_REVIEWED_BOUND_TAG_G02','Root must bind current committed source and compiled observer before execution'
+remote_name=prepared['nativeOutputName'];assert re.fullmatch(r'tag-g02-native-[A-Za-z0-9-]{1,80}',remote_name),'A fresh owned output name must be bound before SDK work'
 sdk=pathlib.Path('/Users/gabrielbourget/.local/share/codon-native-lab/sdk');adb=str(sdk/'platform-tools/adb');serial='emulator-5568';now=lambda:datetime.datetime.now(datetime.timezone.utc).isoformat();sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
 root=pathlib.Path(prepared['output']);assert not root.exists();inspector=pathlib.Path(prepared['inspector']);checker=pathlib.Path(prepared['hostChecker'])
 assert re.fullmatch(r'[0-9a-f]{40}',prepared.get('expectedHEAD') or '') and subprocess.check_output(['git','rev-parse','HEAD'],cwd=repo,text=True,timeout=5).strip()==prepared['expectedHEAD']
@@ -102,7 +103,8 @@ try:
  args=[str(sdk/'emulator/emulator'),'-avd','codon_components_recovery_20261013','-port','5568','-cores','2','-memory','2048','-no-window','-no-audio','-no-snapshot-load','-no-snapshot-save','-no-boot-anim','-gpu','software']
  if boot_diagnostic or prepared.get('captureBootKernel') is True:args.append('-show-kernel')
  log=(root/'emulator.log').open('wb');emu=subprocess.Popen(args,env=env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True);children.append(emu);write(root/'emulator-command.json',{'argv':args,'pid':emu.pid,'startedUTC':now()});print('EMULATOR_START '+now()+' pid='+str(emu.pid),flush=True)
- boot_until=min(time.time()+180,work)
+ # Saved kernel evidence completed at185.592s, after the former180s cutoff.
+ boot_until=min(time.time()+240,work)
  assert run('wait-for-device',A('wait-for-device'),90)['exitCode']==0
  if boot_diagnostic:raise BootDiagnosticFinished('ADB admission completed; stop boot diagnostic before any installation or component action')
  i=0
@@ -110,7 +112,7 @@ try:
   i+=1;name='boot-completed-'+str(i);item=run(name,A('shell','getprop','sys.boot_completed'),8)
   if item['exitCode']==0 and (root/(name+'.stdout')).read_text().strip()=='1':break
   time.sleep(1)
- else:raise RuntimeError('Boot readiness not established within180s')
+ else:raise RuntimeError('Boot readiness not established within240s')
  assert run('actual-avd',A('emu','avd','name'),8)['exitCode']==0;assert (root/'actual-avd.stdout').read_text().splitlines()[0]=='codon_components_recovery_20261013'
  for name,args,expected in [('api',['shell','getprop','ro.build.version.sdk'],'36'),('abi',['shell','getprop','ro.product.cpu.abi'],'x86_64')]:
   assert run(name,A(*args),8)['exitCode']==0;assert (root/(name+'.stdout')).read_text().strip()==expected
@@ -130,7 +132,7 @@ try:
  # One instrumentation connection owns actual scene selection and native30s admission.
  # Launch status/screenshot are diagnostic only. No CLI UiAutomator or retry of an uncertain query.
  assert time.time()+600+60+60+30<work,'Insufficient safe native/pull/check budget after setup'
- component_started=True;profiles_attempted.append('TagG02');remote='/sdcard/Android/data/dev.codonui.lab.number/files/tag-g02-native-2'
+ component_started=True;profiles_attempted.append('TagG02');remote='/sdcard/Android/data/dev.codonui.lab.number/files/'+remote_name
  native_item=run('native-tag-g02',A('shell','am','instrument','-w','-e','op','tag-g02-batch','-e','outputDir',remote,'dev.codonui.lab.number/.Actions'),600)
  assert not native_item.get('timedOut') and native_item.get('status')!='HOST_TIMEOUT_GUEST_OUTCOME_UNCERTAIN','Native guest outcome uncertain; stop without another guest query'
  native_dir=root/'native-TagG02';pull_item=run('pull-native-TagG02',A('pull',remote+'/.',str(native_dir)),60);assert pull_item['exitCode']==0,'Missing actual native receipt/images'

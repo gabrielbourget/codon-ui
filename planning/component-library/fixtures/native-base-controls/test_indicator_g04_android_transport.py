@@ -15,6 +15,19 @@ NAMES = {'HostStop', 'decode_batch', 'request_key', 'prepare_row_decode', 'decod
 
 
 class IndicatorTransportTests(unittest.TestCase):
+    def test_reused_cell_requires_admission_before_output_or_decoder(self):
+        import os
+        import unittest.mock
+        tree = ast.parse(CHECKER.read_text())
+        main = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == 'main')
+        namespace = {'__file__': str(CHECKER)}
+        exec(compile(ast.Module(body=[main], type_ignores=[]), str(CHECKER), 'exec'), namespace)
+        output = self.root / 'never-opened-without-admission'
+        with unittest.mock.patch.dict(os.environ, {}, clear=True):
+            with self.assertRaisesRegex(ValueError, 'Use NativeCellVerification.py'):
+                namespace['main'](types.SimpleNamespace(cell='CAT.indicator.G07', out=output))
+        self.assertFalse(output.exists())
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix='codon-indicator-transport-')
         self.root = Path(self.temp.name)

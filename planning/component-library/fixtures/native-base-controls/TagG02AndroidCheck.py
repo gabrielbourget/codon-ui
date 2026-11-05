@@ -74,9 +74,12 @@ def check_cohort(cohort,density,root=None):
  else:
   short=rect(rows[0]['target']['bounds']);long=rect(rows[1]['target']['bounds']);after=rect(rows[2]['target']['bounds'])
   require(rows[1]['state']['size']=='140' and rows[2]['state']['size']=='140','Actual140 owner constraint missing')
-  require(abs((long[2]-long[0])-140*density)<=1 and abs(rows[1]['state']['frameWidth']*density-(long[2]-long[0]))<=1,'Actual140 width/onLayout/native frame mismatch')
-  require(long[3]-long[1]>short[3]-short[1] and after[3]-after[1]==long[3]-long[1],'Long label must actually wrap without first-action geometry change')
-  require(abs(rows[1]['state']['frameHeight']*density-(long[3]-long[1]))<=1,'Actual onLayout/native long height mismatch')
+  for row,frame in [(rows[1],long),(rows[2],after)]:
+   require(abs((frame[2]-frame[0])-140*density)<=1 and abs(row['state']['frameWidth']*density-(frame[2]-frame[0]))<=1,'Actual140 width/onLayout/native frame mismatch')
+   require(abs(row['state']['frameHeight']*density-(frame[3]-frame[1]))<=1,'Actual onLayout/native long height mismatch')
+  # The public default removes the inactive border on selection, changing outer height.
+  # Both states must wrap; their complete unclipped text is independently reviewed in PNGs.
+  require(long[3]-long[1]>short[3]-short[1] and after[3]-after[1]>short[3]-short[1],'Long label must actually wrap before and after first action')
  return {'name':name,'status':'AUTOMATED_PENDING_ROOT_VISUAL_AND_SOURCE_JOIN','observationCount':len(rows),'nativeSeconds':cohort['elapsedMs']/1000,'images':images}
 
 def verify_setup(setup):

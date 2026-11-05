@@ -9,8 +9,8 @@ def sample():
  for name,expected in m.EXPECTED.items():
   rows=[]
   for label,requests,owner,echo,exposed,enabled in expected:
-   long=label.startswith('long-');frame='10 20 290 140' if long else '10 20 170 60'
-   state={'requests':requests,'owner':owner,'echo':echo,'exposed':exposed,'id':'number 0','last':'none' if requests==0 else 'number 0','armed':False,'rawText':'Synthetic schema control only','nativeUptimeMs':10,'size':'140' if long else 'automatic','frameWidth':140 if long else 80,'frameHeight':60 if long else 20}
+   long=label.startswith('long-');selected_long=label=='long-first-action';frame=('10 20 290 132' if selected_long else '10 20 290 140') if long else '10 20 170 60'
+   state={'requests':requests,'owner':owner,'echo':echo,'exposed':exposed,'id':'number 0','last':'none' if requests==0 else 'number 0','armed':False,'rawText':'Synthetic schema control only','nativeUptimeMs':10,'size':'140' if long else 'automatic','frameWidth':140 if long else 80,'frameHeight':(56 if selected_long else 60) if long else 20}
    node={'id':'tag-example','className':'android.widget.Button','contentDescription':'Controlled tag','enabled':enabled,'checkable':True,'checked':False if exposed=='false' else owner,'visible':True,'bounds':frame,'nativeEpochMs':15}
    rows.append({'name':label,'state':state,'target':node,'sameNativeAXSource':True,'scroll':{'bounds':'0 0 400 800'},'captureStartedEpochMs':10,'captureFinishedEpochMs':20,'windows':{'windowNodes':[{'id':'tag-example'}]},'png':label+'.png'})
   row={'name':name,'status':'NATIVE_ASSERTIONS_PASSED_PENDING_HOST_REVIEW','elapsedMs':20000,'observations':rows}
@@ -40,6 +40,13 @@ class Controls(unittest.TestCase):
  def test_retired_native_negative(self):self.changed(lambda r:r['cohorts'][1]['retirement']['quietWindows']['windowNodes'].append({'id':'tag-example'}))
  def test_same_node_negative(self):self.changed(lambda r:r['cohorts'][2]['observations'][0].update(sameNativeAXSource=False))
  def test_width_negative(self):self.changed(lambda r:r['cohorts'][2]['observations'][1]['target'].update(bounds='10 20 280 140'))
+ def test_selected_long_width_negative(self):self.changed(lambda r:r['cohorts'][2]['observations'][2]['target'].update(bounds='10 20 280 132'))
+ def test_selected_long_layout_negative(self):self.changed(lambda r:r['cohorts'][2]['observations'][2]['state'].update(frameHeight=60))
+ def test_selected_long_no_wrap_negative(self):
+  def change(r):
+   row=r['cohorts'][2]['observations'][2];row['target']['bounds']='10 20 290 60';row['state']['frameHeight']=20
+  self.changed(change)
+ def test_stale_mixed_description_after_reset_remains_failure(self):self.changed(lambda r:r['cohorts'][0]['observations'][-1]['target'].update(contentDescription='Controlled tag, mixed'))
  def test_method_limit_negative(self):self.changed(lambda r:r['cohorts'][0].update(elapsedMs=180001))
  def test_missing_cohort_negative(self):self.changed(lambda r:r['cohorts'].pop())
  def test_duplicate_native_negative(self):self.changed(lambda r:r['cohorts'][0]['observations'][0]['windows']['windowNodes'].append({'id':'tag-example'}))
@@ -90,6 +97,33 @@ class SetupControls(unittest.TestCase):
 
 
 class SourceClockControls(unittest.TestCase):
+ def test_executed_actual_scene_wait_handles_delay_wrong_scene_and_uncertainty(self):
+  import subprocess,tempfile
+  source=(Path(__file__).with_name('android-native-inspector')/'Actions.java').read_text()
+  actual=source[source.index('  private static String tagOutputName'):source.index('  private void tgAwaitSelectedScene')]
+  controls='''
+  static long clock; static int queries;
+  static void check(boolean value){if(!value)throw new AssertionError();}
+  static void reset(){clock=0;queries=0;}
+  public static void main(String[] args) throws Exception {
+    String prefix="/sdcard/Android/data/dev.codonui.lab.number/files/";
+    check(tagOutputName(prefix+"tag-g02-native-scene-ack-1").equals("tag-g02-native-scene-ack-1"));
+    for(String path:new String[]{prefix+"../tag-g02-native-other",prefix+"tag-g02-native-a/child","/unowned/tag-g02-native-a",prefix+"tag-g02-native-",prefix+"tag-g02-native-a.b"}){try{tagOutputName(path);throw new AssertionError();}catch(IllegalArgumentException expected){}}
+    reset();awaitSceneSelection(()->++queries==5,()->clock,n->clock+=n,5000);check(queries==5&&clock==400);
+    reset();try{awaitSceneSelection(()->{queries++;return false;},()->clock,n->clock+=n,5000);throw new AssertionError();}catch(IllegalStateException expected){check(clock==5000&&queries==50);}
+    reset();try{awaitSceneSelection(()->{queries++;throw new Exception("uncertain native query");},()->clock,n->clock+=n,5000);throw new AssertionError();}catch(Exception expected){check(expected.getMessage().equals("uncertain native query")&&queries==1&&clock==0);}
+    reset();try{awaitSceneSelection(()->{queries++;clock=5001;return true;},()->clock,n->clock+=n,5000);throw new AssertionError();}catch(IllegalStateException expected){check(queries==1&&clock==5001);}
+    reset();clock=5000;try{awaitSceneSelection(()->{queries++;return true;},()->clock,n->clock+=n,5000);throw new AssertionError();}catch(IllegalStateException expected){check(queries==0);}
+    System.out.println("PASS actual scene acknowledgement: delayed success, permanent wrong scene, uncertain query, late query, exhausted deadline");
+  }
+'''
+  jdk=Path.home()/'.local/share/codon-native-lab/jdk/Contents/Home/bin'
+  with tempfile.TemporaryDirectory() as temporary:
+   root=Path(temporary);java=root/'SceneWaitControls.java';java.write_text('class SceneWaitControls {\n'+actual+controls+'\n}\n')
+   compiled=subprocess.run([str(jdk/'javac'),str(java)],capture_output=True,text=True,timeout=20);self.assertEqual(compiled.returncode,0,compiled.stderr)
+   executed=subprocess.run([str(jdk/'java'),'-cp',str(root),'SceneWaitControls'],capture_output=True,text=True,timeout=10);self.assertEqual(executed.returncode,0,executed.stderr);self.assertIn('PASS actual scene acknowledgement',executed.stdout)
+  helper=source[source.index('  private void tgAwaitSelectedScene'):source.index('  private JSONObject tgSetupNode')]
+  self.assertNotIn('performAction',helper);self.assertIn('return actual&&selected',helper)
  def test_java_observation_and_finish_clocks_are_coupled(self):
   source=Path(__file__).with_name("android-native-inspector")/"Actions.java"
   text=source.read_text()
@@ -100,6 +134,40 @@ class SourceClockControls(unittest.TestCase):
   self.assertEqual(text.count(pair),2)
 
 class BootDiagnosticControls(unittest.TestCase):
+ def execute_readiness(self,completed):
+  import ast,tempfile
+  tree=ast.parse(Path(__file__).with_name('NativeTagG02AndroidDriver.py').read_text());body=next(n for n in tree.body if isinstance(n,ast.Try)).body
+  start=next(i for i,n in enumerate(body) if isinstance(n,ast.Assign) and isinstance(n.targets[0],ast.Name) and n.targets[0].id=='boot_until')
+  end=next(i for i,n in enumerate(body[start:],start) if isinstance(n,ast.While))
+  class Clock:
+   value=0
+   def time(self):return self.value
+   def sleep(self,seconds):self.value+=seconds
+  clock=Clock();commands=[]
+  with tempfile.TemporaryDirectory() as temporary:
+   root=Path(temporary)
+   def run(name,argv,cap):
+    commands.append(name)
+    if name=='wait-for-device':clock.value=76.541
+    else:(root/(name+'.stdout')).write_text('1' if clock.value>=completed else '')
+    return {'exitCode':0}
+   ns={'time':clock,'work':1680,'run':run,'A':lambda *args:args,'boot_diagnostic':False,'root':root}
+   exec(compile(ast.Module(body=body[start:end+1],type_ignores=[]),'actual-boot-readiness-control','exec'),ns)
+  return clock.value,commands
+ def test_saved_late_boot_reaches_component_admission(self):
+  elapsed,commands=self.execute_readiness(185.592)
+  self.assertGreaterEqual(elapsed,185.592);self.assertLess(elapsed,240)
+  self.assertEqual(commands[0],'wait-for-device');self.assertTrue(all(n.startswith('boot-completed-') for n in commands[1:]))
+ def test_not_ready_at_bound_still_stops(self):
+  with self.assertRaisesRegex(RuntimeError,'within240s'):self.execute_readiness(241)
+ def test_saved_failure_final_exit_is_nonzero(self):
+  import ast
+  tree=ast.parse(Path(__file__).with_name('NativeTagG02AndroidDriver.py').read_text());branch=tree.body[-1]
+  class Clock:
+   def time(self):return 198.373
+  ns={'outcome':'STOP_RuntimeError','guest_verified':False,'profile_settings':None,'serial_absent':True,'ports_free':True,'group_present':False,'cleanup_errors':[{'phase':'emulator-process','error':"PermissionError(1, 'Operation not permitted')"}],'time':Clock(),'end':1800}
+  with self.assertRaises(SystemExit) as result:exec(compile(ast.Module(body=[branch],type_ignores=[]),'actual-final-exit-control','exec'),ns)
+  self.assertEqual(result.exception.code,1)
  def test_actual_boot_diagnostic_stops_before_install_or_instrumentation(self):
   import ast,json,tempfile,time
   tree=ast.parse(Path(__file__).with_name('NativeTagG02AndroidDriver.py').read_text());body=next(n for n in tree.body if isinstance(n,ast.Try))

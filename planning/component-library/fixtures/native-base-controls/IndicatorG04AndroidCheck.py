@@ -462,6 +462,10 @@ def host_checks(cohort, original, directory, output, density, args):
 
 
 def main(args):
+    admission = None
+    if getattr(args, 'cell', None):
+        from NativeCellVerification import load_admission
+        admission = load_admission(__file__, args.cell, {'ios': [], 'android': []})
     args.out.mkdir(exist_ok=False);verdicts = [];errors = [];data = {};context = {}
     try:
         assert args.profile == 'IndicatorG04'
@@ -486,12 +490,15 @@ def main(args):
                 verdicts.append({'cohort': name, 'status': 'FAILED_OR_INCOMPLETE', 'errors': [{'phase': 'batch-or-transport', 'error': repr(error)}]})
     passed = not errors and len(verdicts) == 4 and all(row['status'] == 'AUTOMATED_PROFILE_SCOPED_CHECKS_PASSED_PENDING_ROOT_REVIEW' for row in verdicts)
     terminal = {'cell': 'CAT.indicator.G04', 'profile': args.profile, 'status': 'INDICATOR_BATCH_PENDING_ROOT_REVIEW' if passed else 'FAILED_OR_INCOMPLETE', 'batchErrors': errors, 'cohorts': verdicts, 'ledgerPromotion': False, 'profileSettingContext': context, 'nativeReceiptSHA256': hashlib.sha256((args.input / 'receipt.json').read_bytes()).hexdigest() if (args.input / 'receipt.json').exists() else None, 'finishedEpoch': time.time()}
+    if admission is not None:
+        terminal.update(cell=args.cell, sourceEvidenceCell='CAT.indicator.G04', nativeCellAdmission=admission, scope='Saved installed observations replay; no guest, installation or new component observation')
     (args.out / 'terminal.json').write_text(json.dumps(terminal, indent=2) + '\n');print(json.dumps({'status': terminal['status']}), flush=True)
     return 0 if passed else 1
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--cell', choices=['CAT.indicator.G07'])
     parser.add_argument('--input', type=Path, required=True);parser.add_argument('--out', type=Path, required=True);parser.add_argument('--density', type=Path, required=True)
     parser.add_argument('--color-oracle', type=Path, required=True);parser.add_argument('--expected-color-oracle-sha256', required=True);parser.add_argument('--deadline-unix', type=float, required=True)
     parser.add_argument('--profile', choices=['IndicatorG04'], required=True);parser.add_argument('--profile-context', type=Path, required=True)
