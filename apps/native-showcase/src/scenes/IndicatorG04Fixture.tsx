@@ -376,7 +376,7 @@ const IndicatorG04Preview = ({
           />
         </View>
       </View>
-      <Button order="primary" accessibilityLabel="G04 IND owned foreground" onPress={() => {}}>
+      <Button order="primary" raised={false} accessibilityLabel="G04 IND owned foreground" onPress={() => {}}>
         <View
           testID="indicator-g04-owned-row"
           collapsable={false}
