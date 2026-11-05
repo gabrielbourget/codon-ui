@@ -9,7 +9,7 @@ from pathlib import Path
 import re
 import sys
 
-VERSION = "NATIVE-CELL-01"
+VERSION = "NATIVE-CELL-02"
 CHECKLIST = Path(__file__).with_name("NativeCellVerificationChecklist.md")
 RUBRIC = Path(__file__).resolve().parents[2] / "roadmap.md"
 RISKS = {"fractional_geometry", "shadow", "antialiasing", "rotation", "scene_readiness", "cleanup"}
@@ -22,6 +22,12 @@ def digest(path):
 def require(value, message):
     if not value:
         raise ValueError(message)
+
+
+def driver_exit_code(sdk_exit_code, coverage_complete, cleanup_complete):
+    if sdk_exit_code != 0:
+        return sdk_exit_code if isinstance(sdk_exit_code, int) and 0 < sdk_exit_code < 256 else 1
+    return 0 if coverage_complete and cleanup_complete else 1
 
 
 def bound_file(item):

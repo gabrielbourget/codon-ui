@@ -1,0 +1,5 @@
+{
+  "schemaVersion": 1,
+  "authority": "Evidence lookup only; experiments.md catalogue ledger remains authoritative. Historical PASS cells are grandfathered by HEAD comparison.",
+  "cells": {}
+}

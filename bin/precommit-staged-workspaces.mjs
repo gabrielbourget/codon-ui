@@ -30,6 +30,10 @@ if (!stagedFiles.length) {
   process.exit(0)
 }
 
+if (stagedFiles.includes("planning/component-library/experiments.md")) {
+  runCommand("python3", ["-B", path.join(repoRoot, "bin/verify-native-ledger-adoption.py"), "--repository", repoRoot])
+}
+
 const workspacePackages = JSON.parse(readCommand("pnpm", ["m", "ls", "--depth", "-1", "--json"]))
   .filter((workspacePackage) => workspacePackage.path !== repoRoot)
   .map((workspacePackage) => {

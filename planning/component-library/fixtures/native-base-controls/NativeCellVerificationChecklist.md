@@ -1,6 +1,6 @@
 # Native cell verification checklist
 
-Version: NATIVE-CELL-01
+Version: NATIVE-CELL-02
 
 Read this checklist before every cell verification run. Use `NativeCellVerification.py` as the entry point; record its receipt with the run. A preflight PASS establishes admission only. Component assertions and installed evidence retain their separate verdicts.
 
@@ -12,5 +12,10 @@ Read this checklist before every cell verification run. Use `NativeCellVerificat
 6. Validate rotation against actual screenshot dimensions and native window evidence. UIImage orientation enums and EXIF numbers are different contracts. Reuse a proven raster helper only with its source and executed controls bound.
 7. Admit actual boot, installation identity, selected scene, visibility and readiness. A PID, an idle proxy or an offscreen label alone does not establish readiness. Capture focused diagnostics at the failing stage.
 8. Use one lifecycle/deadline owner with mechanical work cutoff and reserved cleanup. Restore the exact captured preference key set and values. Verify owned groups, guest shutdown and ports; preserve denials and uncertain outcomes. A raw SDK PASS with timeout or over-budget duration is not a clean method PASS.
-9. Diagnose the entire batch before retrying. Preserve every failure and valid result. Fix the demonstrated cause, replay its saved positive/negative controls, and rerun only remaining affected checks. Do not restart blocked/canceled work or change acceptance implicitly.
-10. Bind this version and checklist hash, the actual source/fixture/observer/driver hashes, observer control reports, both-OS evidence map and resource limits in the plan. Risk dispositions must distinguish executed controls, reused evidence and unselected risks. After completion, reconcile exact criteria, artifacts and cleanup before changing the ledger.
+9. Propagate the SDK failure through the driver's process exit. SDK failure, timeout, incomplete selected coverage or uncertain cleanup must produce nonzero; a JSON failure record followed by process exit0 is insufficient. Test the actual driver's final exit branch against a saved failure before retrying.
+10. Diagnose the entire batch before retrying. Preserve every failure and valid result. Fix the demonstrated cause, replay its saved positive/negative controls, and rerun only remaining affected checks. Do not restart blocked/canceled work or change acceptance implicitly.
+11. Bind this version and checklist hash, the actual source/fixture/observer/driver hashes, observer control reports, both-OS evidence map and resource limits in the plan. Risk dispositions must distinguish executed controls, reused evidence and unselected risks. After completion, reconcile exact criteria, artifacts and cleanup before changing the ledger.
+
+For a new ledger PASS, add the exact cell to `NativeCellAdoptions.json` with a SHA256-bound `native_cell_completion` receipt. It must bind the current checklist and admitted preflight, maintained repository driver bytes, finished time, criteria completion, verified cleanup and claimed native methods. G02/G04/G09 require representative iOS and Android evidence; G07 requires Android and G08 requires iOS. Source-only gates gain no additional installed requirement. Normal local pre-commit checks validate the staged ledger and receipt index; old PASS cells are grandfathered. An admission receipt alone cannot close a cell.
+
+The maintained Indicator lifecycle and observer-build drivers and closed-result diagnostics exporter reject direct invocation without the matching same-owner admission. The controls test missing/failed/stale receipts, changed driver bytes, wrong owner, argv/cohort mismatch, and the maintained controller’s actual failure-exit branch. Enforcement is local entry-point and ledger-hook validation, not semantic proof of reading, OS-wide command interception or CI enforcement.
