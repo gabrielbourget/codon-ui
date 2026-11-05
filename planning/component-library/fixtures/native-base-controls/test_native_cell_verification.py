@@ -130,6 +130,34 @@ class NativeCellAdmissionTests(unittest.TestCase):
         item = {"path": str(log), "sha256": MODULE.digest(log), "claim": "synthetic timeout control", "kind": "native_method", "format": "xctest_log", "method": "testTimeout", "maximumSeconds": 180}
         self.reject(lambda plan: plan["platforms"]["ios"].update(reusedEvidence=[item]))
 
+    def android_method(self, rows, method="values"):
+        receipt = self.root / "retained-android.json"
+        receipt.write_text(json.dumps({"status": "NATIVE_BATCH_COMPLETE_PENDING_HOST_PAINT", "cohorts": rows}))
+        item = {"path": str(receipt), "sha256": MODULE.digest(receipt), "claim": "Native assertion stage only; paint and root review remain separate", "kind": "native_method", "format": "android_receipt", "method": method, "maximumSeconds": 180}
+        return MODULE.native_method(item)
+
+    def test_retained_meter_native_stage_does_not_require_rewriting_raw_status(self):
+        # Exact method names, statuses and times from the retained MT-02 receipt.
+        seconds = {"values": 51.690, "format": 29.210, "motion": 30.584, "events": 27.743}
+        rows = [{"name": name, "status": "NATIVE_ASSERTIONS_PASSED_PENDING_PAINT", "elapsedMs": duration * 1000} for name, duration in seconds.items()]
+        for name, duration in seconds.items():
+            with self.subTest(method=name):
+                self.assertEqual(self.android_method(rows, name), {"method": name, "seconds": duration, "maximumSeconds": 180, "status": "PASS"})
+
+    def test_retained_android_failed_incomplete_and_ambiguous_methods_reject(self):
+        passing = {"name": "values", "status": "NATIVE_ASSERTIONS_PASSED_PENDING_PAINT", "elapsedMs": 51690}
+        for rows in [[], [passing, passing], [{**passing, "status": "FAIL"}], [{**passing, "status": "NATIVE_BATCH_COMPLETE_PENDING_HOST_PAINT"}], [{**passing, "status": "NATIVE_ASSERTIONS_INCOMPLETE"}]]:
+            with self.subTest(rows=rows), self.assertRaisesRegex(ValueError, "Native cohort not passing"):
+                self.android_method(rows)
+
+    def test_retained_android_method_timeout_and_invalid_durations_reject(self):
+        passing = {"name": "values", "status": "NATIVE_ASSERTIONS_PASSED_PENDING_PAINT", "elapsedMs": 51690}
+        with self.assertRaisesRegex(ValueError, "Timed-out native method"):
+            self.android_method([{**passing, "timedOut": True}])
+        for milliseconds in [180001, -1, float("inf"), float("nan")]:
+            with self.subTest(milliseconds=milliseconds), self.assertRaisesRegex(ValueError, "Over-budget native method"):
+                self.android_method([{**passing, "elapsedMs": milliseconds}])
+
     def test_direct_driver_without_admission_rejects(self):
         env = {key: value for key, value in os.environ.items() if key != "CODON_NATIVE_CELL_PREFLIGHT_RECEIPT"}
         process = subprocess.run([sys.executable, "-B", str(self.driver)], env=env, capture_output=True, text=True, timeout=10)

@@ -61,7 +61,10 @@ def native_method(item):
         seconds = float(durations[0])
     elif item["format"] == "android_receipt":
         rows = [row for row in json.loads(path.read_text())["cohorts"] if row["name"] == name]
-        require(len(rows) == 1 and rows[0]["status"] in ["NATIVE_ASSERTIONS_PASSED_PENDING_COLOR_AND_ROOT_REVIEW", "NATIVE_ASSERTIONS_PASSED_PENDING_HOST_REVIEW"], "Native cohort not passing: " + name)
+        # Older Meter/LinearProgress receipts name the same native-only stage
+        # PENDING_PAINT. Accept that stage without certifying its paint review.
+        require(len(rows) == 1 and rows[0]["status"] in ["NATIVE_ASSERTIONS_PASSED_PENDING_COLOR_AND_ROOT_REVIEW", "NATIVE_ASSERTIONS_PASSED_PENDING_HOST_REVIEW", "NATIVE_ASSERTIONS_PASSED_PENDING_PAINT"], "Native cohort not passing: " + name)
+        require(not rows[0].get("timedOut", False), "Timed-out native method: " + name)
         seconds = rows[0]["elapsedMs"] / 1000
     else:
         raise ValueError("Unknown native method evidence format")

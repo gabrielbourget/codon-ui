@@ -1,0 +1,220 @@
+{
+  "schemaVersion": 1,
+  "component": "CAT.meter",
+  "gates": ["G04", "G07", "G08", "G09"],
+  "checklistVersion": "NATIVE-CELL-02",
+  "checklistSHA256": "c8f5f777015de88c845833d529872771391a4d7d4431139ae697b635f7da392f",
+  "authority": "roadmap3.1.4,3.3.9-3.3.11,3.6.1; complete canonical13 cases plus inherited public contract, no new capability exclusions",
+  "status": "SOURCE_MAPPING_COMPLETE_NATIVE_STYLE_OBSERVATIONS_PENDING",
+  "sourceFilesSHA256": {
+    "packages/react/src/components/Meter/__tests__/Meter.test.tsx": "843553e8b3ca009254d0309d1c3652a60a4deb76ce656aa9e6c39fa7ab9b52b5",
+    "packages/react/src/components/Meter/MeterStyles.module.css": "124c7ad5838c8815c8ea4b26ecf3bed2f4e9f0be39ad7fa82c39b58519ac023d",
+    "packages/react-native/src/components/RangeIndicator/__tests__/RangeIndicator.test.tsx": "b26ba924a4636c5a88dbf193487483ffbfd6d2afde0f24ed8dfdd1375a45209c",
+    "packages/react-native/src/components/RangeIndicator/RangeIndicator.tsx": "696d2ce1c4f9cdd42618951737a19065b80712aac502e83cc30ecbb267f19ff1",
+    "packages/react-native/src/components/RangeIndicator/useRangeAnimation.ts": "f7e4959f430e46a96583a11d2bad0c5d5a79a8ff2caea4c08262d5d063ddf1a2",
+    "packages/react-native/type-tests/range-contracts.tsx": "f5e865d0ad267f048e7857e8e2da61e66cc82141cdc086475593e692cd021693",
+    "apps/native-showcase/src/scenes/RangeScene.tsx": "361818f3923fba3e32799798031de4baaa79cec1f0eeb7e3b43b0a43603462d2",
+    "apps/native-showcase/src/scenes/__tests__/RangeScene.test.tsx": "6d12cd638c24536d96bc83d747a7cee15d5c92bf92bbb15cce0f6355bcf62cb2"
+  },
+  "canonicalAssertions": [
+    {
+      "id": "STYLE.meter.001",
+      "canonicalCase": "renders.",
+      "nativeTestCases": ["renders one named, bounded accessibility target with a semantic default bar"],
+      "expectedOutcome": "Root, track and bar remain owned by Meter; actual MT-02 target/native fill retained.",
+      "installedDisposition": "MT-02 proves only its recorded native value/fill/context/ref scope; remaining selected style observations are not passed"
+    },
+    {
+      "id": "STYLE.meter.002",
+      "canonicalCase": "uses the semantic base bar style when no order is provided.",
+      "nativeTestCases": ["renders one named, bounded accessibility target with a semantic default bar"],
+      "expectedOutcome": "Semantic controlSelectedBackground; no synthesized primary order.",
+      "installedDisposition": "MT-02 proves only its recorded native value/fill/context/ref scope; remaining selected style observations are not passed"
+    },
+    {
+      "id": "STYLE.meter.003",
+      "canonicalCase": "responds to height and width props.",
+      "nativeTestCases": ["honors numeric, zero and percentage dimensions with final root precedence"],
+      "expectedOutcome": "Approved native root dimension substitution; numeric/zero/percentage and final root precedence, filling track.",
+      "installedDisposition": "MT-02 proves only its recorded native value/fill/context/ref scope; remaining selected style observations are not passed"
+    },
+    {
+      "id": "STYLE.meter.004",
+      "canonicalCase": "responds to color props.",
+      "nativeTestCases": [
+        "gives explicit colors priority over order and validates native colors",
+        "supports native dynamic colors, registered styles and style arrays"
+      ],
+      "expectedOutcome": "Independent barColor and trackColor; native ColorValue/registered-array styles; invalid CSS colors rejected.",
+      "installedDisposition": "MT-02 proves only its recorded native value/fill/context/ref scope; remaining selected style observations are not passed"
+    },
+    {
+      "id": "STYLE.meter.005",
+      "canonicalCase": "responds to corner geometry props.",
+      "nativeTestCases": ["retains independent %s bar and track geometry"],
+      "expectedOutcome": "All orthogonal/rounded/round track and bar radii, independently owned.",
+      "installedDisposition": "MT-02 proves only its recorded native value/fill/context/ref scope; remaining selected style observations are not passed"
+    },
+    {
+      "id": "STYLE.meter.006",
+      "canonicalCase": "responds to theming order props.",
+      "nativeTestCases": ["uses the existing numbered palette for order %s"],
+      "expectedOutcome": "All primary/secondary/tertiary/quaternary/quintenary orders, with explicit barColor precedence.",
+      "installedDisposition": "MT-02 proves only its recorded native value/fill/context/ref scope; remaining selected style observations are not passed"
+    },
+    {
+      "id": "STYLE.meter.007",
+      "canonicalCase": "keeps order styles on numbered palette tokens.",
+      "nativeTestCases": [
+        "uses the existing numbered palette for order %s",
+        "uses current provider colors and geometry without changing the controlled value"
+      ],
+      "expectedOutcome": "All five numbered action backgrounds; current provider, no legacy token substitution.",
+      "installedDisposition": "MT-02 proves only its recorded native value/fill/context/ref scope; remaining selected style observations are not passed"
+    },
+    {
+      "id": "STYLE.meter.008",
+      "canonicalCase": "responds to box-shadow props.",
+      "nativeTestCases": ["adds and removes established track elevation"],
+      "expectedOutcome": "Track raised on/off; approved native shadow/elevation, no claim of browser raster equality.",
+      "installedDisposition": "MT-02 proves only its recorded native value/fill/context/ref scope; remaining selected style observations are not passed"
+    },
+    {
+      "id": "STYLE.meter.009",
+      "canonicalCase": "responds to direction props.",
+      "nativeTestCases": ["anchors physical left/right and vertical up/down without rotating its accessibility target"],
+      "expectedOutcome": "Horizontal right/left, vertical up/down and opposite-axis fallback; stable accessibility root.",
+      "installedDisposition": "MT-02 proves only its recorded native value/fill/context/ref scope; remaining selected style observations are not passed"
+    },
+    {
+      "id": "STYLE.meter.010",
+      "canonicalCase": "responds to orientation props.",
+      "nativeTestCases": ["anchors physical left/right and vertical up/down without rotating its accessibility target"],
+      "expectedOutcome": "Horizontal/vertical root defaults and fill axis; same native root.",
+      "installedDisposition": "MT-02 proves only its recorded native value/fill/context/ref scope; remaining selected style observations are not passed"
+    },
+    {
+      "id": "STYLE.meter.011",
+      "canonicalCase": "responds to custom style props.",
+      "nativeTestCases": [
+        "isolates the three style slots and passes post-custom defaults to the final callback",
+        "validates colors in every authored slot including final callback output"
+      ],
+      "expectedOutcome": "Independent root/track/bar owners, computed then custom then final; validation per owner.",
+      "installedDisposition": "MT-02 proves only its recorded native value/fill/context/ref scope; remaining selected style observations are not passed"
+    },
+    {
+      "id": "STYLE.meter.012",
+      "canonicalCase": "merges native root class and style props.",
+      "nativeTestCases": ["isolates the three style slots and passes post-custom defaults to the final callback"],
+      "expectedOutcome": "Original approved native style substitution for DOM classes; current callback state and post-custom defaultStyle, final output wins.",
+      "installedDisposition": "MT-02 proves only its recorded native value/fill/context/ref scope; remaining selected style observations are not passed"
+    },
+    {
+      "id": "STYLE.meter.013",
+      "canonicalCase": "does not leak wrapper props to the React Aria root.",
+      "nativeTestCases": ["forwards its real View ref, IDs and native layout payload while consuming wrapper props"],
+      "expectedOutcome": "Consume all range/color/geometry/slot wrapper props; original owned children, allowed host props/events/ref retained.",
+      "installedDisposition": "MT-02 proves only its recorded native value/fill/context/ref scope; remaining selected style observations are not passed"
+    }
+  ],
+  "additionalPublicStyleCoverage": [
+    {
+      "scope": "Live light/dark provider and current values",
+      "sourceTests": ["uses current provider colors and geometry without changing the controlled value"],
+      "installedReuse": "MT-02 format cohort on both OSes retains empty-label zero through dark/compact and light/live transitions; numeric color/radius/slot proof is not inferred"
+    },
+    {
+      "scope": "Native style/color inputs and callback defaults",
+      "sourceTests": [
+        "supports native dynamic colors, registered styles and style arrays",
+        "isolates the three style slots and passes post-custom defaults to the final callback",
+        "validates colors in every authored slot including final callback output"
+      ],
+      "installedRemaining": "Component-owned selected registered/native-color/final callback style path not present in current RangeScene controls; prepare through existing fixture only if a native lane becomes admissible"
+    },
+    {
+      "scope": "Current determinate fill, motion preference ordering and cleanup",
+      "sourceTests": [
+        "animates only the visual fill and cancels superseded and unmounted transitions",
+        "honors a newer Reduce Motion event over a delayed initial query and removes its listener",
+        "keeps static presentation if the native motion preference query fails"
+      ],
+      "installedReuse": "MT-02 known/latest endpoints and lifetime quiet on both OSes; no independent intermediate trajectory,250ms timing,or live native Reduce Motion observation claimed"
+    }
+  ],
+  "pendingCompatibleNativeGroups": [
+    {
+      "name": "geometry-direction",
+      "fixture": "apps/native-showcase/src/scenes/RangeScene.tsx",
+      "target": "range-meter",
+      "controls": ["Toggle range orientation", "Reverse range direction", "Next range geometry"],
+      "expected": [
+        "One Measured capacity target; now=-25,min=-50,max=50,text=-25",
+        "Horizontal percentage root width and14 logical height; vertical18x140 logical frame after native pixel rounding",
+        "25% fill,physical right/left/up/down anchoring; scene value and root identity retained",
+        "Discriminating orthogonal/round contour capture; rounded/round independent source permutations retained"
+      ],
+      "platforms": ["ios", "android"],
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "name": "slots-theme-reset",
+      "fixture": "apps/native-showcase/src/scenes/RangeScene.tsx",
+      "target": "range-meter",
+      "controls": [
+        "Next range order",
+        "Toggle range styles",
+        "Dark theme",
+        "Light theme",
+        "Compact width",
+        "Live window",
+        "Toggle authored value labels",
+        "Reset scene",
+        "Progress/Meter scene"
+      ],
+      "expected": [
+        "Independent root opacity0.85,track border#a66b00/2logical,bar#2f7d18/radius2 and track elevation on; off restores baseline",
+        "Use independent raw references and real compositing for opacity; no opaque-color equality claim for blended pixels",
+        "Measured reachability and native frames after constrained width; no system font/rotation cross-product",
+        "Live provider and authoredlabel preserve now=-25; explicit scene reset starts original horizontal25% measurement"
+      ],
+      "platforms": ["ios", "android"],
+      "status": "NOT_EXECUTED"
+    },
+    {
+      "name": "style-input-boundaries",
+      "fixture": "Existing range fixture extension required before observer preparation",
+      "expected": [
+        "Discriminating numeric/fractional/zero/percentage/auto native dimension path,selected registered/array style and platform-native color integration",
+        "Root computed/custom/final precedence and callback post-custom defaults observed independently of track/bar",
+        "Reuse matching shared native-host evidence only for its measured host boundary; never infer an unobserved Meter-owned path"
+      ],
+      "platforms": ["ios", "android"],
+      "status": "NOT_PREPARED_OR_EXECUTED"
+    }
+  ],
+  "riskSelection": {
+    "selected": "Representative Release baseline on both OSes retained from MT-02; focus missing owned drawing/slot/direction/style integration. All canonical source variants retained.",
+    "unselected": "No full profile/style Cartesian grid,spoken physical AT,physical device/ARM/signing,or performance/precise animation-trajectory certification. Those are not passed results.",
+    "adaptive": "Constrained width selected for the percent-width RangeScene. Passive non-text Meter has no owned visible text/editor/keyboard/collection; separate enlarged-text and keyboard grids add no selected owned risk. Physical directions require no implied locale mirroring."
+  },
+  "gateDisposition": {
+    "G04": "OPEN: source mapping complete; selected installed style groups pending on both OSes",
+    "G07": "OPEN: four retained Android baseline methods,34 native observations and32 numeric paint checks valid; additional selected style checks still missing",
+    "G08": "OPEN: four retained iOS baseline methods valid within180s; additional selected style checks still missing",
+    "G09": "OPEN: no whole-component completion while selected native gaps remain; source/consumer/docs reuse needs final scoped reconciliation"
+  },
+  "executionAdmission": {
+    "allChecksPrepared": false,
+    "sdkActions": 0,
+    "newNativeAttempts": 0,
+    "entryPoint": "NativeCellVerification.py --plan <bound-plan.json> --receipt <fresh-preflight.json> --run",
+    "blockers": [
+      "Android last startup SystemUI ANR has no applicable diagnosed correction; no unchanged boot/test retry",
+      "iOS current pending observer installation has no applicable diagnosed correction; PlaceholderText G08 remains separately BLOCKED and stopped"
+    ],
+    "cleanupOwner": "Future maintained lifecycle owner must bind products,observer discovery,readiness,method<=180s and attempt<=1800s including cleanup before native work"
+  },
+  "ledgerChanges": 0
+}
