@@ -3,6 +3,8 @@ import { StyleSheet, View } from "react-native"
 
 import { AVAILABLE_INDICATOR_SHAPES, Button, Indicator, LineSegment, Text } from "@codon-ui/react-native"
 
+import { LineSegmentG04Fixture } from "./LineSegmentG04Fixture"
+
 const DISPLAY_SIZES = [10, 14, 20] as const
 
 export const DisplayScene = () => {
@@ -77,6 +79,7 @@ export const DisplayScene = () => {
           custom ? (state) => ({ backgroundColor: state.direction === "vertical" ? "#2f7d18" : "#b73434" }) : undefined
         }
       />
+      <LineSegmentG04Fixture />
       <Text>Long descriptive copy: les couleurs et les dimensions restent liées aux paramètres choisis.</Text>
     </View>
   )
