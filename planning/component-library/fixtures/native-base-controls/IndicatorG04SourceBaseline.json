@@ -1,0 +1,114 @@
+{
+  "kind": "static_source_correspondence_baseline",
+  "schemaVersion": 1,
+  "sourceRef": "/tmp/codon-indicator-g04-ios-split-i06-20261105/IndicatorG04TrialTests.swift",
+  "sourceSHA256": "bbb43ed9e9171270c81cace5a9200cf3df62da7dbbb9ee0aebb4381d9f043b54",
+  "sourceMeaning": "Frozen BBB eleven-method observer; historical comparison only. Its I06 is unselected/over-budget and is never component evidence.",
+  "priorNineMethodBodySHA256": {
+    "testI01LightCases00To03": "d52d05e25dbacc0e3d117fbc48c694af749b343e59bc591135d7286825d0e645",
+    "testI02LightCases04To07": "183a9d762ed9ec0c0d71a694b9a01d091e1494f00ed014f28a019b78f042e3ed",
+    "testI03DarkCases00To03": "b935e229eddbe0341c01400c198e605911955cf0371d48adf4c31e7a3e0e0930",
+    "testI04DarkCases04To07": "080266a1eca6ed592c2f974f1e068c66e86219418237dcd8ed0d16b80f06c165",
+    "testI05InactiveAndExplicitBorder": "039b05de3ab8064466074b03b8af0ef91e5aca30c0421436207c39db22ed5151",
+    "testI06ShapeAndCallbackFinalStyle": "902fdd275db1d76e27a0cc57e1000fb274132d203129b808025dfdef69721a69",
+    "testI07NativeNameAndProvider": "aefcb12c103f4dff7f1e825135d15c02872a3af75db4cd598ffb7d8f89963ecb",
+    "testI08ButtonOwnedForeground": "6deebb65e036e846524e4bb809b07f1a9b64228657523e4ff22e84a1756ffd6a",
+    "testI09RotationEndAndReset": "8321f050b7ebcd8b4e1e62068c1a698d4f99b22781a4535cd0f1334130f8637f"
+  },
+  "unchangedHelperBodySHA256": {
+    "setUpWithError": "937c71aab4b11686223f0adcbda91c865ed356b56bb929705542c632182d7549",
+    "tearDownWithError": "21f674af74fc812efa8871ac2076a89916d590c07bbe782cebde548fdfe86d65",
+    "node": "609b8a507f87cab72a622cec18a99cea900cdd4f75d5ca453549030c327e4a99",
+    "wait": "831a00d847e7bd3bcd59d1d5d2d316ba38b87ea8d7af49ba8ca065466cf5b5e8",
+    "reveal": "b9debb43950e543a12cab47c7d02b2b23ff72f042ef0fd55c9448d52a5ad9d30",
+    "tap": "f4bd2cb8accb992e9a63cbb46114944a991aaaa22c3cbf78f584eb96693a31a0",
+    "state": "bcd6fea739e38b1dbb60ec315061d3b0b195642eecb82354cb66802911713af9",
+    "number": "891e621e983b403b308818c868b41780091f7f9c0f6f7dce7d9774b3a0a412ec",
+    "rectangle": "45a558a78c7d31fb4173437596a367c297593f9c8d2bf7686f2424848fd4f293",
+    "receipt": "4b2189dda8f0611b04a0da0d2f9a2405fcc3ece5d081c0e42bb91f70370e0738",
+    "sameRoot": "ab95f9da8f9ce4cdb3671e9edf02130a3c99a05b6e46a577f140a0122479d1cc",
+    "mark": "45eb7606638c3572fd1d3046f08385719896268f901f6001074be72952e245cb",
+    "frameValues": "d87bfb9312e229c37a5d5376c865144a74cbdf96b76ee88ef9d2a8b53d4506b8",
+    "pixels": "0f90f574ce20591c9d223bac5f47ac38addbd4aea74d381612ccd0f2c6402ed2",
+    "crop": "41f0b1b5f5195dae475df2acc18e6e3154df8084fbbefa04742c2ad7634dbc4a",
+    "centerRGB": "8392f8d40ef3cf6f72a039e737d724b1db88e25fbc1f6a32270dd1be156ec4eb",
+    "windowOrientedRaster": "3b9e43da8e15e77d32d0c8966b88e41c38c9cbec224d423998f788dbf5ede5b8",
+    "windowOrientedImage": "96796800aba591d237b96ba898660f107064a5a44bc604709f5a3cb47f800901",
+    "orient": "497b6399cb036bc456a707fcded8a2801da92c3b2e4438babb19fc32c2fb0125",
+    "readableParagraph": "50db44f770b74a2a72dc85dd56767a1614f0112b3341b290e5d4d5d20a766794",
+    "endReachable": "f4e3adb8042b3772c1e3882236a43c1b3b0925bc5df535b8aac6192465bb0630",
+    "currentExpected": "75771bb59148cee72c2755f2c0419020c73d714afbc7999cf14eb43ca4033f63",
+    "sameOwnedRoot": "08b76f241b06aa2dc478cfc6c25b56f50b4423db8579f05330a6d56cf74288e4",
+    "screenshotRaster": "a99002e2d69b6228db2f9285c673925d8b017010f8bcf65148b297249067ea9b",
+    "pixelRGB": "659168b5e2b35b72075a6b8728b18562fe7f64e55188eec9ea9bd130581bfe3e",
+    "unpaintedCount": "f928b5fb7c9107bef7694c5dbd8b9e2b22b32c9dec6e2874e319b2b5e48d2889",
+    "assertUnpainted": "1115451d12349756dbf1ed096f4e8dc0c4a747c4b1d44197f62336be93386542",
+    "ownedEndpointShot": "c12e223c2d2c68bfa5f6e344e31ac663b33ee0058d001bbaee8129a6178c9c62",
+    "verifyOwned": "b767bbe717d9932d7dd9eef02d8b879767d05e5214cea1f6b36d66d6f43bb72b",
+    "seek": "58ed6059bea47ab8cb997ab35a1524e7db72d3095d97153b26331211e7bdfd1a",
+    "setFlag": "3ead3fa1d01c667498d4d698a1a20455d4d15e063458d9d78a77feebcd268043",
+    "prepare": "5f56244d966c5af8c052c77d05ee79fde35c96b834ec43dcbc5168719e40948e",
+    "hostState": "82a361dc72ef6bdf12d1aa05d5d7712e71ad06c156a0fbebaa404a6a4ae1871f",
+    "normalizedHost": "2023a9fff290c68226fc8bf3bceebec408f4323682716add742cc4c3a0768f7b",
+    "matrix": "9b886a18f33139f4b75c9ef93c84321271f1b3a11b5fe453bd3c17dc15dd60ea",
+    "shape": "d41202e4707071a7f3873042bdc92b8bf0fdeba730ce262cde23eafc39690433"
+  },
+  "verifyAssertionCounter": {
+    "XCTAssertTrue(viewport.contains(parent)); XCTAssertTrue(viewport.contains(referenceParent))": 1,
+    "XCTAssertEqual(scale, CGFloat(image.height) / window.height, accuracy: 0.0001)": 1,
+    "XCTAssertEqual(try number(XCTUnwrap(row[\"window\"] as? [String: Any]), \"scale\"), Double(scale), accuracy: 0.0001)": 1,
+    "XCTAssertEqual(frame.width, 120, accuracy: onePixel); XCTAssertEqual(frame.height, 120, accuracy: onePixel)": 2,
+    "XCTAssertEqual(frame.width, CGFloat(expected.0), accuracy: onePixel)": 1,
+    "XCTAssertEqual(frame.height, CGFloat(expected.1), accuracy: onePixel)": 1,
+    "XCTAssertEqual(frame.minX, 0, accuracy: onePixel)": 1,
+    "XCTAssertEqual(frame.minY, index == 6 ? 5 : 0, accuracy: onePixel)": 1,
+    "XCTAssertGreaterThan(try number(native, \"currentTarget\"), 0)": 1,
+    "XCTAssertEqual(actual.width, local.width, accuracy: onePixel); XCTAssertEqual(actual.height, local.height, accuracy: onePixel)": 1,
+    "XCTAssertEqual(actual.minX, parent.minX + local.minX, accuracy: onePixel)": 1,
+    "XCTAssertEqual(actual.minY, parent.minY + local.minY, accuracy: onePixel)": 1,
+    "XCTAssertEqual(center, rawCenter, \"Exact same-screen native center RGB\")": 1,
+    "XCTAssertEqual(center, expectedColor)": 1,
+    "} else if index == 1 { XCTAssertEqual(center, active ? [0, 255, 0] : [128, 128, 128]) }": 1,
+    "else if index == 2 { XCTAssertEqual(center, active ? [255, 99, 71] : [128, 128, 128]) }": 1,
+    "else if index == 7 && !active { XCTAssertEqual(center, [128, 128, 128]) }": 1,
+    "XCTAssertEqual(border, rawBorder, \"Actual native 2pt border, sampled1pt inward at top-center\")": 1,
+    "if index == 1 { XCTAssertEqual(border, row[\"borderOverride\"] as? Bool == true ? [23, 78, 166] : [0, 255, 0]) }": 1,
+    "else if index == 2 { XCTAssertEqual(border, [0, 0, 0]) }": 1
+  },
+  "pendingMethodSixObservationLabels": {
+    "testI10ShapeGeometry": [
+      [
+        "2",
+        "\"IND-fractional-square\""
+      ],
+      [
+        "2",
+        "\"IND-fractional-circle\""
+      ],
+      [
+        "2",
+        "\"IND-fractional-rounded-restored\""
+      ]
+    ],
+    "testI11CallbackFinalStyle": [
+      [
+        "6",
+        "\"IND-callback-inactive-width28\""
+      ],
+      [
+        "6",
+        "\"IND-callback-zero-opacity\""
+      ],
+      [
+        "6",
+        "\"IND-callback-opacity-restored\""
+      ]
+    ]
+  },
+  "executedSourceSHA256": "f1af481aaae607e8f6baaa1e987d3a993664c8912e52e7d13e165f145ae1c0eb",
+  "executedNativeMethods": {
+    "testI10ShapeGeometry": 46.568,
+    "testI11CallbackFinalStyle": 57.506
+  },
+  "nativeProofScope": "Static controls do not execute Swift or prove component behavior; actual native results remain separate attributed receipts."
+}

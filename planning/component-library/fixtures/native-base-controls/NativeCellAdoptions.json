@@ -1,5 +1,12 @@
 {
   "schemaVersion": 1,
   "authority": "Evidence lookup only; experiments.md catalogue ledger remains authoritative. Historical PASS cells are grandfathered by HEAD comparison.",
-  "cells": {}
+  "cells": {
+    "CAT.indicator.G04": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/indicator-G04-IND-04-complete-20261105/objects/71abc9b6f8ff8bad03344fa97eb9f864462daa736f1b4a08e70ac45ea5eef249",
+        "sha256": "71abc9b6f8ff8bad03344fa97eb9f864462daa736f1b4a08e70ac45ea5eef249"
+      }
+    }
+  }
 }
