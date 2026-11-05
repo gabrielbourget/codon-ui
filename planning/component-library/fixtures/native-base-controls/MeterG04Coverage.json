@@ -5,7 +5,7 @@
   "checklistVersion": "NATIVE-CELL-02",
   "checklistSHA256": "c8f5f777015de88c845833d529872771391a4d7d4431139ae697b635f7da392f",
   "authority": "roadmap3.1.4,3.3.9-3.3.11,3.6.1; complete canonical13 cases plus inherited public contract, no new capability exclusions",
-  "status": "SOURCE_MAPPING_COMPLETE_NATIVE_STYLE_OBSERVATIONS_PENDING",
+  "status": "SOURCE_MAPPING_AND_STYLE_FIXTURE_COMPLETE_NATIVE_STYLE_OBSERVER_AND_EXECUTION_PENDING",
   "sourceFilesSHA256": {
     "packages/react/src/components/Meter/__tests__/Meter.test.tsx": "843553e8b3ca009254d0309d1c3652a60a4deb76ce656aa9e6c39fa7ab9b52b5",
     "packages/react/src/components/Meter/MeterStyles.module.css": "124c7ad5838c8815c8ea4b26ecf3bed2f4e9f0be39ad7fa82c39b58519ac023d",
@@ -13,8 +13,10 @@
     "packages/react-native/src/components/RangeIndicator/RangeIndicator.tsx": "696d2ce1c4f9cdd42618951737a19065b80712aac502e83cc30ecbb267f19ff1",
     "packages/react-native/src/components/RangeIndicator/useRangeAnimation.ts": "f7e4959f430e46a96583a11d2bad0c5d5a79a8ff2caea4c08262d5d063ddf1a2",
     "packages/react-native/type-tests/range-contracts.tsx": "f5e865d0ad267f048e7857e8e2da61e66cc82141cdc086475593e692cd021693",
-    "apps/native-showcase/src/scenes/RangeScene.tsx": "361818f3923fba3e32799798031de4baaa79cec1f0eeb7e3b43b0a43603462d2",
-    "apps/native-showcase/src/scenes/__tests__/RangeScene.test.tsx": "6d12cd638c24536d96bc83d747a7cee15d5c92bf92bbb15cce0f6355bcf62cb2"
+    "apps/native-showcase/src/scenes/RangeScene.tsx": "e7dfe902423d49b6bbc5f60df9e3c0881b886decf6368dc6721db8d339f12a74",
+    "apps/native-showcase/src/scenes/__tests__/RangeScene.test.tsx": "6d12cd638c24536d96bc83d747a7cee15d5c92bf92bbb15cce0f6355bcf62cb2",
+    "apps/native-showcase/src/scenes/MeterStyleFixture.tsx": "ff51beb80104d2d23cadf9b265ad3d4a883ed36521dfc45b30eeeb9f3c2a5d8d",
+    "apps/native-showcase/src/scenes/__tests__/MeterStyleFixture.test.tsx": "71fa74cc3c90c0947c8e72bcce6af9480594e9a364ebbdd401c59b8775149eb9"
   },
   "canonicalAssertions": [
     {
@@ -156,7 +158,9 @@
         "Discriminating orthogonal/round contour capture; rounded/round independent source permutations retained"
       ],
       "platforms": ["ios", "android"],
-      "status": "NOT_EXECUTED"
+      "status": "NOT_EXECUTED",
+      "preparedFixture": "apps/native-showcase/src/scenes/MeterStyleFixture.tsx",
+      "nativeObserverStatus": "PENDING; source fixture alone does not satisfy installed assertions"
     },
     {
       "name": "slots-theme-reset",
@@ -180,7 +184,9 @@
         "Live provider and authoredlabel preserve now=-25; explicit scene reset starts original horizontal25% measurement"
       ],
       "platforms": ["ios", "android"],
-      "status": "NOT_EXECUTED"
+      "status": "NOT_EXECUTED",
+      "preparedFixture": "apps/native-showcase/src/scenes/MeterStyleFixture.tsx",
+      "nativeObserverStatus": "PENDING; source fixture alone does not satisfy installed assertions"
     },
     {
       "name": "style-input-boundaries",
@@ -191,7 +197,9 @@
         "Reuse matching shared native-host evidence only for its measured host boundary; never infer an unobserved Meter-owned path"
       ],
       "platforms": ["ios", "android"],
-      "status": "NOT_PREPARED_OR_EXECUTED"
+      "status": "FIXTURE_SOURCE_VERIFIED_OBSERVER_AND_NATIVE_EXECUTION_PENDING",
+      "preparedFixture": "apps/native-showcase/src/scenes/MeterStyleFixture.tsx",
+      "nativeObserverStatus": "PENDING; source fixture alone does not satisfy installed assertions"
     }
   ],
   "riskSelection": {
@@ -211,10 +219,72 @@
     "newNativeAttempts": 0,
     "entryPoint": "NativeCellVerification.py --plan <bound-plan.json> --receipt <fresh-preflight.json> --run",
     "blockers": [
-      "Android last startup SystemUI ANR has no applicable diagnosed correction; no unchanged boot/test retry",
-      "iOS current pending observer installation has no applicable diagnosed correction; PlaceholderText G08 remains separately BLOCKED and stopped"
+      "Android standard headless behavior run passed2026-11-05T22:25:15-22:29:27UTC. New style fixture still needs bound Release app, actual observer controls and complete selected style/motion/window assertions before admission.",
+      "iOS boot readiness still lacks an applicable diagnosed correction; latest failure was before app/runner install or XCTest. PHT G08 remains BLOCKED/stopped; no iOS action in this reconciliation."
     ],
     "cleanupOwner": "Future maintained lifecycle owner must bind products,observer discovery,readiness,method<=180s and attempt<=1800s including cleanup before native work"
   },
-  "ledgerChanges": 0
+  "ledgerChanges": 0,
+  "styleFixturePreparation": {
+    "fixture": "apps/native-showcase/src/scenes/MeterStyleFixture.tsx",
+    "actualPublicComponent": "Meter, value25/0..100, explicit25% text; same root across case/provider changes",
+    "caseCount": 18,
+    "cases": [
+      "semantic",
+      "fractional",
+      "zero-width",
+      "zero-height",
+      "percentage",
+      "auto-height",
+      "physical-left",
+      "vertical-up",
+      "vertical-down",
+      "orthogonal",
+      "independent-radii",
+      "primary",
+      "explicit-colors",
+      "registered-array",
+      "post-custom-final",
+      "native-color",
+      "zero-opacity",
+      "raised"
+    ],
+    "reference": "Separate raw View tree, authored numeric expected frames and independent colors; does not call RangeIndicator or its resolver. Paired isolated white240x170 parents with12logical padding. No native geometry inferred from source tests.",
+    "sourceChecks": {
+      "fixtureCasesPassed": 4,
+      "unchangedRangeSceneCasesPassed": 2,
+      "showcaseTypecheck": "PASS"
+    },
+    "observer": "Not yet prepared/executed for these new cases; existing meter-g02 standard batch cannot run or certify styles. No product rebuild or guest requested in this checkpoint."
+  },
+  "gateAudit": {
+    "reviewedUTC": "2026-11-05T22:40:50.468477+00:00",
+    "checklistVersion": "NATIVE-CELL-02",
+    "newlyPromotedCells": [],
+    "sealedAndroidEvidence": {
+      "index": "node_modules/.cache/codon-native-matrix/20261104T055006Z/meter-headless-standard-android-success-20261105/preservation-index.json",
+      "sha256": "70731110ade046a0cd6efed54e3b8093105b850a584b3ac8295ec11fa2e30a16",
+      "scope": "34 actual native/state observations,32 numeric paint checks,two scoped visual reviews; four methods under180s and verified cleanup. Reuses exact original Meter shipping source/fixture, not new style fixture."
+    },
+    "G04": {
+      "result": "OPEN",
+      "supported": "All13 canonical STYLE rows mapped and unchanged source assertions; actual live light/dark empty-label/context baseline retained on both OSes",
+      "missing": "Component-owned installed dimensions/direction/slots/native-color/registered-array/final callback integration and selected provider/radius/raised presentation on both OSes; no pixel equivalence from source objects"
+    },
+    "G07": {
+      "result": "OPEN",
+      "supported": "Representative installed Release Meter behavior baseline,original/current refs/events/labels/range/value/paint/replacement/retirement; new headless run confirms this scope",
+      "missing": "Android selected style groups; constrained percent-width/reset/lifecycle geometry; finish explicit S11 live Reduce Motion/native motion disposition rather than infer it from endpoint PNGs or source tests"
+    },
+    "G08": {
+      "result": "OPEN",
+      "supported": "Historical accepted Meter iOS four behavior cohorts at their actual source/app/observer identities",
+      "missing": "Corresponding selected iOS styles,geometry/provider/native-motion/host observations and valid installed identity; System App readiness remains unresolved"
+    },
+    "G09": {
+      "result": "OPEN",
+      "supported": "Existing curated API/scene and prior G01/G02/G03/G05/G06 remain at their recorded scopes",
+      "missing": "Mandatory G04/G07/G08 closure,final technical/cell-by-cell audit,affected documentation proof and coherent normal-hook adoption"
+    }
+  }
 }

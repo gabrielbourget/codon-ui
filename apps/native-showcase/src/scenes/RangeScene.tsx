@@ -13,6 +13,7 @@ import {
 
 import { LinearProgressG02Fixture } from "./LinearProgressG02Fixture"
 import { MeterG02Fixture } from "./MeterG02Fixture"
+import { MeterStyleFixture } from "./MeterStyleFixture"
 
 const renderRangeRoot = (
   props: Parameters<NonNullable<LinearProgressProps["render"]>>[0],
@@ -109,6 +110,7 @@ export const RangeScene = () => {
       />
       <LinearProgressG02Fixture />
       <MeterG02Fixture />
+      <MeterStyleFixture />
     </View>
   )
 }
