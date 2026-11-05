@@ -220,6 +220,19 @@ class NativeCellAdmissionTests(unittest.TestCase):
                     exec(code, values)
                 self.assertEqual(exited.exception.code, expected)
 
+    def test_closed_result_export_commands_preserve_scope(self):
+        with patch.object(sys, "path", [str(GATE.parent), *sys.path]):
+            import NativeCellDiagnostics
+        for kind in ["diagnostics", "attachments"]:
+            with self.subTest(kind=kind):
+                rows = NativeCellDiagnostics.export_commands(Path("closed.xcresult"), Path("output"), kind)
+                self.assertEqual(len(rows), 2)
+                self.assertEqual(rows[1][0], kind)
+                self.assertEqual(rows[1][1][1:], ["export", kind, "--path", "closed.xcresult", "--output-path", "output/" + kind])
+                self.assertFalse(any("simctl" in arg or "xcodebuild" in arg for _, argv in rows for arg in argv))
+        with self.assertRaises(ValueError):
+            NativeCellDiagnostics.export_commands(Path("closed.xcresult"), Path("output"), "launch")
+
     def test_driver_exit_codes_preserve_sdk_failure_and_reject_incomplete_results(self):
         for sdk, coverage, cleanup, expected in [(65, False, True, 65), (0, False, True, 1), (0, True, False, 1), (None, False, True, 1), (-9, False, True, 1), (0, True, True, 0)]:
             with self.subTest(sdk=sdk, coverage=coverage, cleanup=cleanup):
