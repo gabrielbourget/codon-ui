@@ -1,4 +1,27 @@
 {
+  "verificationSelection": {
+    "policy": "RB-NATIVE-01",
+    "approvedDate": "2026-11-05",
+    "originalMatrixSourceRef": "12d1c9a83966093658e3609553a2f1cacc3e1015:planning/component-library/fixtures/native-card/color-probe.matrix.json",
+    "baselineProfile": "3.3.1",
+    "baselineRule": "Select distinct baseline native capability cases on each OS, excluding existing N/A rows. Keep source/type/composition coverage complete.",
+    "additionalSelectedCaseIds": [],
+    "unselectedCaseIds": [
+      "CAT.card.android.P02.S09.NCLR012",
+      "CAT.card.android.P03.S09.NCLR012",
+      "CAT.card.android.P04.S09.NCLR012",
+      "CAT.card.android.P05.S09.NCLR012",
+      "CAT.card.android.P06.S09.NCLR012",
+      "CAT.card.ios.P02.S09.NCLR012",
+      "CAT.card.ios.P03.S09.NCLR012",
+      "CAT.card.ios.P04.S09.NCLR012",
+      "CAT.card.ios.P05.S09.NCLR012",
+      "CAT.card.ios.P06.S09.NCLR012"
+    ],
+    "reason": "The repeated NCLR012 rows exercise private observer controls, not a distinct color or component-owned text path. Baseline NCLR011 already requires a real rotation roundtrip with current native color/window and reachable controls. No separate font/profile repetition is required.",
+    "executionGrouping": "Share matching baseline/window-transition evidence with the other probes on the same admitted product; each selected case keeps its own observations and verdict. Case count is not run count.",
+    "outcomePreservation": "Original IDs, expected assertions and status fields are unchanged historical outcomes. Unselected means not required by this selection, never PASS. A newly identified native risk reselects its targeted case."
+  },
   "evidenceKey": "CARD-COLOR-01",
   "scope": "Required actual-native private color-probe cases; no installed pass or full Card acceptance",
   "producer": null,

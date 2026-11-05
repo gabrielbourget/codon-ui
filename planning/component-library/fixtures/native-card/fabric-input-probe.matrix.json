@@ -1,4 +1,29 @@
 {
+  "verificationSelection": {
+    "policy": "RB-NATIVE-01",
+    "approvedDate": "2026-11-05",
+    "originalMatrixSourceRef": "12d1c9a83966093658e3609553a2f1cacc3e1015:planning/component-library/fixtures/native-card/fabric-input-probe.matrix.json",
+    "baselineProfile": "3.3.1",
+    "baselineRule": "Select distinct baseline native capability cases on each OS, excluding existing N/A rows. Keep source/type/composition coverage complete.",
+    "additionalSelectedCaseIds": ["CARD.FABRIC.P02.android.01", "CARD.FABRIC.P02.ios.01"],
+    "unselectedCaseIds": [
+      "CARD.FABRIC.P03.android.01",
+      "CARD.FABRIC.P04.android.01",
+      "CARD.FABRIC.P05.android.01",
+      "CARD.FABRIC.P06.android.01",
+      "CARD.FABRIC.P07.android.01",
+      "CARD.FABRIC.P08.android.01",
+      "CARD.FABRIC.P03.ios.01",
+      "CARD.FABRIC.P04.ios.01",
+      "CARD.FABRIC.P05.ios.01",
+      "CARD.FABRIC.P06.ios.01",
+      "CARD.FABRIC.P07.ios.01",
+      "CARD.FABRIC.P08.ios.01"
+    ],
+    "reason": "Retain one targeted P02 real-window/coordinate or native-binding transition on each OS. Repeated P03-P08 copies add no distinct native capability to this probe; component-owned text, gesture, projection and other risks retain their separate targeted cases.",
+    "executionGrouping": "Share matching baseline/window-transition evidence with the other probes on the same admitted product; each selected case keeps its own observations and verdict. Case count is not run count.",
+    "outcomePreservation": "Original IDs, expected assertions and status fields are unchanged historical outcomes. Unselected means not required by this selection, never PASS. A newly identified native risk reselects its targeted case."
+  },
   "scope": "Required actual-native Fabric-input service proof. Source/SDK/AAR checks close none of these cells and supply no mounted/measurement/full Card acceptance.",
   "nativeActions": 0,
   "rows": [
