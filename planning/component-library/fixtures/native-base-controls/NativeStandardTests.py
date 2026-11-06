@@ -76,6 +76,12 @@ def verify_selected_app_inputs(plan, app):
 
 
 def selection(platform, batch="meter-g02"):
+    if batch == "gallery-remaining":
+        require(platform == "ios", "Gallery batch is iOS only")
+        return {"ios": ["GalleryTrialTests/testGalleryPrimitiveAndRemainingCounts"], "android": []}
+    if batch in ["gallery", "gallery-modes", "gallery-styles"]:
+        require(platform == "ios", "Gallery batch is iOS only")
+        return {"ios": (["GalleryTrialTests/testGalleryModesActionsAndLifetimes"] if batch != "gallery-styles" else []) + (["GalleryTrialTests/testGalleryStylesWidthsAndProviders"] if batch != "gallery-modes" else []), "android": []}
     if batch in ["thumbnail", "thumbnail-geometry"]:
         require(platform == "ios", "Current ThumbnailImage batch is iOS-only")
         return {"ios": (["ThumbnailTrialTests/testThumbnailDecodeFallbackAndLifetime"] if batch == "thumbnail" else []) + ["ThumbnailTrialTests/testThumbnailGeometryDensityAndProviders"], "android": []}
@@ -229,7 +235,11 @@ def geometry_control_source():
     while image_depth:
         image_depth += (source[image_end] == "{") - (source[image_end] == "}");image_end += 1
     image_predicate = source[image_start:image_end].replace("private ", "", 1)
-    return "import Foundation\n" + predicate + "\n" + pixel_predicate + "\n" + shadow_predicate + "\n" + circle_predicate + "\n" + image_predicate + "\n" + '''
+    gallery_start = source.index("private func galleryTrackWidth(");gallery_open = source.index("{", gallery_start);gallery_end = source.index("\n}", gallery_open) + 2
+    gallery_predicate = source[gallery_start:gallery_end].replace("private ", "", 1)
+    scroll_start = source.index("private func galleryScrollFraction(");scroll_open = source.index("{", scroll_start);scroll_end = source.index("\n}", scroll_open) + 2
+    scroll_predicate = source[scroll_start:scroll_end].replace("private ", "", 1)
+    return "import Foundation\n" + scroll_predicate + "\n" + gallery_predicate + "\n" + predicate + "\n" + pixel_predicate + "\n" + shadow_predicate + "\n" + circle_predicate + "\n" + image_predicate + "\n" + '''
 let saved: NSNumber = 9.9998779296875
 precondition(saved.intValue == 9 && saved.doubleValue == 9.9998779296875)
 let cases: [(Double, Double, Double, Bool)] = [
@@ -258,13 +268,29 @@ precondition(!circularPixelsMatch([1],[1]))
 precondition(!circularPixelsMatch([1,2,3,255],[1,2,4,255]))
 precondition(!circularPixelsMatch([1,2,3,255],[1,2,3,254]))
 precondition(!circularPixelsMatch([1,2,3,255],[1,2,3,255,1,2,3,255]))
+precondition(galleryScrollFraction(8,600,49,759)! < 0 && galleryScrollFraction(8,600,49,759)! > -0.35)
+precondition(galleryScrollFraction(300,600,49,759)! > 0 && galleryScrollFraction(300,600,49,759)! < 0.35)
+precondition(galleryScrollFraction(2000,600,49,759) == 0.35)
+precondition(galleryScrollFraction(-2000,600,49,759) == -0.35)
+precondition(galleryScrollFraction(0,800,49,759) == nil)
+precondition(galleryScrollFraction(Double.nan,600,49,759) == nil)
+precondition(galleryScrollFraction(0,0,49,759) == nil)
+precondition(galleryScrollFraction(0,600,49,0) == nil)
+precondition(galleryTrackWidth(280,10,4) == 62.5)
+precondition(galleryTrackWidth(280,10,2) == 135)
+precondition(abs(galleryTrackWidth(280,10,3)! - 86.66666666666667) < 0.0000001)
+precondition(galleryTrackWidth(246,8,4) == 55.5)
+precondition(galleryTrackWidth(0,10,4) == 0)
+precondition(galleryTrackWidth(-1,10,4) == nil)
+precondition(galleryTrackWidth(280,10,0) == nil)
+precondition(galleryTrackWidth(280,Double.nan,4) == nil)
 precondition(thumbnailImageContentFrame([38,242,120,80],2) == [40,244,116,76])
 precondition(thumbnailImageContentFrame([38,242,48,24],0) == [38,242,48,24])
 precondition(thumbnailImageContentFrame([0,0,83.25,41.625],2) == [2,2,79.25,37.625])
 precondition(thumbnailImageContentFrame([0,0,2,2],2) == nil)
 precondition(thumbnailImageContentFrame([0,0,120,80],-1) == nil)
 precondition(thumbnailImageContentFrame([0,0,Double.nan,80],2) == nil)
-print(#"{\"thumbnailFrameCases\":6,\"circularCases\":6,\"status\":\"PASS\",\"cases\":11,\"pixelCases\":6,\"shadowCases\":6,\"savedNSNumberIntValue\":9,\"savedNSNumberDoubleValue\":9.9998779296875}"#)
+print(#"{\"galleryScrollCases\":8,\"galleryTrackCases\":8,\"thumbnailFrameCases\":6,\"circularCases\":6,\"status\":\"PASS\",\"cases\":11,\"pixelCases\":6,\"shadowCases\":6,\"savedNSNumberIntValue\":9,\"savedNSNumberDoubleValue\":9.9998779296875}"#)
 '''
 
 
@@ -309,7 +335,7 @@ def build_ios(session, config=None):
     sdk = session.run("geometry-sdk", ["/usr/bin/xcrun", "--sdk", "macosx", "--show-sdk-path"]).strip()
     swift = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift"
     control_result = json.loads(session.run("geometry-controls", [swift, "-sdk", sdk, "-module-cache-path", str(CACHE / "swift-host-module-cache"), str(controls)]))
-    require(control_result.get("thumbnailFrameCases") == 6 and control_result.get("circularCases") == 6 and control_result.get("status") == "PASS" and control_result.get("cases") == 11 and control_result.get("pixelCases") == 6 and control_result.get("shadowCases") == 6, "Actual Swift geometry/pixel/shadow controls failed")
+    require(control_result.get("galleryScrollCases") == 8 and control_result.get("galleryTrackCases") == 8 and control_result.get("thumbnailFrameCases") == 6 and control_result.get("circularCases") == 6 and control_result.get("status") == "PASS" and control_result.get("cases") == 11 and control_result.get("pixelCases") == 6 and control_result.get("shadowCases") == 6, "Actual Swift geometry/pixel/shadow controls failed")
     derived = CACHE / "ios"
     # A source revision gets an unambiguous observer registration; old installed revisions remain intact.
     bundle_id = "dev.codonui.lab.components.r" + digest(ROOT / "MeterG02TrialTests.swift")[:12]
@@ -569,6 +595,7 @@ def run_ios(session, config, app, observer):
     if config.get("batch") == "circle-loader": result["circleLoader"] = reconcile_circle_loader_ios(raw)
     if config.get("batch") == "lagging-lines": result["laggingLines"] = reconcile_lagging_lines_ios(raw)
     if config.get("batch") in ["counter", "counter-values"]: result["counter"] = reconcile_counter_ios(raw, include_motion=config["batch"] == "counter")
+    if config.get("batch") in ["gallery", "gallery-modes", "gallery-styles", "gallery-remaining"]: result["gallery"] = reconcile_gallery_ios(raw, config["batch"])
     if config.get("batch") in ["thumbnail", "thumbnail-geometry"]: result["thumbnail"] = reconcile_thumbnail_ios(raw, include_lifetime=config["batch"] == "thumbnail")
     if config.get("batch") == "linear-progress-risk": result["linearProgressRisk"] = reconcile_linear_progress_risk_ios(raw)
     if config.get("batch") == "meter-style": result["styleObservations"] = reconcile_ios_styles(raw)
@@ -791,6 +818,88 @@ def reconcile_counter_ios(raw, include_motion=True):
     result.update(motionIntervals=2, originalAndRestoredMotion=original[0], motionSamples=len(all_rows) - len(rows))
     return result
 
+
+
+GALLERY_MODES = ["baseline", "touched", "reordered", "two-columns", "three-columns", "overflow-action", "disabled", "primary-only", "secondary-only", "all-restored", "fresh", "empty-media", "falsy-zero", "media-restored", "two-slots", "zero-slots", "fractional-count"]
+GALLERY_STYLES = ["style-baseline", "root-style", "primary-style", "row-style", "four-styles", "primary-cleared", "styles-restored", "composite", "style-width-wins", "fractional-width", "percentage-width", "auto-width", "width-restored", "zero-width", "relative", "absolute", "dynamic-light", "dynamic-dark", "light-restored"]
+
+
+def validate_gallery_rows(rows, names):
+    require(sorted(row["name"] for row in rows) == sorted(names), "Missing/duplicate Gallery observations")
+    for row in rows:
+        state, scale, host = row["state"], row["scale"], row["host"]
+        require(isinstance(scale, (int, float)) and math.isfinite(scale) and scale > 0 and scale == state["scale"], "Wrong Gallery scale")
+        require(len(host) == 4 and all(math.isfinite(v) for v in host) and 0 < host[2] <= 304 and host[3] >= 600, "Wrong Gallery measurement host")
+        for box in [host, *[c["frame"] for c in row["paintChecks"]]]:
+            x,y,width,height = [math.floor(v * scale + .5) for v in box]
+            require(0 <= x < x + width <= row["imageWidth"] and 0 <= y < y + height <= row["imageHeight"], "Gallery physical crop outside screenshot")
+        layout_event = state["originalLayouts"]["root"];layout = layout_event["layout"]
+        require(layout_event["target"] and layout_event["target"] == layout_event["currentTarget"], "Original Gallery layout binding differs")
+        custom, selected, zero = state["custom"], state["customizations"], state["zero"]
+        raw_count = float(state["count"]);count = max(0,math.floor(raw_count)) if math.isfinite(raw_count) else 4;columns = state["columns"] or max(count,1)
+        root_border, root_padding, root_gap = (2,7,14) if "root" in selected else (1,5,12) if custom else (0,0,10)
+        width = 0 if zero else 260 if custom else state["width"] if isinstance(state["width"],(int,float)) else (host[2]-24)/2 if state["width"] == "50%" else host[2]-24
+        inner = max(0,width-2*(root_border+root_padding));primary_border = 3 if "primary" in selected else 2 if custom else 0
+        primary_height = inner/2 if "primary" in selected or custom else inner
+        row_border,row_padding,column_gap,row_gap = (2,6,8,12) if "row" in selected else (0,4,4,6) if custom else (0,0,10,10)
+        grid_width = max(0,inner-2*(row_border+row_padding));track = max(0,(grid_width-(columns-1)*column_gap)/columns);slot_border = 2 if "secondary" in selected else 1 if custom else 0;slot_width = 48 if "secondary" in selected else 40 if custom else track
+        show_primary = state["mode"] != "secondary";show_row = state["mode"] != "primary" and (state["kind"] not in ["undefined","null"] or state["items"]) and count > 0
+        lines = math.ceil(count/columns) if show_row else 0;grid_height = max(0,lines-1)*row_gap if grid_width == 0 else lines*slot_width+max(0,lines-1)*row_gap
+        height = 2*(root_border+root_padding)+(primary_height if show_primary else 0)+(grid_height+2*(row_border+row_padding) if show_row else 0)+(root_gap if show_primary and show_row else 0)
+        close = lambda a,b: isinstance(a,(int,float)) and math.isfinite(a) and abs(a-b)*scale <= 1
+        require(close(layout["width"],width) and close(layout["height"],height), "Wrong delivered Gallery outer geometry")
+        if zero:
+            require(layout["width"] == 0 and row["inkPixels"] == 0, "Zero Gallery leaked width/paint")
+            continue
+        require(row["inkPixels"] > 0 and len(row["root"]) == 4 and close(row["root"][2],width) and close(row["root"][3],height), "Wrong native Gallery root frame/paint")
+        require(close(row["root"][0]-host[0],layout["x"]) and close(row["root"][1]-host[1],layout["y"]), "Gallery original/native positions differ")
+        require(bool(row["primary"]) == show_primary and bool(row["grid"]) == bool(show_row) and len(row["slots"]) == (count if show_row else 0), "Wrong native Gallery mounted slots/mode")
+        require(row["primaryPlaceholder"] == (show_primary and state["kind"] in ["undefined","null"]) and row["placeholderCount"] == (max(0,count-len(state["items"])) if show_row else 0), "Wrong Gallery actual placeholder availability")
+        if show_primary:
+            require(close(row["primary"][2],inner) and close(row["primary"][3],primary_height), "Wrong Gallery primary geometry")
+            if state["kind"] == "zero": require(row.get("primaryTexts") == ["0"], "Authored Gallery zero text leaf missing")
+            if state["kind"] == "image":
+                load=state["primaryLoads"][-1];image=state["originalLayouts"]["image"]
+                require(load["uri"] == state["expectedURI"] and load["width"] > 0 and load["height"] > 0 and load["target"] == image["currentTarget"] and load["currentTarget"] == load["target"], "Current Gallery image decode identity missing")
+                require(state["primaryTag"] and state["primaryTag"] == state["originalLayouts"]["primary"]["currentTarget"], "Gallery caller-owned content ref differs")
+        if show_row:
+            require(close(row["grid"][2],grid_width) and close(row["grid"][3],grid_height), "Wrong Gallery measured native grid")
+            for index,slot in enumerate(row["slots"]):
+                require(len(slot) == 4 and all(close(a,b) for a,b in zip([slot[0]-row["grid"][0],slot[1]-row["grid"][1],slot[2],slot[3]],[(index%columns)*(track+column_gap),(index//columns)*(slot_width+row_gap),slot_width,slot_width])), "Wrong equal/wrapped Gallery track")
+        overflow = state["overflow"] and len(state["items"])>count and show_row;actual = [c for c in row["controls"] if c["id"].startswith("gallery-item-")];over = [c for c in row["controls"] if c["id"] == "gallery-overflow"]
+        require(len(actual) == (min(len(state["items"]),count)-int(bool(overflow)) if show_row else 0) and len(over) == int(bool(overflow)), "Wrong Gallery caller controls/overflow")
+        require(all(c["enabled"] == (not state["disabled"]) for c in row["controls"]), "Gallery caller disabled state differs")
+        if overflow: require(over[0]["label"] == "Gallery overflow "+str(len(state["items"])-count), "Wrong Gallery overflow argument")
+        for control in row["controls"]:
+            index = count-1 if control["id"] == "gallery-overflow" else state["items"].index(control["id"].removeprefix("gallery-item-"))
+            slot = row["slots"][index]
+            require(all(close(a,b) for a,b in zip(control["frame"],[slot[0]+slot_border,slot[1]+slot_border,slot_width-2*slot_border,slot_width-2*slot_border])), "Gallery caller control outside its styled slot")
+
+        rgb = lambda text: [int(text[i:i+2],16) for i in [1,3,5]]
+        colors = {"root": [8,127,140] if "root" in selected else rgb(state["colors"]["border"]),"primary": [190,18,60] if "primary" in selected else rgb(state["colors"]["selected"]),"row": [124,58,237],"row-background": rgb(state["colors"]["track"]),"secondary": [22,101,52] if "secondary" in selected else rgb(state["colors"]["border"])}
+        expected = [key for key,border in [("root",root_border),("primary",primary_border if show_primary else 0),("row",row_border if show_row else 0),("secondary",slot_border if show_row else 0)] if border]
+        if custom and show_row:expected.append("row-background")
+        require(sorted(c["owner"] for c in row["paintChecks"]) == sorted(expected), "Missing Gallery opaque border observations")
+        require(all(c["exact"] is True and c["pixels"] > 0 and c["expectedRGB"] == colors[c["owner"]] for c in row["paintChecks"]), "Wrong Gallery native opaque border colors")
+    return {"status":"PASS","observations":len(rows)}
+
+
+def reconcile_gallery_ios(raw, batch="gallery"):
+    rows=[json.loads(x) for x in re.findall(r"GALLERY_NATIVE_OBSERVATION (\{[^\n]+\})",raw)];names=GALLERY_MODES if batch == "gallery-modes" else GALLERY_STYLES if batch == "gallery-styles" else GALLERY_MODES+GALLERY_STYLES
+    if batch == "gallery-remaining":return validate_gallery_rows(rows,["falsy-zero","media-restored","two-slots","zero-slots","fractional-count"])
+    result=validate_gallery_rows(rows,names);named={row["name"]:row for row in rows}
+    if batch != "gallery-styles":
+        tag=lambda name:named[name]["state"]["originalLayouts"]["A"]["currentTarget"]
+        require(len({tag(name) for name in ["baseline","touched","reordered","two-columns","three-columns"]}) == 1,"Gallery keyed caller host changed")
+        for name in ["touched","reordered","two-columns","three-columns","overflow-action","disabled"]:
+            require(next(c["label"] for c in named[name]["controls"] if c["id"] == "gallery-item-A") == "Gallery A, count 1" and named[name]["state"]["actions"] == 1,"Gallery caller keyed state lost")
+        require(named["overflow-action"]["state"]["overflowActions"] == named["disabled"]["state"]["overflowActions"] == 1,"Gallery caller overflow action differs")
+        require(named["fresh"]["state"]["primaryTag"] != named["all-restored"]["state"]["primaryTag"],"Gallery fresh content ref not replaced")
+    if batch != "gallery-modes":
+        require(named["style-width-wins"]["root"][2] == 260 and named["fractional-width"]["root"][2] != 260,"Gallery final style width precedence missing")
+        require(named["percentage-width"]["root"][2] < named["width-restored"]["root"][2],"Gallery percentage width did not constrain")
+        require(named["dynamic-light"]["state"]["theme"] == named["light-restored"]["state"]["theme"] == "light" and named["dynamic-dark"]["state"]["theme"] == "dark","Gallery provider restoration missing")
+    return result
 
 
 THUMBNAIL_NAMES = ["baseline", "equivalent", "all-fail", "empty-list", "zero-fallback", "square", "landscape", "adapter", "adapter-empty-alt", "retired", "retired-quiet", "fresh", "geometry-baseline", "density-full", "density-src", "zero-density", "zero-fresh", "positive-fresh", "caller-selected", "styled", "constrained", "fractional", "percentage", "dark", "narrow", "live-restored", "light-restored"]
@@ -1159,7 +1268,8 @@ def validate_standard_scope(plan):
     lines = cell in ["CAT.lagging-lines-loader." + gate for gate in ["G04", "G08"]] and batch == "lagging-lines"
     counter = cell in ["CAT.counter." + gate for gate in ["G04", "G08"]] and batch in ["counter", "counter-values"]
     thumbnail = cell in ["CAT.thumbnail-image." + gate for gate in ["G04", "G08"]] and batch in ["thumbnail", "thumbnail-geometry"]
-    require(meter or progress or text or circular or loader or lines or counter or thumbnail, "Only the authorized component and focused batch are selected")
+    gallery = cell in ["CAT.thumbnail-showcase." + gate for gate in ["G04", "G08"]] and batch in ["gallery", "gallery-modes", "gallery-styles", "gallery-remaining"]
+    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery, "Only the authorized component and focused batch are selected")
 
 
 def main():

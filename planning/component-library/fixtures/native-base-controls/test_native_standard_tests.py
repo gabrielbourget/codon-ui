@@ -430,6 +430,64 @@ class StandardTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError,"EXPECTED_PACKAGER_BOUNDARY_NO_SDK"):NATIVE.build_ios_application(admitted,config)
             self.assertEqual((admitted.output/"CodonCircular.app/NativeBinary").read_text(),"unchanged native")
 
+    def test_gallery_real_entry_refuses_missing_admission_and_wrong_scope(self):
+        plan={"cell":"CAT.thumbnail-showcase.G08","nativeStandard":{"platform":"ios","batch":"gallery","output":str(self.root/"gallery-never-created")}}
+        NATIVE.validate_standard_scope(plan);self.assertEqual(len(NATIVE.selection("ios","gallery")["ios"]),2)
+        self.assertEqual(NATIVE.selection("ios","gallery-styles")["ios"],["GalleryTrialTests/testGalleryStylesWidthsAndProviders"])
+        with self.assertRaises(ValueError):NATIVE.selection("android","gallery")
+        with self.assertRaises(ValueError):NATIVE.validate_standard_scope({"cell":"CAT.thumbnail-image.G08","nativeStandard":{"batch":"gallery"}})
+        path=self.root/"gallery.json";path.write_text(json.dumps(plan));env={k:v for k,v in os.environ.items() if k!="CODON_NATIVE_CELL_PREFLIGHT_RECEIPT"}
+        result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(path)],env=env,capture_output=True,text=True,timeout=10)
+        self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((self.root/"gallery-never-created").exists())
+
+    def test_gallery_primitive_requires_text_leaf_instead_of_passive_container_name(self):
+        self.assertEqual(NATIVE.selection("ios","gallery-remaining")["ios"],["GalleryTrialTests/testGalleryPrimitiveAndRemainingCounts"])
+        NATIVE.validate_standard_scope({"cell":"CAT.thumbnail-showcase.G08","nativeStandard":{"batch":"gallery-remaining"}})
+        base={"name":"zero","state":{"scale":3,"mode":"primary","kind":"zero","count":"4","columns":None,"items":[],"overflow":False,"zero":False,"width":280,"custom":False,"customizations":[],"disabled":False,"originalLayouts":{"root":{"target":4,"currentTarget":4,"layout":{"x":12,"y":12,"width":280,"height":280}}},"colors":{"border":"#9e9e9e","selected":"#2563eb","track":"#c6c6c6"}},"host":[20,100,304,600],"root":[32,112,280,280],"primary":[32,112,280,280],"grid":[],"slots":[],"controls":[],"placeholderCount":0,"primaryPlaceholder":False,"primaryLabel":"","primaryTexts":["0"],"inkPixels":100,"scale":3,"imageWidth":1170,"imageHeight":2532,"paintChecks":[]}
+        self.assertEqual(NATIVE.validate_gallery_rows([base],["zero"])["status"],"PASS")
+        for labels in [[],["O"],["0","0"]]:
+            bad=copy.deepcopy(base);bad["primaryLabel"]="0";bad["primaryTexts"]=labels
+            with self.subTest(labels=labels),self.assertRaises(ValueError):NATIVE.validate_gallery_rows([bad],["zero"])
+
+    def test_gallery_reader_native_geometry_decode_refs_controls_and_paint(self):
+        state={"scale":3,"mode":"all","kind":"image","count":"4","columns":None,"items":["A","B","C","D","E"],"overflow":True,"zero":False,"width":280,"custom":False,"customizations":[],"disabled":False,"primaryTag":7,"expectedURI":"data:gallery","primaryLoads":[{"target":8,"currentTarget":8,"uri":"data:gallery","width":48,"height":24}],"originalLayouts":{"root":{"target":4,"currentTarget":4,"layout":{"x":12,"y":12,"width":280,"height":352.5}},"primary":{"target":7,"currentTarget":7},"image":{"target":8,"currentTarget":8}},"colors":{"border":"#9e9e9e","selected":"#2563eb","track":"#c6c6c6"}}
+        slots=[[32+72.5*i,402,62.5,62.5] for i in range(4)]
+        row={"name":"baseline","state":state,"host":[20,100,304,600],"root":[32,112,280,352.5],"primary":[32,112,280,280],"grid":[32,402,280,62.5],"slots":slots,"controls":[{"id":"gallery-item-"+name,"label":"Gallery "+name+", count 0","enabled":True,"frame":slots[i]} for i,name in enumerate("ABC")]+[{"id":"gallery-overflow","label":"Gallery overflow 1","enabled":True,"frame":slots[3]}],"placeholderCount":0,"primaryPlaceholder":False,"primaryLabel":"","inkPixels":1000,"scale":3,"imageWidth":1170,"imageHeight":2532,"paintChecks":[]}
+        self.assertEqual(NATIVE.validate_gallery_rows([row],["baseline"])["status"],"PASS")
+        for kind in ["outside","scale","original-target","outer-width","outer-height","slot-width","track-position","wrong-uri","metadata-only","wrong-image-target","wrong-ref","overflow-count","missing-control","wrong-guard","escaped-control","blank","duplicate"]:
+            bad=copy.deepcopy(row)
+            if kind=="outside":bad["host"][0]=600
+            elif kind=="scale":bad["state"]["scale"]=2
+            elif kind=="original-target":bad["state"]["originalLayouts"]["root"]["target"]=9
+            elif kind=="outer-width":bad["root"][2]=279
+            elif kind=="outer-height":bad["state"]["originalLayouts"]["root"]["layout"]["height"]+=1
+            elif kind=="slot-width":bad["slots"][0][2]+=1
+            elif kind=="track-position":bad["slots"][1][0]+=1
+            elif kind=="wrong-uri":bad["state"]["primaryLoads"][0]["uri"]="data:retired"
+            elif kind=="metadata-only":bad["state"]["primaryLoads"]=[]
+            elif kind=="wrong-image-target":bad["state"]["primaryLoads"][0]["target"]=9
+            elif kind=="wrong-ref":bad["state"]["primaryTag"]=99
+            elif kind=="overflow-count":bad["controls"][-1]["label"]="Gallery overflow 2"
+            elif kind=="missing-control":bad["controls"].pop()
+            elif kind=="wrong-guard":bad["controls"][0]["enabled"]=False
+            elif kind=="escaped-control":bad["controls"][0]["frame"][0]+=1
+            elif kind=="blank":bad["inkPixels"]=0
+            with self.subTest(kind=kind),self.assertRaises((ValueError,IndexError)):NATIVE.validate_gallery_rows([bad,bad] if kind=="duplicate" else [bad],["baseline"])
+        zero=copy.deepcopy(row);zero["state"]["zero"]=True;zero["state"]["width"]=0;zero["state"]["originalLayouts"]["root"]["layout"].update(width=0,height=10);zero["inkPixels"]=0;zero["root"]=[];zero["primary"]=[];zero["grid"]=[];zero["slots"]=[];zero["controls"]=[]
+        self.assertEqual(NATIVE.validate_gallery_rows([zero],["baseline"])["status"],"PASS")
+        zero["inkPixels"]=1
+        with self.assertRaises(ValueError):NATIVE.validate_gallery_rows([zero],["baseline"])
+        styled=copy.deepcopy(row);styled["state"]["customizations"]=["root","primary","row","secondary"];styled["state"]["originalLayouts"]["root"]["layout"].update(width=280,height=227);styled["root"]=[32,112,280,227];styled["primary"]=[41,121,262,131];styled["grid"]=[49,274,246,48];styled["slots"]=[[49+63.5*i,274,48,48] for i in range(4)]
+        for i,c in enumerate(styled["controls"]):c["frame"]=[styled["slots"][i][0]+2,276,44,44]
+        styled["paintChecks"]=[{"owner":key,"expectedRGB":color,"exact":True,"pixels":30,"frame":[150,150,6,1]} for key,color in [("root",[8,127,140]),("primary",[190,18,60]),("row",[124,58,237]),("secondary",[22,101,52])]]
+        self.assertEqual(NATIVE.validate_gallery_rows([styled],["baseline"])["status"],"PASS")
+        for kind in ["paint","color","missing-owner"]:
+            bad=copy.deepcopy(styled)
+            if kind=="paint":bad["paintChecks"][0]["exact"]=False
+            elif kind=="color":bad["paintChecks"][0]["expectedRGB"]=[0,0,0]
+            else:bad["paintChecks"].pop()
+            with self.subTest(kind=kind),self.assertRaises(ValueError):NATIVE.validate_gallery_rows([bad],["baseline"])
+
     def test_thumbnail_scope_and_real_no_sdk_admission_boundary(self):
         plan={"cell":"CAT.thumbnail-image.G08","nativeStandard":{"platform":"ios","batch":"thumbnail","output":str(self.root/"thumbnail-never-created")}}
         NATIVE.validate_standard_scope(plan);self.assertEqual(len(NATIVE.selection("ios","thumbnail")["ios"]),2)

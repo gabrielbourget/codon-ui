@@ -172,3 +172,35 @@ it("retains gallery positioning customization and position-only frame updates wi
   expect(screen.getByTestId("gallery-example")).toHaveStyle({ width: 0 })
   expect(screen.getByTestId("gallery-position-host")).not.toHaveStyle({ minHeight: 640 })
 })
+
+it("records original native layout and image-source snapshots while width controls preserve caller state", async () => {
+  const press = await enter()
+  const state = () => JSON.parse(screen.getByTestId("gallery-native-state").props.accessibilityLabel)
+  const event = {
+    target: 55,
+    currentTarget: 55,
+    nativeEvent: { layout: { x: 1.25, y: 2.5, width: 83.33333587646484, height: 100.25 } },
+  }
+  await fireEvent(screen.getByTestId("gallery-example"), "layout", event)
+  expect(state().originalLayouts.root).toEqual({ target: 55, currentTarget: 55, layout: event.nativeEvent.layout })
+  event.nativeEvent.layout.width = 999
+  expect(state().originalLayouts.root.layout.width).toBe(83.33333587646484)
+  const source = { uri: screen.getByTestId("gallery-primary-image").props.src, width: 48, height: 24 }
+  await fireEvent(screen.getByTestId("gallery-primary-image"), "load", {
+    target: 91,
+    currentTarget: 91,
+    nativeEvent: { source },
+  })
+  source.width = 999
+  expect(state().primaryLoads[0]).toMatchObject({ target: 91, currentTarget: 91, width: 48, height: 24 })
+  await press("Gallery A, count 0")
+  for (const width of [83.25, "50%", "auto", 280] as const) {
+    await press("Next gallery width")
+    expect(screen.getByTestId("gallery-example")).toHaveStyle({ width })
+    expect(state().width).toBe(width)
+    expect(screen.getByRole("button", { name: "Gallery A, count 1" })).toBeOnTheScreen()
+  }
+  await press("Toggle gallery zero width")
+  expect(state().width).toBe(0)
+  expect(screen.getByTestId("gallery-example")).toHaveStyle({ width: 0 })
+})

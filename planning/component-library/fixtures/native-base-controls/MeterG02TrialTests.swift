@@ -1528,3 +1528,153 @@ private func thumbnailImageContentFrame(_ outer: [Double], _ border: Double) -> 
     guard outer.count == 4, outer.allSatisfy({ $0.isFinite }), border.isFinite, border >= 0, outer[2] >= 2 * border, outer[3] >= 2 * border else { return nil }
     return [outer[0] + border, outer[1] + border, outer[2] - 2 * border, outer[3] - 2 * border]
 }
+
+final class GalleryTrialTests: XCTestCase {
+    private var app: XCUIApplication!
+    override func setUpWithError() throws {
+        continueAfterFailure=false;app=XCUIApplication(bundleIdentifier:"dev.codonui.showcase");app.launch();XCTAssertEqual(app.state,.runningForeground);XCUIDevice.shared.orientation = .portrait
+        tap("Reset scene");tap("Gallery scene");tap("Light theme");tap("Live window");try ready()
+    }
+    override func tearDownWithError() throws {
+        let png=XCTAttachment(screenshot:XCUIScreen.main.screenshot());png.name="gallery-final";png.lifetime = .keepAlways;add(png)
+        let tree=XCTAttachment(string:app.debugDescription);tree.name="gallery-final-hierarchy";tree.lifetime = .keepAlways;add(tree)
+    }
+    private func state() throws -> [String:Any] {try XCTUnwrap(JSONSerialization.jsonObject(with:Data(node("gallery-native-state").label.utf8)) as? [String:Any])}
+    private func number(_ row:[String:Any],_ key:String) throws -> Double {let value=try XCTUnwrap(row[key] as? NSNumber,key).doubleValue;XCTAssertTrue(value.isFinite);return value}
+    private func rect(_ value:CGRect)->[Double] {[value.minX,value.minY,value.width,value.height].map(Double.init)}
+    private func ready() throws {
+        reveal(node("gallery-native-state"));wait("Current primary native Image decode") {
+            guard let row=try? self.state(),let load=(row["primaryLoads"] as? [[String:Any]])?.last,let layouts=row["originalLayouts"] as? [String:[String:Any]],let image=layouts["image"] else{return false}
+            return load["uri"] as? String==row["expectedURI"] as? String && (load["target"] as? NSNumber)?.doubleValue == (image["currentTarget"] as? NSNumber)?.doubleValue && ((load["width"] as? NSNumber)?.doubleValue ?? 0)>0
+        }
+    }
+    private func capture(_ name:String) throws {
+        reveal(node("gallery-position-host"));let snapshot=try app.snapshot();var all:[XCUIElementSnapshot]=[]
+        func visit(_ value:XCUIElementSnapshot){all.append(value);for child in value.children{visit(child)}};visit(snapshot)
+        func matches(_ id:String)->[XCUIElementSnapshot] {all.filter{$0.identifier==id}}
+        func one(_ id:String)->XCUIElementSnapshot? {let found=matches(id);XCTAssertLessThanOrEqual(found.count,1,id);return found.first}
+        let row=try XCTUnwrap(JSONSerialization.jsonObject(with:Data(try XCTUnwrap(one("gallery-native-state")).label.utf8)) as? [String:Any]),window=try XCTUnwrap(all.first{$0.elementType == .window}).frame,host=try XCTUnwrap(one("gallery-position-host")).frame
+        let root=one("gallery-example"),primary=one("thumbnail-showcase-primary"),grid=one("thumbnail-showcase-grid"),slots=matches("thumbnail-showcase-secondary-slot").sorted{abs($0.frame.minY-$1.frame.minY)>0.1 ? $0.frame.minY<$1.frame.minY:$0.frame.minX<$1.frame.minX}
+        let shot=XCUIScreen.main.screenshot(),image=try XCTUnwrap(shot.image.cgImage),scale=CGFloat(image.width)/window.width;XCTAssertEqual(shot.image.imageOrientation,.up);XCTAssertEqual(scale,CGFloat(image.height)/window.height,accuracy:0.01)
+        let crop=try pixels(image,host,window,scale);var ink=0;for i in stride(from:0,to:crop.count,by:4){if Array(crop[i..<i+3]) != [255,255,255]{ink+=1}}
+        let layouts=try XCTUnwrap(row["originalLayouts"] as? [String:[String:Any]]),rootEvent=try XCTUnwrap(layouts["root"]),rootLayout=try XCTUnwrap(rootEvent["layout"] as? [String:Any]);XCTAssertGreaterThan(try number(rootEvent,"target"),0);XCTAssertEqual(try number(rootEvent,"target"),try number(rootEvent,"currentTarget"))
+        let custom=row["custom"] as? Bool==true,overrides=row["customizations"] as? [String] ?? [],zero=row["zero"] as? Bool==true,mode=try XCTUnwrap(row["mode"] as? String),kind=try XCTUnwrap(row["kind"] as? String),items=try XCTUnwrap(row["items"] as? [String]),rawCount=Double(row["count"] as? String ?? "") ?? .nan,count=rawCount.isFinite ? max(0,Int(rawCount.rounded(.down))):4
+        let columns=(row["columns"] as? NSNumber)?.intValue ?? max(count,1),rootBorder=overrides.contains("root") ? 2.0:custom ? 1:0,rootPadding=overrides.contains("root") ? 7.0:custom ? 5:0,rootGap=overrides.contains("root") ? 14.0:custom ? 12:10
+        let widthValue=row["width"],width=zero ? 0:custom ? 260:(widthValue as? NSNumber)?.doubleValue ?? (widthValue as? String=="50%" ? (Double(host.width)-24)/2:Double(host.width)-24),inner=max(0,width-2*(rootBorder+rootPadding))
+        let primaryBorder=overrides.contains("primary") ? 3.0:custom ? 2:0,primaryHeight=inner/((overrides.contains("primary") || custom) ? 2:1),rowBorder=overrides.contains("row") ? 2.0:0,rowPadding=overrides.contains("row") ? 6.0:custom ? 4:0,rowGap=overrides.contains("row") ? 12.0:custom ? 6:10,columnGap=overrides.contains("row") ? 8.0:custom ? 4:10,gridWidth=max(0,inner-2*(rowBorder+rowPadding)),track=try XCTUnwrap(galleryTrackWidth(gridWidth,columnGap,columns)),slotBorder=overrides.contains("secondary") ? 2.0:custom ? 1:0,slotWidth=overrides.contains("secondary") ? 48.0:custom ? 40:track
+        let showPrimary=mode != "secondary",hasMedia = !["undefined","null"].contains(kind) || !items.isEmpty,showRow=mode != "primary" && hasMedia && count>0,rows=showRow ? (count+columns-1)/columns:0,gridHeight=showRow ? (gridWidth==0 ? Double(max(0,rows-1))*rowGap:Double(rows)*slotWidth+Double(max(0,rows-1))*rowGap):0,rowHeight=showRow ? gridHeight+2*(rowBorder+rowPadding):0,height=2*(rootBorder+rootPadding)+(showPrimary ? primaryHeight:0)+(showRow ? rowHeight:0)+(showPrimary && showRow ? rootGap:0)
+        var checks:[[String:Any]]=[]
+        func color(_ value:String)->[Int] {let v=UInt32(value.replacingOccurrences(of:"#",with:""),radix:16)!;return [Int((v>>16)&255),Int((v>>8)&255),Int(v&255)]}
+        func border(_ id:String,_ frame:CGRect,_ thickness:Double,_ rgb:[Int]) throws {
+            guard thickness>0 && frame.width>20 && frame.height>10 else{return}
+            let box=CGRect(x:frame.midX-3,y:frame.minY+1/scale,width:6,height:CGFloat(thickness)-2/scale),bytes=try pixels(image,box,window,scale);var exact=true
+            for i in stride(from:0,to:bytes.count,by:4){if Array(bytes[i..<i+3]).map(Int.init) != rgb{exact=false}}
+            checks.append(["owner":id,"frame":rect(box),"expectedRGB":rgb,"exact":exact,"pixels":bytes.count/4])
+        }
+        if !zero {
+            let frame=try XCTUnwrap(root).frame
+            try border("root",frame,rootBorder,overrides.contains("root") ? [8,127,140]:color(try XCTUnwrap((row["colors"] as? [String:String])?["border"])))
+            if let p=primary {try border("primary",p.frame,primaryBorder,overrides.contains("primary") ? [190,18,60]:color(try XCTUnwrap((row["colors"] as? [String:String])?["selected"])))}
+            if let g=grid {
+                let frame=CGRect(x:g.frame.minX-CGFloat(rowBorder+rowPadding),y:g.frame.minY-CGFloat(rowBorder+rowPadding),width:CGFloat(inner),height:CGFloat(rowHeight))
+                try border("row",frame,rowBorder,[124,58,237])
+                if custom {try border("row-background",frame.insetBy(dx:CGFloat(rowBorder),dy:CGFloat(rowBorder)),rowPadding,color(try XCTUnwrap((row["colors"] as? [String:String])?["track"])))}
+            }
+            if let slot=slots.first {try border("secondary",slot.frame,slotBorder,overrides.contains("secondary") ? [22,101,52]:color(try XCTUnwrap((row["colors"] as? [String:String])?["border"])))}
+        }
+        var primaryTexts:[String]=[]
+        func textLeaves(_ item:XCUIElementSnapshot){if item.elementType == .staticText && item.children.isEmpty{primaryTexts.append(item.label)};for child in item.children{textLeaves(child)}}
+        if let primary=primary{textLeaves(primary)}
+        let controls=all.filter{$0.identifier.hasPrefix("gallery-item-") || $0.identifier=="gallery-overflow"}.map{["id":$0.identifier,"label":$0.label,"frame":rect($0.frame),"enabled":$0.isEnabled] as [String:Any]}
+        let observed:[String:Any]=["name":name,"state":row,"host":rect(host),"root":root.map{rect($0.frame)} ?? [],"primary":primary.map{rect($0.frame)} ?? [],"grid":grid.map{rect($0.frame)} ?? [],"slots":slots.map{rect($0.frame)},"controls":controls,"placeholderCount":matches("gallery-secondary-placeholder").count,"primaryPlaceholder":one("gallery-primary-placeholder") != nil,"primaryLabel":primary?.label ?? "","primaryTexts":primaryTexts,"scale":scale,"imageWidth":image.width,"imageHeight":image.height,"inkPixels":ink,"paintChecks":checks]
+        let data=try JSONSerialization.data(withJSONObject:observed,options:.sortedKeys);FileHandle.standardOutput.write(Data("GALLERY_NATIVE_OBSERVATION ".utf8)+data+Data("\n".utf8));let json=XCTAttachment(data:data,uniformTypeIdentifier:"public.json");json.name="gallery-"+name+"-receipt";json.lifetime = .keepAlways;add(json);let png=XCTAttachment(screenshot:shot);png.name="gallery-"+name;png.lifetime = .keepAlways;add(png)
+        XCTAssertEqual(try number(rootLayout,"width"),width,accuracy:1/Double(scale));XCTAssertEqual(try number(rootLayout,"height"),height,accuracy:1/Double(scale));
+        for check in checks{XCTAssertEqual(check["exact"] as? Bool,true,"Opaque border "+String(describing:check["owner"]!))}
+        if zero {XCTAssertEqual(ink,0);return}
+        XCTAssertEqual(primary != nil,showPrimary);XCTAssertEqual(grid != nil,showRow);XCTAssertEqual(slots.count,showRow ? count:0)
+        XCTAssertEqual(one("gallery-primary-placeholder") != nil,showPrimary && ["undefined","null"].contains(kind));XCTAssertEqual(matches("gallery-secondary-placeholder").count,showRow ? max(0,count-items.count):0)
+        if showPrimary && kind=="zero"{XCTAssertEqual(primaryTexts,["0"])}
+        let frame=try XCTUnwrap(root).frame;XCTAssertEqual(frame.width,CGFloat(width),accuracy:1/scale);XCTAssertEqual(frame.height,CGFloat(height),accuracy:1/scale);XCTAssertEqual(frame.minX-host.minX,CGFloat(try number(rootLayout,"x")),accuracy:1/scale);XCTAssertEqual(frame.minY-host.minY,CGFloat(try number(rootLayout,"y")),accuracy:1/scale)
+        if let p=primary {XCTAssertEqual(p.frame.width,CGFloat(inner),accuracy:1/scale);XCTAssertEqual(p.frame.height,CGFloat(primaryHeight),accuracy:1/scale)}
+        if let g=grid {
+            XCTAssertEqual(g.frame.width,CGFloat(gridWidth),accuracy:1/scale);XCTAssertEqual(g.frame.height,CGFloat(gridHeight),accuracy:1/scale)
+            for (index,slot) in slots.enumerated(){XCTAssertEqual(slot.frame.width,CGFloat(slotWidth),accuracy:1/scale);XCTAssertEqual(slot.frame.height,CGFloat(slotWidth),accuracy:1/scale);XCTAssertEqual(slot.frame.minX-g.frame.minX,CGFloat(index%columns)*(CGFloat(track+columnGap)),accuracy:1/scale);XCTAssertEqual(slot.frame.minY-g.frame.minY,CGFloat(index/columns)*(CGFloat(slotWidth+rowGap)),accuracy:1/scale)}
+        }
+        if showPrimary && kind=="image" {
+            let event=try XCTUnwrap(layouts["image"]),load=try XCTUnwrap((row["primaryLoads"] as? [[String:Any]])?.last);XCTAssertEqual(load["uri"] as? String,row["expectedURI"] as? String);XCTAssertGreaterThan(try number(load,"width"),0);XCTAssertEqual(try number(load,"target"),try number(event,"currentTarget"));XCTAssertEqual(try number(try XCTUnwrap(layouts["primary"]),"currentTarget"),try number(row,"primaryTag"))
+        }
+        let overflow=row["overflow"] as? Bool==true && items.count>count && showRow,visible=showRow ? min(items.count,count)-(overflow ? 1:0):0
+        XCTAssertEqual(controls.filter{($0["id"] as? String)?.hasPrefix("gallery-item-")==true}.count,visible);XCTAssertEqual(controls.filter{$0["id"] as? String=="gallery-overflow"}.count,overflow ? 1:0)
+        if overflow {XCTAssertEqual(controls.first{$0["id"] as? String=="gallery-overflow"}?["label"] as? String,"Gallery overflow "+String(items.count-count))}
+    }
+    func testGalleryModesActionsAndLifetimes() throws {
+        try capture("baseline");let first=try state(),tag=try number(try XCTUnwrap((first["originalLayouts"] as? [String:[String:Any]])?["A"]),"currentTarget")
+        tap("Gallery A, count 0");try capture("touched");XCTAssertEqual(try number(state(),"actions"),1)
+        tap("Reorder gallery items");try capture("reordered");tap("Next gallery column count");try capture("two-columns");tap("Next gallery column count");try capture("three-columns")
+        XCTAssertTrue(app.buttons["Gallery A, count 1"].exists);XCTAssertEqual(try number(try XCTUnwrap((try state()["originalLayouts"] as? [String:[String:Any]])?["A"]),"currentTarget"),tag)
+        tap("Gallery overflow 1");try capture("overflow-action");XCTAssertEqual(try number(state(),"overflowActions"),1)
+        tap("Toggle gallery actions disabled");let a=node("gallery-item-A");reveal(a);XCTAssertFalse(a.isEnabled);a.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.5)).tap();Thread.sleep(forTimeInterval:1);try capture("disabled");XCTAssertEqual(try number(state(),"actions"),1)
+        tap("Toggle gallery actions disabled");tap("Next gallery mode");try capture("primary-only");tap("Next gallery mode");try capture("secondary-only");tap("Next gallery mode");try ready();try capture("all-restored");XCTAssertTrue(app.buttons["Gallery A, count 0"].exists)
+        let oldPrimary=try number(state(),"primaryTag");tap("Restart gallery content");try ready();try capture("fresh");XCTAssertNotEqual(try number(state(),"primaryTag"),oldPrimary)
+        tap("Toggle empty gallery items");tap("Next gallery primary");try capture("empty-media");tap("Next gallery primary");tap("Next gallery primary");try capture("falsy-zero")
+        tap("Toggle empty gallery items");tap("Next gallery primary");tap("Next gallery primary");tap("Next gallery primary");try ready();try capture("media-restored")
+        tap("Next gallery slot count");try capture("two-slots");tap("Next gallery slot count");try capture("zero-slots");tap("Next gallery slot count");try capture("fractional-count")
+    }
+    func testGalleryPrimitiveAndRemainingCounts() throws {
+        tap("Gallery A, count 0");tap("Reorder gallery items");tap("Next gallery column count");tap("Next gallery column count");tap("Gallery overflow 1");tap("Restart gallery content");try ready()
+        tap("Toggle empty gallery items");tap("Next gallery primary");tap("Next gallery primary");tap("Next gallery primary");try capture("falsy-zero")
+        tap("Toggle empty gallery items");tap("Next gallery primary");tap("Next gallery primary");tap("Next gallery primary");try ready();try capture("media-restored")
+        tap("Next gallery slot count");try capture("two-slots");tap("Next gallery slot count");try capture("zero-slots");tap("Next gallery slot count");try capture("fractional-count")
+    }
+    func testGalleryStylesWidthsAndProviders() throws {
+        try capture("style-baseline");tap("Gallery A, count 0");tap("Toggle gallery root styles");try capture("root-style");tap("Toggle gallery primary slot styles");try capture("primary-style");tap("Toggle gallery row styles");try capture("row-style");tap("Toggle gallery secondary slot styles");try capture("four-styles")
+        tap("Toggle gallery primary slot styles");try capture("primary-cleared");tap("Toggle gallery root styles");tap("Toggle gallery row styles");tap("Toggle gallery secondary slot styles");try capture("styles-restored")
+        tap("Toggle gallery styles");try capture("composite");tap("Next gallery width");try capture("style-width-wins");tap("Toggle gallery styles");try capture("fractional-width");tap("Next gallery width");try capture("percentage-width");tap("Next gallery width");try capture("auto-width");tap("Next gallery width");try capture("width-restored")
+        tap("Toggle gallery zero width");try capture("zero-width");tap("Toggle gallery zero width");tap("Next gallery positioning");try capture("relative");tap("Next gallery positioning");try capture("absolute");tap("Next gallery positioning")
+        tap("Toggle gallery styles");try capture("dynamic-light");tap("Dark theme");try capture("dynamic-dark");tap("Light theme");try capture("light-restored")
+    }
+    private func node(_ id:String)->XCUIElement {app.descendants(matching:.any).matching(identifier:id).firstMatch}
+
+    private func wait(_ message:String,_ predicate:@escaping()->Bool) {
+        let expectation=XCTNSPredicateExpectation(predicate:NSPredicate{_,_ in predicate()},object:nil)
+        XCTAssertEqual(XCTWaiter.wait(for:[expectation],timeout:nativeWorkRemaining()),.completed,message)
+    }
+
+    private func reveal(_ element:XCUIElement) {
+        XCTAssertTrue(element.waitForExistence(timeout:nativeWorkRemaining()));let scroll=app.scrollViews.firstMatch;XCTAssertTrue(scroll.exists)
+        for _ in 0..<24 {
+            let viewport=app.windows.firstMatch.frame.intersection(scroll.frame).insetBy(dx:2,dy:2)
+            if !element.frame.isEmpty && viewport.contains(element.frame){return}
+            guard let distance=galleryScrollFraction(Double(element.frame.minY),Double(element.frame.height),Double(viewport.minY),Double(viewport.height)),distance != 0 else{XCTFail("Gallery target cannot fit measured viewport");return}
+            let start:CGFloat=distance>0 ? 0.75:0.30
+            let trace:[String:Any]=["target":element.identifier,"frame":rect(element.frame),"viewport":rect(viewport),"requestedFraction":distance]
+            if let data=try? JSONSerialization.data(withJSONObject:trace,options:.sortedKeys){FileHandle.standardOutput.write(Data("GALLERY_SCROLL ".utf8)+data+Data("\n".utf8))}
+            scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:start)).press(forDuration:0.05,thenDragTo:scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:start-CGFloat(distance))),withVelocity:.slow,thenHoldForDuration:0.25)
+        };XCTFail("Unreachable Gallery control/canvas "+element.identifier)
+    }
+
+    private func tap(_ name:String) {
+        let control=app.buttons.matching(NSPredicate(format:"label == %@",name)).firstMatch;reveal(control);XCTAssertTrue(control.isHittable);control.tap()
+        if name=="Gallery scene"{wait("Actual selected Gallery scene"){control.isSelected}}
+    }
+
+    private func pixels(_ image:CGImage,_ frame:CGRect,_ window:CGRect,_ scale:CGFloat) throws -> [UInt8] {
+        XCTAssertTrue(window.contains(frame));let rect=CGRect(x:((frame.minX-window.minX)*scale).rounded(),y:((frame.minY-window.minY)*scale).rounded(),width:(frame.width*scale).rounded(),height:(frame.height*scale).rounded())
+        let crop=try XCTUnwrap(image.cropping(to:rect));var bytes=[UInt8](repeating:0,count:crop.width*crop.height*4)
+        let result=bytes.withUnsafeMutableBytes { buffer -> Bool in
+            guard let context=CGContext(data:buffer.baseAddress,width:crop.width,height:crop.height,bitsPerComponent:8,bytesPerRow:crop.width*4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue|CGBitmapInfo.byteOrder32Big.rawValue) else{return false}
+            context.draw(crop,in:CGRect(x:0,y:0,width:CGFloat(crop.width),height:CGFloat(crop.height)));return true
+        };XCTAssertTrue(result);return bytes
+    }
+
+}
+
+private func galleryTrackWidth(_ width:Double,_ gap:Double,_ columns:Int)->Double? {
+    guard width.isFinite, width>=0, gap.isFinite, gap>=0, columns>0 else{return nil}
+    return max(0,(width-gap*Double(columns-1))/Double(columns))
+}
+
+private func galleryScrollFraction(_ targetMin:Double,_ targetHeight:Double,_ viewportMin:Double,_ viewportHeight:Double)->Double? {
+    guard [targetMin,targetHeight,viewportMin,viewportHeight].allSatisfy({$0.isFinite}),targetHeight>0,viewportHeight>0,targetHeight<=viewportHeight else{return nil}
+    return max(-0.35,min(0.35,(targetMin+targetHeight/2-viewportMin-viewportHeight/2)/viewportHeight))
+}
