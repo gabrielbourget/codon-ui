@@ -430,6 +430,45 @@ class StandardTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError,"EXPECTED_PACKAGER_BOUNDARY_NO_SDK"):NATIVE.build_ios_application(admitted,config)
             self.assertEqual((admitted.output/"CodonCircular.app/NativeBinary").read_text(),"unchanged native")
 
+    def test_counter_scope_selection_and_actual_admission_boundary(self):
+        plan={"cell":"CAT.counter.G08","nativeStandard":{"platform":"ios","batch":"counter","output":str(self.root/"counter-never-created")}}
+        NATIVE.validate_standard_scope(plan);self.assertEqual(len(NATIVE.selection("ios","counter")["ios"]),2)
+        self.assertEqual(NATIVE.selection("ios","counter-values")["ios"],["CounterTrialTests/testCounterValuesStylesAndProviders"])
+        NATIVE.validate_standard_scope({"cell":"CAT.counter.G08","nativeStandard":{"batch":"counter-values"}})
+        with self.assertRaises(ValueError):NATIVE.selection("android","counter")
+        for cell in ["CAT.meter.G08","CAT.circular-progress.G08","CAT.counter.G07"]:
+            with self.assertRaises(ValueError):NATIVE.validate_standard_scope({"cell":cell,"nativeStandard":{"batch":"counter"}})
+        path=self.root/"counter.json";path.write_text(json.dumps(plan));env={k:v for k,v in os.environ.items() if k!="CODON_NATIVE_CELL_PREFLIGHT_RECEIPT"}
+        result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(path)],env=env,capture_output=True,text=True,timeout=10)
+        self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((self.root/"counter-never-created").exists())
+
+    def test_counter_touch_uses_named_baseline_after_motion_fresh_rows(self):
+        rows=[{"name":"normal-fresh","state":{"rootTag":72}},{"name":"baseline","state":{"rootTag":51}}]
+        NATIVE.validate_counter_touch([{"target":55,"currentTarget":51}],rows)
+        for contacts in [[],[{"target":55,"currentTarget":72}],[{"target":0,"currentTarget":51}]]:
+            with self.assertRaises(ValueError):NATIVE.validate_counter_touch(contacts,rows)
+
+    def test_counter_reader_uses_native_geometry_and_rejects_paint_value_target_and_slot_errors(self):
+        row={"name":"baseline","scale":3,"imageWidth":1170,"imageHeight":2532,"backgroundRGB":[255,255,255],"parent":[20,300,330,72],"referenceParent":[20,380,330,72],"target":[28,308,180,40],"valueLabel":"25","ringLabel":"Native counter Progress","ringValue":"25%","ringFrame":[40,320,12,12],"suffixLabel":"/100","childFrame":[170,318,20,20],"referenceExact":True,"inkPixels":400,"state":{"case":"baseline","mode":"light","rootTag":51,"value":25,"maxValue":100,"layouts":{"target":{"target":51,"currentTarget":51,"layout":{"width":180,"height":40}}}}}
+        self.assertEqual(NATIVE.validate_counter_rows([row],["baseline"])["status"],"PASS")
+        for kind in ["paint","raw-value","target","height","dimensions","slot","semantics","empty-child","background","physical-outside","duplicate"]:
+            bad=copy.deepcopy(row)
+            if kind=="paint":bad["referenceExact"]=False
+            elif kind=="raw-value":bad["valueLabel"]="normalized"
+            elif kind=="target":bad["state"]["layouts"]["target"]["currentTarget"]=52
+            elif kind=="height":bad["state"]["layouts"]["target"]["layout"]["height"]=39
+            elif kind=="dimensions":bad["target"][2]=179
+            elif kind=="slot":bad["ringFrame"][2]=20
+            elif kind=="semantics":bad["ringValue"]="99%"
+            elif kind=="empty-child":bad["childFrame"]=[]
+            elif kind=="background":bad["backgroundRGB"]=[16,16,16]
+            elif kind=="physical-outside":bad["parent"][0]=1000
+            with self.subTest(kind=kind),self.assertRaises(ValueError):NATIVE.validate_counter_rows([bad,bad] if kind=="duplicate" else [bad],["baseline"])
+        fractional=copy.deepcopy(row);fractional["name"]="fractional";fractional["state"]["case"]="fractional";fractional["target"][2]=183.25;fractional["state"]["layouts"]["target"]["layout"]["width"]=183.25
+        self.assertEqual(NATIVE.validate_counter_rows([fractional],["fractional"])["status"],"PASS")
+        zero=copy.deepcopy(row);zero["name"]="zero-width";zero["state"]["case"]="zero-width";zero["target"]=[];zero["state"]["layouts"]["target"]["layout"]["width"]=0
+        self.assertEqual(NATIVE.validate_counter_rows([zero],["zero-width"])["status"],"PASS")
+
     def test_lagging_scope_selection_and_actual_admission_boundary(self):
         plan={"cell":"CAT.lagging-lines-loader.G08","nativeStandard":{"platform":"ios","batch":"lagging-lines","output":str(self.root/"never-created")}}
         NATIVE.validate_standard_scope(plan);self.assertEqual(len(NATIVE.selection("ios","lagging-lines")["ios"]),2)

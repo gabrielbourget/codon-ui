@@ -14,6 +14,7 @@ import {
 } from "@codon-ui/react-native"
 
 import { CircularProgressFixture } from "./CircularProgressFixture"
+import { CounterFixture } from "./CounterFixture"
 
 const valueLabels = [
   { name: "automatic", value: undefined },
@@ -81,6 +82,7 @@ export const CircularCounterScene = () => {
   const rawValue = raw ? "not numeric" : value
   return (
     <View style={styles.scene}>
+      <CounterFixture />
       <CircularProgressFixture />
       <Text elementType="h2" variant="h3">
         Circular progress and counters

@@ -76,6 +76,9 @@ def verify_selected_app_inputs(plan, app):
 
 
 def selection(platform, batch="meter-g02"):
+    if batch in ["counter", "counter-values"]:
+        require(platform == "ios", "Current Counter batch is iOS-only")
+        return {"ios": ["CounterTrialTests/testCounterValuesStylesAndProviders"] + (["CounterTrialTests/testCounterColorInterruptionAndRetirement"] if batch == "counter" else []), "android": []}
     if batch == "lagging-lines":
         require(platform == "ios", "Current LaggingLines batch is iOS-only")
         return {"ios": ["LaggingLinesTrialTests/testLaggingLinesGeometryAndProviders", "LaggingLinesTrialTests/testLaggingLinesMotionAndRetirement"], "android": []}
@@ -519,7 +522,7 @@ def run_ios(session, config, app, observer):
     try: raw = session.run("xctest", argv)
     except ValueError as error:
         sdk_error = error;stdout = session.output / "xctest.stdout";raw = stdout.read_text() if stdout.exists() else ""
-    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected", "circle-loader", "lagging-lines"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
+    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected", "circle-loader", "lagging-lines", "counter"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
         original_motion = re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])", raw)
         restored_motion = re.findall(r"METER_STYLE_MOTION_RESTORED ([01])", raw)
         if original_motion != restored_motion: session.cleanup_errors.append("Original iOS Reduce Motion restoration unverified")
@@ -552,6 +555,7 @@ def run_ios(session, config, app, observer):
             result["retainedCircularProvider"] = native_method(retained)
     if config.get("batch") == "circle-loader": result["circleLoader"] = reconcile_circle_loader_ios(raw)
     if config.get("batch") == "lagging-lines": result["laggingLines"] = reconcile_lagging_lines_ios(raw)
+    if config.get("batch") in ["counter", "counter-values"]: result["counter"] = reconcile_counter_ios(raw, include_motion=config["batch"] == "counter")
     if config.get("batch") == "linear-progress-risk": result["linearProgressRisk"] = reconcile_linear_progress_risk_ios(raw)
     if config.get("batch") == "meter-style": result["styleObservations"] = reconcile_ios_styles(raw)
     if config.get("batch") == "meter-style-affected":
@@ -701,6 +705,76 @@ def reconcile_lagging_lines_ios(raw):
     original = re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])", raw)
     require(len(original) == 1 and original == re.findall(r"METER_STYLE_MOTION_RESTORED ([01])", raw), "Original Reduce Motion restoration missing")
     result.update(motionIntervals=len(intervals), originalAndRestoredMotion=original[0])
+    return result
+
+
+
+COUNTER_GEOMETRY_NAMES = ["baseline", "zero", "raw-string", "warning", "danger", "numeric-max-zero", "string-max-zero", "raw-text", "hidden-parts", "three-slots", "explicit-color", "fractional", "zero-width", "auto-width", "percentage", "dark", "compact", "live-restored", "light-restored"]
+
+
+def validate_counter_rows(rows, names):
+    require(sorted(row["name"] for row in rows) == sorted(names), "Missing/duplicate Counter observations")
+    for row in rows:
+        state, scale = row["state"], row["scale"]
+        require(isinstance(scale, (int, float)) and math.isfinite(scale) and scale > 0, "Invalid Counter screenshot scale")
+        require(row["backgroundRGB"] == ([16, 16, 16] if state["mode"] == "dark" else [255, 255, 255]), "Wrong Counter native background")
+        parent, reference = row["parent"], row["referenceParent"]
+        require(len(parent) == len(reference) == 4 and all(math.isfinite(v) for v in parent + reference) and parent[2:] == reference[2:] and parent[3] == 72 and 0 < parent[2] <= 330, "Wrong Counter reference parents")
+        for frame in [parent, reference]:
+            x, y, width, height = [math.floor(v * scale + .5) for v in frame]
+            require(0 <= x < x + width <= row["imageWidth"] and 0 <= y < y + height <= row["imageHeight"], "Counter physical parent outside screenshot")
+        require(row["referenceExact"] is True, "Counter paint differs from raw native reference")
+        event = state["layouts"]["target"]
+        require(state["rootTag"] > 0 and event["target"] == event["currentTarget"] == state["rootTag"], "Original Counter ref/layout targets differ")
+        case = state["case"]
+        width = 0 if case == "zero-width" else 183.25 if case == "fractional" else parent[2] - 16 if case in ["auto-width", "percentage"] else 180
+        require(abs(event["layout"]["width"] - width) * scale <= 1 and abs(event["layout"]["height"] - 40) * scale <= 1, "Wrong delivered Counter dimensions")
+        if width == 0: continue
+        require(len(row["target"]) == 4 and abs(row["target"][2] - width) * scale <= 1 and abs(row["target"][3] - 40) * scale <= 1 and row["inkPixels"] > 0, "Wrong actual Counter root/paint")
+        require(row["valueLabel"] == str(state["value"]), "Counter changed raw caller value")
+        if case == "motion": continue
+        optional = case not in ["numeric-max-zero", "hidden-parts"]
+        if optional:
+            require(row["ringLabel"] == "Native counter Progress" and row["suffixLabel"] == "/" + str(state["maxValue"]), "Counter optional labels/branches differ")
+            size = 20 if case == "three-slots" else 12
+            require(len(row["ringFrame"]) == 4 and all(abs(v - size) * scale <= 1 for v in row["ringFrame"][2:]), "Wrong Counter indicator slot geometry")
+            if case not in ["string-max-zero", "raw-text"]:
+                require(row["ringValue"] == {"zero": "0%", "raw-string": "49%", "warning": "80%", "danger": "90%"}.get(case, "25%"), "Wrong actual Counter progress semantics")
+        else: require(row["ringLabel"] is None and row["suffixLabel"] is None and not row["ringFrame"], "Hidden Counter optional parts remain")
+        if case != "three-slots": require(len(row["childFrame"]) == 4 and all(abs(v - 20) * scale <= 1 for v in row["childFrame"][2:]), "Ordinary empty native child was hidden/resized")
+    return {"status": "PASS", "observations": len(rows)}
+
+
+def validate_counter_touch(contacts, rows):
+    baseline = [row for row in rows if row["name"] == "baseline"]
+    require(len(baseline) == 1 and len(contacts) == 1 and contacts[0]["currentTarget"] == baseline[0]["state"]["rootTag"] and contacts[0]["target"] > 0, "Original native Counter touch missing")
+
+
+def reconcile_counter_ios(raw, include_motion=True):
+    all_rows = [json.loads(row) for row in re.findall(r"COUNTER_NATIVE_OBSERVATION (\{[^\n]+\})", raw)]
+    rows = [row for row in all_rows if "state" in row]
+    result = validate_counter_rows(rows, COUNTER_GEOMETRY_NAMES + (["normal-fresh", "reduced-fresh"] if include_motion else []))
+    contacts = [json.loads(row) for row in re.findall(r"COUNTER_NATIVE_TOUCH (\{[^\n]+\})", raw)]
+    validate_counter_touch(contacts, rows)
+    named = {row["name"]: row for row in rows}
+    require(named["compact"]["target"][2] != named["percentage"]["target"][2], "Counter percentage constraint did not change width")
+    if not include_motion:
+        result.update(motionIntervals=0, motionScope="Not selected; earlier clean method retains its original tuple")
+        return result
+    intervals = [json.loads(row) for row in re.findall(r"COUNTER_NATIVE_MOTION (\{[^\n]+\})", raw)]
+    require(sorted(row["name"] for row in intervals) == ["normal", "reduced"], "Counter normal/reduced intervals missing")
+    for row in intervals:
+        scheduled = row["state"]["scheduled"]
+        require([item["kind"] for item in scheduled] == ["red", "supersede-green", "blue", "red-again", "green-again", "retire", "fresh-blue"], "Counter interruption/retirement schedule incomplete")
+        moving = [item for item in row["samples"] if item["captureStartedEpochMs"] >= scheduled[0]["epochMs"] and item["captureEpochMs"] < scheduled[5]["epochMs"]]
+        require(len(moving) > 2 and len(moving) == row["movingRows"], "Insufficient Counter color observations")
+        require(all(item["referenceExact"] for item in moving) if row["reduced"] else any(not item["referenceExact"] for item in moving), "Native Counter color interpolation/reduction failed")
+        require(any(item["inkPixels"] == 0 for item in row["samples"]), "Actual Counter retirement paint missing")
+    named = {row["name"]: row for row in rows}
+    require(named["compact"]["target"][2] != named["percentage"]["target"][2], "Counter percentage constraint did not change width")
+    original = re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])", raw)
+    require(len(original) == 1 and original == re.findall(r"METER_STYLE_MOTION_RESTORED ([01])", raw), "Counter Reduce Motion original restoration unverified")
+    result.update(motionIntervals=2, originalAndRestoredMotion=original[0], motionSamples=len(all_rows) - len(rows))
     return result
 
 
@@ -1005,7 +1079,8 @@ def validate_standard_scope(plan):
     circular = cell in ["CAT.circular-progress." + gate for gate in ["G02", "G04", "G08"]] and batch in ["circular-progress", "circular-progress-affected"]
     loader = cell in ["CAT.circle-loader." + gate for gate in ["G04", "G08"]] and batch == "circle-loader"
     lines = cell in ["CAT.lagging-lines-loader." + gate for gate in ["G04", "G08"]] and batch == "lagging-lines"
-    require(meter or progress or text or circular or loader or lines, "Only the authorized component and focused batch are selected")
+    counter = cell in ["CAT.counter." + gate for gate in ["G04", "G08"]] and batch in ["counter", "counter-values"]
+    require(meter or progress or text or circular or loader or lines or counter, "Only the authorized component and focused batch are selected")
 
 
 def main():
