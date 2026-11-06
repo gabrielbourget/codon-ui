@@ -598,6 +598,88 @@ final class MeterStyleTrialTests: XCTestCase {
     func testMeterStyleZeroWidth() throws { try select(2);try observe("zero-width") }
     func testMeterStyleRemainingDimensions() throws { for index in [3,4,5] { try select(index);try observe(names[index]) } }
     func testMeterStyleRaised() throws { try select(17);try observe("raised") }
+
+    private var progressRiskTrackRGBA: [UInt8] = []
+    private func progressRiskCapture(_ name: String, unknown: Bool, events: [Bool]) throws -> [UInt8] {
+        let target = node("range-progress"); reveal(target,blocked:true)
+        XCTAssertEqual(app.descendants(matching:.any).matching(identifier:"range-progress").count,1)
+        XCTAssertEqual(target.label,"Task progress")
+        let value = target.value
+        if unknown { XCTAssertTrue(value == nil || value is NSNull || (value as? String) == "","Unknown must retire the native percentage") }
+        else { XCTAssertEqual(value as? String,"25%") }
+        let frame = target.frame, window = app.windows.firstMatch.frame
+        let shot = XCUIScreen.main.screenshot(), image = try XCTUnwrap(shot.image.cgImage)
+        XCTAssertEqual(shot.image.imageOrientation,.up)
+        let scale = CGFloat(image.width)/window.width
+        XCTAssertEqual(scale,CGFloat(image.height)/window.height,accuracy:0.01)
+        XCTAssertTrue(window.contains(frame));XCTAssertEqual(frame.height,14,accuracy:1/scale)
+        let attachment = XCTAttachment(screenshot:shot);attachment.name="linear-progress-risk-"+name;attachment.lifetime = .keepAlways;add(attachment)
+        let crop = try pixels(image,frame,window,scale)
+        var row: [String:Any] = ["name":name,"unknown":unknown,"nativeLabel":target.label,"nativeValue":value ?? NSNull(),"elementType":target.elementType.rawValue,"frame":frameValues(frame),"window":frameValues(window),"scale":Double(scale),"captureEpochMs":Date().timeIntervalSince1970*1000,"motionEvents":events,"pixelBytes":crop.count]
+        if unknown {
+            let center = CGRect(x:frame.midX-6,y:frame.minY+3,width:12,height:frame.height-6)
+            let bytes = try pixels(image,center,window,scale)
+            XCTAssertEqual(progressRiskTrackRGBA.count,4,"Captured actual empty-track sample required")
+            let painted = stride(from:0,to:bytes.count,by:4).filter { i in bytes[i] != progressRiskTrackRGBA[0] || bytes[i+1] != progressRiskTrackRGBA[1] || bytes[i+2] != progressRiskTrackRGBA[2] }.count
+            row["centerBackgroundRGBA"]=progressRiskTrackRGBA
+            XCTAssertGreaterThan(painted,0,"Actual unknown cue must remain visibly centered")
+            row["centerPaintedPixels"]=painted
+        } else {
+            let reference = node("range-meter");XCTAssertTrue(reference.exists && window.contains(reference.frame))
+            XCTAssertEqual(frame.width,reference.frame.width,accuracy:1/scale)
+            var samples: [[String:Any]] = []
+            for fraction in [CGFloat(0.125),CGFloat(0.625)] {
+                let a = CGRect(x:frame.minX+frame.width*fraction,y:frame.midY,width:1,height:1)
+                let b = CGRect(x:reference.frame.minX+reference.frame.width*fraction,y:reference.frame.midY,width:1,height:1)
+                let actual = try pixels(image,a,window,scale), expected = try pixels(image,b,window,scale)
+                XCTAssertTrue(stylePixelsMatch(actual,expected),"Actual known LP/shared-host opaque paint")
+                samples.append(["rgba":actual,"referenceRGBA":expected])
+            }
+            XCTAssertNotEqual(samples[0]["rgba"] as? [UInt8],samples[1]["rgba"] as? [UInt8])
+            row["samples"]=samples
+            progressRiskTrackRGBA=Array(try XCTUnwrap(samples[1]["rgba"] as? [UInt8]).prefix(4))
+        }
+        let data = try JSONSerialization.data(withJSONObject:row,options:[.sortedKeys])
+        FileHandle.standardOutput.write(Data("LINEAR_PROGRESS_RISK_OBSERVATION ".utf8)+data+Data("\n".utf8))
+        let receipt = XCTAttachment(data:data,uniformTypeIdentifier:"public.json");receipt.name="linear-progress-risk-"+name+"-receipt";receipt.lifetime = .keepAlways;add(receipt)
+        return crop
+    }
+    func testLinearProgressLiveMotion() throws {
+        tap("Toggle range styles")
+        _ = try progressRiskCapture("known-styled",unknown:false,events:[])
+        let settings = XCUIApplication(bundleIdentifier:"com.apple.Preferences");settings.launch()
+        let initial = motionSwitch(settings), original = try XCTUnwrap(initial.value as? String)
+        XCTAssertTrue(["0","1"].contains(original))
+        FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_ORIGINAL "+original+"\n").utf8))
+        addTeardownBlock { [self] in
+            let toggle = self.motionSwitch(settings);self.setMotion(toggle,original)
+            XCTAssertEqual(toggle.value as? String,original,"Exact original Reduce Motion restoration")
+            self.app.activate()
+            FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_RESTORED "+original+"\n").utf8))
+        }
+        setMotion(initial,"0");app.activate();reveal(node("meter-style-state"),blocked:true)
+        let movingEvents = (try state()["motionEvents"] as? [Bool]) ?? []
+        tap("Toggle unknown progress");Thread.sleep(forTimeInterval:0.5)
+        let a = try progressRiskCapture("moving-0",unknown:true,events:movingEvents)
+        Thread.sleep(forTimeInterval:0.17)
+        let b = try progressRiskCapture("moving-1",unknown:true,events:movingEvents)
+        Thread.sleep(forTimeInterval:0.29)
+        let c = try progressRiskCapture("moving-2",unknown:true,events:movingEvents)
+        XCTAssertTrue(!stylePixelsMatch(a,b) || !stylePixelsMatch(b,c),"A real native unknown motion interval is required")
+        let reduced = motionSwitch(settings);setMotion(reduced,"1");app.activate();reveal(node("meter-style-state"),blocked:true)
+        wait("Actual native public Reduce Motion event") { ((try? self.state()["motionEvents"] as? [Bool]) ?? []).last == true }
+        let stoppedEvents = try XCTUnwrap(try state()["motionEvents"] as? [Bool]);Thread.sleep(forTimeInterval:0.5)
+        let x = try progressRiskCapture("stopped-0",unknown:true,events:stoppedEvents)
+        Thread.sleep(forTimeInterval:0.17)
+        let y = try progressRiskCapture("stopped-1",unknown:true,events:stoppedEvents)
+        Thread.sleep(forTimeInterval:0.29)
+        let z = try progressRiskCapture("stopped-2",unknown:true,events:stoppedEvents)
+        XCTAssertTrue(stylePixelsMatch(x,y) && stylePixelsMatch(y,z),"Reduced unknown cue must stay visible and static")
+        tap("Toggle unknown progress");Thread.sleep(forTimeInterval:0.5)
+        _ = try progressRiskCapture("known-restored",unknown:false,events:stoppedEvents)
+        FileHandle.standardOutput.write(Data("LINEAR_PROGRESS_RISK_INTERVALS movingDifferent=true stoppedExact=true\n".utf8))
+    }
+
     func testMeterStyleAReferenceControl() throws {
         func capture(_ label: String) throws -> ([CGRect],Bool,Int) {
             reveal(node("meter-style-pair"),blocked:true)

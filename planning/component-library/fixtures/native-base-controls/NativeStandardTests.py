@@ -3,6 +3,7 @@ import argparse
 import datetime
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import plistlib
@@ -57,6 +58,9 @@ def verify_product(value, path=None):
 
 
 def selection(platform, batch="meter-g02"):
+    if batch == "linear-progress-risk":
+        require(platform in ["ios", "android"], "Unknown risk platform")
+        return {"ios": ["MeterStyleTrialTests/testLinearProgressLiveMotion"] if platform == "ios" else [], "android": ["live-motion"] if platform == "android" else []}
     if batch == "meter-style-dimensions":
         require(platform == "android", "Dimensions-only instrumentation is Android-only")
         return {"ios": [], "android": ["dimensions"]}
@@ -125,6 +129,7 @@ class Session:
         self.emulator = None
         self.guest_owned = False
         self.motion_setting = None
+        self.additional_motion_settings = {}
         self.env = {**os.environ, "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer", "PYTHONDONTWRITEBYTECODE": "1"}
 
     def remaining(self, cleanup=False):
@@ -233,7 +238,7 @@ def build_android(session, config):
     control_classes = session.output / "control-classes"; control_classes.mkdir()
     session.run("javac-controls", [jdk / "bin/javac", "-d", control_classes, controls])
     control_result = json.loads(session.run("java-controls", [jdk / "bin/java", "-cp", control_classes, "MeterStyleControls"]))
-    require(control_result == {"status": "PASS", "cases": 28}, "Actual Java geometry/color/identity/automatic-height controls failed")
+    require(control_result == {"status": "PASS", "cases": 38}, "Actual Java geometry/color/identity/automatic-height controls failed")
     session.run("javac", [jdk / "bin/javac", "-source", "8", "-target", "8", "-classpath", jar, "-d", build / "classes", source / "Actions.java"])
     session.run("dex", [tools / "d8", "--lib", jar, "--output", build / "dex", *sorted((build / "classes").rglob("*.class"))])
     session.run("package", [tools / "aapt2", "link", "--manifest", source / "AndroidManifest.xml", "-I", jar, "-o", build / "unsigned.apk"])
@@ -243,12 +248,21 @@ def build_android(session, config):
     session.run("align", [tools / "zipalign", "-f", "4", build / "unsigned.apk", apk])
     session.run("sign", [tools / "apksigner", "sign", "--ks", REPO / "apps/native-showcase/android/app/debug.keystore", "--ks-key-alias", "androiddebugkey", "--ks-pass", "pass:android", "--key-pass", "pass:android", apk])
     session.run("verify-signature", [tools / "apksigner", "verify", "--verbose", apk])
+    if "closedRiskReceipt" in config:
+        receipt = bound_file(config["closedRiskReceipt"])
+        for item in config["closedRiskImages"]: bound_file(item)
+        source = json.loads(receipt.read_text())
+        require(source.get("nativeActionSucceeded") is True and not source.get("hasFailedCohorts"), "Only a clean native cohort may be reviewed")
+        preferences = json.loads(bound_file(config["closedRiskPreferences"]).read_text())
+        require(preferences["exactKeySetAndValuesVerified"] is True and preferences["captured"] == preferences["restored"], "Closed attempt cleanup preferences unverified")
+        replay = reconcile_linear_progress_risk_android(session, config, receipt.parent, source, preferences["captured"])
+        write(session.output / "closed-risk-review.json", {"status": "PASS", "sourceReceipt": config["closedRiskReceipt"], "sourceAttemptStatus": "FAILED_HOST_READER; native cohort passed; original failure preserved", "result": replay, "newGuestActions": 0})
     return {"apk": str(apk), "apkSHA256": digest(apk), "styleControls": {"result": control_result, "sourceSHA256": digest(controls), "outputSHA256": digest(session.output / "java-controls.stdout")}}
 
 
 def android_style_control_source():
     source = (ROOT / "android-native-inspector/Actions.java").read_text(); methods = []
-    for name in ["meterStyleFrameCheck", "meterStyleColorCheck", "meterStyleIdentityCheck", "meterStyleExpectedHeight", "meterAttemptDeadline", "meterStyleMethods"]:
+    for name in ["meterStyleFrameCheck", "meterStyleColorCheck", "meterStyleIdentityCheck", "meterStyleExpectedHeight", "meterAttemptDeadline", "meterStyleMethods", "motionPreferenceCommandAllowed", "progressRiskContrastCount"]:
         declaration = re.search(r"(?m)^  public static \S+ " + re.escape(name) + r"\(", source)
         require(declaration is not None, "Compiled control helper declaration missing: " + name)
         start = declaration.start()
@@ -277,7 +291,9 @@ def android_style_control_source():
       reject(()->meterStyleFrameCheck(new double[]{12,12,150,2},new double[]{12,12,150,0},3));
       check(meterAttemptDeadline(1000,"30000")==31000);reject(()->meterAttemptDeadline(0,null));reject(()->meterAttemptDeadline(0,"0"));reject(()->meterAttemptDeadline(0,"1800001"));reject(()->meterAttemptDeadline(0,"invalid"));
       check(java.util.Arrays.equals(meterStyleMethods("dimensions"),new String[]{"dimensions"}));check(meterStyleMethods("").length==4);reject(()->meterStyleMethods("unknown"));
-      if(cases!=28)throw new AssertionError("Control count changed");System.out.println("{\"status\":\"PASS\",\"cases\":"+cases+"}");
+      check(motionPreferenceCommandAllowed("settings get global transition_animation_scale"));check(motionPreferenceCommandAllowed("settings get global animator_duration_scale"));check(motionPreferenceCommandAllowed("settings put global transition_animation_scale 0"));check(motionPreferenceCommandAllowed("settings delete global animator_duration_scale"));check(!motionPreferenceCommandAllowed("settings put secure setting 1"));check(!motionPreferenceCommandAllowed("settings put global animator_duration_scale 0; input tap 1 1"));
+      check(progressRiskContrastCount(new int[]{0xfff7f7f7,0xfff7f7f7},0xfff7f7f7)==0);check(progressRiskContrastCount(new int[]{0xfff7f7f7,0xff4e8f3a},0xfff7f7f7)==1);reject(()->progressRiskContrastCount(null,0));reject(()->progressRiskContrastCount(new int[]{},0));
+      if(cases!=38)throw new AssertionError("Control count changed");System.out.println("{\"status\":\"PASS\",\"cases\":"+cases+"}");
     }
 }'''
 
@@ -411,7 +427,7 @@ def run_ios(session, config, app, observer):
     try: raw = session.run("xctest", argv)
     except ValueError as error:
         sdk_error = error;stdout = session.output / "xctest.stdout";raw = stdout.read_text() if stdout.exists() else ""
-    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
+    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
         original_motion = re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])", raw)
         restored_motion = re.findall(r"METER_STYLE_MOTION_RESTORED ([01])", raw)
         if original_motion != restored_motion: session.cleanup_errors.append("Original iOS Reduce Motion restoration unverified")
@@ -427,6 +443,7 @@ def run_ios(session, config, app, observer):
     if sdk_error is not None: raise sdk_error
     summary = json.loads(session.run("xctest-summary", [XCODE + "/xcresulttool", "get", "test-results", "summary", "--path", session.output / "Tests.xcresult"]))
     result = reconcile_selected_results(summary, raw, selected)
+    if config.get("batch") == "linear-progress-risk": result["linearProgressRisk"] = reconcile_linear_progress_risk_ios(raw)
     if config.get("batch") == "meter-style": result["styleObservations"] = reconcile_ios_styles(raw)
     if config.get("batch") == "meter-style-affected":
         result["styleObservations"] = reconcile_ios_styles(raw,["before-compact","compact","live-restored","reduced-value75","motion-restored-value25","raised"])
@@ -465,6 +482,79 @@ def reconcile_ios_styles(raw, expected=None):
     originals = re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])", raw)
     require(len(originals) == 1 and originals == re.findall(r"METER_STYLE_MOTION_RESTORED ([01])", raw), "Exact original iOS motion preference restoration missing")
     return observations
+
+
+RISK_NAMES = ["known-styled", "moving-0", "moving-1", "moving-2", "stopped-0", "stopped-1", "stopped-2", "known-restored"]
+
+
+def validate_progress_risk_rows(rows, platform):
+    require([row["name"] for row in rows] == RISK_NAMES, "Incomplete/duplicate LinearProgress risk observations")
+    for index, row in enumerate(rows):
+        unknown = 0 < index < 7
+        require(row["unknown"] == unknown and math.isfinite(row.get("captureEpochMs", 0)) and row.get("captureEpochMs", 0) > 0 and math.isfinite(row["scale"]) and row["scale"] > 0, "Wrong actual risk state/capture")
+        frame = row["frame"]
+        height = (frame[3] - frame[1]) / row["scale"] if platform == "android" else frame[3]
+        require(len(frame) == 4 and all(math.isfinite(x) for x in frame) and abs(height - 14) <= 1 / row["scale"], "Actual progress frame differs")
+        if platform == "android":
+            native = row["nativeTarget"]
+            require(native["className"] == "android.view.View" and native["roleDescription"] == "Progress Bar", "Wrong actual progress role")
+            require(native["contentDescription"] in (["Task progress", "Task progress, "] if unknown else ["Task progress, 25%"]), "Wrong current native progress text")
+            require((native.get("rangeInfo") is None and native.get("currentValue") is None) if unknown else {key: native["rangeInfo"].get(key) for key in ["min", "max", "current"]} == {"min": 0, "max": 100, "current": 25}, "Stale native range")
+        else:
+            require(row["nativeLabel"] == "Task progress" and row["nativeValue"] in ([None, ""] if unknown else ["25%"]), "Wrong actual iOS progress label/value")
+        if unknown: require(row["centerPaintedPixels"] > 0, "Unknown cue is absent")
+        else:
+            samples = row["samples"];require(len(samples) == 2, "Known fill/track samples missing")
+            if platform == "ios":
+                require(all(sample["rgba"] and len(sample["rgba"]) % 4 == 0 and sample["rgba"] == sample["referenceRGBA"] for sample in samples) and samples[0]["rgba"] != samples[1]["rgba"], "Actual independent opaque samples differ/vacuous")
+            else: require(all(sample["argb"] == sample["referenceARGB"] for sample in samples) and samples[0]["argb"] != samples[1]["argb"], "Actual independent opaque samples differ/vacuous")
+        if index in [4, 5, 6]: require(row["motionEvents"] and row["motionEvents"][-1] is True, "Real native public Reduce Motion event missing")
+    for group in [rows[1:4], rows[4:7]]: require(all(row["frame"] == group[0]["frame"] for row in group), "Motion interval moved the native frame")
+    return {"status": "PASS", "observations": len(rows), "actualPublicMotionEvent": True}
+
+
+def reconcile_linear_progress_risk_ios(raw):
+    rows = [json.loads(row) for row in re.findall(r"LINEAR_PROGRESS_RISK_OBSERVATION (\{[^\n]+\})", raw)]
+    result = validate_progress_risk_rows(rows, "ios")
+    require(raw.count("LINEAR_PROGRESS_RISK_INTERVALS movingDifferent=true stoppedExact=true") == 1, "Real native active/static intervals missing")
+    originals = re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])", raw)
+    require(len(originals) == 1 and originals == re.findall(r"METER_STYLE_MOTION_RESTORED ([01])", raw), "Original Reduce Motion restoration missing")
+    return {**result, "originalAndRestoredMotion": originals[0], "rows": rows}
+
+
+def reconcile_linear_progress_risk_android(session, config, directory, receipt, captured_preferences=None):
+    from MeterStyleAndroidCheck import Bitmap
+    require(receipt["operation"] == "linear-progress-risk-batch" and receipt["selectedMethods"] == ["live-motion"] and len(receipt["cohorts"]) == 1, "Wrong risk batch")
+    cohort = receipt["cohorts"][0];rows = cohort["observations"]
+    result = validate_progress_risk_rows(rows, "android")
+    require(cohort["movingPixelsDiffer"] is True and cohort["stoppedPixelsExact"] is True and cohort["motionRestorationVerified"] is True, "Native interval/restoration failed")
+    expected = captured_preferences if captured_preferences is not None else {**session.additional_motion_settings, "transition_animation_scale": session.motion_setting}
+    require(cohort["originalMotionSettings"] == cohort["restoredMotionSettings"] == expected, "Exact originally captured preference set differs")
+    decoder = bound_file(config["imageDecoder"]);frames = {}
+    output = session.output / "paint";output.mkdir()
+    for row in rows:
+        require(Path(row["png"]).name == row["png"], "Original PNG basename required")
+        bitmap = output / (row["name"] + ".bmp")
+        session.run("decode-" + row["name"], [decoder, "-s", "format", "bmp", directory / row["png"], "--out", bitmap])
+        image = Bitmap(bitmap.read_bytes());require([image.width, image.height] == row["screenSize"], "Native screenshot size differs")
+        x,y,right,bottom = row["frame"]
+        frames[row["name"]] = [image.argb([px,py]) for py in range(y,bottom) for px in range(x,right)]
+        if row["unknown"]:
+            cx,cy,cr,cb = row["center"];require(x <= cx < cr <= right and y <= cy < cb <= bottom, "Unknown center escaped actual root")
+            count = sum(image.argb([px,py]) != 0xffffffff for py in range(cy,cb) for px in range(cx,cr))
+            background = rows[0]["samples"][1]["argb"] & 0xffffffff
+            cue_count = sum(image.argb([px,py]) != background for py in range(cy,cb) for px in range(cx,cr))
+            if "centerBackgroundARGB" in row:
+                require((row["centerBackgroundARGB"] & 0xffffffff) == background and cue_count == row["centerPaintedPixels"], "Native calibrated cue count differs")
+            else: require(count == row["centerPaintedPixels"], "Original legacy nonwhite count differs")
+            require(cue_count > 0, "Unknown cue matches the actual empty track and is invisible")
+            row["independentCalibratedCuePixels"] = cue_count
+            row["independentTrackARGB"] = background
+        else:
+            for sample in row["samples"]:require(image.argb(sample["point"]) == image.argb(sample["referencePoint"]) == (sample["argb"] & 0xffffffff), "Original opaque PNG/native reference differs")
+    require(frames["moving-0"] != frames["moving-1"] or frames["moving-1"] != frames["moving-2"], "Original PNGs have no native motion")
+    require(frames["stopped-0"] == frames["stopped-1"] == frames["stopped-2"], "Original PNGs did not stop")
+    return {**result, "nativeAndHostColorTolerance": 0, "capturedPreferences": expected, "movingIntervalChanged": True, "reducedIntervalExact": True, "observedRows": rows}
 
 
 def android_cpu_cores(config):
@@ -528,13 +618,18 @@ def run_android(session, config, app, observer):
     batch = config["batch"]
     cohorts = selection("android", batch)["android"]
     style = batch in ["meter-style", "meter-style-dimensions"]
-    if style:
+    risk = batch == "linear-progress-risk"
+    if style or risk:
         session.run("device-api", selected + ["shell", "getprop", "ro.build.version.sdk"])
         session.run("device-abi", selected + ["shell", "getprop", "ro.product.cpu.abi"])
         session.run("device-size", selected + ["shell", "wm", "size"])
         session.run("device-font-setting", selected + ["shell", "settings", "get", "system", "font_scale"])
         session.motion_setting = session.run("motion-setting-before", selected + ["shell", "settings", "get", "global", "transition_animation_scale"]).strip()
         require(session.motion_setting == "null" or re.fullmatch(r"[0-9.]+", session.motion_setting), "Unexpected captured motion preference")
+        if risk:
+            original = session.run("animator-setting-before", selected + ["shell", "settings", "get", "global", "animator_duration_scale"]).strip()
+            require(original == "null" or re.fullmatch(r"[0-9.]+", original), "Unexpected captured animator preference")
+            session.additional_motion_settings["animator_duration_scale"] = original
     operation = "meter-style" if style else batch
     remote = "/sdcard/Android/data/dev.codonui.lab.number/files/" + operation + "-native-" + session.output.name
     cohort_args = ["-e", "cohorts", "dimensions"] if batch == "meter-style-dimensions" else []
@@ -545,7 +640,10 @@ def run_android(session, config, app, observer):
     require(value.get("nativeActionSucceeded") and not value.get("hasFailedCohorts") and value.get("selectedMethods") == cohorts, "Instrumentation failed/incomplete; adb exit alone is not a verdict")
     methods = [native_method({"path": str(receipt), "sha256": digest(receipt), "format": "android_receipt", "method": name, "maximumSeconds": 180}) for name in cohorts]
     session.run("density", selected + ["shell", "wm", "density"])
-    if style:
+    if risk:
+        result = reconcile_linear_progress_risk_android(session, config, directory, value)
+        write(session.output / "risk-review.json", result)
+    elif style:
         decoder = bound_file(config["imageDecoder"])
         selected_args = ["--selected-cohorts", "dimensions"] if batch == "meter-style-dimensions" else []
         session.run("paint", [os.sys.executable, "-B", ROOT / "MeterStyleAndroidCheck.py", "--input", directory, "--out", session.output / "paint", "--image-decoder", decoder, "--decoder-sha256", config["imageDecoder"]["sha256"], "--deadline-unix", str(session.work), *selected_args])
@@ -563,16 +661,20 @@ def cleanup(session, config):
         require(plistlib.loads(state.read_bytes())["state"] == 1, "Simulator shutdown not verified")
     else:
         adb = [str(Path(config["sdk"]) / "platform-tools/adb")]
-        if session.motion_setting is not None:
+        captured = dict(session.additional_motion_settings)
+        if session.motion_setting is not None: captured["transition_animation_scale"] = session.motion_setting
+        restored = {}
+        for key, original in captured.items():
             try:
-                original = session.motion_setting
-                argv = ["delete", "global", "transition_animation_scale"] if original == "null" else ["put", "global", "transition_animation_scale", original]
-                session.run("restore-motion-setting", adb + ["-s", config["destination"], "shell", "settings", *argv], session.remaining(True) / 3, True)
-                restored = session.run("verify-motion-setting", adb + ["-s", config["destination"], "shell", "settings", "get", "global", "transition_animation_scale"], session.remaining(True) / 3, True).strip()
-                write(session.output / "preference-restoration.json", {"captured": {"transition_animation_scale": original}, "restored": {"transition_animation_scale": restored}, "exactKeySetAndValuesVerified": restored == original})
-                require(restored == original, "Exact captured motion preference restoration failed")
+                require(key in ["transition_animation_scale", "animator_duration_scale"], "Uncaptured motion preference key")
+                label = "motion-setting" if key == "transition_animation_scale" else "animator-setting"
+                argv = ["delete", "global", key] if original == "null" else ["put", "global", key, original]
+                session.run("restore-" + label, adb + ["-s", config["destination"], "shell", "settings", *argv], session.remaining(True) / (2 * len(captured) + 1), True)
+                restored[key] = session.run("verify-" + label, adb + ["-s", config["destination"], "shell", "settings", "get", "global", key], session.remaining(True) / (2 * len(captured) + 1), True).strip()
+                require(restored[key] == original, "Exact captured motion preference restoration failed: " + key)
             except Exception as error:
                 session.cleanup_errors.append("Motion preference restoration: " + repr(error))
+        if captured: write(session.output / "preference-restoration.json", {"captured": captured, "restored": restored, "exactKeySetAndValuesVerified": restored == captured})
         try: session.run("emulator-shutdown", adb + ["-s", config["destination"], "emu", "kill"], session.remaining(True) / 2, True)
         except ValueError as error: write(session.output / "shutdown-transport-warning.json", {"error": str(error), "verdict": "Owned group,serial and port checks below determine actual cleanup"})
         finally:
@@ -631,9 +733,16 @@ def execute(plan, admission):
     return driver_exit_code(0 if failure is None else 1, result is not None, clean)
 
 
+def validate_standard_scope(plan):
+    cell, batch = plan["cell"], plan["nativeStandard"].get("batch", "meter-g02")
+    meter = cell.startswith("CAT.meter.") and batch != "linear-progress-risk"
+    progress = cell in ["CAT.linear-progress." + gate for gate in ["G04", "G07", "G08", "G09"]] and batch == "linear-progress-risk"
+    require(meter or progress, "Only the authorized Meter or focused LinearProgress path is selected")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__);parser.add_argument("--plan", type=Path, required=True);args = parser.parse_args()
-    plan = json.loads(args.plan.read_text());require(plan["cell"].startswith("CAT.meter."), "Only the authorized Meter path is selected")
+    plan = json.loads(args.plan.read_text());validate_standard_scope(plan)
     admission = load_admission(__file__, plan["cell"], selection(plan["nativeStandard"]["platform"], plan["nativeStandard"].get("batch", "meter-g02")))
     require(json.loads(Path(admission["path"]).read_text())["planSHA256"] == digest(args.plan), "Plan changed after admission")
     return execute(plan, admission)

@@ -55,6 +55,24 @@
         "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/meter-final-g09-closeout-20261106/objects/640ca57ce733cea8fab5b76c7477b46c50a8c92c3ee7facf3e7c8580386cf5ec",
         "sha256": "640ca57ce733cea8fab5b76c7477b46c50a8c92c3ee7facf3e7c8580386cf5ec"
       }
+    },
+    "CAT.linear-progress.G04": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/linear-progress-native-gates-20261106/objects/4cd95d685e0cfeba838ee444a5b4297025a9471e5d9c543dc098d325743c87d5",
+        "sha256": "4cd95d685e0cfeba838ee444a5b4297025a9471e5d9c543dc098d325743c87d5"
+      }
+    },
+    "CAT.linear-progress.G07": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/linear-progress-native-gates-20261106/objects/ff4296f87edd4ed67e9339f62b32e3f132bbf1d4e07699aa16cbd5c0f9d6aefb",
+        "sha256": "ff4296f87edd4ed67e9339f62b32e3f132bbf1d4e07699aa16cbd5c0f9d6aefb"
+      }
+    },
+    "CAT.linear-progress.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/linear-progress-native-gates-20261106/objects/469b4456cfd5498c34094c286cac4012a4cbdfd56061db5e59027df6eb58c989",
+        "sha256": "469b4456cfd5498c34094c286cac4012a4cbdfd56061db5e59027df6eb58c989"
+      }
     }
   }
 }

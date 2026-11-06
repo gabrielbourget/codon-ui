@@ -1,5 +1,6 @@
 """Host controls for the real standard SDK command and failure boundaries."""
 import hashlib
+import copy
 import json
 import os
 from pathlib import Path
@@ -20,6 +21,59 @@ class StandardTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory();self.root = Path(self.temp.name)
     def tearDown(self): self.temp.cleanup()
+
+    def test_standard_scope_and_actual_linear_progress_entry_fail_before_sdk(self):
+        for cell,batch,valid in [("CAT.meter.G04","meter-style",True),("CAT.linear-progress.G04","linear-progress-risk",True),("CAT.linear-progress.G07","linear-progress-risk",True),("CAT.linear-progress.G04","meter-style",False),("CAT.tag.G04","linear-progress-risk",False),("CAT.meter.G04","linear-progress-risk",False)]:
+            plan={"cell":cell,"nativeStandard":{"platform":"ios","batch":batch,"output":str(self.root/"never-created")}}
+            if valid:NATIVE.validate_standard_scope(plan)
+            else:
+                with self.assertRaises(ValueError):NATIVE.validate_standard_scope(plan)
+        path=self.root/"lp-plan.json";path.write_text(json.dumps({"cell":"CAT.linear-progress.G04","nativeStandard":{"platform":"ios","batch":"linear-progress-risk","output":str(self.root/"never-created")}}))
+        env={k:v for k,v in os.environ.items() if k!="CODON_NATIVE_CELL_PREFLIGHT_RECEIPT"}
+        result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(path)],env=env,capture_output=True,text=True,timeout=10)
+        self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((self.root/"never-created").exists())
+
+    def test_linear_progress_risk_reader_preserves_semantics_pixels_events_and_geometry_negatives(self):
+        rows=[]
+        for index,name in enumerate(NATIVE.RISK_NAMES):
+            unknown=0<index<7
+            rows.append({"name":name,"unknown":unknown,"captureEpochMs":1700000000000+index,"scale":3,"frame":[15,250,350,14],"nativeLabel":"Task progress","nativeValue":None if unknown else "25%","motionEvents":[True] if index>=4 else [],"centerPaintedPixels":20,"samples":[{"rgba":[0,122,255,255],"referenceRGBA":[0,122,255,255]},{"rgba":[255]*4,"referenceRGBA":[255]*4}]})
+        self.assertEqual(NATIVE.selection("android","linear-progress-risk"),{"ios":[],"android":["live-motion"]})
+        self.assertEqual(NATIVE.selection("ios","linear-progress-risk")["ios"],["MeterStyleTrialTests/testLinearProgressLiveMotion"])
+        self.assertEqual(NATIVE.validate_progress_risk_rows(rows,"ios")["observations"],8)
+        for kind in ["stale-value","blank-cue","missing-event","wrong-color","wrong-frame","duplicate"]:
+            bad=copy.deepcopy(rows)
+            if kind=="stale-value":bad[1]["nativeValue"]="25%"
+            elif kind=="blank-cue":bad[4]["centerPaintedPixels"]=0
+            elif kind=="missing-event":bad[4]["motionEvents"]=[]
+            elif kind=="wrong-color":bad[0]["samples"][0]["rgba"][0]=1
+            elif kind=="wrong-frame":bad[2]["frame"][1]+=1
+            else:bad.append(bad[0])
+            with self.subTest(kind=kind),self.assertRaises(ValueError):NATIVE.validate_progress_risk_rows(bad,"ios")
+        raw="\n".join("LINEAR_PROGRESS_RISK_OBSERVATION "+json.dumps(row) for row in rows)+"\nMETER_STYLE_MOTION_ORIGINAL 0\nMETER_STYLE_MOTION_RESTORED 0\nLINEAR_PROGRESS_RISK_INTERVALS movingDifferent=true stoppedExact=true\n"
+        self.assertEqual(NATIVE.reconcile_linear_progress_risk_ios(raw)["originalAndRestoredMotion"],"0")
+        with self.assertRaises(ValueError):NATIVE.reconcile_linear_progress_risk_ios(raw.replace("METER_STYLE_MOTION_RESTORED 0","METER_STYLE_MOTION_RESTORED 1"))
+        with self.assertRaises(ValueError):NATIVE.reconcile_linear_progress_risk_ios(raw.replace("movingDifferent=true","movingDifferent=false"))
+
+    def test_android_actual_range_metadata_preserves_unowned_native_type(self):
+        rows=[]
+        for index,name in enumerate(NATIVE.RISK_NAMES):
+            unknown=0<index<7
+            rows.append({"name":name,"unknown":unknown,"captureEpochMs":1700000000000+index,"scale":1.75,"frame":[45,1090,674,1114],"nativeTarget":{"className":"android.view.View","roleDescription":"Progress Bar","contentDescription":"Task progress, " if unknown else "Task progress, 25%","rangeInfo":None if unknown else {"min":0,"max":100,"current":25,"type":0},"currentValue":None if unknown else 25},"motionEvents":[True] if index>=4 else [],"centerPaintedPixels":294,"samples":[{"argb":-11628486,"referenceARGB":-11628486},{"argb":-526345,"referenceARGB":-526345}]})
+        self.assertEqual(NATIVE.validate_progress_risk_rows(rows,"android")["observations"],8)
+        bad=copy.deepcopy(rows);bad[0]["nativeTarget"]["rangeInfo"]["current"]=75
+        with self.assertRaises(ValueError):NATIVE.validate_progress_risk_rows(bad,"android")
+
+    def test_android_cleanup_restores_each_captured_motion_key_and_still_stops_guest_on_failure(self):
+        for failed in [False,True]:
+            session=NATIVE.Session(self.root/("two-keys-"+str(failed)),60,30);session.guest_owned=True;session.emulator=MagicMock();session.motion_setting="0";session.additional_motion_settings={"animator_duration_scale":"0.5"}
+            def command(label,argv,*args,**kwargs):
+                if label=="restore-animator-setting" and failed:raise ValueError("saved denied restore")
+                return "0.5" if label=="verify-animator-setting" else "0" if label=="verify-motion-setting" else ""
+            session.run=MagicMock(side_effect=command);probe=MagicMock();probe.__enter__.return_value.connect_ex.return_value=111
+            with patch.object(NATIVE,"stop_owned_process",return_value=True),patch.object(NATIVE.socket,"socket",return_value=probe):NATIVE.cleanup(session,{"platform":"android","sdk":"/sdk","destination":"emulator-5568"})
+            names=[call.args[0] for call in session.run.call_args_list];self.assertIn("restore-motion-setting",names);self.assertIn("emulator-shutdown",names);self.assertEqual(bool(session.cleanup_errors),failed)
+            proof=json.loads((session.output/"preference-restoration.json").read_text());self.assertEqual(proof["exactKeySetAndValuesVerified"],not failed)
 
     def test_standard_application_build_rejects_stale_map_changed_native_and_config_drift(self):
         import zipfile

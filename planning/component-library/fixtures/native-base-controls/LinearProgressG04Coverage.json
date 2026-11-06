@@ -1,0 +1,336 @@
+{
+  "component": "CAT.linear-progress",
+  "checklistVersion": "NATIVE-CELL-03",
+  "gates": [
+    "G04",
+    "G07",
+    "G08",
+    "G09"
+  ],
+  "canonicalAssertions": [
+    {
+      "canonicalCase": "renders.",
+      "nativeTestCases": [
+        "renders one named, bounded accessibility target with a semantic default bar"
+      ],
+      "expectedOutcome": "Root, track and bar remain owned by LinearProgress; actual LP-02 target/native fill retained.",
+      "selectedInstalledCases": [
+        "semantic"
+      ],
+      "id": "STYLE.linear-progress.001",
+      "scope": "Complete source variants; sharedknownRangeIndicator resolvednativehost style proof fromMeter; currentLPdirectmainroot/unknown/liveMotion proof separate."
+    },
+    {
+      "canonicalCase": "uses the semantic base bar style when no order is provided.",
+      "nativeTestCases": [
+        "renders one named, bounded accessibility target with a semantic default bar"
+      ],
+      "expectedOutcome": "Semantic controlSelectedBackground; no synthesized primary order.",
+      "selectedInstalledCases": [
+        "semantic",
+        "dark-semantic"
+      ],
+      "id": "STYLE.linear-progress.002",
+      "scope": "Complete source variants; sharedknownRangeIndicator resolvednativehost style proof fromMeter; currentLPdirectmainroot/unknown/liveMotion proof separate."
+    },
+    {
+      "canonicalCase": "responds to height and width props.",
+      "nativeTestCases": [
+        "honors numeric, zero and percentage dimensions with final root precedence"
+      ],
+      "expectedOutcome": "Approved native root dimension substitution; numeric/zero/percentage and final root precedence, filling track.",
+      "selectedInstalledCases": [
+        "semantic",
+        "fractional",
+        "zero-width",
+        "zero-height",
+        "percentage",
+        "auto-height"
+      ],
+      "id": "STYLE.linear-progress.003",
+      "scope": "Complete source variants; sharedknownRangeIndicator resolvednativehost style proof fromMeter; currentLPdirectmainroot/unknown/liveMotion proof separate."
+    },
+    {
+      "canonicalCase": "responds to color props.",
+      "nativeTestCases": [
+        "gives explicit colors priority over order and validates native colors",
+        "supports native dynamic colors, registered styles and style arrays"
+      ],
+      "expectedOutcome": "Independent barColor and trackColor; native ColorValue/registered-array styles; invalid CSS colors rejected.",
+      "selectedInstalledCases": [
+        "explicit-colors",
+        "native-color",
+        "dark-native-color"
+      ],
+      "id": "STYLE.linear-progress.004",
+      "scope": "Complete source variants; sharedknownRangeIndicator resolvednativehost style proof fromMeter; currentLPdirectmainroot/unknown/liveMotion proof separate."
+    },
+    {
+      "canonicalCase": "responds to corner geometry props.",
+      "nativeTestCases": [
+        "retains independent %s bar and track geometry"
+      ],
+      "expectedOutcome": "All orthogonal/rounded/round track and bar radii, independently owned.",
+      "selectedInstalledCases": [
+        "orthogonal",
+        "independent-radii",
+        "semantic"
+      ],
+      "id": "STYLE.linear-progress.005",
+      "scope": "Complete source variants; sharedknownRangeIndicator resolvednativehost style proof fromMeter; currentLPdirectmainroot/unknown/liveMotion proof separate."
+    },
+    {
+      "canonicalCase": "responds to theming order props.",
+      "nativeTestCases": [
+        "uses the existing numbered palette for order %s"
+      ],
+      "expectedOutcome": "All primary/secondary/tertiary/quaternary/quintenary orders, with explicit barColor precedence.",
+      "selectedInstalledCases": [
+        "primary",
+        "dark-primary"
+      ],
+      "id": "STYLE.linear-progress.006",
+      "scope": "Complete source variants; sharedknownRangeIndicator resolvednativehost style proof fromMeter; currentLPdirectmainroot/unknown/liveMotion proof separate."
+    },
+    {
+      "canonicalCase": "keeps order styles on numbered palette tokens.",
+      "nativeTestCases": [
+        "uses the existing numbered palette for order %s",
+        "uses current provider colors and geometry without changing the controlled value"
+      ],
+      "expectedOutcome": "All five numbered action backgrounds; current provider, no legacy token substitution.",
+      "selectedInstalledCases": [
+        "primary",
+        "dark-primary",
+        "dark-semantic"
+      ],
+      "id": "STYLE.linear-progress.007",
+      "scope": "Complete source variants; sharedknownRangeIndicator resolvednativehost style proof fromMeter; currentLPdirectmainroot/unknown/liveMotion proof separate."
+    },
+    {
+      "canonicalCase": "responds to box-shadow props.",
+      "nativeTestCases": [
+        "adds and removes established track elevation"
+      ],
+      "expectedOutcome": "Track raised on/off; approved native shadow/elevation, no claim of browser raster equality.",
+      "selectedInstalledCases": [
+        "raised"
+      ],
+      "id": "STYLE.linear-progress.008",
+      "scope": "Complete source variants; sharedknownRangeIndicator resolvednativehost style proof fromMeter; currentLPdirectmainroot/unknown/liveMotion proof separate."
+    },
+    {
+      "canonicalCase": "responds to direction props.",
+      "nativeTestCases": [
+        "anchors physical left/right and vertical up/down without rotating its accessibility target"
+      ],
+      "expectedOutcome": "Horizontal right/left, vertical up/down and opposite-axis fallback; stable accessibility root.",
+      "selectedInstalledCases": [
+        "physical-left",
+        "vertical-up",
+        "vertical-down"
+      ],
+      "id": "STYLE.linear-progress.009",
+      "scope": "Complete source variants; sharedknownRangeIndicator resolvednativehost style proof fromMeter; currentLPdirectmainroot/unknown/liveMotion proof separate."
+    },
+    {
+      "canonicalCase": "responds to orientation props.",
+      "nativeTestCases": [
+        "anchors physical left/right and vertical up/down without rotating its accessibility target"
+      ],
+      "expectedOutcome": "Horizontal/vertical root defaults and fill axis; same native root.",
+      "selectedInstalledCases": [
+        "semantic",
+        "vertical-up",
+        "vertical-down"
+      ],
+      "id": "STYLE.linear-progress.010",
+      "scope": "Complete source variants; sharedknownRangeIndicator resolvednativehost style proof fromMeter; currentLPdirectmainroot/unknown/liveMotion proof separate."
+    },
+    {
+      "canonicalCase": "responds to custom style props.",
+      "nativeTestCases": [
+        "isolates the three style slots and passes post-custom defaults to the final callback",
+        "validates colors in every authored slot including final callback output"
+      ],
+      "expectedOutcome": "Independent root/track/bar owners, computed then custom then final; validation per owner.",
+      "selectedInstalledCases": [
+        "registered-array",
+        "post-custom-final",
+        "dark-post-custom-final",
+        "zero-opacity"
+      ],
+      "id": "STYLE.linear-progress.011",
+      "scope": "Complete source variants; sharedknownRangeIndicator resolvednativehost style proof fromMeter; currentLPdirectmainroot/unknown/liveMotion proof separate."
+    },
+    {
+      "canonicalCase": "merges native root class and style props.",
+      "nativeTestCases": [
+        "isolates the three style slots and passes post-custom defaults to the final callback"
+      ],
+      "expectedOutcome": "Original approved native style substitution for DOM classes; current callback state and post-custom defaultStyle, final output wins.",
+      "selectedInstalledCases": [
+        "registered-array",
+        "post-custom-final"
+      ],
+      "id": "STYLE.linear-progress.012",
+      "scope": "Complete source variants; sharedknownRangeIndicator resolvednativehost style proof fromMeter; currentLPdirectmainroot/unknown/liveMotion proof separate."
+    },
+    {
+      "canonicalCase": "does not leak wrapper props to the React Aria root.",
+      "nativeTestCases": [
+        "forwards its real View ref, IDs and native layout payload while consuming wrapper props"
+      ],
+      "expectedOutcome": "Consume all range/color/geometry/slot wrapper props; original owned children, allowed host props/events/ref retained.",
+      "selectedInstalledCases": [
+        "semantic",
+        "explicit-reset"
+      ],
+      "id": "STYLE.linear-progress.013",
+      "scope": "Complete source variants; sharedknownRangeIndicator resolvednativehost style proof fromMeter; currentLPdirectmainroot/unknown/liveMotion proof separate."
+    }
+  ],
+  "sharedBoundary": {
+    "sharedSource": {
+      "path": "packages/react-native/src/components/RangeIndicator/RangeIndicator.tsx",
+      "sha256": "696d2ce1c4f9cdd42618951737a19065b80712aac502e83cc30ecbb267f19ff1"
+    },
+    "knownDrawing": "ForfalseisIndeterminate, sameuseRangeAnimationpercentage andidenticalroot/track/bar style resolution andhostdrawing. Inputs/styles aretheMeter-selected tuples; LP99property fullsourcecontract anddifferingcallbackstate/renderer semantics retainownsourcecases andnativeLPbaseline.",
+    "differences": "Component-specificnames/IDs, iOSrole, LinearProgressstyle/render stateisIndeterminate andtheunknownactivity branch are not certifiedfromMeter. OwnLP-02methods plusnewLP-risk method establishactualsemantic/renderer/unknown/publicMotion behavior.",
+    "nativeReuse": "28shared resolvedstyle observations eachOS; no claimthat28LP-specificstyle observations wereexecuted. Androidactualrange-progress appearsinretainedwindow/PNGdata andmoves629/522/629 onhost668/560/668.",
+    "indeterminate": "LP-UNK01/02 failures retained. CurrentAndroid8riskobservations/native8.092s andadmittedcorrectedclosedPNG/metadatareviewPASS; iOS8observations131.851sPASS,actualpluginidentity/nativePNGmoving-static andcontrast replayPASS,originalMotion0restored/cleanup verified."
+  },
+  "baselineMethods": {
+    "ios": [
+      {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/linear-progress-g02-ios-first-batch-20261104/objects/33ffcfbfc0d30e8067388c816971ebb661240dbdf896f38fd8f7101262dbd41d",
+        "sha256": "33ffcfbfc0d30e8067388c816971ebb661240dbdf896f38fd8f7101262dbd41d",
+        "kind": "native_method",
+        "format": "xctest_log",
+        "method": "testS01LPCallerValuesBoundsAndDeferred",
+        "maximumSeconds": 180,
+        "claim": "Actual LP-02 product/source/fixture tuple retained; known paths andiOS platform-foldedpath unchanged; no retroactivecurrentapporchecklist identity. OriginalfailedAndroidunknowncases remainhistorical."
+      },
+      {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/linear-progress-g02-ios-first-batch-20261104/objects/33ffcfbfc0d30e8067388c816971ebb661240dbdf896f38fd8f7101262dbd41d",
+        "sha256": "33ffcfbfc0d30e8067388c816971ebb661240dbdf896f38fd8f7101262dbd41d",
+        "kind": "native_method",
+        "format": "xctest_log",
+        "method": "testS01LPFormattingEmptyLabelAndContext",
+        "maximumSeconds": 180,
+        "claim": "Actual LP-02 product/source/fixture tuple retained; known paths andiOS platform-foldedpath unchanged; no retroactivecurrentapporchecklist identity. OriginalfailedAndroidunknowncases remainhistorical."
+      },
+      {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/linear-progress-g02-ios-first-batch-20261104/objects/33ffcfbfc0d30e8067388c816971ebb661240dbdf896f38fd8f7101262dbd41d",
+        "sha256": "33ffcfbfc0d30e8067388c816971ebb661240dbdf896f38fd8f7101262dbd41d",
+        "kind": "native_method",
+        "format": "xctest_log",
+        "method": "testS02S06LPNativeDeliveryCurrentCallbacksAndHeldRetirement",
+        "maximumSeconds": 180,
+        "claim": "Actual LP-02 product/source/fixture tuple retained; known paths andiOS platform-foldedpath unchanged; no retroactivecurrentapporchecklist identity. OriginalfailedAndroidunknowncases remainhistorical."
+      },
+      {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/linear-progress-g02-ios-current-motion-20261105/objects/0ffad9dff2164db1fe93c4d977b6acbc1114d7879afe6e94e4dd71c3eadb1ccc",
+        "sha256": "0ffad9dff2164db1fe93c4d977b6acbc1114d7879afe6e94e4dd71c3eadb1ccc",
+        "kind": "native_method",
+        "format": "xctest_log",
+        "method": "testS02LPKnownUnknownLatestFillAndVisualRetirement",
+        "maximumSeconds": 180,
+        "claim": "Actual LP-02 product/source/fixture tuple retained; known paths andiOS platform-foldedpath unchanged; no retroactivecurrentapporchecklist identity. OriginalfailedAndroidunknowncases remainhistorical."
+      }
+    ],
+    "android": [
+      {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/linear-progress-g02-unknown-text-fix-20261104/objects/d96db35c0b3ce06e8a8d44e6e4a5f82240ee34737b1f7fbdff6e0b635eab795b",
+        "sha256": "d96db35c0b3ce06e8a8d44e6e4a5f82240ee34737b1f7fbdff6e0b635eab795b",
+        "kind": "native_method",
+        "format": "android_receipt",
+        "method": "values",
+        "maximumSeconds": 180,
+        "claim": "LP-02 adopted individualnativecohort atoriginaltuple; unrelatedfailed/skippedcohorts stayfailed/skipped. Knownbranch unaffectedbyAndroidunknownfix; finalcurrentunknownmotion141.683s retained. Originalquantitativepaint/reviews/cleanup remainboundinLP-02packets."
+      },
+      {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/linear-progress-g02-unknown-text-fix-20261104/objects/d273b5ac6a90dfd25e6244ad4986efe2c9c1068f23e00767d3e9d87f8a14e9f5",
+        "sha256": "d273b5ac6a90dfd25e6244ad4986efe2c9c1068f23e00767d3e9d87f8a14e9f5",
+        "kind": "native_method",
+        "format": "android_receipt",
+        "method": "format",
+        "maximumSeconds": 180,
+        "claim": "LP-02 adopted individualnativecohort atoriginaltuple; unrelatedfailed/skippedcohorts stayfailed/skipped. Knownbranch unaffectedbyAndroidunknownfix; finalcurrentunknownmotion141.683s retained. Originalquantitativepaint/reviews/cleanup remainboundinLP-02packets."
+      },
+      {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/linear-progress-g02-unknown-text-fix-20261104/objects/d273b5ac6a90dfd25e6244ad4986efe2c9c1068f23e00767d3e9d87f8a14e9f5",
+        "sha256": "d273b5ac6a90dfd25e6244ad4986efe2c9c1068f23e00767d3e9d87f8a14e9f5",
+        "kind": "native_method",
+        "format": "android_receipt",
+        "method": "events",
+        "maximumSeconds": 180,
+        "claim": "LP-02 adopted individualnativecohort atoriginaltuple; unrelatedfailed/skippedcohorts stayfailed/skipped. Knownbranch unaffectedbyAndroidunknownfix; finalcurrentunknownmotion141.683s retained. Originalquantitativepaint/reviews/cleanup remainboundinLP-02packets."
+      },
+      {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/linear-progress-g02-complete-20261105/objects/a43d58603c5b3d2224e49f301e45064f337fc932b388220df4772086c4312eb1",
+        "sha256": "a43d58603c5b3d2224e49f301e45064f337fc932b388220df4772086c4312eb1",
+        "kind": "native_method",
+        "format": "android_receipt",
+        "method": "motion",
+        "maximumSeconds": 180,
+        "claim": "LP-02 adopted individualnativecohort atoriginaltuple; unrelatedfailed/skippedcohorts stayfailed/skipped. Knownbranch unaffectedbyAndroidunknownfix; finalcurrentunknownmotion141.683s retained. Originalquantitativepaint/reviews/cleanup remainboundinLP-02packets."
+      }
+    ]
+  },
+  "fullSourceConsumerReuse": "Current795 librarysourcefiles,2508archivefiles/normalizedmanifest,42publicbooks andboth703moduleconsumergraphs unchanged fromMeter finalproof; no newlibrarycode/packageAPI changes.",
+  "status": "G04_G07_G08_COMPLETE_G09_NORMAL_CLOSEOUT_PENDING",
+  "remaining": {
+    "G04": [],
+    "G07": [],
+    "G08": [],
+    "G09": [
+      "Affectedcurateddocsbuild,normalrootcommit,finalnine-gateaudit andmetadataadoption"
+    ]
+  },
+  "checklistSHA256": "38a14bb3693ed90eedcc8350c275f6ce0eb2df4ea4ac17d37e13a16fd45a2268",
+  "reviewedUTC": "2026-11-06T06:31:12.289226+00:00",
+  "additionalLinearProgressContract": {
+    "source": "72 unchanged RangeIndicator cases,99canonical/66native-only properties,publicrange typebook andmaintainedRangeScene; allrelevant librarybytes unchanged",
+    "ownedUnknown": "Numericvalues/text retirewhileunknown; same actualnamedroot andrenderer; visiblecue inrunning/reducedmodes; actualnative/publicmotion signal andknown25%return verified",
+    "callbackState": "Completeknown/unknownstyle andrender state contract inactualsourcecases; LPnativeRisk usesexistingrenderRangeRoot forwardingroot props,actualhost/semantics/paint; sharedMeterproof onlycoversresolvedknown stylehost path,notLP-only callback/role/unknownbranch"
+  },
+  "nativeRiskResults": {
+    "android": {
+      "attemptUTC": [
+        "2026-11-06T05:59:18.197794+00:00",
+        "2026-11-06T06:01:20.552123+00:00"
+      ],
+      "nativeMethodSeconds": 8.092,
+      "observations": 8,
+      "originalAttempt": "FAILED_HOST_READER_TYPE_METADATA; actualnativepassed,notrelabeled",
+      "correctedClosedReplay": "PASS withnativeRangeInfo.type0 preserved; exactknownmin/max/current unchanged; actualtrack#f7f7f7 yields83/66/102moving and133/133/133stoppedcuepixels; originalwhitecounts294preserved",
+      "capturedAndRestored": {
+        "transition_animation_scale": "0",
+        "animator_duration_scale": "0"
+      },
+      "cleanupVerified": true,
+      "guestAttempts": 1
+    },
+    "ios": {
+      "attemptUTC": [
+        "2026-11-06T06:16:22.728382+00:00",
+        "2026-11-06T06:20:03.496640+00:00"
+      ],
+      "nativeMethodSeconds": 131.851,
+      "observations": 8,
+      "loadedExecutableSHA256": "b6612d3bab356559a1afaf930d314f1f869283431d1f869dbf95b18459b1c0d5",
+      "originalAndRestoredReduceMotion": "0",
+      "nativeRootRepresentation": "XCTest Other(1), actualTaskprogress name/known25%/unknownemptyvalue/uniquetarget; no spoken-AT/typedUIKitwidget claim",
+      "independentOriginalPNG": "PASS nativeframe crops; movinginterval changes,stoppedinterval byte-exact;240cuepixels againstactualwhite track each",
+      "cleanupVerified": true,
+      "guestAttempts": 1
+    }
+  },
+  "gateDisposition": {
+    "G04": "PASS(LP-04): fullcanonicalsource13map/sharedexactknownhostproof plusLP-specificcurrentstyles/unknown/motion onbothOS",
+    "G07": "PASS(LP-07): retainedfourAndroidbaseline methods/currentown8native+host observations,actualhost/context/reset/style/AX/unknown/motion/ref/lifetime andcleanup",
+    "G08": "PASS(LP-08): retainedfouriOSbaseline methods/currentown8native observations131.851s/loadedidentity/original0restore/nativePNG andcleanup",
+    "G09": "OPEN: finalnormalchecks/source-doc-review metadata adoption"
+  }
+}

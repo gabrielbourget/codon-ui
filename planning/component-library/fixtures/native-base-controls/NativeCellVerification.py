@@ -9,7 +9,7 @@ from pathlib import Path
 import re
 import sys
 
-VERSION = "NATIVE-CELL-02"
+VERSION = "NATIVE-CELL-03"
 CHECKLIST = Path(__file__).with_name("NativeCellVerificationChecklist.md")
 RUBRIC = Path(__file__).resolve().parents[2] / "roadmap.md"
 RISKS = {"fractional_geometry", "shadow", "antialiasing", "rotation", "scene_readiness", "cleanup"}
