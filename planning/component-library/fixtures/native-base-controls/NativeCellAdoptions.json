@@ -58,20 +58,26 @@
     },
     "CAT.linear-progress.G04": {
       "completion": {
-        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/linear-progress-native-gates-20261106/objects/4cd95d685e0cfeba838ee444a5b4297025a9471e5d9c543dc098d325743c87d5",
-        "sha256": "4cd95d685e0cfeba838ee444a5b4297025a9471e5d9c543dc098d325743c87d5"
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/linear-progress-final-closeout-20261106/objects/7add751a74e271c971718bad080178f219ba59cac923f94751d3194b4c4d752b",
+        "sha256": "7add751a74e271c971718bad080178f219ba59cac923f94751d3194b4c4d752b"
       }
     },
     "CAT.linear-progress.G07": {
       "completion": {
-        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/linear-progress-native-gates-20261106/objects/ff4296f87edd4ed67e9339f62b32e3f132bbf1d4e07699aa16cbd5c0f9d6aefb",
-        "sha256": "ff4296f87edd4ed67e9339f62b32e3f132bbf1d4e07699aa16cbd5c0f9d6aefb"
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/linear-progress-final-closeout-20261106/objects/cf07c0077671310197d6776d47de24d3cbcddb8e41f7b4b64cb50f2308fe02b3",
+        "sha256": "cf07c0077671310197d6776d47de24d3cbcddb8e41f7b4b64cb50f2308fe02b3"
       }
     },
     "CAT.linear-progress.G08": {
       "completion": {
-        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/linear-progress-native-gates-20261106/objects/469b4456cfd5498c34094c286cac4012a4cbdfd56061db5e59027df6eb58c989",
-        "sha256": "469b4456cfd5498c34094c286cac4012a4cbdfd56061db5e59027df6eb58c989"
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/linear-progress-final-closeout-20261106/objects/20fb6f8849c3b45389e0707063b1bbd6e112bab8fa248410ec561e8c742b4392",
+        "sha256": "20fb6f8849c3b45389e0707063b1bbd6e112bab8fa248410ec561e8c742b4392"
+      }
+    },
+    "CAT.linear-progress.G09": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/linear-progress-final-closeout-20261106/objects/24bd0d035f105726c48e4a748202ac3b568c906663354c6bd6ec0354658754c0",
+        "sha256": "24bd0d035f105726c48e4a748202ac3b568c906663354c6bd6ec0354658754c0"
       }
     }
   }
