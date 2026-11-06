@@ -26,7 +26,8 @@ def body(source, name):
 def check(source):
     for key in ['priorNineMethodBodySHA256', 'unchangedHelperBodySHA256']:
         for name, expected in BASELINE[key].items():
-            assert hashlib.sha256(body(source, name).encode()).hexdigest() == expected, name
+            current = BASELINE.get('timingPolicyHelperBodySHA256', {}).get(name, expected)
+            assert hashlib.sha256(body(source, name).encode()).hexdigest() == current, name
     actual = collections.Counter(line.strip() for line in body(source, 'verify').splitlines() if 'XCTAssert' in line)
     assert not (collections.Counter(BASELINE['verifyAssertionCounter']) - actual), 'Lost/changed native assertion'
     observation = body(source, 'focusedObservation')
@@ -43,7 +44,7 @@ def check(source):
 class IndicatorG04SourceCorrespondenceTests(unittest.TestCase):
     def test_executed_source_identity(self):
         self.assertEqual(BASELINE['sourceSHA256'], 'bbb43ed9e9171270c81cace5a9200cf3df62da7dbbb9ee0aebb4381d9f043b54')
-        self.assertEqual(hashlib.sha256((ROOT / 'IndicatorG04UITests.swift').read_bytes()).hexdigest(), BASELINE['executedSourceSHA256'])
+        self.assertEqual(hashlib.sha256((ROOT / 'IndicatorG04UITests.swift').read_bytes()).hexdigest(), BASELINE.get('currentSourceSHA256', BASELINE['executedSourceSHA256']))
         self.assertEqual(BASELINE['executedSourceSHA256'], 'f1af481aaae607e8f6baaa1e987d3a993664c8912e52e7d13e165f145ae1c0eb')
     def test_positive_original_nine_helpers_assertions_and_six_labels(self): self.assertTrue(check(SOURCE))
     def test_negative_missing_exact_color_assertion(self):

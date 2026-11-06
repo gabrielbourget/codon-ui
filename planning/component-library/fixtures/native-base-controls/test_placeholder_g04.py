@@ -42,7 +42,7 @@ class Controls(unittest.TestCase):
                 lambda p: p["setup"].update(status="FAILED"),
                 lambda p: p.update(nativeActionSucceeded=False),
                 lambda p: p["cohorts"].pop(),
-                lambda p: p["cohorts"][0].update(elapsedMs=180001),
+                lambda p: p["cohorts"][0].update(elapsedMs=1800001),
                 lambda p: p["cohorts"][0].update(status="FAILED_ASSERTION"),
                 lambda p: p["cohorts"][0]["observations"].pop(),
                 lambda p: p["cohorts"][0]["observations"][0].update(expectedARGB=0xFF0000FF),

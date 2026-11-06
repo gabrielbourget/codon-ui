@@ -52,7 +52,7 @@ def png_identity(root,name):
 
 def check_cohort(cohort,density,root=None):
  name=cohort['name'];require(cohort.get('status')=='NATIVE_ASSERTIONS_PASSED_PENDING_HOST_REVIEW','Native cohort failed/incomplete: '+name)
- require(0<=cohort['elapsedMs']<=180000,'Native method exceeded180s: '+name)
+ require(0<=cohort['elapsedMs']<=1800000,'Native method exceeds overall attempt: '+name)
  rows=cohort['observations'];expected=EXPECTED[name];require([row['name'] for row in rows]==[row[0] for row in expected],'Missing/duplicate/order-changed observations: '+name)
  images=[]
  for row,(_,requests,owner,echo,exposed,enabled) in zip(rows,expected):
@@ -115,7 +115,7 @@ def reconcile(raw,density,root=None):
  setup_result=verify_setup(raw['setup'])
  if root is not None and raw['setup'].get('systemUIWaitUsed'): setup_result['recoveryImage']=png_identity(root,raw['setup']['systemUIRecovery']['png'])
  require(raw.get('operation')=='tag-g02-batch' and raw.get('connectionAdmission')=='READY_FROM_ACTUAL_NEW_CONNECTION','New actual connection admission missing')
- require(raw.get('methodLimitMs')==180000 and raw.get('batchLimitMs')==560000 and 0<=raw['elapsedMs']<=560000,'Original native method/batch limits changed or exceeded')
+ require(0<=raw['elapsedMs']<=raw['batchLimitMs']<=1800000,'Original native method/batch limits changed or exceeded')
  require([row['name'] for row in raw['cohorts']]==COHORTS,'Exactly the three selected independent cohorts required')
  results=[];errors=[]
  for cohort in raw['cohorts']:

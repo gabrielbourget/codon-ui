@@ -8,7 +8,6 @@ final class StepperS03AdditionalTrialTests: XCTestCase {
 
     override func setUpWithError() throws {
         continueAfterFailure = false
-        executionTimeAllowance = 180
         guard ProcessInfo.processInfo.environment["CODON_STEPPER_SCENE_SHA256"] == sceneSHA else {
             XCTFail("Bind the committed Stepper scene before execution")
             throw NSError(domain: "StepperS03AdditionalAdmission", code: 1)

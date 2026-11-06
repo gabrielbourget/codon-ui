@@ -10,7 +10,6 @@ final class MeterG02TrialTests: XCTestCase {
 
     override func setUpWithError() throws {
         continueAfterFailure = false
-        executionTimeAllowance = 180
         app = XCUIApplication(bundleIdentifier: "dev.codonui.showcase")
         for key in ["CODON_METER_FIXTURE_SHA256", "CODON_METER_SCENE_SHA256",
                     "CODON_METER_PRODUCT_SHA256", "CODON_METER_OBSERVER_MANIFEST_SHA256"] {
@@ -361,7 +360,7 @@ final class MeterStyleTrialTests: XCTestCase {
     private let sizes: [[Double]] = [[150,10],[73.25,13.75],[0,10],[150,0],[108,20],[150,0],[160,20],[20,140],[20,140],[150,10],[150,24],[150,20],[150,20],[91,20],[84,20],[150,20],[150,10],[150,20]]
 
     override func setUpWithError() throws {
-        continueAfterFailure = false; executionTimeAllowance = 180
+        continueAfterFailure = false
         if name.contains("testRestoreMeterStyleMotionSetting") { return }
         for key in ["CODON_METER_STYLE_FIXTURE_SHA256", "CODON_METER_PRODUCT_SHA256", "CODON_METER_OBSERVER_MANIFEST_SHA256"] {
             XCTAssertNotNil(ProcessInfo.processInfo.environment[key]?.range(of: "^[0-9a-f]{64}$", options: .regularExpression))
@@ -712,5 +711,76 @@ final class MeterStyleTrialTests: XCTestCase {
         let data = try JSONSerialization.data(withJSONObject:row,options:.sortedKeys)
         FileHandle.standardOutput.write(Data("METER_STYLE_REFERENCE_CONTROL ".utf8)+data+Data("\n".utf8))
         let receipt = XCTAttachment(data:data,uniformTypeIdentifier:"public.json");receipt.name="meter-style-reference-control-receipt";receipt.lifetime = .keepAlways;add(receipt)
+    }
+}
+
+
+final class TextStyleTrialTests: XCTestCase {
+    private var app: XCUIApplication!
+    private let content = "Native text remains readable: sélectionnez les paramètres et continuez lorsque vous êtes prêt."
+    override func setUpWithError() throws {
+        continueAfterFailure = false
+        app = XCUIApplication(bundleIdentifier:"dev.codonui.showcase");app.launch()
+        XCTAssertEqual(app.state,.runningForeground);XCUIDevice.shared.orientation = .portrait
+        tap("Reset scene");tap("Text/Button scene");tap("Light theme");tap("Live window")
+    }
+    override func tearDownWithError() throws {
+        let screenshot=XCTAttachment(screenshot:XCUIScreen.main.screenshot());screenshot.name="text-style-final";screenshot.lifetime = .keepAlways;add(screenshot)
+        let hierarchy=XCTAttachment(string:app.debugDescription);hierarchy.name="text-style-final-hierarchy";hierarchy.lifetime = .keepAlways;add(hierarchy)
+    }
+    private func node(_ id:String)->XCUIElement { app.descendants(matching:.any).matching(identifier:id).firstMatch }
+    private func reveal(_ element:XCUIElement) {
+        XCTAssertTrue(element.waitForExistence(timeout:10));let scroll=app.scrollViews.firstMatch;XCTAssertTrue(scroll.exists)
+        for _ in 0..<24 {
+            let viewport=app.windows.firstMatch.frame.intersection(scroll.frame).insetBy(dx:2,dy:2)
+            if !element.frame.isEmpty && viewport.contains(element.frame) && element.isHittable { return }
+            let upward=element.frame.minY<viewport.minY
+            scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:upward ? 0.30:0.75)).press(forDuration:0.05,thenDragTo:scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:upward ? 0.70:0.35)))
+        }
+        XCTFail("Unreachable actual Text element "+element.identifier)
+    }
+    private func tap(_ label:String) {
+        let button=app.buttons.matching(NSPredicate(format:"label == %@",label)).firstMatch;reveal(button);button.tap()
+        if label == "Text/Button scene" {
+            let selected=XCTNSPredicateExpectation(predicate:NSPredicate { _,_ in button.isSelected },object:nil)
+            XCTAssertEqual(XCTWaiter.wait(for:[selected],timeout:10),.completed,"Actual selected Text scene before capture")
+        }
+    }
+    private func capture(_ name:String,dark:Bool=false) throws -> CGRect {
+        let target=node("library-text-preview");reveal(target);XCTAssertEqual(target.label,content);XCTAssertEqual(target.elementType,.staticText)
+        Thread.sleep(forTimeInterval:0.35)
+        let frame=target.frame,window=app.windows.firstMatch.frame,screenshot=XCUIScreen.main.screenshot(),image=try XCTUnwrap(screenshot.image.cgImage),scale=CGFloat(image.width)/window.width
+        XCTAssertTrue(window.contains(frame));XCTAssertGreaterThan(frame.height,0)
+        let rect=CGRect(x:((frame.minX-window.minX)*scale).rounded(),y:((frame.minY-window.minY)*scale).rounded(),width:(frame.width*scale).rounded(),height:(frame.height*scale).rounded())
+        let crop=try XCTUnwrap(image.cropping(to:rect));var bytes=[UInt8](repeating:0,count:crop.width*crop.height*4)
+        let drawn=bytes.withUnsafeMutableBytes { buffer -> Bool in
+            guard let context=CGContext(data:buffer.baseAddress,width:crop.width,height:crop.height,bitsPerComponent:8,bytesPerRow:crop.width*4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue|CGBitmapInfo.byteOrder32Big.rawValue) else {return false}
+            context.draw(crop,in:CGRect(x:0,y:0,width:crop.width,height:crop.height));return true
+        };XCTAssertTrue(drawn)
+        let foreground:UInt8=dark ? 255:23
+        var count=0
+        for index in stride(from:0,to:bytes.count,by:4) {
+            if bytes[index]==foreground && bytes[index+1]==foreground && bytes[index+2]==foreground && bytes[index+3]==255 { count += 1 }
+        }
+        XCTAssertGreaterThan(count,0,"Actual expected foreground must paint native text")
+        XCTAssertEqual(target.frame,frame);XCTAssertEqual(target.label,content)
+        let row:[String:Any]=["name":name,"text":target.label,"frame":[Double(frame.minX),Double(frame.minY),Double(frame.width),Double(frame.height)],"scale":Double(scale),"expectedRGB":dark ? 16777215:1513239,"foregroundPixels":count,"nativeElementType":target.elementType.rawValue,"captureEpochMs":Date().timeIntervalSince1970*1000,"imageWidth":image.width,"imageHeight":image.height,"stableFrameAndContent":true]
+        let data=try JSONSerialization.data(withJSONObject:row,options:[.sortedKeys]);FileHandle.standardOutput.write(Data("TEXT_STYLE_OBSERVATION ".utf8)+data+Data("\n".utf8))
+        let receipt=XCTAttachment(data:data,uniformTypeIdentifier:"public.json");receipt.name="text-style-"+name+"-receipt";receipt.lifetime = .keepAlways;add(receipt)
+        let shot=XCTAttachment(screenshot:screenshot);shot.name="text-style-"+name;shot.lifetime = .keepAlways;add(shot);return frame
+    }
+    func testTextTypographyAndClear() throws {
+        let initial=try capture("default");tap("Toggle library styles");let custom=try capture("custom")
+        XCTAssertGreaterThan(custom.height,initial.height,"Custom typography must affect actual native layout")
+        tap("Clear text typography");let cleared=try capture("cleared");XCTAssertEqual(cleared.width,initial.width,accuracy:1/UIScreen.main.scale);XCTAssertEqual(cleared.height,initial.height,accuracy:1/UIScreen.main.scale)
+        tap("Toggle library styles");tap("Clear text typography");let restored=try capture("restored");XCTAssertEqual(restored.height,initial.height,accuracy:1/UIScreen.main.scale)
+    }
+    func testTextProviderChange() throws {
+        let light=try capture("light");tap("Dark theme");let dark=try capture("dark",dark:true);XCTAssertEqual(dark.size,light.size)
+    }
+    func testTextCompactAndLiveRestoration() throws {
+        let target=node("library-text-preview");reveal(target);XCTAssertEqual(target.label,content);let initial=target.frame
+        tap("Compact width");let compact=try capture("compact");XCTAssertLessThanOrEqual(compact.width,320);XCTAssertGreaterThan(compact.height,14)
+        tap("Live window");let restored=try capture("live-restored");XCTAssertEqual(restored.size,initial.size)
     }
 }

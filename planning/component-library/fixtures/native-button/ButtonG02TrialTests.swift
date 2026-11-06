@@ -8,7 +8,6 @@ final class ButtonG02TrialTests: XCTestCase {
 
     override func setUpWithError() throws {
         continueAfterFailure = false
-        executionTimeAllowance = 180
         guard ProcessInfo.processInfo.environment["CODON_BUTTON_SCENE_SHA256"] == sceneSHA else {
             XCTFail("Bind the exact LibraryScene fixture before execution")
             throw NSError(domain: "ButtonG02Admission", code: 1)

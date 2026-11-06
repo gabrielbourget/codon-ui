@@ -7,7 +7,6 @@ final class PaginationG02TrialTests: XCTestCase {
 
     override func setUpWithError() throws {
         continueAfterFailure = false
-        executionTimeAllowance = 180
         guard ProcessInfo.processInfo.environment["CODON_PAGINATION_SCENE_SHA256"] == sceneSHA else {
             XCTFail("Bind the exact PaginationScene fixture")
             throw NSError(domain: "PaginationG02Admission", code: 1)

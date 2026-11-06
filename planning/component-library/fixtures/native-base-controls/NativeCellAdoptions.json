@@ -79,6 +79,34 @@
         "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/linear-progress-final-closeout-20261106/objects/24bd0d035f105726c48e4a748202ac3b568c906663354c6bd6ec0354658754c0",
         "sha256": "24bd0d035f105726c48e4a748202ac3b568c906663354c6bd6ec0354658754c0"
       }
+    },
+    "CAT.text.G07": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/text-overall-budget-closeout-20261106/objects/ed74656750a956ace2292b32d942ddb43128c5dd632f595e0f323db2c90d2d80",
+        "sha256": "ed74656750a956ace2292b32d942ddb43128c5dd632f595e0f323db2c90d2d80",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/text-after-linear-progress-20261106/text-G07-overall-budget-completion.json"
+      }
+    },
+    "CAT.text.G04": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/text-overall-budget-closeout-20261106/objects/738a8712558e5bd191631deef37a333fcdd563a6addd5524c079c955efdff2f0",
+        "sha256": "738a8712558e5bd191631deef37a333fcdd563a6addd5524c079c955efdff2f0",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/text-after-linear-progress-20261106/text-G04-overall-budget-completion.json"
+      }
+    },
+    "CAT.text.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/text-overall-budget-closeout-20261106/objects/9407f387388cf5078395b2678746c54abc2444bd913d8c6890dfa08a2ba7d639",
+        "sha256": "9407f387388cf5078395b2678746c54abc2444bd913d8c6890dfa08a2ba7d639",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/text-after-linear-progress-20261106/text-G08-overall-budget-completion.json"
+      }
+    },
+    "CAT.text.G09": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/text-overall-budget-closeout-20261106/objects/4b67d4b923f4084ba935a277367f23ae32e68c66e477fd198ac0121667a5a397",
+        "sha256": "4b67d4b923f4084ba935a277367f23ae32e68c66e477fd198ac0121667a5a397",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/text-after-linear-progress-20261106/text-G09-overall-budget-completion.json"
+      }
     }
   }
 }

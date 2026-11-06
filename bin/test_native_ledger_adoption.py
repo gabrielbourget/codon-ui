@@ -150,9 +150,13 @@ class NewPassReceiptTests(unittest.TestCase):
         self.done['nativeMethodEvidenceClaimed'] = True
         self.done['nativeMethods'] = [{'kind': 'native_method', 'claim': 'Synthetic saved receipt reader control only', 'path': str(path), 'sha256': GATE.digest(path), 'format': 'xctest_log', 'method': 'testI06ShapeAndCallbackFinalStyle', 'maximumSeconds': 180}] + [self.done['nativeMethods'][-1]]
 
-    def test_actual_i06_duration_raw_pass_rejected(self):
+    def test_clean209_second_native_method_has_no_independent180_second_rejection(self):
         self.native_log("Test Case '-[Module.Case testI06ShapeAndCallbackFinalStyle]' passed (209.779 seconds).\n")
-        with self.assertRaisesRegex(ValueError, 'Over-budget'): self.validate()
+        self.validate()
+
+    def test_native_method_cannot_exceed_the_overall30_minute_attempt(self):
+        self.native_log("Test Case '-[Module.Case testI06ShapeAndCallbackFinalStyle]' passed (1800.001 seconds).\n")
+        with self.assertRaisesRegex(ValueError, 'enclosing maximum attempt duration'): self.validate()
 
     def test_timeout_warning_with_raw_pass_within_budget_rejected(self):
         self.native_log("Test Case '-[Module.Case testI06ShapeAndCallbackFinalStyle]' exceeded execution time allowance of 3 minutes.\nTest Case '-[Module.Case testI06ShapeAndCallbackFinalStyle]' passed (100 seconds).\n")

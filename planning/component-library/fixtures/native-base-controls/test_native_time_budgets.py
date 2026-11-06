@@ -32,6 +32,22 @@ class Budgets(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory();self.root = Path(self.temp.name)
     def tearDown(self): self.temp.cleanup()
 
+    def test_pending_installer_can_finish_after60_seconds_within_overall_budget(self):
+        value=[0.0]
+        pause=lambda seconds:value.__setitem__(0,value[0]+seconds)
+        pending=types.SimpleNamespace(exists=lambda:value[0]<65)
+        wait=function("NativeXCTestBatch.py","wait_for_pending_transaction",{"time":types.SimpleNamespace(time=lambda:value[0],sleep=pause)})
+        wait(pending,120)
+        self.assertEqual(value[0],65)
+
+    def test_pending_installer_stops_at_overall_deadline_without_installing(self):
+        value=[0.0]
+        pause=lambda seconds:value.__setitem__(0,value[0]+seconds)
+        pending=types.SimpleNamespace(exists=lambda:True)
+        wait=function("NativeXCTestBatch.py","wait_for_pending_transaction",{"time":types.SimpleNamespace(time=lambda:value[0],sleep=pause)})
+        with self.assertRaisesRegex(TimeoutError,"overall work deadline"):wait(pending,55)
+        self.assertEqual(value[0],55)
+
     def test_recorded_infrastructure_uses_owner_deadline_without_stage_cap(self):
         child = MagicMock(pid=12345);child.poll.return_value = 0;child.communicate.return_value = (b"valid", b"")
         clock = types.SimpleNamespace(time=lambda: 0)

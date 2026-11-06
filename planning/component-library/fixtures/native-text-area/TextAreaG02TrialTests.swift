@@ -7,7 +7,7 @@ final class TextAreaG02TrialTests: XCTestCase {
     private let finalText = "Bonjour final"
     private var longNotes: String { (1...16).map { "Line \($0): Bonjour Montréal — preserve complete native text and scrolling." }.joined(separator: "\n") }
     override func setUpWithError() throws {
-        continueAfterFailure = false; executionTimeAllowance = 180
+        continueAfterFailure = false
         XCTAssertEqual(ProcessInfo.processInfo.environment["CODON_TEXTAREA_4e3f0ef02ec91201f51aa22b9759646f64a8b343ce34cc15d2523d96f18ff032256"], sceneSHA)
         for key in ["CODON_FIXTURE_PRODUCT_SHA256", "CODON_TEXTAREA_NATIVE_ADMISSION_SHA256"] {
             let value = try XCTUnwrap(ProcessInfo.processInfo.environment[key]); XCTAssertNotNil(value.range(of: "^[0-9a-f]{64}$", options: .regularExpression))

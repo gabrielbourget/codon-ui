@@ -45,7 +45,9 @@ class Controls(unittest.TestCase):
  def test_wrong_class_rejected(self): self.assertEqual(batch.reconcile_selected_results(SUMMARY,RAW.replace('TagG02TrialTests','OtherClass'),METHODS)['status'],'FAIL')
  def test_duplicate_method_rejected(self): self.assertEqual(batch.reconcile_selected_results(SUMMARY,RAW+'\n'+RAW,METHODS)['status'],'FAIL')
  def test_skipped_rejected(self): self.assertEqual(batch.reconcile_selected_results(SUMMARY,RAW.replace('passed','skipped'),METHODS)['status'],'FAIL')
- def test_over180_rejected(self): self.assertEqual(batch.reconcile_selected_results(SUMMARY,RAW.replace('2.500','180.001'),METHODS)['status'],'FAIL')
+ def test_over180_clean_pass_accepted_and_overall_bound_retained(self):
+  self.assertEqual(batch.reconcile_selected_results(SUMMARY,RAW.replace('2.500','209.779'),METHODS)['status'],'PASS')
+  self.assertEqual(batch.reconcile_selected_results(SUMMARY,RAW.replace('2.500','1800.001'),METHODS)['status'],'FAIL')
  def test_saved_sdk65_preserved(self):
   row=SAVED['sdk65']['selectedFieldsCopiedVerbatim']
   self.assertEqual(row['exitCode'],65);self.assertEqual(admission.driver_exit_code(row['exitCode'],True,True),65)

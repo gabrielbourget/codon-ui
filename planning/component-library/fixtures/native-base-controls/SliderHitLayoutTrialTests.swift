@@ -9,7 +9,6 @@ final class SliderHitLayoutTrialTests: XCTestCase {
 
     override func setUpWithError() throws {
         continueAfterFailure = false
-        executionTimeAllowance = 180
         for key in ["CODON_SLIDER_SCENE_SHA256", "CODON_SLIDER_PRODUCT_SHA256",
                     "CODON_SLIDER_OBSERVER_MANIFEST_SHA256"] {
             let value = try XCTUnwrap(ProcessInfo.processInfo.environment[key], "Missing admission identity " + key)

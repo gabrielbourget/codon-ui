@@ -8,7 +8,6 @@ final class PlaceholderG02TrialTests: XCTestCase {
 
     override func setUpWithError() throws {
         continueAfterFailure = false
-        executionTimeAllowance = 180
         for key in ["CODON_PLACEHOLDER_FIXTURE_SHA256", "CODON_PLACEHOLDER_PRODUCT_SHA256",
                     "CODON_PLACEHOLDER_OBSERVER_MANIFEST_SHA256"] {
             let value = try XCTUnwrap(ProcessInfo.processInfo.environment[key], "Missing " + key)

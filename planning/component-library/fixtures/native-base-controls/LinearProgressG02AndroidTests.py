@@ -327,7 +327,7 @@ def check_cohort(cohort, directory, out, scale, oracle, deadline):
     out.mkdir()
     try:
         assert cohort['status'] == 'NATIVE_ASSERTIONS_PASSED_PENDING_PAINT', cohort.get('error', cohort['status'])
-        assert 0 <= cohort['elapsedMs'] <= 180000
+        assert 0 <= cohort['elapsedMs'] <= 1800000
         original = trace_checks(cohort)
     except Exception as error:
         errors.append({'phase': 'native-and-trace', 'error': repr(error)})

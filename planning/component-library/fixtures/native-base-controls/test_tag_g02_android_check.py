@@ -50,7 +50,7 @@ class Controls(unittest.TestCase):
    row=r['cohorts'][2]['observations'][2];row['target']['bounds']='10 20 290 60';row['state']['frameHeight']=20
   self.changed(change)
  def test_stale_mixed_description_after_reset_remains_failure(self):self.changed(lambda r:r['cohorts'][0]['observations'][-1]['target'].update(contentDescription='Controlled tag, mixed'))
- def test_method_limit_negative(self):self.changed(lambda r:r['cohorts'][0].update(elapsedMs=180001))
+ def test_overall_limit_negative(self):self.changed(lambda r:r['cohorts'][0].update(elapsedMs=1800001))
  def test_missing_cohort_negative(self):self.changed(lambda r:r['cohorts'].pop())
  def test_duplicate_native_negative(self):self.changed(lambda r:r['cohorts'][0]['observations'][0]['windows']['windowNodes'].append({'id':'tag-example'}))
 def setup_sample():

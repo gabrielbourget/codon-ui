@@ -77,32 +77,14 @@
   },
   "pendingMethodSixObservationLabels": {
     "testI10ShapeGeometry": [
-      [
-        "2",
-        "\"IND-fractional-square\""
-      ],
-      [
-        "2",
-        "\"IND-fractional-circle\""
-      ],
-      [
-        "2",
-        "\"IND-fractional-rounded-restored\""
-      ]
+      ["2", "\"IND-fractional-square\""],
+      ["2", "\"IND-fractional-circle\""],
+      ["2", "\"IND-fractional-rounded-restored\""]
     ],
     "testI11CallbackFinalStyle": [
-      [
-        "6",
-        "\"IND-callback-inactive-width28\""
-      ],
-      [
-        "6",
-        "\"IND-callback-zero-opacity\""
-      ],
-      [
-        "6",
-        "\"IND-callback-opacity-restored\""
-      ]
+      ["6", "\"IND-callback-inactive-width28\""],
+      ["6", "\"IND-callback-zero-opacity\""],
+      ["6", "\"IND-callback-opacity-restored\""]
     ]
   },
   "executedSourceSHA256": "f1af481aaae607e8f6baaa1e987d3a993664c8912e52e7d13e165f145ae1c0eb",
@@ -110,5 +92,10 @@
     "testI10ShapeGeometry": 46.568,
     "testI11CallbackFinalStyle": 57.506
   },
-  "nativeProofScope": "Static controls do not execute Swift or prove component behavior; actual native results remain separate attributed receipts."
+  "nativeProofScope": "Static controls do not execute Swift or prove component behavior; actual native results remain separate attributed receipts.",
+  "currentSourceSHA256": "1b2994bafeadb603118aa914c64a8494d1a99d6f668ae78918314b8ad6e0d954",
+  "timingPolicyHelperBodySHA256": {
+    "setUpWithError": "a35e9d4a2ee5e33204f493cbb73f37f1e8191cd913c75ac4efa81bb8d46d8550"
+  },
+  "timingPolicyRevision": "Removed executionTimeAllowance180 only; original executedSourceSHA256 and original helper fingerprints retained as historical. Current assertions and nine method bodies unchanged."
 }

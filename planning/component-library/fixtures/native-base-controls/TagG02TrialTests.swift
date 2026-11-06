@@ -82,7 +82,6 @@ final class TagG02TrialTests: XCTestCase {
     }
     override func setUpWithError() throws {
         continueAfterFailure = false
-        executionTimeAllowance = 180
         for key in ["CODON_TAG_SCENE_SHA256", "CODON_TAG_PRODUCT_SHA256", "CODON_TAG_OBSERVER_MANIFEST_SHA256"] {
             let value = try XCTUnwrap(ProcessInfo.processInfo.environment[key], "Missing " + key)
             XCTAssertNotNil(value.range(of: "^[0-9a-f]{64}$", options: .regularExpression))

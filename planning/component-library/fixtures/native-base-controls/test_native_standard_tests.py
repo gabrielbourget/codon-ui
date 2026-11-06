@@ -33,6 +33,34 @@ class StandardTests(unittest.TestCase):
         result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(path)],env=env,capture_output=True,text=True,timeout=10)
         self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((self.root/"never-created").exists())
 
+    def test_text_scope_compiled_selection_and_actual_no_admission_entry(self):
+        for platform in ["ios", "android"]:
+            plan={"cell":"CAT.text.G04","nativeStandard":{"platform":platform,"batch":"text-style","output":str(self.root/"never-created")}}
+            NATIVE.validate_standard_scope(plan)
+            self.assertEqual(len(NATIVE.selection(platform,"text-style")[platform]),3 if platform=="ios" else 2)
+            path=self.root/(platform+"-text-plan.json");path.write_text(json.dumps(plan))
+            env={k:v for k,v in os.environ.items() if k!="CODON_NATIVE_CELL_PREFLIGHT_RECEIPT"}
+            result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(path)],env=env,capture_output=True,text=True,timeout=10)
+            self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((self.root/"never-created").exists())
+        with self.assertRaises(ValueError):NATIVE.validate_standard_scope({"cell":"CAT.text.G04","nativeStandard":{"batch":"meter-style"}})
+
+    def test_text_context_reuses_only_clean_exact_app_typography(self):
+        from NativeTextStyleCheck import NAMES
+        from test_native_text_style_check import TextStyleTests
+        rows=TextStyleTests().rows("ios")
+        log=self.root/"retained.log";log.write_text("Test Case '-[C.TextStyleTrialTests testTextTypographyAndClear]' passed (81.499 seconds).\n"+"\n".join("TEXT_STYLE_OBSERVATION "+json.dumps(row) for row in rows))
+        loaded=self.root/"loaded.json";loaded.write_text(json.dumps({"status":"PASS","observerManifestSHA256":"b"*64}))
+        retained=self.root/"retained.json"
+        value={"path":str(log),"sha256":NATIVE.digest(log),"format":"xctest_log","method":"testTextTypographyAndClear","maximumSeconds":180,"appManifestSHA256":"a"*64,"loadedObserver":{"path":str(loaded),"sha256":NATIVE.digest(loaded)},"observerManifestSHA256":"b"*64}
+        retained.write_text(json.dumps(value));config={"batch":"text-style-context","retainedTextTypographyMethod":{"path":str(retained),"sha256":NATIVE.digest(retained)}}
+        raw="\n".join("TEXT_STYLE_OBSERVATION "+json.dumps(row) for row in rows if row["name"] not in NAMES[:4])
+        self.assertEqual(NATIVE.reconcile_text_style_ios(raw,config,{"manifestSHA256":"a"*64})["observations"],8)
+        with self.assertRaises(ValueError):NATIVE.reconcile_text_style_ios(raw,config,{"manifestSHA256":"c"*64})
+        log.write_text(log.read_text().replace("passed (81.499 seconds)","failed (81.499 seconds)"));value["sha256"]=NATIVE.digest(log);retained.write_text(json.dumps(value));config["retainedTextTypographyMethod"]["sha256"]=NATIVE.digest(retained)
+        with self.assertRaises(ValueError):NATIVE.reconcile_text_style_ios(raw,config,{"manifestSHA256":"a"*64})
+        self.assertEqual(len(NATIVE.selection("ios","text-style-context")["ios"]),2)
+        with self.assertRaises(ValueError):NATIVE.selection("android","text-style-context")
+
     def test_linear_progress_risk_reader_preserves_semantics_pixels_events_and_geometry_negatives(self):
         rows=[]
         for index,name in enumerate(NATIVE.RISK_NAMES):
@@ -203,7 +231,7 @@ class StandardTests(unittest.TestCase):
         self.assertEqual(value["UITargetAppBundleIdentifier"], "dev.codonui.showcase")
         self.assertEqual(value["UITargetAppPath"], app["product"])
         self.assertNotIn("OnlyTestIdentifiers", value)
-        self.assertTrue(value["TestTimeoutsEnabled"]);self.assertEqual(value["MaximumTestExecutionTimeAllowance"], 180)
+        self.assertFalse(value["TestTimeoutsEnabled"]);self.assertNotIn("MaximumTestExecutionTimeAllowance",value);self.assertNotIn("DefaultTestExecutionTimeAllowance",value)
         self.assertEqual(value["EnvironmentVariables"]["CODON_METER_PRODUCT_SHA256"], "a" * 64)
         self.assertEqual(value["TestingEnvironmentVariables"]["CODON_METER_OBSERVER_MANIFEST_SHA256"], observer["manifestSHA256"])
         value["SkipTestIdentifiers"] = ["Required/testCase"];template.write_bytes(plistlib.dumps({"CodonNativeComponents": value}))

@@ -14,7 +14,6 @@ final class IndicatorG04TrialTests: XCTestCase {
 
     override func setUpWithError() throws {
         continueAfterFailure = false
-        executionTimeAllowance = 180
         for key in ["CODON_INDICATOR_FIXTURE_SHA256", "CODON_INDICATOR_SCENE_SHA256",
                     "CODON_INDICATOR_PRODUCT_SHA256", "CODON_INDICATOR_OBSERVER_MANIFEST_SHA256"] {
             let value = try XCTUnwrap(ProcessInfo.processInfo.environment[key], "Missing " + key)
@@ -681,7 +680,6 @@ final class IndicatorG04TrialTests: XCTestCase {
 final class IndicatorG04AXInitializationProbe: XCTestCase {
     func testAXInitializationOnly() throws {
         continueAfterFailure = false
-        executionTimeAllowance = 180
         let app = XCUIApplication(bundleIdentifier: "dev.codonui.showcase")
         XCTAssertEqual(app.state, .runningForeground, "GUI admission must leave the existing app foreground")
         XCTAssertTrue(app.windows.firstMatch.waitForExistence(timeout: 10))

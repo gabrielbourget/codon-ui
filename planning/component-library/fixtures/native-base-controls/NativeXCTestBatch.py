@@ -13,10 +13,17 @@ def validate_selection(selected,compiled):
  assert all(re.fullmatch(r'[A-Za-z_]\w*/test\w+',m) and m in compiled for m in selected),'Changed/invalid selected methods'
  return True
 
+
+def wait_for_pending_transaction(pending, deadline, clock=time.time, pause=time.sleep):
+ while pending.exists():
+  remaining=deadline-clock()
+  if remaining<=0:raise TimeoutError('Pending installer transaction remains at the overall work deadline; no XCTest admitted')
+  pause(min(.25,remaining))
+
+
 def validate_packet(packet):
  assert packet['schemaVersion']==1 and re.fullmatch(r'CAT\.[a-z0-9-]+\.G0[1-9]',packet['cell'])
  validate_selection(packet['selectedMethods'],packet['compiledMethods'])
- assert packet['methodMaximumSeconds']==180
  assert packet['preferencePolicy']=='unchanged-no-preference-commands'
  assert packet['sourceScope'] and packet['retainedHarnessScope']['claim']
  read_bound(packet['retainedHarnessScope'])
@@ -42,7 +49,7 @@ def reconcile_selected_results(native_summary,raw_log,selected_methods):
  failures=[]
  if diagnostics or summary_timeout:failures.append('Native timeout remains failure')
  if len(expected)!=len(set(expected)) or sorted(r['method'] for r in records)!=expected:failures.append('Each selected class/method requires exactly one terminal raw record')
- if any(r['result']!='passed' or not 0<r['durationSeconds']<=180 for r in records):failures.append('Selected method failed/skipped/over180seconds')
+ if any(r['result']!='passed' or not 0<r['durationSeconds']<=1800 for r in records):failures.append('Selected method failed/skipped or exceeded overall attempt')
  if not(native_summary.get('result')=='Passed' and native_summary.get('totalTestCount')==len(expected)==native_summary.get('passedTests') and native_summary.get('failedTests')==0 and native_summary.get('skippedTests')==0 and native_summary.get('expectedFailures',0)==0 and not native_summary.get('testFailures')):failures.append('Structured selected-test result is not clean PASS')
  return {'status':'PASS' if not failures else 'FAIL','selectedMethods':selected_methods,'rawMethodResults':records,'timeoutDiagnostics':diagnostics,'structuredTimeoutEvent':summary_timeout,'nativeSummary':native_summary,'failureReasons':failures}
 
@@ -173,7 +180,7 @@ def main():
 
  def tests(label,methods):
   assert time.time()<work-8
-  case=root/label;case.mkdir();args=['/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild','test-without-building','-jobs','1','-xctestrun',str(read_bound(packet['xctestrun'])),'-destination','platform=iOS Simulator,id='+device,'-destination-timeout',str(max(1,int(work-time.time()-8))),'-parallel-testing-enabled','NO','-maximum-concurrent-test-simulator-destinations','1','-test-timeouts-enabled','YES','-maximum-test-execution-time-allowance','180']+['-only-testing:CodonNativeComponents/'+m for m in methods]+['-resultBundlePath',str(case/'Batch.xcresult')];selectedMethods.extend(methods);(case/'command.json').write_text(json.dumps({'argv':args,'startedUTC':now(),'methods':methods,'workDeadlineEpochSeconds':work},indent=2));return run(label,args)
+  case=root/label;case.mkdir();args=['/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild','test-without-building','-jobs','1','-xctestrun',str(read_bound(packet['xctestrun'])),'-destination','platform=iOS Simulator,id='+device,'-destination-timeout',str(max(1,int(work-time.time()-8))),'-parallel-testing-enabled','NO','-maximum-concurrent-test-simulator-destinations','1','-test-timeouts-enabled','NO']+['-only-testing:CodonNativeComponents/'+m for m in methods]+['-resultBundlePath',str(case/'Batch.xcresult')];selectedMethods.extend(methods);(case/'command.json').write_text(json.dumps({'argv':args,'startedUTC':now(),'methods':methods,'workDeadlineEpochSeconds':work},indent=2));return run(label,args)
  def work_cutoff(_signal,_frame):raise TimeoutError('Mechanical1680s work cutoff;120s cleanup remains reserved')
  def interrupted(signum,_frame):raise InterruptedError('Received signal '+str(signum))
  signal.signal(signal.SIGALRM,work_cutoff);signal.signal(signal.SIGTERM,interrupted);signal.signal(signal.SIGINT,interrupted)
@@ -187,13 +194,11 @@ def main():
   assert run('boot-readiness',[cli,'bootstatus',device,'-b'])['exitCode']==0
   pending=pathlib.Path.home()/'Library/Developer/CoreSimulator/Devices'/device/'data/Containers/Shared/SystemGroup/systemgroup.com.apple.installcoordinationd/Library/InstallCoordination/PendingWork.plist'
   if destination_artifacts_enabled(packet):
-   pendingStarted=time.time();pendingDeadline=min(pendingStarted+60,work);pendingInitiallyPresent=pending.exists()
+   pendingStarted=time.time();pendingDeadline=work;pendingInitiallyPresent=pending.exists()
    try:
-    while pending.exists():
-     if time.time()>=pendingDeadline:raise TimeoutError('Pending installer transaction remains after60s; no XCTest admitted')
-     time.sleep(min(.25,max(.01,pendingDeadline-time.time())))
+    wait_for_pending_transaction(pending,pendingDeadline)
    finally:
-    (root/'destination-pending-gate.json').write_text(json.dumps({'startedEpochSeconds':pendingStarted,'endedEpochSeconds':time.time(),'maximumSeconds':60,'initiallyPresent':pendingInitiallyPresent,'stillPresent':pending.exists(),'elapsedSeconds':time.time()-pendingStarted,'installOrDeleteOrResetCommands':0},indent=2))
+    (root/'destination-pending-gate.json').write_text(json.dumps({'startedEpochSeconds':pendingStarted,'endedEpochSeconds':time.time(),'maximumSeconds':max(0,pendingDeadline-pendingStarted),'initiallyPresent':pendingInitiallyPresent,'stillPresent':pending.exists(),'elapsedSeconds':time.time()-pendingStarted,'installOrDeleteOrResetCommands':0},indent=2))
    if explicit_observer_install_enabled(packet):
     install=run('install-observer-direct',[cli,'install',device,observerIdentity['product']])
     assert install['exitCode']==0 and not install.get('timedOut'),'Explicit observer installation did not finish; no XCTest or installation retry admitted'

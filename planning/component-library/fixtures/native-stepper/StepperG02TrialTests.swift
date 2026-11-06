@@ -8,7 +8,6 @@ final class StepperG02TrialTests: XCTestCase {
 
     override func setUpWithError() throws {
         continueAfterFailure = false
-        executionTimeAllowance = 180
         guard ProcessInfo.processInfo.environment["CODON_STEPPER_SCENE_SHA256"] == sceneSHA else {
             throw NSError(domain: "StepperG02Admission", code: 1,
                           userInfo: [NSLocalizedDescriptionKey: "Bind the current shared Stepper fixture; the frozen CB-01 product is insufficient"])

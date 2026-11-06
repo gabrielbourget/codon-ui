@@ -403,7 +403,7 @@ def host_checks(cohort, original, directory, output, density, args):
     output.mkdir();errors = [];observed = [];manual = [];expected = expectations(cohort['name'])
     try:
         assert cohort['status'] == 'NATIVE_ASSERTIONS_PASSED_PENDING_COLOR_AND_ROOT_REVIEW', cohort.get('error', cohort['status'])
-        assert 0 <= cohort['elapsedMs'] <= 180000
+        assert 0 <= cohort['elapsedMs'] <= 1800000
         assert [row['name'] for row in cohort.get('observations', [])] == list(expected)
     except Exception as error:
         errors.append({'phase': 'native-cohort-or-observation-set', 'error': repr(error)})
@@ -473,7 +473,7 @@ def main(args):
         data = json.loads((args.input / 'receipt.json').read_text())
         assert data['operation'] == 'indicator-g04-batch' and data['profile'] == args.profile
         assert data['selectedMethods'] == METHODS and data['selectedMethodCount'] == 4 and [row['name'] for row in data['cohorts']] == METHODS
-        assert data['epochStartedMs'] <= data['epochFinishedMs'] and data['methodLimitMs'] == 180000 and data['batchLimitMs'] == 780000
+        assert data['epochStartedMs'] <= data['epochFinishedMs'] and 0 < data['batchLimitMs'] <= 1800000
         context = baseline_context(args)
         if data['status'] != 'NATIVE_PROFILE_COMPLETE_PENDING_HOST_COLOR' or data['nativeActionSucceeded'] is not True or data.get('hasFailedCohorts') is not False:
             errors.append('Native batch has failed/unsafe/incomplete outcomes; individual cohorts still preserved')

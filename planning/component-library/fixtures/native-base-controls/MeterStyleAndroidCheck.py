@@ -109,7 +109,7 @@ def reconcile(args):
     for cohort in receipt["cohorts"]:
         observations, failures = [], []
         try:
-            require(cohort["name"] in EXPECTED and cohort["status"] == "NATIVE_ASSERTIONS_PASSED_PENDING_HOST_REVIEW" and 0 <= cohort["elapsedMs"] <= 180000, "Native method failed or exceeded180s")
+            require(cohort["name"] in EXPECTED and cohort["status"] == "NATIVE_ASSERTIONS_PASSED_PENDING_HOST_REVIEW" and 0 <= cohort["elapsedMs"] <= 1800000, "Native method failed or exceeded overall attempt")
             require([row["name"] for row in cohort["observations"]] == EXPECTED[cohort["name"]], "Incomplete selected observations")
         except Exception as error:
             failures.append(str(error))

@@ -118,11 +118,13 @@ class NativeCellAdmissionTests(unittest.TestCase):
     def test_inconsistent_prepared_batch_rejects(self):
         self.reject(lambda plan: plan["platforms"]["ios"].update(selectedCohorts=["unbound"]))
 
-    def test_over_budget_reused_native_pass_rejects(self):
+    def test_over180_reused_clean_native_pass_uses_overall_budget(self):
         log = self.root / "native.log"
         log.write_text("Test Case '-[Module.Case testOverBudget]' passed (209.779 seconds).\n")
         item = {"path": str(log), "sha256": MODULE.digest(log), "claim": "synthetic native result control", "kind": "native_method", "format": "xctest_log", "method": "testOverBudget", "maximumSeconds": 180}
-        self.reject(lambda plan: plan["platforms"]["ios"].update(reusedEvidence=[item]))
+        self.plan["platforms"]["ios"]["reusedEvidence"] = [item]
+        process, receipt = self.invoke(self.plan)
+        self.assertEqual(process.returncode, 0); self.assertEqual(receipt["status"], "PASS")
 
     def test_timeout_warning_rejects_raw_pass_within_duration(self):
         log = self.root / "native.log"
@@ -142,7 +144,7 @@ class NativeCellAdmissionTests(unittest.TestCase):
         rows = [{"name": name, "status": "NATIVE_ASSERTIONS_PASSED_PENDING_PAINT", "elapsedMs": duration * 1000} for name, duration in seconds.items()]
         for name, duration in seconds.items():
             with self.subTest(method=name):
-                self.assertEqual(self.android_method(rows, name), {"method": name, "seconds": duration, "maximumSeconds": 180, "status": "PASS"})
+                self.assertEqual(self.android_method(rows, name), {"method": name, "seconds": duration, "maximumSeconds": 1800, "status": "PASS"})
 
     def test_retained_android_failed_incomplete_and_ambiguous_methods_reject(self):
         passing = {"name": "values", "status": "NATIVE_ASSERTIONS_PASSED_PENDING_PAINT", "elapsedMs": 51690}
@@ -154,8 +156,8 @@ class NativeCellAdmissionTests(unittest.TestCase):
         passing = {"name": "values", "status": "NATIVE_ASSERTIONS_PASSED_PENDING_PAINT", "elapsedMs": 51690}
         with self.assertRaisesRegex(ValueError, "Timed-out native method"):
             self.android_method([{**passing, "timedOut": True}])
-        for milliseconds in [180001, -1, float("inf"), float("nan")]:
-            with self.subTest(milliseconds=milliseconds), self.assertRaisesRegex(ValueError, "Over-budget native method"):
+        for milliseconds in [1800001, -1, float("inf"), float("nan")]:
+            with self.subTest(milliseconds=milliseconds), self.assertRaisesRegex(ValueError, "enclosing maximum attempt duration"):
                 self.android_method([{**passing, "elapsedMs": milliseconds}])
 
     def test_direct_driver_without_admission_rejects(self):

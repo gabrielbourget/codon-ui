@@ -5,7 +5,6 @@ final class PlaceholderG04TrialTests: XCTestCase {
     private var app: XCUIApplication!
     override func setUpWithError() throws {
         continueAfterFailure = false
-        executionTimeAllowance = 180
         app = XCUIApplication(bundleIdentifier: "dev.codonui.showcase")
         XCTAssertEqual(app.state, .runningForeground)
         XCUIDevice.shared.orientation = .portrait

@@ -54,7 +54,7 @@ class DestinationControls(unittest.TestCase):
   start=source.index('def main():');source=source[start:]
   gate=source.index("exact_installed('observer',packet['observerBundleID'],'observer-identity.json',suffix='-before')")
   self.assertLess(source.index("run('boot-readiness'"),gate)
-  self.assertLess(source.index('pendingStarted+60'),gate)
+  self.assertLess(source.index('wait_for_pending_transaction(pending,pendingDeadline)'),gate)
   self.assertLess(gate,source.index("result=tests('xctest'"))
   self.assertIn("validate_destination_artifacts(xrun['CodonNativeComponents'],packet)",source)
   self.assertIn("binding.get('useDestinationArtifacts',False) is destination_artifacts_enabled(packet)",source)

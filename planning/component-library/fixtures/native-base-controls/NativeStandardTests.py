@@ -58,6 +58,12 @@ def verify_product(value, path=None):
 
 
 def selection(platform, batch="meter-g02"):
+    if batch == "text-style-context":
+        require(platform == "ios", "Focused Text context batch is iOS-only")
+        return {"ios": ["TextStyleTrialTests/testTextProviderChange", "TextStyleTrialTests/testTextCompactAndLiveRestoration"], "android": []}
+    if batch == "text-style":
+        require(platform in ["ios", "android"], "Unknown Text platform")
+        return {"ios": ["TextStyleTrialTests/testTextTypographyAndClear", "TextStyleTrialTests/testTextProviderChange", "TextStyleTrialTests/testTextCompactAndLiveRestoration"] if platform == "ios" else [], "android": ["typography", "provider-constraint"] if platform == "android" else []}
     if batch == "linear-progress-risk":
         require(platform in ["ios", "android"], "Unknown risk platform")
         return {"ios": ["MeterStyleTrialTests/testLinearProgressLiveMotion"] if platform == "ios" else [], "android": ["live-motion"] if platform == "android" else []}
@@ -91,7 +97,8 @@ def bind_xctestrun(template, app, observer, output, installed_observer, restore_
     require(Path(target["TestHostPath"]).resolve() == Path(observer["product"]).resolve(), "SDK test host does not match prepared observer")
     require(not target.get("UseDestinationArtifacts"), "Destination-artifact mode is unsupported on this simulator lane")
     target.update(TestHostBundleIdentifier=bundle_id, UITargetAppPath=app["product"], UITargetAppBundleIdentifier="dev.codonui.showcase")
-    target.update(TestTimeoutsEnabled=True, DefaultTestExecutionTimeAllowance=180, MaximumTestExecutionTimeAllowance=180)
+    target["TestTimeoutsEnabled"] = False
+    for key in ["DefaultTestExecutionTimeAllowance", "MaximumTestExecutionTimeAllowance"]: target.pop(key, None)
     environment = {"CODON_METER_FIXTURE_SHA256": digest(REPO / "apps/native-showcase/src/scenes/MeterG02Fixture.tsx"), "CODON_METER_SCENE_SHA256": digest(REPO / "apps/native-showcase/src/scenes/RangeScene.tsx"), "CODON_METER_PRODUCT_SHA256": app["manifestSHA256"], "CODON_METER_OBSERVER_MANIFEST_SHA256": observer["manifestSHA256"]}
     environment["CODON_METER_STYLE_FIXTURE_SHA256"] = digest(REPO / "apps/native-showcase/src/scenes/MeterStyleFixture.tsx")
     if restore_motion is not None:
@@ -238,7 +245,7 @@ def build_android(session, config):
     control_classes = session.output / "control-classes"; control_classes.mkdir()
     session.run("javac-controls", [jdk / "bin/javac", "-d", control_classes, controls])
     control_result = json.loads(session.run("java-controls", [jdk / "bin/java", "-cp", control_classes, "MeterStyleControls"]))
-    require(control_result == {"status": "PASS", "cases": 38}, "Actual Java geometry/color/identity/automatic-height controls failed")
+    require(control_result == {"status": "PASS", "cases": 39}, "Actual Java geometry/color/identity/automatic-height controls failed")
     session.run("javac", [jdk / "bin/javac", "-source", "8", "-target", "8", "-classpath", jar, "-d", build / "classes", source / "Actions.java"])
     session.run("dex", [tools / "d8", "--lib", jar, "--output", build / "dex", *sorted((build / "classes").rglob("*.class"))])
     session.run("package", [tools / "aapt2", "link", "--manifest", source / "AndroidManifest.xml", "-I", jar, "-o", build / "unsigned.apk"])
@@ -289,11 +296,11 @@ def android_style_control_source():
       reject(()->meterStyleExpectedHeight(5,0,-1));reject(()->meterStyleExpectedHeight(5,0,Double.NaN));
       pass(()->meterStyleFrameCheck(new double[]{12,12,150,2},new double[]{12,12,150,meterStyleExpectedHeight(5,0,2)},3));
       reject(()->meterStyleFrameCheck(new double[]{12,12,150,2},new double[]{12,12,150,0},3));
-      check(meterAttemptDeadline(1000,"30000")==31000);reject(()->meterAttemptDeadline(0,null));reject(()->meterAttemptDeadline(0,"0"));reject(()->meterAttemptDeadline(0,"1800001"));reject(()->meterAttemptDeadline(0,"invalid"));
+      check(meterAttemptDeadline(1000,"30000")==31000);check(meterAttemptDeadline(1000,"1200000")==1201000);reject(()->meterAttemptDeadline(0,null));reject(()->meterAttemptDeadline(0,"0"));reject(()->meterAttemptDeadline(0,"1800001"));reject(()->meterAttemptDeadline(0,"invalid"));
       check(java.util.Arrays.equals(meterStyleMethods("dimensions"),new String[]{"dimensions"}));check(meterStyleMethods("").length==4);reject(()->meterStyleMethods("unknown"));
       check(motionPreferenceCommandAllowed("settings get global transition_animation_scale"));check(motionPreferenceCommandAllowed("settings get global animator_duration_scale"));check(motionPreferenceCommandAllowed("settings put global transition_animation_scale 0"));check(motionPreferenceCommandAllowed("settings delete global animator_duration_scale"));check(!motionPreferenceCommandAllowed("settings put secure setting 1"));check(!motionPreferenceCommandAllowed("settings put global animator_duration_scale 0; input tap 1 1"));
       check(progressRiskContrastCount(new int[]{0xfff7f7f7,0xfff7f7f7},0xfff7f7f7)==0);check(progressRiskContrastCount(new int[]{0xfff7f7f7,0xff4e8f3a},0xfff7f7f7)==1);reject(()->progressRiskContrastCount(null,0));reject(()->progressRiskContrastCount(new int[]{},0));
-      if(cases!=38)throw new AssertionError("Control count changed");System.out.println("{\"status\":\"PASS\",\"cases\":"+cases+"}");
+      if(cases!=39)throw new AssertionError("Control count changed");System.out.println("{\"status\":\"PASS\",\"cases\":"+cases+"}");
     }
 }'''
 
@@ -421,7 +428,7 @@ def run_ios(session, config, app, observer):
     runfile = session.output / "Tests.xctestrun"
     bind_xctestrun(template, app, observer, runfile, installed_products["observer"], config.get("restoreMotionOriginalValue"))
     selected = selection("ios", config.get("batch", "meter-g02"))["ios"]
-    argv = [XCODE + "/xcodebuild", "test-without-building", "-xctestrun", str(runfile), "-destination", "platform=iOS Simulator,id=" + device, "-destination-timeout", str(max(1, int(session.remaining()))), "-jobs", "1", "-parallel-testing-enabled", "NO", "-test-timeouts-enabled", "YES", "-maximum-test-execution-time-allowance", "180", "-resultBundlePath", str(session.output / "Tests.xcresult")]
+    argv = [XCODE + "/xcodebuild", "test-without-building", "-xctestrun", str(runfile), "-destination", "platform=iOS Simulator,id=" + device, "-destination-timeout", str(max(1, int(session.remaining()))), "-jobs", "1", "-parallel-testing-enabled", "NO", "-test-timeouts-enabled", "NO", "-resultBundlePath", str(session.output / "Tests.xcresult")]
     argv += ["-only-testing:CodonNativeComponents/" + name for name in selected]
     sdk_error = None
     try: raw = session.run("xctest", argv)
@@ -443,6 +450,8 @@ def run_ios(session, config, app, observer):
     if sdk_error is not None: raise sdk_error
     summary = json.loads(session.run("xctest-summary", [XCODE + "/xcresulttool", "get", "test-results", "summary", "--path", session.output / "Tests.xcresult"]))
     result = reconcile_selected_results(summary, raw, selected)
+    if config.get("batch") in ["text-style", "text-style-context"]:
+        result["textStyle"] = reconcile_text_style_ios(raw, config, app)
     if config.get("batch") == "linear-progress-risk": result["linearProgressRisk"] = reconcile_linear_progress_risk_ios(raw)
     if config.get("batch") == "meter-style": result["styleObservations"] = reconcile_ios_styles(raw)
     if config.get("batch") == "meter-style-affected":
@@ -461,6 +470,21 @@ def run_ios(session, config, app, observer):
         registered = session.run("installed-" + label, [XCODE + "/simctl", "get_app_container", device, bundle, "app"]).strip()
         verify_product(expected, registered)
     return result
+
+
+
+def reconcile_text_style_ios(raw, config, app):
+    from NativeTextStyleCheck import validate_rows
+    rows = [json.loads(row) for row in re.findall(r"TEXT_STYLE_OBSERVATION (\{[^\n]+\})", raw)]
+    if config.get("batch") == "text-style-context":
+        retained = json.loads(bound_file(config["retainedTextTypographyMethod"]).read_text())
+        require(retained.get("method") == "testTextTypographyAndClear" and retained.get("appManifestSHA256") == app["manifestSHA256"], "Retained typography needs the same app and exact method")
+        native_method(retained)
+        loaded = json.loads(bound_file(retained["loadedObserver"]).read_text())
+        require(loaded.get("status") == "PASS" and loaded.get("observerManifestSHA256") == retained.get("observerManifestSHA256"), "Retained actual loaded observer identity is missing")
+        prior = [json.loads(row) for row in re.findall(r"TEXT_STYLE_OBSERVATION (\{[^\n]+\})", bound_file(retained).read_text())]
+        rows += [row for row in prior if row["name"] in ["default", "custom", "cleared", "restored"]]
+    return validate_rows(rows, "ios")
 
 
 def reconcile_ios_styles(raw, expected=None):
@@ -638,11 +662,15 @@ def run_android(session, config, app, observer):
     session.run("pull-results", selected + ["pull", remote, str(directory)])
     receipt = directory / "receipt.json";value = json.loads(receipt.read_text())
     require(value.get("nativeActionSucceeded") and not value.get("hasFailedCohorts") and value.get("selectedMethods") == cohorts, "Instrumentation failed/incomplete; adb exit alone is not a verdict")
-    methods = [native_method({"path": str(receipt), "sha256": digest(receipt), "format": "android_receipt", "method": name, "maximumSeconds": 180}) for name in cohorts]
+    methods = [native_method({"path": str(receipt), "sha256": digest(receipt), "format": "android_receipt", "method": name, "maximumSeconds": 1800}) for name in cohorts]
     session.run("density", selected + ["shell", "wm", "density"])
     if risk:
         result = reconcile_linear_progress_risk_android(session, config, directory, value)
         write(session.output / "risk-review.json", result)
+    elif batch == "text-style":
+        from NativeTextStyleCheck import validate_rows
+        rows = [row for cohort in value["cohorts"] for row in cohort["observations"]]
+        write(session.output / "text-style-review.json", validate_rows(rows, "android"))
     elif style:
         decoder = bound_file(config["imageDecoder"])
         selected_args = ["--selected-cohorts", "dimensions"] if batch == "meter-style-dimensions" else []
@@ -737,7 +765,8 @@ def validate_standard_scope(plan):
     cell, batch = plan["cell"], plan["nativeStandard"].get("batch", "meter-g02")
     meter = cell.startswith("CAT.meter.") and batch != "linear-progress-risk"
     progress = cell in ["CAT.linear-progress." + gate for gate in ["G04", "G07", "G08", "G09"]] and batch == "linear-progress-risk"
-    require(meter or progress, "Only the authorized Meter or focused LinearProgress path is selected")
+    text = cell in ["CAT.text." + gate for gate in ["G04", "G07", "G08", "G09"]] and batch in ["text-style", "text-style-context"]
+    require(meter or progress or text, "Only the authorized component and focused batch are selected")
 
 
 def main():

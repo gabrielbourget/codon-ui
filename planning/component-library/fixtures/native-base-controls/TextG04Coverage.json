@@ -1,0 +1,121 @@
+{
+  "component": "CAT.text",
+  "checklistVersion": "NATIVE-CELL-03",
+  "gates": ["G04", "G07", "G08", "G09"],
+  "canonicalAssertions": [
+    {
+      "id": "STYLE.text.001",
+      "canonicalCase": "renders with default typography.",
+      "sourceCoverage": "Current full Text public contract (19 cases), full typography reset and Button typography (66 cases); complete defaults/variant/weight/style/element/custom/final/native props/no DOM leakage.",
+      "installedSelection": "Actual Text default/custom/final-cleared/restored typography, mounted light/dark provider, compact/live-restored wrapping; original TXT-02 native family and Button context behaviors retained.",
+      "scope": "All deterministic font variants/weights/families/registered-array/nativeColor validation remain full source coverage. One discriminating native typography+provider+narrow integration batch perOS selected under RB-NATIVE-01; not one native execution per property.",
+      "nativeTestCases": ["uses scalable b10 regular defaults and strips wrapper props"],
+      "expectedOutcome": "One current native Text with b10/regular defaults, complete scalable content and no wrapper leakage."
+    },
+    {
+      "id": "STYLE.text.002",
+      "canonicalCase": "responds to variant props.",
+      "sourceCoverage": "Current full Text public contract (19 cases), full typography reset and Button typography (66 cases); complete defaults/variant/weight/style/element/custom/final/native props/no DOM leakage.",
+      "installedSelection": "Actual Text default/custom/final-cleared/restored typography, mounted light/dark provider, compact/live-restored wrapping; original TXT-02 native family and Button context behaviors retained.",
+      "scope": "All deterministic font variants/weights/families/registered-array/nativeColor validation remain full source coverage. One discriminating native typography+provider+narrow integration batch perOS selected under RB-NATIVE-01; not one native execution per property.",
+      "nativeTestCases": [
+        "resolves every variant and weight through the actual provider",
+        "preserves the canonical %s font-family fallback chain"
+      ],
+      "expectedOutcome": "All declared variants and font-family fallback rules resolve through current providers; native baseline confirms real font metrics."
+    },
+    {
+      "id": "STYLE.text.003",
+      "canonicalCase": "responds to font weight props.",
+      "sourceCoverage": "Current full Text public contract (19 cases), full typography reset and Button typography (66 cases); complete defaults/variant/weight/style/element/custom/final/native props/no DOM leakage.",
+      "installedSelection": "Actual Text default/custom/final-cleared/restored typography, mounted light/dark provider, compact/live-restored wrapping; original TXT-02 native family and Button context behaviors retained.",
+      "scope": "All deterministic font variants/weights/families/registered-array/nativeColor validation remain full source coverage. One discriminating native typography+provider+narrow integration batch perOS selected under RB-NATIVE-01; not one native execution per property.",
+      "nativeTestCases": ["resolves every variant and weight through the actual provider"],
+      "expectedOutcome": "All six public weight aliases resolve to300/400/500/600/700/800; custom700 and final clearing retain computed regular."
+    },
+    {
+      "id": "STYLE.text.004",
+      "canonicalCase": "responds to font style props.",
+      "sourceCoverage": "Current full Text public contract (19 cases), full typography reset and Button typography (66 cases); complete defaults/variant/weight/style/element/custom/final/native props/no DOM leakage.",
+      "installedSelection": "Actual Text default/custom/final-cleared/restored typography, mounted light/dark provider, compact/live-restored wrapping; original TXT-02 native family and Button context behaviors retained.",
+      "scope": "All deterministic font variants/weights/families/registered-array/nativeColor validation remain full source coverage. One discriminating native typography+provider+narrow integration batch perOS selected under RB-NATIVE-01; not one native execution per property.",
+      "nativeTestCases": [
+        "inherits an authored parent italic style while keeping the child variant and weight defaults"
+      ],
+      "expectedOutcome": "Explicit/default/inherited italic ownership; custom italic actual paint and final computed reset."
+    },
+    {
+      "id": "STYLE.text.005",
+      "canonicalCase": "responds to element type props.",
+      "sourceCoverage": "Current full Text public contract (19 cases), full typography reset and Button typography (66 cases); complete defaults/variant/weight/style/element/custom/final/native props/no DOM leakage.",
+      "installedSelection": "Actual Text default/custom/final-cleared/restored typography, mounted light/dark provider, compact/live-restored wrapping; original TXT-02 native family and Button context behaviors retained.",
+      "scope": "All deterministic font variants/weights/families/registered-array/nativeColor validation remain full source coverage. One discriminating native typography+provider+narrow integration batch perOS selected under RB-NATIVE-01; not one native execution per property.",
+      "nativeTestCases": [
+        "resolves heading/link intent and explicit native role precedence without forcing strong weight"
+      ],
+      "expectedOutcome": "Heading/link/native role precedence and strong intent retain ordinary weight; inherited context native semantics retained TXT-02."
+    },
+    {
+      "id": "STYLE.text.006",
+      "canonicalCase": "responds to custom styling props.",
+      "sourceCoverage": "Current full Text public contract (19 cases), full typography reset and Button typography (66 cases); complete defaults/variant/weight/style/element/custom/final/native props/no DOM leakage.",
+      "installedSelection": "Actual Text default/custom/final-cleared/restored typography, mounted light/dark provider, compact/live-restored wrapping; original TXT-02 native family and Button context behaviors retained.",
+      "scope": "All deterministic font variants/weights/families/registered-array/nativeColor validation remain full source coverage. One discriminating native typography+provider+narrow integration batch perOS selected under RB-NATIVE-01; not one native execution per property.",
+      "nativeTestCases": ["preserves selection overrides, style arrays and registered styles above provider defaults"],
+      "expectedOutcome": "Computed\u2192custom\u2192final precedence, exact authored colors and native array/registered styles; actual18/700/italic/26 and final clear restore."
+    },
+    {
+      "id": "STYLE.text.007",
+      "canonicalCase": "merges native className and style without losing computed classes.",
+      "sourceCoverage": "Current full Text public contract (19 cases), full typography reset and Button typography (66 cases); complete defaults/variant/weight/style/element/custom/final/native props/no DOM leakage.",
+      "installedSelection": "Actual Text default/custom/final-cleared/restored typography, mounted light/dark provider, compact/live-restored wrapping; original TXT-02 native family and Button context behaviors retained.",
+      "scope": "All deterministic font variants/weights/families/registered-array/nativeColor validation remain full source coverage. One discriminating native typography+provider+narrow integration batch perOS selected under RB-NATIVE-01; not one native execution per property.",
+      "nativeTestCases": [
+        "uses scalable b10 regular defaults and strips wrapper props",
+        "preserves selection overrides, style arrays and registered styles above provider defaults"
+      ],
+      "expectedOutcome": "Native style/type equivalents replace DOM classes without ignored public props; canonical safe style precedence preserved."
+    },
+    {
+      "id": "STYLE.text.008",
+      "canonicalCase": "forwards safe native props without replacing computed root props.",
+      "sourceCoverage": "Current full Text public contract (19 cases), full typography reset and Button typography (66 cases); complete defaults/variant/weight/style/element/custom/final/native props/no DOM leakage.",
+      "installedSelection": "Actual Text default/custom/final-cleared/restored typography, mounted light/dark provider, compact/live-restored wrapping; original TXT-02 native family and Button context behaviors retained.",
+      "scope": "All deterministic font variants/weights/families/registered-array/nativeColor validation remain full source coverage. One discriminating native typography+provider+narrow integration batch perOS selected under RB-NATIVE-01; not one native execution per property.",
+      "nativeTestCases": [
+        "retains the original Text ref and exact native events through caller updates and clears it on unmount",
+        "gives native labels/IDs precedence over aliases, including empty values"
+      ],
+      "expectedOutcome": "Original native ref/event identity and current caller content/labels/empty-name precedence; actual TXT-02 native selection/context delivery retained."
+    },
+    {
+      "id": "STYLE.text.009",
+      "canonicalCase": "does not leak typography props onto the DOM element.",
+      "sourceCoverage": "Current full Text public contract (19 cases), full typography reset and Button typography (66 cases); complete defaults/variant/weight/style/element/custom/final/native props/no DOM leakage.",
+      "installedSelection": "Actual Text default/custom/final-cleared/restored typography, mounted light/dark provider, compact/live-restored wrapping; original TXT-02 native family and Button context behaviors retained.",
+      "scope": "All deterministic font variants/weights/families/registered-array/nativeColor validation remain full source coverage. One discriminating native typography+provider+narrow integration batch perOS selected under RB-NATIVE-01; not one native execution per property.",
+      "nativeTestCases": ["uses scalable b10 regular defaults and strips wrapper props"],
+      "expectedOutcome": "Typography/context/style ownership is consumed before RNText; no DOM/unknown ownership prop leaks."
+    }
+  ],
+  "publicContractMapping": "Roadmap3.5.1.1 and3.5.20 plus FIN-TEXT01/TXT-02; public Text has computed/customStyles/final style layers, no style-state callback prop; nativeRender/context assertions in maintained typography suite.",
+  "selectedNativeRisks": [
+    "Actual scalable native typography and custom/final clearing",
+    "Mounted light/dark native foreground change with preserved full content",
+    "One compact long-text wrapping constraint and live restoration",
+    "Retain both-OS original Text selection/ref/event/ownership/lifetime/RTL family and Button context observations at their original tuple"
+  ],
+  "unselectedProfiles": [
+    "No complete font-scale\u00d7orientation grid: one measured narrower host discriminates owned wrapping under current risk selection.",
+    "No new physical spoken AT or hardware/ARM/signing claim; existing owner-review deferrals retained.",
+    "Text default has no owned shadow or timing API. Shared color animation settles before foreground measurement; source retains color transition/helper lifecycle tests.",
+    "Native registered/array styles and dynamic ColorValue are directly validated by the source RNText prop pipeline; no separate installed style permutation is claimed. Actual native theme colors/font integration is selected."
+  ],
+  "status": "COMPLETE_RISK_SELECTED_SOURCE_AND_NATIVE",
+  "actualNativeScope": {
+    "android": "2 methods60.734/30.172s;8 originalcaptures with exact foreground and baseline-glyph restored proof",
+    "ios": "3 methods81.499/93.642/68.192s;4 typography captures retained at its original loaded observer,4 fresh contextcaptures;8 originalPNGs independently match native exact foreground and baseline-glyph restoration",
+    "source": "19 currentText contract+66Text/Button typography/reset cases;9 canonicalrootassertions; existing42 publictypebooks/fullarchive/bothgraphs byte-unchanged",
+    "exclusions": "No physical spokenAT/ARM/signing or blanket all-font/orientation grid; all previously blocked/canceled cells stopped"
+  }
+}

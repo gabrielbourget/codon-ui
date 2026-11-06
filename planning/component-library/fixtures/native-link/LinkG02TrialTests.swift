@@ -8,7 +8,6 @@ final class LinkG02TrialTests: XCTestCase {
 
     override func setUpWithError() throws {
         continueAfterFailure = false
-        executionTimeAllowance = 180
         guard ProcessInfo.processInfo.environment["CODON_LINK_SCENE_SHA256"] == sceneSHA else {
             XCTFail("Bind the unchanged LinkScene fixture")
             throw NSError(domain: "LinkG02Admission", code: 1)

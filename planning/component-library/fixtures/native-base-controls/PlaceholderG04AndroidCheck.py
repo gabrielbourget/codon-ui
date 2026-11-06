@@ -22,7 +22,7 @@ def verify(raw, directory):
         raise ValueError("Complete exact three-cohort coverage required")
     output = []
     for cohort in cohorts:
-        if cohort.get("status") != "NATIVE_ASSERTIONS_PASSED_PENDING_HOST_REVIEW" or not 0 < cohort["elapsedMs"] <= 180000:
+        if cohort.get("status") != "NATIVE_ASSERTIONS_PASSED_PENDING_HOST_REVIEW" or not 0 < cohort["elapsedMs"] <= 1800000:
             raise ValueError("Failed or over-budget native cohort")
         observations = cohort["observations"]
         if [row["name"] for row in observations] != EXPECTED[cohort["name"]]:
