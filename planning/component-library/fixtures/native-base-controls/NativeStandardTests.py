@@ -76,6 +76,9 @@ def verify_selected_app_inputs(plan, app):
 
 
 def selection(platform, batch="meter-g02"):
+    if batch in ["thumbnail", "thumbnail-geometry"]:
+        require(platform == "ios", "Current ThumbnailImage batch is iOS-only")
+        return {"ios": (["ThumbnailTrialTests/testThumbnailDecodeFallbackAndLifetime"] if batch == "thumbnail" else []) + ["ThumbnailTrialTests/testThumbnailGeometryDensityAndProviders"], "android": []}
     if batch in ["counter", "counter-values"]:
         require(platform == "ios", "Current Counter batch is iOS-only")
         return {"ios": ["CounterTrialTests/testCounterValuesStylesAndProviders"] + (["CounterTrialTests/testCounterColorInterruptionAndRetirement"] if batch == "counter" else []), "android": []}
@@ -222,7 +225,11 @@ def geometry_control_source():
     shadow_predicate = source[shadow_start:shadow_end].replace("private ", "", 1)
     circle_start = source.index("private func circularPixelsMatch(");circle_open = source.index("{",circle_start);circle_end=source.index("\n}",circle_open)+2
     circle_predicate = source[circle_start:circle_end].replace("private ","",1)
-    return "import Foundation\n" + predicate + "\n" + pixel_predicate + "\n" + shadow_predicate + "\n" + circle_predicate + "\n" + '''
+    image_start = source.index("private func thumbnailImageContentFrame(");image_open = source.index("{", image_start);image_depth = 1;image_end = image_open + 1
+    while image_depth:
+        image_depth += (source[image_end] == "{") - (source[image_end] == "}");image_end += 1
+    image_predicate = source[image_start:image_end].replace("private ", "", 1)
+    return "import Foundation\n" + predicate + "\n" + pixel_predicate + "\n" + shadow_predicate + "\n" + circle_predicate + "\n" + image_predicate + "\n" + '''
 let saved: NSNumber = 9.9998779296875
 precondition(saved.intValue == 9 && saved.doubleValue == 9.9998779296875)
 let cases: [(Double, Double, Double, Bool)] = [
@@ -251,7 +258,13 @@ precondition(!circularPixelsMatch([1],[1]))
 precondition(!circularPixelsMatch([1,2,3,255],[1,2,4,255]))
 precondition(!circularPixelsMatch([1,2,3,255],[1,2,3,254]))
 precondition(!circularPixelsMatch([1,2,3,255],[1,2,3,255,1,2,3,255]))
-print(#"{\"circularCases\":6,\"status\":\"PASS\",\"cases\":11,\"pixelCases\":6,\"shadowCases\":6,\"savedNSNumberIntValue\":9,\"savedNSNumberDoubleValue\":9.9998779296875}"#)
+precondition(thumbnailImageContentFrame([38,242,120,80],2) == [40,244,116,76])
+precondition(thumbnailImageContentFrame([38,242,48,24],0) == [38,242,48,24])
+precondition(thumbnailImageContentFrame([0,0,83.25,41.625],2) == [2,2,79.25,37.625])
+precondition(thumbnailImageContentFrame([0,0,2,2],2) == nil)
+precondition(thumbnailImageContentFrame([0,0,120,80],-1) == nil)
+precondition(thumbnailImageContentFrame([0,0,Double.nan,80],2) == nil)
+print(#"{\"thumbnailFrameCases\":6,\"circularCases\":6,\"status\":\"PASS\",\"cases\":11,\"pixelCases\":6,\"shadowCases\":6,\"savedNSNumberIntValue\":9,\"savedNSNumberDoubleValue\":9.9998779296875}"#)
 '''
 
 
@@ -296,7 +309,7 @@ def build_ios(session, config=None):
     sdk = session.run("geometry-sdk", ["/usr/bin/xcrun", "--sdk", "macosx", "--show-sdk-path"]).strip()
     swift = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift"
     control_result = json.loads(session.run("geometry-controls", [swift, "-sdk", sdk, "-module-cache-path", str(CACHE / "swift-host-module-cache"), str(controls)]))
-    require(control_result.get("circularCases") == 6 and control_result.get("status") == "PASS" and control_result.get("cases") == 11 and control_result.get("pixelCases") == 6 and control_result.get("shadowCases") == 6, "Actual Swift geometry/pixel/shadow controls failed")
+    require(control_result.get("thumbnailFrameCases") == 6 and control_result.get("circularCases") == 6 and control_result.get("status") == "PASS" and control_result.get("cases") == 11 and control_result.get("pixelCases") == 6 and control_result.get("shadowCases") == 6, "Actual Swift geometry/pixel/shadow controls failed")
     derived = CACHE / "ios"
     # A source revision gets an unambiguous observer registration; old installed revisions remain intact.
     bundle_id = "dev.codonui.lab.components.r" + digest(ROOT / "MeterG02TrialTests.swift")[:12]
@@ -556,6 +569,7 @@ def run_ios(session, config, app, observer):
     if config.get("batch") == "circle-loader": result["circleLoader"] = reconcile_circle_loader_ios(raw)
     if config.get("batch") == "lagging-lines": result["laggingLines"] = reconcile_lagging_lines_ios(raw)
     if config.get("batch") in ["counter", "counter-values"]: result["counter"] = reconcile_counter_ios(raw, include_motion=config["batch"] == "counter")
+    if config.get("batch") in ["thumbnail", "thumbnail-geometry"]: result["thumbnail"] = reconcile_thumbnail_ios(raw, include_lifetime=config["batch"] == "thumbnail")
     if config.get("batch") == "linear-progress-risk": result["linearProgressRisk"] = reconcile_linear_progress_risk_ios(raw)
     if config.get("batch") == "meter-style": result["styleObservations"] = reconcile_ios_styles(raw)
     if config.get("batch") == "meter-style-affected":
@@ -775,6 +789,70 @@ def reconcile_counter_ios(raw, include_motion=True):
     original = re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])", raw)
     require(len(original) == 1 and original == re.findall(r"METER_STYLE_MOTION_RESTORED ([01])", raw), "Counter Reduce Motion original restoration unverified")
     result.update(motionIntervals=2, originalAndRestoredMotion=original[0], motionSamples=len(all_rows) - len(rows))
+    return result
+
+
+
+THUMBNAIL_NAMES = ["baseline", "equivalent", "all-fail", "empty-list", "zero-fallback", "square", "landscape", "adapter", "adapter-empty-alt", "retired", "retired-quiet", "fresh", "geometry-baseline", "density-full", "density-src", "zero-density", "zero-fresh", "positive-fresh", "caller-selected", "styled", "constrained", "fractional", "percentage", "dark", "narrow", "live-restored", "light-restored"]
+
+
+def validate_thumbnail_rows(rows, names):
+    require(sorted(row["name"] for row in rows) == sorted(names), "Missing/duplicate ThumbnailImage observations")
+    for row in rows:
+        state, scale = row["state"], row["scale"]
+        require(isinstance(scale, (float, int)) and math.isfinite(scale) and scale > 0 and scale == state["scale"], "Wrong actual ThumbnailImage scale")
+        parent, reference = row["parent"], row["referenceParent"]
+        require(len(parent) == len(reference) == 4 and all(math.isfinite(v) for v in parent + reference) and parent[2:] == reference[2:] and 0 < parent[2] <= 280 and parent[3] == 180, "Wrong ThumbnailImage measurement parents")
+        for frame in [parent, reference]:
+            x,y,width,height = [math.floor(v * scale + .5) for v in frame]
+            require(0 <= x < x + width <= row["imageWidth"] and 0 <= y < y + height <= row["imageHeight"], "ThumbnailImage physical parent outside screenshot")
+        require(row["referenceExact"] is True, "ThumbnailImage differs from independent Image/Text reference")
+        if not state["visible"]:
+            require(not row["target"] and row["inkPixels"] == 0, "Retired ThumbnailImage paint/target remains")
+            continue
+        fallback = not state["callerSelected"] and state["mode"] in [1,2]
+        if fallback:
+            require(not row["target"] and row["inkPixels"] > 0, "Actual ThumbnailImage fallback missing")
+            continue
+        layouts = [item for item in state["events"] if item["kind"] == "layout"]
+        require(layouts, "Actual ThumbnailImage layout missing")
+        event, layout = layouts[-1], layouts[-1]["layout"]
+        require(event["target"] and event["target"] == event["currentTarget"], "Original ThumbnailImage event targets differ")
+        if state["zero"]:
+            require(layout["width"] == layout["height"] == 0 and row["inkPixels"] == 0, "Explicit ThumbnailImage zero leaked frame/paint")
+            continue
+        dimension = state["dimensionIndex"]
+        density = not state["callerSelected"] and state["densityIndex"] > 0
+        width = 140 if state["constrained"] else 83.25 if dimension == 1 else (parent[2] - 24) / 2 if dimension == 2 else 120 if state["custom"] else 32 if density else 96 if state["adapter"] else state["nativeSourceWidth"]
+        height = width * state["nativeSourceHeight"] / state["nativeSourceWidth"] if state["constrained"] or dimension else 80 if state["custom"] else 32 if density else 48 if state["adapter"] else state["nativeSourceHeight"]
+        require(abs(layout["width"] - width) * scale <= 1 and abs(layout["height"] - height) * scale <= 1 and row["inkPixels"] > 0, "Wrong actual ThumbnailImage dimensions/paint")
+        if row["target"]:
+            border = 2 if state["custom"] else 0
+            expected_frame = [parent[0] + layout["x"] + border, parent[1] + layout["y"] + border, width - 2 * border, height - 2 * border]
+            require(len(row["target"]) == 4 and all(abs(actual - expected) * scale <= 1 for actual, expected in zip(row["target"], expected_frame)) and row["nativeLabel"] == ("" if state["emptyAlt"] else "Thumbnail preview / aperçu"), "Wrong ThumbnailImage native content frame/name")
+            if "referenceTarget" in row:
+                raw = row["referenceTarget"]
+                require(len(raw) == 4 and all(abs(a - b) * scale <= 1 for a,b in zip([row["target"][0]-parent[0],row["target"][1]-parent[1],*row["target"][2:]],[raw[0]-reference[0],raw[1]-reference[1],*raw[2:]])), "Actual/raw native image content frames differ")
+        else: require(state["emptyAlt"], "Named ThumbnailImage absent from native snapshot")
+        loads = [item for item in state["events"] if item["kind"] == "load"]
+        require(loads and loads[-1]["source"]["uri"] == state["expectedURI"] and state["referenceSource"] == state["expectedURI"], "Actual ThumbnailImage/reference decoded wrong URI")
+        require(loads[-1]["source"]["width"] > 0 and loads[-1]["source"]["height"] > 0 and loads[-1]["currentTarget"] == event["currentTarget"], "Original ThumbnailImage load/layout identity missing")
+        if state["adapter"]:require(state["adapterBinding"]["tag"] == event["currentTarget"], "Renderer-owned Image ref does not match actual host")
+    return {"status":"PASS","observations":len(rows)}
+
+
+def reconcile_thumbnail_ios(raw, include_lifetime=True):
+    rows = [json.loads(line) for line in re.findall(r"THUMBNAIL_NATIVE_OBSERVATION (\{[^\n]+\})", raw)]
+    result = validate_thumbnail_rows(rows, THUMBNAIL_NAMES if include_lifetime else THUMBNAIL_NAMES[12:]);named = {row["name"]:row["state"] for row in rows}
+    require(named["percentage"]["frame"]["width"] != named["narrow"]["frame"]["width"], "Percentage ThumbnailImage host constraint unchanged")
+    if not include_lifetime: return result
+    require(named["baseline"]["errors"] == named["equivalent"]["errors"] == 1 and named["all-fail"]["errors"] == named["empty-list"]["errors"] == 3, "Actual candidate error/equivalent-list protocol differs")
+    events = named["baseline"]["events"]
+    require(next(i for i,e in enumerate(events) if e["kind"] == "error") < next(i for i,e in enumerate(events) if e["kind"] == "load"), "Native error must precede fallback candidate success")
+    require(named["adapter"]["adapterBinding"]["tag"] == named["adapter-empty-alt"]["adapterBinding"]["tag"], "Alt update replaced renderer-owned ref")
+    require(named["fresh"]["adapterBinding"]["tag"] != named["adapter"]["adapterBinding"]["tag"] and named["fresh"]["adapterBinding"]["detaches"] == named["adapter"]["adapterBinding"]["detaches"] + 1, "Native image retirement/fresh lifetime missing")
+    require(named["retired"]["loads"] == named["retired-quiet"]["loads"] and named["retired"]["errors"] == named["retired-quiet"]["errors"], "Retired callbacks changed caller state")
+    require(named["percentage"]["frame"]["width"] != named["narrow"]["frame"]["width"], "Percentage ThumbnailImage host constraint unchanged")
     return result
 
 
@@ -1080,7 +1158,8 @@ def validate_standard_scope(plan):
     loader = cell in ["CAT.circle-loader." + gate for gate in ["G04", "G08"]] and batch == "circle-loader"
     lines = cell in ["CAT.lagging-lines-loader." + gate for gate in ["G04", "G08"]] and batch == "lagging-lines"
     counter = cell in ["CAT.counter." + gate for gate in ["G04", "G08"]] and batch in ["counter", "counter-values"]
-    require(meter or progress or text or circular or loader or lines or counter, "Only the authorized component and focused batch are selected")
+    thumbnail = cell in ["CAT.thumbnail-image." + gate for gate in ["G04", "G08"]] and batch in ["thumbnail", "thumbnail-geometry"]
+    require(meter or progress or text or circular or loader or lines or counter or thumbnail, "Only the authorized component and focused batch are selected")
 
 
 def main():

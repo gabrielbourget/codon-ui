@@ -430,6 +430,41 @@ class StandardTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError,"EXPECTED_PACKAGER_BOUNDARY_NO_SDK"):NATIVE.build_ios_application(admitted,config)
             self.assertEqual((admitted.output/"CodonCircular.app/NativeBinary").read_text(),"unchanged native")
 
+    def test_thumbnail_scope_and_real_no_sdk_admission_boundary(self):
+        plan={"cell":"CAT.thumbnail-image.G08","nativeStandard":{"platform":"ios","batch":"thumbnail","output":str(self.root/"thumbnail-never-created")}}
+        NATIVE.validate_standard_scope(plan);self.assertEqual(len(NATIVE.selection("ios","thumbnail")["ios"]),2)
+        self.assertEqual(NATIVE.selection("ios","thumbnail-geometry")["ios"],["ThumbnailTrialTests/testThumbnailGeometryDensityAndProviders"])
+        NATIVE.validate_standard_scope({"cell":"CAT.thumbnail-image.G08","nativeStandard":{"batch":"thumbnail-geometry"}})
+        with self.assertRaises(ValueError):NATIVE.selection("android","thumbnail")
+        with self.assertRaises(ValueError):NATIVE.validate_standard_scope({"cell":"CAT.counter.G08","nativeStandard":{"batch":"thumbnail"}})
+        path=self.root/"thumbnail.json";path.write_text(json.dumps(plan));env={k:v for k,v in os.environ.items() if k!="CODON_NATIVE_CELL_PREFLIGHT_RECEIPT"}
+        result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(path)],env=env,capture_output=True,text=True,timeout=10)
+        self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((self.root/"thumbnail-never-created").exists())
+
+    def test_thumbnail_reader_requires_real_decode_uri_original_target_exact_paint_and_geometry(self):
+        row={"name":"baseline","scale":3,"imageWidth":1170,"imageHeight":2532,"parent":[20,300,280,180],"referenceParent":[20,488,280,180],"target":[32,312,48,24],"nativeLabel":"Thumbnail preview / aperçu","referenceExact":True,"inkPixels":500,"state":{"scale":3,"visible":True,"callerSelected":False,"mode":0,"zero":False,"adapter":False,"emptyAlt":False,"custom":False,"constrained":False,"densityIndex":0,"dimensionIndex":0,"nativeSourceWidth":48,"nativeSourceHeight":24,"expectedURI":"data:expected","referenceSource":"data:expected","events":[{"kind":"layout","target":51,"currentTarget":51,"layout":{"x":12,"y":12,"width":48,"height":24}},{"kind":"load","target":51,"currentTarget":51,"source":{"uri":"data:expected","width":48,"height":24}}]}}
+        self.assertEqual(NATIVE.validate_thumbnail_rows([row],["baseline"])["status"],"PASS")
+        for kind in ["wrong-uri","metadata-only","wrong-reference-uri","wrong-target","wrong-width","blank","paint","physical-outside","wrong-scale","duplicate"]:
+            bad=copy.deepcopy(row)
+            if kind=="wrong-uri":bad["state"]["events"][-1]["source"]["uri"]="data:retired"
+            elif kind=="metadata-only":bad["state"]["events"].pop()
+            elif kind=="wrong-reference-uri":bad["state"]["referenceSource"]="data:retired"
+            elif kind=="wrong-target":bad["state"]["events"][0]["currentTarget"]=52
+            elif kind=="wrong-width":bad["target"][2]=47
+            elif kind=="blank":bad["inkPixels"]=0
+            elif kind=="paint":bad["referenceExact"]=False
+            elif kind=="physical-outside":bad["parent"][0]=1000
+            elif kind=="wrong-scale":bad["state"]["scale"]=2
+            with self.subTest(kind=kind),self.assertRaises(ValueError):NATIVE.validate_thumbnail_rows([bad,bad] if kind=="duplicate" else [bad],["baseline"])
+        styled=copy.deepcopy(row);styled["name"]="styled";styled["state"]["custom"]=True;styled["state"]["events"][0]["layout"].update(width=120,height=80);styled["target"]=[34,314,116,76];styled["referenceTarget"]=[34,502,116,76]
+        self.assertEqual(NATIVE.validate_thumbnail_rows([styled],["styled"])["status"],"PASS")
+        styled["target"][2]=120
+        with self.assertRaises(ValueError):NATIVE.validate_thumbnail_rows([styled],["styled"])
+        zero=copy.deepcopy(row);zero["name"]="zero-density";zero["state"]["zero"]=True;zero["state"]["events"][0]["layout"]={"width":0,"height":0};zero["inkPixels"]=0;zero["target"]=[]
+        self.assertEqual(NATIVE.validate_thumbnail_rows([zero],["zero-density"])["status"],"PASS")
+        retired=copy.deepcopy(row);retired["name"]="retired";retired["state"]["visible"]=False;retired["target"]=[];retired["inkPixels"]=0
+        self.assertEqual(NATIVE.validate_thumbnail_rows([retired],["retired"])["status"],"PASS")
+
     def test_counter_scope_selection_and_actual_admission_boundary(self):
         plan={"cell":"CAT.counter.G08","nativeStandard":{"platform":"ios","batch":"counter","output":str(self.root/"counter-never-created")}}
         NATIVE.validate_standard_scope(plan);self.assertEqual(len(NATIVE.selection("ios","counter")["ios"]),2)

@@ -135,6 +135,13 @@
         "sha256": "1620b782f2ae372072410b8b5f637d41c252b2cc96bfae26def2ec61e62dbc89",
         "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/counter-after-lagging-lines-20261106/counter-G08-completion.json"
       }
+    },
+    "CAT.thumbnail-image.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/thumbnail-ios-g08-20261106/objects/8b3e785f4e0e031b4631f9098a3c3cd99cc56792fc39e9dfb46fc49381aad537",
+        "sha256": "8b3e785f4e0e031b4631f9098a3c3cd99cc56792fc39e9dfb46fc49381aad537",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/thumbnail-after-counter-20261106/thumbnail-G08-completion.json"
+      }
     }
   }
 }

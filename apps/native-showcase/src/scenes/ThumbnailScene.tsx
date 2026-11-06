@@ -1,7 +1,21 @@
-import { useState } from "react"
-import { Image, StyleSheet, View, useWindowDimensions } from "react-native"
+import { useCallback, useRef, useState } from "react"
+import {
+  findNodeHandle,
+  Image,
+  StyleSheet,
+  Text as RawText,
+  View,
+  useWindowDimensions,
+  type Image as ImageHost,
+} from "react-native"
 
-import { Button, Text, ThumbnailImage, type ThumbnailImageRenderImageArgs } from "@codon-ui/react-native"
+import {
+  Button,
+  Text,
+  ThumbnailImage,
+  useNativeTheme,
+  type ThumbnailImageRenderImageArgs,
+} from "@codon-ui/react-native"
 
 const RECTANGLE =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAYCAIAAAAzn+mLAAAAPklEQVR4nGPgqO/Bin58uIMV0Vo9w6iDRh006qAR56CBshiX+lEHjTpo1EEjz0EDZTEu9aMOGnXQqINGnIMAV6ykOfJ/enQAAAAASUVORK5CYII="
@@ -28,6 +42,35 @@ const SOURCE_LABELS = ["failure then landscape", "all fail", "empty list", "squa
 
 export const ThumbnailScene = () => {
   const { scale } = useWindowDimensions()
+  const theme = useNativeTheme()
+  const [visible, setVisible] = useState(true)
+  const [dimensionIndex, setDimensionIndex] = useState(0)
+  const [referenceLoads, setReferenceLoads] = useState(0)
+  const [referenceSource, setReferenceSource] = useState("")
+  const [events, setEvents] = useState<
+    {
+      kind: string
+      epochMs: number
+      target: number | null
+      currentTarget: number | null
+      source?: unknown
+      error?: string
+      layout?: unknown
+    }[]
+  >([])
+  const [binding, setBinding] = useState({ tag: null as number | null, attaches: 0, detaches: 0 })
+  const adapterRef = useRef<ImageHost | null>(null)
+  const nodeTag = (node: unknown) =>
+    typeof node === "number" ? node : node == null ? null : findNodeHandle(node as ImageHost)
+  const bindAdapter = useCallback((node: ImageHost | null) => {
+    if (node === adapterRef.current) return
+    adapterRef.current = node
+    setBinding((old) => ({
+      tag: node == null ? null : findNodeHandle(node),
+      attaches: old.attaches + (node ? 1 : 0),
+      detaches: old.detaches + (node ? 0 : 1),
+    }))
+  }, [])
   const [mode, setMode] = useState(0)
   const [densityIndex, setDensityIndex] = useState(0)
   const [callerSelected, setCallerSelected] = useState(false)
@@ -65,12 +108,104 @@ export const ThumbnailScene = () => {
   const renderImage = ({ imageProps }: ThumbnailImageRenderImageArgs) => (
     <Image
       {...imageProps}
+      ref={bindAdapter}
       alt={undefined}
       accessible={imageProps.alt !== ""}
       accessibilityLabel={imageProps.alt}
       style={[{ width: 96, height: 48, aspectRatio: 2 }, imageProps.style]}
     />
   )
+  const authoredStyle = {
+    ...(densitySet ? { width: 32, height: 32 } : {}),
+    ...(custom
+      ? {
+          width: 120,
+          height: 80,
+          borderRadius: 5,
+          borderWidth: 2,
+          borderColor: "#2f7d18",
+          resizeMode: "contain" as const,
+        }
+      : {}),
+    ...(dimensionIndex ? { width: dimensionIndex === 1 ? 83.25 : ("50%" as const), height: "auto" as const } : {}),
+    ...(constrained ? { width: 140, height: "auto" as const } : {}),
+    ...(zero ? { width: 0, height: 0 } : {}),
+  }
+  const fallbackExpected = !callerSelected && [1, 2].includes(mode)
+  const expectedURI = densitySet
+    ? scale > 2
+      ? DENSITY_3X
+      : scale > 1
+        ? DENSITY_2X
+        : densityIndex === 1
+          ? DENSITY_1X
+          : mode === 3
+            ? SQUARE
+            : RECTANGLE
+    : !callerSelected && mode === 3
+      ? SQUARE
+      : RECTANGLE
+  const nativeSourceWidth = densitySet ? (scale > 2 ? 96 : scale > 1 ? 64 : 32) : expectedURI === SQUARE ? 32 : 48
+  const nativeSourceHeight = densitySet ? nativeSourceWidth : expectedURI === SQUARE ? 32 : 24
+  const referenceStyle = {
+    width: zero
+      ? 0
+      : constrained
+        ? 140
+        : dimensionIndex
+          ? dimensionIndex === 1
+            ? 83.25
+            : ("50%" as const)
+          : custom
+            ? 120
+            : densitySet
+              ? 32
+              : adapter
+                ? 96
+                : nativeSourceWidth,
+    height: zero
+      ? 0
+      : constrained || dimensionIndex
+        ? undefined
+        : custom
+          ? 80
+          : densitySet
+            ? 32
+            : adapter
+              ? 48
+              : nativeSourceHeight,
+    ...(constrained || dimensionIndex ? { aspectRatio: nativeSourceWidth / nativeSourceHeight } : {}),
+    ...(custom ? { borderRadius: 5, borderWidth: 2, borderColor: "#2f7d18" } : {}),
+  }
+  const record = {
+    mode,
+    densityIndex,
+    callerSelected,
+    equivalent,
+    adapter,
+    emptyAlt,
+    zero,
+    custom,
+    constrained,
+    zeroFallback,
+    lifetime,
+    visible,
+    dimensionIndex,
+    errors,
+    loads,
+    lastLoad,
+    loadedSource,
+    frame,
+    scale,
+    theme: theme.mode,
+    referenceLoads,
+    referenceSource,
+    expectedURI,
+    nativeSourceWidth,
+    nativeSourceHeight,
+    adapterBinding: binding,
+    events,
+  }
   return (
     <View style={styles.scene}>
       <Text elementType="h2" variant="h3">
@@ -86,7 +221,12 @@ export const ThumbnailScene = () => {
         {zero ? "authored zero" : densitySet ? "32 by 32" : "intrinsic"}. Last native source: {loadedSource}. Window
         scale: {scale}.
       </Text>
+      <Text testID="thumbnail-native-state" accessibilityLabel={JSON.stringify(record)} numberOfLines={1}>
+        {JSON.stringify(record)}
+      </Text>
       <View style={styles.controls}>
+        <Button onPress={() => setVisible((old) => !old)}>Toggle thumbnail presence</Button>
+        <Button onPress={() => setDimensionIndex((old) => (old + 1) % 3)}>Next thumbnail dimension</Button>
         <Button onPress={() => setMode((value) => (value + 1) % SOURCE_LABELS.length)}>Next thumbnail sources</Button>
         <Button onPress={() => setDensityIndex((value) => (value + 1) % DENSITY_MODES.length)}>
           Next thumbnail density set
@@ -102,44 +242,106 @@ export const ThumbnailScene = () => {
         <Button onPress={() => setLifetime((value) => value + 1)}>Restart thumbnail lifetime</Button>
       </View>
       <View style={styles.preview}>
-        <ThumbnailImage
-          key={lifetime}
-          src={callerSelected ? RECTANGLE : SQUARE}
-          srcCandidates={callerSelected ? undefined : candidates}
-          srcSet={densitySet}
-          alt={emptyAlt ? "" : "Thumbnail preview / aperçu"}
-          fallback={zeroFallback ? 0 : <Text testID="thumbnail-fallback">No thumbnail / miniature indisponible</Text>}
-          testID="thumbnail-example"
-          renderImage={adapter ? renderImage : undefined}
-          width={zero ? 0 : densitySet ? 32 : undefined}
-          height={zero ? 0 : densitySet ? 32 : undefined}
-          style={{
-            ...(densitySet ? { width: 32, height: 32 } : {}),
-            ...(custom
-              ? {
-                  width: 120,
-                  height: 80,
-                  borderRadius: 5,
-                  borderWidth: 2,
-                  borderColor: "#2f7d18",
-                  resizeMode: "contain",
+        <View testID="thumbnail-native-pair" style={{ gap: 8 }}>
+          <View testID="thumbnail-native-parent" collapsable={false} style={styles.measurement}>
+            {visible ? (
+              <ThumbnailImage
+                key={lifetime}
+                src={callerSelected ? RECTANGLE : SQUARE}
+                srcCandidates={callerSelected ? undefined : candidates}
+                srcSet={densitySet}
+                alt={emptyAlt ? "" : "Thumbnail preview / aperçu"}
+                fallback={
+                  zeroFallback ? 0 : <Text testID="thumbnail-fallback">No thumbnail / miniature indisponible</Text>
                 }
-              : {}),
-            ...(constrained ? { width: 140, height: "auto" } : {}),
-            ...(zero ? { width: 0, height: 0 } : {}),
-          }}
-          onError={() => setErrors((value) => value + 1)}
-          onLoad={({ nativeEvent: { source } }) => {
-            setLoads((value) => value + 1)
-            setLastLoad(`${source.width} x ${source.height}`)
-            setLoadedSource(describeLoadedSource(source.uri))
-          }}
-          onLayout={({ nativeEvent: { layout } }) => {
-            const width = Math.round(layout.width * 1000) / 1000
-            const height = Math.round(layout.height * 1000) / 1000
-            setFrame((current) => (current?.width === width && current.height === height ? current : { width, height }))
-          }}
-        />
+                testID="thumbnail-example"
+                renderImage={adapter ? renderImage : undefined}
+                width={zero ? 0 : densitySet ? 32 : undefined}
+                height={zero ? 0 : densitySet ? 32 : undefined}
+                style={authoredStyle}
+                onError={(event) => {
+                  const row = {
+                    kind: "error",
+                    epochMs: Date.now(),
+                    target: nodeTag(event.target),
+                    currentTarget: nodeTag(event.currentTarget),
+                    error: event.nativeEvent.error,
+                  }
+                  setErrors((value) => value + 1)
+                  setEvents((old) => [...old, row])
+                }}
+                onLoad={(event) => {
+                  const { source } = event.nativeEvent
+                  const row = {
+                    kind: "load",
+                    epochMs: Date.now(),
+                    target: nodeTag(event.target),
+                    currentTarget: nodeTag(event.currentTarget),
+                    source: { ...source },
+                  }
+                  setEvents((old) => [...old, row])
+                  setLoads((value) => value + 1)
+                  setLastLoad(`${source.width} x ${source.height}`)
+                  setLoadedSource(describeLoadedSource(source.uri))
+                }}
+                onLayout={(event) => {
+                  const { layout } = event.nativeEvent
+                  const row = {
+                    kind: "layout",
+                    epochMs: Date.now(),
+                    target: nodeTag(event.target),
+                    currentTarget: nodeTag(event.currentTarget),
+                    layout: { ...layout },
+                  }
+                  setEvents((old) => {
+                    const previous = [...old].reverse().find((entry) => entry.kind === "layout")
+                    return previous &&
+                      JSON.stringify(previous.layout) === JSON.stringify(row.layout) &&
+                      previous.currentTarget === row.currentTarget
+                      ? old
+                      : [...old, row]
+                  })
+                  const width = Math.round(layout.width * 1000) / 1000
+                  const height = Math.round(layout.height * 1000) / 1000
+                  setFrame((current) =>
+                    current?.width === width && current.height === height ? current : { width, height },
+                  )
+                }}
+              />
+            ) : null}
+          </View>
+          <View testID="thumbnail-native-reference-parent" collapsable={false} style={styles.measurement}>
+            {visible ? (
+              fallbackExpected ? (
+                <RawText
+                  style={{
+                    fontSize: theme.typography.fontSizes.b10,
+                    fontWeight: theme.typography.fontWeights.regular,
+                    fontFamily: theme.typography.fontFamilies.body,
+                    fontStyle: "normal",
+                    color: theme.colors.foreground,
+                  }}
+                >
+                  {zeroFallback ? 0 : "No thumbnail / miniature indisponible"}
+                </RawText>
+              ) : (
+                <Image
+                  source={{ uri: expectedURI }}
+                  accessible={false}
+                  testID="thumbnail-native-reference"
+                  style={referenceStyle}
+                  resizeMode={custom ? "contain" : "stretch"}
+                  resizeMethod="scale"
+                  fadeDuration={0}
+                  onLoad={(event) => {
+                    setReferenceSource(event.nativeEvent.source.uri ?? "")
+                    setReferenceLoads((old) => old + 1)
+                  }}
+                />
+              )
+            ) : null}
+          </View>
+        </View>
       </View>
       <Text>
         A density set with 1x takes native precedence over src; without 1x, src supplies that candidate. Caller-selected
@@ -160,5 +362,6 @@ export const ThumbnailScene = () => {
 const styles = StyleSheet.create({
   scene: { gap: 10 },
   controls: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
-  preview: { alignSelf: "flex-start" },
+  preview: { width: "100%" },
+  measurement: { width: "100%", maxWidth: 280, height: 180, padding: 12, backgroundColor: "#ffffff" },
 })

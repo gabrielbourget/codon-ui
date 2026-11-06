@@ -1410,3 +1410,121 @@ final class CounterTrialTests: XCTestCase {
         FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_SWITCH "+expected+"\n").utf8))
     }
 }
+
+
+final class ThumbnailTrialTests: XCTestCase {
+    private var app: XCUIApplication!
+    override func setUpWithError() throws {
+        continueAfterFailure=false;app=XCUIApplication(bundleIdentifier:"dev.codonui.showcase");app.launch();XCTAssertEqual(app.state,.runningForeground);XCUIDevice.shared.orientation = .portrait
+        tap("Reset scene");tap("Thumbnail scene");tap("Light theme");tap("Live window")
+        try ready()
+    }
+    override func tearDownWithError() throws {
+        let png=XCTAttachment(screenshot:XCUIScreen.main.screenshot());png.name="thumbnail-final";png.lifetime = .keepAlways;add(png)
+        let tree=XCTAttachment(string:app.debugDescription);tree.name="thumbnail-final-hierarchy";tree.lifetime = .keepAlways;add(tree)
+    }
+    private func state() throws -> [String:Any] {try XCTUnwrap(JSONSerialization.jsonObject(with:Data(node("thumbnail-native-state").label.utf8)) as? [String:Any])}
+    private func number(_ row:[String:Any],_ key:String) throws -> Double {let value=try XCTUnwrap(row[key] as? NSNumber,key).doubleValue;XCTAssertTrue(value.isFinite);return value}
+    private func rect(_ value:CGRect)->[Double] {[value.minX,value.minY,value.width,value.height].map(Double.init)}
+    private func event(_ row:[String:Any],_ kind:String) -> [String:Any]? {(row["events"] as? [[String:Any]])?.last{$0["kind"] as? String==kind}}
+    private func ready(_ minimumLoads:Double=0) throws {
+        reveal(node("thumbnail-native-state"))
+        wait("Actual Thumbnail decode and independent reference") {
+            guard let row=try? self.state(),let load=self.event(row,"load"),let source=load["source"] as? [String:Any],let frame=row["frame"] as? [String:Any] else{return false}
+            return ((row["loads"] as? NSNumber)?.doubleValue ?? 0) > minimumLoads && source["uri"] as? String==row["expectedURI"] as? String && row["referenceSource"] as? String==row["expectedURI"] as? String && ((frame["width"] as? NSNumber)?.doubleValue ?? 0)>0 && ((row["referenceLoads"] as? NSNumber)?.doubleValue ?? 0)>0
+        }
+    }
+    private func capture(_ name:String) throws {
+        reveal(node("thumbnail-native-pair"));let snapshot=try app.snapshot();var all:[XCUIElementSnapshot]=[]
+        func visit(_ item:XCUIElementSnapshot){all.append(item);for child in item.children{visit(child)}};visit(snapshot)
+        func one(_ id:String)->XCUIElementSnapshot? {let matches=all.filter{$0.identifier==id};XCTAssertLessThanOrEqual(matches.count,1,"Unique actual "+id);return matches.first}
+        let row=try XCTUnwrap(JSONSerialization.jsonObject(with:Data(try XCTUnwrap(one("thumbnail-native-state")).label.utf8)) as? [String:Any]),window=try XCTUnwrap(all.first{$0.elementType == .window}).frame
+        let parent=try XCTUnwrap(one("thumbnail-native-parent")).frame,reference=try XCTUnwrap(one("thumbnail-native-reference-parent")).frame,shot=XCUIScreen.main.screenshot(),image=try XCTUnwrap(shot.image.cgImage),scale=CGFloat(image.width)/window.width
+        XCTAssertEqual(shot.image.imageOrientation,.up);XCTAssertEqual(scale,CGFloat(image.height)/window.height,accuracy:0.01)
+        let actual=try pixels(image,parent,window,scale),expected=try pixels(image,reference,window,scale),target=one("thumbnail-example"),referenceTarget=one("thumbnail-native-reference")
+        var ink=0;for i in stride(from:0,to:actual.count,by:4){if actual[i] != 255 || actual[i+1] != 255 || actual[i+2] != 255 {ink+=1}}
+        let observed:[String:Any]=["name":name,"state":row,"parent":rect(parent),"referenceParent":rect(reference),"target":target.map{rect($0.frame)} ?? [],"referenceTarget":referenceTarget.map{rect($0.frame)} ?? [],"nativeLabel":target?.label ?? NSNull(),"nativeType":target?.elementType.rawValue ?? 0,"referenceExact":circularPixelsMatch(actual,expected),"inkPixels":ink,"scale":scale,"imageWidth":image.width,"imageHeight":image.height,"backgroundRGB":[255,255,255]]
+        let data=try JSONSerialization.data(withJSONObject:observed,options:.sortedKeys);FileHandle.standardOutput.write(Data("THUMBNAIL_NATIVE_OBSERVATION ".utf8)+data+Data("\n".utf8));let json=XCTAttachment(data:data,uniformTypeIdentifier:"public.json");json.name="thumbnail-"+name+"-receipt";json.lifetime = .keepAlways;add(json);let png=XCTAttachment(screenshot:shot);png.name="thumbnail-"+name;png.lifetime = .keepAlways;add(png)
+        XCTAssertEqual(parent.size,reference.size);XCTAssertEqual(parent.height,180);XCTAssertLessThanOrEqual(parent.width,280);XCTAssertEqual(Array(actual.prefix(4)),[255,255,255,255]);XCTAssertTrue(circularPixelsMatch(actual,expected),"Whole-parent exact independent native Image/Text reference")
+        if row["visible"] as? Bool==false {XCTAssertNil(target);XCTAssertEqual(ink,0);return}
+        let fallback=(row["callerSelected"] as? Bool != true) && [1,2].contains((row["mode"] as? NSNumber)?.intValue ?? -1)
+        if fallback {XCTAssertNil(target);XCTAssertGreaterThan(ink,0);return}
+        let layoutEvent=try XCTUnwrap(event(row,"layout")),layout=try XCTUnwrap(layoutEvent["layout"] as? [String:Any]);XCTAssertGreaterThan(try number(layoutEvent,"target"),0);XCTAssertEqual(try number(layoutEvent,"target"),try number(layoutEvent,"currentTarget"))
+        if row["zero"] as? Bool==true {XCTAssertEqual(try number(layout,"width"),0);XCTAssertEqual(try number(layout,"height"),0);XCTAssertEqual(ink,0);return}
+        let adapter=row["adapter"] as? Bool==true,custom=row["custom"] as? Bool==true,constrained=row["constrained"] as? Bool==true,density=(row["callerSelected"] as? Bool != true) && ((row["densityIndex"] as? NSNumber)?.intValue ?? 0)>0,dimension=(row["dimensionIndex"] as? NSNumber)?.intValue ?? 0
+        let sourceWidth=try number(row,"nativeSourceWidth"),sourceHeight=try number(row,"nativeSourceHeight"),width=constrained ? 140:dimension==1 ? 83.25:dimension==2 ? (Double(parent.width)-24)/2:custom ? 120:density ? 32:adapter ? 96:sourceWidth,height=(constrained || dimension>0) ? width*sourceHeight/sourceWidth:custom ? 80:density ? 32:adapter ? 48:sourceHeight
+        XCTAssertEqual(try number(layout,"width"),width,accuracy:1/Double(scale));XCTAssertEqual(try number(layout,"height"),height,accuracy:1/Double(scale));XCTAssertGreaterThan(ink,0)
+        if let current=target {
+            let border=custom ? 2.0:0.0,outer=[Double(parent.minX)+(try number(layout,"x")),Double(parent.minY)+(try number(layout,"y")),width,height],content=try XCTUnwrap(thumbnailImageContentFrame(outer,border)),expectedFrame=CGRect(x:content[0],y:content[1],width:content[2],height:content[3])
+            XCTAssertEqual(current.frame.minX,expectedFrame.minX,accuracy:1/scale);XCTAssertEqual(current.frame.minY,expectedFrame.minY,accuracy:1/scale)
+            XCTAssertEqual(current.frame.width,expectedFrame.width,accuracy:1/scale);XCTAssertEqual(current.frame.height,expectedFrame.height,accuracy:1/scale)
+            let raw=try XCTUnwrap(referenceTarget).frame;XCTAssertEqual(current.frame.origin.x-parent.minX,raw.origin.x-reference.minX,accuracy:1/scale);XCTAssertEqual(current.frame.origin.y-parent.minY,raw.origin.y-reference.minY,accuracy:1/scale);XCTAssertEqual(current.frame.width,raw.width,accuracy:1/scale);XCTAssertEqual(current.frame.height,raw.height,accuracy:1/scale)
+            XCTAssertEqual(current.label,row["emptyAlt"] as? Bool==true ? "":"Thumbnail preview / aperçu")
+        }
+        else{XCTAssertEqual(row["emptyAlt"] as? Bool,true,"Only decorative images may be absent from AX snapshots")}
+        let load=try XCTUnwrap(event(row,"load")),source=try XCTUnwrap(load["source"] as? [String:Any]);XCTAssertEqual(source["uri"] as? String,row["expectedURI"] as? String);XCTAssertGreaterThan(try number(source,"width"),0);XCTAssertGreaterThan(try number(source,"height"),0);XCTAssertEqual(try number(load,"currentTarget"),try number(layoutEvent,"currentTarget"))
+        if adapter{XCTAssertEqual(try number(try XCTUnwrap(row["adapterBinding"] as? [String:Any]),"tag"),try number(layoutEvent,"currentTarget"))}
+    }
+    func testThumbnailDecodeFallbackAndLifetime() throws {
+        try capture("baseline");let baseline=try state();XCTAssertEqual(try number(baseline,"errors"),1)
+        let events=try XCTUnwrap(baseline["events"] as? [[String:Any]]);XCTAssertLessThan(try XCTUnwrap(events.firstIndex{$0["kind"] as? String=="error"}),try XCTUnwrap(events.firstIndex{$0["kind"] as? String=="load"}))
+        tap("Toggle equivalent thumbnail candidates");try capture("equivalent");XCTAssertEqual(try number(state(),"errors"),1)
+        tap("Next thumbnail sources");wait("Both genuine failed candidates exhaust"){((try? self.state()["errors"] as? NSNumber)?.doubleValue ?? 0)>=3 && self.node("thumbnail-fallback").exists};try capture("all-fail")
+        tap("Next thumbnail sources");try capture("empty-list");XCTAssertEqual(try number(state(),"errors"),3)
+        tap("Toggle zero thumbnail fallback");try capture("zero-fallback")
+        tap("Next thumbnail sources");try ready();try capture("square")
+        tap("Next thumbnail sources");try ready();try capture("landscape")
+        let beforeAdapter=try number(state(),"loads");tap("Toggle thumbnail renderer");try ready(beforeAdapter);try capture("adapter");let binding=try XCTUnwrap(try state()["adapterBinding"] as? [String:Any])
+        tap("Toggle empty thumbnail alt");try capture("adapter-empty-alt");XCTAssertEqual(try number(try XCTUnwrap(try state()["adapterBinding"] as? [String:Any]),"tag"),try number(binding,"tag"))
+        tap("Toggle empty thumbnail alt");let old=try state();tap("Toggle thumbnail presence");try capture("retired");Thread.sleep(forTimeInterval:1);try capture("retired-quiet");XCTAssertEqual(try number(state(),"loads"),try number(old,"loads"));XCTAssertEqual(try number(state(),"errors"),try number(old,"errors"))
+        tap("Toggle thumbnail presence");try ready(try number(old,"loads"));try capture("fresh");let fresh=try XCTUnwrap(try state()["adapterBinding"] as? [String:Any]);XCTAssertNotEqual(try number(fresh,"tag"),try number(binding,"tag"));XCTAssertEqual(try number(fresh,"detaches"),try number(binding,"detaches")+1)
+    }
+    func testThumbnailGeometryDensityAndProviders() throws {
+        try capture("geometry-baseline");let before=try number(state(),"loads");tap("Next thumbnail density set");try ready(before);try capture("density-full")
+        let full=try number(state(),"loads");tap("Next thumbnail density set");try ready(full);try capture("density-src")
+        tap("Toggle thumbnail zero size");wait("Delivered explicit zero image layout"){guard let row=try? self.state(),let layout=row["frame"] as? [String:Any] else{return false};return (layout["width"] as? NSNumber)?.doubleValue==0 && (layout["height"] as? NSNumber)?.doubleValue==0};try capture("zero-density")
+        let zero=try state(),tag=try number(try XCTUnwrap(event(zero,"layout")),"currentTarget");tap("Restart thumbnail lifetime");wait("Fresh zero-sized native host layout"){guard let row=try? self.state(),let layout=self.event(row,"layout") else{return false};return ((layout["currentTarget"] as? NSNumber)?.doubleValue ?? 0)>0 && (layout["currentTarget"] as? NSNumber)?.doubleValue != tag};try capture("zero-fresh")
+        tap("Toggle thumbnail zero size");try ready(try number(zero,"loads"));try capture("positive-fresh")
+        let density=try number(state(),"loads");tap("Toggle caller-selected thumbnail src");try ready(density);try capture("caller-selected")
+        tap("Toggle thumbnail styles");try capture("styled");tap("Toggle thumbnail width constraint");try capture("constrained")
+        tap("Toggle thumbnail width constraint");tap("Toggle thumbnail styles");tap("Next thumbnail dimension");try capture("fractional");tap("Next thumbnail dimension");try capture("percentage");let live=try number(try XCTUnwrap(try state()["frame"] as? [String:Any]),"width")
+        tap("Dark theme");try capture("dark");tap("Vertical blocked region");try capture("narrow");XCTAssertNotEqual(try number(try XCTUnwrap(try state()["frame"] as? [String:Any]),"width"),live)
+        tap("Live window");try capture("live-restored");tap("Light theme");try capture("light-restored")
+    }
+    private func node(_ id:String)->XCUIElement {app.descendants(matching:.any).matching(identifier:id).firstMatch}
+
+    private func wait(_ message:String,_ predicate:@escaping()->Bool) {
+        let expectation=XCTNSPredicateExpectation(predicate:NSPredicate{_,_ in predicate()},object:nil)
+        XCTAssertEqual(XCTWaiter.wait(for:[expectation],timeout:nativeWorkRemaining()),.completed,message)
+    }
+
+    private func reveal(_ element:XCUIElement) {
+        XCTAssertTrue(element.waitForExistence(timeout:nativeWorkRemaining()));let scroll=app.scrollViews.firstMatch;XCTAssertTrue(scroll.exists)
+        for _ in 0..<24 {
+            let viewport=app.windows.firstMatch.frame.intersection(scroll.frame).insetBy(dx:2,dy:2)
+            if !element.frame.isEmpty && viewport.contains(element.frame){return}
+            let up=element.frame.minY<viewport.minY
+            scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:up ? 0.30:0.75)).press(forDuration:0.05,thenDragTo:scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:up ? 0.70:0.35)))
+        };XCTFail("Unreachable Thumbnail control/canvas "+element.identifier)
+    }
+
+    private func tap(_ name:String) {
+        let control=app.buttons.matching(NSPredicate(format:"label == %@",name)).firstMatch;reveal(control);XCTAssertTrue(control.isHittable);control.tap()
+        if name=="Thumbnail scene"{wait("Actual selected Thumbnail scene"){control.isSelected}}
+    }
+
+    private func pixels(_ image:CGImage,_ frame:CGRect,_ window:CGRect,_ scale:CGFloat) throws -> [UInt8] {
+        XCTAssertTrue(window.contains(frame));let rect=CGRect(x:((frame.minX-window.minX)*scale).rounded(),y:((frame.minY-window.minY)*scale).rounded(),width:(frame.width*scale).rounded(),height:(frame.height*scale).rounded())
+        let crop=try XCTUnwrap(image.cropping(to:rect));var bytes=[UInt8](repeating:0,count:crop.width*crop.height*4)
+        let result=bytes.withUnsafeMutableBytes { buffer -> Bool in
+            guard let context=CGContext(data:buffer.baseAddress,width:crop.width,height:crop.height,bitsPerComponent:8,bytesPerRow:crop.width*4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue|CGBitmapInfo.byteOrder32Big.rawValue) else{return false}
+            context.draw(crop,in:CGRect(x:0,y:0,width:CGFloat(crop.width),height:CGFloat(crop.height)));return true
+        };XCTAssertTrue(result);return bytes
+    }
+
+}
+
+private func thumbnailImageContentFrame(_ outer: [Double], _ border: Double) -> [Double]? {
+    guard outer.count == 4, outer.allSatisfy({ $0.isFinite }), border.isFinite, border >= 0, outer[2] >= 2 * border, outer[3] >= 2 * border else { return nil }
+    return [outer[0] + border, outer[1] + border, outer[2] - 2 * border, outer[3] - 2 * border]
+}
