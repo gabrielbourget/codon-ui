@@ -289,12 +289,12 @@ def trace_checks(cohort):
 
 def paint(request, oracle, output, deadline):
     assert hashlib.sha256(oracle.read_bytes()).hexdigest() == ORACLE_SHA256
-    assert deadline - time.time() > 18, 'Host paint deadline reserve exhausted'
+    assert deadline - time.time() > 8, 'Host paint deadline reserve exhausted'
     output.with_suffix('.request.json').write_text(json.dumps(request, indent=2) + '\n')
     process = subprocess.Popen([str(oracle)], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
     record = {'argv': [str(oracle)], 'pid': process.pid, 'startedEpoch': time.time()}
     try:
-        stdout, stderr = process.communicate(json.dumps(request).encode(), timeout=min(10, deadline - time.time() - 8))
+        stdout, stderr = process.communicate(json.dumps(request).encode(), timeout=deadline - time.time() - 8)
         output.with_suffix('.stdout').write_bytes(stdout);output.with_suffix('.stderr').write_bytes(stderr)
         record['exitCode'] = process.returncode
         result = json.loads(stdout)

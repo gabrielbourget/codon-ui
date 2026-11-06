@@ -16,7 +16,7 @@ def validate_selection(selected,compiled):
 def validate_packet(packet):
  assert packet['schemaVersion']==1 and re.fullmatch(r'CAT\.[a-z0-9-]+\.G0[1-9]',packet['cell'])
  validate_selection(packet['selectedMethods'],packet['compiledMethods'])
- assert 0<packet['batchMaximumSeconds']<=1500 and packet['methodMaximumSeconds']==180
+ assert packet['methodMaximumSeconds']==180
  assert packet['preferencePolicy']=='unchanged-no-preference-commands'
  assert packet['sourceScope'] and packet['retainedHarnessScope']['claim']
  read_bound(packet['retainedHarnessScope'])
@@ -114,12 +114,12 @@ def main():
  binding=json.loads(read_bound(packet['xctestrunBinding']).read_text());assert binding['selectedMethods']==packet['selectedMethods'] and binding['sha256']==packet['xctestrun']['sha256'] and binding['appManifestSHA256']==app['manifestSHA256'] and binding['observerManifestSHA256']==observer['manifestSHA256']
  assert binding.get('useDestinationArtifacts',False) is destination_artifacts_enabled(packet),'Execution packet/binding mode mismatch'
  assert binding.get('installPreparedObserver',False) is explicit_observer_install_enabled(packet),'Execution packet/binding install opt-in mismatch'
- prepared=packetPath.parent;selection={'selectedMethods':packet['selectedMethods'],'commandCapSeconds':packet['batchMaximumSeconds']};root=pathlib.Path(packet['attemptRoot']);device=packet['device'];cli='/Applications/Xcode.app/Contents/Developer/usr/bin/simctl';now=lambda:datetime.datetime.now(datetime.timezone.utc).isoformat()
+ prepared=packetPath.parent;selection={'selectedMethods':packet['selectedMethods']};root=pathlib.Path(packet['attemptRoot']);device=packet['device'];cli='/Applications/Xcode.app/Contents/Developer/usr/bin/simctl';now=lambda:datetime.datetime.now(datetime.timezone.utc).isoformat()
  bindings={'expectedProductManifestSHA256':app['manifestSHA256'],'expectedObserverManifestSHA256':observer['manifestSHA256']}
  applicationInstallRequested=False
- assert not root.exists();workspaceStatus=subprocess.check_output(['git','status','--porcelain'],cwd=packet['repoRoot'],text=True,timeout=15);assert subprocess.run(['pgrep','-x','launchd_sim'],capture_output=True,timeout=5).returncode==1
- root.mkdir();start=time.time();work=start+1680;end=start+1800;rows=[];children=[];cleanupErrors=[];outcome='ADMITTED';selectedMethods=[];cleaning=False;cleanupDeadline=end
- admission={'cellPreflight':cellPreflight,'startedUTC':now(),'startedEpochSeconds':start,'workDeadlineEpochSeconds':work,'deadlineEpochSeconds':end,'maximumSeconds':1800,'cleanupReserveSeconds':120,'device':device,'cell':packet['cell'],'requestedMethods':selection['selectedMethods'],'sourceScope':packet['sourceScope'],'retainedHarnessScope':packet['retainedHarnessScope'],'packetSHA256':sha(packetPath),'preferencePolicy':'unchanged-no-preference-commands','sourceHEAD':subprocess.check_output(['git','rev-parse','HEAD'],cwd=packet['repoRoot'],text=True,timeout=15).strip(),'appInstallPolicy':'Reuse exact registered app; no install/retry','scope':'Finite selected XCTest batch only; no whole-current-app or automatic gate verdict'}
+ preflightStarted=time.time();preflightWork=preflightStarted+cellPreflight['attempt']['maximumSeconds']-cellPreflight['attempt']['cleanupReserveSeconds'];assert not root.exists();workspaceStatus=subprocess.check_output(['git','status','--porcelain'],cwd=packet['repoRoot'],text=True,timeout=max(.01,preflightWork-time.time()-8));assert subprocess.run(['pgrep','-x','launchd_sim'],capture_output=True,timeout=max(.01,preflightWork-time.time()-8)).returncode==1
+ root.mkdir();start=preflightStarted;end=start+cellPreflight['attempt']['maximumSeconds'];work=end-cellPreflight['attempt']['cleanupReserveSeconds'];rows=[];children=[];cleanupErrors=[];outcome='ADMITTED';selectedMethods=[];cleaning=False;cleanupDeadline=end
+ admission={'cellPreflight':cellPreflight,'startedUTC':now(),'startedEpochSeconds':start,'workDeadlineEpochSeconds':work,'deadlineEpochSeconds':end,'maximumSeconds':cellPreflight['attempt']['maximumSeconds'],'cleanupReserveSeconds':cellPreflight['attempt']['cleanupReserveSeconds'],'device':device,'cell':packet['cell'],'requestedMethods':selection['selectedMethods'],'sourceScope':packet['sourceScope'],'retainedHarnessScope':packet['retainedHarnessScope'],'packetSHA256':sha(packetPath),'preferencePolicy':'unchanged-no-preference-commands','sourceHEAD':subprocess.check_output(['git','rev-parse','HEAD'],cwd=packet['repoRoot'],text=True,timeout=max(.01,preflightWork-time.time()-8)).strip(),'appInstallPolicy':'Reuse exact registered app; no install/retry','scope':'Finite selected XCTest batch only; no whole-current-app or automatic gate verdict'}
  admission['useDestinationArtifacts']=destination_artifacts_enabled(packet)
  admission['installPreparedObserver']=explicit_observer_install_enabled(packet)
  admission['workspaceStatus']=workspaceStatus
@@ -137,8 +137,8 @@ def main():
   except BaseException as error:
    cleanupErrors.append({'name':name,'pid':process.pid,'error':repr(error)})
    return False
- def run(name,args,cap,clean=False):
-  t=time.time();deadline=min(t+cap,cleanupDeadline-8 if clean else work);assert deadline>t;row={'name':name,'argv':args,'startedUTC':now()};print('START '+json.dumps(row),flush=True);p=None
+ def run(name,args,*,clean=False):
+  t=time.time();deadline=cleanupDeadline-8 if clean else work-8;assert deadline>t;row={'name':name,'argv':args,'startedUTC':now()};print('START '+json.dumps(row),flush=True);p=None
   try:
    with (root/(name+'.log')).open('xb') as log:
     p=subprocess.Popen(args,env={**os.environ,'DEVELOPER_DIR':'/Applications/Xcode.app/Contents/Developer'},stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True);children.append((p,name));row.update(pid=p.pid,pgid=p.pid,ownerPID=os.getpid())
@@ -155,7 +155,7 @@ def main():
   return row
 
  def exact_installed(label,bundle,identity,suffix=''):
-  item=run('registered-'+label+suffix,[cli,'get_app_container',device,bundle,'app'],15);assert item['exitCode']==0
+  item=run('registered-'+label+suffix,[cli,'get_app_container',device,bundle,'app']);assert item['exitCode']==0
   raw=(root/('registered-'+label+suffix+'.log')).read_text().strip()
   assert raw and '\n' not in raw,'Registration response must be one actual absolute container path'
   path=pathlib.Path(raw)
@@ -171,9 +171,9 @@ def main():
   (root/('installed-'+label+suffix+'.json')).write_text(json.dumps(receipt,indent=2))
   assert not differences and len(actual)==len(expected['filesSHA256']),'Registered container does not exactly match; stop without reinstall fallback'
 
- def tests(label,methods,cap):
-  assert time.time()+cap+15<work
-  case=root/label;case.mkdir();args=['/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild','test-without-building','-jobs','1','-xctestrun',str(read_bound(packet['xctestrun'])),'-destination','platform=iOS Simulator,id='+device,'-destination-timeout','30','-parallel-testing-enabled','NO','-maximum-concurrent-test-simulator-destinations','1','-test-timeouts-enabled','YES','-maximum-test-execution-time-allowance','180']+['-only-testing:CodonNativeComponents/'+m for m in methods]+['-resultBundlePath',str(case/'Batch.xcresult')];selectedMethods.extend(methods);(case/'command.json').write_text(json.dumps({'argv':args,'startedUTC':now(),'methods':methods,'outerCapSeconds':cap},indent=2));return run(label,args,cap)
+ def tests(label,methods):
+  assert time.time()<work-8
+  case=root/label;case.mkdir();args=['/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild','test-without-building','-jobs','1','-xctestrun',str(read_bound(packet['xctestrun'])),'-destination','platform=iOS Simulator,id='+device,'-destination-timeout',str(max(1,int(work-time.time()-8))),'-parallel-testing-enabled','NO','-maximum-concurrent-test-simulator-destinations','1','-test-timeouts-enabled','YES','-maximum-test-execution-time-allowance','180']+['-only-testing:CodonNativeComponents/'+m for m in methods]+['-resultBundlePath',str(case/'Batch.xcresult')];selectedMethods.extend(methods);(case/'command.json').write_text(json.dumps({'argv':args,'startedUTC':now(),'methods':methods,'workDeadlineEpochSeconds':work},indent=2));return run(label,args)
  def work_cutoff(_signal,_frame):raise TimeoutError('Mechanical1680s work cutoff;120s cleanup remains reserved')
  def interrupted(signum,_frame):raise InterruptedError('Received signal '+str(signum))
  signal.signal(signal.SIGALRM,work_cutoff);signal.signal(signal.SIGTERM,interrupted);signal.signal(signal.SIGINT,interrupted)
@@ -183,8 +183,8 @@ def main():
   assert appIdentity['manifestSHA256']==bindings['expectedProductManifestSHA256'] and len(appIdentity['filesSHA256'])==packet['appFileCount']
   assert observerIdentity['manifestSHA256']==bindings['expectedObserverManifestSHA256'] and len(observerIdentity['filesSHA256'])==packet['observerFileCount']
   assert observerIdentity['observerSourceSHA256']==packet['observerSourceSHA256']
-  assert run('boot',[cli,'boot',device],15)['exitCode']==0
-  assert run('boot-readiness',[cli,'bootstatus',device,'-b'],180)['exitCode']==0
+  assert run('boot',[cli,'boot',device])['exitCode']==0
+  assert run('boot-readiness',[cli,'bootstatus',device,'-b'])['exitCode']==0
   pending=pathlib.Path.home()/'Library/Developer/CoreSimulator/Devices'/device/'data/Containers/Shared/SystemGroup/systemgroup.com.apple.installcoordinationd/Library/InstallCoordination/PendingWork.plist'
   if destination_artifacts_enabled(packet):
    pendingStarted=time.time();pendingDeadline=min(pendingStarted+60,work);pendingInitiallyPresent=pending.exists()
@@ -195,7 +195,7 @@ def main():
    finally:
     (root/'destination-pending-gate.json').write_text(json.dumps({'startedEpochSeconds':pendingStarted,'endedEpochSeconds':time.time(),'maximumSeconds':60,'initiallyPresent':pendingInitiallyPresent,'stillPresent':pending.exists(),'elapsedSeconds':time.time()-pendingStarted,'installOrDeleteOrResetCommands':0},indent=2))
    if explicit_observer_install_enabled(packet):
-    install=run('install-observer-direct',[cli,'install',device,observerIdentity['product']],60)
+    install=run('install-observer-direct',[cli,'install',device,observerIdentity['product']])
     assert install['exitCode']==0 and not install.get('timedOut'),'Explicit observer installation did not finish; no XCTest or installation retry admitted'
    # Only the actual registered new observer is eligible; staged/prepared files are not a fallback.
    exact_installed('observer',packet['observerBundleID'],'observer-identity.json',suffix='-before')
@@ -204,15 +204,15 @@ def main():
   # Exact registered cached app only; no installation fallback.
   exact_installed('app',packet['appBundleID'],'product-identity.json')
   # Ordinary OS launch, bounded separately from test assertions; no relaunch rescue.
-  launch=run('launch-app',[cli,'launch',device,packet['appBundleID']],60)
+  launch=run('launch-app',[cli,'launch',device,packet['appBundleID']])
   assert launch['exitCode']==0,'Launch RPC failed/timed out; no automatic retry'
   # The frozen Swift observer owns ordinary scene selection and all component assertions.
   shutil.copy2(read_bound(packet['xctestrun']),root/'bound.xctestrun')
-  result=tests('xctest',selection['selectedMethods'],selection['commandCapSeconds']);outcome='XCTEST_EXIT_'+str(result['exitCode'])
+  result=tests('xctest',selection['selectedMethods']);outcome='XCTEST_EXIT_'+str(result['exitCode'])
   exact_installed('observer',packet['observerBundleID'],'observer-identity.json')
   nativeSummary={}
   if (root/'xctest/Batch.xcresult').exists():
-   summaryStep=run('test-result-summary',['/Applications/Xcode.app/Contents/Developer/usr/bin/xcresulttool','get','test-results','summary','--path',str(root/'xctest/Batch.xcresult')],30)
+   summaryStep=run('test-result-summary',['/Applications/Xcode.app/Contents/Developer/usr/bin/xcresulttool','get','test-results','summary','--path',str(root/'xctest/Batch.xcresult')])
    if summaryStep['exitCode']==0:nativeSummary=json.loads((root/'test-result-summary.log').read_text())
   reconciliation=reconcile_selected_results(nativeSummary,(root/'xctest.log').read_text(),selectedMethods);(root/'selected-results-reconciliation.json').write_text(json.dumps(reconciliation,indent=2))
   if result['exitCode']==0:
@@ -223,7 +223,7 @@ def main():
   outcome='STOP_'+type(error).__name__
   (root/'exception.json').write_text(json.dumps({'type':type(error).__name__,'message':str(error),'atUTC':now()},indent=2));print('STOP '+repr(error),flush=True)
  finally:
-  cleaning=True;cleanupStarted=time.time();cleanupDeadline=min(end,cleanupStarted+120);signal.setitimer(signal.ITIMER_REAL,0);print('CLEANUP_START '+now(),flush=True)
+  cleaning=True;cleanupStarted=time.time();cleanupDeadline=min(end,cleanupStarted+cellPreflight['attempt']['cleanupReserveSeconds']);signal.setitimer(signal.ITIMER_REAL,0);print('CLEANUP_START '+now(),flush=True)
   selected=[];holders=[];state='UNVERIFIED';shutdown={}
   def cleanup_cutoff(_signal,_frame):raise TimeoutError('Mechanical cleanup cutoff; terminal receipt remains reserved')
   signal.signal(signal.SIGALRM,cleanup_cutoff)
@@ -231,19 +231,19 @@ def main():
   try:
    for p,name in reversed(children):stop(p,name)
    for label,bundle in [('app',packet['appBundleID']),('runner',packet['observerBundleID'])]:
-    try:run('terminate-'+label,[cli,'terminate',device,bundle],8,True)
+    try:run('terminate-'+label,[cli,'terminate',device,bundle],clean=True)
     except BaseException as error:cleanupErrors.append({'phase':'terminate-'+label,'error':str(error)})
-   try:shutdown=run('shutdown',[cli,'shutdown',device],35,True)
+   try:shutdown=run('shutdown',[cli,'shutdown',device],clean=True)
    except BaseException as error:shutdown={};cleanupErrors.append({'phase':'shutdown','error':str(error)})
    selected=[];holders=[];state='UNVERIFIED'
    try:
-    proc=run('processes-after',['ps','-axo','pid,ppid,command'],10,True);text=(root/'processes-after.log').read_text();selected=[line for line in text.splitlines() if device in line and any(x in line for x in ['launchd_sim ','/CodonLibraryAcceptance.app/','/CodonNativeComponents-Runner.app/'])];orphans=[line.split()[0] for line in text.splitlines() if '/RuntimeRoot/' in line and len(line.split())>1 and line.split()[1]=='1'];assert proc['exitCode']==0
+    proc=run('processes-after',['ps','-axo','pid,ppid,command'],clean=True);text=(root/'processes-after.log').read_text();selected=[line for line in text.splitlines() if device in line and any(x in line for x in ['launchd_sim ','/CodonLibraryAcceptance.app/','/CodonNativeComponents-Runner.app/'])];orphans=[line.split()[0] for line in text.splitlines() if '/RuntimeRoot/' in line and len(line.split())>1 and line.split()[1]=='1'];assert proc['exitCode']==0
     if orphans:
-     item=run('orphan-open-files',['/usr/sbin/lsof','-nP','-Fpcn','-p',','.join(orphans)],15,True);pid=None;assert item['exitCode'] in [0,1]
+     item=run('orphan-open-files',['/usr/sbin/lsof','-nP','-Fpcn','-p',','.join(orphans)],clean=True);pid=None;assert item['exitCode'] in [0,1]
      for line in (root/'orphan-open-files.log').read_text().splitlines():
       if line.startswith('p'):pid=line[1:]
       elif line.startswith('n') and device in line:holders.append({'pid':pid,'path':line[1:]})
-    item=run('device-state',['plutil','-extract','state','raw',str(pathlib.Path.home()/'Library/Developer/CoreSimulator/Devices'/device/'device.plist')],3,True);state=(root/'device-state.log').read_text().strip()
+    item=run('device-state',['plutil','-extract','state','raw',str(pathlib.Path.home()/'Library/Developer/CoreSimulator/Devices'/device/'device.plist')],clean=True);state=(root/'device-state.log').read_text().strip()
    except BaseException as error:cleanupErrors.append({'phase':'verification','error':str(error)})
   except BaseException as error:cleanupErrors.append({'phase':'cleanup-cutoff','error':repr(error)})
   finally:

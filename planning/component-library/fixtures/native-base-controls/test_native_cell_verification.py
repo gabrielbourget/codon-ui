@@ -168,7 +168,7 @@ class NativeCellAdmissionTests(unittest.TestCase):
         receipt = {"status": "PASS", "cell": self.plan["cell"], "checklistVersion": MODULE.VERSION,
                    "checklistSHA256": MODULE.digest(MODULE.CHECKLIST), "driverSHA256": MODULE.digest(self.driver),
                    "ownerPID": os.getpid(), "driverArgv": self.plan["driver"]["argv"],
-                   "driverCohorts": self.plan["driver"]["cohorts"]}
+                   "driverCohorts": self.plan["driver"]["cohorts"], "attempt": self.plan["attempt"]}
         receipt.update(updates)
         path = self.root / "load-admission.json"
         path.write_text(json.dumps(receipt))
@@ -182,7 +182,7 @@ class NativeCellAdmissionTests(unittest.TestCase):
     def test_load_current_receipt_positive_control(self):
         path = self.admission_receipt()
         result = self.load_bound_admission(path)
-        self.assertEqual(result, {"path": str(path), "sha256": MODULE.digest(path), "version": MODULE.VERSION, "result": "PASS"})
+        self.assertEqual(result, {"path": str(path), "sha256": MODULE.digest(path), "version": MODULE.VERSION, "result": "PASS", "attempt": self.plan["attempt"]})
         self.assertFalse(self.output.exists())
 
     def test_load_failed_receipt_rejects(self):

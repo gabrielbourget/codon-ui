@@ -152,7 +152,7 @@ def load_admission(driver, cell, cohorts):
     actual = [str(Path(sys.argv[0]).resolve()), *sys.argv[1:]]
     expected = [str(Path(receipt["driverArgv"][1]).resolve()), *receipt["driverArgv"][2:]]
     require(actual == expected and cohorts == receipt["driverCohorts"], "Actual driver argv/batch differs from admission")
-    return {"path": path, "sha256": digest(path), "version": VERSION, "result": receipt["status"]}
+    return {"path": path, "sha256": digest(path), "version": VERSION, "result": receipt["status"], "attempt": receipt["attempt"]}
 
 
 def main():
@@ -166,7 +166,7 @@ def main():
         plan = json.loads(args.plan.read_text())
         receipt.update(cell=plan["cell"], planSHA256=digest(args.plan))
         receipt["savedDataControls"] = validate(plan)
-        receipt.update(status="PASS", checklistAcknowledgment=plan["checklist"], driverSHA256=plan["driver"]["sha256"], driverArgv=plan["driver"]["argv"], driverCohorts=plan["driver"]["cohorts"], observerControls=plan["observerControls"], riskControls=plan["riskControls"], platforms=plan["platforms"])
+        receipt.update(status="PASS", attempt=plan["attempt"], checklistAcknowledgment=plan["checklist"], driverSHA256=plan["driver"]["sha256"], driverArgv=plan["driver"]["argv"], driverCohorts=plan["driver"]["cohorts"], observerControls=plan["observerControls"], riskControls=plan["riskControls"], platforms=plan["platforms"])
     except (ValueError, KeyError, TypeError, OSError) as error:
         receipt["error"] = str(error)
     require(not args.receipt.exists(), "Do not overwrite an admission receipt")

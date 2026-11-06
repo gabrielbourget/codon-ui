@@ -8,7 +8,7 @@ cell=sys.argv[2] if len(sys.argv)>2 else "CAT.tag.G02"
 assert cell in ["CAT.tag.G02","CAT.placeholder-text.G04"]
 admission=load_admission(__file__,cell,{"ios":[],"android":["placeholder-g04-observer-compile" if cell=="CAT.placeholder-text.G04" else "tag-g02-observer-compile"]})
 ROOT=pathlib.Path(sys.argv[1]).resolve();OUT=ROOT/'compile-1';SDK=pathlib.Path('/Users/gabrielbourget/.local/share/codon-native-lab/sdk');JDK=pathlib.Path('/Users/gabrielbourget/.local/share/codon-native-lab/jdk/Contents/Home')
-start=time.time();work=start+120;end=start+150;steps=[];status='FAILED';error=None
+start=time.time();end=start+admission['attempt']['maximumSeconds'];work=end-admission['attempt']['cleanupReserveSeconds'];steps=[];status='FAILED';error=None
 sha=lambda path:hashlib.sha256(pathlib.Path(path).read_bytes()).hexdigest()
 write=lambda path,value:path.write_text(json.dumps(value,indent=2)+'\n')
 assert not OUT.exists();prepared=json.loads((ROOT/'compile-readiness.json').read_text());assert all(sha(path)==digest for path,digest in prepared['filesSHA256'].items())
@@ -17,10 +17,10 @@ env={**os.environ,'JAVA_HOME':str(JDK),'JAVA_TOOL_OPTIONS':'-XX:ActiveProcessorC
 def cutoff(signum,frame):raise TimeoutError('120s compiler work cutoff;30s cleanup reserve')
 def interrupted(signum,frame):raise InterruptedError('Received signal '+str(signum))
 signal.signal(signal.SIGTERM,interrupted);signal.signal(signal.SIGINT,interrupted)
-signal.signal(signal.SIGALRM,cutoff);signal.setitimer(signal.ITIMER_REAL,120)
+signal.signal(signal.SIGALRM,cutoff);signal.setitimer(signal.ITIMER_REAL,max(.01,work-time.time()))
 def run(name,argv):
     print('START '+name+' '+datetime.datetime.now(datetime.timezone.utc).isoformat(),flush=True)
-    row=recorded_command(argv,OUT/name,max(.1,work-time.time()),work,env=env);row['name']=name;steps.append(row);write(OUT/'steps.json',steps)
+    row=recorded_command(argv,OUT/name,None,work,env=env);row['name']=name;steps.append(row);write(OUT/'steps.json',steps)
     assert row.get('ownedGroupGone') is True and not row.get('cleanupError'),row
     assert row['exitCode']==0 and not row.get('timedOut'),row
 try:

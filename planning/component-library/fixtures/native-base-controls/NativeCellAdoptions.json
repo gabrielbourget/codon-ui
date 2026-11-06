@@ -31,6 +31,12 @@
         "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/display-G09-final-component-closeout-20261105/objects/23e719d7489a355a56f7282e4de2a15ba96fa869c3c59d9ecf97cc6cddf4e745",
         "sha256": "23e719d7489a355a56f7282e4de2a15ba96fa869c3c59d9ecf97cc6cddf4e745"
       }
+    },
+    "CAT.meter.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/meter-ios-style-completion-20261106/objects/92896bd4b44a648347873df59f439753936ba47090b41bf2adf34228073f5128",
+        "sha256": "92896bd4b44a648347873df59f439753936ba47090b41bf2adf34228073f5128"
+      }
     }
   }
 }

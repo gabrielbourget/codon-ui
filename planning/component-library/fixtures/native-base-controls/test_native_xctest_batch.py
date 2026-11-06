@@ -62,7 +62,7 @@ class Controls(unittest.TestCase):
    with self.assertRaises(ValueError):admission.load_admission(str(ROOT/'NativeXCTestBatch.py'),'CAT.tag.G02',{'ios':METHODS,'android':[]})
  def test_actual_same_owner_preflight_and_changed_selected(self):
   driver=ROOT/'NativeXCTestBatch.py';cohorts={'ios':METHODS,'android':[]};argv=['python3',str(driver),'/tmp/UNIT_CONTROL_NO_SDK_PACKET.json']
-  value={'status':'PASS','cell':'CAT.tag.G02','checklistVersion':admission.VERSION,'checklistSHA256':admission.digest(admission.CHECKLIST),'driverSHA256':admission.digest(driver),'ownerPID':os.getpid(),'driverArgv':argv,'driverCohorts':cohorts}
+  value={'status':'PASS','cell':'CAT.tag.G02','checklistVersion':admission.VERSION,'checklistSHA256':admission.digest(admission.CHECKLIST),'driverSHA256':admission.digest(driver),'ownerPID':os.getpid(),'driverArgv':argv,'driverCohorts':cohorts,'attempt':{'maximumSeconds':1800,'cleanupReserveSeconds':120}}
   with tempfile.TemporaryDirectory(prefix='codon-tag-offline-control-') as tmp:
    p=Path(tmp)/'synthetic-preflight.json';p.write_text(json.dumps(value))
    with patch.dict(os.environ,{'CODON_NATIVE_CELL_PREFLIGHT_RECEIPT':str(p)}),patch.object(sys,'argv',argv[1:]):

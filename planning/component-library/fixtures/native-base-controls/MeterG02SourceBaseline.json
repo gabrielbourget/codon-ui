@@ -24,7 +24,8 @@
     "func testS02MTKnownLatestFillAndVisualRetirement(": "09af22b81736ffd77a2a69a721cec84be0c78e40e2ec4fd8640fef19b591935c",
     "private func contact(": "f313703254be3e654bf6b25f84e62cefa00ba7c767a418a577369887be71b18c",
     "private func delivered(": "4ba7883f8bf8bae5d3a328f072d64fe892c2ec6e43f94d3a57450933ba985f24",
-    "func testS02S06MTNativeDeliveryCurrentCallbacksAndHeldRetirement(": "1c16daaf29cac1d0b09002b5eeb23a9cb6752e479a9eed10e185917572624ad8"
+    "func testS02S06MTNativeDeliveryCurrentCallbacksAndHeldRetirement(": "fe2575b43ac290326bb751ef7b8073a54c416b6b1b9591461809ef0a651fff19",
+    "private func layoutMatches(": "7c523579e62e4487459b33381be151038e3a30c5a8f6ffcf5fd9ef2ff3d62ac8"
   },
   "android-native-inspector/Actions.java": {
     "private AccessibilityNodeInfo find(AccessibilityNodeInfo node, String id)": "2a41e76bb8c477fe9fa42078073efa06704ff2f6dcb17b030b192a31d6e10e0f",

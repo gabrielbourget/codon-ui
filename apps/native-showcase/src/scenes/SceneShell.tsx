@@ -22,7 +22,10 @@ export const SceneShell = ({ fixture, children }: TSceneShellProps) => {
       : undefined
 
   return (
-    <View style={[styles.scene, { maxWidth: maximumWidth, borderColor: theme.colors.controlBorder }]}>
+    <View
+      testID="showcase-scene-shell"
+      style={[styles.scene, { maxWidth: maximumWidth, borderColor: theme.colors.controlBorder }]}
+    >
       <Text style={[styles.caption, { color: theme.colors.foreground }]}>{LAYOUT_FIXTURE_LABELS[fixture]}</Text>
       {(isVerticalBlock || isHorizontalBlock) && (
         <Text style={{ color: theme.colors.foreground }}>Simulated geometry; no hardware posture events.</Text>

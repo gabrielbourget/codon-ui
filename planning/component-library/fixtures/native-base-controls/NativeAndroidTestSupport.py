@@ -85,7 +85,8 @@ def stop_owned_process(process):
 def recorded_command(argv, prefix, cap_seconds, deadline_unix, env=None):
     prefix = Path(prefix)
     # Finish owned-child cleanup before the enclosing cohort owner reaches its cap.
-    timeout = min(cap_seconds, deadline_unix - time.time() - 8)
+    remaining = deadline_unix - time.time() - 8
+    timeout = remaining if cap_seconds is None else min(cap_seconds, remaining)
     record = {"argv": list(map(str, argv)), "startedEpoch": time.time(), "capSeconds": timeout, "deadlineUnix": deadline_unix, "cleanupReserveSeconds": 8, "status": "NOT_STARTED"}
     record["startedUTC"] = datetime.datetime.fromtimestamp(record["startedEpoch"], datetime.timezone.utc).isoformat()
     process = None

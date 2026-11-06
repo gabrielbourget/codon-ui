@@ -41,8 +41,8 @@ def main():
     verify_identity(identity, len(identity["filesSHA256"]))
     args.out.mkdir(exist_ok=False)
     start = time.time()
-    work = start + 360
-    end = start + 480
+    end = start + admission["attempt"]["maximumSeconds"]
+    work = end - admission["attempt"]["cleanupReserveSeconds"]
     cli = "/Applications/Xcode.app/Contents/Developer/usr/bin/simctl"
     env = {**os.environ, "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"}
     device = None
@@ -52,11 +52,11 @@ def main():
     clean = False
     now = lambda: datetime.datetime.now(datetime.timezone.utc).isoformat()
     write = lambda name, value: (args.out / name).write_text(json.dumps(value, indent=2) + "\n")
-    write("admission.json", {"preflight": admission, "startedUTC": now(), "workDeadlineUnix": work, "deadlineUnix": end, "maximumSeconds": 480, "cleanupReserveSeconds": 120, "deviceName": args.name, "runtime": args.runtime, "deviceType": args.device_type, "identitySHA256": hashlib.sha256(args.identity.read_bytes()).hexdigest(), "componentMethods": 0, "preferenceMutations": 0})
+    write("admission.json", {"preflight": admission, "startedUTC": now(), "workDeadlineUnix": work, "deadlineUnix": end, "maximumSeconds": admission["attempt"]["maximumSeconds"], "cleanupReserveSeconds": admission["attempt"]["cleanupReserveSeconds"], "deviceName": args.name, "runtime": args.runtime, "deviceType": args.device_type, "identitySHA256": hashlib.sha256(args.identity.read_bytes()).hexdigest(), "componentMethods": 0, "preferenceMutations": 0})
 
-    def run(name, argv, cap, cleanup=False):
+    def run(name, argv, *, cleanup=False):
         print("START " + json.dumps({"name": name, "atUTC": now(), "argv": argv}), flush=True)
-        row = recorded_command(argv, args.out / name, cap, end - 8 if cleanup else work, env)
+        row = recorded_command(argv, args.out / name, None, end if cleanup else work, env)
         rows.append({"name": name, **row})
         write("steps.json", rows)
         require_success(row)
@@ -71,25 +71,25 @@ def main():
     signal.setitimer(signal.ITIMER_REAL, max(.01, work - time.time()))
     try:
         adb = str(Path.home() / ".local/share/codon-native-lab/sdk/platform-tools/adb")
-        android = run("android-devices-before", [adb, "devices", "-l"], 10)
+        android = run("android-devices-before", [adb, "devices", "-l"])
         assert not any(line.startswith("emulator-") for line in android.splitlines()), "Android guest still exists"
         for port in [5568, 5569]:
             with socket.socket() as probe:
                 probe.settimeout(.5)
                 assert probe.connect_ex(("127.0.0.1", port)) != 0, "Android guest port still exists"
-        devices = json.loads(run("devices-before", [cli, "list", "devices", "-j"], 15))["devices"]
+        devices = json.loads(run("devices-before", [cli, "list", "devices", "-j"]))["devices"]
         assert not any(p["state"] == "Booted" or p["name"] == args.name for rows in devices.values() for p in rows), "Guest/name already exists"
-        created = run("create", [cli, "create", args.name, args.device_type, args.runtime], 15)
+        created = run("create", [cli, "create", args.name, args.device_type, args.runtime])
         assert re.fullmatch(r"[A-F0-9-]{36}", created), "Uncertain device identity; preserve create result"
         device = created
         write("created-device.json", {"device": device, "name": args.name, "createdUTC": now()})
-        run("boot", [cli, "boot", device], 15)
-        run("boot-readiness", [cli, "bootstatus", device, "-b"], 180)
-        run("install-once", [cli, "install", device, identity["product"]], 60)
+        run("boot", [cli, "boot", device])
+        run("boot-readiness", [cli, "bootstatus", device, "-b"])
+        run("install-once", [cli, "install", device, identity["product"]])
         product = Path(identity["product"])
         import plistlib
         bundle = plistlib.loads((product / "Info.plist").read_bytes())["CFBundleIdentifier"]
-        installed = Path(run("registered-observer", [cli, "get_app_container", device, bundle, "app"], 15))
+        installed = Path(run("registered-observer", [cli, "get_app_container", device, bundle, "app"]))
         containers = Path.home() / "Library/Developer/CoreSimulator/Devices" / device / "data/Containers/Bundle/Application"
         assert installed.is_absolute() and installed.is_dir() and installed.resolve().is_relative_to(containers.resolve())
         result = installed_identity(installed, identity["filesSHA256"])
@@ -104,25 +104,25 @@ def main():
         signal.signal(signal.SIGTERM, signal.SIG_IGN)
         signal.signal(signal.SIGINT, signal.SIG_IGN)
         cleanup_started = time.time()
-        end = min(end, cleanup_started + 120)
+        end = min(end, cleanup_started + admission["attempt"]["cleanupReserveSeconds"])
         signal.setitimer(signal.ITIMER_REAL, max(.01, end - time.time() - 8))
         try:
             # A timed-out create may have succeeded. Resolve only this unique name for cleanup.
             if device is None:
-                listed = json.loads(run("resolve-created-cleanup", [cli, "list", "devices", "-j"], 15, True))["devices"]
+                listed = json.loads(run("resolve-created-cleanup", [cli, "list", "devices", "-j"], cleanup=True))["devices"]
                 matches = [p for rows in listed.values() for p in rows if p["name"] == args.name]
                 assert len(matches) <= 1
                 device = matches[0]["udid"] if matches else None
             if device:
-                run("shutdown", [cli, "shutdown", device], 35, True)
-                listed = json.loads(run("devices-after", [cli, "list", "devices", "-j"], 15, True))["devices"]
+                run("shutdown", [cli, "shutdown", device], cleanup=True)
+                listed = json.loads(run("devices-after", [cli, "list", "devices", "-j"], cleanup=True))["devices"]
                 matches = [p for rows in listed.values() for p in rows if p["udid"] == device]
                 assert len(matches) == 1 and matches[0]["state"] == "Shutdown"
-                processes = run("processes-after", ["ps", "-axo", "pid,ppid,command"], 10, True)
+                processes = run("processes-after", ["ps", "-axo", "pid,ppid,command"], cleanup=True)
                 assert not any(device in line and "launchd_sim " in line for line in processes.splitlines())
                 orphans = [line.split()[0] for line in processes.splitlines() if "/RuntimeRoot/" in line and len(line.split()) > 1 and line.split()[1] == "1"]
                 if orphans:
-                    files = run("orphan-open-files", ["/usr/sbin/lsof", "-nP", "-Fpcn", "-p", ",".join(orphans)], 15, True)
+                    files = run("orphan-open-files", ["/usr/sbin/lsof", "-nP", "-Fpcn", "-p", ",".join(orphans)], cleanup=True)
                     assert not any(line.startswith("n") and device in line for line in files.splitlines()), "Selected guest orphan retains device files"
                 data = Path.home() / "Library/Developer/CoreSimulator/Devices" / device / "data"
                 for name, source in [("mobile-installation.log", data / "Library/Logs/MobileInstallation/mobile_installation.log.0"), ("pending-work.plist", data / "Containers/Shared/SystemGroup/systemgroup.com.apple.installcoordinationd/Library/InstallCoordination/PendingWork.plist")]:

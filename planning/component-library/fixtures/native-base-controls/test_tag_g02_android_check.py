@@ -24,6 +24,9 @@ def sample():
   cohorts.append(row)
  return {'operation':'tag-g02-batch','connectionAdmission':'READY_FROM_ACTUAL_NEW_CONNECTION','methodLimitMs':180000,'batchLimitMs':560000,'elapsedMs':65000,'cohorts':cohorts,'nativeActionSucceeded':True,'hasFailedCohorts':False,'status':'NATIVE_COMPLETE_PENDING_HOST_VISUAL_AND_SOURCE_JOIN'}
 
+import time
+CONTROL_WORK_DEADLINE = time.time() + 1800 - 120
+
 class Controls(unittest.TestCase):
  def test_positive(self):self.assertEqual(m.reconcile(sample(),2)['status'],'AUTOMATED_TAG_G02_PENDING_VISUAL_AND_SOURCE_JOIN')
  def changed(self,change):
@@ -93,7 +96,7 @@ class SetupControls(unittest.TestCase):
    def __truediv__(self,name):return self
   ns={'print':lambda *a,**k:None,'json':json,'now':lambda:'offline','recorded_command':lambda *a,**k:dict(first),'root':FakePath(),'work':100,'cleanup_deadline':120,'env':{},'rows':[],'write':lambda *a:None}
   exec(compile(ast.Module(body=[function],type_ignores=[]),'actual-run-control','exec'),ns)
-  with self.assertRaisesRegex(AssertionError,'Uncertain SDK command outcome'):ns['run']('saved-failure',['adb','shell','historical-query'],15)
+  with self.assertRaisesRegex(AssertionError,'Uncertain SDK command outcome'):ns['run']('saved-failure',['adb','shell','historical-query'])
 
 
 class SourceClockControls(unittest.TestCase):
@@ -120,8 +123,8 @@ class SourceClockControls(unittest.TestCase):
   jdk=Path.home()/'.local/share/codon-native-lab/jdk/Contents/Home/bin'
   with tempfile.TemporaryDirectory() as temporary:
    root=Path(temporary);java=root/'SceneWaitControls.java';java.write_text('class SceneWaitControls {\n'+actual+controls+'\n}\n')
-   compiled=subprocess.run([str(jdk/'javac'),str(java)],capture_output=True,text=True,timeout=20);self.assertEqual(compiled.returncode,0,compiled.stderr)
-   executed=subprocess.run([str(jdk/'java'),'-cp',str(root),'SceneWaitControls'],capture_output=True,text=True,timeout=10);self.assertEqual(executed.returncode,0,executed.stderr);self.assertIn('PASS actual scene acknowledgement',executed.stdout)
+   compiled=subprocess.run([str(jdk/'javac'),str(java)],capture_output=True,text=True,timeout=CONTROL_WORK_DEADLINE - time.time() - 8);self.assertEqual(compiled.returncode,0,compiled.stderr)
+   executed=subprocess.run([str(jdk/'java'),'-cp',str(root),'SceneWaitControls'],capture_output=True,text=True,timeout=CONTROL_WORK_DEADLINE - time.time() - 8);self.assertEqual(executed.returncode,0,executed.stderr);self.assertIn('PASS actual scene acknowledgement',executed.stdout)
   helper=source[source.index('  private void tgAwaitSelectedScene'):source.index('  private JSONObject tgSetupNode')]
   self.assertNotIn('performAction',helper);self.assertIn('return actual&&selected',helper)
  def test_java_observation_and_finish_clocks_are_coupled(self):
@@ -146,7 +149,7 @@ class BootDiagnosticControls(unittest.TestCase):
   clock=Clock();commands=[]
   with tempfile.TemporaryDirectory() as temporary:
    root=Path(temporary)
-   def run(name,argv,cap):
+   def run(name,argv,cap=None):
     commands.append(name)
     if name=='wait-for-device':clock.value=76.541
     else:(root/(name+'.stdout')).write_text('1' if clock.value>=completed else '')
@@ -159,7 +162,7 @@ class BootDiagnosticControls(unittest.TestCase):
   self.assertGreaterEqual(elapsed,185.592);self.assertLess(elapsed,240)
   self.assertEqual(commands[0],'wait-for-device');self.assertTrue(all(n.startswith('boot-completed-') for n in commands[1:]))
  def test_not_ready_at_bound_still_stops(self):
-  with self.assertRaisesRegex(RuntimeError,'within240s'):self.execute_readiness(241)
+  with self.assertRaisesRegex(RuntimeError,'owner work deadline'):self.execute_readiness(1681)
  def test_saved_failure_final_exit_is_nonzero(self):
   import ast
   tree=ast.parse(Path(__file__).with_name('NativeTagG02AndroidDriver.py').read_text());branch=tree.body[-1]
@@ -180,20 +183,22 @@ class BootDiagnosticControls(unittest.TestCase):
    def Popen(self,argv,**kwargs):launched.append(argv);return Process()
   with tempfile.TemporaryDirectory() as temporary:
    root=Path(temporary);(root/'devices-before.stdout').write_text('List of devices attached\n')
-   ns={'free_ports':lambda:True,'run':lambda name,argv,cap:commands.append((name,argv,cap)) or {'exitCode':0},'adb':'/offline/adb','root':root,'sdk':Path('/offline/sdk'),'boot_diagnostic':True,'subprocess':Subprocess(),'env':{},'children':[],'write':lambda *a:None,'now':lambda:'offline','print':lambda *a,**k:None,'time':time,'work':time.time()+120,'A':lambda *args:list(args),'BootDiagnosticFinished':Finished}
+   ns={'free_ports':lambda:True,'run':lambda name,argv,cap=None:commands.append((name,argv,cap)) or {'exitCode':0},'adb':'/offline/adb','root':root,'sdk':Path('/offline/sdk'),'boot_diagnostic':True,'subprocess':Subprocess(),'env':{},'children':[],'write':lambda *a:None,'now':lambda:'offline','print':lambda *a,**k:None,'time':time,'work':time.time()+120,'A':lambda *args:list(args),'BootDiagnosticFinished':Finished}
    try:
     with self.assertRaises(Finished):exec(compile(ast.Module(body=body.body,type_ignores=[]),'actual-boot-diagnostic-control','exec'),ns)
    finally:
     if 'log' in ns:ns['log'].close()
   self.assertEqual([row[0] for row in commands],['devices-before','wait-for-device'])
-  self.assertEqual(commands[-1][2],90)
+  self.assertIsNone(commands[-1][2])
   self.assertEqual(launched[0][-1],'-show-kernel')
  def test_actual_diagnostic_deadlines_reserve_cleanup(self):
   import ast
   tree=ast.parse(Path(__file__).with_name('NativeTagG02AndroidDriver.py').read_text())
   expressions={n.targets[0].id:n.value for n in tree.body if isinstance(n,ast.Assign) and isinstance(n.targets[0],ast.Name) and n.targets[0].id in ['work','end']}
   for diagnostic,expected in [(True,(220,340)),(False,(1780,1900))]:
-   values=tuple(eval(compile(ast.Expression(expressions[name]),'actual-deadline-control','eval'),{'start':100,'boot_diagnostic':diagnostic}) for name in ['work','end'])
+   ns={'start':100,'admission':{'attempt':{'maximumSeconds':240 if diagnostic else 1800,'cleanupReserveSeconds':120}}}
+   ns['end']=eval(compile(ast.Expression(expressions['end']),'actual-deadline-control','eval'),ns)
+   values=(eval(compile(ast.Expression(expressions['work']),'actual-deadline-control','eval'),ns),ns['end'])
    self.assertEqual(values,expected);self.assertEqual(values[1]-values[0],120)
 
 if __name__=='__main__':unittest.main()

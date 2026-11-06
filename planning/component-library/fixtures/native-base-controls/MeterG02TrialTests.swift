@@ -82,6 +82,9 @@ final class MeterG02TrialTests: XCTestCase {
         try rows().filter { ["layout", "touchStart", "touchEnd", "touchCancel"].contains($0["kind"] as? String ?? "") }
     }
     private func int(_ value: [String: Any], _ key: String) throws -> Int { try XCTUnwrap(value[key] as? NSNumber, key).intValue }
+    private func layoutMatches(_ delivered: Double, _ expected: Double, _ scale: Double) -> Bool {
+        delivered.isFinite && expected.isFinite && scale.isFinite && scale > 0 && abs(delivered - expected) * scale <= 1
+    }
     private func equal(_ actual: Any, _ expected: Any) throws {
         XCTAssertEqual(try JSONSerialization.data(withJSONObject: ["value": actual], options: .sortedKeys),
                        try JSONSerialization.data(withJSONObject: ["value": expected], options: .sortedKeys))
@@ -318,8 +321,18 @@ final class MeterG02TrialTests: XCTestCase {
         XCTAssertEqual(layout["kind"] as? String, "layout"); XCTAssertEqual(data["recipient"] as? String, "current")
         XCTAssertEqual(try int(data, "currentTarget"), try int(original, "rootTag"))
         let native = try XCTUnwrap(data["native"] as? [String: Any]), box = try XCTUnwrap(native["layout"] as? [String: Any])
-        XCTAssertEqual(try int(box, "width"), 180); XCTAssertEqual(try int(box, "height"), 10)
-        XCTAssertEqual(node(targetID).frame.width, 180, accuracy: 0.5); try sameRoot(); try quietEvents(try events())
+        let measured = try paint("MT-widened-original-layout")
+        let scale = Double(measured.scale)
+        let deliveredWidth = try XCTUnwrap(box["width"] as? NSNumber).doubleValue
+        let deliveredHeight = try XCTUnwrap(box["height"] as? NSNumber).doubleValue
+        XCTAssertTrue(layoutMatches(deliveredWidth, 180, scale), "Original native width within one physical pixel")
+        XCTAssertTrue(layoutMatches(deliveredHeight, 10, scale), "Original native height within one physical pixel")
+        let frame = node(targetID).frame
+        XCTAssertTrue(layoutMatches(Double(frame.width), 180, scale))
+        XCTAssertTrue(layoutMatches(Double(frame.height), 10, scale))
+        XCTAssertTrue(layoutMatches(deliveredWidth, Double(frame.width), scale))
+        XCTAssertTrue(layoutMatches(deliveredHeight, Double(frame.height), scale))
+        try sameRoot(); try quietEvents(try events())
         let old = try state(), count = try rows().count
         tap("G02 MT retire on touch start"); XCTAssertEqual(try state()["retireOnStart"] as? Bool, true)
         contact(1)
@@ -337,5 +350,285 @@ final class MeterG02TrialTests: XCTestCase {
         original = try state(); try sameRoot(); try equal(try owner(), ["value": 0]); nativeText("0%")
         try quietEvents(try events()); try delivered("current")
         _ = try paint("MT-current-reinserted-root-after-held-removal")
+    }
+}
+
+// Same stable XCTest target, independent raw-View style references in the installed showcase.
+final class MeterStyleTrialTests: XCTestCase {
+    private var app: XCUIApplication!
+    private var original: [String: Any] = [:]
+    private let names = ["semantic", "fractional", "zero-width", "zero-height", "percentage", "auto-height", "physical-left", "vertical-up", "vertical-down", "orthogonal", "independent-radii", "primary", "explicit-colors", "registered-array", "post-custom-final", "native-color", "zero-opacity", "raised"]
+    private let sizes: [[Double]] = [[150,10],[73.25,13.75],[0,10],[150,0],[108,20],[150,0],[160,20],[20,140],[20,140],[150,10],[150,24],[150,20],[150,20],[91,20],[84,20],[150,20],[150,10],[150,20]]
+
+    override func setUpWithError() throws {
+        continueAfterFailure = false; executionTimeAllowance = 180
+        if name.contains("testRestoreMeterStyleMotionSetting") { return }
+        for key in ["CODON_METER_STYLE_FIXTURE_SHA256", "CODON_METER_PRODUCT_SHA256", "CODON_METER_OBSERVER_MANIFEST_SHA256"] {
+            XCTAssertNotNil(ProcessInfo.processInfo.environment[key]?.range(of: "^[0-9a-f]{64}$", options: .regularExpression))
+        }
+        app = XCUIApplication(bundleIdentifier: "dev.codonui.showcase"); app.launch()
+        XCTAssertEqual(app.state, .runningForeground)
+        XCUIDevice.shared.orientation = .portrait
+        wait("Portrait") { XCUIDevice.shared.orientation == .portrait }
+        tap("Progress/Meter scene"); tap("Light theme"); tap("Live window"); tap("Prepare Meter styles")
+        wait("Original style root/layouts") {
+            guard let state = try? self.state(), let tag = state["rootTag"] as? NSNumber,
+                  let layouts = state["layouts"] as? [String: Any] else { return false }
+            return tag.intValue > 0 && layouts["target"] != nil && layouts["reference"] != nil
+        }
+        original = try state()
+        XCTAssertEqual(original["rawReferences"] as? Bool,false,"Real Meter fixture, not stock-reference control")
+    }
+    override func tearDownWithError() throws {
+        if app != nil {
+            let shot = XCTAttachment(screenshot: XCUIScreen.main.screenshot()); shot.name = "meter-style-final"; shot.lifetime = .keepAlways; add(shot)
+            let tree = XCTAttachment(string: app.debugDescription); tree.name = "meter-style-final-hierarchy"; tree.lifetime = .keepAlways; add(tree)
+        }
+    }
+    private func node(_ id: String) -> XCUIElement { app.descendants(matching: .any).matching(identifier: id).firstMatch }
+    private func wait(_ message: String, _ predicate: @escaping () -> Bool) {
+        let gate = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in predicate() }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [gate], timeout: 10), .completed, message)
+    }
+    private func reveal(_ element: XCUIElement, blocked: Bool = false) {
+        XCTAssertTrue(element.waitForExistence(timeout: 10))
+        let scroll = app.scrollViews.firstMatch; XCTAssertTrue(scroll.exists)
+        for _ in 0..<16 {
+            let viewport = app.windows.firstMatch.frame.intersection(scroll.frame).insetBy(dx: 2, dy: 2)
+            if !element.frame.isEmpty && viewport.contains(element.frame) && (blocked || element.isHittable) { return }
+            let upward = element.frame.minY < viewport.minY
+            scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.98, dy: upward ? 0.30 : 0.75)).press(forDuration: 0.05, thenDragTo: scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.98, dy: upward ? 0.70 : 0.35)))
+        }
+        XCTFail("Unreachable style element " + element.identifier)
+    }
+    private func tap(_ label: String) {
+        let button = app.buttons.matching(NSPredicate(format: "label == %@", label)).firstMatch
+        reveal(button); XCTAssertTrue(button.isHittable); button.tap()
+    }
+    private func state() throws -> [String: Any] {
+        let marker = node("meter-style-state")
+        guard marker.exists, let value = try? JSONSerialization.jsonObject(with:Data(marker.label.utf8)),
+              let row = value as? [String:Any] else { throw NSError(domain:"MeterStyleStateNotReady",code:1) }
+        return row
+    }
+    private func number(_ row: [String: Any], _ key: String) throws -> Double {
+        let value = try XCTUnwrap(row[key] as? NSNumber, key).doubleValue
+        XCTAssertTrue(value.isFinite); return value
+    }
+    private func retained(_ row: [String: Any]) throws {
+        for key in ["rootTag", "attaches", "detaches"] { XCTAssertEqual(try number(row, key), try number(original, key), key) }
+        XCTAssertGreaterThan(try number(row, "rootTag"), 0)
+    }
+    private func select(_ index: Int) throws {
+        for _ in 0...names.count {
+            let current = try state()
+            if try number(current, "index") == Double(index) { XCTAssertEqual(current["case"] as? String, names[index]); return }
+            let next = (Int(try number(current, "index")) + 1) % names.count
+            tap("Next Meter style")
+            wait("Style selection") { (try? self.number(self.state(), "index")) == Double(next) }
+        }
+        XCTFail("Style selection failed")
+    }
+    private func pixels(_ image: CGImage, _ frame: CGRect, _ window: CGRect, _ scale: CGFloat) throws -> [UInt8] {
+        XCTAssertTrue(window.contains(frame))
+        let rect = CGRect(x: ((frame.minX-window.minX)*scale).rounded(), y: ((frame.minY-window.minY)*scale).rounded(), width: (frame.width*scale).rounded(), height: (frame.height*scale).rounded())
+        let crop = try XCTUnwrap(image.cropping(to: rect))
+        var bytes = [UInt8](repeating: 0, count: crop.width*crop.height*4)
+        let drawn = bytes.withUnsafeMutableBytes { data -> Bool in
+            guard let context = CGContext(data: data.baseAddress, width: crop.width, height: crop.height, bitsPerComponent: 8, bytesPerRow: crop.width*4, space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue) else { return false }
+            context.draw(crop, in: CGRect(x: 0, y: 0, width: CGFloat(crop.width), height: CGFloat(crop.height))); return true
+        }
+        XCTAssertTrue(drawn); return bytes
+    }
+    private func stylePixelsMatch(_ actual: [UInt8], _ reference: [UInt8]) -> Bool {
+        !actual.isEmpty && actual.count % 4 == 0 && actual == reference
+    }
+    private func shadowFallsDown(_ above: [UInt8], _ below: [UInt8]) -> Bool {
+        above.count == 4 && below.count == 4 && above[3] == 255 && below[3] == 255
+            && above[0] == above[1] && above[1] == above[2]
+            && below[0] == below[1] && below[1] == below[2] && below[0] < above[0]
+    }
+    private func raisedPaint(_ image: CGImage, _ a: CGRect, _ b: CGRect, _ window: CGRect, _ scale: CGFloat) throws -> [String:Any] {
+        func sample(_ parent: CGRect, _ x: CGFloat, _ y: CGFloat) throws -> [UInt8] {
+            try pixels(image,CGRect(x:parent.minX+x,y:parent.minY+y,width:1/scale,height:1/scale),window,scale)
+        }
+        let points: [(String,CGFloat,CGFloat)] = [("bar",12+150*0.125,22),("track",12+150*0.625,22),("solid-border1",12+150*0.75,12+1/scale),("solid-border2",12+150*0.75,12+2/scale)]
+        var samples: [[String:Any]] = [], colors: [[UInt8]] = []
+        for (name,x,y) in points {
+            let actual = try sample(a,x,y), reference = try sample(b,x,y)
+            XCTAssertEqual(actual,reference,"Exact opaque "+name);colors.append(actual)
+            samples.append(["name":name,"rgba":actual,"referenceRGBA":reference])
+        }
+        XCTAssertNotEqual(colors[0],colors[1],"Nonvacuous opaque bar/track")
+        var shadows: [[String:Any]] = []
+        for parent in [a,b] {
+            let above = try sample(parent,87,10), below = try sample(parent,87,34)
+            XCTAssertTrue(shadowFallsDown(above,below),"Actual neutral downward shadow")
+            for (x,y) in [(CGFloat(0),CGFloat(0)),(239,0),(0,169),(239,169)] { XCTAssertEqual(try sample(parent,x,y),[255,255,255,255],"Isolated parent corner") }
+            shadows.append(["aboveRGBA":above,"belowRGBA":below])
+        }
+        return ["opaqueSamples":samples,"shadowSamples":shadows,"opaqueSamplesExact":true,"shadowPresenceDirection":true,"shadowReviewPending":true]
+    }
+    private func frameValues(_ frame: CGRect) -> [CGFloat] { [frame.minX, frame.minY, frame.width, frame.height] }
+    private func observe(_ name: String) throws {
+        reveal(node("meter-style-pair"), blocked: true)
+        let before = try state(); try retained(before)
+        let index = Int(try number(before, "index")); XCTAssertEqual(before["case"] as? String, names[index])
+        let window = app.windows.firstMatch.frame, a = node("meter-style-parent").frame, b = node("meter-style-reference-parent").frame
+        let screenshot = XCUIScreen.main.screenshot(), image = try XCTUnwrap(screenshot.image.cgImage)
+        let attachment = XCTAttachment(screenshot:screenshot); attachment.name = "meter-style-"+name; attachment.lifetime = .keepAlways; add(attachment)
+        XCTAssertEqual(screenshot.image.imageOrientation, .up)
+        let scale = CGFloat(image.width)/window.width; XCTAssertEqual(scale, CGFloat(image.height)/window.height, accuracy: 0.01)
+        for frame in [a,b] { XCTAssertEqual(frame.width, 240, accuracy: 1/scale); XCTAssertEqual(frame.height, 170, accuracy: 1/scale); XCTAssertTrue(window.contains(frame)) }
+        let layouts = try XCTUnwrap(before["layouts"] as? [String: Any])
+        var expected: [Double] = [12, index == 14 ? 17 : 12, sizes[index][0], sizes[index][1]]
+        if index == 5 {
+            let event = try XCTUnwrap(layouts["reference"] as? [String:Any]), box = try XCTUnwrap(event["layout"] as? [String:Any])
+            expected[3] = try number(box,"height");XCTAssertGreaterThanOrEqual(expected[3],0)
+        }
+        for owner in ["target", "reference"] {
+            let event = try XCTUnwrap(layouts[owner] as? [String: Any]), box = try XCTUnwrap(event["layout"] as? [String: Any])
+            XCTAssertEqual(try number(event, "nativeTarget"), try number(event, "currentTarget")); XCTAssertGreaterThan(try number(event, "nativeTarget"), 0)
+            if owner == "target" { XCTAssertEqual(try number(event, "currentTarget"), try number(before, "rootTag")) }
+            for (key,value) in zip(["x","y","width","height"],expected) { XCTAssertEqual(try number(box,key), value, accuracy: 1/Double(scale), owner+" "+key) }
+        }
+        let actual = try pixels(image,a,window,scale), reference = try pixels(image,b,window,scale)
+        let wholeMatch = stylePixelsMatch(actual,reference)
+        let raised = index == 17 ? try raisedPaint(image,a,b,window,scale) : [:]
+        if index != 17 { XCTAssertTrue(wholeMatch, "Exact whole-parent reference includes contour, border, opacity and native colors") }
+        let absent = index == 16
+        if absent { XCTAssertTrue(actual.allSatisfy { $0 == 255 }, "Whole isolated parent must be white") }
+        else if ![2,3,5].contains(index) {
+            XCTAssertTrue(actual.contains { $0 != 255 }, "Nonvacuous visible paint required")
+            let target = node("meter-style-target"); XCTAssertEqual(app.descendants(matching:.any).matching(identifier:"meter-style-target").count,1)
+            XCTAssertEqual(target.elementType,.other); XCTAssertEqual(target.label,"Style meter"); XCTAssertEqual(target.value as? String,String(Int(try number(before,"value")))+"%")
+            let frame = target.frame
+            for (actual,expected) in zip(frameValues(frame),[a.minX+CGFloat(expected[0]),a.minY+CGFloat(expected[1]),CGFloat(expected[2]),CGFloat(expected[3])]) { XCTAssertEqual(actual,expected,accuracy:1/scale) }
+        }
+        let after = try state(); try retained(after)
+        for key in ["index","case","value","mode","layouts"] {
+            XCTAssertEqual(try JSONSerialization.data(withJSONObject:[before[key] ?? NSNull()],options:.sortedKeys),try JSONSerialization.data(withJSONObject:[after[key] ?? NSNull()],options:.sortedKeys),"Fresh capture "+key)
+        }
+        var row: [String:Any] = ["name":name,"state":before,"afterState":after,"expectedLayout":expected,"nativeParents":[frameValues(a),frameValues(b)],"screen":frameValues(window),"scale":scale,"imagePixels":[image.width,image.height],"comparedPixels":actual.count/4,"wholeParentExact":wholeMatch,"absent":absent]
+        row.merge(raised) { _,new in new }
+        let data = try JSONSerialization.data(withJSONObject:row,options:.sortedKeys)
+        FileHandle.standardOutput.write(Data("METER_STYLE_OBSERVATION ".utf8)+data+Data("\n".utf8))
+        let receipt = XCTAttachment(data:data,uniformTypeIdentifier:"public.json"); receipt.name="meter-style-"+name+"-receipt";receipt.lifetime = .keepAlways;add(receipt)
+    }
+    func testMeterStyleDimensions() throws { for index in 0..<6 { try select(index); try observe(names[index]) } }
+    func testMeterStyleGeometry() throws { for index in 6..<12 { try select(index); try observe(names[index]) } }
+    func testMeterStyleSlots() throws { for index in 12..<18 { try select(index); try observe(names[index]) } }
+    func testMeterStyleProviders() throws {
+        tap("Dark theme"); wait("Dark provider") { (try? self.state()["mode"] as? String) == "dark" }
+        for index in [0,11,14,15] { try select(index);try observe("dark-"+names[index]) }
+    }
+    func testMeterStyleConstraint() throws {
+        let host = node("showcase-scene-shell"), liveWidth = host.frame.width
+        XCTAssertGreaterThan(liveWidth,320)
+        let rangeWidth = node("range-meter").frame.width
+        try select(4);try observe("before-compact")
+        tap("Compact width");XCTAssertTrue(app.staticTexts.matching(NSPredicate(format:"label CONTAINS %@","Fixture: compact")).firstMatch.exists)
+        XCTAssertEqual(host.frame.width,320,accuracy:1/UIScreen.main.scale,"Actual bounded320-point native host")
+        XCTAssertEqual(node("range-meter").frame.width,298,accuracy:1/UIScreen.main.scale,"Actual percentage Meter in bordered/padded host")
+        XCTAssertEqual(node("range-meter").value as? String,"-25")
+        try observe("compact")
+        tap("Live window");try observe("live-restored")
+        XCTAssertEqual(host.frame.width,liveWidth,accuracy:1/UIScreen.main.scale)
+        XCTAssertEqual(node("range-meter").frame.width,rangeWidth,accuracy:1/UIScreen.main.scale)
+        XCTAssertEqual(node("range-meter").value as? String,"-25")
+        FileHandle.standardOutput.write(Data(("METER_STYLE_HOST_WIDTHS "+[liveWidth,320,host.frame.width].map { String(Double($0)) }.joined(separator:",")+"\n").utf8))
+    }
+    private func motionSwitch(_ settings: XCUIApplication) -> XCUIElement {
+        settings.activate()
+        let toggle = settings.switches["Reduce Motion"].firstMatch
+        if toggle.waitForExistence(timeout:2) { return toggle }
+        for label in ["Accessibility","Motion"] {
+            let entry = settings.staticTexts[label].firstMatch
+            for _ in 0..<12 { if entry.exists && entry.isHittable { break };settings.swipeUp() }
+            XCTAssertTrue(entry.exists && entry.isHittable,"Standard Settings navigation "+label);entry.tap()
+        }
+        XCTAssertTrue(toggle.waitForExistence(timeout:10));return toggle
+    }
+    private func setMotion(_ toggle: XCUIElement, _ expected: String) {
+        if toggle.value as? String != expected {
+            XCTAssertTrue(toggle.isHittable)
+            toggle.coordinate(withNormalizedOffset:CGVector(dx:0.95,dy:0.5)).tap()
+        }
+        wait("Actual Reduce Motion switch "+expected) { toggle.value as? String == expected }
+        let shot = XCTAttachment(screenshot:XCUIScreen.main.screenshot());shot.name="meter-motion-switch-"+expected;shot.lifetime = .keepAlways;add(shot)
+        FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_SWITCH "+expected+"\n").utf8))
+    }
+    func testMeterStyleMotionAndReset() throws {
+        let settings = XCUIApplication(bundleIdentifier:"com.apple.Preferences");settings.launch()
+        let initial = motionSwitch(settings), original = try XCTUnwrap(initial.value as? String)
+        XCTAssertTrue(["0","1"].contains(original))
+        FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_ORIGINAL "+original+"\n").utf8))
+        addTeardownBlock { [self] in
+            let toggle = self.motionSwitch(settings)
+            self.setMotion(toggle,original)
+            XCTAssertEqual(toggle.value as? String,original,"Exact original Reduce Motion restoration")
+            self.app.activate()
+            FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_RESTORED "+original+"\n").utf8))
+        }
+        if initial.value as? String != "0" {
+            setMotion(initial,"0");app.activate();reveal(node("meter-style-state"),blocked:true)
+            _ = motionSwitch(settings)
+        }
+        setMotion(settings.switches["Reduce Motion"].firstMatch,"1");app.activate();reveal(node("meter-style-state"),blocked:true)
+        wait("Native public reduced event") { ((try? self.state()["motionEvents"] as? [Bool]) ?? []).last == true }
+        tap("Change Meter style value");wait("Reduced current value") { (try? self.number(self.state(),"value")) == 75 };try observe("reduced-value75")
+        let reduced = motionSwitch(settings);XCTAssertEqual(reduced.value as? String,"1");setMotion(reduced,"0");app.activate();reveal(node("meter-style-state"),blocked:true)
+        wait("Native public motion restoration") { ((try? self.state()["motionEvents"] as? [Bool]) ?? []).last == false }
+        tap("Change Meter style value");wait("Current restored value") { (try? self.number(self.state(),"value")) == 25 };try observe("motion-restored-value25")
+    }
+    func testMeterStyleReset() throws {
+        try select(11);tap("Change Meter style value");wait("Changed owner") { (try? self.number(self.state(),"value")) == 75 }
+        tap("Prepare Meter styles");wait("Explicit defaults") { (try? self.state()["case"] as? String) == "semantic" && (try? self.number(self.state(),"value")) == 25 };try observe("explicit-reset")
+    }
+    func testRestoreMeterStyleMotionSetting() throws {
+        let expected = try XCTUnwrap(ProcessInfo.processInfo.environment["CODON_METER_RESTORE_MOTION"])
+        XCTAssertTrue(["0","1"].contains(expected))
+        let settings = XCUIApplication(bundleIdentifier:"com.apple.Preferences");settings.launch()
+        let toggle = motionSwitch(settings)
+        setMotion(toggle,expected)
+        XCTAssertEqual(toggle.value as? String,expected,"Restore exact captured original setting")
+        let shot = XCTAttachment(screenshot:XCUIScreen.main.screenshot());shot.name="meter-motion-restored-"+expected;shot.lifetime = .keepAlways;add(shot)
+        FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_RESTORED "+expected+"\n").utf8))
+    }
+    func testMeterStyleZeroWidth() throws { try select(2);try observe("zero-width") }
+    func testMeterStyleRemainingDimensions() throws { for index in [3,4,5] { try select(index);try observe(names[index]) } }
+    func testMeterStyleRaised() throws { try select(17);try observe("raised") }
+    func testMeterStyleAReferenceControl() throws {
+        func capture(_ label: String) throws -> ([CGRect],Bool,Int) {
+            reveal(node("meter-style-pair"),blocked:true)
+            let a = node("meter-style-parent").frame, b = node("meter-style-reference-parent").frame, window = app.windows.firstMatch.frame
+            let shot = XCUIScreen.main.screenshot(), image = try XCTUnwrap(shot.image.cgImage)
+            let attachment = XCTAttachment(screenshot:shot);attachment.name="meter-style-reference-control-"+label;attachment.lifetime = .keepAlways;add(attachment)
+            let scale = CGFloat(image.width)/window.width
+            let x = try pixels(image,a,window,scale), y = try pixels(image,b,window,scale)
+            XCTAssertEqual(x.count,y.count)
+            let different = stride(from:0,to:x.count,by:4).filter { offset in (0..<4).contains { x[offset+$0] != y[offset+$0] } }.count
+            return ([a,b],stylePixelsMatch(x,y),different)
+        }
+        try select(17)
+        let component = try capture("component")
+        tap("Compare raw Meter style references")
+        wait("Two identical raw references") { (try? self.state()["rawReferences"] as? Bool) == true }
+        XCTAssertNotEqual(node("meter-style-target").label,"Style meter","Stock control must not claim the component's semantics")
+        let controls = try capture("two-raw")
+        for (before,after) in zip(component.0,controls.0) {
+            for (a,b) in zip(frameValues(before),frameValues(after)) { XCTAssertEqual(a,b,accuracy:1/UIScreen.main.scale,"Matched physical capture positions") }
+        }
+        let current = try state();XCTAssertEqual(current["case"] as? String,"raised");XCTAssertEqual(try number(current,"value"),25)
+        let layouts = try XCTUnwrap(current["layouts"] as? [String:Any])
+        for owner in ["target","reference"] {
+            let event = try XCTUnwrap(layouts[owner] as? [String:Any]), box = try XCTUnwrap(event["layout"] as? [String:Any])
+            XCTAssertEqual(try number(event,"nativeTarget"),try number(event,"currentTarget"));XCTAssertGreaterThan(try number(event,"nativeTarget"),0)
+            XCTAssertEqual(try number(box,"width"),150,accuracy:1/UIScreen.main.scale);XCTAssertEqual(try number(box,"height"),20,accuracy:1/UIScreen.main.scale)
+        }
+        let row: [String:Any] = ["kind":"stock-reference-diagnostic-only","componentPairExact":component.1,"componentDifferencePixels":component.2,"rawReferencePairExact":controls.1,"rawReferenceDifferencePixels":controls.2,"matchedNativeParents":controls.0.map(frameValues),"matchedPositions":true,"state":current]
+        let data = try JSONSerialization.data(withJSONObject:row,options:.sortedKeys)
+        FileHandle.standardOutput.write(Data("METER_STYLE_REFERENCE_CONTROL ".utf8)+data+Data("\n".utf8))
+        let receipt = XCTAttachment(data:data,uniformTypeIdentifier:"public.json");receipt.name="meter-style-reference-control-receipt";receipt.lifetime = .keepAlways;add(receipt)
     }
 }

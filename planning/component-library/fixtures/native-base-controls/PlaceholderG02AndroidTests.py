@@ -26,15 +26,15 @@ ORDER = [
 ]
 
 
-def command(*argv, cap=15):
+def command(*argv):
     global serial_number
     serial_number += 1
     prefix = args.out / f"{serial_number:03d}"
-    timeout = min(cap, args.deadline_unix - time.time())
+    timeout = args.deadline_unix - time.time() - 8
     assert timeout > 0, "Root work deadline exhausted; root still owns cleanup"
     actual = [ADB, "-s", args.serial, *map(str, argv)]
     print(f"{prefix.name}: {' '.join(map(str, argv))}", flush=True)
-    record = recorded_command(actual, prefix, cap, args.deadline_unix)
+    record = recorded_command(actual, prefix, None, args.deadline_unix)
     assert record.get("ownedGroupGone") is True and "cleanupError" not in record, record
     if record.get("timedOut"):
         raise TimeoutError("Host command timed out; guest outcome remains uncertain")
@@ -98,7 +98,7 @@ def reveal(key):
 def touch(node, duration=200):
     rect = bounds(node)
     x, y = (rect[0] + rect[2]) // 2, (rect[1] + rect[3]) // 2
-    command("shell", "input", "touchscreen", "swipe", x, y, x, y, duration, cap=10)
+    command("shell", "input", "touchscreen", "swipe", x, y, x, y, duration)
 
 
 def capture(name):
@@ -131,7 +131,7 @@ def state(data):
 
 def inspect_node(exact_id, windows=False):
     extra = ["-e", "windows", "true"] if windows else []
-    output = command("shell", "am", "instrument", "-w", "-e", "op", "inspect", "-e", "id", exact_id, *extra, "dev.codonui.lab.number/.Actions", cap=20).decode()
+    output = command("shell", "am", "instrument", "-w", "-e", "op", "inspect", "-e", "id", exact_id, *extra, "dev.codonui.lab.number/.Actions").decode()
     assert "INSTRUMENTATION_CODE: -1" in output, output
     match = re.search(r"INSTRUMENTATION_RESULT: codon=(.*)", output)
     assert match, output
@@ -330,7 +330,7 @@ def interrupted_s02():
     end_y = frame[1] - margin if frame[1] - viewport[1] > margin + 4 else frame[3] + margin
     assert viewport[1] + 4 <= end_y <= viewport[3] - 4
     assert end_y < frame[1] - retention or end_y > frame[3] + retention
-    command("shell", "input", "touchscreen", "swipe", x, y, x, end_y, 400, cap=10)
+    command("shell", "input", "touchscreen", "swipe", x, y, x, end_y, 400)
     current = readout_capture("s02-interrupted")
     value = state(current)
     assert_native_rows(value["receipts"], ["pressIn", "pressOut"], original)

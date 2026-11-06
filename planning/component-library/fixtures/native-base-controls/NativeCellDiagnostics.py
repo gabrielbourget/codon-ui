@@ -28,11 +28,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
     admission = load_admission(__file__, args.cell, {"ios": [], "android": []})
     args.out.mkdir(exist_ok=False)
-    deadline = time.time() + 180
+    deadline = time.time() + admission["attempt"]["maximumSeconds"] - admission["attempt"]["cleanupReserveSeconds"]
     env = {**os.environ, "DEVELOPER_DIR": "/Applications/Xcode.app/Contents/Developer"}
     results = []
     for name, argv in export_commands(args.bundle, args.out, args.export_kind):
-        result = recorded_command(argv, args.out / name, 60, deadline, env)
+        result = recorded_command(argv, args.out / name, None, deadline, env)
         results.append(result)
         if result.get("exitCode") != 0 or not result.get("ownedGroupGone"):
             break

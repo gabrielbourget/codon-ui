@@ -1,6 +1,7 @@
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import {
   findNodeHandle,
+  AccessibilityInfo,
   Platform,
   PlatformColor,
   StyleSheet,
@@ -100,11 +101,20 @@ const tag = (node: unknown) =>
 
 export const MeterStyleFixture = () => {
   const [expanded, setExpanded] = useState(false)
+  const [rawReferences, setRawReferences] = useState(false)
   const [index, setIndex] = useState(0)
+  const [value, setValue] = useState(25)
+  const [motionEvents, setMotionEvents] = useState<boolean[]>([])
   const [layouts, setLayouts] = useState<Partial<Record<TOwner, unknown>>>({})
   const [binding, setBinding] = useState({ rootTag: null as number | null, attaches: 0, detaches: 0 })
   const root = useRef<TNativeMeterRef | null>(null)
   const theme = useNativeTheme()
+  useEffect(() => {
+    const subscription = AccessibilityInfo.addEventListener("reduceMotionChanged", (enabled) =>
+      setMotionEvents((previous) => [...previous, enabled]),
+    )
+    return () => subscription.remove()
+  }, [])
   const bind = useCallback((node: TNativeMeterRef | null) => {
     if (node === root.current) return
     root.current = node
@@ -131,13 +141,78 @@ export const MeterStyleFixture = () => {
   const trackRadius = radii[current.props.trackGeometry ?? "round"]
   const barRadius = radii[current.props.barGeometry ?? "round"]
   const parent: ViewStyle = { width: 240, height: 170, padding: 12, alignItems: "flex-start", backgroundColor: "white" }
+  const renderReference = (owner: "target" | "reference") => (
+    <View
+      testID={`meter-style-${owner}`}
+      ref={owner === "target" ? bind : undefined}
+      collapsable={false}
+      accessible={false}
+      onLayout={(event) => receiveLayout(owner, event)}
+      style={[
+        { width: current.width, height: current.props.height === "auto" ? "auto" : current.height },
+        current.root,
+      ]}
+    >
+      <View
+        style={[
+          {
+            width: "100%",
+            height: "100%",
+            borderWidth: 1,
+            borderColor: theme.colors.controlBorder,
+            backgroundColor: theme.colors.background,
+            borderRadius: trackRadius,
+          },
+          current.props.raised
+            ? {
+                shadowColor: "#000000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.24,
+                shadowRadius: 3,
+                elevation: 2,
+              }
+            : undefined,
+          current.track,
+        ]}
+      >
+        <View
+          style={{
+            flex: 1,
+            overflow: "hidden",
+            borderRadius: current.track?.borderRadius ?? trackRadius,
+            direction: "ltr",
+          }}
+        >
+          <View
+            style={[
+              {
+                position: "absolute",
+                width: vertical ? "100%" : `${value}%`,
+                height: vertical ? `${value}%` : "100%",
+                backgroundColor: current.props.order
+                  ? theme.actions[current.props.order].background
+                  : theme.colors.controlSelectedBackground,
+                borderRadius: barRadius,
+              },
+              vertical
+                ? { left: 0, ...(reverse ? { top: 0 } : { bottom: 0 }) }
+                : { top: 0, ...(reverse ? { right: 0 } : { left: 0 }) },
+              current.bar,
+            ]}
+          />
+        </View>
+      </View>
+    </View>
+  )
   return (
     <View style={{ gap: 6 }}>
       <Button
         accessibilityLabel="Prepare Meter styles"
         onPress={() => {
           setExpanded(true)
+          setRawReferences(false)
           setIndex(0)
+          setValue(25)
         }}
       >
         Prepare Meter styles
@@ -150,10 +225,35 @@ export const MeterStyleFixture = () => {
           >
             Next Meter style
           </Button>
+          <Button
+            accessibilityLabel="Change Meter style value"
+            onPress={() => setValue((currentValue) => (currentValue === 25 ? 75 : 25))}
+          >
+            Change Meter style value
+          </Button>
+          <Button
+            accessibilityLabel="Compare raw Meter style references"
+            onPress={() => {
+              setIndex(17)
+              setValue(25)
+              setRawReferences(true)
+            }}
+          >
+            Compare raw Meter style references
+          </Button>
           <Text
             testID="meter-style-state"
             accessible
-            accessibilityLabel={JSON.stringify({ index, case: current.name, mode: theme.mode, layouts, ...binding })}
+            accessibilityLabel={JSON.stringify({
+              index,
+              case: current.name,
+              value,
+              motionEvents,
+              mode: theme.mode,
+              layouts,
+              rawReferences,
+              ...binding,
+            })}
           >
             Meter style: {current.name}
           </Text>
@@ -164,15 +264,19 @@ export const MeterStyleFixture = () => {
               style={parent}
               onLayout={(event) => receiveLayout("parent", event)}
             >
-              <Meter
-                {...current.props}
-                value={25}
-                valueLabel="25%"
-                accessibilityLabel="Style meter"
-                testID="meter-style-target"
-                ref={bind}
-                onLayout={(event) => receiveLayout("target", event)}
-              />
+              {rawReferences ? (
+                renderReference("target")
+              ) : (
+                <Meter
+                  {...current.props}
+                  value={value}
+                  valueLabel={`${value}%`}
+                  accessibilityLabel="Style meter"
+                  testID="meter-style-target"
+                  ref={bind}
+                  onLayout={(event) => receiveLayout("target", event)}
+                />
+              )}
             </View>
             <View
               testID="meter-style-reference-parent"
@@ -180,63 +284,7 @@ export const MeterStyleFixture = () => {
               style={parent}
               onLayout={(event) => receiveLayout("referenceParent", event)}
             >
-              <View
-                testID="meter-style-reference"
-                collapsable={false}
-                accessible={false}
-                onLayout={(event) => receiveLayout("reference", event)}
-                style={[{ width: current.width, height: current.height }, current.root]}
-              >
-                <View
-                  style={[
-                    {
-                      width: "100%",
-                      height: "100%",
-                      borderWidth: 1,
-                      borderColor: theme.colors.controlBorder,
-                      backgroundColor: theme.colors.background,
-                      borderRadius: trackRadius,
-                    },
-                    current.props.raised
-                      ? {
-                          shadowColor: "#000000",
-                          shadowOffset: { width: 0, height: 2 },
-                          shadowOpacity: 0.24,
-                          shadowRadius: 3,
-                          elevation: 2,
-                        }
-                      : undefined,
-                    current.track,
-                  ]}
-                >
-                  <View
-                    style={{
-                      flex: 1,
-                      overflow: "hidden",
-                      borderRadius: current.track?.borderRadius ?? trackRadius,
-                      direction: "ltr",
-                    }}
-                  >
-                    <View
-                      style={[
-                        {
-                          position: "absolute",
-                          width: vertical ? "100%" : "25%",
-                          height: vertical ? "25%" : "100%",
-                          backgroundColor: current.props.order
-                            ? theme.actions[current.props.order].background
-                            : theme.colors.controlSelectedBackground,
-                          borderRadius: barRadius,
-                        },
-                        vertical
-                          ? { left: 0, ...(reverse ? { top: 0 } : { bottom: 0 }) }
-                          : { top: 0, ...(reverse ? { right: 0 } : { left: 0 }) },
-                        current.bar,
-                      ]}
-                    />
-                  </View>
-                </View>
-              </View>
+              {renderReference("reference")}
             </View>
           </View>
         </>

@@ -46,7 +46,7 @@ class Controls(unittest.TestCase):
                 output.with_suffix(".stdout").write_text(text)
                 return {"exitCode": -15 if output.name == "install-once" else 0, "timedOut": output.name == "install-once", "ownedGroupGone": True}
             argv = ["diagnostic", "--cell", "CAT.tag.G02", "--identity", str(identity), "--out", str(root / "run"), "--name", "unique diagnostic", "--device-type", "same type", "--runtime", "same runtime"]
-            with mock.patch.object(diagnostic, "load_admission", return_value={"result": "PASS"}), mock.patch.object(diagnostic, "verify_identity"), mock.patch.object(diagnostic, "recorded_command", side_effect=recorded), mock.patch.object(diagnostic.signal, "signal"), mock.patch.object(diagnostic.signal, "setitimer"), mock.patch.object(diagnostic.socket.socket, "connect_ex", return_value=1), mock.patch("sys.argv", argv):
+            with mock.patch.object(diagnostic, "load_admission", return_value={"result": "PASS", "attempt": {"maximumSeconds": 1800, "cleanupReserveSeconds": 120}}), mock.patch.object(diagnostic, "verify_identity"), mock.patch.object(diagnostic, "recorded_command", side_effect=recorded), mock.patch.object(diagnostic.signal, "signal"), mock.patch.object(diagnostic.signal, "setitimer"), mock.patch.object(diagnostic.socket.socket, "connect_ex", return_value=1), mock.patch("sys.argv", argv):
                 with self.assertRaises(SystemExit) as result: diagnostic.main()
             self.assertEqual(result.exception.code, 1)
             terminal = json.loads((root / "run/terminal.json").read_text())

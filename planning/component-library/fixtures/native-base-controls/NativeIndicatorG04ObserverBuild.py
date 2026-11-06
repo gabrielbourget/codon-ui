@@ -20,7 +20,7 @@ def interrupted(signum, _frame):
 
 
 def cutoff(_signum, _frame):
-    raise TimeoutError("Mechanical240s observer work cutoff;60s cleanup reserved")
+    raise TimeoutError("Admitted observer work deadline reached; cleanup remains reserved")
 
 
 def validate_observer_selection(request):
@@ -63,7 +63,9 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, interrupted)
     signal.signal(signal.SIGALRM, cutoff)
     started = time.monotonic()
-    signal.setitimer(signal.ITIMER_REAL, 240)
+    attempt = request["cellPreflight"]["attempt"]
+    work_seconds = attempt["maximumSeconds"] - attempt["cleanupReserveSeconds"]
+    signal.setitimer(signal.ITIMER_REAL, work_seconds)
     process = None
     code = None
     failure = None
@@ -75,7 +77,7 @@ if __name__ == "__main__":
             process = subprocess.Popen(request["argv"], cwd=request["cwd"], stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
             write(ROOT / "observer-build-active.json", {**request, "startedUTC": utc(), "pid": process.pid, "pgid": process.pid, "workers": 1})
             print(json.dumps({"startedUTC": utc(), "pid": process.pid, "argv": request["argv"]}), flush=True)
-            code = process.wait(timeout=max(0.01, 240 - (time.monotonic() - started)))
+            code = process.wait(timeout=max(0.01, work_seconds - (time.monotonic() - started)))
         assert code == 0, code
         product = ROOT / "observer-derived-data/Build/Products/Release-iphonesimulator/CodonNativeComponents-Runner.app"
         files = {str(path.relative_to(product)): sha(path) for path in sorted(product.rglob("*")) if path.is_file()}
@@ -109,7 +111,7 @@ if __name__ == "__main__":
         finally:
             code = process.poll() if process is not None else code
             result = {"finishedUTC": utc(), "seconds": time.monotonic() - started, "exitCode": code,
-                      "groupGone": group_gone, "withinBoundary": time.monotonic() - started < 300,
+                      "groupGone": group_gone, "withinBoundary": time.monotonic() - started < attempt["maximumSeconds"],
                       "guestActions": 0, "timedOut": timed_out, "failure": failure, "cleanupError": cleanup_error}
             write(ROOT / "observer-build-result.json", result)
             print(json.dumps(result), flush=True)

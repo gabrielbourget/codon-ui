@@ -13,6 +13,9 @@ CHECKER = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(CHECKER)
 
 
+import time
+CONTROL_WORK_DEADLINE = time.time() + 1800 - 120
+
 class Controls(unittest.TestCase):
     def packet(self, root):
         cohorts = []
@@ -109,8 +112,8 @@ class Controls(unittest.TestCase):
         jdk = Path("/Users/gabrielbourget/.local/share/codon-native-lab/jdk/Contents/Home/bin")
         with tempfile.TemporaryDirectory() as directory:
             root=Path(directory);(root/"Readiness.java").write_text("public class Readiness {"+members+main+"}")
-            subprocess.run([str(jdk/"javac"),"-d",str(root),str(root/"Readiness.java")],check=True,capture_output=True,timeout=20)
-            result=subprocess.run([str(jdk/"java"),"-XX:ActiveProcessorCount=1","-cp",str(root),"Readiness"],check=True,capture_output=True,text=True,timeout=10)
+            subprocess.run([str(jdk/"javac"),"-d",str(root),str(root/"Readiness.java")],check=True,capture_output=True,timeout=CONTROL_WORK_DEADLINE - time.time() - 8)
+            result=subprocess.run([str(jdk/"java"),"-XX:ActiveProcessorCount=1","-cp",str(root),"Readiness"],check=True,capture_output=True,text=True,timeout=CONTROL_WORK_DEADLINE - time.time() - 8)
             self.assertIn("ACTUAL_READINESS_GUARD_FAIL_CLOSED_AND_NORMAL_PATH_PASS",result.stdout)
 
     def test_actual_java_pixel_helper(self):
@@ -138,8 +141,8 @@ class Controls(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "Pixels.java").write_text("public class Pixels {" + method + main + "}")
-            subprocess.run([str(jdk / "javac"), "-d", str(root), str(root / "Pixels.java")], check=True, capture_output=True, timeout=20)
-            result = subprocess.run([str(jdk / "java"), "-XX:ActiveProcessorCount=1", "-cp", str(root), "Pixels"], check=True, capture_output=True, text=True, timeout=10)
+            subprocess.run([str(jdk / "javac"), "-d", str(root), str(root / "Pixels.java")], check=True, capture_output=True, timeout=CONTROL_WORK_DEADLINE - time.time() - 8)
+            result = subprocess.run([str(jdk / "java"), "-XX:ActiveProcessorCount=1", "-cp", str(root), "Pixels"], check=True, capture_output=True, text=True, timeout=CONTROL_WORK_DEADLINE - time.time() - 8)
             self.assertIn("ACTUAL_JAVA_PIXEL_HELPER_CONTROLS_PASS", result.stdout)
 
 
