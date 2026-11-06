@@ -37,6 +37,18 @@
         "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/meter-ios-style-completion-20261106/objects/92896bd4b44a648347873df59f439753936ba47090b41bf2adf34228073f5128",
         "sha256": "92896bd4b44a648347873df59f439753936ba47090b41bf2adf34228073f5128"
       }
+    },
+    "CAT.meter.G04": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/meter-android-style-g04-g07-completion-20261106/objects/40107d9e0f029c900f9f788771fa30216edcb5587a10b8f9b0f36c29802aded2",
+        "sha256": "40107d9e0f029c900f9f788771fa30216edcb5587a10b8f9b0f36c29802aded2"
+      }
+    },
+    "CAT.meter.G07": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/meter-android-style-g04-g07-completion-20261106/objects/d1ca269432caf30fccca8519d50fc559ff9085e721c53787481681bb93b4b8b9",
+        "sha256": "d1ca269432caf30fccca8519d50fc559ff9085e721c53787481681bb93b4b8b9"
+      }
     }
   }
 }

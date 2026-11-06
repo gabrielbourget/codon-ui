@@ -4,6 +4,7 @@ import {
   AccessibilityInfo,
   Platform,
   PlatformColor,
+  PixelRatio,
   StyleSheet,
   View,
   type LayoutChangeEvent,
@@ -140,7 +141,13 @@ export const MeterStyleFixture = () => {
   const radii = { orthogonal: 0, rounded: theme.radius.rounded, round: theme.radius.round }
   const trackRadius = radii[current.props.trackGeometry ?? "round"]
   const barRadius = radii[current.props.barGeometry ?? "round"]
-  const parent: ViewStyle = { width: 240, height: 170, padding: 12, alignItems: "flex-start", backgroundColor: "white" }
+  const parent: ViewStyle = {
+    width: 240,
+    height: PixelRatio.roundToNearestPixel(170),
+    padding: 12,
+    alignItems: "flex-start",
+    backgroundColor: "white",
+  }
   const renderReference = (owner: "target" | "reference") => (
     <View
       testID={`meter-style-${owner}`}
@@ -257,7 +264,7 @@ export const MeterStyleFixture = () => {
           >
             Meter style: {current.name}
           </Text>
-          <View testID="meter-style-pair" collapsable={false} style={{ gap: 12 }}>
+          <View testID="meter-style-pair" collapsable={false} style={{ gap: PixelRatio.roundToNearestPixel(12) }}>
             <View
               testID="meter-style-parent"
               collapsable={false}

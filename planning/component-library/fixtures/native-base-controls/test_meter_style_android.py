@@ -47,5 +47,25 @@ class StyleControls(unittest.TestCase):
             else: bad["state"]["layouts"]["target"]["layout"]["width"] = 76
             with self.subTest(change=change), self.assertRaises(ValueError): geometry(bad, state)
 
+    def test_zero_parent_comparison_keeps_border_and_rejects_blank_stray_paint_and_wrong_extent(self):
+        header = b"BM" + struct.pack("<IHHI", 78, 0, 0, 54) + struct.pack("<IiiHHIIiiII", 40, 4, -2, 1, 24, 0, 24, 0, 0, 0, 0)
+        row = b"\x9e\x9e\x9e\xff\xff\xff" * 2
+        raw = header + row * 2
+        self.assertEqual(Bitmap(raw).matched_parents([0,0,2,2],[2,0,4,2]),(4,2))
+        wrong = bytearray(raw);wrong[54+6] = 254
+        with self.assertRaisesRegex(ValueError,"reference paint"):Bitmap(bytes(wrong)).matched_parents([0,0,2,2],[2,0,4,2])
+        with self.assertRaisesRegex(ValueError,"bordered track"):Bitmap(header+b"\xff"*24).matched_parents([0,0,2,2],[2,0,4,2])
+        with self.assertRaises(ValueError):Bitmap(raw).matched_parents([0,0,2,2],[2,0,3,2])
+        with self.assertRaises(ValueError):Bitmap(raw).matched_parents([0,0,2,2],[2,0,5,2])
+
+    def test_auto_height_uses_independent_original_reference_layout(self):
+        event = {"nativeTarget":71,"currentTarget":71,"layout":{"x":12,"y":12,"width":150,"height":1.7142857142857142}}
+        state = {"rootTag":71,"attaches":1,"detaches":0,"index":5,"case":"auto-height","value":25,"mode":"light","layouts":{"target":copy.deepcopy(event),"reference":copy.deepcopy(event)}}
+        row = {"state":state,"afterState":copy.deepcopy(state),"captureStartedEpochMs":10,"captureFinishedEpochMs":20,"geometry":{"scale":1.75,"expected":[12,12,150,event['layout']['height']]},"windows":{"windowRoots":1,"windowNodes":[]}}
+        self.assertEqual(geometry(row,state),5)
+        for height in [0,float('nan'),-1]:
+            bad=copy.deepcopy(row);bad['state']['layouts']['reference']['layout']['height']=height;bad['afterState']=copy.deepcopy(bad['state'])
+            with self.subTest(height=height),self.assertRaises(ValueError):geometry(bad,state)
+
 
 if __name__ == "__main__": unittest.main()

@@ -9,6 +9,7 @@ import plistlib
 import re
 import signal
 import socket
+import struct
 import subprocess
 import time
 from urllib.parse import unquote, urlsplit
@@ -56,6 +57,12 @@ def verify_product(value, path=None):
 
 
 def selection(platform, batch="meter-g02"):
+    if batch == "meter-style-dimensions":
+        require(platform == "android", "Dimensions-only instrumentation is Android-only")
+        return {"ios": [], "android": ["dimensions"]}
+    if batch == "meter-startup-diagnostic":
+        require(platform == "android", "Startup diagnostic is Android-only")
+        return {"ios": [], "android": []}
     require(batch in ["meter-g02", "meter-style", "meter-events", "meter-style-zero-width", "meter-style-motion-cleanup", "meter-style-remaining", "meter-style-affected"] and not (batch in ["meter-events", "meter-style-zero-width", "meter-style-motion-cleanup", "meter-style-remaining", "meter-style-affected"] and platform != "ios"), "Unknown standard test selection")
     ios = ["MeterStyleTrialTests/" + name for name in IOS_STYLE_METHODS] if batch == "meter-style" else ["MeterG02TrialTests/" + name for name in (METHODS[-1:] if batch == "meter-events" else METHODS)]
     if batch == "meter-style-zero-width": ios = ["MeterStyleTrialTests/testMeterStyleZeroWidth"]
@@ -212,6 +219,9 @@ def build_ios(session):
 
 
 def build_android(session, config):
+    target = config.get("buildTarget", "observer")
+    require(target in ["observer", "application"], "Unknown Android build target")
+    if target == "application": return build_android_application(session, config)
     sdk, jdk = Path(config["sdk"]), Path(config["jdk"])
     tools, jar = sdk / "build-tools/36.0.0", sdk / "platforms/android-36/android.jar"
     source = ROOT / "android-native-inspector"
@@ -219,6 +229,11 @@ def build_android(session, config):
     build.mkdir(parents=True, exist_ok=True)
     for name in ["classes", "dex"]: (build / name).mkdir(exist_ok=True)
     session.env.update(JAVA_HOME=str(jdk), JAVA_TOOL_OPTIONS="-XX:ActiveProcessorCount=1")
+    controls = session.output / "MeterStyleControls.java"; controls.write_text(android_style_control_source())
+    control_classes = session.output / "control-classes"; control_classes.mkdir()
+    session.run("javac-controls", [jdk / "bin/javac", "-d", control_classes, controls])
+    control_result = json.loads(session.run("java-controls", [jdk / "bin/java", "-cp", control_classes, "MeterStyleControls"]))
+    require(control_result == {"status": "PASS", "cases": 28}, "Actual Java geometry/color/identity/automatic-height controls failed")
     session.run("javac", [jdk / "bin/javac", "-source", "8", "-target", "8", "-classpath", jar, "-d", build / "classes", source / "Actions.java"])
     session.run("dex", [tools / "d8", "--lib", jar, "--output", build / "dex", *sorted((build / "classes").rglob("*.class"))])
     session.run("package", [tools / "aapt2", "link", "--manifest", source / "AndroidManifest.xml", "-I", jar, "-o", build / "unsigned.apk"])
@@ -228,7 +243,115 @@ def build_android(session, config):
     session.run("align", [tools / "zipalign", "-f", "4", build / "unsigned.apk", apk])
     session.run("sign", [tools / "apksigner", "sign", "--ks", REPO / "apps/native-showcase/android/app/debug.keystore", "--ks-key-alias", "androiddebugkey", "--ks-pass", "pass:android", "--key-pass", "pass:android", apk])
     session.run("verify-signature", [tools / "apksigner", "verify", "--verbose", apk])
-    return {"apk": str(apk), "apkSHA256": digest(apk)}
+    return {"apk": str(apk), "apkSHA256": digest(apk), "styleControls": {"result": control_result, "sourceSHA256": digest(controls), "outputSHA256": digest(session.output / "java-controls.stdout")}}
+
+
+def android_style_control_source():
+    source = (ROOT / "android-native-inspector/Actions.java").read_text(); methods = []
+    for name in ["meterStyleFrameCheck", "meterStyleColorCheck", "meterStyleIdentityCheck", "meterStyleExpectedHeight", "meterAttemptDeadline", "meterStyleMethods"]:
+        declaration = re.search(r"(?m)^  public static \S+ " + re.escape(name) + r"\(", source)
+        require(declaration is not None, "Compiled control helper declaration missing: " + name)
+        start = declaration.start()
+        opening = source.index("{", start); end = opening + 1; depth = 1
+        while depth:
+            depth += (source[end] == "{") - (source[end] == "}"); end += 1
+        methods.append(source[start:end])
+    return "public class MeterStyleControls {\n" + "\n".join(methods) + r'''
+    static int cases=0;
+    static void pass(Runnable action){action.run();cases++;}
+    static void reject(Runnable action){try{action.run();}catch(AssertionError expected){cases++;return;}throw new AssertionError("Negative control accepted");}
+    static void check(boolean value){if(!value)throw new AssertionError("Wrong actual helper result");cases++;}
+    public static void main(String[] args){
+      pass(()->meterStyleFrameCheck(new double[]{12,12,150,10},new double[]{12,12,150,10},3));
+      pass(()->meterStyleFrameCheck(new double[]{12,12,73.142857,13.714286},new double[]{12,12,73.25,13.75},1.75));
+      pass(()->meterStyleFrameCheck(new double[]{12,12,0,10},new double[]{12,12,0,10},3));
+      reject(()->meterStyleFrameCheck(new double[]{12,12,150,9},new double[]{12,12,150,10},3));
+      reject(()->meterStyleFrameCheck(new double[]{12,12,Double.NaN,10},new double[]{12,12,150,10},3));
+      reject(()->meterStyleFrameCheck(new double[]{12,12,150,10},new double[]{12,12,150,10},0));
+      pass(()->meterStyleColorCheck(0xff2563eb,0xff2563eb,false));pass(()->meterStyleColorCheck(0xffffffff,0xffffffff,true));
+      reject(()->meterStyleColorCheck(0xff2563eb,0xff2563ea,false));reject(()->meterStyleColorCheck(0xfffefefe,0xfffefefe,true));
+      pass(()->meterStyleIdentityCheck("meter-style-target",1));reject(()->meterStyleIdentityCheck("other",1));reject(()->meterStyleIdentityCheck("meter-style-target",2));
+      check(meterStyleExpectedHeight(5,0,2)==2);check(meterStyleExpectedHeight(5,0,1.7142857142857142)==1.7142857142857142);check(meterStyleExpectedHeight(3,0,Double.NaN)==0);
+      reject(()->meterStyleExpectedHeight(5,0,-1));reject(()->meterStyleExpectedHeight(5,0,Double.NaN));
+      pass(()->meterStyleFrameCheck(new double[]{12,12,150,2},new double[]{12,12,150,meterStyleExpectedHeight(5,0,2)},3));
+      reject(()->meterStyleFrameCheck(new double[]{12,12,150,2},new double[]{12,12,150,0},3));
+      check(meterAttemptDeadline(1000,"30000")==31000);reject(()->meterAttemptDeadline(0,null));reject(()->meterAttemptDeadline(0,"0"));reject(()->meterAttemptDeadline(0,"1800001"));reject(()->meterAttemptDeadline(0,"invalid"));
+      check(java.util.Arrays.equals(meterStyleMethods("dimensions"),new String[]{"dimensions"}));check(meterStyleMethods("").length==4);reject(()->meterStyleMethods("unknown"));
+      if(cases!=28)throw new AssertionError("Control count changed");System.out.println("{\"status\":\"PASS\",\"cases\":"+cases+"}");
+    }
+}'''
+
+
+def mapped_owned_sources(path, names):
+    data = json.loads(Path(path).read_text()); found = {}
+    for source, content in zip(data["sources"], data["sourcesContent"]):
+        matches = [name for name in names if source.replace("\\", "/").endswith("/" + name) or source == name]
+        require(len(matches) <= 1, "Ambiguous owned source-map path")
+        if matches:
+            name = matches[0]
+            require(name not in found or found[name] == content, "Conflicting owned source-map bodies")
+            found[name] = content
+    require(found, "Owned source-map bodies missing")
+    return found
+
+
+def native_runtime_digest(raw):
+    require(len(raw) >= 64 and raw[:6] == b"\x7fELF\x02\x01" and struct.unpack_from("<H", raw, 18)[0] == 62, "Require actual x86_64 little-endian ELF")
+    offset = struct.unpack_from("<Q", raw, 40)[0]; size, count, strings_index = struct.unpack_from("<HHH", raw, 58)
+    require(size == 64 and count > 0 and strings_index < count and offset + count * size <= len(raw), "Invalid ELF section table")
+    sections = [struct.unpack_from("<IIQQQQIIQQ", raw, offset + i * size) for i in range(count)]
+    strings_header = sections[strings_index]; strings = raw[strings_header[4]:strings_header[4] + strings_header[5]]
+    notes = [row for row in sections if strings[row[0]:].split(b"\0", 1)[0] == b".note.gnu.build-id"]
+    require(len(notes) == 1, "One GNU build-ID note required")
+    note = notes[0]; start = note[4]
+    require(note[1] == 7 and note[5] == 36 and start + 36 <= len(raw) and struct.unpack_from("<III", raw, start) == (4, 20, 3) and raw[start + 12:start + 16] == b"GNU\0", "Exact GNU SHA1 build-ID note layout required")
+    normalized = raw[:start + 16] + bytes(20) + raw[start + 36:]
+    return hashlib.sha256(normalized).hexdigest(), raw[start + 16:start + 36].hex()
+
+
+def build_android_application(session, config):
+    require(Path(config["gradleUserHome"]).is_dir(), "Explicit existing Gradle cache required")
+    base = json.loads(bound_file(config["baseApplicationIdentity"]).read_text()); old_apk = verify_product(base)
+    freeze = json.loads(bound_file(config["baseApplicationSourceFreeze"]).read_text())
+    current = {name: digest(REPO / name) for name in freeze}
+    drift = [name for name in freeze if freeze[name] != current[name]]
+    require(all(name.startswith("apps/native-showcase/src/") and name.endswith((".ts", ".tsx")) for name in drift), "Unexpected native/config/library input drift: " + repr(drift))
+    map_path = Path(base["packagerMap"])
+    old_map = None
+    if "completedApplicationBuild" not in config:
+        original_map = bound_file(config["baseApplicationSourceMap"]) if "baseApplicationSourceMap" in config else map_path
+        require(digest(original_map) == base["packagerMapSHA256"], "Original application map changed")
+        old_map = mapped_owned_sources(original_map, freeze)
+    def native_members(apk):
+        with zipfile.ZipFile(apk) as archive:
+            return {name: hashlib.sha256(archive.read(name)).hexdigest() for name in archive.namelist() if name.startswith("lib/") or re.fullmatch(r"classes\d*\.dex", name)}
+    original_native = native_members(old_apk); require(original_native, "Native APK members missing")
+    write(session.output / "source-freeze.json", current)
+    session.env.update(JAVA_HOME=config["jdk"], ANDROID_HOME=config["sdk"], ANDROID_SDK_ROOT=config["sdk"], GRADLE_USER_HOME=config["gradleUserHome"], JAVA_TOOL_OPTIONS="-XX:ActiveProcessorCount=1")
+    project = REPO / "apps/native-showcase/android"
+    argv = [project / "gradlew", "-p", project, ":app:assembleRelease", "--offline", "--no-daemon", "--max-workers=1", "--console=plain", "-PreactNativeArchitectures=x86_64"]
+    if "completedApplicationBuild" in config:
+        completed = json.loads(bound_file(config["completedApplicationBuild"]).read_text())
+        require(completed.get("exitCode") == 0 and completed.get("ownedGroupGone") is True and not completed.get("timedOut") and completed["argv"] == list(map(str, argv)), "Closed Gradle command did not complete cleanly")
+        require(json.loads(bound_file(config["completedApplicationSourceFreeze"]).read_text()) == current, "Completed application inputs changed")
+        require(bound_file(config["completedApplicationAPK"]) == (project / "app/build/outputs/apk/release/app-release.apk").resolve() and bound_file(config["completedApplicationMap"]) == map_path.resolve(), "Closed application products differ from selected products")
+    else: session.run("assemble-release", argv)
+    require(all(digest(REPO / name) == expected for name, expected in current.items()), "Application input changed during build")
+    apk = project / "app/build/outputs/apk/release/app-release.apk"
+    actual_native = native_members(apk); metadata = []
+    require(actual_native.keys() == original_native.keys(), "Built native member set changed")
+    with zipfile.ZipFile(old_apk) as before, zipfile.ZipFile(apk) as after:
+        for name in actual_native:
+            if actual_native[name] == original_native[name]: continue
+            require(name.startswith("lib/x86_64/") and name.endswith(".so"), "Built DEX or unsupported native member changed")
+            old_runtime, old_id = native_runtime_digest(before.read(name)); new_runtime, new_id = native_runtime_digest(after.read(name))
+            require(old_runtime == new_runtime, "Native runtime bytes changed outside GNU build ID: " + name)
+            metadata.append({"name": name, "beforeSHA256": original_native[name], "afterSHA256": actual_native[name], "beforeBuildID": old_id, "afterBuildID": new_id, "allOtherBytesSHA256": new_runtime})
+    mapped = mapped_owned_sources(map_path, current)
+    require((old_map is None or set(mapped) >= set(old_map)) and all((REPO / name).read_text() == content for name, content in mapped.items()), "Current application map missing or stale owned source")
+    session.run("verify-signature", [Path(config["sdk"]) / "build-tools/36.0.0/apksigner", "verify", "--verbose", apk])
+    write(session.output / "map-proof.json", {"matchedOwnedSourceCount": len(mapped), "sourceFilesSHA256": {name: digest(REPO / name) for name in mapped}, "nativeLibrariesAndDEXSHA256": actual_native, "nativeBuildIDOnlyDifferences": metadata, "baseAPK": base["apkSHA256"], "sourceDrift": drift})
+    return {"apk": str(apk), "apkSHA256": digest(apk), "inputOrigin": "Standard offline Gradle Release build; current workspace map, exact DEX and all native bytes except explicitly recorded GNU build-ID descriptions verified. Full current APK/member hashes retained.", "sourceFilesSHA256": {str(REPO / name): value for name, value in current.items()}, "sourceFreeze": {"path": str(session.output / "source-freeze.json"), "sha256": digest(session.output / "source-freeze.json")}, "packagerMap": str(map_path), "packagerMapSHA256": digest(map_path), "mapProof": {"path": str(session.output / "map-proof.json"), "sha256": digest(session.output / "map-proof.json")}}
 
 
 
@@ -344,7 +467,14 @@ def reconcile_ios_styles(raw, expected=None):
     return observations
 
 
-def run_android(session, config, app, observer):
+def android_cpu_cores(config):
+    value = config.get("cores", 2)
+    require(type(value) is int and value in [2, 4], "Only the recorded two/four-vCPU configurations are supported")
+    return value
+
+
+def start_android(session, config):
+    cores = android_cpu_cores(config)
     sdk, serial = Path(config["sdk"]), config["destination"]
     avd_home = Path(config["avdHome"])
     require((avd_home / (config["avd"] + ".ini")).is_file(), "Selected AVD is missing from explicit avdHome")
@@ -358,7 +488,7 @@ def run_android(session, config, app, observer):
         with socket.socket() as probe:
             require(probe.connect_ex(("127.0.0.1", number)) != 0, "Selected emulator port in use")
     log = (session.output / "emulator.log").open("xb")
-    argv = [str(sdk / "emulator/emulator"), "-avd", config["avd"], "-port", str(port), "-no-snapshot-load", "-no-snapshot-save", "-cores", "2", "-memory", "2048", "-no-window", "-no-audio", "-no-boot-anim", "-gpu", config["gpu"]]
+    argv = [str(sdk / "emulator/emulator"), "-avd", config["avd"], "-port", str(port), "-no-snapshot-load", "-no-snapshot-save", "-cores", str(cores), "-memory", "2048", "-no-window", "-no-audio", "-no-boot-anim", "-gpu", config["gpu"]]
     session.emulator = subprocess.Popen(argv, env=session.env, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
     write(session.output / "emulator-owner.json", {"pid": session.emulator.pid, "processGroup": session.emulator.pid, "ownerPID": os.getpid(), "argv": argv, "avdHome": str(avd_home)})
     log.close();session.guest_owned = True
@@ -370,6 +500,23 @@ def run_android(session, config, app, observer):
         if session.run("boot-state-" + str(attempt), selected + ["shell", "getprop", "sys.boot_completed"]).strip() == "1": break
         attempt += 1
         time.sleep(min(2, max(0, session.remaining())))
+    return selected
+
+
+def diagnose_android(session, config):
+    selected = start_android(session, config)
+    session.run("system-logcat", selected + ["logcat", "-b", "system", "-b", "events", "-b", "crash", "-d", "-v", "threadtime"])
+    session.run("cpu-info", selected + ["shell", "dumpsys", "cpuinfo"])
+    session.run("last-anr", selected + ["shell", "dumpsys", "activity", "lastanr"])
+    report = session.output / "bugreport.zip"
+    session.run("bugreport", selected + ["bugreport", report])
+    require(zipfile.is_zipfile(report), "Standard adb bugreport archive missing")
+    return {"status": "OS_DIAGNOSTIC_CAPTURED_PENDING_REVIEW", "componentMethods": 0, "installRequests": 0, "inputRequests": 0, "bugreport": {"path": str(report), "sha256": digest(report)}, "gatePromotions": 0}
+
+
+def run_android(session, config, app, observer):
+    sdk, serial = Path(config["sdk"]), config["destination"]
+    selected = start_android(session, config)
     for label, bundle, expected in [("app", "dev.codonui.showcase", app), ("observer", "dev.codonui.lab.number", observer)]:
         session.run("install-" + label, selected + ["install", "-r", str(verify_product(expected))])
         remote = session.run("package-" + label, selected + ["shell", "pm", "path", bundle]).strip()
@@ -380,24 +527,28 @@ def run_android(session, config, app, observer):
     session.run("launch", selected + ["shell", "am", "start", "-W", "-n", "dev.codonui.showcase/.MainActivity"])
     batch = config["batch"]
     cohorts = selection("android", batch)["android"]
-    if batch == "meter-style":
+    style = batch in ["meter-style", "meter-style-dimensions"]
+    if style:
         session.run("device-api", selected + ["shell", "getprop", "ro.build.version.sdk"])
         session.run("device-abi", selected + ["shell", "getprop", "ro.product.cpu.abi"])
         session.run("device-size", selected + ["shell", "wm", "size"])
         session.run("device-font-setting", selected + ["shell", "settings", "get", "system", "font_scale"])
         session.motion_setting = session.run("motion-setting-before", selected + ["shell", "settings", "get", "global", "transition_animation_scale"]).strip()
         require(session.motion_setting == "null" or re.fullmatch(r"[0-9.]+", session.motion_setting), "Unexpected captured motion preference")
-    remote = "/sdcard/Android/data/dev.codonui.lab.number/files/" + batch + "-native-" + session.output.name
-    session.run("instrumentation", selected + ["shell", "am", "instrument", "-w", "-e", "op", batch + "-batch", "-e", "outputDir", remote, "dev.codonui.lab.number/.Actions"])
+    operation = "meter-style" if style else batch
+    remote = "/sdcard/Android/data/dev.codonui.lab.number/files/" + operation + "-native-" + session.output.name
+    cohort_args = ["-e", "cohorts", "dimensions"] if batch == "meter-style-dimensions" else []
+    session.run("instrumentation", selected + ["shell", "am", "instrument", "-w", "-e", "op", operation + "-batch", "-e", "outputDir", remote, "-e", "attemptRemainingMs", str(max(1, int(session.remaining() * 1000))), *cohort_args, "dev.codonui.lab.number/.Actions"])
     directory = session.output / "native"
     session.run("pull-results", selected + ["pull", remote, str(directory)])
     receipt = directory / "receipt.json";value = json.loads(receipt.read_text())
     require(value.get("nativeActionSucceeded") and not value.get("hasFailedCohorts") and value.get("selectedMethods") == cohorts, "Instrumentation failed/incomplete; adb exit alone is not a verdict")
     methods = [native_method({"path": str(receipt), "sha256": digest(receipt), "format": "android_receipt", "method": name, "maximumSeconds": 180}) for name in cohorts]
     session.run("density", selected + ["shell", "wm", "density"])
-    if batch == "meter-style":
+    if style:
         decoder = bound_file(config["imageDecoder"])
-        session.run("paint", [os.sys.executable, "-B", ROOT / "MeterStyleAndroidCheck.py", "--input", directory, "--out", session.output / "paint", "--image-decoder", decoder, "--decoder-sha256", config["imageDecoder"]["sha256"], "--deadline-unix", str(session.work)])
+        selected_args = ["--selected-cohorts", "dimensions"] if batch == "meter-style-dimensions" else []
+        session.run("paint", [os.sys.executable, "-B", ROOT / "MeterStyleAndroidCheck.py", "--input", directory, "--out", session.output / "paint", "--image-decoder", decoder, "--decoder-sha256", config["imageDecoder"]["sha256"], "--deadline-unix", str(session.work), *selected_args])
     else:
         oracle = bound_file(config["paintOracle"])
         session.run("paint", [os.sys.executable, "-B", ROOT / "MeterG02AndroidTests.py", "--input", directory, "--out", session.output / "paint", "--density", session.output / "density.stdout", "--paint-oracle", oracle, "--deadline-unix", str(session.work)])
@@ -436,9 +587,18 @@ def cleanup(session, config):
             with socket.socket() as probe: require(probe.connect_ex(("127.0.0.1", port)) != 0, "Emulator port remains open")
 
 
+def capture_android_failure(session, config):
+    if config["platform"] != "android" or config["action"] != "run" or not session.guest_owned or session.remaining() <= 0: return
+    try:
+        session.run("failure-system-logcat", [Path(config["sdk"]) / "platform-tools/adb", "-s", config["destination"], "logcat", "-b", "system", "-b", "events", "-b", "crash", "-d", "-v", "threadtime"])
+    except BaseException as error:
+        write(session.output / "failure-logcat-warning.json", {"error": repr(error), "scope": "Optional diagnostic capture; original native failure is preserved"})
+
+
 def execute(plan, admission):
     config = plan["nativeStandard"]
-    require(config["platform"] in ["ios", "android"] and config["action"] in ["build", "run"], "Unknown standard SDK operation")
+    require(config["platform"] in ["ios", "android"] and config["action"] in ["build", "run", "diagnose"], "Unknown standard SDK operation")
+    if config["action"] == "diagnose": require(config["platform"] == "android" and config["batch"] == "meter-startup-diagnostic", "Only the named Android OS diagnostic is supported")
     selection(config["platform"], config.get("batch"))
     session = Session(config["output"], plan["attempt"]["maximumSeconds"], plan["attempt"]["cleanupReserveSeconds"])
     result, failure = None, None
@@ -448,14 +608,17 @@ def execute(plan, admission):
     try:
         if config["action"] == "build":
             result = build_ios(session) if config["platform"] == "ios" else build_android(session, config)
-            result["sourceFilesSHA256"] = {item["path"]: item["sha256"] for item in plan["bindings"]["observer"]}
+            result.setdefault("sourceFilesSHA256", {item["path"]: item["sha256"] for item in plan["bindings"]["observer"]})
             write(session.output / "identity.json", result)
+        elif config["action"] == "diagnose": result = diagnose_android(session, config)
         else:
             app = json.loads(bound_file(config["appIdentity"]).read_text());observer = json.loads(bound_file(config["observerIdentity"]).read_text())
             verify_product(app);verify_product(observer)
             for path, expected in observer["sourceFilesSHA256"].items(): require(digest(path) == expected, "Observer source changed since SDK build")
             result = run_ios(session, config, app, observer) if config["platform"] == "ios" else run_android(session, config, app, observer)
-    except BaseException as error: failure = repr(error)
+    except BaseException as error:
+        failure = repr(error)
+        capture_android_failure(session, config)
     finally:
         signal.setitimer(signal.ITIMER_REAL, max(0.01, session.end - time.time() - 8))
         try: cleanup(session, config)

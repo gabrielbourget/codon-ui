@@ -3,6 +3,7 @@ import time
 import argparse
 import hashlib
 import json
+import math
 from pathlib import Path
 import struct
 import subprocess
@@ -48,6 +49,21 @@ class Bitmap:
             require(self.raw[start:start + len(expected)] == expected, "Exact parent absence failed; stray paint or neighboring shadow retained")
         return (right - left) * (bottom - top)
 
+    def matched_parents(self, actual, reference):
+        ax, ay, ar, ab = actual
+        bx, by, br, bb = reference
+        require(0 <= ax < ar <= self.width and 0 <= bx < br <= self.width and 0 <= ay < ab <= self.height and 0 <= by < bb <= self.height, "Whole positive parents must be in PNG")
+        require((ar - ax, ab - ay) == (br - bx, bb - by), "Matched physical parent dimensions required")
+        count = nonwhite = 0
+        for y in range(ab - ay):
+            for x in range(ar - ax):
+                color = self.argb([ax + x, ay + y])
+                require(color == self.argb([bx + x, by + y]), "Exact whole-parent reference paint differs")
+                count += 1
+                nonwhite += color != 0xffffffff
+        require(nonwhite > 0, "Retained bordered track must have nonwhite paint")
+        return count, nonwhite
+
 
 def geometry(row, original):
     state = row["state"]
@@ -60,6 +76,10 @@ def geometry(row, original):
         require(state[key] == row["afterState"][key], "Stale native/state/PNG join")
     scale = row["geometry"]["scale"]
     expected = [12, 17 if index == 14 else 12, *SIZES[index]]
+    if index == 5:
+        height = state["layouts"]["reference"]["layout"]["height"]
+        require(math.isfinite(height) and height >= 0, "Finite independent automatic reference height required")
+        expected[3] = height
     require(scale > 0 and row["geometry"]["expected"] == expected, "Wrong expected geometry")
     for owner in ["target", "reference"]:
         event = state["layouts"][owner]
@@ -83,7 +103,8 @@ def reconcile(args):
     require(hashlib.sha256(args.image_decoder.read_bytes()).hexdigest() == args.decoder_sha256, "Image decoder changed")
     args.out.mkdir(exist_ok=False)
     receipt = json.loads((args.input / "receipt.json").read_text())
-    require(receipt["operation"] == "meter-style-batch" and receipt["selectedMethods"] == list(EXPECTED), "Wrong native batch")
+    selected = ["dimensions"] if getattr(args, "selected_cohorts", None) == "dimensions" else list(EXPECTED)
+    require(receipt["operation"] == "meter-style-batch" and receipt["selectedMethods"] == selected and [row["name"] for row in receipt["cohorts"]] == selected, "Wrong native batch")
     results, errors = [], []
     for cohort in receipt["cohorts"]:
         observations, failures = [], []
@@ -107,11 +128,14 @@ def reconcile(args):
                 require(process.returncode == 0, "Standard image decoder failed")
                 decoded = Bitmap(bmp.read_bytes())
                 require([decoded.width, decoded.height] == row["screenRect"][2:], "Decoded screen dimensions changed")
-                if index in [2, 3, 5, 16]:
+                if index == 16:
                     count = 0
                     for key in ["nativeParent", "nativeReferenceParent"]:
                         count += decoded.white(list(map(int, row[key]["bounds"].split())))
                     require(count == row["absencePixelsChecked"], "Independent entire-parent absence count differs")
+                elif index in [2, 3, 5]:
+                    count, nonwhite = decoded.matched_parents(*[list(map(int, row[key]["bounds"].split())) for key in ["nativeParent", "nativeReferenceParent"]])
+                    require(count == row["wholeParentPixelsChecked"] and nonwhite == row["wholeParentNonWhitePixels"], "Independent exact parent/bordered-track counts differ")
                 else:
                     require(len(row["samples"]) == (4 if index == 14 else 2), "Missing independent slot/border samples")
                     for sample in row["samples"]:
@@ -131,7 +155,7 @@ def reconcile(args):
             except Exception as error:
                 failures.append(str(error))
         results.append({"cohort": cohort["name"], "status": "PASS_PENDING_CONTOUR_SHADOW_REVIEW" if not failures else "FAILED_OR_INCOMPLETE", "observations": observations, "errors": failures})
-    if not receipt.get("nativeActionSucceeded") or receipt.get("hasFailedCohorts") or len(results) != 4:
+    if not receipt.get("nativeActionSucceeded") or receipt.get("hasFailedCohorts") or len(results) != len(selected):
         errors.append("Native batch failed or incomplete; preserved valid independent observations retain their actual scopes")
     passed = not errors and all(not row["errors"] for row in results)
     terminal = {"status": "AUTOMATED_STYLE_ASSERTIONS_PASSED_PENDING_REVIEW" if passed else "FAILED_OR_INCOMPLETE", "cohorts": results, "errors": errors, "gatePromotions": 0, "remaining": "Original radius/edge/raised-shadow visual review and complete gate reconciliation. Motion proves public native events and actual endpoints; no unobserved intermediate/precise-duration or instant-reduction claim."}
@@ -147,4 +171,5 @@ if __name__ == "__main__":
     parser.add_argument("--image-decoder", type=Path, required=True)
     parser.add_argument("--decoder-sha256", required=True)
     parser.add_argument("--deadline-unix", type=float, required=True)
+    parser.add_argument("--selected-cohorts", choices=["dimensions"])
     raise SystemExit(reconcile(parser.parse_args()))

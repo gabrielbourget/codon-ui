@@ -10,7 +10,7 @@
   "checklistVersion": "NATIVE-CELL-02",
   "checklistSHA256": "c8f5f777015de88c845833d529872771391a4d7d4431139ae697b635f7da392f",
   "authority": "roadmap3.1.4,3.3.9-3.3.11,3.6.1; complete canonical13 cases plus inherited public contract, no new capability exclusions",
-  "status": "INSTALLED_STYLE_PARTIAL_GEOMETRY_AND_ZERO_WIDTH_PASS_REMAINING_GATES_OPEN",
+  "status": "G04_G07_G08_COMPLETE_G09_NORMAL_CLOSEOUT_PENDING",
   "sourceFilesSHA256": {
     "packages/react/src/components/Meter/__tests__/Meter.test.tsx": "843553e8b3ca009254d0309d1c3652a60a4deb76ce656aa9e6c39fa7ab9b52b5",
     "packages/react/src/components/Meter/MeterStyles.module.css": "124c7ad5838c8815c8ea4b26ecf3bed2f4e9f0be39ad7fa82c39b58519ac023d",
@@ -20,8 +20,8 @@
     "packages/react-native/type-tests/range-contracts.tsx": "f5e865d0ad267f048e7857e8e2da61e66cc82141cdc086475593e692cd021693",
     "apps/native-showcase/src/scenes/RangeScene.tsx": "e7dfe902423d49b6bbc5f60df9e3c0881b886decf6368dc6721db8d339f12a74",
     "apps/native-showcase/src/scenes/__tests__/RangeScene.test.tsx": "6d12cd638c24536d96bc83d747a7cee15d5c92bf92bbb15cce0f6355bcf62cb2",
-    "apps/native-showcase/src/scenes/MeterStyleFixture.tsx": "4c75939402cd7f15c04610cd6f2972083198c77fb7b2fe804aaf733d9523e1a5",
-    "apps/native-showcase/src/scenes/__tests__/MeterStyleFixture.test.tsx": "4ea686d3a64b3e8916b5d5561be32e2a2dfef619649cf4c58a2c6d3631a13425"
+    "apps/native-showcase/src/scenes/MeterStyleFixture.tsx": "f06365103b0ebab3631b4f95a8ef6e0083052e6f57d960148cd730cde8317aea",
+    "apps/native-showcase/src/scenes/__tests__/MeterStyleFixture.test.tsx": "1c75153f10a27f86adb8a470ebd7487a904a5b75cc7af81d7d4d2a153c67101e"
   },
   "canonicalAssertions": [
     {
@@ -31,7 +31,10 @@
         "renders one named, bounded accessibility target with a semantic default bar"
       ],
       "expectedOutcome": "Root, track and bar remain owned by Meter; actual MT-02 target/native fill retained.",
-      "installedDisposition": "MT-02 proves only its recorded native value/fill/context/ref scope; remaining selected style observations are not passed"
+      "installedDisposition": "PASS selected representative paths on both OSes at actual product tuples; complete deterministic public variants remain in named source cases under RB-NATIVE-01.",
+      "selectedInstalledCases": [
+        "semantic"
+      ]
     },
     {
       "id": "STYLE.meter.002",
@@ -40,7 +43,11 @@
         "renders one named, bounded accessibility target with a semantic default bar"
       ],
       "expectedOutcome": "Semantic controlSelectedBackground; no synthesized primary order.",
-      "installedDisposition": "MT-02 proves only its recorded native value/fill/context/ref scope; remaining selected style observations are not passed"
+      "installedDisposition": "PASS selected representative paths on both OSes at actual product tuples; complete deterministic public variants remain in named source cases under RB-NATIVE-01.",
+      "selectedInstalledCases": [
+        "semantic",
+        "dark-semantic"
+      ]
     },
     {
       "id": "STYLE.meter.003",
@@ -49,7 +56,15 @@
         "honors numeric, zero and percentage dimensions with final root precedence"
       ],
       "expectedOutcome": "Approved native root dimension substitution; numeric/zero/percentage and final root precedence, filling track.",
-      "installedDisposition": "MT-02 proves only its recorded native value/fill/context/ref scope; remaining selected style observations are not passed"
+      "installedDisposition": "PASS selected representative paths on both OSes at actual product tuples; complete deterministic public variants remain in named source cases under RB-NATIVE-01.",
+      "selectedInstalledCases": [
+        "semantic",
+        "fractional",
+        "zero-width",
+        "zero-height",
+        "percentage",
+        "auto-height"
+      ]
     },
     {
       "id": "STYLE.meter.004",
@@ -59,7 +74,12 @@
         "supports native dynamic colors, registered styles and style arrays"
       ],
       "expectedOutcome": "Independent barColor and trackColor; native ColorValue/registered-array styles; invalid CSS colors rejected.",
-      "installedDisposition": "MT-02 proves only its recorded native value/fill/context/ref scope; remaining selected style observations are not passed"
+      "installedDisposition": "PASS selected representative paths on both OSes at actual product tuples; complete deterministic public variants remain in named source cases under RB-NATIVE-01.",
+      "selectedInstalledCases": [
+        "explicit-colors",
+        "native-color",
+        "dark-native-color"
+      ]
     },
     {
       "id": "STYLE.meter.005",
@@ -68,7 +88,12 @@
         "retains independent %s bar and track geometry"
       ],
       "expectedOutcome": "All orthogonal/rounded/round track and bar radii, independently owned.",
-      "installedDisposition": "MT-02 proves only its recorded native value/fill/context/ref scope; remaining selected style observations are not passed"
+      "installedDisposition": "PASS selected representative paths on both OSes at actual product tuples; complete deterministic public variants remain in named source cases under RB-NATIVE-01.",
+      "selectedInstalledCases": [
+        "orthogonal",
+        "independent-radii",
+        "semantic"
+      ]
     },
     {
       "id": "STYLE.meter.006",
@@ -77,7 +102,11 @@
         "uses the existing numbered palette for order %s"
       ],
       "expectedOutcome": "All primary/secondary/tertiary/quaternary/quintenary orders, with explicit barColor precedence.",
-      "installedDisposition": "MT-02 proves only its recorded native value/fill/context/ref scope; remaining selected style observations are not passed"
+      "installedDisposition": "PASS selected representative paths on both OSes at actual product tuples; complete deterministic public variants remain in named source cases under RB-NATIVE-01.",
+      "selectedInstalledCases": [
+        "primary",
+        "dark-primary"
+      ]
     },
     {
       "id": "STYLE.meter.007",
@@ -87,7 +116,12 @@
         "uses current provider colors and geometry without changing the controlled value"
       ],
       "expectedOutcome": "All five numbered action backgrounds; current provider, no legacy token substitution.",
-      "installedDisposition": "MT-02 proves only its recorded native value/fill/context/ref scope; remaining selected style observations are not passed"
+      "installedDisposition": "PASS selected representative paths on both OSes at actual product tuples; complete deterministic public variants remain in named source cases under RB-NATIVE-01.",
+      "selectedInstalledCases": [
+        "primary",
+        "dark-primary",
+        "dark-semantic"
+      ]
     },
     {
       "id": "STYLE.meter.008",
@@ -96,7 +130,10 @@
         "adds and removes established track elevation"
       ],
       "expectedOutcome": "Track raised on/off; approved native shadow/elevation, no claim of browser raster equality.",
-      "installedDisposition": "MT-02 proves only its recorded native value/fill/context/ref scope; remaining selected style observations are not passed"
+      "installedDisposition": "PASS selected representative paths on both OSes at actual product tuples; complete deterministic public variants remain in named source cases under RB-NATIVE-01.",
+      "selectedInstalledCases": [
+        "raised"
+      ]
     },
     {
       "id": "STYLE.meter.009",
@@ -105,7 +142,12 @@
         "anchors physical left/right and vertical up/down without rotating its accessibility target"
       ],
       "expectedOutcome": "Horizontal right/left, vertical up/down and opposite-axis fallback; stable accessibility root.",
-      "installedDisposition": "MT-02 proves only its recorded native value/fill/context/ref scope; remaining selected style observations are not passed"
+      "installedDisposition": "PASS selected representative paths on both OSes at actual product tuples; complete deterministic public variants remain in named source cases under RB-NATIVE-01.",
+      "selectedInstalledCases": [
+        "physical-left",
+        "vertical-up",
+        "vertical-down"
+      ]
     },
     {
       "id": "STYLE.meter.010",
@@ -114,7 +156,12 @@
         "anchors physical left/right and vertical up/down without rotating its accessibility target"
       ],
       "expectedOutcome": "Horizontal/vertical root defaults and fill axis; same native root.",
-      "installedDisposition": "MT-02 proves only its recorded native value/fill/context/ref scope; remaining selected style observations are not passed"
+      "installedDisposition": "PASS selected representative paths on both OSes at actual product tuples; complete deterministic public variants remain in named source cases under RB-NATIVE-01.",
+      "selectedInstalledCases": [
+        "semantic",
+        "vertical-up",
+        "vertical-down"
+      ]
     },
     {
       "id": "STYLE.meter.011",
@@ -124,7 +171,13 @@
         "validates colors in every authored slot including final callback output"
       ],
       "expectedOutcome": "Independent root/track/bar owners, computed then custom then final; validation per owner.",
-      "installedDisposition": "MT-02 proves only its recorded native value/fill/context/ref scope; remaining selected style observations are not passed"
+      "installedDisposition": "PASS selected representative paths on both OSes at actual product tuples; complete deterministic public variants remain in named source cases under RB-NATIVE-01.",
+      "selectedInstalledCases": [
+        "registered-array",
+        "post-custom-final",
+        "dark-post-custom-final",
+        "zero-opacity"
+      ]
     },
     {
       "id": "STYLE.meter.012",
@@ -133,7 +186,11 @@
         "isolates the three style slots and passes post-custom defaults to the final callback"
       ],
       "expectedOutcome": "Original approved native style substitution for DOM classes; current callback state and post-custom defaultStyle, final output wins.",
-      "installedDisposition": "MT-02 proves only its recorded native value/fill/context/ref scope; remaining selected style observations are not passed"
+      "installedDisposition": "PASS selected representative paths on both OSes at actual product tuples; complete deterministic public variants remain in named source cases under RB-NATIVE-01.",
+      "selectedInstalledCases": [
+        "registered-array",
+        "post-custom-final"
+      ]
     },
     {
       "id": "STYLE.meter.013",
@@ -142,7 +199,11 @@
         "forwards its real View ref, IDs and native layout payload while consuming wrapper props"
       ],
       "expectedOutcome": "Consume all range/color/geometry/slot wrapper props; original owned children, allowed host props/events/ref retained.",
-      "installedDisposition": "MT-02 proves only its recorded native value/fill/context/ref scope; remaining selected style observations are not passed"
+      "installedDisposition": "PASS selected representative paths on both OSes at actual product tuples; complete deterministic public variants remain in named source cases under RB-NATIVE-01.",
+      "selectedInstalledCases": [
+        "semantic",
+        "explicit-reset"
+      ]
     }
   ],
   "additionalPublicStyleCoverage": [
@@ -151,7 +212,7 @@
       "sourceTests": [
         "uses current provider colors and geometry without changing the controlled value"
       ],
-      "installedReuse": "MT-02 format cohort on both OSes retains empty-label zero through dark/compact and light/live transitions; numeric color/radius/slot proof is not inferred"
+      "installedReuse": "Both OSes now have28 selected styles including current native colors,registered arrays,post-custom callback,provider/host/reset andactual live Reduce Motion; MT-02 baseline retains original current-value/timing/interruption/teardown scope. Exact actual tuple per method preserved."
     },
     {
       "scope": "Native style/color inputs and callback defaults",
@@ -160,7 +221,7 @@
         "isolates the three style slots and passes post-custom defaults to the final callback",
         "validates colors in every authored slot including final callback output"
       ],
-      "installedRemaining": "Component-owned selected registered/native-color/final callback style path not present in current RangeScene controls; prepare through existing fixture only if a native lane becomes admissible"
+      "installedReuse": "Both OSes now have28 selected styles including current native colors,registered arrays,post-custom callback,provider/host/reset andactual live Reduce Motion; MT-02 baseline retains original current-value/timing/interruption/teardown scope. Exact actual tuple per method preserved."
     },
     {
       "scope": "Current determinate fill, motion preference ordering and cleanup",
@@ -169,7 +230,7 @@
         "honors a newer Reduce Motion event over a delayed initial query and removes its listener",
         "keeps static presentation if the native motion preference query fails"
       ],
-      "installedReuse": "MT-02 known/latest endpoints and lifetime quiet on both OSes; no independent intermediate trajectory,250ms timing,or live native Reduce Motion observation claimed"
+      "installedReuse": "Both OSes now have28 selected styles including current native colors,registered arrays,post-custom callback,provider/host/reset andactual live Reduce Motion; MT-02 baseline retains original current-value/timing/interruption/teardown scope. Exact actual tuple per method preserved."
     }
   ],
   "pendingCompatibleNativeGroups": [
@@ -192,9 +253,9 @@
         "ios",
         "android"
       ],
-      "status": "IOS_COMPLETE_ANDROID_NOT_RUN",
+      "status": "COMPLETE_SELECTED_SCOPE",
       "preparedFixture": "apps/native-showcase/src/scenes/MeterStyleFixture.tsx",
-      "nativeObserverStatus": "iOS selected28style observations complete underMT-08;Android System UI ANR stopped beforestyleinput."
+      "nativeObserverStatus": "MT-04/MT-07: Android28 observations in four clean methods,independent frame/state/pixel andcontour review; MT-08 iOS28 styles/four behavior methods retained. No extra profile claims."
     },
     {
       "name": "slots-theme-reset",
@@ -221,9 +282,9 @@
         "ios",
         "android"
       ],
-      "status": "IOS_COMPLETE_ANDROID_NOT_RUN",
+      "status": "COMPLETE_SELECTED_SCOPE",
       "preparedFixture": "apps/native-showcase/src/scenes/MeterStyleFixture.tsx",
-      "nativeObserverStatus": "iOS selected28style observations complete underMT-08;Android System UI ANR stopped beforestyleinput."
+      "nativeObserverStatus": "MT-04/MT-07: Android28 observations in four clean methods,independent frame/state/pixel andcontour review; MT-08 iOS28 styles/four behavior methods retained. No extra profile claims."
     },
     {
       "name": "style-input-boundaries",
@@ -237,9 +298,9 @@
         "ios",
         "android"
       ],
-      "status": "IOS_COMPLETE_ANDROID_NOT_RUN",
+      "status": "COMPLETE_SELECTED_SCOPE",
       "preparedFixture": "apps/native-showcase/src/scenes/MeterStyleFixture.tsx",
-      "nativeObserverStatus": "iOS selected28style observations complete underMT-08;Android System UI ANR stopped beforestyleinput."
+      "nativeObserverStatus": "MT-04/MT-07: Android28 observations in four clean methods,independent frame/state/pixel andcontour review; MT-08 iOS28 styles/four behavior methods retained. No extra profile claims."
     }
   ],
   "riskSelection": {
@@ -248,32 +309,37 @@
     "adaptive": "Constrained width selected for the percent-width RangeScene. Passive non-text Meter has no owned visible text/editor/keyboard/collection; separate enlarged-text and keyboard grids add no selected owned risk. Physical directions require no implied locale mirroring."
   },
   "gateDisposition": {
-    "G04": "OPEN: iOS selected style/native coverage complete; Android selected style evidence missing after System UI ANR",
-    "G07": "OPEN: retained Release behavior baseline; Android styles not run after System UI ANR",
+    "G04": "PASS(MT-04): all13 canonical STYLE rows and full source permutations; selected28 installed styles on each OS; identity/cleanup and native dynamic slots/providers/motion/host verified",
+    "G07": "PASS(MT-07): four baseline behavior andfour selected style methods; native/current state/ref/AX/paint/host/reset/live Reduce Motion andcleanup verified",
     "G08": "PASS(MT-08): four baseline methods plus28 selected style observations,actual motion/host/reset,matched-position exact raised reference,identities and cleanup verified",
-    "G09": "OPEN: mandatory Android/G04/G07 and final normal-hook closeout remain"
+    "G09": "OPEN: final technical/documentation/cell audit and normal-hook closeout remain"
   },
   "executionAdmission": {
-    "allChecksPrepared": false,
+    "allChecksPrepared": true,
     "entryPoint": "NativeCellVerification.py --plan <bound-plan.json> --receipt <fresh-preflight.json> --run",
-    "blockers": [
-      "Android System UI ANR during pre-input health check; zero cohorts. No relevant OS-health correction established, no unchanged retry.",
-      "Android zero/auto comparison still uses old white-absence assumption; update it and refresh fixture app before any future eligible Android run. No new execution from the stale observer/fixture tuple."
-    ],
-    "cleanupOwner": "Future maintained lifecycle owner must bind products,observer discovery,readiness,method<=180s and attempt<=1800s including cleanup before native work",
+    "blockers": [],
+    "cleanupOwner": "NativeStandardTests single30minute owner with120secondreserve; exactoriginalmotionkey/value,ownedgroup/serial/portsshutdownverified",
     "priorCounters20261105": {
       "sdkActions": 4,
       "newNativeAttempts": 1
     },
-    "currentEffort": {
+    "previousEffort": {
       "componentGuestAttempts": 3,
       "cleanupOnlyGuestAttempts": 1,
       "activeGuestAttempts": 0,
       "observerBuilds": 2,
       "closedResultExports": 2
+    },
+    "currentEffort": {
+      "androidComponentAttempts": 3,
+      "diagnosticOnlyAttempts": 1,
+      "activeGuestAttempts": 0,
+      "sdkWorkers": 0,
+      "allAttemptsCleanupVerified": true,
+      "deniedReadsRetried": false
     }
   },
-  "ledgerChanges": 0,
+  "ledgerChanges": 2,
   "styleFixturePreparation": {
     "fixture": "apps/native-showcase/src/scenes/MeterStyleFixture.tsx",
     "actualPublicComponent": "Meter, value25/0..100, explicit25% text; same root across case/provider changes",
@@ -298,19 +364,20 @@
       "zero-opacity",
       "raised"
     ],
-    "reference": "Independent raw View tree always retains the bordered track, including zero dimensions, matching canonical/native composition. Automatic height is authored as auto and compared to independently delivered reference layout. Zero-width native root remains0x10 and exact whole-parent pixels match; only this corrected zero case is natively reverified so far.",
+    "reference": "Independent raw native View tree retains bordered track for zero dimensions; auto usesactual separately deliverednativeheight. Private parent170/gap12 arepixel aligned: Androiddensity1.75 prevents298/297physical rounding mismatch; originaliOSscale3 valuesremain170/12. Productinputs/criteria unchanged.",
     "sourceChecks": {
-      "fixtureCasesPassed": 5,
+      "fixtureCasesPassed": 8,
       "unchangedRangeSceneCasesPassed": 2,
       "showcaseTypecheck": "PASS"
     },
-    "observer": "Five iOS methods compiled and run; six geometry cases pass as a complete method. Focused zero-width regression passes after fixture correction. Remaining incomplete/failed observations preserved at actual tuples; Android style guard correctly stopped System UI ANR before input."
+    "observer": "Bothplatforms28 selected style observations complete. Android28actualcompiledJava controls and175hosttests pass; fourCore singleVM correction passed30continuousclear readiness,allnativeassertionsandindependenthostchecks; failurespreserved."
   },
   "gateAudit": {
-    "reviewedUTC": "2026-11-06T03:50:47.484990+00:00",
+    "reviewedUTC": "2026-11-06T05:19:07.725151+00:00",
     "checklistVersion": "NATIVE-CELL-02",
     "newlyPromotedCells": [
-      "CAT.meter.G08"
+      "CAT.meter.G04",
+      "CAT.meter.G07"
     ],
     "sealedAndroidEvidence": {
       "index": "node_modules/.cache/codon-native-matrix/20261104T055006Z/meter-headless-standard-android-success-20261105/preservation-index.json",
@@ -318,14 +385,14 @@
       "scope": "34 actual native/state observations,32 numeric paint checks,two scoped visual reviews; four methods under180s and verified cleanup. Reuses exact original Meter shipping source/fixture, not new style fixture."
     },
     "G04": {
-      "result": "OPEN",
-      "supported": "All13 canonical STYLE rows mapped and unchanged source assertions; actual live light/dark empty-label/context baseline retained on both OSes",
-      "missing": "Android selected style/dimension/slot/provider/motion/host proof after relevant OS-health correction"
+      "result": "PASS(MT-04)",
+      "supported": "13 canonical STYLE mappings/source variants plus28 selected actual styles on eachOS; independent measurements,opaque/zero/reference paint,slots/providers,ref/semantics,currentvalue/nativecolors andcleanup.",
+      "missing": "None in RB-NATIVE-01/D01-D04 scope; unselectedprofiles notpassed"
     },
     "G07": {
-      "result": "OPEN",
-      "supported": "Representative installed Release Meter behavior baseline,original/current refs/events/labels/range/value/paint/replacement/retirement; new headless run confirms this scope",
-      "missing": "Android selected style groups; constrained percent-width/reset/lifecycle geometry; finish explicit S11 live Reduce Motion/native motion disposition rather than infer it from endpoint PNGs or source tests"
+      "result": "PASS(MT-07)",
+      "supported": "Four actual baseline andfour style methods;34behavior/state/32paint checks plus28styles; live ReduceMotion/75-25fill,constrainedpercenthost/reset,identity andexact cleanup.",
+      "missing": "None in selectedscope; no physical/ARM/signing/precise-performance certification"
     },
     "G08": {
       "result": "PASS(MT-08)",
@@ -335,7 +402,7 @@
     "G09": {
       "result": "OPEN",
       "supported": "Existing curated API/scene and prior G01/G02/G03/G05/G06 remain at their recorded scopes",
-      "missing": "Mandatory G04/G07/G08 closure,final technical/cell-by-cell audit,affected documentation proof and coherent normal-hook adoption"
+      "missing": "Final normal-hook commit andcell-by-cell closeout; G04/G07/G08 evidence complete."
     }
   },
   "androidStyleAttempt": {
@@ -469,5 +536,37 @@
     "indexSHA256": "ce06b0fe3bdb7dd80bdcc113b90f69207b1391180e9c6c36c80dbedadb07b77e",
     "caseReuse": "Seven independent observations inside original failed methods retain that outcome; no failed method is passed.",
     "shadow": "CurrentMeter andstocknative tree pixel-exact atsamepositions,367200pixels each;cross-position12667differences preserved,no tolerance;fullvisual reviewPASS."
+  },
+  "androidCompletion": {
+    "evidenceIds": [
+      "MT-04",
+      "MT-07"
+    ],
+    "selectedStyleObservations": 28,
+    "cleanNativeMethods": 8,
+    "retainedStyleAPK": "731157f4dca6ebc4ffbf02093f677bf8c77288436c28f741e1a88c7c281d7f7b",
+    "dimensionsAPK": "707f5a0b41ffc9906dd475a9b5fae20a0f93f8d3d6ab4599282150aa99091f99",
+    "correctedDimensionsSeconds": 9.339,
+    "finishedUTC": "2026-11-06T05:13:36.915876+00:00",
+    "cleanupVerified": true,
+    "originalAndRestoredMotion": "0",
+    "wholeParentPixelsPerZeroAutoCase": 125160,
+    "zeroWidthHeightAutoNonWhiteCounts": [
+      54,
+      1048,
+      12252
+    ],
+    "packet": "node_modules/.cache/codon-native-matrix/20261104T055006Z/meter-android-style-g04-g07-completion-20261106",
+    "indexSHA256": "519d5a32d28623981b798cd2b84377dc7e13ce97bee7bfc48f0a54702e98a928",
+    "completions": {
+      "G04": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/meter-android-style-g04-g07-completion-20261106/objects/40107d9e0f029c900f9f788771fa30216edcb5587a10b8f9b0f36c29802aded2",
+        "sha256": "40107d9e0f029c900f9f788771fa30216edcb5587a10b8f9b0f36c29802aded2"
+      },
+      "G07": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/meter-android-style-g04-g07-completion-20261106/objects/d1ca269432caf30fccca8519d50fc559ff9085e721c53787481681bb93b4b8b9",
+        "sha256": "d1ca269432caf30fccca8519d50fc559ff9085e721c53787481681bb93b4b8b9"
+      }
+    }
   }
 }

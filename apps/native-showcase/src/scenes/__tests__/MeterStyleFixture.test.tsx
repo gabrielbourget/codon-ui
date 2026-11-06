@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native"
-import { AccessibilityInfo } from "react-native"
+import { AccessibilityInfo, PixelRatio, StyleSheet } from "react-native"
 
 import { NativeThemeProvider } from "@codon-ui/react-native"
 
@@ -15,6 +15,30 @@ const select = async (name: string) => {
     await press("Next Meter style")
   expect(state().case).toBe(name)
 }
+
+it.each([1.75, 3])(
+  "aligns independent measurement parents at density %s without changing Meter inputs",
+  async (density) => {
+    const scale = jest.spyOn(PixelRatio, "get").mockReturnValue(density)
+    try {
+      await render(<MeterStyleFixture />)
+      await press("Prepare Meter styles")
+      const parent = StyleSheet.flatten(screen.getByTestId("meter-style-parent").props.style)
+      const reference = StyleSheet.flatten(screen.getByTestId("meter-style-reference-parent").props.style)
+      const pair = StyleSheet.flatten(screen.getByTestId("meter-style-pair").props.style)
+      expect(parent).toEqual(reference)
+      expect(parent.height * density).toBeCloseTo(Math.round(170 * density), 8)
+      expect(pair.gap * density).toBeCloseTo(Math.round(12 * density), 8)
+      expect((parent.height + pair.gap) * density).toBeCloseTo(Math.round((parent.height + pair.gap) * density), 8)
+      if (density === 3) expect([parent.height, pair.gap]).toEqual([170, 12])
+      await select("zero-width")
+      expect(screen.getByTestId("meter-style-target")).toHaveStyle({ width: 0, height: 10 })
+      expect(screen.getByTestId("meter-style-reference")).toHaveStyle({ width: 0, height: 10 })
+    } finally {
+      scale.mockRestore()
+    }
+  },
+)
 
 it("keeps preparation collapsed and renders an actual named Meter beside a separate raw reference", async () => {
   await render(<MeterStyleFixture />)

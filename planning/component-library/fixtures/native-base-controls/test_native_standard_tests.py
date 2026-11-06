@@ -21,6 +21,95 @@ class StandardTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory();self.root = Path(self.temp.name)
     def tearDown(self): self.temp.cleanup()
 
+    def test_standard_application_build_rejects_stale_map_changed_native_and_config_drift(self):
+        import zipfile
+        for scenario in ['valid','stale-map','changed-native','native-input-drift']:
+            root=self.root/scenario;root.mkdir();fixture='apps/native-showcase/src/scenes/MeterStyleFixture.tsx';native='apps/native-showcase/android/app/build.gradle'
+            for name,body in [(fixture,'current fixture'),(native,'unchanged Gradle')]:
+                path=root/name;path.parent.mkdir(parents=True,exist_ok=True);path.write_text(body)
+            source_map=root/'packager.map';source_map.write_text(json.dumps({'sources':[fixture],'sourcesContent':['old fixture']}));base=root/'base.apk'
+            def archive(path,changed=False):
+                path.parent.mkdir(parents=True,exist_ok=True)
+                with zipfile.ZipFile(path,'w') as out:
+                    out.writestr('classes.dex',b'changed' if changed else b'original DEX');out.writestr('lib/x86_64/native.so',b'original native');out.writestr('assets/index.android.bundle',b'JS')
+            archive(base);freeze=root/'freeze.json';freeze.write_text(json.dumps({fixture:'0'*64,native:'0'*64 if scenario=='native-input-drift' else NATIVE.digest(root/native)}))
+            identity=root/'identity.json';identity.write_text(json.dumps({'apk':str(base),'apkSHA256':NATIVE.digest(base),'packagerMap':str(source_map),'packagerMapSHA256':NATIVE.digest(source_map)}))
+            session=MagicMock();session.output=root/'output';session.output.mkdir();session.env={}
+            def command(name,argv):
+                if name=='assemble-release':
+                    archive(root/'apps/native-showcase/android/app/build/outputs/apk/release/app-release.apk',scenario=='changed-native')
+                    source_map.write_text(json.dumps({'sources':[fixture],'sourcesContent':['stale fixture' if scenario=='stale-map' else 'current fixture']}))
+            session.run.side_effect=command
+            config={'buildTarget':'application','baseApplicationIdentity':{'path':str(identity),'sha256':NATIVE.digest(identity)},'baseApplicationSourceFreeze':{'path':str(freeze),'sha256':NATIVE.digest(freeze)},'sdk':'/sdk','jdk':'/jdk','gradleUserHome':str(root)}
+            with self.subTest(scenario=scenario),patch.object(NATIVE,'REPO',root):
+                if scenario=='valid':
+                    result=NATIVE.build_android(session,config);self.assertEqual(result['sourceFilesSHA256'][str(root/fixture)],NATIVE.digest(root/fixture));self.assertEqual(len(json.loads((session.output/'map-proof.json').read_text())['nativeLibrariesAndDEXSHA256']),2)
+                    self.assertIn('--offline',session.run.call_args_list[0].args[1]);self.assertIn('--max-workers=1',session.run.call_args_list[0].args[1])
+                    self.assertEqual(session.env['GRADLE_USER_HOME'],str(root))
+                    closed=root/'closed-command.json';closed.write_text(json.dumps({'exitCode':0,'ownedGroupGone':True,'argv':list(map(str,session.run.call_args_list[0].args[1]))}))
+                    def bound(path):return {'path':str(path),'sha256':NATIVE.digest(path)}
+                    review={**config,'completedApplicationBuild':bound(closed),'completedApplicationSourceFreeze':bound(session.output/'source-freeze.json'),'completedApplicationAPK':bound(Path(result['apk'])),'completedApplicationMap':bound(source_map)}
+                    session.output=root/'review';session.output.mkdir();session.run.reset_mock()
+                    self.assertEqual(NATIVE.build_android(session,review)['apkSHA256'],result['apkSHA256']);self.assertEqual([call.args[0] for call in session.run.call_args_list],['verify-signature'])
+                    closed.write_text(json.dumps({'exitCode':65,'ownedGroupGone':True,'argv':[]}));review['completedApplicationBuild']=bound(closed);session.run.reset_mock()
+                    with self.assertRaisesRegex(ValueError,'did not complete'):NATIVE.build_android(session,review)
+                    session.run.assert_not_called()
+                else:
+                    with self.assertRaises(ValueError):NATIVE.build_android(session,config)
+            if scenario=='native-input-drift':session.run.assert_not_called()
+
+    def test_conflicting_owned_map_bodies_rejected(self):
+        path=self.root/'map.json';path.write_text(json.dumps({'sources':['apps/fixture.tsx','apps/fixture.tsx'],'sourcesContent':['current','stale']}))
+        with self.assertRaisesRegex(ValueError,'Conflicting'):NATIVE.mapped_owned_sources(path,['apps/fixture.tsx'])
+
+    def test_startup_diagnostic_uses_only_standard_read_only_captures_and_requires_archive(self):
+        import zipfile
+        for fail in [False,True]:
+            session=MagicMock();session.output=self.root/str(fail);session.output.mkdir()
+            def command(name,argv):
+                if name=='bugreport' and not fail:
+                    with zipfile.ZipFile(session.output/'bugreport.zip','w') as archive:archive.writestr('bugreport.txt','actual guest diagnostic')
+            session.run.side_effect=command
+            with self.subTest(fail=fail),patch.object(NATIVE,'start_android',return_value=['adb','-s','emulator-5568']):
+                if fail:
+                    with self.assertRaisesRegex(ValueError,'archive missing'):NATIVE.diagnose_android(session,{})
+                else:self.assertEqual(NATIVE.diagnose_android(session,{})['componentMethods'],0)
+            names=[call.args[0] for call in session.run.call_args_list];self.assertEqual(names,['system-logcat','cpu-info','last-anr','bugreport'])
+            commands=[call.args[1] for call in session.run.call_args_list];self.assertFalse(any(word in ['install','am','instrument'] for argv in commands for word in argv))
+        self.assertEqual(NATIVE.selection('android','meter-startup-diagnostic'),{'ios':[],'android':[]})
+        with self.assertRaises(ValueError):NATIVE.selection('ios','meter-startup-diagnostic')
+
+    def test_optional_failure_capture_records_its_failure_without_raising_or_installing(self):
+        session=MagicMock();session.output=self.root;session.guest_owned=True;session.remaining.return_value=60;session.run.side_effect=ValueError('capture unavailable')
+        config={'platform':'android','action':'run','sdk':'/sdk','destination':'emulator-5568'}
+        NATIVE.capture_android_failure(session,config);self.assertTrue((self.root/'failure-logcat-warning.json').exists());self.assertEqual(session.run.call_args.args[0],'failure-system-logcat')
+        session.run.reset_mock();session.remaining.return_value=0;NATIVE.capture_android_failure(session,config);session.run.assert_not_called()
+
+    def test_compiled_control_extracts_definition_even_when_call_precedes_it(self):
+        source=NATIVE.android_style_control_source()
+        self.assertIn('public static long meterAttemptDeadline(',source)
+        self.assertNotIn('meterStartupSnapshotReady',source)
+
+    def test_guest_cpu_correction_is_explicit_bounded_and_preserves_default(self):
+        self.assertEqual(NATIVE.android_cpu_cores({}),2);self.assertEqual(NATIVE.android_cpu_cores({'cores':4}),4)
+        for value in [0,1,8,'4',True,None]:
+            with self.subTest(value=value),self.assertRaises(ValueError):NATIVE.android_cpu_cores({'cores':value})
+
+    def test_native_build_id_comparison_preserves_every_other_byte(self):
+        import struct
+        raw=bytearray(340);raw[:6]=b'\x7fELF\x02\x01';struct.pack_into('<H',raw,18,62);struct.pack_into('<Q',raw,40,64);struct.pack_into('<HHH',raw,58,64,3,1)
+        names=b'\0.shstrtab\0.note.gnu.build-id\0';raw[256:256+len(names)]=names
+        struct.pack_into('<IIQQQQIIQQ',raw,128,1,3,0,0,256,len(names),0,0,1,0)
+        struct.pack_into('<IIQQQQIIQQ',raw,192,11,7,2,0,300,36,0,0,4,0)
+        struct.pack_into('<III',raw,300,4,20,3);raw[312:316]=b'GNU\0';raw[316:336]=b'a'*20
+        baseline,old_id=NATIVE.native_runtime_digest(bytes(raw));changed=bytearray(raw);changed[316:336]=b'b'*20
+        digest,new_id=NATIVE.native_runtime_digest(bytes(changed));self.assertEqual(digest,baseline);self.assertNotEqual(old_id,new_id)
+        changed[339]=1;self.assertNotEqual(NATIVE.native_runtime_digest(bytes(changed))[0],baseline)
+        changed=bytearray(raw);changed[30]=1;self.assertNotEqual(NATIVE.native_runtime_digest(bytes(changed))[0],baseline)
+        for offset,value in [(18,0),(304,19),(312,ord('X'))]:
+            wrong=bytearray(raw);wrong[offset]=value
+            with self.subTest(offset=offset),self.assertRaises(ValueError):NATIVE.native_runtime_digest(bytes(wrong))
+
     def test_actual_entrypoint_refuses_missing_admission_before_sdk_or_output(self):
         path = self.root / "plan.json";out = self.root / "output"
         path.write_text(json.dumps({"cell": "CAT.meter.G02", "nativeStandard": {"platform": "ios", "output": str(out)}}))
@@ -34,6 +123,8 @@ class StandardTests(unittest.TestCase):
         self.assertEqual(len(NATIVE.selection("ios")["ios"]), 4)
         self.assertEqual(NATIVE.selection("android")["android"], ["values", "format", "motion", "events"])
         self.assertEqual(NATIVE.selection("android", "meter-style")["android"], ["dimensions", "geometry", "slots", "context-motion"])
+        self.assertEqual(NATIVE.selection("android", "meter-style-dimensions"), {"ios": [], "android": ["dimensions"]})
+        with self.assertRaises(ValueError): NATIVE.selection("ios", "meter-style-dimensions")
         self.assertEqual(NATIVE.selection("ios", "meter-style")["ios"], ["MeterStyleTrialTests/" + name for name in NATIVE.IOS_STYLE_METHODS])
         self.assertEqual(NATIVE.selection("ios", "meter-style-remaining")["ios"], ["MeterStyleTrialTests/" + name for name in NATIVE.IOS_REMAINING_STYLE_METHODS])
         with self.assertRaises(ValueError): NATIVE.selection("android", "meter-style-remaining")
