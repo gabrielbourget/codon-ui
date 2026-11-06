@@ -170,6 +170,13 @@
         "sha256": "54ae51e2fe53ef71d90fbc16878e3f51d6d00512ae5eacd5e5aec57cc865de2a",
         "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/toggle-button-after-list-item-20261106/toggle-button-G08-completion.json"
       }
+    },
+    "CAT.radio.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/radio-ios-g08-20261106/objects/48bd5c0137177cd1e4a1a7f9b3f3395b1d8b52bbc6a7468be8f8b040f2caffe2",
+        "sha256": "48bd5c0137177cd1e4a1a7f9b3f3395b1d8b52bbc6a7468be8f8b040f2caffe2",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/radio-after-toggle-button-20261106/radio-G08-completion.json"
+      }
     }
   }
 }

@@ -868,9 +868,10 @@ const next=pending.shift()(saved)
 assert.equal(next[1].currentTarget,null,"An originally null native field must stay null")
 process.stdout.write("PASS original delivered fields retained before deferred updater\n")
 """
-        result=subprocess.run(["node","-e",script],cwd=repository,capture_output=True,text=True)
-        self.assertEqual(result.returncode,0,result.stderr)
-        self.assertIn("PASS original delivered",result.stdout)
+        for fixture in ["ToggleButtonG08Fixture.tsx","RadioG08Fixture.tsx"]:
+            result=subprocess.run(["node","-e",script.replace("ToggleButtonG08Fixture.tsx",fixture)],cwd=repository,capture_output=True,text=True)
+            self.assertEqual(result.returncode,0,result.stderr)
+            self.assertIn("PASS original delivered",result.stdout)
 
     def test_toggle_button_real_metadata_and_geometry_reader(self):
         row=ListItemControls().row();row["state"].update(label="Flag settings",radio=False);row.update(nativeLabel="Flag settings",nativeValue="unchecked",nativeButton=True)
@@ -892,5 +893,51 @@ process.stdout.write("PASS original delivered fields retained before deferred up
         self.assertEqual(NATIVE.selection("ios","toggle-button-style")["ios"],["ToggleButtonTrialTests/testToggleButtonStylesAndConstraints"])
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp);plan=root/"plan.json";plan.write_text(json.dumps({"cell":"CAT.toggle-button.G08","nativeStandard":{"platform":"ios","batch":"toggle-button","output":str(root/"never-created")}}));env={k:v for k,v in os.environ.items() if k!="CODON_NATIVE_CELL_PREFLIGHT_RECEIPT"};result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(plan)],env=env,capture_output=True,text=True,timeout=10);self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((root/"never-created").exists())
+
+
+class RadioControls(unittest.TestCase):
+    def test_radio_schedule_snapshots_timer_epoch_before_deferred_update(self):
+        script=r"""
+const fs=require("node:fs"),ts=require("typescript"),assert=require("node:assert/strict")
+const source=fs.readFileSync("apps/native-showcase/src/scenes/RadioG08Fixture.tsx","utf8")
+const start=source.indexOf("    const schedule ="),end=source.indexOf("    timers.current =",start)
+assert(start>=0 && end>start)
+const compiled=ts.transpileModule(source.slice(start,end),{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText
+const pending=[],timers=[];let clock=0,actions=0
+const schedule=new Function("setTimeout","setMotionTrace","Date",compiled+";return schedule")((callback,delay)=>{timers.push({callback,delay});return timers.length},updater=>pending.push(updater),{now:()=>clock})
+schedule(3000,"select",()=>actions++);clock=3000;timers[0].callback();clock=9999
+assert.equal(actions,1);assert.equal(pending[0]([])[0].epochMs,3000)
+process.stdout.write("PASS actual timer epoch retained before deferred updater\n")
+"""
+        result=subprocess.run(["node","-e",script],cwd=ROOT.parents[3],capture_output=True,text=True)
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertIn("PASS actual timer epoch",result.stdout)
+
+    def test_radio_actual_metadata_and_geometry_refusals(self):
+        row=ListItemControls().row();row["state"]["label"]="Keep settings";row["nativeLabel"]="Keep settings"
+        self.assertEqual(NATIVE.validate_radio_rows([row],["baseline"])["observations"],1)
+        for field,value in [("nativeValue","checked"),("nativeValue","radio button, mixed"),("nativeLabel","wrong"),("nativeEnabled",False),("targetCount",2),("referenceExact",False),("root",[32,112,200,43]),("scale",float("nan"))]:
+            bad=copy.deepcopy(row);bad[field]=value
+            with self.subTest(field=field),self.assertRaises(ValueError):NATIVE.validate_radio_rows([bad],["baseline"])
+        bad=copy.deepcopy(row);bad["state"]["layouts"][0]["currentTarget"]=82
+        with self.assertRaises(ValueError):NATIVE.validate_radio_rows([bad],["baseline"])
+        with self.assertRaises(ValueError):NATIVE.validate_radio_rows([row,row],["baseline"])
+        held=copy.deepcopy(row);held["heldContactIntervals"]=[{"beganEpochMs":1000,"endedEpochMs":2000,"disabledOnPressInEpochMs":1100}];NATIVE.validate_radio_rows([held],["baseline"]);held["heldContactIntervals"][0]["disabledOnPressInEpochMs"]=1800
+        with self.assertRaises(ValueError):NATIVE.validate_radio_rows([held],["baseline"])
+        with self.assertRaises(ValueError):NATIVE.reconcile_radio_ios("")
+
+    def test_radio_scope_actual_entry_and_existing_compiled_predicates(self):
+        NATIVE.validate_standard_scope({"cell":"CAT.radio.G08","nativeStandard":{"batch":"radio"}})
+        self.assertEqual(len(NATIVE.selection("ios","radio")["ios"]),3)
+        self.assertEqual(NATIVE.selection("ios","radio-motion")["ios"],["RadioTrialTests/testRadioMotionAndRetirement"])
+        with self.assertRaises(ValueError):NATIVE.reconcile_radio_ios("",{"batch":"radio-motion","retainedRadioStaticMethods":{"path":"/not/a/proof","sha256":"0"*64}})
+        for cell in ["CAT.combo-box.G08","CAT.radio.G07","CAT.radio-group.G08"]:
+            with self.assertRaises(ValueError):NATIVE.validate_standard_scope({"cell":cell,"nativeStandard":{"batch":"radio"}})
+        with self.assertRaises(ValueError):NATIVE.selection("android","radio")
+        controls=NATIVE.geometry_control_source();self.assertIn("listItemValueMatches",controls);self.assertIn("listItemIntermediate",controls)
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);plan=root/"plan.json";plan.write_text(json.dumps({"cell":"CAT.radio.G08","nativeStandard":{"platform":"ios","batch":"radio","output":str(root/"never-created")}}));env={k:v for k,v in os.environ.items() if k!="CODON_NATIVE_CELL_PREFLIGHT_RECEIPT"}
+            result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(plan)],env=env,capture_output=True,text=True,timeout=10)
+            self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((root/"never-created").exists())
 
 if __name__ == "__main__": unittest.main()

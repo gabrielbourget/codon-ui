@@ -76,6 +76,9 @@ def verify_selected_app_inputs(plan, app):
 
 
 def selection(platform, batch="meter-g02"):
+    if batch in ["radio", "radio-motion"]:
+        require(platform == "ios", "Current Radio batch is iOS only")
+        return {"ios": ["RadioTrialTests/" + name for name in (["testRadioMotionAndRetirement"] if batch == "radio-motion" else ["testRadioActionsAndLifetimes", "testRadioStylesAndConstraints", "testRadioMotionAndRetirement"])], "android": []}
     if batch in ["toggle-button", "toggle-button-affected", "toggle-button-style"]:
         require(platform == "ios", "Current ToggleButton batch is iOS only")
         return {"ios": (["ToggleButtonTrialTests/testToggleButtonStylesAndConstraints"] if batch == "toggle-button-style" else ["ToggleButtonTrialTests/testToggleButtonActionsAndLifetimes", "ToggleButtonTrialTests/testToggleButtonStylesAndConstraints"] + ([] if batch == "toggle-button-affected" else ["ToggleButtonTrialTests/testToggleButtonMotionAndRetirement"])), "android": []}
@@ -615,7 +618,7 @@ def run_ios(session, config, app, observer):
     try: raw = session.run("xctest", argv)
     except ValueError as error:
         sdk_error = error;stdout = session.output / "xctest.stdout";raw = stdout.read_text() if stdout.exists() else ""
-    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected", "circle-loader", "lagging-lines", "counter", "list-box-item", "list-box-item-motion", "toggle-button", "toggle-button-affected", "toggle-button-style"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
+    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected", "circle-loader", "lagging-lines", "counter", "list-box-item", "list-box-item-motion", "toggle-button", "toggle-button-affected", "toggle-button-style", "radio", "radio-motion"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
         original_motion = re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])", raw)
         restored_motion = re.findall(r"METER_STYLE_MOTION_RESTORED ([01])", raw)
         if original_motion != restored_motion: session.cleanup_errors.append("Original iOS Reduce Motion restoration unverified")
@@ -650,6 +653,7 @@ def run_ios(session, config, app, observer):
     if config.get("batch") == "lagging-lines": result["laggingLines"] = reconcile_lagging_lines_ios(raw)
     if config.get("batch") in ["counter", "counter-values"]: result["counter"] = reconcile_counter_ios(raw, include_motion=config["batch"] == "counter")
     if config.get("batch") in ["list-box-item", "list-box-item-motion"]: result["listBoxItem"] = reconcile_list_item_ios(raw,config,app)
+    if config.get("batch") in ["radio", "radio-motion"]: result["radio"] = reconcile_radio_ios(raw,config)
     if config.get("batch") in ["toggle-button", "toggle-button-affected", "toggle-button-style"]: result["toggleButton"] = reconcile_toggle_button_ios(raw,config)
     if config.get("batch") == "avatar": result["avatar"] = reconcile_avatar_ios(raw)
     if config.get("batch") in ["gallery", "gallery-modes", "gallery-styles", "gallery-remaining"]: result["gallery"] = reconcile_gallery_ios(raw, config["batch"])
@@ -946,6 +950,73 @@ def reconcile_toggle_button_ios(raw,config=None):
         if interval["reduced"]:require(all(row["referenceExact"] for row in moving),"Reduced ToggleButton interpolates")
         else:require(any(len(row["sampleRGBA"])==4 and 17<row["sampleRGBA"][0]<187 and 51<row["sampleRGBA"][1]<119 and 34<row["sampleRGBA"][2]<51 and row["sampleRGBA"][3]==255 for row in moving),"Actual ToggleButton interpolation missing")
     original=re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])",raw);restored=re.findall(r"METER_STYLE_MOTION_RESTORED ([01])",raw);require(len(original)==1 and original==restored,"ToggleButton original Reduce Motion restoration unverified")
+    result.update(motionIntervals=2,motionFrames=sum(len(m["samples"]) for m in motion),originalMotionValue=original[0]);return result
+
+
+RADIO_BEHAVIOR = ["baseline","echo","reselected","disabled","readonly","held-disabled","restored","renderer","replaced","retired","fresh","local","local-default-changed","empty-value","vetoed-1","vetoed-2","echo-activated","reselected-activated","restored-activated","local-activated","empty-value-activated","held-canceled"]
+RADIO_STYLES = ["style-baseline","selected","root-custom","final-style","shape-custom","explicit-child","square","round","long-narrow","fractional","percentage","auto","small-target","zero","dark","light-restored"]
+
+def validate_radio_rows(rows,names):
+    require(sorted(row["name"] for row in rows)==sorted(names),"Missing/duplicate Radio observations")
+    for row in rows:
+        state,scale=row["state"],row["scale"]
+        require(isinstance(scale,(int,float)) and math.isfinite(scale) and scale>0 and scale==state["scale"],"Wrong Radio scale")
+        parent,reference=row["parent"],row["referenceParent"]
+        require(len(parent)==len(reference)==4 and all(math.isfinite(v) for v in parent+reference) and parent[2:]==reference[2:] and 0<parent[2]<=280 and parent[3]==224,"Wrong Radio parents")
+        for frame in [parent,reference]:
+            x,y,width,height=[math.floor(v*scale+.5) for v in frame]
+            require(0<=x<x+width<=row["imageWidth"] and 0<=y<y+height<=row["imageHeight"],"Radio parent outside physical screenshot")
+        require(row["referenceExact"] is True,"Radio native reference mismatch")
+        if not state["visible"]:
+            require(not row["root"] and row["inkPixels"]==0 and state["rootTag"] is None,"Retired Radio ref/paint remains")
+            continue
+        event=state["layouts"][-1];layout=event["layout"]
+        require(state["rootTag"] and event["target"]==event["currentTarget"]==state["rootTag"],"Original Radio layout/ref differs")
+        if state["zero"]:
+            require(layout["width"]==layout["height"]==0 and row["inkPixels"]==0,"Authored Radio zero/clipping differs")
+            continue
+        require(row["targetCount"]==1 and row["nativeLabel"]==state["label"] and row["nativeEnabled"] is (not state["disabled"]),"Radio name/guard/target differs")
+        require([s.strip() for s in row["nativeValue"].split(",")]==["radio button"]+["checked" if state["selected"] else "unchecked"],"Radio owned Button/radio/check native value differs")
+        root,raw=row["root"],row["referenceRoot"]
+        require(len(root)==len(raw)==4 and all(abs(a-b)*scale<=1 for a,b in zip([root[0]-parent[0],root[1]-parent[1],*root[2:]],[raw[0]-reference[0],raw[1]-reference[1],*raw[2:]])),"Radio actual/reference frames differ")
+        require(all(abs(root[i+2]-layout[key])*scale<=1 for i,key in enumerate(["width","height"])),"Radio layout/native dimensions differ")
+        if isinstance(state["width"],(int,float)):require(abs(root[2]-state["width"])*scale<=1,"Radio authored width differs")
+        require(abs(root[3]-24)*scale<=1 if state["small"] else root[3]>=44-1/scale,"Radio explicit/default target height differs")
+        if state["narrow"]:require(44<root[3] and root[1]+root[3]<=parent[1]+parent[3]-12+1/scale,"Constrained Radio content clipped")
+        for held in row.get("heldContactIntervals",[]):require(held["beganEpochMs"]<=held["disabledOnPressInEpochMs"]<held["endedEpochMs"]-400,"Radio disable was not during held contact")
+    return {"status":"PASS","observations":len(rows)}
+
+
+def reconcile_radio_ios(raw,config=None):
+    config=config or {}
+    if config.get("batch")=="radio-motion":
+        proof=json.loads(bound_file(config["retainedRadioStaticMethods"]).read_text());require(proof["status"]=="PASS","Retained Radio methods not reviewed")
+        for source in proof["librarySources"]:bound_file(source)
+        require(json.loads(bound_file(proof["cleanup"]).read_text())["cleanupVerified"],"Retained Radio cleanup unverified")
+        loaded=json.loads(bound_file(proof["loadedObserver"]).read_text());require(loaded["status"]=="PASS" and loaded["observerManifestSHA256"]==proof["observerManifestSHA256"],"Retained Radio loaded observer differs")
+        require({m["method"] for m in proof["nativeMethods"]}=={"testRadioActionsAndLifetimes","testRadioStylesAndConstraints"},"Only the two clean Radio methods may be reused")
+        for method in proof["nativeMethods"]:
+            require(method["appManifestSHA256"]==proof["appManifestSHA256"] and method["observerManifestSHA256"]==proof["observerManifestSHA256"],"Retained Radio method tuple differs");native_method(method)
+        prior=bound_file(proof["raw"]).read_text();lines=[line for line in prior.splitlines() if line.startswith("RADIO_NATIVE_OBSERVATION ") and json.loads(line.split(" ",1)[1])["name"] in RADIO_BEHAVIOR+RADIO_STYLES]
+        validate_radio_rows([json.loads(line.split(" ",1)[1]) for line in lines],RADIO_BEHAVIOR+RADIO_STYLES);raw+="\n"+"\n".join(lines)
+    rows=[json.loads(x) for x in re.findall(r"RADIO_NATIVE_OBSERVATION (\{[^\n]+\})",raw)];result=validate_radio_rows(rows,RADIO_BEHAVIOR+RADIO_STYLES+["normal-fresh","reduced-fresh"]);named={row["name"]:row for row in rows};tag=named["baseline"]["state"]["rootTag"]
+    for name in ["vetoed-1","vetoed-2"]:require(not named[name]["state"]["selected"],"Radio controlled veto mutated output")
+    require(named["vetoed-2"]["state"]["requests"]==["a","a"] and named["echo-activated"]["state"]["selected"],"Radio repeat veto/echo differs")
+    for name in ["echo","reselected","disabled","readonly","held-disabled","restored","renderer"]:require(named[name]["state"]["rootTag"]==tag,"Radio lost original renderer/ref")
+    require(named["reselected-activated"]["state"]["requests"]==["a","a","a"] and named["reselected-activated"]["state"]["actions"]==4,"Radio reselection fabricated group change")
+    require(named["held-canceled"]["state"]["canceled"] and len(named["held-canceled"]["heldContactIntervals"])==1 and named["held-canceled"]["state"]["actions"]==4,"Radio held cancellation differs")
+    require(named["local-default-changed"]["state"]["selected"],"Radio local default was reread")
+    final=named["empty-value-activated"]["state"]
+    require(final["selected"] and final["selectedValue"]=="" and final["actions"]==7 and final["requests"]==["a","a","a",""] and final["phases"]==["change","press","change","press","change","press","press","press","press","change","press"],"Radio empty value/group request/order differs")
+    require(named["fresh"]["state"]["rootTag"]!=tag,"Radio fresh root reused retired ref")
+    motion=[json.loads(x) for x in re.findall(r"RADIO_NATIVE_MOTION (\{[^\n]+\})",raw)];require(len(motion)==2 and {m["name"] for m in motion}=={"normal","reduced"},"Radio motion intervals missing")
+    for interval in motion:
+        trace=interval["state"]["motionTrace"];require([x["name"] for x in trace]==["select","interrupt","retarget"]+["retarget-"+str(i) for i in range(3,32)]+["settle","retire","fresh"],"Radio motion schedule differs")
+        retired=next(x for x in trace if x["name"]=="retire")
+        samples=interval["samples"];moving=[row for row in samples if row["captureStartedEpochMs"]>=trace[0]["epochMs"] and row["captureEpochMs"]<retired["epochMs"]];require(len(moving)>1 and any(row["inkPixels"]==0 for row in samples),"Radio motion/retirement samples missing")
+        if interval["reduced"]:require(all(row["referenceExact"] for row in moving),"Reduced Radio interpolates")
+        else:require(any(len(row["sampleRGBA"])==4 and 17<row["sampleRGBA"][0]<187 and 51<row["sampleRGBA"][1]<119 and 34<row["sampleRGBA"][2]<51 and row["sampleRGBA"][3]==255 for row in moving),"Actual Radio interpolation missing")
+    original=re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])",raw);restored=re.findall(r"METER_STYLE_MOTION_RESTORED ([01])",raw);require(len(original)==1 and original==restored,"Radio original Reduce Motion restoration unverified")
     result.update(motionIntervals=2,motionFrames=sum(len(m["samples"]) for m in motion),originalMotionValue=original[0]);return result
 
 
@@ -1511,7 +1582,8 @@ def validate_standard_scope(plan):
     avatar = cell in ["CAT.avatar." + gate for gate in ["G04", "G08"]] and batch == "avatar"
     list_item = cell in ["CAT.list-box-item." + gate for gate in ["G04", "G08"]] and batch in ["list-box-item", "list-box-item-motion"]
     toggle_button = cell in ["CAT.toggle-button." + gate for gate in ["G04", "G08"]] and batch in ["toggle-button", "toggle-button-affected", "toggle-button-style"]
-    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item or toggle_button, "Only the authorized component and focused batch are selected")
+    radio = cell == "CAT.radio.G08" and batch in ["radio", "radio-motion"]
+    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item or toggle_button or radio, "Only the authorized component and focused batch are selected")
 
 
 def main():
