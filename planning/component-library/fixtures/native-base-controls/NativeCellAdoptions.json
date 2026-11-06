@@ -149,6 +149,13 @@
         "sha256": "9e84a8e9ecfed3ac78d3d8064f7a0e8d2c7a48c84c78133ff1cdc7d8eee2dffe",
         "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/gallery-after-thumbnail-20261106/gallery-G08-completion.json"
       }
+    },
+    "CAT.avatar.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/avatar-g08-completion-20261106/objects/40a67c626ec37dd173b4f4c75c0b69c2b94a491c18fece31411948de1fd96b97",
+        "sha256": "40a67c626ec37dd173b4f4c75c0b69c2b94a491c18fece31411948de1fd96b97",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/avatar-after-gallery-20261106/avatar-G08-completion-v2.json"
+      }
     }
   }
 }

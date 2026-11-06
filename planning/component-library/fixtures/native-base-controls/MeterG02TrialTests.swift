@@ -1678,3 +1678,117 @@ private func galleryScrollFraction(_ targetMin:Double,_ targetHeight:Double,_ vi
     guard [targetMin,targetHeight,viewportMin,viewportHeight].allSatisfy({$0.isFinite}),targetHeight>0,viewportHeight>0,targetHeight<=viewportHeight else{return nil}
     return max(-0.35,min(0.35,(targetMin+targetHeight/2-viewportMin-viewportHeight/2)/viewportHeight))
 }
+
+final class AvatarTrialTests: XCTestCase {
+    private var app: XCUIApplication!
+    private let behavior=["baseline","sample","invalid","removed","first-name","last-name","anonymous","disabled","passive","missing-handler","held-cancel","restored","retired","fresh","delayed"]
+    private let styles=["style-baseline","orthogonal","rounded","raised","root-style","fallback-style","text-style","image-style","final-precedence","fractional","percentage","auto","zero","dark","light-restored","narrow","name-enlarged"]
+    override func setUpWithError() throws {
+        continueAfterFailure=false;app=XCUIApplication(bundleIdentifier:"dev.codonui.showcase");app.launch();XCTAssertEqual(app.state,.runningForeground);XCUIDevice.shared.orientation = .portrait
+        tap("Reset scene");tap("Avatar scene");tap("Light theme");tap("Live window")
+    }
+    override func tearDownWithError() throws {
+        let png=XCTAttachment(screenshot:XCUIScreen.main.screenshot());png.name="avatar-final";png.lifetime = .keepAlways;add(png)
+        let tree=XCTAttachment(string:app.debugDescription);tree.name="avatar-final-hierarchy";tree.lifetime = .keepAlways;add(tree)
+    }
+    private func state() throws -> [String:Any] {try XCTUnwrap(JSONSerialization.jsonObject(with:Data(node("avatar-native-state").label.utf8)) as? [String:Any])}
+    private func number(_ row:[String:Any],_ key:String) throws -> Double {let value=try XCTUnwrap(row[key] as? NSNumber,key).doubleValue;XCTAssertTrue(value.isFinite);return value}
+    private func rect(_ value:CGRect)->[Double] {[value.minX,value.minY,value.width,value.height].map(Double.init)}
+    private func capture(_ name:String,early:Bool=false) throws {
+        reveal(node("avatar-native-pair"));let snapshot=try app.snapshot();var all:[XCUIElementSnapshot]=[]
+        func visit(_ value:XCUIElementSnapshot){all.append(value);for child in value.children{visit(child)}};visit(snapshot)
+        func one(_ id:String)->XCUIElementSnapshot? {let values=all.filter{$0.identifier==id};XCTAssertLessThanOrEqual(values.count,1,id);return values.first}
+        let row=try XCTUnwrap(JSONSerialization.jsonObject(with:Data(try XCTUnwrap(one("avatar-native-state")).label.utf8)) as? [String:Any]),window=try XCTUnwrap(all.first{$0.elementType == .window}).frame
+        let parent=try XCTUnwrap(one("avatar-native-parent")).frame,reference=try XCTUnwrap(one("avatar-native-reference-parent")).frame,root=one("avatar-native-target"),raw=one("avatar-native-reference"),shot=XCUIScreen.main.screenshot(),image=try XCTUnwrap(shot.image.cgImage),scale=CGFloat(image.width)/window.width
+        XCTAssertEqual(shot.image.imageOrientation,.up);XCTAssertEqual(scale,CGFloat(image.height)/window.height,accuracy:0.01)
+        let actual=try pixels(image,parent,window,scale),expected=try pixels(image,reference,window,scale)
+        var ink=0;for i in stride(from:0,to:actual.count,by:4){if actual[i] != 255 || actual[i+1] != 255 || actual[i+2] != 255{ink+=1}}
+        let exact=circularPixelsMatch(actual,expected),named=all.filter{$0.identifier=="avatar-native-target"},epoch=Date().timeIntervalSince1970*1000
+        let observation:[String:Any]=["name":name,"state":row,"parent":rect(parent),"referenceParent":rect(reference),"root":root.map{rect($0.frame)} ?? [],"referenceRoot":raw.map{rect($0.frame)} ?? [],"nativeLabel":root?.label ?? "","nativeType":root.map{Int($0.elementType.rawValue)} ?? -1,"nativeEnabled":root?.isEnabled ?? false,"targetCount":named.count,"referenceExact":exact,"inkPixels":ink,"captureEpochMs":epoch,"early":early,"scale":scale,"imageWidth":image.width,"imageHeight":image.height]
+        let data=try JSONSerialization.data(withJSONObject:observation,options:.sortedKeys);FileHandle.standardOutput.write(Data("AVATAR_NATIVE_OBSERVATION ".utf8)+data+Data("\n".utf8));let attachment=XCTAttachment(data:data,uniformTypeIdentifier:"public.json");attachment.name="avatar-"+name+"-receipt";attachment.lifetime = .keepAlways;add(attachment);let png=XCTAttachment(screenshot:shot);png.name="avatar-"+name;png.lifetime = .keepAlways;add(png)
+        XCTAssertEqual(parent.size,reference.size);XCTAssertEqual(parent.height,128);XCTAssertEqual(Array(actual.prefix(4)),[255,255,255,255]);XCTAssertEqual(Array(expected.prefix(4)),[255,255,255,255])
+        if early {XCTAssertLessThan(epoch-(try number(row,"mountedEpochMs")),try number(row,"delay"));XCTAssertTrue(exact,"Premature fallback paint");return}
+        XCTAssertTrue(exact,"Actual Avatar differs from independent core-native Image/Text/View reference")
+        if row["visible"] as? Bool==false {XCTAssertNil(root);XCTAssertEqual(ink,0);XCTAssertTrue(row["rootTag"] is NSNull);return}
+        let tag=try number(row,"rootTag"),events=try XCTUnwrap(row["layouts"] as? [[String:Any]]),event=try XCTUnwrap(events.last),layout=try XCTUnwrap(event["layout"] as? [String:Any])
+        XCTAssertGreaterThan(tag,0);XCTAssertEqual(try number(event,"target"),tag);XCTAssertEqual(try number(event,"currentTarget"),tag)
+        let size=row["size"] as? NSNumber,zero=size?.doubleValue==0
+        if zero {XCTAssertEqual(try number(layout,"width"),0);XCTAssertEqual(try number(layout,"height"),0);XCTAssertEqual(ink,0);return}
+        let target=try XCTUnwrap(root),referenceRoot=try XCTUnwrap(raw),width=try number(layout,"width"),height=try number(layout,"height")
+        XCTAssertEqual(target.frame.width,width,accuracy:1/scale);XCTAssertEqual(target.frame.height,height,accuracy:1/scale);XCTAssertEqual(target.frame.size.width,referenceRoot.frame.size.width,accuracy:1/scale);XCTAssertEqual(target.frame.size.height,referenceRoot.frame.size.height,accuracy:1/scale)
+        if let expectedSize=size?.doubleValue {XCTAssertEqual(width,expectedSize,accuracy:1/Double(scale));XCTAssertEqual(height,expectedSize,accuracy:1/Double(scale))}
+        XCTAssertEqual(target.label,row["label"] as? String);XCTAssertEqual(named.count,1);XCTAssertEqual(target.elementType,row["interactive"] as? Bool==true ? .button:.image)
+        if row["interactive"] as? Bool==true {XCTAssertEqual(target.isEnabled,!(row["disabled"] as? Bool ?? false))}
+        if row["imageMode"] as? String=="sample" {XCTAssertTrue((row["referenceLoaded"] as? String ?? "").hasPrefix("data:image/png;base64,"))}
+        if row["delayed"] as? Bool==true {XCTAssertGreaterThanOrEqual(epoch-(try number(row,"mountedEpochMs")),try number(row,"delay"))}
+    }
+    func testAvatarImagesActionsAndLifetimes() throws {
+        tap("Prepare Avatar behavior checks");var initialTag=0.0;var retiredActions=0.0
+        for name in behavior {
+            wait("Current Avatar case "+name){(try? self.state()["case"] as? String)==name}
+            if name != "retired" {wait("Current original Avatar layout/ref") {guard let row=try? self.state(), let events=row["layouts"] as? [[String:Any]],let last=events.last else{return false};return (row["rootTag"] as? NSNumber)?.doubleValue == (last["currentTarget"] as? NSNumber)?.doubleValue}}
+            if name=="sample" {wait("Independent sample Image decode"){((try? self.state()["referenceLoaded"] as? String) ?? "").hasPrefix("data:image/png;base64,")}}
+            if name=="delayed" {try capture("delay-before",early:true);Thread.sleep(forTimeInterval:8.1)}
+            try capture(name)
+            if name=="baseline" {
+                initialTag=try number(state(),"rootTag");let target=node("avatar-native-target");reveal(target);target.coordinate(withNormalizedOffset:CGVector(dx:34/30,dy:0.5)).tap();wait("Original Avatar activation beyond visual thirty-point root"){((try? self.state()["actions"] as? NSNumber)?.intValue ?? 0)==1};let contact=try XCTUnwrap((try state()["contacts"] as? [[String:Any]])?.last);XCTAssertEqual(try number(contact,"currentTarget"),initialTag);XCTAssertGreaterThan(try number(contact,"target"),0);try capture("touched")
+            }
+            if ["sample","invalid","removed","first-name","last-name","anonymous"].contains(name){XCTAssertEqual(try number(state(),"rootTag"),initialTag)}
+            if ["disabled","passive","missing-handler","held-cancel","restored"].contains(name) {
+                let before=try number(state(),"actions"),target=node("avatar-native-target");reveal(target)
+                target.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.5)).press(forDuration:name=="held-cancel" ? 1.0:0)
+                if name=="restored" {wait("Fresh enabled Avatar action"){((try? self.state()["actions"] as? NSNumber)?.doubleValue ?? -1)==before+1}}
+                else {Thread.sleep(forTimeInterval:0.4);XCTAssertEqual(try number(state(),"actions"),before)}
+                if name=="held-cancel" {XCTAssertEqual(try state()["canceled"] as? Bool,true);XCTAssertEqual(try state()["disabled"] as? Bool,true);try capture("held-canceled")}
+            }
+            if name=="retired" {retiredActions=try number(state(),"actions");Thread.sleep(forTimeInterval:1.1);XCTAssertEqual(try number(state(),"actions"),retiredActions)}
+            if name=="fresh" {XCTAssertNotEqual(try number(state(),"rootTag"),initialTag);XCTAssertEqual(try number(state(),"actions"),retiredActions)}
+            if name != behavior.last {tap("Next Avatar check")}
+        }
+    }
+    func testAvatarGeometryStylesAndProviders() throws {
+        tap("Prepare Avatar style checks")
+        for name in styles {
+            wait("Current Avatar style "+name){(try? self.state()["case"] as? String)==name}
+            if name=="dark" {tap("Dark theme");wait("Actual dark provider"){(try? self.state()["themeMode"] as? String)=="dark"}}
+            if name=="light-restored" {tap("Light theme");wait("Actual light provider"){(try? self.state()["themeMode"] as? String)=="light"}}
+            if name=="image-style" {wait("Independent styled Image decode"){((try? self.state()["referenceLoaded"] as? String) ?? "").hasPrefix("data:image/png;base64,")}}
+            try capture(name)
+            if name != styles.last {tap("Next Avatar check")}
+        }
+    }
+    private func node(_ id:String)->XCUIElement {app.descendants(matching:.any).matching(identifier:id).firstMatch}
+
+    private func wait(_ message:String,_ predicate:@escaping()->Bool) {
+        let expectation=XCTNSPredicateExpectation(predicate:NSPredicate{_,_ in predicate()},object:nil)
+        XCTAssertEqual(XCTWaiter.wait(for:[expectation],timeout:nativeWorkRemaining()),.completed,message)
+    }
+
+    private func reveal(_ element:XCUIElement) {
+        XCTAssertTrue(element.waitForExistence(timeout:nativeWorkRemaining()));let scroll=app.scrollViews.firstMatch;XCTAssertTrue(scroll.exists)
+        for _ in 0..<24 {
+            let viewport=app.windows.firstMatch.frame.intersection(scroll.frame).insetBy(dx:2,dy:2)
+            if !element.frame.isEmpty && viewport.contains(element.frame){return}
+            guard let distance=galleryScrollFraction(Double(element.frame.minY),Double(element.frame.height),Double(viewport.minY),Double(viewport.height)),distance != 0 else{XCTFail("Avatar target cannot fit measured viewport");return}
+            let start:CGFloat=distance>0 ? 0.75:0.30
+            let trace:[String:Any]=["target":element.identifier,"frame":rect(element.frame),"viewport":rect(viewport),"requestedFraction":distance]
+            if let data=try? JSONSerialization.data(withJSONObject:trace,options:.sortedKeys){FileHandle.standardOutput.write(Data("AVATAR_SCROLL ".utf8)+data+Data("\n".utf8))}
+            scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:start)).press(forDuration:0.05,thenDragTo:scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:start-CGFloat(distance))),withVelocity:.slow,thenHoldForDuration:0.25)
+        };XCTFail("Unreachable Avatar control/canvas "+element.identifier)
+    }
+
+    private func tap(_ name:String) {
+        let control=app.buttons.matching(NSPredicate(format:"label == %@",name)).firstMatch;reveal(control);XCTAssertTrue(control.isHittable);control.tap()
+        if name=="Avatar scene"{wait("Actual selected Avatar scene"){control.isSelected}}
+    }
+
+    private func pixels(_ image:CGImage,_ frame:CGRect,_ window:CGRect,_ scale:CGFloat) throws -> [UInt8] {
+        XCTAssertTrue(window.contains(frame));let rect=CGRect(x:((frame.minX-window.minX)*scale).rounded(),y:((frame.minY-window.minY)*scale).rounded(),width:(frame.width*scale).rounded(),height:(frame.height*scale).rounded())
+        let crop=try XCTUnwrap(image.cropping(to:rect));var bytes=[UInt8](repeating:0,count:crop.width*crop.height*4)
+        let result=bytes.withUnsafeMutableBytes { buffer -> Bool in
+            guard let context=CGContext(data:buffer.baseAddress,width:crop.width,height:crop.height,bitsPerComponent:8,bytesPerRow:crop.width*4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue|CGBitmapInfo.byteOrder32Big.rawValue) else{return false}
+            context.draw(crop,in:CGRect(x:0,y:0,width:CGFloat(crop.width),height:CGFloat(crop.height)));return true
+        };XCTAssertTrue(result);return bytes
+    }
+
+}

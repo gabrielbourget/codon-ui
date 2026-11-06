@@ -76,6 +76,9 @@ def verify_selected_app_inputs(plan, app):
 
 
 def selection(platform, batch="meter-g02"):
+    if batch == "avatar":
+        require(platform == "ios", "Current Avatar batch is iOS only")
+        return {"ios": ["AvatarTrialTests/testAvatarImagesActionsAndLifetimes", "AvatarTrialTests/testAvatarGeometryStylesAndProviders"], "android": []}
     if batch == "gallery-remaining":
         require(platform == "ios", "Gallery batch is iOS only")
         return {"ios": ["GalleryTrialTests/testGalleryPrimitiveAndRemainingCounts"], "android": []}
@@ -525,6 +528,8 @@ def wait_ios_pending_app(session, device, app, maximum):
 
 def run_ios(session, config, app, observer):
     device = config["destination"]
+    reuse_installed = config.get("reuseInstalledApplication", False)
+    require(type(reuse_installed) is bool, "Installed application reuse must be boolean")
     resume = config.get("resumePendingApplicationInstall", False)
     require(type(resume) is bool, "Pending-install mode must be boolean")
     if resume: require(type(config.get("pendingInstallObservationSeconds")) is int and config["pendingInstallObservationSeconds"] > 0, "Pending observation needs a positive scoped budget")
@@ -538,6 +543,11 @@ def run_ios(session, config, app, observer):
     products = [("app", "dev.codonui.showcase", app), ("observer", observer_bundle, observer)]
     installed_products = {}
     for label, bundle, expected in products:
+        if reuse_installed and label == "app":
+            registered = session.run("preflight-installed-" + label, [XCODE + "/simctl", "get_app_container", device, bundle, "app"]).strip()
+            verify_product(expected, registered)
+            installed_products[label] = registered
+            continue
         if resume and label == "app":
             try: wait_ios_pending_app(session, device, app, config["pendingInstallObservationSeconds"])
             except ValueError:
@@ -595,6 +605,7 @@ def run_ios(session, config, app, observer):
     if config.get("batch") == "circle-loader": result["circleLoader"] = reconcile_circle_loader_ios(raw)
     if config.get("batch") == "lagging-lines": result["laggingLines"] = reconcile_lagging_lines_ios(raw)
     if config.get("batch") in ["counter", "counter-values"]: result["counter"] = reconcile_counter_ios(raw, include_motion=config["batch"] == "counter")
+    if config.get("batch") == "avatar": result["avatar"] = reconcile_avatar_ios(raw)
     if config.get("batch") in ["gallery", "gallery-modes", "gallery-styles", "gallery-remaining"]: result["gallery"] = reconcile_gallery_ios(raw, config["batch"])
     if config.get("batch") in ["thumbnail", "thumbnail-geometry"]: result["thumbnail"] = reconcile_thumbnail_ios(raw, include_lifetime=config["batch"] == "thumbnail")
     if config.get("batch") == "linear-progress-risk": result["linearProgressRisk"] = reconcile_linear_progress_risk_ios(raw)
@@ -818,6 +829,56 @@ def reconcile_counter_ios(raw, include_motion=True):
     result.update(motionIntervals=2, originalAndRestoredMotion=original[0], motionSamples=len(all_rows) - len(rows))
     return result
 
+
+
+
+AVATAR_BEHAVIOR = ["baseline","sample","invalid","removed","first-name","last-name","anonymous","disabled","passive","missing-handler","held-cancel","restored","retired","fresh","delayed"]
+AVATAR_STYLES = ["style-baseline","orthogonal","rounded","raised","root-style","fallback-style","text-style","image-style","final-precedence","fractional","percentage","auto","zero","dark","light-restored","narrow","name-enlarged"]
+
+
+def validate_avatar_rows(rows, names):
+    require(sorted(row["name"] for row in rows) == sorted(names), "Missing/duplicate Avatar observations")
+    for row in rows:
+        state,scale=row["state"],row["scale"]
+        require(isinstance(scale,(int,float)) and math.isfinite(scale) and scale>0 and scale==state["scale"], "Wrong Avatar scale")
+        parent,reference=row["parent"],row["referenceParent"]
+        require(len(parent)==len(reference)==4 and all(math.isfinite(v) for v in parent+reference) and parent[2:]==reference[2:] and 0<parent[2]<=280 and parent[3]==128,"Wrong Avatar measurement parents")
+        for frame in [parent,reference]:
+            x,y,width,height=[math.floor(v*scale+.5) for v in frame]
+            require(0<=x<x+width<=row["imageWidth"] and 0<=y<y+height<=row["imageHeight"],"Avatar physical parent outside screenshot")
+        require(row["referenceExact"] is True,"Avatar differs from independent core-native reference")
+        if not state["visible"]:
+            require(not row["root"] and row["inkPixels"]==0 and state["rootTag"] is None,"Retired Avatar target/paint/ref remains")
+            continue
+        event=state["layouts"][-1];layout=event["layout"]
+        require(state["rootTag"] and event["target"]==event["currentTarget"]==state["rootTag"],"Original Avatar layout/ref differs")
+        if isinstance(state["size"],(int,float)):
+            require(all(abs(layout[key]-state["size"])*scale<=1 for key in ["width","height"]),"Wrong actual Avatar size")
+        if state["size"]==0:
+            require(row["inkPixels"]==0 and layout["width"]==layout["height"]==0,"Avatar authored zero leaked paint/layout")
+            continue
+        require(row["targetCount"]==1 and row["nativeLabel"]==state["label"],"Avatar root target/name differs")
+        require(row["nativeType"]==(9 if state["interactive"] else 43),"Avatar image/button trait differs")
+        if state["interactive"]:require(row["nativeEnabled"] is (not state["disabled"]),"Avatar disabled native state differs")
+        require(len(row["root"])==len(row["referenceRoot"])==4,"Avatar native root/reference missing")
+        require(all(abs(a-b)*scale<=1 for a,b in zip(row["root"][2:],row["referenceRoot"][2:])) and all(abs(row["root"][i+2]-layout[key])*scale<=1 for i,key in enumerate(["width","height"])),"Avatar root/native/layout dimensions differ")
+        if state["imageMode"]=="sample":require(state["referenceLoaded"].startswith("data:image/png;base64,"),"Independent actual image decode missing")
+        if state["delayed"]:
+            elapsed=row["captureEpochMs"]-state["mountedEpochMs"]
+            require(0<=elapsed<state["delay"] if row["early"] else elapsed>=state["delay"],"Avatar fallback temporal observation outside intended phase")
+    return {"status":"PASS","observations":len(rows)}
+
+
+def reconcile_avatar_ios(raw):
+    rows=[json.loads(row) for row in re.findall(r"AVATAR_NATIVE_OBSERVATION (\{[^\n]+\})",raw)]
+    result=validate_avatar_rows(rows,AVATAR_BEHAVIOR+AVATAR_STYLES+["touched","held-canceled","delay-before"]);named={row["name"]:row["state"] for row in rows}
+    tag=named["baseline"]["rootTag"]
+    require(all(named[name]["rootTag"]==tag for name in ["touched","sample","invalid","removed","first-name","last-name","anonymous"]),"Avatar URI/name update replaced original root")
+    require(named["touched"]["actions"]==1 and named["touched"]["contacts"][-1]["currentTarget"]==tag and named["touched"]["contacts"][-1]["target"],"Original actual Avatar press missing")
+    require(named["held-canceled"]["canceled"] and named["held-canceled"]["disabled"] and named["held-canceled"]["actions"]==1,"Held Avatar disable did not cancel")
+    require(named["retired"]["actions"]==named["fresh"]["actions"]==2 and named["fresh"]["rootTag"]!=tag,"Avatar restored action/retirement/fresh ref differs")
+    require(named["dark"]["themeMode"]=="dark" and named["light-restored"]["themeMode"]=="light","Avatar provider restoration missing")
+    return result
 
 
 GALLERY_MODES = ["baseline", "touched", "reordered", "two-columns", "three-columns", "overflow-action", "disabled", "primary-only", "secondary-only", "all-restored", "fresh", "empty-media", "falsy-zero", "media-restored", "two-slots", "zero-slots", "fractional-count"]
@@ -1269,7 +1330,8 @@ def validate_standard_scope(plan):
     counter = cell in ["CAT.counter." + gate for gate in ["G04", "G08"]] and batch in ["counter", "counter-values"]
     thumbnail = cell in ["CAT.thumbnail-image." + gate for gate in ["G04", "G08"]] and batch in ["thumbnail", "thumbnail-geometry"]
     gallery = cell in ["CAT.thumbnail-showcase." + gate for gate in ["G04", "G08"]] and batch in ["gallery", "gallery-modes", "gallery-styles", "gallery-remaining"]
-    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery, "Only the authorized component and focused batch are selected")
+    avatar = cell in ["CAT.avatar." + gate for gate in ["G04", "G08"]] and batch == "avatar"
+    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar, "Only the authorized component and focused batch are selected")
 
 
 def main():

@@ -284,12 +284,14 @@ class StandardTests(unittest.TestCase):
         observer["xctestrun"] = {"path": str(template), "sha256": NATIVE.digest(template)}
         raw = "\n".join("Test Case '-[CodonNativeComponents.MeterG02TrialTests " + name + "]' passed (1.0 seconds)." for name in NATIVE.METHODS)
         summary = {"result": "Passed", "totalTestCount": 4, "passedTests": 4, "failedTests": 0, "skippedTests": 0}
-        for scenario in ["matching", "legacy-cutoff", "affected-method", "retired-plugin", "sdk-failed", "stale-app", "wrong-observer", "install-failed", "not-ready"]:
+        for scenario in ["matching", "legacy-cutoff", "affected-method", "retired-plugin", "sdk-failed", "stale-app", "wrong-observer", "install-failed", "not-ready", "reuse-matching", "reuse-stale", "reuse-missing"]:
             session = MagicMock();session.work = time.time() + 120;session.output = self.root / scenario;session.output.mkdir()
             def command(name, argv, cap=None):
                 if scenario == "not-ready" and name == "boot-readiness": raise ValueError("OS not ready")
                 if scenario == "install-failed" and name == "install-app": raise ValueError("SDK install failed")
-                if name in ["preflight-installed-app", "installed-app"]: return str(stale if scenario == "stale-app" else app_path)
+                if name in ["preflight-installed-app", "installed-app"]:
+                    if scenario == "reuse-missing": raise ValueError("No registered application")
+                    return str(stale if scenario in ["stale-app", "reuse-stale"] else app_path)
                 if name in ["preflight-installed-observer", "installed-observer"]: return str(wrong_observer if scenario == "wrong-observer" else observer_path)
                 if name == "xctest":
                     if scenario == "sdk-failed": raise ValueError("SDK65")
@@ -302,23 +304,28 @@ class StandardTests(unittest.TestCase):
                 return ""
             session.run.side_effect = command
             config = {"destination": device, "batch": "meter-events" if scenario == "affected-method" else "meter-g02"}
+            if scenario.startswith("reuse-"): config["reuseInstalledApplication"] = True
             if scenario == "legacy-cutoff": config["installationMaximumSeconds"] = 1
             with self.subTest(scenario=scenario), patch.object(NATIVE.Path, "home", return_value=self.root):
-                if scenario in ["matching", "legacy-cutoff", "affected-method"]: self.assertEqual(NATIVE.run_ios(session, config, app, observer)["status"], "PASS")
+                if scenario in ["matching", "legacy-cutoff", "affected-method", "reuse-matching"]: self.assertEqual(NATIVE.run_ios(session, config, app, observer)["status"], "PASS")
                 else:
-                    with self.assertRaises(ValueError): NATIVE.run_ios(session, {"destination": device}, app, observer)
+                    with self.assertRaises(ValueError): NATIVE.run_ios(session, config, app, observer)
             commands = [call.args[0] for call in session.run.call_args_list]
-            if scenario in ["matching", "legacy-cutoff", "affected-method"]:
+            if scenario in ["matching", "legacy-cutoff", "affected-method", "reuse-matching"]:
                 self.assertTrue(all(len(call.args) == 2 for call in session.run.call_args_list))
                 selected = next(call.args[1] for call in session.run.call_args_list if call.args[0] == "xctest")
                 self.assertEqual(len([arg for arg in selected if str(arg).startswith("-only-testing:")]), 1 if scenario == "affected-method" else 4)
-                self.assertLess(commands.index("boot-readiness"), commands.index("install-app"))
+                if scenario == "reuse-matching":
+                    self.assertNotIn("install-app", commands)
+                    self.assertLess(commands.index("boot-readiness"), commands.index("preflight-installed-app"))
+                else: self.assertLess(commands.index("boot-readiness"), commands.index("install-app"))
                 self.assertLess(commands.index("preflight-installed-app"), commands.index("install-observer"))
                 self.assertLess(commands.index("preflight-installed-observer"), commands.index("xctest"))
             elif scenario in ["retired-plugin", "sdk-failed"]:
                 self.assertIn("xctest-runtime-diagnostics", commands);self.assertNotIn("xctest-summary", commands)
             else: self.assertNotIn("xctest", commands)
-            if scenario == "not-ready": self.assertNotIn("install-app", commands)
+            if scenario in ["not-ready","reuse-stale","reuse-missing"]: self.assertNotIn("install-app", commands)
+            if scenario in ["reuse-stale","reuse-missing"]: self.assertNotIn("install-observer", commands)
 
     def test_existing_pending_app_observation_never_reissues_install(self):
         current = self.root / "Current.app";current.mkdir();(current / "main.jsbundle").write_bytes(b"selected product")
@@ -768,5 +775,41 @@ def member(source, signature):
         depth += (source[end] == "{") - (source[end] == "}");end += 1
     return source[start:end]
 
+
+
+class AvatarControls(unittest.TestCase):
+    def row(self):
+        return {"name":"baseline","state":{"scale":3,"visible":True,"size":30,"rootTag":81,"layouts":[{"target":81,"currentTarget":81,"layout":{"width":30,"height":30}}],"interactive":True,"disabled":False,"label":"Alice Smith","imageMode":"none","delayed":False},"scale":3,"parent":[20,100,280,128],"referenceParent":[20,236,280,128],"root":[32,112,30,30],"referenceRoot":[32,248,30,30],"nativeType":9,"nativeLabel":"Alice Smith","nativeEnabled":True,"targetCount":1,"referenceExact":True,"inkPixels":1000,"imageWidth":1170,"imageHeight":2532,"early":False,"captureEpochMs":9000}
+    def test_avatar_pixel_native_ref_guard_and_temporal_failures(self):
+        row=self.row();self.assertEqual(NATIVE.validate_avatar_rows([row],["baseline"])["observations"],1)
+        for field,value in [("referenceExact",False),("targetCount",2),("nativeLabel","wrong"),("nativeType",40),("nativeEnabled",False),("scale",float("nan")),("root",[32,112,30,31])]:
+            bad=copy.deepcopy(row);bad[field]=value
+            with self.subTest(field=field),self.assertRaises(ValueError):NATIVE.validate_avatar_rows([bad],["baseline"])
+        passive=copy.deepcopy(row);passive["state"]["interactive"]=False;passive["nativeType"]=43
+        NATIVE.validate_avatar_rows([passive],["baseline"])
+        bad=copy.deepcopy(row);bad["state"]["layouts"][0]["currentTarget"]=82
+        with self.assertRaises(ValueError):NATIVE.validate_avatar_rows([bad],["baseline"])
+        bad=copy.deepcopy(row);bad["parent"][1]=900
+        with self.assertRaises(ValueError):NATIVE.validate_avatar_rows([bad],["baseline"])
+        delayed=copy.deepcopy(row);delayed["state"].update(delayed=True,delay=8000,mountedEpochMs=2000);delayed["early"]=True
+        NATIVE.validate_avatar_rows([delayed],["baseline"])
+        delayed["captureEpochMs"]=10000
+        with self.assertRaises(ValueError):NATIVE.validate_avatar_rows([delayed],["baseline"])
+        zero=copy.deepcopy(row);zero["state"]["size"]=0;zero["state"]["layouts"][0]["layout"]={"width":0,"height":0};zero["inkPixels"]=0
+        NATIVE.validate_avatar_rows([zero],["baseline"]);zero["inkPixels"]=1
+        with self.assertRaises(ValueError):NATIVE.validate_avatar_rows([zero],["baseline"])
+        retired=copy.deepcopy(row);retired["state"].update(visible=False,rootTag=None);retired["root"]=[];retired["inkPixels"]=0
+        NATIVE.validate_avatar_rows([retired],["baseline"]);retired["state"]["rootTag"]=81
+        with self.assertRaises(ValueError):NATIVE.validate_avatar_rows([retired],["baseline"])
+    def test_avatar_actual_entry_no_admission_wrong_scope_and_platform(self):
+        for gate in ["G04","G08"]:NATIVE.validate_standard_scope({"cell":"CAT.avatar."+gate,"nativeStandard":{"batch":"avatar"}})
+        for cell in ["CAT.tag.G08","CAT.avatar.G07"]:
+            with self.assertRaises(ValueError):NATIVE.validate_standard_scope({"cell":cell,"nativeStandard":{"batch":"avatar"}})
+        with self.assertRaises(ValueError):NATIVE.selection("android","avatar")
+        self.assertEqual(len(NATIVE.selection("ios","avatar")["ios"]),2)
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);plan=root/"plan.json";plan.write_text(json.dumps({"cell":"CAT.avatar.G08","nativeStandard":{"platform":"ios","batch":"avatar","output":str(root/"never-created")}}));env={k:v for k,v in os.environ.items() if k!="CODON_NATIVE_CELL_PREFLIGHT_RECEIPT"}
+            result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(plan)],env=env,capture_output=True,text=True,timeout=10)
+            self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((root/"never-created").exists())
 
 if __name__ == "__main__": unittest.main()
