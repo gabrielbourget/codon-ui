@@ -476,3 +476,27 @@ it("does not contribute an implicit Loading name from a decorative CircleLoader 
   expect(part("circle-loader").props.accessible).toBe(false)
   expect(part("circle-loader").props.accessibilityLabel).toBeUndefined()
 })
+
+it("keeps stopped LaggingLinesLoader wrappers at the first frame after late driver updates and resize", async () => {
+  jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(false)
+  const motion = captureMotion()
+  const { rerender } = await render(<LaggingLinesLoader />)
+  await measureTrack(150)
+  const phase = motion.timings[0].value
+  await rerender(<LaggingLinesLoader duration={0} />)
+  await act(() => phase.setValue(0.875))
+  await rerender(<LaggingLinesLoader duration={0} width={200} />)
+  await measureTrack(200)
+  expect(part("lagging-lines-loader-motion-0")).toHaveStyle({ transform: [{ translateX: 0 }] })
+})
+
+it("does not contribute an implicit Loading name from decorative LaggingLinesLoader to its Button", async () => {
+  await render(
+    <Button>
+      Saving example action
+      <LaggingLinesLoader />
+    </Button>,
+  )
+  expect(part("lagging-lines-loader").props.accessible).toBe(false)
+  expect(part("lagging-lines-loader").props.accessibilityLabel).toBeUndefined()
+})

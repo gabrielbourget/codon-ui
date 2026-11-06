@@ -8,6 +8,7 @@ import {
   Text,
   useNativeTheme,
   type TNativeCircleLoaderRef,
+  type TNativeLaggingLinesLoaderRef,
 } from "@codon-ui/react-native"
 
 const nativeTag = (node: unknown) =>
@@ -27,6 +28,12 @@ export const LoadingScene = () => {
   const [custom, setCustom] = useState(false)
   const [fractional, setFractional] = useState(false)
   const [visible, setVisible] = useState(true)
+  const [linesVisible, setLinesVisible] = useState(true)
+  const [linesFractional, setLinesFractional] = useState(false)
+  const [linesBinding, setLinesBinding] = useState({ rootTag: null as number | null, attaches: 0, detaches: 0 })
+  const [linesLayout, setLinesLayout] = useState<unknown>(null)
+  const [linesHostWidth, setLinesHostWidth] = useState(0)
+  const linesRoot = useRef<TNativeLaggingLinesLoaderRef | null>(null)
   const [binding, setBinding] = useState({ rootTag: null as number | null, attaches: 0, detaches: 0 })
   const [layout, setLayout] = useState<unknown>(null)
   const [motionEvents, setMotionEvents] = useState<boolean[]>([])
@@ -50,6 +57,24 @@ export const LoadingScene = () => {
     }
     setLayout((previous: unknown) => (JSON.stringify(previous) === JSON.stringify(next) ? previous : next))
   }, [])
+  const bindLines = useCallback((node: TNativeLaggingLinesLoaderRef | null) => {
+    if (node === linesRoot.current) return
+    linesRoot.current = node
+    setLinesBinding((current) => ({
+      rootTag: nativeTag(node),
+      attaches: current.attaches + (node ? 1 : 0),
+      detaches: current.detaches + (node ? 0 : 1),
+    }))
+  }, [])
+  const receiveLinesLayout = useCallback((event: LayoutChangeEvent) => {
+    const next = {
+      layout: { ...event.nativeEvent.layout },
+      eventTarget: nativeTag(event.target),
+      currentTarget: nativeTag(event.currentTarget),
+      nativeTarget: nativeTag((event.nativeEvent as unknown as { target?: unknown }).target),
+    }
+    setLinesLayout((previous: unknown) => (JSON.stringify(previous) === JSON.stringify(next) ? previous : next))
+  }, [])
   useEffect(() => {
     const subscription = AccessibilityInfo.addEventListener("reduceMotionChanged", (enabled) =>
       setMotionEvents((events) => [...events, enabled]),
@@ -58,7 +83,7 @@ export const LoadingScene = () => {
   }, [])
   const duration = stopped ? 0 : LOADER_DURATIONS[durationIndex]
   const size = fractional ? 33.25 : CIRCLE_SIZES[sizeIndex]
-  const width = LINE_WIDTHS[widthIndex]
+  const width = linesFractional ? 183.25 : LINE_WIDTHS[widthIndex]
   const rootWidth = custom ? 72 : size
   const rootHeight = custom ? 60 : size
   const foreground = explicitColors ? "#2f7d18" : custom ? "#087f8c" : theme.colors.foreground
@@ -78,6 +103,27 @@ export const LoadingScene = () => {
     mode: theme.mode,
     rootWidth,
     rootHeight,
+  }
+
+  const linesWidth = typeof width === "number" ? width : linesHostWidth
+  const linesBackground = theme.mode === "dark" ? "#101010" : "#ffffff"
+  const linesPaint = custom ? "#a66b00" : explicitColors ? "#2f7d18" : theme.colors.foreground
+  const linesSnapshot = {
+    ...linesBinding,
+    layout: linesLayout,
+    motionEvents,
+    visible: linesVisible,
+    fractional: linesFractional,
+    width,
+    rootWidth: linesWidth,
+    hostWidth: linesHostWidth,
+    measurementBackground: linesBackground,
+    rootHeight: 50,
+    stopped,
+    duration: custom ? (stopped ? 0 : 500) : (duration ?? 3000),
+    custom,
+    explicitColors,
+    mode: theme.mode,
   }
 
   return (
@@ -101,6 +147,8 @@ export const LoadingScene = () => {
         <Button onPress={() => setCustom((current) => !current)}>Toggle loader styles</Button>
         <Button onPress={() => setFractional((current) => !current)}>Toggle fractional circle</Button>
         <Button onPress={() => setVisible((current) => !current)}>Toggle circle presence</Button>
+        <Button onPress={() => setLinesFractional((current) => !current)}>Toggle fractional lines</Button>
+        <Button onPress={() => setLinesVisible((current) => !current)}>Toggle lines presence</Button>
       </View>
       <Text>The circle's container and ring have independent dimensions.</Text>
       <Text testID="loading-native-state" accessibilityLabel={JSON.stringify(snapshot)} numberOfLines={1}>
@@ -161,22 +209,92 @@ export const LoadingScene = () => {
         </View>
       </View>
       <Text>Line styles affect each slide; the final style controls the outer container.</Text>
-      <LaggingLinesLoader
-        testID="loading-lines"
-        accessibilityLabel="Fetching lines"
-        width={width}
-        duration={duration}
-        color={explicitColors ? "#2f7d18" : undefined}
-        customStyles={
-          custom
-            ? { backgroundColor: "#a66b00", borderRadius: 5, height: 7, animationDuration: stopped ? 0 : "0.5s" }
-            : undefined
-        }
-        style={custom ? () => ({ marginBottom: 10 }) : undefined}
-      />
+      <Text testID="loading-lines-native-state" accessibilityLabel={JSON.stringify(linesSnapshot)} numberOfLines={1}>
+        {JSON.stringify(linesSnapshot)}
+      </Text>
+      <View testID="loading-lines-pair" collapsable={false} style={{ gap: 8 }}>
+        <View
+          testID="loading-lines-parent"
+          collapsable={false}
+          style={{ width: "100%", maxWidth: 330, height: 100, padding: 8, backgroundColor: linesBackground }}
+        >
+          <View
+            testID="loading-lines-host"
+            collapsable={false}
+            style={{ width: "75%" }}
+            onLayout={({ nativeEvent }) => setLinesHostWidth(nativeEvent.layout.width)}
+          >
+            {linesVisible ? (
+              <LaggingLinesLoader
+                testID="loading-lines"
+                ref={bindLines}
+                onLayout={receiveLinesLayout}
+                accessibilityLabel="Fetching lines"
+                width={width}
+                duration={duration}
+                color={explicitColors ? "#2f7d18" : undefined}
+                customStyles={
+                  custom
+                    ? {
+                        backgroundColor: "#a66b00",
+                        borderRadius: 5,
+                        height: 7,
+                        animationDuration: stopped ? 0 : "0.5s",
+                      }
+                    : undefined
+                }
+                style={custom ? () => ({ marginBottom: 10 }) : undefined}
+              />
+            ) : null}
+          </View>
+        </View>
+        <View
+          testID="loading-lines-reference-parent"
+          collapsable={false}
+          style={{ width: "100%", maxWidth: 330, height: 100, padding: 8, backgroundColor: linesBackground }}
+        >
+          <View style={{ width: "75%" }}>
+            <View
+              style={{
+                width,
+                height: 50,
+                alignSelf: "center",
+                justifyContent: "center",
+                marginBottom: custom ? 10 : 0,
+              }}
+            >
+              <View style={{ width: "100%", height: 0 }}>
+                {[
+                  { opacity: 0.4, scaleX: 1.2 },
+                  { opacity: 0.6, scaleX: 1.1 },
+                  { opacity: 0.9, scaleX: 1 },
+                ].map((recipe, index) => (
+                  <View
+                    key={index}
+                    testID={"loading-lines-reference-motion-" + index}
+                    style={{ position: "absolute", width: "20%" }}
+                  >
+                    <View
+                      style={{
+                        width: "100%",
+                        height: custom ? 7 : 5,
+                        opacity: recipe.opacity,
+                        transform: [{ scaleX: recipe.scaleX }],
+                        backgroundColor: linesPaint,
+                        borderRadius: custom ? 5 : 0,
+                      }}
+                    />
+                  </View>
+                ))}
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
       <Button testID="loading-owned-button" order="primary">
         Saving example action
         <CircleLoader testID="loading-owned-circle" duration={duration} />
+        <LaggingLinesLoader testID="loading-owned-lines" duration={duration} width={60} style={{ height: 20 }} />
       </Button>
       <Text>
         Reduce Motion keeps a static first frame. Le chargement reste annoncé même lorsque le mouvement est arrêté.

@@ -121,6 +121,13 @@
         "sha256": "9ed80b8cffc6b4f35964c9e0fbffacc5b32947e265d27ed9d0b7e73b877d6d1e",
         "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/circle-loader-after-circular-progress-20261106/circle-loader-G08-completion.json"
       }
+    },
+    "CAT.lagging-lines-loader.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/lagging-lines-ios-g08-20261106/objects/d907139e1afa3bdcc038262c420dab53d30d1c00d92717669eeac39b54bc357b",
+        "sha256": "d907139e1afa3bdcc038262c420dab53d30d1c00d92717669eeac39b54bc357b",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/lagging-lines-after-circle-loader-20261106/lagging-lines-G08-completion.json"
+      }
     }
   }
 }

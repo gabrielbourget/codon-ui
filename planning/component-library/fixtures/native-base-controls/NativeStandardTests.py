@@ -76,6 +76,9 @@ def verify_selected_app_inputs(plan, app):
 
 
 def selection(platform, batch="meter-g02"):
+    if batch == "lagging-lines":
+        require(platform == "ios", "Current LaggingLines batch is iOS-only")
+        return {"ios": ["LaggingLinesTrialTests/testLaggingLinesGeometryAndProviders", "LaggingLinesTrialTests/testLaggingLinesMotionAndRetirement"], "android": []}
     if batch == "circle-loader":
         require(platform == "ios", "CircleLoader current batch is iOS-only")
         return {"ios": ["CircleLoaderTrialTests/testCircleLoaderGeometryAndProviders", "CircleLoaderTrialTests/testCircleLoaderMotionAndRetirement"], "android": []}
@@ -516,7 +519,7 @@ def run_ios(session, config, app, observer):
     try: raw = session.run("xctest", argv)
     except ValueError as error:
         sdk_error = error;stdout = session.output / "xctest.stdout";raw = stdout.read_text() if stdout.exists() else ""
-    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected", "circle-loader"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
+    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected", "circle-loader", "lagging-lines"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
         original_motion = re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])", raw)
         restored_motion = re.findall(r"METER_STYLE_MOTION_RESTORED ([01])", raw)
         if original_motion != restored_motion: session.cleanup_errors.append("Original iOS Reduce Motion restoration unverified")
@@ -548,6 +551,7 @@ def run_ios(session, config, app, observer):
             require(loaded["status"] == "PASS" and loaded["observerManifestSHA256"] == retained["observerManifestSHA256"], "Retained actually loaded observer mismatch")
             result["retainedCircularProvider"] = native_method(retained)
     if config.get("batch") == "circle-loader": result["circleLoader"] = reconcile_circle_loader_ios(raw)
+    if config.get("batch") == "lagging-lines": result["laggingLines"] = reconcile_lagging_lines_ios(raw)
     if config.get("batch") == "linear-progress-risk": result["linearProgressRisk"] = reconcile_linear_progress_risk_ios(raw)
     if config.get("batch") == "meter-style": result["styleObservations"] = reconcile_ios_styles(raw)
     if config.get("batch") == "meter-style-affected":
@@ -634,6 +638,69 @@ def reconcile_circle_loader_ios(raw):
     originals = re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])", raw)
     require(len(originals) == 1 and originals == re.findall(r"METER_STYLE_MOTION_RESTORED ([01])", raw), "Exact original Reduce Motion restoration missing")
     result.update(motionIntervals=len(motion), originalAndRestoredMotion=originals[0])
+    return result
+
+
+
+LAGGING_GEOMETRY_NAMES = ["default", "percentage", "zero", "fractional", "slide-slot-root", "slide-overrides-explicit", "explicit-foreground", "restored-foreground", "numeric-restored", "percentage-before-compact", "dark", "compact", "live-restored", "light-restored"]
+LAGGING_MOTION_NAMES = ["moving", "reduced", "resumed", "duration-zero", "fresh-moving", "resized-moving"]
+
+
+def validate_lagging_lines_rows(rows, expected):
+    require(sorted(row["name"] for row in rows) == sorted(expected), "Missing/duplicate LaggingLines observations")
+    for row in rows:
+        state, scale = row["state"], row["scale"]
+        require(isinstance(scale, (int, float)) and math.isfinite(scale) and scale > 0, "Invalid LaggingLines physical scale")
+        require(row["backgroundRGB"] == ([16, 16, 16] if state["mode"] == "dark" else [255, 255, 255]), "Wrong declared native canvas background")
+        parent, reference = row["parent"], row["referenceParent"]
+        require(len(parent) == len(reference) == 4 and all(math.isfinite(value) for value in parent + reference) and parent[2:] == reference[2:] and 0 < parent[2] <= 330 and parent[3] == 100, "Wrong matched LaggingLines parents")
+        for frame in [parent, reference]:
+            left, top = [math.floor(value * scale + .5) for value in frame[:2]]
+            width, height = [math.floor(value * scale + .5) for value in frame[2:]]
+            require(0 <= left < left + width <= row["imageWidth"] and 0 <= top < top + height <= row["imageHeight"], "Physical LaggingLines parent outside screenshot")
+        if state["visible"] is False:
+            require(state["rootTag"] is None and row["inkPixels"] == 0 and not row["target"], "Retired LaggingLines must be absent")
+            continue
+        tag, event, width = state["rootTag"], state["layout"], state["rootWidth"]
+        require(tag > 0 and event["eventTarget"] == event["currentTarget"] == tag, "Original LaggingLines ref/layout target mismatch")
+        for key, value in [("width", width), ("height", 50)]:
+            require(abs(event["layout"][key] - value) * scale <= 1, "Wrong delivered LaggingLines dimensions")
+        if width == 0:
+            require(row["inkPixels"] == 0 and row["referenceExact"] is True, "Zero LaggingLines must be exactly white")
+            for key in ["target", "track"]:
+                require(not row[key] or (len(row[key]) == 4 and abs(row[key][2]) * scale <= 1), "Zero native frame retained nonzero width")
+            continue
+        require(row["nativeLabel"] == "Fetching lines" and row["nativeValue"] == "busy" and row["inkPixels"] > 0, "Actual busy named LaggingLines paint missing")
+        require(len(row["target"]) == len(row["track"]) == len(row["host"]) == 4 and len(row["wrappers"]) == len(row["visuals"]) == 3, "Actual three-line frame set missing")
+        require(abs(row["target"][2] - width) * scale <= 1 and abs(row["target"][3] - 50) * scale <= 1 and abs(row["track"][2] - width) * scale <= 1, "Wrong actual root/track dimensions")
+        static = row["name"] in LAGGING_GEOMETRY_NAMES or row["name"].startswith(("reduced-", "duration-zero-", "fresh-stopped"))
+        for index, (wrapper, visual) in enumerate(zip(row["wrappers"], row["visuals"])):
+            require(len(wrapper) == len(visual) == 4 and all(math.isfinite(value) for value in wrapper + visual), "Invalid native line frames")
+            require(abs(wrapper[2] - row["track"][2] * .2) * scale <= 1 and abs(visual[2] - wrapper[2] * [1.2, 1.1, 1][index]) * scale <= 1 and abs(visual[3] - (7 if state["custom"] else 5)) * scale <= 1, "Wrong slide recipe/native geometry")
+            require(row["track"][0] - 1 / scale <= wrapper[0] <= row["track"][0] + row["track"][2] + 1 / scale, "Native wrapper travel exceeds measured track")
+            if static: require(abs(wrapper[0] - row["track"][0]) * scale <= 1, "Stopped wrapper displaced from first frame")
+        if static: require(row["referenceExact"] is True, "Static lines differ from independent native reference")
+    return {"status": "PASS", "observations": len(rows)}
+
+
+def reconcile_lagging_lines_ios(raw):
+    rows = [json.loads(row) for row in re.findall(r"LAGGING_LINES_OBSERVATION (\{[^\n]+\})", raw)]
+    names = LAGGING_GEOMETRY_NAMES + [name + "-" + str(index) for name in LAGGING_MOTION_NAMES for index in range(4)] + ["retired", "retired-quiet", "fresh-stopped"]
+    result = validate_lagging_lines_rows(rows, names)
+    intervals = [json.loads(row) for row in re.findall(r"LAGGING_LINES_MOTION (\{[^\n]+\})", raw)]
+    require(sorted(row["name"] for row in intervals) == sorted(LAGGING_MOTION_NAMES), "Missing/duplicate LaggingLines motion intervals")
+    for row in intervals:
+        moving = row["name"] not in ["reduced", "duration-zero"]
+        require(row["frames"] == 4 and row["moving"] is moving and len(row["changedPairsPerLine"]) == 3, "Wrong native motion interval")
+        require((row["changedPairs"] > 0 and all(value > 0 for value in row["changedPairsPerLine"])) if moving else (row["changedPairs"] == 0 and row["changedPairsPerLine"] == [0, 0, 0]), "All three native line motion/static discrimination failed")
+    by_name = {row["name"]: row for row in rows}
+    require(by_name["reduced-0"]["state"]["motionEvents"][-1:] == [True] and by_name["resumed-0"]["state"]["motionEvents"][-1:] == [False], "Actual live Reduce Motion events missing")
+    require(by_name["fresh-stopped"]["state"]["rootTag"] != by_name["duration-zero-0"]["state"]["rootTag"], "Retired root reused")
+    require(by_name["compact"]["state"]["rootWidth"] != by_name["percentage-before-compact"]["state"]["rootWidth"], "Percentage host constraint did not change actual width")
+    require(re.findall(r"LAGGING_LINES_BUTTON_LABEL ([^\n]+)", raw) == ["Saving example action"], "Decorative loader changed Button name")
+    original = re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])", raw)
+    require(len(original) == 1 and original == re.findall(r"METER_STYLE_MOTION_RESTORED ([01])", raw), "Original Reduce Motion restoration missing")
+    result.update(motionIntervals=len(intervals), originalAndRestoredMotion=original[0])
     return result
 
 
@@ -937,7 +1004,8 @@ def validate_standard_scope(plan):
     text = cell in ["CAT.text." + gate for gate in ["G04", "G07", "G08", "G09"]] and batch in ["text-style", "text-style-context"]
     circular = cell in ["CAT.circular-progress." + gate for gate in ["G02", "G04", "G08"]] and batch in ["circular-progress", "circular-progress-affected"]
     loader = cell in ["CAT.circle-loader." + gate for gate in ["G04", "G08"]] and batch == "circle-loader"
-    require(meter or progress or text or circular or loader, "Only the authorized component and focused batch are selected")
+    lines = cell in ["CAT.lagging-lines-loader." + gate for gate in ["G04", "G08"]] and batch == "lagging-lines"
+    require(meter or progress or text or circular or loader or lines, "Only the authorized component and focused batch are selected")
 
 
 def main():

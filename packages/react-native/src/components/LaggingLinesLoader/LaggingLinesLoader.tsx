@@ -41,7 +41,7 @@ const MovingLine = ({
       style={{
         position: "absolute",
         width: "20%",
-        transform: [{ translateX: phase.interpolate({ inputRange: [0, 1], outputRange: [0, width] }) }],
+        transform: [{ translateX: enabled ? phase.interpolate({ inputRange: [0, 1], outputRange: [0, width] }) : 0 }],
       }}
     >
       <View
@@ -118,7 +118,7 @@ export const LaggingLinesLoader = forwardRef<TNativeLaggingLinesLoaderRef, TNati
         {...rest}
         ref={ref}
         accessible={exposed}
-        accessibilityLabel={label}
+        accessibilityLabel={exposed ? label : (accessibilityLabel ?? aliasLabel ?? ariaLabel)}
         role="progressbar"
         accessibilityRole="progressbar"
         accessibilityState={{ busy: true }}

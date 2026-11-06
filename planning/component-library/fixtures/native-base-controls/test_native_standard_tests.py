@@ -430,6 +430,42 @@ class StandardTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError,"EXPECTED_PACKAGER_BOUNDARY_NO_SDK"):NATIVE.build_ios_application(admitted,config)
             self.assertEqual((admitted.output/"CodonCircular.app/NativeBinary").read_text(),"unchanged native")
 
+    def test_lagging_scope_selection_and_actual_admission_boundary(self):
+        plan={"cell":"CAT.lagging-lines-loader.G08","nativeStandard":{"platform":"ios","batch":"lagging-lines","output":str(self.root/"never-created")}}
+        NATIVE.validate_standard_scope(plan);self.assertEqual(len(NATIVE.selection("ios","lagging-lines")["ios"]),2)
+        with self.assertRaises(ValueError):NATIVE.selection("android","lagging-lines")
+        for cell in ["CAT.meter.G08","CAT.circle-loader.G08","CAT.lagging-lines-loader.G07"]:
+            with self.assertRaises(ValueError):NATIVE.validate_standard_scope({"cell":cell,"nativeStandard":{"batch":"lagging-lines"}})
+        path=self.root/"lagging.json";path.write_text(json.dumps(plan));env={k:v for k,v in os.environ.items() if k!="CODON_NATIVE_CELL_PREFLIGHT_RECEIPT"}
+        result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(path)],env=env,capture_output=True,text=True,timeout=10)
+        self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((self.root/"never-created").exists())
+
+    def test_lagging_reader_rejects_retained_stopped_displacement_and_physical_geometry_negatives(self):
+        row={"name":"default","backgroundRGB":[255,255,255],"scale":3,"imageWidth":1170,"imageHeight":2532,"parent":[20,300,330,100],"referenceParent":[20,408,330,100],"host":[28,308,235.5,50],"target":[70,308,150,50],"track":[70,333,150,0],"wrappers":[[70,333,30,5] for _ in range(3)],"visuals":[[67,333,36,5],[68.5,333,33,5],[70,333,30,5]],"referenceExact":True,"inkPixels":400,"nativeLabel":"Fetching lines","nativeValue":"busy","state":{"mode":"light","rootTag":51,"visible":True,"custom":False,"rootWidth":150,"layout":{"eventTarget":51,"currentTarget":51,"layout":{"width":150,"height":50}}}}
+        self.assertEqual(NATIVE.validate_lagging_lines_rows([row],["default"])["status"],"PASS")
+        for kind in ["retained-displacement","missing-line","wrong-target","wrong-size","wrong-recipe","physical-outside","paint","numeric-value","duplicate"]:
+            bad=copy.deepcopy(row)
+            if kind=="retained-displacement":bad["wrappers"][0][0]+=63.6
+            elif kind=="missing-line":bad["wrappers"].pop()
+            elif kind=="wrong-target":bad["state"]["layout"]["eventTarget"]=52
+            elif kind=="wrong-size":bad["target"][2]=149
+            elif kind=="wrong-recipe":bad["visuals"][0][2]=30
+            elif kind=="physical-outside":bad["parent"][0]=1000
+            elif kind=="paint":bad["referenceExact"]=False
+            elif kind=="numeric-value":bad["nativeValue"]="50%"
+            with self.subTest(kind=kind),self.assertRaises(ValueError):NATIVE.validate_lagging_lines_rows([bad,bad] if kind=="duplicate" else [bad],["default"])
+        zero=copy.deepcopy(row);zero["name"]="zero";zero["state"]["rootWidth"]=0;zero["state"]["layout"]["layout"]["width"]=0;zero["inkPixels"]=0;zero["target"]=[];zero["track"]=[]
+        self.assertEqual(NATIVE.validate_lagging_lines_rows([zero],["zero"])["status"],"PASS")
+        zero["inkPixels"]=1
+        with self.assertRaises(ValueError):NATIVE.validate_lagging_lines_rows([zero],["zero"])
+        dark=copy.deepcopy(row);dark["name"]="dark";dark["state"]["mode"]="dark";dark["backgroundRGB"]=[16,16,16]
+        self.assertEqual(NATIVE.validate_lagging_lines_rows([dark],["dark"])["status"],"PASS")
+        dark["inkPixels"]=0
+        with self.assertRaises(ValueError):NATIVE.validate_lagging_lines_rows([dark],["dark"])
+        retired=copy.deepcopy(row);retired["name"]="retired";retired["state"]["visible"]=False;retired["state"]["rootTag"]=None;retired["target"]=[];retired["host"]=[];retired["inkPixels"]=0
+        self.assertEqual(NATIVE.validate_lagging_lines_rows([retired],["retired"])["status"],"PASS")
+
+
     def test_circle_loader_scope_selection_and_actual_admission_boundary(self):
         plan={"cell":"CAT.circle-loader.G08","nativeStandard":{"platform":"ios","batch":"circle-loader","output":str(self.root/"never-created")}}
         NATIVE.validate_standard_scope(plan)

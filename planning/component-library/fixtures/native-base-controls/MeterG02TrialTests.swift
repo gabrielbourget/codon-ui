@@ -1121,3 +1121,148 @@ final class CircleLoaderTrialTests: XCTestCase {
         try capture("fresh-stopped",staticPaint:true);tap("Toggle stopped motion");try snapshots("fresh-moving",moving:true)
     }
 }
+
+final class LaggingLinesTrialTests: XCTestCase {
+    private var app: XCUIApplication!
+    private var original: [String:Any] = [:]
+    override func setUpWithError() throws {
+        continueAfterFailure=false;app=XCUIApplication(bundleIdentifier:"dev.codonui.showcase");app.launch();XCTAssertEqual(app.state,.runningForeground);XCUIDevice.shared.orientation = .portrait
+        tap("Reset scene");tap("Loading scene");tap("Light theme");tap("Live window")
+        wait("Actual LaggingLines ref/layout/host") {guard let value=try? self.state() else{return false};return ((value["rootTag"] as? NSNumber)?.intValue ?? 0)>0 && value["layout"] is [String:Any] && ((value["hostWidth"] as? NSNumber)?.doubleValue ?? 0)>0};original=try state()
+    }
+    override func tearDownWithError() throws {
+        let image=XCTAttachment(screenshot:XCUIScreen.main.screenshot());image.name="lagging-final";image.lifetime = .keepAlways;add(image)
+        let tree=XCTAttachment(string:app.debugDescription);tree.name="lagging-final-hierarchy";tree.lifetime = .keepAlways;add(tree)
+    }
+    private func state() throws -> [String:Any] {try XCTUnwrap(JSONSerialization.jsonObject(with:Data(node("loading-lines-native-state").label.utf8)) as? [String:Any])}
+    private func number(_ row:[String:Any],_ key:String) throws -> Double {let result=try XCTUnwrap(row[key] as? NSNumber,key).doubleValue;XCTAssertTrue(result.isFinite);return result}
+    private func rectangle(_ frame:CGRect)->[Double] {[frame.minX,frame.minY,frame.width,frame.height].map(Double.init)}
+    @discardableResult private func capture(_ name:String,staticPaint:Bool) throws -> ([UInt8],[Double]) {
+        reveal(node("loading-lines-pair"));let snapshot=try app.snapshot();var elements:[XCUIElementSnapshot]=[]
+        func visit(_ item:XCUIElementSnapshot){elements.append(item);for child in item.children{visit(child)}};visit(snapshot)
+        func identified(_ id:String)->XCUIElementSnapshot? {let matches=elements.filter{$0.identifier==id};XCTAssertLessThanOrEqual(matches.count,1,"Unique actual snapshot "+id);return matches.first}
+        let current=try XCTUnwrap(JSONSerialization.jsonObject(with:Data(try XCTUnwrap(identified("loading-lines-native-state")).label.utf8)) as? [String:Any]),window=try XCTUnwrap(elements.first{$0.elementType == .window}).frame
+        let parent=try XCTUnwrap(identified("loading-lines-parent")).frame,referenceParent=try XCTUnwrap(identified("loading-lines-reference-parent")).frame,host=identified("loading-lines-host")
+        let target=identified("loading-lines"),track=identified("loading-lines-track"),shot=XCUIScreen.main.screenshot(),image=try XCTUnwrap(shot.image.cgImage),scale=CGFloat(image.width)/window.width
+        XCTAssertEqual(shot.image.imageOrientation,.up);XCTAssertEqual(scale,CGFloat(image.height)/window.height,accuracy:0.01)
+        let actual=try pixels(image,parent,window,scale),reference=try pixels(image,referenceParent,window,scale)
+        let background:UInt8=current["mode"] as? String=="dark" ? 16:255
+        var ink=0;for i in stride(from:0,to:actual.count,by:4){if actual[i] != background || actual[i+1] != background || actual[i+2] != background{ink += 1}}
+        var wrappers:[[Double]]=[],visuals:[[Double]]=[]
+        for index in 0..<3 {if let wrapper=identified("loading-lines-motion-"+String(index)){wrappers.append(rectangle(wrapper.frame))};if let visual=identified("loading-lines-slide-"+String(index)){visuals.append(rectangle(visual.frame))}}
+        let row:[String:Any]=["name":name,"state":current,"parent":rectangle(parent),"referenceParent":rectangle(referenceParent),"host":host.map{rectangle($0.frame)} ?? [],"backgroundRGB":[background,background,background],"target":target.map{rectangle($0.frame)} ?? [],"track":track.map{rectangle($0.frame)} ?? [],"wrappers":wrappers,"visuals":visuals,"scale":scale,"imageWidth":image.width,"imageHeight":image.height,"referenceExact":circularPixelsMatch(actual,reference),"inkPixels":ink,"nativeLabel":target?.label ?? "","nativeValue":target?.value ?? NSNull(),"captureEpochMs":Date().timeIntervalSince1970*1000]
+        let data=try JSONSerialization.data(withJSONObject:row,options:.sortedKeys);FileHandle.standardOutput.write(Data("LAGGING_LINES_OBSERVATION ".utf8)+data+Data("\n".utf8))
+        let json=XCTAttachment(data:data,uniformTypeIdentifier:"public.json");json.name="lagging-"+name+"-receipt";json.lifetime = .keepAlways;add(json);let png=XCTAttachment(screenshot:shot);png.name="lagging-"+name;png.lifetime = .keepAlways;add(png)
+        XCTAssertEqual(Array(actual.prefix(4)),[background,background,background,255],"Actual opaque canvas background");XCTAssertEqual(Array(reference.prefix(4)),[background,background,background,255],"Reference opaque canvas background")
+        XCTAssertEqual(parent.height,100);XCTAssertEqual(parent.size,referenceParent.size);XCTAssertLessThanOrEqual(parent.width,330)
+        if current["visible"] as? Bool==false {XCTAssertNil(target);XCTAssertEqual(ink,0);return(actual,[])}
+        XCTAssertEqual(try number(current,"rootTag"),try number(original,"rootTag"));XCTAssertEqual(try number(current,"detaches"),try number(original,"detaches"))
+        let event=try XCTUnwrap(current["layout"] as? [String:Any]),layout=try XCTUnwrap(event["layout"] as? [String:Any]),width=try number(current,"rootWidth")
+        XCTAssertEqual(try number(event,"eventTarget"),try number(current,"rootTag"));XCTAssertEqual(try number(event,"currentTarget"),try number(current,"rootTag"))
+        XCTAssertEqual(try number(layout,"width"),width,accuracy:1/Double(scale));XCTAssertEqual(try number(layout,"height"),50,accuracy:1/Double(scale))
+        if width==0 {if let root=target{XCTAssertEqual(root.frame.width,0,accuracy:1/scale)};if let currentTrack=track{XCTAssertEqual(currentTrack.frame.width,0,accuracy:1/scale)};XCTAssertEqual(ink,0);XCTAssertTrue(circularPixelsMatch(actual,reference));return(actual,[])}
+        let root=try XCTUnwrap(target),trackFrame=try XCTUnwrap(track).frame,hostFrame=try XCTUnwrap(host).frame;XCTAssertEqual(root.label,"Fetching lines");XCTAssertEqual(root.value as? String,"busy")
+        XCTAssertEqual(root.frame.width,width,accuracy:1/scale);XCTAssertEqual(root.frame.height,50,accuracy:1/scale);XCTAssertEqual(hostFrame.width,try number(current,"hostWidth"),accuracy:1/scale)
+        XCTAssertEqual(hostFrame.height,current["custom"] as? Bool==true ? 60:50,accuracy:1/scale);XCTAssertEqual(trackFrame.width,width,accuracy:1/scale)
+        XCTAssertEqual(wrappers.count,3);XCTAssertEqual(visuals.count,3);XCTAssertGreaterThan(ink,0)
+        for index in 0..<3 {let wrapper=wrappers[index],visual=visuals[index],factor=[1.2,1.1,1.0][index];XCTAssertEqual(wrapper[2],Double(trackFrame.width)*0.2,accuracy:1/Double(scale));XCTAssertEqual(visual[2],wrapper[2]*factor,accuracy:1/Double(scale));XCTAssertEqual(visual[3],current["custom"] as? Bool==true ? 7:5,accuracy:1/Double(scale));XCTAssertGreaterThanOrEqual(wrapper[0],Double(trackFrame.minX)-1/Double(scale));XCTAssertLessThanOrEqual(wrapper[0],Double(trackFrame.maxX)+1/Double(scale));if staticPaint{XCTAssertEqual(wrapper[0],Double(trackFrame.minX),accuracy:1/Double(scale))}}
+        if staticPaint{XCTAssertTrue(circularPixelsMatch(actual,reference),"Whole-parent exact independent native three-line reference")}
+        return(actual,wrappers.map{$0[0]*Double(scale)})
+    }
+    private func snapshots(_ name:String,moving:Bool) throws {
+        if moving{Thread.sleep(forTimeInterval:6.2)}
+        var frames:[[UInt8]]=[],positions:[[Double]]=[]
+        for index in 0..<4 {let captured=try capture(name+"-"+String(index),staticPaint:!moving);frames.append(captured.0);positions.append(captured.1);if index<3{Thread.sleep(forTimeInterval:[0.17,0.43,0.71][index])}}
+        let changed=zip(frames,frames.dropFirst()).filter{!circularPixelsMatch($0.0,$0.1)}.count
+        let perLine=(0..<3).map{index in zip(positions,positions.dropFirst()).filter{abs($0.0[index]-$0.1[index])>1}.count}
+        let row:[String:Any]=["name":name,"frames":4,"moving":moving,"changedPairs":changed,"changedPairsPerLine":perLine];let data=try JSONSerialization.data(withJSONObject:row,options:.sortedKeys);FileHandle.standardOutput.write(Data("LAGGING_LINES_MOTION ".utf8)+data+Data("\n".utf8))
+        if moving {XCTAssertGreaterThan(changed,0);XCTAssertTrue(perLine.allSatisfy{$0>0},"All three real wrappers continue moving beyond two default periods")}
+        else{XCTAssertEqual(changed,0);XCTAssertEqual(perLine,[0,0,0])}
+    }
+
+    private func node(_ id:String)->XCUIElement {app.descendants(matching:.any).matching(identifier:id).firstMatch}
+
+    private func wait(_ message:String,_ predicate:@escaping()->Bool) {
+        let expectation=XCTNSPredicateExpectation(predicate:NSPredicate{_,_ in predicate()},object:nil)
+        XCTAssertEqual(XCTWaiter.wait(for:[expectation],timeout:nativeWorkRemaining()),.completed,message)
+    }
+
+    private func reveal(_ element:XCUIElement) {
+        XCTAssertTrue(element.waitForExistence(timeout:nativeWorkRemaining()));let scroll=app.scrollViews.firstMatch;XCTAssertTrue(scroll.exists)
+        for _ in 0..<24 {
+            let viewport=app.windows.firstMatch.frame.intersection(scroll.frame).insetBy(dx:2,dy:2)
+            if !element.frame.isEmpty && viewport.contains(element.frame){return}
+            let up=element.frame.minY<viewport.minY
+            scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:up ? 0.30:0.75)).press(forDuration:0.05,thenDragTo:scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:up ? 0.70:0.35)))
+        };XCTFail("Unreachable CircleLoader control/canvas "+element.identifier)
+    }
+
+    private func tap(_ name:String) {
+        let control=app.buttons.matching(NSPredicate(format:"label == %@",name)).firstMatch;reveal(control);XCTAssertTrue(control.isHittable);control.tap()
+        if name=="Loading scene"{wait("Actual selected Loading scene"){control.isSelected}}
+    }
+
+    private func pixels(_ image:CGImage,_ frame:CGRect,_ window:CGRect,_ scale:CGFloat) throws -> [UInt8] {
+        XCTAssertTrue(window.contains(frame));let rect=CGRect(x:((frame.minX-window.minX)*scale).rounded(),y:((frame.minY-window.minY)*scale).rounded(),width:(frame.width*scale).rounded(),height:(frame.height*scale).rounded())
+        let crop=try XCTUnwrap(image.cropping(to:rect));var bytes=[UInt8](repeating:0,count:crop.width*crop.height*4)
+        let result=bytes.withUnsafeMutableBytes { buffer -> Bool in
+            guard let context=CGContext(data:buffer.baseAddress,width:crop.width,height:crop.height,bitsPerComponent:8,bytesPerRow:crop.width*4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue|CGBitmapInfo.byteOrder32Big.rawValue) else{return false}
+            context.draw(crop,in:CGRect(x:0,y:0,width:CGFloat(crop.width),height:CGFloat(crop.height)));return true
+        };XCTAssertTrue(result);return bytes
+    }
+
+    private func motionSwitch(_ settings: XCUIApplication) -> XCUIElement {
+        settings.activate()
+        let toggle = settings.switches["Reduce Motion"].firstMatch
+        if toggle.exists { return toggle }
+        for label in ["Accessibility","Motion"] {
+            let entry = settings.staticTexts[label].firstMatch
+            for _ in 0..<12 { if entry.exists && entry.isHittable { break };settings.swipeUp() }
+            XCTAssertTrue(entry.exists && entry.isHittable,"Standard Settings navigation "+label);entry.tap()
+        }
+        XCTAssertTrue(toggle.waitForExistence(timeout:nativeWorkRemaining()));return toggle
+    }
+
+    private func setMotion(_ toggle: XCUIElement, _ expected: String) {
+        if toggle.value as? String != expected {
+            XCTAssertTrue(toggle.isHittable)
+            toggle.coordinate(withNormalizedOffset:CGVector(dx:0.95,dy:0.5)).tap()
+        }
+        wait("Actual Reduce Motion switch "+expected) { toggle.value as? String == expected }
+        let shot = XCTAttachment(screenshot:XCUIScreen.main.screenshot());shot.name="meter-motion-switch-"+expected;shot.lifetime = .keepAlways;add(shot)
+        FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_SWITCH "+expected+"\n").utf8))
+    }
+    func testLaggingLinesGeometryAndProviders() throws {
+        tap("Toggle stopped motion");try capture("default",staticPaint:true)
+        tap("Next line width");try capture("percentage",staticPaint:true)
+        tap("Next line width");try capture("zero",staticPaint:true)
+        tap("Next line width");tap("Toggle fractional lines");try capture("fractional",staticPaint:true)
+        tap("Toggle loader styles");try capture("slide-slot-root",staticPaint:true)
+        tap("Toggle loader colors");try capture("slide-overrides-explicit",staticPaint:true)
+        tap("Toggle loader styles");try capture("explicit-foreground",staticPaint:true)
+        tap("Toggle loader colors");try capture("restored-foreground",staticPaint:true)
+        tap("Toggle fractional lines");try capture("numeric-restored",staticPaint:true)
+        tap("Next line width");try capture("percentage-before-compact",staticPaint:true);let liveWidth=try number(state(),"rootWidth")
+        tap("Dark theme");try capture("dark",staticPaint:true)
+        tap("Compact width");try capture("compact",staticPaint:true);XCTAssertNotEqual(try number(state(),"rootWidth"),liveWidth)
+        tap("Live window");try capture("live-restored",staticPaint:true);XCTAssertEqual(try number(state(),"rootWidth"),liveWidth,accuracy:1.0/3.0)
+        tap("Light theme");try capture("light-restored",staticPaint:true)
+        let button=app.buttons["loading-owned-button"].firstMatch;reveal(button)
+        let tree=XCTAttachment(string:app.debugDescription);tree.name="lagging-button-hierarchy";tree.lifetime = .keepAlways;add(tree)
+        FileHandle.standardOutput.write(Data(("LAGGING_LINES_BUTTON_LABEL "+button.label+"\n").utf8));XCTAssertEqual(button.label,"Saving example action")
+    }
+    func testLaggingLinesMotionAndRetirement() throws {
+        let settings=XCUIApplication(bundleIdentifier:"com.apple.Preferences");settings.launch();let toggle=motionSwitch(settings),originalMotion=try XCTUnwrap(toggle.value as? String)
+        XCTAssertTrue(["0","1"].contains(originalMotion));FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_ORIGINAL "+originalMotion+"\n").utf8))
+        addTeardownBlock{[self] in let current=self.motionSwitch(settings);self.setMotion(current,originalMotion);XCTAssertEqual(current.value as? String,originalMotion);self.app.activate();FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_RESTORED "+originalMotion+"\n").utf8))}
+        setMotion(toggle,"0");app.activate();try snapshots("moving",moving:true)
+        setMotion(motionSwitch(settings),"1");app.activate();reveal(node("loading-lines-native-state"));wait("Real Reduce Motion event"){((try? self.state()["motionEvents"] as? [Bool]) ?? []).last==true};try snapshots("reduced",moving:false)
+        setMotion(motionSwitch(settings),"0");app.activate();reveal(node("loading-lines-native-state"));wait("Real motion restoration event"){((try? self.state()["motionEvents"] as? [Bool]) ?? []).last==false};try snapshots("resumed",moving:true)
+        tap("Toggle stopped motion");try snapshots("duration-zero",moving:false)
+        let previous=try state();tap("Toggle lines presence");wait("Actual lines ref null"){(try? self.state()["rootTag"]) is NSNull}
+        try capture("retired",staticPaint:false);Thread.sleep(forTimeInterval:6.2);try capture("retired-quiet",staticPaint:false);XCTAssertEqual(try number(state(),"detaches"),try number(previous,"detaches")+1)
+        tap("Toggle lines presence");wait("Fresh actual lines ref"){((try? self.state()["rootTag"] as? NSNumber)?.doubleValue ?? 0)>0};original=try state();XCTAssertNotEqual(try number(original,"rootTag"),try number(previous,"rootTag"));XCTAssertEqual(try number(original,"attaches"),try number(previous,"attaches")+1)
+        try capture("fresh-stopped",staticPaint:true);tap("Toggle stopped motion");try snapshots("fresh-moving",moving:true)
+        tap("Next line width");try snapshots("resized-moving",moving:true)
+    }
+}
