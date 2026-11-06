@@ -846,4 +846,51 @@ class ListItemControls(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp);plan=root/"plan.json";plan.write_text(json.dumps({"cell":"CAT.list-box-item.G08","nativeStandard":{"platform":"ios","batch":"list-box-item","output":str(root/"never-created")}}));env={k:v for k,v in os.environ.items() if k!="CODON_NATIVE_CELL_PREFLIGHT_RECEIPT"};result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(plan)],env=env,capture_output=True,text=True,timeout=10);self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((root/"never-created").exists())
 
+class ToggleButtonControls(unittest.TestCase):
+    def test_toggle_button_fixture_copies_event_fields_before_deferred_update(self):
+        repository=ROOT.parents[3]
+        script=r"""
+const fs=require("node:fs"),ts=require("typescript"),assert=require("node:assert/strict")
+const source=fs.readFileSync("apps/native-showcase/src/scenes/ToggleButtonG08Fixture.tsx","utf8")
+const start=source.indexOf("  const record ="),end=source.indexOf("  const changeMode =",start)
+assert(start>=0 && end>start)
+const compiled=ts.transpileModule(source.slice(start,end),{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText
+const pending=[]
+const record=new Function("setEvents","tag",compiled+";return record")(updater=>pending.push(updater),value=>value)
+const original={target:79,currentTarget:81}
+record("press",original)
+original.target=null;original.currentTarget=null
+const saved=pending.shift()([])
+assert.equal(saved[0].target,79)
+assert.equal(saved[0].currentTarget,81,"Deferred updater lost original currentTarget")
+record("out",{target:79,currentTarget:null})
+const next=pending.shift()(saved)
+assert.equal(next[1].currentTarget,null,"An originally null native field must stay null")
+process.stdout.write("PASS original delivered fields retained before deferred updater\n")
+"""
+        result=subprocess.run(["node","-e",script],cwd=repository,capture_output=True,text=True)
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertIn("PASS original delivered",result.stdout)
+
+    def test_toggle_button_real_metadata_and_geometry_reader(self):
+        row=ListItemControls().row();row["state"].update(label="Flag settings",radio=False);row.update(nativeLabel="Flag settings",nativeValue="unchecked",nativeButton=True)
+        self.assertEqual(NATIVE.validate_toggle_button_rows([row],["baseline"])["observations"],1)
+        for key,value in [("nativeButton",False),("nativeValue","checked"),("nativeValue","radio button, unchecked"),("nativeLabel","wrong"),("referenceExact",False),("root",[32,112,200,43])]:
+            bad=copy.deepcopy(row);bad[key]=value
+            with self.subTest(key=key),self.assertRaises(ValueError):NATIVE.validate_toggle_button_rows([bad],["baseline"])
+        raised=copy.deepcopy(row);raised["state"]["raised"]=True;raised["matchedReferenceParent"]=list(row["parent"]);NATIVE.validate_toggle_button_rows([raised],["baseline"]);raised["matchedReferenceParent"][1]+=1/3
+        with self.assertRaisesRegex(ValueError,"physical origin"):NATIVE.validate_toggle_button_rows([raised],["baseline"])
+        radio=copy.deepcopy(row);radio["state"]["radio"]=True;radio.update(nativeButton=False,nativeValue="radio button, unchecked");NATIVE.validate_toggle_button_rows([radio],["baseline"])
+        radio["nativeValue"]="unchecked"
+        with self.assertRaises(ValueError):NATIVE.validate_toggle_button_rows([radio],["baseline"])
+    def test_toggle_button_actual_entry_refuses_unadmitted_and_wrong_platform(self):
+        NATIVE.validate_standard_scope({"cell":"CAT.toggle-button.G08","nativeStandard":{"batch":"toggle-button"}})
+        with self.assertRaises(ValueError):NATIVE.selection("android","toggle-button")
+        with self.assertRaises(ValueError):NATIVE.validate_standard_scope({"cell":"CAT.combo-box.G08","nativeStandard":{"batch":"toggle-button"}})
+        self.assertEqual(len(NATIVE.selection("ios","toggle-button")["ios"]),3)
+        self.assertEqual(len(NATIVE.selection("ios","toggle-button-affected")["ios"]),2)
+        self.assertEqual(NATIVE.selection("ios","toggle-button-style")["ios"],["ToggleButtonTrialTests/testToggleButtonStylesAndConstraints"])
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);plan=root/"plan.json";plan.write_text(json.dumps({"cell":"CAT.toggle-button.G08","nativeStandard":{"platform":"ios","batch":"toggle-button","output":str(root/"never-created")}}));env={k:v for k,v in os.environ.items() if k!="CODON_NATIVE_CELL_PREFLIGHT_RECEIPT"};result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(plan)],env=env,capture_output=True,text=True,timeout=10);self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((root/"never-created").exists())
+
 if __name__ == "__main__": unittest.main()

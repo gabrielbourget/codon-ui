@@ -1,5 +1,5 @@
 import { act, render, screen, userEvent, within } from "@testing-library/react-native"
-import { Dimensions } from "react-native"
+import { Dimensions, processColor, StyleSheet } from "react-native"
 import { SafeAreaInsetsContext } from "react-native-safe-area-context"
 
 import { NativeShowcase } from "../NativeShowcase"
@@ -60,6 +60,7 @@ it("composes accepted owner requests, render foreground, theme orders, geometry 
   await press("Next toggle order")
   await press("Next toggle geometry")
   await press("Toggle explicit toggle color")
+  await act(() => jest.advanceTimersByTime(275))
   expect(screen.getByTestId("toggle-controlled")).toHaveStyle({ backgroundColor: "#2f7d18" })
   await press("Toggle toggle styles")
   expect(screen.getByTestId("toggle-controlled")).toHaveStyle({ marginTop: 5, marginBottom: 10 })
@@ -117,17 +118,22 @@ it("composes switcher guards, independent style slots and the controlled empty k
   await press("Match any condition")
   expect(screen.getByTestId("switcher-state")).toHaveTextContent(/Match key: or\. Request: or\. Requests: 1\./)
   await press("Toggle toggle styles")
+  await act(() => jest.advanceTimersByTime(500))
   expect(screen.getByTestId("toggle-switcher-example")).toHaveStyle({
     marginTop: 5,
     marginBottom: 10,
-    backgroundColor: "#efefef",
   })
+  expect(
+    processColor(StyleSheet.flatten(screen.getByTestId("toggle-switcher-example").props.style).backgroundColor),
+  ).toBe(processColor("#efefef"))
   expect(screen.getByText("Match any condition")).toHaveStyle({
     fontSize: 14,
     fontWeight: "700",
-    color: "#087f8c",
     textTransform: "uppercase",
   })
+  expect(processColor(StyleSheet.flatten(screen.getByText("Match any condition").props.style).color)).toBe(
+    processColor("#087f8c"),
+  )
   await press("Select empty switcher key")
   expect(screen.getByTestId("switcher-state")).toHaveTextContent(/Match key: empty\./)
   expect(screen.getByRole("button", { name: "No condition" }).props.accessibilityState.checked).toBe(true)

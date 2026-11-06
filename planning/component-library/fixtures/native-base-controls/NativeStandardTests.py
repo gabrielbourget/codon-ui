@@ -76,6 +76,9 @@ def verify_selected_app_inputs(plan, app):
 
 
 def selection(platform, batch="meter-g02"):
+    if batch in ["toggle-button", "toggle-button-affected", "toggle-button-style"]:
+        require(platform == "ios", "Current ToggleButton batch is iOS only")
+        return {"ios": (["ToggleButtonTrialTests/testToggleButtonStylesAndConstraints"] if batch == "toggle-button-style" else ["ToggleButtonTrialTests/testToggleButtonActionsAndLifetimes", "ToggleButtonTrialTests/testToggleButtonStylesAndConstraints"] + ([] if batch == "toggle-button-affected" else ["ToggleButtonTrialTests/testToggleButtonMotionAndRetirement"])), "android": []}
     if batch in ["list-box-item", "list-box-item-motion"]:
         require(platform == "ios", "Current ListBoxItem batch is iOS only")
         return {"ios": ["ListBoxItemTrialTests/testListBoxItemMotionAndRetirement"] if batch == "list-box-item-motion" else ["ListBoxItemTrialTests/testListBoxItemActionsAndLifetimes", "ListBoxItemTrialTests/testListBoxItemStylesAndConstraints", "ListBoxItemTrialTests/testListBoxItemMotionAndRetirement"], "android": []}
@@ -244,12 +247,24 @@ def geometry_control_source():
     gallery_start = source.index("private func galleryTrackWidth(");gallery_open = source.index("{", gallery_start);gallery_end = source.index("\n}", gallery_open) + 2
     gallery_predicate = source[gallery_start:gallery_end].replace("private ", "", 1)
     list_predicates = []
-    for signature in ["private func listItemValueMatches(", "private func listItemIntermediate(", "private func listItemSampleRGBA("]:
+    for signature in ["private func toggleButtonMatchedFrame(", "private func toggleButtonValueMatches(", "private func listItemValueMatches(", "private func listItemIntermediate(", "private func listItemSampleRGBA("]:
         start = source.index(signature);opening = source.index("{", start);end = source.index("\n}", opening) + 2
         list_predicates.append(source[start:end].replace("private ", "", 1))
     scroll_start = source.index("private func galleryScrollFraction(");scroll_open = source.index("{", scroll_start);scroll_end = source.index("\n}", scroll_open) + 2
     scroll_predicate = source[scroll_start:scroll_end].replace("private ", "", 1)
     return "import Foundation\n" + "\n".join(list_predicates) + "\n" + scroll_predicate + "\n" + gallery_predicate + "\n" + predicate + "\n" + pixel_predicate + "\n" + shadow_predicate + "\n" + circle_predicate + "\n" + image_predicate + "\n" + '''
+precondition(toggleButtonMatchedFrame([26,328,280,224],[26,327.999958,280,224],3))
+precondition(!toggleButtonMatchedFrame([26,328,280,224],[26,559.999958,280,224],3))
+precondition(!toggleButtonMatchedFrame([26,328,280,224],[26+1.0/3,328,280,224],3))
+precondition(!toggleButtonMatchedFrame([26,328,280,224],[26,328,280,223.0],3))
+precondition(!toggleButtonMatchedFrame([26,328,280,224],[26,328,280,224],0))
+precondition(!toggleButtonMatchedFrame([26,328,280,224],[26,Double.nan,280,224],3))
+precondition(toggleButtonValueMatches("checked",true,false))
+precondition(toggleButtonValueMatches("unchecked",false,false))
+precondition(toggleButtonValueMatches("radio button, checked",true,true))
+precondition(!toggleButtonValueMatches("unchecked",true,false))
+precondition(!toggleButtonValueMatches("radio button, checked",true,false))
+precondition(!toggleButtonValueMatches("checked",true,true))
 let deliveredSample:[String:Any] = ["sampleRGBA":[UInt8]([127,74,39,255])]
 precondition(deliveredSample["sampleRGBA"] as? [Int] == nil)
 let normalizedSample:[String:Any] = ["sampleRGBA":listItemSampleRGBA([127,74,39,255,17,119,51,255])]
@@ -322,7 +337,7 @@ precondition(thumbnailImageContentFrame([0,0,83.25,41.625],2) == [2,2,79.25,37.6
 precondition(thumbnailImageContentFrame([0,0,2,2],2) == nil)
 precondition(thumbnailImageContentFrame([0,0,120,80],-1) == nil)
 precondition(thumbnailImageContentFrame([0,0,Double.nan,80],2) == nil)
-print(#"{\"listItemCases\":20,\"galleryScrollCases\":8,\"galleryTrackCases\":8,\"thumbnailFrameCases\":6,\"circularCases\":6,\"status\":\"PASS\",\"cases\":11,\"pixelCases\":6,\"shadowCases\":6,\"savedNSNumberIntValue\":9,\"savedNSNumberDoubleValue\":9.9998779296875}"#)
+print(#"{\"toggleButtonCases\":12,\"listItemCases\":20,\"galleryScrollCases\":8,\"galleryTrackCases\":8,\"thumbnailFrameCases\":6,\"circularCases\":6,\"status\":\"PASS\",\"cases\":11,\"pixelCases\":6,\"shadowCases\":6,\"savedNSNumberIntValue\":9,\"savedNSNumberDoubleValue\":9.9998779296875}"#)
 '''
 
 
@@ -367,7 +382,7 @@ def build_ios(session, config=None):
     sdk = session.run("geometry-sdk", ["/usr/bin/xcrun", "--sdk", "macosx", "--show-sdk-path"]).strip()
     swift = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift"
     control_result = json.loads(session.run("geometry-controls", [swift, "-sdk", sdk, "-module-cache-path", str(CACHE / "swift-host-module-cache"), str(controls)]))
-    require(control_result.get("listItemCases") == 20 and control_result.get("galleryScrollCases") == 8 and control_result.get("galleryTrackCases") == 8 and control_result.get("thumbnailFrameCases") == 6 and control_result.get("circularCases") == 6 and control_result.get("status") == "PASS" and control_result.get("cases") == 11 and control_result.get("pixelCases") == 6 and control_result.get("shadowCases") == 6, "Actual Swift geometry/pixel/shadow controls failed")
+    require(control_result.get("toggleButtonCases") == 12 and control_result.get("listItemCases") == 20 and control_result.get("galleryScrollCases") == 8 and control_result.get("galleryTrackCases") == 8 and control_result.get("thumbnailFrameCases") == 6 and control_result.get("circularCases") == 6 and control_result.get("status") == "PASS" and control_result.get("cases") == 11 and control_result.get("pixelCases") == 6 and control_result.get("shadowCases") == 6, "Actual Swift geometry/pixel/shadow controls failed")
     derived = CACHE / "ios"
     # A source revision gets an unambiguous observer registration; old installed revisions remain intact.
     bundle_id = "dev.codonui.lab.components.r" + digest(ROOT / "MeterG02TrialTests.swift")[:12]
@@ -600,7 +615,7 @@ def run_ios(session, config, app, observer):
     try: raw = session.run("xctest", argv)
     except ValueError as error:
         sdk_error = error;stdout = session.output / "xctest.stdout";raw = stdout.read_text() if stdout.exists() else ""
-    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected", "circle-loader", "lagging-lines", "counter", "list-box-item", "list-box-item-motion"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
+    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected", "circle-loader", "lagging-lines", "counter", "list-box-item", "list-box-item-motion", "toggle-button", "toggle-button-affected", "toggle-button-style"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
         original_motion = re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])", raw)
         restored_motion = re.findall(r"METER_STYLE_MOTION_RESTORED ([01])", raw)
         if original_motion != restored_motion: session.cleanup_errors.append("Original iOS Reduce Motion restoration unverified")
@@ -635,6 +650,7 @@ def run_ios(session, config, app, observer):
     if config.get("batch") == "lagging-lines": result["laggingLines"] = reconcile_lagging_lines_ios(raw)
     if config.get("batch") in ["counter", "counter-values"]: result["counter"] = reconcile_counter_ios(raw, include_motion=config["batch"] == "counter")
     if config.get("batch") in ["list-box-item", "list-box-item-motion"]: result["listBoxItem"] = reconcile_list_item_ios(raw,config,app)
+    if config.get("batch") in ["toggle-button", "toggle-button-affected", "toggle-button-style"]: result["toggleButton"] = reconcile_toggle_button_ios(raw,config)
     if config.get("batch") == "avatar": result["avatar"] = reconcile_avatar_ios(raw)
     if config.get("batch") in ["gallery", "gallery-modes", "gallery-styles", "gallery-remaining"]: result["gallery"] = reconcile_gallery_ios(raw, config["batch"])
     if config.get("batch") in ["thumbnail", "thumbnail-geometry"]: result["thumbnail"] = reconcile_thumbnail_ios(raw, include_lifetime=config["batch"] == "thumbnail")
@@ -861,6 +877,76 @@ def reconcile_counter_ios(raw, include_motion=True):
 
 
 
+
+
+TOGGLE_BUTTON_BEHAVIOR = ["baseline","echo","disabled","held-disabled","restored","state-method","renderer","replaced","retired","fresh","auto-focus","local","local-default-changed","single-group","multiple-group","vetoed","echo-selected","held-canceled","state-requested","local-off","local-on","single-group-selected","multiple-group-selected"]
+TOGGLE_BUTTON_STYLES = ["style-baseline","selected","root-custom","final-style","foreground","explicit-child","square","round","raised","long-narrow","fractional","percentage","auto","small-target","zero","dark","light-restored"]
+
+def validate_toggle_button_rows(rows,names):
+    require(sorted(row["name"] for row in rows)==sorted(names),"Missing/duplicate ToggleButton observations")
+    for row in rows:
+        state,scale=row["state"],row["scale"]
+        require(isinstance(scale,(int,float)) and math.isfinite(scale) and scale>0 and scale==state["scale"],"Wrong ToggleButton scale")
+        parent,reference=row["parent"],row["referenceParent"]
+        require(len(parent)==len(reference)==4 and all(math.isfinite(v) for v in parent+reference) and parent[2:]==reference[2:] and 0<parent[2]<=280 and parent[3]==224,"Wrong ToggleButton parents")
+        for frame in [parent,reference]:
+            x,y,width,height=[math.floor(v*scale+.5) for v in frame]
+            require(0<=x<x+width<=row["imageWidth"] and 0<=y<y+height<=row["imageHeight"],"ToggleButton parent outside physical screenshot")
+        if state.get("raised"):
+            matched=row.get("matchedReferenceParent",[])
+            require(len(matched)==4 and all(math.isfinite(v) for v in matched) and [math.floor(v*scale+.5) for v in matched]==[math.floor(v*scale+.5) for v in parent],"Raised ToggleButton reference moved physical origin")
+        require(row["referenceExact"] is True,"ToggleButton native reference mismatch")
+        if not state["visible"]:
+            require(not row["root"] and row["inkPixels"]==0 and state["rootTag"] is None,"Retired ToggleButton ref/paint remains")
+            continue
+        event=state["layouts"][-1];layout=event["layout"]
+        require(state["rootTag"] and event["target"]==event["currentTarget"]==state["rootTag"],"Original ToggleButton layout/ref differs")
+        if state["zero"]:
+            require(layout["width"]==layout["height"]==0 and row["inkPixels"]==0,"Authored ToggleButton zero/clipping differs")
+            continue
+        require(row["targetCount"]==1 and row["nativeLabel"]==state["label"] and row["nativeEnabled"] is (not state["disabled"]),"ToggleButton name/guard/target differs")
+        require([s.strip() for s in row["nativeValue"].split(",")]==(["radio button"] if state["radio"] else [])+["checked" if state["selected"] else "unchecked"] and (state["radio"] or row["nativeButton"]),"ToggleButton owned Button/radio/check native value differs")
+        root,raw=row["root"],row["referenceRoot"]
+        require(len(root)==len(raw)==4 and all(abs(a-b)*scale<=1 for a,b in zip([root[0]-parent[0],root[1]-parent[1],*root[2:]],[raw[0]-reference[0],raw[1]-reference[1],*raw[2:]])),"ToggleButton actual/reference frames differ")
+        require(all(abs(root[i+2]-layout[key])*scale<=1 for i,key in enumerate(["width","height"])),"ToggleButton layout/native dimensions differ")
+        if isinstance(state["width"],(int,float)):require(abs(root[2]-state["width"])*scale<=1,"ToggleButton authored width differs")
+        require(abs(root[3]-24)*scale<=1 if state["small"] else root[3]>=44-1/scale,"ToggleButton explicit/default target height differs")
+        if state["narrow"]:require(44<root[3] and root[1]+root[3]<=parent[1]+parent[3]-12+1/scale,"Constrained ToggleButton content clipped")
+        for held in row.get("heldContactIntervals",[]):require(held["beganEpochMs"]<=held["disabledOnPressInEpochMs"]<held["endedEpochMs"]-400,"ToggleButton disable was not during held contact")
+    return {"status":"PASS","observations":len(rows)}
+
+
+def reconcile_toggle_button_ios(raw,config=None):
+    config=config or {}
+    retained=[]
+    if config.get("batch") in ["toggle-button-affected","toggle-button-style"]:retained.append(("retainedToggleButtonMotion","testToggleButtonMotionAndRetirement"))
+    if config.get("batch")=="toggle-button-style":retained.append(("retainedToggleButtonOwnership","testToggleButtonActionsAndLifetimes"))
+    for binding,expected in retained:
+        proof=json.loads(bound_file(config[binding]).read_text());require(proof["status"]=="PASS","Retained ToggleButton review did not pass")
+        for source in proof["librarySources"]:bound_file(source)
+        require(json.loads(bound_file(proof["cleanup"]).read_text())["cleanupVerified"],"Retained ToggleButton cleanup unverified")
+        loaded=json.loads(bound_file(proof["loadedObserver"]).read_text());require(loaded["status"]=="PASS" and loaded["observerManifestSHA256"]==proof["observerManifestSHA256"],"Retained ToggleButton loaded observer differs")
+        method=proof["nativeMethod"];require(method["method"]==expected and method["appManifestSHA256"]==proof["appManifestSHA256"] and method["observerManifestSHA256"]==proof["observerManifestSHA256"],"Only the exact clean ToggleButton method/tuple may be reused");native_method(method)
+        prior=bound_file(proof["raw"]).read_text()
+        if expected=="testToggleButtonActionsAndLifetimes":lines=[line for line in prior.splitlines() if line.startswith("TOGGLE_BUTTON_NATIVE_OBSERVATION ") and json.loads(line.split(" ",1)[1])["name"] in TOGGLE_BUTTON_BEHAVIOR]
+        else:lines=[line for line in prior.splitlines() if line.startswith("TOGGLE_BUTTON_NATIVE_MOTION ") or line.startswith("METER_STYLE_MOTION_") or (line.startswith("TOGGLE_BUTTON_NATIVE_OBSERVATION ") and json.loads(line.split(" ",1)[1])["name"] in ["normal-fresh","reduced-fresh"])]
+        raw+="\n"+"\n".join(lines)
+    rows=[json.loads(x) for x in re.findall(r"TOGGLE_BUTTON_NATIVE_OBSERVATION (\{[^\n]+\})",raw)];result=validate_toggle_button_rows(rows,TOGGLE_BUTTON_BEHAVIOR+TOGGLE_BUTTON_STYLES+["normal-fresh","reduced-fresh"]);named={row["name"]:row for row in rows};tag=named["baseline"]["state"]["rootTag"]
+    require(named["vetoed"]["state"]["actions"]==1 and not named["vetoed"]["state"]["selected"] and named["echo-selected"]["state"]["selected"],"ToggleButton veto/echo differs")
+    for name in ["echo","disabled","held-disabled","restored","state-method","renderer"]:require(named[name]["state"]["rootTag"]==tag,"ToggleButton lost original renderer/ref")
+    require(named["held-canceled"]["state"]["canceled"] and len(named["held-canceled"]["heldContactIntervals"])==1 and named["held-canceled"]["state"]["actions"]==2,"ToggleButton held cancellation differs")
+    state=named["state-requested"]["state"];require(state["selected"] and state["actions"]==3 and state["phases"]==["change","press","change","press","change","press","change"],"ToggleButton state request/order differs")
+    require(not named["local-off"]["state"]["selected"] and named["local-on"]["state"]["selected"] and named["local-default-changed"]["state"]["selected"],"ToggleButton local/default read-once differs")
+    for name in ["single-group-selected","multiple-group-selected"]:require(named[name]["state"]["selected"] and named[name]["state"]["groupKeys"]==[0],"ToggleButton group native selection differs")
+    require(named["fresh"]["state"]["rootTag"]!=tag and named["multiple-group-selected"]["state"]["actions"]==7,"ToggleButton lifetime/action count differs")
+    motion=[json.loads(x) for x in re.findall(r"TOGGLE_BUTTON_NATIVE_MOTION (\{[^\n]+\})",raw)];require(len(motion)==2 and {m["name"] for m in motion}=={"normal","reduced"},"ToggleButton motion intervals missing")
+    for interval in motion:
+        trace=interval["state"]["motionTrace"];require([x["name"] for x in trace]==["select","interrupt","retarget","retire","fresh"],"ToggleButton motion schedule differs")
+        samples=interval["samples"];moving=[row for row in samples if row["captureStartedEpochMs"]>=trace[0]["epochMs"] and row["captureEpochMs"]<trace[3]["epochMs"]];require(len(moving)>1 and any(row["inkPixels"]==0 for row in samples),"ToggleButton motion/retirement samples missing")
+        if interval["reduced"]:require(all(row["referenceExact"] for row in moving),"Reduced ToggleButton interpolates")
+        else:require(any(len(row["sampleRGBA"])==4 and 17<row["sampleRGBA"][0]<187 and 51<row["sampleRGBA"][1]<119 and 34<row["sampleRGBA"][2]<51 and row["sampleRGBA"][3]==255 for row in moving),"Actual ToggleButton interpolation missing")
+    original=re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])",raw);restored=re.findall(r"METER_STYLE_MOTION_RESTORED ([01])",raw);require(len(original)==1 and original==restored,"ToggleButton original Reduce Motion restoration unverified")
+    result.update(motionIntervals=2,motionFrames=sum(len(m["samples"]) for m in motion),originalMotionValue=original[0]);return result
 
 
 LIST_ITEM_BEHAVIOR = ["baseline","echo","string-zero","empty-key","programmatic-off","disabled","readonly","held-disabled","restored","child-callback","renderer","replaced","retired","fresh","vetoed","echo-selected","held-canceled"]
@@ -1424,7 +1510,8 @@ def validate_standard_scope(plan):
     gallery = cell in ["CAT.thumbnail-showcase." + gate for gate in ["G04", "G08"]] and batch in ["gallery", "gallery-modes", "gallery-styles", "gallery-remaining"]
     avatar = cell in ["CAT.avatar." + gate for gate in ["G04", "G08"]] and batch == "avatar"
     list_item = cell in ["CAT.list-box-item." + gate for gate in ["G04", "G08"]] and batch in ["list-box-item", "list-box-item-motion"]
-    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item, "Only the authorized component and focused batch are selected")
+    toggle_button = cell in ["CAT.toggle-button." + gate for gate in ["G04", "G08"]] and batch in ["toggle-button", "toggle-button-affected", "toggle-button-style"]
+    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item or toggle_button, "Only the authorized component and focused batch are selected")
 
 
 def main():

@@ -11,6 +11,7 @@ import {
   type ToggleSwitcherItem,
 } from "@codon-ui/react-native"
 
+import { ToggleButtonG08Fixture } from "./ToggleButtonG08Fixture"
 import { ToggleCompositionScene } from "./ToggleCompositionScene"
 
 const MATCH_OPTIONS: readonly ToggleSwitcherItem[] = [
@@ -24,6 +25,7 @@ const MATCH_OPTIONS: readonly ToggleSwitcherItem[] = [
 ]
 
 export const ToggleScene = () => {
+  const [nativeChecks, setNativeChecks] = useState(false)
   const [showComposition, setShowComposition] = useState(false)
   const [selected, setSelected] = useState(false)
   const [veto, setVeto] = useState(false)
@@ -54,8 +56,12 @@ export const ToggleScene = () => {
   const order = AVAILABLE_THEMING_ORDER_CODES[orderIndex]
   const geometry = AVAILABLE_CORNER_GEOMETRY_CODES[geometryIndex]
 
+  if (nativeChecks) return <ToggleButtonG08Fixture />
   return (
     <View style={styles.scene}>
+      <Button raised={false} onPress={() => setNativeChecks(true)}>
+        Prepare standalone ToggleButton checks
+      </Button>
       <Button onPress={() => setShowComposition((current) => !current)}>Toggle complete toggle composition</Button>
       {showComposition ? <ToggleCompositionScene /> : null}
       <Text elementType="h2" variant="h3">
