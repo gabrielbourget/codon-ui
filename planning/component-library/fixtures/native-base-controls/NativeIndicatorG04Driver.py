@@ -3,6 +3,7 @@ import pathlib,json,subprocess,datetime,time,os,signal,hashlib,shutil,sys,re
 prepared=pathlib.Path(sys.argv[1]).resolve();batch='P01';selection=json.loads((prepared/'profile-batches.json').read_text())[batch];root=prepared/'installed-P01-attempt-1';device='2244051E-D143-40F5-BEF1-7B4CCFC355A1';cli='/Applications/Xcode.app/Contents/Developer/usr/bin/simctl';now=lambda:datetime.datetime.now(datetime.timezone.utc).isoformat()
 sys.path.insert(0,str(pathlib.Path(__file__).resolve().parent))
 from NativeCellVerification import load_admission
+from NativeXCTestBatch import bind_runtime_deadline
 cellPreflight=load_admission(__file__,'CAT.indicator.G04',{'ios':selection['selectedMethods'],'android':[]})
 sourceProofPath=prepared/'prepared/production-source-proof.json';sourceProofSHA=hashlib.sha256(sourceProofPath.read_bytes()).hexdigest();sourceProof=json.loads(sourceProofPath.read_text());assert sourceProof['currentNativeRuntimeFilesVerified']==704 and sourceProof['currentFixtureFilesVerified']==9 and sourceProof['drift']==[]
 sourceRepo=pathlib.Path(__file__).resolve().parents[4]
@@ -83,7 +84,7 @@ def reconcile_selected_results(native_summary, raw_log, selected_methods):
 
 def tests(label,methods):
  assert time.time()<work-8
- case=root/label;case.mkdir();args=['/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild','test-without-building','-jobs','1','-xctestrun',str(prepared/('Indicator-'+batch+'-bound.xctestrun')),'-destination','platform=iOS Simulator,id='+device,'-destination-timeout',str(max(1,int(work-time.time()-8))),'-parallel-testing-enabled','NO','-maximum-concurrent-test-simulator-destinations','1','-test-timeouts-enabled','NO']+['-only-testing:CodonNativeComponents/'+m for m in methods]+['-resultBundlePath',str(case/'Indicator.xcresult')];selectedMethods.extend(methods);(case/'command.json').write_text(json.dumps({'argv':args,'startedUTC':now(),'methods':methods,'workDeadlineEpochSeconds':work},indent=2));return run(label,args)
+ case=root/label;case.mkdir();runtime=bind_runtime_deadline(prepared/('Indicator-'+batch+'-bound.xctestrun'),case/'Runtime.xctestrun',work);(case/'runtime-binding.json').write_text(json.dumps(runtime,indent=2));args=['/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild','test-without-building','-jobs','1','-xctestrun',runtime['path'],'-destination','platform=iOS Simulator,id='+device,'-destination-timeout',str(max(1,int(work-time.time()-8))),'-parallel-testing-enabled','NO','-maximum-concurrent-test-simulator-destinations','1','-test-timeouts-enabled','NO']+['-only-testing:CodonNativeComponents/'+m for m in methods]+['-resultBundlePath',str(case/'Indicator.xcresult')];selectedMethods.extend(methods);(case/'command.json').write_text(json.dumps({'argv':args,'startedUTC':now(),'methods':methods,'workDeadlineEpochSeconds':work},indent=2));return run(label,args)
 def work_cutoff(_signal,_frame):raise TimeoutError('Mechanical1680s work cutoff;120s cleanup remains reserved')
 def interrupted(signum,_frame):raise InterruptedError('Received signal '+str(signum))
 signal.signal(signal.SIGALRM,work_cutoff);signal.signal(signal.SIGTERM,interrupted);signal.signal(signal.SIGINT,interrupted)

@@ -1,5 +1,5 @@
 """Finite packet-bound XCTest lifecycle. No preference mutation or installation fallback."""
-import pathlib,json,subprocess,datetime,time,os,signal,hashlib,shutil,sys,re,plistlib
+import math,pathlib,json,subprocess,datetime,time,os,signal,hashlib,shutil,sys,re,plistlib
 sha=lambda p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()
 
 def read_bound(item):
@@ -82,6 +82,19 @@ def apply_destination_artifacts(target,packet):
   for key in ['TestHostPath','TestBundlePath','UITargetAppPath']:target.pop(key,None)
  validate_destination_artifacts(target,packet)
  return target
+
+def bind_runtime_deadline(prepared, output, deadline):
+ assert isinstance(deadline,(int,float)) and not isinstance(deadline,bool) and math.isfinite(deadline) and deadline>time.time(),'Live overall work deadline required'
+ prepared,output=pathlib.Path(prepared),pathlib.Path(output)
+ assert not output.exists(),'Never overwrite an uncertain runtime XCTest invocation'
+ data=plistlib.loads(prepared.read_bytes());target=data['CodonNativeComponents']
+ assert not target.get('SkipTestIdentifiers'),'Do not drop compiled assertions'
+ for field in ['EnvironmentVariables','TestingEnvironmentVariables']:target.setdefault(field,{})['CODON_NATIVE_WORK_DEADLINE_UNIX']=str(deadline)
+ target['TestTimeoutsEnabled']=False
+ for field in ['DefaultTestExecutionTimeAllowance','MaximumTestExecutionTimeAllowance']:target.pop(field,None)
+ output.write_bytes(plistlib.dumps(data))
+ return {'path':str(output),'sha256':sha(output),'preparedSHA256':sha(prepared),'workDeadlineEpochSeconds':deadline,'selectedMethods':target.get('OnlyTestIdentifiers')}
+
 
 def bind_xctestrun(packet_path):
  packet=json.loads(packet_path.read_text());app=validate_packet(packet)
@@ -180,7 +193,7 @@ def main():
 
  def tests(label,methods):
   assert time.time()<work-8
-  case=root/label;case.mkdir();args=['/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild','test-without-building','-jobs','1','-xctestrun',str(read_bound(packet['xctestrun'])),'-destination','platform=iOS Simulator,id='+device,'-destination-timeout',str(max(1,int(work-time.time()-8))),'-parallel-testing-enabled','NO','-maximum-concurrent-test-simulator-destinations','1','-test-timeouts-enabled','NO']+['-only-testing:CodonNativeComponents/'+m for m in methods]+['-resultBundlePath',str(case/'Batch.xcresult')];selectedMethods.extend(methods);(case/'command.json').write_text(json.dumps({'argv':args,'startedUTC':now(),'methods':methods,'workDeadlineEpochSeconds':work},indent=2));return run(label,args)
+  case=root/label;case.mkdir();runtime=bind_runtime_deadline(read_bound(packet['xctestrun']),case/'Runtime.xctestrun',work);(case/'runtime-binding.json').write_text(json.dumps(runtime,indent=2));args=['/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild','test-without-building','-jobs','1','-xctestrun',runtime['path'],'-destination','platform=iOS Simulator,id='+device,'-destination-timeout',str(max(1,int(work-time.time()-8))),'-parallel-testing-enabled','NO','-maximum-concurrent-test-simulator-destinations','1','-test-timeouts-enabled','NO']+['-only-testing:CodonNativeComponents/'+m for m in methods]+['-resultBundlePath',str(case/'Batch.xcresult')];selectedMethods.extend(methods);(case/'command.json').write_text(json.dumps({'argv':args,'startedUTC':now(),'methods':methods,'workDeadlineEpochSeconds':work},indent=2));return run(label,args)
  def work_cutoff(_signal,_frame):raise TimeoutError('Mechanical1680s work cutoff;120s cleanup remains reserved')
  def interrupted(signum,_frame):raise InterruptedError('Received signal '+str(signum))
  signal.signal(signal.SIGALRM,work_cutoff);signal.signal(signal.SIGTERM,interrupted);signal.signal(signal.SIGINT,interrupted)

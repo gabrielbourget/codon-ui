@@ -1,6 +1,14 @@
 import XCTest
 import CoreGraphics
 
+private func nativeWorkRemaining() -> TimeInterval {
+    guard let text = ProcessInfo.processInfo.environment["CODON_NATIVE_WORK_DEADLINE_UNIX"],
+          let deadline = Double(text), deadline.isFinite else {
+        preconditionFailure("Missing admitted native work deadline")
+    }
+    return max(0, deadline - Date().timeIntervalSince1970)
+}
+
 final class PlaceholderG04TrialTests: XCTestCase {
     private var app: XCUIApplication!
     override func setUpWithError() throws {
@@ -11,14 +19,14 @@ final class PlaceholderG04TrialTests: XCTestCase {
         try tap("Live window")
         try tap("Light theme")
         try tap("Text/Button scene")
-        XCTAssertTrue(node("placeholder-g02-state").waitForExistence(timeout: 5))
+        XCTAssertTrue(node("placeholder-g02-state").waitForExistence(timeout: nativeWorkRemaining()))
         try tap("Reset scene")
         try tap("G02 prepare placeholder")
         XCTAssertEqual(try state()["actions"] as? Int, 0)
     }
     private func node(_ id: String) -> XCUIElement { app.descendants(matching: .any).matching(identifier: id).firstMatch }
     private func reveal(_ element: XCUIElement) throws {
-        XCTAssertTrue(element.waitForExistence(timeout: 5))
+        XCTAssertTrue(element.waitForExistence(timeout: nativeWorkRemaining()))
         let scroll = app.scrollViews.firstMatch
         for _ in 0..<20 {
             if scroll.frame.insetBy(dx: 1, dy: 8).contains(element.frame) && element.isHittable { return }
@@ -141,7 +149,7 @@ final class PlaceholderG04TrialTests: XCTestCase {
         try reveal(target)
         target.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).press(forDuration: 0.2)
         let action = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in (try? self.state()["actions"] as? Int) == 1 }, object: nil)
-        XCTAssertEqual(XCTWaiter.wait(for: [action], timeout: 5), .completed)
+        XCTAssertEqual(XCTWaiter.wait(for: [action], timeout: nativeWorkRemaining()), .completed)
         let after = try state()
         retain(original, after)
         let rows = try XCTUnwrap(after["receipts"] as? [[String: Any]])

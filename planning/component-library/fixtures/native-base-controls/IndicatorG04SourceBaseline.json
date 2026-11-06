@@ -93,9 +93,13 @@
     "testI11CallbackFinalStyle": 57.506
   },
   "nativeProofScope": "Static controls do not execute Swift or prove component behavior; actual native results remain separate attributed receipts.",
-  "currentSourceSHA256": "1b2994bafeadb603118aa914c64a8494d1a99d6f668ae78918314b8ad6e0d954",
+  "currentSourceSHA256": "4ad93d58c882ff2c29980728400bdf8ec5f272fb19c63b2f0560b0082a964769",
   "timingPolicyHelperBodySHA256": {
-    "setUpWithError": "a35e9d4a2ee5e33204f493cbb73f37f1e8191cd913c75ac4efa81bb8d46d8550"
+    "setUpWithError": "320c6673bb9722f135a421e382f271e4f8c2163ff479a108e15e60dcc7da9549",
+    "wait": "710e08c3f24b000fe52ed69088c3c567d0f3b5688d77f490b7b8bcc6923ee7b9",
+    "reveal": "42e3458453dd127a3c9740d65680f2d6efc4461bb4f239b7bdc5b7988961ffd5",
+    "readableParagraph": "6e8c59e58c128c02d3adc1bc284d109ae9401ccf8709ec26ca537a6ff90eef66",
+    "ownedEndpointShot": "8325ad1278bd92afe396b4fc08fa864db8b180ebfa9663b2ba3be62359368b00"
   },
-  "timingPolicyRevision": "Removed executionTimeAllowance180 only; original executedSourceSHA256 and original helper fingerprints retained as historical. Current assertions and nine method bodies unchanged."
+  "timingPolicyRevision": "Original executedSourceSHA256 and original fingerprints preserved. Current source removes180s method policy and5/10s UI setup/endpoint cutoffs only; admitted remaining work deadline replaces these durations. All predicates, observations, exact color/geometry/ref assertions and inverted quiet intervals remain."
 }

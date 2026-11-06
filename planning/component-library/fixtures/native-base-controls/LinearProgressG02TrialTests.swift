@@ -1,6 +1,14 @@
 import XCTest
 import UIKit
 
+private func nativeWorkRemaining() -> TimeInterval {
+    guard let text = ProcessInfo.processInfo.environment["CODON_NATIVE_WORK_DEADLINE_UNIX"],
+          let deadline = Double(text), deadline.isFinite else {
+        preconditionFailure("Missing admitted native work deadline")
+    }
+    return max(0, deadline - Date().timeIntervalSince1970)
+}
+
 // Four paired G02 cohorts. Product/source identity and guest lifecycle remain root-owned.
 final class LinearProgressG02TrialTests: XCTestCase {
     private let app = XCUIApplication(bundleIdentifier: "dev.codonui.showcase")
@@ -46,10 +54,10 @@ final class LinearProgressG02TrialTests: XCTestCase {
     }
     private func wait(_ message: String, _ predicate: @escaping () -> Bool) {
         let gate = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in predicate() }, object: nil)
-        XCTAssertEqual(XCTWaiter.wait(for: [gate], timeout: 10), .completed, message)
+        XCTAssertEqual(XCTWaiter.wait(for: [gate], timeout: nativeWorkRemaining()), .completed, message)
     }
     private func reveal(_ element: XCUIElement, blocked: Bool = false) {
-        XCTAssertTrue(element.waitForExistence(timeout: 10))
+        XCTAssertTrue(element.waitForExistence(timeout: nativeWorkRemaining()))
         let scroll = app.scrollViews.firstMatch
         XCTAssertTrue(scroll.exists)
         for _ in 0..<16 {

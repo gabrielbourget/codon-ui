@@ -1,6 +1,14 @@
 import XCTest
 import UIKit
 
+private func nativeWorkRemaining() -> TimeInterval {
+    guard let text = ProcessInfo.processInfo.environment["CODON_NATIVE_WORK_DEADLINE_UNIX"],
+          let deadline = Double(text), deadline.isFinite else {
+        preconditionFailure("Missing admitted native work deadline")
+    }
+    return max(0, deadline - Date().timeIntervalSince1970)
+}
+
 // BEGIN TAG_G02_PURE_CHECKS
 struct TagG02OwnerState {
     let raw: String
@@ -89,7 +97,7 @@ final class TagG02TrialTests: XCTestCase {
         XCTAssertEqual(app.state, .runningForeground)
         XCTAssertFalse(app.keyboards.firstMatch.exists)
         tap("Reset scene"); tap("Tag scene")
-        XCTAssertTrue(node("tag-state").waitForExistence(timeout: 10))
+        XCTAssertTrue(node("tag-state").waitForExistence(timeout: nativeWorkRemaining()))
         wait("Fresh Tag defaults and delivered native layout") {
             guard let current = try? self.observe() else { return false }
             return !current.state.owner && current.state.echo && current.state.requests == 0
@@ -108,10 +116,10 @@ final class TagG02TrialTests: XCTestCase {
     }
     private func wait(_ message: String, _ predicate: @escaping () -> Bool) {
         let gate = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in predicate() }, object: nil)
-        XCTAssertEqual(XCTWaiter.wait(for: [gate], timeout: 10), .completed, message)
+        XCTAssertEqual(XCTWaiter.wait(for: [gate], timeout: nativeWorkRemaining()), .completed, message)
     }
     private func reveal(_ element: XCUIElement, blocked: Bool = false) {
-        XCTAssertTrue(element.waitForExistence(timeout: 10))
+        XCTAssertTrue(element.waitForExistence(timeout: nativeWorkRemaining()))
         let scroll = app.scrollViews.firstMatch
         for _ in 0..<16 {
             let frame = element.frame

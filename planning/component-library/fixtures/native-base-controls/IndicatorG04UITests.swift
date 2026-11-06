@@ -1,6 +1,14 @@
 import XCTest
 import UIKit
 
+private func nativeWorkRemaining() -> TimeInterval {
+    guard let text = ProcessInfo.processInfo.environment["CODON_NATIVE_WORK_DEADLINE_UNIX"],
+          let deadline = Double(text), deadline.isFinite else {
+        preconditionFailure("Missing admitted native work deadline")
+    }
+    return max(0, deadline - Date().timeIntervalSince1970)
+}
+
 // Actual native layout receipts and same-frame stock View pixels; no authored JS geometry oracle.
 final class IndicatorG04TrialTests: XCTestCase {
     private lazy var app = XCUIApplication(bundleIdentifier: "dev.codonui.showcase")
@@ -22,8 +30,8 @@ final class IndicatorG04TrialTests: XCTestCase {
         XCTAssertEqual(app.state, .runningForeground, "Root prelaunches the matched Display scene")
         XCTAssertFalse(app.keyboards.firstMatch.exists)
         if !app.staticTexts["Indicators and segments"].exists { tap("Indicator/Segment scene") }
-        XCTAssertTrue(app.staticTexts["Indicators and segments"].waitForExistence(timeout: 10))
-        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label == %@", "G04 prepare Indicator")).firstMatch.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["Indicators and segments"].waitForExistence(timeout: nativeWorkRemaining()))
+        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label == %@", "G04 prepare Indicator")).firstMatch.waitForExistence(timeout: nativeWorkRemaining()))
     }
 
     override func tearDownWithError() throws {
@@ -39,10 +47,10 @@ final class IndicatorG04TrialTests: XCTestCase {
     }
     private func wait(_ message: String, _ predicate: @escaping () -> Bool) {
         let gate = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in predicate() }, object: nil)
-        XCTAssertEqual(XCTWaiter.wait(for: [gate], timeout: 10), .completed, message)
+        XCTAssertEqual(XCTWaiter.wait(for: [gate], timeout: nativeWorkRemaining()), .completed, message)
     }
     private func reveal(_ element: XCUIElement, blocked: Bool = false) {
-        XCTAssertTrue(element.waitForExistence(timeout: 10))
+        XCTAssertTrue(element.waitForExistence(timeout: nativeWorkRemaining()))
         let scroll = app.scrollViews.firstMatch
         XCTAssertTrue(scroll.exists)
         for _ in 0..<16 {
@@ -195,7 +203,7 @@ final class IndicatorG04TrialTests: XCTestCase {
     }
 
     private func readableParagraph(_ element: XCUIElement, _ label: String) throws {
-        XCTAssertTrue(element.waitForExistence(timeout: 10))
+        XCTAssertTrue(element.waitForExistence(timeout: nativeWorkRemaining()))
         let fullText = element.label
         let scroll = app.scrollViews.firstMatch
         let window = app.windows.firstMatch.frame
@@ -482,7 +490,7 @@ final class IndicatorG04TrialTests: XCTestCase {
                 return false
             }
         }
-        let result = XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: predicate, object: nil)], timeout: 10)
+        let result = XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: predicate, object: nil)], timeout: nativeWorkRemaining())
         try mark(label + "-native-endpoint-observations", ["state": row, "samples": observations,
             "requiredConsecutiveExactNativeSnapshots": 2, "endpointReached": result == .completed,
             "scope": "Wait for actual declared Button foreground endpoint; no color tolerance or fixed sleep"])
@@ -682,7 +690,7 @@ final class IndicatorG04AXInitializationProbe: XCTestCase {
         continueAfterFailure = false
         let app = XCUIApplication(bundleIdentifier: "dev.codonui.showcase")
         XCTAssertEqual(app.state, .runningForeground, "GUI admission must leave the existing app foreground")
-        XCTAssertTrue(app.windows.firstMatch.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.windows.firstMatch.waitForExistence(timeout: nativeWorkRemaining()))
         XCTAssertFalse(app.keyboards.firstMatch.exists)
         let root = try app.snapshot()
         var elements: [XCUIElementSnapshot] = []
