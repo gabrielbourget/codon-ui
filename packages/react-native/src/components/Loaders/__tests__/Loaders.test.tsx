@@ -454,3 +454,25 @@ it("NATIVE.loaders.002 rejects invalid native dimensions and colors", async () =
     /unsupported native color/,
   )
 })
+
+it("keeps the stopped CircleLoader first frame through a late driver update and subsequent resize", async () => {
+  jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(false)
+  const motion = captureMotion()
+  const { rerender } = await render(<CircleLoader />)
+  const phase = motion.timings[0].value
+  await rerender(<CircleLoader duration={0} />)
+  await act(() => phase.setValue(0.875))
+  await rerender(<CircleLoader duration={0} size={40} />)
+  expect(part("circle-loader-spinner")).toHaveStyle({ width: 40, transform: [{ rotate: "0deg" }] })
+})
+
+it("does not contribute an implicit Loading name from a decorative CircleLoader to its Button", async () => {
+  await render(
+    <Button>
+      Saving example action
+      <CircleLoader />
+    </Button>,
+  )
+  expect(part("circle-loader").props.accessible).toBe(false)
+  expect(part("circle-loader").props.accessibilityLabel).toBeUndefined()
+})

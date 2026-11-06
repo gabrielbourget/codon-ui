@@ -80,3 +80,33 @@ it("composes duration strings, percent and zero dimensions, track transparency a
   await press("Toggle transparent track")
   expect(part("loading-circle-spinner")).toHaveStyle({ borderColor: "rgba(127, 127, 127, 0.22)" })
 })
+
+it("keeps fractional ring, independent root, real layout state and removal controls in the maintained scene", async () => {
+  const press = await enterLoadingScene()
+  const state = () => JSON.parse(screen.getByTestId("loading-native-state").props.accessibilityLabel)
+  await press("Toggle stopped motion")
+  await press("Toggle fractional circle")
+  expect(part("loading-circle-spinner")).toHaveStyle({ width: 33.25, height: 33.25 })
+  await press("Toggle loader styles")
+  expect(part("loading-circle")).toHaveStyle({ width: 72, height: 60 })
+  expect(part("loading-circle-reference")).toHaveStyle({ width: 33.25, height: 33.25, borderTopColor: "#087f8c" })
+  await act(() =>
+    part("loading-circle").props.onLayout({
+      target: 41,
+      currentTarget: 41,
+      nativeEvent: { layout: { x: 0, y: 0, width: 72, height: 60 } },
+    }),
+  )
+  expect(state().layout).toEqual({
+    eventTarget: 41,
+    currentTarget: 41,
+    nativeTarget: null,
+    layout: { x: 0, y: 0, width: 72, height: 60 },
+  })
+  await press("Toggle circle presence")
+  expect(screen.queryByTestId("loading-circle")).toBeNull()
+  expect(state().visible).toBe(false)
+  await press("Toggle circle presence")
+  expect(part("loading-circle-spinner")).toHaveStyle({ width: 33.25 })
+  expect(state()).toMatchObject({ visible: true, stopped: true, fractional: true, rootWidth: 72, rootHeight: 60 })
+})

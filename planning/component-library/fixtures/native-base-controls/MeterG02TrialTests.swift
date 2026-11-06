@@ -970,3 +970,154 @@ final class CircularProgressTrialTests: XCTestCase {
         try observeCircularMotion("reduced",reduced:true)
     }
 }
+
+
+final class CircleLoaderTrialTests: XCTestCase {
+    private var app: XCUIApplication!
+    private var original: [String:Any] = [:]
+    override func setUpWithError() throws {
+        continueAfterFailure=false
+        app=XCUIApplication(bundleIdentifier:"dev.codonui.showcase");app.launch();XCTAssertEqual(app.state,.runningForeground)
+        XCUIDevice.shared.orientation = .portrait
+        tap("Reset scene");tap("Loading scene");tap("Light theme");tap("Live window")
+        wait("Actual CircleLoader ref/layout") {
+            guard let state=try? self.state(),let tag=state["rootTag"] as? NSNumber else{return false}
+            return tag.intValue>0 && state["layout"] is [String:Any]
+        };original=try state()
+    }
+    override func tearDownWithError() throws {
+        let shot=XCTAttachment(screenshot:XCUIScreen.main.screenshot());shot.name="circle-loader-final";shot.lifetime = .keepAlways;add(shot)
+        let tree=XCTAttachment(string:app.debugDescription);tree.name="circle-loader-final-hierarchy";tree.lifetime = .keepAlways;add(tree)
+    }
+    private func node(_ id:String)->XCUIElement {app.descendants(matching:.any).matching(identifier:id).firstMatch}
+    private func wait(_ message:String,_ predicate:@escaping()->Bool) {
+        let expectation=XCTNSPredicateExpectation(predicate:NSPredicate{_,_ in predicate()},object:nil)
+        XCTAssertEqual(XCTWaiter.wait(for:[expectation],timeout:nativeWorkRemaining()),.completed,message)
+    }
+    private func reveal(_ element:XCUIElement) {
+        XCTAssertTrue(element.waitForExistence(timeout:nativeWorkRemaining()));let scroll=app.scrollViews.firstMatch;XCTAssertTrue(scroll.exists)
+        for _ in 0..<24 {
+            let viewport=app.windows.firstMatch.frame.intersection(scroll.frame).insetBy(dx:2,dy:2)
+            if !element.frame.isEmpty && viewport.contains(element.frame){return}
+            let up=element.frame.minY<viewport.minY
+            scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:up ? 0.30:0.75)).press(forDuration:0.05,thenDragTo:scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:up ? 0.70:0.35)))
+        };XCTFail("Unreachable CircleLoader control/canvas "+element.identifier)
+    }
+    private func tap(_ name:String) {
+        let control=app.buttons.matching(NSPredicate(format:"label == %@",name)).firstMatch;reveal(control);XCTAssertTrue(control.isHittable);control.tap()
+        if name=="Loading scene"{wait("Actual selected Loading scene"){control.isSelected}}
+    }
+    private func state() throws -> [String:Any] {try XCTUnwrap(JSONSerialization.jsonObject(with:Data(node("loading-native-state").label.utf8)) as? [String:Any])}
+    private func number(_ value:[String:Any],_ name:String) throws -> Double {
+        let result=try XCTUnwrap(value[name] as? NSNumber,name).doubleValue;XCTAssertTrue(result.isFinite);return result
+    }
+    private func pixels(_ image:CGImage,_ frame:CGRect,_ window:CGRect,_ scale:CGFloat) throws -> [UInt8] {
+        XCTAssertTrue(window.contains(frame));let rect=CGRect(x:((frame.minX-window.minX)*scale).rounded(),y:((frame.minY-window.minY)*scale).rounded(),width:(frame.width*scale).rounded(),height:(frame.height*scale).rounded())
+        let crop=try XCTUnwrap(image.cropping(to:rect));var bytes=[UInt8](repeating:0,count:crop.width*crop.height*4)
+        let result=bytes.withUnsafeMutableBytes { buffer -> Bool in
+            guard let context=CGContext(data:buffer.baseAddress,width:crop.width,height:crop.height,bitsPerComponent:8,bytesPerRow:crop.width*4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue|CGBitmapInfo.byteOrder32Big.rawValue) else{return false}
+            context.draw(crop,in:CGRect(x:0,y:0,width:CGFloat(crop.width),height:CGFloat(crop.height)));return true
+        };XCTAssertTrue(result);return bytes
+    }
+    private func mark(_ row:[String:Any],_ shot:XCUIScreenshot) throws {
+        let name=try XCTUnwrap(row["name"] as? String),data=try JSONSerialization.data(withJSONObject:row,options:.sortedKeys)
+        FileHandle.standardOutput.write(Data("CIRCLE_LOADER_OBSERVATION ".utf8)+data+Data("\n".utf8))
+        let json=XCTAttachment(data:data,uniformTypeIdentifier:"public.json");json.name="circle-loader-"+name+"-receipt";json.lifetime = .keepAlways;add(json)
+        let image=XCTAttachment(screenshot:shot);image.name="circle-loader-"+name;image.lifetime = .keepAlways;add(image)
+    }
+    @discardableResult private func capture(_ name:String,staticPaint:Bool) throws -> [UInt8] {
+        reveal(node("loading-circle-pair"));let current=try state(),window=app.windows.firstMatch.frame,a=node("loading-circle-parent").frame,b=node("loading-circle-reference-parent").frame
+        let shot=XCUIScreen.main.screenshot(),image=try XCTUnwrap(shot.image.cgImage),scale=CGFloat(image.width)/window.width
+        XCTAssertEqual(scale,CGFloat(image.height)/window.height,accuracy:0.01);XCTAssertEqual(shot.image.imageOrientation,.up)
+        let actual=try pixels(image,a,window,scale),reference=try pixels(image,b,window,scale),target=node("loading-circle")
+        var ink=0;for i in stride(from:0,to:actual.count,by:4){if actual[i]<255 || actual[i+1]<255 || actual[i+2]<255{ink += 1}}
+        let row:[String:Any]=["name":name,"state":current,"parent":[a.minX,a.minY,a.width,a.height],"referenceParent":[b.minX,b.minY,b.width,b.height],"scale":scale,"imageWidth":image.width,"imageHeight":image.height,"referenceExact":circularPixelsMatch(actual,reference),"inkPixels":ink,"nativeType":target.exists ? target.elementType.rawValue : -1,"nativeLabel":target.exists ? target.label:"","nativeValue":target.exists ? target.value ?? NSNull():NSNull(),"captureEpochMs":Date().timeIntervalSince1970*1000]
+        try mark(row,shot)
+        if current["visible"] as? Bool==false {XCTAssertFalse(target.exists);XCTAssertEqual(ink,0);return actual}
+        XCTAssertEqual(try number(current,"rootTag"),try number(original,"rootTag"));XCTAssertEqual(try number(current,"detaches"),try number(original,"detaches"))
+        let event=try XCTUnwrap(current["layout"] as? [String:Any]),layout=try XCTUnwrap(event["layout"] as? [String:Any])
+        XCTAssertEqual(try number(event,"eventTarget"),try number(current,"rootTag"));XCTAssertEqual(try number(event,"currentTarget"),try number(current,"rootTag"))
+        for key in ["width","height"]{XCTAssertEqual(try number(layout,key),try number(current,key=="width" ? "rootWidth":"rootHeight"),accuracy:1/Double(scale))}
+        if try number(current,"size")>0 {
+            XCTAssertTrue(target.exists);XCTAssertEqual(target.label,"Saving circle")
+            XCTAssertTrue(target.elementType == .other || target.elementType == .progressIndicator)
+            XCTAssertNil((target.value as? String)?.range(of:"[0-9]",options:.regularExpression),"Indeterminate loader must not invent numeric value")
+            XCTAssertGreaterThan(ink,0)
+        } else {XCTAssertEqual(ink,0,"Exactly white parent for zero ring")}
+        if staticPaint{XCTAssertTrue(circularPixelsMatch(actual,reference),"Actual static ring against independent native reference")}
+        return actual
+    }
+    private func snapshots(_ label:String,moving:Bool) throws {
+        if moving{Thread.sleep(forTimeInterval:1.7)}
+        var values:[[UInt8]]=[]
+        for index in 0..<4 {values.append(try capture(label+"-"+String(index),staticPaint:!moving));Thread.sleep(forTimeInterval:index%2==0 ? 0.17:0.29)}
+        let changes=zip(values,values.dropFirst()).filter{!circularPixelsMatch($0.0,$0.1)}.count
+        let report:[String:Any]=["name":label,"frames":values.count,"changedPairs":changes,"moving":moving]
+        let reportData=try JSONSerialization.data(withJSONObject:report,options:.sortedKeys)
+        FileHandle.standardOutput.write(Data("CIRCLE_LOADER_MOTION ".utf8)+reportData+Data("\n".utf8))
+        if moving{XCTAssertGreaterThan(changes,0,"Real repeating native motion after two default periods")}
+        else{XCTAssertTrue(values.dropFirst().allSatisfy{circularPixelsMatch(values[0],$0)},"Stopped/reduced native frame must remain exact")}
+    }
+    func testCircleLoaderGeometryAndProviders() throws {
+        tap("Toggle stopped motion");try capture("default",staticPaint:true)
+        tap("Next circle size");try capture("large",staticPaint:true)
+        tap("Next circle size");try capture("zero",staticPaint:true)
+        tap("Next circle size");tap("Toggle fractional circle");try capture("fractional",staticPaint:true)
+        tap("Toggle loader styles");try capture("root-independent",staticPaint:true)
+        tap("Toggle loader colors");try capture("explicit-colors",staticPaint:true)
+        tap("Toggle transparent track");try capture("transparent",staticPaint:true)
+        tap("Toggle transparent track");try capture("track-restored",staticPaint:true)
+        tap("Toggle loader colors");try capture("foreground-restored",staticPaint:true)
+        tap("Toggle loader styles");tap("Toggle fractional circle");try capture("root-restored",staticPaint:true)
+        tap("Dark theme");try capture("dark",staticPaint:true)
+        tap("Compact width");try capture("compact",staticPaint:true)
+        tap("Live window");try capture("live-restored",staticPaint:true)
+        tap("Light theme");try capture("light-restored",staticPaint:true)
+        let button=app.buttons["loading-owned-button"].firstMatch
+        reveal(button)
+        let hierarchy=XCTAttachment(string:app.debugDescription);hierarchy.name="circle-loader-button-hierarchy";hierarchy.lifetime = .keepAlways;add(hierarchy)
+        FileHandle.standardOutput.write(Data(("CIRCLE_LOADER_BUTTON_LABEL "+button.label+"\n").utf8))
+        XCTAssertEqual(button.label,"Saving example action","Owned loader stays decorative in Button content")
+    }
+    private func motionSwitch(_ settings: XCUIApplication) -> XCUIElement {
+        settings.activate()
+        let toggle = settings.switches["Reduce Motion"].firstMatch
+        if toggle.exists { return toggle }
+        for label in ["Accessibility","Motion"] {
+            let entry = settings.staticTexts[label].firstMatch
+            for _ in 0..<12 { if entry.exists && entry.isHittable { break };settings.swipeUp() }
+            XCTAssertTrue(entry.exists && entry.isHittable,"Standard Settings navigation "+label);entry.tap()
+        }
+        XCTAssertTrue(toggle.waitForExistence(timeout:nativeWorkRemaining()));return toggle
+    }
+    private func setMotion(_ toggle: XCUIElement, _ expected: String) {
+        if toggle.value as? String != expected {
+            XCTAssertTrue(toggle.isHittable)
+            toggle.coordinate(withNormalizedOffset:CGVector(dx:0.95,dy:0.5)).tap()
+        }
+        wait("Actual Reduce Motion switch "+expected) { toggle.value as? String == expected }
+        let shot = XCTAttachment(screenshot:XCUIScreen.main.screenshot());shot.name="meter-motion-switch-"+expected;shot.lifetime = .keepAlways;add(shot)
+        FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_SWITCH "+expected+"\n").utf8))
+    }
+    func testCircleLoaderMotionAndRetirement() throws {
+        let settings=XCUIApplication(bundleIdentifier:"com.apple.Preferences");settings.launch()
+        let toggle=motionSwitch(settings),originalMotion=try XCTUnwrap(toggle.value as? String)
+        XCTAssertTrue(["0","1"].contains(originalMotion));FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_ORIGINAL "+originalMotion+"\n").utf8))
+        addTeardownBlock{[self] in let current=self.motionSwitch(settings);self.setMotion(current,originalMotion);XCTAssertEqual(current.value as? String,originalMotion);self.app.activate();FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_RESTORED "+originalMotion+"\n").utf8))}
+        setMotion(toggle,"0");app.activate();try snapshots("moving",moving:true)
+        setMotion(motionSwitch(settings),"1");app.activate();reveal(node("loading-native-state"))
+        wait("Live actual Reduce Motion event"){((try? self.state()["motionEvents"] as? [Bool]) ?? []).last==true}
+        try snapshots("reduced",moving:false)
+        setMotion(motionSwitch(settings),"0");app.activate();reveal(node("loading-native-state"))
+        wait("Live motion restoration event"){((try? self.state()["motionEvents"] as? [Bool]) ?? []).last==false}
+        try snapshots("resumed",moving:true)
+        tap("Toggle stopped motion");try snapshots("duration-zero",moving:false)
+        let previous=try state();tap("Toggle circle presence")
+        wait("Actual ref null"){(try? self.state()["rootTag"]) is NSNull}
+        try capture("retired",staticPaint:false);Thread.sleep(forTimeInterval:1.7);try capture("retired-quiet",staticPaint:false)
+        let retired=try state();XCTAssertEqual(try number(retired,"detaches"),try number(previous,"detaches")+1)
+        tap("Toggle circle presence");wait("Fresh real View ref"){((try? self.state()["rootTag"] as? NSNumber)?.doubleValue ?? 0)>0}
+        original=try state();XCTAssertNotEqual(try number(original,"rootTag"),try number(previous,"rootTag"));XCTAssertEqual(try number(original,"attaches"),try number(previous,"attaches")+1)
+        try capture("fresh-stopped",staticPaint:true);tap("Toggle stopped motion");try snapshots("fresh-moving",moving:true)
+    }
+}

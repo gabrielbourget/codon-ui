@@ -76,6 +76,9 @@ def verify_selected_app_inputs(plan, app):
 
 
 def selection(platform, batch="meter-g02"):
+    if batch == "circle-loader":
+        require(platform == "ios", "CircleLoader current batch is iOS-only")
+        return {"ios": ["CircleLoaderTrialTests/testCircleLoaderGeometryAndProviders", "CircleLoaderTrialTests/testCircleLoaderMotionAndRetirement"], "android": []}
     if batch == "circular-progress-affected":
         require(platform == "ios", "Affected CircularProgress methods are iOS-only")
         return {"ios": ["CircularProgressTrialTests/testCircularGeometrySemanticsAndSlots", "CircularProgressTrialTests/testCircularInterruptionAndRetirement"], "android": []}
@@ -251,13 +254,16 @@ def build_ios_application(session, config):
     product = verify_product(base)
     freeze = json.loads(bound_file(config["baseApplicationSourceFreeze"]).read_text())
     freeze = freeze.get("sourceFilesSHA256", freeze)
+    selected_runtime = set()
     for item in config.get("additionalApplicationSources", []):
         path = bound_file(item)
-        require(path.is_relative_to(REPO / "apps/native-showcase/src"), "Additional private app source must belong to showcase")
-        freeze.setdefault(str(path.relative_to(REPO)), item["sha256"])
+        require(path.suffix in [".ts", ".tsx"] and any(path.is_relative_to((REPO / root).resolve()) for root in ["apps/native-showcase/src", "packages/react-native/src"]), "Additional runtime source must be owned TypeScript")
+        name = str(path.relative_to(REPO.resolve()))
+        selected_runtime.add(name)
+        freeze.setdefault(name, item["sha256"])
     current = {name: digest(REPO / name) for name in freeze}
     drift = [name for name in freeze if freeze[name] != current[name]]
-    require(all(name.startswith("apps/native-showcase/src/") and name.endswith((".ts", ".tsx")) for name in drift), "Unexpected native/config/library drift: " + repr(drift))
+    require(all((name.startswith("apps/native-showcase/src/") or name in selected_runtime) and name.endswith((".ts", ".tsx")) for name in drift), "Unexpected unbound native/config/library drift: " + repr(drift))
     target = session.output / "CodonCircular.app"
     shutil.copytree(product, target)
     write(session.output / "source-freeze.json", current)
@@ -269,7 +275,9 @@ def build_ios_application(session, config):
     require(all(actual[name] == expected for name, expected in base["filesSHA256"].items() if name != "main.jsbundle"), "Cached native/config/assets bytes changed")
     mapped = mapped_owned_sources(source_map, current)
     require(all((REPO / name).read_text() == body for name, body in mapped.items()), "Application map contains stale source")
-    require("apps/native-showcase/src/scenes/CircularProgressFixture.tsx" in mapped, "Current CircularProgress fixture missing from bundle")
+    for item in config.get("requiredMappedApplicationSources", []):
+        path = bound_file(item)
+        require(str(path.relative_to(REPO)) in mapped, "Selected application fixture missing from bundle: " + str(path))
     result = identity(target)
     result.update(sourceFilesSHA256={str(REPO / name): value for name, value in current.items()}, sourceFreeze={"path": str(session.output / "source-freeze.json"), "sha256": digest(session.output / "source-freeze.json")}, packagerMap=str(source_map), packagerMapSHA256=digest(source_map))
     write(session.output / "map-proof.json", {"matchedOwnedSourceCount": len(mapped), "sourceFilesSHA256": {name: digest(REPO / name) for name in mapped}, "unchangedNativeAndAssets": True, "baseManifestSHA256": base["manifestSHA256"], "sourceDrift": drift})
@@ -403,10 +411,13 @@ def build_android_application(session, config):
     require(Path(config["gradleUserHome"]).is_dir(), "Explicit existing Gradle cache required")
     base = json.loads(bound_file(config["baseApplicationIdentity"]).read_text()); old_apk = verify_product(base)
     freeze = json.loads(bound_file(config["baseApplicationSourceFreeze"]).read_text())
+    selected_runtime = set()
     for item in config.get("additionalApplicationSources", []):
         path = bound_file(item)
-        require(path.is_relative_to(REPO / "apps/native-showcase/src"), "Additional private app source must belong to showcase")
-        freeze.setdefault(str(path.relative_to(REPO)), item["sha256"])
+        require(path.suffix in [".ts", ".tsx"] and any(path.is_relative_to((REPO / root).resolve()) for root in ["apps/native-showcase/src", "packages/react-native/src"]), "Additional runtime source must be owned TypeScript")
+        name = str(path.relative_to(REPO.resolve()))
+        selected_runtime.add(name)
+        freeze.setdefault(name, item["sha256"])
     current = {name: digest(REPO / name) for name in freeze}
     drift = [name for name in freeze if freeze[name] != current[name]]
     require(all(name.startswith("apps/native-showcase/src/") and name.endswith((".ts", ".tsx")) for name in drift), "Unexpected native/config/library input drift: " + repr(drift))
@@ -505,7 +516,7 @@ def run_ios(session, config, app, observer):
     try: raw = session.run("xctest", argv)
     except ValueError as error:
         sdk_error = error;stdout = session.output / "xctest.stdout";raw = stdout.read_text() if stdout.exists() else ""
-    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
+    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected", "circle-loader"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
         original_motion = re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])", raw)
         restored_motion = re.findall(r"METER_STYLE_MOTION_RESTORED ([01])", raw)
         if original_motion != restored_motion: session.cleanup_errors.append("Original iOS Reduce Motion restoration unverified")
@@ -536,6 +547,7 @@ def run_ios(session, config, app, observer):
             loaded = json.loads(bound_file(retained["loadedObserver"]).read_text())
             require(loaded["status"] == "PASS" and loaded["observerManifestSHA256"] == retained["observerManifestSHA256"], "Retained actually loaded observer mismatch")
             result["retainedCircularProvider"] = native_method(retained)
+    if config.get("batch") == "circle-loader": result["circleLoader"] = reconcile_circle_loader_ios(raw)
     if config.get("batch") == "linear-progress-risk": result["linearProgressRisk"] = reconcile_linear_progress_risk_ios(raw)
     if config.get("batch") == "meter-style": result["styleObservations"] = reconcile_ios_styles(raw)
     if config.get("batch") == "meter-style-affected":
@@ -575,6 +587,54 @@ def validate_circular_rows(rows, expected):
         else: require(row["inkPixels"] == 0, "Zero native dimension must not paint")
         if name != "context-label": require(row["referenceExact"] is True, "Actual drawing differs from independent native reference")
     return {"status": "PASS", "observations": len(rows)}
+
+
+
+LOADER_GEOMETRY_NAMES = ["default", "large", "zero", "fractional", "root-independent", "explicit-colors", "transparent", "track-restored", "foreground-restored", "root-restored", "dark", "compact", "live-restored", "light-restored"]
+LOADER_MOTION_NAMES = ["moving", "reduced", "resumed", "duration-zero", "fresh-moving"]
+
+
+def validate_circle_loader_rows(rows, expected):
+    require(sorted(row["name"] for row in rows) == sorted(expected), "Missing/duplicate CircleLoader observations")
+    for row in rows:
+        state, scale = row["state"], row["scale"]
+        require(isinstance(scale, (int, float)) and math.isfinite(scale) and scale > 0, "Invalid CircleLoader screenshot scale")
+        parent = row["parent"]
+        require(len(parent) == 4 and all(math.isfinite(value) for value in parent) and parent[2:] == [104, 88], "Wrong CircleLoader measurement parent")
+        require(row["inkPixels"] >= 0, "Invalid painted count")
+        if state["visible"] is False:
+            require(state["rootTag"] is None and row["inkPixels"] == 0 and not row["nativeLabel"], "Retired loader must be absent")
+            continue
+        event, tag = state["layout"], state["rootTag"]
+        require(isinstance(tag, (int, float)) and tag > 0, "Actual loader ref missing")
+        require(event["eventTarget"] == event["currentTarget"] == tag, "Original CircleLoader layout/ref target mismatch")
+        for key in ["width", "height"]:
+            require(abs(event["layout"][key] - state["root" + key.title()]) <= 1 / scale, "Wrong actual CircleLoader root dimensions")
+        if state["size"] == 0: require(row["inkPixels"] == 0, "Zero CircleLoader parent is not exactly white")
+        else:
+            require(row["inkPixels"] > 0 and row["nativeLabel"] == "Saving circle", "Actual CircleLoader paint/name missing")
+            require(not re.search(r"[0-9]", str(row.get("nativeValue") or "")), "Indeterminate CircleLoader invented numeric value")
+        if row["name"] in LOADER_GEOMETRY_NAMES or row["name"].startswith(("reduced-", "duration-zero-", "fresh-stopped")):
+            require(row["referenceExact"] is True, "Static loader differs from independent native reference")
+    return {"status": "PASS", "observations": len(rows)}
+
+
+def reconcile_circle_loader_ios(raw):
+    rows = [json.loads(row) for row in re.findall(r"CIRCLE_LOADER_OBSERVATION (\{[^\n]+\})", raw)]
+    expected = LOADER_GEOMETRY_NAMES + [name + "-" + str(index) for name in LOADER_MOTION_NAMES for index in range(4)] + ["retired", "retired-quiet", "fresh-stopped"]
+    result = validate_circle_loader_rows(rows, expected)
+    motion = [json.loads(row) for row in re.findall(r"CIRCLE_LOADER_MOTION (\{[^\n]+\})", raw)]
+    require(sorted(row["name"] for row in motion) == sorted(LOADER_MOTION_NAMES), "Missing/duplicate native motion intervals")
+    for row in motion:
+        moving = row["name"] in ["moving", "resumed", "fresh-moving"]
+        require(row["frames"] == 4 and row["moving"] is moving and (row["changedPairs"] > 0 if moving else row["changedPairs"] == 0), "Real native motion/static frame discrimination failed")
+    by_name = {row["name"]: row for row in rows}
+    require(by_name["reduced-0"]["state"]["motionEvents"][-1:] == [True] and by_name["resumed-0"]["state"]["motionEvents"][-1:] == [False], "Actual live Reduce Motion events missing")
+    require(by_name["fresh-stopped"]["state"]["rootTag"] != by_name["duration-zero-0"]["state"]["rootTag"], "Fresh insertion reused retired root")
+    originals = re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])", raw)
+    require(len(originals) == 1 and originals == re.findall(r"METER_STYLE_MOTION_RESTORED ([01])", raw), "Exact original Reduce Motion restoration missing")
+    result.update(motionIntervals=len(motion), originalAndRestoredMotion=originals[0])
+    return result
 
 
 def reconcile_text_style_ios(raw, config, app):
@@ -872,11 +932,12 @@ def execute(plan, admission):
 
 def validate_standard_scope(plan):
     cell, batch = plan["cell"], plan["nativeStandard"].get("batch", "meter-g02")
-    meter = cell.startswith("CAT.meter.") and batch != "linear-progress-risk"
+    meter = cell.startswith("CAT.meter.") and batch.startswith("meter-")
     progress = cell in ["CAT.linear-progress." + gate for gate in ["G04", "G07", "G08", "G09"]] and batch == "linear-progress-risk"
     text = cell in ["CAT.text." + gate for gate in ["G04", "G07", "G08", "G09"]] and batch in ["text-style", "text-style-context"]
     circular = cell in ["CAT.circular-progress." + gate for gate in ["G02", "G04", "G08"]] and batch in ["circular-progress", "circular-progress-affected"]
-    require(meter or progress or text or circular, "Only the authorized component and focused batch are selected")
+    loader = cell in ["CAT.circle-loader." + gate for gate in ["G04", "G08"]] and batch == "circle-loader"
+    require(meter or progress or text or circular or loader, "Only the authorized component and focused batch are selected")
 
 
 def main():

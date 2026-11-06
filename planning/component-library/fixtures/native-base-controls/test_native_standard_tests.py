@@ -412,6 +412,53 @@ class StandardTests(unittest.TestCase):
             self.assertEqual(code, 0 if not failed and clean else 1)
             record = json.loads((out / "terminal.json").read_text());self.assertEqual(record["cleanupVerified"], clean);self.assertEqual(record["gatePromotions"], 0)
 
+    def test_cached_ios_refresh_requires_exact_bound_changed_library_runtime(self):
+        repo=self.root/"repo";runtime=repo/"packages/react-native/src/components/Control.tsx";runtime.parent.mkdir(parents=True);runtime.write_text("current runtime")
+        base=self.root/"Base.app";base.mkdir();(base/"main.jsbundle").write_text("old bundle");(base/"NativeBinary").write_text("unchanged native")
+        item=self.root/"identity.json";item.write_text(json.dumps(NATIVE.identity(base)))
+        freeze=self.root/"freeze.json";freeze.write_text(json.dumps({str(runtime.relative_to(repo)):"0"*64}))
+        config={"baseApplicationIdentity":{"path":str(item),"sha256":NATIVE.digest(item)},"baseApplicationSourceFreeze":{"path":str(freeze),"sha256":NATIVE.digest(freeze)}}
+        class Boundary:
+            def __init__(inner,output):inner.output=output;output.mkdir()
+            def run(inner,*args):raise RuntimeError("EXPECTED_PACKAGER_BOUNDARY_NO_SDK")
+        with patch.object(NATIVE,"REPO",repo):
+            rejected=Boundary(self.root/"rejected")
+            with self.assertRaisesRegex(ValueError,"unbound"):NATIVE.build_ios_application(rejected,config)
+            self.assertFalse((rejected.output/"CodonCircular.app").exists())
+            config["additionalApplicationSources"]=[{"path":str(runtime),"sha256":NATIVE.digest(runtime)}]
+            admitted=Boundary(self.root/"admitted")
+            with self.assertRaisesRegex(RuntimeError,"EXPECTED_PACKAGER_BOUNDARY_NO_SDK"):NATIVE.build_ios_application(admitted,config)
+            self.assertEqual((admitted.output/"CodonCircular.app/NativeBinary").read_text(),"unchanged native")
+
+    def test_circle_loader_scope_selection_and_actual_admission_boundary(self):
+        plan={"cell":"CAT.circle-loader.G08","nativeStandard":{"platform":"ios","batch":"circle-loader","output":str(self.root/"never-created")}}
+        NATIVE.validate_standard_scope(plan)
+        self.assertEqual(NATIVE.selection("ios","circle-loader")["ios"],["CircleLoaderTrialTests/testCircleLoaderGeometryAndProviders","CircleLoaderTrialTests/testCircleLoaderMotionAndRetirement"])
+        with self.assertRaises(ValueError):NATIVE.selection("android","circle-loader")
+        with self.assertRaises(ValueError):NATIVE.validate_standard_scope({"cell":"CAT.meter.G08","nativeStandard":{"batch":"circle-loader"}})
+        with self.assertRaises(ValueError):NATIVE.validate_standard_scope({"cell":"CAT.circle-loader.G07","nativeStandard":{"batch":"circle-loader"}})
+        path=self.root/"loader-plan.json";path.write_text(json.dumps(plan))
+        env={k:v for k,v in os.environ.items() if k!="CODON_NATIVE_CELL_PREFLIGHT_RECEIPT"}
+        result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(path)],env=env,capture_output=True,text=True,timeout=10)
+        self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((self.root/"never-created").exists())
+
+    def test_loader_reader_fractional_geometry_targets_zero_and_exact_paint_controls(self):
+        row={"name":"fractional","scale":3,"parent":[16,250,104,88],"referenceExact":True,"inkPixels":900,"nativeLabel":"Saving circle","nativeValue":None,"state":{"visible":True,"size":33.25,"rootWidth":33.25,"rootHeight":33.25,"rootTag":691,"layout":{"eventTarget":691,"currentTarget":691,"layout":{"width":33.333333333,"height":33.333333333}}}}
+        self.assertEqual(NATIVE.validate_circle_loader_rows([row],["fractional"])["status"],"PASS")
+        for kind in ["wrong-target","wrong-size","blank","paint","numeric-value","wrong-parent","duplicate"]:
+            value=copy.deepcopy(row)
+            if kind=="wrong-target":value["state"]["layout"]["eventTarget"]=692
+            elif kind=="wrong-size":value["state"]["layout"]["layout"]["height"]=32.5
+            elif kind=="blank":value["inkPixels"]=0
+            elif kind=="paint":value["referenceExact"]=False
+            elif kind=="numeric-value":value["nativeValue"]="25%"
+            elif kind=="wrong-parent":value["parent"][2]=103
+            with self.subTest(kind=kind),self.assertRaises(ValueError):NATIVE.validate_circle_loader_rows([value,value] if kind=="duplicate" else [value],["fractional"])
+        zero=copy.deepcopy(row);zero["name"]="zero";zero["state"]["size"]=0;zero["inkPixels"]=0
+        self.assertEqual(NATIVE.validate_circle_loader_rows([zero],["zero"])["status"],"PASS")
+        zero["inkPixels"]=1
+        with self.assertRaises(ValueError):NATIVE.validate_circle_loader_rows([zero],["zero"])
+
     def test_circular_scope_selection_and_real_missing_admission_stop(self):
         for platform in ["ios", "android"]:
             plan={"cell":"CAT.circular-progress.G08" if platform=="ios" else "CAT.circular-progress.G02", "nativeStandard":{"platform":platform,"batch":"circular-progress","output":str(self.root/"never-created")}}
