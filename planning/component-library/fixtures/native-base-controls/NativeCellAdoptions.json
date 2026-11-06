@@ -107,6 +107,13 @@
         "sha256": "4b67d4b923f4084ba935a277367f23ae32e68c66e477fd198ac0121667a5a397",
         "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/text-after-linear-progress-20261106/text-G09-overall-budget-completion.json"
       }
+    },
+    "CAT.circular-progress.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/circular-progress-ios-g08-20261106/objects/9583151eb70f35099606858f4ae99fbd26ed086a869338193500f0ba3b0dad1c",
+        "sha256": "9583151eb70f35099606858f4ae99fbd26ed086a869338193500f0ba3b0dad1c",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/circular-progress-after-text-20261106/circular-G08-completion.json"
+      }
     }
   }
 }

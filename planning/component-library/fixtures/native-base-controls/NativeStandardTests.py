@@ -9,6 +9,7 @@ from pathlib import Path
 import plistlib
 import re
 import signal
+import shutil
 import socket
 import struct
 import subprocess
@@ -57,7 +58,30 @@ def verify_product(value, path=None):
     return path
 
 
+def verify_selected_app_inputs(plan, app):
+    recorded = app.get("sourceFilesSHA256")
+    if recorded is None:
+        return {"status": "LEGACY_IDENTITY_REQUIRES_SEPARATE_SOURCE_MAP_REVIEW", "scope": "No retrospective source admission claim for older cached product formats"}
+    repository = REPO.resolve()
+    recorded = {str((repository / path).resolve()): value for path, value in recorded.items()}
+    selected = []
+    for group in ["source", "fixture"]:
+        for item in plan["bindings"][group]:
+            path = Path(item["path"]).resolve()
+            if path.suffix in [".ts", ".tsx"] and not any(part in ["__tests__", "__mocks__"] for part in path.parts) and ".test." not in path.name and ".spec." not in path.name and any(path.is_relative_to(repository / root) for root in ["apps/native-showcase/src", "packages/react-native/src"]):
+                require(recorded.get(str(path)) == item["sha256"], "Selected application source differs from prepared product: " + str(path))
+                selected.append(str(path))
+    require(selected, "Prepared source-aware app needs selected runtime source bindings")
+    return {"status": "PASS", "matchedSelectedSources": selected, "scope": "Selected library/fixture inputs only; unrelated source does not invalidate reuse"}
+
+
 def selection(platform, batch="meter-g02"):
+    if batch == "circular-progress-affected":
+        require(platform == "ios", "Affected CircularProgress methods are iOS-only")
+        return {"ios": ["CircularProgressTrialTests/testCircularGeometrySemanticsAndSlots", "CircularProgressTrialTests/testCircularInterruptionAndRetirement"], "android": []}
+    if batch == "circular-progress":
+        require(platform in ["ios", "android"], "Unknown CircularProgress platform")
+        return {"ios": ["CircularProgressTrialTests/" + name for name in ["testCircularGeometrySemanticsAndSlots", "testCircularProvidersAndConstraint", "testCircularInterruptionAndRetirement"]] if platform == "ios" else [], "android": ["geometry-semantics-slots", "providers-constraint", "interruption-retirement"] if platform == "android" else []}
     if batch == "text-style-context":
         require(platform == "ios", "Focused Text context batch is iOS-only")
         return {"ios": ["TextStyleTrialTests/testTextProviderChange", "TextStyleTrialTests/testTextCompactAndLiveRestoration"], "android": []}
@@ -82,7 +106,7 @@ def selection(platform, batch="meter-g02"):
     return {"ios": ios if platform == "ios" else [], "android": (STYLE_COHORTS if batch == "meter-style" else COHORTS) if platform == "android" else []}
 
 
-def bind_xctestrun(template, app, observer, output, installed_observer, restore_motion=None):
+def bind_xctestrun(template, app, observer, output, installed_observer, restore_motion=None, work_deadline=None):
     def resolve(value):
         if isinstance(value, str): return value.replace("__TESTROOT__", str(Path(template).parent))
         if isinstance(value, list): return [resolve(item) for item in value]
@@ -104,6 +128,9 @@ def bind_xctestrun(template, app, observer, output, installed_observer, restore_
     if restore_motion is not None:
         require(restore_motion in ["0","1"], "Only the captured original Reduce Motion value is accepted")
         environment["CODON_METER_RESTORE_MOTION"] = restore_motion
+    if work_deadline is not None:
+        require(math.isfinite(work_deadline) and work_deadline > time.time(), "Live admitted work deadline required")
+        environment["CODON_NATIVE_WORK_DEADLINE_UNIX"] = str(work_deadline)
     target.setdefault("EnvironmentVariables", {}).update(environment)
     target.setdefault("TestingEnvironmentVariables", {}).update(environment)
     Path(output).write_bytes(plistlib.dumps(data))
@@ -184,7 +211,9 @@ def geometry_control_source():
     while shadow_depth:
         shadow_depth += (source[shadow_end] == "{") - (source[shadow_end] == "}");shadow_end += 1
     shadow_predicate = source[shadow_start:shadow_end].replace("private ", "", 1)
-    return "import Foundation\n" + predicate + "\n" + pixel_predicate + "\n" + shadow_predicate + "\n" + '''
+    circle_start = source.index("private func circularPixelsMatch(");circle_open = source.index("{",circle_start);circle_end=source.index("\n}",circle_open)+2
+    circle_predicate = source[circle_start:circle_end].replace("private ","",1)
+    return "import Foundation\n" + predicate + "\n" + pixel_predicate + "\n" + shadow_predicate + "\n" + circle_predicate + "\n" + '''
 let saved: NSNumber = 9.9998779296875
 precondition(saved.intValue == 9 && saved.doubleValue == 9.9998779296875)
 let cases: [(Double, Double, Double, Bool)] = [
@@ -207,16 +236,53 @@ precondition(!shadowFallsDown([225,225,225,255],[248,248,248,255]))
 precondition(!shadowFallsDown([248,240,248,255],[225,225,225,255]))
 precondition(!shadowFallsDown([248,248,248,200],[225,225,225,255]))
 precondition(!shadowFallsDown([],[225,225,225,255]))
-print(#"{\"status\":\"PASS\",\"cases\":11,\"pixelCases\":6,\"shadowCases\":6,\"savedNSNumberIntValue\":9,\"savedNSNumberDoubleValue\":9.9998779296875}"#)
+precondition(circularPixelsMatch([1,2,3,255],[1,2,3,255]))
+precondition(!circularPixelsMatch([],[]))
+precondition(!circularPixelsMatch([1],[1]))
+precondition(!circularPixelsMatch([1,2,3,255],[1,2,4,255]))
+precondition(!circularPixelsMatch([1,2,3,255],[1,2,3,254]))
+precondition(!circularPixelsMatch([1,2,3,255],[1,2,3,255,1,2,3,255]))
+print(#"{\"circularCases\":6,\"status\":\"PASS\",\"cases\":11,\"pixelCases\":6,\"shadowCases\":6,\"savedNSNumberIntValue\":9,\"savedNSNumberDoubleValue\":9.9998779296875}"#)
 '''
 
 
-def build_ios(session):
+def build_ios_application(session, config):
+    base = json.loads(bound_file(config["baseApplicationIdentity"]).read_text())
+    product = verify_product(base)
+    freeze = json.loads(bound_file(config["baseApplicationSourceFreeze"]).read_text())
+    freeze = freeze.get("sourceFilesSHA256", freeze)
+    for item in config.get("additionalApplicationSources", []):
+        path = bound_file(item)
+        require(path.is_relative_to(REPO / "apps/native-showcase/src"), "Additional private app source must belong to showcase")
+        freeze.setdefault(str(path.relative_to(REPO)), item["sha256"])
+    current = {name: digest(REPO / name) for name in freeze}
+    drift = [name for name in freeze if freeze[name] != current[name]]
+    require(all(name.startswith("apps/native-showcase/src/") and name.endswith((".ts", ".tsx")) for name in drift), "Unexpected native/config/library drift: " + repr(drift))
+    target = session.output / "CodonCircular.app"
+    shutil.copytree(product, target)
+    write(session.output / "source-freeze.json", current)
+    source_map = session.output / "main.jsbundle.map"
+    session.run("export-embed", ["pnpm", "-F", "@codon-ui/native-showcase", "exec", "expo", "export:embed", "--entry-file", REPO / "apps/native-showcase/index.ts", "--platform", "ios", "--dev", "false", "--minify", "false", "--bytecode", "--max-workers", "1", "--bundle-output", target / "main.jsbundle", "--sourcemap-output", source_map, "--assets-dest", target])
+    require(all(digest(REPO / name) == expected for name, expected in current.items()), "Application source changed during export")
+    actual = files(target)
+    require(actual.keys() == base["filesSHA256"].keys(), "Unexpected application native/assets member set change")
+    require(all(actual[name] == expected for name, expected in base["filesSHA256"].items() if name != "main.jsbundle"), "Cached native/config/assets bytes changed")
+    mapped = mapped_owned_sources(source_map, current)
+    require(all((REPO / name).read_text() == body for name, body in mapped.items()), "Application map contains stale source")
+    require("apps/native-showcase/src/scenes/CircularProgressFixture.tsx" in mapped, "Current CircularProgress fixture missing from bundle")
+    result = identity(target)
+    result.update(sourceFilesSHA256={str(REPO / name): value for name, value in current.items()}, sourceFreeze={"path": str(session.output / "source-freeze.json"), "sha256": digest(session.output / "source-freeze.json")}, packagerMap=str(source_map), packagerMapSHA256=digest(source_map))
+    write(session.output / "map-proof.json", {"matchedOwnedSourceCount": len(mapped), "sourceFilesSHA256": {name: digest(REPO / name) for name in mapped}, "unchangedNativeAndAssets": True, "baseManifestSHA256": base["manifestSHA256"], "sourceDrift": drift})
+    return result
+
+
+def build_ios(session, config=None):
+    if config and config.get("buildTarget") == "application": return build_ios_application(session, config)
     controls = session.output / "MeterGeometryControls.swift";controls.write_text(geometry_control_source())
     sdk = session.run("geometry-sdk", ["/usr/bin/xcrun", "--sdk", "macosx", "--show-sdk-path"]).strip()
     swift = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift"
     control_result = json.loads(session.run("geometry-controls", [swift, "-sdk", sdk, "-module-cache-path", str(CACHE / "swift-host-module-cache"), str(controls)]))
-    require(control_result.get("status") == "PASS" and control_result.get("cases") == 11 and control_result.get("pixelCases") == 6 and control_result.get("shadowCases") == 6, "Actual Swift geometry/pixel/shadow controls failed")
+    require(control_result.get("circularCases") == 6 and control_result.get("status") == "PASS" and control_result.get("cases") == 11 and control_result.get("pixelCases") == 6 and control_result.get("shadowCases") == 6, "Actual Swift geometry/pixel/shadow controls failed")
     derived = CACHE / "ios"
     # A source revision gets an unambiguous observer registration; old installed revisions remain intact.
     bundle_id = "dev.codonui.lab.components.r" + digest(ROOT / "MeterG02TrialTests.swift")[:12]
@@ -245,7 +311,7 @@ def build_android(session, config):
     control_classes = session.output / "control-classes"; control_classes.mkdir()
     session.run("javac-controls", [jdk / "bin/javac", "-d", control_classes, controls])
     control_result = json.loads(session.run("java-controls", [jdk / "bin/java", "-cp", control_classes, "MeterStyleControls"]))
-    require(control_result == {"status": "PASS", "cases": 39}, "Actual Java geometry/color/identity/automatic-height controls failed")
+    require(control_result == {"status": "PASS", "cases": 45}, "Actual Java geometry/color/identity/automatic-height controls failed")
     session.run("javac", [jdk / "bin/javac", "-source", "8", "-target", "8", "-classpath", jar, "-d", build / "classes", source / "Actions.java"])
     session.run("dex", [tools / "d8", "--lib", jar, "--output", build / "dex", *sorted((build / "classes").rglob("*.class"))])
     session.run("package", [tools / "aapt2", "link", "--manifest", source / "AndroidManifest.xml", "-I", jar, "-o", build / "unsigned.apk"])
@@ -269,7 +335,7 @@ def build_android(session, config):
 
 def android_style_control_source():
     source = (ROOT / "android-native-inspector/Actions.java").read_text(); methods = []
-    for name in ["meterStyleFrameCheck", "meterStyleColorCheck", "meterStyleIdentityCheck", "meterStyleExpectedHeight", "meterAttemptDeadline", "meterStyleMethods", "motionPreferenceCommandAllowed", "progressRiskContrastCount"]:
+    for name in ["meterStyleFrameCheck", "meterStyleColorCheck", "meterStyleIdentityCheck", "meterStyleExpectedHeight", "meterAttemptDeadline", "meterStyleMethods", "motionPreferenceCommandAllowed", "progressRiskContrastCount", "circularPixelsMatch"]:
         declaration = re.search(r"(?m)^  public static \S+ " + re.escape(name) + r"\(", source)
         require(declaration is not None, "Compiled control helper declaration missing: " + name)
         start = declaration.start()
@@ -300,7 +366,8 @@ def android_style_control_source():
       check(java.util.Arrays.equals(meterStyleMethods("dimensions"),new String[]{"dimensions"}));check(meterStyleMethods("").length==4);reject(()->meterStyleMethods("unknown"));
       check(motionPreferenceCommandAllowed("settings get global transition_animation_scale"));check(motionPreferenceCommandAllowed("settings get global animator_duration_scale"));check(motionPreferenceCommandAllowed("settings put global transition_animation_scale 0"));check(motionPreferenceCommandAllowed("settings delete global animator_duration_scale"));check(!motionPreferenceCommandAllowed("settings put secure setting 1"));check(!motionPreferenceCommandAllowed("settings put global animator_duration_scale 0; input tap 1 1"));
       check(progressRiskContrastCount(new int[]{0xfff7f7f7,0xfff7f7f7},0xfff7f7f7)==0);check(progressRiskContrastCount(new int[]{0xfff7f7f7,0xff4e8f3a},0xfff7f7f7)==1);reject(()->progressRiskContrastCount(null,0));reject(()->progressRiskContrastCount(new int[]{},0));
-      if(cases!=39)throw new AssertionError("Control count changed");System.out.println("{\"status\":\"PASS\",\"cases\":"+cases+"}");
+      check(circularPixelsMatch(new int[]{0xff123456},new int[]{0xff123456}));check(!circularPixelsMatch(new int[]{},new int[]{}));check(!circularPixelsMatch(null,new int[]{1}));check(!circularPixelsMatch(new int[]{1},null));check(!circularPixelsMatch(new int[]{1},new int[]{2}));check(!circularPixelsMatch(new int[]{1},new int[]{1,1}));
+      if(cases!=45)throw new AssertionError("Control count changed");System.out.println("{\"status\":\"PASS\",\"cases\":"+cases+"}");
     }
 }'''
 
@@ -336,6 +403,10 @@ def build_android_application(session, config):
     require(Path(config["gradleUserHome"]).is_dir(), "Explicit existing Gradle cache required")
     base = json.loads(bound_file(config["baseApplicationIdentity"]).read_text()); old_apk = verify_product(base)
     freeze = json.loads(bound_file(config["baseApplicationSourceFreeze"]).read_text())
+    for item in config.get("additionalApplicationSources", []):
+        path = bound_file(item)
+        require(path.is_relative_to(REPO / "apps/native-showcase/src"), "Additional private app source must belong to showcase")
+        freeze.setdefault(str(path.relative_to(REPO)), item["sha256"])
     current = {name: digest(REPO / name) for name in freeze}
     drift = [name for name in freeze if freeze[name] != current[name]]
     require(all(name.startswith("apps/native-showcase/src/") and name.endswith((".ts", ".tsx")) for name in drift), "Unexpected native/config/library input drift: " + repr(drift))
@@ -426,7 +497,7 @@ def run_ios(session, config, app, observer):
         installed_products[label] = registered
     template = bound_file(observer["xctestrun"])
     runfile = session.output / "Tests.xctestrun"
-    bind_xctestrun(template, app, observer, runfile, installed_products["observer"], config.get("restoreMotionOriginalValue"))
+    bind_xctestrun(template, app, observer, runfile, installed_products["observer"], config.get("restoreMotionOriginalValue"), session.work)
     selected = selection("ios", config.get("batch", "meter-g02"))["ios"]
     argv = [XCODE + "/xcodebuild", "test-without-building", "-xctestrun", str(runfile), "-destination", "platform=iOS Simulator,id=" + device, "-destination-timeout", str(max(1, int(session.remaining()))), "-jobs", "1", "-parallel-testing-enabled", "NO", "-test-timeouts-enabled", "NO", "-resultBundlePath", str(session.output / "Tests.xcresult")]
     argv += ["-only-testing:CodonNativeComponents/" + name for name in selected]
@@ -434,7 +505,7 @@ def run_ios(session, config, app, observer):
     try: raw = session.run("xctest", argv)
     except ValueError as error:
         sdk_error = error;stdout = session.output / "xctest.stdout";raw = stdout.read_text() if stdout.exists() else ""
-    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
+    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
         original_motion = re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])", raw)
         restored_motion = re.findall(r"METER_STYLE_MOTION_RESTORED ([01])", raw)
         if original_motion != restored_motion: session.cleanup_errors.append("Original iOS Reduce Motion restoration unverified")
@@ -452,6 +523,19 @@ def run_ios(session, config, app, observer):
     result = reconcile_selected_results(summary, raw, selected)
     if config.get("batch") in ["text-style", "text-style-context"]:
         result["textStyle"] = reconcile_text_style_ios(raw, config, app)
+    if config.get("batch") in ["circular-progress", "circular-progress-affected"]:
+        rows = [json.loads(row) for row in re.findall(r"CIRCULAR_NATIVE_OBSERVATION (\{[^\n]+\})", raw)]
+        names = ["quarter","zero","full","lower-clamp","upper-clamp","empty-range","half","reverse","round","square","wide","zero-width","zero-height","six-slots","named-paint","current-color","context-label","empty-label","node-label","unknown"]
+        validate_circular_rows([row for row in rows if row["name"] in names], names)
+        require(all(name in [row["name"] for row in rows] for name in ["motion-final", "reduced-final"]), "Discriminating normal/reduced motion captures missing")
+        result["circularProgressObservations"] = len(rows)
+        if config.get("batch") == "circular-progress-affected":
+            retained = json.loads(bound_file(config["retainedCircularProviderMethod"]).read_text())
+            require(retained["method"] == "testCircularProvidersAndConstraint", "Only the clean independent provider method is reusable")
+            for item in retained["librarySources"]: bound_file(item)
+            loaded = json.loads(bound_file(retained["loadedObserver"]).read_text())
+            require(loaded["status"] == "PASS" and loaded["observerManifestSHA256"] == retained["observerManifestSHA256"], "Retained actually loaded observer mismatch")
+            result["retainedCircularProvider"] = native_method(retained)
     if config.get("batch") == "linear-progress-risk": result["linearProgressRisk"] = reconcile_linear_progress_risk_ios(raw)
     if config.get("batch") == "meter-style": result["styleObservations"] = reconcile_ios_styles(raw)
     if config.get("batch") == "meter-style-affected":
@@ -471,6 +555,26 @@ def run_ios(session, config, app, observer):
         verify_product(expected, registered)
     return result
 
+
+
+def validate_circular_rows(rows, expected):
+    require(len(rows) == len(expected) and sorted(row["name"] for row in rows) == sorted(expected), "Missing/duplicate CircularProgress observations")
+    for row in rows:
+        state = row["state"]; name = state["case"]
+        require(state["rootTag"] > 0 and state["attaches"] == 1 and state["detaches"] == 0, "Actual stable public CircularProgress ref required")
+        event = state["layouts"]["target"]; layout = event["layout"]; scale = row["scale"]
+        require(math.isfinite(scale) and scale > 0, "Actual finite native scale required")
+        require(event["target"] == event["currentTarget"] == state["rootTag"], "Original delivered layout target differs")
+        for key in ["width", "height"]:
+            require(math.isfinite(layout[key]) and abs(layout[key] - state[key]) * scale <= 1, "Actual native root dimension differs")
+        if name not in ["zero-width", "zero-height"]:
+            require(row["nativeLabel"] == ("Scoped circular task" if name == "context-label" else "Circular verification"), "Actual native CircularProgress label missing/wrong")
+            value = "13%" if name == "context-label" else "NaN%" if name == "empty-range" else "[object Object]" if name == "node-label" else "0%" if name in ["zero", "lower-clamp"] else "100%" if name in ["full", "upper-clamp"] else "25%"
+            require(row["nativeValue"] in [None, ""] if name == "unknown" else row["nativeValue"] == value, "Actual current native CircularProgress value differs")
+            require(row["inkPixels"] > 0, "Actual native drawing must paint")
+        else: require(row["inkPixels"] == 0, "Zero native dimension must not paint")
+        if name != "context-label": require(row["referenceExact"] is True, "Actual drawing differs from independent native reference")
+    return {"status": "PASS", "observations": len(rows)}
 
 
 def reconcile_text_style_ios(raw, config, app):
@@ -643,7 +747,7 @@ def run_android(session, config, app, observer):
     cohorts = selection("android", batch)["android"]
     style = batch in ["meter-style", "meter-style-dimensions"]
     risk = batch == "linear-progress-risk"
-    if style or risk:
+    if style or risk or batch == "circular-progress":
         session.run("device-api", selected + ["shell", "getprop", "ro.build.version.sdk"])
         session.run("device-abi", selected + ["shell", "getprop", "ro.product.cpu.abi"])
         session.run("device-size", selected + ["shell", "wm", "size"])
@@ -667,6 +771,10 @@ def run_android(session, config, app, observer):
     if risk:
         result = reconcile_linear_progress_risk_android(session, config, directory, value)
         write(session.output / "risk-review.json", result)
+    elif batch == "circular-progress":
+        rows = [row for cohort in value["cohorts"] for row in cohort["observations"]]
+        require(len(rows) == 24 and all(row["referenceExact"] or row["state"]["case"] in ["context-label", "zero-width", "zero-height"] for row in rows), "CircularProgress drawing captures incomplete or mismatched")
+        write(session.output / "circular-review.json", {"observations": len(rows), "allNativeAssertionsPassed": True, "visualReviewRequired": True})
     elif batch == "text-style":
         from NativeTextStyleCheck import validate_rows
         rows = [row for cohort in value["cohorts"] for row in cohort["observations"]]
@@ -737,13 +845,14 @@ def execute(plan, admission):
     signal.setitimer(signal.ITIMER_REAL, max(0.01, session.work - time.time()))
     try:
         if config["action"] == "build":
-            result = build_ios(session) if config["platform"] == "ios" else build_android(session, config)
+            result = build_ios(session, config) if config["platform"] == "ios" else build_android(session, config)
             result.setdefault("sourceFilesSHA256", {item["path"]: item["sha256"] for item in plan["bindings"]["observer"]})
             write(session.output / "identity.json", result)
         elif config["action"] == "diagnose": result = diagnose_android(session, config)
         else:
             app = json.loads(bound_file(config["appIdentity"]).read_text());observer = json.loads(bound_file(config["observerIdentity"]).read_text())
             verify_product(app);verify_product(observer)
+            write(session.output / "selected-app-inputs.json", verify_selected_app_inputs(plan, app))
             for path, expected in observer["sourceFilesSHA256"].items(): require(digest(path) == expected, "Observer source changed since SDK build")
             result = run_ios(session, config, app, observer) if config["platform"] == "ios" else run_android(session, config, app, observer)
     except BaseException as error:
@@ -766,7 +875,8 @@ def validate_standard_scope(plan):
     meter = cell.startswith("CAT.meter.") and batch != "linear-progress-risk"
     progress = cell in ["CAT.linear-progress." + gate for gate in ["G04", "G07", "G08", "G09"]] and batch == "linear-progress-risk"
     text = cell in ["CAT.text." + gate for gate in ["G04", "G07", "G08", "G09"]] and batch in ["text-style", "text-style-context"]
-    require(meter or progress or text, "Only the authorized component and focused batch are selected")
+    circular = cell in ["CAT.circular-progress." + gate for gate in ["G02", "G04", "G08"]] and batch in ["circular-progress", "circular-progress-affected"]
+    require(meter or progress or text or circular, "Only the authorized component and focused batch are selected")
 
 
 def main():

@@ -10,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import time
 from unittest.mock import MagicMock, patch
 
 ROOT = Path(__file__).resolve().parent
@@ -284,7 +285,7 @@ class StandardTests(unittest.TestCase):
         raw = "\n".join("Test Case '-[CodonNativeComponents.MeterG02TrialTests " + name + "]' passed (1.0 seconds)." for name in NATIVE.METHODS)
         summary = {"result": "Passed", "totalTestCount": 4, "passedTests": 4, "failedTests": 0, "skippedTests": 0}
         for scenario in ["matching", "legacy-cutoff", "affected-method", "retired-plugin", "sdk-failed", "stale-app", "wrong-observer", "install-failed", "not-ready"]:
-            session = MagicMock();session.output = self.root / scenario;session.output.mkdir()
+            session = MagicMock();session.work = time.time() + 120;session.output = self.root / scenario;session.output.mkdir()
             def command(name, argv, cap=None):
                 if scenario == "not-ready" and name == "boot-readiness": raise ValueError("OS not ready")
                 if scenario == "install-failed" and name == "install-app": raise ValueError("SDK install failed")
@@ -411,9 +412,55 @@ class StandardTests(unittest.TestCase):
             self.assertEqual(code, 0 if not failed and clean else 1)
             record = json.loads((out / "terminal.json").read_text());self.assertEqual(record["cleanupVerified"], clean);self.assertEqual(record["gatePromotions"], 0)
 
+    def test_circular_scope_selection_and_real_missing_admission_stop(self):
+        for platform in ["ios", "android"]:
+            plan={"cell":"CAT.circular-progress.G08" if platform=="ios" else "CAT.circular-progress.G02", "nativeStandard":{"platform":platform,"batch":"circular-progress","output":str(self.root/"never-created")}}
+            NATIVE.validate_standard_scope(plan)
+            self.assertEqual(len(NATIVE.selection(platform,"circular-progress")[platform]),3)
+            path=self.root/(platform+"-circle.json");path.write_text(json.dumps(plan))
+            env={k:v for k,v in os.environ.items() if k!="CODON_NATIVE_CELL_PREFLIGHT_RECEIPT"}
+            result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(path)],env=env,capture_output=True,text=True,timeout=10)
+            self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((self.root/"never-created").exists())
+        for gate in ["G07","G09"]:
+            with self.assertRaises(ValueError):NATIVE.validate_standard_scope({"cell":"CAT.circular-progress."+gate,"nativeStandard":{"batch":"circular-progress"}})
+
+    def test_circular_reader_replays_actual_native_row_and_rejects_missing_semantics_paint_and_bindings(self):
+        row={"name":"quarter","nativeLabel":"Circular verification","nativeValue":"25%","scale":3,"referenceExact":True,"inkPixels":9615,"state":{"case":"quarter","rootTag":690,"attaches":1,"detaches":0,"width":120,"height":120,"layouts":{"target":{"target":690,"currentTarget":690,"layout":{"width":120,"height":120}}}}}
+        self.assertEqual(NATIVE.validate_circular_rows([row],["quarter"])["status"],"PASS")
+        for kind in ["missing-label","wrong-value","wrong-target","wrong-size","blank","paint","duplicate"]:
+            value=copy.deepcopy(row)
+            if kind=="missing-label":value["nativeLabel"]=""
+            elif kind=="wrong-value":value["nativeValue"]="75%"
+            elif kind=="wrong-target":value["state"]["layouts"]["target"]["target"]=691
+            elif kind=="wrong-size":value["state"]["layouts"]["target"]["layout"]["height"]=119
+            elif kind=="blank":value["inkPixels"]=0
+            elif kind=="paint":value["referenceExact"]=False
+            with self.subTest(kind=kind),self.assertRaises(ValueError):NATIVE.validate_circular_rows([value,value] if kind=="duplicate" else [value],["quarter"])
+        self.assertEqual(len(NATIVE.selection("ios","circular-progress-affected")["ios"]),2)
+        with self.assertRaises(ValueError):NATIVE.selection("android","circular-progress-affected")
+
+    def test_prepared_app_checks_selected_library_and_fixture_sources_before_sdk(self):
+        fixture=self.root/"apps/native-showcase/src/fixture.tsx";fixture.parent.mkdir(parents=True);fixture.write_text("current fixture")
+        item={"path":str(fixture),"sha256":NATIVE.digest(fixture)};plan={"bindings":{"source":[item,{"path":str(fixture.parent/"__tests__/fixture.test.tsx"),"sha256":"c"*64}],"fixture":[item]}}
+        with patch.object(NATIVE,"REPO",self.root):
+            self.assertEqual(NATIVE.verify_selected_app_inputs(plan,{"sourceFilesSHA256":{str(fixture):item["sha256"],"unrelated.ts":"old-other-cell"}})["status"],"PASS")
+            for inputs in [{str(fixture):"0"*64},{}]:
+                with self.assertRaisesRegex(ValueError,"Selected application source differs"):NATIVE.verify_selected_app_inputs(plan,{"sourceFilesSHA256":inputs})
+            self.assertEqual(NATIVE.verify_selected_app_inputs(plan,{})["status"],"LEGACY_IDENTITY_REQUIRES_SEPARATE_SOURCE_MAP_REVIEW")
+
+    def test_shared_fixture_waits_use_the_overall_work_deadline(self):
+        swift=(ROOT/"MeterG02TrialTests.swift").read_text()
+        self.assertIn('CODON_NATIVE_WORK_DEADLINE_UNIX',swift)
+        self.assertNotIn('timeout:10',swift);self.assertNotIn('timeout: 10',swift)
+        java=(ROOT/"android-native-inspector/Actions.java").read_text()
+        for name in ['lpAdmitConnection(', 'msWait(', 'msMotionEvent(', 'tgAwaitSelectedScene(']:
+            body=member(java,name)
+            self.assertNotIn('+5000',body);self.assertNotIn('+10000',body)
+        self.assertIn('timeout: 0.75',swift, 'Actual inverted callback observation remains meaningful')
+
     def test_no_sdk_build_recreates_or_copies_a_workspace(self):
         source = (ROOT / "NativeStandardTests.py").read_text()
-        self.assertNotIn("copytree", source);self.assertNotIn("UI_SETUP_COMPLETE", source)
+        self.assertEqual(source.count("shutil.copytree("), 1);self.assertIn("shutil.copytree(product, target)",source);self.assertIn("product = verify_product(base)",source);self.assertNotIn("UI_SETUP_COMPLETE", source)
         self.assertNotIn("READY_FOR_UI_SETUP", source)
         self.assertIn('"build-for-testing"', source);self.assertIn('"test-without-building"', source)
         self.assertIn('"instrument"', source)

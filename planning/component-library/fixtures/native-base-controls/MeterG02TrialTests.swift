@@ -1,6 +1,14 @@
 import XCTest
 import UIKit
 
+private func nativeWorkRemaining() -> TimeInterval {
+    guard let text = ProcessInfo.processInfo.environment["CODON_NATIVE_WORK_DEADLINE_UNIX"],
+          let deadline = Double(text), deadline.isFinite else {
+        preconditionFailure("Missing admitted native work deadline")
+    }
+    return max(0, deadline - Date().timeIntervalSince1970)
+}
+
 // Four paired G02 cohorts. Product/source identity and guest lifecycle remain root-owned.
 final class MeterG02TrialTests: XCTestCase {
     private var app: XCUIApplication!
@@ -49,10 +57,10 @@ final class MeterG02TrialTests: XCTestCase {
     }
     private func wait(_ message: String, _ predicate: @escaping () -> Bool) {
         let gate = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in predicate() }, object: nil)
-        XCTAssertEqual(XCTWaiter.wait(for: [gate], timeout: 10), .completed, message)
+        XCTAssertEqual(XCTWaiter.wait(for: [gate], timeout: nativeWorkRemaining()), .completed, message)
     }
     private func reveal(_ element: XCUIElement, blocked: Bool = false) {
-        XCTAssertTrue(element.waitForExistence(timeout: 10))
+        XCTAssertTrue(element.waitForExistence(timeout: nativeWorkRemaining()))
         let scroll = app.scrollViews.firstMatch
         XCTAssertTrue(scroll.exists)
         for _ in 0..<16 {
@@ -387,10 +395,10 @@ final class MeterStyleTrialTests: XCTestCase {
     private func node(_ id: String) -> XCUIElement { app.descendants(matching: .any).matching(identifier: id).firstMatch }
     private func wait(_ message: String, _ predicate: @escaping () -> Bool) {
         let gate = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in predicate() }, object: nil)
-        XCTAssertEqual(XCTWaiter.wait(for: [gate], timeout: 10), .completed, message)
+        XCTAssertEqual(XCTWaiter.wait(for: [gate], timeout: nativeWorkRemaining()), .completed, message)
     }
     private func reveal(_ element: XCUIElement, blocked: Bool = false) {
-        XCTAssertTrue(element.waitForExistence(timeout: 10))
+        XCTAssertTrue(element.waitForExistence(timeout: nativeWorkRemaining()))
         let scroll = app.scrollViews.firstMatch; XCTAssertTrue(scroll.exists)
         for _ in 0..<16 {
             let viewport = app.windows.firstMatch.frame.intersection(scroll.frame).insetBy(dx: 2, dy: 2)
@@ -540,13 +548,13 @@ final class MeterStyleTrialTests: XCTestCase {
     private func motionSwitch(_ settings: XCUIApplication) -> XCUIElement {
         settings.activate()
         let toggle = settings.switches["Reduce Motion"].firstMatch
-        if toggle.waitForExistence(timeout:2) { return toggle }
+        if toggle.exists { return toggle }
         for label in ["Accessibility","Motion"] {
             let entry = settings.staticTexts[label].firstMatch
             for _ in 0..<12 { if entry.exists && entry.isHittable { break };settings.swipeUp() }
             XCTAssertTrue(entry.exists && entry.isHittable,"Standard Settings navigation "+label);entry.tap()
         }
-        XCTAssertTrue(toggle.waitForExistence(timeout:10));return toggle
+        XCTAssertTrue(toggle.waitForExistence(timeout:nativeWorkRemaining()));return toggle
     }
     private func setMotion(_ toggle: XCUIElement, _ expected: String) {
         if toggle.value as? String != expected {
@@ -730,7 +738,7 @@ final class TextStyleTrialTests: XCTestCase {
     }
     private func node(_ id:String)->XCUIElement { app.descendants(matching:.any).matching(identifier:id).firstMatch }
     private func reveal(_ element:XCUIElement) {
-        XCTAssertTrue(element.waitForExistence(timeout:10));let scroll=app.scrollViews.firstMatch;XCTAssertTrue(scroll.exists)
+        XCTAssertTrue(element.waitForExistence(timeout:nativeWorkRemaining()));let scroll=app.scrollViews.firstMatch;XCTAssertTrue(scroll.exists)
         for _ in 0..<24 {
             let viewport=app.windows.firstMatch.frame.intersection(scroll.frame).insetBy(dx:2,dy:2)
             if !element.frame.isEmpty && viewport.contains(element.frame) && element.isHittable { return }
@@ -743,7 +751,7 @@ final class TextStyleTrialTests: XCTestCase {
         let button=app.buttons.matching(NSPredicate(format:"label == %@",label)).firstMatch;reveal(button);button.tap()
         if label == "Text/Button scene" {
             let selected=XCTNSPredicateExpectation(predicate:NSPredicate { _,_ in button.isSelected },object:nil)
-            XCTAssertEqual(XCTWaiter.wait(for:[selected],timeout:10),.completed,"Actual selected Text scene before capture")
+            XCTAssertEqual(XCTWaiter.wait(for:[selected],timeout:nativeWorkRemaining()),.completed,"Actual selected Text scene before capture")
         }
     }
     private func capture(_ name:String,dark:Bool=false) throws -> CGRect {
@@ -755,7 +763,7 @@ final class TextStyleTrialTests: XCTestCase {
         let crop=try XCTUnwrap(image.cropping(to:rect));var bytes=[UInt8](repeating:0,count:crop.width*crop.height*4)
         let drawn=bytes.withUnsafeMutableBytes { buffer -> Bool in
             guard let context=CGContext(data:buffer.baseAddress,width:crop.width,height:crop.height,bitsPerComponent:8,bytesPerRow:crop.width*4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue|CGBitmapInfo.byteOrder32Big.rawValue) else {return false}
-            context.draw(crop,in:CGRect(x:0,y:0,width:crop.width,height:crop.height));return true
+            context.draw(crop,in:CGRect(x:0,y:0,width:CGFloat(crop.width),height:CGFloat(crop.height)));return true
         };XCTAssertTrue(drawn)
         let foreground:UInt8=dark ? 255:23
         var count=0
@@ -782,5 +790,183 @@ final class TextStyleTrialTests: XCTestCase {
         let target=node("library-text-preview");reveal(target);XCTAssertEqual(target.label,content);let initial=target.frame
         tap("Compact width");let compact=try capture("compact");XCTAssertLessThanOrEqual(compact.width,320);XCTAssertGreaterThan(compact.height,14)
         tap("Live window");let restored=try capture("live-restored");XCTAssertEqual(restored.size,initial.size)
+    }
+}
+
+private func circularPixelsMatch(_ actual: [UInt8], _ expected: [UInt8]) -> Bool {
+    !actual.isEmpty && actual.count % 4 == 0 && actual == expected
+}
+
+final class CircularProgressTrialTests: XCTestCase {
+    private var app: XCUIApplication!
+    private let cases = ["quarter","zero","full","lower-clamp","upper-clamp","empty-range","half","reverse","round","square","wide","zero-width","zero-height","six-slots","named-paint","current-color","context-label","empty-label","node-label","unknown"]
+    private var originalTag: Double = 0
+    override func setUpWithError() throws {
+        continueAfterFailure = false
+        app = XCUIApplication(bundleIdentifier:"dev.codonui.showcase");app.launch()
+        XCTAssertEqual(app.state,.runningForeground);XCUIDevice.shared.orientation = .portrait
+        tap("Reset scene");tap("Circular/Counter scene");tap("Light theme");tap("Live window");tap("Prepare CircularProgress checks")
+        wait("Actual delivered CircularProgress root and layout") {
+            guard let row=try? self.state(),let tag=row["rootTag"] as? NSNumber,let layouts=row["layouts"] as? [String:Any] else {return false}
+            return tag.doubleValue>0 && layouts["target"] != nil
+        }
+        originalTag=try number(state(),"rootTag")
+    }
+    override func tearDownWithError() throws {
+        let shot=XCTAttachment(screenshot:XCUIScreen.main.screenshot());shot.name="circular-final";shot.lifetime = .keepAlways;add(shot)
+        let tree=XCTAttachment(string:app.debugDescription);tree.name="circular-final-hierarchy";tree.lifetime = .keepAlways;add(tree)
+    }
+    private func node(_ id:String)->XCUIElement {app.descendants(matching:.any).matching(identifier:id).firstMatch}
+    private func wait(_ message:String,_ predicate:@escaping()->Bool) {
+        let gate=XCTNSPredicateExpectation(predicate:NSPredicate { _,_ in predicate() },object:nil)
+        XCTAssertEqual(XCTWaiter.wait(for:[gate],timeout:nativeWorkRemaining()),.completed,message)
+    }
+    private func reveal(_ element:XCUIElement) {
+        XCTAssertTrue(element.waitForExistence(timeout:nativeWorkRemaining()))
+        let scroll=app.scrollViews.firstMatch;XCTAssertTrue(scroll.exists)
+        for _ in 0..<24 {
+            let viewport=app.windows.firstMatch.frame.intersection(scroll.frame).insetBy(dx:2,dy:2)
+            if !element.frame.isEmpty && viewport.contains(element.frame) {return}
+            let up=element.frame.minY<viewport.minY
+            scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:up ? 0.30:0.75)).press(forDuration:0.05,thenDragTo:scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:up ? 0.70:0.35)))
+        }
+        XCTFail("Unreachable actual CircularProgress element "+element.identifier)
+    }
+    private func tap(_ label:String) {
+        let button=app.buttons.matching(NSPredicate(format:"label == %@",label)).firstMatch;reveal(button);XCTAssertTrue(button.isHittable);button.tap()
+        if label == "Circular/Counter scene" {wait("Actual selected Circular scene") {button.isSelected}}
+    }
+    private func state() throws -> [String:Any] {
+        guard let row=try JSONSerialization.jsonObject(with:Data(node("circular-native-state").label.utf8)) as? [String:Any] else {throw NSError(domain:"CircularNativeState",code:1)}
+        return row
+    }
+    private func number(_ row:[String:Any],_ key:String) throws -> Double {
+        let value=try XCTUnwrap(row[key] as? NSNumber,key).doubleValue;XCTAssertTrue(value.isFinite);return value
+    }
+    private func select(_ index:Int) throws {
+        for _ in 0...cases.count {
+            let current=try state();if try number(current,"index")==Double(index) {XCTAssertEqual(current["case"] as? String,cases[index]);return}
+            let next=(Int(try number(current,"index"))+1)%cases.count;tap("Next CircularProgress check")
+            wait("Actual caller-owned case") {(try? self.number(self.state(),"index"))==Double(next)}
+        };XCTFail("CircularProgress case selection failed")
+    }
+    private func pixels(_ image:CGImage,_ frame:CGRect,_ window:CGRect,_ scale:CGFloat) throws -> [UInt8] {
+        XCTAssertTrue(window.contains(frame));let rect=CGRect(x:((frame.minX-window.minX)*scale).rounded(),y:((frame.minY-window.minY)*scale).rounded(),width:(frame.width*scale).rounded(),height:(frame.height*scale).rounded())
+        let crop=try XCTUnwrap(image.cropping(to:rect));var bytes=[UInt8](repeating:0,count:crop.width*crop.height*4)
+        let ok=bytes.withUnsafeMutableBytes { buffer -> Bool in
+            guard let context=CGContext(data:buffer.baseAddress,width:crop.width,height:crop.height,bitsPerComponent:8,bytesPerRow:crop.width*4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue|CGBitmapInfo.byteOrder32Big.rawValue) else {return false}
+            context.draw(crop,in:CGRect(x:0,y:0,width:CGFloat(crop.width),height:CGFloat(crop.height)));return true
+        };XCTAssertTrue(ok);return bytes
+    }
+    private func mark(_ name:String,_ row:[String:Any],_ shot:XCUIScreenshot) throws {
+        let data=try JSONSerialization.data(withJSONObject:row,options:.sortedKeys)
+        FileHandle.standardOutput.write(Data("CIRCULAR_NATIVE_OBSERVATION ".utf8)+data+Data("\n".utf8))
+        let receipt=XCTAttachment(data:data,uniformTypeIdentifier:"public.json");receipt.name="circular-"+name+"-receipt";receipt.lifetime = .keepAlways;add(receipt)
+        let image=XCTAttachment(screenshot:shot);image.name="circular-"+name;image.lifetime = .keepAlways;add(image)
+    }
+    private func capture(_ name:String) throws {
+        reveal(node("circular-native-pair"));Thread.sleep(forTimeInterval:0.5)
+        let row=try state(),kind=try XCTUnwrap(row["case"] as? String),index=Int(try number(row,"index"))
+        XCTAssertEqual(try number(row,"rootTag"),originalTag,"Retain actual caller View ref across case/provider updates")
+        XCTAssertEqual(try number(row,"detaches"),0)
+        let layouts=try XCTUnwrap(row["layouts"] as? [String:Any]),event=try XCTUnwrap(layouts["target"] as? [String:Any]),layout=try XCTUnwrap(event["layout"] as? [String:Any])
+        XCTAssertEqual(try number(event,"target"),originalTag);XCTAssertEqual(try number(event,"currentTarget"),originalTag)
+        XCTAssertEqual(try number(layout,"width"),try number(row,"width"),accuracy:1/UIScreen.main.scale)
+        XCTAssertEqual(try number(layout,"height"),try number(row,"height"),accuracy:1/UIScreen.main.scale)
+        let target=node("circular-native-target"),window=app.windows.firstMatch.frame,a=node("circular-native-parent").frame,b=node("circular-native-reference-parent").frame
+        let shot=XCUIScreen.main.screenshot(),image=try XCTUnwrap(shot.image.cgImage),scale=CGFloat(image.width)/window.width
+        XCTAssertEqual(scale,CGFloat(image.height)/window.height,accuracy:0.01);XCTAssertEqual(shot.image.imageOrientation,.up)
+        let actual=try pixels(image,a,window,scale),reference=try pixels(image,b,window,scale)
+        let exact=circularPixelsMatch(actual,reference)
+        var ink=0;for i in stride(from:0,to:actual.count,by:4) {if actual[i]<245 || actual[i+1]<245 || actual[i+2]<245 {ink += 1}}
+        try mark(name+"-raw",["name":name+"-raw","state":row,"parent":[a.minX,a.minY,a.width,a.height],"referenceParent":[b.minX,b.minY,b.width,b.height],"scale":scale,"referenceExact":exact,"inkPixels":ink],shot)
+        if ![11,12,16].contains(index) {XCTAssertGreaterThan(ink,0,"Real SVG paint required");XCTAssertTrue(exact,"Actual native SVG versus independent primitive reference for "+kind)}
+        if [11,12].contains(index) {XCTAssertEqual(ink,0,"Zero dimension paints no neighboring geometry")}
+        if ![11,12].contains(index) {
+            XCTAssertTrue(target.exists,"Required native CircularProgress target")
+            XCTAssertEqual(app.descendants(matching:.any).matching(identifier:"circular-native-target").count,1)
+            XCTAssertEqual(target.label,index==16 ? "Scoped circular task":"Circular verification")
+            if index==19 {XCTAssertTrue(target.value == nil || (target.value as? String)=="")}
+            else if index==18 {XCTAssertEqual(target.value as? String,"[object Object]")}
+            else if index==16 {XCTAssertEqual(target.value as? String,"13%")}
+            else if index==5 {XCTAssertEqual(target.value as? String,"NaN%")}
+            else {XCTAssertEqual(target.value as? String,index==1 || index==3 ? "0%":index==2 || index==4 ? "100%":"25%")}
+        }
+        XCTAssertFalse(app.staticTexts["Semantic node stays unmounted"].exists)
+        try mark(name,["name":name,"state":row,"nativeLabel":target.exists ? target.label:"","nativeValue":target.exists ? target.value ?? NSNull():NSNull(),"parent":[a.minX,a.minY,a.width,a.height],"referenceParent":[b.minX,b.minY,b.width,b.height],"scale":scale,"referenceExact":exact,"inkPixels":ink,"captureEpochMs":Date().timeIntervalSince1970*1000],shot)
+    }
+    func testCircularGeometrySemanticsAndSlots() throws {
+        for index in 0..<cases.count {try select(index);try capture(cases[index])}
+    }
+    func testCircularProvidersAndConstraint() throws {
+        try capture("light");tap("Dark theme");try capture("dark");tap("Compact width");try capture("compact");tap("Live window");try capture("live-restored")
+        tap("Change CircularProgress value");wait("Current caller value75") {(try? self.number(self.state(),"value"))==75}
+        reveal(node("circular-native-pair"));Thread.sleep(forTimeInterval:0.5)
+        XCTAssertEqual(node("circular-native-target").value as? String,"75%")
+    }
+    private func motionSwitch(_ settings: XCUIApplication) -> XCUIElement {
+        settings.activate()
+        let toggle = settings.switches["Reduce Motion"].firstMatch
+        if toggle.exists { return toggle }
+        for label in ["Accessibility","Motion"] {
+            let entry = settings.staticTexts[label].firstMatch
+            for _ in 0..<12 { if entry.exists && entry.isHittable { break };settings.swipeUp() }
+            XCTAssertTrue(entry.exists && entry.isHittable,"Standard Settings navigation "+label);entry.tap()
+        }
+        XCTAssertTrue(toggle.waitForExistence(timeout:nativeWorkRemaining()));return toggle
+    }
+    private func setMotion(_ toggle: XCUIElement, _ expected: String) {
+        if toggle.value as? String != expected {
+            XCTAssertTrue(toggle.isHittable)
+            toggle.coordinate(withNormalizedOffset:CGVector(dx:0.95,dy:0.5)).tap()
+        }
+        wait("Actual Reduce Motion switch "+expected) { toggle.value as? String == expected }
+        let shot = XCTAttachment(screenshot:XCUIScreen.main.screenshot());shot.name="meter-motion-switch-"+expected;shot.lifetime = .keepAlways;add(shot)
+        FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_SWITCH "+expected+"\n").utf8))
+    }
+    private func observeCircularMotion(_ label:String,reduced:Bool) throws {
+        reveal(node("circular-native-pair"))
+        let arm=app.buttons.matching(NSPredicate(format:"label == %@","Arm CircularProgress interruption and retirement")).firstMatch
+        let window=app.windows.firstMatch.frame,a=node("circular-native-parent").frame,b=node("circular-native-reference-parent").frame
+        XCTAssertTrue(window.contains(arm.frame) && arm.isHittable,"Admit arm control and drawing together before starting timers")
+        let before=try state()
+        arm.tap()
+        var samples:[[String:Any]]=[]
+        let until=Date().timeIntervalSince1970+10
+        repeat {
+            let started=Date().timeIntervalSince1970*1000,shot=XCUIScreen.main.screenshot(),image=try XCTUnwrap(shot.image.cgImage),scale=CGFloat(image.width)/window.width
+            let actual=try pixels(image,a,window,scale),reference=try pixels(image,b,window,scale)
+            var ink=0;for i in stride(from:0,to:actual.count,by:4) {if actual[i]<245 || actual[i+1]<245 || actual[i+2]<245 {ink += 1}}
+            let row:[String:Any]=["name":label+"-"+String(samples.count),"captureStartedEpochMs":started,"captureEpochMs":Date().timeIntervalSince1970*1000,"inkPixels":ink,"referenceExact":circularPixelsMatch(actual,reference),"parent":[a.minX,a.minY,a.width,a.height],"referenceParent":[b.minX,b.minY,b.width,b.height],"scale":scale]
+            samples.append(row);try mark(label+"-"+String(samples.count),row,shot);Thread.sleep(forTimeInterval:0.1)
+        } while Date().timeIntervalSince1970<until && nativeWorkRemaining()>0
+        let row=try state(),scheduled=try XCTUnwrap(row["scheduled"] as? [[String:Any]])
+        XCTAssertEqual(scheduled.compactMap{$0["kind"] as? String},["to-full","supersede-ten","to-sixty","to-twenty","to-ninety","retire","reinsert-zero"])
+        let first=try number(scheduled[0],"epochMs"),retired=try number(scheduled[5],"epochMs")
+        let moving=samples.filter{($0["captureStartedEpochMs"] as? Double ?? 0)>=first && ($0["captureEpochMs"] as? Double ?? .infinity)<retired}
+        XCTAssertGreaterThan(moving.count,2,"Actual screenshots must cover delivered transitions, before retirement")
+        if reduced {XCTAssertTrue(moving.allSatisfy{$0["referenceExact"] as? Bool==true},"Live reduced motion must draw the current native target without moving intermediate paint")}
+        else {XCTAssertTrue(moving.contains{$0["referenceExact"] as? Bool==false},"Actual normal path motion must differ from the immediate raw reference at an intermediate frame")}
+        XCTAssertEqual(try number(row,"value"),0);XCTAssertEqual(row["visible"] as? Bool,true)
+        XCTAssertEqual(try number(row,"detaches"),try number(before,"detaches")+1);XCTAssertEqual(try number(row,"attaches"),try number(before,"attaches")+1)
+        XCTAssertNotEqual(try number(row,"rootTag"),try number(before,"rootTag"));XCTAssertEqual(node("circular-native-target").value as? String,"0%")
+        XCTAssertTrue(samples.contains{($0["inkPixels"] as? Int)==0},"Observe actual retired drawing before fresh insertion")
+        XCTAssertEqual(node("circular-native-parent").frame,a,"No observer scrolling after arm or native parent movement")
+        try mark(label+"-final",["name":label+"-final","state":row,"samples":samples,"movingRows":moving.count,"reduced":reduced],XCUIScreen.main.screenshot())
+    }
+    func testCircularInterruptionAndRetirement() throws {
+        let settings=XCUIApplication(bundleIdentifier:"com.apple.Preferences");settings.launch()
+        let toggle=motionSwitch(settings),original=try XCTUnwrap(toggle.value as? String)
+        XCTAssertTrue(["0","1"].contains(original))
+        FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_ORIGINAL "+original+"\n").utf8))
+        addTeardownBlock { [self] in
+            let current=self.motionSwitch(settings);self.setMotion(current,original)
+            XCTAssertEqual(current.value as? String,original);self.app.activate()
+            FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_RESTORED "+original+"\n").utf8))
+        }
+        setMotion(toggle,"0");app.activate();try observeCircularMotion("motion",reduced:false)
+        setMotion(motionSwitch(settings),"1");app.activate();reveal(node("circular-native-state"))
+        wait("Actual live Reduce Motion event") {((try? self.state()["motionEvents"] as? [Bool]) ?? []).last==true}
+        try observeCircularMotion("reduced",reduced:true)
     }
 }
