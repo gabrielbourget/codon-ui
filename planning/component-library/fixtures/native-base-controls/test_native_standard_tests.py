@@ -940,4 +940,29 @@ process.stdout.write("PASS actual timer epoch retained before deferred updater\n
             result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(plan)],env=env,capture_output=True,text=True,timeout=10)
             self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((root/"never-created").exists())
 
+
+class PlaceholderControls(unittest.TestCase):
+    def row(self):
+        return {"name":"light-default","state":{"rootTag":81,"refIdentity":1,"dropped":0,"attaches":1,"detaches":0,"actions":0,"receipts":[]},"scale":3,"frame":[26,327.99995803833008,280,17],"screen":[0,0,390,844],"imageWidth":1170,"imageHeight":2532,"expectedRGBA":[112,112,112,255],"opaquePixels":5,"nativeLabel":"Choose an item","text":"Choose an item","targetCount":1}
+    def test_placeholder_actual_pixel_geometry_name_ref_and_count_refusals(self):
+        row=self.row();self.assertEqual(NATIVE.validate_placeholder_rows([row],["light-default"])["observations"],1)
+        for key,value in [("frame",[26,850,280,17]),("scale",float("nan")),("opaquePixels",4),("expectedRGBA",[112,112,113,255]),("nativeLabel","wrong")]:
+            bad=copy.deepcopy(row);bad[key]=value
+            with self.subTest(key=key),self.assertRaises(ValueError):NATIVE.validate_placeholder_rows([bad],["light-default"])
+        for key,value in [("rootTag",0),("refIdentity",0),("dropped",1)]:
+            bad=copy.deepcopy(row);bad["state"][key]=value
+            with self.subTest(key=key),self.assertRaises(ValueError):NATIVE.validate_placeholder_rows([bad],["light-default"])
+        with self.assertRaises(ValueError):NATIVE.validate_placeholder_rows([row,row],["light-default"])
+    def test_placeholder_scope_exact_methods_actual_entry_and_launch_reset_order(self):
+        NATIVE.validate_standard_scope({"cell":"CAT.placeholder-text.G08","nativeStandard":{"batch":"placeholder-g08"}})
+        self.assertEqual(len(NATIVE.selection("ios","placeholder-g08")["ios"]),3)
+        for cell in ["CAT.combo-box.G08","CAT.placeholder-text.G07","CAT.slider.G01"]:
+            with self.assertRaises(ValueError):NATIVE.validate_standard_scope({"cell":cell,"nativeStandard":{"batch":"placeholder-g08"}})
+        with self.assertRaises(ValueError):NATIVE.selection("android","placeholder-g08")
+        source=(ROOT/"MeterG02TrialTests.swift").read_text().split("final class PlaceholderTrialTests:",1)[1]
+        setup=source.split("private func node",1)[0];self.assertLess(setup.index("app.launch()"),setup.index("XCTAssertEqual(app.state"));self.assertLess(setup.index('tap("Reset scene")'),setup.index('tap("Text/Button scene")'))
+        reset=source.split('try tap("Live window")')[-1];self.assertLess(reset.index('tap("Reset scene")'),reset.index('tap("Text/Button scene")'));self.assertLess(reset.index('tap("Text/Button scene")'),reset.index('tap("G02 prepare placeholder")'))
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);plan=root/"plan.json";plan.write_text(json.dumps({"cell":"CAT.placeholder-text.G08","nativeStandard":{"platform":"ios","batch":"placeholder-g08","output":str(root/"never-created")}}));env={k:v for k,v in os.environ.items() if k!="CODON_NATIVE_CELL_PREFLIGHT_RECEIPT"};result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(plan)],env=env,capture_output=True,text=True,timeout=10);self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((root/"never-created").exists())
+
 if __name__ == "__main__": unittest.main()

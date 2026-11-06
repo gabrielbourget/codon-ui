@@ -76,6 +76,9 @@ def verify_selected_app_inputs(plan, app):
 
 
 def selection(platform, batch="meter-g02"):
+    if batch == "placeholder-g08":
+        require(platform == "ios", "Current PlaceholderText batch is iOS only")
+        return {"ios": ["PlaceholderTrialTests/"+name for name in ["testP01LightStylePrecedenceAndRestore", "testP02DarkProviderExplicitAndEmptyReset", "testP03NarrowWrappedFirstActionAndReset"]], "android": []}
     if batch in ["radio", "radio-motion"]:
         require(platform == "ios", "Current Radio batch is iOS only")
         return {"ios": ["RadioTrialTests/" + name for name in (["testRadioMotionAndRetirement"] if batch == "radio-motion" else ["testRadioActionsAndLifetimes", "testRadioStylesAndConstraints", "testRadioMotionAndRetirement"])], "android": []}
@@ -653,6 +656,7 @@ def run_ios(session, config, app, observer):
     if config.get("batch") == "lagging-lines": result["laggingLines"] = reconcile_lagging_lines_ios(raw)
     if config.get("batch") in ["counter", "counter-values"]: result["counter"] = reconcile_counter_ios(raw, include_motion=config["batch"] == "counter")
     if config.get("batch") in ["list-box-item", "list-box-item-motion"]: result["listBoxItem"] = reconcile_list_item_ios(raw,config,app)
+    if config.get("batch") == "placeholder-g08": result["placeholder"] = reconcile_placeholder_ios(raw)
     if config.get("batch") in ["radio", "radio-motion"]: result["radio"] = reconcile_radio_ios(raw,config)
     if config.get("batch") in ["toggle-button", "toggle-button-affected", "toggle-button-style"]: result["toggleButton"] = reconcile_toggle_button_ios(raw,config)
     if config.get("batch") == "avatar": result["avatar"] = reconcile_avatar_ios(raw)
@@ -951,6 +955,37 @@ def reconcile_toggle_button_ios(raw,config=None):
         else:require(any(len(row["sampleRGBA"])==4 and 17<row["sampleRGBA"][0]<187 and 51<row["sampleRGBA"][1]<119 and 34<row["sampleRGBA"][2]<51 and row["sampleRGBA"][3]==255 for row in moving),"Actual ToggleButton interpolation missing")
     original=re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])",raw);restored=re.findall(r"METER_STYLE_MOTION_RESTORED ([01])",raw);require(len(original)==1 and original==restored,"ToggleButton original Reduce Motion restoration unverified")
     result.update(motionIntervals=2,motionFrames=sum(len(m["samples"]) for m in motion),originalMotionValue=original[0]);return result
+
+
+PLACEHOLDER_NAMES = ["light-default","light-center","light-custom","light-final","light-custom-restored","light-computed-restored","dark-default","dark-final","light-explicit-retained","light-after-provider","empty-restored","full-final-deferred","narrow-final-deferred","narrow-after-first-action","reset-default"]
+
+
+def validate_placeholder_rows(rows,names):
+    require(sorted(row["name"] for row in rows)==sorted(names),"Missing/duplicate Placeholder observations")
+    for row in rows:
+        name,state,scale=row["name"],row["state"],row["scale"]
+        require(isinstance(scale,(int,float)) and math.isfinite(scale) and scale>0,"Invalid Placeholder scale")
+        frame,screen=row["frame"],row["screen"]
+        require(len(frame)==len(screen)==4 and all(math.isfinite(v) for v in frame+screen) and frame[2]>0 and frame[3]>0,"Invalid Placeholder frames")
+        x,y,width,height=[math.floor(v*scale+.5) for v in [frame[0]-screen[0],frame[1]-screen[1],frame[2],frame[3]]]
+        require(0<=x<x+width<=row["imageWidth"] and 0<=y<y+height<=row["imageHeight"] and abs(screen[2]*scale-row["imageWidth"])<1 and abs(screen[3]*scale-row["imageHeight"])<1,"Placeholder crop outside actual screenshot")
+        expected=[126,34,206,255] if any(v in name for v in ["final","explicit","first-action"]) else [166,107,0,255] if "custom" in name and "computed" not in name else [135,135,135,255] if name=="dark-default" else [112,112,112,255]
+        require(row["expectedRGBA"]==expected and row["opaquePixels"]>=5,"Placeholder opaque glyph color/count differs")
+        require(row["nativeLabel"]==row["text"] and state["rootTag"]>0 and state["refIdentity"]>0 and state["dropped"]==0,"Placeholder native label/ref/target differs")
+    return {"status":"PASS","observations":len(rows)}
+
+
+def reconcile_placeholder_ios(raw):
+    rows=[json.loads(x) for x in re.findall(r"PLACEHOLDER_NATIVE_OBSERVATION (\{[^\n]+\})",raw)];result=validate_placeholder_rows(rows,PLACEHOLDER_NAMES);named={x["name"]:x for x in rows}
+    for group in [PLACEHOLDER_NAMES[:6],PLACEHOLDER_NAMES[6:11],PLACEHOLDER_NAMES[11:14]]:
+        first=named[group[0]]["state"]
+        for name in group:
+            require(all(named[name]["state"][key]==first[key] for key in ["rootTag","refIdentity","attaches","detaches"]),"Placeholder original ref lost")
+    wide,narrow=named["full-final-deferred"]["frame"],named["narrow-final-deferred"]["frame"]
+    require(narrow[2]<wide[2] and narrow[3]>wide[3]*1.5,"Placeholder native wrapping constraint missing")
+    action=named["narrow-after-first-action"]["state"];require(action["actions"]==1 and [x["kind"] for x in action["receipts"]]==["pressIn","pressOut","press"] and all(x["native"]["target"]==action["rootTag"] for x in action["receipts"]),"Placeholder first native action/order/target differs")
+    require(named["reset-default"]["state"]["actions"]==0,"Placeholder reset fabricated action")
+    return result
 
 
 RADIO_BEHAVIOR = ["baseline","echo","reselected","disabled","readonly","held-disabled","restored","renderer","replaced","retired","fresh","local","local-default-changed","empty-value","vetoed-1","vetoed-2","echo-activated","reselected-activated","restored-activated","local-activated","empty-value-activated","held-canceled"]
@@ -1583,7 +1618,8 @@ def validate_standard_scope(plan):
     list_item = cell in ["CAT.list-box-item." + gate for gate in ["G04", "G08"]] and batch in ["list-box-item", "list-box-item-motion"]
     toggle_button = cell in ["CAT.toggle-button." + gate for gate in ["G04", "G08"]] and batch in ["toggle-button", "toggle-button-affected", "toggle-button-style"]
     radio = cell == "CAT.radio.G08" and batch in ["radio", "radio-motion"]
-    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item or toggle_button or radio, "Only the authorized component and focused batch are selected")
+    placeholder = cell == "CAT.placeholder-text.G08" and batch == "placeholder-g08"
+    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item or toggle_button or radio or placeholder, "Only the authorized component and focused batch are selected")
 
 
 def main():

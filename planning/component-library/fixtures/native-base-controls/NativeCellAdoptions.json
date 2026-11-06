@@ -177,6 +177,13 @@
         "sha256": "48bd5c0137177cd1e4a1a7f9b3f3395b1d8b52bbc6a7468be8f8b040f2caffe2",
         "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/radio-after-toggle-button-20261106/radio-G08-completion.json"
       }
+    },
+    "CAT.placeholder-text.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/placeholder-ios-g08-resumed-20261106/objects/0f2d26928bc667ffb0d2742d3d5e8e655cde6beffbfd34c0bdc1665e6243772d",
+        "sha256": "0f2d26928bc667ffb0d2742d3d5e8e655cde6beffbfd34c0bdc1665e6243772d",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/placeholder-resume-after-radio-20261106/placeholder-G08-completion.json"
+      }
     }
   }
 }
