@@ -156,6 +156,13 @@
         "sha256": "40a67c626ec37dd173b4f4c75c0b69c2b94a491c18fece31411948de1fd96b97",
         "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/avatar-after-gallery-20261106/avatar-G08-completion-v2.json"
       }
+    },
+    "CAT.list-box-item.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/list-box-item-ios-g08-20261106/objects/edd43dfd41c794da72c2dc8cb14ed8c7653ca15147868dca28663abb7ed331de",
+        "sha256": "edd43dfd41c794da72c2dc8cb14ed8c7653ca15147868dca28663abb7ed331de",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/list-box-item-after-avatar-20261106/list-box-item-G08-completion.json"
+      }
     }
   }
 }

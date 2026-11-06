@@ -812,4 +812,38 @@ class AvatarControls(unittest.TestCase):
             result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(plan)],env=env,capture_output=True,text=True,timeout=10)
             self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((root/"never-created").exists())
 
+
+class ListItemControls(unittest.TestCase):
+    def row(self):
+        return {"name":"baseline","state":{"scale":3,"visible":True,"rootTag":81,"layouts":[{"target":81,"currentTarget":81,"layout":{"width":200,"height":44}}],"zero":False,"disabled":False,"selected":False,"textValue":"Choice number:0","width":200,"small":False,"narrow":False},"scale":3,"parent":[20,100,280,224],"referenceParent":[20,332,280,224],"root":[32,112,200,44],"referenceRoot":[32,344,200,44],"targetCount":1,"nativeLabel":"Choice number:0","nativeValue":"radio button, unchecked","nativeEnabled":True,"referenceExact":True,"inkPixels":1000,"imageWidth":1170,"imageHeight":2532,"heldContactIntervals":[]}
+    def test_list_item_native_controls_fail_for_wrong_semantics_frames_refs_pixels_and_held_phase(self):
+        row=self.row();self.assertEqual(NATIVE.validate_list_item_rows([row],["baseline"])["observations"],1)
+        for field,value in [("nativeValue","radio button, checked"),("nativeValue","checkbox, unchecked"),("nativeValue","radio button, mixed"),("referenceExact",False),("nativeLabel","wrong"),("nativeEnabled",False),("targetCount",2),("root",[33,112,200,44]),("scale",float("nan"))]:
+            bad=copy.deepcopy(row);bad[field]=value
+            with self.subTest(field=field,value=value),self.assertRaises(ValueError):NATIVE.validate_list_item_rows([bad],["baseline"])
+        bad=copy.deepcopy(row);bad["state"]["layouts"][0]["currentTarget"]=82
+        with self.assertRaises(ValueError):NATIVE.validate_list_item_rows([bad],["baseline"])
+        held=copy.deepcopy(row);held["heldContactIntervals"]=[{"beganEpochMs":1000,"endedEpochMs":2000,"disabledOnPressInEpochMs":1100}];NATIVE.validate_list_item_rows([held],["baseline"]);held["heldContactIntervals"][0]["disabledOnPressInEpochMs"]=1800
+        with self.assertRaises(ValueError):NATIVE.validate_list_item_rows([held],["baseline"])
+        bad=copy.deepcopy(row);bad["parent"][1]=900
+        with self.assertRaises(ValueError):NATIVE.validate_list_item_rows([bad],["baseline"])
+    def test_list_item_focused_motion_refuses_wrong_app_or_failed_retained_method(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);loaded=root/"loaded.json";loaded.write_text(json.dumps({"status":"PASS","observerManifestSHA256":"c"*64}));cleanup=root/"cleanup.json";cleanup.write_text(json.dumps({"cleanupVerified":True}));proof=root/"proof.json"
+            value={"appManifestSHA256":"a"*64,"observerManifestSHA256":"c"*64,"librarySources":[],"loadedObserver":{"path":str(loaded),"sha256":NATIVE.digest(loaded)},"cleanup":{"path":str(cleanup),"sha256":NATIVE.digest(cleanup)},"nativeMethods":[{"method":"testListBoxItemMotionAndRetirement"}]};proof.write_text(json.dumps(value));config={"batch":"list-box-item-motion","retainedListItemMethods":{"path":str(proof),"sha256":NATIVE.digest(proof)}}
+            with self.assertRaisesRegex(ValueError,"app differs"):NATIVE.reconcile_list_item_ios("",config,{"manifestSHA256":"b"*64})
+            with self.assertRaisesRegex(ValueError,"Only clean"):NATIVE.reconcile_list_item_ios("",config,{"manifestSHA256":"a"*64})
+        self.assertEqual(NATIVE.selection("ios","list-box-item-motion")["ios"],["ListBoxItemTrialTests/testListBoxItemMotionAndRetirement"])
+        with self.assertRaises(ValueError):NATIVE.selection("android","list-box-item-motion")
+
+    def test_list_item_scope_actual_entry_and_motion_source_controls(self):
+        for gate in ["G04","G08"]:NATIVE.validate_standard_scope({"cell":"CAT.list-box-item."+gate,"nativeStandard":{"batch":"list-box-item"}})
+        for cell in ["CAT.list-box-item.G07","CAT.combo-box.G08"]:
+            with self.assertRaises(ValueError):NATIVE.validate_standard_scope({"cell":cell,"nativeStandard":{"batch":"list-box-item"}})
+        with self.assertRaises(ValueError):NATIVE.selection("android","list-box-item")
+        self.assertEqual(len(NATIVE.selection("ios","list-box-item")["ios"]),3)
+        controls=NATIVE.geometry_control_source();self.assertIn("listItemValueMatches",controls);self.assertIn("listItemIntermediate",controls);self.assertIn('listItemCases',controls)
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);plan=root/"plan.json";plan.write_text(json.dumps({"cell":"CAT.list-box-item.G08","nativeStandard":{"platform":"ios","batch":"list-box-item","output":str(root/"never-created")}}));env={k:v for k,v in os.environ.items() if k!="CODON_NATIVE_CELL_PREFLIGHT_RECEIPT"};result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(plan)],env=env,capture_output=True,text=True,timeout=10);self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((root/"never-created").exists())
+
 if __name__ == "__main__": unittest.main()

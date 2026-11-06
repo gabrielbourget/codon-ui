@@ -76,6 +76,9 @@ def verify_selected_app_inputs(plan, app):
 
 
 def selection(platform, batch="meter-g02"):
+    if batch in ["list-box-item", "list-box-item-motion"]:
+        require(platform == "ios", "Current ListBoxItem batch is iOS only")
+        return {"ios": ["ListBoxItemTrialTests/testListBoxItemMotionAndRetirement"] if batch == "list-box-item-motion" else ["ListBoxItemTrialTests/testListBoxItemActionsAndLifetimes", "ListBoxItemTrialTests/testListBoxItemStylesAndConstraints", "ListBoxItemTrialTests/testListBoxItemMotionAndRetirement"], "android": []}
     if batch == "avatar":
         require(platform == "ios", "Current Avatar batch is iOS only")
         return {"ios": ["AvatarTrialTests/testAvatarImagesActionsAndLifetimes", "AvatarTrialTests/testAvatarGeometryStylesAndProviders"], "android": []}
@@ -240,9 +243,35 @@ def geometry_control_source():
     image_predicate = source[image_start:image_end].replace("private ", "", 1)
     gallery_start = source.index("private func galleryTrackWidth(");gallery_open = source.index("{", gallery_start);gallery_end = source.index("\n}", gallery_open) + 2
     gallery_predicate = source[gallery_start:gallery_end].replace("private ", "", 1)
+    list_predicates = []
+    for signature in ["private func listItemValueMatches(", "private func listItemIntermediate(", "private func listItemSampleRGBA("]:
+        start = source.index(signature);opening = source.index("{", start);end = source.index("\n}", opening) + 2
+        list_predicates.append(source[start:end].replace("private ", "", 1))
     scroll_start = source.index("private func galleryScrollFraction(");scroll_open = source.index("{", scroll_start);scroll_end = source.index("\n}", scroll_open) + 2
     scroll_predicate = source[scroll_start:scroll_end].replace("private ", "", 1)
-    return "import Foundation\n" + scroll_predicate + "\n" + gallery_predicate + "\n" + predicate + "\n" + pixel_predicate + "\n" + shadow_predicate + "\n" + circle_predicate + "\n" + image_predicate + "\n" + '''
+    return "import Foundation\n" + "\n".join(list_predicates) + "\n" + scroll_predicate + "\n" + gallery_predicate + "\n" + predicate + "\n" + pixel_predicate + "\n" + shadow_predicate + "\n" + circle_predicate + "\n" + image_predicate + "\n" + '''
+let deliveredSample:[String:Any] = ["sampleRGBA":[UInt8]([127,74,39,255])]
+precondition(deliveredSample["sampleRGBA"] as? [Int] == nil)
+let normalizedSample:[String:Any] = ["sampleRGBA":listItemSampleRGBA([127,74,39,255,17,119,51,255])]
+precondition(normalizedSample["sampleRGBA"] as? [Int] == [127,74,39,255])
+precondition(listItemIntermediate(normalizedSample["sampleRGBA"] as! [Int]))
+precondition(listItemSampleRGBA([]).isEmpty)
+precondition(listItemValueMatches("radio button, checked",true))
+precondition(listItemValueMatches("radio button, unchecked",false))
+precondition(!listItemValueMatches("radio button, unchecked",true))
+precondition(!listItemValueMatches("radio button, checked",false))
+precondition(!listItemValueMatches("checkbox, checked",true))
+precondition(!listItemValueMatches("radio button, mixed",true))
+precondition(!listItemValueMatches("radio button",false))
+precondition(!listItemValueMatches("radio button, checked, unchecked",true))
+precondition(listItemIntermediate([102,85,42,255]))
+precondition(!listItemIntermediate([17,119,51,255]))
+precondition(!listItemIntermediate([187,51,34,255]))
+precondition(!listItemIntermediate([102,85,0,255]))
+precondition(!listItemIntermediate([102,85,42,0]))
+precondition(!listItemIntermediate([102,85,42]))
+precondition(!listItemIntermediate([255,255,255,255]))
+precondition(!listItemIntermediate([102,85,256,255]))
 let saved: NSNumber = 9.9998779296875
 precondition(saved.intValue == 9 && saved.doubleValue == 9.9998779296875)
 let cases: [(Double, Double, Double, Bool)] = [
@@ -293,7 +322,7 @@ precondition(thumbnailImageContentFrame([0,0,83.25,41.625],2) == [2,2,79.25,37.6
 precondition(thumbnailImageContentFrame([0,0,2,2],2) == nil)
 precondition(thumbnailImageContentFrame([0,0,120,80],-1) == nil)
 precondition(thumbnailImageContentFrame([0,0,Double.nan,80],2) == nil)
-print(#"{\"galleryScrollCases\":8,\"galleryTrackCases\":8,\"thumbnailFrameCases\":6,\"circularCases\":6,\"status\":\"PASS\",\"cases\":11,\"pixelCases\":6,\"shadowCases\":6,\"savedNSNumberIntValue\":9,\"savedNSNumberDoubleValue\":9.9998779296875}"#)
+print(#"{\"listItemCases\":20,\"galleryScrollCases\":8,\"galleryTrackCases\":8,\"thumbnailFrameCases\":6,\"circularCases\":6,\"status\":\"PASS\",\"cases\":11,\"pixelCases\":6,\"shadowCases\":6,\"savedNSNumberIntValue\":9,\"savedNSNumberDoubleValue\":9.9998779296875}"#)
 '''
 
 
@@ -338,7 +367,7 @@ def build_ios(session, config=None):
     sdk = session.run("geometry-sdk", ["/usr/bin/xcrun", "--sdk", "macosx", "--show-sdk-path"]).strip()
     swift = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift"
     control_result = json.loads(session.run("geometry-controls", [swift, "-sdk", sdk, "-module-cache-path", str(CACHE / "swift-host-module-cache"), str(controls)]))
-    require(control_result.get("galleryScrollCases") == 8 and control_result.get("galleryTrackCases") == 8 and control_result.get("thumbnailFrameCases") == 6 and control_result.get("circularCases") == 6 and control_result.get("status") == "PASS" and control_result.get("cases") == 11 and control_result.get("pixelCases") == 6 and control_result.get("shadowCases") == 6, "Actual Swift geometry/pixel/shadow controls failed")
+    require(control_result.get("listItemCases") == 20 and control_result.get("galleryScrollCases") == 8 and control_result.get("galleryTrackCases") == 8 and control_result.get("thumbnailFrameCases") == 6 and control_result.get("circularCases") == 6 and control_result.get("status") == "PASS" and control_result.get("cases") == 11 and control_result.get("pixelCases") == 6 and control_result.get("shadowCases") == 6, "Actual Swift geometry/pixel/shadow controls failed")
     derived = CACHE / "ios"
     # A source revision gets an unambiguous observer registration; old installed revisions remain intact.
     bundle_id = "dev.codonui.lab.components.r" + digest(ROOT / "MeterG02TrialTests.swift")[:12]
@@ -571,7 +600,7 @@ def run_ios(session, config, app, observer):
     try: raw = session.run("xctest", argv)
     except ValueError as error:
         sdk_error = error;stdout = session.output / "xctest.stdout";raw = stdout.read_text() if stdout.exists() else ""
-    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected", "circle-loader", "lagging-lines", "counter"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
+    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected", "circle-loader", "lagging-lines", "counter", "list-box-item", "list-box-item-motion"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
         original_motion = re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])", raw)
         restored_motion = re.findall(r"METER_STYLE_MOTION_RESTORED ([01])", raw)
         if original_motion != restored_motion: session.cleanup_errors.append("Original iOS Reduce Motion restoration unverified")
@@ -605,6 +634,7 @@ def run_ios(session, config, app, observer):
     if config.get("batch") == "circle-loader": result["circleLoader"] = reconcile_circle_loader_ios(raw)
     if config.get("batch") == "lagging-lines": result["laggingLines"] = reconcile_lagging_lines_ios(raw)
     if config.get("batch") in ["counter", "counter-values"]: result["counter"] = reconcile_counter_ios(raw, include_motion=config["batch"] == "counter")
+    if config.get("batch") in ["list-box-item", "list-box-item-motion"]: result["listBoxItem"] = reconcile_list_item_ios(raw,config,app)
     if config.get("batch") == "avatar": result["avatar"] = reconcile_avatar_ios(raw)
     if config.get("batch") in ["gallery", "gallery-modes", "gallery-styles", "gallery-remaining"]: result["gallery"] = reconcile_gallery_ios(raw, config["batch"])
     if config.get("batch") in ["thumbnail", "thumbnail-geometry"]: result["thumbnail"] = reconcile_thumbnail_ios(raw, include_lifetime=config["batch"] == "thumbnail")
@@ -830,6 +860,68 @@ def reconcile_counter_ios(raw, include_motion=True):
     return result
 
 
+
+
+
+LIST_ITEM_BEHAVIOR = ["baseline","echo","string-zero","empty-key","programmatic-off","disabled","readonly","held-disabled","restored","child-callback","renderer","replaced","retired","fresh","vetoed","echo-selected","held-canceled"]
+LIST_ITEM_STYLES = ["style-baseline","selected","small-text","large-text","root-custom","final-style","foreground","explicit-child","square","long-narrow","fractional","percentage","auto","small-target","zero","dark","light-restored"]
+
+
+def validate_list_item_rows(rows,names):
+    require(sorted(row["name"] for row in rows)==sorted(names),"Missing/duplicate ListBoxItem observations")
+    for row in rows:
+        state,scale=row["state"],row["scale"]
+        require(isinstance(scale,(int,float)) and math.isfinite(scale) and scale>0 and scale==state["scale"],"Wrong ListBoxItem scale")
+        parent,reference=row["parent"],row["referenceParent"]
+        require(len(parent)==len(reference)==4 and all(math.isfinite(v) for v in parent+reference) and parent[2:]==reference[2:] and 0<parent[2]<=280 and parent[3]==224,"Wrong ListBoxItem parents")
+        for frame in [parent,reference]:
+            x,y,width,height=[math.floor(v*scale+.5) for v in frame]
+            require(0<=x<x+width<=row["imageWidth"] and 0<=y<y+height<=row["imageHeight"],"ListBoxItem parent outside physical screenshot")
+        require(row["referenceExact"] is True,"ListBoxItem native reference mismatch")
+        if not state["visible"]:
+            require(not row["root"] and row["inkPixels"]==0 and state["rootTag"] is None,"Retired ListBoxItem ref/paint remains")
+            continue
+        event=state["layouts"][-1];layout=event["layout"]
+        require(state["rootTag"] and event["target"]==event["currentTarget"]==state["rootTag"],"Original ListBoxItem layout/ref differs")
+        if state["zero"]:
+            require(layout["width"]==layout["height"]==0 and row["inkPixels"]==0,"Authored ListBoxItem zero/clipping differs")
+            continue
+        require(row["targetCount"]==1 and row["nativeLabel"]==state["textValue"] and row["nativeEnabled"] is (not state["disabled"]),"ListBoxItem name/guard/target differs")
+        require([s.strip() for s in row["nativeValue"].split(",")]==["radio button","checked" if state["selected"] else "unchecked"],"ListBoxItem current radio/check native value differs")
+        root,raw=row["root"],row["referenceRoot"]
+        require(len(root)==len(raw)==4 and all(abs(a-b)*scale<=1 for a,b in zip([root[0]-parent[0],root[1]-parent[1],*root[2:]],[raw[0]-reference[0],raw[1]-reference[1],*raw[2:]])),"ListBoxItem actual/reference frames differ")
+        require(all(abs(root[i+2]-layout[key])*scale<=1 for i,key in enumerate(["width","height"])),"ListBoxItem layout/native dimensions differ")
+        if isinstance(state["width"],(int,float)):require(abs(root[2]-state["width"])*scale<=1,"ListBoxItem authored width differs")
+        require(abs(root[3]-24)*scale<=1 if state["small"] else root[3]>=44-1/scale,"ListBoxItem explicit/default target height differs")
+        if state["narrow"]:require(44<root[3] and root[1]+root[3]<=parent[1]+parent[3]-12+1/scale,"Constrained ListBoxItem content clipped")
+        for held in row.get("heldContactIntervals",[]):require(held["beganEpochMs"]<=held["disabledOnPressInEpochMs"]<held["endedEpochMs"]-400,"ListBoxItem disable was not during held contact")
+    return {"status":"PASS","observations":len(rows)}
+
+
+def reconcile_list_item_ios(raw,config=None,app=None):
+    config=config or {};retained_rows=[]
+    if config.get("batch")=="list-box-item-motion":
+        proof=json.loads(bound_file(config["retainedListItemMethods"]).read_text())
+        require(proof["appManifestSHA256"]==app["manifestSHA256"],"Retained ListBoxItem app differs")
+        for source in proof["librarySources"]:bound_file(source)
+        loaded=json.loads(bound_file(proof["loadedObserver"]).read_text());require(loaded["status"]=="PASS" and loaded["observerManifestSHA256"]==proof["observerManifestSHA256"],"Retained ListBoxItem loaded observer differs")
+        require(json.loads(bound_file(proof["cleanup"]).read_text())["cleanupVerified"],"Retained ListBoxItem cleanup unverified")
+        require({m["method"] for m in proof["nativeMethods"]}=={"testListBoxItemActionsAndLifetimes","testListBoxItemStylesAndConstraints"},"Only clean ListBoxItem methods may be reused")
+        for method in proof["nativeMethods"]:native_method(method)
+        retained_raw=bound_file(proof["raw"]).read_text();retained_rows=[json.loads(x) for x in re.findall(r"LIST_ITEM_NATIVE_OBSERVATION (\{[^\n]+\})",retained_raw)];retained_rows=[row for row in retained_rows if row["name"] in LIST_ITEM_BEHAVIOR+LIST_ITEM_STYLES];validate_list_item_rows(retained_rows,LIST_ITEM_BEHAVIOR+LIST_ITEM_STYLES)
+    rows=[json.loads(x) for x in re.findall(r"LIST_ITEM_NATIVE_OBSERVATION (\{[^\n]+\})",raw)]+retained_rows;result=validate_list_item_rows(rows,LIST_ITEM_BEHAVIOR+LIST_ITEM_STYLES+["normal-fresh","reduced-fresh"]);named={row["name"]:row for row in rows};tag=named["baseline"]["state"]["rootTag"]
+    require(named["vetoed"]["state"]["actions"]==1 and not named["vetoed"]["state"]["selected"] and named["echo-selected"]["state"]["selected"],"ListBoxItem controlled veto/echo differs")
+    for name in ["string-zero","empty-key","programmatic-off","disabled","readonly","held-disabled","restored","child-callback","renderer"]:require(named[name]["state"]["rootTag"]==tag,"ListBoxItem metadata/renderer replaced original ref")
+    held=named["held-canceled"];require(held["state"]["canceled"] and held["state"]["actions"]==2 and len(held["heldContactIntervals"])==1,"ListBoxItem held cancellation missing")
+    require(named["fresh"]["state"]["actions"]==3 and named["fresh"]["state"]["rootTag"]!=tag and named["string-zero"]["state"]["keyType"]=="string" and named["empty-key"]["state"]["id"]=="","ListBoxItem typed key/lifetime differs")
+    motion=[json.loads(x) for x in re.findall(r"LIST_ITEM_NATIVE_MOTION (\{[^\n]+\})",raw)];require(len(motion)==2 and {m["name"] for m in motion}=={"normal","reduced"},"ListBoxItem motion intervals missing")
+    for interval in motion:
+        trace=interval["state"]["motionTrace"];require([x["name"] for x in trace]==["select","interrupt","retarget","retire","fresh"],"ListBoxItem real motion schedule differs")
+        samples=interval["samples"];moving=[row for row in samples if row["captureStartedEpochMs"]>=trace[0]["epochMs"] and row["captureEpochMs"]<trace[3]["epochMs"]];require(len(moving)>1 and any(row["inkPixels"]==0 for row in samples),"ListBoxItem real motion/retired frames missing")
+        if interval["reduced"]:require(all(row["referenceExact"] for row in moving),"Reduced ListBoxItem still interpolates")
+        else:require(any(len(row["sampleRGBA"])==4 and 17<row["sampleRGBA"][0]<187 and 51<row["sampleRGBA"][1]<119 and 34<row["sampleRGBA"][2]<51 and row["sampleRGBA"][3]==255 for row in moving),"Real ListBoxItem background interpolation missing")
+    original=re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])",raw);restored=re.findall(r"METER_STYLE_MOTION_RESTORED ([01])",raw);require(len(original)==1 and original==restored,"ListBoxItem Reduce Motion restoration unverified")
+    result.update(motionIntervals=2,motionFrames=sum(len(m["samples"]) for m in motion),originalMotionValue=original[0]);return result
 
 
 AVATAR_BEHAVIOR = ["baseline","sample","invalid","removed","first-name","last-name","anonymous","disabled","passive","missing-handler","held-cancel","restored","retired","fresh","delayed"]
@@ -1331,7 +1423,8 @@ def validate_standard_scope(plan):
     thumbnail = cell in ["CAT.thumbnail-image." + gate for gate in ["G04", "G08"]] and batch in ["thumbnail", "thumbnail-geometry"]
     gallery = cell in ["CAT.thumbnail-showcase." + gate for gate in ["G04", "G08"]] and batch in ["gallery", "gallery-modes", "gallery-styles", "gallery-remaining"]
     avatar = cell in ["CAT.avatar." + gate for gate in ["G04", "G08"]] and batch == "avatar"
-    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar, "Only the authorized component and focused batch are selected")
+    list_item = cell in ["CAT.list-box-item." + gate for gate in ["G04", "G08"]] and batch in ["list-box-item", "list-box-item-motion"]
+    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item, "Only the authorized component and focused batch are selected")
 
 
 def main():
