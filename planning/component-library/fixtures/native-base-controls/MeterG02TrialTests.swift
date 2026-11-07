@@ -3759,3 +3759,189 @@ final class RadioGroupTrialTests: XCTestCase {
         };XCTAssertTrue(result);return bytes
     }
 }
+
+private func buttonShadowIntermediate(_ rgba:[Int])->Bool {
+    rgba.count==4 && rgba[0]>153 && rgba[0]<255 && rgba[0]==rgba[1] && rgba[1]==rgba[2] && rgba[3]==255
+}
+
+private func buttonMotionReferenceIndex(_ rgba:[Int],_ ink:Int)->Int? {
+    if rgba==[187,51,34,255] {return 0}
+    if rgba==[17,119,51,255] {return 1}
+    if rgba==[255,255,255,255] && ink==0 {return 0}
+    return nil
+}
+
+final class ButtonTrialTests: XCTestCase {
+    private var app:XCUIApplication!
+    private var heldIntervals:[[String:Double]]=[]
+    private let behavior=["baseline","repeated","disabled","held-disabled","restored","pending","held-pending","pending-restored","renderer","replaced","retired","fresh","focus-excluded","long-press"]
+    private let styles=["style-baseline","flat","outline","primary","secondary","transparent","root-custom","final-style","foreground","explicit-child","square","round","long-narrow","fractional","percentage","auto","small-target","zero","dark","light-restored"]
+    override func setUpWithError() throws {
+        continueAfterFailure=false;app=XCUIApplication(bundleIdentifier:"dev.codonui.showcase");app.launch();XCTAssertEqual(app.state,.runningForeground);XCUIDevice.shared.orientation = .portrait
+        tap("Reset scene");tap("Basic controls scene");tap("Light theme");tap("Live window");tap("Prepare standalone Button checks")
+    }
+    override func tearDownWithError() throws {
+        let png=XCTAttachment(screenshot:XCUIScreen.main.screenshot());png.name="button-final";png.lifetime = .keepAlways;add(png)
+        let tree=XCTAttachment(string:app.debugDescription);tree.name="button-final-hierarchy";tree.lifetime = .keepAlways;add(tree)
+    }
+    private func state() throws->[String:Any] {try XCTUnwrap(JSONSerialization.jsonObject(with:Data(node("button-native-state").label.utf8)) as? [String:Any])}
+    private func number(_ row:[String:Any],_ key:String)throws->Double {let value=try XCTUnwrap(row[key] as? NSNumber,key).doubleValue;XCTAssertTrue(value.isFinite);return value}
+    private func rect(_ value:CGRect)->[Double] {[value.minX,value.minY,value.width,value.height].map(Double.init)}
+    private func ready() {wait("Actual current Button root/ref/layout") {guard let row=try? self.state(),let events=row["layouts"] as? [[String:Any]],let event=events.last else{return false};return (row["rootTag"] as? NSNumber)?.doubleValue == (event["currentTarget"] as? NSNumber)?.doubleValue}}
+    private func mark(_ name:String,_ row:[String:Any],_ shot:XCUIScreenshot,prefix:String="BUTTON_NATIVE_OBSERVATION") throws {
+        let data=try JSONSerialization.data(withJSONObject:row,options:.sortedKeys);FileHandle.standardOutput.write(Data((prefix+" ").utf8)+data+Data("\n".utf8));let attachment=XCTAttachment(data:data,uniformTypeIdentifier:"public.json");attachment.name="button-"+name+"-receipt";attachment.lifetime = .keepAlways;add(attachment);let png=XCTAttachment(screenshot:shot);png.name="button-"+name;png.lifetime = .keepAlways;add(png)
+    }
+    private func capture(_ name:String) throws {
+        reveal(node("button-native-pair"));let snapshot=try app.snapshot();var all:[XCUIElementSnapshot]=[]
+        func visit(_ value:XCUIElementSnapshot){all.append(value);for child in value.children{visit(child)}};visit(snapshot)
+        func one(_ id:String)->XCUIElementSnapshot? {let values=all.filter{$0.identifier==id};XCTAssertLessThanOrEqual(values.count,1,id);return values.first}
+        let row=try XCTUnwrap(JSONSerialization.jsonObject(with:Data(try XCTUnwrap(one("button-native-state")).label.utf8)) as? [String:Any]),window=try XCTUnwrap(all.first{$0.elementType == .window}).frame,parent=try XCTUnwrap(one("button-native-parent")).frame,reference=try XCTUnwrap(one("button-native-reference-parent")).frame,root=one("button-native-target"),raw=one("button-native-reference"),shot=XCUIScreen.main.screenshot(),image=try XCTUnwrap(shot.image.cgImage),scale=CGFloat(image.width)/window.width
+        XCTAssertEqual(shot.image.imageOrientation,.up);XCTAssertEqual(scale,CGFloat(image.height)/window.height,accuracy:0.01)
+        let actual=try pixels(image,parent,window,scale),separated=try pixels(image,reference,window,scale)
+        var expected=separated,matchedReferenceParent:[Double]=[]
+        if row["hasShadow"] as? Bool==true {
+            let control=app.buttons[row["mode"] as? String=="motion" ? "Reference" : "Match raised reference position"].firstMatch;XCTAssertTrue(control.isHittable && window.contains(control.frame));control.tap()
+            wait("Reference uses original physical origin"){(try? self.state()["referenceAtOrigin"] as? Bool)==true}
+            let frame=node("button-native-reference-parent").frame,referenceShot=XCUIScreen.main.screenshot(),referenceImage=try XCTUnwrap(referenceShot.image.cgImage)
+            XCTAssertTrue(toggleButtonMatchedFrame(rect(parent),rect(frame),Double(scale)),"Shadow reference must use the same physical origin and dimensions")
+            XCTAssertEqual(referenceImage.width,image.width);XCTAssertEqual(referenceImage.height,image.height)
+            expected=try pixels(referenceImage,frame,window,scale);matchedReferenceParent=rect(frame)
+            let attachment=XCTAttachment(screenshot:referenceShot);attachment.name="button-"+name+"-matched-reference";attachment.lifetime = .keepAlways;add(attachment)
+        }
+        let exact=circularPixelsMatch(actual,expected)
+        var ink=0;for i in stride(from:0,to:actual.count,by:4){if actual[i] != 255 || actual[i+1] != 255 || actual[i+2] != 255{ink+=1}}
+        let observed:[String:Any]=["name":name,"state":row,"parent":rect(parent),"referenceParent":rect(reference),"root":root.map{rect($0.frame)} ?? [],"referenceRoot":raw.map{rect($0.frame)} ?? [],"nativeLabel":root?.label ?? "","nativeValue":root?.value ?? NSNull(),"nativeButton":root?.elementType == .button,"nativeType":root.map{Int($0.elementType.rawValue)} ?? -1,"nativeEnabled":root?.isEnabled ?? false,"heldContactIntervals":heldIntervals,"targetCount":all.filter{$0.identifier=="button-native-target"}.count,"referenceExact":exact,"separatedReferenceExact":circularPixelsMatch(actual,separated),"rawReferencePositionDiffers":!circularPixelsMatch(separated,expected),"matchedReferenceParent":matchedReferenceParent,"inkPixels":ink,"scale":scale,"imageWidth":image.width,"imageHeight":image.height]
+        try mark(name,observed,shot);XCTAssertEqual(parent.size,reference.size);XCTAssertEqual(parent.height,224);XCTAssertTrue(exact,"Button paint differs from independent core-native reference")
+        if row["visible"] as? Bool==false {XCTAssertNil(root);XCTAssertTrue(row["rootTag"] is NSNull);XCTAssertEqual(ink,0);return}
+        let events=try XCTUnwrap(row["layouts"] as? [[String:Any]]),event=try XCTUnwrap(events.last),layout=try XCTUnwrap(event["layout"] as? [String:Any]),tag=try number(row,"rootTag")
+        XCTAssertGreaterThan(tag,0);XCTAssertEqual(try number(event,"target"),tag);XCTAssertEqual(try number(event,"currentTarget"),tag)
+        if row["zero"] as? Bool==true {XCTAssertEqual(try number(layout,"width"),0);XCTAssertEqual(try number(layout,"height"),0);XCTAssertEqual(ink,0);return}
+        let target=try XCTUnwrap(root),nativeReference=try XCTUnwrap(raw);XCTAssertEqual(target.label,row["label"] as? String);XCTAssertEqual(target.isEnabled,!(row["disabled"] as? Bool ?? false))
+        XCTAssertEqual(target.elementType,.button)
+        XCTAssertEqual(target.value as? String ?? "", row["pending"] as? Bool==true ? "busy" : "", "Original native busy metadata and restoration")
+        XCTAssertEqual(target.frame.width,try number(layout,"width"),accuracy:1/scale);XCTAssertEqual(target.frame.height,try number(layout,"height"),accuracy:1/scale)
+        for (actual,expected) in zip([target.frame.minX-parent.minX,target.frame.minY-parent.minY,target.frame.width,target.frame.height],[nativeReference.frame.minX-reference.minX,nativeReference.frame.minY-reference.minY,nativeReference.frame.width,nativeReference.frame.height]) {XCTAssertEqual(actual,expected,accuracy:1/scale)}
+        if let width=row["width"] as? NSNumber {XCTAssertEqual(target.frame.width,width.doubleValue,accuracy:1/scale)}
+        if row["small"] as? Bool==true {XCTAssertEqual(target.frame.height,24,accuracy:1/scale)}else{XCTAssertGreaterThanOrEqual(target.frame.height,44-1/scale)}
+        if row["narrow"] as? Bool==true {XCTAssertGreaterThan(target.frame.height,44);XCTAssertLessThanOrEqual(target.frame.maxY,parent.maxY-12+1/scale)}
+    }
+    func testButtonActionsAndLifetimes() throws {
+        tap("Button behavior checks");var original=0.0
+        for name in behavior {
+            wait("Current Button case "+name){(try? self.state()["case"] as? String)==name};if name != "retired"{ready()};try capture(name)
+            if name=="baseline"{original=try number(state(),"rootTag")}
+            if ["repeated","disabled","held-disabled","restored","pending","held-pending","pending-restored","renderer"].contains(name){XCTAssertEqual(try number(state(),"rootTag"),original)}
+            if ["baseline","repeated","disabled","held-disabled","restored","pending","held-pending","pending-restored","renderer","long-press"].contains(name){
+                let before=try number(state(),"actions"),target=node("button-native-target");reveal(target);let began=Date().timeIntervalSince1970*1000,held=name.hasPrefix("held-") || name=="long-press"
+                target.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.5)).press(forDuration:held ? 1:0)
+                let blocked=["disabled","pending","held-disabled","held-pending","long-press"].contains(name)
+                if blocked{Thread.sleep(forTimeInterval:0.4);XCTAssertEqual(try number(state(),"actions"),before)}else{wait("One actual current Button action"){((try? self.state()["actions"] as? NSNumber)?.doubleValue ?? -1)==before+1}}
+                if name.hasPrefix("held-"){let ended=Date().timeIntervalSince1970*1000,current=try state(),events=try XCTUnwrap(current["events"] as? [[String:Any]]),entry=try XCTUnwrap(events.last{$0["phase"] as? String=="in"}),epoch=try number(entry,"epochMs");XCTAssertGreaterThanOrEqual(epoch,began);XCTAssertLessThan(epoch,ended-400);heldIntervals.append(["beganEpochMs":began,"endedEpochMs":ended,"disabledOnPressInEpochMs":epoch]);XCTAssertEqual(current["canceled"] as? Bool,true)}
+                if name=="long-press"{let events=try XCTUnwrap(state()["events"] as? [[String:Any]]);XCTAssertEqual(events.filter{$0["phase"] as? String=="long"}.count,1)}
+                try capture(name+"-activated")
+            }
+            if name=="replaced" || name=="fresh" {XCTAssertNotEqual(try number(state(),"rootTag"),original)}
+            if name != behavior.last {tap("Next Button check")}
+        }
+        let row=try state(),events=try XCTUnwrap(row["events"] as? [[String:Any]]),presses=events.filter{$0["phase"] as? String=="press"};XCTAssertEqual(presses.count,5);XCTAssertEqual(try number(row,"actions"),5)
+        XCTAssertTrue(presses.allSatisfy{($0["currentTarget"] as? NSNumber)?.doubleValue==original && (($0["target"] as? NSNumber)?.doubleValue ?? 0)>0})
+        let phases=try XCTUnwrap(row["phases"] as? [String]);XCTAssertEqual(phases.filter{$0=="start"}.count,phases.filter{$0=="end"}.count);XCTAssertEqual(phases.filter{$0=="change:true"}.count,phases.filter{$0=="change:false"}.count)
+    }
+    func testButtonStylesAndConstraints() throws {
+        tap("Button styles checks")
+        for name in styles {
+            wait("Current Button style "+name){(try? self.state()["case"] as? String)==name};ready()
+            if name=="dark" {tap("Dark theme");wait("Actual dark provider"){(try? self.state()["themeMode"] as? String)=="dark"}}
+            if name=="light-restored" {tap("Light theme");wait("Actual light provider"){(try? self.state()["themeMode"] as? String)=="light"}}
+            try capture(name);if name != styles.last {tap("Next Button check")}
+        }
+    }
+    private func motion(_ name:String,reduced:Bool) throws {
+        tap("Button motion checks");reveal(node("button-native-pair"));ready()
+        var referencePaints:[[UInt8]]=[];var referenceFrames:[[Double]]=[]
+        for (index,control) in ["First","Second"].enumerated() {
+            tap(control);tap("Reference");reveal(node("button-native-pair"));let shot=XCUIScreen.main.screenshot(),image=try XCTUnwrap(shot.image.cgImage),window=app.windows.firstMatch.frame,parent=node("button-native-parent").frame,reference=node("button-native-reference-parent").frame,scale=CGFloat(image.width)/window.width
+            XCTAssertTrue(toggleButtonMatchedFrame(rect(parent),rect(reference),Double(scale)),"Motion raw reference must use component physical origin")
+            referencePaints.append(try pixels(image,reference,window,scale));referenceFrames.append(rect(parent))
+            try mark(name+"-reference-"+String(index),["name":name+"-reference-"+String(index),"parent":rect(parent),"referenceParent":rect(reference),"scale":scale,"imageWidth":image.width,"imageHeight":image.height],shot,prefix:"BUTTON_NATIVE_MOTION_REFERENCE")
+        }
+        tap("Component");reveal(node("button-native-pair"));ready();let before=try state(),window=app.windows.firstMatch.frame,parent=node("button-native-parent").frame,reference=node("button-native-reference-parent").frame,root=node("button-native-target").frame,raw=node("button-native-reference").frame,arm=app.buttons["Arm Button motion and retirement"].firstMatch
+        XCTAssertTrue(arm.isHittable && window.contains(arm.frame));arm.tap();var samples:[[String:Any]]=[];let until=Date().timeIntervalSince1970+11.4
+        repeat {
+            let started=Date().timeIntervalSince1970*1000,shot=XCUIScreen.main.screenshot(),image=try XCTUnwrap(shot.image.cgImage),scale=CGFloat(image.width)/window.width,actual=try pixels(image,parent,window,scale),expected=try pixels(image,reference,window,scale),point=CGRect(x:root.maxX-10,y:root.minY+4,width:2,height:2),referencePoint=CGRect(x:raw.maxX-10,y:raw.minY+4,width:2,height:2),paint=try pixels(image,point,window,scale),referencePaint=try pixels(image,referencePoint,window,scale)
+            let shadowPoint=CGRect(x:root.midX-1,y:root.maxY+2,width:2,height:2),rawShadowPoint=CGRect(x:raw.midX-1,y:raw.maxY+2,width:2,height:2),shadow=try pixels(image,shadowPoint,window,scale),referenceShadow=try pixels(image,rawShadowPoint,window,scale)
+            var ink=0;for i in stride(from:0,to:actual.count,by:4){if actual[i] != 255 || actual[i+1] != 255 || actual[i+2] != 255{ink+=1}}
+            let referenceIndex=try XCTUnwrap(buttonMotionReferenceIndex(listItemSampleRGBA(referencePaint),ink),"Native reference target or real blank retirement")
+            XCTAssertTrue(toggleButtonMatchedFrame(rect(parent),referenceFrames[referenceIndex],Double(scale)),"Motion calibration origin changed")
+            let row:[String:Any]=["name":name+"-"+String(samples.count),"captureStartedEpochMs":started,"captureEpochMs":Date().timeIntervalSince1970*1000,"parent":rect(parent),"referenceParent":rect(reference),"sampleFrame":rect(point),"referenceSampleFrame":rect(referencePoint),"shadowFrame":rect(shadowPoint),"referenceShadowFrame":rect(rawShadowPoint),"shadowRGBA":listItemSampleRGBA(shadow),"referenceShadowRGBA":listItemSampleRGBA(referenceShadow),"calibratedReferenceName":name+"-reference-"+String(referenceIndex),"calibratedReferenceParent":referenceFrames[referenceIndex],"calibratedReferenceExact":circularPixelsMatch(actual,referencePaints[referenceIndex]),"referenceExact":circularPixelsMatch(actual,expected),"sampleRGBA":listItemSampleRGBA(paint),"referenceSampleRGBA":listItemSampleRGBA(referencePaint),"inkPixels":ink,"scale":scale,"imageWidth":image.width,"imageHeight":image.height];samples.append(row);try mark(name+"-"+String(samples.count),row,shot,prefix:"BUTTON_NATIVE_MOTION_FRAME");Thread.sleep(forTimeInterval:0.10)
+        } while Date().timeIntervalSince1970<until && nativeWorkRemaining()>0
+        let after=try state(),trace=try XCTUnwrap(after["motionTrace"] as? [[String:Any]]),retired=try XCTUnwrap(trace.first{$0["name"] as? String=="retire"})
+        let moving=samples.filter{($0["captureStartedEpochMs"] as? Double ?? 0)>=(trace[0]["epochMs"] as? Double ?? .infinity) && ($0["captureEpochMs"] as? Double ?? .infinity)<(retired["epochMs"] as? Double ?? 0)}
+        let result:[String:Any]=["name":name,"reduced":reduced,"movingRows":moving.count,"state":after,"samples":samples];FileHandle.standardOutput.write(Data("BUTTON_NATIVE_MOTION ".utf8)+(try JSONSerialization.data(withJSONObject:result,options:.sortedKeys))+Data("\n".utf8))
+        XCTAssertEqual(trace.compactMap{$0["name"] as? String},(0..<20).map{"retarget-"+String($0)}+["settle","retire","fresh"])
+        XCTAssertGreaterThan(moving.count,1);if reduced{XCTAssertTrue(moving.allSatisfy{$0["calibratedReferenceExact"] as? Bool==true},"Reduced full paint matches exact same-origin native reference")}else{XCTAssertTrue(moving.contains{row in guard let rgba=row["sampleRGBA"] as? [Int] else{return false};return listItemIntermediate(rgba)},"Real interrupted background interpolation")}
+        if !reduced {XCTAssertTrue(moving.contains{row in guard let rgba=row["shadowRGBA"] as? [Int] else{return false};return buttonShadowIntermediate(rgba)},"Actual450ms shadow opacity interpolation")}
+        XCTAssertTrue(samples.contains{($0["inkPixels"] as? Int)==0},"Real retired paint");XCTAssertNotEqual(try number(after,"rootTag"),try number(before,"rootTag"));ready();try capture(name+"-fresh")
+
+    }
+    func testButtonMotionAndRetirement() throws {
+        tap("Button motion checks");let settings=XCUIApplication(bundleIdentifier:"com.apple.Preferences");settings.launch();let toggle=motionSwitch(settings),original=try XCTUnwrap(toggle.value as? String);XCTAssertTrue(["0","1"].contains(original));FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_ORIGINAL "+original+"\n").utf8))
+        addTeardownBlock{[self] in let current=self.motionSwitch(settings);self.setMotion(current,original);XCTAssertEqual(current.value as? String,original);self.app.activate();FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_RESTORED "+original+"\n").utf8))}
+        setMotion(toggle,"0");app.activate();reveal(node("button-native-state"));wait("Real normal-motion event"){((try? self.state()["motionEvents"] as? [Bool]) ?? []).last==false};try motion("normal",reduced:false)
+        setMotion(motionSwitch(settings),"1");app.activate();reveal(node("button-native-state"));wait("Real reduced-motion event"){((try? self.state()["motionEvents"] as? [Bool]) ?? []).last==true};try motion("reduced",reduced:true)
+    }
+    private func node(_ id:String)->XCUIElement {app.descendants(matching:.any).matching(identifier:id).firstMatch}
+
+    private func wait(_ message:String,_ predicate:@escaping()->Bool) {
+        let expectation=XCTNSPredicateExpectation(predicate:NSPredicate{_,_ in predicate()},object:nil)
+        XCTAssertEqual(XCTWaiter.wait(for:[expectation],timeout:nativeWorkRemaining()),.completed,message)
+    }
+
+    private func reveal(_ element:XCUIElement) {
+        XCTAssertTrue(element.waitForExistence(timeout:nativeWorkRemaining()));let scroll=app.scrollViews.firstMatch;XCTAssertTrue(scroll.exists)
+        for _ in 0..<24 {
+            let viewport=app.windows.firstMatch.frame.intersection(scroll.frame).insetBy(dx:2,dy:2)
+            if !element.frame.isEmpty && viewport.contains(element.frame){return}
+            guard let distance=galleryScrollFraction(Double(element.frame.minY),Double(element.frame.height),Double(viewport.minY),Double(viewport.height)),distance != 0 else{XCTFail("Button target cannot fit measured viewport");return}
+            let start:CGFloat=distance>0 ? 0.75:0.30
+            let trace:[String:Any]=["target":element.identifier,"frame":rect(element.frame),"viewport":rect(viewport),"requestedFraction":distance]
+            if let data=try? JSONSerialization.data(withJSONObject:trace,options:.sortedKeys){FileHandle.standardOutput.write(Data("BUTTON_SCROLL ".utf8)+data+Data("\n".utf8))}
+            scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:start)).press(forDuration:0.05,thenDragTo:scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:start-CGFloat(distance))),withVelocity:.slow,thenHoldForDuration:0.25)
+        };XCTFail("Unreachable Button control/canvas "+element.identifier)
+    }
+
+    private func tap(_ name:String) {
+        let control=app.buttons.matching(NSPredicate(format:"label == %@",name)).firstMatch;reveal(control);XCTAssertTrue(control.isHittable);control.tap()
+        if name=="Select scene"{wait("Actual selected Button scene"){control.isSelected}}
+    }
+
+    private func pixels(_ image:CGImage,_ frame:CGRect,_ window:CGRect,_ scale:CGFloat) throws -> [UInt8] {
+        XCTAssertTrue(window.contains(frame));let rect=CGRect(x:((frame.minX-window.minX)*scale).rounded(),y:((frame.minY-window.minY)*scale).rounded(),width:(frame.width*scale).rounded(),height:(frame.height*scale).rounded())
+        let crop=try XCTUnwrap(image.cropping(to:rect));var bytes=[UInt8](repeating:0,count:crop.width*crop.height*4)
+        let result=bytes.withUnsafeMutableBytes { buffer -> Bool in
+            guard let context=CGContext(data:buffer.baseAddress,width:crop.width,height:crop.height,bitsPerComponent:8,bytesPerRow:crop.width*4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue|CGBitmapInfo.byteOrder32Big.rawValue) else{return false}
+            context.draw(crop,in:CGRect(x:0,y:0,width:CGFloat(crop.width),height:CGFloat(crop.height)));return true
+        };XCTAssertTrue(result);return bytes
+    }
+    private func motionSwitch(_ settings: XCUIApplication) -> XCUIElement {
+        settings.activate()
+        let toggle = settings.switches["Reduce Motion"].firstMatch
+        if toggle.exists { return toggle }
+        for label in ["Accessibility","Motion"] {
+            let entry = settings.staticTexts[label].firstMatch
+            for _ in 0..<12 { if entry.exists && entry.isHittable { break };settings.swipeUp() }
+            XCTAssertTrue(entry.exists && entry.isHittable,"Standard Settings navigation "+label);entry.tap()
+        }
+        XCTAssertTrue(toggle.waitForExistence(timeout:nativeWorkRemaining()));return toggle
+    }
+
+    private func setMotion(_ toggle: XCUIElement, _ expected: String) {
+        if toggle.value as? String != expected {
+            XCTAssertTrue(toggle.isHittable)
+            toggle.coordinate(withNormalizedOffset:CGVector(dx:0.95,dy:0.5)).tap()
+        }
+        wait("Actual Reduce Motion switch "+expected) { toggle.value as? String == expected }
+        let shot = XCTAttachment(screenshot:XCUIScreen.main.screenshot());shot.name="meter-motion-switch-"+expected;shot.lifetime = .keepAlways;add(shot)
+        FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_SWITCH "+expected+"\n").utf8))
+    }
+}

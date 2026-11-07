@@ -873,6 +873,36 @@ class CheckboxGroupControls(unittest.TestCase):
         self.assertIn('"checkboxGroupTagCases":8',NATIVE.geometry_control_source())
 
 
+class ButtonControls(unittest.TestCase):
+    def test_button_original_native_phase_orders_accept_delayed_pressout_and_reject_missing_phases(self):
+        first=["start","change:true","up","end","change:false","press"];delayed=["start","change:true","up","press","end","change:false"]
+        self.assertTrue(NATIVE.button_press_prefix(first));self.assertTrue(NATIVE.button_press_prefix(delayed))
+        for values in [delayed[:-1],list(reversed(delayed)),["start","change:true","press","up","end","change:false"],["start","change:true","up","press","press","change:false"]]:self.assertFalse(NATIVE.button_press_prefix(values))
+        self.assertEqual(NATIVE.selection("ios","button-motion")["ios"],["ButtonTrialTests/testButtonMotionAndRetirement"])
+    def test_button_reader_busy_null_guard_geometry_and_reference_failures(self):
+        row=ListItemControls().row();row["state"].update(label="Save settings",pending=False,raised=False);row.update(nativeLabel="Save settings",nativeValue=None,nativeButton=True)
+        NATIVE.validate_button_rows([row],["baseline"])
+        busy=copy.deepcopy(row);busy["state"]["pending"]=True;busy["nativeValue"]="busy";NATIVE.validate_button_rows([busy],["baseline"])
+        for key,value in [("nativeButton",False),("nativeValue","checked"),("nativeValue","busy"),("nativeLabel","wrong"),("referenceExact",False),("root",[32,112,200,43]),("parent",[20,850,280,224]),("targetCount",2)]:
+            bad=copy.deepcopy(row);bad[key]=value
+            with self.subTest(key=key),self.assertRaises(ValueError):NATIVE.validate_button_rows([bad],["baseline"])
+        bad=copy.deepcopy(busy);bad["nativeValue"]=None
+        with self.assertRaises(ValueError):NATIVE.validate_button_rows([bad],["baseline"])
+        raised=copy.deepcopy(row);raised["state"]["raised"]=True;raised["matchedReferenceParent"]=row["parent"][:];NATIVE.validate_button_rows([raised],["baseline"]);raised["matchedReferenceParent"][1]+=1/3
+        with self.assertRaises(ValueError):NATIVE.validate_button_rows([raised],["baseline"])
+        fractional=copy.deepcopy(row);fractional["root"][2]+=0.0001220703125;NATIVE.validate_button_rows([fractional],["baseline"])
+        self.assertEqual(len(NATIVE.selection("ios","button")["ios"]),3)
+        with self.assertRaises(ValueError):NATIVE.selection("android","button")
+    def test_button_actual_entry_refuses_without_admission_and_shadow_controls_are_compiled(self):
+        NATIVE.validate_standard_scope({"cell":"CAT.button.G08","nativeStandard":{"batch":"button"}})
+        for cell in ["CAT.combo-box.G08","CAT.button.G07","CAT.toggle-button.G08"]:
+            with self.assertRaises(ValueError):NATIVE.validate_standard_scope({"cell":cell,"nativeStandard":{"batch":"button"}})
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);p=root/"plan.json";p.write_text(json.dumps({"cell":"CAT.button.G08","nativeStandard":{"platform":"ios","batch":"button","output":str(root/"never-created")}}));env={k:v for k,v in os.environ.items() if k!="CODON_NATIVE_CELL_PREFLIGHT_RECEIPT"}
+            result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(p)],env=env,capture_output=True,text=True,timeout=10);self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((root/"never-created").exists())
+        source=NATIVE.geometry_control_source();self.assertIn('"buttonShadowCases":6',source);self.assertIn('func buttonShadowIntermediate',source)
+
+
 class RadioGroupControls(unittest.TestCase):
     def rows(self):
         seed=CheckboxGroupControls().rows()[0];rows=[]

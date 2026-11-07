@@ -14,12 +14,14 @@ import {
   type TNativeInputRef,
 } from "@codon-ui/react-native"
 
+import { ButtonG08Fixture } from "./ButtonG08Fixture"
 import { CheckboxG08Fixture } from "./CheckboxG08Fixture"
 import { CheckboxGroupG08Fixture } from "./CheckboxGroupG08Fixture"
 import { RadioGroupG08Fixture } from "./RadioGroupG08Fixture"
 import { SwitchG08Fixture } from "./SwitchG08Fixture"
 
 export const BasicControlsScene = () => {
+  const [buttonChecks, setButtonChecks] = useState(false)
   const [switchChecks, setSwitchChecks] = useState(false)
   const [checkboxChecks, setCheckboxChecks] = useState(false)
   const [checkboxGroupChecks, setCheckboxGroupChecks] = useState(false)
@@ -49,6 +51,7 @@ export const BasicControlsScene = () => {
     </Button>
   )
 
+  if (buttonChecks) return <ButtonG08Fixture />
   if (switchChecks) return <SwitchG08Fixture />
   if (checkboxChecks) return <CheckboxG08Fixture />
   if (checkboxGroupChecks) return <CheckboxGroupG08Fixture />
@@ -59,6 +62,7 @@ export const BasicControlsScene = () => {
       <Text elementType="h2" variant="h3">
         Native basic controls
       </Text>
+      {action("Prepare standalone Button checks", () => setButtonChecks(true))}
       {action("Prepare standalone Switch checks", () => setSwitchChecks(true))}
       {action("Prepare standalone Checkbox checks", () => setCheckboxChecks(true))}
       {action("Prepare CheckboxGroup checks", () => setCheckboxGroupChecks(true))}

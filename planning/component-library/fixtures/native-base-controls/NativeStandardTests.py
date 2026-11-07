@@ -76,6 +76,9 @@ def verify_selected_app_inputs(plan, app):
 
 
 def selection(platform, batch="meter-g02"):
+    if batch in ["button","button-motion"]:
+        require(platform=="ios","Current Button batch is iOS only")
+        return {"ios":(["ButtonTrialTests/testButtonActionsAndLifetimes","ButtonTrialTests/testButtonStylesAndConstraints"] if batch=="button" else [])+["ButtonTrialTests/testButtonMotionAndRetirement"],"android":[]}
     if batch=="radio-group":
         require(platform=="ios","Current RadioGroup batch is iOS only")
         return {"ios":["RadioGroupTrialTests/testRadioGroupActionsAndLifetimes","RadioGroupTrialTests/testRadioGroupStylesAndConstraints"],"android":[]}
@@ -280,7 +283,7 @@ def geometry_control_source():
     gallery_start = source.index("private func galleryTrackWidth(");gallery_open = source.index("{", gallery_start);gallery_end = source.index("\n}", gallery_open) + 2
     gallery_predicate = source[gallery_start:gallery_end].replace("private ", "", 1)
     list_predicates = []
-    for signature in ["private func toggleButtonMatchedFrame(", "private func toggleButtonValueMatches(", "private func listItemValueMatches(", "private func listItemIntermediate(", "private func listItemSampleRGBA(", "private func switchNativeValueMatches(", "private func switchTrackSamples(", "private func switchThumbIntermediate(", "private func switchEndpointCoverage(", "private func switchRetirementCoverage(", "private func checkboxWhitePixels(", "private func checkboxNativeValueMatches(", "private func checkboxColorIntermediate(", "private func checkboxGlyphIntermediate(", "private func checkboxGlyphCoverage(", "private func checkboxEndpointCoverage(", "private func checkboxRetirementCoverage(", "private func checkboxGroupMembersMatch(", "private func checkboxGroupMemberTag(", "private func radioGroupMembersMatch("]:
+    for signature in ["private func toggleButtonMatchedFrame(", "private func toggleButtonValueMatches(", "private func listItemValueMatches(", "private func listItemIntermediate(", "private func listItemSampleRGBA(", "private func switchNativeValueMatches(", "private func switchTrackSamples(", "private func switchThumbIntermediate(", "private func switchEndpointCoverage(", "private func switchRetirementCoverage(", "private func checkboxWhitePixels(", "private func checkboxNativeValueMatches(", "private func checkboxColorIntermediate(", "private func checkboxGlyphIntermediate(", "private func checkboxGlyphCoverage(", "private func checkboxEndpointCoverage(", "private func checkboxRetirementCoverage(", "private func checkboxGroupMembersMatch(", "private func checkboxGroupMemberTag(", "private func radioGroupMembersMatch(", "private func buttonShadowIntermediate(", "private func buttonMotionReferenceIndex("]:
         start = source.index(signature);opening = source.index("{", start);end = source.index("\n}", opening) + 2
         list_predicates.append(source[start:end].replace("private ", "", 1))
     scroll_start = source.index("private func galleryScrollFraction(");scroll_open = source.index("{", scroll_start);scroll_end = source.index("\n}", scroll_open) + 2
@@ -539,7 +542,21 @@ radioGroupWrong=radioGroupOff;radioGroupWrong["relativeFrame"]=[0.0,Double.nan,1
 precondition(!radioGroupMembersMatch([radioGroupWrong],["alpha":false],radioGroupLabels,false,3))
 precondition(!radioGroupMembersMatch([radioGroupOff],["alpha":false],radioGroupLabels,false,0))
 
-print(#"{\"radioGroupCases\":14,\"checkboxGroupTagCases\":8,\"checkboxGroupCases\":14,\"checkboxCases\":47,\"switchValueCases\":10,\"switchRasterCases\":9,\"switchThumbCases\":11,\"switchEndpointCases\":10,\"switchRetirementCases\":14,\"toggleButtonCases\":12,\"listItemCases\":20,\"galleryScrollCases\":8,\"galleryTrackCases\":8,\"thumbnailFrameCases\":6,\"circularCases\":6,\"status\":\"PASS\",\"cases\":11,\"pixelCases\":6,\"shadowCases\":6,\"savedNSNumberIntValue\":9,\"savedNSNumberDoubleValue\":9.9998779296875}"#)
+precondition(buttonShadowIntermediate([200,200,200,255]))
+precondition(!buttonShadowIntermediate([153,153,153,255]))
+precondition(!buttonShadowIntermediate([255,255,255,255]))
+precondition(!buttonShadowIntermediate([200,199,200,255]))
+precondition(!buttonShadowIntermediate([200,200,200,254]))
+precondition(!buttonShadowIntermediate([]))
+precondition(buttonMotionReferenceIndex([187,51,34,255],1)==0)
+precondition(buttonMotionReferenceIndex([17,119,51,255],1)==1)
+precondition(buttonMotionReferenceIndex([255,255,255,255],0)==0)
+precondition(buttonMotionReferenceIndex([255,255,255,255],1)==nil)
+precondition(buttonMotionReferenceIndex([1,2,3,255],0)==nil)
+precondition(buttonMotionReferenceIndex([17,119,51,254],1)==nil)
+precondition(buttonMotionReferenceIndex([],0)==nil)
+precondition(buttonMotionReferenceIndex([187,51,35,255],1)==nil)
+print(#"{\"buttonReferenceCases\":8,\"buttonShadowCases\":6,\"radioGroupCases\":14,\"checkboxGroupTagCases\":8,\"checkboxGroupCases\":14,\"checkboxCases\":47,\"switchValueCases\":10,\"switchRasterCases\":9,\"switchThumbCases\":11,\"switchEndpointCases\":10,\"switchRetirementCases\":14,\"toggleButtonCases\":12,\"listItemCases\":20,\"galleryScrollCases\":8,\"galleryTrackCases\":8,\"thumbnailFrameCases\":6,\"circularCases\":6,\"status\":\"PASS\",\"cases\":11,\"pixelCases\":6,\"shadowCases\":6,\"savedNSNumberIntValue\":9,\"savedNSNumberDoubleValue\":9.9998779296875}"#)
 '''
 
 
@@ -584,7 +601,7 @@ def build_ios(session, config=None):
     sdk = session.run("geometry-sdk", ["/usr/bin/xcrun", "--sdk", "macosx", "--show-sdk-path"]).strip()
     swift = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift"
     control_result = json.loads(session.run("geometry-controls", [swift, "-sdk", sdk, "-module-cache-path", str(CACHE / "swift-host-module-cache"), str(controls)]))
-    require(control_result.get("radioGroupCases") == 14 and control_result.get("checkboxGroupTagCases") == 8 and control_result.get("checkboxGroupCases") == 14 and control_result.get("checkboxCases") == 47 and control_result.get("switchRetirementCases") == 14 and control_result.get("switchEndpointCases") == 10 and control_result.get("switchThumbCases") == 11 and control_result.get("switchValueCases") == 10 and control_result.get("switchRasterCases") == 9 and control_result.get("toggleButtonCases") == 12 and control_result.get("listItemCases") == 20 and control_result.get("galleryScrollCases") == 8 and control_result.get("galleryTrackCases") == 8 and control_result.get("thumbnailFrameCases") == 6 and control_result.get("circularCases") == 6 and control_result.get("status") == "PASS" and control_result.get("cases") == 11 and control_result.get("pixelCases") == 6 and control_result.get("shadowCases") == 6, "Actual Swift geometry/pixel/shadow controls failed")
+    require(control_result.get("buttonReferenceCases") == 8 and control_result.get("buttonShadowCases") == 6 and control_result.get("radioGroupCases") == 14 and control_result.get("checkboxGroupTagCases") == 8 and control_result.get("checkboxGroupCases") == 14 and control_result.get("checkboxCases") == 47 and control_result.get("switchRetirementCases") == 14 and control_result.get("switchEndpointCases") == 10 and control_result.get("switchThumbCases") == 11 and control_result.get("switchValueCases") == 10 and control_result.get("switchRasterCases") == 9 and control_result.get("toggleButtonCases") == 12 and control_result.get("listItemCases") == 20 and control_result.get("galleryScrollCases") == 8 and control_result.get("galleryTrackCases") == 8 and control_result.get("thumbnailFrameCases") == 6 and control_result.get("circularCases") == 6 and control_result.get("status") == "PASS" and control_result.get("cases") == 11 and control_result.get("pixelCases") == 6 and control_result.get("shadowCases") == 6, "Actual Swift geometry/pixel/shadow controls failed")
     derived = CACHE / "ios"
     # A source revision gets an unambiguous observer registration; old installed revisions remain intact.
     bundle_id = "dev.codonui.lab.components.r" + digest(ROOT / "MeterG02TrialTests.swift")[:12]
@@ -838,7 +855,7 @@ def run_ios(session, config, app, observer):
         else: raw = session.run("xctest", argv)
     except ValueError as error:
         sdk_error = error;stdout = session.output / "xctest.stdout";raw = stdout.read_text() if stdout.exists() else ""
-    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected", "circle-loader", "lagging-lines", "counter", "list-box-item", "list-box-item-motion", "toggle-button", "toggle-button-affected", "toggle-button-style", "radio", "radio-motion", "switch", "switch-motion", "checkbox", "checkbox-static", "checkbox-motion"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
+    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected", "circle-loader", "lagging-lines", "counter", "list-box-item", "list-box-item-motion", "toggle-button", "toggle-button-affected", "toggle-button-style", "radio", "radio-motion", "switch", "switch-motion", "checkbox", "checkbox-static", "checkbox-motion", "button", "button-motion"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
         original_motion = re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])", raw)
         restored_motion = re.findall(r"METER_STYLE_MOTION_RESTORED ([01])", raw)
         if original_motion != restored_motion: session.cleanup_errors.append("Original iOS Reduce Motion restoration unverified")
@@ -875,6 +892,7 @@ def run_ios(session, config, app, observer):
     if config.get("batch") in ["list-box-item", "list-box-item-motion"]: result["listBoxItem"] = reconcile_list_item_ios(raw,config,app)
     if config.get("batch") == "placeholder-g08": result["placeholder"] = reconcile_placeholder_ios(raw)
     if config.get("batch") in ["switch", "switch-motion"]: result["switch"] = reconcile_switch_ios(raw, config, app)
+    if config.get("batch") in ["button","button-motion"]: result["button"]=reconcile_button_ios(raw,config)
     if config.get("batch")=="radio-group": result["radioGroup"]=reconcile_radio_group_ios(raw)
     if config.get("batch") in ["checkbox-group","checkbox-group-actions"]: result["checkboxGroup"]=reconcile_checkbox_group_ios(raw,config,app)
     if config.get("batch") in ["checkbox","checkbox-static","checkbox-motion"]: result["checkbox"]=reconcile_checkbox_ios(raw,config,app)
@@ -1540,6 +1558,82 @@ def reconcile_checkbox_group_ios(raw,config=None,app=None):
     require(named["dark"]["state"]["themeMode"]=="dark" and named["light-restored"]["state"]["themeMode"]=="light","Group provider restoration missing")
     return {"status":"PASS","observations":len(rows),"nativeActivations":9,"motion":"Group owns no motion; unchanged member clocks retain their separately bound CHK-08 proof."}
 
+
+
+def button_press_prefix(phases):
+    return phases[:6] in [["start","change:true","up","end","change:false","press"],["start","change:true","up","press","end","change:false"]]
+
+
+BUTTON_BEHAVIOR=["baseline","repeated","disabled","held-disabled","restored","pending","held-pending","pending-restored","renderer","replaced","retired","fresh","focus-excluded","long-press"]
+BUTTON_ACTIONS=[name+"-activated" for name in ["baseline","repeated","disabled","held-disabled","restored","pending","held-pending","pending-restored","renderer","long-press"]]
+BUTTON_STYLES=["style-baseline","flat","outline","primary","secondary","transparent","root-custom","final-style","foreground","explicit-child","square","round","long-narrow","fractional","percentage","auto","small-target","zero","dark","light-restored"]
+def validate_button_rows(rows,names):
+    require(sorted(row["name"] for row in rows)==sorted(names),"Missing/duplicate Button observations")
+    for row in rows:
+        state,scale=row["state"],row["scale"]
+        require(isinstance(scale,(int,float)) and math.isfinite(scale) and scale>0 and scale==state["scale"],"Wrong Button scale")
+        parent,reference=row["parent"],row["referenceParent"]
+        require(len(parent)==len(reference)==4 and all(math.isfinite(v) for v in parent+reference) and parent[2:]==reference[2:] and 0<parent[2]<=280 and parent[3]==224,"Wrong Button parents")
+        for frame in [parent,reference]:
+            x,y,width,height=[math.floor(v*scale+.5) for v in frame]
+            require(0<=x<x+width<=row["imageWidth"] and 0<=y<y+height<=row["imageHeight"],"Button parent outside physical screenshot")
+        if state.get("hasShadow",state.get("raised")):
+            matched=row.get("matchedReferenceParent",[])
+            require(len(matched)==4 and all(math.isfinite(v) for v in matched) and [math.floor(v*scale+.5) for v in matched]==[math.floor(v*scale+.5) for v in parent],"Raised Button reference moved physical origin")
+        require(row["referenceExact"] is True,"Button native reference mismatch")
+        if not state["visible"]:
+            require(not row["root"] and row["inkPixels"]==0 and state["rootTag"] is None,"Retired Button ref/paint remains")
+            continue
+        event=state["layouts"][-1];layout=event["layout"]
+        require(state["rootTag"] and event["target"]==event["currentTarget"]==state["rootTag"],"Original Button layout/ref differs")
+        if state["zero"]:
+            require(layout["width"]==layout["height"]==0 and row["inkPixels"]==0,"Authored Button zero/clipping differs")
+            continue
+        require(row["targetCount"]==1 and row["nativeLabel"]==state["label"] and row["nativeEnabled"] is (not state["disabled"]),"Button name/guard/target differs")
+        require(row["nativeButton"] is True and row["nativeValue"]==("busy" if state["pending"] else None) or row["nativeButton"] is True and not state["pending"] and row["nativeValue"]=="", "Button original busy metadata differs")
+        root,raw=row["root"],row["referenceRoot"]
+        require(len(root)==len(raw)==4 and all(abs(a-b)*scale<=1 for a,b in zip([root[0]-parent[0],root[1]-parent[1],*root[2:]],[raw[0]-reference[0],raw[1]-reference[1],*raw[2:]])),"Button actual/reference frames differ")
+        require(all(abs(root[i+2]-layout[key])*scale<=1 for i,key in enumerate(["width","height"])),"Button layout/native dimensions differ")
+        if isinstance(state["width"],(int,float)):require(abs(root[2]-state["width"])*scale<=1,"Button authored width differs")
+        require(abs(root[3]-24)*scale<=1 if state["small"] else root[3]>=44-1/scale,"Button explicit/default target height differs")
+        if state["narrow"]:require(44<root[3] and root[1]+root[3]<=parent[1]+parent[3]-12+1/scale,"Constrained Button content clipped")
+        for held in row.get("heldContactIntervals",[]):require(held["beganEpochMs"]<=held["disabledOnPressInEpochMs"]<held["endedEpochMs"]-400,"Button disable was not during held contact")
+    return {"status":"PASS","observations":len(rows)}
+
+
+def reconcile_button_ios(raw,config=None):
+    config=config or {}
+    if config.get("batch")=="button-motion":
+        for key,method,names in [("retainedButtonActions","testButtonActionsAndLifetimes",BUTTON_BEHAVIOR+BUTTON_ACTIONS),("retainedButtonStyles","testButtonStylesAndConstraints",BUTTON_STYLES)]:
+            proof=json.loads(bound_file(config[key]).read_text());require(proof["status"]=="PASS","Retained Button review did not pass")
+            require(json.loads(bound_file(proof["cleanup"]).read_text())["cleanupVerified"],"Retained Button cleanup unverified")
+            for source in proof["librarySources"]:bound_file(source)
+            native_method(proof["nativeMethod"]);prior=bound_file(proof["raw"]).read_text();raw+="\n"+"\n".join(line for line in prior.splitlines() if line.startswith("BUTTON_NATIVE_OBSERVATION ") and json.loads(line.split(" ",1)[1])["name"] in names)
+
+    rows=[json.loads(x) for x in re.findall(r"BUTTON_NATIVE_OBSERVATION (\{[^\n]+\})",raw)];result=validate_button_rows(rows,BUTTON_BEHAVIOR+BUTTON_ACTIONS+BUTTON_STYLES+["normal-fresh","reduced-fresh"]);named={row["name"]:row for row in rows};original=named["baseline"]["state"]["rootTag"]
+    for name in ["repeated","disabled","held-disabled","restored","pending","held-pending","pending-restored","renderer"]:require(named[name]["state"]["rootTag"]==original,"Button original root/ref lost")
+    for name in ["replaced","fresh"]:require(named[name]["state"]["rootTag"]!=original,"Button replacement ref reused")
+    for name,count in [("baseline",1),("repeated",2),("disabled",2),("held-disabled",2),("restored",3),("pending",3),("held-pending",3),("pending-restored",4),("renderer",5),("long-press",5)]:require(named[name+"-activated"]["state"]["actions"]==count,"Button one activation or guard differs: "+name)
+    final=named["long-press-activated"]["state"];phases=final["phases"];require(button_press_prefix(phases),"Original Button semantic callback order differs")
+    require(phases.count("start")==phases.count("end") and phases.count("change:true")==phases.count("change:false"),"Button press callbacks unbalanced")
+    events=final["events"];presses=[row for row in events if row["phase"]=="press"];require(len(presses)==5 and all(row["currentTarget"]==original and row["target"]>0 for row in presses),"Original Button event/ref differs")
+    require(sum(row["phase"]=="long" for row in events)==1,"Configured Button long press missing or duplicated")
+    motion=[json.loads(x) for x in re.findall(r"BUTTON_NATIVE_MOTION (\{[^\n]+\})",raw)];require(len(motion)==2 and {m["name"] for m in motion}=={"normal","reduced"},"Button motion intervals missing")
+    references=[json.loads(x) for x in re.findall(r"BUTTON_NATIVE_MOTION_REFERENCE (\{[^\n]+\})",raw)];require(len(references)==4 and {x["name"] for x in references}=={mode+"-reference-"+str(index) for mode in ["normal","reduced"] for index in [0,1]},"Button same-origin reference captures missing")
+    controls={x["name"]:x for x in references}
+    for interval in motion:
+        trace=interval["state"]["motionTrace"];require([row["name"] for row in trace]==["retarget-"+str(i) for i in range(20)]+["settle","retire","fresh"],"Button retarget/lifetime trace differs")
+        samples=interval["samples"]
+        for sample in samples:
+            require(sample["calibratedReferenceName"] in controls and (sample["referenceSampleRGBA"] in [[17,119,51,255],[187,51,34,255]] or sample["referenceSampleRGBA"]==[255,255,255,255] and sample["inkPixels"]==0),"Button unknown calibration target")
+            require([math.floor(v*sample["scale"]+.5) for v in sample["parent"]]==[math.floor(v*sample["scale"]+.5) for v in sample["calibratedReferenceParent"]],"Button motion calibration origin differs")
+        retired=trace[-2]["epochMs"];moving=[row for row in samples if row["captureStartedEpochMs"]>=trace[0]["epochMs"] and row["captureEpochMs"]<retired];require(len(moving)>1 and any(row["inkPixels"]==0 for row in samples),"Button complete motion/retirement capture missing")
+        if interval["reduced"]:require(all(row["calibratedReferenceExact"] for row in moving),"Reduced Button interpolates")
+        else:
+            require(any(len(row["sampleRGBA"])==4 and 17<row["sampleRGBA"][0]<187 and 51<row["sampleRGBA"][1]<119 and 34<row["sampleRGBA"][2]<51 and row["sampleRGBA"][3]==255 for row in moving),"Button color interpolation missing")
+            require(any(len(row["shadowRGBA"])==4 and 153<row["shadowRGBA"][0]<255 and row["shadowRGBA"][0]==row["shadowRGBA"][1]==row["shadowRGBA"][2] and row["shadowRGBA"][3]==255 for row in moving),"Button450ms shadow interpolation missing")
+    original_motion=re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])",raw);restored=re.findall(r"METER_STYLE_MOTION_RESTORED ([01])",raw);require(len(original_motion)==1 and original_motion==restored,"Button Reduce Motion restoration unverified")
+    result.update(motionIntervals=2,motionFrames=sum(len(row["samples"]) for row in motion),originalMotionValue=original_motion[0]);return result
 
 RADIO_GROUP_BEHAVIOR=["baseline","echo","reselected","disabled","readonly","renderer","nested","replacement","retired","fresh","local","default-changed","empty-value","veto-1","veto-2","echo-beta","echo-alpha","reselected-alpha","nested-other","local-alpha","empty-selected","empty-reselected"]
 RADIO_GROUP_STYLES=["style-baseline","horizontal","wrap","custom","final-style","registered","fractional","percentage","long-narrow","zero","dark","light-restored"]
@@ -2235,10 +2329,11 @@ def validate_standard_scope(plan):
     placeholder = cell == "CAT.placeholder-text.G08" and batch == "placeholder-g08"
     slider = cell == "CAT.slider.G01" and batch == "slider-hit-layout"
     checkbox = cell == "CAT.checkbox.G08" and batch in ["checkbox","checkbox-static","checkbox-motion"]
+    button = cell == "CAT.button.G08" and batch in ["button","button-motion"]
     radio_group = cell == "CAT.radio-group.G08" and batch=="radio-group"
     checkbox_group = cell == "CAT.checkbox-group.G08" and batch in ["checkbox-group","checkbox-group-actions"]
     switch = cell == "CAT.switch.G08" and batch in ["switch", "switch-motion"]
-    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item or toggle_button or radio or placeholder or slider or switch or checkbox or checkbox_group or radio_group, "Only the authorized component and focused batch are selected")
+    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item or toggle_button or radio or placeholder or slider or switch or checkbox or checkbox_group or radio_group or button, "Only the authorized component and focused batch are selected")
 
 
 def main():

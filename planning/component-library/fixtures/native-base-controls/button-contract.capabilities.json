@@ -1946,5 +1946,25 @@
       "sourceChecks": "182 cases/11 suites plus source/public types. Invalid untyped-input and overridden-value runtime checks retain their exact values/assertions through a private test helper; positive/negative public declarations cover the restored stock types.",
       "preserved": "Explicit owned styling, override precedence, original refs/events/identity and other Motion clocks. Original canonical fields, sourceRefs, historical receipts and verdicts remain unchanged; native compiler/products and glyph/layout/scaling/input/AT/profile qualification remain OPEN."
     }
-  ]
+  ],
+  "installedIOSG08": {
+    "evidenceID": "BTN-08",
+    "status": "PASS",
+    "date": "2026-11-07",
+    "productionChange": "None; all 128 canonical and 129 native declarations and approved public boundaries remain.",
+    "publicCases": 5,
+    "showcaseCases": 3,
+    "hostControls": 87,
+    "compiledSwiftControls": 234,
+    "nativeMethods": 3,
+    "qualifyingNativeObservations": 46,
+    "qualifyingOriginalPNGs": 80,
+    "completion": {
+      "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/button-ios-g08-20261107/objects/203c8402eb6cb87292ebe44568011df8c32a5d75a38c66a750e104c41ac3e957",
+      "sha256": "203c8402eb6cb87292ebe44568011df8c32a5d75a38c66a750e104c41ac3e957",
+      "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/button-after-radio-group-20261107/button-G08-completion.json"
+    },
+    "remainingGates": ["G02", "G04", "G07", "G09"],
+    "scope": "Approved Release x86_64 iOS only,selected native risks; D01–D04 remain unselected."
+  }
 }
