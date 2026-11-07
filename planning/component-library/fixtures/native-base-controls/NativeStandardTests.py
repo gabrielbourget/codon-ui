@@ -76,6 +76,9 @@ def verify_selected_app_inputs(plan, app):
 
 
 def selection(platform, batch="meter-g02"):
+    if batch in ["link","link-static","link-actions"]:
+        require(platform=="ios","Current Link batch is iOS only")
+        return {"ios":["LinkTrialTests/"+name for name in (["testLinkActionsAndLifetimes"]+([] if batch=="link-actions" else ["testLinkStylesAndConstraints"])+(["testLinkMotionAndRetirement"] if batch=="link" else []))],"android":[]}
     if batch in ["button","button-motion"]:
         require(platform=="ios","Current Button batch is iOS only")
         return {"ios":(["ButtonTrialTests/testButtonActionsAndLifetimes","ButtonTrialTests/testButtonStylesAndConstraints"] if batch=="button" else [])+["ButtonTrialTests/testButtonMotionAndRetirement"],"android":[]}
@@ -283,7 +286,7 @@ def geometry_control_source():
     gallery_start = source.index("private func galleryTrackWidth(");gallery_open = source.index("{", gallery_start);gallery_end = source.index("\n}", gallery_open) + 2
     gallery_predicate = source[gallery_start:gallery_end].replace("private ", "", 1)
     list_predicates = []
-    for signature in ["private func toggleButtonMatchedFrame(", "private func toggleButtonValueMatches(", "private func listItemValueMatches(", "private func listItemIntermediate(", "private func listItemSampleRGBA(", "private func switchNativeValueMatches(", "private func switchTrackSamples(", "private func switchThumbIntermediate(", "private func switchEndpointCoverage(", "private func switchRetirementCoverage(", "private func checkboxWhitePixels(", "private func checkboxNativeValueMatches(", "private func checkboxColorIntermediate(", "private func checkboxGlyphIntermediate(", "private func checkboxGlyphCoverage(", "private func checkboxEndpointCoverage(", "private func checkboxRetirementCoverage(", "private func checkboxGroupMembersMatch(", "private func checkboxGroupMemberTag(", "private func radioGroupMembersMatch(", "private func buttonShadowIntermediate(", "private func buttonMotionReferenceIndex("]:
+    for signature in ["private func toggleButtonMatchedFrame(", "private func toggleButtonValueMatches(", "private func listItemValueMatches(", "private func listItemIntermediate(", "private func listItemSampleRGBA(", "private func switchNativeValueMatches(", "private func switchTrackSamples(", "private func switchThumbIntermediate(", "private func switchEndpointCoverage(", "private func switchRetirementCoverage(", "private func checkboxWhitePixels(", "private func checkboxNativeValueMatches(", "private func checkboxColorIntermediate(", "private func checkboxGlyphIntermediate(", "private func checkboxGlyphCoverage(", "private func checkboxEndpointCoverage(", "private func checkboxRetirementCoverage(", "private func checkboxGroupMembersMatch(", "private func checkboxGroupMemberTag(", "private func radioGroupMembersMatch(", "private func buttonShadowIntermediate(", "private func buttonMotionReferenceIndex(", "private func linkGlyphCounts(", "private func linkReferenceIndex("]:
         start = source.index(signature);opening = source.index("{", start);end = source.index("\n}", opening) + 2
         list_predicates.append(source[start:end].replace("private ", "", 1))
     scroll_start = source.index("private func galleryScrollFraction(");scroll_open = source.index("{", scroll_start);scroll_end = source.index("\n}", scroll_open) + 2
@@ -556,7 +559,20 @@ precondition(buttonMotionReferenceIndex([1,2,3,255],0)==nil)
 precondition(buttonMotionReferenceIndex([17,119,51,254],1)==nil)
 precondition(buttonMotionReferenceIndex([],0)==nil)
 precondition(buttonMotionReferenceIndex([187,51,35,255],1)==nil)
-print(#"{\"buttonReferenceCases\":8,\"buttonShadowCases\":6,\"radioGroupCases\":14,\"checkboxGroupTagCases\":8,\"checkboxGroupCases\":14,\"checkboxCases\":47,\"switchValueCases\":10,\"switchRasterCases\":9,\"switchThumbCases\":11,\"switchEndpointCases\":10,\"switchRetirementCases\":14,\"toggleButtonCases\":12,\"listItemCases\":20,\"galleryScrollCases\":8,\"galleryTrackCases\":8,\"thumbnailFrameCases\":6,\"circularCases\":6,\"status\":\"PASS\",\"cases\":11,\"pixelCases\":6,\"shadowCases\":6,\"savedNSNumberIntValue\":9,\"savedNSNumberDoubleValue\":9.9998779296875}"#)
+precondition(linkGlyphCounts([187,51,34,255,17,119,51,255,102,85,42,255])==[1,1,1])
+precondition(linkGlyphCounts([187,51,34,254,255,255,255,255,220,160,150,255])==[0,0,0])
+precondition(linkGlyphCounts([187,119,51,255,17,51,34,255,255,255,255,255])==[0,0,0])
+precondition(linkGlyphCounts([])==[0,0,0])
+precondition(linkGlyphCounts([1])==[0,0,0])
+precondition(linkReferenceIndex([1,0,0],4)==0)
+precondition(linkReferenceIndex([0,1,0],4)==1)
+precondition(linkReferenceIndex([0,0,0],0)==0)
+precondition(linkReferenceIndex([0,0,0],1)==nil)
+precondition(linkReferenceIndex([1,1,0],2)==nil)
+precondition(linkReferenceIndex([1,0,1],2)==nil)
+precondition(linkReferenceIndex([-1,0,0],0)==nil)
+precondition(linkReferenceIndex([],0)==nil)
+print(#"{\"linkGlyphCases\":5,\"linkReferenceCases\":8,\"buttonReferenceCases\":8,\"buttonShadowCases\":6,\"radioGroupCases\":14,\"checkboxGroupTagCases\":8,\"checkboxGroupCases\":14,\"checkboxCases\":47,\"switchValueCases\":10,\"switchRasterCases\":9,\"switchThumbCases\":11,\"switchEndpointCases\":10,\"switchRetirementCases\":14,\"toggleButtonCases\":12,\"listItemCases\":20,\"galleryScrollCases\":8,\"galleryTrackCases\":8,\"thumbnailFrameCases\":6,\"circularCases\":6,\"status\":\"PASS\",\"cases\":11,\"pixelCases\":6,\"shadowCases\":6,\"savedNSNumberIntValue\":9,\"savedNSNumberDoubleValue\":9.9998779296875}"#)
 '''
 
 
@@ -601,7 +617,7 @@ def build_ios(session, config=None):
     sdk = session.run("geometry-sdk", ["/usr/bin/xcrun", "--sdk", "macosx", "--show-sdk-path"]).strip()
     swift = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift"
     control_result = json.loads(session.run("geometry-controls", [swift, "-sdk", sdk, "-module-cache-path", str(CACHE / "swift-host-module-cache"), str(controls)]))
-    require(control_result.get("buttonReferenceCases") == 8 and control_result.get("buttonShadowCases") == 6 and control_result.get("radioGroupCases") == 14 and control_result.get("checkboxGroupTagCases") == 8 and control_result.get("checkboxGroupCases") == 14 and control_result.get("checkboxCases") == 47 and control_result.get("switchRetirementCases") == 14 and control_result.get("switchEndpointCases") == 10 and control_result.get("switchThumbCases") == 11 and control_result.get("switchValueCases") == 10 and control_result.get("switchRasterCases") == 9 and control_result.get("toggleButtonCases") == 12 and control_result.get("listItemCases") == 20 and control_result.get("galleryScrollCases") == 8 and control_result.get("galleryTrackCases") == 8 and control_result.get("thumbnailFrameCases") == 6 and control_result.get("circularCases") == 6 and control_result.get("status") == "PASS" and control_result.get("cases") == 11 and control_result.get("pixelCases") == 6 and control_result.get("shadowCases") == 6, "Actual Swift geometry/pixel/shadow controls failed")
+    require(control_result.get("linkGlyphCases") == 5 and control_result.get("linkReferenceCases") == 8 and control_result.get("buttonReferenceCases") == 8 and control_result.get("buttonShadowCases") == 6 and control_result.get("radioGroupCases") == 14 and control_result.get("checkboxGroupTagCases") == 8 and control_result.get("checkboxGroupCases") == 14 and control_result.get("checkboxCases") == 47 and control_result.get("switchRetirementCases") == 14 and control_result.get("switchEndpointCases") == 10 and control_result.get("switchThumbCases") == 11 and control_result.get("switchValueCases") == 10 and control_result.get("switchRasterCases") == 9 and control_result.get("toggleButtonCases") == 12 and control_result.get("listItemCases") == 20 and control_result.get("galleryScrollCases") == 8 and control_result.get("galleryTrackCases") == 8 and control_result.get("thumbnailFrameCases") == 6 and control_result.get("circularCases") == 6 and control_result.get("status") == "PASS" and control_result.get("cases") == 11 and control_result.get("pixelCases") == 6 and control_result.get("shadowCases") == 6, "Actual Swift geometry/pixel/shadow controls failed")
     derived = CACHE / "ios"
     # A source revision gets an unambiguous observer registration; old installed revisions remain intact.
     bundle_id = "dev.codonui.lab.components.r" + digest(ROOT / "MeterG02TrialTests.swift")[:12]
@@ -855,7 +871,7 @@ def run_ios(session, config, app, observer):
         else: raw = session.run("xctest", argv)
     except ValueError as error:
         sdk_error = error;stdout = session.output / "xctest.stdout";raw = stdout.read_text() if stdout.exists() else ""
-    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected", "circle-loader", "lagging-lines", "counter", "list-box-item", "list-box-item-motion", "toggle-button", "toggle-button-affected", "toggle-button-style", "radio", "radio-motion", "switch", "switch-motion", "checkbox", "checkbox-static", "checkbox-motion", "button", "button-motion"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
+    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected", "circle-loader", "lagging-lines", "counter", "list-box-item", "list-box-item-motion", "toggle-button", "toggle-button-affected", "toggle-button-style", "radio", "radio-motion", "switch", "switch-motion", "checkbox", "checkbox-static", "checkbox-motion", "button", "button-motion", "link"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
         original_motion = re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])", raw)
         restored_motion = re.findall(r"METER_STYLE_MOTION_RESTORED ([01])", raw)
         if original_motion != restored_motion: session.cleanup_errors.append("Original iOS Reduce Motion restoration unverified")
@@ -892,6 +908,7 @@ def run_ios(session, config, app, observer):
     if config.get("batch") in ["list-box-item", "list-box-item-motion"]: result["listBoxItem"] = reconcile_list_item_ios(raw,config,app)
     if config.get("batch") == "placeholder-g08": result["placeholder"] = reconcile_placeholder_ios(raw)
     if config.get("batch") in ["switch", "switch-motion"]: result["switch"] = reconcile_switch_ios(raw, config, app)
+    if config.get("batch") in ["link","link-static","link-actions"]: result["link"]=reconcile_link_ios(raw,config)
     if config.get("batch") in ["button","button-motion"]: result["button"]=reconcile_button_ios(raw,config)
     if config.get("batch")=="radio-group": result["radioGroup"]=reconcile_radio_group_ios(raw)
     if config.get("batch") in ["checkbox-group","checkbox-group-actions"]: result["checkboxGroup"]=reconcile_checkbox_group_ios(raw,config,app)
@@ -1558,6 +1575,88 @@ def reconcile_checkbox_group_ios(raw,config=None,app=None):
     require(named["dark"]["state"]["themeMode"]=="dark" and named["light-restored"]["state"]["themeMode"]=="light","Group provider restoration missing")
     return {"status":"PASS","observations":len(rows),"nativeActivations":9,"motion":"Group owns no motion; unchanged member clocks retain their separately bound CHK-08 proof."}
 
+
+
+LINK_BEHAVIOR=["baseline","echo","disabled","held-disabled","restored","empty","fragment","relative","small-hit-target","replaced","retired","fresh","alias-relationships","attribute-relationships","changed-targets","removed-targets","empty-relationships","error","handoff"]
+LINK_ACTIONS=["baseline-first","baseline-repeated","small-hit-target-activated"]+[name+"-activated" for name in ["echo","disabled","held-disabled","restored","empty","fragment","relative","error","handoff"]]
+LINK_STYLES=["style-baseline","primary","visited","visited-override","provider-visited","root-custom","final-style","explicit-child","underline","line-through","fractional","percentage","auto","small-target","zero","long-narrow","dark","light-restored"]
+def link_label(state):
+    if not state["related"] or not state["targetsVisible"] or state["case"]=="empty-relationships":return "Read settings"
+    return " ".join(reversed(state["targetText"]) if state["case"]=="attribute-relationships" else state["targetText"])
+
+
+def validate_link_rows(rows,names):
+    require(sorted(row["name"] for row in rows)==sorted(names),"Missing/duplicate Link observations")
+    for row in rows:
+        state,scale=row["state"],row["scale"];parent,reference,matched=row["parent"],row["referenceParent"],row["matchedReferenceParent"]
+        require(isinstance(scale,(int,float)) and math.isfinite(scale) and scale>0 and scale==state["scale"],"Wrong Link scale")
+        require(all(len(frame)==4 and all(math.isfinite(v) for v in frame) for frame in [parent,reference,matched]) and parent[2:]==reference[2:] and 0<parent[2]<=280 and parent[3]==224,"Wrong Link parents")
+        for frame in [parent,reference,matched]:
+            x,y,width,height=[math.floor(v*scale+.5) for v in frame];require(0<=x<x+width<=row["imageWidth"] and 0<=y<y+height<=row["imageHeight"],"Link parent outside physical screenshot")
+        require([math.floor(v*scale+.5) for v in matched]==[math.floor(v*scale+.5) for v in parent] and row["referenceExact"] is True,"Link exact same-origin reference mismatch")
+        if not state["visible"]:
+            require(not row["root"] and row["inkPixels"]==0 and state["rootTag"] is None,"Retired Link ref/paint remains");continue
+        event=state["layouts"][-1];layout=event["layout"];require(state["rootTag"] and event["target"]==event["currentTarget"]==state["rootTag"],"Original Link layout/ref differs")
+        if state["zero"]:
+            require(layout["width"]==layout["height"]==0 and row["inkPixels"]==0,"Authored Link zero/clipping differs");continue
+        require(row["targetCount"]==1 and row["nativeLink"] is True and row["nativeLabel"]==link_label(state) and row["nativeValue"]=="Link value" and row["nativeEnabled"] is (not state["disabled"]),"Link native trait/name/value/guard/target differs")
+        root,raw=row["root"],row["referenceRoot"];require(len(root)==len(raw)==4 and all(math.isfinite(v) for v in root+raw) and all(abs(a-b)*scale<=1 for a,b in zip([root[0]-parent[0],root[1]-parent[1],*root[2:]],[raw[0]-reference[0],raw[1]-reference[1],*raw[2:]])),"Link actual/reference frames differ")
+        require(all(abs(root[i+2]-layout[key])*scale<=1 for i,key in enumerate(["width","height"])),"Link original native/layout dimensions differ")
+        if isinstance(state["width"],(int,float)):require(abs(root[2]-state["width"])*scale<=1,"Link authored width differs")
+        if state["height"] is not None:require(abs(root[3]-state["height"])*scale<=1,"Link authored height differs")
+        if state["narrow"]:require(root[3]>44 and root[1]+root[3]<=parent[1]+parent[3]-12+1/scale,"Link long content clipped")
+        for held in row.get("heldContactIntervals",[]):require(held["beganEpochMs"]<=held["disabledOnPressInEpochMs"]<held["endedEpochMs"]-400,"Link not canceled during held contact")
+        if state["related"]:
+            native=state["inspection"];related=state["targetsVisible"] and state["case"]!="empty-relationships"
+            require(native["target"]==state["rootTag"] and native["ownerId"] and native["windowId"] and native["platform"]=="ios" and native["case"]==state["case"] and native["observedAt"]>0,"Link actual current native inspection missing")
+            require(native["label"]==link_label(state) and native["hint"]=="Open the destination" and native["value"]=="Link value","Link native inspection fields differ")
+            require(native["descriptionAvailable"] is related and native["detailsAvailable"] is related and native["description"]==("Guide" if related else "") and native["details"]==("Detail" if related else ""),"Link actual relationship fallback/order differs")
+    return {"status":"PASS","observations":len(rows)}
+
+
+def reconcile_link_ios(raw,config=None):
+    config=config or {}
+    if config.get("batch") in ["link-static","link-actions"]:
+        proof=json.loads(bound_file(config["retainedLinkMotion"]).read_text());require(proof["status"]=="PASS","Retained Link motion review failed")
+        require(json.loads(bound_file(proof["cleanup"]).read_text())["cleanupVerified"],"Retained Link motion cleanup unverified")
+        loaded=json.loads(bound_file(proof["loadedObserver"]).read_text());require(loaded["status"]=="PASS" and loaded["observerManifestSHA256"]==proof["observerManifestSHA256"],"Retained Link actually loaded observer differs")
+        method=proof["nativeMethod"];require(method["method"]=="testLinkMotionAndRetirement" and method["appManifestSHA256"]==proof["appManifestSHA256"] and method["observerManifestSHA256"]==proof["observerManifestSHA256"],"Wrong retained Link method/tuple");native_method(method)
+        prior=bound_file(proof["log"]).read_text();lines=[]
+        for line in prior.splitlines():
+            if line.startswith(("LINK_NATIVE_MOTION ","LINK_NATIVE_MOTION_FRAME ","LINK_NATIVE_MOTION_REFERENCE ","METER_STYLE_MOTION_")):lines.append(line)
+            elif line.startswith("LINK_NATIVE_OBSERVATION ") and json.loads(line.split(" ",1)[1])["name"] in ["normal-fresh","reduced-fresh"]:lines.append(line)
+        raw+="\n"+"\n".join(lines)
+    if config.get("batch")=="link-actions":
+        proof=json.loads(bound_file(config["retainedLinkStyles"]).read_text());require(proof["status"]=="PASS","Retained Link style review failed")
+        require(json.loads(bound_file(proof["cleanup"]).read_text())["cleanupVerified"],"Retained Link style cleanup unverified")
+        loaded=json.loads(bound_file(proof["loadedObserver"]).read_text());require(loaded["status"]=="PASS" and loaded["observerManifestSHA256"]==proof["observerManifestSHA256"],"Retained Link style actually loaded observer differs")
+        method=proof["nativeMethod"];require(method["method"]=="testLinkStylesAndConstraints" and method["appManifestSHA256"]==proof["appManifestSHA256"] and method["observerManifestSHA256"]==proof["observerManifestSHA256"],"Wrong retained Link style method/tuple");native_method(method)
+        raw+="\n"+"\n".join(line for line in bound_file(proof["log"]).read_text().splitlines() if line.startswith("LINK_NATIVE_OBSERVATION ") and json.loads(line.split(" ",1)[1])["state"]["mode"]=="styles")
+    rows=[json.loads(x) for x in re.findall(r"LINK_NATIVE_OBSERVATION (\{[^\n]+\})",raw)];result=validate_link_rows(rows,LINK_BEHAVIOR+LINK_ACTIONS+LINK_STYLES+["normal-fresh","reduced-fresh"]);named={row["name"]:row for row in rows};original=named["baseline"]["state"]["rootTag"]
+    for name in ["echo","disabled","held-disabled","restored","empty","fragment","relative"]:require(named[name]["state"]["rootTag"]==original,"Link original root lost")
+    for name in ["replaced","fresh"]:require(named[name]["state"]["rootTag"]!=original,"Link replacement ref reused")
+    for name,count in [("baseline-first",1),("baseline-repeated",2),("small-hit-target-activated",8),("echo-activated",3),("disabled-activated",3),("held-disabled-activated",3),("restored-activated",4),("empty-activated",5),("fragment-activated",6),("relative-activated",7),("error-activated",9),("handoff-activated",10)]:require(len(named[name]["state"]["requests"])==count,"Link exact request/guard differs: "+name)
+    require(not named["baseline-repeated"]["state"]["visited"] and named["echo-activated"]["state"]["visited"],"Link caller-owned visited differs")
+    require(named["held-disabled-activated"]["state"]["canceled"] and len(named["held-disabled-activated"]["heldContactIntervals"])==1,"Link held cancellation missing")
+    requests=named["handoff-activated"]["state"]["requests"];require(len(requests)==10,"Link callback count differs")
+    for request in requests:
+        case=request["case"];uri={"empty":"","fragment":"#section","relative":"/relative","handoff":"https://example.com/codon-native?value=0&empty="}.get(case,"codon-lab-unhandled://destination?value=0&empty=")
+        require(request["href"]==uri and request["target"]>0 and request["currentTarget"]>0 and request["before"] is False and request["after"] is (case not in ["error","handoff"]),"Link unchanged original URL/event/veto differs")
+    failed=named["error-activated"]["state"];require(failed["href"]=="#changed-after-request" and len(failed["errors"])==1 and failed["errors"][0]["href"]=="codon-lab-unhandled://destination?value=0&empty=" and failed["errors"][0]["error"],"Link error original destination/lifetime differs")
+    handoff=[json.loads(x) for x in re.findall(r"LINK_NATIVE_HANDOFF (\{[^\n]+\})",raw)];require(len(handoff)==1 and handoff[0]["foregroundBundle"]=="com.apple.mobilesafari" and handoff[0]["address"] in ["https://example.com/codon-native?value=0&empty=","example.com/codon-native?value=0&empty="],"Actual exact native URL handoff missing")
+    intervals=[json.loads(x) for x in re.findall(r"LINK_NATIVE_MOTION (\{[^\n]+\})",raw)];require(len(intervals)==2 and {x["name"] for x in intervals}=={"normal","reduced"},"Link actual motion intervals missing")
+    references=[json.loads(x) for x in re.findall(r"LINK_NATIVE_MOTION_REFERENCE (\{[^\n]+\})",raw)];controls={x["name"]:x for x in references};require(len(controls)==len(references)==4 and set(controls)=={mode+"-reference-"+str(i) for mode in ["normal","reduced"] for i in [0,1]},"Link exact endpoint controls missing")
+    for interval in intervals:
+        trace=interval["state"]["motionTrace"];require([x["name"] for x in trace]==["retarget-"+str(i) for i in range(40)]+["settle","retire","fresh"],"Link125ms retarget/lifetime trace differs")
+        require(interval["state"]["motionEvents"][-1] is interval["reduced"],"Link real motion setting differs")
+        samples=interval["samples"];moving=[x for x in samples if x["captureStartedEpochMs"]>=trace[0]["epochMs"] and x["captureEpochMs"]<trace[-2]["epochMs"]];require(len(moving)>1 and any(x["inkPixels"]==0 for x in samples),"Link actual motion/removal samples missing")
+        for sample in samples:
+            counts=sample["referenceGlyphCounts"];require(len(counts)==3 and counts[2]==0 and ((counts[0]>0 and counts[1]==0) or (counts[1]>0 and counts[0]==0) or counts==[0,0,0] and sample["inkPixels"]==0),"Link unknown actual raw glyph endpoint")
+            require(sample["calibratedReferenceName"] in controls and [math.floor(v*sample["scale"]+.5) for v in sample["parent"]]==[math.floor(v*sample["scale"]+.5) for v in sample["calibratedReferenceParent"]],"Link changed physical endpoint origin")
+        require(all(x["calibratedReferenceExact"] for x in moving) if interval["reduced"] else any(x["glyphCounts"][2]>0 for x in moving),"Link real color motion/reduction differs")
+    original_motion=re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])",raw);restored=re.findall(r"METER_STYLE_MOTION_RESTORED ([01])",raw);require(len(original_motion)==1 and original_motion==restored,"Link Reduce Motion restoration unverified")
+    require(named["dark"]["state"]["themeMode"]=="dark" and named["light-restored"]["state"]["themeMode"]=="light","Link provider restoration differs")
+    return dict(result,nativeActivations=10,motionFrames=sum(len(x["samples"]) for x in intervals))
 
 
 def button_press_prefix(phases):
@@ -2329,11 +2428,12 @@ def validate_standard_scope(plan):
     placeholder = cell == "CAT.placeholder-text.G08" and batch == "placeholder-g08"
     slider = cell == "CAT.slider.G01" and batch == "slider-hit-layout"
     checkbox = cell == "CAT.checkbox.G08" and batch in ["checkbox","checkbox-static","checkbox-motion"]
+    link = cell == "CAT.link.G08" and batch in ["link","link-static","link-actions"]
     button = cell == "CAT.button.G08" and batch in ["button","button-motion"]
     radio_group = cell == "CAT.radio-group.G08" and batch=="radio-group"
     checkbox_group = cell == "CAT.checkbox-group.G08" and batch in ["checkbox-group","checkbox-group-actions"]
     switch = cell == "CAT.switch.G08" and batch in ["switch", "switch-motion"]
-    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item or toggle_button or radio or placeholder or slider or switch or checkbox or checkbox_group or radio_group or button, "Only the authorized component and focused batch are selected")
+    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item or toggle_button or radio or placeholder or slider or switch or checkbox or checkbox_group or radio_group or button or link, "Only the authorized component and focused batch are selected")
 
 
 def main():

@@ -873,6 +873,39 @@ class CheckboxGroupControls(unittest.TestCase):
         self.assertIn('"checkboxGroupTagCases":8',NATIVE.geometry_control_source())
 
 
+class LinkControls(unittest.TestCase):
+    def row(self):
+        row=ListItemControls().row();row["state"].update(case="baseline",height=44,related=False,targetsVisible=True,targetText=["First","Second"]);row.update(nativeLink=True,nativeLabel="Read settings",nativeValue="Link value",matchedReferenceParent=row["parent"][:]);return row
+    def test_link_original_native_fields_physical_frames_and_real_relationships(self):
+        row=self.row();NATIVE.validate_link_rows([row],["baseline"])
+        fractional=copy.deepcopy(row);fractional["root"][2]+=0.0001220703125;NATIVE.validate_link_rows([fractional],["baseline"])
+        for key,value in [("nativeLink",False),("nativeLabel","wrong"),("nativeValue","wrong"),("targetCount",2),("referenceExact",False),("root",[32,112,200,43]),("matchedReferenceParent",[20.34,100,280,224]),("parent",[20,850,280,224])]:
+            bad=copy.deepcopy(row);bad[key]=value
+            with self.subTest(key=key),self.assertRaises(ValueError):NATIVE.validate_link_rows([bad],["baseline"])
+        for name,label,visible,available in [("alias-relationships","First Second",True,True),("attribute-relationships","Second First",True,True),("removed-targets","Read settings",False,False),("empty-relationships","Read settings",True,False)]:
+            native={"case":name,"target":row["state"]["rootTag"],"ownerId":"actual-owner","windowId":"actual-window","platform":"ios","observedAt":17000,"label":label,"hint":"Open the destination","value":"Link value","descriptionAvailable":available,"detailsAvailable":available,"description":"Guide" if available else "","details":"Detail" if available else ""}
+            value=copy.deepcopy(row);value["state"].update(case=name,related=True,targetsVisible=visible,inspection=native);value["nativeLabel"]=label;NATIVE.validate_link_rows([value],["baseline"])
+            for field,wrong in [("target",0),("label","wrong"),("windowId",""),("hint","wrong"),("descriptionAvailable",not available),("description","wrong"),("details","wrong")]:
+                bad=copy.deepcopy(value);bad["state"]["inspection"][field]=wrong
+                with self.subTest(case=name,field=field),self.assertRaises(ValueError):NATIVE.validate_link_rows([bad],["baseline"])
+        with self.assertRaises(ValueError):NATIVE.validate_link_rows([row,row],["baseline"])
+        with self.assertRaises(ValueError):NATIVE.reconcile_link_ios("")
+    def test_link_selected_standard_entry_fails_before_sdk_without_admission(self):
+        NATIVE.validate_standard_scope({"cell":"CAT.link.G08","nativeStandard":{"batch":"link"}});self.assertEqual(len(NATIVE.selection("ios","link")["ios"]),3)
+        for cell in ["CAT.combo-box.G08","CAT.link.G07","CAT.button.G08"]:
+            with self.assertRaises(ValueError):NATIVE.validate_standard_scope({"cell":cell,"nativeStandard":{"batch":"link"}})
+        with self.assertRaises(ValueError):NATIVE.selection("android","link")
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);p=root/"plan.json";p.write_text(json.dumps({"cell":"CAT.link.G08","nativeStandard":{"platform":"ios","batch":"link","output":str(root/"never-created")}}));env={k:v for k,v in os.environ.items() if k!="CODON_NATIVE_CELL_PREFLIGHT_RECEIPT"}
+            result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(p)],env=env,capture_output=True,text=True,timeout=10);self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((root/"never-created").exists())
+        source=NATIVE.geometry_control_source();self.assertIn('"linkGlyphCases":5',source);self.assertIn('"linkReferenceCases":8',source)
+        self.assertEqual(len(NATIVE.selection("ios","link-static")["ios"]),2)
+        self.assertEqual(NATIVE.selection("ios","link-actions")["ios"],["LinkTrialTests/testLinkActionsAndLifetimes"])
+        NATIVE.validate_standard_scope({"cell":"CAT.link.G08","nativeStandard":{"batch":"link-actions"}})
+        NATIVE.validate_standard_scope({"cell":"CAT.link.G08","nativeStandard":{"batch":"link-static"}})
+        with self.assertRaises(ValueError):NATIVE.reconcile_link_ios("",{"batch":"link-static","retainedLinkMotion":{"path":"/missing/retained/proof","sha256":"0"*64}})
+
+
 class ButtonControls(unittest.TestCase):
     def test_button_original_native_phase_orders_accept_delayed_pressout_and_reject_missing_phases(self):
         first=["start","change:true","up","end","change:false","press"];delayed=["start","change:true","up","press","end","change:false"]

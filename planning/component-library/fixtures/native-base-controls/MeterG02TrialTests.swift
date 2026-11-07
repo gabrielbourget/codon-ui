@@ -3945,3 +3945,244 @@ final class ButtonTrialTests: XCTestCase {
         FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_SWITCH "+expected+"\n").utf8))
     }
 }
+
+
+private func linkGlyphCounts(_ bytes:[UInt8])->[Int] {
+    guard bytes.count%4==0 else{return [0,0,0]};var result=[0,0,0]
+    for i in stride(from:0,to:bytes.count,by:4){let r=Int(bytes[i]),g=Int(bytes[i+1]),b=Int(bytes[i+2]);guard bytes[i+3]==255 else{continue};if r==187 && g==51 && b==34{result[0]+=1};if r==17 && g==119 && b==51{result[1]+=1};if 17<r && r<187 && 51<g && g<119 && 34<b && b<51{result[2]+=1}}
+    return result
+}
+private func linkReferenceIndex(_ counts:[Int],_ ink:Int)->Int? {
+    guard counts.count==3 && counts.allSatisfy({$0>=0}) && counts[2]==0 else{return nil}
+    if counts[0]>0 && counts[1]==0{return 0};if counts[1]>0 && counts[0]==0{return 1};if counts==[0,0,0] && ink==0{return 0};return nil
+}
+final class LinkTrialTests: XCTestCase {
+    private var app:XCUIApplication!
+    private var heldIntervals:[[String:Double]]=[]
+    private let behavior=[
+  "baseline",
+  "echo",
+  "disabled",
+  "held-disabled",
+  "restored",
+  "empty",
+  "fragment",
+  "relative",
+  "small-hit-target",
+  "replaced",
+  "retired",
+  "fresh",
+  "alias-relationships",
+  "attribute-relationships",
+  "changed-targets",
+  "removed-targets",
+  "empty-relationships",
+  "error",
+  "handoff",
+]
+    private let styles=[
+  "style-baseline",
+  "primary",
+  "visited",
+  "visited-override",
+  "provider-visited",
+  "root-custom",
+  "final-style",
+  "explicit-child",
+  "underline",
+  "line-through",
+  "fractional",
+  "percentage",
+  "auto",
+  "small-target",
+  "zero",
+  "long-narrow",
+  "dark",
+  "light-restored",
+]
+    override func setUpWithError() throws {
+        continueAfterFailure=false;app=XCUIApplication(bundleIdentifier:"dev.codonui.showcase");app.launch();XCTAssertEqual(app.state,.runningForeground);XCUIDevice.shared.orientation = .portrait
+        tap("Reset scene");tap("Link scene");tap("Light theme");tap("Live window");tap("Prepare standalone Link checks")
+    }
+    override func tearDownWithError() throws {
+        let png=XCTAttachment(screenshot:XCUIScreen.main.screenshot());png.name="link-final";png.lifetime = .keepAlways;add(png)
+        let tree=XCTAttachment(string:app.debugDescription);tree.name="link-final-hierarchy";tree.lifetime = .keepAlways;add(tree)
+    }
+    private func state() throws->[String:Any] {try XCTUnwrap(JSONSerialization.jsonObject(with:Data(node("link-native-state").label.utf8)) as? [String:Any])}
+    private func number(_ row:[String:Any],_ key:String)throws->Double {let value=try XCTUnwrap(row[key] as? NSNumber,key).doubleValue;XCTAssertTrue(value.isFinite);return value}
+    private func rect(_ value:CGRect)->[Double] {[value.minX,value.minY,value.width,value.height].map(Double.init)}
+    private func ready() {wait("Actual current Link root/ref/layout") {guard let row=try? self.state(),let events=row["layouts"] as? [[String:Any]],let event=events.last else{return false};return (row["rootTag"] as? NSNumber)?.doubleValue == (event["currentTarget"] as? NSNumber)?.doubleValue}}
+    private func mark(_ name:String,_ row:[String:Any],_ shot:XCUIScreenshot,prefix:String="LINK_NATIVE_OBSERVATION") throws {
+        let data=try JSONSerialization.data(withJSONObject:row,options:.sortedKeys);FileHandle.standardOutput.write(Data((prefix+" ").utf8)+data+Data("\n".utf8));let attachment=XCTAttachment(data:data,uniformTypeIdentifier:"public.json");attachment.name="link-"+name+"-receipt";attachment.lifetime = .keepAlways;add(attachment);let png=XCTAttachment(screenshot:shot);png.name="link-"+name;png.lifetime = .keepAlways;add(png)
+    }
+    private func capture(_ name:String) throws {
+        tap("Show Link component");reveal(node("link-native-pair"));let snapshot=try app.snapshot();var all:[XCUIElementSnapshot]=[]
+        func visit(_ value:XCUIElementSnapshot){all.append(value);for child in value.children{visit(child)}};visit(snapshot)
+        func one(_ id:String)->XCUIElementSnapshot? {let values=all.filter{$0.identifier==id};XCTAssertLessThanOrEqual(values.count,1,id);return values.first}
+        let row=try XCTUnwrap(JSONSerialization.jsonObject(with:Data(try XCTUnwrap(one("link-native-state")).label.utf8)) as? [String:Any]),window=try XCTUnwrap(all.first{$0.elementType == .window}).frame,parent=try XCTUnwrap(one("link-native-parent")).frame,reference=try XCTUnwrap(one("link-native-reference-parent")).frame,root=one("link-native-target"),raw=one("link-native-reference"),shot=XCUIScreen.main.screenshot(),image=try XCTUnwrap(shot.image.cgImage),scale=CGFloat(image.width)/window.width
+        XCTAssertEqual(shot.image.imageOrientation,.up);XCTAssertEqual(scale,CGFloat(image.height)/window.height,accuracy:0.01)
+        let actual=try pixels(image,parent,window,scale),separated=try pixels(image,reference,window,scale)
+        let control=app.buttons["Show Link reference"].firstMatch;XCTAssertTrue(control.isHittable && window.contains(control.frame));control.tap();wait("Original reference physical origin"){(try? self.state()["referenceAtOrigin"] as? Bool)==true}
+        let matched=node("link-native-reference-parent").frame,referenceShot=XCUIScreen.main.screenshot(),referenceImage=try XCTUnwrap(referenceShot.image.cgImage)
+        XCTAssertTrue(toggleButtonMatchedFrame(rect(parent),rect(matched),Double(scale)));let expected=try pixels(referenceImage,matched,window,scale)
+        let extra=XCTAttachment(screenshot:referenceShot);extra.name="link-"+name+"-matched-reference";extra.lifetime = .keepAlways;add(extra)
+        let exact=circularPixelsMatch(actual,expected);var ink=0;for i in stride(from:0,to:actual.count,by:4){if actual[i] != 255 || actual[i+1] != 255 || actual[i+2] != 255{ink+=1}}
+        let observed:[String:Any]=["name":name,"state":row,"parent":rect(parent),"referenceParent":rect(reference),"root":root.map{rect($0.frame)} ?? [],"referenceRoot":raw.map{rect($0.frame)} ?? [],"nativeLabel":root?.label ?? "","nativeValue":root?.value ?? NSNull(),"nativeLink":root?.elementType == .link,"nativeType":root.map{Int($0.elementType.rawValue)} ?? -1,"nativeEnabled":root?.isEnabled ?? false,"heldContactIntervals":heldIntervals,"targetCount":all.filter{$0.identifier=="link-native-target"}.count,"referenceExact":exact,"separatedReferenceExact":circularPixelsMatch(actual,separated),"rawReferencePositionDiffers":!circularPixelsMatch(separated,expected),"matchedReferenceParent":rect(matched),"inkPixels":ink,"scale":scale,"imageWidth":image.width,"imageHeight":image.height]
+        try mark(name,observed,shot);XCTAssertEqual(parent.size,reference.size);XCTAssertEqual(parent.height,224);XCTAssertTrue(exact,"Link paint differs from exact independent same-origin reference")
+        if row["visible"] as? Bool==false{XCTAssertNil(root);XCTAssertTrue(row["rootTag"] is NSNull);XCTAssertEqual(ink,0);return}
+        let events=try XCTUnwrap(row["layouts"] as? [[String:Any]]),event=try XCTUnwrap(events.last),layout=try XCTUnwrap(event["layout"] as? [String:Any]),tag=try number(row,"rootTag");XCTAssertGreaterThan(tag,0);XCTAssertEqual(try number(event,"target"),tag);XCTAssertEqual(try number(event,"currentTarget"),tag)
+        if row["zero"] as? Bool==true{XCTAssertEqual(try number(layout,"width"),0);XCTAssertEqual(try number(layout,"height"),0);XCTAssertEqual(ink,0);return}
+        let target=try XCTUnwrap(root),nativeReference=try XCTUnwrap(raw);XCTAssertEqual(target.elementType,.link);XCTAssertEqual(target.isEnabled,!(row["disabled"] as? Bool ?? false));XCTAssertEqual(target.value as? String,"Link value")
+        let related=row["related"] as? Bool==true,caseName=row["case"] as? String ?? "",names=try XCTUnwrap(row["targetText"] as? [String]);let label=related && row["targetsVisible"] as? Bool==true && caseName != "empty-relationships" ? (caseName=="attribute-relationships" ? names.reversed().joined(separator:" "):names.joined(separator:" ")):"Read settings";XCTAssertEqual(target.label,label)
+        for (actual,expected) in zip([target.frame.minX-parent.minX,target.frame.minY-parent.minY,target.frame.width,target.frame.height],[nativeReference.frame.minX-reference.minX,nativeReference.frame.minY-reference.minY,nativeReference.frame.width,nativeReference.frame.height]){XCTAssertEqual(actual,expected,accuracy:1/scale)}
+        XCTAssertEqual(target.frame.width,try number(layout,"width"),accuracy:1/scale);XCTAssertEqual(target.frame.height,try number(layout,"height"),accuracy:1/scale)
+        if let width=row["width"] as? NSNumber{XCTAssertEqual(target.frame.width,width.doubleValue,accuracy:1/scale)}
+        if row["narrow"] as? Bool==true{XCTAssertGreaterThan(target.frame.height,44);XCTAssertLessThanOrEqual(target.frame.maxY,parent.maxY-12+1/scale)}
+    }
+    private func inspect() throws {
+        let before=try number(state(),"inspectionSequence");tap("Inspect Link metadata")
+        wait("Actual fresh native accessibility snapshot or explicit rejection"){guard let row=try? self.state() else{return false};return ((row["inspectionSequence"] as? NSNumber)?.doubleValue ?? 0)>before || (row["inspection"] as? [String:Any])?["error"] != nil}
+        let row=try state(),value=try XCTUnwrap(row["inspection"] as? [String:Any]);XCTAssertNil(value["error"]);XCTAssertEqual(value["case"] as? String,row["case"] as? String);XCTAssertEqual(try number(value,"target"),try number(row,"rootTag"));XCTAssertFalse((value["ownerId"] as? String ?? "").isEmpty);XCTAssertFalse((value["windowId"] as? String ?? "").isEmpty);XCTAssertEqual(value["platform"] as? String,"ios");XCTAssertEqual(value["hint"] as? String,"Open the destination");XCTAssertEqual(value["value"] as? String,"Link value");XCTAssertGreaterThan(try number(value,"observedAt"),0)
+        let related=row["related"] as? Bool==true && row["targetsVisible"] as? Bool==true && row["case"] as? String != "empty-relationships"
+        XCTAssertEqual(value["descriptionAvailable"] as? Bool,related);XCTAssertEqual(value["detailsAvailable"] as? Bool,related);XCTAssertEqual(value["description"] as? String,related ? "Guide":"");XCTAssertEqual(value["details"] as? String,related ? "Detail":"")
+    }
+    private func activate(_ name:String,blocked:Bool=false,held:Bool=false,slop:Bool=false) throws {
+        tap("Show Link component");let before=try state(),count=(before["requests"] as? [[String:Any]] ?? []).count,target=node("link-native-target");reveal(target)
+        let began=Date().timeIntervalSince1970*1000
+        let point=slop ? target.coordinate(withNormalizedOffset:.zero).withOffset(CGVector(dx:target.frame.width/2,dy:target.frame.height+8)):target.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.5))
+        if slop{XCTAssertLessThan(target.frame.height,44);XCTAssertFalse(target.frame.contains(CGPoint(x:target.frame.midX,y:target.frame.maxY+8)));XCTAssertTrue(node("link-native-parent").frame.contains(CGPoint(x:target.frame.midX,y:target.frame.maxY+8)))}
+        point.press(forDuration:held ? 1:0)
+        if blocked{Thread.sleep(forTimeInterval:0.4);XCTAssertEqual((try state()["requests"] as? [[String:Any]])?.count,count)}
+        else{wait("Exactly one original Link request"){((try? self.state()["requests"] as? [[String:Any]]) ?? []).count==count+1}}
+        if held{let ended=Date().timeIntervalSince1970*1000,current=try state(),events=try XCTUnwrap(current["events"] as? [[String:Any]]),entry=try XCTUnwrap(events.last{$0["phase"] as? String=="in"}),epoch=try number(entry,"epochMs");XCTAssertGreaterThanOrEqual(epoch,began);XCTAssertLessThan(epoch,ended-400);heldIntervals.append(["beganEpochMs":began,"endedEpochMs":ended,"disabledOnPressInEpochMs":epoch]);XCTAssertEqual(current["canceled"] as? Bool,true)}
+        try capture(name)
+    }
+    func testLinkActionsAndLifetimes() throws {
+        tap("Link behavior checks");var original=0.0,metadataRoot=0.0
+        for name in behavior {
+            wait("Current Link case "+name){(try? self.state()["case"] as? String)==name};if name != "retired"{ready()}
+            if name=="baseline"{original=try number(state(),"rootTag")}
+            if ["echo","disabled","held-disabled","restored","empty","fragment","relative","small-hit-target"].contains(name){XCTAssertEqual(try number(state(),"rootTag"),original)}
+            if name=="alias-relationships"{metadataRoot=try number(state(),"rootTag")}
+            if name.contains("relationships") || ["changed-targets","removed-targets"].contains(name){XCTAssertEqual(try number(state(),"rootTag"),metadataRoot);try inspect()}
+            try capture(name)
+            if name=="baseline"{try activate("baseline-first");try activate("baseline-repeated");XCTAssertEqual(try state()["visited"] as? Bool,false)}
+            switch name {
+            case "small-hit-target":try activate(name+"-activated",slop:true)
+            case "echo","restored","empty","fragment","relative":try activate(name+"-activated");XCTAssertEqual(try state()["visited"] as? Bool,true)
+            default:break
+            }
+            if name=="disabled"{try activate(name+"-activated",blocked:true)}
+            if name=="held-disabled"{try activate(name+"-activated",blocked:true,held:true)}
+            if name=="replaced" || name=="fresh"{XCTAssertNotEqual(try number(state(),"rootTag"),original)}
+            if name=="error"{
+                tap("Show Link component");reveal(node("link-native-target"));node("link-native-target").tap()
+                wait("Actual unsupported URL error callback"){((try? self.state()["errors"] as? [[String:Any]]) ?? []).count==1}
+                let row=try state(),error=try XCTUnwrap((row["errors"] as? [[String:Any]])?.first);XCTAssertEqual(row["href"] as? String,"#changed-after-request");XCTAssertEqual(error["href"] as? String,"codon-lab-unhandled://destination?value=0&empty=");XCTAssertFalse((error["error"] as? String ?? "").isEmpty);try capture("error-activated")
+            }
+            if name=="handoff"{
+                tap("Show Link component");reveal(node("link-native-target"));let tag=try number(state(),"rootTag");node("link-native-target").tap()
+                let safari=XCUIApplication(bundleIdentifier:"com.apple.mobilesafari");wait("Actual native Safari handoff"){safari.state == .runningForeground}
+                let address=safari.textFields.firstMatch;XCTAssertTrue(address.waitForExistence(timeout:nativeWorkRemaining()));address.tap()
+                wait("Exact OS URL destination"){let value=address.value as? String ?? "";return value=="https://example.com/codon-native?value=0&empty=" || value=="example.com/codon-native?value=0&empty="}
+                try mark("handoff-browser",["name":"handoff-browser","foregroundBundle":"com.apple.mobilesafari","address":address.value as? String ?? ""],XCUIScreen.main.screenshot(),prefix:"LINK_NATIVE_HANDOFF")
+                app.activate();wait("Return to unchanged original app"){self.app.state == .runningForeground};XCTAssertEqual(try number(state(),"rootTag"),tag);try capture("handoff-activated")
+            }
+            if name != behavior.last{tap("Next Link check")}
+        }
+        let row=try state(),requests=try XCTUnwrap(row["requests"] as? [[String:Any]]);XCTAssertEqual(requests.count,10)
+        for request in requests{XCTAssertGreaterThan(try number(request,"target"),0);XCTAssertGreaterThan(try number(request,"currentTarget"),0);XCTAssertEqual(request["before"] as? Bool,false);XCTAssertEqual(request["after"] as? Bool,!["error","handoff"].contains(request["case"] as? String ?? ""))}
+    }
+    func testLinkStylesAndConstraints() throws {
+        tap("Link styles checks")
+        for name in styles {
+            wait("Current Link style "+name){(try? self.state()["case"] as? String)==name};ready()
+            if name=="dark" {tap("Dark theme");wait("Actual dark provider"){(try? self.state()["themeMode"] as? String)=="dark"}}
+            if name=="light-restored" {tap("Light theme");wait("Actual light provider"){(try? self.state()["themeMode"] as? String)=="light"}}
+            try capture(name);if name != styles.last {tap("Next Link check")}
+        }
+    }
+    private func motion(_ name:String,reduced:Bool) throws {
+        tap("Link motion checks");reveal(node("link-native-pair"));ready()
+        var referencePaints:[[UInt8]]=[];var referenceFrames:[[Double]]=[]
+        for (index,control) in ["First","Second"].enumerated(){
+            tap(control);tap("Show Link reference");reveal(node("link-native-pair"));let shot=XCUIScreen.main.screenshot(),image=try XCTUnwrap(shot.image.cgImage),window=app.windows.firstMatch.frame,parent=node("link-native-parent").frame,reference=node("link-native-reference-parent").frame,scale=CGFloat(image.width)/window.width
+            XCTAssertTrue(toggleButtonMatchedFrame(rect(parent),rect(reference),Double(scale)));let paint=try pixels(image,reference,window,scale);referencePaints.append(paint);referenceFrames.append(rect(parent));let counts=linkGlyphCounts(paint);XCTAssertGreaterThan(counts[index],0);XCTAssertEqual(counts[1-index],0);XCTAssertEqual(counts[2],0)
+            try mark(name+"-reference-"+String(index),["name":name+"-reference-"+String(index),"parent":rect(parent),"referenceParent":rect(reference),"glyphCounts":counts,"scale":scale,"imageWidth":image.width,"imageHeight":image.height],shot,prefix:"LINK_NATIVE_MOTION_REFERENCE")
+        }
+        tap("Show Link component");reveal(node("link-native-pair"));ready();let before=try state(),window=app.windows.firstMatch.frame,parent=node("link-native-parent").frame,reference=node("link-native-reference-parent").frame,arm=app.buttons["Arm Link motion and retirement"].firstMatch
+        XCTAssertTrue(arm.isHittable && window.contains(arm.frame));arm.tap();var samples:[[String:Any]]=[];let until=Date().timeIntervalSince1970+11.4
+        repeat{
+            let started=Date().timeIntervalSince1970*1000,shot=XCUIScreen.main.screenshot(),image=try XCTUnwrap(shot.image.cgImage),scale=CGFloat(image.width)/window.width,actual=try pixels(image,parent,window,scale),expected=try pixels(image,reference,window,scale),counts=linkGlyphCounts(actual),rawCounts=linkGlyphCounts(expected)
+            var ink=0;for i in stride(from:0,to:actual.count,by:4){if actual[i] != 255 || actual[i+1] != 255 || actual[i+2] != 255{ink+=1}}
+            let index=try XCTUnwrap(linkReferenceIndex(rawCounts,ink),"Exact raw glyph endpoint or real blank retirement");XCTAssertTrue(toggleButtonMatchedFrame(rect(parent),referenceFrames[index],Double(scale)))
+            let row:[String:Any]=["name":name+"-"+String(samples.count),"captureStartedEpochMs":started,"captureEpochMs":Date().timeIntervalSince1970*1000,"parent":rect(parent),"referenceParent":rect(reference),"glyphCounts":counts,"referenceGlyphCounts":rawCounts,"calibratedReferenceName":name+"-reference-"+String(index),"calibratedReferenceParent":referenceFrames[index],"calibratedReferenceExact":circularPixelsMatch(actual,referencePaints[index]),"referenceExact":circularPixelsMatch(actual,expected),"inkPixels":ink,"scale":scale,"imageWidth":image.width,"imageHeight":image.height];samples.append(row);try mark(name+"-"+String(samples.count),row,shot,prefix:"LINK_NATIVE_MOTION_FRAME");Thread.sleep(forTimeInterval:0.10)
+        }while Date().timeIntervalSince1970<until && nativeWorkRemaining()>0
+        let after=try state(),trace=try XCTUnwrap(after["motionTrace"] as? [[String:Any]]),retired=try XCTUnwrap(trace.first{$0["name"] as? String=="retire"}),moving=samples.filter{($0["captureStartedEpochMs"] as? Double ?? 0)>=(trace[0]["epochMs"] as? Double ?? .infinity) && ($0["captureEpochMs"] as? Double ?? .infinity)<(retired["epochMs"] as? Double ?? 0)}
+        let result:[String:Any]=["name":name,"reduced":reduced,"movingRows":moving.count,"state":after,"samples":samples];FileHandle.standardOutput.write(Data("LINK_NATIVE_MOTION ".utf8)+(try JSONSerialization.data(withJSONObject:result,options:.sortedKeys))+Data("\n".utf8))
+        XCTAssertEqual(trace.compactMap{$0["name"] as? String},(0..<40).map{"retarget-"+String($0)}+["settle","retire","fresh"]);XCTAssertGreaterThan(moving.count,1)
+        if reduced{XCTAssertTrue(moving.allSatisfy{$0["calibratedReferenceExact"] as? Bool==true},"Reduced whole foreground matches exact independent same-origin endpoint")}
+        else{XCTAssertTrue(moving.contains{($0["glyphCounts"] as? [Int] ?? [0,0,0])[2]>0},"Actual125ms foreground interpolation")}
+        XCTAssertTrue(samples.contains{($0["inkPixels"] as? Int)==0});XCTAssertNotEqual(try number(after,"rootTag"),try number(before,"rootTag"));ready();try capture(name+"-fresh")
+    }
+    func testLinkMotionAndRetirement() throws {
+        tap("Link motion checks");let settings=XCUIApplication(bundleIdentifier:"com.apple.Preferences");settings.launch();let toggle=motionSwitch(settings),original=try XCTUnwrap(toggle.value as? String);XCTAssertTrue(["0","1"].contains(original));FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_ORIGINAL "+original+"\n").utf8))
+        addTeardownBlock{[self] in let current=self.motionSwitch(settings);self.setMotion(current,original);XCTAssertEqual(current.value as? String,original);self.app.activate();FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_RESTORED "+original+"\n").utf8))}
+        setMotion(toggle,"0");app.activate();reveal(node("link-native-state"));wait("Real normal-motion event"){((try? self.state()["motionEvents"] as? [Bool]) ?? []).last==false};try motion("normal",reduced:false)
+        setMotion(motionSwitch(settings),"1");app.activate();reveal(node("link-native-state"));wait("Real reduced-motion event"){((try? self.state()["motionEvents"] as? [Bool]) ?? []).last==true};try motion("reduced",reduced:true)
+    }
+    private func node(_ id:String)->XCUIElement {app.descendants(matching:.any).matching(identifier:id).firstMatch}
+
+    private func wait(_ message:String,_ predicate:@escaping()->Bool) {
+        let expectation=XCTNSPredicateExpectation(predicate:NSPredicate{_,_ in predicate()},object:nil)
+        XCTAssertEqual(XCTWaiter.wait(for:[expectation],timeout:nativeWorkRemaining()),.completed,message)
+    }
+
+    private func reveal(_ element:XCUIElement) {
+        XCTAssertTrue(element.waitForExistence(timeout:nativeWorkRemaining()));let scroll=app.scrollViews.firstMatch;XCTAssertTrue(scroll.exists)
+        for _ in 0..<24 {
+            let viewport=app.windows.firstMatch.frame.intersection(scroll.frame).insetBy(dx:2,dy:2)
+            if !element.frame.isEmpty && viewport.contains(element.frame){return}
+            guard let distance=galleryScrollFraction(Double(element.frame.minY),Double(element.frame.height),Double(viewport.minY),Double(viewport.height)),distance != 0 else{XCTFail("Link target cannot fit measured viewport");return}
+            let start:CGFloat=distance>0 ? 0.75:0.30
+            let trace:[String:Any]=["target":element.identifier,"frame":rect(element.frame),"viewport":rect(viewport),"requestedFraction":distance]
+            if let data=try? JSONSerialization.data(withJSONObject:trace,options:.sortedKeys){FileHandle.standardOutput.write(Data("LINK_SCROLL ".utf8)+data+Data("\n".utf8))}
+            scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:start)).press(forDuration:0.05,thenDragTo:scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:start-CGFloat(distance))),withVelocity:.slow,thenHoldForDuration:0.25)
+        };XCTFail("Unreachable Link control/canvas "+element.identifier)
+    }
+
+    private func tap(_ name:String) {
+        let control=app.buttons.matching(NSPredicate(format:"label == %@",name)).firstMatch;reveal(control);XCTAssertTrue(control.isHittable);control.tap()
+        if name=="Select scene"{wait("Actual selected Link scene"){control.isSelected}}
+    }
+
+    private func pixels(_ image:CGImage,_ frame:CGRect,_ window:CGRect,_ scale:CGFloat) throws -> [UInt8] {
+        XCTAssertTrue(window.contains(frame));let rect=CGRect(x:((frame.minX-window.minX)*scale).rounded(),y:((frame.minY-window.minY)*scale).rounded(),width:(frame.width*scale).rounded(),height:(frame.height*scale).rounded())
+        let crop=try XCTUnwrap(image.cropping(to:rect));var bytes=[UInt8](repeating:0,count:crop.width*crop.height*4)
+        let result=bytes.withUnsafeMutableBytes { buffer -> Bool in
+            guard let context=CGContext(data:buffer.baseAddress,width:crop.width,height:crop.height,bitsPerComponent:8,bytesPerRow:crop.width*4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue|CGBitmapInfo.byteOrder32Big.rawValue) else{return false}
+            context.draw(crop,in:CGRect(x:0,y:0,width:CGFloat(crop.width),height:CGFloat(crop.height)));return true
+        };XCTAssertTrue(result);return bytes
+    }
+    private func motionSwitch(_ settings: XCUIApplication) -> XCUIElement {
+        settings.activate()
+        let toggle = settings.switches["Reduce Motion"].firstMatch
+        if toggle.exists { return toggle }
+        for label in ["Accessibility","Motion"] {
+            let entry = settings.staticTexts[label].firstMatch
+            for _ in 0..<12 { if entry.exists && entry.isHittable { break };settings.swipeUp() }
+            XCTAssertTrue(entry.exists && entry.isHittable,"Standard Settings navigation "+label);entry.tap()
+        }
+        XCTAssertTrue(toggle.waitForExistence(timeout:nativeWorkRemaining()));return toggle
+    }
+
+    private func setMotion(_ toggle: XCUIElement, _ expected: String) {
+        if toggle.value as? String != expected {
+            XCTAssertTrue(toggle.isHittable)
+            toggle.coordinate(withNormalizedOffset:CGVector(dx:0.95,dy:0.5)).tap()
+        }
+        wait("Actual Reduce Motion switch "+expected) { toggle.value as? String == expected }
+        let shot = XCTAttachment(screenshot:XCUIScreen.main.screenshot());shot.name="meter-motion-switch-"+expected;shot.lifetime = .keepAlways;add(shot)
+        FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_SWITCH "+expected+"\n").utf8))
+    }
+}
