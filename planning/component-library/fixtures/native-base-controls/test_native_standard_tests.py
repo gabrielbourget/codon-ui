@@ -1134,4 +1134,62 @@ class SwitchControls(unittest.TestCase):
             result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(plan)],env=env,capture_output=True,text=True,timeout=10)
             self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((root/"never-created").exists())
 
+class CheckboxControls(unittest.TestCase):
+    def test_checkbox_native_mixed_semantics_and_real_reference_failures(self):
+        row=SwitchControls().row();row["state"]["mixed"]=False;row.update(nativeCheckbox=True,nativeValue="checkbox, unchecked")
+        NATIVE.validate_checkbox_rows([row],["baseline"])
+        mixed=copy.deepcopy(row);mixed["state"]["mixed"]=True;mixed["nativeValue"]="checkbox, mixed";NATIVE.validate_checkbox_rows([mixed],["baseline"])
+        for field,value in [("nativeValue","checkbox, checked"),("nativeValue","radio button, unchecked"),("nativeValue","checkbox, unchecked, busy"),("nativeCheckbox",False),("nativeLabel","wrong"),("targetCount",2),("referenceExact",False),("matchedReferenceParent",[20.34,100,280,224])]:
+            bad=copy.deepcopy(row);bad[field]=value
+            with self.subTest(field=field),self.assertRaises(ValueError):NATIVE.validate_checkbox_rows([bad],["baseline"])
+        with self.assertRaises(ValueError):NATIVE.validate_checkbox_rows([row,row],["baseline"])
+        with self.assertRaises(ValueError):NATIVE.reconcile_checkbox_ios("")
+
+    def interval(self,reduced=False):
+        trace=[{"name":name,"epochMs":3000+i*125} for i,name in enumerate(["select","interrupt","retarget"]+["retarget-"+str(i) for i in range(3,32)])]+[{"name":"settle","epochMs":7000},{"name":"retire","epochMs":10000},{"name":"fresh","epochMs":13000}]
+        state={"motionEvents":[reduced],"motionTrace":trace,"rootTag":42,"visible":True,"layouts":[{"currentTarget":42}]};samples=[]
+        for start,end,ink,ref,glyph,full,exact,color,raw in [(1000,1100,2201,2201,0,0,True,[238,240,242,255],[238,240,242,255]),(3100,3200,2201,2201,12,24,False,[102,136,153,255],[17,119,51,255]),(3400,3500,2201,2201,8,0,False,[102,136,153,255],[238,240,242,255]),(7400,7800,2201,2201,24,24,True,[17,119,51,255],[17,119,51,255]),(10014,10508,2201,2201,24,24,True,[17,119,51,255],[17,119,51,255]),(10633,11075,0,0,0,0,True,[],[]),(13400,13800,2201,2201,24,24,True,[17,119,51,255],[17,119,51,255])]:
+            samples.append({"captureStartedEpochMs":start,"captureEpochMs":end,"parent":[20,100,280,224],"referenceParent":[20,332,280,224],"sampleFrame":[35,115,1/3,1/3],"referenceSampleFrame":[35,347,1/3,1/3],"glyphFrame":[34,114,16,16],"referenceGlyphFrame":[34,346,16,16],"referenceExact":True if reduced else exact,"inkPixels":ink,"referenceInkPixels":ref,"glyphPixels":glyph,"referenceGlyphPixels":full,"sampleRGBA":color,"referenceSampleRGBA":raw,"scale":3,"imageWidth":1170,"imageHeight":2532})
+        return {"name":"reduced" if reduced else "normal","reduced":reduced,"state":state,"originalRootTag":41,"movingRows":3,"samples":samples}
+
+    def test_checkbox_two_actual_clocks_both_endpoints_native_removal_and_preference(self):
+        for reduced in [False,True]:self.assertEqual(NATIVE.validate_checkbox_motion(self.interval(reduced)),7)
+        for kind in ["no-shape-motion","no-glyph-motion","missing-settled","missing-fresh","ghost","reference-repaint","wrong-preference","unchanged-ref","out-of-bounds","false-reduced"]:
+            value=copy.deepcopy(self.interval(kind=="false-reduced"))
+            if kind=="no-shape-motion":
+                for row in value["samples"]:row["sampleRGBA"]=row["referenceSampleRGBA"]
+            elif kind=="no-glyph-motion":
+                for row in value["samples"]:row["glyphPixels"]=row["referenceGlyphPixels"]
+            elif kind=="missing-settled":value["samples"].pop(3);value["movingRows"]-=1
+            elif kind=="missing-fresh":value["samples"].pop()
+            elif kind=="ghost":value["samples"][5]["inkPixels"]=1
+            elif kind=="reference-repaint":value["samples"][5]["referenceInkPixels"]=1
+            elif kind=="wrong-preference":value["state"]["motionEvents"]=[True]
+            elif kind=="unchanged-ref":value["state"]["rootTag"]=41
+            elif kind=="out-of-bounds":value["samples"][0]["glyphFrame"]=[390,114,16,16]
+            else:value["samples"][1]["referenceExact"]=False
+            with self.subTest(kind=kind),self.assertRaises(ValueError):NATIVE.validate_checkbox_motion(value)
+
+    def test_checkbox_white_background_cannot_supply_glyph_interpolation(self):
+        value=self.interval();value["samples"][0]["referenceSampleRGBA"]=[255]*4;value["samples"][0]["referenceGlyphPixels"]=2196
+        for row in value["samples"]:
+            if row["referenceSampleRGBA"]==[238,240,242,255]:row["referenceSampleRGBA"]=[255]*4;row["referenceGlyphPixels"]=2196
+        for row in value["samples"]:row["glyphPixels"]=24 if row["inkPixels"] else 0
+        with self.assertRaisesRegex(ValueError,"glyph interpolation"):NATIVE.validate_checkbox_motion(value)
+        value=self.interval();value["samples"][1]["referenceGlyphPixels"]=25
+        with self.assertRaisesRegex(ValueError,"missing/inconsistent"):NATIVE.validate_checkbox_motion(value)
+
+    def test_checkbox_scope_and_actual_compiled_predicates(self):
+        NATIVE.validate_standard_scope({"cell":"CAT.checkbox.G08","nativeStandard":{"batch":"checkbox"}})
+        self.assertEqual(len(NATIVE.selection("ios","checkbox")["ios"]),3)
+        for cell in ["CAT.combo-box.G08","CAT.checkbox.G07","CAT.switch.G08"]:
+            with self.assertRaises(ValueError):NATIVE.validate_standard_scope({"cell":cell,"nativeStandard":{"batch":"checkbox"}})
+        with self.assertRaises(ValueError):NATIVE.selection("android","checkbox")
+        self.assertEqual(len(NATIVE.selection("ios","checkbox-static")["ios"]),2)
+        self.assertEqual(NATIVE.selection("ios","checkbox-motion")["ios"],["CheckboxTrialTests/testCheckboxMotionAndRetirement"])
+        for batch in ["checkbox-static","checkbox-motion"]:NATIVE.validate_standard_scope({"cell":"CAT.checkbox.G08","nativeStandard":{"batch":batch}})
+        controls=NATIVE.geometry_control_source()
+        for name in ["checkboxNativeValueMatches","checkboxColorIntermediate","checkboxGlyphIntermediate","checkboxEndpointCoverage","checkboxRetirementCoverage"]:self.assertIn(name,controls)
+        self.assertIn('"checkboxCases":47',controls)
+
 if __name__ == "__main__": unittest.main()

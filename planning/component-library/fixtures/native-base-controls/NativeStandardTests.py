@@ -76,6 +76,10 @@ def verify_selected_app_inputs(plan, app):
 
 
 def selection(platform, batch="meter-g02"):
+    if batch in ["checkbox","checkbox-static","checkbox-motion"]:
+        require(platform == "ios", "Current Checkbox batch is iOS only")
+        names=["testCheckboxMotionAndRetirement"] if batch=="checkbox-motion" else ["testCheckboxActionsAndLifetimes","testCheckboxStylesAndConstraints"]+([] if batch=="checkbox-static" else ["testCheckboxMotionAndRetirement"])
+        return {"ios":["CheckboxTrialTests/"+name for name in names],"android":[]}
     if batch in ["switch", "switch-motion"]:
         require(platform == "ios", "Current Switch batch is iOS only")
         return {"ios": ["SwitchTrialTests/"+name for name in (["testSwitchMotionAndRetirement"] if batch == "switch-motion" else ["testSwitchActionsAndLifetimes", "testSwitchStylesAndConstraints", "testSwitchMotionAndRetirement"])], "android": []}
@@ -270,7 +274,7 @@ def geometry_control_source():
     gallery_start = source.index("private func galleryTrackWidth(");gallery_open = source.index("{", gallery_start);gallery_end = source.index("\n}", gallery_open) + 2
     gallery_predicate = source[gallery_start:gallery_end].replace("private ", "", 1)
     list_predicates = []
-    for signature in ["private func toggleButtonMatchedFrame(", "private func toggleButtonValueMatches(", "private func listItemValueMatches(", "private func listItemIntermediate(", "private func listItemSampleRGBA(", "private func switchNativeValueMatches(", "private func switchTrackSamples(", "private func switchThumbIntermediate(", "private func switchEndpointCoverage(", "private func switchRetirementCoverage("]:
+    for signature in ["private func toggleButtonMatchedFrame(", "private func toggleButtonValueMatches(", "private func listItemValueMatches(", "private func listItemIntermediate(", "private func listItemSampleRGBA(", "private func switchNativeValueMatches(", "private func switchTrackSamples(", "private func switchThumbIntermediate(", "private func switchEndpointCoverage(", "private func switchRetirementCoverage(", "private func checkboxWhitePixels(", "private func checkboxNativeValueMatches(", "private func checkboxColorIntermediate(", "private func checkboxGlyphIntermediate(", "private func checkboxGlyphCoverage(", "private func checkboxEndpointCoverage(", "private func checkboxRetirementCoverage("]:
         start = source.index(signature);opening = source.index("{", start);end = source.index("\n}", opening) + 2
         list_predicates.append(source[start:end].replace("private ", "", 1))
     scroll_start = source.index("private func galleryScrollFraction(");scroll_open = source.index("{", scroll_start);scroll_end = source.index("\n}", scroll_open) + 2
@@ -407,7 +411,69 @@ var retiringThumb=retiringGone;retiringThumb["thumbRun"]=[1,43];precondition(!sw
 var retiringColor=retiringGone;retiringColor["sampleRGBA"]=[17,119,51,255];precondition(!switchRetirementCoverage([retiringColor],10000,13000))
 precondition(!switchRetirementCoverage([retirementRow(11075,10633,0,0)],10000,13000))
 precondition(!switchRetirementCoverage([retirementRow(Double.nan,11075,0,0)],10000,13000))
-print(#"{\"switchValueCases\":10,\"switchRasterCases\":9,\"switchThumbCases\":11,\"switchEndpointCases\":10,\"switchRetirementCases\":14,\"toggleButtonCases\":12,\"listItemCases\":20,\"galleryScrollCases\":8,\"galleryTrackCases\":8,\"thumbnailFrameCases\":6,\"circularCases\":6,\"status\":\"PASS\",\"cases\":11,\"pixelCases\":6,\"shadowCases\":6,\"savedNSNumberIntValue\":9,\"savedNSNumberDoubleValue\":9.9998779296875}"#)
+
+let checkboxLive:[String:Any]=["captureStartedEpochMs":10014.0,"captureEpochMs":10508.0,"inkPixels":2201,"referenceInkPixels":2201,"glyphPixels":20,"sampleRGBA":[17,119,51,255]]
+let checkboxGone:[String:Any]=["captureStartedEpochMs":10633.0,"captureEpochMs":11075.0,"inkPixels":0,"referenceInkPixels":0,"glyphPixels":0,"sampleRGBA":[Int]()]
+let checkboxWhite:[String:Any]=["referenceSampleRGBA":[255,255,255,255],"sampleRGBA":[255,255,255,255],"referenceGlyphPixels":2196,"glyphPixels":2196]
+let checkboxFull:[String:Any]=["referenceSampleRGBA":[17,119,51,255],"sampleRGBA":[17,119,51,255],"referenceGlyphPixels":275,"glyphPixels":275]
+let checkboxPartial:[String:Any]=["referenceSampleRGBA":[17,119,51,255],"sampleRGBA":[102,136,153,255],"referenceGlyphPixels":275,"glyphPixels":100]
+precondition(checkboxGlyphCoverage([checkboxPartial],[checkboxWhite,checkboxFull,checkboxPartial]))
+precondition(!checkboxGlyphCoverage([checkboxFull],[checkboxWhite,checkboxFull]))
+precondition(!checkboxGlyphCoverage([checkboxWhite],[checkboxWhite,checkboxFull]))
+precondition(!checkboxGlyphCoverage([checkboxPartial],[checkboxWhite]))
+var checkboxInconsistent=checkboxFull;checkboxInconsistent["referenceGlyphPixels"]=276
+precondition(!checkboxGlyphCoverage([checkboxPartial],[checkboxFull,checkboxInconsistent]))
+var checkboxFakePartial=checkboxWhite;checkboxFakePartial["glyphPixels"]=100
+precondition(!checkboxGlyphCoverage([checkboxFakePartial],[checkboxWhite,checkboxFull]))
+precondition(checkboxWhitePixels([255,255,255,255])==1)
+precondition(checkboxWhitePixels([17,119,51,255])==0)
+precondition(checkboxWhitePixels([17,119,51,255,255,255,255,255])==1)
+precondition(checkboxWhitePixels([255,255,255,254])==0)
+precondition(checkboxWhitePixels([255,255,255]) == -1)
+precondition(checkboxWhitePixels([])==0)
+precondition(checkboxNativeValueMatches("checkbox, unchecked",false,false))
+precondition(checkboxNativeValueMatches("checkbox, checked",true,false))
+precondition(checkboxNativeValueMatches("checkbox, mixed",false,true))
+precondition(checkboxNativeValueMatches("checkbox, mixed",true,true))
+precondition(!checkboxNativeValueMatches("radio button, checked",true,false))
+precondition(!checkboxNativeValueMatches("checkbox, unchecked",true,false))
+precondition(!checkboxNativeValueMatches("checkbox, checked",true,true))
+precondition(!checkboxNativeValueMatches("checkbox, mixed, busy",true,true))
+precondition(!checkboxNativeValueMatches(nil,false,false))
+precondition(checkboxColorIntermediate([102,136,153,255],[17,119,51,255],[238,240,242,255]))
+precondition(!checkboxColorIntermediate([17,119,51,255],[17,119,51,255],[238,240,242,255]))
+precondition(!checkboxColorIntermediate([0,136,153,255],[17,119,51,255],[238,240,242,255]))
+precondition(!checkboxColorIntermediate([102,136,153,254],[17,119,51,255],[238,240,242,255]))
+precondition(!checkboxColorIntermediate([],[17,119,51,255],[238,240,242,255]))
+precondition(checkboxGlyphIntermediate([["glyphPixels":12]],24))
+precondition(!checkboxGlyphIntermediate([["glyphPixels":0]],24))
+precondition(!checkboxGlyphIntermediate([["glyphPixels":24]],24))
+precondition(!checkboxGlyphIntermediate([["glyphPixels":12]],0))
+precondition(!checkboxGlyphIntermediate([[:]],24))
+precondition(checkboxEndpointCoverage([endpointRow(7400,7900,true),endpointRow(13400,13900,true)],7000,10000,13000))
+precondition(!checkboxEndpointCoverage([endpointRow(7400,7900,true)],7000,10000,13000))
+precondition(!checkboxEndpointCoverage([endpointRow(13400,13900,true)],7000,10000,13000))
+precondition(!checkboxEndpointCoverage([endpointRow(7400,7900,false),endpointRow(13400,13900,true)],7000,10000,13000))
+var checkboxGhost=checkboxGone;checkboxGhost["inkPixels"]=1
+var checkboxRepaint=checkboxGone;checkboxRepaint["referenceInkPixels"]=1
+var checkboxFalseGlyph=checkboxGone;checkboxFalseGlyph["glyphPixels"]=1
+var checkboxFalseColor=checkboxGone;checkboxFalseColor["sampleRGBA"]=[17,119,51,255]
+var checkboxMissing=checkboxGone;checkboxMissing.removeValue(forKey:"referenceInkPixels")
+var checkboxBackwards=checkboxGone;checkboxBackwards["captureEpochMs"]=9000.0
+var checkboxNaN=checkboxGone;checkboxNaN["captureStartedEpochMs"]=Double.nan
+precondition(!checkboxRetirementCoverage([checkboxGhost],10000,13000))
+precondition(!checkboxRetirementCoverage([checkboxGone,checkboxRepaint],10000,13000))
+precondition(!checkboxRetirementCoverage([checkboxFalseGlyph],10000,13000))
+precondition(!checkboxRetirementCoverage([checkboxFalseColor],10000,13000))
+precondition(!checkboxRetirementCoverage([checkboxMissing],10000,13000))
+precondition(!checkboxRetirementCoverage([checkboxBackwards],10000,13000))
+precondition(!checkboxRetirementCoverage([checkboxNaN],10000,13000))
+precondition(!checkboxRetirementCoverage([checkboxGone],13000,10000))
+precondition(checkboxRetirementCoverage([checkboxLive,checkboxGone],10000,13000))
+precondition(checkboxRetirementCoverage([checkboxGone],10000,13000))
+precondition(!checkboxRetirementCoverage([checkboxLive],10000,13000))
+precondition(!checkboxRetirementCoverage([[:]],10000,13000))
+print(#"{\"checkboxCases\":47,\"switchValueCases\":10,\"switchRasterCases\":9,\"switchThumbCases\":11,\"switchEndpointCases\":10,\"switchRetirementCases\":14,\"toggleButtonCases\":12,\"listItemCases\":20,\"galleryScrollCases\":8,\"galleryTrackCases\":8,\"thumbnailFrameCases\":6,\"circularCases\":6,\"status\":\"PASS\",\"cases\":11,\"pixelCases\":6,\"shadowCases\":6,\"savedNSNumberIntValue\":9,\"savedNSNumberDoubleValue\":9.9998779296875}"#)
 '''
 
 
@@ -452,7 +518,7 @@ def build_ios(session, config=None):
     sdk = session.run("geometry-sdk", ["/usr/bin/xcrun", "--sdk", "macosx", "--show-sdk-path"]).strip()
     swift = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift"
     control_result = json.loads(session.run("geometry-controls", [swift, "-sdk", sdk, "-module-cache-path", str(CACHE / "swift-host-module-cache"), str(controls)]))
-    require(control_result.get("switchRetirementCases") == 14 and control_result.get("switchEndpointCases") == 10 and control_result.get("switchThumbCases") == 11 and control_result.get("switchValueCases") == 10 and control_result.get("switchRasterCases") == 9 and control_result.get("toggleButtonCases") == 12 and control_result.get("listItemCases") == 20 and control_result.get("galleryScrollCases") == 8 and control_result.get("galleryTrackCases") == 8 and control_result.get("thumbnailFrameCases") == 6 and control_result.get("circularCases") == 6 and control_result.get("status") == "PASS" and control_result.get("cases") == 11 and control_result.get("pixelCases") == 6 and control_result.get("shadowCases") == 6, "Actual Swift geometry/pixel/shadow controls failed")
+    require(control_result.get("checkboxCases") == 47 and control_result.get("switchRetirementCases") == 14 and control_result.get("switchEndpointCases") == 10 and control_result.get("switchThumbCases") == 11 and control_result.get("switchValueCases") == 10 and control_result.get("switchRasterCases") == 9 and control_result.get("toggleButtonCases") == 12 and control_result.get("listItemCases") == 20 and control_result.get("galleryScrollCases") == 8 and control_result.get("galleryTrackCases") == 8 and control_result.get("thumbnailFrameCases") == 6 and control_result.get("circularCases") == 6 and control_result.get("status") == "PASS" and control_result.get("cases") == 11 and control_result.get("pixelCases") == 6 and control_result.get("shadowCases") == 6, "Actual Swift geometry/pixel/shadow controls failed")
     derived = CACHE / "ios"
     # A source revision gets an unambiguous observer registration; old installed revisions remain intact.
     bundle_id = "dev.codonui.lab.components.r" + digest(ROOT / "MeterG02TrialTests.swift")[:12]
@@ -706,7 +772,7 @@ def run_ios(session, config, app, observer):
         else: raw = session.run("xctest", argv)
     except ValueError as error:
         sdk_error = error;stdout = session.output / "xctest.stdout";raw = stdout.read_text() if stdout.exists() else ""
-    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected", "circle-loader", "lagging-lines", "counter", "list-box-item", "list-box-item-motion", "toggle-button", "toggle-button-affected", "toggle-button-style", "radio", "radio-motion", "switch", "switch-motion"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
+    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected", "circle-loader", "lagging-lines", "counter", "list-box-item", "list-box-item-motion", "toggle-button", "toggle-button-affected", "toggle-button-style", "radio", "radio-motion", "switch", "switch-motion", "checkbox", "checkbox-static", "checkbox-motion"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
         original_motion = re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])", raw)
         restored_motion = re.findall(r"METER_STYLE_MOTION_RESTORED ([01])", raw)
         if original_motion != restored_motion: session.cleanup_errors.append("Original iOS Reduce Motion restoration unverified")
@@ -743,6 +809,7 @@ def run_ios(session, config, app, observer):
     if config.get("batch") in ["list-box-item", "list-box-item-motion"]: result["listBoxItem"] = reconcile_list_item_ios(raw,config,app)
     if config.get("batch") == "placeholder-g08": result["placeholder"] = reconcile_placeholder_ios(raw)
     if config.get("batch") in ["switch", "switch-motion"]: result["switch"] = reconcile_switch_ios(raw, config, app)
+    if config.get("batch") in ["checkbox","checkbox-static","checkbox-motion"]: result["checkbox"]=reconcile_checkbox_ios(raw,config,app)
     if config.get("batch") == "slider-hit-layout": result["sliderHitLayout"] = reconcile_slider_ios(raw, session.output)
     if config.get("batch") in ["radio", "radio-motion"]: result["radio"] = reconcile_radio_ios(raw,config)
     if config.get("batch") in ["toggle-button", "toggle-button-affected", "toggle-button-style"]: result["toggleButton"] = reconcile_toggle_button_ios(raw,config)
@@ -1235,6 +1302,102 @@ def reconcile_switch_ios(raw,config=None,app=None):
     frames=sum(validate_switch_motion(m) for m in motion)
     original=re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])",raw);restored=re.findall(r"METER_STYLE_MOTION_RESTORED ([01])",raw)
     require(len(original)==1 and original==restored,"Switch original Reduce Motion restoration unverified")
+    result.update(motionIntervals=2,motionFrames=frames,originalMotionValue=original[0]);return result
+
+
+CHECKBOX_BEHAVIOR = ['baseline', 'echo', 'disabled', 'readonly', 'held-disabled', 'restored', 'renderer', 'mixed', 'group-veto', 'group-echo', 'group-disabled', 'group-readonly', 'replaced', 'retired', 'fresh', 'local', 'local-default-changed', 'vetoed-1', 'vetoed-2', 'echo-activated-0', 'echo-activated-1', 'restored-activated-0', 'mixed-activated-0', 'group-veto-activated-0', 'group-echo-activated-0', 'local-activated-0', 'local-activated-1', 'held-canceled']
+CHECKBOX_STYLES = ['style-baseline', 'selected', 'mixed-style', 'no-icon', 'mixed-no-icon', 'primary', 'raised', 'root-custom', 'final-style', 'explicit-child', 'orthogonal', 'round', 'long-narrow', 'fractional', 'percentage', 'root-small', 'zero', 'dark', 'light-restored']
+
+def validate_checkbox_rows(rows,names):
+    require(sorted(row["name"] for row in rows)==sorted(names),"Missing/duplicate Checkbox observations")
+    for row in rows:
+        state,scale=row["state"],row["scale"]
+        require(isinstance(scale,(int,float)) and math.isfinite(scale) and scale>0 and scale==state["scale"],"Wrong Checkbox scale")
+        parent,reference,matched=row["parent"],row["referenceParent"],row["matchedReferenceParent"]
+        for frame in [parent,reference,matched]:switch_physical_frame(frame,scale,row["imageWidth"],row["imageHeight"])
+        require(parent[2:]==reference[2:] and 0<parent[2]<=280 and parent[3]==224 and all(abs(a-b)*scale<=.5 for a,b in zip(parent,matched)),"Wrong Checkbox matched parents")
+        require(row["referenceExact"] is True,"Checkbox same-origin raw reference mismatch")
+        if not state["visible"]:
+            require(not row["root"] and row["targetCount"]==0 and row["inkPixels"]==0 and state["rootTag"] is None,"Retired Checkbox ref/paint remains")
+            continue
+        event=state["layouts"][-1];layout=event["layout"]
+        require(state["rootTag"]>0 and event["target"]==event["currentTarget"]==state["rootTag"],"Original Checkbox layout/ref differs")
+        if state["zero"]:
+            require(layout["width"]==layout["height"]==0 and row["inkPixels"]==0,"Authored Checkbox zero/clipping differs")
+            continue
+        require(row["targetCount"]==1 and row["nativeLabel"]=="Keep settings" and row["nativeEnabled"] is (not state["disabled"]) and row["nativeCheckbox"] is True,"Checkbox role/name/guard/target differs")
+        require(type(state["selected"]) is bool and type(state["mixed"]) is bool and isinstance(row["nativeValue"],str) and [part.strip() for part in row["nativeValue"].split(",")]==["checkbox","mixed" if state["mixed"] else "checked" if state["selected"] else "unchecked"],"Checkbox checked/mixed native value differs")
+        root,raw=row["root"],row["referenceRoot"]
+        require(len(root)==len(raw)==4 and all(math.isfinite(v) for v in root+raw) and all(abs(a-b)*scale<=1 for a,b in zip([root[0]-parent[0],root[1]-parent[1],*root[2:]],[raw[0]-reference[0],raw[1]-reference[1],*raw[2:]])),"Checkbox actual/reference frames differ")
+        require(all(abs(root[i+2]-layout[key])*scale<=1 for i,key in enumerate(["width","height"])),"Checkbox layout/native dimensions differ")
+        if isinstance(state.get("rootWidth"),(int,float)):require(abs(root[2]-state["rootWidth"])*scale<=1,"Checkbox authored width differs")
+        require(abs(root[3]-24)*scale<=1 if state["small"] else root[3]>=44-1/scale,"Checkbox explicit/default target height differs")
+        if state["narrow"]:require(44<root[3] and root[1]+root[3]<=parent[1]+parent[3]-12+1/scale,"Constrained Checkbox content clipped")
+        for held in row.get("heldContactIntervals",[]):require(held["beganEpochMs"]<=held["disabledOnPressInEpochMs"]<held["endedEpochMs"]-400,"Checkbox disable was not during held contact")
+    return {"status":"PASS","observations":len(rows)}
+
+
+def checkbox_intermediate(rgba,low,high):
+    return len(rgba)==len(low)==len(high)==4 and rgba[3]==low[3]==high[3]==255 and low!=high and all(min(a,b)<=x<=max(a,b) for x,a,b in zip(rgba[:3],low[:3],high[:3])) and any(min(a,b)<x<max(a,b) for x,a,b in zip(rgba[:3],low[:3],high[:3]))
+
+
+def validate_checkbox_motion(interval):
+    state,trace,samples=interval["state"],interval["state"]["motionTrace"],interval["samples"]
+    require(interval["name"] in ["normal","reduced"] and interval["reduced"] is (interval["name"]=="reduced") and state["motionEvents"][-1] is interval["reduced"],"Checkbox actual motion preference differs")
+    require([x["name"] for x in trace]==["select","interrupt","retarget"]+["retarget-"+str(i) for i in range(3,32)]+["settle","retire","fresh"],"Checkbox motion schedule differs")
+    epochs=[x["epochMs"] for x in trace];require(all(math.isfinite(x) for x in epochs) and all(a<=b for a,b in zip(epochs,epochs[1:])),"Checkbox schedule epochs differ")
+    times={r["name"]:r["epochMs"] for r in trace};previous=0
+    for row in samples:
+        start,end,scale=row["captureStartedEpochMs"],row["captureEpochMs"],row["scale"]
+        require(all(math.isfinite(v) for v in [start,end,scale]) and previous<=start<=end and scale>0,"Checkbox complete capture interval differs");previous=end
+        for key in ["parent","referenceParent","sampleFrame","referenceSampleFrame","glyphFrame","referenceGlyphFrame"]:switch_physical_frame(row[key],scale,row["imageWidth"],row["imageHeight"])
+        require(round(row["sampleFrame"][2]*scale)==round(row["sampleFrame"][3]*scale)==1 and row["glyphFrame"][2:]==[16,16],"Checkbox actual shape/glyph sample differs")
+        require(all(type(row[k]) is int and 0<=row[k]<=round(16*scale)**2 for k in ["glyphPixels","referenceGlyphPixels"]),"Checkbox glyph count differs")
+    moving=[r for r in samples if r["captureStartedEpochMs"]>=times["select"] and r["captureEpochMs"]<times["retire"]]
+    require(len(moving)>1 and interval["movingRows"]==len(moving),"Checkbox moving observations missing")
+    if interval["reduced"]:require(all(r["referenceExact"] is True for r in moving),"Reduced Checkbox interpolates")
+    else:
+        colors=[r["referenceSampleRGBA"] for r in samples if len(r["referenceSampleRGBA"])==4];low=colors[0];high=next((c for c in colors if c!=low),low)
+        require(any(checkbox_intermediate(r["sampleRGBA"],low,high) for r in moving),"Actual Checkbox175ms shape interpolation missing")
+        counts={r["referenceGlyphPixels"] for r in samples if r["referenceSampleRGBA"]==[17,119,51,255]}
+        require(len(counts)==1 and next(iter(counts),0)>0,"Checkbox selected reference glyph is missing/inconsistent")
+        full=next(iter(counts));require(any(r["sampleRGBA"] and r["sampleRGBA"]!=[255,255,255,255] and 0<r["glyphPixels"]<full for r in moving),"Actual Checkbox250ms glyph interpolation missing; white background is not glyph paint")
+    settled=[r for r in samples if r["captureStartedEpochMs"]>=times["settle"]+250 and r["captureEpochMs"]<times["retire"]];fresh=[r for r in samples if r["captureStartedEpochMs"]>=times["fresh"]+250]
+    require(settled and fresh and all(r["referenceExact"] is True for r in settled+fresh),"Checkbox settled/fresh endpoint differs")
+    retired=[dict(r,thumbRun=[] if r["glyphPixels"]==0 else [1,r["glyphPixels"]]) for r in samples]
+    validate_switch_retirement(retired,times["retire"],times["fresh"])
+    require(state["rootTag"]>0 and state["rootTag"]!=interval["originalRootTag"] and state["visible"] is True and state["layouts"][-1]["currentTarget"]==state["rootTag"],"Checkbox fresh current ref missing")
+    return len(samples)
+
+
+def reconcile_checkbox_ios(raw,config=None,app=None):
+    config=config or {}
+    if config.get("batch")=="checkbox-motion":
+        proof=json.loads(bound_file(config["retainedCheckboxStaticMethods"]).read_text());require(proof["status"]=="PASS" and app and proof["appManifestSHA256"]==app["manifestSHA256"],"Retained Checkbox app differs")
+        for item in proof["librarySources"]:bound_file(item)
+        require(json.loads(bound_file(proof["cleanup"]).read_text())["cleanupVerified"],"Retained Checkbox cleanup unverified")
+        loaded=json.loads(bound_file(proof["loadedObserver"]).read_text());require(loaded["status"]=="PASS" and loaded["observerManifestSHA256"]==proof["observerManifestSHA256"],"Retained Checkbox loaded identity differs")
+        require({m["method"] for m in proof["nativeMethods"]}=={"testCheckboxActionsAndLifetimes","testCheckboxStylesAndConstraints"},"Two clean Checkbox static methods required")
+        for method in proof["nativeMethods"]:
+            require(method["appManifestSHA256"]==proof["appManifestSHA256"] and method["observerManifestSHA256"]==proof["observerManifestSHA256"],"Retained Checkbox tuple differs");native_method(method)
+        old=bound_file(proof["raw"]).read_text();lines=[line for line in old.splitlines() if line.startswith("CHECKBOX_NATIVE_OBSERVATION ")];validate_checkbox_rows([json.loads(line.split(" ",1)[1]) for line in lines],CHECKBOX_BEHAVIOR+CHECKBOX_STYLES);raw+="\n"+"\n".join(lines)
+    rows=[json.loads(x) for x in re.findall(r"CHECKBOX_NATIVE_OBSERVATION (\{[^\n]+\})",raw)]
+    result=validate_checkbox_rows(rows,CHECKBOX_BEHAVIOR+CHECKBOX_STYLES);named={r["name"]:r for r in rows};tag=named["baseline"]["state"]["rootTag"]
+    require(named["vetoed-2"]["state"]["selected"] is False and named["vetoed-2"]["state"]["requests"]==[True,True],"Checkbox veto differs")
+    for name in ["echo","disabled","readonly","held-disabled","restored","renderer","mixed"]:require(named[name]["state"]["rootTag"]==tag,"Checkbox original renderer/ref lost")
+    require(named["mixed-activated-0"]["state"]["mixed"] is True and named["mixed-activated-0"]["state"]["selected"] is False,"Checkbox authored mixed ownership differs")
+    require(named["group-veto-activated-0"]["state"]["groupValue"]==[] and named["group-echo-activated-0"]["state"]["groupValue"]==["one"],"Checkbox group ownership differs")
+    require(named["held-canceled"]["state"]["canceled"] is True and len(named["held-canceled"]["heldContactIntervals"])==1 and named["held-canceled"]["state"]["actions"]==4,"Checkbox held cancellation differs")
+    final=named["local-default-changed"]["state"];presses=[x for x in final["events"] if x["phase"]=="press"]
+    require(final["selected"] is False and final["actions"]==10 and final["requests"]==[True,True,True,False,True,False,True,True,True,False] and final["phases"]==["change","press"]*6+["group","change","press"]*2+["change","press"]*2,"Checkbox local/group callback order differs")
+    require(final["groupRequests"]==[["one"],["one"]] and len(presses)==10 and all(x["target"]>0 and x["currentTarget"]==tag for x in presses[:6]),"Checkbox original group/native events differ")
+    for name in ["replaced","fresh"]:require(named[name]["state"]["rootTag"]!=tag,"Checkbox retired ref reused")
+    require(named["dark"]["state"]["themeMode"]=="dark" and named["light-restored"]["state"]["themeMode"]=="light","Checkbox mounted provider missing")
+    if config.get("batch")=="checkbox-static":
+        result.update(motionIntervals=0,remaining=["Separate clean normal/reduced motion batch required; no wholeG08 qualification from static evidence alone."]);return result
+    motion=[json.loads(x) for x in re.findall(r"CHECKBOX_NATIVE_MOTION (\{[^\n]+\})",raw)];require(len(motion)==2 and {m["name"] for m in motion}=={"normal","reduced"},"Checkbox motion intervals missing")
+    frames=sum(validate_checkbox_motion(m) for m in motion)
+    original=re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])",raw);restored=re.findall(r"METER_STYLE_MOTION_RESTORED ([01])",raw);require(len(original)==1 and original==restored,"Checkbox Reduce Motion restoration missing")
     result.update(motionIntervals=2,motionFrames=frames,originalMotionValue=original[0]);return result
 
 
@@ -1870,8 +2033,9 @@ def validate_standard_scope(plan):
     radio = cell == "CAT.radio.G08" and batch in ["radio", "radio-motion"]
     placeholder = cell == "CAT.placeholder-text.G08" and batch == "placeholder-g08"
     slider = cell == "CAT.slider.G01" and batch == "slider-hit-layout"
+    checkbox = cell == "CAT.checkbox.G08" and batch in ["checkbox","checkbox-static","checkbox-motion"]
     switch = cell == "CAT.switch.G08" and batch in ["switch", "switch-motion"]
-    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item or toggle_button or radio or placeholder or slider or switch, "Only the authorized component and focused batch are selected")
+    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item or toggle_button or radio or placeholder or slider or switch or checkbox, "Only the authorized component and focused batch are selected")
 
 
 def main():

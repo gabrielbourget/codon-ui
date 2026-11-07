@@ -1878,5 +1878,23 @@
     "sourceSVG": "Complete pinnedSVG/check path,dash22/offset66\u219244 and mixed/showIcon assertions remain mapped to the original native glyph primitives, not advertised as a native SVG protocol",
     "nativeActions": 0
   },
-  "scope": "Complete six pinned files and every original root case plus actual renderer/ref/group probe, road map3.5.74. Only sourceG01; appearance/native/default/accessibility/performance/profiles/closure remain separate. FIN-CHECK01R in3.31.241 adds the paired authored-foreground assertion and current full-CI/source identity reconciliation; original requirements and failed evidence remain."
+  "scope": "Complete six pinned files and every original root case plus actual renderer/ref/group probe, road map3.5.74. Only sourceG01; appearance/native/default/accessibility/performance/profiles/closure remain separate. FIN-CHECK01R in3.31.241 adds the paired authored-foreground assertion and current full-CI/source identity reconciliation; original requirements and failed evidence remain.",
+  "installedIOSG08": {
+    "evidenceID": "CHK-08",
+    "status": "PASS",
+    "date": "2026-11-07",
+    "productionChange": "None; private instrumentation snapshots volatile event fields and timer epochs synchronously, and validates glyph coverage against the filled native reference.",
+    "sourceCases": 32,
+    "showcaseCases": 6,
+    "nativeMethods": 3,
+    "qualifyingNativeObservations": 84,
+    "qualifyingOriginalPNGs": 131,
+    "completion": {
+      "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/checkbox-ios-g08-20261107/objects/9c5823d1cc32d9addf6e67c5a98faec285f8eb64f6ffbd5bde2dd72f808fd078",
+      "sha256": "9c5823d1cc32d9addf6e67c5a98faec285f8eb64f6ffbd5bde2dd72f808fd078",
+      "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/checkbox-after-switch-20261107/checkbox-G08-completion.json"
+    },
+    "remainingGates": ["G02", "G04", "G07", "G09"],
+    "scope": "Approved Release x86_64 iOS lane, RB-NATIVE-01 and D01\u2013D04. No Android, physical, ARM or owner-visual qualification."
+  }
 }

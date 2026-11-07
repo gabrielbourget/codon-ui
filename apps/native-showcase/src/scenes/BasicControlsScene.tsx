@@ -14,10 +14,12 @@ import {
   type TNativeInputRef,
 } from "@codon-ui/react-native"
 
+import { CheckboxG08Fixture } from "./CheckboxG08Fixture"
 import { SwitchG08Fixture } from "./SwitchG08Fixture"
 
 export const BasicControlsScene = () => {
   const [switchChecks, setSwitchChecks] = useState(false)
+  const [checkboxChecks, setCheckboxChecks] = useState(false)
   const theme = useNativeTheme()
   const [selectedSwitch, setSelectedSwitch] = useState(false)
   const [uncontrolledSwitch, setUncontrolledSwitch] = useState(false)
@@ -44,6 +46,7 @@ export const BasicControlsScene = () => {
   )
 
   if (switchChecks) return <SwitchG08Fixture />
+  if (checkboxChecks) return <CheckboxG08Fixture />
 
   return (
     <View style={styles.scene}>
@@ -51,6 +54,7 @@ export const BasicControlsScene = () => {
         Native basic controls
       </Text>
       {action("Prepare standalone Switch checks", () => setSwitchChecks(true))}
+      {action("Prepare standalone Checkbox checks", () => setCheckboxChecks(true))}
       <Text testID="basic-control-state">
         Switch: {selectedSwitch ? "on" : "off"}. Checkbox: {selectedCheckbox ? "on" : "off"}. Group:{" "}
         {group.join(",") || "none"}. Input: {input || "empty"}. Submits: {submits}. State:{" "}

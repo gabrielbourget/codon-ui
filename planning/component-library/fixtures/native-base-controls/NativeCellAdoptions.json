@@ -191,6 +191,13 @@
         "sha256": "2aba1464b879f5aedc90f8bd7e61ebd34370ef033971380ed2980aabd6c4ee50",
         "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/switch-after-radio-20261106/switch-G08-completion.json"
       }
+    },
+    "CAT.checkbox.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/checkbox-ios-g08-20261107/objects/9c5823d1cc32d9addf6e67c5a98faec285f8eb64f6ffbd5bde2dd72f808fd078",
+        "sha256": "9c5823d1cc32d9addf6e67c5a98faec285f8eb64f6ffbd5bde2dd72f808fd078",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/checkbox-after-switch-20261107/checkbox-G08-completion.json"
+      }
     }
   }
 }
