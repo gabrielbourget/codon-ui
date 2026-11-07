@@ -76,6 +76,9 @@ def verify_selected_app_inputs(plan, app):
 
 
 def selection(platform, batch="meter-g02"):
+    if batch in ["checkbox-group","checkbox-group-actions"]:
+        require(platform == "ios", "Current CheckboxGroup batch is iOS only")
+        return {"ios":["CheckboxGroupTrialTests/testCheckboxGroupActionsAndLifetimes"]+([] if batch=="checkbox-group-actions" else ["CheckboxGroupTrialTests/testCheckboxGroupStylesAndConstraints"]),"android":[]}
     if batch in ["checkbox","checkbox-static","checkbox-motion"]:
         require(platform == "ios", "Current Checkbox batch is iOS only")
         names=["testCheckboxMotionAndRetirement"] if batch=="checkbox-motion" else ["testCheckboxActionsAndLifetimes","testCheckboxStylesAndConstraints"]+([] if batch=="checkbox-static" else ["testCheckboxMotionAndRetirement"])
@@ -274,7 +277,7 @@ def geometry_control_source():
     gallery_start = source.index("private func galleryTrackWidth(");gallery_open = source.index("{", gallery_start);gallery_end = source.index("\n}", gallery_open) + 2
     gallery_predicate = source[gallery_start:gallery_end].replace("private ", "", 1)
     list_predicates = []
-    for signature in ["private func toggleButtonMatchedFrame(", "private func toggleButtonValueMatches(", "private func listItemValueMatches(", "private func listItemIntermediate(", "private func listItemSampleRGBA(", "private func switchNativeValueMatches(", "private func switchTrackSamples(", "private func switchThumbIntermediate(", "private func switchEndpointCoverage(", "private func switchRetirementCoverage(", "private func checkboxWhitePixels(", "private func checkboxNativeValueMatches(", "private func checkboxColorIntermediate(", "private func checkboxGlyphIntermediate(", "private func checkboxGlyphCoverage(", "private func checkboxEndpointCoverage(", "private func checkboxRetirementCoverage("]:
+    for signature in ["private func toggleButtonMatchedFrame(", "private func toggleButtonValueMatches(", "private func listItemValueMatches(", "private func listItemIntermediate(", "private func listItemSampleRGBA(", "private func switchNativeValueMatches(", "private func switchTrackSamples(", "private func switchThumbIntermediate(", "private func switchEndpointCoverage(", "private func switchRetirementCoverage(", "private func checkboxWhitePixels(", "private func checkboxNativeValueMatches(", "private func checkboxColorIntermediate(", "private func checkboxGlyphIntermediate(", "private func checkboxGlyphCoverage(", "private func checkboxEndpointCoverage(", "private func checkboxRetirementCoverage(", "private func checkboxGroupMembersMatch(", "private func checkboxGroupMemberTag("]:
         start = source.index(signature);opening = source.index("{", start);end = source.index("\n}", opening) + 2
         list_predicates.append(source[start:end].replace("private ", "", 1))
     scroll_start = source.index("private func galleryScrollFraction(");scroll_open = source.index("{", scroll_start);scroll_end = source.index("\n}", scroll_open) + 2
@@ -473,7 +476,42 @@ precondition(checkboxRetirementCoverage([checkboxLive,checkboxGone],10000,13000)
 precondition(checkboxRetirementCoverage([checkboxGone],10000,13000))
 precondition(!checkboxRetirementCoverage([checkboxLive],10000,13000))
 precondition(!checkboxRetirementCoverage([[:]],10000,13000))
-print(#"{\"checkboxCases\":47,\"switchValueCases\":10,\"switchRasterCases\":9,\"switchThumbCases\":11,\"switchEndpointCases\":10,\"switchRetirementCases\":14,\"toggleButtonCases\":12,\"listItemCases\":20,\"galleryScrollCases\":8,\"galleryTrackCases\":8,\"thumbnailFrameCases\":6,\"circularCases\":6,\"status\":\"PASS\",\"cases\":11,\"pixelCases\":6,\"shadowCases\":6,\"savedNSNumberIntValue\":9,\"savedNSNumberDoubleValue\":9.9998779296875}"#)
+
+let groupOff:[String:Any] = ["id":"alpha","label":"Alpha","value":"checkbox, unchecked","enabled":true,"relativeFrame":[0.0,0.0,106.0,44.0],"referenceRelativeFrame":[0.0,0.0,106.0,44.0]]
+let groupLabels=["alpha":"Alpha"]
+precondition(checkboxGroupMembersMatch([groupOff],["alpha":false],groupLabels,false,3))
+var groupOn=groupOff;groupOn["value"]="checkbox, checked"
+precondition(checkboxGroupMembersMatch([groupOn],["alpha":true],groupLabels,false,3))
+precondition(!checkboxGroupMembersMatch([groupOn],["alpha":false],groupLabels,false,3))
+var groupWrong=groupOff;groupWrong["label"]="Other"
+precondition(!checkboxGroupMembersMatch([groupWrong],["alpha":false],groupLabels,false,3))
+groupWrong=groupOff;groupWrong["value"]="radio button, unchecked"
+precondition(!checkboxGroupMembersMatch([groupWrong],["alpha":false],groupLabels,false,3))
+var groupDisabled=groupOff;groupDisabled["enabled"]=false
+precondition(checkboxGroupMembersMatch([groupDisabled],["alpha":false],groupLabels,true,3))
+precondition(!checkboxGroupMembersMatch([groupOff],["alpha":false],groupLabels,true,3))
+groupWrong=groupOff;groupWrong["value"]=NSNull()
+precondition(!checkboxGroupMembersMatch([groupWrong],["alpha":false],groupLabels,false,3))
+precondition(!checkboxGroupMembersMatch([],["alpha":false],groupLabels,false,3))
+precondition(!checkboxGroupMembersMatch([groupOff,groupOff],["alpha":false],groupLabels,false,3))
+groupWrong=groupOff;groupWrong["relativeFrame"]=[0.0,0.0,107.0,44.0]
+precondition(!checkboxGroupMembersMatch([groupWrong],["alpha":false],groupLabels,false,3))
+groupWrong=groupOff;groupWrong["relativeFrame"]=[0.0,0.0,106.0001220703125,44.0]
+precondition(checkboxGroupMembersMatch([groupWrong],["alpha":false],groupLabels,false,3))
+groupWrong=groupOff;groupWrong["relativeFrame"]=[0.0,Double.nan,106.0,44.0]
+precondition(!checkboxGroupMembersMatch([groupWrong],["alpha":false],groupLabels,false,3))
+precondition(!checkboxGroupMembersMatch([groupOff],["alpha":false],groupLabels,false,0))
+
+let nullableTags=try! JSONSerialization.jsonObject(with:Data(#"{"alpha":840,"beta":null,"loose":874,"nested":856}"#.utf8))
+precondition(nullableTags as? [String:NSNumber] == nil)
+precondition(checkboxGroupMemberTag(nullableTags,"nested")?.intValue==856)
+precondition(checkboxGroupMemberTag(nullableTags,"alpha")?.intValue==840)
+precondition(checkboxGroupMemberTag(nullableTags,"beta")==nil)
+precondition(checkboxGroupMemberTag(nullableTags,"missing")==nil)
+precondition(checkboxGroupMemberTag(NSNull(),"nested")==nil)
+precondition(checkboxGroupMemberTag(["nested":NSNumber(value:-1)],"nested")==nil)
+precondition(checkboxGroupMemberTag(["nested":NSNumber(value:Double.nan)],"nested")==nil)
+print(#"{\"checkboxGroupTagCases\":8,\"checkboxGroupCases\":14,\"checkboxCases\":47,\"switchValueCases\":10,\"switchRasterCases\":9,\"switchThumbCases\":11,\"switchEndpointCases\":10,\"switchRetirementCases\":14,\"toggleButtonCases\":12,\"listItemCases\":20,\"galleryScrollCases\":8,\"galleryTrackCases\":8,\"thumbnailFrameCases\":6,\"circularCases\":6,\"status\":\"PASS\",\"cases\":11,\"pixelCases\":6,\"shadowCases\":6,\"savedNSNumberIntValue\":9,\"savedNSNumberDoubleValue\":9.9998779296875}"#)
 '''
 
 
@@ -518,7 +556,7 @@ def build_ios(session, config=None):
     sdk = session.run("geometry-sdk", ["/usr/bin/xcrun", "--sdk", "macosx", "--show-sdk-path"]).strip()
     swift = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift"
     control_result = json.loads(session.run("geometry-controls", [swift, "-sdk", sdk, "-module-cache-path", str(CACHE / "swift-host-module-cache"), str(controls)]))
-    require(control_result.get("checkboxCases") == 47 and control_result.get("switchRetirementCases") == 14 and control_result.get("switchEndpointCases") == 10 and control_result.get("switchThumbCases") == 11 and control_result.get("switchValueCases") == 10 and control_result.get("switchRasterCases") == 9 and control_result.get("toggleButtonCases") == 12 and control_result.get("listItemCases") == 20 and control_result.get("galleryScrollCases") == 8 and control_result.get("galleryTrackCases") == 8 and control_result.get("thumbnailFrameCases") == 6 and control_result.get("circularCases") == 6 and control_result.get("status") == "PASS" and control_result.get("cases") == 11 and control_result.get("pixelCases") == 6 and control_result.get("shadowCases") == 6, "Actual Swift geometry/pixel/shadow controls failed")
+    require(control_result.get("checkboxGroupTagCases") == 8 and control_result.get("checkboxGroupCases") == 14 and control_result.get("checkboxCases") == 47 and control_result.get("switchRetirementCases") == 14 and control_result.get("switchEndpointCases") == 10 and control_result.get("switchThumbCases") == 11 and control_result.get("switchValueCases") == 10 and control_result.get("switchRasterCases") == 9 and control_result.get("toggleButtonCases") == 12 and control_result.get("listItemCases") == 20 and control_result.get("galleryScrollCases") == 8 and control_result.get("galleryTrackCases") == 8 and control_result.get("thumbnailFrameCases") == 6 and control_result.get("circularCases") == 6 and control_result.get("status") == "PASS" and control_result.get("cases") == 11 and control_result.get("pixelCases") == 6 and control_result.get("shadowCases") == 6, "Actual Swift geometry/pixel/shadow controls failed")
     derived = CACHE / "ios"
     # A source revision gets an unambiguous observer registration; old installed revisions remain intact.
     bundle_id = "dev.codonui.lab.components.r" + digest(ROOT / "MeterG02TrialTests.swift")[:12]
@@ -809,6 +847,7 @@ def run_ios(session, config, app, observer):
     if config.get("batch") in ["list-box-item", "list-box-item-motion"]: result["listBoxItem"] = reconcile_list_item_ios(raw,config,app)
     if config.get("batch") == "placeholder-g08": result["placeholder"] = reconcile_placeholder_ios(raw)
     if config.get("batch") in ["switch", "switch-motion"]: result["switch"] = reconcile_switch_ios(raw, config, app)
+    if config.get("batch") in ["checkbox-group","checkbox-group-actions"]: result["checkboxGroup"]=reconcile_checkbox_group_ios(raw,config,app)
     if config.get("batch") in ["checkbox","checkbox-static","checkbox-motion"]: result["checkbox"]=reconcile_checkbox_ios(raw,config,app)
     if config.get("batch") == "slider-hit-layout": result["sliderHitLayout"] = reconcile_slider_ios(raw, session.output)
     if config.get("batch") in ["radio", "radio-motion"]: result["radio"] = reconcile_radio_ios(raw,config)
@@ -1399,6 +1438,78 @@ def reconcile_checkbox_ios(raw,config=None,app=None):
     frames=sum(validate_checkbox_motion(m) for m in motion)
     original=re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])",raw);restored=re.findall(r"METER_STYLE_MOTION_RESTORED ([01])",raw);require(len(original)==1 and original==restored,"Checkbox Reduce Motion restoration missing")
     result.update(motionIntervals=2,motionFrames=frames,originalMotionValue=original[0]);return result
+
+
+
+CHECKBOX_GROUP_BEHAVIOR=["baseline","echo","disabled","readonly","renderer","nested","replacement","retired","fresh","local","default-changed","veto-1","veto-2","echo-beta","echo-alpha","echo-remove-beta","nested-changed","loose-changed","local-remove-beta","local-add-alpha"]
+CHECKBOX_GROUP_STYLES=["style-baseline","horizontal","wrap","custom","final","registered","fractional","percentage","long-narrow","zero","dark","light-restored"]
+
+def reconcile_checkbox_group_ios(raw,config=None,app=None):
+    config=config or {}
+    if config.get("batch")=="checkbox-group-actions":
+        proof=json.loads(bound_file(config["retainedGroupStyles"]).read_text());require(proof["status"]=="PASS" and app and proof["appManifestSHA256"]==app["manifestSHA256"],"Retained group app differs")
+        require(proof["sources"],"Retained group sources missing")
+        for item in proof["sources"]:bound_file(item)
+        cleanup=json.loads(bound_file(proof["cleanup"]).read_text());require(cleanup["cleanupVerified"] and not cleanup.get("cleanupErrors") and cleanup["elapsedSeconds"]<1800,"Retained group cleanup/budget invalid")
+        command=json.loads(bound_file(proof["sdkCommand"]).read_text());require(command["ownedGroupGone"] and not command.get("timedOut"),"Retained group SDK timeout/cleanup")
+        loaded=json.loads(bound_file(proof["loadedObserver"]).read_text());require(loaded["status"]=="PASS" and loaded["observerManifestSHA256"]==proof["observerManifestSHA256"],"Retained group loaded observer differs")
+        method=proof["nativeMethod"];require(method["method"]=="testCheckboxGroupStylesAndConstraints" and method["appManifestSHA256"]==proof["appManifestSHA256"] and method["observerManifestSHA256"]==proof["observerManifestSHA256"],"Retained group style tuple differs");native_method(method)
+        prior=bound_file(proof["raw"]).read_text();lines=[line for line in prior.splitlines() if line.startswith("CHECKBOX_GROUP_NATIVE_OBSERVATION ") and json.loads(line.split(" ",1)[1])["name"] in CHECKBOX_GROUP_STYLES]
+        require(sorted(json.loads(line.split(" ",1)[1])["name"] for line in lines)==sorted(CHECKBOX_GROUP_STYLES),"Retained group style coverage missing/duplicate")
+        raw+="\n"+"\n".join(lines)
+    rows=[json.loads(x) for x in re.findall(r"CHECKBOX_GROUP_NATIVE_OBSERVATION (\{[^\n]+\})",raw)]
+    require(sorted(row["name"] for row in rows)==sorted(CHECKBOX_GROUP_BEHAVIOR+CHECKBOX_GROUP_STYLES),"Missing/duplicate CheckboxGroup native observations")
+    named={row["name"]:row for row in rows}
+    for row in rows:
+        state,scale=row["state"],row["scale"]
+        require(scale==state["scale"] and math.isfinite(scale) and scale>0,"Wrong CheckboxGroup scale")
+        require(row["referenceExact"] is True,"CheckboxGroup native raw reference mismatch")
+        parent,reference=row["parent"],row["referenceParent"]
+        require(len(parent)==len(reference)==4 and parent[2:]==reference[2:] and 0<parent[2]<=280 and parent[3]==224,"CheckboxGroup parent dimensions differ")
+        for frame in [parent,reference]:
+            require(all(math.isfinite(v) for v in frame),"Nonfinite group parent")
+            x,y,width,height=[math.floor(v*scale+.5) for v in frame]
+            require(0<=x<x+width<=row["imageWidth"] and 0<=y<y+height<=row["imageHeight"],"CheckboxGroup parent outside screenshot")
+        if not state["visible"]:
+            require(not row["root"] and not row["members"] and state["rootTag"] is None and row["inkPixels"]==0,"Retired group/ref/paint remains")
+            continue
+        tag=state["rootTag"];event=state["layouts"][-1];layout=event["layout"]
+        require(tag and tag==event["target"]==event["currentTarget"],"Original group layout/ref target differs")
+        if state["zero"]:
+            require(layout["width"]==layout["height"]==row["inkPixels"]==0,"Zero group retained paint/dimensions")
+            for frame in [row["root"],row["referenceRoot"]]:
+                require(not frame or (len(frame)==4 and all(math.isfinite(v) for v in frame) and frame[2:]==[0,0]),"Zero AX root retained dimensions")
+            continue
+        root,reference_root=row["root"],row["referenceRoot"]
+        require(len(root)==len(reference_root)==4 and all(math.isfinite(v) for v in root+reference_root),"Group native frames differ")
+        first=[root[0]-parent[0],root[1]-parent[1],*root[2:]];second=[reference_root[0]-reference[0],reference_root[1]-reference[1],*reference_root[2:]]
+        require([math.floor(v*scale+.5) for v in first]==[math.floor(v*scale+.5) for v in second],"Group native reference geometry differs")
+        require(all(abs(root[i+2]-layout[key])*scale<=1 for i,key in enumerate(["width","height"])),"Group native/onLayout dimensions differ")
+        if isinstance(state["width"],(int,float)):require(abs(root[2]-state["width"])*scale<=1,"Authored group width differs")
+        ids=["alpha","nested","loose"] if state["nested"] else ["alpha","beta"]
+        require(sorted(x["id"] for x in row["members"])==sorted(ids),"Group independent member targets missing/duplicated")
+        for member in row["members"]:
+            id=member["id"];selected=state["looseValue"] if id=="loose" else id in (state["nestedValue"] if id=="nested" else state["value"])
+            require(member["label"]==state["labels"][id] and member["enabled"] is (not state["disabled"] or id=="nested"),"Group member label/guard differs")
+            require(member["value"]=="checkbox, "+("checked" if selected else "unchecked"),"Group member native checked value differs")
+            actual,expected=member["relativeFrame"],member["referenceRelativeFrame"]
+            require(len(actual)==len(expected)==4 and all(math.isfinite(v) for v in actual+expected) and actual[2]>0 and actual[3]>=44-1/scale,"Invalid member frame/target")
+            require([math.floor(v*scale+.5) for v in actual]==[math.floor(v*scale+.5) for v in expected],"Member reference frame differs")
+        if state["narrow"]:require(row["members"][0]["relativeFrame"][3]>44 and root[1]+root[3]<=parent[1]+parent[3]-12+1/scale,"Group constrained text clipped")
+    original=named["baseline"]["state"]["rootTag"]
+    for name in ["echo","disabled","readonly","renderer","nested"]:require(named[name]["state"]["rootTag"]==original,"Original group renderer/ref replaced")
+    for name in ["replacement","fresh"]:require(named[name]["state"]["rootTag"]!=original,"Fresh group reused retired ref")
+    for name in ["veto-1","veto-2"]:require(named[name]["state"]["value"]==[],"Group veto ignored")
+    require(named["echo-remove-beta"]["state"]["value"]==["alpha"],"Group append/remove array order differs")
+    require(named["loose-changed"]["state"]["nestedValue"]==[] and named["loose-changed"]["state"]["looseValue"] is False,"Nested/value-less ownership differs")
+    final=named["default-changed"]["state"]
+    require(final["value"]==["alpha"] and final["requests"]==[["alpha"],["alpha"],["beta"],["beta","alpha"],["alpha"],[],["alpha"]],"Group immutable requests/default read-once differs")
+    phases=sum((["group:root","member:"+id,"press:"+id] for id in ["alpha","alpha","beta","alpha","beta"]),[])+["nested:nested","member:nested","press:nested","member:loose","press:loose"]+sum((["group:root","member:"+id,"press:"+id] for id in ["beta","alpha"]),[])
+    require(final["phases"]==phases,"Group-before-member/press order differs")
+    events=[x for x in final["events"] if x["phase"]=="press"]
+    require(len(events)==9 and all(x["target"]>0 and x["currentTarget"]>0 for x in events),"Group original native event fields missing")
+    require(named["dark"]["state"]["themeMode"]=="dark" and named["light-restored"]["state"]["themeMode"]=="light","Group provider restoration missing")
+    return {"status":"PASS","observations":len(rows),"nativeActivations":9,"motion":"Group owns no motion; unchanged member clocks retain their separately bound CHK-08 proof."}
 
 
 RADIO_BEHAVIOR = ["baseline","echo","reselected","disabled","readonly","held-disabled","restored","renderer","replaced","retired","fresh","local","local-default-changed","empty-value","vetoed-1","vetoed-2","echo-activated","reselected-activated","restored-activated","local-activated","empty-value-activated","held-canceled"]
@@ -2034,8 +2145,9 @@ def validate_standard_scope(plan):
     placeholder = cell == "CAT.placeholder-text.G08" and batch == "placeholder-g08"
     slider = cell == "CAT.slider.G01" and batch == "slider-hit-layout"
     checkbox = cell == "CAT.checkbox.G08" and batch in ["checkbox","checkbox-static","checkbox-motion"]
+    checkbox_group = cell == "CAT.checkbox-group.G08" and batch in ["checkbox-group","checkbox-group-actions"]
     switch = cell == "CAT.switch.G08" and batch in ["switch", "switch-motion"]
-    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item or toggle_button or radio or placeholder or slider or switch or checkbox, "Only the authorized component and focused batch are selected")
+    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item or toggle_button or radio or placeholder or slider or switch or checkbox or checkbox_group, "Only the authorized component and focused batch are selected")
 
 
 def main():

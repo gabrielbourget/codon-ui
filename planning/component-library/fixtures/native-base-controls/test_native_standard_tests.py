@@ -777,6 +777,102 @@ def member(source, signature):
 
 
 
+class CheckboxGroupControls(unittest.TestCase):
+    def rows(self):
+        rows=[]
+        phases=sum((["group:root","member:"+id,"press:"+id] for id in ["alpha","alpha","beta","alpha","beta"]),[])+["nested:nested","member:nested","press:nested","member:loose","press:loose"]+sum((["group:root","member:"+id,"press:"+id] for id in ["beta","alpha"]),[])
+        for name in NATIVE.CHECKBOX_GROUP_BEHAVIOR+NATIVE.CHECKBOX_GROUP_STYLES:
+            nested=name in ["nested","nested-changed","loose-changed"];visible=name!="retired";zero=name=="zero";narrow=name=="long-narrow"
+            selected=["alpha"] if name in ["echo-remove-beta","disabled","readonly","renderer","nested","nested-changed","loose-changed","replacement","fresh","local-add-alpha","default-changed"] else ["beta"] if name in ["echo-beta","local"] else ["beta","alpha"] if name=="echo-alpha" else []
+            tag=None if not visible else 82 if name=="replacement" else 83 if name=="fresh" else 84 if name.startswith("local") or name=="default-changed" else 81
+            width,height=(0,0) if zero else (140,140) if narrow else (200,100)
+            labels={"alpha":"Alpha","beta":"Beta","nested":"Nested","loose":"Loose"};nested_value=[] if name in ["nested-changed","loose-changed"] else ["nested"];loose=name!="loose-changed"
+            state={"scale":3,"rootTag":tag,"layouts":[{"target":tag,"currentTarget":tag,"layout":{"width":width,"height":height}}],"visible":visible,"zero":zero,"narrow":narrow,"nested":nested,"disabled":name=="disabled","readonly":name=="readonly","width":width,"value":selected,"nestedValue":nested_value,"looseValue":loose,"labels":labels,"requests":[["alpha"],["alpha"],["beta"],["beta","alpha"],["alpha"],[],["alpha"]],"phases":phases,"events":[{"phase":"press","target":90,"currentTarget":91} for _ in range(9)],"themeMode":"dark" if name=="dark" else "light"}
+            members=[]
+            if visible:
+                for id in (["alpha","nested","loose"] if nested else ["alpha","beta"]):
+                    checked=loose if id=="loose" else id in (nested_value if id=="nested" else selected);frame=[12.0,12.0,106.0,80.0 if narrow and id=="alpha" else 44.0]
+                    members.append({"id":id,"label":labels[id],"value":"checkbox, "+("checked" if checked else "unchecked"),"enabled":not state["disabled"] or id=="nested","relativeFrame":frame,"referenceRelativeFrame":frame[:]})
+            rows.append({"name":name,"state":state,"parent":[20,100,280,224],"referenceParent":[20,332,280,224],"root":[32,112,width,height] if visible else [],"referenceRoot":[32,344,width,height] if visible else [],"members":members,"referenceExact":True,"inkPixels":0 if zero or not visible else 1000,"scale":3,"imageWidth":1170,"imageHeight":2532})
+        return rows
+
+    def test_group_reader_complete_positive_and_actual_risk_negatives(self):
+        rows=self.rows();encode=lambda values:"\n".join("CHECKBOX_GROUP_NATIVE_OBSERVATION "+json.dumps(row) for row in values)
+        self.assertEqual(NATIVE.reconcile_checkbox_group_ios(encode(rows))["observations"],32)
+        for kind in ["missing","duplicate","paint","wrong-label","wrong-value","wrong-enabled","missing-member","duplicate-member","outside","fractional-physical-pixel","wrong-root-ref","retired-ref","retired-paint","zero-paint","veto","order","callback","provider"]:
+            bad=copy.deepcopy(rows);named={x["name"]:x for x in bad};row=named["baseline"]
+            if kind=="missing":bad.pop()
+            elif kind=="duplicate":bad.append(copy.deepcopy(row))
+            elif kind=="paint":row["referenceExact"]=False
+            elif kind=="wrong-label":row["members"][0]["label"]="Wrong"
+            elif kind=="wrong-value":row["members"][0]["value"]="checkbox, checked"
+            elif kind=="wrong-enabled":row["members"][0]["enabled"]=False
+            elif kind=="missing-member":row["members"].pop()
+            elif kind=="duplicate-member":row["members"][1]=copy.deepcopy(row["members"][0])
+            elif kind=="outside":row["parent"][1]=900
+            elif kind=="fractional-physical-pixel":row["members"][0]["relativeFrame"][0]+=1/3
+            elif kind=="wrong-root-ref":named["renderer"]["state"]["rootTag"]=88
+            elif kind=="retired-ref":named["retired"]["state"]["rootTag"]=81
+            elif kind=="retired-paint":named["retired"]["inkPixels"]=1
+            elif kind=="zero-paint":named["zero"]["inkPixels"]=1
+            elif kind=="veto":named["veto-1"]["state"]["value"]=["alpha"]
+            elif kind=="order":named["default-changed"]["state"]["phases"].reverse()
+            elif kind=="callback":named["default-changed"]["state"]["events"][0]["currentTarget"]=None
+            elif kind=="provider":named["dark"]["state"]["themeMode"]="light"
+            with self.subTest(kind=kind),self.assertRaises((ValueError,TypeError)):NATIVE.reconcile_checkbox_group_ios(encode(bad))
+        positive=copy.deepcopy(rows);positive[0]["members"][0]["relativeFrame"][2]+=0.0001220703125
+        NATIVE.reconcile_checkbox_group_ios(encode(positive))
+
+    def test_group_scope_actual_no_admission_and_compiled_controls(self):
+        self.assertEqual(NATIVE.selection("ios","checkbox-group")["ios"],["CheckboxGroupTrialTests/testCheckboxGroupActionsAndLifetimes","CheckboxGroupTrialTests/testCheckboxGroupStylesAndConstraints"])
+        NATIVE.validate_standard_scope({"cell":"CAT.checkbox-group.G08","nativeStandard":{"batch":"checkbox-group"}})
+        for cell in ["CAT.combo-box.G08","CAT.checkbox-group.G07","CAT.checkbox.G08"]:
+            with self.assertRaises(ValueError):NATIVE.validate_standard_scope({"cell":cell,"nativeStandard":{"batch":"checkbox-group"}})
+        with self.assertRaises(ValueError):NATIVE.selection("android","checkbox-group")
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);p=root/"plan.json";p.write_text(json.dumps({"cell":"CAT.checkbox-group.G08","nativeStandard":{"platform":"ios","batch":"checkbox-group","output":str(root/"never-created")}}));env={k:v for k,v in os.environ.items() if k!="CODON_NATIVE_CELL_PREFLIGHT_RECEIPT"}
+            result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(p)],env=env,capture_output=True,text=True,timeout=10)
+            self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((root/"never-created").exists())
+        controls=NATIVE.geometry_control_source();self.assertIn('"checkboxGroupCases":14',controls);self.assertIn("func checkboxGroupMembersMatch",controls)
+
+    def test_group_zero_native_ax_absence_keeps_live_ref_and_blank_paint(self):
+        observer=(ROOT/"MeterG02TrialTests.swift").read_text().split("final class CheckboxGroupTrialTests:",1)[1]
+        capture=member(observer,"private func capture(")
+        self.assertLess(capture.index('if row["zero"]'),capture.index("let target=try XCTUnwrap(root)"))
+        rows=self.rows();zero=next(row for row in rows if row["name"]=="zero")
+        zero["root"]=[];zero["referenceRoot"]=[];zero["members"]=[]
+        raw="\n".join("CHECKBOX_GROUP_NATIVE_OBSERVATION "+json.dumps(row) for row in rows)
+        self.assertEqual(NATIVE.reconcile_checkbox_group_ios(raw)["observations"],32)
+
+    def test_group_actions_reuses_only_bound_clean_style_method(self):
+        rows=self.rows();encode=lambda values:"\n".join("CHECKBOX_GROUP_NATIVE_OBSERVATION "+json.dumps(row) for row in values)
+        actions=encode([row for row in rows if row["name"] in NATIVE.CHECKBOX_GROUP_BEHAVIOR])
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);source=root/"source.ts";source.write_text("unchanged group")
+            raw=root/"styles.log";raw.write_text("Test Case '-[C.CheckboxGroupTrialTests testCheckboxGroupStylesAndConstraints]' passed (326.055 seconds).\n"+encode([row for row in rows if row["name"] in NATIVE.CHECKBOX_GROUP_STYLES]))
+            cleanup=root/"cleanup.json";cleanup.write_text(json.dumps({"cleanupVerified":True,"cleanupErrors":[],"elapsedSeconds":770}))
+            sdk=root/"sdk.json";sdk.write_text(json.dumps({"ownedGroupGone":True,"exitCode":65}))
+            loaded=root/"loaded.json";loaded.write_text(json.dumps({"status":"PASS","observerManifestSHA256":"b"*64}))
+            bind=lambda p:{"path":str(p),"sha256":NATIVE.digest(p)}
+            method={**bind(raw),"kind":"native_method","format":"xctest_log","method":"testCheckboxGroupStylesAndConstraints","claim":"Only clean styles from mixed-outcome batch","appManifestSHA256":"a"*64,"observerManifestSHA256":"b"*64}
+            proof={"status":"PASS","appManifestSHA256":"a"*64,"observerManifestSHA256":"b"*64,"sources":[bind(source)],"raw":bind(raw),"cleanup":bind(cleanup),"sdkCommand":bind(sdk),"loadedObserver":bind(loaded),"nativeMethod":method}
+            path=root/"proof.json"
+            def config(value):
+                path.write_text(json.dumps(value));return {"batch":"checkbox-group-actions","retainedGroupStyles":bind(path)}
+            self.assertEqual(NATIVE.reconcile_checkbox_group_ios(actions,config(proof),{"manifestSHA256":"a"*64})["observations"],32)
+            with self.assertRaises(ValueError):NATIVE.reconcile_checkbox_group_ios(actions,config(proof),{"manifestSHA256":"c"*64})
+            bad=copy.deepcopy(proof);bad["nativeMethod"]["method"]="testCheckboxGroupActionsAndLifetimes"
+            with self.assertRaises(ValueError):NATIVE.reconcile_checkbox_group_ios(actions,config(bad),{"manifestSHA256":"a"*64})
+            for name,p,value in [("cleanup",cleanup,{"cleanupVerified":False,"cleanupErrors":[],"elapsedSeconds":770}),("sdkCommand",sdk,{"ownedGroupGone":True,"timedOut":True}),("loadedObserver",loaded,{"status":"PASS","observerManifestSHA256":"c"*64})]:
+                original=p.read_bytes();p.write_text(json.dumps(value));bad=copy.deepcopy(proof);bad[name]=bind(p)
+                with self.subTest(name=name),self.assertRaises(ValueError):NATIVE.reconcile_checkbox_group_ios(actions,config(bad),{"manifestSHA256":"a"*64})
+                p.write_bytes(original)
+            source.write_text("changed source")
+            with self.assertRaises(ValueError):NATIVE.reconcile_checkbox_group_ios(actions,config(proof),{"manifestSHA256":"a"*64})
+        self.assertEqual(NATIVE.selection("ios","checkbox-group-actions")["ios"],["CheckboxGroupTrialTests/testCheckboxGroupActionsAndLifetimes"])
+        self.assertIn('"checkboxGroupTagCases":8',NATIVE.geometry_control_source())
+
+
 class AvatarControls(unittest.TestCase):
     def row(self):
         return {"name":"baseline","state":{"scale":3,"visible":True,"size":30,"rootTag":81,"layouts":[{"target":81,"currentTarget":81,"layout":{"width":30,"height":30}}],"interactive":True,"disabled":False,"label":"Alice Smith","imageMode":"none","delayed":False},"scale":3,"parent":[20,100,280,128],"referenceParent":[20,236,280,128],"root":[32,112,30,30],"referenceRoot":[32,248,30,30],"nativeType":9,"nativeLabel":"Alice Smith","nativeEnabled":True,"targetCount":1,"referenceExact":True,"inkPixels":1000,"imageWidth":1170,"imageHeight":2532,"early":False,"captureEpochMs":9000}
