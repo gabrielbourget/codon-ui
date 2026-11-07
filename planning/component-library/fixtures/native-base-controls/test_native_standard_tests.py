@@ -965,4 +965,67 @@ class PlaceholderControls(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp);plan=root/"plan.json";plan.write_text(json.dumps({"cell":"CAT.placeholder-text.G08","nativeStandard":{"platform":"ios","batch":"placeholder-g08","output":str(root/"never-created")}}));env={k:v for k,v in os.environ.items() if k!="CODON_NATIVE_CELL_PREFLIGHT_RECEIPT"};result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(plan)],env=env,capture_output=True,text=True,timeout=10);self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((root/"never-created").exists())
 
+class SliderControls(unittest.TestCase):
+    def test_slider_scope_setup_and_actual_entry_refuse_unadmitted_sdk(self):
+        NATIVE.validate_standard_scope({"cell":"CAT.slider.G01","nativeStandard":{"batch":"slider-hit-layout"}})
+        self.assertEqual(len(NATIVE.selection("ios","slider-hit-layout")["ios"]),4)
+        with self.assertRaises(ValueError):NATIVE.selection("android","slider-hit-layout")
+        for cell in ["CAT.slider.G07","CAT.combo-box.G08","CAT.radio.G08"]:
+            with self.assertRaises(ValueError):NATIVE.validate_standard_scope({"cell":cell,"nativeStandard":{"batch":"slider-hit-layout"}})
+        source=(ROOT/"MeterG02TrialTests.swift").read_text().split("final class SliderHitLayoutTrialTests:",1)[1];setup=source.split("override func tearDownWithError",1)[0]
+        self.assertLess(setup.index("app.launch()"),setup.index("XCTAssertEqual(app.state"));self.assertLess(setup.index("orientation = .portrait"),setup.index("XCTAssertEqual(XCUIDevice.shared.orientation"));self.assertLess(setup.index('tap("Reset scene")'),setup.index('tap("Slider scene")'));self.assertIn("private let holdSeconds: TimeInterval = 5",source)
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);plan=root/"plan.json";plan.write_text(json.dumps({"cell":"CAT.slider.G01","nativeStandard":{"platform":"ios","batch":"slider-hit-layout","output":str(root/"never-created")}}));env={k:v for k,v in os.environ.items() if k!="CODON_NATIVE_CELL_PREFLIGHT_RECEIPT"};result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(plan)],env=env,capture_output=True,text=True,timeout=10);self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((root/"never-created").exists())
+
+    def test_live_observation_keeps_normal_output_and_cleans_the_parent_on_capture_failure(self):
+        with tempfile.TemporaryDirectory() as temp:
+            session=NATIVE.Session(Path(temp)/"normal",20,2);ticks=[]
+            self.assertEqual(session.run("observed",[sys.executable,"-u","-c","import time;print('real child',flush=True);time.sleep(.15)"],while_running=lambda:ticks.append(True)).strip(),"real child")
+            self.assertTrue(ticks);self.assertTrue(session.rows[-1]["ownedGroupGone"])
+            session=NATIVE.Session(Path(temp)/"failed",20,2)
+            def fail():raise RuntimeError("saved independent capture failure")
+            with self.assertRaisesRegex(RuntimeError,"independent capture failure"):session.run("failed",[sys.executable,"-c","import time;time.sleep(5)"],while_running=fail)
+            self.assertTrue(session.rows[-1]["ownedGroupGone"]);self.assertIsNotNone(session.rows[-1]["exitCode"])
+
+    def test_independent_capture_arms_only_during_the_live_xctest_gesture(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);calls=[]
+            class CaptureSession:
+                output=root
+                def run(self,name,argv):
+                    calls.append(argv);Path(argv[-1]).write_bytes(b"CONTROL_NOT_A_NATIVE_IMAGE")
+            callback=NATIVE.slider_hold_capture(CaptureSession(),"2244051E-D143-40F5-BEF1-7B4CCFC355A1")
+            raw=root/"xctest.stdout";raw.write_text("Test Case started\n");callback();self.assertFalse(calls)
+            begin="CODON_SLIDER_GESTURE_BEGIN "+json.dumps({"epochSeconds":time.time()})+"\n";raw.write_text(begin);callback();self.assertEqual(len(calls),1);self.assertEqual(calls[0][1:4],["io","2244051E-D143-40F5-BEF1-7B4CCFC355A1","screenshot"]);self.assertEqual(len(json.loads((root/"slider-held-captures.json").read_text())),1)
+            raw.write_text(begin+"CODON_SLIDER_GESTURE_RETURN {}\n");callback();self.assertEqual(len(calls),1)
+            raw.write_text(begin+"Test Case '-[C.SliderHitLayoutTrialTests testP01Probe]' failed (1.0 seconds).\n");callback();self.assertEqual(len(calls),1)
+
+    def test_four_native_classifiers_need_original_contacts_exact_requests_and_pre_move_images(self):
+        with tempfile.TemporaryDirectory() as temp:
+            output=Path(temp);begins=[];finals=[];captures=[]
+            for index,(preset,probe) in enumerate([("translated",None),("repositioned",None),("rotated-scaled","measured-center"),("rotated-scaled","aabb-corner")]):
+                thumb=probe!="aabb-corner";value=.7 if thumb else .85;events=[]
+                def event(kind,**fields):events.append({"kind":kind,"rootTag":101,"preset":preset,"sequence":len(events)+1,**fields})
+                event("touch",phase="start",target=103 if thumb else 102,identifier=7,pageX=220,timestamp=10000)
+                if not thumb:event("request",value=.65)
+                event("request",value=value);event("touch",phase="move",target=103 if thumb else 102,identifier=7,pageX=271.2,timestamp=15100);event("change-end",value=value);event("touch",phase="end",target=103 if thumb else 102,identifier=7,pageX=271.2,timestamp=15130)
+                begins.append({"epochSeconds":1700000000+index*20,"holdSeconds":5,"before":{"preset":preset,"scalar":.5,"requests":0,"ends":0},"geometry":{"tags":[101,102,103,104],"rootWindow":{"x":26},"viewport":{"root":{"x":26}},"window":{"track":{"x":26,"width":300}}}})
+                final={"owner":{"preset":preset,"rootTag":101,"dropped":0,"requests":1 if thumb else 2,"ends":1,"scalar":value},"events":events}
+                if probe:final["probe"]=probe
+                finals.append(final);png=output/(str(index)+".png");png.write_bytes(b"CONTROL_NOT_A_NATIVE_IMAGE");captures.append({"gesture":index,"startedEpochSeconds":begins[-1]["epochSeconds"]+1,"finishedEpochSeconds":begins[-1]["epochSeconds"]+2,"png":str(png),"pngSHA256":NATIVE.digest(png)})
+            def run(bs=begins,fs=finals,cs=captures):
+                (output/"slider-held-captures.json").write_text(json.dumps(cs));raw="\n".join("CODON_SLIDER_GESTURE_BEGIN "+json.dumps(b)+"\nCODON_SLIDER_FINAL_OUTCOME "+json.dumps(f) for b,f in zip(bs,fs));return NATIVE.reconcile_slider_ios(raw,output)
+            result=run();self.assertEqual(result["status"],"NATIVE_PASS_PENDING_INDEPENDENT_HELD_SCREEN_REVIEW");self.assertEqual(result["cases"][-1]["nativeReceiver"],"original-track");self.assertEqual(result["cases"][-1]["expectedHeldScalar"],.65)
+            for kind in ["wrong-root","wrong-contact","wrong-end","old-corner-classifier","dropped","late-capture","missing-capture","missing-case"]:
+                bs,fs,cs=copy.deepcopy(begins),copy.deepcopy(finals),copy.deepcopy(captures)
+                if kind=="wrong-root":fs[0]["owner"]["rootTag"]=999
+                elif kind=="wrong-contact":fs[0]["events"][-1]["identifier"]=8
+                elif kind=="wrong-end":fs[0]["events"][-2]["value"]=.6
+                elif kind=="old-corner-classifier":fs[-1]["events"][1]["value"]=.5
+                elif kind=="dropped":fs[0]["owner"]["dropped"]=1
+                elif kind=="late-capture":cs[0]["finishedEpochSeconds"]=bs[0]["epochSeconds"]+6
+                elif kind=="missing-capture":cs=cs[1:]
+                else:bs=bs[:-1];fs=fs[:-1]
+                with self.subTest(kind=kind),self.assertRaises(ValueError):run(bs,fs,cs)
+
 if __name__ == "__main__": unittest.main()

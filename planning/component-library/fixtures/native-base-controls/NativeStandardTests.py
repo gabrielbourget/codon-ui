@@ -76,6 +76,9 @@ def verify_selected_app_inputs(plan, app):
 
 
 def selection(platform, batch="meter-g02"):
+    if batch == "slider-hit-layout":
+        require(platform == "ios", "Current Slider hit-layout batch is iOS only")
+        return {"ios": ["SliderHitLayoutTrialTests/"+name for name in ["testP01TranslatedOriginalThumbHoldThenDrag", "testP01RepositionedOriginalThumbHoldThenDrag", "testP01RotatedCenterOriginalThumbHoldThenDrag", "testP01RotatedCornerFollowsOriginalNativeHit"]], "android": []}
     if batch == "placeholder-g08":
         require(platform == "ios", "Current PlaceholderText batch is iOS only")
         return {"ios": ["PlaceholderTrialTests/"+name for name in ["testP01LightStylePrecedenceAndRestore", "testP02DarkProviderExplicitAndEmptyReset", "testP03NarrowWrappedFirstActionAndReset"]], "android": []}
@@ -158,6 +161,7 @@ def bind_xctestrun(template, app, observer, output, installed_observer, restore_
     for key in ["DefaultTestExecutionTimeAllowance", "MaximumTestExecutionTimeAllowance"]: target.pop(key, None)
     environment = {"CODON_METER_FIXTURE_SHA256": digest(REPO / "apps/native-showcase/src/scenes/MeterG02Fixture.tsx"), "CODON_METER_SCENE_SHA256": digest(REPO / "apps/native-showcase/src/scenes/RangeScene.tsx"), "CODON_METER_PRODUCT_SHA256": app["manifestSHA256"], "CODON_METER_OBSERVER_MANIFEST_SHA256": observer["manifestSHA256"]}
     environment["CODON_METER_STYLE_FIXTURE_SHA256"] = digest(REPO / "apps/native-showcase/src/scenes/MeterStyleFixture.tsx")
+    environment.update(CODON_SLIDER_SCENE_SHA256=digest(REPO / "apps/native-showcase/src/scenes/SliderScene.tsx"), CODON_SLIDER_PRODUCT_SHA256=app["manifestSHA256"], CODON_SLIDER_OBSERVER_MANIFEST_SHA256=observer["manifestSHA256"])
     if restore_motion is not None:
         require(restore_motion in ["0","1"], "Only the captured original Reduce Motion value is accepted")
         environment["CODON_METER_RESTORE_MOTION"] = restore_motion
@@ -202,7 +206,7 @@ class Session:
     def remaining(self, cleanup=False):
         return (self.end if cleanup else self.work) - time.time() - 8
 
-    def run(self, name, argv, cap=None, cleanup=False):
+    def run(self, name, argv, cap=None, cleanup=False, while_running=None):
         prefix = self.output / name
         row = {"name": name, "argv": list(map(str, argv)), "startedUTC": datetime.datetime.now(datetime.timezone.utc).isoformat()}
         print(json.dumps(row), flush=True)
@@ -216,8 +220,18 @@ class Session:
                 process = subprocess.Popen(row["argv"], env=self.env, stdout=output, stderr=error, start_new_session=True)
                 row.update(pid=process.pid, processGroup=process.pid, ownerPID=os.getpid())
                 write(prefix.with_suffix(".json"), row)
-                try: process.wait(timeout=timeout)
-                except subprocess.TimeoutExpired: row["timedOut"] = True
+                if while_running is None:
+                    try: process.wait(timeout=timeout)
+                    except subprocess.TimeoutExpired: row["timedOut"] = True
+                else:
+                    until = time.monotonic() + timeout
+                    while process.poll() is None:
+                        if time.monotonic() >= until:
+                            row["timedOut"] = True
+                            break
+                        while_running()
+                        try: process.wait(timeout=min(.1, max(.001, until-time.monotonic())))
+                        except subprocess.TimeoutExpired: pass
         finally:
             if process is not None:
                 row["ownedGroupGone"] = stop_owned_process(process)
@@ -576,6 +590,25 @@ def wait_ios_pending_app(session, device, app, maximum):
     raise ValueError("Existing pending app update did not reach the selected product within its observation budget; no install reissued")
 
 
+def slider_hold_capture(session, device):
+    captures = []
+    def capture():
+        raw = (session.output / "xctest.stdout").read_text()
+        begins = list(re.finditer(r"CODON_SLIDER_GESTURE_BEGIN (\{[^\n]+\})", raw))
+        if not begins: return
+        tail = raw[begins[-1].end():]
+        if "CODON_SLIDER_GESTURE_RETURN " in tail or re.search(r"Test Case '-\[[^\]]+\]' (?:passed|failed|skipped)", tail): return
+        begin = json.loads(begins[-1].group(1))
+        name = "slider-hold-"+str(len(begins)-1)+"-"+str(len(captures))
+        png = session.output / (name+".png")
+        row = {"gesture":len(begins)-1,"startedEpochSeconds":time.time(),"beginEpochSeconds":begin["epochSeconds"],"png":str(png)}
+        session.run(name, [XCODE+"/simctl", "io", device, "screenshot", png])
+        row.update(finishedEpochSeconds=time.time(),pngSHA256=digest(png))
+        captures.append(row)
+        write(session.output / "slider-held-captures.json", captures)
+    return capture
+
+
 def run_ios(session, config, app, observer):
     device = config["destination"]
     reuse_installed = config.get("reuseInstalledApplication", False)
@@ -618,7 +651,9 @@ def run_ios(session, config, app, observer):
     argv = [XCODE + "/xcodebuild", "test-without-building", "-xctestrun", str(runfile), "-destination", "platform=iOS Simulator,id=" + device, "-destination-timeout", str(max(1, int(session.remaining()))), "-jobs", "1", "-parallel-testing-enabled", "NO", "-test-timeouts-enabled", "NO", "-resultBundlePath", str(session.output / "Tests.xcresult")]
     argv += ["-only-testing:CodonNativeComponents/" + name for name in selected]
     sdk_error = None
-    try: raw = session.run("xctest", argv)
+    try:
+        if config.get("batch") == "slider-hit-layout": raw = session.run("xctest", argv, while_running=slider_hold_capture(session, device))
+        else: raw = session.run("xctest", argv)
     except ValueError as error:
         sdk_error = error;stdout = session.output / "xctest.stdout";raw = stdout.read_text() if stdout.exists() else ""
     if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected", "circle-loader", "lagging-lines", "counter", "list-box-item", "list-box-item-motion", "toggle-button", "toggle-button-affected", "toggle-button-style", "radio", "radio-motion"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
@@ -657,6 +692,7 @@ def run_ios(session, config, app, observer):
     if config.get("batch") in ["counter", "counter-values"]: result["counter"] = reconcile_counter_ios(raw, include_motion=config["batch"] == "counter")
     if config.get("batch") in ["list-box-item", "list-box-item-motion"]: result["listBoxItem"] = reconcile_list_item_ios(raw,config,app)
     if config.get("batch") == "placeholder-g08": result["placeholder"] = reconcile_placeholder_ios(raw)
+    if config.get("batch") == "slider-hit-layout": result["sliderHitLayout"] = reconcile_slider_ios(raw, session.output)
     if config.get("batch") in ["radio", "radio-motion"]: result["radio"] = reconcile_radio_ios(raw,config)
     if config.get("batch") in ["toggle-button", "toggle-button-affected", "toggle-button-style"]: result["toggleButton"] = reconcile_toggle_button_ios(raw,config)
     if config.get("batch") == "avatar": result["avatar"] = reconcile_avatar_ios(raw)
@@ -958,6 +994,57 @@ def reconcile_toggle_button_ios(raw,config=None):
 
 
 PLACEHOLDER_NAMES = ["light-default","light-center","light-custom","light-final","light-custom-restored","light-computed-restored","dark-default","dark-final","light-explicit-retained","light-after-provider","empty-restored","full-final-deferred","narrow-final-deferred","narrow-after-first-action","reset-default"]
+
+
+def reconcile_slider_ios(raw, output):
+    begins = [json.loads(x) for x in re.findall(r"CODON_SLIDER_GESTURE_BEGIN (\{[^\n]+\})", raw)]
+    finals = [json.loads(x) for x in re.findall(r"CODON_SLIDER_FINAL_OUTCOME (\{[^\n]+\})", raw)]
+    require(len(begins)==len(finals)==4, "All four Slider native hit-layout witnesses required")
+    captures = json.loads((Path(output)/"slider-held-captures.json").read_text())
+    cases = []
+    for index, (begin, final) in enumerate(zip(begins, finals)):
+        geometry, owner, events = begin["geometry"], final["owner"], final["events"]
+        tags = geometry["tags"]
+        require(len(tags)==len(set(tags))==4 and all(type(x) is int and x>0 for x in tags), "Slider original native tags differ")
+        preset = owner["preset"]
+        key = preset+(":"+final["probe"] if preset=="rotated-scaled" else "")
+        require(begin["before"]["preset"]==preset and begin["before"]["scalar"]==.5 and begin["before"]["requests"]==begin["before"]["ends"]==0, "Slider admission value was changed before contact")
+        require(owner["rootTag"]==tags[0] and owner["dropped"]==0 and [x["sequence"] for x in events]==list(range(1,len(events)+1)) and all(x["rootTag"]==tags[0] and x["preset"]==preset for x in events), "Slider original trace/root was lost")
+        touches = [x for x in events if x["kind"]=="touch"]
+        downs, moves, ups = [[x for x in touches if x["phase"]==phase] for phase in ["start","move","end"]]
+        require(len(downs)==len(ups)==1 and moves and not any(x["phase"]=="cancel" for x in touches), "Slider needs one continuous native DOWN/MOVE/UP")
+        down, up = downs[0], ups[0]
+        require(down["target"] in tags[1:3] and all(x["target"]==down["target"] and x["identifier"]==down["identifier"] for x in touches), "Slider original receiver/contact changed")
+        require(down["sequence"]<moves[0]["sequence"]<=moves[-1]["sequence"]<up["sequence"] and down["timestamp"]<moves[0]["timestamp"]<=up["timestamp"], "Slider native contact ordering differs")
+        thumb = down["target"]==tags[2]
+        require(key=="rotated-scaled:aabb-corner" or thumb, "Measured thumb center must reach the original native thumb")
+        track = geometry["window"]["track"]
+        inset = 22 if track["width"]>44 else 0
+        span = track["width"]-2*inset
+        require(math.isfinite(span) and span>0, "Invalid original Slider track")
+        offset = geometry["rootWindow"]["x"]-geometry["viewport"]["root"]["x"]
+        snap = lambda value: min(1,max(0,math.floor(value*20+.5)/20))
+        held = .5 if thumb else snap((down["pageX"]+offset-track["x"]-inset)/span)
+        expected = snap(.5+(up["pageX"]-down["pageX"])/span) if thumb else snap((up["pageX"]+offset-track["x"]-inset)/span)
+        requests = [x for x in events if x["kind"]=="request"]
+        ends = [x for x in events if x["kind"]=="change-end"]
+        require(requests and owner["requests"]==len(requests) and owner["ends"]==len(ends)==1 and owner["scalar"]==requests[-1]["value"]==ends[0]["value"]==expected, "Slider native hit classifier/request/end differs")
+        if not thumb: require(requests[0]["value"]==held and requests[0]["sequence"]<moves[0]["sequence"], "Track native DOWN must request its actual value before MOVE")
+        interval = (moves[0]["timestamp"]-down["timestamp"])/1000
+        # BEGIN precedes DOWN. This conservative bound avoids inferring a held checkpoint from released state.
+        before_move = begin["epochSeconds"]+min(begin["holdSeconds"],interval)
+        candidates = []
+        for capture in captures:
+            if capture["gesture"]!=index: continue
+            start, finish = capture["startedEpochSeconds"],capture["finishedEpochSeconds"]
+            require(math.isfinite(start) and math.isfinite(finish) and begin["epochSeconds"]<=start<=finish, "Invalid independent Slider capture interval")
+            png = Path(capture["png"])
+            require(png.resolve().is_relative_to(Path(output).resolve()) and digest(png)==capture["pngSHA256"], "Independent Slider capture changed")
+            if finish<before_move: candidates.append(capture)
+        require(candidates, "Missing independent screen captured before the earliest possible MOVE")
+        cases.append({"case":key,"nativeReceiver":"original-thumb" if thumb else "original-track","rootTag":tags[0],"target":down["target"],"identifier":down["identifier"],"expectedHeldScalar":held,"expectedHeldRequests":0 if thumb else 1,"expectedHeldEnds":0,"expectedFinal":expected,"nativeDownToMoveMs":interval*1000,"earliestMoveEpochSeconds":before_move,"candidateCaptures":candidates})
+    require(sorted(x["case"] for x in cases)==sorted(["translated","repositioned","rotated-scaled:measured-center","rotated-scaled:aabb-corner"]), "Slider hit-layout coverage differs")
+    return {"status":"NATIVE_PASS_PENDING_INDEPENDENT_HELD_SCREEN_REVIEW","cases":cases,"scope":"Four iOS witnesses only; original held DOWN/root/target/contact/value/request/end must be read from independent PNGs before G01 reconciliation. Android and whole-cell criteria remain separate."}
 
 
 def validate_placeholder_rows(rows,names):
@@ -1619,7 +1706,8 @@ def validate_standard_scope(plan):
     toggle_button = cell in ["CAT.toggle-button." + gate for gate in ["G04", "G08"]] and batch in ["toggle-button", "toggle-button-affected", "toggle-button-style"]
     radio = cell == "CAT.radio.G08" and batch in ["radio", "radio-motion"]
     placeholder = cell == "CAT.placeholder-text.G08" and batch == "placeholder-g08"
-    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item or toggle_button or radio or placeholder, "Only the authorized component and focused batch are selected")
+    slider = cell == "CAT.slider.G01" and batch == "slider-hit-layout"
+    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item or toggle_button or radio or placeholder or slider, "Only the authorized component and focused batch are selected")
 
 
 def main():
