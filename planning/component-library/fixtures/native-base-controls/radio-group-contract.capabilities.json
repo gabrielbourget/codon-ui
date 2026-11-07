@@ -1487,5 +1487,25 @@
     "native": ["value", "isDisabled", "isReadOnly"],
     "approvedDifferences": "Original group style state is value/disabled/read-only plus post-custom defaultStyle; root rendering uses that existing native data. Orientation is the native group prop/layout, required/invalid messages remain host-owned, React Aria state excluded. Ordinary ReactNode-only group children is an explicit original approval."
   },
-  "scope": "All seven pinned root cases, all six complete canonical group files, complete native counterpart map, actual inherited renderer/context/ref/order probe. Source-only G01; native/appearance/profile/closure remain independent. Roadmap3.5.71."
+  "scope": "All seven pinned root cases, all six complete canonical group files, complete native counterpart map, actual inherited renderer/context/ref/order probe. Source-only G01; native/appearance/profile/closure remain independent. Roadmap3.5.71.",
+  "installedIOSG08": {
+    "evidenceID": "RGRP-08",
+    "status": "PASS",
+    "date": "2026-11-07",
+    "productionChange": "None; private fixture/observer/reader proof retains98canonical/93native declarations and original string/null/native View/member boundaries.",
+    "publicGroupCases": 3,
+    "showcaseCases": 5,
+    "hostControls": 84,
+    "compiledSwiftControls": 220,
+    "nativeMethods": 2,
+    "qualifyingNativeObservations": 34,
+    "qualifyingOriginalPNGs": 68,
+    "completion": {
+      "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/radio-group-ios-g08-20261107/objects/f12fcca3830604fa13fa7bdf7591ccf37c60901cbac29dd479a1ccdd56992609",
+      "sha256": "f12fcca3830604fa13fa7bdf7591ccf37c60901cbac29dd479a1ccdd56992609",
+      "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/radio-group-after-checkbox-group-20261107/radio-group-G08-completion.json"
+    },
+    "remainingGates": ["G02", "G04", "G07", "G09"],
+    "scope": "Approved Release x86_64 iOS lane/RB-NATIVE-01/D01\u2013D04; no Android,physical,ARM or owner-visual qualification."
+  }
 }

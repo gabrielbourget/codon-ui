@@ -76,6 +76,9 @@ def verify_selected_app_inputs(plan, app):
 
 
 def selection(platform, batch="meter-g02"):
+    if batch=="radio-group":
+        require(platform=="ios","Current RadioGroup batch is iOS only")
+        return {"ios":["RadioGroupTrialTests/testRadioGroupActionsAndLifetimes","RadioGroupTrialTests/testRadioGroupStylesAndConstraints"],"android":[]}
     if batch in ["checkbox-group","checkbox-group-actions"]:
         require(platform == "ios", "Current CheckboxGroup batch is iOS only")
         return {"ios":["CheckboxGroupTrialTests/testCheckboxGroupActionsAndLifetimes"]+([] if batch=="checkbox-group-actions" else ["CheckboxGroupTrialTests/testCheckboxGroupStylesAndConstraints"]),"android":[]}
@@ -277,7 +280,7 @@ def geometry_control_source():
     gallery_start = source.index("private func galleryTrackWidth(");gallery_open = source.index("{", gallery_start);gallery_end = source.index("\n}", gallery_open) + 2
     gallery_predicate = source[gallery_start:gallery_end].replace("private ", "", 1)
     list_predicates = []
-    for signature in ["private func toggleButtonMatchedFrame(", "private func toggleButtonValueMatches(", "private func listItemValueMatches(", "private func listItemIntermediate(", "private func listItemSampleRGBA(", "private func switchNativeValueMatches(", "private func switchTrackSamples(", "private func switchThumbIntermediate(", "private func switchEndpointCoverage(", "private func switchRetirementCoverage(", "private func checkboxWhitePixels(", "private func checkboxNativeValueMatches(", "private func checkboxColorIntermediate(", "private func checkboxGlyphIntermediate(", "private func checkboxGlyphCoverage(", "private func checkboxEndpointCoverage(", "private func checkboxRetirementCoverage(", "private func checkboxGroupMembersMatch(", "private func checkboxGroupMemberTag("]:
+    for signature in ["private func toggleButtonMatchedFrame(", "private func toggleButtonValueMatches(", "private func listItemValueMatches(", "private func listItemIntermediate(", "private func listItemSampleRGBA(", "private func switchNativeValueMatches(", "private func switchTrackSamples(", "private func switchThumbIntermediate(", "private func switchEndpointCoverage(", "private func switchRetirementCoverage(", "private func checkboxWhitePixels(", "private func checkboxNativeValueMatches(", "private func checkboxColorIntermediate(", "private func checkboxGlyphIntermediate(", "private func checkboxGlyphCoverage(", "private func checkboxEndpointCoverage(", "private func checkboxRetirementCoverage(", "private func checkboxGroupMembersMatch(", "private func checkboxGroupMemberTag(", "private func radioGroupMembersMatch("]:
         start = source.index(signature);opening = source.index("{", start);end = source.index("\n}", opening) + 2
         list_predicates.append(source[start:end].replace("private ", "", 1))
     scroll_start = source.index("private func galleryScrollFraction(");scroll_open = source.index("{", scroll_start);scroll_end = source.index("\n}", scroll_open) + 2
@@ -511,7 +514,32 @@ precondition(checkboxGroupMemberTag(nullableTags,"missing")==nil)
 precondition(checkboxGroupMemberTag(NSNull(),"nested")==nil)
 precondition(checkboxGroupMemberTag(["nested":NSNumber(value:-1)],"nested")==nil)
 precondition(checkboxGroupMemberTag(["nested":NSNumber(value:Double.nan)],"nested")==nil)
-print(#"{\"checkboxGroupTagCases\":8,\"checkboxGroupCases\":14,\"checkboxCases\":47,\"switchValueCases\":10,\"switchRasterCases\":9,\"switchThumbCases\":11,\"switchEndpointCases\":10,\"switchRetirementCases\":14,\"toggleButtonCases\":12,\"listItemCases\":20,\"galleryScrollCases\":8,\"galleryTrackCases\":8,\"thumbnailFrameCases\":6,\"circularCases\":6,\"status\":\"PASS\",\"cases\":11,\"pixelCases\":6,\"shadowCases\":6,\"savedNSNumberIntValue\":9,\"savedNSNumberDoubleValue\":9.9998779296875}"#)
+let radioGroupOff:[String:Any] = ["id":"alpha","label":"Alpha","value":"radio button, unchecked","enabled":true,"relativeFrame":[0.0,0.0,106.0,44.0],"referenceRelativeFrame":[0.0,0.0,106.0,44.0]]
+let radioGroupLabels=["alpha":"Alpha"]
+precondition(radioGroupMembersMatch([radioGroupOff],["alpha":false],radioGroupLabels,false,3))
+var radioGroupOn=radioGroupOff;radioGroupOn["value"]="radio button, checked"
+precondition(radioGroupMembersMatch([radioGroupOn],["alpha":true],radioGroupLabels,false,3))
+precondition(!radioGroupMembersMatch([radioGroupOn],["alpha":false],radioGroupLabels,false,3))
+var radioGroupWrong=radioGroupOff;radioGroupWrong["label"]="Other"
+precondition(!radioGroupMembersMatch([radioGroupWrong],["alpha":false],radioGroupLabels,false,3))
+radioGroupWrong=radioGroupOff;radioGroupWrong["value"]="checkbox, unchecked"
+precondition(!radioGroupMembersMatch([radioGroupWrong],["alpha":false],radioGroupLabels,false,3))
+var radioGroupDisabled=radioGroupOff;radioGroupDisabled["enabled"]=false
+precondition(radioGroupMembersMatch([radioGroupDisabled],["alpha":false],radioGroupLabels,true,3))
+precondition(!radioGroupMembersMatch([radioGroupOff],["alpha":false],radioGroupLabels,true,3))
+radioGroupWrong=radioGroupOff;radioGroupWrong["value"]=NSNull()
+precondition(!radioGroupMembersMatch([radioGroupWrong],["alpha":false],radioGroupLabels,false,3))
+precondition(!radioGroupMembersMatch([],["alpha":false],radioGroupLabels,false,3))
+precondition(!radioGroupMembersMatch([radioGroupOff,radioGroupOff],["alpha":false],radioGroupLabels,false,3))
+radioGroupWrong=radioGroupOff;radioGroupWrong["relativeFrame"]=[0.0,0.0,107.0,44.0]
+precondition(!radioGroupMembersMatch([radioGroupWrong],["alpha":false],radioGroupLabels,false,3))
+radioGroupWrong=radioGroupOff;radioGroupWrong["relativeFrame"]=[0.0,0.0,106.0001220703125,44.0]
+precondition(radioGroupMembersMatch([radioGroupWrong],["alpha":false],radioGroupLabels,false,3))
+radioGroupWrong=radioGroupOff;radioGroupWrong["relativeFrame"]=[0.0,Double.nan,106.0,44.0]
+precondition(!radioGroupMembersMatch([radioGroupWrong],["alpha":false],radioGroupLabels,false,3))
+precondition(!radioGroupMembersMatch([radioGroupOff],["alpha":false],radioGroupLabels,false,0))
+
+print(#"{\"radioGroupCases\":14,\"checkboxGroupTagCases\":8,\"checkboxGroupCases\":14,\"checkboxCases\":47,\"switchValueCases\":10,\"switchRasterCases\":9,\"switchThumbCases\":11,\"switchEndpointCases\":10,\"switchRetirementCases\":14,\"toggleButtonCases\":12,\"listItemCases\":20,\"galleryScrollCases\":8,\"galleryTrackCases\":8,\"thumbnailFrameCases\":6,\"circularCases\":6,\"status\":\"PASS\",\"cases\":11,\"pixelCases\":6,\"shadowCases\":6,\"savedNSNumberIntValue\":9,\"savedNSNumberDoubleValue\":9.9998779296875}"#)
 '''
 
 
@@ -556,7 +584,7 @@ def build_ios(session, config=None):
     sdk = session.run("geometry-sdk", ["/usr/bin/xcrun", "--sdk", "macosx", "--show-sdk-path"]).strip()
     swift = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift"
     control_result = json.loads(session.run("geometry-controls", [swift, "-sdk", sdk, "-module-cache-path", str(CACHE / "swift-host-module-cache"), str(controls)]))
-    require(control_result.get("checkboxGroupTagCases") == 8 and control_result.get("checkboxGroupCases") == 14 and control_result.get("checkboxCases") == 47 and control_result.get("switchRetirementCases") == 14 and control_result.get("switchEndpointCases") == 10 and control_result.get("switchThumbCases") == 11 and control_result.get("switchValueCases") == 10 and control_result.get("switchRasterCases") == 9 and control_result.get("toggleButtonCases") == 12 and control_result.get("listItemCases") == 20 and control_result.get("galleryScrollCases") == 8 and control_result.get("galleryTrackCases") == 8 and control_result.get("thumbnailFrameCases") == 6 and control_result.get("circularCases") == 6 and control_result.get("status") == "PASS" and control_result.get("cases") == 11 and control_result.get("pixelCases") == 6 and control_result.get("shadowCases") == 6, "Actual Swift geometry/pixel/shadow controls failed")
+    require(control_result.get("radioGroupCases") == 14 and control_result.get("checkboxGroupTagCases") == 8 and control_result.get("checkboxGroupCases") == 14 and control_result.get("checkboxCases") == 47 and control_result.get("switchRetirementCases") == 14 and control_result.get("switchEndpointCases") == 10 and control_result.get("switchThumbCases") == 11 and control_result.get("switchValueCases") == 10 and control_result.get("switchRasterCases") == 9 and control_result.get("toggleButtonCases") == 12 and control_result.get("listItemCases") == 20 and control_result.get("galleryScrollCases") == 8 and control_result.get("galleryTrackCases") == 8 and control_result.get("thumbnailFrameCases") == 6 and control_result.get("circularCases") == 6 and control_result.get("status") == "PASS" and control_result.get("cases") == 11 and control_result.get("pixelCases") == 6 and control_result.get("shadowCases") == 6, "Actual Swift geometry/pixel/shadow controls failed")
     derived = CACHE / "ios"
     # A source revision gets an unambiguous observer registration; old installed revisions remain intact.
     bundle_id = "dev.codonui.lab.components.r" + digest(ROOT / "MeterG02TrialTests.swift")[:12]
@@ -847,6 +875,7 @@ def run_ios(session, config, app, observer):
     if config.get("batch") in ["list-box-item", "list-box-item-motion"]: result["listBoxItem"] = reconcile_list_item_ios(raw,config,app)
     if config.get("batch") == "placeholder-g08": result["placeholder"] = reconcile_placeholder_ios(raw)
     if config.get("batch") in ["switch", "switch-motion"]: result["switch"] = reconcile_switch_ios(raw, config, app)
+    if config.get("batch")=="radio-group": result["radioGroup"]=reconcile_radio_group_ios(raw)
     if config.get("batch") in ["checkbox-group","checkbox-group-actions"]: result["checkboxGroup"]=reconcile_checkbox_group_ios(raw,config,app)
     if config.get("batch") in ["checkbox","checkbox-static","checkbox-motion"]: result["checkbox"]=reconcile_checkbox_ios(raw,config,app)
     if config.get("batch") == "slider-hit-layout": result["sliderHitLayout"] = reconcile_slider_ios(raw, session.output)
@@ -1512,6 +1541,67 @@ def reconcile_checkbox_group_ios(raw,config=None,app=None):
     return {"status":"PASS","observations":len(rows),"nativeActivations":9,"motion":"Group owns no motion; unchanged member clocks retain their separately bound CHK-08 proof."}
 
 
+RADIO_GROUP_BEHAVIOR=["baseline","echo","reselected","disabled","readonly","renderer","nested","replacement","retired","fresh","local","default-changed","empty-value","veto-1","veto-2","echo-beta","echo-alpha","reselected-alpha","nested-other","local-alpha","empty-selected","empty-reselected"]
+RADIO_GROUP_STYLES=["style-baseline","horizontal","wrap","custom","final-style","registered","fractional","percentage","long-narrow","zero","dark","light-restored"]
+
+def reconcile_radio_group_ios(raw):
+    rows=[json.loads(x) for x in re.findall(r"RADIO_GROUP_NATIVE_OBSERVATION (\{[^\n]+\})",raw)]
+    require(sorted(row["name"] for row in rows)==sorted(RADIO_GROUP_BEHAVIOR+RADIO_GROUP_STYLES),"Missing/duplicate RadioGroup native observations")
+    named={row["name"]:row for row in rows}
+    for row in rows:
+        state,scale=row["state"],row["scale"]
+        require(row["nativeRootLabel"]=="Notification options" if state["visible"] and not state["zero"] else True,"RadioGroup original native label differs")
+        require(state["value"] is None or isinstance(state["value"],str),"RadioGroup string/null ownership differs")
+        require(scale==state["scale"] and math.isfinite(scale) and scale>0,"Wrong RadioGroup scale")
+        require(row["referenceExact"] is True,"RadioGroup native raw reference mismatch")
+        parent,reference=row["parent"],row["referenceParent"]
+        require(len(parent)==len(reference)==4 and parent[2:]==reference[2:] and 0<parent[2]<=280 and parent[3]==224,"RadioGroup parent dimensions differ")
+        for frame in [parent,reference]:
+            require(all(math.isfinite(v) for v in frame),"Nonfinite group parent")
+            x,y,width,height=[math.floor(v*scale+.5) for v in frame]
+            require(0<=x<x+width<=row["imageWidth"] and 0<=y<y+height<=row["imageHeight"],"RadioGroup parent outside screenshot")
+        if not state["visible"]:
+            require(not row["root"] and not row["members"] and state["rootTag"] is None and row["inkPixels"]==0,"Retired group/ref/paint remains")
+            continue
+        tag=state["rootTag"];event=state["layouts"][-1];layout=event["layout"]
+        require(tag and tag==event["target"]==event["currentTarget"],"Original group layout/ref target differs")
+        if state["zero"]:
+            require(layout["width"]==layout["height"]==row["inkPixels"]==0,"Zero group retained paint/dimensions")
+            for frame in [row["root"],row["referenceRoot"]]:
+                require(not frame or (len(frame)==4 and all(math.isfinite(v) for v in frame) and frame[2:]==[0,0]),"Zero AX root retained dimensions")
+            continue
+        root,reference_root=row["root"],row["referenceRoot"]
+        require(len(root)==len(reference_root)==4 and all(math.isfinite(v) for v in root+reference_root),"Group native frames differ")
+        first=[root[0]-parent[0],root[1]-parent[1],*root[2:]];second=[reference_root[0]-reference[0],reference_root[1]-reference[1],*reference_root[2:]]
+        require([math.floor(v*scale+.5) for v in first]==[math.floor(v*scale+.5) for v in second],"Group native reference geometry differs")
+        require(all(abs(root[i+2]-layout[key])*scale<=1 for i,key in enumerate(["width","height"])),"Group native/onLayout dimensions differ")
+        if isinstance(state["width"],(int,float)):require(abs(root[2]-state["width"])*scale<=1,"Authored group width differs")
+        ids=["alpha","nested","other"] if state["nested"] else ["alpha","beta"]
+        require(sorted(x["id"] for x in row["members"])==sorted(ids),"Group independent member targets missing/duplicated")
+        for member in row["members"]:
+            id=member["id"];selected=state["nestedValue"]==state["values"][id] if id in ["nested","other"] else state["value"] is not None and state["value"]==state["values"][id]
+            require(member["label"]==state["labels"][id] and member["enabled"] is (not state["disabled"] or id in ["nested","other"]),"Group member label/guard differs")
+            require(member["value"]=="radio button, "+("checked" if selected else "unchecked"),"Group member native checked value differs")
+            actual,expected=member["relativeFrame"],member["referenceRelativeFrame"]
+            require(len(actual)==len(expected)==4 and all(math.isfinite(v) for v in actual+expected) and actual[2]>0 and actual[3]>=44-1/scale,"Invalid member frame/target")
+            require([math.floor(v*scale+.5) for v in actual]==[math.floor(v*scale+.5) for v in expected],"Member reference frame differs")
+        if state["narrow"]:require(row["members"][0]["relativeFrame"][3]>44 and root[1]+root[3]<=parent[1]+parent[3]-12+1/scale,"Group constrained text clipped")
+    original=named["baseline"]["state"]["rootTag"]
+    for name in ["echo","reselected","disabled","readonly","renderer","nested"]:require(named[name]["state"]["rootTag"]==original,"Original RadioGroup root replaced")
+    for name in ["replacement","fresh"]:require(named[name]["state"]["rootTag"]!=original,"RadioGroup fresh ref reused")
+    for name in ["veto-1","veto-2"]:require(named[name]["state"]["value"] is None,"RadioGroup veto ignored")
+    require(named["echo-alpha"]["state"]["value"]=="alpha" and named["reselected-alpha"]["state"]["requests"]==["alpha","alpha","beta","alpha"],"RadioGroup echo/quiet reselection differs")
+    require(named["nested-other"]["state"]["value"]=="alpha" and named["nested-other"]["state"]["nestedValue"]=="other" and named["nested-other"]["state"]["requests"]==["alpha","alpha","beta","alpha"],"RadioGroup nested owner isolation differs")
+    require(named["default-changed"]["state"]["value"]=="alpha","RadioGroup default read-once differs")
+    final=named["empty-reselected"]["state"]
+    require(final["value"]=="" and final["requests"]==["alpha","alpha","beta","alpha","alpha",""],"RadioGroup empty string/quiet reselection differs")
+    phases=["group:root","press:alpha","group:root","press:alpha","group:root","press:beta","group:root","press:alpha","press:alpha","nested:other","press:other","group:root","press:alpha","group:root","press:alpha","press:alpha"]
+    require(final["phases"]==phases,"RadioGroup original callback order differs")
+    events=[x for x in final["events"] if x["phase"]=="press"];require(len(events)==9 and all(x["target"]>0 and x["currentTarget"]>0 for x in events),"RadioGroup native event fields missing")
+    require(named["dark"]["state"]["themeMode"]=="dark" and named["light-restored"]["state"]["themeMode"]=="light","RadioGroup provider restoration missing")
+    return {"status":"PASS","observations":len(rows),"nativeActivations":9,"motion":"Group owns no motion; unchanged Radio member250ms/native-retirement proof retained separately."}
+
+
 RADIO_BEHAVIOR = ["baseline","echo","reselected","disabled","readonly","held-disabled","restored","renderer","replaced","retired","fresh","local","local-default-changed","empty-value","vetoed-1","vetoed-2","echo-activated","reselected-activated","restored-activated","local-activated","empty-value-activated","held-canceled"]
 RADIO_STYLES = ["style-baseline","selected","root-custom","final-style","shape-custom","explicit-child","square","round","long-narrow","fractional","percentage","auto","small-target","zero","dark","light-restored"]
 
@@ -2145,9 +2235,10 @@ def validate_standard_scope(plan):
     placeholder = cell == "CAT.placeholder-text.G08" and batch == "placeholder-g08"
     slider = cell == "CAT.slider.G01" and batch == "slider-hit-layout"
     checkbox = cell == "CAT.checkbox.G08" and batch in ["checkbox","checkbox-static","checkbox-motion"]
+    radio_group = cell == "CAT.radio-group.G08" and batch=="radio-group"
     checkbox_group = cell == "CAT.checkbox-group.G08" and batch in ["checkbox-group","checkbox-group-actions"]
     switch = cell == "CAT.switch.G08" and batch in ["switch", "switch-motion"]
-    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item or toggle_button or radio or placeholder or slider or switch or checkbox or checkbox_group, "Only the authorized component and focused batch are selected")
+    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item or toggle_button or radio or placeholder or slider or switch or checkbox or checkbox_group or radio_group, "Only the authorized component and focused batch are selected")
 
 
 def main():

@@ -3605,3 +3605,157 @@ final class CheckboxGroupTrialTests: XCTestCase {
         };XCTAssertTrue(result);return bytes
     }
 }
+
+private func radioGroupMembersMatch(_ rows:[[String:Any]],_ expected:[String:Bool],_ labels:[String:String],_ disabled:Bool,_ scale:Double)->Bool {
+    guard scale.isFinite && scale>0,rows.count==expected.count else{return false}
+    var seen=Set<String>()
+    for row in rows {
+        guard let id=row["id"] as? String,seen.insert(id).inserted,let selected=expected[id],
+              row["label"] as? String==labels[id],row["enabled"] as? Bool == !(disabled && id != "nested" && id != "other"),
+              let nativeValue=row["value"] as? String,listItemValueMatches(nativeValue,selected),
+              let frame=row["relativeFrame"] as? [Double],let reference=row["referenceRelativeFrame"] as? [Double],
+              frame.count==4,frame[2]>0,frame[3]>=44-1/scale,toggleButtonMatchedFrame(frame,reference,scale) else{return false}
+    }
+    return seen==Set(expected.keys)
+}
+final class RadioGroupTrialTests: XCTestCase {
+    private var app:XCUIApplication!
+    private let behavior=["baseline","echo","reselected","disabled","readonly","renderer","nested","replacement","retired","fresh","local","default-changed","empty-value"]
+    private let styles=["style-baseline","horizontal","wrap","custom","final-style","registered","fractional","percentage","long-narrow","zero","dark","light-restored"]
+    override func setUpWithError() throws {
+        continueAfterFailure=false;app=XCUIApplication(bundleIdentifier:"dev.codonui.showcase");app.launch();XCTAssertEqual(app.state,.runningForeground);XCUIDevice.shared.orientation = .portrait
+        tap("Reset scene");tap("Basic controls scene");tap("Light theme");tap("Live window");tap("Prepare RadioGroup checks")
+    }
+    override func tearDownWithError() throws {
+        let png=XCTAttachment(screenshot:XCUIScreen.main.screenshot());png.name="rgroup-final";png.lifetime = .keepAlways;add(png)
+        let tree=XCTAttachment(string:app.debugDescription);tree.name="rgroup-final-hierarchy";tree.lifetime = .keepAlways;add(tree)
+    }
+    private func state() throws->[String:Any] {try XCTUnwrap(JSONSerialization.jsonObject(with:Data(node("rgroup-native-state").label.utf8)) as? [String:Any])}
+    private func number(_ row:[String:Any],_ key:String)throws->Double {let value=try XCTUnwrap(row[key] as? NSNumber,key).doubleValue;XCTAssertTrue(value.isFinite);return value}
+    private func rect(_ value:CGRect)->[Double] {[value.minX,value.minY,value.width,value.height].map(Double.init)}
+    private func ready() {wait("Actual RadioGroup root/ref/layout") {guard let row=try? self.state(),let event=(row["layouts"] as? [[String:Any]])?.last,let tag=row["rootTag"] as? NSNumber else{return false};return tag.doubleValue>0 && tag == event["currentTarget"] as? NSNumber}}
+    private func capture(_ name:String) throws {
+        revealRegion(node("rgroup-native-pair"),app.buttons["Show RadioGroup reference"].firstMatch)
+        let snapshot=try app.snapshot();var all:[XCUIElementSnapshot]=[]
+        func visit(_ value:XCUIElementSnapshot){all.append(value);for child in value.children{visit(child)}};visit(snapshot)
+        func one(_ id:String)->XCUIElementSnapshot? {let values=all.filter{$0.identifier==id};XCTAssertLessThanOrEqual(values.count,1,id);return values.first}
+        let row=try XCTUnwrap(JSONSerialization.jsonObject(with:Data(try XCTUnwrap(one("rgroup-native-state")).label.utf8)) as? [String:Any])
+        let window=try XCTUnwrap(all.first{$0.elementType == .window}).frame,parent=try XCTUnwrap(one("rgroup-native-parent")).frame,reference=try XCTUnwrap(one("rgroup-native-reference-parent")).frame
+        let root=one("rgroup-native-root"),raw=one("rgroup-native-reference"),shot=XCUIScreen.main.screenshot(),image=try XCTUnwrap(shot.image.cgImage),scale=CGFloat(image.width)/window.width
+        XCTAssertEqual(shot.image.imageOrientation,.up);XCTAssertEqual(scale,CGFloat(image.height)/window.height,accuracy:0.01)
+        let actual=try pixels(image,parent,window,scale),separated=try pixels(image,reference,window,scale)
+        tap("Show RadioGroup reference");wait("Native reference at matched origin"){(try? self.state()["referenceAtOrigin"] as? Bool)==true}
+        let frame=node("rgroup-native-reference-parent").frame;XCTAssertTrue(toggleButtonMatchedFrame(rect(parent),rect(frame),Double(scale)))
+        let referenceShot=XCUIScreen.main.screenshot(),expected=try pixels(try XCTUnwrap(referenceShot.image.cgImage),frame,window,scale)
+        let matched=XCTAttachment(screenshot:referenceShot);matched.name="rgroup-"+name+"-matched-reference";matched.lifetime = .keepAlways;add(matched)
+        tap("Show RadioGroup component");wait("Original RadioGroup shown again"){(try? self.state()["referenceAtOrigin"] as? Bool)==false}
+        XCTAssertEqual(try state()["rootTag"] as? NSNumber,row["rootTag"] as? NSNumber)
+        var ink=0;for i in stride(from:0,to:actual.count,by:4){if actual[i] != 255 || actual[i+1] != 255 || actual[i+2] != 255{ink+=1}}
+        var members:[[String:Any]]=[]
+        let ids=(row["nested"] as? Bool==true) ? ["alpha","nested","other"]:["alpha","beta"]
+        for id in ids {
+            guard let target=one("rgroup-native-"+id),let item=one("rgroup-reference-"+id) else{continue}
+            members.append(["id":id,"label":target.label,"value":target.value ?? NSNull(),"enabled":target.isEnabled,"relativeFrame":[Double(target.frame.minX-parent.minX),Double(target.frame.minY-parent.minY),Double(target.frame.width),Double(target.frame.height)],"referenceRelativeFrame":[Double(item.frame.minX-reference.minX),Double(item.frame.minY-reference.minY),Double(item.frame.width),Double(item.frame.height)]])
+        }
+        let exact=circularPixelsMatch(actual,expected)
+        let observed:[String:Any]=["name":name,"state":row,"parent":rect(parent),"referenceParent":rect(reference),"matchedReferenceParent":rect(frame),"root":root.map{rect($0.frame)} ?? [],"referenceRoot":raw.map{rect($0.frame)} ?? [],"nativeRootLabel":root?.label ?? "","nativeRootValue":root?.value ?? NSNull(),"nativeRootEnabled":root?.isEnabled ?? false,"nativeRootType":root.map{Int($0.elementType.rawValue)} ?? -1,"members":members,"referenceExact":exact,"separatedReferenceExact":circularPixelsMatch(actual,separated),"rawReferencePositionDiffers":!circularPixelsMatch(separated,expected),"inkPixels":ink,"scale":Double(scale),"imageWidth":image.width,"imageHeight":image.height]
+        let data=try JSONSerialization.data(withJSONObject:observed,options:.sortedKeys);FileHandle.standardOutput.write(Data("RADIO_GROUP_NATIVE_OBSERVATION ".utf8)+data+Data("\n".utf8))
+        let attachment=XCTAttachment(data:data,uniformTypeIdentifier:"public.json");attachment.name="rgroup-"+name+"-receipt";attachment.lifetime = .keepAlways;add(attachment)
+        let png=XCTAttachment(screenshot:shot);png.name="rgroup-"+name;png.lifetime = .keepAlways;add(png)
+        XCTAssertTrue(exact,"RadioGroup differs from independent raw native reference")
+        if row["visible"] as? Bool==false {XCTAssertNil(root);XCTAssertTrue(row["rootTag"] is NSNull);XCTAssertEqual(ink,0);XCTAssertTrue(members.isEmpty);return}
+        let event=try XCTUnwrap((row["layouts"] as? [[String:Any]])?.last),layout=try XCTUnwrap(event["layout"] as? [String:Any]),tag=try number(row,"rootTag")
+        XCTAssertGreaterThan(tag,0);XCTAssertEqual(try number(event,"target"),tag);XCTAssertEqual(try number(event,"currentTarget"),tag)
+        if row["zero"] as? Bool==true {
+            XCTAssertEqual(try number(layout,"width"),0);XCTAssertEqual(try number(layout,"height"),0);XCTAssertEqual(ink,0)
+            for element in [root,raw].compactMap({$0}){XCTAssertEqual(element.frame.width,0);XCTAssertEqual(element.frame.height,0)}
+            return
+        }
+        let target=try XCTUnwrap(root),nativeReference=try XCTUnwrap(raw)
+        XCTAssertTrue(toggleButtonMatchedFrame([Double(target.frame.minX-parent.minX),Double(target.frame.minY-parent.minY),Double(target.frame.width),Double(target.frame.height)],[Double(nativeReference.frame.minX-reference.minX),Double(nativeReference.frame.minY-reference.minY),Double(nativeReference.frame.width),Double(nativeReference.frame.height)],Double(scale)))
+        XCTAssertEqual(target.frame.width,try number(layout,"width"),accuracy:1/scale);XCTAssertEqual(target.frame.height,try number(layout,"height"),accuracy:1/scale)
+        let selected=row["value"] as? String,values=try XCTUnwrap(row["values"] as? [String:String])
+        var states:[String:Bool]=["alpha":selected != nil && selected==values["alpha"],"beta":selected=="beta"]
+        if row["nested"] as? Bool==true {states=["alpha":selected != nil && selected==values["alpha"],"nested":row["nestedValue"] as? String=="nested","other":row["nestedValue"] as? String=="other"]}
+        let labels=try XCTUnwrap(row["labels"] as? [String:String]);XCTAssertTrue(radioGroupMembersMatch(members,states,labels,row["disabled"] as? Bool==true,Double(scale)))
+        XCTAssertEqual(all.filter{($0.value as? String)?.hasPrefix("radio button, ")==true}.count,ids.count,"Only members own checkbox targets")
+        if row["narrow"] as? Bool==true {XCTAssertGreaterThan((members.first?["relativeFrame"] as? [Double])?[3] ?? 0,44);XCTAssertLessThanOrEqual(target.frame.maxY,parent.maxY-12+1/scale)}
+    }
+    private func activate(_ id:String,_ name:String) throws {
+        let before=try XCTUnwrap(state()["phases"] as? [String]).count,tag=try XCTUnwrap(checkboxGroupMemberTag(try state()["memberTags"],id)),target=node("rgroup-native-"+id);reveal(target);target.tap()
+        wait("Actual native radio group callback"){((try? self.state()["phases"] as? [String]) ?? []).count>before};let event=try XCTUnwrap((state()["events"] as? [[String:Any]])?.last);XCTAssertEqual(event["currentTarget"] as? NSNumber,tag);XCTAssertGreaterThan(try number(event,"target"),0);try capture(name)
+    }
+    func testRadioGroupActionsAndLifetimes() throws {
+        tap("RadioGroup behavior checks");var original=0.0
+        for name in behavior {
+            wait("Current RadioGroup case "+name){(try? self.state()["case"] as? String)==name};if name != "retired"{ready()};try capture(name)
+            if name=="baseline" {original=try number(state(),"rootTag");try activate("alpha","veto-1");try activate("alpha","veto-2");XCTAssertTrue(try state()["value"] is NSNull)}
+            if name=="echo" {try activate("beta","echo-beta");try activate("alpha","echo-alpha");XCTAssertEqual(try state()["value"] as? String,"alpha")}
+            if name=="reselected" {let before=try state()["requests"] as? [String];try activate("alpha","reselected-alpha");XCTAssertEqual(try state()["requests"] as? [String],before)}
+            if ["disabled","readonly"].contains(name) {let before=try XCTUnwrap(state()["phases"] as? [String]);for id in ["alpha","beta"]{let target=node("rgroup-native-"+id);reveal(target);target.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.5)).tap();Thread.sleep(forTimeInterval:0.4);XCTAssertEqual(try state()["phases"] as? [String],before)}}
+            if ["echo","reselected","disabled","readonly","renderer","nested"].contains(name){XCTAssertEqual(try number(state(),"rootTag"),original)}
+            if name=="nested" {let before=try state()["requests"] as? [String];try activate("other","nested-other");XCTAssertEqual(try state()["requests"] as? [String],before);XCTAssertEqual(try state()["nestedValue"] as? String,"other");XCTAssertEqual(try state()["value"] as? String,"alpha")}
+            if ["replacement","fresh"].contains(name){XCTAssertNotEqual(try number(state(),"rootTag"),original)}
+            if name=="local" {try activate("alpha","local-alpha")}
+            if name=="default-changed" {XCTAssertEqual(try state()["value"] as? String,"alpha")}
+            if name=="empty-value" {try activate("alpha","empty-selected");XCTAssertEqual(try state()["value"] as? String,"");let before=try state()["requests"] as? [String];try activate("alpha","empty-reselected");XCTAssertEqual(try state()["requests"] as? [String],before)}
+            if name != behavior.last {tap("Next RadioGroup check")}
+        }
+        let row=try state();XCTAssertEqual(row["requests"] as? [String],["alpha","alpha","beta","alpha","alpha",""])
+        let expected=["group:root","press:alpha","group:root","press:alpha","group:root","press:beta","group:root","press:alpha","press:alpha","nested:other","press:other","group:root","press:alpha","group:root","press:alpha","press:alpha"]
+        XCTAssertEqual(row["phases"] as? [String],expected);let events=try XCTUnwrap(row["events"] as? [[String:Any]]).filter{$0["phase"] as? String=="press"};XCTAssertEqual(events.count,9);XCTAssertTrue(events.allSatisfy{(($0["target"] as? NSNumber)?.doubleValue ?? 0)>0 && (($0["currentTarget"] as? NSNumber)?.doubleValue ?? 0)>0})
+    }
+    func testRadioGroupStylesAndConstraints() throws {
+        tap("RadioGroup styles checks")
+        for name in styles {
+            wait("Current RadioGroup style "+name){(try? self.state()["case"] as? String)==name};ready()
+            if name=="dark"{tap("Dark theme");wait("Current dark group provider"){(try? self.state()["themeMode"] as? String)=="dark"}}
+            if name=="light-restored"{tap("Light theme");wait("Restored light group provider"){(try? self.state()["themeMode"] as? String)=="light"}}
+            try capture(name);if name != styles.last{tap("Next RadioGroup check")}
+        }
+    }
+    private func node(_ id:String)->XCUIElement {app.descendants(matching:.any).matching(identifier:id).firstMatch}
+
+    private func wait(_ message:String,_ predicate:@escaping()->Bool) {
+        let expectation=XCTNSPredicateExpectation(predicate:NSPredicate{_,_ in predicate()},object:nil)
+        XCTAssertEqual(XCTWaiter.wait(for:[expectation],timeout:nativeWorkRemaining()),.completed,message)
+    }
+
+    private func revealRegion(_ first:XCUIElement,_ second:XCUIElement) {
+        XCTAssertTrue(first.waitForExistence(timeout:nativeWorkRemaining()));XCTAssertTrue(second.waitForExistence(timeout:nativeWorkRemaining()));let scroll=app.scrollViews.firstMatch
+        for _ in 0..<24 {
+            let viewport=app.windows.firstMatch.frame.intersection(scroll.frame).insetBy(dx:2,dy:2),frame=first.frame.union(second.frame)
+            if !frame.isEmpty && viewport.contains(frame){return}
+            guard let distance=galleryScrollFraction(Double(frame.minY),Double(frame.height),Double(viewport.minY),Double(viewport.height)),distance != 0 else{XCTFail("RadioGroup canvas and its control cannot fit the actual viewport");return}
+            let start:CGFloat=distance>0 ? 0.75:0.30
+            scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:start)).press(forDuration:0.05,thenDragTo:scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:start-CGFloat(distance))),withVelocity:.slow,thenHoldForDuration:0.25)
+        };XCTFail("RadioGroup canvas/control unreachable")
+    }
+
+    private func reveal(_ element:XCUIElement) {
+        XCTAssertTrue(element.waitForExistence(timeout:nativeWorkRemaining()));let scroll=app.scrollViews.firstMatch;XCTAssertTrue(scroll.exists)
+        for _ in 0..<24 {
+            let viewport=app.windows.firstMatch.frame.intersection(scroll.frame).insetBy(dx:2,dy:2)
+            if !element.frame.isEmpty && viewport.contains(element.frame){return}
+            guard let distance=galleryScrollFraction(Double(element.frame.minY),Double(element.frame.height),Double(viewport.minY),Double(viewport.height)),distance != 0 else{XCTFail("RadioGroup target cannot fit measured viewport");return}
+            let start:CGFloat=distance>0 ? 0.75:0.30
+            let trace:[String:Any]=["target":element.identifier,"frame":rect(element.frame),"viewport":rect(viewport),"requestedFraction":distance]
+            if let data=try? JSONSerialization.data(withJSONObject:trace,options:.sortedKeys){FileHandle.standardOutput.write(Data("SWITCH_SCROLL ".utf8)+data+Data("\n".utf8))}
+            scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:start)).press(forDuration:0.05,thenDragTo:scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:start-CGFloat(distance))),withVelocity:.slow,thenHoldForDuration:0.25)
+        };XCTFail("Unreachable RadioGroup control/canvas "+element.identifier)
+    }
+
+    private func tap(_ name:String) {
+        let control=app.buttons.matching(NSPredicate(format:"label == %@",name)).firstMatch;reveal(control);XCTAssertTrue(control.isHittable);control.tap()
+        if name=="Select scene"{wait("Actual selected RadioGroup scene"){control.isSelected}}
+    }
+
+    private func pixels(_ image:CGImage,_ frame:CGRect,_ window:CGRect,_ scale:CGFloat) throws -> [UInt8] {
+        XCTAssertTrue(window.contains(frame));let rect=CGRect(x:((frame.minX-window.minX)*scale).rounded(),y:((frame.minY-window.minY)*scale).rounded(),width:(frame.width*scale).rounded(),height:(frame.height*scale).rounded())
+        let crop=try XCTUnwrap(image.cropping(to:rect));var bytes=[UInt8](repeating:0,count:crop.width*crop.height*4)
+        let result=bytes.withUnsafeMutableBytes { buffer -> Bool in
+            guard let context=CGContext(data:buffer.baseAddress,width:crop.width,height:crop.height,bitsPerComponent:8,bytesPerRow:crop.width*4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue|CGBitmapInfo.byteOrder32Big.rawValue) else{return false}
+            context.draw(crop,in:CGRect(x:0,y:0,width:CGFloat(crop.width),height:CGFloat(crop.height)));return true
+        };XCTAssertTrue(result);return bytes
+    }
+}

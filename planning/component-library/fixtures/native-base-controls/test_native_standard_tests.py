@@ -873,6 +873,65 @@ class CheckboxGroupControls(unittest.TestCase):
         self.assertIn('"checkboxGroupTagCases":8',NATIVE.geometry_control_source())
 
 
+class RadioGroupControls(unittest.TestCase):
+    def rows(self):
+        seed=CheckboxGroupControls().rows()[0];rows=[]
+        phases=["group:root","press:alpha","group:root","press:alpha","group:root","press:beta","group:root","press:alpha","press:alpha","nested:other","press:other","group:root","press:alpha","group:root","press:alpha","press:alpha"]
+        for name in NATIVE.RADIO_GROUP_BEHAVIOR+NATIVE.RADIO_GROUP_STYLES:
+            row=copy.deepcopy(seed);state=row["state"];nested=name in ["nested","nested-other"];zero=name=="zero";visible=name!="retired";narrow=name=="long-narrow"
+            value="" if name in ["empty-selected","empty-reselected"] else "beta" if name in ["echo-beta","local"] else "alpha" if name in ["echo-alpha","reselected","reselected-alpha","disabled","readonly","renderer","nested","nested-other","replacement","fresh","default-changed","local-alpha","empty-value"] else None
+            tag=None if not visible else 82 if name=="replacement" else 83 if name=="fresh" else 84 if name in ["local","local-alpha","default-changed"] else 85 if name.startswith("empty") else 81
+            width,height=(0,0) if zero else (140,140) if narrow else (200,100)
+            state.update(value=value,rootTag=tag,layouts=[{"target":tag,"currentTarget":tag,"layout":{"width":width,"height":height}}],nested=nested,nestedValue="other" if name=="nested-other" else "nested",visible=visible,zero=zero,narrow=narrow,width=width,disabled=name=="disabled",readonly=name=="readonly",values={"alpha":"" if name.startswith("empty") else "alpha","beta":"beta","nested":"nested","other":"other"},labels={"alpha":"Alpha","beta":"Beta","nested":"Nested","other":"Other"},requests=["alpha","alpha","beta","alpha","alpha",""] if name=="empty-reselected" else ["alpha","alpha","beta","alpha"],phases=phases,events=[{"phase":"press","target":90,"currentTarget":91} for _ in range(9)],themeMode="dark" if name=="dark" else "light")
+            members=[]
+            if visible and not zero:
+                for id in (["alpha","nested","other"] if nested else ["alpha","beta"]):
+                    selected=state["nestedValue"]==state["values"][id] if id in ["nested","other"] else value is not None and value==state["values"][id];frame=[12.0,12.0,106.0,80.0 if narrow and id=="alpha" else 44.0]
+                    members.append({"id":id,"label":state["labels"][id],"value":"radio button, "+("checked" if selected else "unchecked"),"enabled":not state["disabled"] or id in ["nested","other"],"relativeFrame":frame,"referenceRelativeFrame":frame[:]})
+            row.update(name=name,state=state,nativeRootLabel="Notification options",nativeRootValue=None,members=members,root=[32,112,width,height] if visible and not zero else [],referenceRoot=[32,344,width,height] if visible and not zero else [],inkPixels=1000 if visible and not zero else 0);rows.append(row)
+        return rows
+
+    def test_radio_group_reader_nullable_empty_quiet_and_physical_failures(self):
+        rows=self.rows();encode=lambda values:"\n".join("RADIO_GROUP_NATIVE_OBSERVATION "+json.dumps(row) for row in values)
+        self.assertEqual(NATIVE.reconcile_radio_group_ios(encode(rows))["observations"],34)
+        for kind in ["missing","duplicate","paint","role","label","value","enabled","member","pixel","layout-ref","retired-ref","retired-paint","zero-paint","veto","quiet","nested","default","empty","order","callback","provider"]:
+            bad=copy.deepcopy(rows);named={row["name"]:row for row in bad};row=named["baseline"]
+            if kind=="missing":bad.pop()
+            elif kind=="duplicate":bad.append(copy.deepcopy(row))
+            elif kind=="paint":row["referenceExact"]=False
+            elif kind=="role":row["members"][0]["value"]="checkbox, unchecked"
+            elif kind=="label":row["nativeRootLabel"]="Wrong"
+            elif kind=="value":row["state"]["value"]=["alpha"]
+            elif kind=="enabled":row["members"][0]["enabled"]=False
+            elif kind=="member":row["members"].pop()
+            elif kind=="pixel":row["members"][0]["relativeFrame"][0]+=1/3
+            elif kind=="layout-ref":row["state"]["layouts"][0]["currentTarget"]=82
+            elif kind=="retired-ref":named["retired"]["state"]["rootTag"]=81
+            elif kind=="retired-paint":named["retired"]["inkPixels"]=1
+            elif kind=="zero-paint":named["zero"]["inkPixels"]=1
+            elif kind=="veto":named["veto-1"]["state"]["value"]="alpha"
+            elif kind=="quiet":named["reselected-alpha"]["state"]["requests"].append("alpha")
+            elif kind=="nested":named["nested-other"]["state"]["value"]="other"
+            elif kind=="default":named["default-changed"]["state"]["value"]="beta"
+            elif kind=="empty":named["empty-reselected"]["state"]["value"]=None
+            elif kind=="order":named["empty-reselected"]["state"]["phases"].reverse()
+            elif kind=="callback":named["empty-reselected"]["state"]["events"][0]["currentTarget"]=None
+            elif kind=="provider":named["dark"]["state"]["themeMode"]="light"
+            with self.subTest(kind=kind),self.assertRaises((ValueError,TypeError)):NATIVE.reconcile_radio_group_ios(encode(bad))
+        positive=copy.deepcopy(rows);positive[0]["members"][0]["relativeFrame"][2]+=0.0001220703125;NATIVE.reconcile_radio_group_ios(encode(positive))
+
+    def test_radio_group_actual_no_admission_scope_and_compiled_predicates(self):
+        self.assertEqual(NATIVE.selection("ios","radio-group")["ios"],["RadioGroupTrialTests/testRadioGroupActionsAndLifetimes","RadioGroupTrialTests/testRadioGroupStylesAndConstraints"])
+        NATIVE.validate_standard_scope({"cell":"CAT.radio-group.G08","nativeStandard":{"batch":"radio-group"}})
+        for cell in ["CAT.combo-box.G08","CAT.radio-group.G07","CAT.checkbox-group.G08"]:
+            with self.assertRaises(ValueError):NATIVE.validate_standard_scope({"cell":cell,"nativeStandard":{"batch":"radio-group"}})
+        with self.assertRaises(ValueError):NATIVE.selection("android","radio-group")
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);p=root/"plan.json";p.write_text(json.dumps({"cell":"CAT.radio-group.G08","nativeStandard":{"platform":"ios","batch":"radio-group","output":str(root/"never-created")}}));env={k:v for k,v in os.environ.items() if k!="CODON_NATIVE_CELL_PREFLIGHT_RECEIPT"}
+            result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(p)],env=env,capture_output=True,text=True,timeout=10);self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((root/"never-created").exists())
+        source=NATIVE.geometry_control_source();self.assertIn('"radioGroupCases":14',source);self.assertIn("func radioGroupMembersMatch",source)
+
+
 class AvatarControls(unittest.TestCase):
     def row(self):
         return {"name":"baseline","state":{"scale":3,"visible":True,"size":30,"rootTag":81,"layouts":[{"target":81,"currentTarget":81,"layout":{"width":30,"height":30}}],"interactive":True,"disabled":False,"label":"Alice Smith","imageMode":"none","delayed":False},"scale":3,"parent":[20,100,280,128],"referenceParent":[20,236,280,128],"root":[32,112,30,30],"referenceRoot":[32,248,30,30],"nativeType":9,"nativeLabel":"Alice Smith","nativeEnabled":True,"targetCount":1,"referenceExact":True,"inkPixels":1000,"imageWidth":1170,"imageHeight":2532,"early":False,"captureEpochMs":9000}

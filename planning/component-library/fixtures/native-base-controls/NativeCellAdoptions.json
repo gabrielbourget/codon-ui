@@ -205,6 +205,13 @@
         "sha256": "dd8a89e08ddf73e5ebdf5e93e5ab8d78805073af93d49816d22044d798f67635",
         "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/checkbox-group-after-checkbox-20261107/checkbox-group-G08-completion.json"
       }
+    },
+    "CAT.radio-group.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/radio-group-ios-g08-20261107/objects/f12fcca3830604fa13fa7bdf7591ccf37c60901cbac29dd479a1ccdd56992609",
+        "sha256": "f12fcca3830604fa13fa7bdf7591ccf37c60901cbac29dd479a1ccdd56992609",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/radio-group-after-checkbox-group-20261107/radio-group-G08-completion.json"
+      }
     }
   }
 }
