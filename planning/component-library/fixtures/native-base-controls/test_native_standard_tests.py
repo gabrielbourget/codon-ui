@@ -1028,4 +1028,110 @@ class SliderControls(unittest.TestCase):
                 else:bs=bs[:-1];fs=fs[:-1]
                 with self.subTest(kind=kind),self.assertRaises(ValueError):run(bs,fs,cs)
 
+
+class SwitchControls(unittest.TestCase):
+    def row(self):
+        row=ListItemControls().row();row["state"].update(label="Keep settings",rootWidth=200);row.update(nativeLabel="Keep settings",nativeValue="0",nativeSwitch=True,matchedReferenceParent=row["parent"][:]);return row
+
+    def test_switch_actual_fractional_geometry_semantics_and_reference_failures(self):
+        row=self.row();self.assertEqual(NATIVE.validate_switch_rows([row],["baseline"])["observations"],1)
+        fractional=copy.deepcopy(row);fractional["root"][3]=43.9998779296875;fractional["referenceRoot"][3]=43.9998779296875;NATIVE.validate_switch_rows([fractional],["baseline"])
+        for field,value in [("nativeValue","checked"),("nativeValue","1"),("nativeValue",True),("nativeSwitch",False),("nativeLabel","wrong"),("nativeEnabled",False),("targetCount",2),("referenceExact",False),("root",[33,112,200,44]),("scale",float("nan")),("matchedReferenceParent",[20.34,100,280,224]),("parent",[891/3,100,280,224])]:
+            bad=copy.deepcopy(row);bad[field]=value
+            with self.subTest(field=field),self.assertRaises(ValueError):NATIVE.validate_switch_rows([bad],["baseline"])
+        bad=copy.deepcopy(row);bad["state"]["layouts"][0]["currentTarget"]=82
+        with self.assertRaises(ValueError):NATIVE.validate_switch_rows([bad],["baseline"])
+        with self.assertRaises(ValueError):NATIVE.validate_switch_rows([row,row],["baseline"])
+        held=copy.deepcopy(row);held["heldContactIntervals"]=[{"beganEpochMs":1000,"endedEpochMs":2000,"disabledOnPressInEpochMs":1100}];NATIVE.validate_switch_rows([held],["baseline"]);held["heldContactIntervals"][0]["disabledOnPressInEpochMs"]=1800
+        with self.assertRaises(ValueError):NATIVE.validate_switch_rows([held],["baseline"])
+        with self.assertRaises(ValueError):NATIVE.reconcile_switch_ios("")
+
+    def motion(self,reduced=False):
+        names=["select","interrupt","retarget"]+["retarget-"+str(i) for i in range(3,32)]+["settle","retire","fresh"]
+        times=[3000+125*i for i in range(32)]+[7000,8250,10250]
+        samples=[]
+        for start in [3100,3900,7300,8500,10600]:
+            absent=start==8500
+            samples.append({"captureStartedEpochMs":start,"captureEpochMs":start+50,"scale":3,"parent":[20,100,280,224],"referenceParent":[20,332,280,224],"sampleFrame":[32,122,30,1/3],"referenceSampleFrame":[32,354,30,1/3],"imageWidth":1170,"imageHeight":2532,"thumbRun":[] if absent else [0,45] if reduced else [20,43],"referenceThumbRun":[0,45],"sampleRGBA":[] if absent else [17,119,51,255] if reduced else [90,90,42,255],"referenceSampleRGBA":[17,119,51,255],"inkPixels":0 if absent else 200,"referenceInkPixels":0 if absent else 200,"referenceExact":reduced or start>=7300})
+        return {"name":"reduced" if reduced else "normal","reduced":reduced,"movingRows":3,"originalRootTag":81,"state":{"rootTag":90,"visible":True,"layouts":[{"currentTarget":90}],"motionEvents":[reduced],"motionTrace":[{"name":name,"epochMs":at} for name,at in zip(names,times)]},"samples":samples}
+
+    def test_switch_motion_requires_both_real_clocks_endpoints_retirement_and_preference(self):
+        for reduced in [False,True]:self.assertEqual(NATIVE.validate_switch_motion(self.motion(reduced)),5)
+        for kind in ["no-color","no-thumb","wrong-pref","retired-ink","retired-work","fresh-inexact","settled-inexact","reduced-interpolation","stale-ref","outside-pixel","missing-capture","missing-trace","reverse-interval"]:
+            bad=self.motion(kind=="reduced-interpolation")
+            if kind=="no-color":
+                for r in bad["samples"][:3]:r["sampleRGBA"]=[17,119,51,255]
+            elif kind=="no-thumb":
+                for r in bad["samples"][:3]:r["thumbRun"]=[0,45]
+            elif kind=="wrong-pref":bad["state"]["motionEvents"]=[True]
+            elif kind=="retired-ink":bad["samples"][3]["inkPixels"]=1
+            elif kind=="retired-work":bad["samples"][3]["thumbRun"]=[0,45]
+            elif kind=="fresh-inexact":bad["samples"][-1]["referenceExact"]=False
+            elif kind=="settled-inexact":bad["samples"][2]["referenceExact"]=False
+            elif kind=="reduced-interpolation":bad["samples"][0]["referenceExact"]=False
+            elif kind=="stale-ref":bad["state"]["rootTag"]=81
+            elif kind=="outside-pixel":bad["samples"][0]["parent"][0]=1101/3
+            elif kind=="missing-capture":bad["samples"]=bad["samples"][:-1]
+            elif kind=="missing-trace":bad["state"]["motionTrace"].pop()
+            else:bad["samples"][0]["captureEpochMs"]=3000
+            with self.subTest(kind=kind),self.assertRaises(ValueError):NATIVE.validate_switch_motion(bad)
+
+    def test_switch_retirement_waits_for_native_removal_and_rejects_ghosts(self):
+        live={"captureStartedEpochMs":10014,"captureEpochMs":10508,"inkPixels":2201,"referenceInkPixels":2201,"thumbRun":[46,43],"sampleRGBA":[17,119,51,255]}
+        gone={"captureStartedEpochMs":10633,"captureEpochMs":11075,"inkPixels":0,"referenceInkPixels":0,"thumbRun":[],"sampleRGBA":[]}
+        self.assertEqual(NATIVE.validate_switch_retirement([live,gone],10000,13000),{"pendingNativeCommitFrames":1,"verifiedAbsentFrames":1})
+        for kind in ["live-only","ghost","reference-reappears","residual-gray","false-thumb","false-color","missing-native-witness"]:
+            bad=[copy.deepcopy(live),copy.deepcopy(gone)]
+            if kind=="live-only":bad=bad[:1]
+            elif kind=="ghost":bad[-1]["inkPixels"]=2201
+            elif kind=="reference-reappears":bad.append(dict(gone,captureStartedEpochMs=11200,captureEpochMs=11700,referenceInkPixels=2201))
+            elif kind=="residual-gray":bad[-1]["inkPixels"]=1
+            elif kind=="false-thumb":bad[-1]["thumbRun"]=[1,43]
+            elif kind=="false-color":bad[-1]["sampleRGBA"]=[17,119,51,255]
+            else:bad[-1].pop("referenceInkPixels")
+            with self.subTest(kind=kind),self.assertRaises(ValueError):NATIVE.validate_switch_retirement(bad,10000,13000)
+
+    def test_source_check_reuses_overall_owner_and_propagates_exit_timeout_cleanup(self):
+        from NativeCellVerification import execute_source_check
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp)
+            for name,code,expected in [("normal","print('source-ok')",0),("failed","raise SystemExit(7)",7),("timeout","import time; time.sleep(30)",1)]:
+                output=root/name
+                result=execute_source_check([sys.executable,"-c",code],output,12,3)
+                self.assertEqual(result,expected)
+                report=json.loads((output/"terminal.json").read_text());self.assertTrue(report["cleanupVerified"]);self.assertLess(report["elapsedSeconds"],12)
+                self.assertEqual(report["commands"][0]["explicitCapSeconds"],None)
+                self.assertGreater(int(report["argv"][-1]),0);self.assertLessEqual(int(report["argv"][-1]),1000)
+                self.assertEqual(report["status"]=="PASS",expected==0)
+                if name=="timeout":self.assertTrue(report["commands"][0]["timedOut"])
+
+    def test_source_selection_uses_only_literal_titles_and_rejects_stopped_cells(self):
+        from NativeCellVerification import source_test_selection
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp)/"__tests__";root.mkdir();file=root/"Shared.test.tsx";file.write_text("CONTROL")
+            plan={"files":[{"path":str(file),"sha256":NATIVE.digest(file)}],"workspace":"@codon-ui/native-showcase","titles":["Switch (a|b) checks","basic controls"],"stoppedTitleFragments":["ComboBox"]}
+            argv=source_test_selection(plan);pattern=argv[argv.index("--testNamePattern")+1]
+            self.assertIsNotNone(re.fullmatch(pattern,"Switch (a|b) checks"));self.assertIsNone(re.search(pattern,"opens ComboBox and basic controls"));self.assertIsNone(re.search(pattern,"prefix basic controls"))
+            for titles in [[],["opens the public ComboBox scene"],["basic controls","basic controls"]]:
+                with self.subTest(titles=titles),self.assertRaises(ValueError):source_test_selection(dict(plan,titles=titles))
+            with self.assertRaises(ValueError):source_test_selection(dict(plan,titles=["opens ComboBox"],stoppedTitleFragments=["other stopped cell"]))
+            refused=root/"refused.json";refused.write_text(json.dumps(dict(plan,titles=["opens ComboBox"])));receipt=root/"rejected.json"
+            result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeCellVerification.py"),"--source-selection",str(refused),"--receipt",str(receipt),"--run"],capture_output=True,text=True,timeout=10)
+            self.assertEqual(result.returncode,2);self.assertEqual(json.loads(receipt.read_text())["status"],"REJECTED");self.assertNotIn("jest --config",result.stdout)
+            file.write_text("CHANGED")
+            with self.assertRaises(ValueError):source_test_selection(plan)
+
+    def test_switch_scope_compiled_selection_and_no_admission_entry(self):
+        NATIVE.validate_standard_scope({"cell":"CAT.switch.G08","nativeStandard":{"batch":"switch"}})
+        self.assertEqual(NATIVE.selection("ios","switch")["ios"],["SwitchTrialTests/testSwitchActionsAndLifetimes","SwitchTrialTests/testSwitchStylesAndConstraints","SwitchTrialTests/testSwitchMotionAndRetirement"])
+        with self.assertRaises(ValueError):NATIVE.selection("android","switch")
+        with self.assertRaises(ValueError):NATIVE.reconcile_switch_ios("",{"batch":"switch-motion","retainedSwitchStaticMethods":{"path":"/not/a/proof","sha256":"0"*64}})
+        for cell in ["CAT.combo-box.G08","CAT.switch.G07","CAT.radio.G08"]:
+            with self.assertRaises(ValueError):NATIVE.validate_standard_scope({"cell":cell,"nativeStandard":{"batch":"switch"}})
+        controls=NATIVE.geometry_control_source();self.assertIn("switchNativeValueMatches",controls);self.assertIn("switchTrackSamples",controls);self.assertIn("switchThumbIntermediate",controls);self.assertIn('"switchThumbCases":11',controls);self.assertIn("switchEndpointCoverage",controls);self.assertIn('"switchEndpointCases":10',controls);self.assertIn("switchRetirementCoverage",controls);self.assertIn('"switchRetirementCases":14',controls)
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);plan=root/"plan.json";plan.write_text(json.dumps({"cell":"CAT.switch.G08","nativeStandard":{"platform":"ios","batch":"switch","output":str(root/"never-created")}}));env={k:v for k,v in os.environ.items() if k!="CODON_NATIVE_CELL_PREFLIGHT_RECEIPT"}
+            result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(plan)],env=env,capture_output=True,text=True,timeout=10)
+            self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((root/"never-created").exists())
+
 if __name__ == "__main__": unittest.main()

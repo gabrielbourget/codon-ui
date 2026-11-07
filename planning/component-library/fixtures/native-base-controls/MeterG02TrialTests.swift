@@ -2981,3 +2981,225 @@ final class SliderHitLayoutTrialTests: XCTestCase {
         try exerciseRotatedContact(atCorner: true)
     }
 }
+
+private func switchNativeValueMatches(_ value:Any?,_ selected:Bool)->Bool {
+    if let text=value as? String {return text == (selected ? "1":"0")}
+    if let number=value as? NSNumber {return number.doubleValue.isFinite && number.doubleValue == (selected ? 1:0)}
+    return false
+}
+
+private func switchTrackSamples(_ bytes:[UInt8])->([Int],[Int])? {
+    guard !bytes.isEmpty,bytes.count%4==0 else{return nil}
+    var best:[Int]=[],start:Int?=nil,palette:[String:Int]=[:],colors:[String:[Int]]=[:]
+    for x in 0...bytes.count/4 {
+        let white=x<bytes.count/4 && Array(bytes[(x*4)..<(x*4+4)]) == [255,255,255,255]
+        if white {if start==nil {start=x}}else if let first=start {if best.isEmpty || x-first>best[1] {best=[first,x-first]};start=nil}
+        if x<bytes.count/4 && !white {let rgba=Array(bytes[(x*4)..<(x*4+4)]).map(Int.init);let key=rgba.map(String.init).joined(separator:",");palette[key,default:0]+=1;colors[key]=rgba}
+    }
+    guard !best.isEmpty,let key=palette.max(by:{$0.value<$1.value})?.key,let color=colors[key] else{return nil}
+    return (best,color)
+}
+
+private func switchThumbIntermediate(_ row:[String:Any])->Bool {
+    guard let run=row["thumbRun"] as? [Int],run.count==2,let scale=row["scale"] as? Double,scale.isFinite,scale>0 else{return false}
+    return run[0]>1 && Double(run[0])<15*scale-1
+}
+
+private func switchEndpointCoverage(_ samples:[[String:Any]],_ settle:Double,_ retire:Double,_ fresh:Double)->Bool {
+    guard settle.isFinite,retire.isFinite,fresh.isFinite,settle+250<retire,retire<fresh else{return false}
+    guard samples.allSatisfy({row in guard let start=row["captureStartedEpochMs"] as? Double,let end=row["captureEpochMs"] as? Double else{return false};return start.isFinite && end.isFinite && start<=end}) else{return false}
+    let settled=samples.filter{($0["captureStartedEpochMs"] as? Double ?? -.infinity)>=settle+250 && ($0["captureEpochMs"] as? Double ?? .infinity)<retire}
+    let current=samples.filter{($0["captureStartedEpochMs"] as? Double ?? -.infinity)>=fresh+250}
+    return !settled.isEmpty && !current.isEmpty && (settled+current).allSatisfy{$0["referenceExact"] as? Bool==true}
+}
+
+private func switchRetirementCoverage(_ samples:[[String:Any]],_ retire:Double,_ fresh:Double)->Bool {
+    guard retire.isFinite,fresh.isFinite,retire<fresh else{return false}
+    guard samples.allSatisfy({row in guard let start=row["captureStartedEpochMs"] as? Double,let end=row["captureEpochMs"] as? Double else{return false};return start.isFinite && end.isFinite && start<=end}) else{return false}
+    let candidates=samples.filter{($0["captureStartedEpochMs"] as? Double ?? -.infinity)>=retire && ($0["captureEpochMs"] as? Double ?? .infinity)<fresh}
+    guard candidates.allSatisfy({row in guard let actual=row["inkPixels"] as? Int,let reference=row["referenceInkPixels"] as? Int else{return false};return actual>=0 && reference>=0}),let first=candidates.firstIndex(where:{$0["referenceInkPixels"] as? Int==0}) else{return false}
+    return candidates[first...].allSatisfy{$0["referenceInkPixels"] as? Int==0 && $0["inkPixels"] as? Int==0 && $0["thumbRun"] as? [Int]==[] && $0["sampleRGBA"] as? [Int]==[]}
+}
+
+final class SwitchTrialTests: XCTestCase {
+    private var app:XCUIApplication!
+    private var heldIntervals:[[String:Double]]=[]
+    private let behavior=["baseline","echo","disabled","readonly","held-disabled","restored","renderer","replaced","retired","fresh","local","local-default-changed"]
+    private let styles=["style-baseline","selected","border","inverted","primary","root-custom","final-style","parts-custom","authored-left","orthogonal","round","icons","long-narrow","fractional","percentage","track-small","root-small","zero","dark","light-restored"]
+    override func setUpWithError() throws {
+        continueAfterFailure=false;app=XCUIApplication(bundleIdentifier:"dev.codonui.showcase");app.launch();XCTAssertEqual(app.state,.runningForeground);XCUIDevice.shared.orientation = .portrait
+        tap("Reset scene");tap("Basic controls scene");tap("Light theme");tap("Live window");tap("Prepare standalone Switch checks")
+    }
+    override func tearDownWithError() throws {
+        let png=XCTAttachment(screenshot:XCUIScreen.main.screenshot());png.name="switch-final";png.lifetime = .keepAlways;add(png)
+        let tree=XCTAttachment(string:app.debugDescription);tree.name="switch-final-hierarchy";tree.lifetime = .keepAlways;add(tree)
+    }
+    private func state() throws->[String:Any] {try XCTUnwrap(JSONSerialization.jsonObject(with:Data(node("switch-native-state").label.utf8)) as? [String:Any])}
+    private func number(_ row:[String:Any],_ key:String)throws->Double {let value=try XCTUnwrap(row[key] as? NSNumber,key).doubleValue;XCTAssertTrue(value.isFinite);return value}
+    private func rect(_ value:CGRect)->[Double] {[value.minX,value.minY,value.width,value.height].map(Double.init)}
+    private func ready() {wait("Actual current Switch root/ref/layout") {guard let row=try? self.state(),let events=row["layouts"] as? [[String:Any]],let event=events.last else{return false};return (row["rootTag"] as? NSNumber)?.doubleValue == (event["currentTarget"] as? NSNumber)?.doubleValue}}
+    private func mark(_ name:String,_ row:[String:Any],_ shot:XCUIScreenshot,prefix:String="SWITCH_NATIVE_OBSERVATION") throws {
+        let data=try JSONSerialization.data(withJSONObject:row,options:.sortedKeys);FileHandle.standardOutput.write(Data((prefix+" ").utf8)+data+Data("\n".utf8));let attachment=XCTAttachment(data:data,uniformTypeIdentifier:"public.json");attachment.name="switch-"+name+"-receipt";attachment.lifetime = .keepAlways;add(attachment);let png=XCTAttachment(screenshot:shot);png.name="switch-"+name;png.lifetime = .keepAlways;add(png)
+    }
+    private func capture(_ name:String) throws {
+        let pair=node("switch-native-pair"),control=app.buttons["Show Switch reference"].firstMatch
+        revealRegion(pair,control)
+        XCTAssertTrue(control.isHittable && app.windows.firstMatch.frame.contains(control.frame),"Reference control must be visible before capture")
+        let snapshot=try app.snapshot();var all:[XCUIElementSnapshot]=[]
+        func visit(_ value:XCUIElementSnapshot){all.append(value);for child in value.children{visit(child)}};visit(snapshot)
+        func one(_ id:String)->XCUIElementSnapshot? {let values=all.filter{$0.identifier==id};XCTAssertLessThanOrEqual(values.count,1,id);return values.first}
+        let row=try XCTUnwrap(JSONSerialization.jsonObject(with:Data(try XCTUnwrap(one("switch-native-state")).label.utf8)) as? [String:Any]),window=try XCTUnwrap(all.first{$0.elementType == .window}).frame,parent=try XCTUnwrap(one("switch-native-parent")).frame,reference=try XCTUnwrap(one("switch-native-reference-parent")).frame,root=one("switch-native-target"),raw=one("switch-native-reference"),shot=XCUIScreen.main.screenshot(),image=try XCTUnwrap(shot.image.cgImage),scale=CGFloat(image.width)/window.width
+        XCTAssertEqual(shot.image.imageOrientation,.up);XCTAssertEqual(scale,CGFloat(image.height)/window.height,accuracy:0.01)
+        let actual=try pixels(image,parent,window,scale),separated=try pixels(image,reference,window,scale)
+        control.tap();wait("Actual reference at original screen origin"){(try? self.state()["referenceAtOrigin"] as? Bool)==true}
+        let frame=node("switch-native-reference-parent").frame
+        XCTAssertTrue(toggleButtonMatchedFrame(rect(parent),rect(frame),Double(scale)))
+        XCTAssertTrue(toggleButtonMatchedFrame(rect(parent),rect(node("switch-native-parent").frame),Double(scale)))
+        let referenceShot=XCUIScreen.main.screenshot(),referenceImage=try XCTUnwrap(referenceShot.image.cgImage),expected=try pixels(referenceImage,frame,window,scale)
+        let attachment=XCTAttachment(screenshot:referenceShot);attachment.name="switch-"+name+"-matched-reference";attachment.lifetime = .keepAlways;add(attachment)
+        tap("Show Switch component");wait("Original Switch visible again"){(try? self.state()["referenceAtOrigin"] as? Bool)==false}
+        XCTAssertEqual(try state()["rootTag"] as? NSNumber,row["rootTag"] as? NSNumber)
+        var ink=0;for i in stride(from:0,to:actual.count,by:4){if actual[i] != 255 || actual[i+1] != 255 || actual[i+2] != 255{ink+=1}}
+        let exact=circularPixelsMatch(actual,expected)
+        let observed:[String:Any]=["name":name,"state":row,"parent":rect(parent),"referenceParent":rect(reference),"matchedReferenceParent":rect(frame),"root":root.map{rect($0.frame)} ?? [],"referenceRoot":raw.map{rect($0.frame)} ?? [],"nativeLabel":root?.label ?? "","nativeValue":root?.value ?? NSNull(),"nativeSwitch":root?.elementType == .switch,"nativeType":root.map{Int($0.elementType.rawValue)} ?? -1,"nativeEnabled":root?.isEnabled ?? false,"heldContactIntervals":heldIntervals,"targetCount":all.filter{$0.identifier=="switch-native-target"}.count,"referenceExact":exact,"separatedReferenceExact":circularPixelsMatch(actual,separated),"rawReferencePositionDiffers":!circularPixelsMatch(separated,expected),"inkPixels":ink,"scale":Double(scale),"imageWidth":image.width,"imageHeight":image.height]
+        try mark(name,observed,shot);XCTAssertTrue(exact,"Switch differs from independent raw native reference at the same physical position")
+        if row["visible"] as? Bool==false {XCTAssertNil(root);XCTAssertTrue(row["rootTag"] is NSNull);XCTAssertEqual(ink,0);return}
+        let event=try XCTUnwrap((row["layouts"] as? [[String:Any]])?.last),layout=try XCTUnwrap(event["layout"] as? [String:Any]),tag=try number(row,"rootTag")
+        XCTAssertGreaterThan(tag,0);XCTAssertEqual(try number(event,"target"),tag);XCTAssertEqual(try number(event,"currentTarget"),tag)
+        if row["zero"] as? Bool==true {XCTAssertEqual(try number(layout,"width"),0);XCTAssertEqual(try number(layout,"height"),0);XCTAssertEqual(ink,0);return}
+        let target=try XCTUnwrap(root),nativeReference=try XCTUnwrap(raw)
+        XCTAssertEqual(target.elementType,.switch);XCTAssertEqual(target.label,"Keep settings");XCTAssertEqual(target.isEnabled,!(row["disabled"] as? Bool ?? false));XCTAssertTrue(switchNativeValueMatches(target.value,row["selected"] as? Bool==true))
+        for (actual,expected) in zip([target.frame.minX-parent.minX,target.frame.minY-parent.minY,target.frame.width,target.frame.height],[nativeReference.frame.minX-reference.minX,nativeReference.frame.minY-reference.minY,nativeReference.frame.width,nativeReference.frame.height]){XCTAssertEqual(actual,expected,accuracy:1/scale)}
+        XCTAssertEqual(target.frame.width,try number(layout,"width"),accuracy:1/scale);XCTAssertEqual(target.frame.height,try number(layout,"height"),accuracy:1/scale)
+        if let width=row["rootWidth"] as? NSNumber {XCTAssertEqual(target.frame.width,width.doubleValue,accuracy:1/scale)}
+        if row["small"] as? Bool==true {XCTAssertEqual(target.frame.height,24,accuracy:1/scale)}else{XCTAssertGreaterThanOrEqual(target.frame.height,44-1/scale)}
+        if row["narrow"] as? Bool==true {XCTAssertGreaterThan(target.frame.height,44);XCTAssertLessThanOrEqual(target.frame.maxY,parent.maxY-12+1/scale)}
+    }
+    func testSwitchActionsAndLifetimes() throws {
+        tap("Switch behavior checks");var original=0.0
+        for name in behavior {
+            wait("Current Switch case "+name){(try? self.state()["case"] as? String)==name};if name != "retired" {ready()};try capture(name)
+            if name=="baseline" {original=try number(state(),"rootTag");for count in 1...2 {let target=node("switch-native-target");reveal(target);target.tap();wait("Native vetoed Switch request"){((try? self.state()["actions"] as? NSNumber)?.intValue ?? 0)==count};XCTAssertEqual(try state()["selected"] as? Bool,false);try capture("vetoed-"+String(count))}}
+            if ["echo","restored","local"].contains(name) {
+                let count=name=="restored" ? 1:2
+                for index in 0..<count {let before=try number(state(),"actions"),selected=try state()["selected"] as? Bool==true,target=node("switch-native-target");reveal(target);target.tap();wait("Original native Switch activation"){((try? self.state()["actions"] as? NSNumber)?.doubleValue ?? -1)==before+1};XCTAssertEqual(try state()["selected"] as? Bool,!selected);try capture(name+"-activated-"+String(index))}
+            }
+            if ["echo","disabled","readonly","held-disabled","restored","renderer"].contains(name){XCTAssertEqual(try number(state(),"rootTag"),original)}
+            if ["disabled","readonly","held-disabled"].contains(name) {
+                let before=try number(state(),"actions"),target=node("switch-native-target");reveal(target);let began=Date().timeIntervalSince1970*1000;target.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.5)).press(forDuration:name=="held-disabled" ? 1:0)
+                Thread.sleep(forTimeInterval:0.4);XCTAssertEqual(try number(state(),"actions"),before)
+                if name=="held-disabled" {let ended=Date().timeIntervalSince1970*1000,current=try state(),events=try XCTUnwrap(current["events"] as? [[String:Any]]),entry=try XCTUnwrap(events.last{$0["phase"] as? String=="in"});let epoch=try number(entry,"epochMs");XCTAssertGreaterThanOrEqual(epoch,began);XCTAssertLessThan(epoch,ended-400);heldIntervals.append(["beganEpochMs":began,"endedEpochMs":ended,"disabledOnPressInEpochMs":epoch]);XCTAssertEqual(current["canceled"] as? Bool,true);try capture("held-canceled")}
+            }
+            if name=="replaced" || name=="fresh" {XCTAssertNotEqual(try number(state(),"rootTag"),original)}
+            if name=="retired" {let before=try number(state(),"actions");Thread.sleep(forTimeInterval:0.5);XCTAssertEqual(try number(state(),"actions"),before)}
+            if name=="local-default-changed" {XCTAssertEqual(try state()["selected"] as? Bool,false)}
+            if name != behavior.last {tap("Next Switch check")}
+        }
+        let row=try state(),presses=try XCTUnwrap(row["events"] as? [[String:Any]]).filter{$0["phase"] as? String=="press"};XCTAssertEqual(presses.count,7);XCTAssertTrue(presses.prefix(5).allSatisfy{($0["currentTarget"] as? NSNumber)?.doubleValue==original && (($0["target"] as? NSNumber)?.doubleValue ?? 0)>0})
+        XCTAssertEqual(row["requests"] as? [Bool],[true,true,true,false,true,true,false]);XCTAssertEqual(row["phases"] as? [String],(0..<7).flatMap{_ in ["change","press"]})
+    }
+    func testSwitchStylesAndConstraints() throws {
+        tap("Switch styles checks")
+        for name in styles {
+            wait("Current Switch style "+name){(try? self.state()["case"] as? String)==name};ready()
+            if name=="dark" {tap("Dark theme");wait("Actual dark provider"){(try? self.state()["themeMode"] as? String)=="dark"}}
+            if name=="light-restored" {tap("Light theme");wait("Actual light provider"){(try? self.state()["themeMode"] as? String)=="light"}}
+            try capture(name);if name != styles.last {tap("Next Switch check")}
+        }
+    }
+    private func motion(_ name:String,reduced:Bool) throws {
+        revealRegion(node("switch-native-pair"),app.buttons["Arm Switch motion and retirement"].firstMatch);ready();let before=try state(),window=app.windows.firstMatch.frame,parent=node("switch-native-parent").frame,reference=node("switch-native-reference-parent").frame,root=node("switch-native-target").frame,raw=node("switch-native-reference").frame,arm=app.buttons["Arm Switch motion and retirement"].firstMatch
+        XCTAssertTrue(arm.isHittable && window.contains(arm.frame));arm.tap();var samples:[[String:Any]]=[];let until=Date().timeIntervalSince1970+16.4
+        repeat {
+            let started=Date().timeIntervalSince1970*1000,shot=XCUIScreen.main.screenshot(),image=try XCTUnwrap(shot.image.cgImage),scale=CGFloat(image.width)/window.width,actual=try pixels(image,parent,window,scale),expected=try pixels(image,reference,window,scale),line=CGRect(x:root.midX-15,y:root.midY,width:30,height:1/scale),rawLine=CGRect(x:raw.midX-15,y:raw.midY,width:30,height:1/scale),track=try pixels(image,line,window,scale),rawTrack=try pixels(image,rawLine,window,scale)
+            var ink=0;for i in stride(from:0,to:actual.count,by:4){if actual[i] != 255 || actual[i+1] != 255 || actual[i+2] != 255{ink+=1}}
+            var referenceInk=0;for i in stride(from:0,to:expected.count,by:4){if expected[i] != 255 || expected[i+1] != 255 || expected[i+2] != 255{referenceInk+=1}}
+            let observed=switchTrackSamples(track),endpoint=switchTrackSamples(rawTrack)
+            let row:[String:Any]=["name":name+"-"+String(samples.count),"captureStartedEpochMs":started,"captureEpochMs":Date().timeIntervalSince1970*1000,"parent":rect(parent),"referenceParent":rect(reference),"sampleFrame":rect(line),"referenceSampleFrame":rect(rawLine),"referenceExact":circularPixelsMatch(actual,expected),"thumbRun":ink==0 ? []:observed?.0 ?? [],"referenceThumbRun":endpoint?.0 ?? [],"sampleRGBA":ink==0 ? []:observed?.1 ?? [],"referenceSampleRGBA":endpoint?.1 ?? [],"inkPixels":ink,"referenceInkPixels":referenceInk,"scale":Double(scale),"imageWidth":image.width,"imageHeight":image.height];samples.append(row);try mark(name+"-"+String(samples.count),row,shot,prefix:"SWITCH_NATIVE_MOTION_FRAME");Thread.sleep(forTimeInterval:0.10)
+        } while Date().timeIntervalSince1970<until && nativeWorkRemaining()>0
+        let after=try state(),trace=try XCTUnwrap(after["motionTrace"] as? [[String:Any]]),retired=try XCTUnwrap(trace.first{$0["name"] as? String=="retire"})
+        let moving=samples.filter{($0["captureStartedEpochMs"] as? Double ?? 0)>=(trace[0]["epochMs"] as? Double ?? .infinity) && ($0["captureEpochMs"] as? Double ?? .infinity)<(retired["epochMs"] as? Double ?? 0)}
+        let result:[String:Any]=["name":name,"reduced":reduced,"originalRootTag":try number(before,"rootTag"),"movingRows":moving.count,"state":after,"samples":samples];FileHandle.standardOutput.write(Data("SWITCH_NATIVE_MOTION ".utf8)+(try JSONSerialization.data(withJSONObject:result,options:.sortedKeys))+Data("\n".utf8))
+        XCTAssertEqual(trace.compactMap{$0["name"] as? String},["select","interrupt","retarget"]+(3...31).map{"retarget-"+String($0)}+["settle","retire","fresh"]);XCTAssertGreaterThan(moving.count,1)
+        if reduced {XCTAssertTrue(moving.allSatisfy{$0["referenceExact"] as? Bool==true})}else{
+            XCTAssertTrue(moving.contains{row in guard let rgba=row["sampleRGBA"] as? [Int] else{return false};return listItemIntermediate(rgba)},"Real interrupted250ms track color")
+            XCTAssertTrue(moving.contains{switchThumbIntermediate($0)},"Real interrupted225ms thumb position")
+        }
+        let settled=try XCTUnwrap(trace.first{$0["name"] as? String=="settle"}),fresh=try XCTUnwrap(trace.first{$0["name"] as? String=="fresh"})
+        XCTAssertTrue(switchEndpointCoverage(samples,try number(settled,"epochMs"),try number(retired,"epochMs"),try number(fresh,"epochMs")),"Separate complete settled and fresh native endpoints")
+        XCTAssertTrue(switchRetirementCoverage(samples,try number(retired,"epochMs"),try number(fresh,"epochMs")),"No component paint/work after confirmed native reference removal")
+        XCTAssertTrue(samples.contains{($0["inkPixels"] as? Int)==0},"Actual retired paint");XCTAssertNotEqual(try number(after,"rootTag"),try number(before,"rootTag"));ready()
+        let snapshot=try app.snapshot();XCTAssertTrue(snapshot.children.count>0)
+    }
+    func testSwitchMotionAndRetirement() throws {
+        tap("Switch motion checks");let settings=XCUIApplication(bundleIdentifier:"com.apple.Preferences");settings.launch();let toggle=motionSwitch(settings),original=try XCTUnwrap(toggle.value as? String);XCTAssertTrue(["0","1"].contains(original));FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_ORIGINAL "+original+"\n").utf8))
+        addTeardownBlock{[self] in let current=self.motionSwitch(settings);self.setMotion(current,original);XCTAssertEqual(current.value as? String,original);self.app.activate();FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_RESTORED "+original+"\n").utf8))}
+        setMotion(toggle,"0");app.activate();reveal(node("switch-native-state"));wait("Real normal-motion event"){((try? self.state()["motionEvents"] as? [Bool]) ?? []).last==false};try motion("normal",reduced:false)
+        setMotion(motionSwitch(settings),"1");app.activate();reveal(node("switch-native-state"));wait("Real reduced-motion event"){((try? self.state()["motionEvents"] as? [Bool]) ?? []).last==true};try motion("reduced",reduced:true)
+    }
+    private func node(_ id:String)->XCUIElement {app.descendants(matching:.any).matching(identifier:id).firstMatch}
+
+    private func wait(_ message:String,_ predicate:@escaping()->Bool) {
+        let expectation=XCTNSPredicateExpectation(predicate:NSPredicate{_,_ in predicate()},object:nil)
+        XCTAssertEqual(XCTWaiter.wait(for:[expectation],timeout:nativeWorkRemaining()),.completed,message)
+    }
+
+    private func revealRegion(_ first:XCUIElement,_ second:XCUIElement) {
+        XCTAssertTrue(first.waitForExistence(timeout:nativeWorkRemaining()));XCTAssertTrue(second.waitForExistence(timeout:nativeWorkRemaining()));let scroll=app.scrollViews.firstMatch
+        for _ in 0..<24 {
+            let viewport=app.windows.firstMatch.frame.intersection(scroll.frame).insetBy(dx:2,dy:2),frame=first.frame.union(second.frame)
+            if !frame.isEmpty && viewport.contains(frame){return}
+            guard let distance=galleryScrollFraction(Double(frame.minY),Double(frame.height),Double(viewport.minY),Double(viewport.height)),distance != 0 else{XCTFail("Switch canvas and its control cannot fit the actual viewport");return}
+            let start:CGFloat=distance>0 ? 0.75:0.30
+            scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:start)).press(forDuration:0.05,thenDragTo:scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:start-CGFloat(distance))),withVelocity:.slow,thenHoldForDuration:0.25)
+        };XCTFail("Switch canvas/control unreachable")
+    }
+
+    private func reveal(_ element:XCUIElement) {
+        XCTAssertTrue(element.waitForExistence(timeout:nativeWorkRemaining()));let scroll=app.scrollViews.firstMatch;XCTAssertTrue(scroll.exists)
+        for _ in 0..<24 {
+            let viewport=app.windows.firstMatch.frame.intersection(scroll.frame).insetBy(dx:2,dy:2)
+            if !element.frame.isEmpty && viewport.contains(element.frame){return}
+            guard let distance=galleryScrollFraction(Double(element.frame.minY),Double(element.frame.height),Double(viewport.minY),Double(viewport.height)),distance != 0 else{XCTFail("Switch target cannot fit measured viewport");return}
+            let start:CGFloat=distance>0 ? 0.75:0.30
+            let trace:[String:Any]=["target":element.identifier,"frame":rect(element.frame),"viewport":rect(viewport),"requestedFraction":distance]
+            if let data=try? JSONSerialization.data(withJSONObject:trace,options:.sortedKeys){FileHandle.standardOutput.write(Data("SWITCH_SCROLL ".utf8)+data+Data("\n".utf8))}
+            scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:start)).press(forDuration:0.05,thenDragTo:scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:start-CGFloat(distance))),withVelocity:.slow,thenHoldForDuration:0.25)
+        };XCTFail("Unreachable Switch control/canvas "+element.identifier)
+    }
+
+    private func tap(_ name:String) {
+        let control=app.buttons.matching(NSPredicate(format:"label == %@",name)).firstMatch;reveal(control);XCTAssertTrue(control.isHittable);control.tap()
+        if name=="Select scene"{wait("Actual selected Switch scene"){control.isSelected}}
+    }
+
+    private func pixels(_ image:CGImage,_ frame:CGRect,_ window:CGRect,_ scale:CGFloat) throws -> [UInt8] {
+        XCTAssertTrue(window.contains(frame));let rect=CGRect(x:((frame.minX-window.minX)*scale).rounded(),y:((frame.minY-window.minY)*scale).rounded(),width:(frame.width*scale).rounded(),height:(frame.height*scale).rounded())
+        let crop=try XCTUnwrap(image.cropping(to:rect));var bytes=[UInt8](repeating:0,count:crop.width*crop.height*4)
+        let result=bytes.withUnsafeMutableBytes { buffer -> Bool in
+            guard let context=CGContext(data:buffer.baseAddress,width:crop.width,height:crop.height,bitsPerComponent:8,bytesPerRow:crop.width*4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue|CGBitmapInfo.byteOrder32Big.rawValue) else{return false}
+            context.draw(crop,in:CGRect(x:0,y:0,width:CGFloat(crop.width),height:CGFloat(crop.height)));return true
+        };XCTAssertTrue(result);return bytes
+    }
+    private func motionSwitch(_ settings: XCUIApplication) -> XCUIElement {
+        settings.activate()
+        let toggle = settings.switches["Reduce Motion"].firstMatch
+        if toggle.exists { return toggle }
+        for label in ["Accessibility","Motion"] {
+            let entry = settings.staticTexts[label].firstMatch
+            for _ in 0..<12 { if entry.exists && entry.isHittable { break };settings.swipeUp() }
+            XCTAssertTrue(entry.exists && entry.isHittable,"Standard Settings navigation "+label);entry.tap()
+        }
+        XCTAssertTrue(toggle.waitForExistence(timeout:nativeWorkRemaining()));return toggle
+    }
+
+    private func setMotion(_ toggle: XCUIElement, _ expected: String) {
+        if toggle.value as? String != expected {
+            XCTAssertTrue(toggle.isHittable)
+            toggle.coordinate(withNormalizedOffset:CGVector(dx:0.95,dy:0.5)).tap()
+        }
+        wait("Actual Reduce Motion switch "+expected) { toggle.value as? String == expected }
+        let shot = XCTAttachment(screenshot:XCUIScreen.main.screenshot());shot.name="meter-motion-switch-"+expected;shot.lifetime = .keepAlways;add(shot)
+        FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_SWITCH "+expected+"\n").utf8))
+    }
+}

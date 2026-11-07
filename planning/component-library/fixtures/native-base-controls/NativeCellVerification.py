@@ -8,10 +8,12 @@ import os
 from pathlib import Path
 import re
 import sys
+import time
 
 VERSION = "NATIVE-CELL-03"
 CHECKLIST = Path(__file__).with_name("NativeCellVerificationChecklist.md")
 RUBRIC = Path(__file__).resolve().parents[2] / "roadmap.md"
+STOPPED_SOURCE_TITLE_FRAGMENTS = ("ComboBox", "combo-box")
 RISKS = {"fractional_geometry", "shadow", "antialiasing", "rotation", "scene_readiness", "cleanup"}
 
 
@@ -155,12 +157,64 @@ def load_admission(driver, cell, cohorts):
     return {"path": path, "sha256": digest(path), "version": VERSION, "result": receipt["status"], "attempt": receipt["attempt"]}
 
 
+def source_test_selection(plan):
+    files=[bound_file(item) for item in plan["files"]]
+    require(files and len(set(files))==len(files) and all(path.suffix in [".tsx",".ts"] and "/__tests__/" in str(path) for path in files),"Explicit source test files required")
+    titles=plan["titles"];stopped=plan["stoppedTitleFragments"]
+    require(titles and len(set(titles))==len(titles) and all(isinstance(title,str) and title.strip() for title in titles),"Exact source test titles required")
+    require(stopped and all(isinstance(term,str) and term for term in stopped),"Stopped-cell selection exclusions required")
+    require(not any(term.casefold() in value.casefold() for term in [*STOPPED_SOURCE_TITLE_FRAGMENTS,*stopped] for value in titles+[str(path) for path in files]),"Source selection includes a stopped cell")
+    require(plan["workspace"] in ["@codon-ui/native-showcase","@codon-ui/react-native"],"Source selection workspace not supported")
+    # Anchoring escaped literal names prevents a shared-file request from expanding into other cells.
+    pattern="^(?:"+"|".join(re.escape(title) for title in titles)+")$"
+    argv=["pnpm","-F",plan["workspace"],"test","--runInBand","--runTestsByPath",*[str(path) for path in files],"--testNamePattern",pattern]
+    if plan.get("jsonResult"):
+        result=Path(plan["jsonResult"]).resolve()
+        require(result.is_relative_to(Path.cwd()/"node_modules/.cache") and not result.exists(),"Fresh source JSON result must be in repository cache")
+        argv += ["--json","--outputFile",str(result)]
+    return argv
+
+
+def execute_source_check(argv, output, maximum=1800, reserve=120):
+    from NativeStandardTests import Session
+    require(0<maximum<=1800 and 0<reserve<maximum,"Invalid source attempt budget")
+    session=Session(output,maximum,reserve);failure=None
+    # Jest's timer shares this owner budget; the process owner enforces the overall deadline.
+    actual=[*argv,"--testTimeout",str(max(1,int(session.remaining()*1000)))]
+    try:
+        session.run("source-check",actual)
+    except (ValueError,OSError) as error:
+        failure=repr(error)
+    cleanup=all(row.get("ownedGroupGone") is True for row in session.rows)
+    status=failure is None and cleanup and time.time()<=session.end
+    report={"kind":"source_check_execution","status":"PASS" if status else "FAILED","argv":actual,"maximumSeconds":maximum,"cleanupReserveSeconds":reserve,"elapsedSeconds":time.time()-session.start,"cleanupVerified":cleanup,"failure":failure,"commands":session.rows}
+    (session.output/"terminal.json").write_text(json.dumps(report,indent=2)+"\n")
+    for suffix in ["stdout","stderr"]:
+        path=session.output/("source-check."+suffix)
+        if path.exists():print(path.read_text(),end="",flush=True)
+    if status:return 0
+    code=session.rows[-1].get("exitCode",1) if session.rows else 1
+    return code if isinstance(code,int) and 0<code<256 else 1
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--plan", type=Path, required=True)
+    parser.add_argument("--plan", type=Path)
+    parser.add_argument("--source-selection", type=Path)
     parser.add_argument("--receipt", type=Path, required=True)
     parser.add_argument("--run", action="store_true")
     args = parser.parse_args()
+    require(bool(args.plan) != bool(args.source_selection), "Select exactly one native plan or source test selection")
+    if args.source_selection:
+        result={"status":"REJECTED","checkedUTC":datetime.datetime.now(datetime.timezone.utc).isoformat(),"checklistSHA256":digest(CHECKLIST)}
+        try:
+            selected=json.loads(args.source_selection.read_text());argv=source_test_selection(selected);result.update(status="PASS",selectionSHA256=digest(args.source_selection),argv=argv,scope="Source test selection only; no native admission or qualification")
+        except (ValueError,KeyError,TypeError,OSError) as error:
+            result["error"]=str(error)
+        require(not args.receipt.exists(),"Do not overwrite a source selection receipt");args.receipt.parent.mkdir(parents=True,exist_ok=True);args.receipt.write_text(json.dumps(result,indent=2)+"\n");print(json.dumps(result),flush=True)
+        if result["status"]!="PASS":return 2
+        if args.run:return execute_source_check(argv,args.receipt.with_suffix(".run"))
+        return 0
     receipt = {"status": "REJECTED", "checklistVersion": VERSION, "checklistSHA256": digest(CHECKLIST), "ownerPID": os.getpid(), "checkedUTC": datetime.datetime.now(datetime.timezone.utc).isoformat()}
     try:
         plan = json.loads(args.plan.read_text())

@@ -76,6 +76,9 @@ def verify_selected_app_inputs(plan, app):
 
 
 def selection(platform, batch="meter-g02"):
+    if batch in ["switch", "switch-motion"]:
+        require(platform == "ios", "Current Switch batch is iOS only")
+        return {"ios": ["SwitchTrialTests/"+name for name in (["testSwitchMotionAndRetirement"] if batch == "switch-motion" else ["testSwitchActionsAndLifetimes", "testSwitchStylesAndConstraints", "testSwitchMotionAndRetirement"])], "android": []}
     if batch == "slider-hit-layout":
         require(platform == "ios", "Current Slider hit-layout batch is iOS only")
         return {"ios": ["SliderHitLayoutTrialTests/"+name for name in ["testP01TranslatedOriginalThumbHoldThenDrag", "testP01RepositionedOriginalThumbHoldThenDrag", "testP01RotatedCenterOriginalThumbHoldThenDrag", "testP01RotatedCornerFollowsOriginalNativeHit"]], "android": []}
@@ -267,7 +270,7 @@ def geometry_control_source():
     gallery_start = source.index("private func galleryTrackWidth(");gallery_open = source.index("{", gallery_start);gallery_end = source.index("\n}", gallery_open) + 2
     gallery_predicate = source[gallery_start:gallery_end].replace("private ", "", 1)
     list_predicates = []
-    for signature in ["private func toggleButtonMatchedFrame(", "private func toggleButtonValueMatches(", "private func listItemValueMatches(", "private func listItemIntermediate(", "private func listItemSampleRGBA("]:
+    for signature in ["private func toggleButtonMatchedFrame(", "private func toggleButtonValueMatches(", "private func listItemValueMatches(", "private func listItemIntermediate(", "private func listItemSampleRGBA(", "private func switchNativeValueMatches(", "private func switchTrackSamples(", "private func switchThumbIntermediate(", "private func switchEndpointCoverage(", "private func switchRetirementCoverage("]:
         start = source.index(signature);opening = source.index("{", start);end = source.index("\n}", opening) + 2
         list_predicates.append(source[start:end].replace("private ", "", 1))
     scroll_start = source.index("private func galleryScrollFraction(");scroll_open = source.index("{", scroll_start);scroll_end = source.index("\n}", scroll_open) + 2
@@ -357,7 +360,54 @@ precondition(thumbnailImageContentFrame([0,0,83.25,41.625],2) == [2,2,79.25,37.6
 precondition(thumbnailImageContentFrame([0,0,2,2],2) == nil)
 precondition(thumbnailImageContentFrame([0,0,120,80],-1) == nil)
 precondition(thumbnailImageContentFrame([0,0,Double.nan,80],2) == nil)
-print(#"{\"toggleButtonCases\":12,\"listItemCases\":20,\"galleryScrollCases\":8,\"galleryTrackCases\":8,\"thumbnailFrameCases\":6,\"circularCases\":6,\"status\":\"PASS\",\"cases\":11,\"pixelCases\":6,\"shadowCases\":6,\"savedNSNumberIntValue\":9,\"savedNSNumberDoubleValue\":9.9998779296875}"#)
+let switchValues:[(Any?,Bool,Bool)]=[("0",false,true),("1",true,true),(NSNumber(value:0),false,true),(NSNumber(value:1),true,true),("checked",true,false),("1",false,false),(NSNumber(value:2),true,false),(NSNumber(value:Double.nan),false,false),(nil,false,false),("",false,false)]
+for (value,selected,expected) in switchValues{precondition(switchNativeValueMatches(value,selected)==expected)}
+let white:[UInt8]=[255,255,255,255],red:[UInt8]=[187,51,34,255]
+precondition(switchTrackSamples(white+white+red+red)?.0 == [0,2])
+precondition(switchTrackSamples(red+red+white+white)?.0 == [2,2])
+precondition(switchTrackSamples(red+white+white+red)?.0 == [1,2])
+precondition(switchTrackSamples(white+red+white+white+red)?.0 == [2,2])
+precondition(switchTrackSamples(white+white+red+red)?.1 == [187,51,34,255])
+precondition(switchTrackSamples([]) == nil)
+precondition(switchTrackSamples([1]) == nil)
+precondition(switchTrackSamples(white+white) == nil)
+precondition(switchTrackSamples(red+red) == nil)
+let savedSwitchScale:CGFloat=3
+let savedSwitchRow:[String:Any]=["thumbRun":[11,43],"scale":savedSwitchScale]
+precondition((savedSwitchRow["scale"] as? Double)==nil)
+precondition(!switchThumbIntermediate(savedSwitchRow))
+let correctedSwitchRow:[String:Any]=["thumbRun":[11,43],"scale":Double(savedSwitchScale)]
+precondition(switchThumbIntermediate(correctedSwitchRow))
+for row:[String:Any] in [["thumbRun":[1,43],"scale":3.0],["thumbRun":[46,43],"scale":3.0],["thumbRun":[11],"scale":3.0],["thumbRun":[11,43],"scale":Double.nan],["thumbRun":[11,43],"scale":0.0],["thumbRun":[11,43],"scale":-1.0],["thumbRun":[11,43]],["thumbRun":[11,43],"scale":"3"]]{precondition(!switchThumbIntermediate(row))}
+func endpointRow(_ start:Double,_ end:Double,_ exact:Bool=true)->[String:Any]{["captureStartedEpochMs":start,"captureEpochMs":end,"referenceExact":exact]}
+let endpointSettled=endpointRow(8000,8100),endpointFresh=endpointRow(14000,14100)
+precondition(switchEndpointCoverage([endpointSettled,endpointFresh],7000,10000,13000))
+precondition(!switchEndpointCoverage([],7000,10000,13000))
+precondition(!switchEndpointCoverage([endpointFresh],7000,10000,13000))
+precondition(!switchEndpointCoverage([endpointSettled],7000,10000,13000))
+precondition(!switchEndpointCoverage([endpointRow(7100,7200),endpointFresh],7000,10000,13000))
+precondition(!switchEndpointCoverage([endpointRow(9900,10010),endpointFresh],7000,10000,13000))
+precondition(!switchEndpointCoverage([endpointRow(8000,8100,false),endpointFresh],7000,10000,13000))
+precondition(!switchEndpointCoverage([endpointSettled,endpointRow(14000,14100,false)],7000,10000,13000))
+precondition(!switchEndpointCoverage([endpointSettled,endpointRow(14000,13900)],7000,10000,13000))
+precondition(!switchEndpointCoverage([endpointSettled,endpointRow(Double.nan,14100)],7000,10000,13000))
+func retirementRow(_ start:Double,_ end:Double,_ actual:Int,_ reference:Int)->[String:Any]{["captureStartedEpochMs":start,"captureEpochMs":end,"inkPixels":actual,"referenceInkPixels":reference,"thumbRun":actual==0 ? []:[46,43],"sampleRGBA":actual==0 ? []:[17,119,51,255]]}
+let retiringLive=retirementRow(10014,10508,2201,2201),retiringGone=retirementRow(10633,11075,0,0)
+precondition(switchRetirementCoverage([retiringLive,retiringGone],10000,13000))
+precondition(switchRetirementCoverage([retiringGone],10000,13000))
+precondition(!switchRetirementCoverage([retiringLive],10000,13000))
+precondition(!switchRetirementCoverage([retirementRow(10633,11075,2201,0)],10000,13000))
+precondition(!switchRetirementCoverage([retiringGone,retirementRow(11200,11700,0,2201)],10000,13000))
+precondition(!switchRetirementCoverage([retiringGone,retirementRow(11200,11700,2201,0)],10000,13000))
+precondition(!switchRetirementCoverage([retirementRow(13200,13700,0,0)],10000,13000))
+precondition(!switchRetirementCoverage([retirementRow(12900,13100,0,0)],10000,13000))
+var retiringMissing=retiringGone;retiringMissing.removeValue(forKey:"referenceInkPixels");precondition(!switchRetirementCoverage([retiringMissing],10000,13000))
+precondition(!switchRetirementCoverage([retirementRow(10633,11075,1,0)],10000,13000))
+var retiringThumb=retiringGone;retiringThumb["thumbRun"]=[1,43];precondition(!switchRetirementCoverage([retiringThumb],10000,13000))
+var retiringColor=retiringGone;retiringColor["sampleRGBA"]=[17,119,51,255];precondition(!switchRetirementCoverage([retiringColor],10000,13000))
+precondition(!switchRetirementCoverage([retirementRow(11075,10633,0,0)],10000,13000))
+precondition(!switchRetirementCoverage([retirementRow(Double.nan,11075,0,0)],10000,13000))
+print(#"{\"switchValueCases\":10,\"switchRasterCases\":9,\"switchThumbCases\":11,\"switchEndpointCases\":10,\"switchRetirementCases\":14,\"toggleButtonCases\":12,\"listItemCases\":20,\"galleryScrollCases\":8,\"galleryTrackCases\":8,\"thumbnailFrameCases\":6,\"circularCases\":6,\"status\":\"PASS\",\"cases\":11,\"pixelCases\":6,\"shadowCases\":6,\"savedNSNumberIntValue\":9,\"savedNSNumberDoubleValue\":9.9998779296875}"#)
 '''
 
 
@@ -402,7 +452,7 @@ def build_ios(session, config=None):
     sdk = session.run("geometry-sdk", ["/usr/bin/xcrun", "--sdk", "macosx", "--show-sdk-path"]).strip()
     swift = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift"
     control_result = json.loads(session.run("geometry-controls", [swift, "-sdk", sdk, "-module-cache-path", str(CACHE / "swift-host-module-cache"), str(controls)]))
-    require(control_result.get("toggleButtonCases") == 12 and control_result.get("listItemCases") == 20 and control_result.get("galleryScrollCases") == 8 and control_result.get("galleryTrackCases") == 8 and control_result.get("thumbnailFrameCases") == 6 and control_result.get("circularCases") == 6 and control_result.get("status") == "PASS" and control_result.get("cases") == 11 and control_result.get("pixelCases") == 6 and control_result.get("shadowCases") == 6, "Actual Swift geometry/pixel/shadow controls failed")
+    require(control_result.get("switchRetirementCases") == 14 and control_result.get("switchEndpointCases") == 10 and control_result.get("switchThumbCases") == 11 and control_result.get("switchValueCases") == 10 and control_result.get("switchRasterCases") == 9 and control_result.get("toggleButtonCases") == 12 and control_result.get("listItemCases") == 20 and control_result.get("galleryScrollCases") == 8 and control_result.get("galleryTrackCases") == 8 and control_result.get("thumbnailFrameCases") == 6 and control_result.get("circularCases") == 6 and control_result.get("status") == "PASS" and control_result.get("cases") == 11 and control_result.get("pixelCases") == 6 and control_result.get("shadowCases") == 6, "Actual Swift geometry/pixel/shadow controls failed")
     derived = CACHE / "ios"
     # A source revision gets an unambiguous observer registration; old installed revisions remain intact.
     bundle_id = "dev.codonui.lab.components.r" + digest(ROOT / "MeterG02TrialTests.swift")[:12]
@@ -656,7 +706,7 @@ def run_ios(session, config, app, observer):
         else: raw = session.run("xctest", argv)
     except ValueError as error:
         sdk_error = error;stdout = session.output / "xctest.stdout";raw = stdout.read_text() if stdout.exists() else ""
-    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected", "circle-loader", "lagging-lines", "counter", "list-box-item", "list-box-item-motion", "toggle-button", "toggle-button-affected", "toggle-button-style", "radio", "radio-motion"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
+    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected", "circle-loader", "lagging-lines", "counter", "list-box-item", "list-box-item-motion", "toggle-button", "toggle-button-affected", "toggle-button-style", "radio", "radio-motion", "switch", "switch-motion"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
         original_motion = re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])", raw)
         restored_motion = re.findall(r"METER_STYLE_MOTION_RESTORED ([01])", raw)
         if original_motion != restored_motion: session.cleanup_errors.append("Original iOS Reduce Motion restoration unverified")
@@ -692,6 +742,7 @@ def run_ios(session, config, app, observer):
     if config.get("batch") in ["counter", "counter-values"]: result["counter"] = reconcile_counter_ios(raw, include_motion=config["batch"] == "counter")
     if config.get("batch") in ["list-box-item", "list-box-item-motion"]: result["listBoxItem"] = reconcile_list_item_ios(raw,config,app)
     if config.get("batch") == "placeholder-g08": result["placeholder"] = reconcile_placeholder_ios(raw)
+    if config.get("batch") in ["switch", "switch-motion"]: result["switch"] = reconcile_switch_ios(raw, config, app)
     if config.get("batch") == "slider-hit-layout": result["sliderHitLayout"] = reconcile_slider_ios(raw, session.output)
     if config.get("batch") in ["radio", "radio-motion"]: result["radio"] = reconcile_radio_ios(raw,config)
     if config.get("batch") in ["toggle-button", "toggle-button-affected", "toggle-button-style"]: result["toggleButton"] = reconcile_toggle_button_ios(raw,config)
@@ -1073,6 +1124,118 @@ def reconcile_placeholder_ios(raw):
     action=named["narrow-after-first-action"]["state"];require(action["actions"]==1 and [x["kind"] for x in action["receipts"]]==["pressIn","pressOut","press"] and all(x["native"]["target"]==action["rootTag"] for x in action["receipts"]),"Placeholder first native action/order/target differs")
     require(named["reset-default"]["state"]["actions"]==0,"Placeholder reset fabricated action")
     return result
+
+
+SWITCH_BEHAVIOR = ["baseline","echo","disabled","readonly","held-disabled","restored","renderer","replaced","retired","fresh","local","local-default-changed","vetoed-1","vetoed-2","echo-activated-0","echo-activated-1","restored-activated-0","local-activated-0","local-activated-1","held-canceled"]
+SWITCH_STYLES = ["style-baseline","selected","border","inverted","primary","root-custom","final-style","parts-custom","authored-left","orthogonal","round","icons","long-narrow","fractional","percentage","track-small","root-small","zero","dark","light-restored"]
+
+
+def switch_physical_frame(frame,scale,width,height):
+    require(len(frame)==4 and all(isinstance(v,(int,float)) and math.isfinite(v) for v in frame),"Invalid Switch frame")
+    x,y,w,h=[math.floor(v*scale+.5) for v in frame]
+    require(0<=x<x+w<=width and 0<=y<y+h<=height,"Switch crop outside physical screenshot")
+
+
+def validate_switch_rows(rows,names):
+    require(sorted(row["name"] for row in rows)==sorted(names),"Missing/duplicate Switch observations")
+    for row in rows:
+        state,scale=row["state"],row["scale"]
+        require(isinstance(scale,(int,float)) and math.isfinite(scale) and scale>0 and scale==state["scale"],"Wrong Switch scale")
+        parent,reference,matched=row["parent"],row["referenceParent"],row["matchedReferenceParent"]
+        for frame in [parent,reference,matched]:switch_physical_frame(frame,scale,row["imageWidth"],row["imageHeight"])
+        require(parent[2:]==reference[2:] and 0<parent[2]<=280 and parent[3]==224 and all(abs(a-b)*scale<=.5 for a,b in zip(parent,matched)),"Wrong Switch matched parents")
+        require(row["referenceExact"] is True,"Switch same-origin raw reference mismatch")
+        if not state["visible"]:
+            require(not row["root"] and row["targetCount"]==0 and row["inkPixels"]==0 and state["rootTag"] is None,"Retired Switch ref/paint remains")
+            continue
+        event=state["layouts"][-1];layout=event["layout"]
+        require(state["rootTag"]>0 and event["target"]==event["currentTarget"]==state["rootTag"],"Original Switch layout/ref differs")
+        if state["zero"]:
+            require(layout["width"]==layout["height"]==0 and row["inkPixels"]==0,"Authored Switch zero/clipping differs")
+            continue
+        require(row["targetCount"]==1 and row["nativeLabel"]=="Keep settings" and row["nativeEnabled"] is (not state["disabled"]) and row["nativeSwitch"] is True,"Switch role/name/guard/target differs")
+        require(type(state["selected"]) is bool and type(row["nativeValue"]) in [str,int,float] and row["nativeValue"] in (["1",1] if state["selected"] else ["0",0]),"Switch checked native value differs")
+        root,raw=row["root"],row["referenceRoot"]
+        require(len(root)==len(raw)==4 and all(math.isfinite(v) for v in root+raw) and all(abs(a-b)*scale<=1 for a,b in zip([root[0]-parent[0],root[1]-parent[1],*root[2:]],[raw[0]-reference[0],raw[1]-reference[1],*raw[2:]])),"Switch actual/reference frames differ")
+        require(all(abs(root[i+2]-layout[key])*scale<=1 for i,key in enumerate(["width","height"])),"Switch layout/native dimensions differ")
+        if isinstance(state.get("rootWidth"),(int,float)):require(abs(root[2]-state["rootWidth"])*scale<=1,"Switch authored width differs")
+        require(abs(root[3]-24)*scale<=1 if state["small"] else root[3]>=44-1/scale,"Switch explicit/default target height differs")
+        if state["narrow"]:require(44<root[3] and root[1]+root[3]<=parent[1]+parent[3]-12+1/scale,"Constrained Switch content clipped")
+        for held in row.get("heldContactIntervals",[]):require(held["beganEpochMs"]<=held["disabledOnPressInEpochMs"]<held["endedEpochMs"]-400,"Switch disable was not during held contact")
+    return {"status":"PASS","observations":len(rows)}
+
+
+def validate_switch_retirement(samples,retire,fresh):
+    require(math.isfinite(retire) and math.isfinite(fresh) and retire<fresh,"Invalid Switch retirement epochs")
+    require(all(math.isfinite(r["captureStartedEpochMs"]) and math.isfinite(r["captureEpochMs"]) and r["captureStartedEpochMs"]<=r["captureEpochMs"] for r in samples),"Invalid Switch retirement capture intervals")
+    candidates=[r for r in samples if r["captureStartedEpochMs"]>=retire and r["captureEpochMs"]<fresh]
+    require(all(type(r.get("referenceInkPixels")) is int and r["referenceInkPixels"]>=0 and type(r.get("inkPixels")) is int and r["inkPixels"]>=0 for r in candidates),"Missing Switch native removal witness")
+    first=next((i for i,r in enumerate(candidates) if r["referenceInkPixels"]==0),None)
+    require(first is not None,"No confirmed native reference removal")
+    absent=candidates[first:]
+    require(all(r["referenceInkPixels"]==r["inkPixels"]==0 and r["thumbRun"]==r["sampleRGBA"]==[] for r in absent),"Switch paint/work remains after native reference removal")
+    return {"pendingNativeCommitFrames":first,"verifiedAbsentFrames":len(absent)}
+
+
+def validate_switch_motion(interval):
+    state,trace,samples=interval["state"],interval["state"]["motionTrace"],interval["samples"]
+    require(interval["name"] in ["normal","reduced"] and interval["reduced"] is (interval["name"]=="reduced") and state["motionEvents"][-1] is interval["reduced"],"Switch actual motion preference differs")
+    require([x["name"] for x in trace]==["select","interrupt","retarget"]+["retarget-"+str(i) for i in range(3,32)]+["settle","retire","fresh"],"Switch motion schedule differs")
+    epochs=[x["epochMs"] for x in trace];require(all(math.isfinite(x) for x in epochs) and all(a<=b for a,b in zip(epochs,epochs[1:])),"Switch schedule epochs differ")
+    times={row["name"]:row["epochMs"] for row in trace}
+    previous=0
+    for row in samples:
+        start,end,scale=row["captureStartedEpochMs"],row["captureEpochMs"],row["scale"]
+        require(all(math.isfinite(v) for v in [start,end,scale]) and previous<=start<=end and scale>0,"Switch complete capture interval differs");previous=end
+        for key in ["parent","referenceParent","sampleFrame","referenceSampleFrame"]:switch_physical_frame(row[key],scale,row["imageWidth"],row["imageHeight"])
+        require(abs(row["sampleFrame"][2]-30)*scale<=1 and round(row["sampleFrame"][3]*scale)==1,"Switch actual track scanline differs")
+        for key in ["thumbRun","referenceThumbRun"]:
+            run=row[key];require(not run or len(run)==2 and all(type(x) is int for x in run) and 0<=run[0]<run[0]+run[1]<=round(30*scale),"Switch thumb run outside track")
+    moving=[r for r in samples if r["captureStartedEpochMs"]>=times["select"] and r["captureEpochMs"]<times["retire"]]
+    require(len(moving)>1 and interval["movingRows"]==len(moving),"Switch moving observations missing")
+    if interval["reduced"]:require(all(r["referenceExact"] is True for r in moving),"Reduced Switch interpolates")
+    else:
+        require(any(len(r["sampleRGBA"])==4 and 17<r["sampleRGBA"][0]<187 and 51<r["sampleRGBA"][1]<119 and 34<r["sampleRGBA"][2]<51 and r["sampleRGBA"][3]==255 for r in moving),"Actual Switch250ms color interpolation missing")
+        require(any(len(r["thumbRun"])==2 and 1<r["thumbRun"][0]<15*r["scale"]-1 for r in moving),"Actual Switch225ms thumb interpolation missing")
+    settled=[r for r in samples if r["captureStartedEpochMs"]>=times["settle"]+250 and r["captureEpochMs"]<times["retire"]]
+    fresh=[r for r in samples if r["captureStartedEpochMs"]>=times["fresh"]+250]
+    absent=[r for r in samples if r["captureStartedEpochMs"]>=times["retire"] and r["captureEpochMs"]<times["fresh"]]
+    require(settled and fresh and all(r["referenceExact"] is True for r in settled+fresh),"Switch settled/fresh endpoint differs")
+    validate_switch_retirement(samples,times["retire"],times["fresh"])
+    require(state["rootTag"]>0 and state["rootTag"]!=interval["originalRootTag"] and state["visible"] is True and state["layouts"][-1]["currentTarget"]==state["rootTag"],"Switch fresh current ref missing")
+    return len(samples)
+
+
+def reconcile_switch_ios(raw,config=None,app=None):
+    config=config or {}
+    if config.get("batch")=="switch-motion":
+        proof=json.loads(bound_file(config["retainedSwitchStaticMethods"]).read_text());require(proof["status"]=="PASS" and app and app["manifestSHA256"]==proof["appManifestSHA256"],"Retained Switch app/method review differs")
+        for source in proof["librarySources"]:bound_file(source)
+        require(json.loads(bound_file(proof["cleanup"]).read_text())["cleanupVerified"],"Retained Switch cleanup unverified")
+        loaded=json.loads(bound_file(proof["loadedObserver"]).read_text());require(loaded["status"]=="PASS" and loaded["observerManifestSHA256"]==proof["observerManifestSHA256"],"Retained Switch loaded observer differs")
+        require({m["method"] for m in proof["nativeMethods"]}=={"testSwitchActionsAndLifetimes","testSwitchStylesAndConstraints"},"Only the two clean Switch methods may be reused")
+        for method in proof["nativeMethods"]:
+            require(method["appManifestSHA256"]==proof["appManifestSHA256"] and method["observerManifestSHA256"]==proof["observerManifestSHA256"],"Retained Switch tuple differs");native_method(method)
+        prior=bound_file(proof["raw"]).read_text();lines=[line for line in prior.splitlines() if line.startswith("SWITCH_NATIVE_OBSERVATION ") and json.loads(line.split(" ",1)[1])["name"] in SWITCH_BEHAVIOR+SWITCH_STYLES]
+        validate_switch_rows([json.loads(line.split(" ",1)[1]) for line in lines],SWITCH_BEHAVIOR+SWITCH_STYLES);raw+="\n"+"\n".join(lines)
+    rows=[json.loads(x) for x in re.findall(r"SWITCH_NATIVE_OBSERVATION (\{[^\n]+\})",raw)]
+    result=validate_switch_rows(rows,SWITCH_BEHAVIOR+SWITCH_STYLES);named={row["name"]:row for row in rows};tag=named["baseline"]["state"]["rootTag"]
+    for name in ["vetoed-1","vetoed-2"]:require(named[name]["state"]["selected"] is False,"Switch controlled veto mutated output")
+    require(named["vetoed-2"]["state"]["requests"]==[True,True],"Switch repeat veto requests differ")
+    for name in ["echo","disabled","readonly","held-disabled","restored","renderer"]:require(named[name]["state"]["rootTag"]==tag,"Switch original renderer/ref lost")
+    require(named["echo-activated-0"]["state"]["selected"] is True and named["echo-activated-1"]["state"]["selected"] is False and named["echo-activated-1"]["state"]["actions"]==4,"Switch owner echo differs")
+    require(named["held-canceled"]["state"]["canceled"] is True and len(named["held-canceled"]["heldContactIntervals"])==1 and named["held-canceled"]["state"]["actions"]==4,"Switch held cancellation differs")
+    final=named["local-default-changed"]["state"];presses=[x for x in final["events"] if x["phase"]=="press"]
+    require(final["selected"] is False and final["actions"]==7 and final["requests"]==[True,True,True,False,True,True,False] and final["phases"]==["change","press"]*7,"Switch local default/action/request order differs")
+    require(len(presses)==7 and all(x["target"]>0 and x["currentTarget"]==tag for x in presses[:5]),"Switch original native event targets differ")
+    for name in ["replaced","fresh"]:require(named[name]["state"]["rootTag"]!=tag,"Switch retired ref reused")
+    require(named["dark"]["state"]["themeMode"]=="dark" and named["light-restored"]["state"]["themeMode"]=="light","Switch mounted provider update missing")
+    motion=[json.loads(x) for x in re.findall(r"SWITCH_NATIVE_MOTION (\{[^\n]+\})",raw)]
+    require(len(motion)==2 and {m["name"] for m in motion}=={"normal","reduced"},"Switch motion intervals missing")
+    frames=sum(validate_switch_motion(m) for m in motion)
+    original=re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])",raw);restored=re.findall(r"METER_STYLE_MOTION_RESTORED ([01])",raw)
+    require(len(original)==1 and original==restored,"Switch original Reduce Motion restoration unverified")
+    result.update(motionIntervals=2,motionFrames=frames,originalMotionValue=original[0]);return result
 
 
 RADIO_BEHAVIOR = ["baseline","echo","reselected","disabled","readonly","held-disabled","restored","renderer","replaced","retired","fresh","local","local-default-changed","empty-value","vetoed-1","vetoed-2","echo-activated","reselected-activated","restored-activated","local-activated","empty-value-activated","held-canceled"]
@@ -1707,7 +1870,8 @@ def validate_standard_scope(plan):
     radio = cell == "CAT.radio.G08" and batch in ["radio", "radio-motion"]
     placeholder = cell == "CAT.placeholder-text.G08" and batch == "placeholder-g08"
     slider = cell == "CAT.slider.G01" and batch == "slider-hit-layout"
-    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item or toggle_button or radio or placeholder or slider, "Only the authorized component and focused batch are selected")
+    switch = cell == "CAT.switch.G08" and batch in ["switch", "switch-motion"]
+    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item or toggle_button or radio or placeholder or slider or switch, "Only the authorized component and focused batch are selected")
 
 
 def main():
