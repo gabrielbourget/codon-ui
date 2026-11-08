@@ -240,6 +240,13 @@
         "sha256": "b3f115f33d61dfe806a9979d33bae84b8f756cb6d0be35bd6a919c401da391d0",
         "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/switcher-after-link-20261107/switcher-G08-completion.json"
       }
+    },
+    "CAT.form-field.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/form-field-after-switcher-20261107/form-field-G08-closeout/objects/edbfa0b6a056329bb1c76d94e0a71cc5a22b4ad3a06e37f6511dd1a92af4433b",
+        "sha256": "edbfa0b6a056329bb1c76d94e0a71cc5a22b4ad3a06e37f6511dd1a92af4433b",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/form-field-after-switcher-20261107/form-field-G08-completion.json"
+      }
     }
   }
 }

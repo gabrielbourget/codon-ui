@@ -23,6 +23,87 @@ class StandardTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory();self.root = Path(self.temp.name)
     def tearDown(self): self.temp.cleanup()
 
+    def test_form_field_exact_batches_and_actual_admission_boundary(self):
+        for batch,method in [("actions","testFieldActionsAndLifetimes"),("styles","testFieldStylesAndConstraints"),("motion","testFieldMotionAndRetirement"),("marker-diagnostic","testFieldMarkerGapDiagnostic")]:
+            full="form-field-"+batch;plan={"cell":"CAT.form-field.G08","nativeStandard":{"platform":"ios","batch":full,"output":str(self.root/"never-created")}}
+            NATIVE.validate_standard_scope(plan);self.assertEqual(NATIVE.selection("ios",full),{"ios":["FormFieldTrialTests/"+method],"android":[]})
+            path=self.root/(batch+".json");path.write_text(json.dumps(plan));env={k:v for k,v in os.environ.items() if k!="CODON_NATIVE_CELL_PREFLIGHT_RECEIPT"}
+            result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(path)],env=env,capture_output=True,text=True)
+            self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((self.root/"never-created").exists())
+            with self.assertRaises(ValueError):NATIVE.selection("android",full)
+        with self.assertRaises(ValueError):NATIVE.validate_standard_scope({"cell":"CAT.toggle-switcher.G08","nativeStandard":{"batch":"form-field-actions"}})
+
+
+    def test_form_field_reader_preserves_exact_paint_current_refs_and_physical_crop(self):
+        row={"name":"fractional","state":{"mode":"styles","visible":True,"rootTag":81,"layouts":[{"target":81,"currentTarget":81,"layout":{"width":213.25,"height":144.0001220703125}}],"zero":False,"narrow":False,"hasMessages":False,"relationships":False},"scale":3,"parent":[15,250,280,224],"referenceParent":[15,482,280,224],"matchedReferenceParent":[15,250,280,224],"root":[27,262,213.25,144],"referenceRoot":[27,494,213.25,144],"targetCount":1,"referenceExact":True,"inkPixels":120,"imageWidth":1170,"imageHeight":2532,"elements":[]}
+        self.assertEqual(NATIVE.validate_form_field_rows([row],["fractional"])["observations"],1)
+        marker=copy.deepcopy(row);marker["name"]="marker-gap-diagnostic";marker["state"]["case"]="style-baseline"
+        marker.update(markerReferenceLabel=[27,494,31.3333333333333,16],markerReferenceIndicator=[60.3333333333333,494,4.6666666666667,16])
+        marker["elements"]=[{"id":"form-field-label","label":"Email *","frame":[27,262,38,16]}]
+        NATIVE.validate_form_field_rows([marker],["marker-gap-diagnostic"])
+        diagnostic=NATIVE.reconcile_form_field_ios("FIELD_NATIVE_OBSERVATION "+json.dumps(marker),{"batch":"form-field-marker-diagnostic"})
+        self.assertEqual(diagnostic["status"],"DIAGNOSTIC_ONLY");self.assertFalse(diagnostic["qualification"])
+        for offset in [1/3,-1/3,1]:
+            wrong=copy.deepcopy(marker);wrong["markerReferenceIndicator"][0]+=offset
+            with self.subTest(markerOffset=offset),self.assertRaises(ValueError):NATIVE.validate_form_field_rows([wrong],["marker-gap-diagnostic"])
+        missing=copy.deepcopy(marker);missing["markerReferenceIndicator"]=[]
+        with self.assertRaises(ValueError):NATIVE.validate_form_field_rows([missing],["marker-gap-diagnostic"])
+        with self.assertRaises(ValueError):NATIVE.reconcile_form_field_ios("FIELD_NATIVE_OBSERVATION "+json.dumps(marker),{"batch":"form-field-styles"})
+        for kind in ["duplicate","paint","origin","outside","root-ref","size","retired","zero"]:
+            bad=copy.deepcopy(row)
+            if kind=="duplicate":
+                with self.assertRaises(ValueError):NATIVE.validate_form_field_rows([bad,bad],["fractional"])
+                continue
+            if kind=="paint":bad["referenceExact"]=False
+            elif kind=="origin":bad["matchedReferenceParent"][0]+=1/3
+            elif kind=="outside":bad["referenceParent"][1]=844
+            elif kind=="root-ref":bad["state"]["layouts"][-1]["currentTarget"]=82
+            elif kind=="size":bad["root"][2]+=1
+            elif kind=="retired":bad["state"]["visible"]=False;bad["state"]["childTag"]=None
+            else:bad["state"]["zero"]=True
+            with self.subTest(kind=kind),self.assertRaises(ValueError):NATIVE.validate_form_field_rows([bad],["fractional"])
+
+
+    def test_form_field_saved_failure_remains_rejected_and_early_identity_is_selected(self):
+        import ast
+        import inspect
+        saved=Path("node_modules/.cache/codon-native-tests/form-field-after-switcher-20261107/ios-actions-run-r2/xctest.stdout")
+        if not saved.is_file(): saved=ROOT.parents[3]/saved
+        self.assertTrue(saved.is_file())
+        with self.assertRaises(ValueError): NATIVE.reconcile_form_field_ios(saved.read_text(),{"batch":"form-field-actions"})
+        self.assertNotEqual(NATIVE.driver_exit_code(1,False,True),0)
+        measured=saved.parent.parent/"ios-styles-run-r5/xctest.stdout"
+        self.assertTrue(measured.is_file())
+        measured_rows=[json.loads(x) for x in re.findall(r"FIELD_NATIVE_OBSERVATION (\{[^\n]+\})",measured.read_text())]
+        self.assertEqual(len(measured_rows),1);self.assertTrue(measured_rows[0]["referenceExact"])
+        self.assertEqual(NATIVE.validate_form_field_rows(measured_rows,["style-baseline"])["observations"],1)
+        from NativeCellVerification import native_method
+        with self.assertRaises(ValueError):native_method({"path":str(measured),"sha256":NATIVE.digest(measured),"method":"testFieldStylesAndConstraints","format":"xctest_log"})
+        narrow_log=saved.parent.parent/"ios-styles-run-r6/xctest.stdout"
+        narrow_rows=[json.loads(x) for x in re.findall(r"FIELD_NATIVE_OBSERVATION (\{[^\n]+\})",narrow_log.read_text())]
+        narrow=next(x for x in narrow_rows if x["name"]=="long-narrow")
+        with self.assertRaises(ValueError):NATIVE.validate_form_field_rows([narrow],["long-narrow"])
+        corrected=copy.deepcopy(narrow);corrected.update(parent=[26,128,280,261],referenceParent=[26,397,280,261],matchedReferenceParent=[26,128,280,261],root=[38,140,160,236.3333740234375],referenceRoot=[38,409,160,236.3333740234375])
+        self.assertEqual(NATIVE.validate_form_field_rows([corrected],["long-narrow"])["observations"],1)
+        clipped=copy.deepcopy(corrected);clipped["root"][3]=238
+        with self.assertRaises(ValueError):NATIVE.validate_form_field_rows([clipped],["long-narrow"])
+        with self.assertRaises(ValueError):native_method({"path":str(narrow_log),"sha256":NATIVE.digest(narrow_log),"method":"testFieldStylesAndConstraints","format":"xctest_log"})
+        source=ast.parse(inspect.getsource(NATIVE.run_ios))
+        callback=next(node for node in ast.walk(source) if isinstance(node,ast.IfExp) and isinstance(node.body,ast.Call) and isinstance(node.body.func,ast.Name) and node.body.func.id=="early_tooltip_observer")
+        code=compile(ast.fix_missing_locations(ast.Expression(callback)),"actual-form-field-identity-callback","eval")
+        for batch in ["form-field-actions","form-field-styles","form-field-motion"]:
+            identity=MagicMock(return_value="existing identity callback")
+            result=eval(code,{"config":{"batch":batch},"session":object(),"observer":{},"early_tooltip_observer":identity})
+            self.assertEqual(result,"existing identity callback");self.assertEqual(identity.call_count,1)
+        swift=(ROOT/"MeterG02TrialTests.swift").read_text().split("final class FormFieldTrialTests:",1)[1]
+        self.assertIn('Bundle(for:FormFieldTrialTests.self)',swift)
+        self.assertLess(swift.index('NATIVE_LOADED_OBSERVER_EARLY'),swift.index('app.launch()'))
+        motion=swift.split('func testFieldMotionAndRetirement()',1)[1]
+        self.assertLess(motion.index('Actual selected Field motion fixture'),motion.index('settings.launch()'))
+        self.assertIn('type == .button ? element.label : ""',swift)
+
+
+
 
 
 
@@ -36,54 +117,55 @@ class StandardTests(unittest.TestCase):
 
     @unittest.skipUnless(Path("/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift").is_file(), "Actual Foundation predicate controls require Xcode")
     def test_tooltip_actual_identifier_lookup_avoids_scroll_label_and_rejects_aliases(self):
-        source=(ROOT/"MeterG02TrialTests.swift").read_text().split("final class TooltipTrialTests:",1)[1]
-        lookup=next(line for line in source.splitlines() if "private func node(" in line)
-        harness=r'''
-import Foundation
-var labelReads=0
-final class XCUIElement:NSObject {
-    @objc dynamic var identifier:String
-    let text:String
-    let exists:Bool
-    @objc dynamic var label:String {labelReads += 1;return text}
-    init(_ identifier:String,_ label:String="",exists:Bool=true){self.identifier=identifier;self.text=label;self.exists=exists}
-}
-enum Kind {case any}
-struct XCUIElementQuery {
-    let elements:[XCUIElement]
-    // Replay the label-first alias lookup observed in the saved XCTest trace.
-    func matching(identifier:String)->Self {Self(elements:elements.filter{$0.label==identifier || $0.identifier==identifier})}
-    func matching(_ predicate:NSPredicate)->Self {Self(elements:elements.filter{predicate.evaluate(with:$0)})}
-    var firstMatch:XCUIElement {elements.first ?? XCUIElement("",exists:false)}
-}
-struct XCUIApplication {
-    let elements:[XCUIElement]
-    func descendants(matching:Kind)->XCUIElementQuery {XCUIElementQuery(elements:elements)}
-}
-final class Harness {
-    let app:XCUIApplication
-    init(_ elements:[XCUIElement]){app=XCUIApplication(elements:elements)}
-ACTUAL_LOOKUP
-    func lookup(_ id:String)->XCUIElement {node(id)}
-}
-let indicator=XCUIElement("","Vertical scroll bar, 3 pages")
-let alias=XCUIElement("unrelated-control","tooltip-native-fixture")
-let actual=XCUIElement("tooltip-native-fixture","caller label")
-let duplicate=XCUIElement("tooltip-native-fixture","another label")
-let quotedID="tooltip-native-'quoted'[*]"
-let quoted=XCUIElement(quotedID,"caller label")
-let exact=Harness([indicator,alias,actual,duplicate,quoted])
-let target=exact.lookup("tooltip-native-fixture")
-let missing=Harness([indicator,alias]).lookup("tooltip-native-fixture")
-let literal=exact.lookup(quotedID)
-let result:[String:Any]=["labelReads":labelReads,"exactOriginalTarget":target===actual,"missingRejected":!missing.exists,"literalIdentifier":literal===quoted]
-print(String(data:try JSONSerialization.data(withJSONObject:result,options:.sortedKeys),encoding:.utf8)!)
-'''.replace("ACTUAL_LOOKUP",lookup)
-        path=self.root/"TooltipIdentifierLookup.swift";path.write_text(harness)
-        result=subprocess.run(["/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift","-module-cache-path",str(NATIVE.CACHE/"swift-host-module-cache"),str(path)],capture_output=True,text=True,timeout=60)
-        self.assertEqual(result.returncode,0,result.stderr[-5000:]);actual=json.loads(result.stdout)
-        for key,expected in {"labelReads":0,"exactOriginalTarget":True,"missingRejected":True,"literalIdentifier":True}.items():
-            with self.subTest(control=key):self.assertEqual(actual[key],expected)
+        for class_name in ["TooltipTrialTests","FormFieldTrialTests"]:
+            source=(ROOT/"MeterG02TrialTests.swift").read_text().split("final class "+class_name+":",1)[1]
+            lookup=next(line for line in source.splitlines() if "private func node(" in line)
+            harness=r'''
+    import Foundation
+    var labelReads=0
+    final class XCUIElement:NSObject {
+        @objc dynamic var identifier:String
+        let text:String
+        let exists:Bool
+        @objc dynamic var label:String {labelReads += 1;return text}
+        init(_ identifier:String,_ label:String="",exists:Bool=true){self.identifier=identifier;self.text=label;self.exists=exists}
+    }
+    enum Kind {case any}
+    struct XCUIElementQuery {
+        let elements:[XCUIElement]
+        // Replay the label-first alias lookup observed in the saved XCTest trace.
+        func matching(identifier:String)->Self {Self(elements:elements.filter{$0.label==identifier || $0.identifier==identifier})}
+        func matching(_ predicate:NSPredicate)->Self {Self(elements:elements.filter{predicate.evaluate(with:$0)})}
+        var firstMatch:XCUIElement {elements.first ?? XCUIElement("",exists:false)}
+    }
+    struct XCUIApplication {
+        let elements:[XCUIElement]
+        func descendants(matching:Kind)->XCUIElementQuery {XCUIElementQuery(elements:elements)}
+    }
+    final class Harness {
+        let app:XCUIApplication
+        init(_ elements:[XCUIElement]){app=XCUIApplication(elements:elements)}
+    ACTUAL_LOOKUP
+        func lookup(_ id:String)->XCUIElement {node(id)}
+    }
+    let indicator=XCUIElement("","Vertical scroll bar, 3 pages")
+    let alias=XCUIElement("unrelated-control","tooltip-native-fixture")
+    let actual=XCUIElement("tooltip-native-fixture","caller label")
+    let duplicate=XCUIElement("tooltip-native-fixture","another label")
+    let quotedID="tooltip-native-'quoted'[*]"
+    let quoted=XCUIElement(quotedID,"caller label")
+    let exact=Harness([indicator,alias,actual,duplicate,quoted])
+    let target=exact.lookup("tooltip-native-fixture")
+    let missing=Harness([indicator,alias]).lookup("tooltip-native-fixture")
+    let literal=exact.lookup(quotedID)
+    let result:[String:Any]=["labelReads":labelReads,"exactOriginalTarget":target===actual,"missingRejected":!missing.exists,"literalIdentifier":literal===quoted]
+    print(String(data:try JSONSerialization.data(withJSONObject:result,options:.sortedKeys),encoding:.utf8)!)
+    '''.replace("ACTUAL_LOOKUP",lookup)
+            path=self.root/"TooltipIdentifierLookup.swift";path.write_text(harness)
+            result=subprocess.run(["/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift","-module-cache-path",str(NATIVE.CACHE/"swift-host-module-cache"),str(path)],capture_output=True,text=True,timeout=60)
+            self.assertEqual(result.returncode,0,result.stderr[-5000:]);actual=json.loads(result.stdout)
+            for key,expected in {"labelReads":0,"exactOriginalTarget":True,"missingRejected":True,"literalIdentifier":True}.items():
+                with self.subTest(control=key):self.assertEqual(actual[key],expected)
 
     def test_tooltip_selected_methods_and_actual_admission_boundary(self):
         for phase,method in [("all",["testTooltipOwnershipDelayAndLifetime","testTooltipStylesAndConstraint","testTooltipMotionAndRetirement"]),("ownership","testTooltipOwnershipDelayAndLifetime"),("styles","testTooltipStylesAndConstraint"),("motion","testTooltipMotionAndRetirement")]:

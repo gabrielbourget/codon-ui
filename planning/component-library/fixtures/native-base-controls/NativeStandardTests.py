@@ -76,6 +76,10 @@ def verify_selected_app_inputs(plan, app):
 
 
 def selection(platform, batch="meter-g02"):
+    if batch in ["form-field-actions","form-field-styles","form-field-motion","form-field-marker-diagnostic"]:
+        require(platform=="ios","Current FormField batch is iOS only")
+        method={"form-field-actions":"testFieldActionsAndLifetimes","form-field-styles":"testFieldStylesAndConstraints","form-field-motion":"testFieldMotionAndRetirement","form-field-marker-diagnostic":"testFieldMarkerGapDiagnostic"}[batch]
+        return {"ios":["FormFieldTrialTests/"+method],"android":[]}
     if batch in ["tooltip","tooltip-ownership","tooltip-styles","tooltip-motion"]:
         require(platform=="ios","Current Tooltip batch is iOS only")
         methods=["testTooltipOwnershipDelayAndLifetime","testTooltipStylesAndConstraint","testTooltipMotionAndRetirement"] if batch=="tooltip" else [{"tooltip-ownership":"testTooltipOwnershipDelayAndLifetime","tooltip-styles":"testTooltipStylesAndConstraint","tooltip-motion":"testTooltipMotionAndRetirement"}[batch]]
@@ -909,10 +913,10 @@ def run_ios(session, config, app, observer):
     sdk_error = None
     try:
         if config.get("batch") == "slider-hit-layout": raw = session.run("xctest", argv, while_running=slider_hold_capture(session, device))
-        else: raw = session.run("xctest", argv, while_running=early_tooltip_observer(session,observer) if config.get("batch", "").startswith(("tooltip","switcher")) else None)
+        else: raw = session.run("xctest", argv, while_running=early_tooltip_observer(session,observer) if config.get("batch", "").startswith(("tooltip","switcher","form-field-")) else None)
     except ValueError as error:
         sdk_error = error;stdout = session.output / "xctest.stdout";raw = stdout.read_text() if stdout.exists() else ""
-    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected", "circle-loader", "lagging-lines", "counter", "list-box-item", "list-box-item-motion", "toggle-button", "toggle-button-affected", "toggle-button-style", "radio", "radio-motion", "switch", "switch-motion", "checkbox", "checkbox-static", "checkbox-motion", "button", "button-motion", "link", "tooltip-motion", "tooltip", "switcher-motion"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
+    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected", "circle-loader", "lagging-lines", "counter", "list-box-item", "list-box-item-motion", "toggle-button", "toggle-button-affected", "toggle-button-style", "radio", "radio-motion", "switch", "switch-motion", "checkbox", "checkbox-static", "checkbox-motion", "button", "button-motion", "link", "tooltip-motion", "tooltip", "switcher-motion", "form-field-motion"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
         original_motion = re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])", raw)
         restored_motion = re.findall(r"METER_STYLE_MOTION_RESTORED ([01])", raw)
         if original_motion != restored_motion: session.cleanup_errors.append("Original iOS Reduce Motion restoration unverified")
@@ -925,7 +929,7 @@ def run_ios(session, config, app, observer):
         if sdk_error is not None: raise sdk_error from error
         raise
     write(session.output / "loaded-observer.json", loaded)
-    if config.get("batch", "").startswith(("tooltip","switcher")) and sdk_error is None:
+    if config.get("batch", "").startswith(("tooltip","switcher","form-field-")) and sdk_error is None:
         early_tooltip_observer(session,observer)();require((session.output/"early-loaded-observer.json").is_file(),"Tooltip early loaded-executable receipt missing")
     if sdk_error is not None: raise sdk_error
     summary = json.loads(session.run("xctest-summary", [XCODE + "/xcresulttool", "get", "test-results", "summary", "--path", session.output / "Tests.xcresult"]))
@@ -953,6 +957,7 @@ def run_ios(session, config, app, observer):
     if config.get("batch") in ["switch", "switch-motion"]: result["switch"] = reconcile_switch_ios(raw, config, app)
     if config.get("batch", "").startswith("tooltip"): result["tooltip"]=reconcile_tooltip_ios(raw,config)
     elif config.get("batch") in ["switcher","switcher-actions","switcher-styles","switcher-motion"]: result["switcher"]=reconcile_switcher_ios(raw,config)
+    if config.get("batch", "").startswith("form-field-"): result["formField"]=reconcile_form_field_ios(raw,config)
     if config.get("batch") in ["link","link-static","link-actions"]: result["link"]=reconcile_link_ios(raw,config)
     if config.get("batch") in ["button","button-motion"]: result["button"]=reconcile_button_ios(raw,config)
     if config.get("batch")=="radio-group": result["radioGroup"]=reconcile_radio_group_ios(raw)
@@ -1775,6 +1780,77 @@ def reconcile_switcher_ios(raw,config=None):
             require(any(x["surfaceFrames"] for x in moving),"Switcher actual native selected-surface geometry missing")
     original_motion=re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])",raw);restored=re.findall(r"METER_STYLE_MOTION_RESTORED ([01])",raw);require(len(original_motion)==1 and original_motion==restored,"Switcher exact Reduce Motion restoration missing")
     return dict(result,nativeActivations=7,motionFrames=sum(len(x["samples"]) for x in intervals))
+
+
+FIELD_BEHAVIOR=["baseline","messages","target-cleared","target-restored","relationships","changed-targets","removed-targets","empty-messages","retired","fresh"]
+FIELD_STYLES=["style-baseline","root","top","label","top-right","bottom","bottom-right","validation","description","final-style","raised","fractional","zero","long-narrow","dark","light-restored"]
+def validate_form_field_rows(rows,names):
+    require(sorted(row["name"] for row in rows)==sorted(names),"Missing/duplicate Field observations")
+    for row in rows:
+        state,scale=row["state"],row["scale"]
+        require(isinstance(scale,(int,float)) and math.isfinite(scale) and scale>0,"Invalid Field scale")
+        parent,reference=row["parent"],row["referenceParent"]
+        require(len(parent)==len(reference)==4 and all(math.isfinite(x) for x in parent+reference) and parent[2:]==reference[2:] and parent[3]==(261 if state["narrow"] else 224) and 0<parent[2]<=280,"Invalid Field parents")
+        for frame in [parent,reference]:
+            x,y,w,h=[math.floor(v*scale+.5) for v in frame];require(0<=x<x+w<=row["imageWidth"] and 0<=y<y+h<=row["imageHeight"],"Field physical crop outside image")
+        if state.get("case")=="style-baseline":
+            label,marker=row["markerReferenceLabel"],row["markerReferenceIndicator"]
+            require(len(label)==len(marker)==4 and all(math.isfinite(x) for x in label+marker) and label[2]>0 and marker[2]>0,"Field independent marker frames missing")
+            require(math.floor(marker[0]*scale+.5)-math.floor((label[0]+label[2])*scale+.5)==math.floor(2*scale+.5),"Field independent marker gap differs from canonical2px")
+            labels=[x for x in row["elements"] if x["id"]=="form-field-label"]
+            require(len(labels)==1 and labels[0]["label"]=="Email *","Field actual label name differs")
+        if state["mode"]!="behavior":
+            require(row["referenceExact"] is True and [math.floor(v*scale+.5) for v in parent]==[math.floor(v*scale+.5) for v in row["matchedReferenceParent"]],"Field exact same-origin reference differs")
+        if not state["visible"]:
+            require(not row["root"] and row["targetCount"]==0 and row["inkPixels"]==0 and state["rootTag"] is None and state["childTag"] is None,"Retired Field host/ref/paint remains");continue
+        event=state["layouts"][-1];layout=event["layout"]
+        require(state["rootTag"]>0 and event["target"]==event["currentTarget"]==state["rootTag"],"Field original native layout/ref differs")
+        if state["zero"]:
+            require(layout["width"]==layout["height"]==0 and row["inkPixels"]==0,"Authored Field zero/clipping differs");continue
+        root=row["root"];require(row["targetCount"]==1 and len(root)==4 and all(math.isfinite(v) for v in root) and all(abs(root[i+2]-layout[key])*scale<=1 for i,key in enumerate(["width","height"])),"Field root/native dimensions differ")
+        if state["mode"]=="styles":
+            raw=row["referenceRoot"];require(len(raw)==4 and all(math.isfinite(v) for v in raw) and all(abs(a-b)*scale<=1 for a,b in zip([root[0]-parent[0],root[1]-parent[1],*root[2:]],[raw[0]-reference[0],raw[1]-reference[1],*raw[2:]])),"Field reference/native geometry differs")
+        if state["narrow"]:require(root[3]>100 and root[1]+root[3]<=parent[1]+parent[3]-12+1/scale,"Field constrained label/error clipped")
+        if state["hasMessages"]:
+            ids=[x["id"] for x in row["elements"]];require(ids.count("form-field-error-messages")==2 and ids.count("form-field-warning-messages")==1 and ids.count("form-field-success-messages")==1,"Field validation messages missing")
+        if state["relationships"]:
+            native=state["inspection"];related=state["targetsVisible"]
+            require(native["target"]==state["rootTag"] and native["ownerId"] and native["windowId"] and native["platform"]=="ios" and native["case"]==state["case"] and native["observedAt"]>0,"Field actual current native inspection missing")
+            require(native["label"]==(("Changed field" if state["case"]=="changed-targets" else "Field name") if related else "") and native["descriptionAvailable"] is related and native["detailsAvailable"] is related and native["description"]==("Guide" if related else "") and native["details"]==("Details" if related else ""),"Field actual relationships differ")
+    return {"status":"PASS","observations":len(rows)}
+
+
+def reconcile_form_field_ios(raw,config):
+    batch=config["batch"];rows=[json.loads(x) for x in re.findall(r"FIELD_NATIVE_OBSERVATION (\{[^\n]+\})",raw)]
+    if batch=="form-field-marker-diagnostic":
+        result=validate_form_field_rows(rows,["marker-gap-diagnostic"])
+        require(rows[0]["state"].get("case")=="style-baseline" and rows[0]["state"]["mode"]=="styles","Wrong Field marker diagnostic target")
+        return {**result,"status":"DIAGNOSTIC_ONLY","qualification":False,"referenceExact":rows[0]["referenceExact"]}
+    names=FIELD_BEHAVIOR+["label-focused"] if batch=="form-field-actions" else FIELD_STYLES if batch=="form-field-styles" else ["normal-fresh","reduced-fresh"]
+    result=validate_form_field_rows(rows,names);named={x["name"]:x for x in rows}
+    if batch=="form-field-actions":
+        original=named["baseline"]["state"];require(original["value"]=="ownerx" and original["changes"]>=1 and original["focuses"]==1,"Actual Field label/child input not observed")
+        for name in FIELD_BEHAVIOR:
+            state=named[name]["state"]
+            if name not in ["retired","fresh"]:require(state["rootTag"]==original["rootTag"] and state["childTag"]==original["childTag"] and state["value"]=="ownerx","Field caller child/root replaced")
+        require(named["target-cleared"]["state"]["focuses"]==1 and named["target-restored"]["state"]["focuses"]==2,"Field cleared/restored label focus differs")
+        fresh=named["fresh"]["state"];require(fresh["rootTag"]!=original["rootTag"] and fresh["childTag"]!=original["childTag"] and fresh["value"]=="ownerx","Field retired child/ref/value reused")
+        events=fresh["events"];require({"focus","blur"}<={x["phase"] for x in events} and all(x["target"]>0 and x["currentTarget"]>0 for x in events),"Field original bubbling event lost")
+    elif batch=="form-field-styles":require(named["dark"]["state"]["themeMode"]=="dark" and named["light-restored"]["state"]["themeMode"]=="light","Field provider restoration differs")
+    else:
+        intervals=[json.loads(x) for x in re.findall(r"FIELD_NATIVE_MOTION (\{[^\n]+\})",raw)];require([x["name"] for x in intervals]==["normal","reduced"],"Field normal/reduced motion missing")
+        controls={x["name"]:x for x in [json.loads(x) for x in re.findall(r"FIELD_NATIVE_MOTION_REFERENCE (\{[^\n]+\})",raw)]};require(sorted(controls)==sorted([name+"-reference-"+str(i) for name in ["normal","reduced"] for i in [0,1]]),"Field endpoint controls missing")
+        for interval in intervals:
+            trace=interval["state"]["motionTrace"];require([x["name"] for x in trace]==["retarget-"+str(i) for i in range(40)]+["settle","retire","fresh"],"Field250ms interruption/retirement trace differs")
+            require(interval["state"]["motionEvents"][-1] is interval["reduced"],"Field real motion setting differs")
+            samples=interval["samples"];moving=[x for x in samples if x["captureStartedEpochMs"]>=trace[0]["epochMs"] and x["captureEpochMs"]<trace[-2]["epochMs"]];require(len(moving)>1 and any(x["inkPixels"]==0 for x in samples),"Field motion/retirement samples missing")
+            for sample in samples:
+                counts=sample["referenceGlyphCounts"];require(len(counts)==3 and counts[2]==0 and ((counts[0]>0 and counts[1]==0) or (counts[1]>0 and counts[0]==0) or counts==[0,0,0] and sample["inkPixels"]==0),"Unknown Field raw glyph endpoint")
+                require(sample["calibratedReferenceName"] in controls and [math.floor(v*sample["scale"]+.5) for v in sample["parent"]]==[math.floor(v*sample["scale"]+.5) for v in sample["calibratedReferenceParent"]],"Field endpoint moved physical origin")
+            require(all(x["calibratedReferenceExact"] for x in moving) if interval["reduced"] else any(x["glyphCounts"][2]>0 for x in moving),"Field actual foreground motion/reduction differs")
+        original=re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])",raw);require(len(original)==1 and original==re.findall(r"METER_STYLE_MOTION_RESTORED ([01])",raw),"Field original Reduce Motion not restored")
+        result["motionFrames"]=sum(len(x["samples"]) for x in intervals)
+    return result
 
 
 LINK_BEHAVIOR=["baseline","echo","disabled","held-disabled","restored","empty","fragment","relative","small-hit-target","replaced","retired","fresh","alias-relationships","attribute-relationships","changed-targets","removed-targets","empty-relationships","error","handoff"]
@@ -2630,13 +2706,14 @@ def validate_standard_scope(plan):
     slider = cell == "CAT.slider.G01" and batch == "slider-hit-layout"
     checkbox = cell == "CAT.checkbox.G08" and batch in ["checkbox","checkbox-static","checkbox-motion"]
     tooltip = cell == "CAT.tooltip.G08" and batch in ["tooltip","tooltip-ownership","tooltip-styles","tooltip-motion"]
+    field = cell == "CAT.form-field.G08" and batch in ["form-field-actions","form-field-styles","form-field-motion","form-field-marker-diagnostic"]
     switcher = cell == "CAT.toggle-switcher.G08" and batch in ["switcher","switcher-actions","switcher-styles","switcher-motion"]
     link = cell == "CAT.link.G08" and batch in ["link","link-static","link-actions"]
     button = cell == "CAT.button.G08" and batch in ["button","button-motion"]
     radio_group = cell == "CAT.radio-group.G08" and batch=="radio-group"
     checkbox_group = cell == "CAT.checkbox-group.G08" and batch in ["checkbox-group","checkbox-group-actions"]
     switch = cell == "CAT.switch.G08" and batch in ["switch", "switch-motion"]
-    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item or toggle_button or radio or placeholder or slider or switch or checkbox or checkbox_group or radio_group or button or link or tooltip or switcher, "Only the authorized component and focused batch are selected")
+    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item or toggle_button or radio or placeholder or slider or switch or checkbox or checkbox_group or radio_group or button or link or tooltip or switcher or field, "Only the authorized component and focused batch are selected")
 
 
 def main():

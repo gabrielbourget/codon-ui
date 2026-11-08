@@ -4589,3 +4589,173 @@ final class SwitcherTrialTests: XCTestCase {
         FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_SWITCH "+expected+"\n").utf8))
     }
 }
+
+
+final class FormFieldTrialTests: XCTestCase {
+    private var app:XCUIApplication!
+    private let behavior=["baseline", "messages", "target-cleared", "target-restored", "relationships", "changed-targets", "removed-targets", "empty-messages", "retired", "fresh"]
+    private let styles=["style-baseline", "root", "top", "label", "top-right", "bottom", "bottom-right", "validation", "description", "final-style", "raised", "fractional", "zero", "long-narrow", "dark", "light-restored"]
+    override func setUpWithError() throws {
+        continueAfterFailure=false
+        let bundle=Bundle(for:FormFieldTrialTests.self),executable=try XCTUnwrap(bundle.executableURL),expected=try XCTUnwrap(ProcessInfo.processInfo.environment["CODON_NATIVE_OBSERVER_EXECUTABLE_SHA256"]),actual=SHA256.hash(data:try Data(contentsOf:executable)).map{String(format:"%02x",$0)}.joined()
+        XCTAssertEqual(expected.count,64);XCTAssertEqual(actual,expected,"Actually loaded test executable before app launch")
+        let early:[String:Any]=["path":bundle.bundleURL.path,"executable":executable.path,"sha256":actual,"expectedSHA256":expected,"epochMs":Date().timeIntervalSince1970*1000]
+        FileHandle.standardOutput.write(Data("NATIVE_LOADED_OBSERVER_EARLY ".utf8)+(try JSONSerialization.data(withJSONObject:early,options:.sortedKeys))+Data("\n".utf8))
+        app=XCUIApplication(bundleIdentifier:"dev.codonui.showcase");app.launch();XCTAssertEqual(app.state,.runningForeground);XCUIDevice.shared.orientation = .portrait
+        tap("Reset scene");tap("Form field scene");tap("Light theme");tap("Live window");tap("Prepare standalone Field checks")
+    }
+    override func tearDownWithError() throws {
+        let png=XCTAttachment(screenshot:XCUIScreen.main.screenshot());png.name="field-final";png.lifetime = .keepAlways;add(png)
+        let tree=XCTAttachment(string:app.debugDescription);tree.name="field-final-hierarchy";tree.lifetime = .keepAlways;add(tree)
+    }
+    private func state() throws->[String:Any] {try XCTUnwrap(JSONSerialization.jsonObject(with:Data(node("field-native-state").label.utf8)) as? [String:Any])}
+    private func number(_ row:[String:Any],_ key:String)throws->Double {let value=try XCTUnwrap(row[key] as? NSNumber,key).doubleValue;XCTAssertTrue(value.isFinite);return value}
+    private func rect(_ value:CGRect)->[Double] {[value.minX,value.minY,value.width,value.height].map(Double.init)}
+    private func ready() {wait("Actual current Field root/ref/layout") {guard let row=try? self.state(),let events=row["layouts"] as? [[String:Any]],let event=events.last else{return false};return (row["rootTag"] as? NSNumber)?.doubleValue == (event["currentTarget"] as? NSNumber)?.doubleValue}}
+    private func mark(_ name:String,_ row:[String:Any],_ shot:XCUIScreenshot,prefix:String="FIELD_NATIVE_OBSERVATION") throws {
+        let data=try JSONSerialization.data(withJSONObject:row,options:.sortedKeys);FileHandle.standardOutput.write(Data((prefix+" ").utf8)+data+Data("\n".utf8));let attachment=XCTAttachment(data:data,uniformTypeIdentifier:"public.json");attachment.name="field-"+name+"-receipt";attachment.lifetime = .keepAlways;add(attachment);let png=XCTAttachment(screenshot:shot);png.name="field-"+name;png.lifetime = .keepAlways;add(png)
+    }
+    private func capture(_ name:String) throws {
+        tap("Show Field component");reveal(node("field-native-pair"));let snapshot=try app.snapshot();var all:[XCUIElementSnapshot]=[]
+        func visit(_ value:XCUIElementSnapshot){all.append(value);for child in value.children{visit(child)}};visit(snapshot)
+        func one(_ id:String)->XCUIElementSnapshot?{let values=all.filter{$0.identifier==id};XCTAssertLessThanOrEqual(values.count,1,id);return values.first}
+        let row=try XCTUnwrap(JSONSerialization.jsonObject(with:Data(try XCTUnwrap(one("field-native-state")).label.utf8)) as? [String:Any]),window=try XCTUnwrap(all.first{$0.elementType == .window}).frame,parent=try XCTUnwrap(one("field-native-parent")).frame,reference=try XCTUnwrap(one("field-native-reference-parent")).frame,root=one("field-native-target"),raw=one("field-native-reference"),shot=XCUIScreen.main.screenshot(),image=try XCTUnwrap(shot.image.cgImage),scale=CGFloat(image.width)/window.width
+        XCTAssertEqual(shot.image.imageOrientation,.up);XCTAssertEqual(scale,CGFloat(image.height)/window.height,accuracy:0.01)
+        let actual=try pixels(image,parent,window,scale);var ink=0;for i in stride(from:0,to:actual.count,by:4){if actual[i] != 255 || actual[i+1] != 255 || actual[i+2] != 255{ink+=1}}
+        var exact=false,matched=reference
+        if row["mode"] as? String != "behavior" {
+            let control=app.buttons["Show Field reference"].firstMatch;XCTAssertTrue(control.isHittable && window.contains(control.frame));control.tap();wait("Original Field reference physical origin"){(try? self.state()["referenceAtOrigin"] as? Bool)==true}
+            matched=node("field-native-reference-parent").frame;let referenceShot=XCUIScreen.main.screenshot(),referenceImage=try XCTUnwrap(referenceShot.image.cgImage);XCTAssertTrue(toggleButtonMatchedFrame(rect(parent),rect(matched),Double(scale)));exact=circularPixelsMatch(actual,try pixels(referenceImage,matched,window,scale));let extra=XCTAttachment(screenshot:referenceShot);extra.name="field-"+name+"-matched-reference";extra.lifetime = .keepAlways;add(extra)
+        }
+        let elements=all.filter{["form-field-label","form-field-description","form-field-error-messages","form-field-warning-messages","form-field-success-messages","form-field-required-indicator"].contains($0.identifier)}.map{["id":$0.identifier,"label":$0.label,"frame":rect($0.frame)] as [String:Any]}
+        let observed:[String:Any]=["name":name,"state":row,"parent":rect(parent),"referenceParent":rect(reference),"root":root.map{rect($0.frame)} ?? [],"referenceRoot":raw.map{rect($0.frame)} ?? [],"targetCount":all.filter{$0.identifier=="field-native-target"}.count,"referenceExact":exact,"matchedReferenceParent":rect(matched),"inkPixels":ink,"scale":scale,"imageWidth":image.width,"imageHeight":image.height,"elements":elements,"markerReferenceLabel":one("field-canonical-marker-label").map{rect($0.frame)} ?? [],"markerReferenceIndicator":one("field-canonical-marker-indicator").map{rect($0.frame)} ?? []]
+        try mark(name,observed,shot)
+        if row["case"] as? String == "style-baseline" {let label=try XCTUnwrap(one("field-canonical-marker-label")),marker=try XCTUnwrap(one("field-canonical-marker-indicator")),actualLabel=try XCTUnwrap(one("form-field-label"));XCTAssertEqual((marker.frame.minX*scale).rounded()-(label.frame.maxX*scale).rounded(),(2*scale).rounded(),"Independent canonical required-marker physical gap");XCTAssertEqual(actualLabel.label,"Email *")}
+        if row["mode"] as? String != "behavior" {XCTAssertTrue(exact,"Field paint differs from independent same-origin reference")}
+        if row["visible"] as? Bool==false{XCTAssertNil(root);XCTAssertTrue(row["rootTag"] is NSNull);XCTAssertTrue(row["childTag"] is NSNull);XCTAssertEqual(ink,0);return}
+        let events=try XCTUnwrap(row["layouts"] as? [[String:Any]]),event=try XCTUnwrap(events.last),layout=try XCTUnwrap(event["layout"] as? [String:Any]),tag=try number(row,"rootTag");XCTAssertGreaterThan(tag,0);XCTAssertEqual(try number(event,"target"),tag);XCTAssertEqual(try number(event,"currentTarget"),tag)
+        if row["zero"] as? Bool==true{XCTAssertEqual(try number(layout,"width"),0);XCTAssertEqual(try number(layout,"height"),0);XCTAssertEqual(ink,0);return}
+        let target=try XCTUnwrap(root);XCTAssertEqual(target.frame.width,try number(layout,"width"),accuracy:1/scale);XCTAssertEqual(target.frame.height,try number(layout,"height"),accuracy:1/scale)
+        if row["mode"] as? String == "styles" {let nativeReference=try XCTUnwrap(raw);for (a,b) in zip([target.frame.minX-parent.minX,target.frame.minY-parent.minY,target.frame.width,target.frame.height],[nativeReference.frame.minX-reference.minX,nativeReference.frame.minY-reference.minY,nativeReference.frame.width,nativeReference.frame.height]){XCTAssertEqual(a,b,accuracy:1/scale)}}
+        if row["narrow"] as? Bool==true{XCTAssertGreaterThan(target.frame.height,100);XCTAssertLessThanOrEqual(target.frame.maxY,parent.maxY-12+1/scale)}
+        if row["hasMessages"] as? Bool==true{XCTAssertEqual(elements.filter{$0["id"] as? String=="form-field-error-messages"}.count,2);XCTAssertEqual(elements.filter{$0["id"] as? String=="form-field-warning-messages"}.count,1);XCTAssertEqual(elements.filter{$0["id"] as? String=="form-field-success-messages"}.count,1)}
+    }
+    private func inspect() throws {
+        let before=try number(state(),"inspectionSequence");tap("Inspect Field metadata");wait("Actual current Field native inspection"){guard let row=try? self.state() else{return false};return ((row["inspectionSequence"] as? NSNumber)?.doubleValue ?? 0)>before || (row["inspection"] as? [String:Any])?["error"] != nil}
+        let row=try state(),value=try XCTUnwrap(row["inspection"] as? [String:Any]);XCTAssertNil(value["error"]);XCTAssertEqual(value["case"] as? String,row["case"] as? String);XCTAssertEqual(try number(value,"target"),try number(row,"rootTag"));XCTAssertFalse((value["ownerId"] as? String ?? "").isEmpty);XCTAssertFalse((value["windowId"] as? String ?? "").isEmpty);XCTAssertEqual(value["platform"] as? String,"ios");XCTAssertGreaterThan(try number(value,"observedAt"),0)
+        let related=row["targetsVisible"] as? Bool==true;XCTAssertEqual(value["label"] as? String,related ? (row["case"] as? String=="changed-targets" ? "Changed field":"Field name"):"");XCTAssertEqual(value["descriptionAvailable"] as? Bool,related);XCTAssertEqual(value["detailsAvailable"] as? Bool,related);XCTAssertEqual(value["description"] as? String,related ? "Guide":"");XCTAssertEqual(value["details"] as? String,related ? "Details":"")
+    }
+    func testFieldActionsAndLifetimes() throws {
+        tap("Field behavior checks");var original=0.0,child=0.0
+        for name in behavior {
+            wait("Current Field case "+name){(try? self.state()["case"] as? String)==name};if name != "retired"{ready()}
+            if name=="baseline"{original=try number(state(),"rootTag");child=try number(state(),"childTag");tap("Blur child");let before=try number(state(),"focuses");let label=node("form-field-label");reveal(label);label.tap();wait("Label focuses original caller editor"){(try? self.number(self.state(),"focuses"))==before+1};let editor=app.textFields["field-native-editor"].firstMatch;XCTAssertTrue(editor.isHittable);editor.typeText("x\n");wait("Actual caller-owned text request"){(try? self.state()["value"] as? String)=="ownerx"};tap("Blur child");try capture("label-focused")}
+            if !["retired","fresh"].contains(name){XCTAssertEqual(try number(state(),"rootTag"),original);XCTAssertEqual(try number(state(),"childTag"),child);XCTAssertEqual(try state()["value"] as? String,"ownerx")}
+            if ["target-cleared","target-restored"].contains(name){tap("Blur child");let before=try number(state(),"focuses"),label=node("form-field-label");reveal(label);label.tap();if name=="target-cleared"{Thread.sleep(forTimeInterval:0.4);XCTAssertEqual(try number(state(),"focuses"),before)}else{wait("Restored current label focus target"){(try? self.number(self.state(),"focuses"))==before+1};let blurs=((try? state()["events"] as? [[String:Any]]) ?? []).filter{$0["phase"] as? String=="blur"}.count;app.textFields["field-native-editor"].firstMatch.typeText("\n");wait("Original child blur before wrapper navigation"){((try? self.state()["events"] as? [[String:Any]]) ?? []).filter{$0["phase"] as? String=="blur"}.count==blurs+1}}}
+            if ["relationships","changed-targets","removed-targets"].contains(name){try inspect()}
+            if name=="fresh"{XCTAssertNotEqual(try number(state(),"rootTag"),original);XCTAssertNotEqual(try number(state(),"childTag"),child)}
+            try capture(name);if name != behavior.last{tap("Next Field check")}
+        }
+        let final=try state();XCTAssertEqual(final["value"] as? String,"ownerx");XCTAssertGreaterThanOrEqual(try number(final,"changes"),1);let events=try XCTUnwrap(final["events"] as? [[String:Any]]);XCTAssertTrue(events.contains{$0["phase"] as? String=="focus"});XCTAssertTrue(events.contains{$0["phase"] as? String=="blur"});for event in events{XCTAssertGreaterThan(try number(event,"target"),0);XCTAssertGreaterThan(try number(event,"currentTarget"),0)}
+    }
+    func testFieldMarkerGapDiagnostic() throws {
+        tap("Field styles checks");wait("Actual Field marker baseline"){(try? self.state()["case"] as? String)=="style-baseline"};ready()
+        try capture("marker-gap-diagnostic")
+    }
+    func testFieldStylesAndConstraints() throws {
+        tap("Field styles checks")
+        for name in styles {
+            wait("Current Field style "+name){(try? self.state()["case"] as? String)==name};ready()
+            if name=="dark" {tap("Dark theme");wait("Actual dark provider"){(try? self.state()["themeMode"] as? String)=="dark"}}
+            if name=="light-restored" {tap("Light theme");wait("Actual light provider"){(try? self.state()["themeMode"] as? String)=="light"}}
+            try capture(name);if name != styles.last {tap("Next Field check")}
+        }
+    }
+    private func motion(_ name:String,reduced:Bool) throws {
+        tap("Field motion checks");reveal(node("field-native-pair"));ready()
+        var referencePaints:[[UInt8]]=[];var referenceFrames:[[Double]]=[]
+        for (index,control) in ["First","Second"].enumerated(){
+            tap(control);tap("Show Field reference");reveal(node("field-native-pair"));let shot=XCUIScreen.main.screenshot(),image=try XCTUnwrap(shot.image.cgImage),window=app.windows.firstMatch.frame,parent=node("field-native-parent").frame,reference=node("field-native-reference-parent").frame,scale=CGFloat(image.width)/window.width
+            XCTAssertTrue(toggleButtonMatchedFrame(rect(parent),rect(reference),Double(scale)));let paint=try pixels(image,reference,window,scale);referencePaints.append(paint);referenceFrames.append(rect(parent));let counts=linkGlyphCounts(paint);XCTAssertGreaterThan(counts[index],0);XCTAssertEqual(counts[1-index],0);XCTAssertEqual(counts[2],0)
+            try mark(name+"-reference-"+String(index),["name":name+"-reference-"+String(index),"parent":rect(parent),"referenceParent":rect(reference),"glyphCounts":counts,"scale":scale,"imageWidth":image.width,"imageHeight":image.height],shot,prefix:"FIELD_NATIVE_MOTION_REFERENCE")
+        }
+        tap("Show Field component");reveal(node("field-native-pair"));ready();let before=try state(),window=app.windows.firstMatch.frame,parent=node("field-native-parent").frame,reference=node("field-native-reference-parent").frame,arm=app.buttons["Arm Field motion and retirement"].firstMatch
+        XCTAssertTrue(arm.isHittable && window.contains(arm.frame));arm.tap();var samples:[[String:Any]]=[];let until=Date().timeIntervalSince1970+11.9
+        repeat{
+            let started=Date().timeIntervalSince1970*1000,shot=XCUIScreen.main.screenshot(),image=try XCTUnwrap(shot.image.cgImage),scale=CGFloat(image.width)/window.width,actual=try pixels(image,parent,window,scale),expected=try pixels(image,reference,window,scale),counts=linkGlyphCounts(actual),rawCounts=linkGlyphCounts(expected)
+            var ink=0;for i in stride(from:0,to:actual.count,by:4){if actual[i] != 255 || actual[i+1] != 255 || actual[i+2] != 255{ink+=1}}
+            let index=try XCTUnwrap(linkReferenceIndex(rawCounts,ink),"Exact raw glyph endpoint or real blank retirement");XCTAssertTrue(toggleButtonMatchedFrame(rect(parent),referenceFrames[index],Double(scale)))
+            let row:[String:Any]=["name":name+"-"+String(samples.count),"captureStartedEpochMs":started,"captureEpochMs":Date().timeIntervalSince1970*1000,"parent":rect(parent),"referenceParent":rect(reference),"glyphCounts":counts,"referenceGlyphCounts":rawCounts,"calibratedReferenceName":name+"-reference-"+String(index),"calibratedReferenceParent":referenceFrames[index],"calibratedReferenceExact":circularPixelsMatch(actual,referencePaints[index]),"referenceExact":circularPixelsMatch(actual,expected),"inkPixels":ink,"scale":scale,"imageWidth":image.width,"imageHeight":image.height];samples.append(row);try mark(name+"-"+String(samples.count),row,shot,prefix:"FIELD_NATIVE_MOTION_FRAME");Thread.sleep(forTimeInterval:0.10)
+        }while Date().timeIntervalSince1970<until && nativeWorkRemaining()>0
+        let after=try state(),trace=try XCTUnwrap(after["motionTrace"] as? [[String:Any]]),retired=try XCTUnwrap(trace.first{$0["name"] as? String=="retire"}),moving=samples.filter{($0["captureStartedEpochMs"] as? Double ?? 0)>=(trace[0]["epochMs"] as? Double ?? .infinity) && ($0["captureEpochMs"] as? Double ?? .infinity)<(retired["epochMs"] as? Double ?? 0)}
+        let result:[String:Any]=["name":name,"reduced":reduced,"movingRows":moving.count,"state":after,"samples":samples];FileHandle.standardOutput.write(Data("FIELD_NATIVE_MOTION ".utf8)+(try JSONSerialization.data(withJSONObject:result,options:.sortedKeys))+Data("\n".utf8))
+        XCTAssertEqual(trace.compactMap{$0["name"] as? String},(0..<40).map{"retarget-"+String($0)}+["settle","retire","fresh"]);XCTAssertGreaterThan(moving.count,1)
+        if reduced{XCTAssertTrue(moving.allSatisfy{$0["calibratedReferenceExact"] as? Bool==true},"Reduced whole foreground matches exact independent same-origin endpoint")}
+        else{XCTAssertTrue(moving.contains{($0["glyphCounts"] as? [Int] ?? [0,0,0])[2]>0},"Actual250ms foreground interpolation")}
+        XCTAssertTrue(samples.contains{($0["inkPixels"] as? Int)==0});XCTAssertNotEqual(try number(after,"rootTag"),try number(before,"rootTag"));ready();try capture(name+"-fresh")
+    }
+    func testFieldMotionAndRetirement() throws {
+        tap("Field motion checks");wait("Actual selected Field motion fixture"){(try? self.state()["mode"] as? String)=="motion"};let settings=XCUIApplication(bundleIdentifier:"com.apple.Preferences");settings.launch();let toggle=motionSwitch(settings),original=try XCTUnwrap(toggle.value as? String);XCTAssertTrue(["0","1"].contains(original));FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_ORIGINAL "+original+"\n").utf8))
+        addTeardownBlock{[self] in let current=self.motionSwitch(settings);self.setMotion(current,original);XCTAssertEqual(current.value as? String,original);self.app.activate();FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_RESTORED "+original+"\n").utf8))}
+        setMotion(toggle,"0");app.activate();reveal(node("field-native-state"));wait("Real normal-motion event"){((try? self.state()["motionEvents"] as? [Bool]) ?? []).last==false};try motion("normal",reduced:false)
+        setMotion(motionSwitch(settings),"1");app.activate();reveal(node("field-native-state"));wait("Real reduced-motion event"){((try? self.state()["motionEvents"] as? [Bool]) ?? []).last==true};try motion("reduced",reduced:true)
+    }
+    private func node(_ id:String)->XCUIElement {app.descendants(matching:.any).matching(NSPredicate(format:"identifier == %@",id)).firstMatch}
+
+    private func wait(_ message:String,_ predicate:@escaping()->Bool) {
+        let expectation=XCTNSPredicateExpectation(predicate:NSPredicate{_,_ in predicate()},object:nil)
+        XCTAssertEqual(XCTWaiter.wait(for:[expectation],timeout:nativeWorkRemaining()),.completed,message)
+    }
+
+    private func reveal(_ element:XCUIElement) {
+        XCTAssertTrue(element.waitForExistence(timeout:nativeWorkRemaining()))
+        let identifier=element.identifier,type=element.elementType;let label=type == .button ? element.label : ""
+        while nativeWorkRemaining()>0 {
+            guard let snapshot=try? app.snapshot() else{continue};var values:[XCUIElementSnapshot]=[]
+            func visit(_ current:XCUIElementSnapshot){values.append(current);for child in current.children{visit(child)}};visit(snapshot)
+            guard let scroll=values.first(where:{$0.elementType == .scrollView}),let target=values.first(where:{$0.identifier==identifier && $0.elementType==type && (type != .button || $0.label==label)}) else{continue}
+            let viewport=snapshot.frame.intersection(scroll.frame).insetBy(dx:2,dy:2),frame=target.frame
+            if !frame.isEmpty && viewport.contains(frame){return}
+            guard let distance=galleryScrollFraction(Double(frame.minY),Double(frame.height),Double(viewport.minY),Double(viewport.height)),distance != 0 else{continue}
+            let start:CGFloat=distance>0 ? 0.75:0.30;let nativeScroll=app.scrollViews.firstMatch
+            let trace:[String:Any]=["target":identifier,"label":label,"frame":rect(frame),"viewport":rect(viewport),"requestedFraction":distance]
+            if let data=try? JSONSerialization.data(withJSONObject:trace,options:.sortedKeys){FileHandle.standardOutput.write(Data("FIELD_SCROLL ".utf8)+data+Data("\n".utf8))}
+            nativeScroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:start)).press(forDuration:0.05,thenDragTo:nativeScroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:start-CGFloat(distance))),withVelocity:.slow,thenHoldForDuration:0.25)
+        };XCTFail("Unreachable Field control/canvas "+identifier)
+    }
+
+    private func tap(_ name:String) {
+        let control=app.buttons.matching(NSPredicate(format:"label == %@",name)).firstMatch;reveal(control);XCTAssertTrue(control.isHittable);control.tap()
+        if name=="Select scene"{wait("Actual selected Field scene"){control.isSelected}}
+    }
+
+    private func pixels(_ image:CGImage,_ frame:CGRect,_ window:CGRect,_ scale:CGFloat) throws -> [UInt8] {
+        XCTAssertTrue(window.contains(frame));let rect=CGRect(x:((frame.minX-window.minX)*scale).rounded(),y:((frame.minY-window.minY)*scale).rounded(),width:(frame.width*scale).rounded(),height:(frame.height*scale).rounded())
+        let crop=try XCTUnwrap(image.cropping(to:rect));var bytes=[UInt8](repeating:0,count:crop.width*crop.height*4)
+        let result=bytes.withUnsafeMutableBytes { buffer -> Bool in
+            guard let context=CGContext(data:buffer.baseAddress,width:crop.width,height:crop.height,bitsPerComponent:8,bytesPerRow:crop.width*4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue|CGBitmapInfo.byteOrder32Big.rawValue) else{return false}
+            context.draw(crop,in:CGRect(x:0,y:0,width:CGFloat(crop.width),height:CGFloat(crop.height)));return true
+        };XCTAssertTrue(result);return bytes
+    }
+    private func motionSwitch(_ settings: XCUIApplication) -> XCUIElement {
+        settings.activate()
+        let toggle = settings.switches["Reduce Motion"].firstMatch
+        if toggle.exists { return toggle }
+        for label in ["Accessibility","Motion"] {
+            let entry = settings.staticTexts[label].firstMatch
+            for _ in 0..<12 { if entry.exists && entry.isHittable { break };settings.swipeUp() }
+            XCTAssertTrue(entry.exists && entry.isHittable,"Standard Settings navigation "+label);entry.tap()
+        }
+        XCTAssertTrue(toggle.waitForExistence(timeout:nativeWorkRemaining()));return toggle
+    }
+
+    private func setMotion(_ toggle: XCUIElement, _ expected: String) {
+        if toggle.value as? String != expected {
+            XCTAssertTrue(toggle.isHittable)
+            toggle.coordinate(withNormalizedOffset:CGVector(dx:0.95,dy:0.5)).tap()
+        }
+        wait("Actual Reduce Motion switch "+expected) { toggle.value as? String == expected }
+        let shot = XCTAttachment(screenshot:XCUIScreen.main.screenshot());shot.name="meter-motion-switch-"+expected;shot.lifetime = .keepAlways;add(shot)
+        FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_SWITCH "+expected+"\n").utf8))
+    }
+}
