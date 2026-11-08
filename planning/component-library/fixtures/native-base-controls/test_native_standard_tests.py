@@ -23,6 +23,137 @@ class StandardTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory();self.root = Path(self.temp.name)
     def tearDown(self): self.temp.cleanup()
 
+    def test_popover_settings_handoff_guard_replays_native_transition_and_keeps_strict_motion(self):
+        source=(ROOT/"MeterG02TrialTests.swift").read_text().split("final class ClickPopoverTrialTests:",1)[1].split("final class ShowcaseStartupDiagnosticTests:",1)[0]
+        helper=source.split("private func motionSwitch",1)[1].split("private func setMotion",1)[0]
+        condition=re.search(r'wait\("Native Settings foreground and showcase background"\) \{ ([^\n]+) \}',helper).group(1)
+        self.assertLess(helper.index('wait("Native Settings'),helper.index('let toggle = settings.switches["Reduce Motion"]'))
+        expression=condition.replace("settings.state","settings_state").replace("self.app.state","showcase_state").replace(".runningBackgroundSuspended","2").replace(".runningBackground","3").replace(".runningForeground","4").replace("&&"," and ").replace("||"," or ")
+        ready=lambda settings,showcase:eval(expression,{"__builtins__":{}},{"settings_state":settings,"showcase_state":showcase})
+        # Failed r7 synthesized at 13:30:23.534, before showcase background at 24.853.
+        self.assertFalse(ready(4,4));self.assertTrue(ready(4,3))
+        # Healthy Tooltip r11 backgrounds at 03:07:39.261 before its 41.892 tap.
+        self.assertTrue(ready(4,2))
+        for settings in [None,0,1,2,3,4]:
+            for showcase in [None,0,1,2,3,4]:
+                self.assertEqual(ready(settings,showcase),settings==4 and showcase in [2,3])
+        mutation=source.split("private func setMotion",1)[1]
+        self.assertEqual(mutation.count(".tap()"),1)
+        self.assertIn("toggle.coordinate(withNormalizedOffset:CGVector(dx:0.95,dy:0.5)).tap()",mutation)
+        self.assertIn('wait("Actual Reduce Motion switch "+expected) { toggle.value as? String == expected }',mutation)
+        self.assertIn('XCTAssertEqual(current.value as? String,original)',source)
+        self.assertIn('self.setMotion(current,original)',source)
+        self.assertNotIn("sleep",helper)
+
+
+    def test_popover_exact_batches_and_real_missing_admission_boundary(self):
+        for suffix,method in [("actions","testPopoverActionsAndOwnership"),("styles","testPopoverStylesAndConstraint"),("lifetime","testPopoverLifetimeAndReduction")]:
+            batch="click-popover-"+suffix;plan={"cell":"CAT.click-popover.G08","nativeStandard":{"platform":"ios","batch":batch,"output":str(self.root/"never-created")}}
+            NATIVE.validate_standard_scope(plan);self.assertEqual(NATIVE.selection("ios",batch),{"ios":["ClickPopoverTrialTests/"+method],"android":[]})
+            path=self.root/(suffix+".json");path.write_text(json.dumps(plan));env={k:v for k,v in os.environ.items() if k!="CODON_NATIVE_CELL_PREFLIGHT_RECEIPT"}
+            result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(path)],env=env,capture_output=True,text=True)
+            self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((self.root/"never-created").exists())
+            with self.assertRaises(ValueError):NATIVE.selection("android",batch)
+        with self.assertRaises(ValueError):NATIVE.validate_standard_scope({"cell":"CAT.tooltip.G08","nativeStandard":{"batch":"click-popover-actions"}})
+
+    def test_popover_reader_original_geometry_paint_and_decorative_arrow_controls(self):
+        state={"open":True,"mounted":True,"rootTag":81,"case":"baseline","narrow":False,"dialogPadding":0,"layouts":[{"target":81,"currentTarget":81,"width":280,"height":200.0001220703125}],"rendered":{"placement":"top"},"background":"#ffffff","textColor":"#111111","showArrow":False,"arrowLayout":None}
+        row={"name":"baseline","state":state,"root":[55,350,280,200],"dialog":[65,360,260,180],"body":[65,390,260,40],"anchor":[120,560,120,44],"arrow":[],"nativeBodyLabel":"Native popover content","window":[0,0,390,844],"scale":3,"imageWidth":1170,"imageHeight":2532,"backgroundRGBA":[255]*4,"textRGBA":[17,17,17,255],"textPixels":14}
+        state.update(anchorTag=83,lifetime=0,anchorMeasurement={"sequence":1,"target":83,"rootTag":81,"lifetime":0,"case":"baseline","windowId":"actual-window","rootWindowId":"actual-window","requestedEpochMs":101,"observedEpochMs":102,"frame":row["anchor"]})
+        row.update(anchorSource="original-native-measureInWindow",anchorAX=[],captureStartedEpochMs=100,captureEpochMs=103)
+        self.assertEqual(NATIVE.validate_popover_rows([row],["baseline"])["observations"],1)
+        for kind in ["duplicate","scale","outside","width","layout","parent-pixel","paint","text"]:
+            bad=copy.deepcopy(row)
+            if kind=="duplicate":
+                with self.assertRaises(ValueError):NATIVE.validate_popover_rows([bad,bad],["baseline"])
+                continue
+            if kind=="scale":bad["scale"]=float("nan")
+            elif kind=="outside":bad["root"][0]=-1/3
+            elif kind=="width":bad["root"][2]+=1
+            elif kind=="layout":bad["state"]["layouts"][-1]["currentTarget"]=82
+            elif kind=="parent-pixel":bad["body"][2]=270+1/3
+            elif kind=="paint":bad["backgroundRGBA"][0]=254
+            else:bad["textPixels"]=0
+            with self.subTest(kind=kind),self.assertRaises(ValueError):NATIVE.validate_popover_rows([bad],["baseline"])
+        custom=copy.deepcopy(row);custom["name"]="custom";custom["state"].update(case="custom",dialogPadding=4,showArrow=True,arrowLayout={"target":84,"currentTarget":84,"parentTag":81,"x":140,"y":197,"width":18,"height":10});custom["body"][0]=69;custom["body"][2]=252;custom["borderRGBA"]=[[17,119,51,255]]*3;custom["arrow"]=[186,547,18,10]
+        custom["state"]["anchorMeasurement"]["case"]="custom"
+        custom["arrowSamples"]=[{"point":[186+x,547+y],"rgba":[47,125,24,255] if i<4 else [128,128,128,255]} for i,(x,y) in enumerate([(2.5,1),(5,1),(7.5,1),(5,3.5),(.5,3.5),(9.5,3.5),(5,7.5)])]
+        NATIVE.validate_popover_rows([custom],["custom"])
+        for kind in ["wrong-parent","inner-edge","wrong-paint","outside-negative"]:
+            bad=copy.deepcopy(custom)
+            if kind=="wrong-parent":bad["state"]["arrowLayout"]["parentTag"]=82
+            elif kind=="inner-edge":bad["state"]["arrowLayout"]["y"]-=7;bad["arrow"][1]-=7
+            elif kind=="wrong-paint":bad["arrowSamples"][1]["rgba"]=[128,128,128,255]
+            else:bad["arrowSamples"][-1]["rgba"]=[47,125,24,255]
+            with self.subTest(arrow=kind),self.assertRaises(ValueError):NATIVE.validate_popover_rows([bad],["custom"])
+        retired=copy.deepcopy(row);retired.update(name="normal-retired",root=[],retirementFrame=row["root"],retirementReferenceName="normal-baseline",retirementExact=True);retired["state"].update(mounted=False,rootTag=None)
+        NATIVE.validate_popover_rows([retired],["normal-retired"])
+        for key,value in [("retirementExact",False),("retirementReferenceName","reduced-baseline"),("retirementFrame",[-1/3,350,280,200])]:
+            bad=copy.deepcopy(retired);bad[key]=value
+            with self.subTest(retirement=key),self.assertRaises(ValueError):NATIVE.validate_popover_rows([bad],["normal-retired"])
+        with self.assertRaises(ValueError):NATIVE.reconcile_popover_ios("",{"batch":"click-popover-actions"})
+        self.assertNotEqual(NATIVE.driver_exit_code(1,False,True),0)
+
+    def test_popover_saved_modal_capture_requires_fresh_original_window_measurement(self):
+        saved=ROOT.parents[3]/"node_modules/.cache/codon-native-tests/click-popover-after-hover-removal-20261108/ios-styles-run-r1/xctest.stdout"
+        raw=[json.loads(x) for x in re.findall(r"POPOVER_NATIVE_CAPTURE (\{[^\n]+\})",saved.read_text())];self.assertEqual(len(raw),1)
+        original=raw[0];self.assertEqual(original["anchor"],[]);self.assertTrue(original["root"] and original["body"] and original["dialog"])
+        with self.assertRaisesRegex(ValueError,"measurement missing"):NATIVE.validate_popover_anchor(original)
+        control=copy.deepcopy(original);control.update(anchor=[55,636,280,44],anchorAX=[],anchorSource="original-native-measureInWindow",captureStartedEpochMs=100,captureEpochMs=103)
+        state=control["state"];state["anchorMeasurement"]={"sequence":1,"target":state["anchorTag"],"rootTag":state["rootTag"],"lifetime":state["lifetime"],"case":state["case"],"windowId":"control-window","rootWindowId":"control-window","requestedEpochMs":101,"observedEpochMs":102,"frame":control["anchor"]}
+        # Synthetic native-measurement controls over the actual pruned modal metadata; never relabel the failed native method.
+        self.assertEqual(NATIVE.validate_popover_anchor(control),control["anchor"])
+        for key,value in [("target",-1),("rootTag",-1),("lifetime",-1),("case","wrong"),("windowId","other-window"),("requestedEpochMs",99),("observedEpochMs",104),("sequence",0),("frame",[55,636,280,43])]:
+            bad=copy.deepcopy(control);bad["state"]["anchorMeasurement"][key]=value
+            with self.subTest(key=key),self.assertRaises(ValueError):NATIVE.validate_popover_anchor(bad)
+        bad=copy.deepcopy(control);bad["anchor"][0]=-1/3;bad["state"]["anchorMeasurement"]["frame"]=bad["anchor"]
+        with self.assertRaises(ValueError):NATIVE.validate_popover_anchor(bad)
+        good=copy.deepcopy(control);good["anchorAX"]=good["anchor"].copy();NATIVE.validate_popover_anchor(good)
+        good["anchorAX"][1]+=1
+        with self.assertRaises(ValueError):NATIVE.validate_popover_anchor(good)
+        with self.assertRaises(ValueError):NATIVE.reconcile_popover_ios(saved.read_text(),{"batch":"click-popover-styles"})
+
+    def test_popover_actions_resolved_trigger_name_and_original_semantics(self):
+        opened={"rootTag":81,"entryTag":82,"events":[{"phase":"entry-focus","currentTarget":82,"target":82}],"inspection":{"target":81,"ownerId":"owner","windowId":"window","platform":"ios","label":"Original popover action","description":"Original supplementary popover details"}}
+        states={"declined-open":{"open":False,"requests":[{"value":True}]},"opened":opened,"edited":{"rootTag":81,"entryTag":82,"actions":1,"value":"ownerx"},"declined-close":{"open":True,"rootTag":81,"requests":[{"value":False}]},"outside-veto":{"rootTag":81,"open":True,"backgroundActions":0,"outside":[{"kind":"touch","target":83}]},"background-restored":{"backgroundActions":1},"nonmodal-open":{"nonmodal":True},"nonmodal-focus-close":{"backgroundActions":2,"outside":[{"kind":"focus"}],"focusedTag":83,"backgroundTag":83}}
+        for name in ["outside-close","inside-close"]:states[name]={"open":False,"focusedTag":84,"anchorTag":84}
+        rows=[{"name":name,"state":states.get(name,{}),"editorValue":"ownerx"} for name in NATIVE.POPOVER_ACTIONS]
+        identity='NATIVE_LOADED_OBSERVER_EARLY '+json.dumps({"sha256":"a"*64,"expectedSHA256":"a"*64})+'\n'
+        def raw(values):return identity+'\n'.join('POPOVER_NATIVE_OBSERVATION '+json.dumps(row) for row in values)
+        # Isolate semantic reconciliation; executed geometry/paint controls remain separate.
+        with patch.object(NATIVE,"validate_popover_rows",return_value={"observations":len(rows)}):
+            self.assertEqual(NATIVE.reconcile_popover_ios(raw(rows),{"batch":"click-popover-actions"})["observations"],11)
+            for field,value in [("label","Native popover"),("label",""),("label","Unrelated trigger"),("target",99),("windowId",""),("ownerId",""),("platform","android"),("description","Unrelated details")]:
+                bad=copy.deepcopy(rows);next(row for row in bad if row["name"]=="opened")["state"]["inspection"][field]=value
+                with self.subTest(field=field,value=value),self.assertRaisesRegex(ValueError,"original root semantics"):
+                    NATIVE.reconcile_popover_ios(raw(bad),{"batch":"click-popover-actions"})
+
+    def test_cached_ios_refresh_removed_input_requires_prior_hash_absence_and_owned_typescript(self):
+        repo=self.root/"repo";retired=repo/"packages/react-native/src/components/Retired.tsx";retired.parent.mkdir(parents=True)
+        base=self.root/"Base.app";base.mkdir();(base/"main.jsbundle").write_text("old bundle");(base/"NativeBinary").write_text("unchanged native")
+        identity=self.root/"identity.json";identity.write_text(json.dumps(NATIVE.identity(base)));freeze=self.root/"freeze.json";freeze.write_text(json.dumps({str(retired.relative_to(repo)):"a"*64}))
+        config={"baseApplicationIdentity":{"path":str(identity),"sha256":NATIVE.digest(identity)},"baseApplicationSourceFreeze":{"path":str(freeze),"sha256":NATIVE.digest(freeze)},"removedApplicationSources":[{"path":str(retired),"sha256":"a"*64}]}
+        class Boundary:
+            def __init__(inner,name):inner.output=self.root/name;inner.output.mkdir()
+            def run(inner,*args):raise RuntimeError("EXPECTED_PACKAGER_BOUNDARY_NO_SDK")
+        with patch.object(NATIVE,"REPO",repo):
+            admitted=Boundary("admitted")
+            with self.assertRaisesRegex(RuntimeError,"EXPECTED_PACKAGER_BOUNDARY_NO_SDK"):NATIVE.build_ios_application(admitted,config)
+            self.assertEqual(json.loads((admitted.output/"source-freeze.json").read_text()),{})
+            self.assertEqual((admitted.output/"CodonCircular.app/NativeBinary").read_text(),"unchanged native")
+            for kind in ["wrong-hash","still-present","native-file","codegen-spec","unknown","duplicate"]:
+                bad=copy.deepcopy(config)
+                if kind=="wrong-hash":bad["removedApplicationSources"][0]["sha256"]="b"*64
+                elif kind=="still-present":retired.write_text("not actually retired")
+                elif kind=="native-file":bad["removedApplicationSources"][0]["path"]=str(repo/"packages/react-native/ios/Retired.mm")
+                elif kind=="codegen-spec":bad["removedApplicationSources"][0]["path"]=str(repo/"packages/react-native/src/input/specs/Retired.ts")
+                elif kind=="unknown":bad["removedApplicationSources"][0]["path"]=str(retired.parent/"Unknown.tsx")
+                else:bad["removedApplicationSources"]*=2
+                rejected=Boundary(kind)
+                with self.subTest(kind=kind),self.assertRaises(ValueError):NATIVE.build_ios_application(rejected,bad)
+                self.assertFalse((rejected.output/"CodonCircular.app").exists())
+                if retired.exists():retired.unlink()
+
     def test_form_field_exact_batches_and_actual_admission_boundary(self):
         for batch,method in [("actions","testFieldActionsAndLifetimes"),("styles","testFieldStylesAndConstraints"),("motion","testFieldMotionAndRetirement"),("marker-diagnostic","testFieldMarkerGapDiagnostic")]:
             full="form-field-"+batch;plan={"cell":"CAT.form-field.G08","nativeStandard":{"platform":"ios","batch":full,"output":str(self.root/"never-created")}}

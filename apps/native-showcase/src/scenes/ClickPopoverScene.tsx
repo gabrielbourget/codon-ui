@@ -3,10 +3,13 @@ import { ScrollView, TextInput, View } from "react-native"
 
 import { AVAILABLE_THEMING_ORDER_CODES, Button, ClickPopover, NativeDialogTrigger, Text } from "@codon-ui/react-native"
 
+import { ClickPopoverG08Fixture } from "./ClickPopoverG08Fixture"
+
 const CallerContext = createContext("Caller content")
 const Content = () => <Text testID="popover-caller-context">{useContext(CallerContext)}</Text>
 
 export const ClickPopoverScene = () => {
+  const [checks, setChecks] = useState(false)
   const [open, setOpen] = useState(false)
   const [echo, setEcho] = useState(true)
   const [veto, setVeto] = useState(false)
@@ -45,9 +48,11 @@ export const ClickPopoverScene = () => {
     setOrthogonal(false)
     setOrder(0)
   }
+  if (checks) return <ClickPopoverG08Fixture />
   return (
     <CallerContext.Provider value="Live popover caller context">
       <View style={{ gap: 12 }}>
+        <Button onPress={() => setChecks(true)}>Prepare standalone ClickPopover checks</Button>
         <Text elementType="h2">Click popover</Text>
         <Text testID="popover-scene-state">
           Open: {String(open)}. Requests: {requests}. Outside: {outside}. Actions: {actions}. Owner{" "}

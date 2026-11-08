@@ -76,6 +76,10 @@ def verify_selected_app_inputs(plan, app):
 
 
 def selection(platform, batch="meter-g02"):
+    if batch in ["click-popover-actions","click-popover-styles","click-popover-lifetime"]:
+        require(platform=="ios","Current ClickPopover batch is iOS only")
+        method={"click-popover-actions":"testPopoverActionsAndOwnership","click-popover-styles":"testPopoverStylesAndConstraint","click-popover-lifetime":"testPopoverLifetimeAndReduction"}[batch]
+        return {"ios":["ClickPopoverTrialTests/"+method],"android":[]}
     if batch in ["form-field-actions","form-field-styles","form-field-motion","form-field-marker-diagnostic"]:
         require(platform=="ios","Current FormField batch is iOS only")
         method={"form-field-actions":"testFieldActionsAndLifetimes","form-field-styles":"testFieldStylesAndConstraints","form-field-motion":"testFieldMotionAndRetirement","form-field-marker-diagnostic":"testFieldMarkerGapDiagnostic"}[batch]
@@ -633,6 +637,13 @@ def build_ios_application(session, config):
         name = str(path.relative_to(REPO.resolve()))
         selected_runtime.add(name)
         freeze.setdefault(name, item["sha256"])
+    retired_sources = config.get("removedApplicationSources", [])
+    for item in retired_sources:
+        path = Path(item["path"]).resolve()
+        require(path.is_relative_to((REPO / "packages/react-native/src/components").resolve()) and path.suffix in [".ts", ".tsx"], "Only removed owned component TypeScript can retire from a cached application")
+        name = str(path.relative_to(REPO.resolve()))
+        require(not path.exists() and freeze.get(name) == item.get("sha256"), "Removed application input must match its actual prior frozen hash and remain absent")
+        del freeze[name]
     current = {name: digest(REPO / name) for name in freeze}
     drift = [name for name in freeze if freeze[name] != current[name]]
     require(all((name.startswith("apps/native-showcase/src/") or name in selected_runtime) and name.endswith((".ts", ".tsx")) for name in drift), "Unexpected unbound native/config/library drift: " + repr(drift))
@@ -652,7 +663,7 @@ def build_ios_application(session, config):
         require(str(path.relative_to(REPO)) in mapped, "Selected application fixture missing from bundle: " + str(path))
     result = identity(target)
     result.update(sourceFilesSHA256={str(REPO / name): value for name, value in current.items()}, sourceFreeze={"path": str(session.output / "source-freeze.json"), "sha256": digest(session.output / "source-freeze.json")}, packagerMap=str(source_map), packagerMapSHA256=digest(source_map))
-    write(session.output / "map-proof.json", {"matchedOwnedSourceCount": len(mapped), "sourceFilesSHA256": {name: digest(REPO / name) for name in mapped}, "unchangedNativeAndAssets": True, "baseManifestSHA256": base["manifestSHA256"], "sourceDrift": drift})
+    write(session.output / "map-proof.json", {"matchedOwnedSourceCount": len(mapped), "sourceFilesSHA256": {name: digest(REPO / name) for name in mapped}, "unchangedNativeAndAssets": True, "baseManifestSHA256": base["manifestSHA256"], "sourceDrift": drift, "removedApplicationSources": retired_sources})
     return result
 
 
@@ -913,10 +924,10 @@ def run_ios(session, config, app, observer):
     sdk_error = None
     try:
         if config.get("batch") == "slider-hit-layout": raw = session.run("xctest", argv, while_running=slider_hold_capture(session, device))
-        else: raw = session.run("xctest", argv, while_running=early_tooltip_observer(session,observer) if config.get("batch", "").startswith(("tooltip","switcher","form-field-")) else None)
+        else: raw = session.run("xctest", argv, while_running=early_tooltip_observer(session,observer) if config.get("batch", "").startswith(("tooltip","switcher","form-field-","click-popover-")) else None)
     except ValueError as error:
         sdk_error = error;stdout = session.output / "xctest.stdout";raw = stdout.read_text() if stdout.exists() else ""
-    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected", "circle-loader", "lagging-lines", "counter", "list-box-item", "list-box-item-motion", "toggle-button", "toggle-button-affected", "toggle-button-style", "radio", "radio-motion", "switch", "switch-motion", "checkbox", "checkbox-static", "checkbox-motion", "button", "button-motion", "link", "tooltip-motion", "tooltip", "switcher-motion", "form-field-motion"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
+    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected", "circle-loader", "lagging-lines", "counter", "list-box-item", "list-box-item-motion", "toggle-button", "toggle-button-affected", "toggle-button-style", "radio", "radio-motion", "switch", "switch-motion", "checkbox", "checkbox-static", "checkbox-motion", "button", "button-motion", "link", "tooltip-motion", "tooltip", "switcher-motion", "form-field-motion", "click-popover-lifetime"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
         original_motion = re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])", raw)
         restored_motion = re.findall(r"METER_STYLE_MOTION_RESTORED ([01])", raw)
         if original_motion != restored_motion: session.cleanup_errors.append("Original iOS Reduce Motion restoration unverified")
@@ -929,7 +940,7 @@ def run_ios(session, config, app, observer):
         if sdk_error is not None: raise sdk_error from error
         raise
     write(session.output / "loaded-observer.json", loaded)
-    if config.get("batch", "").startswith(("tooltip","switcher","form-field-")) and sdk_error is None:
+    if config.get("batch", "").startswith(("tooltip","switcher","form-field-","click-popover-")) and sdk_error is None:
         early_tooltip_observer(session,observer)();require((session.output/"early-loaded-observer.json").is_file(),"Tooltip early loaded-executable receipt missing")
     if sdk_error is not None: raise sdk_error
     summary = json.loads(session.run("xctest-summary", [XCODE + "/xcresulttool", "get", "test-results", "summary", "--path", session.output / "Tests.xcresult"]))
@@ -958,6 +969,7 @@ def run_ios(session, config, app, observer):
     if config.get("batch", "").startswith("tooltip"): result["tooltip"]=reconcile_tooltip_ios(raw,config)
     elif config.get("batch") in ["switcher","switcher-actions","switcher-styles","switcher-motion"]: result["switcher"]=reconcile_switcher_ios(raw,config)
     if config.get("batch", "").startswith("form-field-"): result["formField"]=reconcile_form_field_ios(raw,config)
+    if config.get("batch", "").startswith("click-popover-"): result["clickPopover"]=reconcile_popover_ios(raw,config)
     if config.get("batch") in ["link","link-static","link-actions"]: result["link"]=reconcile_link_ios(raw,config)
     if config.get("batch") in ["button","button-motion"]: result["button"]=reconcile_button_ios(raw,config)
     if config.get("batch")=="radio-group": result["radioGroup"]=reconcile_radio_group_ios(raw)
@@ -1720,6 +1732,88 @@ def reconcile_tooltip_ios(raw,config):
         original=re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])",raw);require(len(original)==1 and original==re.findall(r"METER_STYLE_MOTION_RESTORED ([01])",raw),"Tooltip original Reduce Motion not restored")
         result["motionFrames"]=sum(len(x["samples"]) for x in intervals)
     return result
+POPOVER_ACTIONS=["closed","declined-open","opened","edited","declined-close","outside-veto","outside-close","background-restored","inside-close","nonmodal-open","nonmodal-focus-close"]
+POPOVER_STYLES=["baseline","custom","final","arrow-zero","narrow","dark","light-restored"]
+POPOVER_LIFETIME=[mode+suffix for mode in ["normal","reduced"] for suffix in ["-baseline","-open","-window-return","-retired","-fresh","-closed"]]
+
+def validate_popover_anchor(row):
+    state=row["state"];measured=state.get("anchorMeasurement");require(isinstance(measured,dict),"ClickPopover fresh original native-window measurement missing")
+    require(row.get("anchorSource")=="original-native-measureInWindow" and measured.get("target")==state["anchorTag"] and measured.get("rootTag")==state["rootTag"] and measured.get("lifetime")==state["lifetime"] and measured.get("case")==state["case"],"ClickPopover measured anchor owner/case differs")
+    require(isinstance(measured.get("windowId"),str) and measured["windowId"] and measured["windowId"]==measured.get("rootWindowId"),"ClickPopover measured anchor belongs to a different native window")
+    times=[row.get("captureStartedEpochMs"),measured.get("requestedEpochMs"),measured.get("observedEpochMs"),row.get("captureEpochMs")]
+    require(all(isinstance(v,(int,float)) and math.isfinite(v) for v in times) and times==sorted(times) and measured.get("sequence",0)>0,"ClickPopover native anchor measurement is stale or outside capture")
+    anchor=row.get("anchor",[]);require(len(anchor)==4 and anchor==measured.get("frame") and all(isinstance(v,(int,float)) and math.isfinite(v) for v in anchor) and anchor[2]>0 and anchor[3]>0,"ClickPopover original measured native anchor frame differs")
+    window=row["window"];require(window[0]<=anchor[0] and window[1]<=anchor[1] and anchor[0]+anchor[2]<=window[0]+window[2] and anchor[1]+anchor[3]<=window[1]+window[3],"ClickPopover original measured anchor outside native window")
+    if row.get("anchorAX"):require(len(row["anchorAX"])==4 and all(abs(a-b)*row["scale"]<=1 for a,b in zip(row["anchorAX"],anchor)),"ClickPopover available native AX anchor disagrees with original-ref measurement")
+    return anchor
+
+def validate_popover_rows(rows,names):
+    require(sorted(x["name"] for x in rows)==sorted(names),"Missing/duplicate ClickPopover native observations")
+    rgba=lambda value:[int(value.lstrip("#")[i:i+2],16) for i in [0,2,4]]+[255]
+    last_measurement=0
+    for row in rows:
+        state,scale=row["state"],row["scale"]
+        require(isinstance(scale,(int,float)) and math.isfinite(scale) and scale>0,"Invalid ClickPopover scale")
+        if not state["open"] or not state["mounted"]:
+            require(not row["root"] and state["rootTag"] is None,"Closed ClickPopover host remains")
+            if row["name"].endswith("-retired"):
+                frame=row.get("retirementFrame",[]);require(row.get("retirementExact") is True and len(frame)==4 and all(math.isfinite(v) for v in frame) and row.get("retirementReferenceName")==row["name"].replace("-retired","-baseline"),"ClickPopover same-origin retirement reference differs")
+                x,y,w,h=[math.floor(v*scale+.5) for v in frame];require(0<=x<x+w<=row["imageWidth"] and 0<=y<y+h<=row["imageHeight"],"ClickPopover retirement crop outside screenshot")
+            continue
+        root,window=row["root"],row["window"]
+        require(len(root)==len(window)==4 and all(math.isfinite(x) for x in root+window) and root[2]>0 and root[3]>0,"Invalid ClickPopover frames")
+        x,y,w,h=[math.floor(v*scale+.5) for v in root];require(0<=x<x+w<=row["imageWidth"] and 0<=y<y+h<=row["imageHeight"],"ClickPopover outside physical screenshot")
+        require(abs(root[2]-(128 if state["narrow"] else 280))*scale<=1,"ClickPopover authored width differs")
+        layout=state["layouts"][-1];require(layout["target"]==layout["currentTarget"]==state["rootTag"] and all(abs(root[i+2]-layout[key])*scale<=1 for i,key in enumerate(["width","height"])),"ClickPopover original layout/ref differs")
+        for box in [row["dialog"],row["body"]]:
+            require(len(box)==4 and all(math.isfinite(v) for v in box),"ClickPopover original child frame missing")
+            bx,by,bw,bh=[math.floor(v*scale+.5) for v in box];require(x<=bx<bx+bw<=x+w and y<=by<by+bh<=y+h,"ClickPopover child outside physical root")
+        anchor=validate_popover_anchor(row);sequence=state["anchorMeasurement"]["sequence"];require(sequence>last_measurement,"ClickPopover repeated old anchor measurement");last_measurement=sequence;placement=state["rendered"]["placement"];require(placement in ["top","bottom"] and (root[1]+root[3]<=anchor[1] if placement=="top" else root[1]>=anchor[1]+anchor[3]),"ClickPopover placement overlaps current anchor")
+        border=3 if state["case"]=="custom" else 1 if state["case"]=="final" else 0;padding=7 if state["case"]=="custom" else 3 if state["case"]=="final" else 10
+        require(abs(row["body"][0]-root[0]-border-padding-state["dialogPadding"])*scale<=1,"ClickPopover root/dialog style owners differ")
+        require(row["backgroundRGBA"]==rgba(state["background"]),"ClickPopover native background differs")
+        if border:require(row["borderRGBA"]==[[17,119,51,255]]*border,"ClickPopover border width/color differs")
+        require(row["textRGBA"]==rgba(state["textColor"]) and row["textPixels"]>0,"ClickPopover native text foreground missing")
+        if state["narrow"]:require(row["body"][3]>34 and "étroite" in row["nativeBodyLabel"],"ClickPopover narrow content truncated")
+        if state["showArrow"]:
+            arrow=state["arrowLayout"];require(arrow["target"]==arrow["currentTarget"]>0 and arrow["parentTag"]==state["rootTag"],"ClickPopover original decorative arrow target differs")
+            expected=[root[0]+arrow["x"]-arrow["width"]/2,root[1]+arrow["y"],arrow["width"],arrow["height"]]
+            require(len(row["arrow"])==4 and all(abs(a-b)*scale<=1 for a,b in zip(row["arrow"],expected)),"ClickPopover original arrow geometry differs")
+            require(abs(arrow["width"]-(0 if state["case"]=="arrow-zero" else 18))*scale<=1 and abs(arrow["height"]-10)*scale<=1,"ClickPopover authored arrow dimensions differ")
+            if arrow["width"]:
+                require(abs((expected[1] if placement=="top" else expected[1]+expected[3])-(root[1]+root[3]-border if placement=="top" else root[1]+border))*scale<=1,"ClickPopover outer arrow edge differs")
+                offsets=[(2.5,1),(5,1),(7.5,1),(5,3.5),(.5,3.5),(9.5,3.5),(5,7.5)];samples=row["arrowSamples"];require(len(samples)==len(offsets),"ClickPopover arrow samples missing")
+                for i,(sample,(dx,dy)) in enumerate(zip(samples,offsets)):
+                    require(all(abs(a-b)*scale<=1 for a,b in zip(sample["point"],[expected[0]+dx,expected[1]+(dy if placement=="top" else 10-dy)])),"ClickPopover arrow sample attribution differs")
+                    require((sample["rgba"]==[47,125,24,255])==(i<4),"ClickPopover opaque arrow or exterior negative differs")
+        else:require(state["arrowLayout"] is None and not row["arrow"],"ClickPopover default arrow unexpectedly present")
+    return {"status":"PASS","observations":len(rows)}
+
+def reconcile_popover_ios(raw,config):
+    early=[json.loads(x) for x in re.findall(r"NATIVE_LOADED_OBSERVER_EARLY (\{[^\n]+\})",raw)]
+    require(len(early)==1 and len(early[0]["sha256"])==64 and early[0]["sha256"]==early[0]["expectedSHA256"],"ClickPopover actually loaded early identity missing")
+    batch=config["batch"];rows=[json.loads(x) for x in re.findall(r"POPOVER_NATIVE_OBSERVATION (\{[^\n]+\})",raw)];names=POPOVER_ACTIONS if batch=="click-popover-actions" else POPOVER_STYLES if batch=="click-popover-styles" else POPOVER_LIFETIME
+    result=validate_popover_rows(rows,names);named={x["name"]:x for x in rows}
+    if batch=="click-popover-actions":
+        declined=named["declined-open"]["state"];require(not declined["open"] and declined["requests"][-1]["value"] is True,"ClickPopover declined open owner differs")
+        opened=named["opened"]["state"];root=opened["rootTag"];require(any(x["phase"]=="entry-focus" and x["currentTarget"]==opened["entryTag"] and x["target"]>0 for x in opened["events"]),"ClickPopover original entry focus callback missing")
+        native=opened["inspection"];require(native["target"]==root and native["ownerId"] and native["windowId"] and native["platform"]=="ios" and native["label"]=="Original popover action" and "Original supplementary popover details" in native["description"],"ClickPopover native original root semantics differ")
+        edited=named["edited"]["state"];require(edited["rootTag"]==root and edited["entryTag"]==opened["entryTag"] and edited["actions"]==1 and edited["value"]==named["edited"]["editorValue"]=="ownerx","ClickPopover original action/editor ownership differs")
+        veto=named["declined-close"]["state"];require(veto["open"] and veto["rootTag"]==root and veto["requests"][-1]["value"] is False,"ClickPopover declined close owner differs")
+        outside=named["outside-veto"]["state"];require(outside["rootTag"]==root and outside["open"] and outside["backgroundActions"]==0 and outside["outside"][-1]["kind"]=="touch" and outside["outside"][-1]["target"]>0,"ClickPopover original outside veto/isolation differs")
+        for name in ["outside-close","inside-close"]:
+            state=named[name]["state"];require(not state["open"] and state["focusedTag"]==state["anchorTag"]>0,"ClickPopover actual original trigger focus return missing")
+        require(named["background-restored"]["state"]["backgroundActions"]==1,"ClickPopover background action did not restore")
+        state=named["nonmodal-focus-close"]["state"];require(named["nonmodal-open"]["state"]["nonmodal"] and state["backgroundActions"]==2 and state["outside"][-1]["kind"]=="focus" and state["focusedTag"]==state["backgroundTag"]>0,"ClickPopover nonmodal current outside focus was stolen")
+    elif batch=="click-popover-styles":require(named["dark"]["state"]["palette"]=="dark" and named["light-restored"]["state"]["palette"]=="light","ClickPopover actual provider restoration differs")
+    else:
+        for mode,reduced in [("normal",False),("reduced",True)]:
+            opened=named[mode+"-open"]["state"];returned=named[mode+"-window-return"]["state"];retired=named[mode+"-retired"]["state"];fresh=named[mode+"-fresh"]["state"];closed=named[mode+"-closed"]["state"]
+            require(opened["motionEvents"][-1] is reduced and returned["rootTag"]==opened["rootTag"] and returned["requests"]==opened["requests"] and retired["requests"]==opened["requests"] and not retired["mounted"],"ClickPopover real reduction/window/retirement ownership differs")
+            require(fresh["rootTag"]!=opened["rootTag"] and fresh["anchorTag"]!=opened["anchorTag"] and fresh["focusedTag"]==fresh["entryTag"]>0 and closed["focusedTag"]==closed["anchorTag"]>0,"ClickPopover fresh native ownership/focus differs")
+        original=re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])",raw);require(len(original)==1 and original==re.findall(r"METER_STYLE_MOTION_RESTORED ([01])",raw),"ClickPopover original Reduce Motion not restored")
+    return result
+
 SWITCHER_BEHAVIOR=["baseline","echo","reselected","disabled","held-readonly","restored","member-disabled","empty-key","reversed","removed","reinserted","empty-items","items-restored","local","default-changed","authored","authored-grown","replaced","retired","fresh"]
 SWITCHER_ACTIONS=["baseline-first","baseline-repeated"]+[name+"-activated" for name in ["echo","reselected","disabled","held-readonly","restored","member-disabled","empty-key","local","default-changed"]]
 SWITCHER_STYLES=["style-baseline","natural","vertical","reverse","selected-b","readonly","primary","root-custom","options-custom","selected-slot","final-root","orthogonal","round","raised","uppercase","font-weights","fractional","percentage","auto","zero","long-narrow","provider","dark","light-restored"]
@@ -2705,6 +2799,7 @@ def validate_standard_scope(plan):
     placeholder = cell == "CAT.placeholder-text.G08" and batch == "placeholder-g08"
     slider = cell == "CAT.slider.G01" and batch == "slider-hit-layout"
     checkbox = cell == "CAT.checkbox.G08" and batch in ["checkbox","checkbox-static","checkbox-motion"]
+    popover = cell == "CAT.click-popover.G08" and batch in ["click-popover-actions","click-popover-styles","click-popover-lifetime"]
     tooltip = cell == "CAT.tooltip.G08" and batch in ["tooltip","tooltip-ownership","tooltip-styles","tooltip-motion"]
     field = cell == "CAT.form-field.G08" and batch in ["form-field-actions","form-field-styles","form-field-motion","form-field-marker-diagnostic"]
     switcher = cell == "CAT.toggle-switcher.G08" and batch in ["switcher","switcher-actions","switcher-styles","switcher-motion"]
@@ -2713,7 +2808,7 @@ def validate_standard_scope(plan):
     radio_group = cell == "CAT.radio-group.G08" and batch=="radio-group"
     checkbox_group = cell == "CAT.checkbox-group.G08" and batch in ["checkbox-group","checkbox-group-actions"]
     switch = cell == "CAT.switch.G08" and batch in ["switch", "switch-motion"]
-    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item or toggle_button or radio or placeholder or slider or switch or checkbox or checkbox_group or radio_group or button or link or tooltip or switcher or field, "Only the authorized component and focused batch are selected")
+    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item or toggle_button or radio or placeholder or slider or switch or checkbox or checkbox_group or radio_group or button or link or tooltip or switcher or field or popover, "Only the authorized component and focused batch are selected")
 
 
 def main():

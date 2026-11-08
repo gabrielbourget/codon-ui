@@ -4759,3 +4759,186 @@ final class FormFieldTrialTests: XCTestCase {
         FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_SWITCH "+expected+"\n").utf8))
     }
 }
+
+
+final class ClickPopoverTrialTests: XCTestCase {
+    private var app:XCUIApplication!
+    private var retirementReference:CGImage?
+    private var retirementFrame:CGRect?
+    private var retirementReferenceName:String?
+    private let styles=["baseline","custom","final","arrow-zero","narrow","dark","light-restored"]
+    override func setUpWithError() throws {
+        continueAfterFailure=false
+        let bundle=Bundle(for:ClickPopoverTrialTests.self),executable=try XCTUnwrap(bundle.executableURL),expected=try XCTUnwrap(ProcessInfo.processInfo.environment["CODON_NATIVE_OBSERVER_EXECUTABLE_SHA256"]),actual=SHA256.hash(data:try Data(contentsOf:executable)).map{String(format:"%02x",$0)}.joined()
+        XCTAssertEqual(expected.count,64);XCTAssertEqual(actual,expected,"Actually loaded observer before app launch")
+        let early:[String:Any]=["path":bundle.bundleURL.path,"executable":executable.path,"sha256":actual,"expectedSHA256":expected,"epochMs":Date().timeIntervalSince1970*1000]
+        FileHandle.standardOutput.write(Data("NATIVE_LOADED_OBSERVER_EARLY ".utf8)+(try JSONSerialization.data(withJSONObject:early,options:.sortedKeys))+Data("\n".utf8))
+        app=XCUIApplication(bundleIdentifier:"dev.codonui.showcase");app.launch();XCTAssertEqual(app.state,.runningForeground);XCUIDevice.shared.orientation = .portrait
+        tap("Reset scene");tap("ClickPopover scene");tap("Light theme");tap("Live window");tap("Prepare standalone ClickPopover checks");reveal(node("popover-native-anchor"))
+    }
+    override func tearDownWithError() throws {
+        let png=XCTAttachment(screenshot:XCUIScreen.main.screenshot());png.name="popover-final";png.lifetime = .keepAlways;add(png)
+        let tree=XCTAttachment(string:app.debugDescription);tree.name="popover-final-hierarchy";tree.lifetime = .keepAlways;add(tree)
+    }
+    private func state() throws->[String:Any]{let opened=node("popover-native-open-state");return try XCTUnwrap(JSONSerialization.jsonObject(with:Data((opened.exists ? opened:node("popover-native-state")).label.utf8)) as? [String:Any])}
+    private func number(_ row:[String:Any],_ key:String)throws->Double{let value=try XCTUnwrap(row[key] as? NSNumber,key).doubleValue;XCTAssertTrue(value.isFinite);return value}
+    private func rect(_ value:CGRect)->[Double]{[value.minX,value.minY,value.width,value.height].map(Double.init)}
+    private func ready(){wait("Original positioned ClickPopover root and completed entry"){guard let row=try? self.state(),let root=row["rootTag"] as? NSNumber,let layouts=row["layouts"] as? [[String:Any]],let render=row["rendered"] as? [String:Any] else{return false};let arrow=row["showArrow"] as? Bool != true || ((row["arrowLayout"] as? [String:Any])?["parentTag"] as? NSNumber)==root;return row["open"] as? Bool==true && root.doubleValue>0 && arrow && (layouts.last?["currentTarget"] as? NSNumber)==root && render["placement"] as? String != nil && render["isEntering"] as? Bool==false && render["isExiting"] as? Bool==false}}
+    private func closed(){wait("ClickPopover actually retired and original trigger focus restored"){guard let row=try? self.state() else{return false};return row["open"] as? Bool==false && row["rootTag"] is NSNull && row["focusedTag"] as? NSNumber==row["anchorTag"] as? NSNumber}}
+    private func entryFocused(){wait("Actual native focus acknowledged on original entry target"){guard let row=try? self.state(),let target=row["entryTag"] as? NSNumber else{return false};return target.doubleValue>0 && row["focusedTag"] as? NSNumber==target}}
+    private func mark(_ name:String,_ row:[String:Any],_ shot:XCUIScreenshot?,prefix:String="POPOVER_NATIVE_OBSERVATION")throws{
+        let data=try JSONSerialization.data(withJSONObject:row,options:.sortedKeys);FileHandle.standardOutput.write(Data((prefix+" ").utf8)+data+Data("\n".utf8));let json=XCTAttachment(data:data,uniformTypeIdentifier:"public.json");json.name="popover-"+name+"-receipt";json.lifetime = .keepAlways;add(json);if let shot{let png=XCTAttachment(screenshot:shot);png.name="popover-"+name;png.lifetime = .keepAlways;add(png)}
+    }
+    private func inspect()throws{
+        let sequence=try number(state(),"inspectionSequence");tap("Inspect popover");wait("Fresh original popover native inspection"){(try? self.number(self.state(),"inspectionSequence")) ?? 0>sequence}
+        let row=try state();try mark("inspection",row,nil,prefix:"POPOVER_NATIVE_INSPECTION");let native=try XCTUnwrap(row["inspection"] as? [String:Any]);XCTAssertNil(native["error"]);XCTAssertEqual(try number(native,"target"),try number(row,"rootTag"));XCTAssertEqual(native["platform"] as? String,"ios");XCTAssertFalse((native["ownerId"] as? String ?? "").isEmpty);XCTAssertFalse((native["windowId"] as? String ?? "").isEmpty);XCTAssertEqual(native["label"] as? String,"Original popover action");XCTAssertTrue((native["description"] as? String ?? "").contains("Original supplementary popover details"))
+    }
+    private func color(_ value:String)throws->[Int]{let hex=value.replacingOccurrences(of:"#",with:"");XCTAssertEqual(hex.count,6);let integer=try XCTUnwrap(Int(hex,radix:16));return [(integer>>16)&255,(integer>>8)&255,integer&255,255]}
+    private func sample(_ image:CGImage,_ point:CGPoint,_ window:CGRect,_ scale:CGFloat)throws->[Int]{listItemSampleRGBA(try pixels(image,CGRect(x:point.x,y:point.y,width:1/scale,height:1/scale),window,scale))}
+    private func capture(_ name:String)throws{
+        let captureStartedEpochMs=Date().timeIntervalSince1970*1000
+        if let current=try? state(),current["open"] as? Bool==true && current["mounted"] as? Bool==true{
+            let previous=(current["anchorMeasurement"] as? [String:Any])?["sequence"] as? Double ?? 0
+            tap("Measure original anchor")
+            wait("Fresh original native-window anchor measurement"){
+                guard let row=try? self.state(),let measured=row["anchorMeasurement"] as? [String:Any] else{return false}
+                return (measured["sequence"] as? Double ?? 0)>previous && measured["target"] as? NSNumber==row["anchorTag"] as? NSNumber && measured["rootTag"] as? NSNumber==row["rootTag"] as? NSNumber && measured["case"] as? String==row["case"] as? String
+            }
+        }
+        let snapshot=try app.snapshot();var all:[XCUIElementSnapshot]=[]
+        func visit(_ item:XCUIElementSnapshot){all.append(item);for child in item.children{visit(child)}};visit(snapshot)
+        func one(_ id:String)->XCUIElementSnapshot?{let list=all.filter{$0.identifier==id};XCTAssertLessThanOrEqual(list.count,1,id);return list.first}
+        let label=try XCTUnwrap(one("popover-native-open-state") ?? one("popover-native-state")),row=try XCTUnwrap(JSONSerialization.jsonObject(with:Data(label.label.utf8)) as? [String:Any]),window=try XCTUnwrap(all.first{$0.elementType == .window}).frame,root=one("popover-native-surface"),body=one("popover-native-body"),dialog=one("popover-native-surface-dialog"),anchor=one("popover-native-anchor"),shot=XCUIScreen.main.screenshot(),image=try XCTUnwrap(shot.image.cgImage),scale=CGFloat(image.width)/window.width
+        var observed:[String:Any]=["name":name,"state":row,"root":root.map{rect($0.frame)} ?? [],"dialog":dialog.map{rect($0.frame)} ?? [],"body":body.map{rect($0.frame)} ?? [],"anchor":anchor.map{rect($0.frame)} ?? [],"arrow":[],"nativeBodyLabel":body?.label ?? "","editorValue":one("popover-native-editor")?.value as? String ?? "","scale":Double(scale),"imageWidth":image.width,"imageHeight":image.height,"window":rect(window),"captureStartedEpochMs":captureStartedEpochMs,"captureEpochMs":Date().timeIntervalSince1970*1000,"anchorAX":anchor.map{rect($0.frame)} ?? []]
+        if row["open"] as? Bool==true && row["mounted"] as? Bool==true{
+            observed["anchor"]=(row["anchorMeasurement"] as? [String:Any])?["frame"] ?? []
+            observed["anchorSource"]="original-native-measureInWindow"
+        }else{observed["anchorSource"]="native-accessibility-snapshot"}
+        try mark(name+"-raw",observed,shot,prefix:"POPOVER_NATIVE_CAPTURE")
+        if name.hasSuffix("-baseline"){retirementReference=image;retirementReferenceName=name;retirementFrame=nil}
+        if name.hasSuffix("-open"){retirementFrame=root?.frame}
+        if name.hasSuffix("-retired"){
+            let frame=try XCTUnwrap(retirementFrame),reference=try XCTUnwrap(retirementReference),actual=try pixels(image,frame,window,scale),expected=try pixels(reference,frame,window,scale)
+            observed["retirementFrame"]=rect(frame);observed["retirementReferenceName"]=try XCTUnwrap(retirementReferenceName);observed["retirementExact"]=actual==expected
+            try mark(name+"-retirement",observed,nil,prefix:"POPOVER_NATIVE_RETIREMENT_CAPTURE");XCTAssertEqual(actual.count,expected.count);XCTAssertTrue(actual==expected,"Original root pixels must return exactly to their same-origin closed reference")
+        }
+        XCTAssertEqual(shot.image.imageOrientation,.up);XCTAssertEqual(scale,CGFloat(image.height)/window.height,accuracy:0.01)
+        if row["open"] as? Bool==true && row["mounted"] as? Bool==true{
+            let measured=try XCTUnwrap(row["anchorMeasurement"] as? [String:Any]),frame=try XCTUnwrap(observed["anchor"] as? [Double]);XCTAssertEqual(frame.count,4);XCTAssertTrue(frame.allSatisfy{$0.isFinite});XCTAssertEqual(try number(measured,"target"),try number(row,"anchorTag"));XCTAssertEqual(try number(measured,"rootTag"),try number(row,"rootTag"));XCTAssertEqual(try number(measured,"lifetime"),try number(row,"lifetime"));XCTAssertEqual(measured["case"] as? String,row["case"] as? String)
+            let windowId=try XCTUnwrap(measured["windowId"] as? String);XCTAssertFalse(windowId.isEmpty);XCTAssertEqual(windowId,measured["rootWindowId"] as? String);XCTAssertGreaterThanOrEqual(try number(measured,"requestedEpochMs"),captureStartedEpochMs);XCTAssertGreaterThanOrEqual(try number(measured,"observedEpochMs"),try number(measured,"requestedEpochMs"));XCTAssertLessThanOrEqual(try number(measured,"observedEpochMs"),try number(observed,"captureEpochMs"))
+            let trigger=CGRect(x:frame[0],y:frame[1],width:frame[2],height:frame[3]);XCTAssertGreaterThan(trigger.width,0);XCTAssertGreaterThan(trigger.height,0);XCTAssertTrue(window.contains(trigger))
+            let box=try XCTUnwrap(root).frame,text=try XCTUnwrap(body).frame,caseName=row["case"] as? String ?? "",border=caseName=="custom" ? 3.0:caseName=="final" ? 1.0:0,padding=caseName=="custom" ? 7.0:caseName=="final" ? 3.0:10.0
+            XCTAssertTrue(window.contains(box));XCTAssertEqual(box.width,row["narrow"] as? Bool==true ? 128:280,accuracy:1/scale);XCTAssertTrue(box.contains(try XCTUnwrap(dialog).frame));XCTAssertTrue(box.contains(text))
+            let layout=try XCTUnwrap((row["layouts"] as? [[String:Any]])?.last);XCTAssertEqual(try number(layout,"target"),try number(row,"rootTag"));XCTAssertEqual(try number(layout,"currentTarget"),try number(row,"rootTag"));XCTAssertEqual(box.width,try number(layout,"width"),accuracy:1/scale);XCTAssertEqual(box.height,try number(layout,"height"),accuracy:1/scale)
+            let placement=try XCTUnwrap((row["rendered"] as? [String:Any])?["placement"] as? String);XCTAssertTrue(["top","bottom"].contains(placement));if placement=="top"{XCTAssertLessThanOrEqual(box.maxY,trigger.minY)}else{XCTAssertGreaterThanOrEqual(box.minY,trigger.maxY)}
+            XCTAssertEqual(text.minX-box.minX,border+padding+(try number(row,"dialogPadding")),accuracy:1/scale)
+            let rgba=try sample(image,CGPoint(x:box.minX+border+padding/2,y:box.midY),window,scale);observed["backgroundRGBA"]=rgba;XCTAssertEqual(rgba,try color(try XCTUnwrap(row["background"] as? String)))
+            if border>0{var points:[[Int]]=[];for x in stride(from:0.5,to:border,by:1){points.append(try sample(image,CGPoint(x:box.minX+x,y:box.midY),window,scale))};observed["borderRGBA"]=points;XCTAssertTrue(points.allSatisfy{$0==[17,119,51,255]})}
+            let data=try pixels(image,text,window,scale),expected=try color(try XCTUnwrap(row["textColor"] as? String)),ink=stride(from:0,to:data.count,by:4).filter{Array(data[$0..<$0+4]).map(Int.init)==expected}.count
+            observed["textRGBA"]=expected;observed["textPixels"]=ink;XCTAssertGreaterThan(ink,0)
+            if row["narrow"] as? Bool==true{XCTAssertGreaterThan(text.height,34);XCTAssertTrue(body!.label.contains("étroite"))}
+            if row["showArrow"] as? Bool==true{
+                let arrow=try XCTUnwrap(row["arrowLayout"] as? [String:Any]);XCTAssertEqual(try number(arrow,"target"),try number(arrow,"currentTarget"));XCTAssertEqual(try number(arrow,"parentTag"),try number(row,"rootTag"))
+                let width=try number(arrow,"width"),height=try number(arrow,"height"),triangle=CGRect(x:box.minX+(try number(arrow,"x"))-width/2,y:box.minY+(try number(arrow,"y")),width:width,height:height);observed["arrow"]=rect(triangle)
+                XCTAssertEqual(width,caseName=="arrow-zero" ? 0:18,accuracy:1/scale);XCTAssertEqual(height,10,accuracy:1/scale)
+                if width>0{
+                    let offsets:[(CGFloat,CGFloat)]=[(2.5,1),(5,1),(7.5,1),(5,3.5),(0.5,3.5),(9.5,3.5),(5,7.5)];var colors:[[Int]]=[],samples:[[String:Any]]=[]
+                    for (x,y) in offsets{let point=CGPoint(x:triangle.minX+x,y:triangle.minY+(placement=="top" ? y:10-y)),rgba=try sample(image,point,window,scale);colors.append(rgba);samples.append(["point":[Double(point.x),Double(point.y)],"rgba":rgba])}
+                    observed["arrowSamples"]=samples;try mark(name+"-arrow",observed,nil,prefix:"POPOVER_NATIVE_ARROW_CAPTURE")
+                    XCTAssertTrue(tooltipArrowEdgeMatches(rect(box),rect(triangle),placement,border,Double(scale)));XCTAssertTrue(tooltipArrowPaintMatches(colors,[47,125,24,255]))
+                }
+            }else{XCTAssertTrue(row["arrowLayout"] is NSNull)}
+        }else{XCTAssertNil(root);XCTAssertTrue(row["rootTag"] is NSNull)}
+        try mark(name,observed,shot)
+    }
+    private func anchorOpen(){reveal(node("popover-native-anchor"));node("popover-native-anchor").tap();ready()}
+    func testPopoverActionsAndOwnership()throws{
+        let background=node("popover-native-background");reveal(background);reveal(node("popover-native-anchor"));let outside=background.frame;XCTAssertTrue(app.windows.firstMatch.frame.contains(outside));try capture("closed")
+        tap("Set closed owner echo");node("popover-native-anchor").tap();wait("Owner declined actual open"){((try? self.state()["requests"] as? [[String:Any]]) ?? []).count==1};XCTAssertEqual(try state()["open"] as? Bool,false);try capture("declined-open")
+        tap("Set closed owner echo");anchorOpen();entryFocused();let original=try number(state(),"rootTag"),originalEntry=try number(state(),"entryTag");try inspect();try capture("opened")
+        tap("Original content action");wait("Original native content action"){(try? self.number(self.state(),"actions"))==1};XCTAssertEqual(try number(state(),"rootTag"),original);XCTAssertEqual(try number(state(),"entryTag"),originalEntry)
+        let editor=app.textFields["popover-native-editor"].firstMatch;reveal(editor);editor.tap();editor.typeText("x\n");wait("Original controlled editor input"){(try? self.state()["value"] as? String)=="ownerx"};try capture("edited")
+        tap("Toggle owner echo");tap("Close popover");XCTAssertEqual(try state()["open"] as? Bool,true);XCTAssertEqual((try state()["requests"] as? [[String:Any]])?.last?["value"] as? Bool,false);try capture("declined-close");tap("Toggle owner echo")
+        tap("Toggle outside veto");let old=((try state()["outside"] as? [[String:Any]]) ?? []).count;let point=CGPoint(x:outside.midX,y:outside.midY);XCTAssertFalse(node("popover-native-surface").frame.contains(point));app.coordinate(withNormalizedOffset:.zero).withOffset(CGVector(dx:point.x,dy:point.y)).tap()
+        wait("Original outside event and veto"){((try? self.state()["outside"] as? [[String:Any]]) ?? []).count>old};XCTAssertEqual(try state()["open"] as? Bool,true);XCTAssertEqual(try number(state(),"backgroundActions"),0);try capture("outside-veto")
+        tap("Toggle outside veto");app.coordinate(withNormalizedOffset:.zero).withOffset(CGVector(dx:point.x,dy:point.y)).tap();closed();try capture("outside-close")
+        reveal(node("popover-native-background"));node("popover-native-background").tap();wait("Background action restored after modal exit"){(try? self.number(self.state(),"backgroundActions"))==1};try capture("background-restored")
+        anchorOpen();entryFocused();tap("Close popover");closed();try capture("inside-close")
+        tap("Set nonmodal popover");anchorOpen();entryFocused();try capture("nonmodal-open");reveal(node("popover-native-background"));node("popover-native-background").tap();wait("Original nonmodal outside action/focus keeps the new target"){guard let row=try? self.state() else{return false};return row["open"] as? Bool==false && row["rootTag"] is NSNull && row["focusedTag"] as? NSNumber==row["backgroundTag"] as? NSNumber};XCTAssertEqual(try number(state(),"backgroundActions"),2);XCTAssertEqual((try state()["outside"] as? [[String:Any]])?.last?["kind"] as? String,"focus");try capture("nonmodal-focus-close")
+    }
+    func testPopoverStylesAndConstraint()throws{
+        tap("Popover styles");anchorOpen()
+        for name in styles{wait("Current popover style "+name){(try? self.state()["case"] as? String)==name};ready();try capture(name);if name != styles.last{tap("Next popover style")}}
+        tap("Close popover");closed()
+    }
+    func testPopoverLifetimeAndReduction()throws{
+        tap("Popover lifetime")
+        let settings=XCUIApplication(bundleIdentifier:"com.apple.Preferences");settings.launch();let toggle=motionSwitch(settings),original=try XCTUnwrap(toggle.value as? String);XCTAssertTrue(["0","1"].contains(original));FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_ORIGINAL "+original+"\n").utf8))
+        addTeardownBlock{[self] in let current=self.motionSwitch(settings);self.setMotion(current,original);XCTAssertEqual(current.value as? String,original);self.app.activate();FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_RESTORED "+original+"\n").utf8))}
+        for (name,flag) in [("normal","0"),("reduced","1")]{
+            setMotion(motionSwitch(settings),flag);app.activate();reveal(node("popover-native-anchor"));wait("Actual popover Reduce Motion event "+flag){((try? self.state()["motionEvents"] as? [Bool]) ?? []).last==(flag=="1")};try capture(name+"-baseline");anchorOpen();entryFocused();let root=try number(state(),"rootTag"),anchor=try number(state(),"anchorTag"),requests=((try state()["requests"] as? [[String:Any]]) ?? []).count;try capture(name+"-open")
+            XCUIDevice.shared.press(.home);wait("Actual native app background"){self.app.state != .runningForeground};app.activate();ready();XCTAssertEqual(try number(state(),"rootTag"),root);XCTAssertEqual(((try state()["requests"] as? [[String:Any]]) ?? []).count,requests);try capture(name+"-window-return")
+            tap("Retire popover owner");wait("Original anchor/root retired"){guard let row=try? self.state() else{return false};return row["rootTag"] is NSNull && row["mounted"] as? Bool==false};XCTAssertFalse(node("popover-native-anchor").exists);XCTAssertEqual(((try state()["requests"] as? [[String:Any]]) ?? []).count,requests);try capture(name+"-retired")
+            tap("Fresh popover owner");wait("Fresh native trigger"){(try? self.number(self.state(),"anchorTag")) != anchor};anchorOpen();entryFocused();XCTAssertNotEqual(try number(state(),"rootTag"),root);try capture(name+"-fresh");tap("Close popover");closed();try capture(name+"-closed")
+        }
+    }
+    private func node(_ id:String)->XCUIElement {app.descendants(matching:.any).matching(NSPredicate(format:"identifier == %@",id)).firstMatch}
+
+    private func wait(_ message:String,_ predicate:@escaping()->Bool) {
+        let expectation=XCTNSPredicateExpectation(predicate:NSPredicate{_,_ in predicate()},object:nil)
+        XCTAssertEqual(XCTWaiter.wait(for:[expectation],timeout:nativeWorkRemaining()),.completed,message)
+    }
+
+    private func reveal(_ element:XCUIElement) {
+        XCTAssertTrue(element.waitForExistence(timeout:nativeWorkRemaining()));let window=app.windows.firstMatch.frame.insetBy(dx:2,dy:2)
+        if !element.frame.isEmpty && window.contains(element.frame) && element.isHittable{return}
+        let scroll=app.scrollViews.firstMatch;XCTAssertTrue(scroll.exists)
+        while nativeWorkRemaining()>0 {
+            let viewport=app.windows.firstMatch.frame.intersection(scroll.frame).insetBy(dx:2,dy:2)
+            if !element.frame.isEmpty && viewport.contains(element.frame){return}
+            let frame=element.frame
+            if frame.isEmpty || viewport.isEmpty{continue}
+            guard let distance=galleryScrollFraction(Double(frame.minY),Double(frame.height),Double(viewport.minY),Double(viewport.height)),distance != 0 else{continue}
+            let start:CGFloat=distance>0 ? 0.75:0.30
+            let trace:[String:Any]=["target":element.identifier,"frame":rect(element.frame),"viewport":rect(viewport),"requestedFraction":distance]
+            if let data=try? JSONSerialization.data(withJSONObject:trace,options:.sortedKeys){FileHandle.standardOutput.write(Data("POPOVER_SCROLL ".utf8)+data+Data("\n".utf8))}
+            scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:start)).press(forDuration:0.05,thenDragTo:scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:start-CGFloat(distance))),withVelocity:.slow,thenHoldForDuration:0.25)
+        };XCTFail("Unreachable ClickPopover control/canvas "+element.identifier)
+    }
+
+    private func tap(_ name:String) {
+        let control=app.buttons.matching(NSPredicate(format:"label == %@",name)).firstMatch;reveal(control);XCTAssertTrue(control.isHittable);control.tap()
+        if name=="Select scene"{wait("Actual selected ClickPopover scene"){control.isSelected}}
+    }
+
+    private func pixels(_ image:CGImage,_ frame:CGRect,_ window:CGRect,_ scale:CGFloat) throws -> [UInt8] {
+        XCTAssertTrue(window.contains(frame));let rect=CGRect(x:((frame.minX-window.minX)*scale).rounded(),y:((frame.minY-window.minY)*scale).rounded(),width:(frame.width*scale).rounded(),height:(frame.height*scale).rounded())
+        let crop=try XCTUnwrap(image.cropping(to:rect));var bytes=[UInt8](repeating:0,count:crop.width*crop.height*4)
+        let result=bytes.withUnsafeMutableBytes { buffer -> Bool in
+            guard let context=CGContext(data:buffer.baseAddress,width:crop.width,height:crop.height,bitsPerComponent:8,bytesPerRow:crop.width*4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue|CGBitmapInfo.byteOrder32Big.rawValue) else{return false}
+            context.draw(crop,in:CGRect(x:0,y:0,width:CGFloat(crop.width),height:CGFloat(crop.height)));return true
+        };XCTAssertTrue(result);return bytes
+    }
+    private func motionSwitch(_ settings: XCUIApplication) -> XCUIElement {
+        settings.activate()
+        wait("Native Settings foreground and showcase background") { settings.state == .runningForeground && (self.app.state == .runningBackground || self.app.state == .runningBackgroundSuspended) }
+        let toggle = settings.switches["Reduce Motion"].firstMatch
+        if toggle.exists { return toggle }
+        for label in ["Accessibility","Motion"] {
+            let entry = settings.staticTexts[label].firstMatch
+            for _ in 0..<12 { if entry.exists && entry.isHittable { break };settings.swipeUp() }
+            XCTAssertTrue(entry.exists && entry.isHittable,"Standard Settings navigation "+label);entry.tap()
+        }
+        XCTAssertTrue(toggle.waitForExistence(timeout:nativeWorkRemaining()));return toggle
+    }
+
+    private func setMotion(_ toggle: XCUIElement, _ expected: String) {
+        if toggle.value as? String != expected {
+            XCTAssertTrue(toggle.isHittable)
+            toggle.coordinate(withNormalizedOffset:CGVector(dx:0.95,dy:0.5)).tap()
+        }
+        wait("Actual Reduce Motion switch "+expected) { toggle.value as? String == expected }
+        let shot = XCTAttachment(screenshot:XCUIScreen.main.screenshot());shot.name="meter-motion-switch-"+expected;shot.lifetime = .keepAlways;add(shot)
+        FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_SWITCH "+expected+"\n").utf8))
+    }
+}
