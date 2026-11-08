@@ -118,10 +118,12 @@ export const FormField = forwardRef<TNativeFormFieldRef, TNativeFormFieldProps>(
               elementType="label"
               variant="b11"
               nativeID={labelID}
+              accessibilityLabel={`${label}${required ? " *" : ""}`}
               customStyles={styles.label}
               onPress={labelFor ? focusLabelTarget : undefined}
             >
-              {label}{" "}
+              {label}
+              <View testID="form-field-required-gap" style={{ width: 2, height: 1 }} />
               <NativeText style={{ color: theme.colors.statusDanger }} testID="form-field-required-indicator">
                 {required ? "*" : undefined}
               </NativeText>

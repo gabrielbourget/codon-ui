@@ -14,6 +14,8 @@ import {
   type TextAreaProps,
 } from "@codon-ui/react-native"
 
+import { RadioG08Fixture } from "./RadioG08Fixture"
+
 const LONG_NOTES = Array.from(
   { length: 16 },
   (_, index) => `Line ${index + 1}: Bonjour Montréal — preserve complete native text and scrolling.`,
@@ -32,6 +34,7 @@ const SUBMIT_MODES = ["blurAndSubmit", "submit", "newline"] as const
 const OWNER_NOTES = "Bonjour Montréal\nComplete second line"
 
 export const MultilineRadioScene = () => {
+  const [nativeChecks, setNativeChecks] = useState(false)
   const theme = useNativeTheme()
   const [draft, setDraft] = useState("")
   const [submitDraft, setSubmitDraft] = useState("")
@@ -167,8 +170,12 @@ export const MultilineRadioScene = () => {
     </Button>
   )
 
+  if (nativeChecks) return <RadioG08Fixture />
   return (
     <View style={{ gap: 12 }}>
+      <Button raised={false} onPress={() => setNativeChecks(true)}>
+        Prepare standalone Radio checks
+      </Button>
       <Text elementType="h2" variant="h3">
         Native multiline and radio controls
       </Text>

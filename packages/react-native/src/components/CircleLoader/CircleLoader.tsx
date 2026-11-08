@@ -67,7 +67,7 @@ export const CircleLoader = forwardRef<TNativeCircleLoaderRef, TNativeCircleLoad
       {...rest}
       ref={ref}
       accessible={exposed}
-      accessibilityLabel={label}
+      accessibilityLabel={exposed ? label : (accessibilityLabel ?? aliasLabel ?? ariaLabel)}
       role="progressbar"
       accessibilityRole="progressbar"
       accessibilityState={{ busy: true }}
@@ -95,7 +95,13 @@ export const CircleLoader = forwardRef<TNativeCircleLoaderRef, TNativeCircleLoad
           borderColor: track,
           borderTopColor: fill,
           borderRightColor: fill,
-          transform: [{ rotate: phase.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "360deg"] }) }],
+          transform: [
+            {
+              rotate: isMotionEnabled
+                ? phase.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "360deg"] })
+                : "0deg",
+            },
+          ],
         }}
       />
     </View>

@@ -1,5 +1,5 @@
-import { useState } from "react"
-import { StyleSheet, View, type LayoutChangeEvent } from "react-native"
+import { useCallback, useState } from "react"
+import { findNodeHandle, StyleSheet, View, useWindowDimensions, type LayoutChangeEvent } from "react-native"
 
 import {
   AVAILABLE_THUMBNAIL_SHOWCASE_RENDERING_MODES,
@@ -13,6 +13,7 @@ import {
 const IMAGE =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAYCAIAAAAzn+mLAAAAPklEQVR4nGPgqO/Bin58uIMV0Vo9w6iDRh006qAR56CBshiX+lEHjTpo1EEjz0EDZTEu9aMOGnXQqINGnIMAV6ykOfJ/enQAAAAASUVORK5CYII="
 const SLOT_COUNTS = [4, 2, 0, 2.9, NaN, Infinity] as const
+const WIDTHS = [280, 83.25, "50%", "auto"] as const
 const COLUMNS = [undefined, 2, 3, 6] as const
 const PRIMARY_KINDS = ["image", "undefined", "null", "zero", "false", "empty"] as const
 const ITEMS = [
@@ -66,6 +67,18 @@ const GalleryCell = ({
 }
 
 export const GalleryScene = () => {
+  const { scale } = useWindowDimensions()
+  const [widthIndex, setWidthIndex] = useState(0)
+  const [primaryTag, setPrimaryTag] = useState<number | null>(null)
+  const bindPrimary = useCallback((node: View | null) => setPrimaryTag(node ? findNodeHandle(node) : null), [])
+  const [primaryLoads, setPrimaryLoads] = useState<
+    { target: number | null; currentTarget: number | null; uri: string; width: number; height: number }[]
+  >([])
+  const [originalLayouts, setOriginalLayouts] = useState<
+    Record<string, { target: number | null; currentTarget: number | null; layout: TFrame }>
+  >({})
+  const nodeTag = (node: unknown) =>
+    typeof node === "number" ? node : node == null ? null : findNodeHandle(node as View)
   const [modeIndex, setModeIndex] = useState(0)
   const [primaryIndex, setPrimaryIndex] = useState(0)
   const [slotIndex, setSlotIndex] = useState(0)
@@ -84,22 +97,28 @@ export const GalleryScene = () => {
   const [overflowActions, setOverflowActions] = useState(0)
   const [frames, setFrames] = useState<Record<string, TFrame>>({})
   const theme = useNativeTheme()
-  const recordFrame =
-    (key: string) =>
-    ({ nativeEvent: { layout } }: LayoutChangeEvent) => {
-      const x = Math.round(layout.x * 1000) / 1000
-      const y = Math.round(layout.y * 1000) / 1000
-      const width = Math.round(layout.width * 1000) / 1000
-      const height = Math.round(layout.height * 1000) / 1000
-      setFrames((current) =>
-        current[key]?.x === x &&
-        current[key]?.y === y &&
-        current[key]?.width === width &&
-        current[key]?.height === height
-          ? current
-          : { ...current, [key]: { x, y, width, height } },
-      )
-    }
+  const recordFrame = (key: string) => (event: LayoutChangeEvent) => {
+    const layout = { ...event.nativeEvent.layout }
+    const target = nodeTag(event.target)
+    const currentTarget = nodeTag(event.currentTarget)
+    setOriginalLayouts((current) => {
+      const prior = current[key]
+      return prior?.target === target &&
+        prior.currentTarget === currentTarget &&
+        Object.keys(layout).every((field) => prior.layout[field as keyof TFrame] === layout[field as keyof TFrame])
+        ? current
+        : { ...current, [key]: { target, currentTarget, layout } }
+    })
+    const x = Math.round(layout.x * 1000) / 1000
+    const y = Math.round(layout.y * 1000) / 1000
+    const width = Math.round(layout.width * 1000) / 1000
+    const height = Math.round(layout.height * 1000) / 1000
+    setFrames((current) =>
+      current[key]?.x === x && current[key]?.y === y && current[key]?.width === width && current[key]?.height === height
+        ? current
+        : { ...current, [key]: { x, y, width, height } },
+    )
+  }
   const position = POSITIONS[positionIndex]
   const mode = AVAILABLE_THUMBNAIL_SHOWCASE_RENDERING_MODES[modeIndex]
   const kind = PRIMARY_KINDS[primaryIndex]
@@ -107,9 +126,22 @@ export const GalleryScene = () => {
   const selected = empty ? [] : many ? source : source.slice(0, 1)
   const primaryContent =
     kind === "image" ? (
-      <View style={styles.fill} onLayout={recordFrame("primary")} testID="gallery-primary-content">
+      <View ref={bindPrimary} style={styles.fill} onLayout={recordFrame("primary")} testID="gallery-primary-content">
         <ThumbnailImage
+          testID="gallery-primary-image"
+          onLayout={recordFrame("image")}
           src={IMAGE}
+          onLoad={(event) => {
+            const source = event.nativeEvent.source
+            const copy = {
+              target: nodeTag(event.target),
+              currentTarget: nodeTag(event.currentTarget),
+              uri: source.uri,
+              width: source.width,
+              height: source.height,
+            }
+            setPrimaryLoads((current) => [...current, copy])
+          }}
           alt="Gallery primary photo"
           accessible={false}
           resizeMode="cover"
@@ -124,6 +156,35 @@ export const GalleryScene = () => {
     ) : (
       ""
     )
+  const snapshot = {
+    mode,
+    kind,
+    count: String(SLOT_COUNTS[slotIndex]),
+    columns: COLUMNS[columnIndex] ?? null,
+    items: selected.map((item) => item.name),
+    overflow,
+    zero,
+    width: zero ? 0 : WIDTHS[widthIndex],
+    custom,
+    customizations,
+    position,
+    disabled,
+    lifetime,
+    actions,
+    overflowActions,
+    frames,
+    originalLayouts,
+    primaryTag,
+    primaryLoads,
+    expectedURI: IMAGE,
+    scale,
+    theme: theme.mode,
+    colors: {
+      border: theme.colors.controlBorder,
+      selected: theme.colors.controlSelectedBackground,
+      track: theme.colors.controlTrackBackground,
+    },
+  }
   return (
     <View style={styles.scene}>
       <Text elementType="h2" variant="h3">
@@ -132,8 +193,8 @@ export const GalleryScene = () => {
       <Text testID="gallery-state">
         Mode: {mode}. Primary: {kind}. Slots: {String(SLOT_COUNTS[slotIndex])}. Columns:{" "}
         {COLUMNS[columnIndex] ?? "default"}. Items: {selected.length}. Overflow: {String(overflow)}. Width:{" "}
-        {zero ? 0 : 280}. Custom: {String(custom)}. Disabled: {String(disabled)}. Actions: {actions}. Overflow actions:{" "}
-        {overflowActions}. Lifetime: {lifetime}.
+        {zero ? 0 : WIDTHS[widthIndex]}. Custom: {String(custom)}. Disabled: {String(disabled)}. Actions: {actions}.
+        Overflow actions: {overflowActions}. Lifetime: {lifetime}.
       </Text>
       <Text testID="gallery-customization-state">
         Gallery customizations: {customizations.join(", ") || "none"}. Positioning: {position}.
@@ -144,6 +205,9 @@ export const GalleryScene = () => {
           .map(([name, frame]) => `${name} ${frame.width} x ${frame.height} at ${frame.x}, ${frame.y}`)
           .join("; ") || "unmeasured"}
         .
+      </Text>
+      <Text testID="gallery-native-state" accessibilityLabel={JSON.stringify(snapshot)} numberOfLines={1}>
+        Native gallery observation
       </Text>
       <View style={styles.controls}>
         <Button
@@ -164,6 +228,7 @@ export const GalleryScene = () => {
         <Button onPress={() => setMany((value) => !value)}>Toggle gallery five items</Button>
         <Button onPress={() => setEmpty((value) => !value)}>Toggle empty gallery items</Button>
         <Button onPress={() => setReordered((value) => !value)}>Reorder gallery items</Button>
+        <Button onPress={() => setWidthIndex((value) => (value + 1) % WIDTHS.length)}>Next gallery width</Button>
         <Button onPress={() => setZero((value) => !value)}>Toggle gallery zero width</Button>
         <Button onPress={() => setCustom((value) => !value)}>Toggle gallery styles</Button>
         {GALLERY_CUSTOMIZATIONS.map(([key, label]) => (
@@ -192,7 +257,7 @@ export const GalleryScene = () => {
         <ThumbnailShowcase
           key={lifetime}
           testID="gallery-example"
-          width={zero ? 0 : 280}
+          width={zero ? 0 : WIDTHS[widthIndex]}
           renderingMode={mode}
           primaryContent={primaryContent}
           primaryPlaceholder={
@@ -294,7 +359,14 @@ const styles = StyleSheet.create({
   scene: { gap: 10 },
   controls: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   fill: { width: "100%", height: "100%" },
-  positionHost: { position: "relative" },
+  positionHost: {
+    position: "relative",
+    width: "100%",
+    maxWidth: 304,
+    minHeight: 600,
+    padding: 12,
+    backgroundColor: "#ffffff",
+  },
   absoluteHost: { minHeight: 640 },
   relativePosition: { position: "relative", top: 8, left: 8 },
   absolutePosition: { position: "absolute", top: 12, left: 12 },

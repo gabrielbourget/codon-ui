@@ -1691,5 +1691,23 @@
     "immediate": "Radius, dimensions, shadow and outline retain source zero/no-transition behavior",
     "nativeActions": 0
   },
-  "scope": "Complete six pinned files and all17 original root cases plus actual renderer/ref/slot/order probe; roadmap3.5.75. Source G01 only."
+  "scope": "Complete six pinned files and all17 original root cases plus actual renderer/ref/slot/order probe; roadmap3.5.75. Source G01 only.",
+  "installedIOSG08": {
+    "evidenceID": "SW-08",
+    "status": "PASS",
+    "date": "2026-11-07",
+    "sourceFix": "Retain actual measured indicator width across pixel-equivalent native layout noise; accept real pixel changes; original225ms movement/250mscolor and authoredstyles unchanged.",
+    "sourceCases": 26,
+    "showcaseCases": 7,
+    "nativeMethods": 3,
+    "qualifyingNativeObservations": 106,
+    "qualifyingOriginalPNGs": 146,
+    "completion": {
+      "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/switch-ios-g08-20261107/objects/2aba1464b879f5aedc90f8bd7e61ebd34370ef033971380ed2980aabd6c4ee50",
+      "sha256": "2aba1464b879f5aedc90f8bd7e61ebd34370ef033971380ed2980aabd6c4ee50",
+      "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/switch-after-radio-20261106/switch-G08-completion.json"
+    },
+    "remainingGates": ["G02", "G04", "G07", "G09"],
+    "scope": "Approvedx86_64ReleaseiOSlane/RB-NATIVE-01/D01-D04; no currentAndroid/physical/ARM/owner-visualprofilePASS."
+  }
 }

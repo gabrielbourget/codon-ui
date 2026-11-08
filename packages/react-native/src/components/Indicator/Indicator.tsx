@@ -1,5 +1,5 @@
 import { forwardRef } from "react"
-import { View } from "react-native"
+import { Platform, View } from "react-native"
 
 import { useNativeTheme } from "../../theme"
 import { useNativeContentContext } from "../NativeContentContext"
@@ -32,7 +32,7 @@ export const Indicator = forwardRef<TNativeIndicatorRef, TNativeIndicatorProps>(
       {...rest}
       ref={ref}
       accessible={accessible}
-      accessibilityLabel={accessibilityLabel ?? aliasLabel}
+      accessibilityLabel={accessibilityLabel ?? aliasLabel ?? (Platform.OS === "android" ? "" : undefined)}
       testID={testID ?? aliasTestID ?? "indicator"}
       style={getNativeIndicatorStyle(theme, props, content?.foregroundColor ?? theme.colors.foreground)}
     />

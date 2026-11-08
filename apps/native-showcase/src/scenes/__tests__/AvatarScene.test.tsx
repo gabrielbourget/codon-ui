@@ -117,3 +117,39 @@ it("reports native layout and zero geometry without inventing activation or chan
   expect(screen.getByTestId("avatar-state")).toHaveTextContent(/Activations: 0.*Size: 0.*Frame: 0 x 0\./)
   expect(screen.getByTestId("avatar-example")).toHaveStyle({ width: 0, height: 0 })
 })
+
+it("prepares the installed Avatar cases with an independent raw reference and copied original native events", async () => {
+  const press = await enterAvatarScene()
+  await press("Prepare Avatar behavior checks")
+  const state = () => JSON.parse(screen.getByTestId("avatar-native-state").props.accessibilityLabel)
+  const event = { target: 81, currentTarget: 81, nativeEvent: { layout: { x: 12, y: 12, width: 30, height: 30 } } }
+  await fireEvent(screen.getByTestId("avatar-native-target"), "layout", event)
+  event.nativeEvent.layout.width = 999
+  expect(state().layouts.at(-1)).toEqual({
+    target: 81,
+    currentTarget: 81,
+    layout: { x: 12, y: 12, width: 30, height: 30 },
+  })
+  await press("Next Avatar check")
+  expect(state()).toMatchObject({ case: "sample", imageMode: "sample", actions: 0 })
+  await fireEvent(graphic("avatar-image"), "load", {})
+  expect(fallback()).toBeNull()
+  expect(screen.getByTestId("avatar-native-reference")).toHaveStyle({ width: 48, height: 48 })
+  for (let index = 0; index < 9; index++) await press("Next Avatar check")
+  expect(state().case).toBe("held-cancel")
+  await fireEvent(screen.getByTestId("avatar-native-target"), "pressIn", { nativeEvent: {} })
+  expect(state()).toMatchObject({ disabled: true, canceled: true, actions: 0 })
+})
+
+it("keeps the independent installed reference and real Avatar style owners aligned through zero and text constraints", async () => {
+  const press = await enterAvatarScene()
+  await press("Prepare Avatar style checks")
+  for (let index = 0; index < 8; index++) await press("Next Avatar check")
+  expect(screen.getByTestId("avatar-native-target")).toHaveStyle({ backgroundColor: "#117733", borderWidth: 2 })
+  expect(screen.getByTestId("avatar-native-reference")).toHaveStyle({ backgroundColor: "#117733", borderWidth: 2 })
+  for (let index = 0; index < 4; index++) await press("Next Avatar check")
+  expect(screen.getByTestId("avatar-native-target")).toHaveStyle({ width: 0, height: 0 })
+  for (let index = 0; index < 4; index++) await press("Next Avatar check")
+  await act(() => jest.advanceTimersByTime(1000))
+  expect(graphic("avatar-native-initials")).toHaveStyle({ fontSize: 32, color: "#b73434" })
+})

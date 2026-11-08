@@ -10,11 +10,14 @@ import {
   useNativeTheme,
 } from "@codon-ui/react-native"
 
+import { LinkG08Fixture } from "./LinkG08Fixture"
+
 const DESTINATIONS = ["codon-lab-unhandled://destination?value=0&empty=", "", "#section", "/relative"] as const
 const VISITED_ROLES = [undefined, "#7e22ce", "#c2410c"] as const
 const RELATIONSHIP_MODES = ["none", "aliases", "attributes", "empty"] as const
 
 export const LinkScene = () => {
+  const [checks, setChecks] = useState(false)
   const [destinationIndex, setDestinationIndex] = useState(0)
   const [visited, setVisited] = useState(false)
   const [echo, setEcho] = useState(false)
@@ -46,8 +49,10 @@ export const LinkScene = () => {
   const relationships = RELATIONSHIP_MODES[relationshipIndex]
   const related = relationships !== "none"
   const visitedForeground = VISITED_ROLES[visitedRoleIndex]
+  if (checks) return <LinkG08Fixture />
   return (
     <View style={styles.scene}>
+      <Button onPress={() => setChecks(true)}>Prepare standalone Link checks</Button>
       <Text elementType="h2" variant="h3">
         Native link ownership and URL handoff
       </Text>

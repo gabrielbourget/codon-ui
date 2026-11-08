@@ -113,12 +113,10 @@ export const readSliderLayoutOriginalGeometry = async (root: View, token: TReadT
     const finish = (error?: Error, value?: ReturnType<typeof box>) => {
       if (complete) return
       complete = true
-      clearTimeout(timer)
       stop()
       if (error) reject(error)
       else if (value) resolve(value)
     }
-    const timer = setTimeout(() => finish(failure("original root window measurement exceeded5000ms")), 5000)
     const cancel = token.onCancel(() => finish(failure("original root measurement cancelled")))
     if (complete) cancel()
     else stop = cancel

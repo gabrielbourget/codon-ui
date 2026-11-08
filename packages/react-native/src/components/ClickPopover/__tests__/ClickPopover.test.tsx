@@ -222,7 +222,7 @@ it("retains independent root/dialog/arrow style owners and the canonical arrow g
   expect(screen.getByTestId("click-popover-dialog", hidden)).toHaveStyle({ gap: 0 })
   expect(screen.getByTestId("click-popover-overlay-arrow", hidden)).toHaveStyle({
     backgroundColor: "green",
-    bottom: "100%",
+    top: -10,
   })
   expect(screen.getByText("Popover body", hidden)).toHaveStyle({ color: "purple" })
 })

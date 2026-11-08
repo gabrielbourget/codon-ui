@@ -1,7 +1,7 @@
 {
   "cell": "CAT.slider.G01",
   "canonicalSourceRef": "ddc9f066f67af4742e05e04bd870726141c44129",
-  "status": "BLOCKED_OWNER_STOP_INSTALLED_HIT_LAYOUT_UNVERIFIED",
+  "status": "BLOCKED_ANDROID_INSTALLED_HIT_LAYOUT_REQUIRED",
   "sourceBase": "87bb958b2658051bac6453db57b9a77e0b5333b5",
   "ownerCumulativePatchSHA256": "c8d781fe69ef5f8c92e4564e2e29d33510cc37c100a14512741659e84b154293",
   "appliedCoexistencePatchSHA256": "ac38be8b9473c76dbcb2dcfe2f289effe7bea891f23b459844ad698c813d5b15",
@@ -156,14 +156,25 @@
   },
   "nativeLayout": {
     "requiredWithinG01": true,
-    "status": "BLOCKED_OWNER_STOP_SL_G01_STOP01",
+    "status": "CURRENT_IOS_FOUR_WITNESSES_PASS_ANDROID_REQUIRED",
     "authority": "roadmap3.5.12 CAP.slider.gestures and CAP.slider.inherited; ownerhandoff\u00a73/\u00a76",
     "predicate": "Actual arbitrary repositioned/transformed thumb style and originalnativehit-region coupling, not source/compiler inference",
     "existingWitness": "SL-A01 repeatedSystemUIANRbeforeSlidernavigation;zeroactions;all1276cellsOPEN",
     "outsideCompilerGrant": true,
     "finiteProposal": "/tmp/codon-slider-adoption-20261102/native-layout-execution-proposal.json",
     "currentFixtureWitnessMissing": true,
-    "noGateRelocationOrWaiver": true
+    "noGateRelocationOrWaiver": true,
+    "currentIOSWitness": {
+      "evidenceID": "SL-G01-IOS02",
+      "status": "PASS_SCOPED_IOS_ONLY",
+      "receipt": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/slider-current-ios-hit-layout-20261106/objects/eb37c261e635c86bca3f3e4edd7771bff3c9979ff5cb14af0ff2b17cf3459c49",
+        "sha256": "eb37c261e635c86bca3f3e4edd7771bff3c9979ff5cb14af0ff2b17cf3459c49",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/slider-after-placeholder-20261106/ios-hit-layout-receipt.json"
+      },
+      "requiredAndroidWitness": "MISSING; no unchanged infrastructure retry",
+      "noWholeG01Promotion": true
+    }
   },
   "currentProducerTuple": "/tmp/codon-slider-adoption-20261102/consumer-final-inputs.json",
   "historicalFailures": "Alloriginalsource/form/ref/name/type/NaN/retirement/native/SL-A01/observer/physical/signing/owner-visualscope preserved",
@@ -286,15 +297,27 @@
     "G01": "OPEN_REQUIRED_ACTUAL_TRANSFORMED_REPOSITIONED_ORIGINAL_THUMB_HIT_LAYOUT"
   },
   "currentOwnerDisposition": {
-    "evidenceID": "SL-G01-STOP01",
-    "date": "2026-11-04",
-    "status": "BLOCKED",
-    "reason": "Owner directs stop and move to a different component after installed-verifier runtime/setup failures; final fresh method fails portrait admission with orientation unknown before gestures.",
+    "evidenceID": "SL-G01-IOS02",
+    "date": "2026-11-06",
+    "status": "BLOCKED_ANDROID_INSTALLED_WITNESS_REQUIRED",
+    "reason": "Owner explicitly resumes G01 after PlaceholderText. Corrected standard XCTest launch/portrait/visibility passes all four original hit-layout witnesses with independent pre-MOVE held screens. Current Android witness remains missing; old System UI failure configuration has no established correction.",
     "sourceFix": "b97737509fdd2a6be88f0febb1452e88cab6b0d6",
     "sourceCasesPassed": 143,
     "requiredBehaviorsUnchanged": true,
     "originalFailuresPreserved": true,
-    "resumeRequiresNewOwnerDirection": true,
-    "evidence": "experiments.md#331288-slider-owner-block-and-next-behavior-cell"
+    "resumeRequiresNewOwnerDirection": false,
+    "evidence": "experiments.md#3312881-slider-installed-ios-hit-layout-resumption",
+    "historicalOwnerStop": {
+      "evidenceID": "SL-G01-STOP01",
+      "date": "2026-11-04",
+      "status": "BLOCKED",
+      "reason": "Owner directs stop and move to a different component after installed-verifier runtime/setup failures; final fresh method fails portrait admission with orientation unknown before gestures.",
+      "sourceFix": "b97737509fdd2a6be88f0febb1452e88cab6b0d6",
+      "sourceCasesPassed": 143,
+      "requiredBehaviorsUnchanged": true,
+      "originalFailuresPreserved": true,
+      "resumeRequiresNewOwnerDirection": true,
+      "evidence": "experiments.md#331288-slider-owner-block-and-next-behavior-cell"
+    }
   }
 }

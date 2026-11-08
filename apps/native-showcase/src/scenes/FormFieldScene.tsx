@@ -3,6 +3,8 @@ import { StyleSheet, View, type LayoutChangeEvent, type TextInput } from "react-
 
 import { Button, FormField, Input, Text, useNativeTheme } from "@codon-ui/react-native"
 
+import { FormFieldG08Fixture } from "./FormFieldG08Fixture"
+
 const LABELS = ["Email", "Adresse courriel pour recevoir les renseignements demandés", ""] as const
 const MESSAGE_MODES = ["none", "all", "empty"] as const
 const RIGHT_MODES = ["actions", "zero", "none"] as const
@@ -24,6 +26,7 @@ const FieldHelp = ({ onAction }: { onAction: () => void }) => {
 }
 
 export const FormFieldScene = () => {
+  const [checks, setChecks] = useState(false)
   const [value, setValue] = useState("")
   const [request, setRequest] = useState<string>()
   const [requests, setRequests] = useState(0)
@@ -61,8 +64,10 @@ export const FormFieldScene = () => {
           : { ...current, [name]: { width, height } },
       )
     }
+  if (checks) return <FormFieldG08Fixture />
   return (
     <View style={styles.scene}>
+      <Button onPress={() => setChecks(true)}>Prepare standalone Field checks</Button>
       <Text elementType="h2" variant="h3">
         Form field composition and caller-owned input
       </Text>

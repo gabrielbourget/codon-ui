@@ -1,5 +1,5 @@
 import { forwardRef, useState } from "react"
-import { Pressable, View, type ViewStyle } from "react-native"
+import { PixelRatio, Pressable, View, type ViewStyle } from "react-native"
 
 import { useNativeTheme } from "../../theme"
 import { getNativeButtonContent as getNativeControlContent } from "../Button/content"
@@ -223,7 +223,12 @@ export const Switch = forwardRef<TNativeSwitchRef, TNativeSwitchProps>((props, r
             testID={`${testID ?? aliasTestID ?? "switch"}-indicator`}
             style={painted.indicator}
             onLayout={({ nativeEvent: { layout } }) =>
-              setIndicatorWidth((current) => (current === layout.width ? current : layout.width))
+              setIndicatorWidth((current) =>
+                current !== undefined &&
+                Math.round(current * PixelRatio.get()) === Math.round(layout.width * PixelRatio.get())
+                  ? current
+                  : layout.width,
+              )
             }
           />
         </View>

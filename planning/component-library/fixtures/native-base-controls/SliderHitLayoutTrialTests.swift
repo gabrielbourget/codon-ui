@@ -1,5 +1,13 @@
 import XCTest
 
+private func nativeWorkRemaining() -> TimeInterval {
+    guard let text = ProcessInfo.processInfo.environment["CODON_NATIVE_WORK_DEADLINE_UNIX"],
+          let deadline = Double(text), deadline.isFinite else {
+        preconditionFailure("Missing admitted native work deadline")
+    }
+    return max(0, deadline - Date().timeIntervalSince1970)
+}
+
 // One iOS P01 translated-thumb slice. A passing method still requires main's independent
 // during-hold capture; it cannot establish that checkpoint or whole Slider G01 by itself.
 final class SliderHitLayoutTrialTests: XCTestCase {
@@ -9,7 +17,6 @@ final class SliderHitLayoutTrialTests: XCTestCase {
 
     override func setUpWithError() throws {
         continueAfterFailure = false
-        executionTimeAllowance = 180
         for key in ["CODON_SLIDER_SCENE_SHA256", "CODON_SLIDER_PRODUCT_SHA256",
                     "CODON_SLIDER_OBSERVER_MANIFEST_SHA256"] {
             let value = try XCTUnwrap(ProcessInfo.processInfo.environment[key], "Missing admission identity " + key)
@@ -21,7 +28,7 @@ final class SliderHitLayoutTrialTests: XCTestCase {
         let window = app.windows.firstMatch.frame
         XCTAssertGreaterThan(window.height, window.width)
         XCTAssertFalse(app.keyboards.firstMatch.exists)
-        XCTAssertTrue(node("slider-scalar").waitForExistence(timeout: 10))
+        XCTAssertTrue(node("slider-scalar").waitForExistence(timeout: nativeWorkRemaining()))
     }
 
     override func tearDownWithError() throws {
@@ -41,7 +48,7 @@ final class SliderHitLayoutTrialTests: XCTestCase {
 
     private func tap(_ label: String) {
         let button = app.buttons.matching(NSPredicate(format: "label == %@", label)).firstMatch
-        XCTAssertTrue(button.waitForExistence(timeout: 10), "Missing " + label)
+        XCTAssertTrue(button.waitForExistence(timeout: nativeWorkRemaining()), "Missing " + label)
         for _ in 0..<12 {
             if button.isHittable { break }
             guard let scroll = app.scrollViews.allElementsBoundByIndex.first(where: { $0.isHittable }) else { break }
@@ -54,7 +61,7 @@ final class SliderHitLayoutTrialTests: XCTestCase {
 
     private func waitUntil(_ message: String, _ predicate: @escaping () -> Bool) {
         let gate = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in predicate() }, object: nil)
-        XCTAssertEqual(XCTWaiter.wait(for: [gate], timeout: 10), .completed, message)
+        XCTAssertEqual(XCTWaiter.wait(for: [gate], timeout: nativeWorkRemaining()), .completed, message)
     }
 
     private func revealScalarSetup() {

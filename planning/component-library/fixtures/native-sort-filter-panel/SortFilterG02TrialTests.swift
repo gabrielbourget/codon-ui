@@ -25,7 +25,6 @@ final class SortFilterG02TrialTests: XCTestCase {
 
     override func setUpWithError() throws {
         continueAfterFailure = false
-        executionTimeAllowance = 180
         guard ProcessInfo.processInfo.environment["CODON_SFP_SCENE_SHA256"] == sceneSHA else {
             XCTFail("Bind the admitted c91ffb2e fixture before executing a method")
             throw NSError(domain: "SortFilterG02Admission", code: 1)

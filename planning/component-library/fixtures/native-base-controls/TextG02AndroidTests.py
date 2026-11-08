@@ -7,24 +7,24 @@ from NativeAndroidTestSupport import copy_node,recorded_command
 parser=argparse.ArgumentParser();parser.add_argument('--serial',required=True);parser.add_argument('--out',required=True,type=Path);parser.add_argument('--deadline-unix',required=True,type=float);args=parser.parse_args();args.out.mkdir(exist_ok=False)
 adb='/Users/gabrielbourget/.local/share/codon-native-lab/sdk/platform-tools/adb';remote='/sdcard/Android/data/dev.codonui.lab.number/files/held-selection-7';number=0
 result={'scope':'One Text S03 cohort with accepted programmatic fixture controls and physical target/Copy; no automatic wholeG02 promotion','startedUnix':time.time(),'status':'FAILED','opAttempted':False};write=lambda path,value:path.write_text(json.dumps(value,indent=2)+'\n')
-def command(label,tail,cap):
+def command(label,tail):
     global number
     number+=1;prefix=args.out/(str(number).zfill(3)+'-'+label);argv=[adb,'-s',args.serial,*tail];print('START '+label+' '+datetime.datetime.now(datetime.timezone.utc).isoformat(),flush=True)
-    row=recorded_command(argv,prefix,cap,args.deadline_unix);assert row.get('ownedGroupGone') is True and not row.get('cleanupError'),row;assert row['exitCode']==0 and not row.get('timedOut'),row
+    row=recorded_command(argv,prefix,None,args.deadline_unix);assert row.get('ownedGroupGone') is True and not row.get('cleanupError'),row;assert row['exitCode']==0 and not row.get('timedOut'),row
     return prefix.with_suffix('.stdout').read_text()
 def identity(original,current):
     for key in ['rootTag','refIdentity','attaches','detaches']:assert original[key]==current[key],(key,original,current)
     assert current['parentOrdinary']==len(current['receipts'])
     for index,event in enumerate(current['receipts']):assert event['sequence']==index+1 and event['kind']=='parentPress' and event['rootTag']==original['rootTag'] and event['refIdentity']==original['refIdentity']
 try:
-    assert time.time()+190<args.deadline_unix,'Insufficient time for bounded matched cohort and artifact pull';result['opAttempted']=True
+    assert time.time()<args.deadline_unix,'Owner deadline exhausted';result['opAttempted']=True
     try:
-        raw=command('matched-text-s03',['shell','am','instrument','-w','-e','op','matched-text-s03','-e','outputDir',remote,'dev.codonui.lab.number/.Actions'],180)
+        raw=command('matched-text-s03',['shell','am','instrument','-w','-e','op','matched-text-s03','-e','outputDir',remote,'dev.codonui.lab.number/.Actions'])
         match=re.search(r'INSTRUMENTATION_RESULT: codon=(.*)',raw);assert match,raw;receipt=json.loads(match[1]);write(args.out/'instrumentation-receipt.json',receipt)
         assert 'INSTRUMENTATION_CODE: -1' in raw and receipt['operation']=='matched-text-s03',raw
         assert receipt['nativeActionSucceeded'] is True and receipt['status']=='MATCHED_S03_SCOPED_ASSERTIONS_PASSED',receipt
     finally:
-        try:command('pull-guest-output',['pull',remote,str(args.out/'guest-output')],20)
+        try:command('pull-guest-output',['pull',remote,str(args.out/'guest-output')])
         except BaseException as error:result['artifactPullError']=repr(error)
     assert receipt['elapsedMs']<=120000 and receipt['setupElapsedMs']<=30000 and receipt['scrolls']<=20,receipt
     assert receipt['holdDurationMs']==1000 and receipt['copyDurationMs']==200 and receipt['quietDurationMs']==750

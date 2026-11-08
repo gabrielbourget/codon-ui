@@ -1,0 +1,313 @@
+{
+  "cell": "CAT.indicator.G04",
+  "operation": "indicator-g04-batch",
+  "nativeOutputDir": "/sdcard/Android/data/dev.codonui.lab.number/files/indicator-g04-native-1",
+  "sourceFixture": {
+    "path": "/tmp/codon-indicator-g04-candidate-20261105/apps/native-showcase/src/scenes/IndicatorG04Fixture.tsx",
+    "sha256": "5234881a549ed940cfc20a759609542a42e8233e24e88e809177da715ab5b68a"
+  },
+  "cohorts": [
+    {
+      "name": "context-naming-foreground",
+      "observations": [
+        "default-before-name",
+        "named-generic-view",
+        "restored-decorative-view",
+        "inactive-gray-active-lime-border",
+        "inactive-gray-explicit-blue-border",
+        "square-fractional",
+        "provider-and-owned-foreground",
+        "provider-restored",
+        "callback-current-inactive",
+        "callback-zero-opacity"
+      ]
+    },
+    {
+      "name": "light-cases",
+      "observations": [
+        "light-default",
+        "light-activity-border",
+        "light-shape-fractional",
+        "light-zero",
+        "light-percent",
+        "light-auto",
+        "light-registered-callback",
+        "light-native-color"
+      ]
+    },
+    {
+      "name": "dark-cases",
+      "observations": [
+        "dark-default",
+        "dark-activity-border",
+        "dark-shape-fractional",
+        "dark-zero",
+        "dark-percent",
+        "dark-auto",
+        "dark-registered-callback",
+        "dark-native-color"
+      ]
+    },
+    {
+      "name": "window-end-reset",
+      "observations": [
+        "window-before-zero",
+        "window-after-zero",
+        "reset-default"
+      ]
+    }
+  ],
+  "expectedObservationCount": 29,
+  "stylesPerMode": 8,
+  "cases": [
+    {
+      "index": 0,
+      "name": "default",
+      "expectedLogicalSize": [
+        10,
+        10
+      ],
+      "paint": "center-rgba",
+      "border": null,
+      "authoredFillByMode": {
+        "light": [
+          23,
+          23,
+          23,
+          255
+        ],
+        "dark": [
+          255,
+          255,
+          255,
+          255
+        ]
+      }
+    },
+    {
+      "index": 1,
+      "name": "activity-border",
+      "expectedLogicalSize": [
+        20,
+        20
+      ],
+      "paint": "center-rgba",
+      "border": {
+        "widthLogical": 2,
+        "pairedTopMiddleInteriorOffsetLogical": 1,
+        "exactRGB": true
+      },
+      "authoredActiveFillRGBA": [
+        0,
+        255,
+        0,
+        255
+      ],
+      "authoredBorderRGBA": [
+        0,
+        255,
+        0,
+        255
+      ]
+    },
+    {
+      "index": 2,
+      "name": "shape-fractional",
+      "expectedLogicalSize": [
+        14.5,
+        14.5
+      ],
+      "paint": "center-rgba",
+      "border": {
+        "widthLogical": 2,
+        "pairedTopMiddleInteriorOffsetLogical": 1,
+        "exactRGB": true
+      },
+      "baselineShape": "rounded",
+      "authoredActiveFillRGBA": [
+        255,
+        99,
+        71,
+        255
+      ],
+      "authoredBorderRGBA": [
+        0,
+        0,
+        0,
+        255
+      ]
+    },
+    {
+      "index": 3,
+      "name": "zero",
+      "expectedLogicalSize": [
+        0,
+        0
+      ],
+      "paint": "absent-paint",
+      "border": null
+    },
+    {
+      "index": 4,
+      "name": "percent",
+      "expectedLogicalSize": [
+        60,
+        60
+      ],
+      "paint": "center-rgba",
+      "border": null,
+      "authoredFillByMode": {
+        "light": [
+          23,
+          23,
+          23,
+          255
+        ],
+        "dark": [
+          255,
+          255,
+          255,
+          255
+        ]
+      }
+    },
+    {
+      "index": 5,
+      "name": "auto",
+      "expectedLogicalSize": [
+        0,
+        0
+      ],
+      "paint": "absent-paint",
+      "border": null
+    },
+    {
+      "index": 6,
+      "name": "registered-callback",
+      "expectedLogicalSize": [
+        24,
+        10
+      ],
+      "paint": "center-rgba",
+      "border": null,
+      "nativeColorScope": "Platform-valid ColorValue vs simultaneous independent rawView; final opacity0.75, marginTop5; use actual reference RGBA rather than guessed platform color."
+    },
+    {
+      "index": 7,
+      "name": "native-color",
+      "expectedLogicalSize": [
+        20,
+        20
+      ],
+      "paint": "center-rgba",
+      "border": {
+        "widthLogical": 2,
+        "pairedTopMiddleInteriorOffsetLogical": 1,
+        "exactRGB": true
+      },
+      "nativeColorScope": "Platform-valid explicit active/native default border color vs independent rawView; no guessed OS token RGBA."
+    }
+  ],
+  "contextPaintOverrides": {
+    "inactive-gray-active-lime-border": {
+      "mainFillRGBA": [
+        128,
+        128,
+        128,
+        255
+      ],
+      "mainBorderRGBA": [
+        0,
+        255,
+        0,
+        255
+      ],
+      "ownedPaint": "absent-paint"
+    },
+    "inactive-gray-explicit-blue-border": {
+      "mainFillRGBA": [
+        128,
+        128,
+        128,
+        255
+      ],
+      "mainBorderRGBA": [
+        23,
+        78,
+        166,
+        255
+      ],
+      "ownedPaint": "absent-paint"
+    },
+    "square-fractional": {
+      "mainFillRGBA": [
+        128,
+        128,
+        128,
+        255
+      ],
+      "mainBorderRGBA": [
+        0,
+        0,
+        0,
+        255
+      ],
+      "shape": "square"
+    },
+    "provider-and-owned-foreground": {
+      "mainFillRGBA": [
+        255,
+        136,
+        0,
+        255
+      ],
+      "ownedFillRGBA": [
+        8,
+        127,
+        140,
+        255
+      ]
+    },
+    "callback-current-inactive": {
+      "expectedLogicalSize": [
+        28,
+        10
+      ],
+      "mainPaint": "center-rgba",
+      "ownedPaint": "absent-paint"
+    },
+    "callback-zero-opacity": {
+      "expectedLogicalSize": [
+        28,
+        10
+      ],
+      "mainPaint": "absent-paint",
+      "ownedPaint": "absent-paint"
+    },
+    "window-before-zero": {
+      "mainPaint": "absent-paint"
+    },
+    "window-after-zero": {
+      "mainPaint": "absent-paint"
+    },
+    "reset-default": {
+      "expectedLogicalSize": [
+        10,
+        10
+      ],
+      "mainPaint": "center-rgba"
+    }
+  },
+  "independentHostRules": [
+    "Recompute cases/geometry/paint/roles from this finite authored binding and actual native state/PNG; do not trust nativeAssertions/readiness/expected metadata as the host verdict.",
+    "Each target/reference120parent must be unique, visible and satisfy the unchanged original positive-frame2physicalpx vertical-inset/horizontal-containment predicate. Layout/AX geometry tolerance remains1physicalpx.",
+    "Main and owned rootTag/refIdentity/attach/detach must match original prepared bindings; nativeTarget/currentTarget must agree with actual delivered callbacks. Owned row/child rectangles use actual native row frame plus actual child onLayout, never an assumed Button internal offset.",
+    "For every final PNG verify main center/reference exactly; zero/auto/explicitopacity0 require whole-parent absence. Verify2logical border paths with actual paired native reference pixels and exact RGBA, and retain edge/radius/opacity original-image review. No fuzz.",
+    "Owned pair is10logical square. Active expected foreground iswhite when overridefalse,teal(8,127,140) when overridetrue; inactive is transparent, requiring actual Button-background absence/reference comparison rather than hardcoded display alpha.",
+    "Native end-paint readiness records real PNGs/RGBA and requires two exact samples\u2265100ms apart within10s. It is an admission helper; host CoreGraphics must still inspect the final independent PNG.",
+    "The named/restored observations require1\u21920 exactG04indicator labels, genericViewGroup/no inventedrange role and actual empty restored description/focusablefalse.",
+    "All4 individual native/host verdicts required; any failed/notrun/unsafe method keeps overall failed. Native safe completion is not case or cell PASS.",
+    "Actual portrait\u2192landscape zero/ref/current-state transition, exact finalaction0\u21921/trueDisplaytail/lastscrollfalse and reset to measured10\u00d710/currentdefault with original root/ref must reconcile.",
+    "Keep source/product/fixture/compiled inspector/oracle/density/window/font/mode/capture/log identities and original failures; no font or profile cross-product."
+  ]
+}

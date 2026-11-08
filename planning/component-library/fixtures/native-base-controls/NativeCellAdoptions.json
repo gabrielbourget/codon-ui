@@ -1,0 +1,259 @@
+{
+  "schemaVersion": 1,
+  "authority": "Evidence lookup only; experiments.md catalogue ledger remains authoritative. Historical PASS cells are grandfathered by HEAD comparison.",
+  "cells": {
+    "CAT.indicator.G04": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/indicator-G04-IND-04-complete-20261105/objects/71abc9b6f8ff8bad03344fa97eb9f864462daa736f1b4a08e70ac45ea5eef249",
+        "sha256": "71abc9b6f8ff8bad03344fa97eb9f864462daa736f1b4a08e70ac45ea5eef249"
+      }
+    },
+    "CAT.indicator.G07": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/indicator-G07-G08-reused-release-gates-20261105/objects/caacdedf2b8c537baafc608e945c0cf28588a6600200c844c6fbcd95483421f9",
+        "sha256": "caacdedf2b8c537baafc608e945c0cf28588a6600200c844c6fbcd95483421f9"
+      }
+    },
+    "CAT.indicator.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/indicator-G07-G08-reused-release-gates-20261105/objects/0dc565313f3d61aa92c53b3a19f4c9158c085d0d06ea729bc06eee7018bd1604",
+        "sha256": "0dc565313f3d61aa92c53b3a19f4c9158c085d0d06ea729bc06eee7018bd1604"
+      }
+    },
+    "CAT.line-segment.G09": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/display-G09-final-component-closeout-20261105/objects/7337411515c58b398012a769b591bcbda7e70090b6759266e462da7dd2a7235d",
+        "sha256": "7337411515c58b398012a769b591bcbda7e70090b6759266e462da7dd2a7235d"
+      }
+    },
+    "CAT.indicator.G09": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/display-G09-final-component-closeout-20261105/objects/23e719d7489a355a56f7282e4de2a15ba96fa869c3c59d9ecf97cc6cddf4e745",
+        "sha256": "23e719d7489a355a56f7282e4de2a15ba96fa869c3c59d9ecf97cc6cddf4e745"
+      }
+    },
+    "CAT.meter.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/meter-ios-style-completion-20261106/objects/92896bd4b44a648347873df59f439753936ba47090b41bf2adf34228073f5128",
+        "sha256": "92896bd4b44a648347873df59f439753936ba47090b41bf2adf34228073f5128"
+      }
+    },
+    "CAT.meter.G04": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/meter-android-style-g04-g07-completion-20261106/objects/40107d9e0f029c900f9f788771fa30216edcb5587a10b8f9b0f36c29802aded2",
+        "sha256": "40107d9e0f029c900f9f788771fa30216edcb5587a10b8f9b0f36c29802aded2"
+      }
+    },
+    "CAT.meter.G07": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/meter-android-style-g04-g07-completion-20261106/objects/d1ca269432caf30fccca8519d50fc559ff9085e721c53787481681bb93b4b8b9",
+        "sha256": "d1ca269432caf30fccca8519d50fc559ff9085e721c53787481681bb93b4b8b9"
+      }
+    },
+    "CAT.meter.G09": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/meter-final-g09-closeout-20261106/objects/640ca57ce733cea8fab5b76c7477b46c50a8c92c3ee7facf3e7c8580386cf5ec",
+        "sha256": "640ca57ce733cea8fab5b76c7477b46c50a8c92c3ee7facf3e7c8580386cf5ec"
+      }
+    },
+    "CAT.linear-progress.G04": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/linear-progress-final-closeout-20261106/objects/7add751a74e271c971718bad080178f219ba59cac923f94751d3194b4c4d752b",
+        "sha256": "7add751a74e271c971718bad080178f219ba59cac923f94751d3194b4c4d752b"
+      }
+    },
+    "CAT.linear-progress.G07": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/linear-progress-final-closeout-20261106/objects/cf07c0077671310197d6776d47de24d3cbcddb8e41f7b4b64cb50f2308fe02b3",
+        "sha256": "cf07c0077671310197d6776d47de24d3cbcddb8e41f7b4b64cb50f2308fe02b3"
+      }
+    },
+    "CAT.linear-progress.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/linear-progress-final-closeout-20261106/objects/20fb6f8849c3b45389e0707063b1bbd6e112bab8fa248410ec561e8c742b4392",
+        "sha256": "20fb6f8849c3b45389e0707063b1bbd6e112bab8fa248410ec561e8c742b4392"
+      }
+    },
+    "CAT.linear-progress.G09": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/linear-progress-final-closeout-20261106/objects/24bd0d035f105726c48e4a748202ac3b568c906663354c6bd6ec0354658754c0",
+        "sha256": "24bd0d035f105726c48e4a748202ac3b568c906663354c6bd6ec0354658754c0"
+      }
+    },
+    "CAT.text.G07": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/text-overall-budget-closeout-20261106/objects/ed74656750a956ace2292b32d942ddb43128c5dd632f595e0f323db2c90d2d80",
+        "sha256": "ed74656750a956ace2292b32d942ddb43128c5dd632f595e0f323db2c90d2d80",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/text-after-linear-progress-20261106/text-G07-overall-budget-completion.json"
+      }
+    },
+    "CAT.text.G04": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/text-overall-budget-closeout-20261106/objects/738a8712558e5bd191631deef37a333fcdd563a6addd5524c079c955efdff2f0",
+        "sha256": "738a8712558e5bd191631deef37a333fcdd563a6addd5524c079c955efdff2f0",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/text-after-linear-progress-20261106/text-G04-overall-budget-completion.json"
+      }
+    },
+    "CAT.text.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/text-overall-budget-closeout-20261106/objects/9407f387388cf5078395b2678746c54abc2444bd913d8c6890dfa08a2ba7d639",
+        "sha256": "9407f387388cf5078395b2678746c54abc2444bd913d8c6890dfa08a2ba7d639",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/text-after-linear-progress-20261106/text-G08-overall-budget-completion.json"
+      }
+    },
+    "CAT.text.G09": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/text-overall-budget-closeout-20261106/objects/4b67d4b923f4084ba935a277367f23ae32e68c66e477fd198ac0121667a5a397",
+        "sha256": "4b67d4b923f4084ba935a277367f23ae32e68c66e477fd198ac0121667a5a397",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/text-after-linear-progress-20261106/text-G09-overall-budget-completion.json"
+      }
+    },
+    "CAT.circular-progress.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/circular-progress-ios-g08-20261106/objects/9583151eb70f35099606858f4ae99fbd26ed086a869338193500f0ba3b0dad1c",
+        "sha256": "9583151eb70f35099606858f4ae99fbd26ed086a869338193500f0ba3b0dad1c",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/circular-progress-after-text-20261106/circular-G08-completion.json"
+      }
+    },
+    "CAT.circle-loader.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/circle-loader-ios-g08-final-20261106/objects/9ed80b8cffc6b4f35964c9e0fbffacc5b32947e265d27ed9d0b7e73b877d6d1e",
+        "sha256": "9ed80b8cffc6b4f35964c9e0fbffacc5b32947e265d27ed9d0b7e73b877d6d1e",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/circle-loader-after-circular-progress-20261106/circle-loader-G08-completion.json"
+      }
+    },
+    "CAT.lagging-lines-loader.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/lagging-lines-ios-g08-20261106/objects/d907139e1afa3bdcc038262c420dab53d30d1c00d92717669eeac39b54bc357b",
+        "sha256": "d907139e1afa3bdcc038262c420dab53d30d1c00d92717669eeac39b54bc357b",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/lagging-lines-after-circle-loader-20261106/lagging-lines-G08-completion.json"
+      }
+    },
+    "CAT.counter.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/counter-ios-g08-20261106/objects/1620b782f2ae372072410b8b5f637d41c252b2cc96bfae26def2ec61e62dbc89",
+        "sha256": "1620b782f2ae372072410b8b5f637d41c252b2cc96bfae26def2ec61e62dbc89",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/counter-after-lagging-lines-20261106/counter-G08-completion.json"
+      }
+    },
+    "CAT.thumbnail-image.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/thumbnail-ios-g08-20261106/objects/8b3e785f4e0e031b4631f9098a3c3cd99cc56792fc39e9dfb46fc49381aad537",
+        "sha256": "8b3e785f4e0e031b4631f9098a3c3cd99cc56792fc39e9dfb46fc49381aad537",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/thumbnail-after-counter-20261106/thumbnail-G08-completion.json"
+      }
+    },
+    "CAT.thumbnail-showcase.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/gallery-ios-g08-20261106/objects/9e84a8e9ecfed3ac78d3d8064f7a0e8d2c7a48c84c78133ff1cdc7d8eee2dffe",
+        "sha256": "9e84a8e9ecfed3ac78d3d8064f7a0e8d2c7a48c84c78133ff1cdc7d8eee2dffe",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/gallery-after-thumbnail-20261106/gallery-G08-completion.json"
+      }
+    },
+    "CAT.avatar.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/avatar-g08-completion-20261106/objects/40a67c626ec37dd173b4f4c75c0b69c2b94a491c18fece31411948de1fd96b97",
+        "sha256": "40a67c626ec37dd173b4f4c75c0b69c2b94a491c18fece31411948de1fd96b97",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/avatar-after-gallery-20261106/avatar-G08-completion-v2.json"
+      }
+    },
+    "CAT.list-box-item.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/list-box-item-ios-g08-20261106/objects/edd43dfd41c794da72c2dc8cb14ed8c7653ca15147868dca28663abb7ed331de",
+        "sha256": "edd43dfd41c794da72c2dc8cb14ed8c7653ca15147868dca28663abb7ed331de",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/list-box-item-after-avatar-20261106/list-box-item-G08-completion.json"
+      }
+    },
+    "CAT.toggle-button.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/toggle-button-ios-g08-20261106/objects/54ae51e2fe53ef71d90fbc16878e3f51d6d00512ae5eacd5e5aec57cc865de2a",
+        "sha256": "54ae51e2fe53ef71d90fbc16878e3f51d6d00512ae5eacd5e5aec57cc865de2a",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/toggle-button-after-list-item-20261106/toggle-button-G08-completion.json"
+      }
+    },
+    "CAT.radio.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/radio-ios-g08-20261106/objects/48bd5c0137177cd1e4a1a7f9b3f3395b1d8b52bbc6a7468be8f8b040f2caffe2",
+        "sha256": "48bd5c0137177cd1e4a1a7f9b3f3395b1d8b52bbc6a7468be8f8b040f2caffe2",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/radio-after-toggle-button-20261106/radio-G08-completion.json"
+      }
+    },
+    "CAT.placeholder-text.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/placeholder-ios-g08-resumed-20261106/objects/0f2d26928bc667ffb0d2742d3d5e8e655cde6beffbfd34c0bdc1665e6243772d",
+        "sha256": "0f2d26928bc667ffb0d2742d3d5e8e655cde6beffbfd34c0bdc1665e6243772d",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/placeholder-resume-after-radio-20261106/placeholder-G08-completion.json"
+      }
+    },
+    "CAT.switch.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/switch-ios-g08-20261107/objects/2aba1464b879f5aedc90f8bd7e61ebd34370ef033971380ed2980aabd6c4ee50",
+        "sha256": "2aba1464b879f5aedc90f8bd7e61ebd34370ef033971380ed2980aabd6c4ee50",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/switch-after-radio-20261106/switch-G08-completion.json"
+      }
+    },
+    "CAT.checkbox.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/checkbox-ios-g08-20261107/objects/9c5823d1cc32d9addf6e67c5a98faec285f8eb64f6ffbd5bde2dd72f808fd078",
+        "sha256": "9c5823d1cc32d9addf6e67c5a98faec285f8eb64f6ffbd5bde2dd72f808fd078",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/checkbox-after-switch-20261107/checkbox-G08-completion.json"
+      }
+    },
+    "CAT.checkbox-group.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/checkbox-group-ios-g08-20261107/objects/dd8a89e08ddf73e5ebdf5e93e5ab8d78805073af93d49816d22044d798f67635",
+        "sha256": "dd8a89e08ddf73e5ebdf5e93e5ab8d78805073af93d49816d22044d798f67635",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/checkbox-group-after-checkbox-20261107/checkbox-group-G08-completion.json"
+      }
+    },
+    "CAT.radio-group.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/radio-group-ios-g08-20261107/objects/f12fcca3830604fa13fa7bdf7591ccf37c60901cbac29dd479a1ccdd56992609",
+        "sha256": "f12fcca3830604fa13fa7bdf7591ccf37c60901cbac29dd479a1ccdd56992609",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/radio-group-after-checkbox-group-20261107/radio-group-G08-completion.json"
+      }
+    },
+    "CAT.button.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/button-ios-g08-20261107/objects/203c8402eb6cb87292ebe44568011df8c32a5d75a38c66a750e104c41ac3e957",
+        "sha256": "203c8402eb6cb87292ebe44568011df8c32a5d75a38c66a750e104c41ac3e957",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/button-after-radio-group-20261107/button-G08-completion.json"
+      }
+    },
+    "CAT.link.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/link-ios-g08-20261107/objects/d84d887427c38a059e54920b9b4ee547d68979133dd968a68d206d9901a3317e",
+        "sha256": "d84d887427c38a059e54920b9b4ee547d68979133dd968a68d206d9901a3317e",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/link-after-button-20261107/link-G08-completion.json"
+      }
+    },
+    "CAT.tooltip.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/tooltip-after-form-field-20261107/tooltip-G08-closeout/objects/0554cc1d9bbf836a0f09be6fc3d357df76d196053735ac2dd0ba855257cd9844",
+        "sha256": "0554cc1d9bbf836a0f09be6fc3d357df76d196053735ac2dd0ba855257cd9844",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/tooltip-after-form-field-20261107/tooltip-G08-completion.json"
+      }
+    },
+    "CAT.toggle-switcher.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/switcher-after-link-20261107/switcher-G08-closeout/objects/b3f115f33d61dfe806a9979d33bae84b8f756cb6d0be35bd6a919c401da391d0",
+        "sha256": "b3f115f33d61dfe806a9979d33bae84b8f756cb6d0be35bd6a919c401da391d0",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/switcher-after-link-20261107/switcher-G08-completion.json"
+      }
+    },
+    "CAT.form-field.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/form-field-after-switcher-20261107/form-field-G08-closeout/objects/edbfa0b6a056329bb1c76d94e0a71cc5a22b4ad3a06e37f6511dd1a92af4433b",
+        "sha256": "edbfa0b6a056329bb1c76d94e0a71cc5a22b4ad3a06e37f6511dd1a92af4433b",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/form-field-after-switcher-20261107/form-field-G08-completion.json"
+      }
+    },
+    "CAT.click-popover.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/click-popover-after-hover-removal-20261108/click-popover-G08-closeout/objects/6416d4445ed2ce013c9170794506b2d6f139b7e1facf679ab047936c4109918b",
+        "sha256": "6416d4445ed2ce013c9170794506b2d6f139b7e1facf679ab047936c4109918b",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/click-popover-after-hover-removal-20261108/click-popover-G08-completion.json"
+      }
+    }
+  }
+}

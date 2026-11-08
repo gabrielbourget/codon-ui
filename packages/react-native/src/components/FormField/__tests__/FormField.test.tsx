@@ -38,7 +38,9 @@ it("CAP.form-field.002 maps label identity, marker and the current native focus 
     </FormField>,
   )
   const label = screen.getByTestId("form-field-label")
-  expect(label).toHaveTextContent("Email *")
+  expect(label).toHaveTextContent("Email*")
+  expect(label.props.accessibilityLabel).toBe("Email *")
+  expect(screen.getByTestId("form-field-required-gap")).toHaveStyle({ width: 2, height: 1 })
   expect(label.props).toMatchObject({ nativeID: "email-label", selectable: false })
   expect(label.props.allowFontScaling).not.toBe(false)
   expect(label).toHaveStyle({ fontSize: 12 })

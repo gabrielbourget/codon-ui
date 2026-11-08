@@ -1,0 +1,57 @@
+{
+  "kind": "non_shipping_native_observer_source_promotion",
+  "schemaVersion": 1,
+  "proposedDirectory": "planning/component-library/fixtures/native-base-controls",
+  "filesSHA256": {
+    "IndicatorG04UITests.swift": "f1af481aaae607e8f6baaa1e987d3a993664c8912e52e7d13e165f145ae1c0eb",
+    "IndicatorG04SourceBaseline.json": "fa58abe9f2829ead271290a7b8d1fcb4b57f352490ab9d81f7f7445769f74e5b",
+    "test_indicator_g04_source_correspondence.py": "1dc621bcc1d3cf9c2da594c55399446a363cc0ad4b21ee3c023624338b4d60e9"
+  },
+  "sourceBytes": "Exact executed F1af source, including existing class names and diagnostic probe; no source rewrite/formatting performed.",
+  "nativeQualificationSelection": [
+    "IndicatorG04TrialTests/testI10ShapeGeometry",
+    "IndicatorG04TrialTests/testI11CallbackFinalStyle"
+  ],
+  "nativeActualResults": {
+    "testI10ShapeGeometry": 46.568,
+    "testI11CallbackFinalStyle": 57.506
+  },
+  "nativeActualReceipts": {
+    "selected-results-reconciliation.json": {
+      "path": "/tmp/codon-indicator-g04-ios-focused-regression-20261105/packet/installed-P01-attempt-1/selected-results-reconciliation.json",
+      "sha256": "d2a703651a6b1b6477805f2f502578a2b1dbdc8f7f76a0a1785f94c965722ec7"
+    },
+    "terminal-summary.json": {
+      "path": "/tmp/codon-indicator-g04-ios-focused-regression-20261105/packet/installed-P01-attempt-1/terminal-summary.json",
+      "sha256": "a5900709b914e7f40b3fc97563f5a0c950c954fed88e3a3ad55b14ebebf64ea9"
+    }
+  },
+  "observerManifestSHA256": "d4a367be059121800ee93c116dcf168a2eb6379a414c00252edc579560b7e64e",
+  "appManifestSHA256": "159a94427078deb9cbe31310a5636b9d100a10c77dc8e828e6b3948135e87e57",
+  "staticControls": {
+    "status": "PASS",
+    "tests": 9,
+    "seconds": 0.119,
+    "command": "python3 -B planning/component-library/fixtures/native-base-controls/test_indicator_g04_source_correspondence.py",
+    "portableDependencies": [
+      "IndicatorG04UITests.swift",
+      "IndicatorG04SourceBaseline.json",
+      "Python standard library"
+    ],
+    "readsHistoricalTMPBaseline": false,
+    "scope": "Source identity/correspondence and source mutation negatives only; no Swift execution/native behavior proof.",
+    "sourcePreservation": {
+      "originalMethodBodies": 9,
+      "unchangedHelperBodies": 36,
+      "originalVerifyAssertionLines": 21,
+      "focusedObservationLabels": 6
+    }
+  },
+  "historicalMethodDisposition": {
+    "testI06ShapeAndCallbackFinalStyle": "Historical source retained byteexact; unselected for current qualification and excluded from native pass evidence because prior209.779s exceeded180s.",
+    "IndicatorG04AXInitializationProbe/testAXInitializationOnly": "Diagnostic-only; never one of14 claimed component methods."
+  },
+  "closeoutStatus": "PENDING_FINAL_VISUAL_ADOPTION; source promotion does not close a cell",
+  "repoWritesByAgent": false,
+  "SDKExecutionByAgent": false
+}

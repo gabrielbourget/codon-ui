@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, userEvent } from "@testing-library/react-native"
 import { Fragment, createRef } from "react"
-import { Platform, View } from "react-native"
+import { PixelRatio, Platform, View } from "react-native"
 
 import { NativeThemeProvider, Switch, type TNativeSwitchRef } from "../../.."
 
@@ -193,5 +193,29 @@ describe("Switch public native contract", () => {
     { height: Infinity },
   ])("rejects invalid native values %p", async (props) => {
     await expect(render(<Switch {...props} />)).rejects.toThrow(TypeError)
+  })
+
+  it("does not restart thumb timing for delivered width noise within one physical pixel", async () => {
+    const scale = jest.spyOn(PixelRatio, "get").mockReturnValue(3)
+    try {
+      const { rerender } = await render(<Switch isSelected={false} />)
+      await fireEvent(part("track-content"), "layout", { nativeEvent: { layout: { width: 30, height: 15 } } })
+      await fireEvent(part("indicator"), "layout", { nativeEvent: { layout: { width: 15, height: 15 } } })
+      await rerender(<Switch isSelected />)
+      for (let index = 0; index < 18; index++) {
+        await act(() => jest.advanceTimersByTime(30))
+        const width = [14.999996185302734, 15, 15.000003814697266][index % 3]
+        await fireEvent(part("indicator"), "layout", { nativeEvent: { layout: { width, height: 15 } } })
+      }
+      expect(part("indicator")).toHaveStyle({ left: 15 })
+      const changedWidth = 15 + 1 / 3
+      await fireEvent(part("indicator"), "layout", { nativeEvent: { layout: { width: changedWidth, height: 15 } } })
+      await act(() => jest.advanceTimersByTime(250))
+      expect(part("indicator")).toHaveStyle({ left: 30 - changedWidth })
+      await fireEvent(part("track-content"), "layout", { nativeEvent: { layout: { width: 12, height: 15 } } })
+      expect(part("indicator")).toHaveStyle({ left: 0 })
+    } finally {
+      scale.mockRestore()
+    }
   })
 })

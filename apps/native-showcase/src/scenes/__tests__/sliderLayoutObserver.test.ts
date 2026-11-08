@@ -195,17 +195,36 @@ it("rejects missing actual bounds and inconsistent original-window frames withou
   }
 })
 
-it("keeps the existing 5000ms measurement bound and releases cancellation listeners when no native callback arrives", async () => {
+it("keeps pending native measurements cancellable under the enclosing attempt budget", async () => {
   jest.useFakeTimers()
   try {
     const h = harness()
     h.root.measureInWindow.mockImplementation(() => {})
     const pending = readSliderLayoutOriginalGeometry(h.originalRoot, h.token)
-    const rejected = expect(pending).rejects.toThrow(/exceeded5000ms/)
-    await jest.advanceTimersByTimeAsync(4999)
+    const rejected = expect(pending).rejects.toThrow(/cancelled/)
+    await jest.advanceTimersByTimeAsync(60000)
     expect(h.listeners.size).toBe(1)
-    await jest.advanceTimersByTimeAsync(1)
+    h.cancel()
     await rejected
+    expect(h.listeners.size).toBe(0)
+  } finally {
+    jest.useRealTimers()
+  }
+})
+
+it("accepts a delayed native callback only while the original nodes and geometry remain current", async () => {
+  jest.useFakeTimers()
+  try {
+    const h = harness()
+    let receive: Parameters<View["measureInWindow"]>[0] | undefined
+    h.root.measureInWindow.mockImplementation((callback) => {
+      receive = callback
+    })
+    const pending = readSliderLayoutOriginalGeometry(h.originalRoot, h.token)
+    await jest.advanceTimersByTimeAsync(60000)
+    expect(h.listeners.size).toBe(1)
+    receive?.(20, 40, 300, 76)
+    await expect(pending).resolves.toMatchObject({ tags: [1, 3, 5, 6] })
     expect(h.listeners.size).toBe(0)
   } finally {
     jest.useRealTimers()

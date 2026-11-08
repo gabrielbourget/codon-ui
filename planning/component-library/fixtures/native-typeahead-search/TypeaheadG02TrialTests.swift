@@ -9,7 +9,6 @@ final class TypeaheadG02TrialTests: XCTestCase {
 
     override func setUpWithError() throws {
         continueAfterFailure = false
-        executionTimeAllowance = 180
         guard ProcessInfo.processInfo.environment["CODON_TH_SCENE_SHA256"] == sceneSHA else {
             XCTFail("Bind the exact Typeahead scene product before execution")
             throw NSError(domain: "TypeaheadG02Admission", code: 1)

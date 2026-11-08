@@ -1,5 +1,13 @@
 import XCTest
 
+private func nativeWorkRemaining() -> TimeInterval {
+    guard let text = ProcessInfo.processInfo.environment["CODON_NATIVE_WORK_DEADLINE_UNIX"],
+          let deadline = Double(text), deadline.isFinite else {
+        preconditionFailure("Missing admitted native work deadline")
+    }
+    return max(0, deadline - Date().timeIntervalSince1970)
+}
+
 // Six iOS installed public-outcome witnesses. Android and exact Copy output remain separate
 // observations in README; these uncompiled methods alone do not close the whole G02 cell.
 final class PlaceholderG02TrialTests: XCTestCase {
@@ -8,7 +16,6 @@ final class PlaceholderG02TrialTests: XCTestCase {
 
     override func setUpWithError() throws {
         continueAfterFailure = false
-        executionTimeAllowance = 180
         for key in ["CODON_PLACEHOLDER_FIXTURE_SHA256", "CODON_PLACEHOLDER_PRODUCT_SHA256",
                     "CODON_PLACEHOLDER_OBSERVER_MANIFEST_SHA256"] {
             let value = try XCTUnwrap(ProcessInfo.processInfo.environment[key], "Missing " + key)
@@ -21,7 +28,7 @@ final class PlaceholderG02TrialTests: XCTestCase {
         let window = app.windows.firstMatch.frame
         XCTAssertGreaterThan(window.height, window.width)
         XCTAssertFalse(app.keyboards.firstMatch.exists)
-        XCTAssertTrue(node("placeholder-g02-state").waitForExistence(timeout: 10))
+        XCTAssertTrue(node("placeholder-g02-state").waitForExistence(timeout: nativeWorkRemaining()))
         tap("G02 prepare placeholder")
         ownerAtStart = try ownerCount()
         XCTAssertEqual(try rows().count, 0)
@@ -46,10 +53,10 @@ final class PlaceholderG02TrialTests: XCTestCase {
     }
     private func waitUntil(_ message: String, _ predicate: @escaping () -> Bool) {
         let gate = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in predicate() }, object: nil)
-        XCTAssertEqual(XCTWaiter.wait(for: [gate], timeout: 10), .completed, message)
+        XCTAssertEqual(XCTWaiter.wait(for: [gate], timeout: nativeWorkRemaining()), .completed, message)
     }
     private func reveal(_ element: XCUIElement) {
-        XCTAssertTrue(element.waitForExistence(timeout: 10))
+        XCTAssertTrue(element.waitForExistence(timeout: nativeWorkRemaining()))
         let scroll = app.scrollViews.firstMatch
         XCTAssertTrue(scroll.exists)
         for _ in 0..<16 {
@@ -189,7 +196,7 @@ final class PlaceholderG02TrialTests: XCTestCase {
             self.app.coordinate(withNormalizedOffset: .zero)
                 .withOffset(CGVector(dx: target.frame.midX, dy: target.frame.midY)).press(forDuration: 1.0)
             if enabled {
-                XCTAssertTrue(copy.waitForExistence(timeout: 5), "Native selectable Text must offer Copy")
+                XCTAssertTrue(copy.waitForExistence(timeout: nativeWorkRemaining()), "Native selectable Text must offer Copy")
                 XCTAssertTrue(copy.isHittable)
             } else {
                 let unexpected = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in copy.exists }, object: nil)
@@ -311,9 +318,9 @@ final class PlaceholderG02TrialTests: XCTestCase {
         func receiptData(_ value: [String: Any]) throws -> Data {
             try JSONSerialization.data(withJSONObject: try XCTUnwrap(value["receipts"]), options: .sortedKeys)
         }
-        XCTAssertTrue(owner.waitForExistence(timeout: 10))
-        XCTAssertTrue(children.firstMatch.waitForExistence(timeout: 10))
-        XCTAssertTrue(node("text-g02-context-state").waitForExistence(timeout: 10))
+        XCTAssertTrue(owner.waitForExistence(timeout: nativeWorkRemaining()))
+        XCTAssertTrue(children.firstMatch.waitForExistence(timeout: nativeWorkRemaining()))
+        XCTAssertTrue(node("text-g02-context-state").waitForExistence(timeout: nativeWorkRemaining()))
         let initial = try contextState()
         let parentAtStart = try int(initial, "parentOrdinary")
         let callerAtStart = try ownerCount()
@@ -383,7 +390,7 @@ final class PlaceholderG02TrialTests: XCTestCase {
             app.coordinate(withNormalizedOffset: .zero)
                 .withOffset(CGVector(dx: child.frame.midX, dy: child.frame.midY)).press(forDuration: 1.0)
             if enabled {
-                XCTAssertTrue(copy.waitForExistence(timeout: 5), "Explicit true must expose real native Copy")
+                XCTAssertTrue(copy.waitForExistence(timeout: nativeWorkRemaining()), "Explicit true must expose real native Copy")
                 XCTAssertTrue(copy.isHittable)
             } else {
                 let unexpectedCopy = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in copy.exists }, object: nil)

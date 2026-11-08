@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native"
-import { Dimensions } from "react-native"
+import { Dimensions, StyleSheet } from "react-native"
 import { SafeAreaInsetsContext } from "react-native-safe-area-context"
 
 import { NativeShowcase } from "../NativeShowcase"
@@ -80,4 +80,51 @@ it("exposes independent registered placeholder custom/final layers without chang
     "Placeholder custom: false. Final: false.",
   )
   expect(screen.getByTestId("library-state")).toHaveTextContent(/Library action count: 0/)
+})
+
+it("preflights the installed Placeholder batch setup/reset and every authored typography and edge input", async () => {
+  await render(
+    <SafeAreaInsetsContext.Provider value={{ top: 20, bottom: 10, left: 0, right: 0 }}>
+      <NativeShowcase />
+    </SafeAreaInsetsContext.Provider>,
+  )
+  const press = async (name: string) => {
+    await fireEvent.press(screen.getByRole("button", { name }))
+    await act(() => jest.advanceTimersByTime(400))
+  }
+  await press("Reset scene")
+  await press("Live window")
+  await press("Light theme")
+  expect(screen.queryByTestId("library-placeholder")).toBeNull()
+  await press("Text/Button scene")
+  await press("G02 prepare placeholder")
+  const original = screen.getByTestId("library-placeholder")
+  const check = (color: string, fontSize: number, padding: number, vertical: number, align: string) => {
+    const value = StyleSheet.flatten(original.props.style)
+    expect(value).toMatchObject({ color, fontSize, fontStyle: "italic", fontWeight: "400", textAlign: align })
+    expect(value.padding ?? 0).toBe(padding)
+    expect(value.paddingVertical ?? value.padding ?? 0).toBe(vertical)
+    expect(original.props.allowFontScaling).not.toBe(false)
+  }
+  check("#707070", 12, 0, 0, "left")
+  await press("Toggle placeholder alignment")
+  check("#707070", 12, 0, 0, "center")
+  await press("Toggle placeholder custom styles")
+  check("#a66b00", 18, 2, 4, "center")
+  await press("Toggle placeholder final styles")
+  check("#7e22ce", 22, 2, 4, "center")
+  await press("Dark theme")
+  check("#7e22ce", 22, 2, 4, "center")
+  await press("Toggle placeholder final styles")
+  check("#a66b00", 18, 2, 4, "center")
+  await press("Toggle placeholder custom styles")
+  check("#878787", 12, 0, 0, "center")
+  await press("Light theme")
+  check("#707070", 12, 0, 0, "center")
+  expect(screen.getByTestId("library-placeholder")).toBe(original)
+  await press("Reset scene")
+  expect(screen.queryByTestId("library-placeholder")).toBeNull()
+  await press("Text/Button scene")
+  await press("G02 prepare placeholder")
+  expect(screen.getByTestId("library-placeholder")).toHaveTextContent("Choose an item")
 })

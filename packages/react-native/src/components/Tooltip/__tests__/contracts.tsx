@@ -4,7 +4,6 @@ import type { View } from "react-native"
 import { NativeFocusView } from "../../../input/NativeFocusView"
 import { NativeTooltipTrigger } from "../../../overlays/floating/NativeTooltipTrigger"
 import { Button } from "../../Button/Button"
-import { HoverPopover } from "../../HoverPopover/HoverPopover"
 import { NativeTooltipContext } from "../context"
 import { Tooltip } from "../Tooltip"
 
@@ -43,11 +42,10 @@ export const explicitNativeTrigger = (
     </Tooltip>
   </NativeTooltipTrigger>
 )
-export const hoverSurface = <HoverPopover ref={nativeRef} geometry="orthogonal" showOverlayArrow />
 // @ts-expect-error Tooltip semantics do not expose a modal dialog owner.
 export const noDialog = <Tooltip childIsDialog />
 // @ts-expect-error Tooltip semantics remain nonmodal without an owner-controlled modality switch.
-export const noModality = <HoverPopover isNonModal />
+export const noModality = <Tooltip isNonModal />
 // @ts-expect-error There is no owned dialog style slot.
 export const noDialogStyle = <Tooltip customDialogStyles={{ padding: 0 }} />
 // @ts-expect-error The canonical Tooltip PositionProps do not expose a scrollRef.
@@ -70,7 +68,7 @@ export const renderedTooltip = (
 )
 export const inheritedTooltip = (
   <NativeTooltipContext.Provider value={{ placement: "bottom", style: { opacity: 0 } }}>
-    <HoverPopover slot={null} />
+    <Tooltip slot={null} />
   </NativeTooltipContext.Provider>
 )
 // @ts-expect-error the approved description root cannot become a keyboard focus target

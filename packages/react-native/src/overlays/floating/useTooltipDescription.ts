@@ -31,7 +31,7 @@ export const useNativeTooltipDescription = (
           const descriptionTag = findNodeHandle(description)
           // A missing native tag can become available on a later frame; a live unsupported trigger cannot bind.
           if (descriptionTag !== null && Number.isSafeInteger(descriptionTag) && descriptionTag > 0)
-            throw new TypeError("Tooltip/HoverPopover supplementary descriptions require a NativeFocusView trigger")
+            throw new TypeError("Tooltip supplementary descriptions require a NativeFocusView trigger")
         }
       }
       frame = requestAnimationFrame(update)

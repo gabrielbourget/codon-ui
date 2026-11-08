@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, userEvent } from "@testing-library/react-native"
+import { act, fireEvent, render, screen, userEvent, within } from "@testing-library/react-native"
 import { Dimensions, type ImageProps } from "react-native"
 import { SafeAreaInsetsContext } from "react-native-safe-area-context"
 
@@ -67,10 +67,10 @@ it("exhausts failed candidates, preserves explicit zero fallback and starts new 
   await fail()
   expect(screen.getByTestId("thumbnail-fallback")).toBeOnTheScreen()
   await press("Toggle zero thumbnail fallback")
-  expect(screen.getByText("0")).toBeOnTheScreen()
+  expect(within(screen.getByTestId("thumbnail-native-parent")).getByText("0")).toBeOnTheScreen()
   expect(screen.queryByTestId("thumbnail-example")).toBeNull()
   await press("Next thumbnail sources")
-  expect(screen.getByText("0")).toBeOnTheScreen()
+  expect(within(screen.getByTestId("thumbnail-native-parent")).getByText("0")).toBeOnTheScreen()
   await press("Next thumbnail sources")
   expect(image().props.src).toBeTruthy()
   await load(32, 32)
@@ -197,9 +197,36 @@ it("retires replaced density callbacks and preserves genuine source reporting, c
   expect(screen.queryByTestId("thumbnail-example")).toBeNull()
   expect(screen.getByTestId("thumbnail-state")).toHaveTextContent(/Errors: 3\. Loads: 1/)
   await press("Toggle zero thumbnail fallback")
-  expect(screen.getByText("0")).toBeOnTheScreen()
+  expect(within(screen.getByTestId("thumbnail-native-parent")).getByText("0")).toBeOnTheScreen()
   await press("Toggle caller-selected thumbnail src")
   expect(image().props.srcSet).toBeUndefined()
   expect(screen.queryByTestId("thumbnail-fallback")).toBeNull()
   expect(screen.getByTestId("thumbnail-state")).toHaveTextContent(/Errors: 3\. Loads: 1/)
+})
+
+it("keeps reference decoding separate from actual view events and prepares fractional/percentage/retirement checks", async () => {
+  const press = await enter()
+  const state = () => JSON.parse(screen.getByTestId("thumbnail-native-state").props.accessibilityLabel)
+  expect(state().loads).toBe(0)
+  expect(state().referenceLoads).toBe(0)
+  await fail()
+  await load()
+  expect(state().events.filter((event: { kind: string }) => event.kind === "load")).toHaveLength(1)
+  await fireEvent(screen.getByTestId("thumbnail-native-reference"), "load", {
+    nativeEvent: { source: { width: 48, height: 24 } },
+  })
+  expect(state().referenceLoads).toBe(1)
+  expect(state().loads).toBe(1)
+  await press("Next thumbnail dimension")
+  expect(image()).toHaveStyle({ width: 83.25, aspectRatio: 2 })
+  expect(screen.getByTestId("thumbnail-native-reference")).toHaveStyle({ width: 83.25, aspectRatio: 2 })
+  await press("Next thumbnail dimension")
+  expect(image()).toHaveStyle({ width: "50%", aspectRatio: 2 })
+  const retired = image().props
+  await press("Toggle thumbnail presence")
+  expect(screen.queryByTestId("thumbnail-example")).toBeNull()
+  await act(() => retired.onLoad({ nativeEvent: { source: { width: 99, height: 99, uri: retired.src } } }))
+  expect(state().loads).toBe(1)
+  await press("Toggle thumbnail presence")
+  expect(image()).toBeOnTheScreen()
 })

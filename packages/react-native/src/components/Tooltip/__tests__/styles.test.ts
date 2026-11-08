@@ -4,7 +4,7 @@ import { AVAILABLE_THEMING_ORDER_CODES } from "../../../tokens/theme-order"
 import { untypedFontWeight } from "../../__tests__/untypedFontWeight"
 import type { TNativeTooltipProps } from "../types"
 
-const profiles = ["tooltip", "hover-popover"] as const
+const profiles = ["tooltip"] as const
 const styles = (
   profile: (typeof profiles)[number],
   props: TNativeTooltipProps = {},
@@ -34,12 +34,6 @@ describe.each(profiles)("%s style contract", (profile) => {
       expect(result.arrow.filter).toEqual(filter)
       expect(result.arrowGraphic).toEqual({ filter })
       expect(result.root.boxShadow).toBeUndefined()
-    } else {
-      expect(result.root).toMatchObject({ flexDirection: "column", gap: 15 })
-      expect(result.arrow.boxShadow).toEqual(result.root.boxShadow)
-      expect(result.root.boxShadow).toHaveLength(2)
-      expect(result.root.filter).toBeUndefined()
-      expect(result.arrowGraphic).toBeUndefined()
     }
   })
 
@@ -95,7 +89,7 @@ describe.each(profiles)("%s style contract", (profile) => {
   })
 
   it("names invalid native inputs for their actual component", () => {
-    expect(() => styles(profile, { width: -1 })).toThrow(profile === "tooltip" ? "Tooltip" : "HoverPopover")
+    expect(() => styles(profile, { width: -1 })).toThrow("Tooltip")
     expect(() => styles(profile, { customOverlayArrowStyles: { fill: "var(--invalid)" } })).toThrow("native color")
   })
 
