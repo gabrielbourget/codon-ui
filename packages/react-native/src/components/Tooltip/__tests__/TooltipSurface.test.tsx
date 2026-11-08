@@ -18,7 +18,6 @@ import {
   type TNativeTooltipTriggerRenderState,
 } from "../../../overlays/floating/NativeTooltipTrigger"
 import { ClickPopover } from "../../ClickPopover/ClickPopover"
-import { HoverPopover } from "../../HoverPopover/HoverPopover"
 import { Tooltip } from "../Tooltip"
 import type { TNativeTooltipProps } from "../types"
 
@@ -56,10 +55,7 @@ const tick = async () =>
     frames.clear()
     for (const callback of pending) callback(17)
   })
-const variants = [
-  { name: "tooltip", Component: Tooltip, arrow: true },
-  { name: "hover-popover", Component: HoverPopover, arrow: false },
-] as const
+const variants = [{ name: "tooltip", Component: Tooltip, arrow: true }] as const
 
 describe.each(variants)("$name measured native surface", ({ name, Component, arrow }) => {
   const setup = (initial: TNativeTooltipProps = {}, body: ReactNode = "Description") => {
@@ -485,7 +481,7 @@ describe.each(variants)("$name measured native surface", ({ name, Component, arr
           await fireEvent(screen.getByTestId("host"), "layout", layout(300, 400))
           await tick()
         })(),
-      ).rejects.toThrow("Tooltip/HoverPopover supplementary descriptions require a NativeFocusView trigger")
+      ).rejects.toThrow("Tooltip supplementary descriptions require a NativeFocusView trigger")
     },
   )
 

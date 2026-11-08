@@ -95,7 +95,7 @@ const resolveMargin = (
   return Math.trunc(numeric)
 }
 
-export const NATIVE_FLOATING_STYLE_PROFILES = ["click-popover", "tooltip", "hover-popover"] as const
+export const NATIVE_FLOATING_STYLE_PROFILES = ["click-popover", "tooltip"] as const
 export type TNativeFloatingStyleProfile = (typeof NATIVE_FLOATING_STYLE_PROFILES)[number]
 
 export const getNativeFloatingSurfaceStyles = (
@@ -106,7 +106,7 @@ export const getNativeFloatingSurfaceStyles = (
   hostWidth: number,
   profile: TNativeFloatingStyleProfile,
 ) => {
-  const component = profile === "tooltip" ? "Tooltip" : profile === "hover-popover" ? "HoverPopover" : "ClickPopover"
+  const component = profile === "tooltip" ? "Tooltip" : "ClickPopover"
   const tooltip = profile === "tooltip"
   validateNativeDisplayDimension(props.width, component, "width")
   validateNativeDisplayDimension(props.height, component, "height")
@@ -161,7 +161,6 @@ export const getNativeFloatingSurfaceStyles = (
   const root = resolveNativeStyle(
     [
       {
-        ...(profile === "hover-popover" ? { flexDirection: "column", gap: theme.spacing.unit * 3 } : {}),
         padding: theme.spacing.unit * (tooltip ? 1 : 2),
         color: tooltip ? theme.colors.background : theme.colors.foreground,
         backgroundColor: surface,

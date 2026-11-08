@@ -45,7 +45,7 @@ it("retains caller-owned editor drafts through theme/style changes, owner remova
   await press("Next description order")
   await result.rerender(node("dark"))
   expect(screen.getByTestId("tooltip-scene-editor")).toHaveDisplayValue("Retained draft")
-  expect(screen.getByTestId("hover-scene-surface", { includeHiddenElements: true })).toHaveStyle({
+  expect(screen.getByTestId("tooltip-help-scene-surface", { includeHiddenElements: true })).toHaveStyle({
     borderRadius: 0,
     borderWidth: 3,
     padding: 0,
@@ -54,12 +54,12 @@ it("retains caller-owned editor drafts through theme/style changes, owner remova
     "Live caller description context",
   )
   await press("Toggle description owner")
-  expect(screen.queryByTestId("hover-scene-surface", { includeHiddenElements: true })).toBeNull()
+  expect(screen.queryByTestId("tooltip-help-scene-surface", { includeHiddenElements: true })).toBeNull()
   await press("Toggle description owner")
   expect(screen.getByTestId("tooltip-scene-editor")).toHaveDisplayValue("Retained draft")
   await press("Reset descriptions")
   expect(screen.getByTestId("tooltip-scene-state")).toHaveTextContent(
-    /Tooltip: false.*Hover: false.*Requests: 0.*Actions: 0.*echoes.*Draft: empty/,
+    /Tooltip: false.*Help: false.*Requests: 0.*Actions: 0.*echoes.*Draft: empty/,
   )
 })
 

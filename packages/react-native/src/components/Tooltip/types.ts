@@ -52,5 +52,3 @@ export type TNativeTooltipProps = Omit<
   "aria-describedby"?: string
   "aria-details"?: string
 }
-export type TNativeHoverPopoverProps = TNativeTooltipProps
-export type TNativeHoverPopoverRef = TNativeTooltipRef

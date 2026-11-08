@@ -81,6 +81,17 @@ class NewPassReceiptTests(unittest.TestCase):
         self.assertEqual(sum(v == 'PASS' for v in cells.values()), 223)
         self.assertEqual(GUARD.newly_passing(MATRIX, MATRIX), [])
 
+    def test_owner_retired_hover_row_and_current468_cell_ledger(self):
+        current = "\n".join(line for line in MATRIX.splitlines() if not line.startswith("| `CAT.hover-popover`"))
+        self.assertEqual(len(GUARD.ledger_cells(current)), 468)
+        self.assertEqual(GUARD.newly_passing(MATRIX, current), [])
+        self.assertEqual(GUARD.newly_passing(MATRIX, replace_status(current, CELL, 'PASS(SYNTHETIC)')), [CELL])
+        with self.assertRaises(ValueError): GUARD.newly_passing(current, MATRIX)
+        wrong = "\n".join(line for line in MATRIX.splitlines() if not line.startswith("| `CAT.tooltip`"))
+        with self.assertRaises(ValueError): GUARD.newly_passing(MATRIX, wrong)
+        renamed = current.replace('`CAT.tooltip`', '`CAT.unknown`')
+        with self.assertRaises(ValueError): GUARD.newly_passing(current, renamed)
+
     def test_only_newly_promoted_cell_selected(self):
         self.assertEqual(GUARD.newly_passing(MATRIX, replace_status(MATRIX, CELL, 'PASS(SYNTHETIC)')), [CELL])
 

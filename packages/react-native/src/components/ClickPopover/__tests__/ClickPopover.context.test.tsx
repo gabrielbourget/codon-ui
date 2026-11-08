@@ -5,7 +5,6 @@ import { Text as RNText, TextInput, View } from "react-native"
 import {
   Button,
   ClickPopover,
-  HoverPopover,
   NativeDialogContext,
   NativeDialogTrigger,
   NativeFloatingLayerHost,
@@ -41,7 +40,7 @@ const dialog = (children: ReactNode, context: TNativeDialogContextProps = {}) =>
   </NativeDialogContext.Provider>
 )
 
-it.each(["popover", "dialog", "tooltip", "hover"])(
+it.each(["popover", "dialog", "tooltip"])(
   "keeps the original %s host and controlled editor when a compatible renderer is added and removed",
   async (kind) => {
     const root = createRef<View>()
@@ -49,19 +48,18 @@ it.each(["popover", "dialog", "tooltip", "hover"])(
     const trigger = createRef<View>()
     const onChangeText = jest.fn()
     const child = <TextInput ref={editor} value="" onChangeText={onChangeText} />
-    const Description = kind === "tooltip" ? Tooltip : HoverPopover
     const node = (custom: boolean) =>
-      kind === "tooltip" || kind === "hover" ? (
+      kind === "tooltip" ? (
         <NativeFloatingLayerHost>
           <View ref={trigger} />
-          <Description
+          <Tooltip
             ref={root}
             triggerRef={trigger}
             isOpen
             render={custom ? (props) => <NativeFocusView {...props} /> : undefined}
           >
             {child}
-          </Description>
+          </Tooltip>
         </NativeFloatingLayerHost>
       ) : kind === "popover" ? (
         <NativeFloatingLayerHost>

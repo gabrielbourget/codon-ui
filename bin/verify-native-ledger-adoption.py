@@ -37,13 +37,17 @@ def ledger_cells(text):
             require(cell not in cells, "Duplicate ledger cell: " + cell)
             require(re.fullmatch(r"(?:PASS|FAIL|BLOCKED|OPEN|N/A|OWNER-DEFERRED)(?:\(.*\))?", value), "Malformed cell status: " + cell)
             cells[cell] = value.split("(", 1)[0]
-    require(len(cells) == 477, "Preserve the canonical53-row/477-cell ledger")
+    # Gabriel retired only the native HoverPopover row on 2026-11-08; accept historical ledgers too.
+    has_retired = any(cell.startswith("CAT.hover-popover.") for cell in cells)
+    require(len(cells) == (477 if has_retired else 468), "Expected historical53-row or current52-row native ledger")
     return cells
 
 
 def newly_passing(before, after):
     old, new = ledger_cells(before), ledger_cells(after)
-    require(old.keys() == new.keys(), "Catalogue/gate identities changed")
+    retired = {"CAT.hover-popover.G" + str(gate).zfill(2) for gate in range(1, 10)}
+    removed, added = old.keys() - new.keys(), new.keys() - old.keys()
+    require(not added and (not removed or removed == retired), "Only the owner-retired HoverPopover row may leave the catalogue")
     return sorted(cell for cell in new if new[cell] == "PASS" and old[cell] != "PASS")
 
 

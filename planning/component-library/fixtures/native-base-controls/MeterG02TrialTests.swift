@@ -4210,7 +4210,7 @@ final class TooltipTrialTests: XCTestCase {
         let early:[String:Any]=["path":bundle.bundleURL.path,"executable":executable.path,"sha256":actual,"expectedSHA256":expected,"epochMs":Date().timeIntervalSince1970*1000]
         FileHandle.standardOutput.write(Data("NATIVE_LOADED_OBSERVER_EARLY ".utf8)+(try JSONSerialization.data(withJSONObject:early,options:.sortedKeys))+Data("\n".utf8))
         app=XCUIApplication(bundleIdentifier:"dev.codonui.showcase");app.launch();XCTAssertEqual(app.state,.runningForeground);XCUIDevice.shared.orientation = .portrait
-        tap("Reset scene");tap("Tooltip/Hover scene");tap("Light theme");tap("Live window");tap("Prepare standalone Tooltip checks");reveal(node("tooltip-native-fixture"))
+        tap("Reset scene");tap("Tooltip scene");tap("Light theme");tap("Live window");tap("Prepare standalone Tooltip checks");reveal(node("tooltip-native-fixture"))
     }
     override func tearDownWithError() throws {
         let png=XCTAttachment(screenshot:XCUIScreen.main.screenshot());png.name="tooltip-final";png.lifetime = .keepAlways;add(png)

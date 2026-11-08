@@ -132,9 +132,7 @@ it.each(["View", "TextInput"])("explicitly rejects a live core %s trigger", asyn
       <Probe anchor={anchor} content={content} />
     </>
   )
-  await expect(render(node)).rejects.toThrow(
-    "Tooltip/HoverPopover supplementary descriptions require a NativeFocusView trigger",
-  )
+  await expect(render(node)).rejects.toThrow("Tooltip supplementary descriptions require a NativeFocusView trigger")
   expect(frames.size).toBe(0)
 })
 

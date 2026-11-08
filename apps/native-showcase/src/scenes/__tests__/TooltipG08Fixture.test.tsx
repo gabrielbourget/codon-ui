@@ -28,7 +28,7 @@ const enter = async () => {
   )
   const user = userEvent.setup(),
     press = (name: string) => user.press(screen.getByRole("button", { name }))
-  await press("Tooltip/Hover scene")
+  await press("Tooltip scene")
   await press("Prepare standalone Tooltip checks")
   return press
 }

@@ -1,14 +1,7 @@
 import { createContext, useContext, useRef, useState } from "react"
 import { ScrollView, TextInput, View } from "react-native"
 
-import {
-  AVAILABLE_THEMING_ORDER_CODES,
-  Button,
-  HoverPopover,
-  NativeTooltipTrigger,
-  Text,
-  Tooltip,
-} from "@codon-ui/react-native"
+import { AVAILABLE_THEMING_ORDER_CODES, Button, NativeTooltipTrigger, Text, Tooltip } from "@codon-ui/react-native"
 
 import { TooltipG08Fixture } from "./TooltipG08Fixture"
 
@@ -18,7 +11,7 @@ const Description = () => <Text testID="tooltip-context">{useContext(Description
 export const TooltipScene = () => {
   const [checks, setChecks] = useState(false)
   const [open, setOpen] = useState(false)
-  const [hoverOpen, setHoverOpen] = useState(false)
+  const [helpOpen, setHelpOpen] = useState(false)
   const [echo, setEcho] = useState(true)
   const [requests, setRequests] = useState(0)
   const [actions, setActions] = useState(0)
@@ -36,7 +29,7 @@ export const TooltipScene = () => {
   }
   const reset = () => {
     setOpen(false)
-    setHoverOpen(false)
+    setHelpOpen(false)
     setEcho(true)
     setRequests(0)
     setActions(0)
@@ -59,13 +52,13 @@ export const TooltipScene = () => {
     <DescriptionContext.Provider value="Live caller description context">
       <View style={{ gap: 12 }}>
         <Button onPress={() => setChecks(true)}>Prepare standalone Tooltip checks</Button>
-        <Text elementType="h2">Tooltip and hover descriptions</Text>
+        <Text elementType="h2">Tooltip descriptions</Text>
         <Text testID="tooltip-scene-state">
-          Tooltip: {String(open)}. Hover: {String(hoverOpen)}. Requests: {requests}. Actions: {actions}. Owner{" "}
+          Tooltip: {String(open)}. Help: {String(helpOpen)}. Requests: {requests}. Actions: {actions}. Owner{" "}
           {echo ? "echoes" : "declines"}. Draft: {draft || "empty"}.
         </Text>
         <Button onPress={() => setOpen(true)}>Show tooltip explicitly</Button>
-        <Button ref={editorHelp} onPress={() => setHoverOpen(true)}>
+        <Button ref={editorHelp} onPress={() => setHelpOpen(true)}>
           Show editor help explicitly
         </Button>
         <Button onPress={() => setEcho((value) => !value)}>Toggle description echo</Button>
@@ -114,11 +107,11 @@ export const TooltipScene = () => {
               />
               <Text>{"Scroll this anchor owner to request closure. ".repeat(10)}</Text>
             </ScrollView>
-            <HoverPopover
+            <Tooltip
               {...shared}
-              testID="hover-scene-surface"
-              isOpen={hoverOpen}
-              onOpenChange={(next) => request(next, setHoverOpen)}
+              testID="tooltip-help-scene-surface"
+              isOpen={helpOpen}
+              onOpenChange={(next) => request(next, setHelpOpen)}
               triggerRef={editorHelp}
               descriptionLabel="Editor details"
               showOverlayArrow={!arrow}
@@ -127,7 +120,7 @@ export const TooltipScene = () => {
               <ScrollView testID="tooltip-internal-scroll" style={{ maxHeight: 120 }}>
                 <Text>{"This content scrolls independently from the anchor. ".repeat(12)}</Text>
               </ScrollView>
-            </HoverPopover>
+            </Tooltip>
           </>
         )}
       </View>

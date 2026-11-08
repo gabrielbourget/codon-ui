@@ -872,14 +872,10 @@ export type {
   TNativeDialogTriggerProps,
   TNativeDialogTriggerRenderState,
 } from "./overlays/floating/NativeDialogTrigger"
-export { HoverPopover } from "./components/HoverPopover/HoverPopover"
 export type {
   TNativeTooltipProps,
   TNativeTooltipProps as TooltipProps,
   TNativeTooltipRef,
-  TNativeHoverPopoverProps,
-  TNativeHoverPopoverProps as HoverPopoverProps,
-  TNativeHoverPopoverRef,
 } from "./components/Tooltip/types"
 export type {
   TNativeOverlayProviderProps,

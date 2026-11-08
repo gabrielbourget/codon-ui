@@ -271,11 +271,7 @@ export const NativeShowcase = () => {
                 selected={scene === "popover"}
                 onPress={() => setScene("popover")}
               />
-              <FixtureAction
-                label="Tooltip/Hover scene"
-                selected={scene === "tooltip"}
-                onPress={() => setScene("tooltip")}
-              />
+              <FixtureAction label="Tooltip scene" selected={scene === "tooltip"} onPress={() => setScene("tooltip")} />
               <FixtureAction
                 label="NumberInput scene"
                 selected={scene === "number"}
