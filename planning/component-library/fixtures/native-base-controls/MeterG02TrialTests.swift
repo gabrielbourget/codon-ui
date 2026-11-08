@@ -4942,3 +4942,226 @@ final class ClickPopoverTrialTests: XCTestCase {
         FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_SWITCH "+expected+"\n").utf8))
     }
 }
+
+final class InputG08TrialTests: XCTestCase {
+    private var app:XCUIApplication!
+    private var selectionStartEventCount = -1
+    private let actions=["default","empty","decline","disabled","readonly","selection","retired","fresh"]
+    private let styles=["baseline","error","warning","success","custom","final","long-narrow","dark","light-restored"]
+    override func setUpWithError() throws {
+        continueAfterFailure=false
+        let bundle=Bundle(for:InputG08TrialTests.self),executable=try XCTUnwrap(bundle.executableURL),expected=try XCTUnwrap(ProcessInfo.processInfo.environment["CODON_NATIVE_OBSERVER_EXECUTABLE_SHA256"]),actual=SHA256.hash(data:try Data(contentsOf:executable)).map{String(format:"%02x",$0)}.joined()
+        XCTAssertEqual(expected.count,64);XCTAssertEqual(actual,expected,"Actually loaded observer before app launch")
+        let identity:[String:Any]=["path":bundle.bundleURL.path,"executable":executable.path,"sha256":actual,"expectedSHA256":expected,"epochMs":Date().timeIntervalSince1970*1000]
+        FileHandle.standardOutput.write(Data("NATIVE_LOADED_OBSERVER_EARLY ".utf8)+(try JSONSerialization.data(withJSONObject:identity,options:.sortedKeys))+Data("\n".utf8))
+        app=XCUIApplication(bundleIdentifier:"dev.codonui.showcase");app.launch();XCTAssertEqual(app.state,.runningForeground);XCUIDevice.shared.orientation = .portrait
+        tap("Reset scene");tap("Basic controls scene");tap("Light theme");tap("Live window");tap("Prepare standalone Input checks");ready()
+    }
+    override func tearDownWithError() throws {
+        let shot=XCTAttachment(screenshot:XCUIScreen.main.screenshot());shot.name="input-final";shot.lifetime = .keepAlways;add(shot)
+        let tree=XCTAttachment(string:app.debugDescription);tree.name="input-final-hierarchy";tree.lifetime = .keepAlways;add(tree)
+    }
+    private func nativeJSON(_ id:String)throws->[String:Any] {
+        let snapshot=try app.snapshot();var labels:[String]=[]
+        func visit(_ item:XCUIElementSnapshot){if item.identifier==id{labels.append(item.label)};for child in item.children{visit(child)}};visit(snapshot)
+        guard labels.count==1,let row=try JSONSerialization.jsonObject(with:Data(labels[0].utf8)) as? [String:Any] else{throw NSError(domain:"InputNativeState",code:1,userInfo:[NSLocalizedDescriptionKey:"Missing, duplicate or malformed "+id])};return row
+    }
+    private func state() throws->[String:Any] {try nativeJSON("input-native-state")}
+    private func paintReady() {
+        wait("Current original Input rendered border endpoint") {
+            guard let row=try? self.state(),let paint=try? self.nativeJSON("input-native-painted-state") else{return false}
+            return (paint["generation"] as? NSNumber)==(row["generation"] as? NSNumber) && (paint["borderColor"] as? NSNumber)==(row["expectedBorderNativeColor"] as? NSNumber) && paint["isFocused"] as? Bool==false
+        }
+    }
+    private func number(_ row:[String:Any],_ key:String)throws->Double {let value=try XCTUnwrap(row[key] as? NSNumber,key).doubleValue;XCTAssertTrue(value.isFinite);return value}
+    private func rect(_ frame:CGRect)->[Double] {[frame.minX,frame.minY,frame.width,frame.height].map(Double.init)}
+    private func ready() {
+        wait("Original current Input ref and native layout") {
+            guard let row=try? self.state(),let root=row["rootTag"] as? NSNumber,let layouts=row["layouts"] as? [[String:Any]],let last=layouts.last,let target=last["currentTarget"] as? NSNumber,let layout=last["layout"] as? [String:Any] else{return false}
+            let narrow=row["narrow"] as? Bool==true,width=narrow ? 190.0:240.0,height=narrow ? 64.0:48.0
+            return root.doubleValue>0 && root==target && (layout["width"] as? NSNumber)?.doubleValue==width && (layout["height"] as? NSNumber)?.doubleValue==height
+        }
+    }
+    private func mark(_ name:String,_ row:[String:Any],_ shot:XCUIScreenshot)throws {
+        let data=try JSONSerialization.data(withJSONObject:row,options:.sortedKeys)
+        FileHandle.standardOutput.write(Data("INPUT_NATIVE_OBSERVATION ".utf8)+data+Data("\n".utf8))
+        let receipt=XCTAttachment(data:data,uniformTypeIdentifier:"public.json");receipt.name="input-"+name+"-receipt";receipt.lifetime = .keepAlways;add(receipt)
+        let png=XCTAttachment(screenshot:shot);png.name="input-"+name;png.lifetime = .keepAlways;add(png)
+    }
+    private func rawCapture(_ name:String)throws->([XCUIElementSnapshot],XCUIScreenshot) {
+        let snapshot=try app.snapshot();var all:[XCUIElementSnapshot]=[]
+        func visit(_ item:XCUIElementSnapshot){all.append(item);for child in item.children{visit(child)}};visit(snapshot)
+        let shot=XCUIScreen.main.screenshot(),rawShot=XCTAttachment(screenshot:shot);rawShot.name="input-"+name+"-raw";rawShot.lifetime = .keepAlways;add(rawShot)
+        let raw:[String:Any]=["name":name,"elements":all.filter{$0.identifier.hasPrefix("input-native-")}.map{["id":$0.identifier,"label":$0.label,"value":$0.value as? String ?? "","frame":rect($0.frame),"enabled":$0.isEnabled] as [String:Any]}]
+        let rawData=try JSONSerialization.data(withJSONObject:raw,options:.sortedKeys);FileHandle.standardOutput.write(Data("INPUT_NATIVE_RAW ".utf8)+rawData+Data("\n".utf8));let receipt=XCTAttachment(data:rawData,uniformTypeIdentifier:"public.json");receipt.name="input-"+name+"-raw-receipt";receipt.lifetime = .keepAlways;add(receipt)
+        return (all,shot)
+    }
+    private func capture(_ name:String,reference:Bool=false)throws {
+        if reference{tap("Show Input component");if (try state()["visible"] as? Bool)==true{paintReady()}}
+        reveal(node("input-native-pair"))
+        let (all,shot)=try rawCapture(name)
+        func one(_ id:String)->XCUIElementSnapshot?{let found=all.filter{$0.identifier==id};XCTAssertLessThanOrEqual(found.count,1,id);return found.first}
+        let row=try XCTUnwrap(JSONSerialization.jsonObject(with:Data(try XCTUnwrap(one("input-native-state")).label.utf8)) as? [String:Any]),window=try XCTUnwrap(all.first{$0.elementType == .window}).frame,parent=try XCTUnwrap(one("input-native-parent")).frame,root=one("input-native-editor"),image=try XCTUnwrap(shot.image.cgImage),scale=CGFloat(image.width)/window.width
+        let actual=try pixels(image,parent,window,scale);var ink=0
+        for i in stride(from:0,to:actual.count,by:4){if actual[i] != 255 || actual[i+1] != 255 || actual[i+2] != 255{ink+=1}}
+        var exact=false,referenceFrame=CGRect.zero
+        if reference {
+            tap("Show Input reference");wait("Same-origin independent Input reference"){(try? self.state()["referenceAtOrigin"] as? Bool)==true}
+            referenceFrame=node("input-native-reference-parent").frame
+            let controlShot=XCUIScreen.main.screenshot(),controlImage=try XCTUnwrap(controlShot.image.cgImage)
+            exact=circularPixelsMatch(actual,try pixels(controlImage,referenceFrame,window,scale))
+            let png=XCTAttachment(screenshot:controlShot);png.name="input-"+name+"-reference";png.lifetime = .keepAlways;add(png)
+        }
+        let keyboard=all.first{$0.elementType == .keyboard}
+        let painted=try one("input-native-painted-state").flatMap{try JSONSerialization.jsonObject(with:Data($0.label.utf8)) as? [String:Any]} ?? [:]
+        let observed:[String:Any]=["name":name,"state":row,"parent":rect(parent),"root":root.map{rect($0.frame)} ?? [],"window":rect(window),"keyboard":keyboard.map{rect($0.frame)} ?? [],"targetCount":all.filter{$0.identifier=="input-native-editor"}.count,"rootIsTextField":root?.elementType == .textField,"rootLabel":root?.label ?? "","rootValue":root?.value as? String ?? "","rootEnabled":root?.isEnabled ?? false,"selectionStartEventCount":selectionStartEventCount,"paintedState":painted,"referenceExact":exact,"referenceParent":rect(referenceFrame),"inkPixels":ink,"scale":scale,"imageWidth":image.width,"imageHeight":image.height]
+        try mark(name,observed,shot)
+        XCTAssertEqual(shot.image.imageOrientation,.up);XCTAssertEqual(scale,CGFloat(image.height)/window.height,accuracy:0.01)
+        if row["visible"] as? Bool==false{XCTAssertNil(root);XCTAssertTrue(row["rootTag"] is NSNull);XCTAssertEqual(ink,0);return}
+        let target=try XCTUnwrap(root);XCTAssertEqual(target.elementType,.textField);XCTAssertEqual(target.label,"Public Input editor");XCTAssertEqual(target.isEnabled,!(row["disabled"] as? Bool==true || row["readOnly"] as? Bool==true))
+        let layouts=try XCTUnwrap(row["layouts"] as? [[String:Any]]),last=try XCTUnwrap(layouts.last),layout=try XCTUnwrap(last["layout"] as? [String:Any]),tag=try number(row,"rootTag")
+        XCTAssertEqual(try number(last,"target"),tag);XCTAssertEqual(try number(last,"currentTarget"),tag)
+        let outer=CGRect(x:parent.minX+CGFloat(try number(layout,"x")),y:parent.minY+CGFloat(try number(layout,"y")),width:CGFloat(try number(layout,"width")),height:CGFloat(try number(layout,"height")))
+        let backing=outer.insetBy(dx:1,dy:1)
+        XCTAssertTrue(toggleButtonMatchedFrame(rect(target.frame),rect(backing),Double(scale)),"Original native backing editor equals outer Input layout inset by its authored one-point border")
+        XCTAssertTrue(window.contains(outer));if let keys=keyboard{XCTAssertFalse(keys.frame.intersects(outer),"Current full Input inside keyboard viewport")}
+        if reference{XCTAssertTrue(toggleButtonMatchedFrame(rect(parent),rect(referenceFrame),Double(scale)));XCTAssertTrue(exact,"Public Input paint differs from independent raw reference")}
+    }
+    private func text(_ expected:String) {
+        wait("Native field and current owner text "+expected){self.app.textFields["input-native-editor"].firstMatch.value as? String==expected && (try? self.state()["value"] as? String)==expected}
+    }
+    func testInputActionsAndEditorOwnership()throws {
+        let original=try number(state(),"rootTag")
+        try capture("default");XCTAssertEqual(app.textFields["input-native-editor"].firstMatch.value as? String,"Seed")
+        tap("Next Input check");wait("Explicit controlled empty"){(try? self.state()["case"] as? String)=="empty"};ready();try capture("empty")
+        let field=app.textFields["input-native-editor"].firstMatch;reveal(field);field.tap();field.typeText("ab");text("ab");try capture("first-input")
+        let accepted=try state(),acceptedChanges=try XCTUnwrap(accepted["changes"] as? [[String:Any]]),acceptedEvents=try XCTUnwrap(accepted["events"] as? [[String:Any]])
+        XCTAssertEqual(acceptedChanges.compactMap{$0["value"] as? String},["a","ab"]);XCTAssertEqual(acceptedEvents.filter{$0["phase"] as? String=="change"}.compactMap{($0["nativeEvent"] as? [String:Any])?["text"] as? String},["a","ab"])
+        field.typeText("\n");wait("Original submit final text"){((try? self.state()["events"] as? [[String:Any]]) ?? []).contains{$0["phase"] as? String=="submit" && ($0["nativeEvent"] as? [String:Any])?["text"] as? String=="ab"}};tap("Blur Input")
+        tap("Next Input check");text("owner")
+        for letter in ["x","y"]{
+            let before=try state(),count=(before["changes"] as? [Any])?.count ?? 0,current=app.textFields["input-native-editor"].firstMatch;reveal(current);current.tap();current.typeText(letter)
+            wait("Original declined request delivery "+letter){guard let row=try? self.state(),let changes=row["changes"] as? [[String:Any]],let events=row["events"] as? [[String:Any]] else{return false};return changes.count==count+1 && changes.last?["value"] as? String=="owner"+letter && events.filter{$0["phase"] as? String=="change"}.last.flatMap{$0["nativeEvent"] as? [String:Any]}?["text"] as? String=="owner"+letter}
+            text("owner");try capture("declined-"+letter)
+        }
+        tap("Blur Input")
+        for name in ["disabled","readonly"]{
+            tap("Next Input check");wait("Current guard "+name){(try? self.state()["case"] as? String)==name};let before=try state(),count=(before["changes"] as? [Any])?.count
+            let current=app.textFields["input-native-editor"].firstMatch;reveal(current);current.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.5)).tap();try capture(name)
+            XCTAssertEqual((try state()["changes"] as? [Any])?.count,count);XCTAssertEqual(try state()["value"] as? String,"owner")
+        }
+        tap("Next Input check");ready();text("Selectable")
+        let beforeFocus=try state(),focusStart=(beforeFocus["events"] as? [Any])?.count ?? 0
+        tap("Focus Input")
+        wait("Fresh original focus and public Input range request") {
+            guard let row=try? self.state(),row["selectionArmed"] as? Bool==true,let events=row["events"] as? [[String:Any]] else{return false}
+            return events.dropFirst(focusStart).contains{event in guard event["phase"] as? String=="focus",let native=event["nativeEvent"] as? [String:Any] else{return false};return (event["generation"] as? NSNumber)==(row["generation"] as? NSNumber) && (event["target"] as? NSNumber)?.doubleValue==original && (event["currentTarget"] as? NSNumber)?.doubleValue==original && native["text"] as? String=="Selectable"}
+        }
+        let beforeEdit=try state(),requestCount=(beforeEdit["changes"] as? [Any])?.count ?? 0
+        selectionStartEventCount=(try state()["events"] as? [Any])?.count ?? 0
+        app.textFields["input-native-editor"].firstMatch.typeText("Z")
+        wait("Fresh original Input selection edit delivery") {
+            guard let row=try? self.state(),let changes=row["changes"] as? [[String:Any]],changes.count==requestCount+1,let requested=changes.last?["value"] as? String,let events=row["events"] as? [[String:Any]] else{return false}
+            return events.dropFirst(self.selectionStartEventCount).contains{event in guard event["phase"] as? String=="change",let native=event["nativeEvent"] as? [String:Any] else{return false};return (event["target"] as? NSNumber)?.doubleValue==original && (event["currentTarget"] as? NSNumber)?.doubleValue==original && native["text"] as? String==requested}
+        }
+        _ = try rawCapture("selection-edit")
+        let afterEdit=try state()
+        XCTAssertEqual(app.textFields["input-native-editor"].firstMatch.value as? String,"SeZtable")
+        XCTAssertEqual(afterEdit["value"] as? String,"SeZtable")
+        XCTAssertEqual(((afterEdit["changes"] as? [[String:Any]])?.last)?["value"] as? String,"SeZtable")
+        wait("User edit native selection acknowledgement"){Array(((try? self.state()["events"] as? [[String:Any]]) ?? []).dropFirst(self.selectionStartEventCount)).contains{guard $0["phase"] as? String=="selection",let native=$0["nativeEvent"] as? [String:Any],let selection=native["selection"] as? [String:Any] else{return false};return (selection["start"] as? Int)==3 && (selection["end"] as? Int)==3}}
+        try capture("selection");tap("Blur Input");XCTAssertEqual(try number(state(),"rootTag"),original)
+        tap("Next Input check");wait("Retired native editor and original ref"){(try? self.state()["rootTag"]) is NSNull};try capture("retired")
+        tap("Next Input check");ready();text("fresh");XCTAssertNotEqual(try number(state(),"rootTag"),original);try capture("fresh")
+        let after=try state(),changes=try XCTUnwrap(after["changes"] as? [[String:Any]]),events=try XCTUnwrap(after["events"] as? [[String:Any]])
+        XCTAssertEqual(changes.compactMap{$0["value"] as? String},["a","ab","ownerx","ownery","SeZtable"])
+        let fresh=try number(after,"rootTag")
+        for event in events{let expected=(event["generation"] as? Int)==0 ? original:fresh;XCTAssertEqual(try number(event,"target"),expected);XCTAssertEqual(try number(event,"currentTarget"),expected)}
+        XCTAssertTrue(events.contains{$0["phase"] as? String=="focus"});XCTAssertTrue(events.contains{$0["phase"] as? String=="blur"});XCTAssertTrue(events.contains{$0["phase"] as? String=="submit"})
+    }
+    func testInputStylesAndConstraint()throws {
+        tap("Input styles checks");ready();let original=try number(state(),"rootTag")
+        for name in styles{
+            wait("Current Input style "+name){(try? self.state()["case"] as? String)==name};ready()
+            if name=="dark"{tap("Dark theme");wait("Dark provider"){(try? self.state()["themeMode"] as? String)=="dark"}}
+            if name=="light-restored"{tap("Light theme");wait("Light provider restored"){(try? self.state()["themeMode"] as? String)=="light"}}
+            XCTAssertEqual(try number(state(),"rootTag"),original);try capture(name,reference:true)
+            if name=="long-narrow"{tap("Show Input component");let field=app.textFields["input-native-editor"].firstMatch;reveal(field);field.tap();try capture("long-narrow-keyboard");tap("Blur Input")}
+            if name != styles.last{tap("Next Input check")}
+        }
+    }
+    func testInputBorderLifetimeAndReduction()throws {
+        tap("Input lifetime checks");ready()
+        let settings=XCUIApplication(bundleIdentifier:"com.apple.Preferences");settings.launch();let original=try XCTUnwrap(motionSwitch(settings).value as? String);XCTAssertTrue(["0","1"].contains(original));FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_ORIGINAL "+original+"\n").utf8))
+        addTeardownBlock{[self] in let toggle=self.motionSwitch(settings);self.setMotion(toggle,original);XCTAssertEqual(toggle.value as? String,original);self.app.activate();FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_RESTORED "+original+"\n").utf8))}
+        for (name,flag) in [("normal","0"),("reduced","1")]{
+            setMotion(motionSwitch(settings),flag);app.activate();wait("Actual Input live reduction event"){((try? self.state()["motionEvents"] as? [Bool]) ?? []).last==(flag=="1")};ready();let originalTag=try number(state(),"rootTag")
+            tap("First Input border");try capture(name+"-first",reference:true)
+            tap("Second Input border");try capture(name+"-second",reference:true)
+            tap("Interrupt Input border");wait("Current interrupted Input endpoint"){(try? self.state()["expectedBorder"] as? String)=="#117733"};try capture(name+"-interrupted",reference:true)
+            tap("Retire Input");wait("Retired original Input"){(try? self.state()["rootTag"]) is NSNull};try capture(name+"-retired",reference:true)
+            tap("Fresh Input");ready();XCTAssertNotEqual(try number(state(),"rootTag"),originalTag);try capture(name+"-fresh",reference:true)
+        }
+    }
+    private func node(_ id:String)->XCUIElement {app.descendants(matching:.any).matching(NSPredicate(format:"identifier == %@",id)).firstMatch}
+
+    private func wait(_ message:String,_ predicate:@escaping()->Bool) {
+        let expectation=XCTNSPredicateExpectation(predicate:NSPredicate{_,_ in predicate()},object:nil)
+        XCTAssertEqual(XCTWaiter.wait(for:[expectation],timeout:nativeWorkRemaining()),.completed,message)
+    }
+
+    private func reveal(_ element:XCUIElement) {
+        XCTAssertTrue(element.waitForExistence(timeout:nativeWorkRemaining()));let window=app.windows.firstMatch.frame.insetBy(dx:2,dy:2)
+        if !element.frame.isEmpty && window.contains(element.frame) && element.isHittable{return}
+        let wrapper=node("showcase-scroll");XCTAssertTrue(wrapper.exists)
+        let scroll=wrapper.descendants(matching:.scrollView).firstMatch;XCTAssertTrue(scroll.exists)
+        XCTAssertTrue(toggleButtonMatchedFrame(rect(wrapper.frame),rect(scroll.frame),Double(UIScreen.main.scale)),"Existing showcase wrapper and its owned native scroll viewport in physical pixels")
+        while nativeWorkRemaining()>0 {
+            let viewport=app.windows.firstMatch.frame.intersection(scroll.frame).insetBy(dx:2,dy:2)
+            if !element.frame.isEmpty && viewport.contains(element.frame){return}
+            let frame=element.frame
+            if frame.isEmpty || viewport.isEmpty{continue}
+            guard let distance=galleryScrollFraction(Double(frame.minY),Double(frame.height),Double(viewport.minY),Double(viewport.height)),distance != 0 else{continue}
+            let start:CGFloat=distance>0 ? 0.75:0.30
+            let trace:[String:Any]=["target":element.identifier,"frame":rect(element.frame),"viewport":rect(viewport),"requestedFraction":distance,"hostIdentifier":wrapper.identifier,"hostFrame":rect(wrapper.frame),"ownedScrollFrame":rect(scroll.frame)]
+            if let data=try? JSONSerialization.data(withJSONObject:trace,options:.sortedKeys){FileHandle.standardOutput.write(Data("INPUT_SCROLL ".utf8)+data+Data("\n".utf8))}
+            scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:start)).press(forDuration:0.05,thenDragTo:scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:start-CGFloat(distance))),withVelocity:.slow,thenHoldForDuration:0.25)
+        };XCTFail("Unreachable Input control/canvas "+element.identifier)
+    }
+
+    private func tap(_ name:String) {
+        let control=app.buttons.matching(NSPredicate(format:"label == %@",name)).firstMatch;reveal(control);XCTAssertTrue(control.isHittable);control.tap()
+        if name=="Select scene"{wait("Actual selected Input scene"){control.isSelected}}
+    }
+
+    private func pixels(_ image:CGImage,_ frame:CGRect,_ window:CGRect,_ scale:CGFloat) throws -> [UInt8] {
+        XCTAssertTrue(window.contains(frame));let rect=CGRect(x:((frame.minX-window.minX)*scale).rounded(),y:((frame.minY-window.minY)*scale).rounded(),width:(frame.width*scale).rounded(),height:(frame.height*scale).rounded())
+        let crop=try XCTUnwrap(image.cropping(to:rect));var bytes=[UInt8](repeating:0,count:crop.width*crop.height*4)
+        let result=bytes.withUnsafeMutableBytes { buffer -> Bool in
+            guard let context=CGContext(data:buffer.baseAddress,width:crop.width,height:crop.height,bitsPerComponent:8,bytesPerRow:crop.width*4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue|CGBitmapInfo.byteOrder32Big.rawValue) else{return false}
+            context.draw(crop,in:CGRect(x:0,y:0,width:CGFloat(crop.width),height:CGFloat(crop.height)));return true
+        };XCTAssertTrue(result);return bytes
+    }
+    private func motionSwitch(_ settings: XCUIApplication) -> XCUIElement {
+        settings.activate()
+        wait("Native Settings foreground and showcase background") { settings.state == .runningForeground && (self.app.state == .runningBackground || self.app.state == .runningBackgroundSuspended) }
+        let toggle = settings.switches["Reduce Motion"].firstMatch
+        if toggle.exists { return toggle }
+        for label in ["Accessibility","Motion"] {
+            let entry = settings.staticTexts[label].firstMatch
+            for _ in 0..<12 { if entry.exists && entry.isHittable { break };settings.swipeUp() }
+            XCTAssertTrue(entry.exists && entry.isHittable,"Standard Settings navigation "+label);entry.tap()
+        }
+        XCTAssertTrue(toggle.waitForExistence(timeout:nativeWorkRemaining()));return toggle
+    }
+
+    private func setMotion(_ toggle: XCUIElement, _ expected: String) {
+        if toggle.value as? String != expected {
+            XCTAssertTrue(toggle.isHittable)
+            toggle.coordinate(withNormalizedOffset:CGVector(dx:0.95,dy:0.5)).tap()
+        }
+        wait("Actual Reduce Motion switch "+expected) { toggle.value as? String == expected }
+        let shot = XCTAttachment(screenshot:XCUIScreen.main.screenshot());shot.name="meter-motion-switch-"+expected;shot.lifetime = .keepAlways;add(shot)
+        FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_SWITCH "+expected+"\n").utf8))
+    }
+}

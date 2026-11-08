@@ -76,6 +76,10 @@ def verify_selected_app_inputs(plan, app):
 
 
 def selection(platform, batch="meter-g02"):
+    if batch in ["input-actions", "input-styles", "input-lifetime", "input-remaining"]:
+        require(platform == "ios", "Current Input batches are iOS only")
+        names={"input-actions":["testInputActionsAndEditorOwnership"],"input-styles":["testInputStylesAndConstraint"],"input-lifetime":["testInputBorderLifetimeAndReduction"],"input-remaining":["testInputActionsAndEditorOwnership","testInputStylesAndConstraint"]}[batch]
+        return {"ios":["InputG08TrialTests/"+method for method in names],"android":[]}
     if batch in ["click-popover-actions","click-popover-styles","click-popover-lifetime"]:
         require(platform=="ios","Current ClickPopover batch is iOS only")
         method={"click-popover-actions":"testPopoverActionsAndOwnership","click-popover-styles":"testPopoverStylesAndConstraint","click-popover-lifetime":"testPopoverLifetimeAndReduction"}[batch]
@@ -280,8 +284,39 @@ class Session:
 
 
 
-def geometry_control_source():
+def geometry_control_source(batch=None):
     source = (ROOT / "MeterG02TrialTests.swift").read_text()
+    if batch in ["input-actions", "input-styles", "input-lifetime", "input-remaining"]:
+        selected=[]
+        for name in ["circularPixelsMatch", "toggleButtonMatchedFrame", "galleryScrollFraction"]:
+            start=source.index("private func "+name+"(");opening=source.index("{",start);end=source.index("\n}",opening)+2
+            selected.append(source[start:end].replace("private ","",1))
+        return "import Foundation\n"+"\n".join(selected)+"\n"+r'''
+let inputOuter:[Double]=[26+12,539.99995803833008+12,240,48]
+let inputBacking=[inputOuter[0]+1,inputOuter[1]+1,inputOuter[2]-2,inputOuter[3]-2]
+precondition(toggleButtonMatchedFrame([39,552.99995803833008,238,46],inputBacking,3))
+precondition(toggleButtonMatchedFrame([0,47,390,763],[0,47,390,762.9999999999999],3))
+precondition(!toggleButtonMatchedFrame([0,47,390,763],[1.0/3,47,390,762.9999999999999],3))
+precondition(!toggleButtonMatchedFrame([0,47,390,763],[0,47,390,763+1.0/3],3))
+precondition(!toggleButtonMatchedFrame([39,552.99995803833008,238,46],inputBacking,0))
+precondition(!toggleButtonMatchedFrame([39,Double.nan,238,46],inputBacking,3))
+precondition(circularPixelsMatch([17,119,51,255],[17,119,51,255]))
+precondition(!circularPixelsMatch([],[]))
+precondition(!circularPixelsMatch([17],[17]))
+precondition(!circularPixelsMatch([17,119,51,255],[17,119,52,255]))
+precondition(!circularPixelsMatch([17,119,51,255],[17,119,51,254]))
+precondition(!circularPixelsMatch([17,119,51,255],[17,119,51,255,17,119,51,255]))
+precondition(galleryScrollFraction(8,114,49,759)! < 0)
+precondition(galleryScrollFraction(800,114,49,759)! > 0)
+precondition(galleryScrollFraction(2000,114,49,759) == 0.35)
+precondition(galleryScrollFraction(-2000,114,49,759) == -0.35)
+precondition(galleryScrollFraction(0,800,49,759) == nil)
+precondition(galleryScrollFraction(Double.nan,114,49,759) == nil)
+precondition(galleryScrollFraction(0,0,49,759) == nil)
+precondition(galleryScrollFraction(0,114,49,0) == nil)
+print(#"{"status":"PASS","inputFrameCases":6,"inputPixelCases":6,"inputScrollCases":8}"#)
+'''
+
     start = source.index("private func layoutMatches(");opening = source.index("{", start);depth = 1;end = opening + 1
     while depth:
         depth += (source[end] == "{") - (source[end] == "}");end += 1
@@ -669,11 +704,14 @@ def build_ios_application(session, config):
 
 def build_ios(session, config=None):
     if config and config.get("buildTarget") == "application": return build_ios_application(session, config)
-    controls = session.output / "MeterGeometryControls.swift";controls.write_text(geometry_control_source())
+    controls = session.output / "MeterGeometryControls.swift";controls.write_text(geometry_control_source(config.get("batch") if config else None))
     sdk = session.run("geometry-sdk", ["/usr/bin/xcrun", "--sdk", "macosx", "--show-sdk-path"]).strip()
     swift = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift"
     control_result = json.loads(session.run("geometry-controls", [swift, "-sdk", sdk, "-module-cache-path", str(CACHE / "swift-host-module-cache"), str(controls)]))
-    require(control_result.get("switcherCases") == 29 and control_result.get("linkGlyphCases") == 5 and control_result.get("linkReferenceCases") == 8 and control_result.get("buttonReferenceCases") == 8 and control_result.get("buttonShadowCases") == 6 and control_result.get("radioGroupCases") == 14 and control_result.get("checkboxGroupTagCases") == 8 and control_result.get("checkboxGroupCases") == 14 and control_result.get("checkboxCases") == 47 and control_result.get("switchRetirementCases") == 14 and control_result.get("switchEndpointCases") == 10 and control_result.get("switchThumbCases") == 11 and control_result.get("switchValueCases") == 10 and control_result.get("switchRasterCases") == 9 and control_result.get("toggleButtonCases") == 12 and control_result.get("listItemCases") == 20 and control_result.get("galleryScrollCases") == 8 and control_result.get("galleryTrackCases") == 8 and control_result.get("thumbnailFrameCases") == 6 and control_result.get("circularCases") == 6 and control_result.get("status") == "PASS" and control_result.get("cases") == 11 and control_result.get("pixelCases") == 6 and control_result.get("shadowCases") == 6, "Actual Swift geometry/pixel/shadow controls failed")
+    if config and config.get("batch") in ["input-actions", "input-styles", "input-lifetime", "input-remaining"]:
+        require(control_result == {"status":"PASS","inputFrameCases":6,"inputPixelCases":6,"inputScrollCases":8}, "Actual current Input frame/pixel/scroll controls failed")
+    else:
+        require(control_result.get("switcherCases") == 29 and control_result.get("linkGlyphCases") == 5 and control_result.get("linkReferenceCases") == 8 and control_result.get("buttonReferenceCases") == 8 and control_result.get("buttonShadowCases") == 6 and control_result.get("radioGroupCases") == 14 and control_result.get("checkboxGroupTagCases") == 8 and control_result.get("checkboxGroupCases") == 14 and control_result.get("checkboxCases") == 47 and control_result.get("switchRetirementCases") == 14 and control_result.get("switchEndpointCases") == 10 and control_result.get("switchThumbCases") == 11 and control_result.get("switchValueCases") == 10 and control_result.get("switchRasterCases") == 9 and control_result.get("toggleButtonCases") == 12 and control_result.get("listItemCases") == 20 and control_result.get("galleryScrollCases") == 8 and control_result.get("galleryTrackCases") == 8 and control_result.get("thumbnailFrameCases") == 6 and control_result.get("circularCases") == 6 and control_result.get("status") == "PASS" and control_result.get("cases") == 11 and control_result.get("pixelCases") == 6 and control_result.get("shadowCases") == 6, "Actual Swift geometry/pixel/shadow controls failed")
     derived = CACHE / "ios"
     # A source revision gets an unambiguous observer registration; old installed revisions remain intact.
     bundle_id = "dev.codonui.lab.components.r" + digest(ROOT / "MeterG02TrialTests.swift")[:12]
@@ -924,10 +962,10 @@ def run_ios(session, config, app, observer):
     sdk_error = None
     try:
         if config.get("batch") == "slider-hit-layout": raw = session.run("xctest", argv, while_running=slider_hold_capture(session, device))
-        else: raw = session.run("xctest", argv, while_running=early_tooltip_observer(session,observer) if config.get("batch", "").startswith(("tooltip","switcher","form-field-","click-popover-")) else None)
+        else: raw = session.run("xctest", argv, while_running=early_tooltip_observer(session,observer) if config.get("batch", "").startswith(("tooltip","switcher","form-field-","click-popover-","input-")) else None)
     except ValueError as error:
         sdk_error = error;stdout = session.output / "xctest.stdout";raw = stdout.read_text() if stdout.exists() else ""
-    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected", "circle-loader", "lagging-lines", "counter", "list-box-item", "list-box-item-motion", "toggle-button", "toggle-button-affected", "toggle-button-style", "radio", "radio-motion", "switch", "switch-motion", "checkbox", "checkbox-static", "checkbox-motion", "button", "button-motion", "link", "tooltip-motion", "tooltip", "switcher-motion", "form-field-motion", "click-popover-lifetime"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
+    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected", "circle-loader", "lagging-lines", "counter", "list-box-item", "list-box-item-motion", "toggle-button", "toggle-button-affected", "toggle-button-style", "radio", "radio-motion", "switch", "switch-motion", "checkbox", "checkbox-static", "checkbox-motion", "button", "button-motion", "link", "tooltip-motion", "tooltip", "switcher-motion", "form-field-motion", "click-popover-lifetime", "input-lifetime"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
         original_motion = re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])", raw)
         restored_motion = re.findall(r"METER_STYLE_MOTION_RESTORED ([01])", raw)
         if original_motion != restored_motion: session.cleanup_errors.append("Original iOS Reduce Motion restoration unverified")
@@ -940,7 +978,7 @@ def run_ios(session, config, app, observer):
         if sdk_error is not None: raise sdk_error from error
         raise
     write(session.output / "loaded-observer.json", loaded)
-    if config.get("batch", "").startswith(("tooltip","switcher","form-field-","click-popover-")) and sdk_error is None:
+    if config.get("batch", "").startswith(("tooltip","switcher","form-field-","click-popover-","input-")) and sdk_error is None:
         early_tooltip_observer(session,observer)();require((session.output/"early-loaded-observer.json").is_file(),"Tooltip early loaded-executable receipt missing")
     if sdk_error is not None: raise sdk_error
     summary = json.loads(session.run("xctest-summary", [XCODE + "/xcresulttool", "get", "test-results", "summary", "--path", session.output / "Tests.xcresult"]))
@@ -998,6 +1036,7 @@ def run_ios(session, config, app, observer):
     for label, bundle, expected in products:
         registered = session.run("installed-" + label, [XCODE + "/simctl", "get_app_container", device, bundle, "app"]).strip()
         verify_product(expected, registered)
+    if config.get("batch") in ["input-actions", "input-styles", "input-lifetime", "input-remaining"]: result["input"]=reconcile_input_ios(raw,config)
     return result
 
 
@@ -1874,6 +1913,104 @@ def reconcile_switcher_ios(raw,config=None):
             require(any(x["surfaceFrames"] for x in moving),"Switcher actual native selected-surface geometry missing")
     original_motion=re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])",raw);restored=re.findall(r"METER_STYLE_MOTION_RESTORED ([01])",raw);require(len(original_motion)==1 and original_motion==restored,"Switcher exact Reduce Motion restoration missing")
     return dict(result,nativeActivations=7,motionFrames=sum(len(x["samples"]) for x in intervals))
+
+
+INPUT_ACTION_NAMES=["default","empty","first-input","declined-x","declined-y","disabled","readonly","selection","retired","fresh"]
+INPUT_STYLE_NAMES=["baseline","error","warning","success","custom","final","long-narrow","long-narrow-keyboard","dark","light-restored"]
+INPUT_LIFETIME_NAMES=[mode+"-"+phase for mode in ["normal","reduced"] for phase in ["first","second","interrupted","retired","fresh"]]
+
+
+def validate_input_rows(rows,names):
+    require(sorted(row["name"] for row in rows)==sorted(names),"Missing/duplicate Input observations")
+    for row in rows:
+        state,scale=row["state"],row["scale"]
+        require(type(scale) in [int,float] and math.isfinite(scale) and scale>0,"Invalid Input density")
+        parent,window=row["parent"],row["window"]
+        def physical(frame):
+            require(len(frame)==4 and all(type(value) in [int,float] and math.isfinite(value) for value in frame),"Invalid Input frame")
+            return [math.floor(value*scale+.5) for value in frame]
+        x,y,width,height=physical(parent);wx,wy,ww,wh=physical(window)
+        require(width==math.floor(272*scale+.5) and height==math.floor(88*scale+.5) and wx<=x<x+width<=wx+ww and wy<=y<y+height<=wy+wh,"Input physical parent outside window")
+        require(row["imageWidth"]==ww and row["imageHeight"]==wh,"Input raster/window scale differs")
+        if not state["visible"]:
+            require(row["targetCount"]==0 and row["root"]==[] and state["rootTag"] is None and row["inkPixels"]==0,"Retired Input editor/ref/paint remains")
+        else:
+            require(row["targetCount"]==1 and row["rootIsTextField"] is True and row["rootLabel"]=="Public Input editor","Wrong/duplicate native Input target")
+            root=physical(row["root"]);rx,ry,rw,rh=root
+            expected=[190,64] if state["narrow"] else [240,48]
+            event=state["layouts"][-1];layout=event["layout"]
+            require(state["rootTag"]>0 and event["target"]==event["currentTarget"]==state["rootTag"],"Input native layout/ref identity differs")
+            require([math.floor(layout[key]*scale+.5) for key in ["width","height"]]==[math.floor(value*scale+.5) for value in expected],"Input outer native layout dimensions differ")
+            outer=[parent[0]+layout["x"],parent[1]+layout["y"],layout["width"],layout["height"]]
+            backing=[outer[0]+1,outer[1]+1,outer[2]-2,outer[3]-2]
+            require(root==physical(backing),"Input backing native frame differs from outer layout inset by authored border")
+            ox,oy,ow,oh=physical(outer)
+            require(x<=ox<ox+ow<=x+width and y<=oy<oy+oh<=y+height,"Full Input outside measured parent")
+            require(row["rootEnabled"] is not (state["disabled"] or state["readOnly"]),"Input native editability/guard differs")
+            expected_value="Seed" if state["mode"]=="actions" and state["case"]=="default" else state["value"]
+            require(row["rootValue"]==expected_value or expected_value=="" and row["rootValue"]=="Empty editor","Input native/owner text differs")
+            if row["keyboard"]:
+                kx,ky,kw,kh=physical(row["keyboard"])
+                require(not (ox<kx+kw and ox+ow>kx and oy<ky+kh and oy+oh>ky),"Full Input intersects native keyboard")
+        if state["mode"]!="actions" and row["name"]!="long-narrow-keyboard":
+            require(row["referenceExact"] is True and physical(row["referenceParent"])==physical(parent),"Input exact same-origin native paint reference differs")
+            if state["visible"]:
+                paint=row["paintedState"]
+                require(paint["generation"]==state["generation"] and paint["borderColor"]==state["expectedBorderNativeColor"] and paint["isFocused"] is False,"Input painted native endpoint readiness differs from logical target")
+    return {"status":"PASS","observations":len(rows)}
+
+
+def reconcile_input_ios(raw,config):
+    batch=config["batch"]
+    records=[(value,json.loads(value)) for value in re.findall(r"INPUT_NATIVE_OBSERVATION (\{[^\n]+\})",raw)]
+    if batch=="input-remaining":
+        require({row["state"]["mode"] for _,row in records}=={"actions","styles"},"Input remaining batch has missing or foreign method ownership")
+        results={}
+        for name,mode in [("input-actions","actions"),("input-styles","styles")]:
+            selected="\n".join("INPUT_NATIVE_OBSERVATION "+value for value,row in records if row["state"]["mode"]==mode)
+            results[name]=reconcile_input_ios(selected,{"batch":name})
+        return {"status":"PASS","methods":results}
+    names={"input-actions":INPUT_ACTION_NAMES,"input-styles":INPUT_STYLE_NAMES,"input-lifetime":INPUT_LIFETIME_NAMES}[batch]
+    mode={"input-actions":"actions","input-styles":"styles","input-lifetime":"lifetime"}[batch]
+    require(all(row["state"]["mode"]==mode for _,row in records),"Input single method has foreign observation ownership")
+    rows=[row for _,row in records]
+    result=validate_input_rows(rows,names);named={row["name"]:row for row in rows}
+    if batch=="input-actions":
+        original=named["default"]["state"]["rootTag"]
+        for name in [value for value in INPUT_ACTION_NAMES if value not in ["retired","fresh"]]:require(named[name]["state"]["rootTag"]==original,"Original Input editor replaced during state changes")
+        require(named["empty"]["state"]["value"]=="" and named["first-input"]["rootValue"]=="ab" and named["first-input"]["keyboard"],"Fresh focused unpaced Input evidence missing")
+        first=named["first-input"]["state"]
+        require([row["value"] for row in first["changes"]]==["a","ab"],"First Input exact request payload/count differs")
+        require([row["nativeEvent"]["text"] for row in first["events"] if row["phase"]=="change"]==["a","ab"],"First native Input change payload/count differs")
+        final=named["fresh"]["state"];fresh=final["rootTag"]
+        require(fresh!=original and final["generation"]==1,"Retired Input root reused")
+        require([row["value"] for row in final["changes"]]==["a","ab","ownerx","ownery","SeZtable"],"Input accepted/declined/guard exact callback payload/count differs")
+        require([row["nativeEvent"]["text"] for row in final["events"] if row["phase"]=="change"]==["a","ab","ownerx","ownery","SeZtable"],"Original native Input change event differs")
+        events=final["events"]
+        require({"focus","blur","selection","submit"}<={row["phase"] for row in events},"Input original focus/selection/submit missing")
+        require(all(row["target"]==row["currentTarget"]==(original if row["generation"]==0 else fresh) for row in events),"Input original event/ref generation differs")
+        require(any(row["phase"]=="submit" and row["nativeEvent"].get("text")=="ab" for row in events),"Input submit final text differs")
+        require(named["selection"]["rootValue"]=="SeZtable","Input controlled selection was not applied to stock native editing")
+        selected=named["selection"];before=selected["selectionStartEventCount"]
+        require(type(before) is int and 0<=before<len(selected["state"]["events"]) and any(row["phase"]=="selection" and row["nativeEvent"].get("selection")=={"start":3,"end":3} for row in selected["state"]["events"][before:]),"Fresh user-edit Input native selection acknowledgement differs")
+        require(all(named[name]["state"]["value"]=="owner" for name in ["declined-x","declined-y","disabled","readonly"]),"Input owner veto/guard changed text")
+    elif batch=="input-styles":
+        require(all(row["state"]["rootTag"]==named["baseline"]["state"]["rootTag"] for row in rows),"Mounted Input editor replaced by style/provider changes")
+        require(named["dark"]["state"]["themeMode"]=="dark" and named["light-restored"]["state"]["themeMode"]=="light","Input provider restoration differs")
+        require(named["long-narrow-keyboard"]["keyboard"] and named["long-narrow-keyboard"]["state"]["fontSize"]==24 and "français" in named["long-narrow-keyboard"]["rootValue"],"Input enlarged bilingual keyboard constraint missing")
+    else:
+        for mode,reduced in [("normal",False),("reduced",True)]:
+            first=named[mode+"-first"]["state"];fresh=named[mode+"-fresh"]["state"]
+            require(fresh["rootTag"]!=first["rootTag"] and fresh["generation"]==first["generation"]+1,"Input lifetime retirement/ref renewal differs")
+            for phase in ["first","second","interrupted","retired","fresh"]:
+                row=named[mode+"-"+phase]["state"]
+                require(row["motionEvents"][-1] is reduced and row["expectedBorder"]==("#bb3322" if phase=="first" else "#117733"),"Input current border/reduction state differs")
+            retired=named[mode+"-retired"]["state"]
+            require(fresh["changes"]==first["changes"],"Inactive Input lifetime emitted text changes")
+            require(fresh["events"][:len(retired["events"])]==retired["events"] and all(row["generation"]==fresh["generation"] for row in fresh["events"][len(retired["events"]):]),"Retired Input emitted a stale native callback")
+        original=re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])",raw);restored=re.findall(r"METER_STYLE_MOTION_RESTORED ([01])",raw)
+        require(len(original)==1 and original==restored,"Input exact Reduce Motion restoration missing")
+    return result
 
 
 FIELD_BEHAVIOR=["baseline","messages","target-cleared","target-restored","relationships","changed-targets","removed-targets","empty-messages","retired","fresh"]
@@ -2808,7 +2945,8 @@ def validate_standard_scope(plan):
     radio_group = cell == "CAT.radio-group.G08" and batch=="radio-group"
     checkbox_group = cell == "CAT.checkbox-group.G08" and batch in ["checkbox-group","checkbox-group-actions"]
     switch = cell == "CAT.switch.G08" and batch in ["switch", "switch-motion"]
-    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item or toggle_button or radio or placeholder or slider or switch or checkbox or checkbox_group or radio_group or button or link or tooltip or switcher or field or popover, "Only the authorized component and focused batch are selected")
+    input_cell = cell == "CAT.input.G08" and batch in ["input-actions", "input-styles", "input-lifetime", "input-remaining"]
+    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item or toggle_button or radio or placeholder or slider or switch or checkbox or checkbox_group or radio_group or button or link or tooltip or switcher or field or popover or input_cell, "Only the authorized component and focused batch are selected")
 
 
 def main():

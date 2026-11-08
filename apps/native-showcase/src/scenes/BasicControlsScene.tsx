@@ -17,6 +17,7 @@ import {
 import { ButtonG08Fixture } from "./ButtonG08Fixture"
 import { CheckboxG08Fixture } from "./CheckboxG08Fixture"
 import { CheckboxGroupG08Fixture } from "./CheckboxGroupG08Fixture"
+import { InputG08Fixture } from "./InputG08Fixture"
 import { RadioGroupG08Fixture } from "./RadioGroupG08Fixture"
 import { SwitchG08Fixture } from "./SwitchG08Fixture"
 
@@ -26,6 +27,7 @@ export const BasicControlsScene = () => {
   const [checkboxChecks, setCheckboxChecks] = useState(false)
   const [checkboxGroupChecks, setCheckboxGroupChecks] = useState(false)
   const [radioGroupChecks, setRadioGroupChecks] = useState(false)
+  const [inputChecks, setInputChecks] = useState(false)
   const theme = useNativeTheme()
   const [selectedSwitch, setSelectedSwitch] = useState(false)
   const [uncontrolledSwitch, setUncontrolledSwitch] = useState(false)
@@ -56,6 +58,7 @@ export const BasicControlsScene = () => {
   if (checkboxChecks) return <CheckboxG08Fixture />
   if (checkboxGroupChecks) return <CheckboxGroupG08Fixture />
   if (radioGroupChecks) return <RadioGroupG08Fixture />
+  if (inputChecks) return <InputG08Fixture />
 
   return (
     <View style={styles.scene}>
@@ -67,6 +70,7 @@ export const BasicControlsScene = () => {
       {action("Prepare standalone Checkbox checks", () => setCheckboxChecks(true))}
       {action("Prepare CheckboxGroup checks", () => setCheckboxGroupChecks(true))}
       {action("Prepare RadioGroup checks", () => setRadioGroupChecks(true))}
+      {action("Prepare standalone Input checks", () => setInputChecks(true))}
       <Text testID="basic-control-state">
         Switch: {selectedSwitch ? "on" : "off"}. Checkbox: {selectedCheckbox ? "on" : "off"}. Group:{" "}
         {group.join(",") || "none"}. Input: {input || "empty"}. Submits: {submits}. State:{" "}

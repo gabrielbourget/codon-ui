@@ -2031,4 +2031,215 @@ class SwitcherControls(unittest.TestCase):
             self.assertEqual(identity.call_count,1 if expected else 0)
 
 
+class InputG08Controls(unittest.TestCase):
+    def test_input_selection_records_fresh_delivery_before_strict_value_and_cursor_assertions(self):
+        observer=(ROOT/"MeterG02TrialTests.swift").read_text().split("final class InputG08TrialTests: XCTestCase {",1)[1]
+        action=observer.split("func testInputActionsAndEditorOwnership()throws {",1)[1].split("func testInputStylesAndConstraint()throws {",1)[0]
+        def check(source):
+            stages=['let beforeFocus=try state()', 'tap("Focus Input")', 'wait("Fresh original focus and public Input range request")', 'let beforeEdit=try state()', '.typeText("Z")', 'wait("Fresh original Input selection edit delivery")', '_ = try rawCapture("selection-edit")', 'XCTAssertEqual(app.textFields["input-native-editor"].firstMatch.value as? String,"SeZtable")', 'wait("User edit native selection acknowledgement")', 'try capture("selection")']
+            offsets=[source.index(value) for value in stages];self.assertEqual(offsets,sorted(offsets))
+            self.assertNotIn('text("SeZtable")',source)
+            for value in ['row["selectionArmed"] as? Bool==true','events.dropFirst(focusStart)','events.dropFirst(self.selectionStartEventCount)','changes.count==requestCount+1','native["text"] as? String==requested','(event["target"] as? NSNumber)?.doubleValue==original','(event["currentTarget"] as? NSNumber)?.doubleValue==original','(selection["start"] as? Int)==3 && (selection["end"] as? Int)==3']:self.assertIn(value,source)
+        check(action)
+        for bad in [action.replace('_ = try rawCapture("selection-edit")',''),action.replace('changes.count==requestCount+1','changes.count==requestCount'),action.replace('events.dropFirst(focusStart)','events'),action.replace('(selection["end"] as? Int)==3','(selection["end"] as? Int)==4'),action.replace('native["text"] as? String==requested','native["text"] as? String=="SeZtable"')]:
+            with self.assertRaises((AssertionError,ValueError)):check(bad)
+        raw=observer.split('private func rawCapture(',1)[1].split('private func capture(',1)[0]
+        self.assertLess(raw.index('rawShot.lifetime = .keepAlways;add(rawShot)'),raw.index('return (all,shot)'))
+        self.assertIn('INPUT_NATIVE_RAW ',raw)
+        capture=observer.split('private func capture(',1)[1].split('private func text(',1)[0]
+        self.assertLess(capture.index('try rawCapture(name)'),capture.index('try pixels('))
+
+    def test_input_geometry_program_selects_only_current_used_helpers_and_twenty_cases(self):
+        source=(ROOT/"MeterG02TrialTests.swift").read_text()
+        for batch in ["input-actions","input-styles","input-lifetime","input-remaining"]:
+            program=NATIVE.geometry_control_source(batch)
+            self.assertNotIn("menu",program.casefold())
+            self.assertEqual(set(re.findall(r"func (\w+)\(",program)),{"circularPixelsMatch","toggleButtonMatchedFrame","galleryScrollFraction"})
+            self.assertEqual(program.count("precondition("),20)
+            self.assertIn('"inputFrameCases":6,"inputPixelCases":6,"inputScrollCases":8',program)
+            for name in ["circularPixelsMatch","toggleButtonMatchedFrame","galleryScrollFraction"]:
+                start=source.index("private func "+name+"(");end=source.index("\n}",source.index("{",start))+2
+                self.assertIn(source[start:end].replace("private ","",1),program)
+
+    def test_input_scroll_scope_replays_saved_native_wrapper_and_excludes_keyboard_siblings(self):
+        observer=(ROOT/"MeterG02TrialTests.swift").read_text().split("final class InputG08TrialTests: XCTestCase {",1)[1]
+        self.assertIn('let wrapper=node("showcase-scroll")',observer)
+        self.assertIn('let scroll=wrapper.descendants(matching:.scrollView).firstMatch',observer)
+        self.assertIn('toggleButtonMatchedFrame(rect(wrapper.frame),rect(scroll.frame),Double(UIScreen.main.scale))',observer)
+        self.assertNotIn('XCTAssertEqual(wrapper.frame,scroll.frame',observer)
+        self.assertNotIn('app.scrollViews.firstMatch',observer)
+        # Exact native hierarchy fragments retained from Fieldr7 and Popoverr3 at unchanged host source.
+        samples=[[
+            "                      Other, 0x10c540070, {{0.0, 47.0}, {390.0, 763.0}}, identifier: 'showcase-scroll'",
+            "                        ScrollView, 0x10c40cc60, {{0.0, 47.0}, {390.0, 763.0}}",
+        ],[
+            "                      Other, 0x10cd285b0, {{0.0, 47.0}, {390.0, 763.0}}, identifier: 'showcase-scroll'",
+            "                        ScrollView, 0x10cd286d0, {{0.0, 47.0}, {390.0, 763.0}}",
+        ]]
+        keyboard="                      ScrollView, 0x999, {{0.0, 509.0}, {390.0, 44.0}}"
+        def frame(line):return tuple(float(x) for x in re.search(r"\{\{([^,]+), ([^}]+)\}, \{([^,]+), ([^}]+)\}\}",line).groups())
+        def scoped(lines):
+            matches=[i for i,line in enumerate(lines)if "Other," in line and "identifier: 'showcase-scroll'" in line]
+            if len(matches)!=1:raise ValueError("Missing or duplicate native host wrapper")
+            index=matches[0];depth=len(lines[index])-len(lines[index].lstrip());children=[]
+            for line in lines[index+1:]:
+                if len(line)-len(line.lstrip())<=depth:break
+                if line.lstrip().startswith("ScrollView,"):children.append(line)
+            physical=lambda values:tuple(NATIVE.math.floor(value*3+.5) for value in values)
+            if not children or physical(frame(children[0]))!=physical(frame(lines[index])):raise ValueError("Missing or wrong native owned scroll viewport")
+            return frame(children[0])
+        for sample in samples:
+            fractional=[sample[0],sample[1].replace("763.0","762.9999999999999")]
+            self.assertNotEqual(frame(fractional[0]),frame(fractional[1]))
+            self.assertEqual(scoped(fractional),(0,47,390,762.9999999999999))
+            for index in range(4):
+                values=list(frame(fractional[1]));values[index]+=1/3
+                wrongLine="                        ScrollView, 0x123, {{%s, %s}, {%s, %s}}"%tuple(values)
+                with self.assertRaises(ValueError):scoped([sample[0],wrongLine])
+            for lines in [sample,[keyboard,*sample],[*sample,keyboard]]:
+                self.assertEqual(scoped(lines),(0,47,390,763))
+                self.assertFalse(any(line.lstrip().startswith("ScrollView,")and"identifier: 'showcase-scroll'"in line for line in lines))
+            wrong=[keyboard,*sample];self.assertEqual(frame(next(line for line in wrong if line.lstrip().startswith("ScrollView,"))),(0,509,390,44))
+            for bad in [[sample[0]], [sample[0],keyboard.replace("                      ","                        ",1)], [line.replace("showcase-scroll","foreign")for line in sample]]:
+                with self.assertRaises(ValueError):scoped(bad)
+
+    def test_input_remaining_selects_two_methods_and_rejects_unadmitted_real_entry(self):
+        expected={"ios":["InputG08TrialTests/testInputActionsAndEditorOwnership","InputG08TrialTests/testInputStylesAndConstraint"],"android":[]}
+        self.assertEqual(NATIVE.selection("ios","input-remaining"),expected)
+        NATIVE.validate_standard_scope({"cell":"CAT.input.G08","nativeStandard":{"batch":"input-remaining"}})
+        with self.assertRaises(ValueError):NATIVE.selection("android","input-remaining")
+        with self.assertRaises(ValueError):NATIVE.validate_standard_scope({"cell":"CAT.text-area.G08","nativeStandard":{"batch":"input-remaining"}})
+        with tempfile.TemporaryDirectory() as temp:
+            path=Path(temp)/"plan.json";path.write_text(json.dumps({"cell":"CAT.input.G08","nativeStandard":{"platform":"ios","batch":"input-remaining","output":str(Path(temp)/"never-created")}}))
+            env={k:v for k,v in os.environ.items()if k!="CODON_NATIVE_CELL_PREFLIGHT_RECEIPT"}
+            with patch.dict(os.environ,env,clear=True),patch.object(sys,"argv",[str(ROOT/"NativeStandardTests.py"),"--plan",str(path)]),patch.object(NATIVE,"execute")as sdk:
+                with self.assertRaisesRegex(ValueError,"Use NativeCellVerification.py"):NATIVE.main()
+                sdk.assert_not_called()
+            self.assertFalse((Path(temp)/"never-created").exists())
+
+    def test_input_remaining_preserves_independent_modes_counts_and_two_identity_markers(self):
+        rows=self.action_rows()+[self.row(name,"styles")for name in NATIVE.INPUT_STYLE_NAMES]
+        raw='NATIVE_LOADED_OBSERVER_EARLY {"scope":"source control marker1"}\n'+self.raw(rows)+'\nNATIVE_LOADED_OBSERVER_EARLY {"scope":"source control marker2"}\n'
+        result=NATIVE.reconcile_input_ios(raw,{"batch":"input-remaining"})
+        self.assertEqual(result["status"],"PASS");self.assertEqual(set(result["methods"]),{"input-actions","input-styles"});self.assertTrue(all(x["observations"]==10 for x in result["methods"].values()))
+        for kind in ["missing-method","missing-row","duplicate","foreign-mode","foreign-case"]:
+            bad=copy.deepcopy(rows)
+            if kind=="missing-method":bad=[row for row in bad if row["state"]["mode"]=="actions"]
+            elif kind=="missing-row":bad.pop()
+            elif kind=="duplicate":bad.append(copy.deepcopy(bad[-1]))
+            elif kind=="foreign-mode":bad[-1]["state"]["mode"]="lifetime"
+            else:bad[-1]["name"]="unselected"
+            with self.subTest(kind=kind),self.assertRaises(ValueError):NATIVE.reconcile_input_ios(self.raw(bad),{"batch":"input-remaining"})
+
+    def test_input_remaining_actual_driver_exit_keeps_sdk_failure_and_uncertain_cleanup_nonzero(self):
+        for failed,clean in [(False,True),(True,True),(False,False)]:
+            with tempfile.TemporaryDirectory()as temp:
+                out=Path(temp)/"out";plan={"nativeStandard":{"action":"build","platform":"ios","batch":"input-remaining","output":str(out)},"bindings":{"observer":[]},"attempt":{"maximumSeconds":30,"cleanupReserveSeconds":10}}
+                with patch.object(NATIVE,"build_ios",side_effect=ValueError("saved SDK65")if failed else None,return_value={"product":"CONTROL_NO_SDK"}),patch.object(NATIVE,"cleanup",side_effect=None if clean else ValueError("unverified shutdown")):
+                    code=NATIVE.execute(plan,{"result":"PASS","scope":"Input remaining host sentinel only, no SDK"})
+                self.assertEqual(code,0 if not failed and clean else 1)
+                record=json.loads((out/"terminal.json").read_text());self.assertEqual(record["cleanupVerified"],clean);self.assertEqual(record["gatePromotions"],0)
+
+    def row(self,name,mode="actions"):
+        retired=name.endswith("retired") or name=="retired";fresh=name.endswith("fresh") or name=="fresh";narrow=name.startswith("long-narrow")
+        case=name if mode!="lifetime" else ("first" if name.endswith("first") else "second")
+        state={"mode":mode,"case":case,"value":"fresh" if fresh and mode=="actions" else "owner" if name in ["declined-x","declined-y","disabled","readonly"] else "SeZtable" if name=="selection" else "ab" if name=="first-input" else "Long English / Renseignements français détaillés" if narrow else "Input" if mode=="styles" else "", "visible":not retired,"rootTag":None if retired else 31 if fresh else 17,"generation":1 if fresh else 0,"disabled":name=="disabled","readOnly":name=="readonly","narrow":narrow,"invalid":name=="error","changes":[],"events":[],"refs":[17],"layouts":[{"target":31 if fresh else 17,"currentTarget":31 if fresh else 17,"layout":{"x":12,"y":12,"width":190 if narrow else 240,"height":64 if narrow else 48}}],"themeMode":"dark" if name=="dark" else "light","fontSize":24 if narrow else 14,"expectedBorder":"#bb3322" if name.endswith("first") else "#117733","motionEvents":[name.startswith("reduced")]}
+        state["expectedBorderNativeColor"]=1
+        return {"name":name,"state":state,"paintedState":{"generation":state["generation"],"borderColor":1,"isFocused":False},"parent":[0,0,272,88],"root":[] if retired else [13,13,188 if narrow else 238,62 if narrow else 46],"window":[0,0,400,800],"keyboard":[0,500,400,300] if name in ["first-input","selection","long-narrow-keyboard"] else [],"targetCount":0 if retired else 1,"rootIsTextField":not retired,"rootLabel":"" if retired else "Public Input editor","rootValue":"Seed" if name=="default" else state["value"],"rootEnabled":not (state["disabled"] or state["readOnly"]),"referenceExact":mode!="actions","referenceParent":[0,0,272,88],"inkPixels":0 if retired else 300,"scale":2,"imageWidth":800,"imageHeight":1600}
+
+    def event(self,phase,text=None,selection=None):
+        native={"target":17}
+        if text is not None:native["text"]=text
+        if selection is not None:native["selection"]=selection
+        return {"phase":phase,"generation":0,"target":17,"currentTarget":17,"nativeEvent":native}
+
+    def action_rows(self):
+        rows=[self.row(name) for name in NATIVE.INPUT_ACTION_NAMES]
+        first_events=[self.event("focus"),self.event("change","a"),self.event("change","ab")]
+        final_events=first_events+[self.event("submit","ab"),self.event("blur"),self.event("change","ownerx"),self.event("change","ownery"),self.event("change","SeZtable"),self.event("selection",selection={"start":3,"end":3})]
+        for row in rows:
+            first=row["name"]=="first-input";final=row["name"]=="fresh"
+            if first or final or row["name"]=="selection":
+                row["state"]["changes"]=[{"value":value,"generation":0} for value in (["a","ab"] if first else ["a","ab","ownerx","ownery","SeZtable"])]
+                row["state"]["events"]=copy.deepcopy(first_events if first else final_events)
+        selected=next(row for row in rows if row["name"]=="selection");selected["selectionStartEventCount"]=len(final_events)-2
+        return rows
+
+    def raw(self,rows,restoration=False):
+        value="\n".join("INPUT_NATIVE_OBSERVATION "+json.dumps(row) for row in rows)
+        return value+("\nMETER_STYLE_MOTION_ORIGINAL 0\nMETER_STYLE_MOTION_RESTORED 0\n" if restoration else "")
+
+    def test_input_saved_native_default_backing_geometry_and_discriminating_negatives(self):
+        saved={"name":"default","state":{"mode":"actions","case":"default","value":"","visible":True,"rootTag":694,"disabled":False,"readOnly":False,"narrow":False,"layouts":[{"target":694,"currentTarget":694,"layout":{"x":12,"y":12,"width":240,"height":48}}]},"parent":[26,539.99995803833008,272,88],"root":[39,552.99995803833008,238,46],"window":[0,0,390,844],"keyboard":[],"targetCount":1,"rootIsTextField":True,"rootLabel":"Public Input editor","rootValue":"Seed","rootEnabled":True,"inkPixels":6453,"scale":3,"imageWidth":1170,"imageHeight":2532}
+        self.assertEqual(NATIVE.validate_input_rows([saved],["default"])["status"],"PASS")
+        for kind in ["x","y","width","height","target","outer"]:
+            bad=copy.deepcopy(saved)
+            if kind in ["x","y","width","height"]:bad["root"][["x","y","width","height"].index(kind)]+=1/3
+            elif kind=="target":bad["state"]["layouts"][-1]["target"]=999
+            else:bad["root"]=[38,551.99995803833008,240,48]
+            with self.subTest(kind=kind),self.assertRaises(ValueError):NATIVE.validate_input_rows([bad],["default"])
+
+    def test_input_prepared_selection_and_scope(self):
+        for batch,method in [("input-actions","testInputActionsAndEditorOwnership"),("input-styles","testInputStylesAndConstraint"),("input-lifetime","testInputBorderLifetimeAndReduction")]:
+            self.assertEqual(NATIVE.selection("ios",batch),{"ios":["InputG08TrialTests/"+method],"android":[]})
+            NATIVE.validate_standard_scope({"cell":"CAT.input.G08","nativeStandard":{"batch":batch}})
+            with self.assertRaises(ValueError):NATIVE.selection("android",batch)
+            with self.assertRaises(ValueError):NATIVE.validate_standard_scope({"cell":"CAT.text-area.G08","nativeStandard":{"batch":batch}})
+
+    def test_input_action_payload_ref_guard_and_selection_positive(self):
+        self.assertEqual(NATIVE.reconcile_input_ios(self.raw(self.action_rows()),{"batch":"input-actions"})["observations"],10)
+
+    def test_input_action_reader_rejects_wrong_target_payload_count_selection_and_stale_ref(self):
+        for kind in ["target","role","name","callback","native-text","count","selection","old-selection","ref","guard","stale-event","missing","duplicate"]:
+            rows=self.action_rows();named={row["name"]:row for row in rows};final=named["fresh"]["state"]
+            if kind=="target":named["first-input"]["targetCount"]=2
+            elif kind=="role":named["first-input"]["rootIsTextField"]=False
+            elif kind=="name":named["default"]["rootLabel"]="Core comparison"
+            elif kind=="callback":final["changes"][-1]["value"]="ownerz"
+            elif kind=="native-text":named["first-input"]["rootValue"]="a"
+            elif kind=="count":final["changes"].pop()
+            elif kind=="selection":named["selection"]["state"]["events"][-1]["nativeEvent"]["selection"]["end"]=6
+            elif kind=="old-selection":named["selection"]["selectionStartEventCount"]=len(named["selection"]["state"]["events"])
+            elif kind=="ref":final["rootTag"]=17
+            elif kind=="guard":named["readonly"]["rootEnabled"]=True
+            elif kind=="stale-event":final["events"][-1]["currentTarget"]=999
+            elif kind=="missing":rows.pop()
+            else:rows.append(copy.deepcopy(rows[0]))
+            with self.subTest(kind=kind),self.assertRaises(ValueError):NATIVE.reconcile_input_ios(self.raw(rows),{"batch":"input-actions"})
+
+    def test_input_style_reference_and_fractional_geometry_positive(self):
+        rows=[self.row(name,"styles") for name in NATIVE.INPUT_STYLE_NAMES]
+        for row in rows:row["root"][2]+=0.0001220703125
+        self.assertEqual(NATIVE.reconcile_input_ios(self.raw(rows),{"batch":"input-styles"})["observations"],10)
+
+    def test_input_style_reader_rejects_physical_bleed_wrong_dimensions_reference_and_keyboard(self):
+        for kind in ["bleed","dimension","reference","reference-frame","keyboard","raster","theme","unsettled-paint","replaced-root"]:
+            rows=[self.row(name,"styles") for name in NATIVE.INPUT_STYLE_NAMES];named={row["name"]:row for row in rows};row=named["baseline"]
+            if kind=="bleed":row["root"][0]=32.5
+            elif kind=="dimension":row["root"][2]+=0.5
+            elif kind=="reference":row["referenceExact"]=False
+            elif kind=="reference-frame":row["referenceParent"][0]=0.5
+            elif kind=="keyboard":named["long-narrow-keyboard"]["keyboard"][1]=30
+            elif kind=="raster":row["imageHeight"]-=1
+            elif kind=="theme":named["dark"]["state"]["themeMode"]="light"
+            elif kind=="unsettled-paint":row["paintedState"]["borderColor"]=2
+            else:
+                row["state"]["rootTag"]=33;row["state"]["layouts"][-1]["target"]=33;row["state"]["layouts"][-1]["currentTarget"]=33
+            with self.subTest(kind=kind),self.assertRaises(ValueError):NATIVE.reconcile_input_ios(self.raw(rows),{"batch":"input-styles"})
+
+    def test_input_lifetime_reduction_restoration_positive(self):
+        rows=[self.row(name,"lifetime") for name in NATIVE.INPUT_LIFETIME_NAMES]
+        self.assertEqual(NATIVE.reconcile_input_ios(self.raw(rows,True),{"batch":"input-lifetime"})["observations"],10)
+
+    def test_input_lifetime_reader_rejects_stale_callback_paint_ref_reduction_and_restoration(self):
+        for kind in ["stale","paint","ref","reduction","restore"]:
+            rows=[self.row(name,"lifetime") for name in NATIVE.INPUT_LIFETIME_NAMES];named={row["name"]:row for row in rows}
+            if kind=="stale":named["normal-fresh"]["state"]["events"].append(self.event("change","late"))
+            elif kind=="paint":named["normal-retired"]["inkPixels"]=1
+            elif kind=="ref":named["normal-fresh"]["state"]["generation"]=0
+            elif kind=="reduction":named["reduced-first"]["state"]["motionEvents"]=[False]
+            raw=self.raw(rows,kind!="restore")
+            with self.subTest(kind=kind),self.assertRaises(ValueError):NATIVE.reconcile_input_ios(raw,{"batch":"input-lifetime"})
+
+
 if __name__ == "__main__": unittest.main()
