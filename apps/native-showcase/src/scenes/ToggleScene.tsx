@@ -11,6 +11,7 @@ import {
   type ToggleSwitcherItem,
 } from "@codon-ui/react-native"
 
+import { SwitcherG08Fixture } from "./SwitcherG08Fixture"
 import { ToggleButtonG08Fixture } from "./ToggleButtonG08Fixture"
 import { ToggleCompositionScene } from "./ToggleCompositionScene"
 
@@ -25,6 +26,7 @@ const MATCH_OPTIONS: readonly ToggleSwitcherItem[] = [
 ]
 
 export const ToggleScene = () => {
+  const [switcherChecks, setSwitcherChecks] = useState(false)
   const [nativeChecks, setNativeChecks] = useState(false)
   const [showComposition, setShowComposition] = useState(false)
   const [selected, setSelected] = useState(false)
@@ -56,9 +58,13 @@ export const ToggleScene = () => {
   const order = AVAILABLE_THEMING_ORDER_CODES[orderIndex]
   const geometry = AVAILABLE_CORNER_GEOMETRY_CODES[geometryIndex]
 
+  if (switcherChecks) return <SwitcherG08Fixture />
   if (nativeChecks) return <ToggleButtonG08Fixture />
   return (
     <View style={styles.scene}>
+      <Button raised={false} onPress={() => setSwitcherChecks(true)}>
+        Prepare standalone Switcher checks
+      </Button>
       <Button raised={false} onPress={() => setNativeChecks(true)}>
         Prepare standalone ToggleButton checks
       </Button>

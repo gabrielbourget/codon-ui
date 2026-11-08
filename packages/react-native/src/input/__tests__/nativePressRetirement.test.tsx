@@ -92,3 +92,52 @@ it.each(["ended", "cancelled"] as const)("does not cancel a %s keyboard cycle ag
   expect(end).toHaveBeenCalledTimes(1)
   expect(press).toHaveBeenCalledTimes(state === "ended" ? 1 : 0)
 })
+
+it("accepts the first fresh press after read-only removed a cancelled cycle's release handler", async () => {
+  const press = jest.fn(),
+    end = jest.fn(),
+    ref = createRef<View>()
+  const node = (enabled: boolean) => (
+    <NativeButton ref={ref} nativeInteraction={enabled} onPress={press} onPressEnd={end}>
+      Action
+    </NativeButton>
+  )
+  await render(node(true))
+  const original = ref.current
+  await act(() => root().props.onResponderGrant(pointer()))
+  await screen.rerender(node(false))
+  expect(root().props.onResponderRelease).toBeUndefined()
+  expect(end).toHaveBeenCalledTimes(1)
+  expect(press).not.toHaveBeenCalled()
+  await screen.rerender(node(true))
+  expect(ref.current).toBe(original)
+  await act(() => root().props.onResponderGrant(pointer()))
+  const released = pointer()
+  await act(() => root().props.onResponderRelease(released))
+  expect(press).toHaveBeenCalledTimes(1)
+  expect(press.mock.calls[0][0]).toBe(released)
+  await act(() => jest.runOnlyPendingTimers())
+  expect(end).toHaveBeenCalledTimes(2)
+})
+
+it("keeps the original held press cancelled when read-only clears before release", async () => {
+  const press = jest.fn(),
+    end = jest.fn()
+  const node = (enabled: boolean) => (
+    <NativeButton nativeInteraction={enabled} onPress={press} onPressEnd={end}>
+      Action
+    </NativeButton>
+  )
+  await render(node(true))
+  await act(() => root().props.onResponderGrant(pointer()))
+  await screen.rerender(node(false))
+  await screen.rerender(node(true))
+  await act(() => root().props.onResponderRelease(pointer()))
+  expect(press).not.toHaveBeenCalled()
+  expect(end).toHaveBeenCalledTimes(1)
+  await act(() => root().props.onResponderGrant(pointer()))
+  await act(() => root().props.onResponderRelease(pointer()))
+  expect(press).toHaveBeenCalledTimes(1)
+  await act(() => jest.runOnlyPendingTimers())
+  expect(end).toHaveBeenCalledTimes(2)
+})

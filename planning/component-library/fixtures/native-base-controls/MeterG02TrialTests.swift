@@ -4383,3 +4383,209 @@ final class TooltipTrialTests: XCTestCase {
         FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_SWITCH "+expected+"\n").utf8))
     }
 }
+
+
+private func switcherReferenceIndex(_ rgba:[Int],_ ink:Int)->Int? {
+    if rgba==[17,51,85,255]{return 0};if rgba==[170,119,68,255]{return 1};if rgba==[255,255,255,255] && ink==0{return 0};return nil
+}
+private func switcherRootIntermediate(_ rgba:[Int])->Bool {
+    guard rgba.count==4 else{return false};return 17<rgba[0] && rgba[0]<170 && 51<rgba[1] && rgba[1]<119 && 68<rgba[2] && rgba[2]<85 && rgba[3]==255
+}
+private func switcherPhraseCounts(_ actual:[UInt8],_ first:[UInt8],_ second:[UInt8])->[Int] {
+    guard actual.count==first.count && actual.count==second.count && actual.count%4==0 else{return [0,0]};var result=[0,0]
+    let red:[UInt8]=[187,51,34,255],green:[UInt8]=[17,119,51,255]
+    for i in stride(from:0,to:actual.count,by:4){let a=Array(first[i..<i+4]),b=Array(second[i..<i+4]);if (a==red && b==green) || (a==green && b==red){result[0]+=1;if listItemIntermediate(actual[i..<i+4].map(Int.init)){result[1]+=1}}}
+    return result
+}
+private func switcherSurfaceIntermediate(_ frame:[Double],_ choices:[[Double]],_ scale:Double)->Bool {
+    guard frame.count==4 && frame.allSatisfy({$0.isFinite}) && frame[2]>0 && frame[3]>0 && scale.isFinite && scale>0 && !choices.isEmpty && choices.allSatisfy({$0.count==4 && $0.allSatisfy({$0.isFinite})}) else{return false}
+    let left=choices.map{$0[0]}.min()!,right=choices.map{$0[0]+$0[2]}.max()!,top=choices.map{$0[1]}.min()!,bottom=choices.map{$0[1]+$0[3]}.max()!
+    return frame[0]>=left-1/scale && frame[0]+frame[2]<=right+1/scale && frame[1]>=top-1/scale && frame[1]+frame[3]<=bottom+1/scale && !choices.contains{toggleButtonMatchedFrame(frame,$0,scale)}
+}
+final class SwitcherTrialTests: XCTestCase {
+    private var app:XCUIApplication!
+    private var heldIntervals:[[String:Double]]=[]
+    private let behavior=["baseline","echo","reselected","disabled","held-readonly","restored","member-disabled","empty-key","reversed","removed","reinserted","empty-items","items-restored","local","default-changed","authored","authored-grown","replaced","retired","fresh"]
+    private let styles=["style-baseline","natural","vertical","reverse","selected-b","readonly","primary","root-custom","options-custom","selected-slot","final-root","orthogonal","round","raised","uppercase","font-weights","fractional","percentage","auto","zero","long-narrow","provider","dark","light-restored"]
+    override func setUpWithError() throws {
+        continueAfterFailure=false
+        let bundle=Bundle(for:SwitcherTrialTests.self),executable=try XCTUnwrap(bundle.executableURL),expected=try XCTUnwrap(ProcessInfo.processInfo.environment["CODON_NATIVE_OBSERVER_EXECUTABLE_SHA256"]),actual=SHA256.hash(data:try Data(contentsOf:executable)).map{String(format:"%02x",$0)}.joined()
+        XCTAssertEqual(expected.count,64);XCTAssertEqual(actual,expected,"Actually loaded test executable before app launch")
+        let early:[String:Any]=["path":bundle.bundleURL.path,"executable":executable.path,"sha256":actual,"expectedSHA256":expected,"epochMs":Date().timeIntervalSince1970*1000]
+        FileHandle.standardOutput.write(Data("NATIVE_LOADED_OBSERVER_EARLY ".utf8)+(try JSONSerialization.data(withJSONObject:early,options:.sortedKeys))+Data("\n".utf8))
+        app=XCUIApplication(bundleIdentifier:"dev.codonui.showcase");app.launch();XCTAssertEqual(app.state,.runningForeground);XCUIDevice.shared.orientation = .portrait
+        tap("Reset scene");tap("Toggle scene");tap("Light theme");tap("Live window");tap("Prepare standalone Switcher checks")
+    }
+    override func tearDownWithError() throws {
+        let png=XCTAttachment(screenshot:XCUIScreen.main.screenshot());png.name="switcher-final";png.lifetime = .keepAlways;add(png)
+        let tree=XCTAttachment(string:app.debugDescription);tree.name="switcher-final-hierarchy";tree.lifetime = .keepAlways;add(tree)
+    }
+    private func state() throws->[String:Any] {try XCTUnwrap(JSONSerialization.jsonObject(with:Data(node("switcher-native-state").label.utf8)) as? [String:Any])}
+    private func number(_ row:[String:Any],_ key:String)throws->Double {let value=try XCTUnwrap(row[key] as? NSNumber,key).doubleValue;XCTAssertTrue(value.isFinite);return value}
+    private func rect(_ value:CGRect)->[Double] {[value.minX,value.minY,value.width,value.height].map(Double.init)}
+    private func ready() {wait("Actual current Switcher root/ref/layout") {guard let row=try? self.state(),let events=row["layouts"] as? [[String:Any]],let event=events.last else{return false};return (row["rootTag"] as? NSNumber)?.doubleValue == (event["currentTarget"] as? NSNumber)?.doubleValue}}
+    private func mark(_ name:String,_ row:[String:Any],_ shot:XCUIScreenshot,prefix:String="SWITCHER_NATIVE_OBSERVATION") throws {
+        let data=try JSONSerialization.data(withJSONObject:row,options:.sortedKeys);FileHandle.standardOutput.write(Data((prefix+" ").utf8)+data+Data("\n".utf8));let attachment=XCTAttachment(data:data,uniformTypeIdentifier:"public.json");attachment.name="switcher-"+name+"-receipt";attachment.lifetime = .keepAlways;add(attachment);let png=XCTAttachment(screenshot:shot);png.name="switcher-"+name;png.lifetime = .keepAlways;add(png)
+    }
+    private func capture(_ name:String) throws {
+        tap("Switcher component");reveal(node("switcher-native-pair"));let snapshot=try app.snapshot();var all:[XCUIElementSnapshot]=[]
+        func visit(_ value:XCUIElementSnapshot){all.append(value);for child in value.children{visit(child)}};visit(snapshot)
+        func one(_ id:String)->XCUIElementSnapshot?{let nodes=all.filter{$0.identifier==id};XCTAssertLessThanOrEqual(nodes.count,1,id);return nodes.first}
+        let parent=try XCTUnwrap(one("switcher-native-parent")).frame,reference=try XCTUnwrap(one("switcher-native-reference-parent")).frame,root=one("switcher-native-target"),raw=one("switcher-native-reference"),state=try state(),shot=XCUIScreen.main.screenshot(),image=try XCTUnwrap(shot.image.cgImage),window=app.windows.firstMatch.frame,scale=CGFloat(image.width)/window.width,actual=try pixels(image,parent,window,scale)
+        let items=try XCTUnwrap(state["items"] as? [[String:Any]]),members=all.filter{$0.identifier=="switcher-native-target-option"},references=all.filter{$0.identifier.hasPrefix("switcher-native-reference-option-")};var memberRows:[[String:Any]]=[]
+        for (index,item) in items.enumerated(){
+            if state["visible"] as? Bool==false{continue}
+            let label=try XCTUnwrap(item["label"] as? String),matches=members.filter{$0.label==label}
+            if state["zero"] as? Bool==true{continue}
+            XCTAssertEqual(matches.count,1,label);let member=try XCTUnwrap(matches.first);XCTAssertTrue(index<references.count);let key=item["id"] as? String ?? "",reference=try XCTUnwrap(one("switcher-native-reference-option-"+(key.isEmpty ? "empty":key)))
+            let selected=item["id"] as? String == state["selected"] as? String,disabled=state["disabled"] as? Bool==true || item["disabled"] as? Bool==true
+            memberRows.append(["key":item["id"] ?? "","label":member.label,"value":member.value ?? NSNull(),"button":member.elementType == .button,"enabled":member.isEnabled,"frame":rect(member.frame),"referenceFrame":rect(reference.frame)])
+            XCTAssertEqual(member.elementType,.button);XCTAssertEqual(member.isEnabled,!disabled);XCTAssertTrue(toggleButtonValueMatches(member.value as? String ?? "",selected,false),"Original checked value without busy trait")
+        }
+        tap("Switcher reference");reveal(node("switcher-native-pair"));let matched=node("switcher-native-reference-parent").frame,referenceShot=XCUIScreen.main.screenshot(),referenceImage=try XCTUnwrap(referenceShot.image.cgImage);XCTAssertTrue(toggleButtonMatchedFrame(rect(parent),rect(matched),Double(scale)));let expected=try pixels(referenceImage,matched,window,scale);let exact=circularPixelsMatch(actual,expected)
+        let extra=XCTAttachment(screenshot:referenceShot);extra.name="switcher-"+name+"-matched-reference";extra.lifetime = .keepAlways;add(extra)
+        var ink=0;for i in stride(from:0,to:actual.count,by:4){if actual[i] != 255 || actual[i+1] != 255 || actual[i+2] != 255{ink+=1}}
+        let record:[String:Any]=["name":name,"state":state,"parent":rect(parent),"referenceParent":rect(reference),"matchedReferenceParent":rect(matched),"root":root.map{rect($0.frame)} ?? [],"referenceRoot":raw.map{rect($0.frame)} ?? [],"rootIsButton":root?.elementType == .button,"rootCount":all.filter{$0.identifier=="switcher-native-target"}.count,"members":memberRows,"targetCount":members.count,"selectedSurfaceFrames":all.filter{$0.identifier=="switcher-native-target-selected-surface"}.map{rect($0.frame)},"referenceExact":exact,"inkPixels":ink,"heldContactIntervals":heldIntervals,"scale":scale,"imageWidth":image.width,"imageHeight":image.height]
+        try mark(name,record,shot);XCTAssertTrue(exact,"Switcher full paint differs from exact independent same-origin reference")
+        if state["visible"] as? Bool==false{XCTAssertTrue(members.isEmpty);XCTAssertFalse(all.contains{$0.identifier=="switcher-native-target-selected-surface"});XCTAssertNil(root);XCTAssertTrue(state["rootTag"] is NSNull);XCTAssertEqual(ink,0);return}
+        let actualRoot=try XCTUnwrap(root),referenceRoot=try XCTUnwrap(raw),layouts=try XCTUnwrap(state["layouts"] as? [[String:Any]]),last=try XCTUnwrap(layouts.last),layout=try XCTUnwrap(last["layout"] as? [String:Any]),tag=try number(state,"rootTag");XCTAssertGreaterThan(tag,0);XCTAssertEqual(try number(last,"currentTarget"),tag);XCTAssertEqual(try number(last,"target"),tag);XCTAssertNotEqual(actualRoot.elementType,.button)
+        for (a,b) in zip([actualRoot.frame.minX-parent.minX,actualRoot.frame.minY-parent.minY,actualRoot.frame.width,actualRoot.frame.height],[referenceRoot.frame.minX-reference.minX,referenceRoot.frame.minY-reference.minY,referenceRoot.frame.width,referenceRoot.frame.height]){XCTAssertEqual(a,b,accuracy:1/scale)}
+        XCTAssertEqual(actualRoot.frame.width,try number(layout,"width"),accuracy:1/scale);XCTAssertEqual(actualRoot.frame.height,try number(layout,"height"),accuracy:1/scale)
+        if state["zero"] as? Bool==true{let inset=2*((try number(state,"padding"))+(try number(state,"border")));XCTAssertEqual(actualRoot.frame.width,inset,accuracy:1/scale);XCTAssertEqual(actualRoot.frame.height,inset,accuracy:1/scale);return}
+        XCTAssertEqual(members.count,items.count);XCTAssertEqual(references.count,items.count)
+        for item in items{let member=try XCTUnwrap(members.first{$0.label==item["label"] as? String}),key=item["id"] as? String ?? "",raw=try XCTUnwrap(one("switcher-native-reference-option-"+(key.isEmpty ? "empty":key)));for (a,b) in zip([member.frame.minX-parent.minX,member.frame.minY-parent.minY,member.frame.width,member.frame.height],[raw.frame.minX-reference.minX,raw.frame.minY-reference.minY,raw.frame.width,raw.frame.height]){XCTAssertEqual(a,b,accuracy:1/scale)}}
+        if let width=state["rootWidth"] as? NSNumber{XCTAssertEqual(actualRoot.frame.width,width.doubleValue,accuracy:1/scale)}
+        XCTAssertLessThanOrEqual(actualRoot.frame.maxX,parent.maxX-12+1/scale);XCTAssertLessThanOrEqual(actualRoot.frame.maxY,parent.maxY-12+1/scale)
+    }
+    private func activate(_ name:String,label:String,blocked:Bool=false,held:Bool=false) throws {
+        tap("Switcher component");let before=try state(),count=(before["requests"] as? [[String:Any]] ?? []).count,target=app.buttons.matching(identifier:"switcher-native-target-option").matching(NSPredicate(format:"label == %@",label)).firstMatch;reveal(target);let began=Date().timeIntervalSince1970*1000;target.coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.5)).press(forDuration:held ? 1:0)
+        if blocked{Thread.sleep(forTimeInterval:0.4);XCTAssertEqual((try state()["requests"] as? [[String:Any]])?.count,count)}else{wait("One current Switcher selection request"){((try? self.state()["requests"] as? [[String:Any]]) ?? []).count==count+1}}
+        if held{let ended=Date().timeIntervalSince1970*1000,row=try state(),events=try XCTUnwrap(row["events"] as? [[String:Any]]),event=try XCTUnwrap(events.last),epoch=try number(event,"epochMs");XCTAssertGreaterThanOrEqual(epoch,began);XCTAssertLessThan(epoch,ended-400);XCTAssertEqual(try number(event,"currentTarget"),try number(row,"rootTag"));XCTAssertEqual(row["readonly"] as? Bool,true);heldIntervals.append(["beganEpochMs":began,"endedEpochMs":ended,"disabledOnPressInEpochMs":epoch])}
+        try capture(name)
+    }
+    func testSwitcherActionsAndLifetimes() throws {
+        tap("Switcher behavior checks");var original=0.0,local=0.0,label=0.0,authoredRoot=0.0,authoredWidth:CGFloat=0
+        for name in behavior{
+            wait("Current Switcher case "+name){(try? self.state()["case"] as? String)==name};if name != "retired"{ready()}
+            if name=="baseline"{original=try number(state(),"rootTag")}
+            if ["echo","reselected","disabled","held-readonly","restored","member-disabled","empty-key","reversed","removed","reinserted","empty-items","items-restored"].contains(name){XCTAssertEqual(try number(state(),"rootTag"),original)}
+            if name=="local"{local=try number(state(),"rootTag");XCTAssertNotEqual(local,original)}
+            if name=="default-changed"{XCTAssertEqual(try number(state(),"rootTag"),local);XCTAssertEqual(try state()["owner"] as? String,"b")}
+            if name=="authored"{label=try number(state(),"labelTag");authoredRoot=try number(state(),"rootTag");authoredWidth=node("switcher-native-target").frame.width;XCTAssertGreaterThan(label,0)}
+            if name=="authored-grown"{tap("Grow Switcher label");wait("Actual internal authored child growth"){((try? self.state()["items"] as? [[String:Any]]) ?? []).first?["text"] as? String=="Longer original label"};ready();XCTAssertEqual(try number(state(),"rootTag"),authoredRoot);XCTAssertEqual(try number(state(),"labelTag"),label);XCTAssertGreaterThan(node("switcher-native-target").frame.width,authoredWidth)}
+            try capture(name)
+            switch name{
+            case "baseline":try activate("baseline-first",label:"Second choice");try activate("baseline-repeated",label:"Second choice")
+            case "echo","local":try activate(name+"-activated",label:"Second choice")
+            case "reselected","member-disabled":try activate(name+"-activated",label:"Second choice",blocked:true)
+            case "disabled":try activate(name+"-activated",label:"First choice",blocked:true)
+            case "held-readonly":try activate(name+"-activated",label:"First choice",blocked:true,held:true)
+            case "restored":try activate(name+"-activated",label:"First choice")
+            case "empty-key":try activate(name+"-activated",label:"Second choice");XCTAssertEqual(try state()["selected"] as? String,"")
+            case "default-changed":try activate(name+"-activated",label:"Empty choice")
+            default:break
+            }
+            if name=="replaced" || name=="fresh"{XCTAssertNotEqual(try number(state(),"rootTag"),original)}
+            if name != behavior.last{tap("Next Switcher check")}
+        }
+        let row=try state(),requests=try XCTUnwrap(row["requests"] as? [[String:Any]]);XCTAssertEqual(requests.compactMap{$0["key"] as? String},["b","b","b","a","b","b",""])
+    }
+    func testSwitcherStylesAndConstraints() throws {
+        tap("Switcher styles checks")
+        for name in styles {
+            wait("Current Switcher style "+name){(try? self.state()["case"] as? String)==name};ready()
+            if name=="dark" {tap("Dark theme");wait("Actual dark provider"){(try? self.state()["themeMode"] as? String)=="dark"}}
+            if name=="light-restored" {tap("Light theme");wait("Actual light provider"){(try? self.state()["themeMode"] as? String)=="light"}}
+            try capture(name);if name != styles.last {tap("Next Switcher check")}
+        }
+    }
+    private func motion(_ name:String,reduced:Bool) throws {
+        tap("Switcher motion checks");reveal(node("switcher-native-pair"));ready();var paints:[[UInt8]]=[];var referenceFrames:[[Double]]=[]
+        for (index,control) in ["First","Second"].enumerated(){tap(control);tap("Switcher reference");reveal(node("switcher-native-pair"));let shot=XCUIScreen.main.screenshot(),image=try XCTUnwrap(shot.image.cgImage),window=app.windows.firstMatch.frame,parent=node("switcher-native-parent").frame,reference=node("switcher-native-reference-parent").frame,scale=CGFloat(image.width)/window.width;XCTAssertTrue(toggleButtonMatchedFrame(rect(parent),rect(reference),Double(scale)));paints.append(try pixels(image,reference,window,scale));referenceFrames.append(rect(parent));try mark(name+"-reference-"+String(index),["name":name+"-reference-"+String(index),"parent":rect(parent),"referenceParent":rect(reference),"scale":scale,"imageWidth":image.width,"imageHeight":image.height],shot,prefix:"SWITCHER_NATIVE_MOTION_REFERENCE")}
+        tap("Switcher component");reveal(node("switcher-native-pair"));ready();let before=try state(),window=app.windows.firstMatch.frame,parent=node("switcher-native-parent").frame,reference=node("switcher-native-reference-parent").frame,root=node("switcher-native-target").frame
+        let choices=app.buttons.matching(identifier:"switcher-native-target-option").allElementsBoundByIndex.map{rect($0.frame)};XCTAssertEqual(choices.count,3)
+        let arm=app.buttons["Arm Switcher motion and retirement"].firstMatch;XCTAssertTrue(arm.isHittable && window.contains(arm.frame));arm.tap();let until=Date().timeIntervalSince1970+15.4;var samples:[[String:Any]]=[]
+        repeat{
+            let started=Date().timeIntervalSince1970*1000,snapshot=try app.snapshot();var surfaces:[[Double]]=[]
+            func find(_ value:XCUIElementSnapshot){if value.identifier=="switcher-native-target-selected-surface"{surfaces.append(rect(value.frame))};for child in value.children{find(child)}};find(snapshot)
+            let geometryFinished=Date().timeIntervalSince1970*1000,shot=XCUIScreen.main.screenshot(),image=try XCTUnwrap(shot.image.cgImage),scale=CGFloat(image.width)/window.width,actual=try pixels(image,parent,window,scale),expected=try pixels(image,reference,window,scale),point=CGRect(x:root.midX-1,y:root.minY+4.0/3.0,width:2,height:1.0/3.0),shadow=CGRect(x:root.midX-1,y:root.maxY+2,width:2,height:2),rawPoint=CGRect(x:point.minX+reference.minX-parent.minX,y:point.minY+reference.minY-parent.minY,width:point.width,height:point.height),rawShadow=CGRect(x:shadow.minX+reference.minX-parent.minX,y:shadow.minY+reference.minY-parent.minY,width:shadow.width,height:shadow.height),paint=listItemSampleRGBA(try pixels(image,point,window,scale)),rawPaint=listItemSampleRGBA(try pixels(image,rawPoint,window,scale)),shadowPaint=listItemSampleRGBA(try pixels(image,shadow,window,scale)),rawShadowPaint=listItemSampleRGBA(try pixels(image,rawShadow,window,scale))
+            var ink=0;for i in stride(from:0,to:actual.count,by:4){if actual[i] != 255 || actual[i+1] != 255 || actual[i+2] != 255{ink+=1}}
+            let index=try XCTUnwrap(switcherReferenceIndex(rawPaint,ink),"Known raw endpoint or actual blank retirement"),phrase=switcherPhraseCounts(actual,paints[0],paints[1]);XCTAssertTrue(toggleButtonMatchedFrame(rect(parent),referenceFrames[index],Double(scale)))
+            let row:[String:Any]=["name":name+"-"+String(samples.count),"captureStartedEpochMs":started,"geometryFinishedEpochMs":geometryFinished,"captureEpochMs":Date().timeIntervalSince1970*1000,"parent":rect(parent),"referenceParent":rect(reference),"surfaceFrames":surfaces,"optionFrames":choices,"sampleFrame":rect(point),"referenceSampleFrame":rect(rawPoint),"shadowFrame":rect(shadow),"referenceShadowFrame":rect(rawShadow),"sampleRGBA":paint,"referenceSampleRGBA":rawPaint,"shadowRGBA":shadowPaint,"referenceShadowRGBA":rawShadowPaint,"phraseCounts":phrase,"calibratedReferenceName":name+"-reference-"+String(index),"calibratedReferenceParent":referenceFrames[index],"calibratedReferenceExact":circularPixelsMatch(actual,paints[index]),"referenceExact":circularPixelsMatch(actual,expected),"inkPixels":ink,"scale":scale,"imageWidth":image.width,"imageHeight":image.height];samples.append(row);try mark(name+"-"+String(samples.count),row,shot,prefix:"SWITCHER_NATIVE_MOTION_FRAME");Thread.sleep(forTimeInterval:0.10)
+        }while Date().timeIntervalSince1970<until && nativeWorkRemaining()>0
+        let after=try state(),trace=try XCTUnwrap(after["motionTrace"] as? [[String:Any]]),retired=try XCTUnwrap(trace.first{$0["name"] as? String=="retire"}),moving=samples.filter{($0["captureStartedEpochMs"] as? Double ?? 0)>=(trace[0]["epochMs"] as? Double ?? .infinity) && ($0["captureEpochMs"] as? Double ?? .infinity)<(retired["epochMs"] as? Double ?? 0)}
+        let result:[String:Any]=["name":name,"reduced":reduced,"state":after,"originalRootTag":before["rootTag"] ?? NSNull(),"movingRows":moving.count,"samples":samples];FileHandle.standardOutput.write(Data("SWITCHER_NATIVE_MOTION ".utf8)+(try JSONSerialization.data(withJSONObject:result,options:.sortedKeys))+Data("\n".utf8))
+        XCTAssertEqual(trace.compactMap{$0["name"] as? String},(0..<40).map{"retarget-"+String($0)}+["settle","retire","fresh"]);XCTAssertGreaterThan(moving.count,1)
+        if reduced{XCTAssertTrue(moving.allSatisfy{$0["calibratedReferenceExact"] as? Bool==true});XCTAssertTrue(moving.allSatisfy{row in guard let frames=row["surfaceFrames"] as? [[Double]] else{return false};return frames.count==1 && choices.contains{toggleButtonMatchedFrame(frames[0],$0,3)}})}
+        else{
+            XCTAssertTrue(moving.contains{switcherRootIntermediate($0["sampleRGBA"] as? [Int] ?? [])},"Actual250ms root color interpolation")
+            XCTAssertTrue(moving.contains{buttonShadowIntermediate($0["shadowRGBA"] as? [Int] ?? [])},"Actual450ms root shadow interpolation")
+            XCTAssertTrue(moving.contains{($0["phraseCounts"] as? [Int] ?? [0,0])[1]>0},"Actual opaque option glyph foreground interpolation")
+            XCTAssertTrue(moving.contains{row in (row["surfaceFrames"] as? [[Double]] ?? []).contains{switcherSurfaceIntermediate($0,choices,3)}},"Actual native selected-surface presentation geometry")
+        }
+        XCTAssertTrue(samples.contains{($0["inkPixels"] as? Int)==0});XCTAssertNotEqual(try number(after,"rootTag"),try number(before,"rootTag"));ready();try capture(name+"-fresh")
+    }
+    func testSwitcherMotionAndRetirement() throws {
+        tap("Switcher motion checks");ready();let initial=try app.snapshot();var found=0
+        func count(_ value:XCUIElementSnapshot){if value.identifier=="switcher-native-target-selected-surface"{found+=1};for child in value.children{count(child)}};count(initial)
+        XCTAssertEqual(found,1,"Native selected surface must be observable in the standard XCTest tree; absence is an observer gap,not a product PASS")
+        let settings=XCUIApplication(bundleIdentifier:"com.apple.Preferences");settings.launch();let toggle=motionSwitch(settings),original=try XCTUnwrap(toggle.value as? String);XCTAssertTrue(["0","1"].contains(original));FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_ORIGINAL "+original+"\n").utf8))
+        addTeardownBlock{[self] in let current=self.motionSwitch(settings);self.setMotion(current,original);XCTAssertEqual(current.value as? String,original);self.app.activate();FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_RESTORED "+original+"\n").utf8))}
+        setMotion(toggle,"0");app.activate();reveal(node("switcher-native-state"));wait("Real normal-motion event"){((try? self.state()["motionEvents"] as? [Bool]) ?? []).last==false};try motion("normal",reduced:false)
+        setMotion(motionSwitch(settings),"1");app.activate();reveal(node("switcher-native-state"));wait("Real reduced-motion event"){((try? self.state()["motionEvents"] as? [Bool]) ?? []).last==true};try motion("reduced",reduced:true)
+    }
+    private func node(_ id:String)->XCUIElement {app.descendants(matching:.any).matching(NSPredicate(format:"identifier == %@",id)).firstMatch}
+
+    private func wait(_ message:String,_ predicate:@escaping()->Bool) {
+        let expectation=XCTNSPredicateExpectation(predicate:NSPredicate{_,_ in predicate()},object:nil)
+        XCTAssertEqual(XCTWaiter.wait(for:[expectation],timeout:nativeWorkRemaining()),.completed,message)
+    }
+
+    private func reveal(_ element:XCUIElement) {
+        XCTAssertTrue(element.waitForExistence(timeout:nativeWorkRemaining()));let scroll=app.scrollViews.firstMatch;XCTAssertTrue(scroll.exists)
+        for _ in 0..<24 {
+            let viewport=app.windows.firstMatch.frame.intersection(scroll.frame).insetBy(dx:2,dy:2)
+            if !element.frame.isEmpty && viewport.contains(element.frame){return}
+            guard let distance=galleryScrollFraction(Double(element.frame.minY),Double(element.frame.height),Double(viewport.minY),Double(viewport.height)),distance != 0 else{XCTFail("Switcher target cannot fit measured viewport");return}
+            let start:CGFloat=distance>0 ? 0.75:0.30
+            let trace:[String:Any]=["target":element.identifier,"frame":rect(element.frame),"viewport":rect(viewport),"requestedFraction":distance]
+            if let data=try? JSONSerialization.data(withJSONObject:trace,options:.sortedKeys){FileHandle.standardOutput.write(Data("LINK_SCROLL ".utf8)+data+Data("\n".utf8))}
+            scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:start)).press(forDuration:0.05,thenDragTo:scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:start-CGFloat(distance))),withVelocity:.slow,thenHoldForDuration:0.25)
+        };XCTFail("Unreachable Switcher control/canvas "+element.identifier)
+    }
+
+    private func tap(_ name:String) {
+        let control=app.buttons.matching(NSPredicate(format:"label == %@",name)).firstMatch;reveal(control);XCTAssertTrue(control.isHittable);control.tap()
+        if name=="Select scene"{wait("Actual selected Switcher scene"){control.isSelected}}
+    }
+
+    private func pixels(_ image:CGImage,_ frame:CGRect,_ window:CGRect,_ scale:CGFloat) throws -> [UInt8] {
+        XCTAssertTrue(window.contains(frame));let rect=CGRect(x:((frame.minX-window.minX)*scale).rounded(),y:((frame.minY-window.minY)*scale).rounded(),width:(frame.width*scale).rounded(),height:(frame.height*scale).rounded())
+        let crop=try XCTUnwrap(image.cropping(to:rect));var bytes=[UInt8](repeating:0,count:crop.width*crop.height*4)
+        let result=bytes.withUnsafeMutableBytes { buffer -> Bool in
+            guard let context=CGContext(data:buffer.baseAddress,width:crop.width,height:crop.height,bitsPerComponent:8,bytesPerRow:crop.width*4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue|CGBitmapInfo.byteOrder32Big.rawValue) else{return false}
+            context.draw(crop,in:CGRect(x:0,y:0,width:CGFloat(crop.width),height:CGFloat(crop.height)));return true
+        };XCTAssertTrue(result);return bytes
+    }
+    private func motionSwitch(_ settings: XCUIApplication) -> XCUIElement {
+        settings.activate()
+        let toggle = settings.switches["Reduce Motion"].firstMatch
+        if toggle.exists { return toggle }
+        for label in ["Accessibility","Motion"] {
+            let entry = settings.staticTexts[label].firstMatch
+            for _ in 0..<12 { if entry.exists && entry.isHittable { break };settings.swipeUp() }
+            XCTAssertTrue(entry.exists && entry.isHittable,"Standard Settings navigation "+label);entry.tap()
+        }
+        XCTAssertTrue(toggle.waitForExistence(timeout:nativeWorkRemaining()));return toggle
+    }
+
+    private func setMotion(_ toggle: XCUIElement, _ expected: String) {
+        if toggle.value as? String != expected {
+            XCTAssertTrue(toggle.isHittable)
+            toggle.coordinate(withNormalizedOffset:CGVector(dx:0.95,dy:0.5)).tap()
+        }
+        wait("Actual Reduce Motion switch "+expected) { toggle.value as? String == expected }
+        let shot = XCTAttachment(screenshot:XCUIScreen.main.screenshot());shot.name="meter-motion-switch-"+expected;shot.lifetime = .keepAlways;add(shot)
+        FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_SWITCH "+expected+"\n").utf8))
+    }
+}

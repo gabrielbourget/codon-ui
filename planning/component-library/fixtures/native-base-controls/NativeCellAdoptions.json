@@ -233,6 +233,13 @@
         "sha256": "0554cc1d9bbf836a0f09be6fc3d357df76d196053735ac2dd0ba855257cd9844",
         "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/tooltip-after-form-field-20261107/tooltip-G08-completion.json"
       }
+    },
+    "CAT.toggle-switcher.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/switcher-after-link-20261107/switcher-G08-closeout/objects/b3f115f33d61dfe806a9979d33bae84b8f756cb6d0be35bd6a919c401da391d0",
+        "sha256": "b3f115f33d61dfe806a9979d33bae84b8f756cb6d0be35bd6a919c401da391d0",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/switcher-after-link-20261107/switcher-G08-completion.json"
+      }
     }
   }
 }

@@ -517,6 +517,7 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
       onResponderGrant={
         nativeInteraction
           ? (event) => {
+              if (pointer.current?.ended) pointer.current = null
               pointerFocusConsidered.current = false
               grantedCohort.current = cohorts.current.grant(event.nativeEvent)
               observedOrigin.current = "pointer"

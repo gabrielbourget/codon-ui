@@ -1740,4 +1740,82 @@ class CheckboxControls(unittest.TestCase):
         for name in ["checkboxNativeValueMatches","checkboxColorIntermediate","checkboxGlyphIntermediate","checkboxEndpointCoverage","checkboxRetirementCoverage"]:self.assertIn(name,controls)
         self.assertIn('"checkboxCases":47',controls)
 
+class SwitcherControls(unittest.TestCase):
+    def row(self):
+        return {"name":"baseline","state":{"scale":3,"visible":True,"zero":False,"rootTag":81,"layouts":[{"target":81,"currentTarget":81,"layout":{"width":240,"height":50}}],"items":[{"id":"a","label":"First choice","disabled":False}],"selected":"a","disabled":False,"rootWidth":240},"scale":3,"parent":[20,100,280,224],"referenceParent":[20,332,280,224],"matchedReferenceParent":[20,100,280,224],"imageWidth":1170,"imageHeight":2532,"referenceExact":True,"root":[32,112,240,50],"referenceRoot":[32,344,240,50],"rootCount":1,"rootIsButton":False,"members":[{"key":"a","label":"First choice","button":True,"enabled":True,"value":"checked","frame":[35,115,234,44],"referenceFrame":[35,347,234,44]}],"targetCount":1,"heldContactIntervals":[],"inkPixels":500}
+
+    def test_actual_switcher_reader_native_metadata_geometry_and_risks(self):
+        row=self.row();self.assertEqual(NATIVE.validate_switcher_rows([row],["baseline"])["status"],"PASS")
+        positive=copy.deepcopy(row);positive["root"][2]+=0.0001220703125;NATIVE.validate_switcher_rows([positive],["baseline"])
+        for kind in ["missing","duplicate","paint","outside","physical-pixel","wrong-label","wrong-value","busy","wrong-guard","wrong-ref","root-button","missing-member","width","bad-held"]:
+            bad=copy.deepcopy(row);rows=[bad]
+            if kind=="missing":rows=[]
+            elif kind=="duplicate":rows.append(copy.deepcopy(bad))
+            elif kind=="paint":bad["referenceExact"]=False
+            elif kind=="outside":bad["parent"][1]=900
+            elif kind=="physical-pixel":bad["matchedReferenceParent"][0]+=1/3
+            elif kind=="wrong-label":bad["members"][0]["label"]="Wrong"
+            elif kind=="wrong-value":bad["members"][0]["value"]="unchecked"
+            elif kind=="busy":bad["members"][0]["value"]="checked, busy"
+            elif kind=="wrong-guard":bad["members"][0]["enabled"]=False
+            elif kind=="wrong-ref":bad["state"]["layouts"][0]["currentTarget"]=82
+            elif kind=="root-button":bad["rootIsButton"]=True
+            elif kind=="missing-member":bad["members"]=[]
+            elif kind=="width":bad["root"][2]+=1
+            elif kind=="bad-held":bad["heldContactIntervals"]=[{"beganEpochMs":0,"disabledOnPressInEpochMs":700,"endedEpochMs":1000}]
+            with self.subTest(kind=kind),self.assertRaises(ValueError):NATIVE.validate_switcher_rows(rows,["baseline"])
+        gone=copy.deepcopy(row);gone["state"].update(visible=False,rootTag=None);gone.update(root=[],inkPixels=0,members=[],targetCount=0,selectedSurfaceFrames=[]);NATIVE.validate_switcher_rows([gone],["baseline"])
+        for field,value in [("targetCount",1),("members",[self.row()["members"][0]]),("selectedSurfaceFrames",[[32,112,44,44]])]:
+            ghost=copy.deepcopy(gone);ghost[field]=value
+            with self.subTest(retiredField=field),self.assertRaises(ValueError):NATIVE.validate_switcher_rows([ghost],["baseline"])
+        gone["inkPixels"]=1
+        with self.assertRaises(ValueError):NATIVE.validate_switcher_rows([gone],["baseline"])
+        zero=copy.deepcopy(row);zero["state"].update(zero=True,padding=2,border=1);zero["state"]["layouts"][0]["layout"]={"width":6,"height":6};zero["root"][2:]=[6,6];zero["referenceRoot"][2:]=[6,6];NATIVE.validate_switcher_rows([zero],["baseline"])
+        zero["root"][2]=0
+        with self.assertRaises(ValueError):NATIVE.validate_switcher_rows([zero],["baseline"])
+
+    def test_switcher_selection_scope_and_actual_no_admission_boundary(self):
+        self.assertEqual(NATIVE.selection("ios","switcher")["ios"],["SwitcherTrialTests/testSwitcherActionsAndLifetimes","SwitcherTrialTests/testSwitcherStylesAndConstraints"])
+        self.assertEqual(NATIVE.selection("ios","switcher-actions")["ios"],["SwitcherTrialTests/testSwitcherActionsAndLifetimes"])
+        self.assertEqual(NATIVE.selection("ios","switcher-styles")["ios"],["SwitcherTrialTests/testSwitcherStylesAndConstraints"])
+        NATIVE.validate_standard_scope({"cell":"CAT.toggle-switcher.G08","nativeStandard":{"batch":"switcher-styles"}})
+        with self.assertRaises(ValueError):NATIVE.reconcile_switcher_ios("",{"batch":"switcher-styles"})
+        with self.assertRaises(ValueError):NATIVE.reconcile_switcher_ios("",{"batch":"switcher-actions"})
+        self.assertEqual(NATIVE.selection("ios","switcher-motion")["ios"],["SwitcherTrialTests/testSwitcherMotionAndRetirement"])
+        NATIVE.validate_standard_scope({"cell":"CAT.toggle-switcher.G08","nativeStandard":{"batch":"switcher"}})
+        NATIVE.validate_standard_scope({"cell":"CAT.toggle-switcher.G08","nativeStandard":{"batch":"switcher-actions"}})
+        for cell in ["CAT.combo-box.G08","CAT.toggle-switcher.G07","CAT.toggle-button.G08"]:
+            with self.assertRaises(ValueError):NATIVE.validate_standard_scope({"cell":cell,"nativeStandard":{"batch":"switcher"}})
+        with self.assertRaises(ValueError):NATIVE.selection("android","switcher")
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);p=root/"plan.json";p.write_text(json.dumps({"cell":"CAT.toggle-switcher.G08","nativeStandard":{"platform":"ios","batch":"switcher","output":str(root/"never-created")}}));env={k:v for k,v in os.environ.items() if k!="CODON_NATIVE_CELL_PREFLIGHT_RECEIPT"}
+            result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(p)],env=env,capture_output=True,text=True,timeout=10)
+            self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((root/"never-created").exists())
+        with self.assertRaises(KeyError):NATIVE.reconcile_switcher_ios("",{"batch":"switcher-motion"})
+        source=NATIVE.geometry_control_source();self.assertIn('"switcherCases":29',source)
+        for name in ["switcherReferenceIndex","switcherRootIntermediate","switcherPhraseCounts","switcherSurfaceIntermediate"]:self.assertIn("func "+name,source)
+
+
+    def test_switcher_uses_existing_early_identity_and_its_own_reader(self):
+        import ast
+        import inspect
+        source=ast.parse(inspect.getsource(NATIVE.run_ios))
+        dispatch=next(node for node in source.body[0].body if isinstance(node,ast.If) and isinstance(node.body[0],ast.Assign) and isinstance(node.body[0].targets[0],ast.Subscript) and isinstance(node.body[0].targets[0].slice,ast.Constant) and node.body[0].targets[0].slice.value in ["settingsDiagnostic","tooltip"])
+        code=compile(ast.fix_missing_locations(ast.Module(body=[dispatch],type_ignores=[])),"actual-native-reader-dispatch","exec")
+        for batch,key in [("switcher-actions","switcher"),("switcher-styles","switcher"),("switcher-motion","switcher"),("tooltip-styles","tooltip")]:
+            readers={name:MagicMock(return_value=name) for name in ["reconcile_switcher_ios","reconcile_tooltip_ios","reconcile_settings_startup"]}
+            namespace={"config":{"batch":batch},"raw":"native records","result":{},**readers}
+            exec(code,namespace)
+            self.assertEqual(namespace["result"],{key:"reconcile_"+key+"_ios"})
+            readers["reconcile_"+key+"_ios"].assert_called_once_with("native records",{"batch":batch})
+            readers["reconcile_tooltip_ios" if key=="switcher" else "reconcile_switcher_ios"].assert_not_called()
+        callback=next(node for node in ast.walk(source) if isinstance(node,ast.IfExp) and isinstance(node.body,ast.Call) and isinstance(node.body.func,ast.Name) and node.body.func.id=="early_tooltip_observer")
+        code=compile(ast.fix_missing_locations(ast.Expression(callback)),"actual-native-identity-callback","eval")
+        for batch,expected in [("switcher-actions",True),("switcher-styles",True),("switcher-motion",True),("tooltip-styles",True),("link",False)]:
+            identity=MagicMock(return_value="existing identity callback")
+            result=eval(code,{"config":{"batch":batch},"session":object(),"observer":{},"early_tooltip_observer":identity})
+            self.assertEqual(result,"existing identity callback" if expected else None)
+            self.assertEqual(identity.call_count,1 if expected else 0)
+
+
 if __name__ == "__main__": unittest.main()
