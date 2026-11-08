@@ -23,6 +23,336 @@ class StandardTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory();self.root = Path(self.temp.name)
     def tearDown(self): self.temp.cleanup()
 
+
+
+
+
+
+
+
+
+
+
+
+    @unittest.skipUnless(Path("/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift").is_file(), "Actual Foundation predicate controls require Xcode")
+    def test_tooltip_actual_identifier_lookup_avoids_scroll_label_and_rejects_aliases(self):
+        source=(ROOT/"MeterG02TrialTests.swift").read_text().split("final class TooltipTrialTests:",1)[1]
+        lookup=next(line for line in source.splitlines() if "private func node(" in line)
+        harness=r'''
+import Foundation
+var labelReads=0
+final class XCUIElement:NSObject {
+    @objc dynamic var identifier:String
+    let text:String
+    let exists:Bool
+    @objc dynamic var label:String {labelReads += 1;return text}
+    init(_ identifier:String,_ label:String="",exists:Bool=true){self.identifier=identifier;self.text=label;self.exists=exists}
+}
+enum Kind {case any}
+struct XCUIElementQuery {
+    let elements:[XCUIElement]
+    // Replay the label-first alias lookup observed in the saved XCTest trace.
+    func matching(identifier:String)->Self {Self(elements:elements.filter{$0.label==identifier || $0.identifier==identifier})}
+    func matching(_ predicate:NSPredicate)->Self {Self(elements:elements.filter{predicate.evaluate(with:$0)})}
+    var firstMatch:XCUIElement {elements.first ?? XCUIElement("",exists:false)}
+}
+struct XCUIApplication {
+    let elements:[XCUIElement]
+    func descendants(matching:Kind)->XCUIElementQuery {XCUIElementQuery(elements:elements)}
+}
+final class Harness {
+    let app:XCUIApplication
+    init(_ elements:[XCUIElement]){app=XCUIApplication(elements:elements)}
+ACTUAL_LOOKUP
+    func lookup(_ id:String)->XCUIElement {node(id)}
+}
+let indicator=XCUIElement("","Vertical scroll bar, 3 pages")
+let alias=XCUIElement("unrelated-control","tooltip-native-fixture")
+let actual=XCUIElement("tooltip-native-fixture","caller label")
+let duplicate=XCUIElement("tooltip-native-fixture","another label")
+let quotedID="tooltip-native-'quoted'[*]"
+let quoted=XCUIElement(quotedID,"caller label")
+let exact=Harness([indicator,alias,actual,duplicate,quoted])
+let target=exact.lookup("tooltip-native-fixture")
+let missing=Harness([indicator,alias]).lookup("tooltip-native-fixture")
+let literal=exact.lookup(quotedID)
+let result:[String:Any]=["labelReads":labelReads,"exactOriginalTarget":target===actual,"missingRejected":!missing.exists,"literalIdentifier":literal===quoted]
+print(String(data:try JSONSerialization.data(withJSONObject:result,options:.sortedKeys),encoding:.utf8)!)
+'''.replace("ACTUAL_LOOKUP",lookup)
+        path=self.root/"TooltipIdentifierLookup.swift";path.write_text(harness)
+        result=subprocess.run(["/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift","-module-cache-path",str(NATIVE.CACHE/"swift-host-module-cache"),str(path)],capture_output=True,text=True,timeout=60)
+        self.assertEqual(result.returncode,0,result.stderr[-5000:]);actual=json.loads(result.stdout)
+        for key,expected in {"labelReads":0,"exactOriginalTarget":True,"missingRejected":True,"literalIdentifier":True}.items():
+            with self.subTest(control=key):self.assertEqual(actual[key],expected)
+
+    def test_tooltip_selected_methods_and_actual_admission_boundary(self):
+        for phase,method in [("all",["testTooltipOwnershipDelayAndLifetime","testTooltipStylesAndConstraint","testTooltipMotionAndRetirement"]),("ownership","testTooltipOwnershipDelayAndLifetime"),("styles","testTooltipStylesAndConstraint"),("motion","testTooltipMotionAndRetirement")]:
+            batch="tooltip" if phase=="all" else "tooltip-"+phase;plan={"cell":"CAT.tooltip.G08","nativeStandard":{"platform":"ios","batch":batch,"output":str(self.root/"never-created")}};NATIVE.validate_standard_scope(plan)
+            self.assertEqual(NATIVE.selection("ios",batch),{"ios":["TooltipTrialTests/"+name for name in (method if isinstance(method,list) else [method])],"android":[]})
+            path=self.root/(phase+".json");path.write_text(json.dumps(plan));env={k:v for k,v in os.environ.items() if k!="CODON_NATIVE_CELL_PREFLIGHT_RECEIPT"};result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(path)],env=env,capture_output=True,text=True)
+            self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((self.root/"never-created").exists())
+            with self.assertRaises(ValueError):NATIVE.selection("android",batch)
+        with self.assertRaises(ValueError):NATIVE.validate_standard_scope({"cell":"CAT.combo-box.G08","nativeStandard":{"batch":"tooltip-ownership"}})
+
+    @unittest.skipUnless(Path("/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift").is_file(),"Actual Swift Tooltip preparation control")
+    def test_tooltip_motion_requires_native_mode_acknowledgement_before_settings(self):
+        source=(ROOT/"MeterG02TrialTests.swift").read_text().split("final class TooltipTrialTests:",1)[1]
+        preparation=source[source.index("    func testTooltipMotionAndRetirement()"):source.index('        let settings=XCUIApplication',source.index("    func testTooltipMotionAndRetirement()"))]
+        expression=re.search(r'wait\("Actual Tooltip motion fixture before Settings"\) \{ (.+) \}',preparation).group(1)
+        harness=r'''
+import Foundation
+final class Harness {
+    var current:[String:Any];var steps:[String]=[]
+    init(_ row:[String:Any]){current=row}
+    func state()throws->[String:Any]{current}
+    func admitted()->Bool{return ACTUAL_EXPRESSION}
+    func tap(_ title:String){precondition(title=="Tooltip motion");steps.append("tap")}
+    func wait(_ message:String,_ predicate:()->Bool){
+        precondition(message=="Actual Tooltip motion fixture before Settings");steps.append("wait")
+        if !predicate(){current=["mode":"motion","mounted":true]}
+        precondition(predicate())
+    }
+    func ready(){precondition(admitted());steps.append("ready")}
+ACTUAL_PREPARATION
+        precondition(admitted() && steps==["tap","wait","ready"]);steps.append("settings-launch")
+    }
+}
+// The first row is the actual r7 pre-Settings state that failed its setup guard.
+let behavior:[String:Any]=["mode":"behavior","mounted":true,"open":false,"rootTag":NSNull()]
+for wrong:[String:Any] in [behavior,["mode":"motion","mounted":false],["mounted":true],["mode":"motion"]] {precondition(!Harness(wrong).admitted())}
+for row:[String:Any] in [behavior,["mode":"motion","mounted":true]] {
+    let h=Harness(row);try h.testTooltipMotionAndRetirement();precondition(h.steps==["tap","wait","ready","settings-launch"])
+}
+print("PASS actual Tooltip preparation rejects retained behavior state and admits native mode before Settings")
+'''.replace("ACTUAL_EXPRESSION",expression).replace("ACTUAL_PREPARATION",preparation)
+        path=self.root/"TooltipMotionPreparation.swift";path.write_text(harness)
+        result=subprocess.run(["/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift","-module-cache-path",str(NATIVE.CACHE/"swift-host-module-cache"),str(path)],capture_output=True,text=True)
+        self.assertEqual(result.returncode,0,result.stderr[-5000:]);self.assertIn("PASS actual Tooltip preparation",result.stdout)
+
+    @unittest.skipUnless(Path("/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift").is_file(),"Actual Swift Tooltip calibration control")
+    def test_tooltip_calibration_preserves_candidates_and_waits_for_exact_native_endpoint(self):
+        source=(ROOT/"MeterG02TrialTests.swift").read_text().split("final class TooltipTrialTests:",1)[1]
+        calibration=source.split('    private func motion(_ name:String,reduced:Bool)throws{',1)[1].split('        let initial=',1)[0]
+        self.assertIn('continueAfterFailure=false',source);self.assertNotIn('Thread.sleep',calibration)
+        harness=r'''
+import Foundation
+import CoreGraphics
+struct CaptureError:Error{}
+enum Feed{static var mode="",title="",attempt=0,failed=false,waitFailed=false;static var rows:[[String:Any]]=[],events:[String]=[]}
+func XCTAssertEqual<T:Equatable>(_ a:T,_ b:T){Feed.events.append("assert-"+Feed.title);if a != b{Feed.failed=true}}
+func XCTUnwrap<T>(_ value:T?)throws->T{guard let value else{throw CaptureError()};return value}
+struct Image{let pixel:[Int];let width=1170,height=2532}
+struct Picture{let cgImage:Image?};struct Shot{let image:Picture}
+struct XCUIScreen{
+    static var main:Self{Self()}
+    func screenshot()->Shot{
+        Feed.attempt+=1;Feed.events.append("capture-"+Feed.title)
+        let green=[17,119,51,255],near=[17,118,50,255]
+        let pixel=Feed.title=="First" ? [187,51,34,255] : Feed.mode=="persistent-near" ? near : Feed.mode=="wrong-alpha" ? [17,119,51,254] : Feed.mode=="near-then-exact" && Feed.attempt==1 ? near : green
+        return Shot(image:Picture(cgImage:Image(pixel:pixel)))
+    }
+}
+struct Node{let frame:CGRect};struct Windows{var firstMatch:Node{Node(frame:CGRect(x:0,y:0,width:390,height:844))}};struct App{var windows:Windows{Windows()}}
+final class Harness{
+    let app=App()
+    func tap(_ title:String){if title=="First" || title=="Second"{Feed.title=title;Feed.attempt=0}}
+    func ready(){}
+    func node(_ id:String)->Node{precondition(id=="tooltip-native-surface");return Node(frame:CGRect(x:85,y:576,width:220,height:60))}
+    func rect(_ v:CGRect)->[Double]{[v.minX,v.minY,v.width,v.height].map(Double.init)}
+    func sample(_ image:Image,_ point:CGPoint,_ window:CGRect,_ scale:CGFloat)throws->[Int]{precondition(point==CGPoint(x:101,y:600) && window==app.windows.firstMatch.frame && scale==3);return image.pixel}
+    func mark(_ name:String,_ row:[String:Any],_ shot:Shot?,prefix:String)throws{
+        precondition(prefix=="TOOLTIP_NATIVE_CALIBRATION" && row["root"] as? [Double]==[85,576,220,60]);Feed.events.append("mark-"+Feed.title);Feed.rows.append(row)
+        if Feed.mode=="capture-error" && Feed.title=="Second"{throw CaptureError()}
+    }
+    func wait(_ title:String,_ predicate:()->Bool){
+        precondition(title=="Exact native Tooltip "+Feed.title+" glyph endpoint")
+        // Finite source-control feed; installed code keeps the existing remaining-work wait.
+        for _ in 0..<2{if predicate(){return}};Feed.waitFailed=true
+    }
+    func run(_ name:String)throws{
+ACTUAL_CALIBRATION
+    }
+}
+for mode in ["exact","near-then-exact","persistent-near","wrong-alpha","capture-error"]{
+    Feed.mode=mode;Feed.title="";Feed.attempt=0;Feed.failed=false;Feed.waitFailed=false;Feed.rows=[];Feed.events=[]
+    var threw=false;do{try Harness().run("normal")}catch{threw=true}
+    let second=Feed.rows.filter{($0["name"] as? String ?? "").hasPrefix("normal-Second")};precondition(!second.isEmpty)
+    for title in ["First","Second"]{if let assertion=Feed.events.firstIndex(of:"assert-"+title){precondition(Feed.events.firstIndex(of:"mark-"+title)!<assertion)}}
+    if mode=="exact" || mode=="near-then-exact"{
+        precondition(!Feed.failed && !Feed.waitFailed && !threw && second.last?["glyphRGBA"] as? [Int]==[17,119,51,255])
+        if mode=="near-then-exact"{precondition(second.count==2 && second[0]["glyphRGBA"] as? [Int]==[17,118,50,255] && second[0]["name"] as? String=="normal-Second-candidate-1")}
+    }else if mode=="capture-error"{precondition(threw && second.count==1 && !Feed.events.contains("assert-Second"))}
+    else{precondition(!threw && Feed.waitFailed && Feed.failed && second.count==2)}
+}
+print("PASS actual Tooltip calibration: exact, near-to-exact retained, persistent near, alpha negative, capture-error propagation")
+'''.replace('ACTUAL_CALIBRATION',calibration)
+        path=self.root/"TooltipCalibration.swift";path.write_text(harness)
+        result=subprocess.run(["/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift","-module-cache-path",str(NATIVE.CACHE/"swift-host-module-cache"),str(path)],capture_output=True,text=True)
+        self.assertEqual(result.returncode,0,result.stderr[-5000:]);self.assertIn("PASS actual Tooltip calibration",result.stdout)
+
+    def test_tooltip_early_identity_reads_actual_loaded_plugin_and_full_host(self):
+        app=self.root/"Actual.app";bundle=app/"PlugIns/CodonNativeComponents.xctest";bundle.mkdir(parents=True);exe=bundle/"CodonNativeComponents";exe.write_bytes(b"real loaded corrected plugin");(app/"host").write_bytes(b"correct host");observer=NATIVE.identity(app);expected=NATIVE.digest(exe)
+        session=MagicMock();session.output=self.root/"run";session.output.mkdir();log=session.output/"xctest.stdout";row={"path":str(bundle),"executable":str(exe),"sha256":expected,"expectedSHA256":expected,"epochMs":1700000000000};log.write_text("NATIVE_LOADED_OBSERVER_EARLY "+json.dumps(row)+"\n");NATIVE.early_tooltip_observer(session,observer)();out=session.output/"early-loaded-observer.json";self.assertEqual(json.loads(out.read_text())["executableSHA256"],expected)
+        for wrong in ["plugin","host","reported"]:
+            out.unlink(missing_ok=True);exe.write_bytes(b"real loaded corrected plugin");(app/"host").write_bytes(b"correct host");bad=copy.deepcopy(row)
+            if wrong=="plugin":exe.write_bytes(b"wrong loaded plugin")
+            elif wrong=="host":(app/"host").write_bytes(b"wrong actual host")
+            else:bad["sha256"]="f"*64
+            log.write_text("NATIVE_LOADED_OBSERVER_EARLY "+json.dumps(bad)+"\n")
+            with self.subTest(wrong=wrong),self.assertRaises(ValueError):NATIVE.early_tooltip_observer(session,observer)()
+            self.assertFalse(out.exists())
+
+    def test_tooltip_reader_rejects_wrong_paint_geometry_refs_and_duplicates(self):
+        row={"name":"custom","state":{"mode":"styles","case":"custom","open":True,"mounted":True,"rootTag":81,"narrow":False,"background":"#ddeeff","layouts":[{"target":81,"currentTarget":81,"width":220,"height":54}],"rendered":{"placement":"top"}},"root":[70,350,220,54],"anchor":[120,424,120,44],"window":[0,0,390,844],"scale":3,"imageWidth":1170,"imageHeight":2532,"backgroundRGBA":[221,238,255,255],"borderRGBA":[[17,119,51,255]]*3,"arrowRGBA":[47,125,24,255],"arrow":[171,401,18,10],"arrowLayoutSource":"original-native-onLayout","canvasRGBA":[128,128,128,255]}
+        row["state"]["arrowLayout"]={"target":82,"currentTarget":82,"parentTag":81,"x":110,"y":51,"width":18,"height":10}
+        offsets=[(2.5,1),(5,1),(7.5,1),(5,3.5),(.5,3.5),(9.5,3.5),(5,7.5)]
+        row["arrowSamples"]=[{"point":[171+x,401+y],"rgba":[47,125,24,255] if i<4 else [128,128,128,255]} for i,(x,y) in enumerate(offsets)]
+        self.assertEqual(NATIVE.validate_tooltip_rows([row],["custom"])["observations"],1)
+        for wrong in ["background","border","arrow","outside","ref","width","duplicate","arrow-parent","arrow-ref","arrow-width","arrow-frame","arrow-sample","body-overlap","solid-impostor","canvas"]:
+            bad=copy.deepcopy(row)
+            if wrong=="duplicate":
+                with self.assertRaises(ValueError):NATIVE.validate_tooltip_rows([bad,bad],["custom"])
+                continue
+            if wrong=="background":bad["backgroundRGBA"][0]+=1
+            elif wrong=="border":bad["borderRGBA"]=bad["borderRGBA"][:2]
+            elif wrong=="arrow":bad["arrowRGBA"][0]+=1
+            elif wrong=="outside":bad["root"][0]=389
+            elif wrong=="ref":bad["state"]["layouts"][-1]["currentTarget"]=82
+            elif wrong=="arrow-parent":bad["state"]["arrowLayout"]["parentTag"]=83
+            elif wrong=="arrow-ref":bad["state"]["arrowLayout"]["currentTarget"]=83
+            elif wrong=="arrow-width":bad["state"]["arrowLayout"]["width"]=10
+            elif wrong=="arrow-frame":bad["arrow"][0]+=1
+            elif wrong=="arrow-sample":bad["arrowSamples"][1]["point"][1]+=4
+            elif wrong=="body-overlap":bad["arrow"][1]-=10;bad["state"]["arrowLayout"]["y"]-=10
+            elif wrong=="solid-impostor":
+                for sample in bad["arrowSamples"]:sample["rgba"]=[47,125,24,255]
+            elif wrong=="canvas":bad["canvasRGBA"]=[47,125,24,255]
+            else:bad["root"][2]+=1
+            with self.subTest(wrong=wrong),self.assertRaises(ValueError):NATIVE.validate_tooltip_rows([bad],["custom"])
+
+    def test_tooltip_retirement_keeps_owner_request_without_requiring_retired_host(self):
+        row={"name":"retired","state":{"open":True,"mounted":False,"rootTag":None},"scale":3,"root":[]}
+        self.assertEqual(NATIVE.validate_tooltip_rows([row],["retired"])["observations"],1)
+        for wrong in ["root","tag"]:
+            bad=copy.deepcopy(row)
+            if wrong=="root":bad["root"]=[10,10,220,44]
+            else:bad["state"]["rootTag"]=81
+            with self.subTest(wrong=wrong),self.assertRaises(ValueError):NATIVE.validate_tooltip_rows([bad],["retired"])
+
+    def test_tooltip_combined_batch_retains_each_cohort_and_rejects_incomplete_identity(self):
+        names=["closed","cold-open","vetoed-close","echoed-close","delayed-close","retired","fresh-open"]+NATIVE.TOOLTIP_STYLES+["normal-fresh","reduced-fresh"]
+        def state(name):
+            opened=name in ["cold-open","vetoed-close","fresh-open"]
+            return {"anchorTag":84 if name=="fresh-open" else 80,"rootTag":82 if name=="fresh-open" else 81,"actions":1 if name=="vetoed-close" else 2,"open":opened,"requests":[{"value":True,"epochMs":1500},{"value":False,"epochMs":2500}],"commands":[{"epochMs":0},{"epochMs":2000}],"events":[{"target":80,"currentTarget":80}]*2,"inspection":{"target":84 if name=="fresh-open" else 80,"ownerId":"owner","windowId":"window","platform":"ios","descriptionAvailable":opened},"palette":"dark" if name=="dark" else "light"}
+        rows=[{"name":name,"state":state(name)} for name in names]
+        intervals=[]
+        for reduced in [False,True]:
+            trace=[{"name":"retarget-"+str(i),"epochMs":i*100} for i in range(40)]+[{"name":"settle","epochMs":7500},{"name":"entry-acknowledged","epochMs":7600,"rootLayout":{"target":87,"currentTarget":87,"width":220,"height":60},"rendered":{"isEntering":True,"placement":"top"}},{"name":"retire","epochMs":9000},{"name":"fresh","epochMs":11000}]
+            moving={"captureStartedEpochMs":1000,"captureEpochMs":1100,"glyphRGBA":[187,51,34,255] if reduced else [100,80,40,255],"backgroundRGBA":[34,68,102,255],"scale":3}
+            entry={"captureStartedEpochMs":7500,"captureEpochMs":7900,"glyphRGBA":[17,119,51,255] if reduced else [52,139,81,255],"backgroundRGBA":[34,68,102,255] if reduced else [67,96,125,255],"scale":3}
+            intervals.append({"name":"reduced" if reduced else "normal","reduced":reduced,"state":{"commands":trace,"motionEvents":[reduced]},"rootTagBefore":87,"rootFrameBefore":[85,576,220,60],"placementBefore":"top","samples":[moving,copy.deepcopy(moving),entry,{"captureStartedEpochMs":9500,"captureEpochMs":9600,"glyphRGBA":[255]*4,"backgroundRGBA":[255]*4}]})
+        early={"sha256":"a"*64,"expectedSHA256":"a"*64}
+        raw="\n".join(["NATIVE_LOADED_OBSERVER_EARLY "+json.dumps(early)]*3+["TOOLTIP_NATIVE_OBSERVATION "+json.dumps(row) for row in rows]+["TOOLTIP_NATIVE_MOTION "+json.dumps(row) for row in intervals]+["METER_STYLE_MOTION_ORIGINAL 0","METER_STYLE_MOTION_RESTORED 0"])
+        def coverage(values,expected):
+            self.assertEqual(expected,names)
+            if sorted(row["name"] for row in values)!=sorted(expected):raise ValueError("Missing cohort observations")
+            return {"status":"PASS","observations":len(values)}
+        with patch.object(NATIVE,"validate_tooltip_rows",side_effect=coverage):
+            result=NATIVE.reconcile_tooltip_ios(raw,{"batch":"tooltip"});self.assertEqual(result["observations"],16);self.assertEqual(result["motionFrames"],8)
+            for bad in [raw.replace("NATIVE_LOADED_OBSERVER_EARLY "+json.dumps(early)+"\n","",1),raw.replace('"name": "fresh-open"','"name": "missing-fresh"'),raw.replace("METER_STYLE_MOTION_RESTORED 0","METER_STYLE_MOTION_RESTORED 1")]:
+                with self.assertRaises(ValueError):NATIVE.reconcile_tooltip_ios(bad,{"batch":"tooltip"})
+            for wrong in ["root","layout","early","late","not-entering","placement","opaque","unrelated-fresh","before-ack","reduced-interpolation"]:
+                bad=copy.deepcopy(intervals);ack=bad[0]["state"]["commands"][-3]
+                if wrong=="root":ack["rootLayout"]["currentTarget"]=88
+                elif wrong=="layout":ack["rootLayout"]["width"]=221
+                elif wrong=="early":ack["epochMs"]=7400
+                elif wrong=="late":ack["epochMs"]=9100
+                elif wrong=="not-entering":ack["rendered"]["isEntering"]=False
+                elif wrong=="placement":ack["rendered"]["placement"]="bottom"
+                elif wrong=="opaque":bad[0]["samples"][2]["backgroundRGBA"]=[34,68,102,255]
+                elif wrong=="unrelated-fresh":bad[0]["samples"][2].update(captureStartedEpochMs=11272,captureEpochMs=11555)
+                elif wrong=="before-ack":bad[0]["samples"][2].update(captureStartedEpochMs=7000,captureEpochMs=7300)
+                else:bad[1]["samples"][2]["backgroundRGBA"]=[67,96,125,255]
+                changed=raw
+                for original,replacement in zip(intervals,bad):changed=changed.replace("TOOLTIP_NATIVE_MOTION "+json.dumps(original),"TOOLTIP_NATIVE_MOTION "+json.dumps(replacement))
+                with self.subTest(wrong=wrong),self.assertRaises(ValueError):NATIVE.reconcile_tooltip_ios(changed,{"batch":"tooltip"})
+
+    @unittest.skipUnless(Path("/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift").is_file(), "Actual Swift capture controls require Xcode; portable reader/identity controls remain active")
+    def test_tooltip_actual_capture_preserves_acquired_evidence_when_arrow_is_not_in_ax(self):
+        source=(ROOT/"MeterG02TrialTests.swift").read_text().split("final class TooltipTrialTests:",1)[1]
+        capture=source[source.index("    private func capture("):source.index("    func testTooltipOwnershipDelayAndLifetime")]
+        entire=(ROOT/"MeterG02TrialTests.swift").read_text();predicates=[]
+        for signature in ["private func tooltipArrowEdgeMatches(","private func tooltipArrowPaintMatches("]:
+            start=entire.index(signature);end=entire.index("\n}",start)+2;predicates.append(entire[start:end])
+        harness=r'''
+import Foundation
+import CoreGraphics
+enum Failure: Error { case missingSnapshot }
+func XCTUnwrap<T>(_ value:T?,_ message:String="") throws -> T {guard let value else{throw Failure.missingSnapshot};return value}
+func XCTAssertTrue(_ value:Bool,_ message:String=""){precondition(value,message)}
+func XCTAssertFalse(_ value:Bool){precondition(!value)}
+func XCTAssertNotEqual<T:Equatable>(_ a:T,_ b:T){precondition(a != b)}
+func XCTAssertNil<T>(_ value:T?){precondition(value==nil)}
+func XCTAssertEqual<T:Equatable>(_ a:T,_ b:T){precondition(a==b)}
+func XCTAssertEqual(_ a:Double,_ b:Double,accuracy:Double){precondition(abs(a-b)<=accuracy)}
+func XCTAssertLessThanOrEqual<T:Comparable>(_ a:T,_ b:T,_ message:String=""){precondition(a<=b)}
+func XCTAssertGreaterThan<T:Comparable>(_ a:T,_ b:T){precondition(a>b)}
+func XCTAssertGreaterThanOrEqual<T:Comparable>(_ a:T,_ b:T){precondition(a>=b)}
+enum Kind {case window,other}
+enum Orientation {case up}
+struct Image {var width=1170;var height=2532}
+struct ShotImage {var cgImage:Image?=Image();var imageOrientation=Orientation.up}
+struct XCUIScreenshot {var image=ShotImage()}
+struct XCUIScreen {static let main=XCUIScreen();func screenshot()->XCUIScreenshot{XCUIScreenshot()}}
+struct XCUIElementSnapshot {var identifier:String;var frame:CGRect;var label="";var elementType=Kind.other;var children:[XCUIElementSnapshot]=[]}
+var measuredArrow=false
+var mountedHost=true
+struct App {
+    func snapshot() throws -> XCUIElementSnapshot {
+        var row:[String:Any]=["open":true,"mounted":mountedHost,"rootTag":mountedHost ? 81:NSNull(),"narrow":false,"mode":"behavior","case":"behavior","background":"#171717","canvasColor":"#808080","layouts":[["target":81,"currentTarget":81,"width":220,"height":44]],"rendered":["placement":"top"]]
+        if measuredArrow{row["arrowLayout"]=["target":82,"currentTarget":82,"parentTag":81,"x":110,"y":44,"width":10,"height":10]}
+        var children=[
+            XCUIElementSnapshot(identifier:"tooltip-native-state",frame:.zero,label:String(data:try JSONSerialization.data(withJSONObject:row),encoding:.utf8)!),
+            XCUIElementSnapshot(identifier:"tooltip-native-surface",frame:CGRect(x:85,y:590,width:220,height:44)),
+            XCUIElementSnapshot(identifier:"tooltip-native-anchor",frame:CGRect(x:143,y:644,width:103,height:44)),
+            XCUIElementSnapshot(identifier:"tooltip-native-body",frame:CGRect(x:90,y:595,width:210,height:34),label:"Native description / renseignements"),
+            XCUIElementSnapshot(identifier:"tooltip-native-canvas",frame:CGRect(x:26,y:444,width:338,height:340))]
+        if !mountedHost{children=Array(children.prefix(1))}
+        return XCUIElementSnapshot(identifier:"window",frame:CGRect(x:0,y:0,width:390,height:844),elementType:.window,children:children)
+    }
+}
+ACTUAL_ARROW_PREDICATES
+final class Harness {
+    let app=App();var preserved:[String]=[]
+    func rect(_ value:CGRect)->[Double]{[value.minX,value.minY,value.width,value.height].map(Double.init)}
+    func number(_ row:[String:Any],_ key:String)throws->Double{try XCTUnwrap(row[key] as? NSNumber).doubleValue}
+    func color(_ value:String)throws->[Int]{value=="#808080" ? [128,128,128,255]:[23,23,23,255]}
+    func sample(_ image:Image,_ point:CGPoint,_ window:CGRect,_ scale:CGFloat)throws->[Int]{
+        if point.x<85{return [128,128,128,255]}
+        if point.y>=634{let x=point.x-190,y=point.y-634;return y<=5 && x>=y && x<=10-y ? [23,23,23,255]:[128,128,128,255]}
+        return [23,23,23,255]
+    }
+    func mark(_ name:String,_ row:[String:Any],_ shot:XCUIScreenshot?,prefix:String="TOOLTIP_NATIVE_OBSERVATION")throws{preserved.append(prefix);precondition(row["name"] as? String=="cold-open");if let shot{precondition(shot.image.cgImage?.width==1170)}}
+ACTUAL_CAPTURE_METHOD
+    func run() throws {try capture("cold-open")}
+}
+let harness=Harness()
+do{try harness.run();fatalError("Missing decorative arrow must still fail validation")}catch Failure.missingSnapshot{}catch{fatalError("Unexpected failure: \(error)")}
+precondition(harness.preserved==["TOOLTIP_NATIVE_CAPTURE"],"Acquired screenshot/state were lost before missing-arrow assertion")
+measuredArrow=true
+let nativeLayout=Harness();try nativeLayout.run()
+precondition(nativeLayout.preserved==["TOOLTIP_NATIVE_CAPTURE","TOOLTIP_NATIVE_ARROW_CAPTURE","TOOLTIP_NATIVE_OBSERVATION"],"Measured hidden arrow did not retain its full paint/layout checks")
+mountedHost=false
+let retired=Harness();try retired.run()
+precondition(retired.preserved==["TOOLTIP_NATIVE_CAPTURE","TOOLTIP_NATIVE_OBSERVATION"],"Retired native host incorrectly required for retained owner open request")
+precondition(!tooltipArrowEdgeMatches([85,590.3333129882812,220,43.666748046875],[190,623.9999809265137,10,10],"top",0,3),"Retained body-contained arrow must fail")
+precondition(!tooltipArrowPaintMatches(Array(repeating:[23,23,23,255],count:7),[23,23,23,255]),"Solid body-colored rectangle must fail")
+print("PASS actual capture preserved evidence and retained missing-arrow failure")
+'''.replace("ACTUAL_CAPTURE_METHOD",capture).replace("ACTUAL_ARROW_PREDICATES","\n\n".join(predicates))
+        path=self.root/"TooltipCaptureFailure.swift";path.write_text(harness)
+        result=subprocess.run(["/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift","-module-cache-path",str(NATIVE.CACHE/"swift-host-module-cache"),str(path)],capture_output=True,text=True)
+        self.assertEqual(result.returncode,0,result.stderr[-5000:]);self.assertIn("PASS actual capture",result.stdout)
+
     def test_standard_scope_and_actual_linear_progress_entry_fail_before_sdk(self):
         for cell,batch,valid in [("CAT.meter.G04","meter-style",True),("CAT.linear-progress.G04","linear-progress-risk",True),("CAT.linear-progress.G07","linear-progress-risk",True),("CAT.linear-progress.G04","meter-style",False),("CAT.tag.G04","linear-progress-risk",False),("CAT.meter.G04","linear-progress-risk",False)]:
             plan={"cell":cell,"nativeStandard":{"platform":"ios","batch":batch,"output":str(self.root/"never-created")}}

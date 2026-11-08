@@ -1,3 +1,4 @@
+import CryptoKit
 import XCTest
 import UIKit
 
@@ -4154,6 +4155,202 @@ final class LinkTrialTests: XCTestCase {
     private func tap(_ name:String) {
         let control=app.buttons.matching(NSPredicate(format:"label == %@",name)).firstMatch;reveal(control);XCTAssertTrue(control.isHittable);control.tap()
         if name=="Select scene"{wait("Actual selected Link scene"){control.isSelected}}
+    }
+
+    private func pixels(_ image:CGImage,_ frame:CGRect,_ window:CGRect,_ scale:CGFloat) throws -> [UInt8] {
+        XCTAssertTrue(window.contains(frame));let rect=CGRect(x:((frame.minX-window.minX)*scale).rounded(),y:((frame.minY-window.minY)*scale).rounded(),width:(frame.width*scale).rounded(),height:(frame.height*scale).rounded())
+        let crop=try XCTUnwrap(image.cropping(to:rect));var bytes=[UInt8](repeating:0,count:crop.width*crop.height*4)
+        let result=bytes.withUnsafeMutableBytes { buffer -> Bool in
+            guard let context=CGContext(data:buffer.baseAddress,width:crop.width,height:crop.height,bitsPerComponent:8,bytesPerRow:crop.width*4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue|CGBitmapInfo.byteOrder32Big.rawValue) else{return false}
+            context.draw(crop,in:CGRect(x:0,y:0,width:CGFloat(crop.width),height:CGFloat(crop.height)));return true
+        };XCTAssertTrue(result);return bytes
+    }
+    private func motionSwitch(_ settings: XCUIApplication) -> XCUIElement {
+        settings.activate()
+        let toggle = settings.switches["Reduce Motion"].firstMatch
+        if toggle.exists { return toggle }
+        for label in ["Accessibility","Motion"] {
+            let entry = settings.staticTexts[label].firstMatch
+            for _ in 0..<12 { if entry.exists && entry.isHittable { break };settings.swipeUp() }
+            XCTAssertTrue(entry.exists && entry.isHittable,"Standard Settings navigation "+label);entry.tap()
+        }
+        XCTAssertTrue(toggle.waitForExistence(timeout:nativeWorkRemaining()));return toggle
+    }
+
+    private func setMotion(_ toggle: XCUIElement, _ expected: String) {
+        if toggle.value as? String != expected {
+            XCTAssertTrue(toggle.isHittable)
+            toggle.coordinate(withNormalizedOffset:CGVector(dx:0.95,dy:0.5)).tap()
+        }
+        wait("Actual Reduce Motion switch "+expected) { toggle.value as? String == expected }
+        let shot = XCTAttachment(screenshot:XCUIScreen.main.screenshot());shot.name="meter-motion-switch-"+expected;shot.lifetime = .keepAlways;add(shot)
+        FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_SWITCH "+expected+"\n").utf8))
+    }
+}
+
+private func tooltipArrowEdgeMatches(_ body:[Double],_ arrow:[Double],_ placement:String,_ border:Double,_ scale:Double)->Bool {
+    guard body.count==4 && arrow.count==4 && (body+arrow+[border,scale]).allSatisfy({$0.isFinite}) && scale>0 else{return false}
+    if placement=="top"{return abs(arrow[1]-(body[1]+body[3]-border))*scale<=1}
+    if placement=="bottom"{return abs(arrow[1]+arrow[3]-(body[1]+border))*scale<=1}
+    return false
+}
+
+private func tooltipArrowPaintMatches(_ samples:[[Int]],_ expected:[Int])->Bool {
+    guard samples.count==7 && expected.count==4 && expected[3]==255 && samples.allSatisfy({$0.count==4 && $0.allSatisfy({0...255 ~= $0})}) else{return false}
+    return samples.prefix(4).allSatisfy({$0==expected}) && samples.suffix(3).allSatisfy({$0 != expected})
+}
+
+final class TooltipTrialTests: XCTestCase {
+    private var app:XCUIApplication!
+    private let styles=["baseline","custom","final","arrow-zero","narrow","dark","light-restored"]
+    override func setUpWithError() throws {
+        continueAfterFailure=false
+        let bundle=Bundle(for:TooltipTrialTests.self),executable=try XCTUnwrap(bundle.executableURL),expected=try XCTUnwrap(ProcessInfo.processInfo.environment["CODON_NATIVE_OBSERVER_EXECUTABLE_SHA256"]),actual=SHA256.hash(data:try Data(contentsOf:executable)).map{String(format:"%02x",$0)}.joined()
+        XCTAssertEqual(expected.count,64);XCTAssertEqual(actual,expected,"Actually loaded test executable before app launch")
+        let early:[String:Any]=["path":bundle.bundleURL.path,"executable":executable.path,"sha256":actual,"expectedSHA256":expected,"epochMs":Date().timeIntervalSince1970*1000]
+        FileHandle.standardOutput.write(Data("NATIVE_LOADED_OBSERVER_EARLY ".utf8)+(try JSONSerialization.data(withJSONObject:early,options:.sortedKeys))+Data("\n".utf8))
+        app=XCUIApplication(bundleIdentifier:"dev.codonui.showcase");app.launch();XCTAssertEqual(app.state,.runningForeground);XCUIDevice.shared.orientation = .portrait
+        tap("Reset scene");tap("Tooltip/Hover scene");tap("Light theme");tap("Live window");tap("Prepare standalone Tooltip checks");reveal(node("tooltip-native-fixture"))
+    }
+    override func tearDownWithError() throws {
+        let png=XCTAttachment(screenshot:XCUIScreen.main.screenshot());png.name="tooltip-final";png.lifetime = .keepAlways;add(png)
+        let tree=XCTAttachment(string:app.debugDescription);tree.name="tooltip-final-hierarchy";tree.lifetime = .keepAlways;add(tree)
+    }
+    private func state() throws->[String:Any]{try XCTUnwrap(JSONSerialization.jsonObject(with:Data(node("tooltip-native-state").label.utf8)) as? [String:Any])}
+    private func number(_ row:[String:Any],_ key:String)throws->Double{let value=try XCTUnwrap(row[key] as? NSNumber,key).doubleValue;XCTAssertTrue(value.isFinite);return value}
+    private func rect(_ value:CGRect)->[Double]{[value.minX,value.minY,value.width,value.height].map(Double.init)}
+    private func ready(){wait("Actual positioned Tooltip native root/layout/entry"){guard let row=try? self.state(),let root=row["rootTag"] as? NSNumber,let layouts=row["layouts"] as? [[String:Any]],let render=row["rendered"] as? [String:Any] else{return false};let arrowReady=row["mode"] as? String=="motion" || ((row["arrowLayout"] as? [String:Any])?["parentTag"] as? NSNumber)?.doubleValue==root.doubleValue;return root.doubleValue>0 && arrowReady && (layouts.last?["currentTarget"] as? NSNumber)?.doubleValue==root.doubleValue && render["placement"] as? String != nil && render["isEntering"] as? Bool==false && render["isExiting"] as? Bool==false}}
+    private func closed(){wait("Tooltip host actually retired after owned exit"){guard let row=try? self.state() else{return false};return row["open"] as? Bool==false && row["rootTag"] is NSNull}}
+    private func mark(_ name:String,_ row:[String:Any],_ shot:XCUIScreenshot?,prefix:String="TOOLTIP_NATIVE_OBSERVATION")throws{
+        let data=try JSONSerialization.data(withJSONObject:row,options:.sortedKeys);FileHandle.standardOutput.write(Data((prefix+" ").utf8)+data+Data("\n".utf8));let json=XCTAttachment(data:data,uniformTypeIdentifier:"public.json");json.name="tooltip-"+name+"-receipt";json.lifetime = .keepAlways;add(json);if let shot{let png=XCTAttachment(screenshot:shot);png.name="tooltip-"+name;png.lifetime = .keepAlways;add(png)}
+    }
+    private func inspect(_ available:Bool)throws{
+        let old=try number(state(),"inspectionSequence");tap("Inspect anchor");wait("Fresh original anchor native description"){(try? self.number(self.state(),"inspectionSequence")) ?? 0>old}
+        let row=try state(),data=try XCTUnwrap(row["inspection"] as? [String:Any]);XCTAssertNil(data["error"]);XCTAssertEqual(try number(data,"target"),try number(row,"anchorTag"));XCTAssertEqual(data["platform"] as? String,"ios");XCTAssertFalse((data["ownerId"] as? String ?? "").isEmpty);XCTAssertFalse((data["windowId"] as? String ?? "").isEmpty);XCTAssertEqual(data["descriptionAvailable"] as? Bool,available)
+        if available{XCTAssertTrue((data["description"] as? String ?? "").contains("Native description / renseignements"))}
+    }
+    private func color(_ value:String)throws->[Int]{let hex=value.replacingOccurrences(of:"#",with:"");XCTAssertEqual(hex.count,6);let integer=try XCTUnwrap(Int(hex,radix:16));return [(integer>>16)&255,(integer>>8)&255,integer&255,255]}
+    private func sample(_ image:CGImage,_ point:CGPoint,_ window:CGRect,_ scale:CGFloat)throws->[Int]{listItemSampleRGBA(try pixels(image,CGRect(x:point.x,y:point.y,width:1/scale,height:1/scale),window,scale))}
+    private func capture(_ name:String)throws{
+        let snapshot=try app.snapshot();var all:[XCUIElementSnapshot]=[]
+        func visit(_ item:XCUIElementSnapshot){all.append(item);for child in item.children{visit(child)}};visit(snapshot)
+        func one(_ id:String)->XCUIElementSnapshot?{let list=all.filter{$0.identifier==id};XCTAssertLessThanOrEqual(list.count,1,id);return list.first}
+        let row=try XCTUnwrap(JSONSerialization.jsonObject(with:Data(try XCTUnwrap(one("tooltip-native-state")).label.utf8)) as? [String:Any]),window=try XCTUnwrap(all.first{$0.elementType == .window}).frame,root=one("tooltip-native-surface"),anchor=one("tooltip-native-anchor"),arrow=one("tooltip-native-surface-overlay-arrow"),body=one("tooltip-native-body"),shot=XCUIScreen.main.screenshot(),image=try XCTUnwrap(shot.image.cgImage),scale=CGFloat(image.width)/window.width
+        var observed:[String:Any]=["name":name,"state":row,"root":root.map{rect($0.frame)} ?? [],"anchor":anchor.map{rect($0.frame)} ?? [],"arrow":arrow.map{rect($0.frame)} ?? [],"body":body.map{rect($0.frame)} ?? [],"nativeBodyLabel":body?.label ?? "","scale":Double(scale),"imageWidth":image.width,"imageHeight":image.height,"window":rect(window)]
+        // Preserve acquired evidence even when a later native assertion fails.
+        try mark(name+"-raw",observed,shot,prefix:"TOOLTIP_NATIVE_CAPTURE")
+        XCTAssertEqual(shot.image.imageOrientation,.up);XCTAssertEqual(scale,CGFloat(image.height)/window.height,accuracy:0.01)
+        if row["open"] as? Bool==true && row["mounted"] as? Bool==true{
+            let box=try XCTUnwrap(root).frame,trigger=try XCTUnwrap(anchor).frame,mode=row["mode"] as? String ?? "",caseName=row["case"] as? String ?? "",border=caseName=="custom" ? 3.0:caseName=="final" ? 1.0:0.0,padding=caseName=="custom" ? 7.0:caseName=="final" ? 3.0:5.0
+            XCTAssertTrue(window.contains(box));XCTAssertEqual(box.width,row["narrow"] as? Bool==true ? 128:220,accuracy:1/scale)
+            let layout=try XCTUnwrap((row["layouts"] as? [[String:Any]])?.last);XCTAssertEqual(try number(layout,"target"),try number(row,"rootTag"));XCTAssertEqual(try number(layout,"currentTarget"),try number(row,"rootTag"));XCTAssertEqual(box.width,try number(layout,"width"),accuracy:1/scale);XCTAssertEqual(box.height,try number(layout,"height"),accuracy:1/scale)
+            let placement=try XCTUnwrap((row["rendered"] as? [String:Any])?["placement"] as? String);XCTAssertTrue(["top","bottom"].contains(placement));if placement=="top"{XCTAssertLessThanOrEqual(box.maxY,trigger.minY)}else{XCTAssertGreaterThanOrEqual(box.minY,trigger.maxY)}
+            if mode != "motion"{
+                let background=try sample(image,CGPoint(x:box.minX+border+padding/2,y:box.midY),window,scale);observed["backgroundRGBA"]=background;XCTAssertEqual(background,try color(try XCTUnwrap(row["background"] as? String)))
+                if border>0{var points:[[Int]]=[];for x in stride(from:0.5,to:border,by:1){points.append(try sample(image,CGPoint(x:box.minX+x,y:box.midY),window,scale))};observed["borderRGBA"]=points;XCTAssertTrue(points.allSatisfy{$0==[17,119,51,255]})}
+                let text=try XCTUnwrap(body).frame;XCTAssertTrue(box.contains(text));XCTAssertEqual(text.minX-box.minX,border+padding,accuracy:1/scale)
+                if row["narrow"] as? Bool==true{XCTAssertGreaterThan(text.height,34);XCTAssertTrue(body!.label.contains("étroite"))}
+                let measured=try XCTUnwrap(row["arrowLayout"] as? [String:Any]);XCTAssertEqual(try number(measured,"target"),try number(measured,"currentTarget"));XCTAssertGreaterThan(try number(measured,"target"),0);XCTAssertEqual(try number(measured,"parentTag"),try number(row,"rootTag"))
+                let width=try number(measured,"width"),height=try number(measured,"height"),triangle=CGRect(x:box.minX+(try number(measured,"x"))-width/2,y:box.minY+(try number(measured,"y")),width:width,height:height)
+                observed["arrow"]=rect(triangle);observed["arrowLayoutSource"]="original-native-onLayout"
+                XCTAssertEqual(width,caseName=="arrow-zero" ? 0:caseName=="custom" || caseName=="final" ? 18:10,accuracy:1/scale);XCTAssertEqual(height,10,accuracy:1/scale)
+                if caseName != "arrow-zero"{
+                    let expected=caseName=="custom" || caseName=="final" ? [47,125,24,255]:try color(try XCTUnwrap(row["background"] as? String)),canvas=try XCTUnwrap(one("tooltip-native-canvas")).frame,canvasPoint=CGPoint(x:canvas.minX+12,y:box.midY),canvasRGBA=try sample(image,canvasPoint,window,scale)
+                    let offsets:[(CGFloat,CGFloat)]=[(2.5,1),(5,1),(7.5,1),(5,3.5),(0.5,3.5),(9.5,3.5),(5,7.5)]
+                    var samples:[[String:Any]]=[],colors:[[Int]]=[]
+                    for (x,y) in offsets{let point=CGPoint(x:triangle.minX+x,y:triangle.minY+(placement=="top" ? y:10-y)),rgba=try sample(image,point,window,scale);colors.append(rgba);samples.append(["point":[Double(point.x),Double(point.y)],"rgba":rgba])}
+                    observed["arrowRGBA"]=colors[1];observed["arrowSamples"]=samples;observed["canvas"]=rect(canvas);observed["canvasRGBA"]=canvasRGBA
+                    try mark(name+"-arrow",observed,nil,prefix:"TOOLTIP_NATIVE_ARROW_CAPTURE")
+                    XCTAssertTrue(window.contains(triangle));XCTAssertTrue(canvas.contains(canvasPoint));XCTAssertFalse(box.contains(canvasPoint));XCTAssertEqual(canvasRGBA,try color(try XCTUnwrap(row["canvasColor"] as? String)));XCTAssertNotEqual(canvasRGBA,expected)
+                    XCTAssertTrue(tooltipArrowEdgeMatches(rect(box),rect(triangle),placement,border,Double(scale)),"Original arrow must meet the surface padding edge")
+                    XCTAssertTrue(tooltipArrowPaintMatches(colors,expected),"Opaque triangle and exterior negatives must distinguish actual arrow paint")
+                }
+            }
+        }else{XCTAssertNil(root);XCTAssertTrue(row["rootTag"] is NSNull)}
+        try mark(name,observed,shot)
+    }
+    func testTooltipOwnershipDelayAndLifetime()throws{
+        tap("Tooltip behavior");reveal(node("tooltip-native-fixture"));let originalAnchor=try number(state(),"anchorTag");try inspect(false);try capture("closed")
+        tap("Open delayed");wait("Actual cold owner open"){(try? self.state()["open"] as? Bool)==true};let opened=try state(),request=try XCTUnwrap((opened["requests"] as? [[String:Any]])?.first),command=try XCTUnwrap((opened["commands"] as? [[String:Any]])?.first);XCTAssertGreaterThanOrEqual(try number(request,"epochMs")-number(command,"epochMs"),1500);ready();let originalRoot=try number(state(),"rootTag");try inspect(true);try capture("cold-open")
+        tap("Veto owner");reveal(node("tooltip-native-anchor"));node("tooltip-native-anchor").tap();wait("Original anchor one action"){(try? self.number(self.state(),"actions"))==1};XCTAssertEqual(try state()["open"] as? Bool,true);XCTAssertEqual(try number(state(),"rootTag"),originalRoot);XCTAssertEqual((try state()["requests"] as? [[String:Any]])?.last?["value"] as? Bool,false);try inspect(true);try capture("vetoed-close")
+        tap("Veto owner");reveal(node("tooltip-native-anchor"));node("tooltip-native-anchor").tap();wait("Second original anchor action"){(try? self.number(self.state(),"actions"))==2};closed();try inspect(false);try capture("echoed-close")
+        tap("Open now");ready();tap("Close delayed");closed();let delayed=try state(),lastRequest=try XCTUnwrap((delayed["requests"] as? [[String:Any]])?.last),lastCommand=try XCTUnwrap((delayed["commands"] as? [[String:Any]])?.last);XCTAssertGreaterThanOrEqual(try number(lastRequest,"epochMs")-number(lastCommand,"epochMs"),500);try inspect(false);try capture("delayed-close")
+        tap("Open now");ready();tap("Retire tooltip");wait("Original target and description retired"){(try? self.state()["rootTag"]) is NSNull};XCTAssertFalse(node("tooltip-native-anchor").exists);try capture("retired")
+        tap("Fresh tooltip");wait("Fresh anchor identity"){guard let value=try? self.number(self.state(),"anchorTag") else{return false};return value != originalAnchor};tap("Open now");ready();XCTAssertNotEqual(try number(state(),"rootTag"),originalRoot);try inspect(true);try capture("fresh-open")
+        let events=try XCTUnwrap(state()["events"] as? [[String:Any]]);XCTAssertEqual(events.count,2);for event in events{XCTAssertGreaterThan(try number(event,"target"),0);XCTAssertGreaterThan(try number(event,"currentTarget"),0)}
+    }
+    func testTooltipStylesAndConstraint()throws{
+        tap("Tooltip styles")
+        for name in styles{wait("Current Tooltip style "+name){(try? self.state()["case"] as? String)==name};ready();try capture(name);if name != styles.last{tap("Next Tooltip style")}}
+    }
+    private func motion(_ name:String,reduced:Bool)throws{
+        tap("Tooltip motion");ready()
+        for (title,expected) in [("First",[187,51,34,255]),("Second",[17,119,51,255])]{
+            tap(title)
+            let box=node("tooltip-native-surface").frame,window=app.windows.firstMatch.frame
+            var pixel:[Int]=[],captureError:Error?=nil,candidate=0
+            wait("Exact native Tooltip "+title+" glyph endpoint"){
+                do{
+                    let shot=XCUIScreen.main.screenshot(),image=try XCTUnwrap(shot.image.cgImage),scale=CGFloat(image.width)/window.width
+                    pixel=try self.sample(image,CGPoint(x:box.minX+16,y:box.minY+24),window,scale);candidate+=1
+                    let label=name+"-"+title+(pixel==expected ? "":"-candidate-"+String(candidate))
+                    try self.mark(label,["name":label,"root":self.rect(box),"glyphRGBA":pixel,"expectedGlyphRGBA":expected,"candidate":candidate,"scale":Double(scale),"imageWidth":image.width,"imageHeight":image.height],shot,prefix:"TOOLTIP_NATIVE_CALIBRATION")
+                    return pixel==expected
+                }catch{captureError=error;return true}
+            }
+            if let captureError{throw captureError}
+            XCTAssertEqual(pixel,expected)
+        }
+        let initial=try state(),before=try number(initial,"rootTag"),box=node("tooltip-native-surface").frame,window=app.windows.firstMatch.frame;tap("Arm Tooltip motion");var samples:[[String:Any]]=[];let until=Date().timeIntervalSince1970+12.2
+        repeat{let began=Date().timeIntervalSince1970*1000,shot=XCUIScreen.main.screenshot(),image=try XCTUnwrap(shot.image.cgImage),scale=CGFloat(image.width)/window.width,glyph=try sample(image,CGPoint(x:box.minX+16,y:box.minY+24),window,scale),body=try sample(image,CGPoint(x:box.maxX-10,y:box.midY),window,scale),row:[String:Any]=["name":name+"-"+String(samples.count),"captureStartedEpochMs":began,"captureEpochMs":Date().timeIntervalSince1970*1000,"root":rect(box),"glyphRGBA":glyph,"backgroundRGBA":body,"scale":Double(scale),"imageWidth":image.width,"imageHeight":image.height];samples.append(row);try mark(name+"-"+String(samples.count),row,shot,prefix:"TOOLTIP_NATIVE_MOTION_FRAME");Thread.sleep(forTimeInterval:0.1)}while Date().timeIntervalSince1970<until && nativeWorkRemaining()>0
+        let row=try state(),trace=try XCTUnwrap(row["commands"] as? [[String:Any]]),retired=try XCTUnwrap(trace.first{$0["name"] as? String=="retire"}),moving=samples.filter{($0["captureStartedEpochMs"] as? Double ?? 0)>=(trace.first?["epochMs"] as? Double ?? .infinity) && ($0["captureEpochMs"] as? Double ?? .infinity)<(retired["epochMs"] as? Double ?? 0)}
+        try mark(name,["name":name,"reduced":reduced,"state":row,"samples":samples,"rootTagBefore":before,"rootFrameBefore":rect(box),"placementBefore":(initial["rendered"] as? [String:Any])?["placement"] ?? NSNull()],XCUIScreen.main.screenshot(),prefix:"TOOLTIP_NATIVE_MOTION")
+        XCTAssertEqual(trace.compactMap{$0["name"] as? String},(0..<40).map{"retarget-"+String($0)}+["settle","entry-acknowledged","retire","fresh"]);XCTAssertGreaterThan(moving.count,1)
+        let settled=try XCTUnwrap(trace.first{$0["name"] as? String=="settle"}),ack=try XCTUnwrap(trace.first{$0["name"] as? String=="entry-acknowledged"}),nativeLayout=try XCTUnwrap(ack["rootLayout"] as? [String:Any]),rendered=try XCTUnwrap(ack["rendered"] as? [String:Any]),settledAt=try number(settled,"epochMs"),ackAt=try number(ack,"epochMs")
+        XCTAssertGreaterThanOrEqual(ackAt,settledAt);XCTAssertLessThan(ackAt,try number(retired,"epochMs"))
+        XCTAssertEqual(try number(nativeLayout,"target"),before);XCTAssertEqual(try number(nativeLayout,"currentTarget"),before)
+        XCTAssertEqual(try number(nativeLayout,"width"),Double(box.width),accuracy:1/Double(try number(samples[0],"scale")));XCTAssertEqual(try number(nativeLayout,"height"),Double(box.height),accuracy:1/Double(try number(samples[0],"scale")))
+        XCTAssertEqual(rendered["isEntering"] as? Bool,true);XCTAssertEqual(rendered["placement"] as? String,(initial["rendered"] as? [String:Any])?["placement"] as? String)
+        let retargeting=moving.filter{($0["captureEpochMs"] as? Double ?? .infinity)<settledAt},entry=moving.filter{($0["captureEpochMs"] as? Double ?? 0)>=ackAt}
+        XCTAssertGreaterThan(retargeting.count,1);XCTAssertGreaterThan(entry.count,0)
+        let red=[187,51,34,255],green=[17,119,51,255],blue=[34,68,102,255],white=[255,255,255,255]
+        if reduced{XCTAssertTrue(moving.allSatisfy{let glyph=$0["glyphRGBA"] as? [Int],body=$0["backgroundRGBA"] as? [Int];return (glyph==red || glyph==green) && body==blue})}else{XCTAssertTrue(retargeting.contains{listItemIntermediate($0["glyphRGBA"] as? [Int] ?? [])});XCTAssertTrue(entry.contains{let p=$0["backgroundRGBA"] as? [Int] ?? [];return p.count==4 && 34<p[0] && p[0]<255 && 68<p[1] && p[1]<255 && 102<p[2] && p[2]<255 && p[3]==255})}
+        XCTAssertTrue(samples.contains{($0["glyphRGBA"] as? [Int])==white && ($0["backgroundRGBA"] as? [Int])==white});ready();XCTAssertNotEqual(try number(state(),"rootTag"),before);try capture(name+"-fresh")
+    }
+    func testTooltipMotionAndRetirement()throws{
+        tap("Tooltip motion")
+        wait("Actual Tooltip motion fixture before Settings") { (try? self.state()["mode"] as? String)=="motion" && (try? self.state()["mounted"] as? Bool)==true }
+        ready()
+        let settings=XCUIApplication(bundleIdentifier:"com.apple.Preferences");settings.launch();let toggle=motionSwitch(settings),original=try XCTUnwrap(toggle.value as? String);XCTAssertTrue(["0","1"].contains(original));FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_ORIGINAL "+original+"\n").utf8))
+        addTeardownBlock{[self] in let current=self.motionSwitch(settings);self.setMotion(current,original);XCTAssertEqual(current.value as? String,original);self.app.activate();FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_RESTORED "+original+"\n").utf8))}
+        setMotion(toggle,"0");app.activate();reveal(node("tooltip-native-state"));wait("Actual normal motion event"){((try? self.state()["motionEvents"] as? [Bool]) ?? []).last==false};try motion("normal",reduced:false)
+        setMotion(motionSwitch(settings),"1");app.activate();reveal(node("tooltip-native-state"));wait("Actual reduced motion event"){((try? self.state()["motionEvents"] as? [Bool]) ?? []).last==true};try motion("reduced",reduced:true)
+    }
+    private func node(_ id:String)->XCUIElement {app.descendants(matching:.any).matching(NSPredicate(format:"identifier == %@",id)).firstMatch}
+
+    private func wait(_ message:String,_ predicate:@escaping()->Bool) {
+        let expectation=XCTNSPredicateExpectation(predicate:NSPredicate{_,_ in predicate()},object:nil)
+        XCTAssertEqual(XCTWaiter.wait(for:[expectation],timeout:nativeWorkRemaining()),.completed,message)
+    }
+
+    private func reveal(_ element:XCUIElement) {
+        XCTAssertTrue(element.waitForExistence(timeout:nativeWorkRemaining()));let scroll=app.scrollViews.firstMatch;XCTAssertTrue(scroll.exists)
+        while nativeWorkRemaining()>0 {
+            let viewport=app.windows.firstMatch.frame.intersection(scroll.frame).insetBy(dx:2,dy:2)
+            if !element.frame.isEmpty && viewport.contains(element.frame){return}
+            let frame=element.frame
+            if frame.isEmpty || viewport.isEmpty{continue}
+            guard let distance=galleryScrollFraction(Double(frame.minY),Double(frame.height),Double(viewport.minY),Double(viewport.height)),distance != 0 else{continue}
+            let start:CGFloat=distance>0 ? 0.75:0.30
+            let trace:[String:Any]=["target":element.identifier,"frame":rect(element.frame),"viewport":rect(viewport),"requestedFraction":distance]
+            if let data=try? JSONSerialization.data(withJSONObject:trace,options:.sortedKeys){FileHandle.standardOutput.write(Data("TOOLTIP_SCROLL ".utf8)+data+Data("\n".utf8))}
+            scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:start)).press(forDuration:0.05,thenDragTo:scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:start-CGFloat(distance))),withVelocity:.slow,thenHoldForDuration:0.25)
+        };XCTFail("Unreachable Tooltip control/canvas "+element.identifier)
+    }
+
+    private func tap(_ name:String) {
+        let control=app.buttons.matching(NSPredicate(format:"label == %@",name)).firstMatch;reveal(control);XCTAssertTrue(control.isHittable);control.tap()
+        if name=="Select scene"{wait("Actual selected Tooltip scene"){control.isSelected}}
     }
 
     private func pixels(_ image:CGImage,_ frame:CGRect,_ window:CGRect,_ scale:CGFloat) throws -> [UInt8] {

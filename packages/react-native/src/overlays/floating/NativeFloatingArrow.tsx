@@ -33,6 +33,48 @@ export const NativeFloatingArrow = ({
   const crossPosition = vertical
     ? { left: center, transform: [{ translateX: -width / 2 }] }
     : { top: center, transform: [{ translateY: -height / 2 }] }
+  const authoredPositionFields = vertical
+    ? [
+        "position",
+        "top",
+        "bottom",
+        "inset",
+        "insetBlock",
+        "insetBlockStart",
+        "insetBlockEnd",
+        "margin",
+        "marginTop",
+        "marginBottom",
+        "marginVertical",
+        "marginBlock",
+        "marginBlockStart",
+        "marginBlockEnd",
+      ]
+    : [
+        "position",
+        "left",
+        "right",
+        "start",
+        "end",
+        "inset",
+        "insetInline",
+        "insetInlineStart",
+        "insetInlineEnd",
+        "margin",
+        "marginLeft",
+        "marginRight",
+        "marginStart",
+        "marginEnd",
+        "marginHorizontal",
+        "marginInline",
+        "marginInlineStart",
+        "marginInlineEnd",
+      ]
+  const opposite = ({ top: "bottom", bottom: "top", left: "right", right: "left" } as const)[placement]
+  // Compatibility Yoga resolves percentage insets against the inner size, excluding parent padding.
+  const mainPosition: ViewStyle = authoredPositionFields.some((field) => Object.hasOwn(style, field))
+    ? { [placement]: "100%" }
+    : { [opposite]: -(vertical ? height : width) }
   const rotation = ({ top: "0deg", bottom: "180deg", right: "90deg", left: "270deg" } as const)[placement]
   return (
     <View
@@ -40,7 +82,7 @@ export const NativeFloatingArrow = ({
       accessible={false}
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
-      style={[{ position: "absolute", width: 10, height: 10, [placement]: "100%", ...crossPosition }, style]}
+      style={[{ position: "absolute", width: 10, height: 10, ...mainPosition, ...crossPosition }, style]}
       onLayout={onLayout}
     >
       <View style={[{ width: 10, height: 10, transform: [{ rotate: rotation }] }, graphicStyle]}>

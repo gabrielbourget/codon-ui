@@ -76,6 +76,10 @@ def verify_selected_app_inputs(plan, app):
 
 
 def selection(platform, batch="meter-g02"):
+    if batch in ["tooltip","tooltip-ownership","tooltip-styles","tooltip-motion"]:
+        require(platform=="ios","Current Tooltip batch is iOS only")
+        methods=["testTooltipOwnershipDelayAndLifetime","testTooltipStylesAndConstraint","testTooltipMotionAndRetirement"] if batch=="tooltip" else [{"tooltip-ownership":"testTooltipOwnershipDelayAndLifetime","tooltip-styles":"testTooltipStylesAndConstraint","tooltip-motion":"testTooltipMotionAndRetirement"}[batch]]
+        return {"ios":["TooltipTrialTests/"+method for method in methods],"android":[]}
     if batch in ["link","link-static","link-actions"]:
         require(platform=="ios","Current Link batch is iOS only")
         return {"ios":["LinkTrialTests/"+name for name in (["testLinkActionsAndLifetimes"]+([] if batch=="link-actions" else ["testLinkStylesAndConstraints"])+(["testLinkMotionAndRetirement"] if batch=="link" else []))],"android":[]}
@@ -180,6 +184,8 @@ def bind_xctestrun(template, app, observer, output, installed_observer, restore_
     for key in ["DefaultTestExecutionTimeAllowance", "MaximumTestExecutionTimeAllowance"]: target.pop(key, None)
     environment = {"CODON_METER_FIXTURE_SHA256": digest(REPO / "apps/native-showcase/src/scenes/MeterG02Fixture.tsx"), "CODON_METER_SCENE_SHA256": digest(REPO / "apps/native-showcase/src/scenes/RangeScene.tsx"), "CODON_METER_PRODUCT_SHA256": app["manifestSHA256"], "CODON_METER_OBSERVER_MANIFEST_SHA256": observer["manifestSHA256"]}
     environment["CODON_METER_STYLE_FIXTURE_SHA256"] = digest(REPO / "apps/native-showcase/src/scenes/MeterStyleFixture.tsx")
+    plugin_key="PlugIns/CodonNativeComponents.xctest/CodonNativeComponents"
+    if plugin_key in observer.get("filesSHA256",{}): environment["CODON_NATIVE_OBSERVER_EXECUTABLE_SHA256"]=observer["filesSHA256"][plugin_key]
     environment.update(CODON_SLIDER_SCENE_SHA256=digest(REPO / "apps/native-showcase/src/scenes/SliderScene.tsx"), CODON_SLIDER_PRODUCT_SHA256=app["manifestSHA256"], CODON_SLIDER_OBSERVER_MANIFEST_SHA256=observer["manifestSHA256"])
     if restore_motion is not None:
         require(restore_motion in ["0","1"], "Only the captured original Reduce Motion value is accepted")
@@ -868,10 +874,10 @@ def run_ios(session, config, app, observer):
     sdk_error = None
     try:
         if config.get("batch") == "slider-hit-layout": raw = session.run("xctest", argv, while_running=slider_hold_capture(session, device))
-        else: raw = session.run("xctest", argv)
+        else: raw = session.run("xctest", argv, while_running=early_tooltip_observer(session,observer) if config.get("batch", "").startswith("tooltip") else None)
     except ValueError as error:
         sdk_error = error;stdout = session.output / "xctest.stdout";raw = stdout.read_text() if stdout.exists() else ""
-    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected", "circle-loader", "lagging-lines", "counter", "list-box-item", "list-box-item-motion", "toggle-button", "toggle-button-affected", "toggle-button-style", "radio", "radio-motion", "switch", "switch-motion", "checkbox", "checkbox-static", "checkbox-motion", "button", "button-motion", "link"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
+    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected", "circle-loader", "lagging-lines", "counter", "list-box-item", "list-box-item-motion", "toggle-button", "toggle-button-affected", "toggle-button-style", "radio", "radio-motion", "switch", "switch-motion", "checkbox", "checkbox-static", "checkbox-motion", "button", "button-motion", "link", "tooltip-motion", "tooltip"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
         original_motion = re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])", raw)
         restored_motion = re.findall(r"METER_STYLE_MOTION_RESTORED ([01])", raw)
         if original_motion != restored_motion: session.cleanup_errors.append("Original iOS Reduce Motion restoration unverified")
@@ -884,6 +890,8 @@ def run_ios(session, config, app, observer):
         if sdk_error is not None: raise sdk_error from error
         raise
     write(session.output / "loaded-observer.json", loaded)
+    if config.get("batch", "").startswith("tooltip") and sdk_error is None:
+        early_tooltip_observer(session,observer)();require((session.output/"early-loaded-observer.json").is_file(),"Tooltip early loaded-executable receipt missing")
     if sdk_error is not None: raise sdk_error
     summary = json.loads(session.run("xctest-summary", [XCODE + "/xcresulttool", "get", "test-results", "summary", "--path", session.output / "Tests.xcresult"]))
     result = reconcile_selected_results(summary, raw, selected)
@@ -908,6 +916,7 @@ def run_ios(session, config, app, observer):
     if config.get("batch") in ["list-box-item", "list-box-item-motion"]: result["listBoxItem"] = reconcile_list_item_ios(raw,config,app)
     if config.get("batch") == "placeholder-g08": result["placeholder"] = reconcile_placeholder_ios(raw)
     if config.get("batch") in ["switch", "switch-motion"]: result["switch"] = reconcile_switch_ios(raw, config, app)
+    if config.get("batch", "").startswith("tooltip"): result["tooltip"]=reconcile_tooltip_ios(raw,config)
     if config.get("batch") in ["link","link-static","link-actions"]: result["link"]=reconcile_link_ios(raw,config)
     if config.get("batch") in ["button","button-motion"]: result["button"]=reconcile_button_ios(raw,config)
     if config.get("batch")=="radio-group": result["radioGroup"]=reconcile_radio_group_ios(raw)
@@ -1575,6 +1584,101 @@ def reconcile_checkbox_group_ios(raw,config=None,app=None):
     require(named["dark"]["state"]["themeMode"]=="dark" and named["light-restored"]["state"]["themeMode"]=="light","Group provider restoration missing")
     return {"status":"PASS","observations":len(rows),"nativeActivations":9,"motion":"Group owns no motion; unchanged member clocks retain their separately bound CHK-08 proof."}
 
+
+
+
+
+
+
+
+
+
+
+
+
+def early_tooltip_observer(session,observer):
+    output=session.output/"early-loaded-observer.json"
+    def inspect():
+        log=session.output/"xctest.stdout"
+        if output.exists() or not log.exists():return
+        rows=[json.loads(x) for x in re.findall(r"NATIVE_LOADED_OBSERVER_EARLY (\{[^\n]+\})",log.read_text(errors="replace"))]
+        if not rows:return
+        expected=observer["filesSHA256"]["PlugIns/CodonNativeComponents.xctest/CodonNativeComponents"]
+        require(all(x["sha256"]==x["expectedSHA256"]==expected for x in rows),"Early actual loaded Tooltip executable differs")
+        row=rows[-1];bundle=Path(row["path"]);executable=Path(row["executable"])
+        require(bundle.name=="CodonNativeComponents.xctest" and executable.parent==bundle and digest(executable)==expected,"Early actual loaded Tooltip path/bytes differ")
+        verify_product(observer,bundle.parent.parent)
+        write(output,{"status":"PASS","verifiedUTC":datetime.datetime.now(datetime.timezone.utc).isoformat(),"observerManifestSHA256":observer["manifestSHA256"],"nativeBeforeAppLaunch":rows,"loadedTestBundle":str(bundle),"executableSHA256":expected,"basis":"Native SHA check before app launch; actual loaded plug-in and full host bytes verified during SDK execution."})
+    return inspect
+
+
+TOOLTIP_STYLES=["baseline","custom","final","arrow-zero","narrow","dark","light-restored"]
+def validate_tooltip_rows(rows,names):
+    require(sorted(x["name"] for x in rows)==sorted(names),"Missing/duplicate Tooltip observations")
+    for row in rows:
+        state,scale=row["state"],row["scale"]
+        require(isinstance(scale,(int,float)) and math.isfinite(scale) and scale>0,"Invalid Tooltip scale")
+        if not state["open"] or not state["mounted"]:
+            require(not row["root"] and state["rootTag"] is None,"Closed Tooltip host remains");continue
+        root,window=row["root"],row["window"]
+        require(len(root)==len(window)==4 and all(math.isfinite(x) for x in root+window) and root[2]>0 and root[3]>0,"Invalid Tooltip native frames")
+        x,y,w,h=[math.floor(v*scale+.5) for v in root];require(0<=x<x+w<=row["imageWidth"] and 0<=y<y+h<=row["imageHeight"],"Tooltip outside physical screenshot")
+        require(abs(root[2]-(128 if state["narrow"] else 220))*scale<=1,"Tooltip authored width differs")
+        layout=state["layouts"][-1];require(layout["target"]==layout["currentTarget"]==state["rootTag"] and all(abs(root[i+2]-layout[key])*scale<=1 for i,key in enumerate(["width","height"])),"Tooltip original layout/ref differs")
+        anchor=row["anchor"];placement=state["rendered"]["placement"];require(placement in ["top","bottom"] and (root[1]+root[3]<=anchor[1] if placement=="top" else root[1]>=anchor[1]+anchor[3]),"Tooltip actual placement overlaps anchor")
+        if state["mode"]!="motion":
+            measured=state["arrowLayout"];require(measured["target"]==measured["currentTarget"]>0 and measured["parentTag"]==state["rootTag"],"Tooltip original arrow layout/ref differs")
+            expected_arrow=[root[0]+measured["x"]-measured["width"]/2,root[1]+measured["y"],measured["width"],measured["height"]]
+            arrow=row["arrow"];require(row["arrowLayoutSource"]=="original-native-onLayout" and len(arrow)==4 and all(math.isfinite(x) for x in arrow) and all(abs(x-y)*scale<=1 for x,y in zip(arrow,expected_arrow)),"Tooltip original arrow native frame differs")
+            require(abs(arrow[2]-(0 if state["case"]=="arrow-zero" else 18 if state["case"] in ["custom","final"] else 10))*scale<=1 and abs(arrow[3]-10)*scale<=1,"Tooltip original arrow dimensions differ")
+            expected=state["background"].lstrip("#");rgba=[int(expected[i:i+2],16) for i in [0,2,4]]+[255];require(row["backgroundRGBA"]==rgba,"Tooltip native background differs")
+            if state["case"] in ["custom","final"]:require(row["borderRGBA"]==[[17,119,51,255]]*(3 if state["case"]=="custom" else 1),"Tooltip native border width/color differs")
+            if state["case"]=="arrow-zero":require(not row["arrow"] or row["arrow"][2]==0,"Tooltip authored zero arrow differs")
+            else:
+                border=3 if state["case"]=="custom" else 1 if state["case"]=="final" else 0
+                require(abs((arrow[1] if placement=="top" else arrow[1]+arrow[3])-(root[1]+root[3]-border if placement=="top" else root[1]+border))*scale<=1,"Tooltip arrow is not at the surface padding edge")
+                expected_arrow_rgba=[47,125,24,255] if state["case"] in ["custom","final"] else rgba
+                require(row["canvasRGBA"]==[128,128,128,255] and row["canvasRGBA"]!=expected_arrow_rgba,"Tooltip independent canvas contrast differs")
+                samples=row["arrowSamples"];offsets=[(2.5,1),(5,1),(7.5,1),(5,3.5),(.5,3.5),(9.5,3.5),(5,7.5)];require(len(samples)==len(offsets),"Tooltip triangle samples missing")
+                for index,(sample,(x,y)) in enumerate(zip(samples,offsets)):
+                    require(len(sample["point"])==2 and all(abs(a-b)*scale<=1 for a,b in zip(sample["point"],[arrow[0]+x,arrow[1]+(y if placement=="top" else 10-y)])),"Tooltip triangle sample point differs")
+                    require(len(sample["rgba"])==4 and all(isinstance(v,int) and 0<=v<=255 for v in sample["rgba"]),"Tooltip triangle sample color invalid")
+                    require((sample["rgba"]==expected_arrow_rgba)==(index<4),"Tooltip opaque triangle or exterior negative differs")
+                require(row["arrowRGBA"]==samples[1]["rgba"]==expected_arrow_rgba,"Tooltip independent arrow fill differs")
+            if state["narrow"]:require(row["body"][3]>34 and "étroite" in row["nativeBodyLabel"],"Tooltip constrained content truncated")
+    return {"status":"PASS","observations":len(rows)}
+
+
+def reconcile_tooltip_ios(raw,config):
+    early=[json.loads(x) for x in re.findall(r"NATIVE_LOADED_OBSERVER_EARLY (\{[^\n]+\})",raw)];require(len(early)==(3 if config["batch"]=="tooltip" else 1) and all(x["sha256"]==x["expectedSHA256"]==early[0]["sha256"] and len(x["sha256"])==64 for x in early),"Tooltip early loaded executable proof missing")
+    batch=config["batch"];rows=[json.loads(x) for x in re.findall(r"TOOLTIP_NATIVE_OBSERVATION (\{[^\n]+\})",raw)];ownership=["closed","cold-open","vetoed-close","echoed-close","delayed-close","retired","fresh-open"];motion_names=["normal-fresh","reduced-fresh"];names=ownership+TOOLTIP_STYLES+motion_names if batch=="tooltip" else ownership if batch=="tooltip-ownership" else TOOLTIP_STYLES if batch=="tooltip-styles" else motion_names;result=validate_tooltip_rows(rows,names);named={x["name"]:x for x in rows}
+    if batch in ["tooltip","tooltip-ownership"]:
+        cold=named["cold-open"]["state"];require(cold["requests"][0]["value"] is True and cold["requests"][0]["epochMs"]-cold["commands"][0]["epochMs"]>=1500,"Tooltip actual cold delay missing")
+        veto=named["vetoed-close"]["state"];require(veto["actions"]==1 and veto["open"] and veto["rootTag"]==cold["rootTag"] and veto["requests"][-1]["value"] is False,"Tooltip original action/owner veto differs")
+        require(named["echoed-close"]["state"]["actions"]==2,"Tooltip repeated original action differs")
+        delayed=named["delayed-close"]["state"];require(delayed["requests"][-1]["value"] is False and delayed["requests"][-1]["epochMs"]-delayed["commands"][-1]["epochMs"]>=500,"Tooltip actual close delay missing")
+        fresh=named["fresh-open"]["state"];require(fresh["anchorTag"]!=cold["anchorTag"] and fresh["rootTag"]!=cold["rootTag"] and len(fresh["events"])==2 and all(x["target"]>0 and x["currentTarget"]>0 for x in fresh["events"]),"Tooltip native lifetime/original events differ")
+        for name in ["closed","cold-open","vetoed-close","echoed-close","delayed-close","fresh-open"]:
+            state=named[name]["state"];native=state["inspection"];require(native["target"]==state["anchorTag"] and native["ownerId"] and native["windowId"] and native["platform"]=="ios" and native["descriptionAvailable"] is state["open"],"Tooltip actual original description lifetime differs")
+    if batch in ["tooltip","tooltip-styles"]:require(named["dark"]["state"]["palette"]=="dark" and named["light-restored"]["state"]["palette"]=="light","Tooltip provider restoration differs")
+    if batch in ["tooltip","tooltip-motion"]:
+        intervals=[json.loads(x) for x in re.findall(r"TOOLTIP_NATIVE_MOTION (\{[^\n]+\})",raw)];require([x["name"] for x in intervals]==["normal","reduced"],"Tooltip normal/reduced motion missing")
+        for interval in intervals:
+            state=interval["state"];trace=state["commands"];require([x["name"] for x in trace]==["retarget-"+str(i) for i in range(40)]+["settle","entry-acknowledged","retire","fresh"] and state["motionEvents"][-1] is interval["reduced"],"Tooltip native retarget/reduction trace differs")
+            samples=interval["samples"];moving=[x for x in samples if x["captureStartedEpochMs"]>=trace[0]["epochMs"] and x["captureEpochMs"]<trace[-2]["epochMs"]];require(len(moving)>1 and any(x["glyphRGBA"]==x["backgroundRGBA"]==[255,255,255,255] for x in samples),"Tooltip native motion/retirement frames missing")
+            settled=next(x for x in trace if x["name"]=="settle");ack=next(x for x in trace if x["name"]=="entry-acknowledged");layout=ack["rootLayout"];root=interval["rootTagBefore"];frame=interval["rootFrameBefore"]
+            require(root>0 and layout["target"]==layout["currentTarget"]==root and len(frame)==4 and all(math.isfinite(x) for x in frame),"Tooltip entry native root differs")
+            require(all(abs(layout[key]-frame[i+2])*samples[0]["scale"]<=1 for i,key in enumerate(["width","height"])),"Tooltip entry native layout differs")
+            require(settled["epochMs"]<=ack["epochMs"]<trace[-2]["epochMs"] and ack["rendered"]["isEntering"] is True and ack["rendered"]["placement"]==interval["placementBefore"] and interval["placementBefore"] in ["top","bottom"],"Tooltip entry acknowledgement missing/wrong phase")
+            retargeting=[x for x in moving if x["captureEpochMs"]<settled["epochMs"]];entry=[x for x in moving if x["captureEpochMs"]>=ack["epochMs"]]
+            require(len(retargeting)>1 and entry,"Tooltip separate retarget/entry observations missing")
+            if interval["reduced"]:require(all(x["glyphRGBA"] in [[187,51,34,255],[17,119,51,255]] and x["backgroundRGBA"]==[34,68,102,255] for x in moving),"Tooltip real reduced endpoints differ")
+            else:
+                require(any(len(x["glyphRGBA"])==4 and 17<x["glyphRGBA"][0]<187 and 51<x["glyphRGBA"][1]<119 and 34<x["glyphRGBA"][2]<51 for x in retargeting),"Tooltip native foreground interpolation missing")
+                require(any(len(x["backgroundRGBA"])==4 and 34<x["backgroundRGBA"][0]<255 and 68<x["backgroundRGBA"][1]<255 and 102<x["backgroundRGBA"][2]<255 for x in entry),"Tooltip native entry opacity interpolation missing")
+        original=re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])",raw);require(len(original)==1 and original==re.findall(r"METER_STYLE_MOTION_RESTORED ([01])",raw),"Tooltip original Reduce Motion not restored")
+        result["motionFrames"]=sum(len(x["samples"]) for x in intervals)
+    return result
 
 
 LINK_BEHAVIOR=["baseline","echo","disabled","held-disabled","restored","empty","fragment","relative","small-hit-target","replaced","retired","fresh","alias-relationships","attribute-relationships","changed-targets","removed-targets","empty-relationships","error","handoff"]
@@ -2378,7 +2482,8 @@ def execute(plan, admission):
     require(config["platform"] in ["ios", "android"] and config["action"] in ["build", "run", "diagnose"], "Unknown standard SDK operation")
     if config["action"] == "diagnose": require(config["platform"] == "android" and config["batch"] == "meter-startup-diagnostic", "Only the named Android OS diagnostic is supported")
     selection(config["platform"], config.get("batch"))
-    session = Session(config["output"], plan["attempt"]["maximumSeconds"], plan["attempt"]["cleanupReserveSeconds"])
+    maximum=plan["attempt"]["maximumSeconds"]
+    session = Session(config["output"], maximum, plan["attempt"]["cleanupReserveSeconds"])
     result, failure = None, None
     def interrupted(signum, frame): raise InterruptedError("Owned standard SDK run interrupted: " + str(signum))
     prior = {signum: signal.signal(signum, interrupted) for signum in [signal.SIGINT, signal.SIGTERM, signal.SIGALRM]}
@@ -2428,12 +2533,13 @@ def validate_standard_scope(plan):
     placeholder = cell == "CAT.placeholder-text.G08" and batch == "placeholder-g08"
     slider = cell == "CAT.slider.G01" and batch == "slider-hit-layout"
     checkbox = cell == "CAT.checkbox.G08" and batch in ["checkbox","checkbox-static","checkbox-motion"]
+    tooltip = cell == "CAT.tooltip.G08" and batch in ["tooltip","tooltip-ownership","tooltip-styles","tooltip-motion"]
     link = cell == "CAT.link.G08" and batch in ["link","link-static","link-actions"]
     button = cell == "CAT.button.G08" and batch in ["button","button-motion"]
     radio_group = cell == "CAT.radio-group.G08" and batch=="radio-group"
     checkbox_group = cell == "CAT.checkbox-group.G08" and batch in ["checkbox-group","checkbox-group-actions"]
     switch = cell == "CAT.switch.G08" and batch in ["switch", "switch-motion"]
-    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item or toggle_button or radio or placeholder or slider or switch or checkbox or checkbox_group or radio_group or button or link, "Only the authorized component and focused batch are selected")
+    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item or toggle_button or radio or placeholder or slider or switch or checkbox or checkbox_group or radio_group or button or link or tooltip, "Only the authorized component and focused batch are selected")
 
 
 def main():

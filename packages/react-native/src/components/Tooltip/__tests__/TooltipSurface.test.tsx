@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native"
 import { createRef, type ReactNode } from "react"
-import { AccessibilityInfo, Text as RNText, TextInput, View } from "react-native"
+import { AccessibilityInfo, StyleSheet, Text as RNText, TextInput, View, type ViewStyle } from "react-native"
 
 import {
   Button,
@@ -99,18 +99,64 @@ describe.each(variants)("$name measured native surface", ({ name, Component, arr
         </NativeFloatingLayerHost>
       </NativeThemeProvider>
     )
-    const ready = async (withArrow = initial.showOverlayArrow ?? arrow, arrowWidth = 10) => {
+    const ready = async (withArrow = initial.showOverlayArrow ?? arrow, arrowWidth = 10, arrowHeight = 10) => {
       measure(host.current!, [0, 0, 300, 400])
       measure(trigger!.triggerRef.current!, [100, 200, 40, 20])
       measure(root.current!, [0, 0, 100, 80])
       nativeFocus(root.current!)
       nativeFocus(trigger!.triggerRef.current!)
       if (withArrow)
-        await fireEvent(screen.getByTestId(`${name}-overlay-arrow`, hidden), "layout", layout(arrowWidth, 10))
+        await fireEvent(screen.getByTestId(`${name}-overlay-arrow`, hidden), "layout", layout(arrowWidth, arrowHeight))
       await fireEvent(screen.getByTestId("host"), "layout", layout(300, 400))
     }
     return { node, ready, root, host, onOpenChange, background, trigger: () => trigger! }
   }
+
+  it.each(["top", "bottom", "left", "right"] as const)(
+    "anchors the %s arrow at the padded surface edge using its measured extent",
+    async (placement) => {
+      const f = setup({
+        placement,
+        shouldFlip: false,
+        showOverlayArrow: true,
+        customStyles: { padding: 7, borderWidth: 3 },
+        customOverlayArrowStyles: { width: 18, height: 12 },
+      })
+      await render(f.node())
+      const original = f.root.current
+      await f.ready(true, 18, 12)
+      const style = StyleSheet.flatten(screen.getByTestId(`${name}-overlay-arrow`, hidden).props.style)
+      const edge = ({ top: "bottom", bottom: "top", left: "right", right: "left" } as const)[placement]
+      expect(style[edge]).toBe(placement === "top" || placement === "bottom" ? -12 : -18)
+      expect(style[placement]).toBeUndefined()
+      expect(f.root.current).toBe(original)
+      expect(screen.getByTestId(name, hidden)).toHaveStyle({ padding: 7, borderWidth: 3 })
+    },
+  )
+
+  it.each(["top", "left"] as const)(
+    "preserves authored %s arrow positioning and margin precedence",
+    async (placement) => {
+      const overrides: ViewStyle[] =
+        placement === "top"
+          ? [{ position: "relative" }, { bottom: 19 }, { insetBlockStart: 23 }, { marginVertical: 7 }]
+          : [{ position: "relative" }, { right: 19 }, { start: 23 }, { marginHorizontal: 7 }]
+      const f = setup({ placement, shouldFlip: false, showOverlayArrow: true })
+      await render(f.node())
+      const original = f.root.current
+      for (const customOverlayArrowStyles of overrides) {
+        await screen.rerender(
+          f.node({ placement, shouldFlip: false, showOverlayArrow: true, customOverlayArrowStyles }),
+        )
+        await f.ready(true)
+        expect(StyleSheet.flatten(screen.getByTestId(`${name}-overlay-arrow`, hidden).props.style)).toMatchObject({
+          [placement]: "100%",
+          ...customOverlayArrowStyles,
+        })
+        expect(f.root.current).toBe(original)
+      }
+    },
+  )
 
   it("routes the original description through its caller renderer with complete state", async () => {
     const renderer = jest.fn((props: React.ComponentProps<typeof NativeFocusView>) => <NativeFocusView {...props} />)

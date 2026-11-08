@@ -10,10 +10,13 @@ import {
   Tooltip,
 } from "@codon-ui/react-native"
 
+import { TooltipG08Fixture } from "./TooltipG08Fixture"
+
 const DescriptionContext = createContext("Caller context")
 const Description = () => <Text testID="tooltip-context">{useContext(DescriptionContext)}</Text>
 
 export const TooltipScene = () => {
+  const [checks, setChecks] = useState(false)
   const [open, setOpen] = useState(false)
   const [hoverOpen, setHoverOpen] = useState(false)
   const [echo, setEcho] = useState(true)
@@ -51,9 +54,11 @@ export const TooltipScene = () => {
     style: styled ? { borderWidth: 3 } : undefined,
     customOverlayArrowStyles: styled ? { fill: "orange", width: 0 } : undefined,
   }
+  if (checks) return <TooltipG08Fixture />
   return (
     <DescriptionContext.Provider value="Live caller description context">
       <View style={{ gap: 12 }}>
+        <Button onPress={() => setChecks(true)}>Prepare standalone Tooltip checks</Button>
         <Text elementType="h2">Tooltip and hover descriptions</Text>
         <Text testID="tooltip-scene-state">
           Tooltip: {String(open)}. Hover: {String(hoverOpen)}. Requests: {requests}. Actions: {actions}. Owner{" "}
