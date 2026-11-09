@@ -8,6 +8,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type ForwardedRef,
   type ReactNode,
   type RefAttributes,
@@ -82,6 +83,8 @@ import type { TNativeTagGroupProps, TNativeTagGroupRef } from "./types"
 import { useNativeTagSelectionAnnouncement } from "./useSelectionAnnouncement"
 
 const emptyItems: readonly TNativeCollectionItem<never>[] = []
+const subscribeIdle = () => () => {}
+const idleSnapshot = () => 0
 
 const KeyBindings = ({
   targetTag,
@@ -197,6 +200,11 @@ const NativeTagGroup = <T extends object>({
   useNativeTagSelectionAnnouncement(state, labels)
   const collection = state.collection as TNativeCollectionSnapshot<T>
   const actions = useContext(NativeCollectionActionsContext)
+  useSyncExternalStore(
+    actions?.admission?.subscribe ?? subscribeIdle,
+    actions?.admission?.getSnapshot ?? idleSnapshot,
+    idleSnapshot,
+  )
   const manager = state.selectionManager
   const selection = manager.rawSelection,
     behavior = manager.selectionBehavior,

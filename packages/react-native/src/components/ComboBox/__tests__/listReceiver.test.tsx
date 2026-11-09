@@ -160,6 +160,66 @@ it.each([
   },
 )
 
+it.each(["first", "last"] as const)(
+  "applies %s on each accepted opening of a retained list without resetting later navigation",
+  async (strategy) => {
+    let state!: ComboBoxState<TItem>
+    const originalCollection = collection(),
+      ref = createRef<View>(),
+      changed = jest.fn()
+    const Harness = () => {
+      state = useComboBoxState({ collection: originalCollection, value: null, onChange: changed })
+      return (
+        <NativeComboBoxStateContext.Provider value={state}>
+          <NativeComboBoxList ref={ref} autoFocus={state.focusStrategy || true} />
+        </NativeComboBoxStateContext.Provider>
+      )
+    }
+    const node = wrap(<Harness />)
+    const view = await render(node)
+    const original = ref.current
+    expect(original).not.toBeNull()
+    expect(state.selectionManager.focusedKey).toBeNull()
+    await act(() => state.open(strategy, "manual"))
+    expect(state.isOpen).toBe(true)
+    expect(state.selectionManager.focusedKey).toBe(strategy === "first" ? 0 : "b")
+    await act(() => state.selectionManager.setFocusedKey(""))
+    await view.rerender(node)
+    expect(state.selectionManager.focusedKey).toBe("")
+    await act(() => state.close())
+    expect(state.isOpen).toBe(false)
+    expect(state.selectionManager.focusedKey).toBeNull()
+    await act(() => state.open(strategy === "first" ? "last" : "first", "manual"))
+    expect(state.selectionManager.focusedKey).toBe(strategy === "first" ? "b" : 0)
+    expect(ref.current).toBe(original)
+    expect(changed).not.toHaveBeenCalled()
+  },
+)
+
+it("does not consume a retained list opening strategy until its controlled owner accepts", async () => {
+  let state!: ComboBoxState<TItem>
+  const originalCollection = collection(),
+    ref = createRef<View>(),
+    requested = jest.fn()
+  const Harness = ({ open }: { open: boolean }) => {
+    state = useComboBoxState({ collection: originalCollection, isOpen: open, value: null, onOpenChange: requested })
+    return (
+      <NativeComboBoxStateContext.Provider value={state}>
+        <NativeComboBoxList ref={ref} autoFocus={state.focusStrategy || true} />
+      </NativeComboBoxStateContext.Provider>
+    )
+  }
+  const view = await render(wrap(<Harness open={false} />))
+  const original = ref.current
+  await act(() => state.open("last", "manual"))
+  expect(requested).toHaveBeenCalledWith(true, "manual")
+  expect(state.isOpen).toBe(false)
+  expect(state.selectionManager.focusedKey).toBeNull()
+  await view.rerender(wrap(<Harness open={true} />))
+  expect(state.selectionManager.focusedKey).toBe("b")
+  expect(ref.current).toBe(original)
+})
+
 it("waits for committed collection readiness and keeps empty-collection autofocus pending until actual items arrive", async () => {
   let state!: ComboBoxState<TItem>, setReady!: (ready: boolean) => void, setItems!: (items: boolean) => void
   const empty = collection().filter(() => false),

@@ -67,10 +67,16 @@ it("routes accessibility aliases to the original editor's semantic binding", asy
         items={items}
         inputRef={editor}
         inputValue="held"
-        accessibilityLabel={label}
+        accessibilityLabel={empty ? "" : label}
+        aria-label="Alias Search"
         aria-labelledby={empty ? "" : "search-label other-label"}
         aria-describedby={empty ? "" : "search-description"}
         aria-details={empty ? "" : "search-details"}
+        nativeAccessibilityText={{
+          label: empty ? "" : native ? "Native Search" : undefined,
+          description: empty || native ? "" : "Search description",
+          details: empty ? "" : native ? "Native details" : "Search details",
+        }}
         {...(native
           ? { nativeLabelledBy: ["native-label"], nativeDescribedBy: [], nativeDetailsBy: ["native-details"] }
           : {})}
@@ -78,31 +84,43 @@ it("routes accessibility aliases to the original editor's semantic binding", asy
     )
   const view = await render(node())
   const original = editor.current!
-  const binding = () =>
-    JSON.parse(
-      view.container.queryAll((node) => typeof node.props.semanticBinding === "string")[0].props.semanticBinding,
-    )
-  const first = binding()
-  const self = first.aliases.find(
-    (entry: { id: string; target: number }) => entry.target === findNodeHandle(original),
-  ).id
-  expect(first.labelledBy).toEqual([self, "search-label", "other-label"])
-  expect(first.describedBy).toEqual(["search-description"])
-  expect(first.detailsBy).toEqual(["search-details"])
+  const originalTarget = findNodeHandle(original)
+  expect(originalTarget).toBeGreaterThan(0)
+  const semantics = (
+    text: { label: string; description: string; details: string },
+    accessibilityLabel?: string,
+    accessibilityHint?: string,
+  ) => {
+    const field = view.container.queryAll((node) => typeof node.props.semanticBinding === "string")[0]
+    expect(field.props.editorTarget).toBe(originalTarget)
+    const binding = JSON.parse(field.props.semanticBinding)
+    expect(binding.text).toEqual({ ...text, errorMessage: "" })
+    // Explicit text replaces opaque native descendant/ID discovery.
+    for (const retired of ["aliases", "labelledBy", "describedBy", "detailsBy"])
+      expect(binding).not.toHaveProperty(retired)
+    const input = row("type-ahead-search-input")
+    expect(input.props.accessibilityLabel).toBe(accessibilityLabel)
+    expect(input.props.accessibilityHint).toBe(accessibilityHint)
+    expect(editor.current).toBe(original)
+    expect(input.props.value).toBe("held")
+  }
+  semantics(
+    { label: "Search", description: "Search description", details: "Search details" },
+    "Search",
+    "Search description Search details",
+  )
   await view.rerender(node(true))
-  expect(binding()).toMatchObject({ labelledBy: [], describedBy: [], detailsBy: [] })
+  semantics({ label: "", description: "", details: "" })
   await view.rerender(node(false, true))
-  expect(binding()).toMatchObject({
-    labelledBy: [self, "native-label"],
-    describedBy: [],
-    detailsBy: ["native-details"],
-  })
+  semantics({ label: "Native Search", description: "", details: "Native details" }, "Native Search", "Native details")
   await view.rerender(node(false, false, ""))
-  expect(binding().labelledBy).toEqual(["search-label", "other-label"])
+  semantics(
+    { label: "", description: "Search description", details: "Search details" },
+    undefined,
+    "Search description Search details",
+  )
   expect(row("type-ahead-search").props["aria-describedby"]).toBeUndefined()
   expect(row("type-ahead-search").props["aria-details"]).toBeUndefined()
-  expect(editor.current).toBe(original)
-  expect(row("type-ahead-search-input").props.value).toBe("held")
 })
 
 it.each(["programmatic", "soft-key", "physical-key", "native-edit"] as const)(

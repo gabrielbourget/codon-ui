@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react-native"
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react-native"
 import { createRef } from "react"
 import { StyleSheet, type TextInput, type View } from "react-native"
 
@@ -13,10 +13,30 @@ import { NumberFilterArgument } from "../NumberArgument"
 import { RangeFilterArgument } from "../RangeArgument"
 import { TextFilterArgument } from "../TextArgument"
 
+import { filterEditor } from "./fixtures/editorQuery"
+
 jest.mock("react-native-safe-area-context", () => ({
   SafeAreaProvider: jest.requireActual("react-native").View,
   SafeAreaView: jest.requireActual("react-native").View,
 }))
+beforeEach(() => {
+  jest.useFakeTimers()
+  const native = jest.requireActual<typeof import("react-native")>("react-native")
+  const tags = new WeakMap<object, number>()
+  let next = 1000
+  jest.spyOn(native, "findNodeHandle").mockImplementation((receiver) => {
+    if (!receiver || typeof receiver !== "object") return typeof receiver === "number" ? receiver : null
+    if (!tags.has(receiver)) tags.set(receiver, ++next)
+    return tags.get(receiver)!
+  })
+})
+afterEach(async () => {
+  await cleanup()
+  await act(() => jest.runOnlyPendingTimers())
+  jest.restoreAllMocks()
+  jest.clearAllTimers()
+  jest.useRealTimers()
+})
 const wrap = (child: React.ReactNode) => (
   <NativeThemeProvider>
     <NativeFloatingLayerHost>{child}</NativeFloatingLayerHost>
@@ -38,12 +58,12 @@ it.each([undefined, null, false, 0, ""] as const)(
     await render(wrap(<TextFilterArgument argument={argument} ref={ref} onArgumentChange={change} />))
     const target = ref.current
     expect(target).not.toBeNull()
-    const input = screen.getByLabelText("Filter Argument")
+    const input = filterEditor("Filter Argument")
     await fireEvent.changeText(input, "edited")
     expect(change).toHaveBeenCalledWith({ argument: "edited" })
     expect(input).toHaveDisplayValue("")
     await screen.rerender(wrap(<TextFilterArgument argument="echo" ref={ref} onArgumentChange={change} />))
-    expect(screen.getByLabelText("Filter Argument")).toHaveDisplayValue("echo")
+    expect(filterEditor("Filter Argument")).toHaveDisplayValue("echo")
     expect(ref.current).toBe(target)
   },
 )
@@ -102,7 +122,7 @@ it.each([undefined, null, []])("keeps incomplete range %s and empty list Add own
       <RangeFilterArgument dataType="text" numberLabels={rangeLabels} argument={argument} onArgumentChange={change} />,
     ),
   )
-  const minimum = screen.getByLabelText("Min Value")
+  const minimum = filterEditor("Min Value")
   await fireEvent.changeText(minimum, "edited")
   expect(change).toHaveBeenCalledWith({ argument: ["edited", undefined] })
   expect(minimum).toHaveDisplayValue("")
@@ -143,9 +163,9 @@ it("keeps mixed list entries owned and preserves untouched types through edit/ad
     argument = [0, 1, undefined, null]
   Object.freeze(argument)
   await render(wrap(<ListFilterArgument argument={argument} onArgumentChange={change} />))
-  await fireEvent.changeText(screen.getByLabelText("Filter Argument 0"), "edited")
+  await fireEvent.changeText(filterEditor("Filter Argument 0"), "edited")
   expect(change).toHaveBeenLastCalledWith({ argument: ["edited", 1, undefined, null] })
-  expect(screen.getByLabelText("Filter Argument 0")).toHaveDisplayValue("0")
+  expect(filterEditor("Filter Argument 0")).toHaveDisplayValue("0")
   const deletes = screen.getAllByRole("button", { name: "Delete Filter Entry" })
   expect(deletes[0]).toBeDisabled()
   await fireEvent.press(deletes[0])
@@ -185,7 +205,7 @@ it("uses current callbacks/arguments and rejects saved edits after closure or un
   const { unmount } = await render(
     wrap(<ListFilterArgument argument={[0, 1]} onArgumentChange={old} canAct={() => active} />),
   )
-  const saved = screen.getByLabelText("Filter Argument 0").props.onChangeText
+  const saved = filterEditor("Filter Argument 0").props.onChangeText
   await screen.rerender(wrap(<ListFilterArgument argument={[0, 9]} onArgumentChange={current} canAct={() => active} />))
   expect(current).not.toHaveBeenCalled()
   saved("next")
@@ -217,7 +237,7 @@ it("splits number text/box styles and honors source label overrides", async () =
     fontSize: 23,
     color: "tomato",
   })
-  expect(screen.getByLabelText("Quantity")).toHaveProp("placeholder", "Choose")
+  expect(filterEditor("Quantity")).toHaveProp("placeholder", "Choose")
 })
 it("rejects non-array range/list arguments without interpreting them as lists", async () => {
   await expect(render(wrap(<ListFilterArgument argument={0} onArgumentChange={() => {}} />))).rejects.toThrow(
@@ -234,7 +254,7 @@ it("blocks direct editors while their parent floating scope cannot act", async (
       </NativeFloatingScopeContext.Provider>,
     ),
   )
-  await fireEvent.changeText(screen.getByLabelText("Filter Argument"), "covered")
+  await fireEvent.changeText(filterEditor("Filter Argument"), "covered")
   expect(change).not.toHaveBeenCalled()
 })
 

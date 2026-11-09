@@ -509,6 +509,28 @@ it.each([false, true])(
     expect(row("type-ahead-search-option-string:alpha").props.accessibilityState.disabled).toBe(true)
   },
 )
+it("invalidates compact entry metadata only for query or explicit dependencies", async () => {
+  const editor = createRef<TextInput>()
+  const node = (version: number, dependency: string) =>
+    wrapper({
+      items: [...items],
+      isOpen: true,
+      inputValue: "Al",
+      inputRef: editor,
+      dependencies: [dependency],
+      getItemTextValue: (item) => `${item.name}:${version}`,
+    })
+  const view = await render(node(0, "first"))
+  await ready()
+  const original = editor.current
+  expect(row("type-ahead-search-option-string:alpha").props.accessibilityLabel).toBe("Alpha Wave:0")
+  await view.rerender(node(1, "first"))
+  expect(row("type-ahead-search-option-string:alpha").props.accessibilityLabel).toBe("Alpha Wave:0")
+  await view.rerender(node(2, "second"))
+  expect(row("type-ahead-search-option-string:alpha").props.accessibilityLabel).toBe("Alpha Wave:2")
+  expect(editor.current).toBe(original)
+  expect(row("type-ahead-search-input").props.value).toBe("Al")
+})
 it("NATIVE.compact.005 excludes disabled rows and stale callbacks after guard takeover", async () => {
   const onChange = jest.fn()
   const { rerender } = await render(wrapper({ isOpen: true, onChange, disabledKeys: ["alpha"] }))

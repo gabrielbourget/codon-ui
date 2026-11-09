@@ -4,6 +4,7 @@
     "lib": ["ESNext"],
     "types": ["react", "jest"],
     "jsx": "react-jsx",
+    "customConditions": ["react-native"],
     "noEmit": true,
     "composite": false,
     "incremental": false,

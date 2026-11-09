@@ -1,5 +1,7 @@
 """One admitted plan, stable SDK test targets, and one deadline/cleanup owner."""
 import argparse
+import ctypes
+import errno
 import datetime
 import hashlib
 import json
@@ -14,6 +16,7 @@ import socket
 import struct
 import subprocess
 import time
+import traceback
 from urllib.parse import unquote, urlsplit
 import zipfile
 
@@ -117,6 +120,9 @@ def selection(platform, batch="meter-g02"):
     if batch == "slider-hit-layout":
         require(platform == "ios", "Current Slider hit-layout batch is iOS only")
         return {"ios": ["SliderHitLayoutTrialTests/"+name for name in ["testP01TranslatedOriginalThumbHoldThenDrag", "testP01RepositionedOriginalThumbHoldThenDrag", "testP01RotatedCenterOriginalThumbHoldThenDrag", "testP01RotatedCornerFollowsOriginalNativeHit"]], "android": []}
+    if batch == "placeholder-g07":
+        require(platform == "android", "PlaceholderText G07 requires Android")
+        return {"ios": [], "android": ["light-style", "dark-and-reset", "narrow-pane"]}
     if batch == "placeholder-g08":
         require(platform == "ios", "Current PlaceholderText batch is iOS only")
         return {"ios": ["PlaceholderTrialTests/"+name for name in ["testP01LightStylePrecedenceAndRestore", "testP02DarkProviderExplicitAndEmptyReset", "testP03NarrowWrappedFirstActionAndReset"]], "android": []}
@@ -2751,7 +2757,8 @@ def start_android(session, config):
     require(serial not in session.run("devices-before", adb + ["devices"]), "Selected serial already in use")
     for number in [port, port + 1]:
         with socket.socket() as probe:
-            require(probe.connect_ex(("127.0.0.1", number)) != 0, "Selected emulator port in use")
+            result = probe.connect_ex(("127.0.0.1", number))
+            require(type(result) is int and result == errno.ECONNREFUSED, "Selected emulator port is not verified free: " + str(number) + ": " + repr(result))
     log = (session.output / "emulator.log").open("xb")
     argv = [str(sdk / "emulator/emulator"), "-avd", config["avd"], "-port", str(port), "-no-snapshot-load", "-no-snapshot-save", "-cores", str(cores), "-memory", "2048", "-no-window", "-no-audio", "-no-boot-anim", "-gpu", config["gpu"]]
     session.emulator = subprocess.Popen(argv, env=session.env, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
@@ -2770,6 +2777,10 @@ def start_android(session, config):
 
 def diagnose_android(session, config):
     selected = start_android(session, config)
+    if config.get("systemUIServiceAtBootOnly"):
+        session.run("systemui-service-at-boot", selected + ["shell", "dumpsys", "activity", "services", "com.android.systemui/.SystemUIService"])
+        report = session.output / "systemui-service-at-boot.stdout"
+        return {"status": "SYSTEMUI_SERVICE_STATE_CAPTURED_PENDING_REVIEW", "componentMethods": 0, "installRequests": 0, "inputRequests": 0, "serviceState": {"path": str(report), "sha256": digest(report)}, "gatePromotions": 0}
     session.run("system-logcat", selected + ["logcat", "-b", "system", "-b", "events", "-b", "crash", "-d", "-v", "threadtime"])
     session.run("cpu-info", selected + ["shell", "dumpsys", "cpuinfo"])
     session.run("last-anr", selected + ["shell", "dumpsys", "activity", "lastanr"])
@@ -2794,30 +2805,39 @@ def run_android(session, config, app, observer):
     cohorts = selection("android", batch)["android"]
     style = batch in ["meter-style", "meter-style-dimensions"]
     risk = batch == "linear-progress-risk"
-    if style or risk or batch == "circular-progress":
+    placeholder = batch == "placeholder-g07"
+    if style or risk or batch == "circular-progress" or placeholder:
         session.run("device-api", selected + ["shell", "getprop", "ro.build.version.sdk"])
         session.run("device-abi", selected + ["shell", "getprop", "ro.product.cpu.abi"])
         session.run("device-size", selected + ["shell", "wm", "size"])
         session.run("device-font-setting", selected + ["shell", "settings", "get", "system", "font_scale"])
-        session.motion_setting = session.run("motion-setting-before", selected + ["shell", "settings", "get", "global", "transition_animation_scale"]).strip()
-        require(session.motion_setting == "null" or re.fullmatch(r"[0-9.]+", session.motion_setting), "Unexpected captured motion preference")
+        if not placeholder:
+            session.motion_setting = session.run("motion-setting-before", selected + ["shell", "settings", "get", "global", "transition_animation_scale"]).strip()
+            require(session.motion_setting == "null" or re.fullmatch(r"[0-9.]+", session.motion_setting), "Unexpected captured motion preference")
         if risk:
             original = session.run("animator-setting-before", selected + ["shell", "settings", "get", "global", "animator_duration_scale"]).strip()
             require(original == "null" or re.fullmatch(r"[0-9.]+", original), "Unexpected captured animator preference")
             session.additional_motion_settings["animator_duration_scale"] = original
-    operation = "meter-style" if style else batch
+    operation = "placeholder-g04" if placeholder else "meter-style" if style else batch
     remote = "/sdcard/Android/data/dev.codonui.lab.number/files/" + operation + "-native-" + session.output.name
     cohort_args = ["-e", "cohorts", "dimensions"] if batch == "meter-style-dimensions" else []
     session.run("instrumentation", selected + ["shell", "am", "instrument", "-w", "-e", "op", operation + "-batch", "-e", "outputDir", remote, "-e", "attemptRemainingMs", str(max(1, int(session.remaining() * 1000))), *cohort_args, "dev.codonui.lab.number/.Actions"])
     directory = session.output / "native"
     session.run("pull-results", selected + ["pull", remote, str(directory)])
     receipt = directory / "receipt.json";value = json.loads(receipt.read_text())
-    require(value.get("nativeActionSucceeded") and not value.get("hasFailedCohorts") and value.get("selectedMethods") == cohorts, "Instrumentation failed/incomplete; adb exit alone is not a verdict")
+    if placeholder:
+        from PlaceholderG04AndroidCheck import verify
+        reviewed = verify(value, directory)
+        write(session.output / "placeholder-review.json", {"cohorts": reviewed, "observations": sum(row["observations"] for row in reviewed), "visualReviewRequired": True})
+    else:
+        require(value.get("nativeActionSucceeded") and not value.get("hasFailedCohorts") and value.get("selectedMethods") == cohorts, "Instrumentation failed/incomplete; adb exit alone is not a verdict")
     methods = [native_method({"path": str(receipt), "sha256": digest(receipt), "format": "android_receipt", "method": name, "maximumSeconds": 1800}) for name in cohorts]
     session.run("density", selected + ["shell", "wm", "density"])
     if risk:
         result = reconcile_linear_progress_risk_android(session, config, directory, value)
         write(session.output / "risk-review.json", result)
+    elif placeholder:
+        pass
     elif batch == "circular-progress":
         rows = [row for cohort in value["cohorts"] for row in cohort["observations"]]
         require(len(rows) == 24 and all(row["referenceExact"] or row["state"]["case"] in ["context-label", "zero-width", "zero-height"] for row in rows), "CircularProgress drawing captures incomplete or mismatched")
@@ -2844,6 +2864,47 @@ def cleanup(session, config):
         require(plistlib.loads(state.read_bytes())["state"] == 1, "Simulator shutdown not verified")
     else:
         adb = [str(Path(config["sdk"]) / "platform-tools/adb")]
+        endpoints = {"attempted": False, "verified": False, "portsClosed": {}, "portChecks": {}}
+        verification = {"pid": session.emulator.pid, "processGroup": session.emulator.pid, "verified": False}
+        def verify_endpoints():
+            endpoints["attempted"] = True
+            require(session.remaining(True) > 0, "No Android endpoint verification budget remains")
+            attempt = 0
+            while True:
+                if config["destination"] not in session.run("devices-after-" + str(attempt), adb + ["devices"], cleanup=True): break
+                require(session.remaining(True) > 0, "Emulator transport detachment not verified")
+                attempt += 1
+                time.sleep(min(1, max(0, session.remaining(True))))
+            endpoints["serialAbsent"] = True
+            for port in [int(config["destination"].split("-")[1]), int(config["destination"].split("-")[1]) + 1]:
+                require(session.remaining(True) > 0, "No Android port verification budget remains")
+                endpoints["portsClosed"][str(port)] = False
+                try:
+                    with socket.socket() as probe:
+                        result = probe.connect_ex(("127.0.0.1", port))
+                except OSError as error:
+                    endpoints["portChecks"][str(port)] = {"errno": error.errno, "error": repr(error)}
+                    raise
+                endpoints["portChecks"][str(port)] = {"errno": result if type(result) is int else None, "returned": repr(result)}
+                endpoints["portsClosed"][str(port)] = type(result) is int and result == errno.ECONNREFUSED
+                require(endpoints["portsClosed"][str(port)], "Emulator port remains open" if result == 0 else "Emulator port closure is not verified: " + repr(result))
+            endpoints["verified"] = True
+        def verify_reaped_group(process):
+            verification.clear()
+            verification.update(pid=session.emulator.pid, processGroup=session.emulator.pid, verified=False)
+            require(process is session.emulator and type(process.pid) is int, "Unbound Android cleanup process")
+            require(session.remaining(True) > 0, "No Android group verification budget remains")
+            require(type(process.poll()) is int, "Android leader exit is unknown or still live")
+            verification["leaderReturnCode"] = process.returncode
+            require(host_process_binding(process.pid, absent_ok=True) is None, "Recorded Android PID is still present or reused")
+            verification["kernelPIDAbsent"] = True
+            members = build_process_pids(process.pid, group=True)
+            verification["kernelGroupMembers"] = members
+            require(type(members) is list and members == [], "Android group absence is not complete")
+            if not endpoints["attempted"]: verify_endpoints()
+            require(endpoints["verified"] and session.remaining(True) > 0, "Android endpoint/deadline proof is incomplete")
+            verification.update(verified=True, endpoints=endpoints, observedUTC=datetime.datetime.now(datetime.timezone.utc).isoformat())
+            return True
         captured = dict(session.additional_motion_settings)
         if session.motion_setting is not None: captured["transition_animation_scale"] = session.motion_setting
         restored = {}
@@ -2861,15 +2922,26 @@ def cleanup(session, config):
         try: session.run("emulator-shutdown", adb + ["-s", config["destination"], "emu", "kill"], session.remaining(True) / 2, True)
         except ValueError as error: write(session.output / "shutdown-transport-warning.json", {"error": str(error), "verdict": "Owned group,serial and port checks below determine actual cleanup"})
         finally:
-            require(stop_owned_process(session.emulator), "Owned emulator group remains")
-        attempt = 0
-        while True:
-            if config["destination"] not in session.run("devices-after-" + str(attempt), adb + ["devices"], cleanup=True): break
-            require(session.remaining(True) > 0, "Emulator transport detachment not verified")
-            attempt += 1
-            time.sleep(min(1, max(0, session.remaining(True))))
-        for port in [int(config["destination"].split("-")[1]), int(config["destination"].split("-")[1]) + 1]:
-            with socket.socket() as probe: require(probe.connect_ex(("127.0.0.1", port)) != 0, "Emulator port remains open")
+            try:
+                require(stop_owned_process(session.emulator, verify_reaped_group), "Owned emulator group remains")
+                verify_reaped_group(session.emulator)
+            except Exception as error:
+                verification.update(verified=False, error=repr(error))
+                session.cleanup_errors.append("Owned emulator group cleanup: " + repr(error))
+                write(session.output / "emulator-group-cleanup-failure.json", {
+                    "pid": session.emulator.pid,
+                    "processGroup": session.emulator.pid,
+                    "leaderReturnCode": session.emulator.returncode,
+                    "error": repr(error),
+                    "errno": getattr(error, "errno", None),
+                    "traceback": traceback.format_exc(),
+                    "scope": "Group cleanup remains failed; no denied operation is retried. Continue read-only serial and port verification.",
+                })
+        try:
+            if not endpoints["attempted"]: verify_endpoints()
+        finally:
+            verification.update(endpoints=endpoints, finishedUTC=datetime.datetime.now(datetime.timezone.utc).isoformat())
+            write(session.output / "android-cleanup-verification.json", verification)
 
 
 def capture_android_failure(session, config):
@@ -2933,7 +3005,7 @@ def validate_standard_scope(plan):
     list_item = cell in ["CAT.list-box-item." + gate for gate in ["G04", "G08"]] and batch in ["list-box-item", "list-box-item-motion"]
     toggle_button = cell in ["CAT.toggle-button." + gate for gate in ["G04", "G08"]] and batch in ["toggle-button", "toggle-button-affected", "toggle-button-style"]
     radio = cell == "CAT.radio.G08" and batch in ["radio", "radio-motion"]
-    placeholder = cell == "CAT.placeholder-text.G08" and batch == "placeholder-g08"
+    placeholder = (cell == "CAT.placeholder-text.G08" and batch == "placeholder-g08") or (cell == "CAT.placeholder-text.G07" and batch == "placeholder-g07")
     slider = cell == "CAT.slider.G01" and batch == "slider-hit-layout"
     checkbox = cell == "CAT.checkbox.G08" and batch in ["checkbox","checkbox-static","checkbox-motion"]
     popover = cell == "CAT.click-popover.G08" and batch in ["click-popover-actions","click-popover-styles","click-popover-lifetime"]
@@ -2955,6 +3027,55 @@ def main():
     admission = load_admission(__file__, plan["cell"], selection(plan["nativeStandard"]["platform"], plan["nativeStandard"].get("batch", "meter-g02")))
     require(json.loads(Path(admission["path"]).read_text())["planSHA256"] == digest(args.plan), "Plan changed after admission")
     return execute(plan, admission)
+
+
+def build_process_pids(pid, group=False):
+    library=ctypes.CDLL("/usr/lib/libproc.dylib",use_errno=True)
+    query=library.proc_listpgrppids if group else library.proc_listchildpids
+    query.argtypes=[ctypes.c_int,ctypes.c_void_p,ctypes.c_int];query.restype=ctypes.c_int
+    ctypes.set_errno(0);count=query(pid,None,0)
+    if count < 0: raise OSError(ctypes.get_errno(), "Build child inventory unavailable")
+    if count == 0:
+        require(ctypes.get_errno()==0, "Build child inventory denied")
+        return []
+    values=(ctypes.c_int*(count+1))();ctypes.set_errno(0)
+    delivered=query(pid,values,ctypes.sizeof(values))
+    require(0 <= delivered < len(values) and ctypes.get_errno()==0, "Build child inventory changed or denied")
+    result=list(values[:delivered])
+    require(len(result)==len(set(result)) and all(value>1 and value!=os.getpid() for value in result), "Invalid build child inventory")
+    return result
+
+
+
+def host_process_binding(pid, absent_ok=False):
+    class BSDInfo(ctypes.Structure):
+        _fields_ = [(name,ctypes.c_uint32) for name in ["flags","status","xstatus","pid","ppid","uid","gid","ruid","rgid","svuid","svgid","reserved"]] + [("comm",ctypes.c_char*16),("name",ctypes.c_char*32)] + [(name,ctypes.c_uint32) for name in ["nfiles","pgid","pjobc","tdev","tpgid","nice"]] + [("startsec",ctypes.c_uint64),("startusec",ctypes.c_uint64)]
+    library=ctypes.CDLL("/usr/lib/libproc.dylib",use_errno=True)
+    library.proc_pidinfo.argtypes=[ctypes.c_int,ctypes.c_int,ctypes.c_uint64,ctypes.c_void_p,ctypes.c_int];library.proc_pidinfo.restype=ctypes.c_int
+    library.proc_pidpath.argtypes=[ctypes.c_int,ctypes.c_void_p,ctypes.c_uint32];library.proc_pidpath.restype=ctypes.c_int
+    info=BSDInfo();path=ctypes.create_string_buffer(4096)
+    ctypes.set_errno(0);size=library.proc_pidinfo(pid,3,0,ctypes.byref(info),ctypes.sizeof(info))
+    if size==0 and absent_ok and ctypes.get_errno()==errno.ESRCH: return None
+    if size!=ctypes.sizeof(info) or info.pid!=pid: raise OSError(ctypes.get_errno() or errno.EIO,"Process birth/UID unavailable")
+    ctypes.set_errno(0)
+    if library.proc_pidpath(pid,path,len(path))<=0:
+        error=ctypes.get_errno()
+        # A missing executable path is not proof that the PID disappeared.
+        ctypes.set_errno(0);size=library.proc_pidinfo(pid,3,0,ctypes.byref(info),ctypes.sizeof(info))
+        if size==0 and absent_ok and ctypes.get_errno()==errno.ESRCH: return None
+        raise OSError(error or errno.EIO,"Process executable path unavailable")
+    confirmed_path=ctypes.create_string_buffer(4096);ctypes.set_errno(0)
+    confirmed_size=library.proc_pidpath(pid,confirmed_path,len(confirmed_path));path_error=ctypes.get_errno()
+    after=BSDInfo();ctypes.set_errno(0);size=library.proc_pidinfo(pid,3,0,ctypes.byref(after),ctypes.sizeof(after))
+    if size==0 and absent_ok and ctypes.get_errno()==errno.ESRCH:return None
+    if size!=ctypes.sizeof(after) or after.pid!=pid:raise OSError(ctypes.get_errno() or errno.EIO,"Process confirmation unavailable")
+    if confirmed_size<=0:raise OSError(path_error or errno.EIO,"Process path confirmation unavailable")
+    fields=["pid","uid","startsec","startusec","ppid","pgid"]
+    expected={key:getattr(info,key) for key in fields};observed={key:getattr(after,key) for key in fields}
+    require(expected==observed and path.value==confirmed_path.value and bool(info.flags&2)==bool(after.flags&2), "Unstable process metadata: "+json.dumps({"expected":expected,"observed":observed,"firstPath":path.value.decode(),"confirmedPath":confirmed_path.value.decode()}))
+    # proc_bsdinfo uses PROC_FLAG_TRACED, not the kernel's differently numbered P_TRACED.
+    return {"pid":pid,"ppid":info.ppid,"pgid":info.pgid,"uid":info.uid,"start":[info.startsec,info.startusec],"path":path.value.decode(),"status":info.status,"traced":bool(info.flags&2),"coherent":True}
+
 
 
 if __name__ == "__main__":

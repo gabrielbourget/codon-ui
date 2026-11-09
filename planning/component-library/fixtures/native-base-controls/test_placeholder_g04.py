@@ -17,6 +17,37 @@ import time
 CONTROL_WORK_DEADLINE = time.time() + 1800 - 120
 
 class Controls(unittest.TestCase):
+    def test_actual_placeholder_delegates_existing_reveal_and_saved_partial_geometry(self):
+        from test_native_standard_tests import member
+        source = (ROOT / "android-native-inspector/Actions.java").read_text()
+        route = member(source, "  private AccessibilityNodeInfo lpVisible(")
+        self.assertIn("if(placeholderGuardActive)return tgVisible(automation,id,false);", route)
+        existing = member(source, "  private AccessibilityNodeInfo tgVisible(UiAutomation automation,String id,boolean partialCopy)")
+        self.assertIn("tgMeasuredNavigation(automation,viewport,frame,id)", existing)
+        self.assertIn("if(tgNavigationAdmitted(node,scroll,partialCopy))return node", existing)
+        self.assertIn("if(!partialCopy)return whollyVisible(node,scroll)", member(source, "  private boolean tgNavigationAdmitted("))
+        measured = member(source, "  private void tgMeasuredNavigation(")
+        prefix = measured[measured.index("{")+1:measured.index('String command=')]
+        java = r'''public class Measured {
+          static class Rect {int left,top,right,bottom;Rect(int l,int t,int r,int b){left=l;top=t;right=r;bottom=b;}int width(){return right-left;}int height(){return bottom-top;}int centerY(){return (top+bottom)/2;}}
+          static void lpCheck(boolean value,String message){if(!value)throw new IllegalStateException(message);}
+          static int[] geometry(Rect viewport,Rect frame) {'''+prefix+r'''return new int[]{x,startY,endY,delta};}
+          public static void main(String[] args) {
+            Rect viewport=new Rect(0,136,720,1558),savedPartial=new Rect(45,1524,674,1558);
+            int[] actual=geometry(viewport,savedPartial);
+            if(actual[0]!=706||actual[1]!=1083||actual[2]!=611||actual[3]!=-472)throw new AssertionError("Saved partial frame must use existing measured geometry");
+            if(actual[0]<=savedPartial.right||actual[0]>=viewport.right)throw new AssertionError("Gutter must remain outside original PHT bounds and within owned viewport");
+            try{geometry(viewport,new Rect(45,830,674,864));throw new AssertionError("Zero adjustment must fail");}catch(IllegalStateException expected){}
+            System.out.println("ACTUAL_PHT_EXISTING_REVEAL_SAVED_PARTIAL_GEOMETRY_PASS");
+          }
+        }'''
+        jdk = Path("/Users/gabrielbourget/.local/share/codon-native-lab/jdk/Contents/Home/bin")
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory);(path/"Measured.java").write_text(java)
+            subprocess.run([str(jdk/"javac"),"-d",str(path),str(path/"Measured.java")],check=True,capture_output=True,timeout=CONTROL_WORK_DEADLINE-time.time()-8)
+            result=subprocess.run([str(jdk/"java"),"-XX:ActiveProcessorCount=1","-cp",str(path),"Measured"],check=True,capture_output=True,text=True,timeout=CONTROL_WORK_DEADLINE-time.time()-8)
+            self.assertIn("ACTUAL_PHT_EXISTING_REVEAL_SAVED_PARTIAL_GEOMETRY_PASS",result.stdout)
+
     def packet(self, root):
         cohorts = []
         for name, observations in CHECKER.EXPECTED.items():

@@ -20,10 +20,10 @@ import { NativeOverlayProvider } from "../../../../../packages/react-native/src/
 import { NativeThemeProvider } from "../../../../../packages/react-native/src/theme"
 import { TagComboBoxScene } from "../TagComboBoxScene"
 
-const mockReadForm = jest.fn<Promise<string>, [string]>()
+const mockAdmitForm = jest.fn<Promise<string>, [string]>()
 jest.mock("../../../../../packages/react-native/src/input/specs/NativeCUIFormDocument", () => ({
   __esModule: true,
-  default: { getSnapshot: (request: string) => mockReadForm(request) },
+  default: { admitForm: (request: string) => mockAdmitForm(request) },
 }))
 jest.mock("react-native-safe-area-context", () => ({
   SafeAreaProvider: jest.requireActual("react-native").View,
@@ -35,6 +35,7 @@ const host = createRef<RN.View>(),
   popup = createRef<RN.View>()
 const frames = new Map<number, Parameters<typeof requestAnimationFrame>[0]>()
 let frameSequence = 0
+let formSequence = 0
 const scene = (mode: "light" | "dark" = "light") => (
   <NativeThemeProvider mode={mode}>
     <NativeOverlayProvider>
@@ -48,7 +49,37 @@ const scene = (mode: "light" | "dark" = "light") => (
     </NativeOverlayProvider>
   </NativeThemeProvider>
 )
+const acknowledgeForm = async () => {
+  for (const binding of [...nativeFormRegistry.forms.values(), ...nativeFormRegistry.fields.values()]) {
+    const descriptor = binding.descriptor
+    const metadata = screen.container.queryAll(
+      (node) =>
+        node.props.descriptorId === descriptor.descriptorId && typeof node.props.onNativeFormCommit === "function",
+    )[0]
+    await act(() =>
+      metadata.props.onNativeFormCommit({
+        nativeEvent: {
+          ...descriptor,
+          target: descriptor.metadataTarget,
+          originalTarget: descriptor.target,
+          surfaceId: 11,
+          windowId: "source-model-window",
+          epoch: 1,
+          sequence: ++formSequence,
+          mountRevision: descriptor.descriptorRevision,
+          attached: true,
+          active: true,
+          complete: true,
+          metadataOnly: true,
+          originalClass: "FixtureOriginal",
+          error: "",
+        },
+      }),
+    )
+  }
+}
 const press = async (name: string) => {
+  if (name.endsWith("tag-combo form programmatically")) await acknowledgeForm()
   const target = screen.getByRole("button", { name, ...hidden })
   if (name !== "Show suggestions") return fireEvent.press(target)
   const event = {
@@ -103,6 +134,7 @@ const show = async () => {
 beforeEach(() => {
   jest.useFakeTimers()
   frames.clear()
+  formSequence = 0
   const native = jest.requireActual<typeof RN>("react-native")
   const findHandle = jest.spyOn(native, "findNodeHandle")
   const inheritedFind = findHandle.getMockImplementation()!
@@ -114,31 +146,13 @@ beforeEach(() => {
     if (!formTargets.has(host)) formTargets.set(host, ++nextFormTarget)
     return formTargets.get(host)!
   })
-  mockReadForm.mockImplementation(async (encoded) => {
-    const request = JSON.parse(encoded) as { target: number; requestId: string }
-    const form = [...nativeFormRegistry.forms.values()].find(
-      (entry) => entry.descriptor.formId === "tag-combo-owner-form",
-    )!
-    const nodes = [
-      { target: 9000000, parent: 0, component: "RootView" },
-      { target: form.descriptor.target, parent: 9000000, component: "View" },
-      { target: form.descriptor.metadataTarget, parent: form.descriptor.target, component: "CUIFormRoot" },
-    ]
-    const fields = [...nativeFormRegistry.fields.values()].map(({ descriptor }) => {
-      nodes.push({ target: descriptor.target, parent: form.descriptor.target, component: "TextInput" })
-      nodes.push({ target: descriptor.metadataTarget, parent: form.descriptor.target, component: "CUIFieldBinding" })
-      return { ...descriptor, position: nodes.length - 1 }
-    })
-    // An explicit source model of the retained document; this is never an SDK hierarchy verdict.
+  mockAdmitForm.mockReset().mockImplementation(async (encoded) => {
+    const request = JSON.parse(encoded)
+    // This acknowledges an explicit source model, never an installed native hierarchy.
     return JSON.stringify({
-      ...request,
-      documentId: "tag-combo-scene-model",
-      rootTarget: 9000000,
-      surfaceId: 11,
-      revision: "1",
-      nodes: nodes.map((node) => ({ ...node, hidden: false, displayNone: false })),
-      forms: [{ ...form.descriptor, position: 2 }],
-      fields,
+      accepted: true,
+      requestId: request.requestId,
+      formRevision: request.form.descriptorRevision,
     })
   })
   jest.spyOn(RN.AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
@@ -266,6 +280,10 @@ it("submits the current named query through its actual Form ref while retaining 
     /submit:programmatic:\[\["tagQuery","held query"\]\]/,
   )
   expect(screen.getByTestId("tag-combo-form-state")).toHaveTextContent(/Result: submitted\./)
+  const request = JSON.parse(mockAdmitForm.mock.calls[0][0])
+  expect(request.formMount.originalTarget).toBe(request.form.target)
+  expect(request.fields).toHaveLength(1)
+  expect(request.fields[0].mount.originalTarget).toBe(request.fields[0].field.target)
   expect([...nativeFormRegistry.forms.values()][0].original === form).toBe(true)
   expect(screen.getByTestId("combo-box-input") === input).toBe(true)
   expect(draft).toHaveDisplayValue("independent draft")
@@ -321,11 +339,17 @@ it("shows validation outcomes and never treats an unavailable native document as
   await press("Toggle tag-combo form validation")
   await press("Submit tag-combo form programmatically")
   expect(screen.getByTestId("tag-combo-form-state")).toHaveTextContent(/Result: submitted\./)
-  mockReadForm.mockRejectedValueOnce(new Error("Original SDK document unavailable"))
+  mockAdmitForm.mockRejectedValueOnce(new Error("Original native form hosts unavailable"))
   await press("Submit tag-combo form programmatically")
-  expect(screen.getByTestId("tag-combo-form-state")).toHaveTextContent(
-    /Result: retired:native-document-unavailable-or-incomplete\./,
-  )
+  expect(screen.getByTestId("tag-combo-form-state")).toHaveTextContent(/Result: retired:form-originals-not-admitted\./)
+})
+
+it("does not admit a programmatic form request without original form and field mount receipts", async () => {
+  await render(scene())
+  await fireEvent.press(screen.getByRole("button", { name: "Submit tag-combo form programmatically" }))
+  expect(mockAdmitForm).not.toHaveBeenCalled()
+  expect(screen.getByTestId("tag-combo-form-requests")).toHaveTextContent("Form requests: none.")
+  expect(screen.getByTestId("tag-combo-form-state")).toHaveTextContent(/Result: retired:form-originals-not-admitted\./)
 })
 
 it("keeps an original form-action press without a native acknowledgement from becoming a successful submit", async () => {

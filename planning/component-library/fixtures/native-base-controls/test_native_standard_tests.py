@@ -638,12 +638,12 @@ print("PASS actual capture preserved evidence and retained missing-arrow failure
 
     def test_android_cleanup_restores_each_captured_motion_key_and_still_stops_guest_on_failure(self):
         for failed in [False,True]:
-            session=NATIVE.Session(self.root/("two-keys-"+str(failed)),60,30);session.guest_owned=True;session.emulator=MagicMock();session.motion_setting="0";session.additional_motion_settings={"animator_duration_scale":"0.5"}
+            session=NATIVE.Session(self.root/("two-keys-"+str(failed)),60,30);session.guest_owned=True;session.emulator=MagicMock(pid=54321,returncode=0);session.emulator.poll.return_value=0;session.motion_setting="0";session.additional_motion_settings={"animator_duration_scale":"0.5"}
             def command(label,argv,*args,**kwargs):
                 if label=="restore-animator-setting" and failed:raise ValueError("saved denied restore")
                 return "0.5" if label=="verify-animator-setting" else "0" if label=="verify-motion-setting" else ""
-            session.run=MagicMock(side_effect=command);probe=MagicMock();probe.__enter__.return_value.connect_ex.return_value=111
-            with patch.object(NATIVE,"stop_owned_process",return_value=True),patch.object(NATIVE.socket,"socket",return_value=probe):NATIVE.cleanup(session,{"platform":"android","sdk":"/sdk","destination":"emulator-5568"})
+            session.run=MagicMock(side_effect=command);probe=MagicMock();probe.__enter__.return_value.connect_ex.return_value=NATIVE.errno.ECONNREFUSED
+            with patch.object(NATIVE,"stop_owned_process",return_value=True),patch.object(NATIVE,"host_process_binding",return_value=None),patch.object(NATIVE,"build_process_pids",return_value=[]),patch.object(NATIVE.socket,"socket",return_value=probe):NATIVE.cleanup(session,{"platform":"android","sdk":"/sdk","destination":"emulator-5568"})
             names=[call.args[0] for call in session.run.call_args_list];self.assertIn("restore-motion-setting",names);self.assertIn("emulator-shutdown",names);self.assertEqual(bool(session.cleanup_errors),failed)
             proof=json.loads((session.output/"preference-restoration.json").read_text());self.assertEqual(proof["exactKeySetAndValuesVerified"],not failed)
 
@@ -1267,7 +1267,7 @@ print("PASS actual capture preserved evidence and retained missing-arrow failure
         config = {"sdk": str(self.root), "destination": "emulator-5568", "avdHome": str(self.root), "avd": "owned", "androidUserHome": str(self.root), "gpu": "host"}
         session = NATIVE.Session(self.root / "output", 30, 10)
         session.run = MagicMock(side_effect=["", ValueError("stop before SDK wait")])
-        socket_control = MagicMock();socket_control.__enter__.return_value.connect_ex.return_value = 111
+        socket_control = MagicMock();socket_control.__enter__.return_value.connect_ex.return_value = NATIVE.errno.ECONNREFUSED
         with patch.object(NATIVE.socket, "socket", return_value=socket_control), patch.object(NATIVE.subprocess, "Popen", return_value=MagicMock(pid=12345)) as spawn:
             with self.assertRaisesRegex(ValueError, "stop before SDK wait"): NATIVE.run_android(session, config, {}, {})
         self.assertIn("-no-window", spawn.call_args.args[0])
@@ -1281,34 +1281,109 @@ print("PASS actual capture preserved evidence and retained missing-arrow failure
         config = {"platform": "android", "sdk": str(self.root), "destination": "emulator-5568"}
         for scenario in ["delayed-detachment", "remaining-serial", "remaining-port"]:
             session = NATIVE.Session(self.root / scenario, 60, 30)
-            session.guest_owned = True;session.emulator = MagicMock()
+            session.guest_owned = True;session.emulator = MagicMock(pid=54321,returncode=0);session.emulator.poll.return_value=0
             responses = ["", "emulator-5568 offline", ""] if scenario == "delayed-detachment" else None
             session.run = MagicMock(side_effect=responses) if responses else MagicMock(return_value="emulator-5568 offline" if scenario == "remaining-serial" else "")
-            probe = MagicMock();probe.__enter__.return_value.connect_ex.return_value = 0 if scenario == "remaining-port" else 111
-            with patch.object(NATIVE, "stop_owned_process", return_value=True), patch.object(NATIVE.time, "sleep", side_effect=lambda _: setattr(session, "end", session.end - 60)), patch.object(NATIVE.socket, "socket", return_value=probe):
-                if scenario == "delayed-detachment":
-                    NATIVE.cleanup(session, config)
-                    self.assertEqual(session.run.call_count, 3)
-                else:
-                    with self.assertRaisesRegex(ValueError, "detachment not verified|port remains open"):
-                        NATIVE.cleanup(session, config)
+            probe = MagicMock();probe.__enter__.return_value.connect_ex.return_value = 0 if scenario == "remaining-port" else NATIVE.errno.ECONNREFUSED
+            with patch.object(NATIVE, "stop_owned_process", return_value=True), patch.object(NATIVE,"host_process_binding",return_value=None), patch.object(NATIVE,"build_process_pids",return_value=[]), patch.object(NATIVE.time, "sleep", side_effect=lambda _: setattr(session, "end", session.end - 60) if scenario=="remaining-serial" else None), patch.object(NATIVE.socket, "socket", return_value=probe):
+                NATIVE.cleanup(session, config)
+                self.assertEqual(bool(session.cleanup_errors),scenario!="delayed-detachment")
+                if scenario == "delayed-detachment":self.assertEqual(session.run.call_count, 3)
 
 
     def test_motion_preference_failure_still_stops_owned_guest_and_preserves_error(self):
         config = {"platform": "android", "sdk": str(self.root), "destination": "emulator-5568"}
         for name, original, restored in [("exact-null", "null", "null"), ("exact-value", "0.5", "0.5"), ("mismatch", "1", "0"), ("restore-fails", "1", None)]:
-            session = NATIVE.Session(self.root / name, 60, 30);session.guest_owned = True;session.emulator = MagicMock();session.motion_setting = original
+            session = NATIVE.Session(self.root / name, 60, 30);session.guest_owned = True;session.emulator = MagicMock(pid=54321,returncode=0);session.emulator.poll.return_value=0;session.motion_setting = original
             def command(label, argv, *args, **kwargs):
                 if label == "restore-motion-setting" and restored is None: raise ValueError("SDK denied restoration")
                 return restored if label == "verify-motion-setting" else ""
             session.run = MagicMock(side_effect=command)
-            probe = MagicMock();probe.__enter__.return_value.connect_ex.return_value = 111
-            with patch.object(NATIVE, "stop_owned_process", return_value=True) as stopped, patch.object(NATIVE.socket, "socket", return_value=probe):
+            probe = MagicMock();probe.__enter__.return_value.connect_ex.return_value = NATIVE.errno.ECONNREFUSED
+            with patch.object(NATIVE, "stop_owned_process", return_value=True) as stopped, patch.object(NATIVE,"host_process_binding",return_value=None), patch.object(NATIVE,"build_process_pids",return_value=[]), patch.object(NATIVE.socket, "socket", return_value=probe):
                 NATIVE.cleanup(session, config)
-            stopped.assert_called_once_with(session.emulator)
+            stopped.assert_called_once();self.assertIs(stopped.call_args.args[0],session.emulator);self.assertTrue(callable(stopped.call_args.args[1]))
             self.assertIn("emulator-shutdown", [call.args[0] for call in session.run.call_args_list])
             self.assertEqual(bool(session.cleanup_errors), name in ["mismatch", "restore-fails"])
             if name == "exact-null": self.assertIn("delete", session.run.call_args_list[0].args[1])
+
+
+    def test_build_kernel_confirmation_rejects_changed_and_uncertain_reads(self):
+        import ctypes,struct
+        for kind in ["stable","birth","uid","ppid","pgid","path","traced","denied","short"]:
+            info_calls=[];path_calls=[];library=MagicMock()
+            def metadata(pid,flavor,arg,target,size):
+                info_calls.append(pid)
+                if len(info_calls)>1 and kind=="denied":ctypes.set_errno(NATIVE.errno.EPERM);return 0
+                if len(info_calls)>1 and kind=="short":return size-1
+                data=bytearray(size);values={0:0,4:3,12:pid,16:123,20:os.getuid(),100:pid}
+                if len(info_calls)>1:
+                    if kind=="uid":values[20]+=1
+                    if kind=="ppid":values[16]+=1
+                    if kind=="pgid":values[100]+=1
+                    if kind=="traced":values[0]=2
+                for offset,value in values.items():struct.pack_into("=I",data,offset,value)
+                struct.pack_into("=QQ",data,120,1700000000,12346 if len(info_calls)>1 and kind=="birth" else 12345);ctypes.memmove(target,bytes(data),size);return size
+            def path(pid,target,size):
+                path_calls.append(pid);data=b"/owned/cat\0" if len(path_calls)>1 and kind=="path" else b"/owned/python\0";ctypes.memmove(target,data,len(data));return len(data)-1
+            library.proc_pidinfo.side_effect=metadata;library.proc_pidpath.side_effect=path
+            with patch.object(NATIVE.ctypes,"CDLL",return_value=library):
+                if kind=="stable":self.assertTrue(NATIVE.host_process_binding(54321)["coherent"])
+                else:
+                    with self.subTest(kind=kind),self.assertRaises((ValueError,OSError)):NATIVE.host_process_binding(54321,absent_ok=True)
+
+
+    def test_build_kernel_inventory_refuses_denial_truncation_and_invalid_pid(self):
+        import ctypes
+        for kind in ["empty","valid","denied","truncated","invalid"]:
+            library=MagicMock()
+            def inventory(pid,target,size):
+                if kind=="denied":ctypes.set_errno(NATIVE.errno.EPERM);return 0
+                if target is None:return 0 if kind=="empty" else 1
+                target[0]=54321 if kind!="invalid" else os.getpid()
+                return 2 if kind=="truncated" else 1
+            library.proc_listchildpids.side_effect=inventory;library.proc_listpgrppids.side_effect=inventory
+            with patch.object(NATIVE.ctypes,"CDLL",return_value=library):
+                for group in [False,True]:
+                    if kind in ["empty","valid"]:self.assertEqual(NATIVE.build_process_pids(12345,group=group),[] if kind=="empty" else [54321])
+                    else:
+                        with self.assertRaises(ValueError):NATIVE.build_process_pids(12345,group=group)
+
+
+    def test_build_kernel_binding_distinguishes_absence_from_unknown_metadata(self):
+        import ctypes
+        for number in [NATIVE.errno.ESRCH,NATIVE.errno.ENOENT,NATIVE.errno.EPERM,0]:
+            library=MagicMock()
+            def metadata(*args):ctypes.set_errno(number);return 0
+            library.proc_pidinfo.side_effect=metadata
+            with patch.object(NATIVE.ctypes,"CDLL",return_value=library):
+                if number==NATIVE.errno.ESRCH:self.assertIsNone(NATIVE.host_process_binding(12345,absent_ok=True))
+                else:
+                    with self.assertRaises(OSError):NATIVE.host_process_binding(12345,absent_ok=True)
+                with self.assertRaises(OSError):NATIVE.host_process_binding(12345)
+
+
+    def test_build_kernel_missing_path_requires_fresh_pid_absence(self):
+        import ctypes,struct
+        for disappeared in [False,True]:
+            calls=[];library=MagicMock()
+            def metadata(pid,flavor,arg,target,size):
+                calls.append(pid)
+                if disappeared and len(calls)>1:ctypes.set_errno(NATIVE.errno.ESRCH);return 0
+                data=bytearray(size)
+                for offset,value in [(4,3),(12,pid),(20,os.getuid())]:struct.pack_into("=I",data,offset,value)
+                struct.pack_into("=QQ",data,120,1700000000,12345);ctypes.memmove(target,bytes(data),size);return size
+            def path(*args):ctypes.set_errno(NATIVE.errno.ENOENT);return 0
+            library.proc_pidinfo.side_effect=metadata;library.proc_pidpath.side_effect=path
+            with patch.object(NATIVE.ctypes,"CDLL",return_value=library):
+                if disappeared:self.assertIsNone(NATIVE.host_process_binding(12345,absent_ok=True))
+                else:
+                    with self.assertRaises(OSError):NATIVE.host_process_binding(12345,absent_ok=True)
+            self.assertEqual(len(calls),2)
+
+
+
+
 
 
 def member(source, signature):
@@ -1702,6 +1777,266 @@ process.stdout.write("PASS actual timer epoch retained before deferred updater\n
             self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((root/"never-created").exists())
 
 
+class AndroidCleanupEvidenceControls(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory();self.root = Path(self.temp.name)
+
+    def tearDown(self):
+        self.temp.cleanup()
+
+    def session(self, name):
+        session = NATIVE.Session(self.root / name, 60, 30)
+        session.guest_owned = True
+        session.emulator = MagicMock(pid=5286, returncode=None)
+        session.run = MagicMock(return_value="")
+        return session
+
+    def test_systemui_boundary_diagnostic_preserves_one_stock_dump_and_stops(self):
+        for name, raw in [("complete", "ServiceRecord{current com.android.systemui/.SystemUIService}\napp=ProcessRecord{current 926:com.android.systemui}\nlastStartId=1 startCommandResult=1\n"), ("executing", "ServiceRecord{current com.android.systemui/.SystemUIService}\nexecuteNesting=1 executingStart=now\n"), ("unknown", "ACTIVITY MANAGER SERVICES\n(no matching services)\n")]:
+            with self.subTest(name=name):
+                session = self.session("service-" + name)
+                def command(label, argv):
+                    self.assertEqual(label, "systemui-service-at-boot")
+                    self.assertEqual(argv, ["adb", "-s", "emulator-5568", "shell", "dumpsys", "activity", "services", "com.android.systemui/.SystemUIService"])
+                    (session.output / (label + ".stdout")).write_text(raw)
+                    return raw
+                session.run.side_effect = command
+                with patch.object(NATIVE, "start_android", return_value=["adb", "-s", "emulator-5568"]) as boot, patch.object(NATIVE.time, "sleep", side_effect=AssertionError("No diagnostic delay")):
+                    result = NATIVE.diagnose_android(session, {"systemUIServiceAtBootOnly":True})
+                boot.assert_called_once();session.run.assert_called_once()
+                self.assertEqual(result["status"], "SYSTEMUI_SERVICE_STATE_CAPTURED_PENDING_REVIEW")
+                self.assertEqual((result["componentMethods"], result["installRequests"], result["inputRequests"], result["gatePromotions"]), (0, 0, 0, 0))
+                self.assertNotIn("ready", result)
+                self.assertEqual(Path(result["serviceState"]["path"]).read_text(), raw)
+                self.assertEqual(result["serviceState"]["sha256"], NATIVE.digest(result["serviceState"]["path"]))
+
+    def test_denied_group_operations_keep_trace_and_continue_read_only_verification_without_retry(self):
+        import errno
+        import signal
+        config = {"platform":"android", "sdk":"/sdk", "destination":"emulator-5568"}
+        for denied_at in [1, 2, 3, 4, 5]:
+            with self.subTest(denied_at=denied_at):
+                session = self.session("denied-" + str(denied_at))
+                calls = []
+                def denied(pid, number):
+                    calls.append((pid, number))
+                    self.assertLessEqual(len(calls), denied_at, "Denied operation retried")
+                    if len(calls) == denied_at:
+                        raise PermissionError(errno.EPERM, "denied operation " + str(denied_at))
+                probe = MagicMock();probe.__enter__.return_value.connect_ex.return_value = NATIVE.errno.ECONNREFUSED
+                with patch.object(NATIVE.os, "killpg", side_effect=denied), patch.object(NATIVE.socket, "socket", return_value=probe):
+                    NATIVE.cleanup(session, config)
+                self.assertEqual(calls, [(5286, 0), (5286, signal.SIGTERM), (5286, 0), (5286, signal.SIGKILL), (5286, 0)][:denied_at])
+                self.assertEqual([call.args[0] for call in session.run.call_args_list], ["emulator-shutdown", "devices-after-0"])
+                self.assertTrue(session.run.call_args_list[-1].kwargs["cleanup"])
+                self.assertEqual(probe.__enter__.return_value.connect_ex.call_count, 2)
+                self.assertEqual(len(session.cleanup_errors), 1)
+                receipt = json.loads((session.output / "emulator-group-cleanup-failure.json").read_text())
+                self.assertEqual((receipt["pid"], receipt["processGroup"], receipt["errno"]), (5286, 5286, errno.EPERM))
+                self.assertIsNone(receipt["leaderReturnCode"])
+                self.assertIn("stop_owned_process", receipt["traceback"])
+                self.assertIn("denied operation " + str(denied_at), receipt["error"])
+
+    def test_verification_failure_or_expired_deadline_never_erases_group_denial(self):
+        config = {"platform":"android", "sdk":"/sdk", "destination":"emulator-5568"}
+        for scenario in ["query-fails", "remaining-serial", "remaining-port", "deadline"]:
+            with self.subTest(scenario=scenario):
+                session = self.session(scenario)
+                def command(name, argv, *args, **kwargs):
+                    if name.startswith("devices-after"):
+                        self.assertTrue(kwargs["cleanup"])
+                        if scenario == "query-fails":raise ValueError("saved verification query failed")
+                        if scenario == "deadline":raise ValueError("No command budget remains")
+                        if scenario == "remaining-serial":return "emulator-5568 offline"
+                    return ""
+                session.run.side_effect = command
+                session.remaining = MagicMock(return_value=0 if scenario in ["remaining-serial", "deadline"] else 30)
+                probe = MagicMock();probe.__enter__.return_value.connect_ex.return_value = 0 if scenario == "remaining-port" else NATIVE.errno.ECONNREFUSED
+                with patch.object(NATIVE, "stop_owned_process", side_effect=PermissionError(1, "saved group probe denied")) as stop, patch.object(NATIVE.socket, "socket", return_value=probe):
+                    with self.assertRaisesRegex(ValueError, "query failed|budget remains|detachment not verified|port remains open"):
+                        NATIVE.cleanup(session, config)
+                stop.assert_called_once();self.assertIs(stop.call_args.args[0],session.emulator);self.assertTrue(callable(stop.call_args.args[1]))
+                self.assertEqual(session.cleanup_errors, ["Owned emulator group cleanup: PermissionError(1, 'saved group probe denied')"])
+                self.assertTrue((session.output / "emulator-group-cleanup-failure.json").is_file())
+                self.assertEqual(session.run.call_count, 1 if scenario in ["remaining-serial","deadline"] else 2)
+
+    def test_denied_cleanup_keeps_actual_driver_failed_even_when_serial_and_ports_clear(self):
+        output = self.root / "execute"
+        plan = {"cell":"CAT.meter.G07", "nativeStandard":{"platform":"android", "action":"diagnose", "batch":"meter-startup-diagnostic", "output":str(output), "sdk":"/sdk", "destination":"emulator-5568"}, "attempt":{"maximumSeconds":60, "cleanupReserveSeconds":30}}
+        def diagnostic(session, config):
+            session.guest_owned = True;session.emulator = MagicMock(pid=5286, returncode=0)
+            return {"status":"OS_DIAGNOSTIC_CAPTURED_PENDING_REVIEW", "componentMethods":0}
+        probe = MagicMock();probe.__enter__.return_value.connect_ex.return_value = NATIVE.errno.ECONNREFUSED
+        with patch.object(NATIVE, "diagnose_android", side_effect=diagnostic), patch.object(NATIVE.Session, "run", return_value=""), patch.object(NATIVE, "stop_owned_process", side_effect=PermissionError(1, "saved group probe denied")) as stop, patch.object(NATIVE.socket, "socket", return_value=probe):
+            code = NATIVE.execute(plan, {"result":"PASS", "scope":"host control, no SDK"})
+        self.assertEqual(code, 1);stop.assert_called_once()
+        terminal = json.loads((output / "terminal.json").read_text())
+        self.assertEqual(terminal["status"], "FAILED")
+        self.assertFalse(terminal["cleanupVerified"])
+        self.assertTrue(terminal["cleanupErrors"])
+        self.assertIsNotNone(terminal["result"])
+        self.assertTrue((output / "emulator-group-cleanup-failure.json").is_file())
+
+    def test_remaining_group_cannot_be_relabelled_after_clear_serial_and_ports(self):
+        session = self.session("remaining-group")
+        probe = MagicMock();probe.__enter__.return_value.connect_ex.return_value = NATIVE.errno.ECONNREFUSED
+        with patch.object(NATIVE, "stop_owned_process", return_value=False) as stop, patch.object(NATIVE.socket, "socket", return_value=probe):
+            NATIVE.cleanup(session, {"platform":"android", "sdk":"/sdk", "destination":"emulator-5568"})
+        stop.assert_called_once();self.assertIs(stop.call_args.args[0],session.emulator);self.assertTrue(callable(stop.call_args.args[1]))
+        self.assertEqual(len(session.cleanup_errors), 1)
+        self.assertIn("Owned emulator group remains", session.cleanup_errors[0])
+        self.assertTrue((session.output / "emulator-group-cleanup-failure.json").is_file())
+
+
+
+class AndroidPositiveAbsenceControls(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory();self.root = Path(self.temp.name)
+
+    def tearDown(self):
+        self.temp.cleanup()
+
+    def session(self, name):
+        session = NATIVE.Session(self.root / name, 60, 30)
+        session.guest_owned = True
+        session.emulator = MagicMock(pid=54321, returncode=0)
+        session.emulator.poll.return_value = 0
+        session.run = MagicMock(return_value="")
+        return session
+
+    def test_complete_positive_absence_avoids_every_group_signal_probe(self):
+        session = self.session("positive")
+        probe = MagicMock();probe.__enter__.return_value.connect_ex.return_value = NATIVE.errno.ECONNREFUSED
+        with patch.object(NATIVE, "host_process_binding", return_value=None) as pid, patch.object(NATIVE, "build_process_pids", return_value=[]) as group, patch.object(NATIVE.os, "killpg", side_effect=AssertionError("No signal/probe permitted")) as signal, patch.object(NATIVE.socket, "socket", return_value=probe):
+            NATIVE.cleanup(session, {"platform":"android", "sdk":"/sdk", "destination":"emulator-5568"})
+        signal.assert_not_called()
+        self.assertTrue(all(call.args == (54321,) and call.kwargs == {"absent_ok":True} for call in pid.call_args_list))
+        self.assertTrue(all(call.args == (54321,) and call.kwargs == {"group":True} for call in group.call_args_list))
+        self.assertEqual([call.args[0] for call in session.run.call_args_list], ["emulator-shutdown", "devices-after-0"])
+        self.assertEqual(session.cleanup_errors, [])
+        record = json.loads((session.output / "android-cleanup-verification.json").read_text())
+        self.assertTrue(record["verified"] and record["kernelPIDAbsent"])
+        self.assertEqual(record["kernelGroupMembers"], [])
+        self.assertTrue(record["endpoints"]["serialAbsent"])
+        self.assertEqual(record["endpoints"]["portsClosed"], {"5568":True, "5569":True})
+
+    def test_live_reused_denied_or_incomplete_kernel_evidence_never_means_absence(self):
+        for scenario in ["live-pid", "reused-pid", "unknown-pid", "denied-pid", "nonempty-group", "unknown-group", "denied-group", "partial-group", "deadline"]:
+            with self.subTest(scenario=scenario):
+                session = self.session(scenario)
+                pid = PermissionError(1, "PID denied") if scenario == "denied-pid" else False if scenario == "unknown-pid" else {"pid":54321,"uid":501,"start":[1,0]} if scenario in ["live-pid","reused-pid"] else None
+                group = PermissionError(1, "group denied") if scenario == "denied-group" else ValueError("incomplete group inventory") if scenario == "partial-group" else [65432] if scenario == "nonempty-group" else None if scenario == "unknown-group" else []
+                probe = MagicMock();probe.__enter__.return_value.connect_ex.return_value = NATIVE.errno.ECONNREFUSED
+                if scenario == "deadline":session.remaining = MagicMock(return_value=0)
+                with patch.object(NATIVE, "host_process_binding", **({"side_effect":pid} if isinstance(pid,Exception) else {"return_value":pid})), patch.object(NATIVE, "build_process_pids", **({"side_effect":group} if isinstance(group,Exception) else {"return_value":group})), patch.object(NATIVE.os, "killpg", side_effect=AssertionError("Unknown must not signal")) as signal, patch.object(NATIVE.socket, "socket", return_value=probe):
+                    try:NATIVE.cleanup(session, {"platform":"android", "sdk":"/sdk", "destination":"emulator-5568"})
+                    except ValueError:
+                        self.assertEqual(scenario, "deadline")
+                signal.assert_not_called()
+                self.assertTrue(session.cleanup_errors)
+                receipt = json.loads((session.output / "android-cleanup-verification.json").read_text())
+                self.assertFalse(receipt["verified"])
+                if scenario == "nonempty-group": self.assertEqual(receipt["kernelGroupMembers"], [65432])
+                self.assertTrue((session.output / "emulator-group-cleanup-failure.json").exists())
+
+    def test_serial_port_query_and_final_deadline_fail_without_retry_or_probe(self):
+        for scenario in ["serial", "port", "query", "final-deadline"]:
+            with self.subTest(scenario=scenario):
+                session = self.session(scenario);expired = {"value":False}
+                def command(name, argv, *args, **kwargs):
+                    if name.startswith("devices-after"):
+                        if scenario == "query":raise ValueError("saved query failure")
+                        if scenario == "serial":expired["value"]=True;return "emulator-5568 offline"
+                    return ""
+                session.run.side_effect = command
+                session.remaining = MagicMock(side_effect=lambda *args:0 if expired["value"] else 30)
+                probe = MagicMock();connections = []
+                def connect(address):
+                    connections.append(address)
+                    if scenario == "final-deadline" and len(connections)==2:expired["value"]=True
+                    return 0 if scenario == "port" else NATIVE.errno.ECONNREFUSED
+                probe.__enter__.return_value.connect_ex.side_effect = connect
+                with patch.object(NATIVE, "host_process_binding", return_value=None), patch.object(NATIVE, "build_process_pids", return_value=[]), patch.object(NATIVE.os, "killpg", side_effect=AssertionError("No group probe")) as signal, patch.object(NATIVE.socket, "socket", return_value=probe):
+                    NATIVE.cleanup(session, {"platform":"android", "sdk":"/sdk", "destination":"emulator-5568"})
+                signal.assert_not_called();self.assertTrue(session.cleanup_errors)
+                self.assertEqual(session.run.call_count, 2)
+                self.assertFalse(json.loads((session.output / "android-cleanup-verification.json").read_text())["verified"])
+
+    def test_actual_driver_accepts_only_complete_proof_and_keeps_unknown_nonzero(self):
+        for known in [True,False]:
+            output = self.root / ("execute-" + str(known))
+            plan = {"cell":"CAT.meter.G07", "nativeStandard":{"platform":"android", "action":"diagnose", "batch":"meter-startup-diagnostic", "output":str(output), "sdk":"/sdk", "destination":"emulator-5568"}, "attempt":{"maximumSeconds":60,"cleanupReserveSeconds":30}}
+            def diagnostic(session, config):
+                session.guest_owned=True;session.emulator=MagicMock(pid=54321,returncode=0);session.emulator.poll.return_value=0
+                return {"status":"HOST_CONTROL_NO_SDK", "componentMethods":0}
+            probe=MagicMock();probe.__enter__.return_value.connect_ex.return_value=NATIVE.errno.ECONNREFUSED
+            with patch.object(NATIVE,"diagnose_android",side_effect=diagnostic),patch.object(NATIVE.Session,"run",return_value=""),patch.object(NATIVE,"host_process_binding",return_value=None),patch.object(NATIVE,"build_process_pids",return_value=[] if known else None),patch.object(NATIVE.os,"killpg",side_effect=AssertionError("No signal/probe")) as signal,patch.object(NATIVE.socket,"socket",return_value=probe):
+                code=NATIVE.execute(plan,{"result":"HOST_CONTROL_ONLY"})
+            signal.assert_not_called();self.assertEqual(code,0 if known else 1)
+            terminal=json.loads((output/"terminal.json").read_text());self.assertEqual(terminal["cleanupVerified"],known)
+
+    def test_later_pid_reuse_cannot_leave_an_earlier_positive_receipt(self):
+        session=self.session("late-reuse")
+        probe=MagicMock();probe.__enter__.return_value.connect_ex.return_value=NATIVE.errno.ECONNREFUSED
+        with patch.object(NATIVE,"host_process_binding",side_effect=[None,{"pid":54321,"uid":501,"start":[2,0]}]),patch.object(NATIVE,"build_process_pids",return_value=[]),patch.object(NATIVE.os,"killpg",side_effect=AssertionError("No signal/probe")) as signal,patch.object(NATIVE.socket,"socket",return_value=probe):
+            NATIVE.cleanup(session,{"platform":"android","sdk":"/sdk","destination":"emulator-5568"})
+        signal.assert_not_called();self.assertTrue(session.cleanup_errors)
+        proof=json.loads((session.output/"android-cleanup-verification.json").read_text())
+        self.assertFalse(proof["verified"]);self.assertNotIn("kernelPIDAbsent",proof)
+        self.assertEqual(session.run.call_count,2)
+
+    def test_port_absence_requires_platform_refusal_and_preserves_returned_errors(self):
+        for result in [NATIVE.errno.ECONNREFUSED, 0, NATIVE.errno.EACCES, NATIVE.errno.EPERM, NATIVE.errno.ETIMEDOUT, NATIVE.errno.EIO, -4096, None, True]:
+            with self.subTest(result=result):
+                session = self.session("port-result-" + str(result))
+                probe = MagicMock();probe.__enter__.return_value.connect_ex.return_value = result
+                with patch.object(NATIVE, "host_process_binding", return_value=None), patch.object(NATIVE, "build_process_pids", return_value=[]), patch.object(NATIVE.os, "killpg", side_effect=AssertionError("No signal/probe")) as signal, patch.object(NATIVE.socket, "socket", return_value=probe):
+                    NATIVE.cleanup(session, {"platform":"android", "sdk":"/sdk", "destination":"emulator-5568"})
+                signal.assert_not_called()
+                expected = type(result) is int and result == NATIVE.errno.ECONNREFUSED
+                receipt = json.loads((session.output / "android-cleanup-verification.json").read_text())
+                self.assertEqual(receipt["verified"], expected)
+                self.assertEqual(bool(session.cleanup_errors), not expected)
+                self.assertEqual(receipt["endpoints"]["portChecks"]["5568"], {"errno":result if type(result) is int else None, "returned":repr(result)})
+                self.assertEqual(probe.__enter__.return_value.connect_ex.call_count, 2 if expected else 1)
+                self.assertEqual(session.run.call_count, 2)
+
+    def test_port_query_exceptions_preserve_errno_and_keep_actual_driver_nonzero(self):
+        for label, error in [("denied", PermissionError(NATIVE.errno.EACCES, "saved port denial")), ("timeout", TimeoutError(NATIVE.errno.ETIMEDOUT, "saved port timeout")), ("unexpected", OSError(NATIVE.errno.EIO, "saved port error"))]:
+            with self.subTest(label=label):
+                output = self.root / ("port-exception-" + label)
+                plan = {"cell":"CAT.meter.G07", "nativeStandard":{"platform":"android", "action":"diagnose", "batch":"meter-startup-diagnostic", "output":str(output), "sdk":"/sdk", "destination":"emulator-5568"}, "attempt":{"maximumSeconds":60,"cleanupReserveSeconds":30}}
+                def diagnostic(session, config):
+                    session.guest_owned = True;session.emulator = MagicMock(pid=54321, returncode=0);session.emulator.poll.return_value = 0
+                    return {"status":"HOST_CONTROL_NO_SDK", "componentMethods":0}
+                probe = MagicMock();probe.__enter__.return_value.connect_ex.side_effect = error
+                with patch.object(NATIVE, "diagnose_android", side_effect=diagnostic), patch.object(NATIVE.Session, "run", return_value=""), patch.object(NATIVE, "host_process_binding", return_value=None), patch.object(NATIVE, "build_process_pids", return_value=[]), patch.object(NATIVE.os, "killpg", side_effect=AssertionError("No signal/probe")) as signal, patch.object(NATIVE.socket, "socket", return_value=probe):
+                    code = NATIVE.execute(plan, {"result":"HOST_CONTROL_ONLY"})
+                signal.assert_not_called();self.assertEqual(code, 1)
+                terminal = json.loads((output / "terminal.json").read_text())
+                receipt = json.loads((output / "android-cleanup-verification.json").read_text())
+                self.assertEqual(terminal["status"], "FAILED");self.assertFalse(terminal["cleanupVerified"])
+                self.assertEqual(receipt["endpoints"]["portChecks"]["5568"], {"errno":error.errno, "error":repr(error)})
+                failure = json.loads((output / "emulator-group-cleanup-failure.json").read_text())
+                self.assertEqual(failure["errno"], error.errno);self.assertIn(repr(error), failure["error"])
+                probe.__enter__.return_value.connect_ex.assert_called_once()
+
+    def test_optional_reaped_verifier_never_accepts_unknown_or_checks_a_live_leader(self):
+        from NativeAndroidTestSupport import group_present
+        for result in [False,None,1,[]]:
+            process=MagicMock(returncode=0);process.poll.return_value=0
+            verify=MagicMock(return_value=result)
+            with patch.object(NATIVE.os,"killpg",side_effect=AssertionError("No signal/probe")) as signal:
+                with self.assertRaisesRegex(ValueError,"absence is not verified"):group_present(process,verify)
+            signal.assert_not_called();verify.assert_called_once_with(process)
+        process=MagicMock(pid=54321,returncode=None);process.poll.return_value=None
+        verify=MagicMock(side_effect=AssertionError("Cannot verify live leader as exited"))
+        with patch.object(NATIVE.os,"killpg",side_effect=PermissionError(1,"host mock only")):
+            with self.assertRaises(PermissionError):group_present(process,verify)
+        verify.assert_not_called()
+
+
+
 class PlaceholderControls(unittest.TestCase):
     def row(self):
         return {"name":"light-default","state":{"rootTag":81,"refIdentity":1,"dropped":0,"attaches":1,"detaches":0,"actions":0,"receipts":[]},"scale":3,"frame":[26,327.99995803833008,280,17],"screen":[0,0,390,844],"imageWidth":1170,"imageHeight":2532,"expectedRGBA":[112,112,112,255],"opaquePixels":5,"nativeLabel":"Choose an item","text":"Choose an item","targetCount":1}
@@ -1725,6 +2060,62 @@ class PlaceholderControls(unittest.TestCase):
         reset=source.split('try tap("Live window")')[-1];self.assertLess(reset.index('tap("Reset scene")'),reset.index('tap("Text/Button scene")'));self.assertLess(reset.index('tap("Text/Button scene")'),reset.index('tap("G02 prepare placeholder")'))
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp);plan=root/"plan.json";plan.write_text(json.dumps({"cell":"CAT.placeholder-text.G08","nativeStandard":{"platform":"ios","batch":"placeholder-g08","output":str(root/"never-created")}}));env={k:v for k,v in os.environ.items() if k!="CODON_NATIVE_CELL_PREFLIGHT_RECEIPT"};result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(plan)],env=env,capture_output=True,text=True,timeout=10);self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((root/"never-created").exists())
+
+
+    def test_android_g07_exact_scope_adapter_and_original_packet(self):
+        NATIVE.validate_standard_scope({"cell":"CAT.placeholder-text.G07","nativeStandard":{"batch":"placeholder-g07"}})
+        self.assertEqual(NATIVE.selection("android","placeholder-g07"), {"ios":[],"android":["light-style","dark-and-reset","narrow-pane"]})
+        with self.assertRaises(ValueError):NATIVE.selection("ios","placeholder-g07")
+        for cell in ["CAT.tag.G02","CAT.placeholder-text.G04","CAT.placeholder-text.G08"]:
+            with self.assertRaises(ValueError):NATIVE.validate_standard_scope({"cell":cell,"nativeStandard":{"batch":"placeholder-g07"}})
+        from test_placeholder_g04 import Controls
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);session=NATIVE.Session(root/"run",60,30)
+            def command(name,argv,*args,**kwargs):
+                if name.startswith("package-"):return "package:/installed/base.apk\n"
+                if name=="pull-results":
+                    directory=session.output/"native";directory.mkdir()
+                    (directory/"receipt.json").write_text(json.dumps(Controls().packet(directory)))
+                return ""
+            session.run=MagicMock(side_effect=command)
+            config={"platform":"android","batch":"placeholder-g07","sdk":"/sdk","destination":"emulator-5568"}
+            with patch.object(NATIVE,"start_android",return_value=["/sdk/platform-tools/adb","-s","emulator-5568"]),patch.object(NATIVE,"verify_product",return_value=root/"app.apk"):
+                result=NATIVE.run_android(session,config,{}, {})
+            self.assertEqual([row["method"] for row in result["methods"]],["light-style","dark-and-reset","narrow-pane"])
+            invocation=next(call.args[1] for call in session.run.call_args_list if call.args[0]=="instrumentation")
+            self.assertIn("placeholder-g04-batch",invocation)
+            self.assertTrue(any(str(value).startswith("/sdcard/Android/data/dev.codonui.lab.number/files/placeholder-g04-native-") for value in invocation))
+            self.assertNotIn("motion-setting-before",[call.args[0] for call in session.run.call_args_list])
+            self.assertTrue((session.output/"placeholder-review.json").exists())
+
+
+    def test_android_prelaunch_refuses_open_denied_and_unknown_ports_before_spawn(self):
+        for result in [0,NATIVE.errno.EACCES,NATIVE.errno.EPERM,NATIVE.errno.ETIMEDOUT,NATIVE.errno.EIO,None,True]:
+            with self.subTest(result=result),tempfile.TemporaryDirectory() as temp:
+                root=Path(temp);(root/"owned.ini").write_text("path=existing-control\n")
+                session=NATIVE.Session(root/"run",60,30);session.run=MagicMock(return_value="List of devices attached\n\n")
+                probe=MagicMock();probe.__enter__.return_value.connect_ex.return_value=result
+                with patch.object(NATIVE.socket,"socket",return_value=probe),patch.object(NATIVE.subprocess,"Popen",side_effect=AssertionError("Uncertain port must not spawn")) as spawn:
+                    with self.assertRaises(ValueError):NATIVE.start_android(session,{"sdk":"/sdk","destination":"emulator-5568","avdHome":str(root),"avd":"owned","androidUserHome":str(root),"gpu":"host"})
+                spawn.assert_not_called();self.assertFalse(session.guest_owned)
+
+
+    def test_android_observer_preserves_capture_stops_anr_and_resets_before_selection(self):
+        source=(ROOT/"android-native-inspector/Actions.java").read_text()
+        observe=member(source,"  private JSONObject phtObserve(")
+        self.assertLess(observe.index("savePng("),observe.index('"Actual visible portrait crop required"'))
+        self.assertLess(observe.index('lpCase.getJSONArray("observations").put(row)'),observe.index('"Expected opaque glyph paint absent"'))
+        self.assertLess(observe.index("tgPersist()"),observe.index('"Expected opaque glyph paint absent"'))
+        anr=member(source,"  private boolean tgStartupAnr(")
+        self.assertLess(anr.index('if(placeholderGuardActive)throw'),anr.index('physicalSwipe('))
+        prepare=member(source,"  private JSONObject phtPrepare(")
+        self.assertLess(prepare.index('lpClick(automation,"Reset scene")'),prepare.index('lpClick(automation,"Text/Button scene")'))
+        narrow=member(source,"  private void phtNarrow(")
+        self.assertIn("JSONObject reset=phtPrepare(automation)",narrow)
+        self.assertNotIn('lpClick(automation,"Reset scene")',narrow)
+
+
+
 
 class SliderControls(unittest.TestCase):
     def test_slider_scope_setup_and_actual_entry_refuse_unadmitted_sdk(self):

@@ -7,6 +7,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type RefObject,
   type Ref,
 } from "react"
@@ -82,6 +83,8 @@ import { useNativeMenuTriggerState } from "./triggerState"
 import type { TNativeMenuListProps, TNativeMenuProps, TNativeMenuRef } from "./types"
 
 const emptyItems: readonly TNativeCollectionItem<object>[] = []
+const subscribeIdle = () => () => {}
+const idleSnapshot = () => 0
 
 const keyTokens = ["ArrowDown", "ArrowUp", "Home", "End", "PageDown", "PageUp"]
   .flatMap((key) => nativeKeyTokens(key).filter((token) => token.startsWith("0000:") || token.startsWith("1000:")))
@@ -321,6 +324,11 @@ const NativeMenuList = (props: TListProps) => {
   const renderer = useContext(NativeCollectionRendererContext)
   const CollectionRoot = renderer.CollectionRoot
   const actions = useContext(NativeCollectionActionsContext)
+  useSyncExternalStore(
+    actions?.admission?.subscribe ?? subscribeIdle,
+    actions?.admission?.getSnapshot ?? idleSnapshot,
+    idleSnapshot,
+  )
   const state = useTreeState({
     ...props.listProps,
     children: undefined,
