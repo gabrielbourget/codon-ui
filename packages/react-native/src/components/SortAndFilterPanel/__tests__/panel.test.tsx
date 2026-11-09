@@ -10,6 +10,7 @@ import NativeDragModule from "../../../input/specs/NativeCUIDragAndDrop"
 import { NativeBackdropHost } from "../../../overlays/backdrop/NativeBackdropHost"
 import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
 import { NativeThemeProvider } from "../../../theme"
+import { filterEditor } from "../../Filtering/__tests__/fixtures/editorQuery"
 import {
   actWithNativeCollections as act,
   fireEventWithNativeCollections as fireEvent,
@@ -685,7 +686,7 @@ it("loads and clears explicit confirmed scene models without generating an Apply
     "Sort Parameter - Count - Descending",
     "Sort Parameter - Name - Ascending",
   ])
-  expect(within(screen.getByLabelText("Count filter group")).getByLabelText("Filter Argument").props.value).toBe("0")
+  expect(filterEditor("Filter Argument", within(screen.getByLabelText("Count filter group"))).props.value).toBe("0")
   expect(
     within(screen.getByLabelText("Active filter group")).getByRole("checkbox", { name: "Filter Argument" }).props
       .accessibilityState.checked,

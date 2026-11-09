@@ -19,6 +19,8 @@ import {
   type TNonTemporalFilterArgumentContext,
 } from "../renderNonTemporalArgument"
 
+import { filterEditor } from "./fixtures/editorQuery"
+
 jest.mock("react-native-safe-area-context", () => ({
   SafeAreaProvider: jest.requireActual("react-native").View,
   SafeAreaView: jest.requireActual("react-native").View,
@@ -74,10 +76,9 @@ it.each(AVAILABLE_FILTER_ARGUMENT_TYPES)(
       expect(screen.getByTestId("filter-multi-typeahead-placeholder")).toHaveTextContent(
         "placeholder: multi-typeahead search not implemented yet",
       )
-    else if (filterArgumentType === "Input") expect(screen.getByLabelText("Filter Argument")).toHaveDisplayValue("held")
-    else if (filterArgumentType === "Range") expect(screen.getByLabelText("Min Value")).toHaveDisplayValue("Alpha")
-    else if (filterArgumentType === "Multi Input")
-      expect(screen.getByLabelText("Filter Argument 0")).toHaveDisplayValue("Alpha")
+    else if (filterArgumentType === "Input") expect(filterEditor("Filter Argument")).toHaveDisplayValue("held")
+    else if (filterArgumentType === "Range") expect(filterEditor("Min Value")).toHaveDisplayValue("Alpha")
+    else if (filterArgumentType === "Multi Input") expect(filterEditor("Filter Argument 0")).toHaveDisplayValue("Alpha")
     else if (filterArgumentType === "Multi Select")
       expect(screen.getByRole("button", { name: "Remove Alpha" })).toBeOnTheScreen()
     else if (filterArgumentType === "Select")
@@ -140,10 +141,10 @@ it("routes current labels, current callbacks and independent field/input slots t
       customInputStyles: { marginBottom: 9, width: "70%" },
     })
   await render(wrap(old))
-  const input = screen.getByLabelText("Filter Argument"),
+  const input = filterEditor("Filter Argument"),
     saved = input.props.onChangeText
   await rerenderWithNativeCollections(wrap(current))
-  expect(screen.getByLabelText("Filter Name")).toBe(input)
+  expect(filterEditor("Filter Name")).toBe(input)
   expect(StyleSheet.flatten(screen.getByTestId("form-field").props.style)).toMatchObject({ marginTop: 7 })
   expect(StyleSheet.flatten(input.props.style)).toMatchObject({ marginBottom: 9, width: "70%" })
   expect(input).toHaveProp("placeholder", "Enter")
@@ -161,12 +162,12 @@ it("routes list row/action slots and preserves numeric siblings through the disp
     customActionButtonStyles: { paddingLeft: 20 },
   })
   await render(wrap(props))
-  await fireEvent.changeText(screen.getByLabelText("Filter Argument 0"), "edited")
+  await fireEvent.changeText(filterEditor("Filter Argument 0"), "edited")
   expect(props.onArgumentChange).toHaveBeenCalledWith({ argument: ["edited", 1] })
   expect(
     StyleSheet.flatten(screen.getByRole("button", { name: "Add Filter Argument Entry" }).props.style),
   ).toMatchObject({ paddingLeft: 20 })
-  expect(screen.getByLabelText("Filter Argument 0").parent?.props.style).toEqual(
+  expect(filterEditor("Filter Argument 0").parent?.props.style).toEqual(
     expect.arrayContaining([expect.objectContaining({ columnGap: 15 })]),
   )
 })
@@ -221,7 +222,7 @@ it("keeps action vetoes current after dispatch without emitting during rendering
   let active = true
   const props = propsFor({ canAct: () => active })
   const { unmount } = await render(wrap(props))
-  const saved = screen.getByLabelText("Filter Argument").props.onChangeText
+  const saved = filterEditor("Filter Argument").props.onChangeText
   active = false
   saved("closed")
   expect(props.onArgumentChange).not.toHaveBeenCalled()

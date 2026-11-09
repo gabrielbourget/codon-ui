@@ -13,12 +13,17 @@ import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
 const button = () => screen.getByRole("button")
 const key = (extra: Partial<TNativeKeyboardData> = {}) => {
   let prevented = false
+  let stopped = false
   return {
     persist: jest.fn(),
     preventDefault: () => {
       prevented = true
     },
     isDefaultPrevented: () => prevented,
+    stopPropagation: () => {
+      stopped = true
+    },
+    isPropagationStopped: () => stopped,
     nativeEvent: {
       kind: "keyboard" as const,
       ownerId: button().props.ownerId,

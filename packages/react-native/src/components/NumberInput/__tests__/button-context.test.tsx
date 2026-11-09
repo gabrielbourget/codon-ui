@@ -4,8 +4,20 @@ import type { View } from "react-native"
 
 import { Button, NativeButtonContext, NumberInput, Stepper } from "../../.."
 
-beforeEach(() => jest.useFakeTimers())
-afterEach(() => jest.useRealTimers())
+beforeEach(() => {
+  jest.useFakeTimers()
+  const tags = new WeakMap<object, number>()
+  let serial = 100
+  jest.spyOn(jest.requireActual("react-native"), "findNodeHandle").mockImplementation((target) => {
+    if (!target || typeof target !== "object") return typeof target === "number" ? target : null
+    if (!tags.has(target)) tags.set(target, ++serial)
+    return tags.get(target)!
+  })
+})
+afterEach(() => {
+  jest.restoreAllMocks()
+  jest.useRealTimers()
+})
 const names = { accessibilityLabel: "Quantity", incrementLabel: "Add quantity", decrementLabel: "Reduce quantity" }
 it.each([
   ["number-input", NumberInput],

@@ -61,6 +61,7 @@ const Fixture = ({ items, trace }: { items: typeof originalRows; trace: unknown[
       return values.map((row) => ({ "text/plain": row.name }))
     },
     onDragStart: () => trace.push("start"),
+    onDragMove: (event) => trace.push(["move", [...event.keys], event.x, event.y]),
     onDragEnd: (event) => trace.push(["end", event.dropOperation]),
     onReorder: () => {},
   })
@@ -194,7 +195,8 @@ it("connects the original Table rows, typed zero/empty keys, reserved drag colum
             payload: { x: 10, y: 11, geometry: { ...geometry, revision: 2 } },
           }),
         ),
-      ).toEqual({ moved: true })
+      ).toEqual({})
+      expect(trace.at(-1)).toEqual(["move", [0], 10, 11])
       actions.dispatch(
         JSON.stringify({
           version: 1,
