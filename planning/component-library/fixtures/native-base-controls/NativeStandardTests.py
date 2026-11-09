@@ -23,12 +23,14 @@ import zipfile
 from NativeAndroidTestSupport import stop_owned_process
 from NativeCellVerification import bound_file, digest, driver_exit_code, load_admission, native_method, require
 from NativeXCTestBatch import reconcile_selected_results
+from NumberInputG08Check import method_results as number_method_results
 
 ROOT = Path(__file__).resolve().parent
 REPO = ROOT.parents[3]
 CACHE = REPO / "node_modules/.cache/codon-native-tests"
 PROJECT = ROOT / "ios-native-tests/CodonNativeComponents.xcodeproj"
 XCODE = "/Applications/Xcode.app/Contents/Developer/usr/bin"
+NUMBER_BATCHES = {"number-input": ["actions", "styles", "lifetime"], "number-input-actions": ["actions"], "number-input-styles": ["styles"], "number-input-lifetime": ["lifetime"]}
 METHODS = ["testS01MTCallerValuesBoundsAndDeferred", "testS01MTFormattingEmptyLabelAndContext", "testS02MTKnownLatestFillAndVisualRetirement", "testS02S06MTNativeDeliveryCurrentCallbacksAndHeldRetirement"]
 COHORTS = ["values", "format", "motion", "events"]
 STYLE_COHORTS = ["dimensions", "geometry", "slots", "context-motion"]
@@ -79,6 +81,10 @@ def verify_selected_app_inputs(plan, app):
 
 
 def selection(platform, batch="meter-g02"):
+    if batch in NUMBER_BATCHES:
+        require(platform == "ios", "NumberInput G08 is iOS only")
+        names = {"actions": "testNumberInputActionsAndOwnership", "styles": "testNumberInputStylesAndConstraint", "lifetime": "testNumberInputLifetimeAndReduction"}
+        return {"ios": ["NumberInputG08TrialTests/" + names[mode] for mode in NUMBER_BATCHES[batch]], "android": []}
     if batch in ["input-actions", "input-styles", "input-lifetime", "input-remaining"]:
         require(platform == "ios", "Current Input batches are iOS only")
         names={"input-actions":["testInputActionsAndEditorOwnership"],"input-styles":["testInputStylesAndConstraint"],"input-lifetime":["testInputBorderLifetimeAndReduction"],"input-remaining":["testInputActionsAndEditorOwnership","testInputStylesAndConstraint"]}[batch]
@@ -219,7 +225,7 @@ def bind_xctestrun(template, app, observer, output, installed_observer, restore_
     Path(output).write_bytes(plistlib.dumps(data))
 
 
-def verify_loaded_observer(diagnostics, installed_observer, observer):
+def verify_loaded_observer(diagnostics, installed_observer, observer, early_observation=None):
     paths = set()
     for log in Path(diagnostics).rglob("Session*.log"):
         for uri in re.findall(r"Loading test bundle at: (file://\S+)", log.read_text(errors="replace")):
@@ -229,9 +235,31 @@ def verify_loaded_observer(diagnostics, installed_observer, observer):
     require(len(paths) == 1, "XCTest loaded multiple or unrecorded test bundles: " + repr(paths))
     loaded = next(iter(paths))
     require(loaded.name == "CodonNativeComponents.xctest" and loaded.parent.name == "PlugIns", "Unexpected runtime test bundle structure")
-    verify_product(observer, loaded.parent.parent)
     executable = loaded / "CodonNativeComponents"
     expected_hash = observer["filesSHA256"]["PlugIns/CodonNativeComponents.xctest/CodonNativeComponents"]
+    try:
+        loaded.parent.parent.stat()
+        missing = False
+    except FileNotFoundError:
+        missing = True
+    if missing and early_observation is not None:
+        receipt = Path(early_observation["receipt"])
+        require(receipt.is_file(), "Complete current early host verification required")
+        proof = json.loads(receipt.read_text())
+        execution = early_observation["execution"]
+        rows = [json.loads(value) for value in re.findall(r"NATIVE_LOADED_OBSERVER_EARLY (\{[^\n]+\})", early_observation["raw"])]
+        seen = proof.get("nativeBeforeAppLaunch")
+        require(proof.get("status") == "PASS" and proof.get("observerManifestSHA256") == observer["manifestSHA256"] and proof.get("executableSHA256") == expected_hash, "Complete current early host verification required")
+        require(Path(proof.get("loadedTestBundle", "")) == loaded and isinstance(seen, list) and seen and rows[:len(seen)] == seen, "Early host proof does not match this runtime loading record")
+        require(execution.get("ownerPID") == os.getpid() and type(execution.get("pid")) is int and execution["pid"] > 0 and execution.get("processGroup") == execution["pid"], "Early host proof needs this SDK owner")
+        stamps = [datetime.datetime.fromisoformat(value) for value in [execution["startedUTC"], proof["verifiedUTC"], execution["endedUTC"]]]
+        require(all(value.tzinfo is not None for value in stamps), "Early host verification needs explicit UTC bounds")
+        started, verified, ended = [value.timestamp() for value in stamps]
+        require(started <= verified <= ended, "Early host verification is outside this SDK execution")
+        require(all(Path(row["path"]) == loaded and Path(row["executable"]) == executable and row["sha256"] == row["expectedSHA256"] == expected_hash and type(row["epochMs"]) in [int, float] and math.isfinite(row["epochMs"]) and started <= row["epochMs"] / 1000 <= ended for row in rows), "Current native loaded identity differs from early full host proof")
+        require(all(row["epochMs"] / 1000 <= verified for row in seen), "Early host verification predates its native marker")
+        return {"status": "PASS", "loadedTestBundle": str(loaded), "preflightInstalledObserver": str(installed_observer), "executableSHA256": expected_hash, "observerManifestSHA256": observer["manifestSHA256"], "earlyObservation": {"path": str(receipt), "sha256": digest(receipt)}, "basis": "Current native/runtime loading records and complete actual host verified by the existing one-shot helper during this SDK execution; post-run root is confirmed absent."}
+    verify_product(observer, loaded.parent.parent)
     require(digest(executable) == expected_hash, "Loaded test executable differs from intended observer")
     return {"status": "PASS", "loadedTestBundle": str(loaded), "preflightInstalledObserver": str(installed_observer), "executableSHA256": expected_hash, "observerManifestSHA256": observer["manifestSHA256"], "basis": "XCTest runtime loading log and exact full actually loaded observer product"}
 
@@ -292,12 +320,21 @@ class Session:
 
 def geometry_control_source(batch=None):
     source = (ROOT / "MeterG02TrialTests.swift").read_text()
-    if batch in ["input-actions", "input-styles", "input-lifetime", "input-remaining"]:
+    if batch in ["input-actions", "input-styles", "input-lifetime", "input-remaining"] or batch in NUMBER_BATCHES:
         selected=[]
-        for name in ["circularPixelsMatch", "toggleButtonMatchedFrame", "galleryScrollFraction"]:
+        for name in ["circularPixelsMatch", "toggleButtonMatchedFrame", "galleryScrollFraction"] + (["numberPhysicalCrop"] if batch in NUMBER_BATCHES else []):
             start=source.index("private func "+name+"(");opening=source.index("{",start);end=source.index("\n}",opening)+2
             selected.append(source[start:end].replace("private ","",1))
-        return "import Foundation\n"+"\n".join(selected)+"\n"+r'''
+        crop_controls = """precondition(numberPhysicalCrop([0,47,390,763],[0,47,390,762.9999999999999],3,1170,2289)==[0,0,1170,2289])
+precondition(numberPhysicalCrop([0,47,390,762.9999999999999],[0,47,390,763],3,1170,2289)==[0,0,1170,2289])
+precondition(numberPhysicalCrop([0,47,390,763+1.0/3],[0,47,390,763],3,1170,2289)==nil)
+precondition(numberPhysicalCrop([-1.0/3,47,390,763],[0,47,390,763],3,1170,2289)==nil)
+precondition(numberPhysicalCrop([0,47,390,763],[0,47,390,763],0,1170,2289)==nil)
+precondition(numberPhysicalCrop([Double.nan,47,390,763],[0,47,390,763],3,1170,2289)==nil)
+precondition(numberPhysicalCrop([0,47,0,763],[0,47,390,763],3,1170,2289)==nil)
+precondition(numberPhysicalCrop([0,47,390,763],[0,47,390,763],3,1169,2289)==nil)
+""" if batch in NUMBER_BATCHES else ""
+        return "import Foundation\n"+"\n".join(selected)+"\n"+crop_controls+r'''
 let inputOuter:[Double]=[26+12,539.99995803833008+12,240,48]
 let inputBacking=[inputOuter[0]+1,inputOuter[1]+1,inputOuter[2]-2,inputOuter[3]-2]
 precondition(toggleButtonMatchedFrame([39,552.99995803833008,238,46],inputBacking,3))
@@ -714,7 +751,7 @@ def build_ios(session, config=None):
     sdk = session.run("geometry-sdk", ["/usr/bin/xcrun", "--sdk", "macosx", "--show-sdk-path"]).strip()
     swift = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift"
     control_result = json.loads(session.run("geometry-controls", [swift, "-sdk", sdk, "-module-cache-path", str(CACHE / "swift-host-module-cache"), str(controls)]))
-    if config and config.get("batch") in ["input-actions", "input-styles", "input-lifetime", "input-remaining"]:
+    if config and (config.get("batch") in ["input-actions", "input-styles", "input-lifetime", "input-remaining"] or config.get("batch") in NUMBER_BATCHES):
         require(control_result == {"status":"PASS","inputFrameCases":6,"inputPixelCases":6,"inputScrollCases":8}, "Actual current Input frame/pixel/scroll controls failed")
     else:
         require(control_result.get("switcherCases") == 29 and control_result.get("linkGlyphCases") == 5 and control_result.get("linkReferenceCases") == 8 and control_result.get("buttonReferenceCases") == 8 and control_result.get("buttonShadowCases") == 6 and control_result.get("radioGroupCases") == 14 and control_result.get("checkboxGroupTagCases") == 8 and control_result.get("checkboxGroupCases") == 14 and control_result.get("checkboxCases") == 47 and control_result.get("switchRetirementCases") == 14 and control_result.get("switchEndpointCases") == 10 and control_result.get("switchThumbCases") == 11 and control_result.get("switchValueCases") == 10 and control_result.get("switchRasterCases") == 9 and control_result.get("toggleButtonCases") == 12 and control_result.get("listItemCases") == 20 and control_result.get("galleryScrollCases") == 8 and control_result.get("galleryTrackCases") == 8 and control_result.get("thumbnailFrameCases") == 6 and control_result.get("circularCases") == 6 and control_result.get("status") == "PASS" and control_result.get("cases") == 11 and control_result.get("pixelCases") == 6 and control_result.get("shadowCases") == 6, "Actual Swift geometry/pixel/shadow controls failed")
@@ -967,18 +1004,20 @@ def run_ios(session, config, app, observer):
     argv += ["-only-testing:CodonNativeComponents/" + name for name in selected]
     sdk_error = None
     try:
-        if config.get("batch") == "slider-hit-layout": raw = session.run("xctest", argv, while_running=slider_hold_capture(session, device))
+        if config.get("batch") in NUMBER_BATCHES: raw = session.run("xctest", argv)
+        elif config.get("batch") == "slider-hit-layout": raw = session.run("xctest", argv, while_running=slider_hold_capture(session, device))
         else: raw = session.run("xctest", argv, while_running=early_tooltip_observer(session,observer) if config.get("batch", "").startswith(("tooltip","switcher","form-field-","click-popover-","input-")) else None)
     except ValueError as error:
         sdk_error = error;stdout = session.output / "xctest.stdout";raw = stdout.read_text() if stdout.exists() else ""
-    if config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected", "circle-loader", "lagging-lines", "counter", "list-box-item", "list-box-item-motion", "toggle-button", "toggle-button-affected", "toggle-button-style", "radio", "radio-motion", "switch", "switch-motion", "checkbox", "checkbox-static", "checkbox-motion", "button", "button-motion", "link", "tooltip-motion", "tooltip", "switcher-motion", "form-field-motion", "click-popover-lifetime", "input-lifetime"] and "METER_STYLE_MOTION_ORIGINAL " in raw:
+    if (config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected", "circle-loader", "lagging-lines", "counter", "list-box-item", "list-box-item-motion", "toggle-button", "toggle-button-affected", "toggle-button-style", "radio", "radio-motion", "switch", "switch-motion", "checkbox", "checkbox-static", "checkbox-motion", "button", "button-motion", "link", "tooltip-motion", "tooltip", "switcher-motion", "form-field-motion", "click-popover-lifetime", "input-lifetime"] or config.get("batch") in NUMBER_BATCHES) and "METER_STYLE_MOTION_ORIGINAL " in raw:
         original_motion = re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])", raw)
         restored_motion = re.findall(r"METER_STYLE_MOTION_RESTORED ([01])", raw)
         if original_motion != restored_motion: session.cleanup_errors.append("Original iOS Reduce Motion restoration unverified")
     diagnostics = session.output / "runtime-diagnostics"
     try:
         session.run("xctest-runtime-diagnostics", [XCODE + "/xcresulttool", "export", "diagnostics", "--path", session.output / "Tests.xcresult", "--output-path", diagnostics])
-        loaded = verify_loaded_observer(diagnostics, installed_products["observer"], observer)
+        early_observation = {"receipt": session.output / "early-loaded-observer.json", "raw": raw, "execution": json.loads((session.output / "xctest.json").read_text())} if config.get("batch") in NUMBER_BATCHES else None
+        loaded = verify_loaded_observer(diagnostics, installed_products["observer"], observer, early_observation)
     except ValueError as error:
         write(session.output / "loaded-observer.json", {"status": "FAIL", "failure": str(error), "sdkFailure": str(sdk_error) if sdk_error else None})
         if sdk_error is not None: raise sdk_error from error
@@ -986,6 +1025,13 @@ def run_ios(session, config, app, observer):
     write(session.output / "loaded-observer.json", loaded)
     if config.get("batch", "").startswith(("tooltip","switcher","form-field-","click-popover-","input-")) and sdk_error is None:
         early_tooltip_observer(session,observer)();require((session.output/"early-loaded-observer.json").is_file(),"Tooltip early loaded-executable receipt missing")
+    if config.get("batch") in NUMBER_BATCHES:
+        method_names = selection("ios", config["batch"])["ios"]
+        modes = NUMBER_BATCHES[config["batch"]]
+        reports = number_method_results(raw, method_names, modes)
+        write(session.output / "number-method-results.json", reports)
+        if sdk_error is not None: raise sdk_error
+        require(all(row["status"] == "PASS" for row in reports.values()), "NumberInput selected method/reader failed")
     if sdk_error is not None: raise sdk_error
     summary = json.loads(session.run("xctest-summary", [XCODE + "/xcresulttool", "get", "test-results", "summary", "--path", session.output / "Tests.xcresult"]))
     result = reconcile_selected_results(summary, raw, selected)
@@ -3017,8 +3063,9 @@ def validate_standard_scope(plan):
     radio_group = cell == "CAT.radio-group.G08" and batch=="radio-group"
     checkbox_group = cell == "CAT.checkbox-group.G08" and batch in ["checkbox-group","checkbox-group-actions"]
     switch = cell == "CAT.switch.G08" and batch in ["switch", "switch-motion"]
+    number_cell = cell == "CAT.number-input.G08" and batch in NUMBER_BATCHES
     input_cell = cell == "CAT.input.G08" and batch in ["input-actions", "input-styles", "input-lifetime", "input-remaining"]
-    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item or toggle_button or radio or placeholder or slider or switch or checkbox or checkbox_group or radio_group or button or link or tooltip or switcher or field or popover or input_cell, "Only the authorized component and focused batch are selected")
+    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item or toggle_button or radio or placeholder or slider or switch or checkbox or checkbox_group or radio_group or button or link or tooltip or switcher or field or popover or input_cell or number_cell, "Only the authorized component and focused batch are selected")
 
 
 def main():

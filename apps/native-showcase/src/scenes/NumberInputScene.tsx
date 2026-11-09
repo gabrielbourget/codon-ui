@@ -12,6 +12,8 @@ import {
 
 import { NUMBER_INTL_PREPARATION } from "../runtime/number-format"
 
+import { NumberInputG08Fixture } from "./NumberInputG08Fixture"
+
 class NumberCapabilityBoundary extends Component<PropsWithChildren, { error?: Error }> {
   state: { error?: Error } = {}
   static getDerivedStateFromError(error: Error) {
@@ -28,18 +30,22 @@ class NumberCapabilityBoundary extends Component<PropsWithChildren, { error?: Er
   }
 }
 
-export const NumberInputScene = () => (
-  <View style={{ gap: 12 }}>
-    <Text testID="number-runtime-methods">
-      Number Intl: {NUMBER_INTL_PREPARATION}. Instance formatToParts=
-      {typeof new Intl.NumberFormat("en-US").formatToParts}; getCanonicalLocales={typeof Intl.getCanonicalLocales};
-      Locale={typeof Intl.Locale}; PluralRules={typeof Intl.PluralRules}; BigInt={typeof BigInt}.
-    </Text>
-    <NumberCapabilityBoundary>
-      <NumberExamples />
-    </NumberCapabilityBoundary>
-  </View>
-)
+export const NumberInputScene = () => {
+  const [standalone, setStandalone] = useState(false)
+  return (
+    <View style={{ gap: 12 }}>
+      <Text testID="number-runtime-methods">
+        Number Intl: {NUMBER_INTL_PREPARATION}. Instance formatToParts=
+        {typeof new Intl.NumberFormat("en-US").formatToParts}; getCanonicalLocales={typeof Intl.getCanonicalLocales};
+        Locale={typeof Intl.Locale}; PluralRules={typeof Intl.PluralRules}; BigInt={typeof BigInt}.
+      </Text>
+      <Button raised={false} accessibilityLabel="Prepare standalone Number checks" onPress={() => setStandalone(true)}>
+        Prepare standalone Number checks
+      </Button>
+      <NumberCapabilityBoundary>{standalone ? <NumberInputG08Fixture /> : <NumberExamples />}</NumberCapabilityBoundary>
+    </View>
+  )
+}
 
 const NumberExamples = () => {
   const theme = useNativeTheme()
