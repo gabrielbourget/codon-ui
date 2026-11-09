@@ -189,6 +189,24 @@ Computed theme/state styles precede custom and final native styles. Explicit hov
 
 DOM classes, browser click events, HTML forms, CSS dimensions and browser refs are rejected by public type cases. Native styles and callbacks retain native payloads; arbitrary children are not cloned to inject styles.
 
+## PlaceholderText
+
+PlaceholderText renders native Text with scalable b11 typography, italic styling, the theme’s controlPlaceholder color and left alignment. Set align="center" for centered content. Its exported alignment constants and derived type admit left/center only. The variant, fontWeight, fontStyle and color shorthand props are sealed; customStyles and final style remain native StyleProp inputs with computed → custom → final precedence. Registered/array styles, authored typography and maxWidth constraints use the shared Text resolver and native color validation. Text has no style-state callback API.
+
+```tsx
+import { PlaceholderText } from "@codon-ui/react-native"
+
+const EmptyLibrary = () => (
+  <PlaceholderText align="center" customStyles={{ maxWidth: 320 }}>
+    No saved views.
+  </PlaceholderText>
+)
+```
+
+Refs identify the original native Text, and press/layout callbacks retain their native event payloads. Native selection overrides, font scaling and label/test aliases follow Text; ordinary text defaults selectable unless its context or an explicit override says otherwise. Element/role props express native semantic intent without DOM elements, HTML associations or guarantees about spoken accessibility output. CSS classes and unresolved CSS color expressions are not native styling equivalents.
+
+The maintained Library scene demonstrates this public composition. The roadmap records selected Android and iOS behavior/style/provider/first-action and narrow-content acceptance separately from source, declarations and package graphs. Each installed result retains its actual source/product/observer identity. Application-owner visual review, physical accessibility/input, ARM/device lifecycle and signing remain deferred under their existing authority; static builds do not establish those results.
+
 ## Basic Controls
 
 Switch and Checkbox retain controlled/uncontrolled boolean selection, disabled/read-only guards, native refs/events, geometry/order and validated native styling. Their small visual track/shape is separate from the 44-point iOS / 48-dp Android root target. Switch retains left/right labels, icon slots and track/thumb styles; native OS drag/animation is not promised. Checkbox mixed state remains caller-owned, announces checked mixed and retains its line with showIcon false. CheckboxGroup coordinates string-valued members through private context; member discovery does not depend on walking or cloning children, and group state/guards own members, nested groups isolate state and descendants remain separate accessibility targets. Native read-only state has no AccessibilityState field; supply localized hints when needed. CheckboxGroup supports root render(props, state) and function children with current readonly value/disabled/read-only data; forward the supplied View props/ref/children. Style → children → root callbacks preserve order, primitive/Fragment output uses owned Text and authored members retain identity. The default cross axis is centered and the existing per-member dimming policy remains.
