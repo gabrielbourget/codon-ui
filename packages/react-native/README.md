@@ -170,7 +170,19 @@ AlertDialog labels resolve the four canonical keys cancelActionButton, cancelAct
 
 The four added color roles copy existing canonical values only: overlayBackdrop is rgba(0, 0, 0, 0.3) in both modes; statusDanger is #b73434/#ff6b5f, statusWarning #a66b00/#f0b429 and statusSuccess #2f7d18/#6ad060 (light/dark). Info uses controlSelectedBackground. Tone roles remain independent of validation-border overrides. Every pre-existing default and all dependency pins remain unchanged; inherited palette findings and iPhone signing remain deferred.
 
-`PlaceholderText` composes native Text with b11, italic, controlPlaceholder and left/default or center alignment. It exports alignment constants, their as-const array and derived type. Typography/color shorthand props are sealed, while customStyles and final style retain Text precedence and native color validation. Native Text refs, props, text scaling and label/test aliases remain available.
+`PlaceholderText` renders native Text with scalable b11 typography, italic styling, the theme’s controlPlaceholder color and left alignment by default; align="center" centers its content. The alignment constants, their as-const array and derived type are exported. The variant, fontWeight, fontStyle and color shorthand props are sealed. Native customStyles and final style still resolve computed → custom → final, including registered/array styles, authored typography and constraints such as maxWidth; unsupported CSS colors reject through Text’s native color validation. There is no style-state callback API.
+
+```tsx
+import { PlaceholderText } from "@codon-ui/react-native"
+
+const EmptyLibrary = () => (
+  <PlaceholderText align="center" customStyles={{ maxWidth: 320 }}>
+    No saved views.
+  </PlaceholderText>
+)
+```
+
+The ref remains the original native Text instance; native press/layout events, selection overrides, text scaling and label/test aliases retain Text’s contracts. Ordinary text is selectable unless its native context or explicit selectable prop says otherwise. Element/role props express native semantic intent rather than DOM elements, HTML associations or a guarantee of spoken accessibility output. The maintained Library scene and recorded Android/iOS behavior, style, provider, first-action and narrow-content evidence have separate identities in the roadmap; source or package-build availability alone does not establish installed qualification. Application-owner visual review, physical accessibility/input, ARM/device lifecycle and signing retain their existing deferred scope.
 
 `ComboBox` is the bounded single-selection searchable counterpart. Its named summary trigger opens an opaque full-screen safe-area window with one stable query Input, a reachable Close and virtualized results. It uses shared TypeScript and the existing optional overlay leaf registration, preserving caller/theme context. Query focus is explicitly caller/user initiated; results start at the current collection’s first row. This mobile presentation has no inline anchored-editor claim. Keyboard avoidance and keyboardShouldPersistTaps=handled preserve separate query/result/Close targets; installed acceptance remains a separate tier.
 

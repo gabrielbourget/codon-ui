@@ -274,6 +274,13 @@
         "sha256": "604d0d467dbbd25c9d13091c3e0ede1eba2aa12987811bef373ac5b1cc289bc0",
         "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/placeholder-g04-reuse-20261109/placeholder-G04-completion.json"
       }
+    },
+    "CAT.placeholder-text.G09": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-matrix/20261104T055006Z/placeholder-g09-closeout-20261109/objects/70af34d5b3a21a538a35d96d5a2f034c1a263f139a85269f03f6793cd5a03419",
+        "sha256": "70af34d5b3a21a538a35d96d5a2f034c1a263f139a85269f03f6793cd5a03419",
+        "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/placeholder-g09-closeout-20261109/placeholder-G09-completion.json"
+      }
     }
   }
 }
