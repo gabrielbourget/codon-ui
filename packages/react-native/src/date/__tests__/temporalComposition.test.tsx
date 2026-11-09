@@ -177,8 +177,41 @@ it("resets actual single and range owners through the maintained original native
   await temporalKey("datetime-range-picker-input-end", "day")
   await admitTemporal()
   expect(screen.getByTestId("date-fixture-state")).toHaveTextContent(/Date 2024-11-02/)
+  const runtime = jest.requireMock("../../input/specs/NativeCUIFormDocument").default as {
+    admitForm: jest.Mock<Promise<string>, [string]>
+  }
+  const admit = runtime.admitForm.getMockImplementation()!
+  const rejected: string[] = []
+  runtime.admitForm.mockImplementationOnce(async (encoded) => {
+    const request = JSON.parse(encoded)
+    expect(JSON.parse(await admit(encoded)).accepted).toBe(true)
+    for (const [name, changed] of [
+      ["missing form mount", { ...request, formMount: null }],
+      ["stale form", { ...request, form: { ...request.form, descriptorRevision: "retired" } }],
+      ["missing fields", { ...request, fields: [] }],
+      [
+        "missing field mount",
+        { ...request, fields: [{ ...request.fields[0], mount: null }, ...request.fields.slice(1)] },
+      ],
+      [
+        "wrong action target",
+        { ...request, actionLease: { ...request.actionLease, target: request.actionLease.target + 1 } },
+      ],
+    ] as const) {
+      expect(JSON.parse(await admit(JSON.stringify(changed))).accepted).toBe(false)
+      rejected.push(name)
+    }
+    return admit(encoded)
+  })
   await temporalPress("Reset date form")
   await admitTemporal()
+  expect(rejected).toEqual([
+    "missing form mount",
+    "stale form",
+    "missing fields",
+    "missing field mount",
+    "wrong action target",
+  ])
   expect(screen.getByTestId("date-fixture-form")).toHaveTextContent(/"status":"reset"/)
   expect(screen.getByTestId("date-fixture-state")).toHaveTextContent(/Date 2024-11-01/)
   expect(screen.getByTestId("date-fixture-state")).toHaveTextContent(/Range 2024-11-01 \/ 2024-11-04/)

@@ -17,7 +17,10 @@ jest.mock("../../input/specs/CUIFocusViewNativeComponent", () => ({
   default: jest.requireActual("react").forwardRef((props: Record<string, unknown>, ref: Ref<View>) => {
     const React = jest.requireActual<typeof import("react")>("react")
     const [original] = React.useState(() => ({
-      nativeTag: ++mockTags,
+      _nativeTag: ++mockTags,
+      get nativeTag(): number {
+        return this._nativeTag
+      },
       focus: jest.fn(),
       setNativeProps: jest.fn(),
       measureInWindow: jest.fn((receive: (x: number, y: number, width: number, height: number) => void) =>
@@ -29,13 +32,26 @@ jest.mock("../../input/specs/CUIFocusViewNativeComponent", () => ({
     if (props.ownerId) mockActors.set(String(props.ownerId), original)
     return React.createElement(jest.requireActual("react-native").View, props)
   }),
-  Commands: { requestKeyboardFocus: jest.fn(), requestKeyboardBlur: jest.fn(), inspectAccessibility: jest.fn() },
+  Commands: {
+    requestKeyboardFocus: jest.fn(),
+    requestKeyboardBlur: jest.fn(),
+    requestCollectionFocus: jest.fn(),
+    requestContainerFocus: jest.fn(),
+    inspectAccessibility: jest.fn(),
+  },
 }))
 jest.mock("../../input/specs/CUIDateSegmentNativeComponent", () => ({
   __esModule: true,
   default: jest.requireActual("react").forwardRef((props: Record<string, unknown>, ref: Ref<View>) => {
     const React = jest.requireActual<typeof import("react")>("react")
-    const [original] = React.useState(() => ({ nativeTag: ++mockTags, focus: jest.fn(), setNativeProps: jest.fn() }))
+    const [original] = React.useState(() => ({
+      _nativeTag: ++mockTags,
+      get nativeTag(): number {
+        return this._nativeTag
+      },
+      focus: jest.fn(),
+      setNativeProps: jest.fn(),
+    }))
     React.useImperativeHandle(ref, () => original as unknown as View, [original])
     mockTargets.set(String(props.testID), original)
     return React.createElement(jest.requireActual("react-native").View, props)
@@ -47,7 +63,14 @@ jest.mock("../../input/specs/CUIFieldBindingNativeComponent", () => ({
   default: jest.requireActual("react").forwardRef((props: Record<string, unknown>, ref: Ref<View>) => {
     const React = jest.requireActual<typeof import("react")>("react"),
       testID = `metadata:${props.ownerId}`
-    const [original] = React.useState(() => ({ nativeTag: ++mockTags, focus: jest.fn(), setNativeProps: jest.fn() }))
+    const [original] = React.useState(() => ({
+      _nativeTag: ++mockTags,
+      get nativeTag(): number {
+        return this._nativeTag
+      },
+      focus: jest.fn(),
+      setNativeProps: jest.fn(),
+    }))
     React.useImperativeHandle(ref, () => original as unknown as View, [original])
     mockTargets.set(testID, original)
     return React.createElement(jest.requireActual("react-native").View, { ...props, testID })
@@ -61,6 +84,47 @@ jest.mock("../../input/specs/CUIKeyboardScopeNativeComponent", () => ({
 jest.mock("../../input/specs/NativeCUIFormDocument", () => ({
   __esModule: true,
   default: {
+    admitForm: jest.fn(async (encoded: string) => {
+      const request = JSON.parse(encoded)
+      const registry =
+        jest.requireActual<typeof import("../../form/registry")>("../../form/registry").nativeFormRegistry
+      const form = registry.forms.get(request.form?.descriptorId)
+      const fields = form ? registry.fieldsFor(form) : []
+      const lease = mockActionStatuses.get(request.actionLease?.target)
+      const keys =
+        jest.requireActual<typeof import("../../form/actionLease")>(
+          "../../form/actionLease",
+        ).NATIVE_FORM_ACTION_LEASE_KEYS
+      const accepted = !!(
+        form &&
+        form.current() === form.original &&
+        JSON.stringify(request.form) === JSON.stringify(form.descriptor) &&
+        request.formMount?.active &&
+        JSON.stringify(request.formMount) === JSON.stringify(form.mount()?.getSnapshot()) &&
+        lease &&
+        keys.every((key) => request.actionLease[key] === lease[key]) &&
+        request.actionLease.windowId === request.formMount.windowId &&
+        request.actionLease.surfaceId === request.formMount.surfaceId &&
+        Array.isArray(request.fields) &&
+        request.fields.length === fields.length &&
+        request.fields.every(
+          (
+            entry: { field: unknown; mount?: { active: boolean; windowId: string; surfaceId: number } },
+            index: number,
+          ) =>
+            entry.mount?.active &&
+            JSON.stringify(entry.field) === JSON.stringify(fields[index].descriptor) &&
+            JSON.stringify(entry.mount) === JSON.stringify(fields[index].mount()?.getSnapshot()) &&
+            entry.mount.windowId === request.formMount.windowId &&
+            entry.mount.surfaceId === request.formMount.surfaceId,
+        )
+      )
+      return JSON.stringify({
+        accepted,
+        requestId: request.requestId,
+        formRevision: request.form?.descriptorRevision,
+      })
+    }),
     getSnapshot: jest.fn(async (encoded: string) => {
       const request = JSON.parse(encoded)
       const registry =
@@ -149,9 +213,12 @@ beforeEach(() => {
   const prior = jest.spyOn(native, "findNodeHandle").getMockImplementation()
   jest.spyOn(native, "findNodeHandle").mockImplementation((target: unknown) => {
     const owned = (target as { nativeTag?: number } | null)?.nativeTag
-    if (owned) return owned
     if (!target || typeof target !== "object") return null
     const reserved = prior?.(target as View)
+    if (owned) {
+      if (reserved !== owned) throw new Error("Temporal original ref was not registered at its RN native tag")
+      return owned
+    }
     if (typeof reserved === "number" && reserved >= 1000000 && reserved < 70000000) return reserved
     if (!otherTags.has(target)) otherTags.set(target, ++nextOtherTag)
     return otherTags.get(target)!
@@ -241,6 +308,35 @@ export const admitTemporal = async () => {
       })
       await Promise.resolve()
     })
+  }
+  const registry = jest.requireActual<typeof import("../../form/registry")>("../../form/registry").nativeFormRegistry
+  for (const form of registry.forms.values()) {
+    const descriptor = form.descriptor
+    const metadata = screen.container.queryAll(
+      (node) =>
+        node.props.descriptorId === descriptor.descriptorId && typeof node.props.onNativeFormCommit === "function",
+    )[0]
+    if (!metadata) throw new Error("Original temporal form metadata missing")
+    await act(() =>
+      metadata.props.onNativeFormCommit({
+        nativeEvent: {
+          ...descriptor,
+          target: descriptor.metadataTarget,
+          originalTarget: descriptor.target,
+          surfaceId: 11,
+          windowId: "window:1",
+          epoch: 1,
+          sequence: ++commitSequence,
+          mountRevision: descriptor.descriptorRevision,
+          attached: true,
+          active: true,
+          complete: true,
+          metadataOnly: true,
+          originalClass: "View",
+          error: "",
+        },
+      }),
+    )
   }
 }
 export const temporalKey = async (fieldID: string, part: string, key = "ArrowUp", dispatch = true) => {
