@@ -4,6 +4,7 @@ import { View, VirtualizedList, useWindowDimensions, type VirtualizedListProps }
 import {
   DefaultNativeCollectionRenderer,
   NativeCollectionCellFocusContext,
+  renderNativeCollectionNode,
   type TNativeCollectionRect,
   type TNativeCollectionRenderer,
   type TNativeCollectionRootProps,
@@ -99,7 +100,7 @@ const VirtualTagComboRoot = ({
       getItem={(items: TNode[], index) => items[index]}
       getItemCount={(items: TNode[]) => items.length}
       keyExtractor={(node) => JSON.stringify([typeof node.key, node.key])}
-      renderItem={({ item }) => item.render?.(item) ?? null}
+      renderItem={({ item }) => renderNativeCollectionNode(item)}
       CellRendererComponent={Cell}
       initialNumToRender={4}
       maxToRenderPerBatch={4}

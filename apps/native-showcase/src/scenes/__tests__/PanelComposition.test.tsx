@@ -313,6 +313,13 @@ it("echoes the query scene's Apply, cancels Clear to the owner snapshot and rest
     requests: [],
     closeRequests: 0,
     echo: false,
+    callbacks: [],
+    open: false,
+    closeVetoesRemaining: 0,
+    booleanToggle: false,
+    panelMounted: true,
+    pendingAction: null,
+    hostEvents: [],
   })
   await reopenQuery()
   expect(screen.queryByTestId("query-sort-entry", hidden)).toBeNull()

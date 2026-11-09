@@ -1,6 +1,6 @@
-import { act, fireEvent, render, screen, userEvent } from "@testing-library/react-native"
+import { act, cleanup, fireEvent, render, screen, userEvent } from "@testing-library/react-native"
 import type { ComponentType } from "react"
-import { Dimensions } from "react-native"
+import { AccessibilityInfo, Dimensions } from "react-native"
 
 const { App } = jest.requireActual<{ App: ComponentType }>(
   "../../../../../planning/component-library/fixtures/native-query-delivery/App",
@@ -10,8 +10,25 @@ jest.mock("react-native-safe-area-context", () => {
   const { View } = jest.requireActual("react-native")
   return { SafeAreaProvider: View, SafeAreaView: View }
 })
-beforeEach(() => jest.useFakeTimers())
-afterEach(() => jest.useRealTimers())
+beforeEach(() => {
+  jest.useFakeTimers()
+  jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
+  const native = jest.requireActual<typeof import("react-native")>("react-native")
+  const tags = new WeakMap<object, number>()
+  let nextTarget = 1000
+  jest.spyOn(native, "findNodeHandle").mockImplementation((target) => {
+    if (!target || typeof target !== "object") return typeof target === "number" ? target : null
+    if (!tags.has(target)) tags.set(target, ++nextTarget)
+    return tags.get(target)!
+  })
+})
+afterEach(async () => {
+  await cleanup()
+  await act(() => jest.runOnlyPendingTimers())
+  jest.clearAllTimers()
+  jest.useRealTimers()
+  jest.restoreAllMocks()
+})
 const press = async (name: string) => userEvent.setup().press(screen.getByRole("button", { name }))
 const state = () => JSON.parse(screen.getByTestId("diag-field-option-string:status").props.accessibilityLabel.slice(4))
 const open = async () => {

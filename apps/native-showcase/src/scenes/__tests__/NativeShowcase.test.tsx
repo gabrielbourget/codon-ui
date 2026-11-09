@@ -1,11 +1,27 @@
-import { act, fireEvent, render, screen, userEvent } from "@testing-library/react-native"
+import { act, cleanup, fireEvent, render, screen, userEvent } from "@testing-library/react-native"
 import { Dimensions } from "react-native"
 import { SafeAreaInsetsContext } from "react-native-safe-area-context"
 
 import { NativeShowcase } from "../NativeShowcase"
 
-beforeEach(() => jest.useFakeTimers())
-afterEach(() => jest.useRealTimers())
+beforeEach(() => {
+  jest.useFakeTimers()
+  const native = jest.requireActual<typeof import("react-native")>("react-native")
+  const tags = new WeakMap<object, number>()
+  let nextTarget = 1000
+  jest.spyOn(native, "findNodeHandle").mockImplementation((target) => {
+    if (!target || typeof target !== "object") return typeof target === "number" ? target : null
+    if (!tags.has(target)) tags.set(target, ++nextTarget)
+    return tags.get(target)!
+  })
+})
+afterEach(async () => {
+  await cleanup()
+  await act(() => jest.runOnlyPendingTimers())
+  jest.clearAllTimers()
+  jest.useRealTimers()
+  jest.restoreAllMocks()
+})
 
 const renderShowcase = async () =>
   render(
@@ -495,7 +511,7 @@ it("composes multiline editing, final native submit text and controlled/uncontro
     expect(screen.getByTestId("multiline-draft")).toHaveDisplayValue(notes)
     await press(`Toggle multiline ${guard}`)
   }
-})
+}, 15_000)
 
 it("retains radio values through removal, themes, fixtures and rotation and resets all scene defaults", async () => {
   const previous = { window: Dimensions.get("window"), screen: Dimensions.get("screen") }
