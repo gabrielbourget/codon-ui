@@ -47,9 +47,13 @@ class ClearSceneInterval:
         return monotonic_time - self.since >= self.seconds
 
 
-def group_present(process):
+def group_present(process, verify_reaped_group=None):
     # Reap our exited leader before probing the group.
     process.poll()
+    if process.returncode is not None and verify_reaped_group is not None:
+        if verify_reaped_group(process) is not True:
+            raise ValueError("Reaped group absence is not verified")
+        return False
     try:
         os.killpg(process.pid, 0)
         return True
@@ -57,8 +61,8 @@ def group_present(process):
         return False
 
 
-def stop_owned_process(process):
-    if group_present(process):
+def stop_owned_process(process, verify_reaped_group=None):
+    if group_present(process, verify_reaped_group):
         try:
             os.killpg(process.pid, signal.SIGTERM)
         except ProcessLookupError:
@@ -68,18 +72,18 @@ def stop_owned_process(process):
             process.wait(timeout=3)
         except subprocess.TimeoutExpired:
             pass
-        if group_present(process):
+        if group_present(process, verify_reaped_group):
             try:
                 os.killpg(process.pid, signal.SIGKILL)
             except ProcessLookupError:
                 pass
             until = time.monotonic() + 3
-            while group_present(process) and time.monotonic() < until:
+            while group_present(process, verify_reaped_group) and time.monotonic() < until:
                 process.poll()
                 time.sleep(0.02)
         if process.poll() is None:
             process.wait(timeout=0.1)
-    return not group_present(process)
+    return not group_present(process, verify_reaped_group)
 
 
 def recorded_command(argv, prefix, cap_seconds, deadline_unix, env=None):
