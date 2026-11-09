@@ -2633,4 +2633,98 @@ class InputG08Controls(unittest.TestCase):
             with self.subTest(kind=kind),self.assertRaises(ValueError):NATIVE.reconcile_input_ios(raw,{"batch":"input-lifetime"})
 
 
+class NumberLoadedHostTimingTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory();self.root = Path(self.temp.name)
+        self.host = self.root / "Loaded.app";self.bundle = self.host / "PlugIns/CodonNativeComponents.xctest"
+        self.bundle.mkdir(parents=True);self.executable = self.bundle / "CodonNativeComponents"
+        self.executable.write_bytes(b"synthetic observer executable")
+        (self.host / "Runner").write_bytes(b"synthetic runner")
+        for index in range(35): (self.host / ("member-" + str(index))).write_bytes(str(index).encode())
+        self.observer = NATIVE.identity(self.host)
+        self.session = MagicMock();self.session.output = self.root / "run";self.session.output.mkdir()
+        now = time.time()
+        self.row = {"path":str(self.bundle),"executable":str(self.executable),"sha256":NATIVE.digest(self.executable),"expectedSHA256":NATIVE.digest(self.executable),"epochMs":(now-1)*1000}
+        self.raw = "NATIVE_LOADED_OBSERVER_EARLY " + json.dumps(self.row) + "\n"
+        (self.session.output / "xctest.stdout").write_text(self.raw)
+        NATIVE.early_tooltip_observer(self.session,self.observer)()
+        self.receipt = self.session.output / "early-loaded-observer.json"
+        self.diagnostics = self.root / "diagnostics";self.diagnostics.mkdir()
+        (self.diagnostics / "Session-test.log").write_text("Loading test bundle at: " + self.bundle.as_uri() + "/\n")
+        stamp = lambda value:NATIVE.datetime.datetime.fromtimestamp(value,NATIVE.datetime.timezone.utc).isoformat()
+        self.execution = {"ownerPID":os.getpid(),"pid":12345,"processGroup":12345,"startedUTC":stamp(now-2),"endedUTC":stamp(now+2)}
+        self.observation = {"receipt":self.receipt,"raw":self.raw,"execution":self.execution}
+
+    def tearDown(self): self.temp.cleanup()
+
+    def retire(self):
+        import shutil
+        shutil.rmtree(self.host)
+
+    def verify(self):
+        return NATIVE.verify_loaded_observer(self.diagnostics,self.root/"DifferentPreflight.app",self.observer,self.observation)
+
+    def test_complete_one_shot_host_proof_survives_confirmed_postrun_absence(self):
+        self.assertEqual(len(self.observer["filesSHA256"]),37)
+        self.retire();result = self.verify()
+        self.assertEqual(result["status"],"PASS")
+        self.assertEqual(result["observerManifestSHA256"],self.observer["manifestSHA256"])
+        self.assertEqual(result["earlyObservation"]["sha256"],NATIVE.digest(self.receipt))
+
+    def test_missing_or_incomplete_early_proof_never_rescues_absence(self):
+        original = json.loads(self.receipt.read_text());self.retire()
+        for key,value in [("status","FAIL"),("observerManifestSHA256","f"*64),("executableSHA256","f"*64),("loadedTestBundle",str(self.root/"Other.xctest")),("nativeBeforeAppLaunch",[])]:
+            bad=copy.deepcopy(original);bad[key]=value;self.receipt.write_text(json.dumps(bad))
+            with self.subTest(key=key),self.assertRaises(ValueError):self.verify()
+        self.receipt.unlink()
+        with self.assertRaises((ValueError,FileNotFoundError)):self.verify()
+
+    def test_stale_future_or_foreign_owner_proof_rejects(self):
+        original=json.loads(self.receipt.read_text());self.retire()
+        for value in ["2000-01-01T00:00:00+00:00","2100-01-01T00:00:00+00:00","2026-11-09T00:00:00"]:
+            bad=copy.deepcopy(original);bad["verifiedUTC"]=value;self.receipt.write_text(json.dumps(bad))
+            with self.subTest(timestamp=value),self.assertRaises(ValueError):self.verify()
+        self.receipt.write_text(json.dumps(original));self.execution["ownerPID"]+=1
+        with self.assertRaises(ValueError):self.verify()
+
+    def test_current_native_marker_and_runtime_root_must_match_complete_proof(self):
+        self.retire()
+        for key,value in [("path",str(self.root/"Other.xctest")),("sha256","f"*64),("expectedSHA256","f"*64),("epochMs",0)]:
+            bad=copy.deepcopy(self.row);bad[key]=value;self.observation["raw"]="NATIVE_LOADED_OBSERVER_EARLY "+json.dumps(bad)+"\n"
+            with self.subTest(key=key),self.assertRaises(ValueError):self.verify()
+        self.observation["raw"]=""
+        with self.assertRaises(ValueError):self.verify()
+        self.observation["raw"]=self.raw
+        other=self.root/"Other.app/PlugIns/CodonNativeComponents.xctest"
+        (self.diagnostics/"Session-test.log").write_text("Loading test bundle at: "+other.as_uri()+"/\n")
+        with self.assertRaises(ValueError):self.verify()
+        (self.diagnostics/"Session-test.log").write_text("Loading test bundle at: "+self.bundle.as_uri()+"/\n")
+        bad=copy.deepcopy(self.row);bad["path"]=str(other)
+        self.observation["raw"]=self.raw+"NATIVE_LOADED_OBSERVER_EARLY "+json.dumps(bad)+"\n"
+        with self.assertRaises(ValueError):self.verify()
+
+    def test_present_changed_partial_or_extra_host_still_fails(self):
+        self.executable.write_bytes(b"changed")
+        with self.assertRaises(ValueError):self.verify()
+        self.executable.write_bytes(b"synthetic observer executable")
+        extra=self.host/"unexpected";extra.write_text("extra")
+        with self.assertRaises(ValueError):self.verify()
+        extra.unlink();(self.host/"member-0").unlink()
+        with self.assertRaises(ValueError):self.verify()
+
+    def test_denied_or_unknown_host_stat_is_never_absence(self):
+        original=Path.stat
+        for exception in [PermissionError("denied"),OSError("unknown")]:
+            def probe(path,*args,**kwargs):
+                if path==self.host:raise exception
+                return original(path,*args,**kwargs)
+            with self.subTest(error=type(exception).__name__),patch.object(Path,"stat",probe),self.assertRaises(OSError):self.verify()
+
+    def test_existing_postrun_rule_is_unchanged_without_early_observation(self):
+        self.assertEqual(NATIVE.verify_loaded_observer(self.diagnostics,self.host,self.observer)["status"],"PASS")
+        self.retire()
+        with self.assertRaisesRegex(ValueError,"Product files differ"):
+            NATIVE.verify_loaded_observer(self.diagnostics,self.host,self.observer)
+
+
 if __name__ == "__main__": unittest.main()

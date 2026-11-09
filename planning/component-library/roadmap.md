@@ -1,6 +1,6 @@
 # Component Library Implementation Roadmap
 
-Current PlaceholderText closeout, 2026-11-09 — PHT-09: all nine gates reconcile through scoped both-OS installed evidence, complete customization review, current public references and fresh package/consumer/type/graph/docs proof. Ledger261 PASS/200 OPEN/zero FAIL/seven BLOCKED,52 components/468 cells,6/52 fully qualified. Original failures, Android automatic FAILED versus verified physical cleanup, D01–D04 deferrals and all stopped cells remain explicit. [Nine-gate audit](experiments.md#3312984-placeholdertext-nine-gate-closeout).
+Current NumberInput installed iOS closeout, 2026-11-09 — NUM-08: three native methods, 51 observations and 76 independently reviewed original PNGs pass at their actual tuples with exact restoration and within-cap cleanup. Ledger262 PASS/199 OPEN/zero FAIL/seven BLOCKED,52 components/468 cells,6/52 fully qualified. Android and NumberInput G02/G04/G07/G09 remain OPEN. [Installed iOS evidence](experiments.md#3312381-numberinput-installed-ios-closeout).
 
 Current PlaceholderText customization checkpoint, 2026-11-09 — PHT-04: G04 closes by scoped reuse of the three Android cohorts/16 captures and three iOS methods/15 captures, unchanged applicable Text customization proof and one new exact maximum-width/native-semantic source case. Actual product/observer tuples, failed receipts and separate physical cleanup remain intact. Ledger260 PASS/201 OPEN/zero FAIL/seven BLOCKED,52 components/468 cells,5/52 fully qualified. G09 stays OPEN. [STYLE mapping and criteria](experiments.md#3312983-placeholdertext-customization-reuse-closeout).
 
@@ -253,6 +253,7 @@ Lifecycle: **Active**. Owner: Gabriel Bourget. Reviewed: **2026-11-08**. Codon U
     - [3.5.74. Checkbox Complete Contract](#3574-checkbox-complete-contract)
     - [3.5.75. Switch Complete Contract](#3575-switch-complete-contract)
     - [3.5.76. NumberInput Complete Contract](#3576-numberinput-complete-contract)
+      - [3.5.76.1. NumberInput Installed iOS](#35761-numberinput-installed-ios)
     - [3.5.77. ListBoxItem Complete Contract](#3577-listboxitem-complete-contract)
     - [3.5.78. Select Complete Contract](#3578-select-complete-contract)
   - [3.6. LinearProgress And Meter Contract](#36-linearprogress-and-meter-contract)
@@ -4108,6 +4109,12 @@ Target cell: `CAT.number-input.G01`. FIN-NUM01 in experiments3.31.238 covers all
 | CAP.number-input.020 | Every remaining inherited/native property          | All 131 canonical fields retain individual native mappings/types or explicit original approval references; all 41 native fields remain accounted for. No omitted member is silently reclassified to improve the ledger.                                                                                                                       |
 
 The focused source tier passes 82 cases: three new public renderer/border controls, all32 original component cases,43 unchanged decimal-model cases and four NumberInput/Stepper Button-context isolation cases. All14 pinned canonical root cases plus the actual renderer/ref/owned-controls probe and both actual maintained NumberInput scene cases pass. Initial failures remain; no assertion or timeout changes. Public types retain all original negatives and add native renderer positives plus DOM-ref/React Aria-state/generic-child negatives. Explicitly omit renderer inheritance from Stepper and reject it in public types, preserving that component’s original surface until its own implementation exists. FIN-NUM01 records the emitted build, owning docs, fresh immutable consumers, exact SDK/platform maps and normal adoption. Only G01 changes; native behavior/presentation, appearance/accessibility/profiles and final closure retain their original gates.
+
+##### 3.5.76.1. NumberInput Installed iOS
+
+NUM-08 in experiments3.31.238.1 closes only `CAT.number-input.G08` under NATIVE-CELL-03/RB-NATIVE-01. The actual iPhone17e/iOS26.5/x86_64 Release lane records390×844@3/fontScale1. Three methods pass at their original product tuples: Actions311.377s/28 observations at app136de61e/observer0d00181a; Styles264.495s/11 and Lifetime229.865s/12 at the same app and observer9b51860c. Original loaded executable/full-host identities, strict native readers,76 original PNGs, exact preference restoration and within-cap process/simulator cleanup reconcile. Reused FIN-NUM01/source/consumer/shared interpolation proof retains only its unchanged scope.
+
+The selected native risks cover original numeric raw-draft/final-commit/default/null/veto/step/locale/selection ownership, separate editor/root and named Button targets, guards/restoration, exact styles/providers/constraint, first keyboard-active fixture activation and live reduction/retirement. Public runtime/model/RN/dependencies and exact values remain unchanged. Minimal fixture/observer corrections address suppressed programmatic-selection callbacks, repeated identical whole-selection preparation and capture-before-expectation; original failures and the later historical stall's unknown cause remain preserved. Keyboard-edge fixture clipping has no product-cause attribution. No separate duration gate or passive profile cross-product is introduced. NumberInput G02/G04/G07/G09 remain OPEN; Android, physical/ARM/signing/owner deferrals and all stopped cells retain their existing boundaries.
 
 #### 3.5.77. ListBoxItem Complete Contract
 

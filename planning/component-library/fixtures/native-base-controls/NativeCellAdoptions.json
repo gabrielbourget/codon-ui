@@ -281,6 +281,12 @@
         "sha256": "70af34d5b3a21a538a35d96d5a2f034c1a263f139a85269f03f6793cd5a03419",
         "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/placeholder-g09-closeout-20261109/placeholder-G09-completion.json"
       }
+    },
+    "CAT.number-input.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/number-input-g08-closeout-20261109T211840Z/number-input-G08-completion.json",
+        "sha256": "c5d161e475e371cb345fb4b90dc50049a7d275f17dc65e11ce9bc2e46a9987fc"
+      }
     }
   }
 }
