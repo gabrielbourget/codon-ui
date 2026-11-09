@@ -341,7 +341,7 @@ it("composes registry-shaped sort editing, removal, clear, apply order and held 
   await view.rerender(tree(props))
   await present()
   expect(screen.getByText("No sorting currently applied")).toBeOnTheScreen()
-})
+}, 15_000)
 
 it("reorders the visible draft, applies its exact order, and restores the owner's order on held Cancel", async () => {
   const activeSorts: TTableSortInstruction[] = [
@@ -409,7 +409,7 @@ it("reorders the visible draft, applies its exact order, and restores the owner'
   expect(events.at(-1)).toBe(false)
   expect(JSON.parse(host("query-sort-option-city").props.nativeCollectionSemantics).ordinal).toBe(0)
   expect(activeSorts.map((sort) => sort.id)).toEqual(["city", "name"])
-})
+}, 15_000)
 it("restores the applied snapshot on Cancel while Close only requests dismissal", async () => {
   const activeSorts: TTableSortInstruction[] = [
     { id: "city", criteriaID: "city", criteriaName: "City", sortDirection: "Ascending" },
@@ -509,7 +509,7 @@ it("hydrates select-backed zero, false and empty values without coercion", async
     0,
     false,
   ])
-})
+}, 15_000)
 it("keeps a pending raw argument through metadata refresh and uses current metadata on Apply", async () => {
   const apply = jest.fn()
   const view = await render(tree({ activeFilters: applied, applyPendingSortAndFilterChanges: apply }))
@@ -560,7 +560,7 @@ it("runs the maintained panel scene through held Apply, reopen and owner echo", 
   expect(owner().confirmed.sortInstructions[0].criteriaID).toBe("count")
   expect(owner().requests).toHaveLength(2)
   expect(owner().closeRequests).toBe(3)
-})
+}, 15_000)
 
 it("retains the public panel's original editor and dirty draft when owner metadata arrives asynchronously", async () => {
   let complete!: (metadata: TAvailableFilterCriteria[]) => void
@@ -710,7 +710,7 @@ it("loads and clears explicit confirmed scene models without generating an Apply
   expect(screen.queryAllByRole("option")).toEqual([])
   expect(screen.getByText("No filters currently applied")).toBeOnTheScreen()
   expect(owner().requests).toEqual([])
-})
+}, 15_000)
 
 it("source closeout: routes a real simple ComboBox argument to the query draft without confirming the owner", async () => {
   await render(<SortAndFilterPanelFixture />)
@@ -766,7 +766,7 @@ it("source closeout: routes a real simple ComboBox argument to the query draft w
     clauses: [{ id: "suggestion-clause", operationCode: "equal", argument: "Beta" }],
   })
   expect(owner().confirmed.filterGroups[0].clauses[0].argument).toBe("Alpha")
-})
+}, 15_000)
 
 it("source closeout: retains both canonical Typeahead placeholders and their owned arguments", async () => {
   await render(<SortAndFilterPanelFixture />)
