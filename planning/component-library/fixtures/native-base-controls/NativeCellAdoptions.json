@@ -254,6 +254,12 @@
         "sha256": "6416d4445ed2ce013c9170794506b2d6f139b7e1facf679ab047936c4109918b",
         "originalPath": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/click-popover-after-hover-removal-20261108/click-popover-G08-completion.json"
       }
+    },
+    "CAT.input.G08": {
+      "completion": {
+        "path": "/Users/gabrielbourget/Desktop/Dev/wavemap/tendril-systems/codon-ui/node_modules/.cache/codon-native-tests/input-after-menu-block-20261108/input-G08-closeout/objects/3959817c852381abe4f7cd5df3db3494a5fa984b710d2c8e1b2de4a18733daf8",
+        "sha256": "3959817c852381abe4f7cd5df3db3494a5fa984b710d2c8e1b2de4a18733daf8"
+      }
     }
   }
 }
