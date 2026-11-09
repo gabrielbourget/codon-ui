@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react-native"
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react-native"
 import { createRef } from "react"
 import { StyleSheet, type TextInput, type View } from "react-native"
 
@@ -19,6 +19,24 @@ jest.mock("react-native-safe-area-context", () => ({
   SafeAreaProvider: jest.requireActual("react-native").View,
   SafeAreaView: jest.requireActual("react-native").View,
 }))
+beforeEach(() => {
+  jest.useFakeTimers()
+  const native = jest.requireActual<typeof import("react-native")>("react-native")
+  const tags = new WeakMap<object, number>()
+  let next = 1000
+  jest.spyOn(native, "findNodeHandle").mockImplementation((receiver) => {
+    if (!receiver || typeof receiver !== "object") return typeof receiver === "number" ? receiver : null
+    if (!tags.has(receiver)) tags.set(receiver, ++next)
+    return tags.get(receiver)!
+  })
+})
+afterEach(async () => {
+  await cleanup()
+  await act(() => jest.runOnlyPendingTimers())
+  jest.restoreAllMocks()
+  jest.clearAllTimers()
+  jest.useRealTimers()
+})
 const wrap = (child: React.ReactNode) => (
   <NativeThemeProvider>
     <NativeFloatingLayerHost>{child}</NativeFloatingLayerHost>

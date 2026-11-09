@@ -47,7 +47,11 @@ import { NativeCompactLoadingIndicator, NativeCompactSearchIcon } from "./afford
 import { resolveCompactTypeaheadLabels } from "./labels"
 import { getCompactTypeaheadEntries } from "./model"
 import { getCompactTypeaheadStyles } from "./styles"
-import type { TNativeCompactTypeaheadRef, TNativeCompactTypeaheadSearchProps } from "./types"
+import type {
+  TNativeCompactTypeaheadEntry,
+  TNativeCompactTypeaheadRef,
+  TNativeCompactTypeaheadSearchProps,
+} from "./types"
 
 type TField = { metadata: ReactNode; placement: "input" | "root" }
 const componentOptions = new Set([
@@ -349,9 +353,13 @@ const CompactTypeaheadSearchInner = <T extends object>(
   const status = minimum || !!props.isLoading
   const eligible = query.trim().length >= minimumLength
   const resolvedItems = useMemo(() => (eligible ? Array.from(props.items ?? []) : []), [props.items, eligible])
+  const entryCache = useMemo(
+    () => new WeakMap<T, TNativeCompactTypeaheadEntry<T>>(),
+    [query, ...(props.dependencies ?? [])],
+  )
   const entries = useMemo(
-    () => getCompactTypeaheadEntries({ ...props, items: resolvedItems }, query),
-    [resolvedItems, props.getItemKey, props.getItemTextValue],
+    () => getCompactTypeaheadEntries({ ...props, items: resolvedItems }, query, entryCache),
+    [resolvedItems, props.getItemKey, props.getItemTextValue, entryCache],
   )
   const items = useMemo(() => (status ? [] : entries.map((entry) => entry.item)), [status, entries])
   const disabledKeys = useMemo(() => Array.from(props.disabledKeys ?? []), [props.disabledKeys])

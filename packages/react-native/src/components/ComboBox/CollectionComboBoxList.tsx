@@ -193,6 +193,7 @@ export const NativeComboBoxList = forwardRef<View, TNativeComboBoxListProps>((au
     return result
   }, [state.collection])
   const autoFocusPending = useRef(autoFocus)
+  const wasOpen = useRef(state.isOpen)
   const didAutoFocus = useRef(false)
   const lastScrolledKey = useRef(state.selectionManager.focusedKey)
   const scrollFrame = useRef<ReturnType<typeof requestAnimationFrame> | null>(null)
@@ -232,6 +233,10 @@ export const NativeComboBoxList = forwardRef<View, TNativeComboBoxListProps>((au
   )
   useLayoutEffect(() => {
     const owner = current.current
+    if (owner.state.isOpen !== wasOpen.current) {
+      wasOpen.current = owner.state.isOpen
+      if (owner.state.isOpen) autoFocusPending.current = autoFocus
+    }
     if (!active() || !autoFocusPending.current || owner.environment?.isCollectionPending) return
     const manager = owner.state.selectionManager
     let key = autoFocus === "first" || autoFocus === "last" ? firstEnabled(owner.state, autoFocus === "last") : null
