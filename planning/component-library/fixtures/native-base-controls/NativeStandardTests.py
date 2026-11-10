@@ -31,6 +31,7 @@ CACHE = REPO / "node_modules/.cache/codon-native-tests"
 PROJECT = ROOT / "ios-native-tests/CodonNativeComponents.xcodeproj"
 XCODE = "/Applications/Xcode.app/Contents/Developer/usr/bin"
 NUMBER_BATCHES = {"number-input": ["actions", "styles", "lifetime"], "number-input-actions": ["actions"], "number-input-styles": ["styles"], "number-input-lifetime": ["lifetime"]}
+SELECT_BATCHES = {"select": ["ownership", "styles", "lifetime"], "select-ownership": ["ownership"], "select-styles": ["styles"], "select-lifetime": ["lifetime"], "select-focus-diagnostic": ["focus-diagnostic"]}
 METHODS = ["testS01MTCallerValuesBoundsAndDeferred", "testS01MTFormattingEmptyLabelAndContext", "testS02MTKnownLatestFillAndVisualRetirement", "testS02S06MTNativeDeliveryCurrentCallbacksAndHeldRetirement"]
 COHORTS = ["values", "format", "motion", "events"]
 STYLE_COHORTS = ["dimensions", "geometry", "slots", "context-motion"]
@@ -81,6 +82,10 @@ def verify_selected_app_inputs(plan, app):
 
 
 def selection(platform, batch="meter-g02"):
+    if batch in SELECT_BATCHES:
+        require(platform == "ios", "Select G08 is iOS only")
+        names = {"ownership": "testSelectOwnershipCollectionAndFocus", "styles": "testSelectStylesConstraintsAndKeyboard", "lifetime": "testSelectLifetimeContextAndReduction", "focus-diagnostic": "testSelectPublicRefFocusDiagnostic"}
+        return {"ios": ["SelectG08TrialTests/" + names[mode] for mode in SELECT_BATCHES[batch]], "android": []}
     if batch in NUMBER_BATCHES:
         require(platform == "ios", "NumberInput G08 is iOS only")
         names = {"actions": "testNumberInputActionsAndOwnership", "styles": "testNumberInputStylesAndConstraint", "lifetime": "testNumberInputLifetimeAndReduction"}
@@ -320,9 +325,9 @@ class Session:
 
 def geometry_control_source(batch=None):
     source = (ROOT / "MeterG02TrialTests.swift").read_text()
-    if batch in ["input-actions", "input-styles", "input-lifetime", "input-remaining"] or batch in NUMBER_BATCHES:
+    if batch in ["input-actions", "input-styles", "input-lifetime", "input-remaining"] or (batch in NUMBER_BATCHES or batch in SELECT_BATCHES):
         selected=[]
-        for name in ["circularPixelsMatch", "toggleButtonMatchedFrame", "galleryScrollFraction"] + (["numberPhysicalCrop"] if batch in NUMBER_BATCHES else []):
+        for name in ["circularPixelsMatch", "toggleButtonMatchedFrame", "galleryScrollFraction"] + (["numberPhysicalCrop"] if (batch in NUMBER_BATCHES or batch in SELECT_BATCHES) else []):
             start=source.index("private func "+name+"(");opening=source.index("{",start);end=source.index("\n}",opening)+2
             selected.append(source[start:end].replace("private ","",1))
         crop_controls = """precondition(numberPhysicalCrop([0,47,390,763],[0,47,390,762.9999999999999],3,1170,2289)==[0,0,1170,2289])
@@ -333,7 +338,7 @@ precondition(numberPhysicalCrop([0,47,390,763],[0,47,390,763],0,1170,2289)==nil)
 precondition(numberPhysicalCrop([Double.nan,47,390,763],[0,47,390,763],3,1170,2289)==nil)
 precondition(numberPhysicalCrop([0,47,0,763],[0,47,390,763],3,1170,2289)==nil)
 precondition(numberPhysicalCrop([0,47,390,763],[0,47,390,763],3,1169,2289)==nil)
-""" if batch in NUMBER_BATCHES else ""
+""" if (batch in NUMBER_BATCHES or batch in SELECT_BATCHES) else ""
         return "import Foundation\n"+"\n".join(selected)+"\n"+crop_controls+r'''
 let inputOuter:[Double]=[26+12,539.99995803833008+12,240,48]
 let inputBacking=[inputOuter[0]+1,inputOuter[1]+1,inputOuter[2]-2,inputOuter[3]-2]
@@ -751,7 +756,7 @@ def build_ios(session, config=None):
     sdk = session.run("geometry-sdk", ["/usr/bin/xcrun", "--sdk", "macosx", "--show-sdk-path"]).strip()
     swift = "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift"
     control_result = json.loads(session.run("geometry-controls", [swift, "-sdk", sdk, "-module-cache-path", str(CACHE / "swift-host-module-cache"), str(controls)]))
-    if config and (config.get("batch") in ["input-actions", "input-styles", "input-lifetime", "input-remaining"] or config.get("batch") in NUMBER_BATCHES):
+    if config and (config.get("batch") in ["input-actions", "input-styles", "input-lifetime", "input-remaining"] or (config.get("batch") in NUMBER_BATCHES or config.get("batch") in SELECT_BATCHES)):
         require(control_result == {"status":"PASS","inputFrameCases":6,"inputPixelCases":6,"inputScrollCases":8}, "Actual current Input frame/pixel/scroll controls failed")
     else:
         require(control_result.get("switcherCases") == 29 and control_result.get("linkGlyphCases") == 5 and control_result.get("linkReferenceCases") == 8 and control_result.get("buttonReferenceCases") == 8 and control_result.get("buttonShadowCases") == 6 and control_result.get("radioGroupCases") == 14 and control_result.get("checkboxGroupTagCases") == 8 and control_result.get("checkboxGroupCases") == 14 and control_result.get("checkboxCases") == 47 and control_result.get("switchRetirementCases") == 14 and control_result.get("switchEndpointCases") == 10 and control_result.get("switchThumbCases") == 11 and control_result.get("switchValueCases") == 10 and control_result.get("switchRasterCases") == 9 and control_result.get("toggleButtonCases") == 12 and control_result.get("listItemCases") == 20 and control_result.get("galleryScrollCases") == 8 and control_result.get("galleryTrackCases") == 8 and control_result.get("thumbnailFrameCases") == 6 and control_result.get("circularCases") == 6 and control_result.get("status") == "PASS" and control_result.get("cases") == 11 and control_result.get("pixelCases") == 6 and control_result.get("shadowCases") == 6, "Actual Swift geometry/pixel/shadow controls failed")
@@ -1004,19 +1009,19 @@ def run_ios(session, config, app, observer):
     argv += ["-only-testing:CodonNativeComponents/" + name for name in selected]
     sdk_error = None
     try:
-        if config.get("batch") in NUMBER_BATCHES: raw = session.run("xctest", argv)
+        if config.get("batch") in NUMBER_BATCHES or config.get("batch") in SELECT_BATCHES: raw = session.run("xctest", argv)
         elif config.get("batch") == "slider-hit-layout": raw = session.run("xctest", argv, while_running=slider_hold_capture(session, device))
         else: raw = session.run("xctest", argv, while_running=early_tooltip_observer(session,observer) if config.get("batch", "").startswith(("tooltip","switcher","form-field-","click-popover-","input-")) else None)
     except ValueError as error:
         sdk_error = error;stdout = session.output / "xctest.stdout";raw = stdout.read_text() if stdout.exists() else ""
-    if (config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected", "circle-loader", "lagging-lines", "counter", "list-box-item", "list-box-item-motion", "toggle-button", "toggle-button-affected", "toggle-button-style", "radio", "radio-motion", "switch", "switch-motion", "checkbox", "checkbox-static", "checkbox-motion", "button", "button-motion", "link", "tooltip-motion", "tooltip", "switcher-motion", "form-field-motion", "click-popover-lifetime", "input-lifetime"] or config.get("batch") in NUMBER_BATCHES) and "METER_STYLE_MOTION_ORIGINAL " in raw:
+    if (config.get("batch") in ["meter-style", "meter-style-remaining", "meter-style-affected", "linear-progress-risk", "circular-progress", "circular-progress-affected", "circle-loader", "lagging-lines", "counter", "list-box-item", "list-box-item-motion", "toggle-button", "toggle-button-affected", "toggle-button-style", "radio", "radio-motion", "switch", "switch-motion", "checkbox", "checkbox-static", "checkbox-motion", "button", "button-motion", "link", "tooltip-motion", "tooltip", "switcher-motion", "form-field-motion", "click-popover-lifetime", "input-lifetime"] or config.get("batch") in NUMBER_BATCHES or config.get("batch") in SELECT_BATCHES) and "METER_STYLE_MOTION_ORIGINAL " in raw:
         original_motion = re.findall(r"METER_STYLE_MOTION_ORIGINAL ([01])", raw)
         restored_motion = re.findall(r"METER_STYLE_MOTION_RESTORED ([01])", raw)
         if original_motion != restored_motion: session.cleanup_errors.append("Original iOS Reduce Motion restoration unverified")
     diagnostics = session.output / "runtime-diagnostics"
     try:
         session.run("xctest-runtime-diagnostics", [XCODE + "/xcresulttool", "export", "diagnostics", "--path", session.output / "Tests.xcresult", "--output-path", diagnostics])
-        early_observation = {"receipt": session.output / "early-loaded-observer.json", "raw": raw, "execution": json.loads((session.output / "xctest.json").read_text())} if config.get("batch") in NUMBER_BATCHES else None
+        early_observation = {"receipt": session.output / "early-loaded-observer.json", "raw": raw, "execution": json.loads((session.output / "xctest.json").read_text())} if config.get("batch") in NUMBER_BATCHES or config.get("batch") in SELECT_BATCHES else None
         loaded = verify_loaded_observer(diagnostics, installed_products["observer"], observer, early_observation)
     except ValueError as error:
         write(session.output / "loaded-observer.json", {"status": "FAIL", "failure": str(error), "sdkFailure": str(sdk_error) if sdk_error else None})
@@ -3063,9 +3068,10 @@ def validate_standard_scope(plan):
     radio_group = cell == "CAT.radio-group.G08" and batch=="radio-group"
     checkbox_group = cell == "CAT.checkbox-group.G08" and batch in ["checkbox-group","checkbox-group-actions"]
     switch = cell == "CAT.switch.G08" and batch in ["switch", "switch-motion"]
+    select_cell = cell == "CAT.select.G08" and batch in SELECT_BATCHES
     number_cell = cell == "CAT.number-input.G08" and batch in NUMBER_BATCHES
     input_cell = cell == "CAT.input.G08" and batch in ["input-actions", "input-styles", "input-lifetime", "input-remaining"]
-    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item or toggle_button or radio or placeholder or slider or switch or checkbox or checkbox_group or radio_group or button or link or tooltip or switcher or field or popover or input_cell or number_cell, "Only the authorized component and focused batch are selected")
+    require(meter or progress or text or circular or loader or lines or counter or thumbnail or gallery or avatar or list_item or toggle_button or radio or placeholder or slider or switch or checkbox or checkbox_group or radio_group or button or link or tooltip or switcher or field or popover or input_cell or number_cell or select_cell, "Only the authorized component and focused batch are selected")
 
 
 def main():

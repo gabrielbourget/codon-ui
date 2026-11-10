@@ -2727,4 +2727,47 @@ class NumberLoadedHostTimingTests(unittest.TestCase):
             NATIVE.verify_loaded_observer(self.diagnostics,self.host,self.observer)
 
 
+class SelectG08ScopeTests(unittest.TestCase):
+    def test_select_batch_maps_three_qualification_methods_and_isolated_diagnostic_and_rejects_foreign_scope(self):
+        expected={"ownership":"testSelectOwnershipCollectionAndFocus","styles":"testSelectStylesConstraintsAndKeyboard","lifetime":"testSelectLifetimeContextAndReduction","focus-diagnostic":"testSelectPublicRefFocusDiagnostic"}
+        self.assertEqual(NATIVE.SELECT_BATCHES["select"],["ownership","styles","lifetime"])
+        self.assertEqual(NATIVE.SELECT_BATCHES["select-focus-diagnostic"],["focus-diagnostic"])
+        for batch,modes in NATIVE.SELECT_BATCHES.items():
+            plan={"cell":"CAT.select.G08","nativeStandard":{"platform":"ios","batch":batch}}
+            NATIVE.validate_standard_scope(plan)
+            self.assertEqual(NATIVE.selection("ios",batch),{"ios":["SelectG08TrialTests/"+expected[mode] for mode in modes],"android":[]})
+            with self.assertRaises(ValueError):NATIVE.selection("android",batch)
+            for cell in ["CAT.select.G07","CAT.menu.G08","CAT.combo-box.G08"]:
+                with self.assertRaises(ValueError):NATIVE.validate_standard_scope({"cell":cell,"nativeStandard":plan["nativeStandard"]})
+
+    def test_select_focus_diagnostic_captures_before_assertion_without_post_focus_action_or_wait(self):
+        source=(ROOT/"MeterG02TrialTests.swift").read_text()
+        method=source.split("func testSelectPublicRefFocusDiagnostic() throws {",1)[1].split("func testSelectOwnershipCollectionAndFocus()",1)[0]
+        after=method.split('tap("Focus Select trigger")',1)[1]
+        self.assertLess(after.index('observed["state"]=try state()'),after.index('SELECT_PUBLIC_REF_FOCUS_DIAGNOSTIC'))
+        self.assertLess(after.index('SELECT_PUBLIC_REF_FOCUS_DIAGNOSTIC'),after.index('let actual='))
+        for forbidden in ['tap(', 'reveal(', 'wait(', 'capture(']:self.assertNotIn(forbidden,after)
+        self.assertIn('stateReadError',after)
+        self.assertIn('screenshot:XCUIScreen.main.screenshot()',after)
+        self.assertIn('app.debugDescription',after)
+
+    def test_select_reuses_narrow_geometry_controls_without_stopped_component_cases(self):
+        expected=NATIVE.geometry_control_source("number-input")
+        for batch in NATIVE.SELECT_BATCHES:
+            self.assertEqual(NATIVE.geometry_control_source(batch),expected)
+            self.assertNotIn("menu",expected.lower())
+            self.assertIn("numberPhysicalCrop",expected)
+
+    def test_select_cli_rejects_missing_admission_before_creating_sdk_output(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output=Path(directory)/"sdk-must-not-exist"
+            plan=Path(directory)/"select.json"
+            plan.write_text(json.dumps({"cell":"CAT.select.G08","nativeStandard":{"platform":"ios","batch":"select","output":str(output)}}))
+            env={key:value for key,value in os.environ.items() if key!="CODON_NATIVE_CELL_PREFLIGHT_RECEIPT"}
+            result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(plan)],env=env,capture_output=True,text=True)
+            self.assertNotEqual(result.returncode,0)
+            self.assertIn("Use NativeCellVerification.py",result.stderr)
+            self.assertFalse(output.exists())
+
+
 if __name__ == "__main__": unittest.main()

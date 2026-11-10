@@ -4,6 +4,7 @@ import { Pressable, View } from "react-native"
 import { Button, ListBoxItem, Select, Text, useNativeTheme, type TNativeSelectKey } from "@codon-ui/react-native"
 
 import { ListBoxItemG08Fixture } from "./ListBoxItemG08Fixture"
+import { SelectG08Fixture } from "./SelectG08Fixture"
 
 const SHORT_ITEMS = [
   { id: 0, label: "Numeric zero" },
@@ -23,6 +24,7 @@ const keyLabel = (key: TNativeSelectKey | null) => (key === null ? "none" : `${t
 
 export const SelectScene = () => {
   const [nativeChecks, setNativeChecks] = useState(false)
+  const [selectChecks, setSelectChecks] = useState(false)
   const theme = useNativeTheme()
   const [value, setValue] = useState<TNativeSelectKey | null>(null)
   const [changes, setChanges] = useState(0)
@@ -42,8 +44,12 @@ export const SelectScene = () => {
     </Button>
   )
   if (nativeChecks) return <ListBoxItemG08Fixture />
+  if (selectChecks) return <SelectG08Fixture />
   return (
     <View style={{ gap: 12 }}>
+      <Button raised={false} onPress={() => setSelectChecks(true)}>
+        Prepare standalone Select checks
+      </Button>
       <Button raised={false} onPress={() => setNativeChecks(true)}>
         Prepare standalone ListBoxItem checks
       </Button>
