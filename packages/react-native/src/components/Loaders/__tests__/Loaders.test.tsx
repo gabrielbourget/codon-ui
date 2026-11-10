@@ -292,6 +292,16 @@ it("NATIVE.loaders.003 keeps loaders decorative inside owned Button content and 
     </Button>,
   )
   expect(screen.getByRole("progressbar", { name: "Loading" })).toBeOnTheScreen()
+  expect(part("circle-loader").props.accessibilityState).toEqual({ busy: true })
+  expect(part("circle-loader").props["aria-busy"]).toBe(true)
+  await rerender(
+    <Button order="primary">
+      <LaggingLinesLoader accessible />
+    </Button>,
+  )
+  expect(screen.getByRole("progressbar", { name: "Loading" })).toBeOnTheScreen()
+  expect(part("lagging-lines-loader").props.accessibilityState).toEqual({ busy: true })
+  expect(part("lagging-lines-loader").props["aria-busy"]).toBe(true)
 })
 
 it.each([CircleLoader, LaggingLinesLoader])(
@@ -475,6 +485,8 @@ it("does not contribute an implicit Loading name from a decorative CircleLoader 
   )
   expect(part("circle-loader").props.accessible).toBe(false)
   expect(part("circle-loader").props.accessibilityLabel).toBeUndefined()
+  expect(part("circle-loader").props.accessibilityState).toBeUndefined()
+  expect(part("circle-loader").props["aria-busy"]).toBeUndefined()
 })
 
 it("keeps stopped LaggingLinesLoader wrappers at the first frame after late driver updates and resize", async () => {
@@ -499,4 +511,6 @@ it("does not contribute an implicit Loading name from decorative LaggingLinesLoa
   )
   expect(part("lagging-lines-loader").props.accessible).toBe(false)
   expect(part("lagging-lines-loader").props.accessibilityLabel).toBeUndefined()
+  expect(part("lagging-lines-loader").props.accessibilityState).toBeUndefined()
+  expect(part("lagging-lines-loader").props["aria-busy"]).toBeUndefined()
 })

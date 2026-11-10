@@ -121,8 +121,8 @@ export const LaggingLinesLoader = forwardRef<TNativeLaggingLinesLoaderRef, TNati
         accessibilityLabel={exposed ? label : (accessibilityLabel ?? aliasLabel ?? ariaLabel)}
         role="progressbar"
         accessibilityRole="progressbar"
-        accessibilityState={{ busy: true }}
-        aria-busy
+        accessibilityState={exposed ? { busy: true } : undefined}
+        aria-busy={exposed ? true : undefined}
         accessibilityLiveRegion={accessibilityLiveRegion}
         accessibilityValue={{}}
         aria-valuemin={undefined}
