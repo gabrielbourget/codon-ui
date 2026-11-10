@@ -68,17 +68,20 @@ it("records repeated caller veto without replacing the editor or echoing request
 it("keeps the long editor uncontrolled when its default prop changes and remounts only through the explicit action", async () => {
   await enter()
   const original = screen.getByTestId("multiline-long")
+  const initialDefaultValue = original.props.defaultValue
   const refs = read("textarea-g02-refs")
   const before = events()
   await press("G02 next long default")
   expect(screen.getByTestId("multiline-long")).toBe(original)
   expect(original.props.value).toBeUndefined()
-  expect(original.props.defaultValue).toBe("Alternate uncontrolled notes")
+  expect(original.props.defaultValue).toBe(initialDefaultValue)
+  expect(read("textarea-g02-config").defaultValue).toBe("Alternate uncontrolled notes")
   expect(events()).toEqual(before)
   expect(read("textarea-g02-refs")).toEqual(refs)
   await press("G02 remount multiline editors")
   expect(owner().generation).toBe(1)
   expect(screen.getByTestId("multiline-long")).not.toBe(original)
+  expect(screen.getByTestId("multiline-long").props.defaultValue).toBe("Alternate uncontrolled notes")
   expect(events().filter(({ kind }) => kind === "raw")).toEqual([])
 })
 
