@@ -115,7 +115,7 @@ afterEach(() => {
 })
 
 const press = async (name: string) => {
-  await userEvent.setup().press(screen.getByRole("button", { name }))
+  await fireEvent.press(screen.getByRole("button", { name }))
   await act(() => {})
 }
 const enter = async (name: string) => {

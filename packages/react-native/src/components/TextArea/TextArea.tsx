@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useState } from "react"
+import { forwardRef, useEffect, useRef, useState } from "react"
 import { TextInput, type TextStyle } from "react-native"
 
 import { useNativeTheme } from "../../theme"
@@ -33,10 +33,12 @@ export const TextArea = forwardRef<TNativeTextAreaRef, TNativeTextAreaProps>((pr
     onFocus,
     onBlur,
     submitBehavior = "newline",
+    defaultValue,
     "data-testid": aliasTestID,
     "aria-label": aliasLabel,
     ...rest
   } = props
+  const initialDefaultValue = useRef(defaultValue)
   const label = accessibilityLabel ?? aliasLabel
   if (typeof label !== "string" || !label.trim())
     throw new TypeError("TextArea: a nonempty accessibilityLabel or aria-label is required")
@@ -88,6 +90,7 @@ export const TextArea = forwardRef<TNativeTextAreaRef, TNativeTextAreaProps>((pr
   const element = (
     <TextInput
       {...rest}
+      defaultValue={initialDefaultValue.current}
       ref={ref}
       multiline
       submitBehavior={submitBehavior}

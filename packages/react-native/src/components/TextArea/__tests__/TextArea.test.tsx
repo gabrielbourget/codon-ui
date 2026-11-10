@@ -48,6 +48,75 @@ it("preserves complete controlled multiline strings and native uncontrolled defa
   expect(screen.getByLabelText("Draft").props.defaultValue).toBe(text)
 })
 
+it("initializes public multiline defaultValue once and changes it only on keyed remount", async () => {
+  const ref = createRef<TNativeTextAreaRef>()
+  const onChange = jest.fn(),
+    onChangeText = jest.fn()
+  const { rerender } = await render(
+    <TextArea key="original" aria-label="Notes" defaultValue={text} ref={ref} {...{ onChange, onChangeText }} />,
+  )
+  const original = ref.current
+  const input = screen.getByLabelText("Notes")
+  expect(original).not.toBeNull()
+  for (const defaultValue of ["Replacement\ndefault", "", undefined]) {
+    await rerender(
+      <TextArea
+        key="original"
+        aria-label="Notes"
+        defaultValue={defaultValue}
+        ref={ref}
+        {...{ onChange, onChangeText }}
+      />,
+    )
+    expect(screen.getByLabelText("Notes")).toBe(input)
+    expect(ref.current).toBe(original)
+    expect(input.props.defaultValue).toBe(text)
+    expect(input).toHaveDisplayValue(text)
+  }
+  await rerender(
+    <TextArea
+      key="replacement"
+      aria-label="Notes"
+      defaultValue={"Replacement\ndefault"}
+      ref={ref}
+      {...{ onChange, onChangeText }}
+    />,
+  )
+  expect(ref.current).not.toBe(original)
+  expect(screen.getByLabelText("Notes").props.defaultValue).toBe("Replacement\ndefault")
+  expect(screen.getByLabelText("Notes")).toHaveDisplayValue("Replacement\ndefault")
+  expect(onChange).not.toHaveBeenCalled()
+  expect(onChangeText).not.toHaveBeenCalled()
+})
+
+it("preserves controlled empty and current values while retaining the initial multiline default", async () => {
+  const ref = createRef<TNativeTextAreaRef>()
+  const onChange = jest.fn(),
+    onChangeText = jest.fn()
+  const { rerender } = await render(
+    <TextArea aria-label="Notes" defaultValue={text} value="" ref={ref} {...{ onChange, onChangeText }} />,
+  )
+  const original = ref.current
+  for (const value of ["", "Owned\ncurrent"]) {
+    await rerender(
+      <TextArea
+        aria-label="Notes"
+        defaultValue="Later default"
+        value={value}
+        ref={ref}
+        {...{ onChange, onChangeText }}
+      />,
+    )
+    const input = screen.getByLabelText("Notes")
+    expect(input.props.value).toBe(value)
+    expect(input.props.defaultValue).toBe(text)
+    expect(ref.current).toBe(original)
+    expect(input).toHaveDisplayValue(value)
+  }
+  expect(onChange).not.toHaveBeenCalled()
+  expect(onChangeText).not.toHaveBeenCalled()
+})
+
 it("forwards final native submit, selection and content-size events without resizing", async () => {
   const onChange = jest.fn(),
     onSubmitEditing = jest.fn(),
