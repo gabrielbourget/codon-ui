@@ -5417,3 +5417,235 @@ final class NumberInputG08TrialTests: XCTestCase {
         FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_SWITCH "+expected+"\n").utf8))
     }
 }
+
+final class SelectG08TrialTests: XCTestCase {
+    private var app: XCUIApplication!
+    override func setUpWithError() throws {
+        continueAfterFailure = false
+        let bundle=Bundle(for:SelectG08TrialTests.self),executable=try XCTUnwrap(bundle.executableURL),expected=try XCTUnwrap(ProcessInfo.processInfo.environment["CODON_NATIVE_OBSERVER_EXECUTABLE_SHA256"]),actual=SHA256.hash(data:try Data(contentsOf:executable)).map{String(format:"%02x",$0)}.joined()
+        XCTAssertEqual(expected.count,64);XCTAssertEqual(actual,expected,"Actually loaded observer before app launch")
+        let identity:[String:Any]=["path":bundle.bundleURL.path,"executable":executable.path,"sha256":actual,"expectedSHA256":expected,"epochMs":Date().timeIntervalSince1970*1000]
+        FileHandle.standardOutput.write(Data("NATIVE_LOADED_OBSERVER_EARLY ".utf8)+(try JSONSerialization.data(withJSONObject:identity,options:.sortedKeys))+Data("\n".utf8))
+        app=XCUIApplication(bundleIdentifier:"dev.codonui.showcase");app.launch();XCTAssertEqual(app.state,.runningForeground);XCUIDevice.shared.orientation = .portrait
+        tap("Reset scene");tap("Select scene");tap("Light theme");tap("Live window");tap("Prepare standalone Select checks")
+        XCTAssertTrue(node("case-ownership").waitForExistence(timeout:nativeWorkRemaining()))
+    }
+    override func tearDownWithError() throws {
+        let shot=XCTAttachment(screenshot:XCUIScreen.main.screenshot());shot.name="select-final";shot.lifetime = .keepAlways;add(shot)
+        let tree=XCTAttachment(string:app.debugDescription);tree.name="select-final-hierarchy";tree.lifetime = .keepAlways;add(tree)
+    }
+    private func rect(_ frame:CGRect)->[Double] {[frame.minX,frame.minY,frame.width,frame.height].map(Double.init)}
+    private func state() throws -> [String:Any] {
+        let snapshot=try app.snapshot();var labels:[String]=[]
+        func visit(_ item:XCUIElementSnapshot){if item.identifier=="select-native-state"{labels.append(item.label)};for child in item.children{visit(child)}};visit(snapshot)
+        XCTAssertEqual(labels.count,1,"One current Select fixture state")
+        return try XCTUnwrap(JSONSerialization.jsonObject(with:Data(try XCTUnwrap(labels.first).utf8)) as? [String:Any])
+    }
+    private func trigger()->XCUIElement {app.buttons["lab-select-trigger"].firstMatch}
+    private func requests()throws->[String:Int] {try XCTUnwrap(state()["requests"] as? [String:Int])}
+    private func ready() {
+        wait("Original distinct Select trigger and root") {
+            guard let row=try? self.state(),let target=row["triggerTag"] as? NSNumber,let layout=row["rootLayout"] as? [String:Any],let root=layout["target"] as? NSNumber else{return false}
+            return target.intValue>0 && root.intValue>0 && target != root && layout["currentTarget"] as? NSNumber==root && layout["generation"] as? NSNumber==row["generation"] as? NSNumber && self.trigger().exists
+        }
+    }
+    private func selectCase(_ name:String) {tap("Case "+name);if !["nested","removal","uncontrolled"].contains(name){ready()}}
+    private func resetFixture() {tap("Reset fixture");XCTAssertTrue(node("case-ownership").exists)}
+    private func popup(_ visible:Bool) {wait("Select popup visibility "+String(visible)){self.app.buttons["lab-select-close"].firstMatch.exists==visible}}
+    private func capture(_ name:String,paint:Bool=false)throws {
+        if !app.buttons["lab-select-close"].firstMatch.exists {
+            let current=try state();if current["ownerVisible"] as? Bool==true {reveal(trigger())}
+        }
+        let snapshot=try app.snapshot();var all:[XCUIElementSnapshot]=[]
+        func visit(_ item:XCUIElementSnapshot){all.append(item);for child in item.children{visit(child)}};visit(snapshot)
+        let shot=XCUIScreen.main.screenshot(),image=try XCTUnwrap(shot.image.cgImage),window=try XCTUnwrap(all.first{$0.elementType == .window}).frame,scale=CGFloat(image.width)/window.width
+        let attachment=XCTAttachment(screenshot:shot);attachment.name="select-"+name+"-raw";attachment.lifetime = .keepAlways;add(attachment)
+        let hierarchy=XCTAttachment(string:app.debugDescription);hierarchy.name="select-"+name+"-hierarchy";hierarchy.lifetime = .keepAlways;add(hierarchy)
+        let isPopup=app.buttons["lab-select-close"].firstMatch.exists
+        let row:[String:Any]=isPopup ? [:] : (try state());let roots=all.filter{$0.identifier=="lab-select"},targets=all.filter{$0.identifier=="lab-select-trigger"},visible=row["ownerVisible"] as? Bool==true
+        let observed:[String:Any]=["name":name,"ownerStateObserved":!isPopup,"state":row,"window":rect(window),"scale":Double(scale),"imageWidth":image.width,"imageHeight":image.height,"rootFrames":roots.map{rect($0.frame)},"triggerFrames":targets.map{rect($0.frame)},"triggerLabels":targets.map{$0.label},"triggerTypes":targets.map{$0.elementType.rawValue},"keyboard":all.first{$0.elementType == .keyboard}.map{rect($0.frame)} ?? [],"popupFrames":all.filter{$0.identifier=="lab-select-modal"}.map{rect($0.frame)}]
+        let data=try JSONSerialization.data(withJSONObject:observed,options:.sortedKeys);let receipt=XCTAttachment(data:data,uniformTypeIdentifier:"public.json");receipt.name="select-"+name+"-receipt";receipt.lifetime = .keepAlways;add(receipt);FileHandle.standardOutput.write(Data("SELECT_NATIVE_OBSERVATION ".utf8)+data+Data("\n".utf8))
+        XCTAssertEqual(shot.image.imageOrientation,.up);XCTAssertEqual(Int(round(window.width*scale)),image.width);XCTAssertEqual(Int(round(window.height*scale)),image.height)
+        if isPopup {
+            let close=app.buttons["lab-select-close"].firstMatch
+            XCTAssertTrue(close.isHittable);XCTAssertTrue(window.contains(close.frame));XCTAssertGreaterThanOrEqual(close.frame.height,44-1/scale)
+            return
+        }
+        let events=(row["events"] as? [[String:Any]]) ?? []
+        XCTAssertFalse(events.contains{$0["stale"] as? Bool==true},"No retired callback recipient")
+        if !visible {XCTAssertTrue(targets.isEmpty);XCTAssertTrue(row["triggerTag"] is NSNull);return}
+        XCTAssertEqual(roots.count,1);XCTAssertEqual(targets.count,1);let root=try XCTUnwrap(roots.first),target=try XCTUnwrap(targets.first)
+        XCTAssertEqual(target.elementType,.button);XCTAssertEqual(target.label,"Choose")
+        let layout=try XCTUnwrap(row["rootLayout"] as? [String:Any]);XCTAssertEqual(layout["target"] as? NSNumber,layout["currentTarget"] as? NSNumber);XCTAssertNotEqual(layout["target"] as? NSNumber,row["triggerTag"] as? NSNumber)
+        XCTAssertEqual(round(root.frame.width*scale),round(CGFloat(try XCTUnwrap(row["width"] as? Double))*scale))
+        XCTAssertGreaterThanOrEqual(round(target.frame.height*scale),round(44*scale));XCTAssertNotNil(numberPhysicalCrop(rect(target.frame),rect(root.frame),Double(scale),Int(round(root.frame.width*scale)),Int(round(root.frame.height*scale))),"Original trigger contained by original root after existing physical crop rounding")
+        if paint {
+            let reference=try XCTUnwrap(all.first{$0.identifier=="select-border-reference"}),actual=try sample(image,CGPoint(x:target.frame.midX,y:target.frame.minY+0.5),window,scale),raw=try sample(image,CGPoint(x:reference.frame.midX,y:reference.frame.midY),window,scale)
+            XCTAssertEqual(actual,raw,"Exact original trigger border and independent native paint")
+            let color=try XCTUnwrap(row["expectedBorder"] as? NSNumber).uint32Value
+            XCTAssertEqual(actual,[Int((color>>16)&255),Int((color>>8)&255),Int(color&255),Int((color>>24)&255)])
+        }
+    }
+    private func sample(_ image:CGImage,_ point:CGPoint,_ window:CGRect,_ scale:CGFloat)throws->[Int] {try pixels(image,CGRect(x:point.x,y:point.y,width:1/scale,height:1/scale),window,scale).map(Int.init)}
+    private func paintReady() {
+        wait("Actual visible trigger border endpoint") {
+            guard let row=try? self.state(),let color=row["expectedBorder"] as? NSNumber else{return false}
+            let shot=XCUIScreen.main.screenshot(),window=self.app.windows.firstMatch.frame
+            guard let image=shot.image.cgImage,let rgba=try? self.sample(image,CGPoint(x:self.trigger().frame.midX,y:self.trigger().frame.minY+0.5),window,CGFloat(image.width)/window.width) else{return false}
+            let value=color.uint32Value
+            return rgba==[Int((value>>16)&255),Int((value>>8)&255),Int(value&255),Int((value>>24)&255)]
+        }
+    }
+    func testSelectPublicRefFocusDiagnostic() throws {
+        selectCase("ownership");let original=try XCTUnwrap(state()["triggerTag"] as? NSNumber)
+        tap("Clear controlled value");try capture("diagnostic-focus-baseline")
+        let before=try state(),eventCount=((before["events"] as? [Any]) ?? []).count
+        tap("Focus Select trigger")
+        var observed:[String:Any]=["name":"public-ref-focus","triggerTagBefore":original,"generationBefore":before["generation"] ?? NSNull(),"eventCountBefore":eventCount,"window":rect(app.windows.firstMatch.frame),"scale":UIScreen.main.scale]
+        do {observed["state"]=try state()} catch {observed["stateReadError"]=String(describing:error)}
+        let shot=XCTAttachment(screenshot:XCUIScreen.main.screenshot());shot.name="select-diagnostic-public-ref-focus-raw";shot.lifetime = .keepAlways;add(shot)
+        let hierarchy=XCTAttachment(string:app.debugDescription);hierarchy.name="select-diagnostic-public-ref-focus-hierarchy";hierarchy.lifetime = .keepAlways;add(hierarchy)
+        let data=try JSONSerialization.data(withJSONObject:observed,options:.sortedKeys);let receipt=XCTAttachment(data:data,uniformTypeIdentifier:"public.json");receipt.name="select-diagnostic-public-ref-focus-receipt";receipt.lifetime = .keepAlways;add(receipt);FileHandle.standardOutput.write(Data("SELECT_PUBLIC_REF_FOCUS_DIAGNOSTIC ".utf8)+data+Data("\n".utf8))
+        let actual=try XCTUnwrap(observed["state"] as? [String:Any]),request=try XCTUnwrap(actual["focusRequest"] as? [String:Any])
+        XCTAssertEqual(request["sequence"] as? Int,1);XCTAssertNotNil(request["enabled"] as? Bool);XCTAssertEqual(request["triggerTag"] as? NSNumber,original);XCTAssertEqual(request["generation"] as? NSNumber,before["generation"] as? NSNumber)
+    }
+    func testSelectOwnershipCollectionAndFocus() throws {
+        selectCase("ownership");let original=try XCTUnwrap(state()["triggerTag"] as? NSNumber)
+        try capture("ownership-initial");XCTAssertEqual(try state()["value"] as? String,"number:0")
+        for index in 1...2 {tap("Choose");popup(false);XCTAssertEqual(try requests()["opens"],index)}
+        tap("Choose");popup(true);try capture("ownership-open")
+        for index in 1...2 {
+            tap("String zero");popup(true)
+            if index==1 {XCTAssertEqual(node("lab-select-option-number:0").label,"Renamed zero");XCTAssertTrue(listItemValueMatches(node("lab-select-option-number:0").value as? String ?? "",true))}
+            else {XCTAssertFalse(node("lab-select-option-number:0").exists)}
+            try capture("live-collection-veto-"+String(index))
+        }
+        tap("String zero");popup(false);XCTAssertEqual(try state()["value"] as? String,"string:0");XCTAssertEqual(try requests(),["opens":3,"closes":3,"values":3])
+        let events=try XCTUnwrap(state()["events"] as? [[String:Any]]);XCTAssertEqual(Array(events.suffix(2)).compactMap{$0["phase"] as? String},["value","open"])
+        XCTAssertEqual(try state()["triggerTag"] as? NSNumber,original);try capture("ownership-accepted")
+        tap("Clear controlled value");XCTAssertEqual(try state()["value"] as? String,"null");try capture("ownership-null")
+        let generation=try XCTUnwrap(state()["generation"] as? NSNumber),focusStart=((try state()["events"] as? [Any]) ?? []).count
+        tap("Focus Select trigger");wait("Fresh original public ref focus callback"){Array(((try? self.state()["events"] as? [[String:Any]]) ?? []).dropFirst(focusStart)).contains{$0["phase"] as? String=="focus" && $0["generation"] as? NSNumber==generation && $0["target"] as? NSNumber==original && $0["currentTarget"] as? NSNumber==original && $0["nativeTarget"] as? NSNumber==original}}
+        let blurStart=((try state()["events"] as? [Any]) ?? []).count
+        tap("Blur Select trigger");wait("Fresh original public ref blur callback"){Array(((try? self.state()["events"] as? [[String:Any]]) ?? []).dropFirst(blurStart)).contains{$0["phase"] as? String=="blur" && $0["generation"] as? NSNumber==generation && $0["nativeTarget"] as? NSNumber==original && $0["target"] as? NSNumber==original && $0["currentTarget"] as? NSNumber==original}}
+        try capture("public-focus-blur");resetFixture()
+        selectCase("collections");let collectionRef=try XCTUnwrap(state()["triggerTag"] as? NSNumber)
+        for (action,value) in [("Relabel selected","Renamed zero"),("Remove selected","Choose a value"),("Restore and reorder","Renamed zero")] {tap(action);XCTAssertEqual(trigger().value as? String,value);XCTAssertEqual(try requests(),["opens":0,"closes":0,"values":0]);XCTAssertEqual(try state()["triggerTag"] as? NSNumber,collectionRef);try capture("collection-"+action)}
+        tap("Toggle disabled");reveal(trigger());XCTAssertFalse(trigger().isEnabled);XCTAssertTrue(app.windows.firstMatch.frame.contains(trigger().frame));trigger().coordinate(withNormalizedOffset:CGVector(dx:0.5,dy:0.5)).tap();popup(false);XCTAssertEqual(try requests()["opens"],0);try capture("disabled")
+        tap("Toggle disabled");tap("Toggle read-only");tap("Choose");popup(true);tap("String zero");popup(true);XCTAssertTrue(listItemValueMatches(node("lab-select-option-number:0").value as? String ?? "",true));tap("Close choices");popup(false);XCTAssertEqual(try requests()["values"],0);try capture("readonly")
+        tap("Toggle read-only");tap("Choose");popup(true);tap("String zero");popup(false);XCTAssertEqual(try state()["value"] as? String,"string:0");try capture("guards-restored");resetFixture()
+        selectCase("disabled-held");tap("Choose");popup(true);XCTAssertFalse(node("lab-select-option-number:0").isEnabled);try capture("disabled-held-open")
+        tap("Close choices");popup(true);tap("Close choices");popup(false);XCTAssertEqual(try requests(),["opens":1,"closes":3,"values":0]);try capture("disabled-one-closure-request");resetFixture()
+        selectCase("programmatic");tap("Open programmatically");popup(true);tap("String zero");popup(false);XCTAssertEqual(try requests(),["opens":0,"closes":1,"values":1]);try capture("owner-replacement");resetFixture()
+        selectCase("uncontrolled");popup(true);tap("String zero");popup(false);tap("Change defaults");XCTAssertEqual(trigger().value as? String,"String zero");try capture("default-once");resetFixture()
+        selectCase("empty");tap("Choose");popup(true);XCTAssertTrue(node("lab-select-empty").exists);try capture("empty-open");tap("Close choices");popup(false);try capture("empty-closed")
+    }
+    func testSelectStylesConstraintsAndKeyboard() throws {
+        selectCase("styles");let original=try XCTUnwrap(state()["triggerTag"] as? NSNumber)
+        for name in ["baseline","error","warning","success","custom","final","narrow","null-icon","custom-icon"] {
+            wait("Selected Select style "+name){(try? self.state()["styleName"] as? String)==name};reveal(trigger());paintReady();try capture("style-"+name,paint:true);XCTAssertEqual(try state()["triggerTag"] as? NSNumber,original)
+            if name=="custom" {tap("Choose");popup(true);try capture("custom-list");tap("Close choices");popup(false)}
+            if name=="narrow" {tap("Choose");popup(true);let tail=node("lab-select-option-string:choice-198");XCTAssertTrue(tail.waitForExistence(timeout:nativeWorkRemaining()));XCTAssertTrue(app.windows.firstMatch.frame.contains(tail.frame));XCTAssertTrue(tail.isHittable);try capture("tail-198-visible");tail.tap();popup(false);XCTAssertEqual(try state()["value"] as? String,"string:choice-198")}
+            if name != "custom-icon" {tap("Next Select style")}
+        }
+        tap("Toggle Select provider");wait("Mounted dark Select provider"){(try? self.state()["themeMode"] as? String)=="dark"};reveal(trigger());paintReady();try capture("dark",paint:true)
+        tap("Toggle Select provider");wait("Mounted light Select provider restored"){(try? self.state()["themeMode"] as? String)=="light"};reveal(trigger());paintReady();try capture("light-restored",paint:true);resetFixture();selectCase("custom");reveal(trigger());try capture("authored-selected-content");resetFixture()
+        selectCase("nested");tap("Open parent");ready();reveal(trigger());let field=app.textFields["parent-draft"].firstMatch;XCTAssertTrue(field.isHittable);field.tap();field.typeText(" retained");XCTAssertTrue(app.keyboards.firstMatch.exists)
+        XCTAssertTrue(trigger().isHittable);trigger().tap();popup(false);XCTAssertEqual(try requests()["opens"],1);try capture("keyboard-first-action")
+        tap("Choose");popup(false);tap("Choose");popup(true);try capture("keyboard-popup");tap("Close choices");tap("Close choices");tap("Close choices");popup(false)
+        XCTAssertEqual(try state()["draft"] as? String,"Draft retained");tap("Close parent")
+    }
+    func testSelectLifetimeContextAndReduction() throws {
+        selectCase("nested");tap("Open parent");ready();let original=try XCTUnwrap(state()["triggerTag"] as? NSNumber)
+        tap("Choose");tap("Choose");tap("Choose");popup(true);try capture("diagnostic-nested-open-before-row");tap("String zero");popup(true)
+        try capture("nested-context-updated")
+        tap("String zero");tap("String zero");popup(false);XCTAssertEqual(try state()["triggerTag"] as? NSNumber,original);XCTAssertEqual(try state()["value"] as? String,"string:0");XCTAssertEqual(try state()["context"] as? String,"updated-form");XCTAssertEqual(try state()["themeMode"] as? String,"dark");try capture("nested-restored")
+        tap("Close parent");resetFixture();selectCase("lifetime")
+        let settings=XCUIApplication(bundleIdentifier:"com.apple.Preferences");settings.launch();let originalMotion=try XCTUnwrap(motionSwitch(settings).value as? String);XCTAssertTrue(["0","1"].contains(originalMotion));FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_ORIGINAL "+originalMotion+"\n").utf8))
+        addTeardownBlock{[self] in self.setMotion(self.motionSwitch(settings),originalMotion);XCTAssertEqual(self.motionSwitch(settings).value as? String,originalMotion);self.app.activate();FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_RESTORED "+originalMotion+"\n").utf8))}
+        for (mode,flag) in [("normal","0"),("reduced","1")] {
+            setMotion(motionSwitch(settings),flag);app.activate();wait("Actual Select live motion preference"){((try? self.state()["motionEvents"] as? [Bool]) ?? []).last==(flag=="1")};ready()
+            let owner=try XCTUnwrap(state()["triggerTag"] as? NSNumber)
+            for action in ["First Select border","Second Select border","Interrupt Select border"] {tap(action);reveal(trigger());paintReady();try capture(mode+"-"+action,paint:true);XCTAssertEqual(try state()["triggerTag"] as? NSNumber,owner)}
+            tap("Open Select owner");popup(true);try capture(mode+"-popup");tap("Close choices");popup(false);try capture(mode+"-closed")
+            tap("Retire Select owner");wait("Select original trigger ref retired"){(try? self.state()["triggerTag"]) is NSNull};try capture(mode+"-retired");try capture(mode+"-retired-quiet")
+            tap("Fresh Select owner");ready();XCTAssertNotEqual(try state()["triggerTag"] as? NSNumber,owner);try capture(mode+"-fresh")
+        }
+    }
+    private func node(_ id:String)->XCUIElement {app.descendants(matching:.any).matching(NSPredicate(format:"identifier == %@",id)).firstMatch}
+
+    private func wait(_ message:String,_ predicate:@escaping()->Bool) {
+        let expectation=XCTNSPredicateExpectation(predicate:NSPredicate{_,_ in predicate()},object:nil)
+        XCTAssertEqual(XCTWaiter.wait(for:[expectation],timeout:nativeWorkRemaining()),.completed,message)
+    }
+
+    private func reveal(_ element:XCUIElement) {
+        XCTAssertTrue(element.waitForExistence(timeout:nativeWorkRemaining()));let window=app.windows.firstMatch.frame.insetBy(dx:2,dy:2)
+        let wrapper:XCUIElement
+        if node("lab-select-close").exists {wrapper=node("lab-select-list")}
+        else if node("lab-parent").exists {wrapper=node("lab-parent")}
+        else {wrapper=node("showcase-scroll")}
+        XCTAssertTrue(wrapper.exists)
+        let scroll=wrapper.elementType == .scrollView ? wrapper : wrapper.descendants(matching:.scrollView).firstMatch;XCTAssertTrue(scroll.exists)
+        XCTAssertTrue(toggleButtonMatchedFrame(rect(wrapper.frame),rect(scroll.frame),Double(UIScreen.main.scale)),"Actual selected native scroll viewport in physical pixels")
+        while nativeWorkRemaining()>0 {
+            var viewport=app.windows.firstMatch.frame.intersection(scroll.frame).insetBy(dx:2,dy:2)
+            let keyboard=app.keyboards.firstMatch
+            if keyboard.exists && viewport.intersects(keyboard.frame){viewport.size.height=max(0,min(viewport.maxY,keyboard.frame.minY)-viewport.minY)}
+            if !element.frame.isEmpty && viewport.contains(element.frame){return}
+            let frame=element.frame
+            if frame.isEmpty || viewport.isEmpty{continue}
+            guard let distance=galleryScrollFraction(Double(frame.minY),Double(frame.height),Double(viewport.minY),Double(viewport.height)),distance != 0 else{continue}
+            let start:CGFloat=distance>0 ? 0.75:0.30
+            let trace:[String:Any]=["target":element.identifier,"frame":rect(element.frame),"viewport":rect(viewport),"requestedFraction":distance,"hostIdentifier":wrapper.identifier,"hostFrame":rect(wrapper.frame),"ownedScrollFrame":rect(scroll.frame)]
+            if let data=try? JSONSerialization.data(withJSONObject:trace,options:.sortedKeys){FileHandle.standardOutput.write(Data("NUMBER_SCROLL ".utf8)+data+Data("\n".utf8))}
+            scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:start)).press(forDuration:0.05,thenDragTo:scroll.coordinate(withNormalizedOffset:CGVector(dx:0.98,dy:start-CGFloat(distance))),withVelocity:.slow,thenHoldForDuration:0.25)
+        };XCTFail("Unreachable Input control/canvas "+element.identifier)
+    }
+
+    private func tap(_ name:String) {
+        let isRadio=name=="String zero"
+        let control=isRadio ? node("lab-select-option-string:0") : app.buttons.matching(NSPredicate(format:"label == %@",name)).firstMatch
+        if !control.isHittable || !app.windows.firstMatch.frame.insetBy(dx:2,dy:2).contains(control.frame) {reveal(control)}
+        if isRadio {
+            XCTAssertEqual(app.descendants(matching:.any).matching(NSPredicate(format:"identifier == %@","lab-select-option-string:0")).count,1,"One current original typed string-zero row")
+            XCTAssertEqual(control.elementType,.other);XCTAssertEqual(control.label,name)
+            let value=control.value as? String ?? ""
+            XCTAssertTrue(listItemValueMatches(value,false) || listItemValueMatches(value,true),"Original native radio semantics")
+        }
+        XCTAssertTrue(control.isHittable);control.tap()
+        if name=="Select scene"{wait("Actual selected Input scene"){control.isSelected}}
+    }
+
+    private func pixels(_ image:CGImage,_ frame:CGRect,_ window:CGRect,_ scale:CGFloat) throws -> [UInt8] {
+        let physical=try XCTUnwrap(numberPhysicalCrop(rect(frame),rect(window),Double(scale),image.width,image.height),"Physical native crop inside image")
+        let framePixels=CGRect(x:physical[0],y:physical[1],width:physical[2],height:physical[3])
+        let crop=try XCTUnwrap(image.cropping(to:framePixels));var bytes=[UInt8](repeating:0,count:crop.width*crop.height*4)
+        let result=bytes.withUnsafeMutableBytes { buffer -> Bool in
+            guard let context=CGContext(data:buffer.baseAddress,width:crop.width,height:crop.height,bitsPerComponent:8,bytesPerRow:crop.width*4,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue|CGBitmapInfo.byteOrder32Big.rawValue) else{return false}
+            context.draw(crop,in:CGRect(x:0,y:0,width:CGFloat(crop.width),height:CGFloat(crop.height)));return true
+        };XCTAssertTrue(result);return bytes
+    }
+    private func motionSwitch(_ settings: XCUIApplication) -> XCUIElement {
+        settings.activate()
+        wait("Native Settings foreground and showcase background") { settings.state == .runningForeground && (self.app.state == .runningBackground || self.app.state == .runningBackgroundSuspended) }
+        let toggle = settings.switches["Reduce Motion"].firstMatch
+        if toggle.exists { return toggle }
+        for label in ["Accessibility","Motion"] {
+            let entry = settings.staticTexts[label].firstMatch
+            for _ in 0..<12 { if entry.exists && entry.isHittable { break };settings.swipeUp() }
+            XCTAssertTrue(entry.exists && entry.isHittable,"Standard Settings navigation "+label);entry.tap()
+        }
+        XCTAssertTrue(toggle.waitForExistence(timeout:nativeWorkRemaining()));return toggle
+    }
+
+    private func setMotion(_ toggle: XCUIElement, _ expected: String) {
+        if toggle.value as? String != expected {
+            XCTAssertTrue(toggle.isHittable)
+            toggle.coordinate(withNormalizedOffset:CGVector(dx:0.95,dy:0.5)).tap()
+        }
+        wait("Actual Reduce Motion switch "+expected) { toggle.value as? String == expected }
+        let shot = XCTAttachment(screenshot:XCUIScreen.main.screenshot());shot.name="meter-motion-switch-"+expected;shot.lifetime = .keepAlways;add(shot)
+        FileHandle.standardOutput.write(Data(("METER_STYLE_MOTION_SWITCH "+expected+"\n").utf8))
+    }
+}
