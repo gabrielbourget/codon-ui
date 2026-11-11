@@ -315,6 +315,39 @@ it("NATIVE.toast.008 only swipes outward with the owned pointer", async () => {
   await fireEvent(row(), "pointerUp", pointer(-40))
   expect(props.toast.onDismiss).toHaveBeenCalledTimes(1)
 })
+it("NATIVE.toast.010 keeps a returned release live and dismisses a fresh owned swipe with the current payload", async () => {
+  const props = base({ onDismiss: jest.fn(), onAutoClose: jest.fn() })
+  const { rerender } = await render(node(props))
+  const pointer = (y: number) => ({
+    target: 2,
+    currentTarget: 1,
+    nativeEvent: { pointerId: 1, pageX: 0, pageY: y, pointerType: "touch" },
+  })
+  await fireEvent(row(), "pointerDown", pointer(0))
+  await fireEvent(row(), "pointerMove", pointer(-40))
+  await advance(500)
+  await fireEvent(row(), "pointerUp", pointer(-5))
+  await advance(250)
+  expect(row().props.pointerEvents).toBe("auto")
+  expect(props.toast.onDismiss).not.toHaveBeenCalled()
+  expect(props.toast.onAutoClose).not.toHaveBeenCalled()
+  expect(props.removeToast).not.toHaveBeenCalled()
+  const latest = { ...props.toast, bodyText: "Current notification" }
+  await rerender(node({ ...props, toast: latest }))
+  await fireEvent(row(), "pointerDown", pointer(0))
+  await advance(500)
+  await fireEvent(row(), "pointerUp", pointer(-40))
+  await fireEvent(row(), "pointerUp", pointer(-40))
+  expect(props.toast.onDismiss).toHaveBeenCalledTimes(1)
+  expect(props.toast.onDismiss).toHaveBeenCalledWith(latest)
+  expect(props.toast.onAutoClose).not.toHaveBeenCalled()
+  expect(row().props.pointerEvents).toBe("none")
+  await advance(249)
+  expect(props.removeToast).not.toHaveBeenCalled()
+  await advance(1)
+  expect(props.removeToast).toHaveBeenCalledTimes(1)
+  expect(props.removeToast).toHaveBeenCalledWith(latest)
+})
 it("NATIVE.toast.009 cancels an already pending exit retirement on unmount", async () => {
   const props = base({ onDismiss: jest.fn() })
   const { unmount } = await render(node(props))

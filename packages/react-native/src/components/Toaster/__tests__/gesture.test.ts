@@ -104,6 +104,50 @@ it("NATIVE.toast.gesture.005 resets a stale displacement peak when returning ins
   expect(f.onAmount).toHaveBeenLastCalledWith(0)
   expect(f.onDismiss).not.toHaveBeenCalled()
 })
+it.each([true, false])("NATIVE.toast.gesture.009 uses the final release coordinates from top=%s", (top) => {
+  const f = fixture(top),
+    direction = top ? -1 : 1
+  f.gesture.down(pointer(0))
+  f.gesture.move(pointer(direction * 40))
+  f.at(500)
+  f.gesture.up(pointer(direction * 5))
+  expect(f.onAmount).toHaveBeenLastCalledWith(0)
+  expect(f.onDragging).toHaveBeenLastCalledWith(false)
+  expect(f.onDismiss).not.toHaveBeenCalled()
+  f.gesture.down(pointer(0))
+  f.at(1000)
+  f.gesture.up(pointer(direction * 40))
+  expect(f.onAmount).toHaveBeenLastCalledWith(direction * 40)
+  expect(f.onDismiss).toHaveBeenCalledTimes(1)
+})
+it.each([
+  ["horizontal", 0, 20],
+  ["nonfinite vertical", NaN, 0],
+  ["nonfinite horizontal", -40, Infinity],
+] as const)("NATIVE.toast.gesture.010 cancels a %s release after an outward move", (_, y, x) => {
+  const f = fixture()
+  f.gesture.down(pointer(0))
+  f.gesture.move(pointer(-40))
+  f.at(500)
+  f.gesture.up(pointer(y, 1, x))
+  expect(f.onAmount).toHaveBeenLastCalledWith(0)
+  expect(f.onDragging).toHaveBeenLastCalledWith(false)
+  expect(f.onDismiss).not.toHaveBeenCalled()
+})
+it("NATIVE.toast.gesture.011 ignores a foreign release before completing the owned final displacement", () => {
+  const f = fixture()
+  f.gesture.down(pointer(0))
+  f.gesture.move(pointer(-20))
+  f.at(500)
+  f.gesture.up(pointer(0, 2))
+  expect(f.onAmount).toHaveBeenLastCalledWith(-20)
+  expect(f.onDismiss).not.toHaveBeenCalled()
+  f.gesture.up(pointer(-40))
+  expect(f.onAmount).toHaveBeenLastCalledWith(-40)
+  expect(f.onDismiss).toHaveBeenCalledTimes(1)
+  f.gesture.up(pointer(-40))
+  expect(f.onDismiss).toHaveBeenCalledTimes(1)
+})
 it("NATIVE.toast.gesture.006 cancels horizontal and inward movement without a dismissal", () => {
   const f = fixture()
   f.gesture.down(pointer(0))
