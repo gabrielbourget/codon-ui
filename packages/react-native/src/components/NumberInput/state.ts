@@ -31,6 +31,7 @@ export const useNumberInputState = (props: TNativeNumberInputProps) => {
   if (controlled.current !== (value !== undefined))
     throw new TypeError("NumberInput: changing controlled mode is unsupported")
   const [stored, setStored] = useState(defaultValue ?? null)
+  const latestStored = useRef(stored)
   const authoritative = controlled.current ? value! : stored
   model.validateValue(authoritative, "value")
   const formatted = model.format(authoritative)
@@ -61,8 +62,11 @@ export const useNumberInputState = (props: TNativeNumberInputProps) => {
   const publish = (next: number | null) => {
     edit.current.consumed = true
     replaceDraft(controlled.current ? formatted : model.format(next))
-    if (next === authoritative) return
-    if (!controlled.current) setStored(next)
+    if (next === (controlled.current ? authoritative : latestStored.current)) return
+    if (!controlled.current) {
+      latestStored.current = next
+      setStored(next)
+    }
     onChange?.(next)
   }
   const increment = model.step(draft, 1)
