@@ -86,6 +86,53 @@ it("CAP.toaster.003 root duration retires the rendered toast after its own deadl
   await advance(250)
   expect(screen.queryByTestId("toaster")).toBeNull()
 })
+it("CAP.toaster.003/.016 replaces live deadlines without overriding a persistent toast or retiring its original host", async () => {
+  const originalAutoClose = jest.fn()
+  const currentAutoClose = jest.fn()
+  const onDismiss = jest.fn()
+  const { rerender } = await render(node({ duration: 100 }))
+  await act(() => {
+    toast({ id: "timed", onAutoClose: originalAutoClose, onDismiss })
+  })
+  const original = row("toast-string-timed")
+  await advance(40)
+  await rerender(node({ duration: 200 }))
+  await advance(60)
+  expect(originalAutoClose).not.toHaveBeenCalled()
+  expect(row("toast-string-timed")).toBe(original)
+  await act(() => {
+    toast({ id: "timed", duration: "persistent", onAutoClose: currentAutoClose })
+  })
+  await rerender(node({ duration: 1 }))
+  await advance(1000)
+  expect(originalAutoClose).not.toHaveBeenCalled()
+  expect(currentAutoClose).not.toHaveBeenCalled()
+  expect(row("toast-string-timed")).toBe(original)
+  await act(() => {
+    toast({ id: "timed", duration: 50, bodyText: "Current payload" })
+  })
+  await advance(20)
+  await rerender(node({ duration: 500 }))
+  await advance(29)
+  expect(currentAutoClose).not.toHaveBeenCalled()
+  expect(row("toast-string-timed").props.pointerEvents).toBe("auto")
+  await advance(1)
+  expect(currentAutoClose).toHaveBeenCalledTimes(1)
+  expect(currentAutoClose.mock.calls[0][0]).toMatchObject({
+    id: "timed",
+    duration: 50,
+    bodyText: "Current payload",
+    onDismiss,
+  })
+  expect(originalAutoClose).not.toHaveBeenCalled()
+  expect(onDismiss).not.toHaveBeenCalled()
+  expect(row("toast-string-timed").props.pointerEvents).toBe("none")
+  await advance(249)
+  expect(row("toast-string-timed")).toBe(original)
+  await advance(1)
+  expect(screen.queryByTestId("toaster")).toBeNull()
+  expect(currentAutoClose).toHaveBeenCalledTimes(1)
+})
 it.each(AVAILABLE_TOAST_POSITIONS)("CAP.toaster.004 positions %s with safe-area offsets", async (position) => {
   await render(node({ position, offset: 30 }))
   await publish({ id: 0 })
