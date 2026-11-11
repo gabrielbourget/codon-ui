@@ -403,11 +403,26 @@ it("retains controlled zero across repeated veto and echoes null without inventi
 
 it("initializes a default once and preserves arbitrary caller-authoritative values until a request", async () => {
   const changed = jest.fn()
-  const { rerender } = await render(<Stepper {...names} defaultValue={0} onChange={changed} />)
-  await rerender(<Stepper {...names} defaultValue={8} onChange={changed} />)
+  const ref = createRef<TNativeStepperRef>()
+  const { rerender } = await render(<Stepper {...names} ref={ref} defaultValue={0} onChange={changed} />)
+  const original = input()
+  const originalRef = ref.current
+  expect(originalRef).toBeTruthy()
+  expect(original.props.defaultValue).toBeUndefined()
+  await rerender(<Stepper {...names} ref={ref} defaultValue={8} onChange={changed} />)
+  expect(input()).toBe(original)
+  expect(ref.current).toBe(originalRef)
+  expect(input().props.defaultValue).toBeUndefined()
   expect(input()).toHaveDisplayValue("0")
+  expect(changed).not.toHaveBeenCalled()
   await userEvent.setup().press(plus())
   expect(input()).toHaveDisplayValue("1")
+  expect(changed.mock.calls).toEqual([[1]])
+  await rerender(<Stepper key="fresh" {...names} ref={ref} defaultValue={8} onChange={changed} />)
+  expect(input()).not.toBe(original)
+  expect(input()).toHaveDisplayValue("8")
+  expect(input().props.defaultValue).toBeUndefined()
+  expect(changed.mock.calls).toEqual([[1]])
 })
 
 it("uses final native payload once, preserving observer identity after the numeric request", async () => {
