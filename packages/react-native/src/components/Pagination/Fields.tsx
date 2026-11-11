@@ -65,7 +65,7 @@ export const NativePaginationInput = ({
         formatOptions: options,
         minValue: 1,
         maxValue: count,
-        step: input.step,
+        step: input.step === undefined ? 1 : input.step,
       }),
     [
       input.locale,
