@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, userEvent } from "@testing-library/react-native"
 import { createRef, useState } from "react"
-import { Platform } from "react-native"
+import { Platform, TextInput, type TextInputProps } from "react-native"
 
 import { Input, NativeThemeProvider, type TNativeInputProps, type TNativeInputRef } from "../../.."
 
@@ -41,6 +41,66 @@ describe("Input public native contract", () => {
     await userEvent.setup().type(screen.getByTestId("input"), "Bonjour", { skipBlur: true })
     expect(screen.getByTestId("input")).toHaveDisplayValue("Bonjour")
     expect(changed).toHaveBeenLastCalledWith("Bonjour")
+  })
+
+  it("retains its initial defaultValue until keyed remount", async () => {
+    const ref = createRef<TNativeInputRef>()
+    const onChange = jest.fn(),
+      onChangeText = jest.fn()
+    const view = await render(
+      <Input key="original" defaultValue="Initial draft" ref={ref} {...{ onChange, onChangeText }} />,
+    )
+    const original = ref.current
+    const input = screen.getByTestId("input")
+    expect(original).not.toBeNull()
+    for (const defaultValue of ["Later default", "", undefined]) {
+      await view.rerender(
+        <Input key="original" defaultValue={defaultValue} ref={ref} {...{ onChange, onChangeText }} />,
+      )
+      expect(screen.getByTestId("input")).toBe(input)
+      expect(ref.current).toBe(original)
+      expect(input.props.defaultValue).toBe("Initial draft")
+      expect(input).toHaveDisplayValue("Initial draft")
+    }
+    await view.rerender(<Input key="replacement" defaultValue="New draft" ref={ref} {...{ onChange, onChangeText }} />)
+    expect(ref.current).not.toBe(original)
+    expect(screen.getByTestId("input")).toHaveDisplayValue("New draft")
+    expect(onChange).not.toHaveBeenCalled()
+    expect(onChangeText).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    { name: "empty", initial: "" },
+    { name: "absent", initial: undefined },
+  ])("keeps the $name initial defaultValue when a later default arrives", async ({ initial }) => {
+    const changed = jest.fn()
+    const view = await render(<Input defaultValue={initial} onChangeText={changed} />)
+    const original = screen.getByTestId("input")
+    await view.rerender(<Input defaultValue="Later default" onChangeText={changed} />)
+    expect(screen.getByTestId("input")).toBe(original)
+    expect(original.props.defaultValue).toBe(initial)
+    expect(original).toHaveDisplayValue("")
+    expect(changed).not.toHaveBeenCalled()
+  })
+
+  it("retains the initial renderer default while controlled empty and current values stay authoritative", async () => {
+    const ref = createRef<TNativeInputRef>()
+    const changed = jest.fn()
+    const renderer = jest.fn((props: TextInputProps) => <TextInput {...props} testID="rendered-default" />)
+    const view = await render(
+      <Input defaultValue="Initial draft" value="" ref={ref} render={renderer} onChangeText={changed} />,
+    )
+    const original = ref.current
+    expect(original).not.toBeNull()
+    for (const value of ["", "Owned current"]) {
+      await view.rerender(
+        <Input defaultValue="Later default" value={value} ref={ref} render={renderer} onChangeText={changed} />,
+      )
+      expect(renderer.mock.calls.at(-1)?.[0].defaultValue).toBe("Initial draft")
+      expect(screen.getByTestId("rendered-default")).toHaveDisplayValue(value)
+      expect(ref.current).toBe(original)
+    }
+    expect(changed).not.toHaveBeenCalled()
   })
 
   it("forwards native change/submit/selection events without creating DOM events", async () => {
