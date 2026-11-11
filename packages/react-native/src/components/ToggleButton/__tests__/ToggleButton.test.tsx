@@ -331,6 +331,129 @@ it("NATIVE.toggle-button.001 retains render state methods, batch deduplication a
   expect(change.mock.calls).toEqual([[true], [true]])
 })
 
+it.each([
+  ["ios-accessibility-activate", false],
+  ["ios-accessibility-activate", true],
+  ["android-click", false],
+  ["android-click", true],
+] as const)(
+  "composes uncontrolled %s activations before one commit from default %s",
+  async (source, defaultSelected) => {
+    const change = jest.fn(),
+      pressed = jest.fn(),
+      order: unknown[] = []
+    await render(
+      <Example
+        defaultSelected={defaultSelected}
+        onChange={(next) => {
+          change(next)
+          order.push(next)
+        }}
+        onPress={(event) => {
+          pressed(event)
+          order.push(event)
+        }}
+      />,
+    )
+    const button = screen.getByRole("button"),
+      activate = button.props.onNativeActivation
+    const event = (activationId: number) => ({
+      nativeEvent: {
+        kind: "activation",
+        ownerId: button.props.ownerId,
+        target: 17,
+        source,
+        observedAt: 0,
+        activationId,
+        scopeOwnerId: "",
+        windowId: "window",
+        epoch: 0,
+      },
+    })
+    const first = event(1),
+      second = event(2)
+    expect(activate).toEqual(expect.any(Function))
+    await act(() => {
+      activate(first)
+      activate(second)
+    })
+    expect(pressed.mock.calls).toEqual([[first], [second]])
+    expect(change.mock.calls).toEqual([[!defaultSelected], [defaultSelected]])
+    expect(order).toEqual([!defaultSelected, first, defaultSelected, second])
+    expect(screen.getByRole("button")).toBe(button)
+    expect(button.props.accessibilityState.checked).toBe(defaultSelected)
+  },
+)
+
+it.each([false, true])("composes uncontrolled render-state setters and toggles from default %s", async (initial) => {
+  let latest: TNativeToggleButtonChildrenState | undefined
+  const change = jest.fn()
+  await render(
+    <ToggleButton defaultSelected={initial} onChange={change}>
+      {(state) => {
+        latest = state
+        return "Toggle state"
+      }}
+    </ToggleButton>,
+  )
+  const state = latest!.state,
+    button = screen.getByRole("button")
+  await act(() => {
+    state.setSelected(!initial)
+    state.setSelected(!initial)
+    state.toggle()
+    state.toggle()
+  })
+  expect(change.mock.calls).toEqual([[!initial], [initial], [!initial]])
+  expect(latest!.state).toMatchObject({ isSelected: !initial, defaultSelected: initial })
+  expect(screen.getByRole("button")).toBe(button)
+  expect(button.props.accessibilityState.checked).toBe(!initial)
+})
+
+it.each([false, true])(
+  "retains the controlled owner through batched native activation and echo from %s",
+  async (held) => {
+    const change = jest.fn(),
+      pressed = jest.fn()
+    const view = await render(<Example isSelected={held} onChange={change} onPress={pressed} />)
+    const original = screen.getByRole("button")
+    const deliver = async (firstID: number) => {
+      const button = screen.getByRole("button"),
+        activate = button.props.onNativeActivation
+      const event = (activationId: number) => ({
+        nativeEvent: {
+          kind: "activation",
+          ownerId: button.props.ownerId,
+          target: 17,
+          source: "ios-accessibility-activate",
+          observedAt: 0,
+          activationId,
+          scopeOwnerId: "",
+          windowId: "window",
+          epoch: 0,
+        },
+      })
+      const first = event(firstID),
+        second = event(firstID + 1)
+      await act(() => {
+        activate(first)
+        activate(second)
+      })
+      expect(pressed.mock.calls).toEqual([[first], [second]])
+      pressed.mockClear()
+    }
+    await deliver(1)
+    expect(change.mock.calls).toEqual([[!held]])
+    expect(original.props.accessibilityState.checked).toBe(held)
+    change.mockClear()
+    await view.rerender(<Example isSelected={!held} onChange={change} onPress={pressed} />)
+    await deliver(3)
+    expect(change.mock.calls).toEqual([[held]])
+    expect(screen.getByRole("button")).toBe(original)
+    expect(original.props.accessibilityState.checked).toBe(!held)
+  },
+)
+
 it("NATIVE.toggle-button.001 supports native dynamic colors and mounted provider changes without changing selection", async () => {
   const native = PlatformColor("systemBlueColor")
   const registered = StyleSheet.create({ root: { color: native, borderColor: native } })
