@@ -1,6 +1,7 @@
 import {
   forwardRef,
   useEffect,
+  useRef,
   useState,
   type ForwardRefExoticComponent,
   type ReactElement,
@@ -48,10 +49,12 @@ export const NativeInput = forwardRef<TNativeInputRef, TNativeInputInternalProps
     nativeRender,
     nativeAnimate = true,
     render,
+    defaultValue,
     "data-testid": aliasTestID,
     "aria-label": aliasLabel,
     ...rest
   } = props
+  const initialDefaultValue = useRef(defaultValue)
   const theme = useNativeTheme()
   const [focused, setFocused] = useState(false)
   useEffect(() => {
@@ -98,6 +101,7 @@ export const NativeInput = forwardRef<TNativeInputRef, TNativeInputInternalProps
   const blocked = isDisabled || isReadOnly
   const native: TextInputProps & RefAttributes<TNativeInputRef> = {
     ...rest,
+    defaultValue: initialDefaultValue.current,
     ref,
     multiline: false,
     editable: !blocked,
