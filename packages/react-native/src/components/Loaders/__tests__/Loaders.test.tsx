@@ -286,22 +286,33 @@ it("NATIVE.loaders.003 keeps loaders decorative inside owned Button content and 
   expect(screen.queryAllByRole("progressbar")).toHaveLength(0)
   expect(part("circle-loader-spinner")).toHaveStyle({ borderTopColor: "#ffffff" })
   expect(part("lagging-lines-loader-slide-0")).toHaveStyle({ backgroundColor: "#ffffff" })
+  const circle = part("circle-loader")
+  const lines = part("lagging-lines-loader")
   await rerender(
     <Button order="primary">
       <CircleLoader accessible />
-    </Button>,
-  )
-  expect(screen.getByRole("progressbar", { name: "Loading" })).toBeOnTheScreen()
-  expect(part("circle-loader").props.accessibilityState).toEqual({ busy: true })
-  expect(part("circle-loader").props["aria-busy"]).toBe(true)
-  await rerender(
-    <Button order="primary">
       <LaggingLinesLoader accessible />
     </Button>,
   )
-  expect(screen.getByRole("progressbar", { name: "Loading" })).toBeOnTheScreen()
-  expect(part("lagging-lines-loader").props.accessibilityState).toEqual({ busy: true })
-  expect(part("lagging-lines-loader").props["aria-busy"]).toBe(true)
+  expect(screen.getAllByRole("progressbar", { name: "Loading" })).toHaveLength(2)
+  for (const root of [circle, lines]) {
+    expect(root.props.accessibilityState).toEqual({ busy: true })
+    expect(root.props["aria-busy"]).toBe(true)
+  }
+  await rerender(
+    <Button order="primary">
+      <CircleLoader accessible={false} />
+      <LaggingLinesLoader accessible={false} />
+    </Button>,
+  )
+  expect(part("circle-loader")).toBe(circle)
+  expect(part("lagging-lines-loader")).toBe(lines)
+  expect(screen.queryAllByRole("progressbar")).toHaveLength(0)
+  for (const root of [circle, lines]) {
+    expect(root.props.accessibilityLabel).toBeUndefined()
+    expect(root.props.accessibilityState).toBeUndefined()
+    expect(root.props["aria-busy"]).toBeUndefined()
+  }
 })
 
 it.each([CircleLoader, LaggingLinesLoader])(
