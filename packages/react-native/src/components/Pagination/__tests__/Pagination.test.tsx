@@ -666,6 +666,46 @@ it("does not submit a discarded editor draft after the native numeric configurat
   expect(f.page.mock.calls).toEqual([[1]])
 })
 
+it("discards the page submission draft when a reused numeric format-options object changes", async () => {
+  const formatOptions = { useGrouping: true }
+  const props: Partial<TNativePaginationProps> = {
+    chosenPaginationSubcomponents: ["page-input"],
+    customPageNumberInputProps: { formatOptions },
+  }
+  const f = fixture(props)
+  await render(f.node())
+  const editor = screen.getByLabelText("Page number")
+  await fireEvent.changeText(editor, "7")
+  formatOptions.useGrouping = false
+  await screen.rerender(f.node(props))
+  expect(screen.getByLabelText("Page number")).toBe(editor)
+  expect(editor).toHaveDisplayValue("1")
+  await press("Navigate to Selected Page")
+  expect(f.page.mock.calls).toEqual([[1]])
+})
+
+it("preserves the page submission draft when replacement numeric format options have equivalent values", async () => {
+  const f = fixture({
+    chosenPaginationSubcomponents: ["page-input"],
+    customPageNumberInputProps: { formatOptions: { useGrouping: true } },
+  })
+  await render(f.node())
+  await fireEvent.changeText(screen.getByLabelText("Page number"), "7")
+  await screen.rerender(
+    f.node(
+      {
+        currentPage: 5,
+        chosenPaginationSubcomponents: ["page-input"],
+        customPageNumberInputProps: { formatOptions: { useGrouping: true } },
+      },
+      "dark",
+    ),
+  )
+  expect(screen.getByLabelText("Page number")).toHaveDisplayValue("7")
+  await press("Navigate to Selected Page")
+  expect(f.page.mock.calls).toEqual([[7]])
+})
+
 it("NAV.001/.003 binds navigation and current-page wording without moving current state after declined requests", async () => {
   const f = fixture({
     labels: {
