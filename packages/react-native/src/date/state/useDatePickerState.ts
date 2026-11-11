@@ -83,11 +83,12 @@ export interface DatePickerState extends OverlayTriggerState, FormValidationStat
  */
 export function useDatePickerState<T extends DateValue = DateValue>(props: DatePickerStateOptions<T>): DatePickerState {
   const overlayState = useOverlayTriggerState(props)
-  const [value, setValue] = useControlledState<DateValue | null, MappedDateValue<T> | null>(
+  const [controlledValue, setControlledValue] = useControlledState<DateValue | null, MappedDateValue<T> | null>(
     props.value,
     props.defaultValue || null,
     props.onChange,
   )
+  let value = controlledValue
   const [initialValue] = useState(value)
 
   const v = value || props.placeholderValue || null
@@ -141,16 +142,24 @@ export function useDatePickerState<T extends DateValue = DateValue>(props: DateP
   const isValueInvalid = validation.displayValidation.isInvalid
   const validationState: ValidationState | null = props.validationState || (isValueInvalid ? "invalid" : null)
 
-  const commitValue = (date: DateValue, time: TimeValue) => {
-    setValue("timeZone" in time ? time.set(toCalendarDate(date)) : toCalendarDateTime(date, time))
+  const setValue = (newValue: DateValue | null) => {
+    value = newValue
+    selectedDate = newValue
+    selectedTime = newValue && "hour" in newValue ? newValue : null
     setSelectedDate(null)
     setSelectedTime(null)
+    setControlledValue(newValue)
+  }
+
+  const commitValue = (date: DateValue, time: TimeValue) => {
+    setValue("timeZone" in time ? time.set(toCalendarDate(date)) : toCalendarDateTime(date, time))
     validation.commitValidation()
   }
 
   // Intercept setValue to make sure the Time section is not changed by date selection in Calendar
   const selectDate = (newValue: CalendarDate) => {
     const shouldClose = typeof shouldCloseOnSelect === "function" ? shouldCloseOnSelect() : shouldCloseOnSelect
+    selectedDate = newValue
     if (hasTime) {
       if (selectedTime || shouldClose) {
         commitValue(newValue, selectedTime || getPlaceholderTime(props.defaultValue || props.placeholderValue))
@@ -168,6 +177,7 @@ export function useDatePickerState<T extends DateValue = DateValue>(props: DateP
   }
 
   const selectTime = (newValue: TimeValue) => {
+    selectedTime = newValue
     if (selectedDate && newValue) {
       commitValue(selectedDate, newValue)
     } else {
