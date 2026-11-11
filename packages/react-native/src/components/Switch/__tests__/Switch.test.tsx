@@ -195,8 +195,8 @@ describe("Switch public native contract", () => {
     await expect(render(<Switch {...props} />)).rejects.toThrow(TypeError)
   })
 
-  it("does not restart thumb timing for delivered width noise within one physical pixel", async () => {
-    const scale = jest.spyOn(PixelRatio, "get").mockReturnValue(3)
+  it.each([3, 2.625])("does not restart thumb timing for delivered width noise at density %s", async (density) => {
+    const scale = jest.spyOn(PixelRatio, "get").mockReturnValue(density)
     try {
       const { rerender } = await render(<Switch isSelected={false} />)
       await fireEvent(part("track-content"), "layout", { nativeEvent: { layout: { width: 30, height: 15 } } })
@@ -208,7 +208,7 @@ describe("Switch public native contract", () => {
         await fireEvent(part("indicator"), "layout", { nativeEvent: { layout: { width, height: 15 } } })
       }
       expect(part("indicator")).toHaveStyle({ left: 15 })
-      const changedWidth = 15 + 1 / 3
+      const changedWidth = 15 + 1 / density
       await fireEvent(part("indicator"), "layout", { nativeEvent: { layout: { width: changedWidth, height: 15 } } })
       await act(() => jest.advanceTimersByTime(250))
       expect(part("indicator")).toHaveStyle({ left: 30 - changedWidth })
