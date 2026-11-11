@@ -111,16 +111,6 @@ export function useDateRangePickerState<T extends DateValue = DateValue>(
 
   let value = controlledValue || placeholderValue
 
-  const setValue = (newValue: RangeValue<DateValue | null> | null) => {
-    value = newValue || { start: null, end: null }
-    setPlaceholderValue(value)
-    if (isCompleteRange(value)) {
-      setControlledValue(value)
-    } else {
-      setControlledValue(null)
-    }
-  }
-
   const v = value?.start || value?.end || props.placeholderValue || null
   const [granularity, defaultTimeZone] = useDefaultProps(v, props.granularity)
   const hasTime = granularity === "hour" || granularity === "minute" || granularity === "second"
@@ -138,6 +128,20 @@ export function useDateRangePickerState<T extends DateValue = DateValue>(
     }
   }
 
+  const setValue = (newValue: RangeValue<DateValue | null> | null) => {
+    value = newValue || { start: null, end: null }
+    dateRange = isCompleteRange(value) ? value : null
+    timeRange = isCompleteRange(value) && "hour" in value.start ? (value as TimeRange) : null
+    setSelectedDateRange(null)
+    setSelectedTimeRange(null)
+    setPlaceholderValue(value)
+    if (isCompleteRange(value)) {
+      setControlledValue(value)
+    } else {
+      setControlledValue(null)
+    }
+  }
+
   const commitValue = (dateRange: DateRange, timeRange: TimeRange) => {
     setValue({
       start:
@@ -149,14 +153,13 @@ export function useDateRangePickerState<T extends DateValue = DateValue>(
           ? timeRange.end.set(toCalendarDate(dateRange.end))
           : toCalendarDateTime(dateRange.end, timeRange.end),
     })
-    setSelectedDateRange(null)
-    setSelectedTimeRange(null)
     validation.commitValidation()
   }
 
   // Intercept setValue to make sure the Time section is not changed by date selection in Calendar
   const setDateRange = (range: RangeValue<DateValue | null>) => {
     const shouldClose = typeof shouldCloseOnSelect === "function" ? shouldCloseOnSelect() : shouldCloseOnSelect
+    dateRange = range
     if (hasTime) {
       // Set a placeholder time if the popover is closing so we don't leave the field in an incomplete state.
       if (isCompleteRange(range) && (shouldClose || (timeRange?.start && timeRange?.end))) {
@@ -180,6 +183,7 @@ export function useDateRangePickerState<T extends DateValue = DateValue>(
   }
 
   const setTimeRange = (range: RangeValue<TimeValue | null>) => {
+    timeRange = range
     if (isCompleteRange(dateRange) && isCompleteRange(range)) {
       commitValue(dateRange, range)
     } else {

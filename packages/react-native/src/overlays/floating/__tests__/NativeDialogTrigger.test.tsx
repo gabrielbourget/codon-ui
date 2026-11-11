@@ -1,22 +1,307 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native"
+import { useContext, type ContextType } from "react"
 import { Pressable, type GestureResponderEvent } from "react-native"
 
 import { Button } from "../../../components/Button/Button"
+import { ClickPopover } from "../../../components/ClickPopover/ClickPopover"
+import { NativeDialogContext, NativeOverlayTriggerStateContext } from "../../../components/ClickPopover/context"
+import { NativeRootMenuTriggerStateContext } from "../../../components/Menu/context"
 import { Text } from "../../../components/Text/Text"
 import {
   NativeDialogTrigger,
   type TNativeDialogTriggerProps,
   type TNativeDialogTriggerRenderState,
 } from "../NativeDialogTrigger"
+import { NativeFloatingLayerHost } from "../NativeFloatingLayerHost"
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../scope"
 
 const trigger = ({ triggerProps }: TNativeDialogTriggerRenderState) => <Button {...triggerProps}>Open</Button>
 const children = ({ isOpen }: TNativeDialogTriggerRenderState) => <Text testID="state">{String(isOpen)}</Text>
 const fixture = (props: Partial<TNativeDialogTriggerProps> = {}) => (
   <NativeDialogTrigger trigger={trigger} {...props}>
-    {children}
+    {props.children ?? children}
   </NativeDialogTrigger>
 )
+
+it("preserves inherited popup focus strategy and expanded keys during batched requests", async () => {
+  let shared: ContextType<typeof NativeRootMenuTriggerStateContext>
+  const Probe = () => {
+    shared = useContext(NativeRootMenuTriggerStateContext)
+    return null
+  }
+  const onOpenChange = jest.fn()
+  await render(fixture({ onOpenChange, children: <Probe /> }))
+  await act(() => {
+    shared!.openSubmenu("held", 0)
+    shared!.open("first")
+    shared!.toggle("last")
+  })
+  expect(shared!.isOpen).toBe(false)
+  expect(shared!.focusStrategy).toBe("last")
+  expect(shared!.expandedKeysStack).toEqual(["held"])
+  expect(onOpenChange.mock.calls).toEqual([[true], [false]])
+  await act(() => shared!.close())
+  expect(shared!.expandedKeysStack).toEqual([])
+  expect(onOpenChange.mock.calls).toEqual([[true], [false]])
+})
+
+it.each([
+  ["toggle", false],
+  ["toggle", true],
+  ["explicit", false],
+  ["explicit", true],
+  ["setOpen", false],
+  ["setOpen", true],
+] as const)("composes shared popup %s then toggle from %s", async (action, defaultOpen) => {
+  let state: TNativeDialogTriggerRenderState | undefined
+  let shared: ContextType<typeof NativeOverlayTriggerStateContext>
+  const Probe = () => {
+    shared = useContext(NativeOverlayTriggerStateContext)
+    return null
+  }
+  const onOpenChange = jest.fn()
+  await render(
+    fixture({
+      defaultOpen,
+      onOpenChange,
+      trigger: (value) => {
+        state = value
+        return trigger(value)
+      },
+      children: <Probe />,
+    }),
+  )
+  await act(() => {
+    if (action === "toggle") shared!.toggle()
+    else if (action === "setOpen") shared!.setOpen(!defaultOpen)
+    else if (defaultOpen) shared!.close()
+    else shared!.open()
+    shared!.toggle()
+  })
+  expect(state!.isOpen).toBe(defaultOpen)
+  expect(onOpenChange.mock.calls).toEqual([[!defaultOpen], [defaultOpen]])
+})
+
+it.each(["open", "close", "setOpen(true)", "setOpen(false)", "toggle"] as const)(
+  "composes shared popup %s with a retained dialog toggle",
+  async (action) => {
+    let state: TNativeDialogTriggerRenderState | undefined
+    let shared: ContextType<typeof NativeOverlayTriggerStateContext>
+    const Probe = () => {
+      shared = useContext(NativeOverlayTriggerStateContext)
+      return null
+    }
+    const onOpenChange = jest.fn()
+    const defaultOpen = action === "close" || action === "setOpen(false)"
+    await render(
+      fixture({
+        defaultOpen,
+        onOpenChange,
+        trigger: (value) => {
+          state = value
+          return trigger(value)
+        },
+        children: <Probe />,
+      }),
+    )
+    const retained = state!
+    await act(() => {
+      if (action === "open") shared!.open()
+      else if (action === "close") shared!.close()
+      else if (action === "toggle") shared!.toggle()
+      else shared!.setOpen(!defaultOpen)
+      retained.toggle()
+    })
+    expect(state!.isOpen).toBe(defaultOpen)
+    expect(onOpenChange.mock.calls).toEqual([[!defaultOpen], [defaultOpen]])
+  },
+)
+
+it.each([false, true])(
+  "retains controlled popup context owner %s when followed by a trigger toggle",
+  async (isOpen) => {
+    let state: TNativeDialogTriggerRenderState | undefined
+    let shared: ContextType<typeof NativeOverlayTriggerStateContext>
+    const Probe = () => {
+      shared = useContext(NativeOverlayTriggerStateContext)
+      return null
+    }
+    const onOpenChange = jest.fn()
+    await render(
+      fixture({
+        isOpen,
+        onOpenChange,
+        trigger: (value) => {
+          state = value
+          return trigger(value)
+        },
+        children: <Probe />,
+      }),
+    )
+    await act(() => {
+      if (isOpen) shared!.close()
+      else shared!.open()
+      shared!.toggle()
+      shared!.toggle()
+      state!.toggle()
+    })
+    expect(state!.isOpen).toBe(isOpen)
+    expect(onOpenChange.mock.calls).toEqual([[!isOpen]])
+  },
+)
+
+it("composes a dialog child close with its retained trigger toggle", async () => {
+  let state: TNativeDialogTriggerRenderState | undefined
+  let closeDialog: (() => void) | undefined
+  const onOpenChange = jest.fn()
+  await render(
+    <NativeFloatingLayerHost>
+      {fixture({
+        defaultOpen: true,
+        onOpenChange,
+        trigger: (value) => {
+          state = value
+          return trigger(value)
+        },
+        children: (
+          <NativeDialogContext.Provider
+            value={{
+              children: ({ close }) => {
+                closeDialog = close
+                return null
+              },
+            }}
+          >
+            <ClickPopover />
+          </NativeDialogContext.Provider>
+        ),
+      })}
+    </NativeFloatingLayerHost>,
+  )
+  const retained = state!
+  await act(() => {
+    closeDialog!()
+    retained.toggle()
+  })
+  expect(state!.isOpen).toBe(true)
+  expect(onOpenChange.mock.calls).toEqual([[false], [true]])
+})
+
+it.each([false, true])("composes uncontrolled dialog trigger toggles in one batch from %s", async (defaultOpen) => {
+  let state: TNativeDialogTriggerRenderState | undefined
+  const onOpenChange = jest.fn()
+  await render(
+    fixture({
+      defaultOpen,
+      onOpenChange,
+      trigger: (value) => {
+        state = value
+        return trigger(value)
+      },
+    }),
+  )
+  await act(() => {
+    state!.toggle()
+    state!.toggle()
+  })
+  expect(screen.getByTestId("state")).toHaveTextContent(String(defaultOpen))
+  expect(onOpenChange.mock.calls).toEqual([[!defaultOpen], [defaultOpen]])
+})
+
+it("composes explicit dialog trigger requests and retained native presses in call order", async () => {
+  let state: TNativeDialogTriggerRenderState | undefined
+  const onOpenChange = jest.fn()
+  await render(
+    fixture({
+      onOpenChange,
+      trigger: (value) => {
+        state = value
+        return trigger(value)
+      },
+    }),
+  )
+  const retained = state!
+  const event = { nativeEvent: {} } as GestureResponderEvent
+  await act(() => {
+    retained.open()
+    retained.close()
+    retained.triggerProps.onPress(event)
+    retained.triggerProps.onPress(event)
+  })
+  expect(screen.getByTestId("state")).toHaveTextContent("false")
+  expect(onOpenChange.mock.calls).toEqual([[true], [false], [true], [false]])
+})
+
+it.each([false, true])(
+  "retains dialog trigger owner %s through same-batch toggles and explicit requests",
+  async (isOpen) => {
+    let state: TNativeDialogTriggerRenderState | undefined
+    const onOpenChange = jest.fn()
+    await render(
+      fixture({
+        isOpen,
+        onOpenChange,
+        trigger: (value) => {
+          state = value
+          return trigger(value)
+        },
+      }),
+    )
+    for (let batch = 0; batch < 2; batch++) {
+      await act(() => {
+        state!.toggle()
+        state!.toggle()
+        state!.open()
+        state!.close()
+      })
+      expect(screen.getByTestId("state")).toHaveTextContent(String(isOpen))
+      expect(onOpenChange.mock.calls).toEqual(Array.from({ length: batch + 1 }, () => [!isOpen]))
+    }
+  },
+)
+
+it("keeps retained dialog owner actions current after callback replacement", async () => {
+  let state: TNativeDialogTriggerRenderState | undefined
+  const first = jest.fn()
+  const latest = jest.fn()
+  const renderTrigger = (value: TNativeDialogTriggerRenderState) => {
+    state = value
+    return trigger(value)
+  }
+  const result = await render(fixture({ onOpenChange: first, trigger: renderTrigger }))
+  const retained = state!
+  await result.rerender(fixture({ onOpenChange: latest, trigger: renderTrigger }))
+  await act(() => {
+    retained.toggle()
+    retained.toggle()
+  })
+  expect(first).not.toHaveBeenCalled()
+  expect(latest.mock.calls).toEqual([[true], [false]])
+  expect(screen.getByTestId("state")).toHaveTextContent("false")
+})
+
+it("retains accepted dialog state before a throwing owner callback", async () => {
+  let state: TNativeDialogTriggerRenderState | undefined
+  const error = new Error("dialog callback")
+  const onOpenChange = jest.fn((next: boolean) => {
+    if (next) throw error
+  })
+  await render(
+    fixture({
+      onOpenChange,
+      trigger: (value) => {
+        state = value
+        return trigger(value)
+      },
+    }),
+  )
+  await act(() => {
+    expect(() => state!.open()).toThrow(error)
+    state!.close()
+  })
+  expect(screen.getByTestId("state")).toHaveTextContent("false")
+  expect(onOpenChange.mock.calls).toEqual([[true], [false]])
+})
 
 it("preserves controlled false and repeated declined native requests", async () => {
   const onOpenChange = jest.fn()

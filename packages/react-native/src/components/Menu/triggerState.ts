@@ -30,7 +30,10 @@ export const useNativeMenuTriggerState = (props: TOverlayProps): TNativeRootMenu
   const [isOpen, setOpen] = useControlledState(props.isOpen, props.defaultOpen || false, props.onOpenChange)
   const open = useCallback(() => setOpen(true), [setOpen])
   const close = useCallback(() => setOpen(false), [setOpen])
-  const toggle = useCallback(() => setOpen(!isOpen), [setOpen, isOpen])
+  const toggle = useCallback(() => {
+    if (props.isOpen === undefined) setOpen((current) => !current)
+    else setOpen(!isOpen)
+  }, [setOpen, isOpen, props.isOpen])
   const [focusStrategy, setFocusStrategy] = useState<FocusStrategy | null>(null)
   const [expandedKeysStack, setExpandedKeysStack] = useState<Key[]>([])
   const closeAll = () => {
