@@ -166,3 +166,38 @@ it("wraps primitive and Fragment callback output without replacing authored memb
   expect(screen.getByRole("checkbox")).toBe(member)
   expect(member).toBeChecked()
 })
+
+it("captures an independent CheckboxGroup default snapshot until keyed remount without owner requests", async () => {
+  const initial = ["one"]
+  const change = jest.fn()
+  const children = (
+    <>
+      <Checkbox value="one">First</Checkbox>
+      <Checkbox value="two">Second</Checkbox>
+    </>
+  )
+  const view = await render(
+    <CheckboxGroup key="first" defaultValue={initial} onChange={change}>
+      {children}
+    </CheckboxGroup>,
+  )
+  const original = screen.getByRole("checkbox", { name: "First" })
+  initial.splice(0, 1, "two")
+  await view.rerender(
+    <CheckboxGroup key="first" defaultValue={initial} onChange={change}>
+      {children}
+    </CheckboxGroup>,
+  )
+  expect(screen.getByRole("checkbox", { name: "First" })).toBe(original)
+  expect(original).toBeChecked()
+  expect(screen.getByRole("checkbox", { name: "Second" })).not.toBeChecked()
+  await view.rerender(
+    <CheckboxGroup key="second" defaultValue={initial} onChange={change}>
+      {children}
+    </CheckboxGroup>,
+  )
+  expect(screen.getByRole("checkbox", { name: "First" })).not.toBe(original)
+  expect(screen.getByRole("checkbox", { name: "First" })).not.toBeChecked()
+  expect(screen.getByRole("checkbox", { name: "Second" })).toBeChecked()
+  expect(change).not.toHaveBeenCalled()
+})
