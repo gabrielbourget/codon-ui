@@ -51,6 +51,7 @@ export const AlertDialog = forwardRef<TNativeAlertDialogRef, TNativeAlertDialogP
       open={state.open}
       requestClose={() => state.request(false)}
       requestOpen={state.request}
+      getOpen={state.getOpen}
       panelRef={ref}
       initialFocusRef={props.initialFocusRef ?? heading}
       radiusMultiplier={2}

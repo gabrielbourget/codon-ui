@@ -28,6 +28,7 @@ export const OverlayFrame = ({
   open,
   requestClose,
   requestOpen,
+  getOpen,
   panelRef,
   children,
   initialFocusRef,
@@ -40,6 +41,7 @@ export const OverlayFrame = ({
   open: boolean
   requestClose: () => void
   requestOpen: (isOpen: boolean) => void
+  getOpen: () => boolean
   panelRef: Ref<TNativeModalRef>
   children: ReactNode | ((controls: { close: () => void; isActive: () => boolean }) => ReactNode)
   initialFocusRef?: TNativeModalProps["initialFocusRef"]
@@ -48,9 +50,9 @@ export const OverlayFrame = ({
   dialogDefaults?: ViewStyle
   componentName?: string
 }) => {
-  const renderOwner = useRef({ open, requestOpen, live: true })
+  const renderOwner = useRef({ getOpen, requestOpen, live: true })
   useInsertionEffect(() => {
-    renderOwner.current = { open, requestOpen, live: true }
+    renderOwner.current = { getOpen, requestOpen, live: true }
   })
   useInsertionEffect(
     () => () => {
@@ -69,7 +71,7 @@ export const OverlayFrame = ({
       isOpen: open,
       open: () => requestRenderedOpen(true),
       close: () => requestRenderedOpen(false),
-      toggle: () => requestRenderedOpen(!renderOwner.current.open),
+      toggle: () => requestRenderedOpen(!renderOwner.current.getOpen()),
       setOpen: requestRenderedOpen,
     },
   }
