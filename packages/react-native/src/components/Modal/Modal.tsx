@@ -24,6 +24,7 @@ export const Modal = forwardRef<TNativeModalRef, TNativeModalProps>((props, ref)
       open={state.open}
       requestClose={() => state.request(false)}
       requestOpen={state.request}
+      getOpen={state.getOpen}
       panelRef={ref}
       dialogDefaults={{ gap: theme.spacing.unit * 3 }}
       initialFocusRef={props.initialFocusRef ?? (children == null ? heading : undefined)}

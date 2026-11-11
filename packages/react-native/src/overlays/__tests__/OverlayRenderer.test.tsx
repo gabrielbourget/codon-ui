@@ -226,3 +226,83 @@ it("retained renderer methods reopen an uncontrolled owner through its existing 
   await act(() => retained.setOpen(false))
   expect(requested.mock.calls).toEqual([[false], [true], [false]])
 })
+
+it.each(
+  (["modal", "alert-dialog"] as const).flatMap((kind) =>
+    (["toggles", "requests", "controlled", "throw"] as const).map((sequence) => ({ kind, sequence })),
+  ),
+)("$kind composes batched renderer $sequence through the public state methods", async ({ kind, sequence }) => {
+  const panel = createRef<View>()
+  const requested = jest.fn()
+  let values!: ModalRenderState
+  const node = (isOpen?: boolean) => {
+    const props = {
+      ref: panel,
+      accessibilityLabel: "Batched dialog",
+      defaultOpen: true,
+      isOpen,
+      onOpenChange: requested,
+      render: ((props, state) => {
+        values = state
+        return <View {...props} />
+      }) satisfies NonNullable<React.ComponentProps<typeof Modal>["render"]>,
+    }
+    return (
+      <NativeOverlayProvider>
+        {kind === "modal" ? <Modal {...props} /> : <AlertDialog {...props} titleText="Confirm" bodyText="Details" />}
+      </NativeOverlayProvider>
+    )
+  }
+  const view = await render(node(sequence === "controlled" ? true : undefined))
+  await fireEvent(row(`${kind}-window`), "show")
+  const originalWindow = row(`${kind}-window`)
+  const originalPanel = panel.current
+  const retained = values.state
+  expect(originalPanel).not.toBeNull()
+  if (sequence === "controlled") {
+    await act(() => {
+      retained.toggle()
+      retained.toggle()
+      retained.close()
+      retained.setOpen(false)
+      retained.open()
+    })
+    expect(requested.mock.calls).toEqual([[false], [false], [false], [false]])
+    expect(values.state.isOpen).toBe(true)
+    expect(panel.current).toBe(originalPanel)
+    await view.rerender(node(false))
+    await act(() => retained.toggle())
+    expect(requested.mock.calls).toEqual([[false], [false], [false], [false], [true]])
+    expect(screen.queryByTestId(`${kind}-window`, hidden)).toBeNull()
+  } else {
+    if (sequence === "throw") {
+      requested.mockImplementationOnce(() => {
+        throw new Error("Batched owner failure")
+      })
+    }
+    await act(() => {
+      if (sequence === "toggles") {
+        retained.toggle()
+        retained.toggle()
+      } else if (sequence === "requests") {
+        retained.close()
+        retained.close()
+        retained.open()
+        retained.open()
+        retained.setOpen(false)
+        retained.setOpen(false)
+        retained.setOpen(true)
+      } else {
+        expect(() => retained.close()).toThrow("Batched owner failure")
+        retained.toggle()
+      }
+    })
+    expect(requested.mock.calls).toEqual(
+      sequence === "requests" ? [[false], [true], [false], [true]] : [[false], [true]],
+    )
+    expect(values.state.isOpen).toBe(true)
+    expect(row(`${kind}-window`)).toBe(originalWindow)
+    expect(panel.current).toBe(originalPanel)
+  }
+  await view.unmount()
+})
