@@ -333,3 +333,66 @@ it("retains single uncontrolled defaultOpen and repeated controlled close vetoes
   await controlled.unmount()
   expect(root.current).toBeNull()
 })
+
+it("exposes single unavailable calendar dates as disabled independently of selection and bounds", async () => {
+  const start = new CalendarDate(2024, 10, 10),
+    requests = jest.fn()
+  await render(
+    <NativeThemeProvider>
+      <NativeLocaleProvider locale="en-US">
+        <DateTimePicker
+          value={start}
+          onChange={requests}
+          isOpen
+          multiMonth={false}
+          minValue={new CalendarDate(2024, 10, 5)}
+          maxValue={new CalendarDate(2024, 10, 20)}
+          isDateUnavailable={(date) => date.day === 14}
+        />
+      </NativeLocaleProvider>
+    </NativeThemeProvider>,
+  )
+  const hidden = { includeHiddenElements: true }
+  expect(screen.getByTestId("datetime-picker-day-2024-10-04", hidden)).toBeDisabled()
+  expect(screen.getByTestId("datetime-picker-day-2024-10-21", hidden)).toBeDisabled()
+  expect(screen.getByTestId("datetime-picker-day-2024-10-10", hidden)).toBeEnabled()
+  expect(screen.getByTestId("datetime-picker-day-2024-10-14", hidden)).toBeDisabled()
+  expect(screen.getByTestId("datetime-picker-day-2024-10-14", hidden).props).not.toHaveProperty("aria-disabled")
+  expect(screen.getByTestId("datetime-picker-day-2024-10-14", hidden).props).toMatchObject({
+    accessibilityState: { disabled: true, selected: false },
+    focusable: true,
+    nativeTabStop: false,
+  })
+  expect(requests).not.toHaveBeenCalled()
+})
+
+it("consumes single wrapper props without replacing the fixed field scaffold or native layout event", async () => {
+  const owner = new CalendarDate(2024, 10, 10),
+    layout = jest.fn()
+  const authored = {
+    value: owner,
+    labels: { calendarAriaLabel: "Dates" },
+    multiMonth: false,
+    firstDayOfWeek: "mon" as const,
+    dayLength: "long" as const,
+    shouldCloseOnSelect: false,
+    customInputStyles: { padding: 0 },
+    customDialogStyles: { padding: 7 },
+    geometry: "round" as const,
+  }
+  await render(
+    <NativeThemeProvider>
+      <DateTimePicker {...authored} onLayout={layout}>
+        <Text testID="ignored-scaffold-child">Ignored child</Text>
+      </DateTimePicker>
+    </NativeThemeProvider>,
+  )
+  const root = screen.getByTestId("datetime-picker")
+  for (const name of Object.keys(authored)) expect(root.props).not.toHaveProperty(name)
+  expect(screen.queryByTestId("ignored-scaffold-child")).toBeNull()
+  expect(screen.getByTestId("datetime-picker-trigger")).toBeOnTheScreen()
+  const event = { nativeEvent: { layout: { x: 1, y: 2, width: 200, height: 30 } } }
+  await fireEvent(root, "layout", event)
+  expect(layout).toHaveBeenCalledTimes(1)
+  expect(layout.mock.calls[0][0]).toBe(event)
+})
