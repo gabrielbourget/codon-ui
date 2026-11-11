@@ -227,3 +227,34 @@ it("uses current Switch owner callbacks and value at release without replacing t
   await view.unmount()
   expect(ref.current).toBeNull()
 })
+
+it("keeps Switch focus eligibility and original ref while offset and focus-ring opt-outs update independently", async () => {
+  const ref = createRef<View>()
+  const focus = jest.fn()
+  const event = { nativeEvent: { timestamp: 100, isFocusVisible: true } }
+  const view = await render(<Switch ref={ref} aria-label="Choice" onFocus={focus} />)
+  const original = ref.current
+  expect(original).not.toBeNull()
+  await fireEvent(screen.getByRole("switch"), "focus", event)
+  expect(focus.mock.calls[0][0]).toBe(event)
+  expect(screen.getByTestId("switch-indicator", { includeHiddenElements: true })).toHaveStyle({
+    outlineWidth: 2,
+    outlineOffset: 3.5,
+  })
+  await view.rerender(<Switch ref={ref} aria-label="Choice" onFocus={focus} offsetFocusRing={false} />)
+  expect(screen.getByTestId("switch-indicator", { includeHiddenElements: true })).toHaveStyle({
+    outlineWidth: 2,
+    outlineOffset: 0,
+  })
+  await view.rerender(
+    <Switch ref={ref} aria-label="Choice" onFocus={focus} offsetFocusRing={false} enableFocusStyle={false} />,
+  )
+  expect(
+    screen.getByTestId("switch-indicator", { includeHiddenElements: true }).props.style.outlineWidth,
+  ).toBeUndefined()
+  expect(screen.getByRole("switch").props.focusable).toBe(true)
+  expect(ref.current).toBe(original)
+  expect(focus).toHaveBeenCalledTimes(1)
+  await view.unmount()
+  expect(ref.current).toBeNull()
+})
