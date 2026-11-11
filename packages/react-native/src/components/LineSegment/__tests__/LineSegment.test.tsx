@@ -192,3 +192,26 @@ it("clears a removed Android label while retaining native and alias precedence",
     Object.defineProperty(Platform, "OS", { configurable: true, value: originalPlatform })
   }
 })
+
+it("retains the LineSegment host through callback replacement and clears its ref on removal", async () => {
+  const ref = createRef<TNativeLineSegmentRef>()
+  const previous = jest.fn()
+  const current = jest.fn()
+  const view = await render(<LineSegment ref={ref} onLayout={previous} />)
+  const original = ref.current
+  expect(original).not.toBeNull()
+  await view.rerender(<LineSegment ref={ref} direction="vertical" size={0} onLayout={current} />)
+  expect(ref.current).toBe(original)
+  expect(screen.getByTestId("line-segment")).toHaveStyle({ width: 50, height: 0 })
+  expect(previous).not.toHaveBeenCalled()
+  expect(current).not.toHaveBeenCalled()
+  const event = { nativeEvent: { layout: { x: 1, y: 2, width: 50, height: 0 } } }
+  await fireEvent(screen.getByTestId("line-segment"), "layout", event)
+  expect(current.mock.calls).toEqual([[event]])
+  expect(current.mock.calls[0][0]).toBe(event)
+  expect(previous).not.toHaveBeenCalled()
+  await view.rerender(<></>)
+  expect(ref.current).toBeNull()
+  expect(current).toHaveBeenCalledTimes(1)
+  expect(previous).not.toHaveBeenCalled()
+})

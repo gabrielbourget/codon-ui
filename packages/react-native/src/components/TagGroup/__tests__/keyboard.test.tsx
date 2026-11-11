@@ -759,3 +759,38 @@ it("repeats Select All requests under owner veto without turning the request int
   expect(f.change.mock.calls.map(([keys]) => keys)).toEqual(["all", "all"])
   expect([...f.owner]).toEqual([0])
 })
+
+it.each([
+  ["clearSelection", false, 2],
+  ["none", false, 0],
+  ["clearSelection", true, 0],
+] as const)(
+  "honors Escape policy %s with required=%s under repeated owner veto",
+  async (escapeKeyBehavior, disallowEmptySelection, requests) => {
+    const ref = createRef<RN.View>(),
+      change = jest.fn(),
+      owner = new Set([0])
+    await fixture(
+      {
+        selectionMode: "multiple",
+        selectedKeys: owner,
+        onSelectionChange: change,
+        escapeKeyBehavior,
+        disallowEmptySelection,
+      },
+      [
+        tagItem(
+          0,
+          <Tag ref={ref} id={0}>
+            Zero
+          </Tag>,
+        ),
+      ],
+    )
+    await scoped("Escape", ref.current)
+    await scoped("Escape", ref.current)
+    expect(change).toHaveBeenCalledTimes(requests)
+    for (const [keys] of change.mock.calls) expect([...keys]).toEqual([])
+    expect([...owner]).toEqual([0])
+  },
+)

@@ -395,3 +395,19 @@ it("retains a caller-owned animated native slot through controlled value rerende
   expect(part("path").props.opacity).toBe(0.25)
   expect(screen.getByRole("progressbar")).toHaveAccessibilityValue({ now: 25 })
 })
+
+it("rejects nonfinite values across authored CircularProgress drawing slots", async () => {
+  await expect(render(<CircularProgress value={0} width={-1} />)).rejects.toThrow(/CircularProgress: width/)
+  await expect(render(<CircularProgress value={0} height={NaN} />)).rejects.toThrow(/CircularProgress: height/)
+  await expect(render(<CircularProgress value={0} customSVGStyles={{ width: -1 }} />)).rejects.toThrow(/width/)
+  await expect(render(<CircularProgress value={0} customSVGStyles={{ height: -1 }} />)).rejects.toThrow(/height/)
+  await expect(
+    render(<CircularProgress value={0} customPathStyles={{ strokeDasharray: [1, Infinity] }} />),
+  ).rejects.toThrow(/nonfinite native drawing data/)
+  await expect(render(<CircularProgress value={0} customTextStyles={{ fontSize: NaN }} />)).rejects.toThrow(
+    /nonfinite native drawing data/,
+  )
+  await expect(render(<CircularProgress value={0} customBackgroundStyles={{ r: Infinity }} />)).rejects.toThrow(
+    /nonfinite native drawing data/,
+  )
+})

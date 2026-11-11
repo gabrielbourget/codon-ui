@@ -1,6 +1,8 @@
 import { CalendarDate, CalendarDateTime, parseZonedDateTime } from "@internationalized/date"
 import { act, renderHook } from "@testing-library/react-native"
 import type { ReactNode } from "react"
+import { useDatePickerState as usePinnedDatePickerState } from "react-stately/useDatePickerState"
+import { useDateRangePickerState as usePinnedDateRangePickerState } from "react-stately/useDateRangePickerState"
 
 import { FormValidationContext } from "../../../components/ComboBox/state/useFormValidationState"
 import { nativeDatePickerData } from "../../../form/datePicker"
@@ -140,3 +142,105 @@ it("admits required complete values and reports missing single/partial range dat
     false,
   )
 })
+
+it.each(["en-GB", "ar-EG"])(
+  "retains single picker formatter and null contracts against the pinned model in %s",
+  async (locale) => {
+    for (const value of [null, ...examples]) {
+      const { result, unmount } = await renderHook(() => ({
+        native: useDatePickerState({ value, hourCycle: 24 }),
+        pinned: usePinnedDatePickerState({ value, hourCycle: 24 }),
+      }))
+      const options = { year: "numeric", month: "long", day: "numeric" } as const
+      expect(result.current.native.formatValue(locale, options)).toBe(
+        result.current.pinned.formatValue(locale, options),
+      )
+      expect(
+        result.current.native
+          .getDateFormatter(locale, { granularity: "second", hideTimeZone: true, hourCycle: 24 })
+          .resolvedOptions(),
+      ).toEqual(
+        result.current.pinned
+          .getDateFormatter(locale, { granularity: "second", hideTimeZone: true, hourCycle: 24 })
+          .resolvedOptions(),
+      )
+      expect(result.current.native.value).toBe(value)
+      if (value === null) expect(result.current.native.formatValue(locale, options)).toBe("")
+      await unmount()
+    }
+  },
+)
+
+it.each(["en-GB", "ar-EG"])(
+  "retains range formatter empty, equal, reversed and mixed-zone contracts against the pinned model in %s",
+  async (locale) => {
+    const start = parseZonedDateTime("2024-11-01T13:45[America/New_York]")
+    const ranges = [
+      null,
+      { start: examples[0], end: examples[0] },
+      { start, end: start.add({ days: 3 }) },
+      { start: start.add({ days: 3 }), end: start },
+      { start, end: parseZonedDateTime("2024-11-04T19:45[Europe/Paris]") },
+    ]
+    for (const value of ranges) {
+      const { result, unmount } = await renderHook(() => ({
+        native: useDateRangePickerState({ value, hourCycle: 24 }),
+        pinned: usePinnedDateRangePickerState({ value, hourCycle: 24 }),
+      }))
+      const options = { year: "numeric", month: "long", day: "numeric" } as const
+      expect(result.current.native.formatValue(locale, options)).toEqual(
+        result.current.pinned.formatValue(locale, options),
+      )
+      expect(
+        result.current.native
+          .getDateFormatter(locale, { granularity: "second", hideTimeZone: true, hourCycle: 24 })
+          .resolvedOptions(),
+      ).toEqual(
+        result.current.pinned
+          .getDateFormatter(locale, { granularity: "second", hideTimeZone: true, hourCycle: 24 })
+          .resolvedOptions(),
+      )
+      if (value) expect(result.current.native.value).toBe(value)
+      else expect(result.current.native.formatValue(locale, options)).toBeNull()
+      await unmount()
+    }
+  },
+)
+
+it.each(["single", "range"] as const)(
+  "retains %s min/max and unavailable validation through commit, reset and custom-error precedence",
+  async (kind) => {
+    const low = new CalendarDate(2024, 10, 1),
+      high = new CalendarDate(2024, 10, 8)
+    const { result, rerender } = await renderHook(
+      ({ custom }: { custom: boolean }) => {
+        const props = {
+          minValue: low.add({ days: 1 }),
+          maxValue: high.subtract({ days: 1 }),
+          isDateUnavailable: (date: DateValue) => date.day === 1,
+          validationBehavior: "native" as const,
+          validate: custom ? () => "Owner validation" : undefined,
+        }
+        const single = useDatePickerState({ ...props, value: low })
+        const range = useDateRangePickerState({ ...props, value: { start: low, end: high } })
+        return kind === "single" ? single : range
+      },
+      { initialProps: { custom: false } },
+    )
+    expect(result.current.realtimeValidation.validationDetails).toMatchObject({
+      rangeUnderflow: true,
+      badInput: true,
+      customError: false,
+      valid: false,
+    })
+    if (kind === "range") expect(result.current.realtimeValidation.validationDetails.rangeOverflow).toBe(true)
+    expect(result.current.displayValidation.isInvalid).toBe(false)
+    await act(() => result.current.commitValidation())
+    expect(result.current.displayValidation.isInvalid).toBe(true)
+    await act(() => result.current.resetValidation())
+    expect(result.current.displayValidation.isInvalid).toBe(false)
+    await rerender({ custom: true })
+    expect(result.current.realtimeValidation.validationErrors).toEqual(["Owner validation"])
+    expect(result.current.realtimeValidation.validationDetails.customError).toBe(true)
+  },
+)

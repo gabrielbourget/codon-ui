@@ -907,3 +907,93 @@ it("uses physical bottom-right alignment in RTL and respects explicit initial-fo
     2,
   )
 })
+
+it.each([
+  ["first", "First Page", "First", "showFirstPageButtonIcon", "showFirstPageButtonLabel"],
+  ["previous", "Previous Page", "Prev", "showPrevPageButtonIcon", "showPrevPageButtonLabel"],
+  ["next", "Next Page", "Next", "showNextPageButtonIcon", "showNextPageButtonLabel"],
+  ["last", "Last Page", "Last", "showLastPageButtonIcon", "showLastPageButtonLabel"],
+] as const)(
+  "keeps the %s action named and operable when its icon and visible label are independently hidden",
+  async (id, name, caption, iconFlag, labelFlag) => {
+    const props = {
+      showFirstPageButton: true,
+      showLastPageButton: true,
+      incrementAllDownIcon: <Text testID="first-content">First icon</Text>,
+      incrementDownIcon: <Text testID="previous-content">Previous icon</Text>,
+      incrementUpIcon: <Text testID="next-content">Next icon</Text>,
+      incrementAllUpIcon: <Text testID="last-content">Last icon</Text>,
+    }
+    const f = fixture(props)
+    await render(f.node())
+    expect(within(screen.getByRole("button", { name })).getByText(caption)).toBeOnTheScreen()
+    expect(screen.getByTestId(`${id}-content`)).toBeOnTheScreen()
+    await screen.rerender(f.node({ ...props, [iconFlag]: false }))
+    expect(screen.queryByTestId(`${id}-content`)).toBeNull()
+    expect(within(screen.getByRole("button", { name })).getByText(caption)).toBeOnTheScreen()
+    await screen.rerender(f.node({ ...props, [labelFlag]: false }))
+    expect(within(screen.getByRole("button", { name })).queryByText(caption)).toBeNull()
+    expect(screen.getByTestId(`${id}-content`)).toBeOnTheScreen()
+    await press(name)
+    expect(f.page.mock.calls).toEqual([[{ first: 1, previous: 2, next: 4, last: 20 }[id]]])
+    expect(f.size).not.toHaveBeenCalled()
+  },
+)
+
+it("keeps one-page increment visibility and last-page Next visibility independent from page ownership", async () => {
+  const f = fixture({ currentPage: 1, numberOfItems: 1, showWithOnePage: true })
+  await render(f.node())
+  expect(screen.getByRole("button", { name: "Next Page" })).toBeDisabled()
+  await screen.rerender(
+    f.node({ currentPage: 1, numberOfItems: 1, showWithOnePage: true, showIncrementButtonsWithOnePage: false }),
+  )
+  expect(screen.queryByRole("button", { name: "Next Page" })).toBeNull()
+  expect(screen.getByTestId("pagination-page-1")).toBeOnTheScreen()
+  await screen.rerender(f.node({ currentPage: 20, showNextPageButtonOnLastPage: false }))
+  expect(screen.queryByRole("button", { name: "Next Page" })).toBeNull()
+  expect(screen.getByRole("button", { name: "Previous Page" })).not.toBeDisabled()
+  expect(f.page).not.toHaveBeenCalled()
+  expect(f.size).not.toHaveBeenCalled()
+})
+
+it("updates legacy size and forward captions and keeps separator and overflow-trigger styles scoped", async () => {
+  const props = {
+    showLastPageButton: true,
+    chosenPaginationSubcomponents: ["items-per-page", "primary-controls"] as const,
+    itemsPerPageLabel: "Rows per screen",
+    nextPageLabel: "Forward",
+    lastPageLabel: "End",
+    customSeparatorStyles: { width: 7 },
+    customClickPopoverTriggerButtonStyles: { marginTop: 13 },
+  }
+  const f = fixture(props)
+  await render(f.node())
+  expect(screen.getByText("Rows per screen")).toBeOnTheScreen()
+  expect(screen.getByText("Forward")).toBeOnTheScreen()
+  expect(screen.getByText("End")).toBeOnTheScreen()
+  expect(screen.getByTestId("pagination-separator-0")).toHaveStyle({ width: 7 })
+  for (const trigger of screen.getAllByTestId("pagination-overflow-trigger"))
+    expect(trigger).toHaveStyle({ marginTop: 13 })
+  expect(screen.getByRole("button", { name: "Next Page" })).not.toHaveStyle({ marginTop: 13 })
+  await screen.rerender(f.node({ ...props, itemsPerPageLabel: "", nextPageLabel: "", lastPageLabel: "" }))
+  for (const caption of ["Rows per screen", "Forward", "End"]) expect(screen.queryByText(caption)).toBeNull()
+  expect(screen.getByRole("button", { name: "Next Page" })).toBeOnTheScreen()
+  expect(f.page).not.toHaveBeenCalled()
+  expect(f.size).not.toHaveBeenCalled()
+})
+
+it("shows an authored size placeholder for a missing owner size without requesting an implicit replacement", async () => {
+  const props = {
+    chosenPaginationSubcomponents: ["items-per-page"] as const,
+    itemsPerPageOptions: [25],
+    itemsPerPageSelectPlaceholder: "Choose rows",
+  }
+  const f = fixture(props)
+  await render(f.node())
+  expect(screen.getByText("Choose rows")).toBeOnTheScreen()
+  expect(f.size).not.toHaveBeenCalled()
+  await screen.rerender(f.node({ ...props, itemsPerPageSelectPlaceholder: "" }))
+  expect(screen.queryByText("Choose rows")).toBeNull()
+  expect(f.page).not.toHaveBeenCalled()
+  expect(f.size).not.toHaveBeenCalled()
+})

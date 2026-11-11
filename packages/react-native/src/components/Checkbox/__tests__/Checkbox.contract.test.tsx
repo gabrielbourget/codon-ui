@@ -245,3 +245,63 @@ it("uses the separate250ms ease foreground clock for native mixed and check glyp
   )
   expect(screen.getByTestId("checkbox-check", hidden)).toHaveStyle({ borderColor: "#ffffff" })
 })
+
+it("uses current Checkbox owner callbacks and value at release without replacing the original root", async () => {
+  const ref = createRef<View>()
+  const previousChange = jest.fn()
+  const previousPress = jest.fn()
+  const change = jest.fn()
+  const press = jest.fn()
+  const end = jest.fn()
+  const event = { nativeEvent: { timestamp: 100 } }
+  const view = await render(
+    <Checkbox ref={ref} aria-label="Choice" isSelected={false} onChange={previousChange} onPress={previousPress} />,
+  )
+  const original = ref.current
+  expect(original).not.toBeNull()
+  await fireEvent(screen.getByRole("checkbox"), "pressIn", event)
+  await view.rerender(
+    <Checkbox ref={ref} aria-label="Choice" isSelected onChange={change} onPress={press} onPressOut={end} />,
+  )
+  expect(ref.current).toBe(original)
+  await fireEvent(screen.getByRole("checkbox"), "pressOut", event)
+  await fireEvent(screen.getByRole("checkbox"), "press", event)
+  expect(previousChange).not.toHaveBeenCalled()
+  expect(previousPress).not.toHaveBeenCalled()
+  expect(change.mock.calls).toEqual([[false]])
+  expect(end.mock.calls[0][0]).toBe(event)
+  expect(press.mock.calls[0][0]).toBe(event)
+  expect(press).toHaveBeenCalledTimes(1)
+  expect(screen.getByRole("checkbox")).toBeChecked()
+  await view.unmount()
+  expect(ref.current).toBeNull()
+})
+
+it("keeps Checkbox focus eligibility and original ref while offset and focus-ring opt-outs update independently", async () => {
+  const ref = createRef<View>()
+  const focus = jest.fn()
+  const event = { nativeEvent: { timestamp: 100, isFocusVisible: true } }
+  const view = await render(<Checkbox ref={ref} aria-label="Choice" onFocus={focus} />)
+  const original = ref.current
+  expect(original).not.toBeNull()
+  await fireEvent(screen.getByRole("checkbox"), "focus", event)
+  expect(focus.mock.calls[0][0]).toBe(event)
+  expect(screen.getByTestId("checkbox-shape", { includeHiddenElements: true })).toHaveStyle({
+    outlineWidth: 1.5,
+    outlineOffset: 1.5,
+  })
+  await view.rerender(<Checkbox ref={ref} aria-label="Choice" onFocus={focus} offsetFocusRing={false} />)
+  expect(screen.getByTestId("checkbox-shape", { includeHiddenElements: true })).toHaveStyle({
+    outlineWidth: 1.5,
+    outlineOffset: 0,
+  })
+  await view.rerender(
+    <Checkbox ref={ref} aria-label="Choice" onFocus={focus} offsetFocusRing={false} enableFocusStyle={false} />,
+  )
+  expect(screen.getByTestId("checkbox-shape", { includeHiddenElements: true }).props.style.outlineWidth).toBeUndefined()
+  expect(screen.getByRole("checkbox").props.focusable).toBe(true)
+  expect(ref.current).toBe(original)
+  expect(focus).toHaveBeenCalledTimes(1)
+  await view.unmount()
+  expect(ref.current).toBeNull()
+})

@@ -124,3 +124,29 @@ it("delivers integer selection counts when native Locale and PluralRules constru
     Object.defineProperty(Intl, "PluralRules", plural)
   }
 })
+
+it("uses current removal/count/all localization and explicit empty all wording for committed selection only", async () => {
+  jest.replaceProperty(Platform, "OS", "android")
+  const announce = jest.spyOn(AccessibilityInfo, "announceForAccessibility").mockImplementation(() => {})
+  const initial = {
+    ...props(new Set([0, "0"])),
+    labels: {
+      deselectedItem: (text: string) => `Removed ${text}`,
+      selectedCount: (count: number) => `Count ${count}`,
+      selectedAll: "Everyone",
+    },
+  }
+  const view = await fixture(initial)
+  await act(() => view.result.current.selectionManager.setFocused(true))
+  await view.rerender({ ...initial, keys: new Set(["0"]) })
+  expect(announce.mock.calls).toEqual([["Removed Number zero Count 1"]])
+  await view.rerender({ ...initial, keys: "all" })
+  expect(announce.mock.calls.at(-1)).toEqual(["Everyone"])
+  const count = announce.mock.calls.length
+  await view.rerender({ ...initial, keys: "all", labels: { ...initial.labels, selectedAll: "" } })
+  expect(announce).toHaveBeenCalledTimes(count)
+  await view.rerender({ ...initial, keys: new Set(["0"]) })
+  const before = announce.mock.calls.length
+  await view.rerender({ ...initial, keys: "all", labels: { ...initial.labels, selectedAll: "" } })
+  expect(announce).toHaveBeenCalledTimes(before)
+})

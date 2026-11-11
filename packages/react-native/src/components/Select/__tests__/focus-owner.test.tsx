@@ -114,3 +114,41 @@ it("uses the existing native Enter release path and rejects a cycle retired by i
   await send("up")
   expect(open.mock.calls).toEqual([[true]])
 })
+
+it("updates focus outline enablement and offset on the retained original trigger without owner requests", async () => {
+  const ref = createRef<View>(),
+    change = jest.fn(),
+    open = jest.fn()
+  const node = (enableFocusStyle = true, offsetFocusRing = true) => (
+    <Select
+      ref={ref}
+      accessibilityLabel="Choose"
+      closeLabel="Close"
+      items={items}
+      getKey={(item) => item.id}
+      getTextValue={(item) => item.name}
+      value={0}
+      isOpen={false}
+      onChange={change}
+      onOpenChange={open}
+      enableFocusStyle={enableFocusStyle}
+      offsetFocusRing={offsetFocusRing}
+    />
+  )
+  const view = await render(node())
+  const original = ref.current!
+  const props = screen.getByRole("button", { name: "Choose" }).props
+  await act(() =>
+    props.onNativeFocusChange({
+      nativeEvent: { ownerId: props.ownerId, target: findNodeHandle(original), isFocused: true, isFocusVisible: true },
+    }),
+  )
+  expect(screen.getByRole("button", { name: "Choose" })).toHaveStyle({ outlineWidth: 1.5, outlineOffset: 1.5 })
+  await view.rerender(node(true, false))
+  expect(screen.getByRole("button", { name: "Choose" })).toHaveStyle({ outlineWidth: 1.5, outlineOffset: 0 })
+  await view.rerender(node(false))
+  expect(screen.getByRole("button", { name: "Choose" })).not.toHaveStyle({ outlineWidth: 1.5 })
+  expect(ref.current).toBe(original)
+  expect(change).not.toHaveBeenCalled()
+  expect(open).not.toHaveBeenCalled()
+})

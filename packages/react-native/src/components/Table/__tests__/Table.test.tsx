@@ -273,3 +273,37 @@ it("preserves an original editor and its held value through explicit owner-data 
   expect(screen.getByTestId("editor").props.value).toBe("held")
   expect(write).not.toHaveBeenCalled()
 })
+
+it("keeps accessor output, header naming and header/body alignment and text styles independently owned", async () => {
+  const accessor = jest.fn((row: TRow) => `Value ${row.name}`)
+  const metadata: TNativeTableColumnMetadata<TRow>[] = [
+    {
+      id: "name",
+      name: "Visible heading",
+      headerAriaLabel: "Spoken heading",
+      isRowHeader: true,
+      accessor,
+      alignment: "Right",
+      headerAlignment: "Center",
+      customHeaderCellStyles: { color: "#123456" },
+      customBodyCellStyles: { color: "#654321" },
+    },
+  ]
+  await render(
+    wrap(
+      <Table
+        items={(options) =>
+          nativeTableChildren(
+            createNativeTableHeaderModel({ columns: metadata }, options),
+            createNativeTableBodyModel({ items: [items[0]], columns: metadata }, options),
+          )
+        }
+      />,
+    ),
+  )
+  expect(accessor).toHaveBeenCalledWith(items[0])
+  expect(screen.getByText("Visible heading")).toHaveStyle({ textAlign: "center", color: "#123456" })
+  expect(screen.getByText("Value Alpha")).toHaveStyle({ textAlign: "right", color: "#654321" })
+  expect(screen.getByTestId("table-column-header:name").props.accessibilityLabel).toBe("Spoken heading")
+  expect(screen.queryByText("Spoken heading")).toBeNull()
+})
