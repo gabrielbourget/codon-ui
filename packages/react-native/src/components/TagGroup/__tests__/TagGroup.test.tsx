@@ -871,3 +871,78 @@ it("retires the text buffer timer on unmount", async () => {
     jest.useRealTimers()
   }
 })
+
+it.each(["current", "removed", "changed-href"] as const)(
+  "delivers a rejected grouped-link handoff only to its current owner: %s",
+  async (condition) => {
+    let reject!: (error: unknown) => void
+    const failure = new Error("URL rejected"),
+      error = jest.fn(),
+      currentError = jest.fn()
+    const handoff = new Promise<void>((_resolve, rejected) => {
+      reject = rejected
+    })
+    jest.spyOn(RN.Linking, "openURL").mockReturnValue(handoff)
+    const content = (href = "https://example.test/original", onNavigationError = error) => [
+      tagItem(
+        0,
+        <Tag id={0} testID="zero" href={href} onNavigationError={onNavigationError}>
+          Zero
+        </Tag>,
+      ),
+    ]
+    const view = await render(node({}, content()))
+    await press("zero")
+    expect(RN.Linking.openURL).toHaveBeenCalledWith("https://example.test/original")
+    if (condition === "removed") await view.rerender(node({}, []))
+    else if (condition === "changed-href")
+      await view.rerender(node({}, content("https://example.test/replacement", currentError)))
+    await act(async () => {
+      reject(failure)
+      await handoff.catch(() => {})
+    })
+    if (condition === "current") expect(error.mock.calls).toEqual([[failure, "https://example.test/original"]])
+    else expect(error).not.toHaveBeenCalled()
+    expect(currentError).not.toHaveBeenCalled()
+  },
+)
+
+it("keeps localized removal hints focus-gated and preserves empty and caller-authored hint precedence", async () => {
+  const ref = createRef<RN.View>(),
+    remove = jest.fn()
+  const items = [
+    tagItem(
+      0,
+      <Tag ref={ref} id={0} testID="zero">
+        Zero
+      </Tag>,
+    ),
+  ]
+  const view = await render(node({ onRemove: remove, labels: { removeDescription: "Delete this tag" } }, items))
+  expect(row("zero").props.accessibilityHint).toBeUndefined()
+  const props = row("zero").props
+  await act(() =>
+    props.onNativeFocusChange({
+      nativeEvent: {
+        ownerId: props.ownerId,
+        target: RN.findNodeHandle(ref.current),
+        isFocused: true,
+        isFocusVisible: true,
+      },
+    }),
+  )
+  expect(row("zero").props.accessibilityHint).toBe("Delete this tag")
+  await view.rerender(node({ onRemove: remove, labels: { removeDescription: "" } }, items))
+  expect(row("zero").props.accessibilityHint).toBe("")
+  const explicit = [
+    tagItem(
+      0,
+      <Tag ref={ref} id={0} testID="zero" accessibilityHint="Authored hint">
+        Zero
+      </Tag>,
+    ),
+  ]
+  await view.rerender(node({ onRemove: remove, labels: { removeDescription: "Delete this tag" } }, explicit))
+  expect(row("zero").props.accessibilityHint).toBe("Authored hint")
+  expect(remove).not.toHaveBeenCalled()
+})

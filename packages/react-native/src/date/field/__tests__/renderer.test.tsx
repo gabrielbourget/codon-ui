@@ -1186,3 +1186,33 @@ it("preserves canonical dynamic text-size fallback on the original time field", 
   await view.unmount()
   expect(root.current).toBeNull()
 })
+
+it("consumes TimePicker wrapper props while retaining its fixed scaffold and original native layout event", async () => {
+  const layout = jest.fn()
+  const authored = {
+    value: new Time(13, 45),
+    height: 0,
+    width: 0,
+    granularity: "second" as const,
+    hourCycle: 24 as const,
+    labels: { inputIconGroupAriaLabel: "Clock controls" },
+    customInputStyles: { padding: 0 },
+    geometry: "round" as const,
+    name: "clock",
+  }
+  await render(
+    <NativeTimePickerRenderer {...authored} onLayout={layout}>
+      <Text testID="ignored-scaffold-child">Ignored child</Text>
+    </NativeTimePickerRenderer>,
+  )
+  const root = screen.getByTestId("time-picker")
+  for (const name of Object.keys(authored)) expect(root.props).not.toHaveProperty(name)
+  expect(root).toHaveStyle({ height: 0, width: 0 })
+  expect(screen.queryByTestId("ignored-scaffold-child")).toBeNull()
+  expect(screen.getByTestId("time-picker-clock")).toBeOnTheScreen()
+  expect(segment()).toBeOnTheScreen()
+  const event = { nativeEvent: { layout: { x: 1, y: 2, width: 200, height: 30 } } }
+  await fireEvent(root, "layout", event)
+  expect(layout).toHaveBeenCalledTimes(1)
+  expect(layout.mock.calls[0][0]).toBe(event)
+})

@@ -525,3 +525,51 @@ it("does not contribute an implicit Loading name from decorative LaggingLinesLoa
   expect(part("lagging-lines-loader").props.accessibilityState).toBeUndefined()
   expect(part("lagging-lines-loader").props["aria-busy"]).toBeUndefined()
 })
+
+it.each([
+  { Component: CircleLoader, identity: "circle-loader" },
+  { Component: LaggingLinesLoader, identity: "lagging-lines-loader" },
+])("retains $identity host ownership through callback replacement and removal", async ({ Component, identity }) => {
+  const ref = createRef<View>()
+  const previous = jest.fn()
+  const current = jest.fn()
+  const view = await render(<Component ref={ref} accessibilityLabel="Initial task" onLayout={previous} />)
+  const original = ref.current
+  expect(original).not.toBeNull()
+  await view.rerender(<Component ref={ref} accessibilityLabel="Current task" duration={0} onLayout={current} />)
+  expect(ref.current).toBe(original)
+  expect(screen.getByRole("progressbar", { name: "Current task" })).toBe(screen.getByTestId(identity))
+  expect(screen.queryByRole("progressbar", { name: "Initial task" })).toBeNull()
+  expect(previous).not.toHaveBeenCalled()
+  expect(current).not.toHaveBeenCalled()
+  const event = { nativeEvent: { layout: { x: 1, y: 2, width: 100, height: 50 } } }
+  await fireEvent(screen.getByTestId(identity), "layout", event)
+  expect(current.mock.calls).toEqual([[event]])
+  expect(current.mock.calls[0][0]).toBe(event)
+  expect(previous).not.toHaveBeenCalled()
+  await view.rerender(<></>)
+  expect(ref.current).toBeNull()
+  expect(current).toHaveBeenCalledTimes(1)
+  expect(previous).not.toHaveBeenCalled()
+})
+
+it("ignores invalid LaggingLinesLoader measurements without losing the current travel or loop", async () => {
+  jest.mocked(AccessibilityInfo.isReduceMotionEnabled).mockResolvedValue(false)
+  const motion = captureMotion()
+  const { unmount } = await render(<LaggingLinesLoader />)
+  for (const width of [-1, NaN, Infinity]) await measureTrack(width)
+  expect(motion.loops).toHaveLength(0)
+  await measureTrack(150)
+  expect(motion.loops).toHaveLength(3)
+  await act(() => motion.timings[0].value.setValue(0.5))
+  expect(part("lagging-lines-loader-motion-0")).toHaveStyle({ transform: [{ translateX: 75 }] })
+  for (const width of [-1, NaN, Infinity, 150]) await measureTrack(width)
+  expect(motion.loops).toHaveLength(3)
+  expect(part("lagging-lines-loader-motion-0")).toHaveStyle({ transform: [{ translateX: 75 }] })
+  await measureTrack(0)
+  expect(part("lagging-lines-loader-motion-0")).toHaveStyle({ transform: [{ translateX: 0 }] })
+  const started = motion.handles.filter((handle) => handle.start.mock.calls.length > 0)
+  expect(started).toHaveLength(3)
+  for (const handle of started) expect(handle.stop).toHaveBeenCalledTimes(1)
+  await unmount()
+})
