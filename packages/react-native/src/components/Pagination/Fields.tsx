@@ -53,16 +53,31 @@ export const NativePaginationInput = ({
     editor = props.pageInputRef ?? fallback
   const field = props.customPageNumberInputFormFieldProps ?? {},
     input = props.customPageNumberInputProps ?? {}
+  const options = input.formatOptions
+  const optionKind = options === null ? "null" : Array.isArray(options) ? "array" : typeof options
+  const optionKeys = Object.keys(options ?? {})
+    .sort()
+    .join("\0")
   const model = useMemo(
     () =>
       createNumberModel({
         locale: input.locale,
-        formatOptions: input.formatOptions,
+        formatOptions: options,
         minValue: 1,
         maxValue: count,
         step: input.step,
       }),
-    [input.locale, input.formatOptions, input.step, count],
+    [
+      input.locale,
+      input.step,
+      count,
+      optionKind,
+      optionKeys,
+      options?.style,
+      options?.useGrouping,
+      options?.minimumFractionDigits,
+      options?.maximumFractionDigits,
+    ],
   )
   const raw = useRef<string | undefined>(undefined)
   useLayoutEffect(() => {
