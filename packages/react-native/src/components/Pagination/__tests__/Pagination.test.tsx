@@ -706,6 +706,57 @@ it("preserves the page submission draft when replacement numeric format options 
   expect(f.page.mock.calls).toEqual([[7]])
 })
 
+it.each([
+  ["omitted", undefined, 1],
+  ["explicit one", 1, undefined],
+] as const)(
+  "preserves the page draft when the %s step is replaced by its equivalent default",
+  async (_label, initialStep, nextStep) => {
+    const f = fixture({
+      chosenPaginationSubcomponents: ["page-input"],
+      customPageNumberInputProps: { step: initialStep },
+    })
+    await render(f.node())
+    await fireEvent.changeText(screen.getByLabelText("Page number"), "7")
+    await screen.rerender(
+      f.node({
+        chosenPaginationSubcomponents: ["page-input"],
+        customPageNumberInputProps: { step: nextStep },
+      }),
+    )
+    expect(screen.getByLabelText("Page number")).toHaveDisplayValue("7")
+    await press("Navigate to Selected Page")
+    expect(f.page.mock.calls).toEqual([[7]])
+  },
+)
+
+it("discards the page submission draft when the effective numeric step changes", async () => {
+  const f = fixture({
+    chosenPaginationSubcomponents: ["page-input"],
+    customPageNumberInputProps: { step: 1 },
+  })
+  await render(f.node())
+  await fireEvent.changeText(screen.getByLabelText("Page number"), "7")
+  await screen.rerender(
+    f.node({
+      chosenPaginationSubcomponents: ["page-input"],
+      customPageNumberInputProps: { step: 2 },
+    }),
+  )
+  expect(screen.getByLabelText("Page number")).toHaveDisplayValue("1")
+  await press("Navigate to Selected Page")
+  expect(f.page.mock.calls).toEqual([[1]])
+})
+
+it("rejects a null numeric step instead of treating it as an omitted default", async () => {
+  jest.spyOn(console, "error").mockImplementation(() => undefined)
+  const f = fixture({
+    chosenPaginationSubcomponents: ["page-input"],
+    customPageNumberInputProps: { step: null as unknown as number },
+  })
+  await expect(render(f.node())).rejects.toThrow("invalid step")
+})
+
 it("NAV.001/.003 binds navigation and current-page wording without moving current state after declined requests", async () => {
   const f = fixture({
     labels: {
