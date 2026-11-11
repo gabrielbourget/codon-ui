@@ -81,6 +81,7 @@ const omitted = new Set([
   "minValue",
   "maxValue",
   "isDateUnavailable",
+  "shouldCloseOnSelect",
   "hourCycle",
   "granularity",
   "hideTimeZone",

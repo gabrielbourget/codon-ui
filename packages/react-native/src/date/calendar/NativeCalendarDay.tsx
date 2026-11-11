@@ -206,6 +206,11 @@ export const Day = createNativeCollectionLeaf<object, TDayProps, View>("cell", (
           nativeRender={(native) => (
             <NativeCalendarDayHost
               {...native}
+              aria-disabled={semantics.disabled || semantics.unavailable}
+              accessibilityState={{
+                ...native.accessibilityState,
+                disabled: semantics.disabled || semantics.unavailable,
+              }}
               onResponderTerminate={(event) => {
                 native.onResponderTerminate?.(event)
                 current.current.owner.gesture?.cancel()
