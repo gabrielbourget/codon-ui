@@ -52,8 +52,9 @@ export function useOverlayTriggerState(props: OverlayTriggerProps): OverlayTrigg
   }, [setOpen])
 
   const toggle = useCallback(() => {
-    setOpen(!isOpen)
-  }, [setOpen, isOpen])
+    if (props.isOpen === undefined) setOpen((current) => !current)
+    else setOpen(!isOpen)
+  }, [setOpen, isOpen, props.isOpen])
 
   return {
     isOpen,

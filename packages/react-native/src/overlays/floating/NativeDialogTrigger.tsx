@@ -86,6 +86,8 @@ export const NativeDialogTrigger = (props: TNativeDialogTriggerProps) => {
   const request = useCallback((next: boolean) => {
     const latest = current.current
     if (!live.current || next === latest.isOpen) return
+    // Accepted uncontrolled requests must be visible to the next action before React commits.
+    if (!initialOwnership.current) latest.isOpen = next
     if (next) latest.overlayState.open()
     else latest.overlayState.close()
   }, [])
@@ -117,16 +119,28 @@ export const NativeDialogTrigger = (props: TNativeDialogTriggerProps) => {
   const sharedState: typeof overlayState = {
     ...overlayState,
     setOpen: (next) => {
-      if (live.current) current.current.overlayState.setOpen(next)
+      if (live.current) {
+        if (!initialOwnership.current) current.current.isOpen = next
+        current.current.overlayState.setOpen(next)
+      }
     },
     open: (strategy) => {
-      if (live.current) current.current.overlayState.open(strategy)
+      if (live.current) {
+        if (!initialOwnership.current) current.current.isOpen = true
+        current.current.overlayState.open(strategy)
+      }
     },
     close: () => {
-      if (live.current) current.current.overlayState.close()
+      if (live.current) {
+        if (!initialOwnership.current) current.current.isOpen = false
+        current.current.overlayState.close()
+      }
     },
     toggle: (strategy) => {
-      if (live.current) current.current.overlayState.toggle(strategy)
+      if (live.current) {
+        if (!initialOwnership.current) current.current.isOpen = !current.current.isOpen
+        current.current.overlayState.toggle(strategy)
+      }
     },
     openSubmenu: (key, level) => {
       if (live.current) current.current.overlayState.openSubmenu(key, level)
