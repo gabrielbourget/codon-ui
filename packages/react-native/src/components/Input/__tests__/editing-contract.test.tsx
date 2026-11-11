@@ -71,6 +71,30 @@ describe.each([
     expect(ref.current).toBeNull()
   })
 
+  it("preserves caller accessibility flags through disabled and read-only takeover on the original editor", async () => {
+    const ref = createRef<TextInput>()
+    const view = await render(
+      <Component aria-label="Editor" ref={ref} accessibilityState={{ busy: true, selected: false }} />,
+    )
+    const original = ref.current
+    expect(original).not.toBeNull()
+    const editor = () => screen.getByLabelText("Editor")
+    expect(editor().props.accessibilityState).toEqual({ busy: true, selected: false, disabled: false })
+    await view.rerender(
+      <Component aria-label="Editor" ref={ref} isDisabled accessibilityState={{ busy: false, selected: true }} />,
+    )
+    expect(editor().props.accessibilityState).toEqual({ busy: false, selected: true, disabled: true })
+    expect(editor().props["aria-disabled"]).toBe(true)
+    expect(ref.current).toBe(original)
+    await view.rerender(
+      <Component aria-label="Editor" ref={ref} isReadOnly accessibilityState={{ busy: true, selected: false }} />,
+    )
+    expect(editor().props.accessibilityState).toEqual({ busy: true, selected: false, disabled: false })
+    expect(editor().props["aria-disabled"]).toBe(false)
+    expect(editor().props.readOnly).toBe(true)
+    expect(ref.current).toBe(original)
+  })
+
   it("transitions final authored border color for 250ms with the complete canonical easing curve", async () => {
     const timing = jest.spyOn(Animated, "timing")
     const view = await render(

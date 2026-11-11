@@ -81,3 +81,35 @@ it("validates metadata and all supplied native style colors", async () => {
     render(<ListBoxItem id="row" textValue="Row" customStyles={{ backgroundColor: "var(--row)" }} />),
   ).rejects.toThrow(TypeError)
 })
+
+it.each([
+  { name: "zero", content: 0, visible: "0" },
+  { name: "false", content: false, visible: "" },
+  { name: "empty string", content: "", visible: "" },
+  { name: "null", content: null, visible: "Choice" },
+  { name: "undefined", content: undefined, visible: "Choice" },
+])("preserves $name child content without changing the metadata name", async ({ content, visible }) => {
+  await render(
+    <ListBoxItem id={0} textValue="Choice">
+      {content}
+    </ListBoxItem>,
+  )
+  const row = screen.getByRole("radio", { name: "Choice" })
+  expect(row).toHaveTextContent(visible, { exact: true })
+  expect(row.props.accessibilityLabel).toBe("Choice")
+  expect(row.props.accessibilityState.checked).toBe(false)
+})
+
+it("preserves an empty renderer result while static null content retains its metadata fallback", async () => {
+  const child = jest.fn(() => null)
+  const view = await render(
+    <ListBoxItem id={0} textValue="Choice">
+      {child}
+    </ListBoxItem>,
+  )
+  expect(child).toHaveBeenCalledWith(expect.objectContaining({ isSelected: false, defaultChildren: undefined }))
+  expect(screen.getByRole("radio", { name: "Choice" })).toHaveTextContent("", { exact: true })
+  await view.rerender(<ListBoxItem id={0} textValue="Choice" isSelected />)
+  expect(screen.getByRole("radio", { name: "Choice" })).toHaveTextContent("Choice", { exact: true })
+  expect(screen.getByRole("radio", { name: "Choice" })).toBeChecked()
+})
