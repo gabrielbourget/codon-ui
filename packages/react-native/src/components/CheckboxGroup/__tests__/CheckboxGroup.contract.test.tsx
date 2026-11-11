@@ -1,8 +1,59 @@
-import { fireEvent, render, screen } from "@testing-library/react-native"
+import { act, fireEvent, render, screen } from "@testing-library/react-native"
 import { createRef, type RefAttributes } from "react"
 import { View, type ViewProps } from "react-native"
 
 import { Checkbox, CheckboxGroup, type TNativeCheckboxGroupRenderState } from "../../.."
+
+it("retains both uncontrolled member selections before one React commit", async () => {
+  const change = jest.fn()
+  await render(
+    <CheckboxGroup onChange={change}>
+      <Checkbox value="one">First</Checkbox>
+      <Checkbox value="two">Second</Checkbox>
+    </CheckboxGroup>,
+  )
+  await act(async () => {
+    await fireEvent.press(screen.getByRole("checkbox", { name: "First" }))
+    await fireEvent.press(screen.getByRole("checkbox", { name: "Second" }))
+  })
+  expect(change.mock.calls).toEqual([[["one"]], [["one", "two"]]])
+  expect(screen.getByRole("checkbox", { name: "First" })).toBeChecked()
+  expect(screen.getByRole("checkbox", { name: "Second" })).toBeChecked()
+})
+
+it("retains an uncontrolled member removal before another member selection in one commit", async () => {
+  const change = jest.fn()
+  await render(
+    <CheckboxGroup defaultValue={["one"]} onChange={change}>
+      <Checkbox value="one">First</Checkbox>
+      <Checkbox value="two">Second</Checkbox>
+    </CheckboxGroup>,
+  )
+  await act(async () => {
+    await fireEvent.press(screen.getByRole("checkbox", { name: "First" }))
+    await fireEvent.press(screen.getByRole("checkbox", { name: "Second" }))
+  })
+  expect(change.mock.calls).toEqual([[[]], [["two"]]])
+  expect(screen.getByRole("checkbox", { name: "First" })).not.toBeChecked()
+  expect(screen.getByRole("checkbox", { name: "Second" })).toBeChecked()
+})
+
+it("keeps controlled owner veto authoritative across batched member selections", async () => {
+  const change = jest.fn()
+  await render(
+    <CheckboxGroup value={[]} onChange={change}>
+      <Checkbox value="one">First</Checkbox>
+      <Checkbox value="two">Second</Checkbox>
+    </CheckboxGroup>,
+  )
+  await act(async () => {
+    await fireEvent.press(screen.getByRole("checkbox", { name: "First" }))
+    await fireEvent.press(screen.getByRole("checkbox", { name: "Second" }))
+  })
+  expect(change.mock.calls).toEqual([[["one"]], [["two"]]])
+  expect(screen.getByRole("checkbox", { name: "First" })).not.toBeChecked()
+  expect(screen.getByRole("checkbox", { name: "Second" })).not.toBeChecked()
+})
 
 it("passes the original root props/ref and current group flags to its inherited renderer", async () => {
   const ref = createRef<View>()

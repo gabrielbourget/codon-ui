@@ -77,12 +77,14 @@ export const CheckboxGroup = forwardRef<TNativeCheckboxGroupRef, TNativeCheckbox
           isReadOnly,
           change: (member, nextSelected) => {
             if (isDisabled || isReadOnly) return
-            const next = nextSelected
-              ? selected.includes(member)
-                ? [...selected]
-                : [...selected, member]
-              : selected.filter((entry) => entry !== member)
-            setSelected(next)
+            setSelected((previous) => {
+              const current = value === undefined ? previous : selected
+              return nextSelected
+                ? current.includes(member)
+                  ? [...current]
+                  : [...current, member]
+                : current.filter((entry) => entry !== member)
+            })
           },
         }}
       >
