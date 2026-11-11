@@ -67,7 +67,8 @@ export const ToggleButton = forwardRef<TNativeToggleButtonRef, TNativeToggleButt
     isSelected: selected,
     defaultSelected: initialDefault ?? initialSelected,
     setSelected,
-    toggle: () => setSelected(!selected),
+    toggle: () =>
+      !member && isSelected === undefined ? requestSelected((current) => !current) : setSelected(!selected),
   }
   const root = useRef<TNativeToggleButtonRef>(null)
   useImperativeHandle(ref, () => root.current!)
