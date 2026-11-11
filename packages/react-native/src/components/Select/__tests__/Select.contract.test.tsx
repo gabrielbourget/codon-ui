@@ -209,3 +209,45 @@ it("retains opaque trigger colors and stops icon/color work on live Reduce Motio
   })
   expect(timing).toHaveBeenCalledTimes(count)
 })
+
+it("keeps default and explicit text sizes on owned selected text while final text styles retain precedence", async () => {
+  const view = await render(<Select {...base} value="one" />)
+  expect(screen.getByText("One")).toHaveStyle({ fontSize: 14 })
+  await view.rerender(<Select {...base} value="one" textSize="small" />)
+  expect(screen.getByText("One")).toHaveStyle({ fontSize: 12 })
+  await view.rerender(<Select {...base} value="one" textSize="large" />)
+  expect(screen.getByText("One")).toHaveStyle({ fontSize: 16 })
+  await view.rerender(<Select {...base} value="one" textSize="large" customSelectedItemTextStyles={{ fontSize: 0 }} />)
+  expect(screen.getByText("One")).toHaveStyle({ fontSize: 0 })
+})
+
+it("distinguishes missing selection from an explicit empty placeholder and forwards custom empty-list wording", async () => {
+  const renderValue = jest.fn(({ selectedText }: { selectedText: string }) => selectedText)
+  const change = jest.fn()
+  const view = await render(
+    <Select {...base} value="one" isOpen={false} renderSelectedValue={renderValue} onChange={change} />,
+  )
+  expect(renderValue.mock.calls.at(-1)?.[0]).toEqual({
+    selectedItem: items[0],
+    selectedText: "One",
+    isPlaceholder: false,
+  })
+  await view.rerender(
+    <Select
+      {...base}
+      value="missing"
+      isOpen={false}
+      placeholder=""
+      renderSelectedValue={renderValue}
+      onChange={change}
+    />,
+  )
+  expect(renderValue.mock.calls.at(-1)?.[0]).toEqual({ selectedItem: null, selectedText: "", isPlaceholder: true })
+  expect(trigger().props.accessibilityValue.text).toBe("")
+  await view.rerender(
+    <Select {...base} items={[]} value="missing" isOpen emptyListMessage="Nothing matches" onChange={change} />,
+  )
+  expect(screen.getByText("Nothing matches")).toBeOnTheScreen()
+  expect(screen.getByRole("button", { name: "Close" })).toBeOnTheScreen()
+  expect(change).not.toHaveBeenCalled()
+})
