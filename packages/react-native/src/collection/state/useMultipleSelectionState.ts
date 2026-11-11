@@ -10,7 +10,7 @@
  * governing permissions and limitations under the License.
  */
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useInsertionEffect, useMemo, useRef, useState } from "react"
 import type { MultipleSelectionState } from "react-stately/useMultipleSelectionState"
 
 import { Selection } from "./Selection"
@@ -18,6 +18,7 @@ import type { DisabledBehavior, FocusStrategy, Key, MultipleSelection, Selection
 import { useControlledState } from "./useControlledState"
 
 function equalSets(setA: Set<Key> | "all", setB: Set<Key> | "all") {
+  if (setA === "all" || setB === "all") return setA === setB
   if ((setA as Set<Key>).size !== (setB as Set<Key>).size) {
     return false
   }
@@ -75,6 +76,11 @@ export function useMultipleSelectionState(props: MultipleSelectionStateProps): M
     defaultSelectedKeys!,
     props.onSelectionChange,
   )
+  const selectedKeysRef = useRef(selectedKeys)
+  useInsertionEffect(() => {
+    selectedKeysRef.current = selectedKeys
+  }, [selectedKeys])
+  const currentSelectedKeys = () => (selectedKeysProp === undefined ? selectedKeysRef.current : selectedKeys)
   const disabledKeysProp = useMemo(
     () => (props.disabledKeys ? new Set(props.disabledKeys) : new Set<Key>()),
     [props.disabledKeys],
@@ -124,9 +130,12 @@ export function useMultipleSelectionState(props: MultipleSelectionStateProps): M
       childFocusStrategyRef.current = childFocusStrategy
       setFocusedKey(k)
     },
-    selectedKeys,
+    get selectedKeys() {
+      return currentSelectedKeys()
+    },
     setSelectedKeys(keys) {
-      if (allowDuplicateSelectionEvents || !equalSets(keys, selectedKeys)) {
+      if (allowDuplicateSelectionEvents || !equalSets(keys, currentSelectedKeys())) {
+        if (selectedKeysProp === undefined) selectedKeysRef.current = keys
         setSelectedKeys(keys)
       }
     },

@@ -122,3 +122,36 @@ it("repeats controlled all-selection requests after owner veto in the native Rea
   expect(result.current.selectionManager.rawSelection).not.toBe("all")
   expect([...owner]).toEqual(["a"])
 })
+
+it("deduplicates the latest uncontrolled selection and all sentinel within one batch", async () => {
+  const request = jest.fn()
+  const { result } = await renderHook(() =>
+    useMultipleSelectionState({ selectionMode: "multiple", onSelectionChange: request }),
+  )
+  await act(() => {
+    result.current.setSelectedKeys("all")
+    result.current.setSelectedKeys("all")
+    result.current.setSelectedKeys(new Set(["a"]))
+    result.current.setSelectedKeys(new Set(["a"]))
+    result.current.setSelectedKeys(new Set(["a", "b"]))
+  })
+  expect(request.mock.calls.map(([keys]) => (keys === "all" ? keys : [...keys]))).toEqual(["all", ["a"], ["a", "b"]])
+  expect([...result.current.selectedKeys]).toEqual(["a", "b"])
+})
+
+it("retains explicit duplicate uncontrolled selection events within one batch", async () => {
+  const request = jest.fn()
+  const { result } = await renderHook(() =>
+    useMultipleSelectionState({
+      selectionMode: "multiple",
+      allowDuplicateSelectionEvents: true,
+      onSelectionChange: request,
+    }),
+  )
+  await act(() => {
+    result.current.setSelectedKeys(new Set(["a"]))
+    result.current.setSelectedKeys(new Set(["a"]))
+  })
+  expect(request.mock.calls.map(([keys]) => [...keys])).toEqual([["a"], ["a"]])
+  expect([...result.current.selectedKeys]).toEqual(["a"])
+})

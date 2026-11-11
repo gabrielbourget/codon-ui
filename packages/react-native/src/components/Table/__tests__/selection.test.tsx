@@ -1,4 +1,4 @@
-import { cleanup, userEvent } from "@testing-library/react-native"
+import { cleanup, fireEvent, userEvent } from "@testing-library/react-native"
 import { createRef } from "react"
 import { findNodeHandle, type View } from "react-native"
 
@@ -44,6 +44,73 @@ const press = async (target: Parameters<ReturnType<typeof userEvent.setup>["pres
   await userEvent.setup().press(target)
   await act(() => {})
 }
+it("retains both uncontrolled row selections admitted before one React commit", async () => {
+  const changed = jest.fn(),
+    defaults = new Set<string | number>()
+  await render(node({ selectionMode: "multiple", defaultSelectedKeys: defaults, onSelectionChange: changed }))
+  const rows = screen.getAllByRole("checkbox", { name: "Select Row" })
+  await act(async () => {
+    await fireEvent.press(rows[0])
+    await fireEvent.press(rows[1])
+  })
+  expect(changed.mock.calls.map(([keys]) => [...keys])).toEqual([[0], [0, "beta"]])
+  expect(screen.getAllByRole("checkbox", { name: "Select Row" })[0]).toBeChecked()
+  expect(screen.getAllByRole("checkbox", { name: "Select Row" })[1]).toBeChecked()
+  expect(defaults.size).toBe(0)
+})
+it("retains select-all before an admitted row exclusion in the same React commit", async () => {
+  const changed = jest.fn()
+  await render(node({ selectionMode: "multiple", onSelectionChange: changed }))
+  const row = screen.getAllByRole("checkbox", { name: "Select Row" })[0]
+  await act(async () => {
+    await fireEvent.press(screen.getByRole("checkbox", { name: "Select All" }))
+    await fireEvent.press(row)
+  })
+  expect(changed.mock.calls.map(([keys]) => (keys === "all" ? keys : [...keys]))).toEqual(["all", ["beta"]])
+  expect(screen.getAllByRole("checkbox", { name: "Select Row" })[0]).not.toBeChecked()
+  expect(screen.getAllByRole("checkbox", { name: "Select Row" })[1]).toBeChecked()
+  expect(screen.getByRole("checkbox", { name: "Select All" }).props.accessibilityState.checked).toBe("mixed")
+})
+it("retains an admitted add then removal without mutating uncontrolled defaults or earlier requests", async () => {
+  const changed = jest.fn(),
+    defaults = new Set<string | number>([0])
+  await render(node({ selectionMode: "multiple", defaultSelectedKeys: defaults, onSelectionChange: changed }))
+  const rows = screen.getAllByRole("checkbox", { name: "Select Row" })
+  await act(async () => {
+    await fireEvent.press(rows[1])
+    await fireEvent.press(rows[0])
+  })
+  expect(changed.mock.calls.map(([keys]) => [...keys])).toEqual([[0, "beta"], ["beta"]])
+  expect(screen.getAllByRole("checkbox", { name: "Select Row" })[0]).not.toBeChecked()
+  expect(screen.getAllByRole("checkbox", { name: "Select Row" })[1]).toBeChecked()
+  expect([...defaults]).toEqual([0])
+})
+it("keeps the controlled Table owner authoritative for batched row requests before and after echo", async () => {
+  const changed = jest.fn(),
+    held = new Set<string | number>(),
+    props = { selectionMode: "multiple" as const, selectedKeys: held, onSelectionChange: changed }
+  const view = await render(node(props))
+  const request = async () => {
+    const rows = screen.getAllByRole("checkbox", { name: "Select Row" })
+    await act(async () => {
+      await fireEvent.press(rows[1])
+      await fireEvent.press(rows[0])
+    })
+  }
+  await request()
+  expect(changed.mock.calls.map(([keys]) => [...keys])).toEqual([["beta"], [0]])
+  expect(screen.getAllByRole("checkbox", { name: "Select Row" })[0]).not.toBeChecked()
+  expect(screen.getAllByRole("checkbox", { name: "Select Row" })[1]).not.toBeChecked()
+  expect(held.size).toBe(0)
+  const echo = new Set<string | number>([0])
+  await view.rerender(node({ ...props, selectedKeys: echo }))
+  changed.mockClear()
+  await request()
+  expect(changed.mock.calls.map(([keys]) => [...keys])).toEqual([[0, "beta"], []])
+  expect(screen.getAllByRole("checkbox", { name: "Select Row" })[0]).toBeChecked()
+  expect(screen.getAllByRole("checkbox", { name: "Select Row" })[1]).not.toBeChecked()
+  expect([...echo]).toEqual([0])
+})
 it("repeats held requests with typed zero/string keys and the select-all sentinel", async () => {
   const changed = jest.fn(),
     held = new Set<string | number>()
