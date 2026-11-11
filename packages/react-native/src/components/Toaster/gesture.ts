@@ -21,6 +21,29 @@ export const createNativeToastGesture = (options: TNativeToastGestureOptions) =>
     options.onAmount(0)
     options.onDragging(false)
   }
+  const move = (event: PointerEvent) => {
+    if (!live || !gesture || event.nativeEvent.pointerId !== gesture.id) return
+    if (!options.canAct() || gesture.lifetime !== (options.lifetime?.() ?? "")) {
+      cancel()
+      return
+    }
+    const { pageX, pageY, pointerType } = event.nativeEvent
+    if (![pageX, pageY].every(Number.isFinite)) {
+      cancel()
+      return
+    }
+    const amount = pageY - gesture.y
+    const threshold = pointerType === "touch" ? 15 : 2
+    const outward = options.isTop() ? Math.min(0, amount) : Math.max(0, amount)
+    if (Math.abs(outward) > threshold) {
+      gesture.amount = outward
+      options.onAmount(outward)
+    } else if (Math.abs(pageX - gesture.x) > threshold) cancel()
+    else {
+      gesture.amount = 0
+      options.onAmount(0)
+    }
+  }
   return {
     cancel,
     exclude: (event: PointerEvent) => {
@@ -33,31 +56,11 @@ export const createNativeToastGesture = (options: TNativeToastGestureOptions) =>
       gesture = { id: pointerId, x: pageX, y: pageY, started: now(), amount: 0, lifetime: options.lifetime?.() ?? "" }
       options.onDragging(true)
     },
-    move: (event: PointerEvent) => {
-      if (!live || !gesture || event.nativeEvent.pointerId !== gesture.id) return
-      if (!options.canAct() || gesture.lifetime !== (options.lifetime?.() ?? "")) {
-        cancel()
-        return
-      }
-      const { pageX, pageY, pointerType } = event.nativeEvent
-      if (![pageX, pageY].every(Number.isFinite)) {
-        cancel()
-        return
-      }
-      const amount = pageY - gesture.y
-      const threshold = pointerType === "touch" ? 15 : 2
-      const outward = options.isTop() ? Math.min(0, amount) : Math.max(0, amount)
-      if (Math.abs(outward) > threshold) {
-        gesture.amount = outward
-        options.onAmount(outward)
-      } else if (Math.abs(pageX - gesture.x) > threshold) cancel()
-      else {
-        gesture.amount = 0
-        options.onAmount(0)
-      }
-    },
+    move,
     up: (event: PointerEvent) => {
       if (!live || !gesture || event.nativeEvent.pointerId !== gesture.id) return
+      move(event)
+      if (!gesture) return
       const current = gesture
       gesture = null
       const velocity = Math.abs(current.amount) / Math.max(1, now() - current.started)
