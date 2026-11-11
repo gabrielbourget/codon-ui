@@ -71,3 +71,16 @@ it("retains the last declined radio request when the owner hands back control", 
   expect(screen.getByRole("radio", { name: "Two" }).props.accessibilityState.checked).toBe(true)
   expect(request).toHaveBeenCalledTimes(1)
 })
+
+it("captures the standalone Checkbox default for its mounted lifetime and reads a new default only on keyed remount", async () => {
+  const request = jest.fn()
+  const view = await render(<Checkbox key="first" defaultSelected onChange={request} aria-label="Choice" />)
+  const original = screen.getByRole("checkbox")
+  await view.rerender(<Checkbox key="first" defaultSelected={false} onChange={request} aria-label="Renamed choice" />)
+  expect(screen.getByRole("checkbox")).toBe(original)
+  expect(original).toBeChecked()
+  await view.rerender(<Checkbox key="second" defaultSelected={false} onChange={request} aria-label="Choice" />)
+  expect(screen.getByRole("checkbox")).not.toBe(original)
+  expect(screen.getByRole("checkbox")).not.toBeChecked()
+  expect(request).not.toHaveBeenCalled()
+})

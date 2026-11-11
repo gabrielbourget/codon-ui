@@ -130,3 +130,26 @@ it("keeps callback foreground authoritative while inherited and authored text fo
   await act(() => jest.advanceTimersByTime(150))
   expect(color()).toBe(processColor("#ffffff"))
 })
+
+it("keeps Button focus eligibility and original ref while offset and focus-ring opt-outs update independently", async () => {
+  const ref = createRef<View>()
+  const focus = jest.fn()
+  const event = { nativeEvent: { timestamp: 100, isFocusVisible: true } }
+  const view = await render(<Button ref={ref} aria-label="Choice" onFocus={focus} />)
+  const original = ref.current
+  expect(original).not.toBeNull()
+  await fireEvent(screen.getByRole("button"), "focus", event)
+  expect(focus.mock.calls[0][0]).toBe(event)
+  expect(screen.getByRole("button")).toHaveStyle({ outlineWidth: 1.5, outlineOffset: 1.5 })
+  await view.rerender(<Button ref={ref} aria-label="Choice" onFocus={focus} offsetFocusRing={false} />)
+  expect(screen.getByRole("button")).toHaveStyle({ outlineWidth: 1.5, outlineOffset: 0 })
+  await view.rerender(
+    <Button ref={ref} aria-label="Choice" onFocus={focus} offsetFocusRing={false} enableFocusStyle={false} />,
+  )
+  expect(screen.getByRole("button").props.style.outlineWidth).toBeUndefined()
+  expect(screen.getByRole("button").props.focusable).toBe(true)
+  expect(ref.current).toBe(original)
+  expect(focus).toHaveBeenCalledTimes(1)
+  await view.unmount()
+  expect(ref.current).toBeNull()
+})
