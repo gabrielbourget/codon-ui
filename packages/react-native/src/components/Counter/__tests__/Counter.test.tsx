@@ -349,3 +349,20 @@ it("inherits the canonical color transition once, interrupts at current color an
   await unmount()
   expect(remove).toHaveBeenCalled()
 })
+
+it("rejects invalid Counter dimensions and authored colors before exposing native content", async () => {
+  await expect(render(<Counter value={0} height={-1} />)).rejects.toThrow(/Counter: height/)
+  await expect(render(<Counter value={0} width={NaN} />)).rejects.toThrow(/Counter: width/)
+  await expect(render(<Counter value={0} color="var(--unsupported)" />)).rejects.toThrow(/unsupported native color/)
+  for (const slot of ["customStyles", "style", "customTextStyles", "customProgressIndicatorStyles"] as const) {
+    await expect(render(<Counter value={0} {...{ [slot]: { color: "var(--unsupported)" } }} />)).rejects.toThrow(
+      /unsupported native color/,
+    )
+  }
+})
+
+it("rejects unsupported Counter root font weights while retaining native typography", async () => {
+  await expect(
+    render(<Counter value={0} customStyles={{ fontWeight: 450 as import("react-native").TextStyle["fontWeight"] }} />),
+  ).rejects.toThrow(/fontWeight/)
+})
