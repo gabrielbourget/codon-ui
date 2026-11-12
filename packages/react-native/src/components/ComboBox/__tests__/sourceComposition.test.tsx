@@ -32,6 +32,7 @@ afterEach(async () => {
   jest.useRealTimers()
 })
 
+// Match the bounded first-mounted-picker integration budget in ComboBox.test.tsx.
 it("keeps the original editor and independent owners through a deferred explicit-item response and host changes", async () => {
   const root = createRef<View>(),
     editor = createRef<TextInput>(),
@@ -133,7 +134,7 @@ it("keeps the original editor and independent owners through a deferred explicit
   } finally {
     await act(() => Dimensions.set({ window: previousWindow, screen: previousScreen }))
   }
-})
+}, 15_000)
 
 it("keeps one caller ref attachment while original stock query events echo before first result selection", async () => {
   const release = jest.fn()
