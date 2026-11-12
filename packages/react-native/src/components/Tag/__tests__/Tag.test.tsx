@@ -747,3 +747,106 @@ it("PHONE-THEME zero channels finish immediately and opaque colors retain native
   expect(screen.getByText("Native colors")).toHaveStyle({ color: opaque })
   expect(timing).not.toHaveBeenCalled()
 })
+
+it.each([
+  {
+    naming: "explicit label",
+    label: "Controlled tag",
+    alias: undefined,
+    expectedName: "Controlled tag",
+    busy: false,
+    value: { text: "Caller value", now: 0 },
+  },
+  {
+    naming: "alias label",
+    label: undefined,
+    alias: "Alias tag",
+    expectedName: "Alias tag",
+    busy: true,
+    value: { text: "Caller value", now: 0 },
+  },
+  {
+    naming: "implicit children",
+    label: undefined,
+    alias: undefined,
+    expectedName: "Authored tag",
+    busy: undefined,
+    value: undefined,
+  },
+  {
+    naming: "explicit empty label",
+    label: "",
+    alias: undefined,
+    expectedName: "Authored tag",
+    busy: false,
+    value: undefined,
+  },
+])(
+  "CAP.tag.009 resets mixed traits on the same focused held root with $naming",
+  async ({ label, alias, expectedName, busy, value }) => {
+    const ref = createRef<TNativeTagRef>()
+    const initialize = jest.fn()
+    const pressed = jest.fn(),
+      pressIn = jest.fn(),
+      pressOut = jest.fn()
+    const style = jest.fn((_state: TNativeTagStyleState) => ({}))
+    const Child = () => {
+      const [text] = useState(() => {
+        initialize()
+        return "Authored tag"
+      })
+      return <Text testID="retained-tag-child">{text}</Text>
+    }
+    const node = (override: "mixed" | boolean | undefined) => (
+      <Tag
+        ref={ref}
+        pressable
+        id={0}
+        isPressed
+        onPress={pressed}
+        onPressIn={pressIn}
+        onPressOut={pressOut}
+        accessibilityLabel={label}
+        aria-label={alias}
+        aria-pressed={override}
+        accessibilityState={{ busy, selected: false }}
+        accessibilityValue={value}
+        style={style}
+      >
+        <Child key="retained" />
+      </Tag>
+    )
+    const view = await render(node("mixed"))
+    const original = ref.current
+    expect(original).not.toBeNull()
+    const child = screen.getByTestId("retained-tag-child")
+    const event = { nativeEvent: { timestamp: 17, target: 23 } }
+    await fireEvent(screen.getByTestId("tag"), "focus", event)
+    await fireEvent(screen.getByTestId("tag"), "pressIn", event)
+    for (const [override, checked] of [
+      [undefined, true],
+      ["mixed", "mixed"],
+      [false, false],
+      [true, true],
+    ] as const) {
+      await view.rerender(node(override))
+      const root = screen.getByRole("button", { name: expectedName })
+      expect(root.props.accessibilityLabel).toBe(label ?? alias)
+      expect(root.props.accessibilityState).toEqual({ busy, selected: false, checked, disabled: false })
+      expect(root.props.accessibilityValue?.text).toBe(value?.text)
+      expect(root.props.accessibilityValue?.now).toBe(value?.now)
+      expect(ref.current).toBe(original)
+      expect(screen.getByTestId("retained-tag-child")).toBe(child)
+      expect(style.mock.calls.at(-1)?.[0]).toMatchObject({ isFocused: true, isPressing: true, isPressed: true })
+      expect(pressed).not.toHaveBeenCalled()
+    }
+    expect(initialize).toHaveBeenCalledTimes(1)
+    await fireEvent(screen.getByTestId("tag"), "pressOut", event)
+    await fireEvent.press(screen.getByTestId("tag"), event)
+    expect(pressIn.mock.calls[0][0]).toBe(event)
+    expect(pressOut.mock.calls[0][0]).toBe(event)
+    expect(pressed.mock.calls).toEqual([[0]])
+    await view.unmount()
+    expect(ref.current).toBeNull()
+  },
+)
