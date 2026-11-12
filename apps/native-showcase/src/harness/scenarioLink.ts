@@ -11,6 +11,7 @@ export const AVAILABLE_SHOWCASE_SCENES = [
   "combo-box",
   "multiline",
   "number",
+  "temporal",
   "overlay",
   "range",
   "display",
