@@ -163,6 +163,7 @@ it("CAP.tag-combobox.001 forwards actual root/editor refs and composes the two n
   expect(row("tag-combobox").props.role).toBe("group")
   expect(row("tag-group")).toBeOnTheScreen()
   expect(row("combo-box")).toBeOnTheScreen()
+  expect(RN.StyleSheet.flatten(row("combo-box").props.style).height).toBe("auto")
 })
 it("CAP.tag-combobox.002/.010/.011/.013 keeps root and every nested style owner independent", async () => {
   await render(
@@ -200,7 +201,10 @@ it("CAP.tag-combobox.002/.010/.011/.013 keeps root and every nested style owner 
   })
   expect(RN.StyleSheet.flatten(row("selected-tag").props.style)).toMatchObject({ backgroundColor: "purple" })
   expect(RN.StyleSheet.flatten(screen.getByText("Zero", hidden).props.style).color).toBe("orange")
-  expect(RN.StyleSheet.flatten(row("choices").props.style).backgroundColor).toBe("blue")
+  expect(RN.StyleSheet.flatten(row("choices").props.style)).toMatchObject({
+    backgroundColor: "blue",
+    height: "100%",
+  })
   expect(RN.StyleSheet.flatten(row("choices-group").props.style)).toMatchObject({
     borderWidth: 0,
     borderBottomWidth: 0,
