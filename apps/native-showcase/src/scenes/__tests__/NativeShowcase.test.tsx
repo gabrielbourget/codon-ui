@@ -559,8 +559,37 @@ it("retains radio values through removal, themes, fixtures and rotation and rese
 
 it("opens the public Toaster scene through normal navigation", async () => {
   await renderShowcase()
-  await userEvent.setup().press(screen.getByRole("button", { name: "Toaster scene" }))
+  const user = userEvent.setup()
+  const press = (name: string) => user.press(screen.getByRole("button", { name }))
+  await press("Toaster scene")
   expect(screen.getByTestId("toaster-fixture-state")).toHaveTextContent(/ID number:0.*Position top-right/)
+  await fireEvent(screen.getByTestId("showcase-floating-host"), "layout", {
+    nativeEvent: { layout: { x: 0, y: 0, width: 390, height: 844 } },
+  })
+  await fireEvent(screen.getByTestId("toaster-fixture-host"), "layout", {
+    nativeEvent: { layout: { x: 0, y: 0, width: 338, height: 739 } },
+  })
+  await press("Cycle position")
+  try {
+    await press("Publish notification")
+    const stack = screen.getByTestId("toaster-stack-bottom-right")
+    expect(stack).toHaveStyle({ width: 358 })
+    await fireEvent(screen.getByTestId("toaster-fixture-host"), "layout", {
+      nativeEvent: { layout: { x: 0, y: 0, width: 338, height: 773 } },
+    })
+    expect(screen.getByTestId("toaster-stack-bottom-right")).toBe(stack)
+    expect(stack).toHaveStyle({ width: 358 })
+    expect(screen.getByTestId("toaster-fixture-state")).toHaveTextContent(/Scene frame 338x773/)
+    const hosts = screen.container.queryAll(
+      (node) => node.type === "PortalHostView" && node.props.name.startsWith("codon-floating-"),
+    )
+    const portals = screen.container.queryAll((node) => node.type === "PortalView")
+    expect(hosts).toHaveLength(1)
+    expect(portals).toHaveLength(1)
+    expect(portals[0].props.hostName).toBe(hosts[0].props.name)
+  } finally {
+    await press("Dismiss all notifications")
+  }
 })
 
 it("opens the public CompactTypeaheadSearch scene with independent owner state and resets it", async () => {
