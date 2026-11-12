@@ -32,6 +32,7 @@ export const AVAILABLE_SHOWCASE_SCENES = [
   "slider",
   "field",
   "search",
+  "compact-search",
   "circular",
   "tooltip",
   "popover",
