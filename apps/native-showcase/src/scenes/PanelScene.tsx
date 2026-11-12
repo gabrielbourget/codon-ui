@@ -1,6 +1,6 @@
-import { useRef, useState, type Ref, type RefObject } from "react"
+import { useRef, useState, type ReactNode, type Ref, type RefObject } from "react"
 import { DynamicColorIOS, Platform, PlatformColor, View, type TextInput, type ViewStyle } from "react-native"
-import { SafeAreaProvider } from "react-native-safe-area-context"
+import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context"
 
 import {
   Panel,
@@ -18,6 +18,23 @@ const nativeForeground =
   Platform.OS === "ios" ? PlatformColor("labelColor") : PlatformColor("?android:attr/textColorPrimary")
 const nativeBackground =
   Platform.OS === "ios" ? DynamicColorIOS({ light: "lavender", dark: "navy" }) : PlatformColor("@android:color/black")
+
+const PanelSceneContent = ({ expanded, children }: { expanded: boolean; children: ReactNode }) => {
+  const insets = useSafeAreaInsets()
+  return (
+    <View
+      style={{
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom,
+        paddingLeft: insets.left,
+        paddingRight: insets.right,
+        gap: expanded ? "4%" : 2,
+      }}
+    >
+      {children}
+    </View>
+  )
+}
 
 export const PanelScene = ({
   adapter,
@@ -117,32 +134,34 @@ export const PanelScene = ({
                 }}
                 raised={expanded}
               >
-                <Text>Arbitrary panel content</Text>
-                <Input ref={inputRef} accessibilityLabel="Held query" value="" onChange={() => {}} />
-                <Text>Owner veto: {String(veto)}</Text>
-                <Button onPress={() => setVeto(!veto)}>Toggle veto</Button>
-                <Button onPress={() => setRight(!right)}>Toggle physical side</Button>
-                <Button onPress={() => setExpanded(!expanded)}>Toggle panel appearance</Button>
-                <Button onPress={() => setCornerPose((value) => (value + 1) % 3)}>Cycle panel corners</Button>
-                <Button onPress={() => setNativeColors((value) => !value)}>Toggle native panel colors</Button>
-                <Button onPress={() => setMode(mode === "light" ? "dark" : "light")}>Toggle scene theme</Button>
-                {adapter && <Button onPress={() => setBlur(!blur)}>Toggle configured blur</Button>}
-                {adapter && (
-                  <>
-                    <Text>Backdrop source pose: {sourcePose}</Text>
-                    <Button onPress={() => setSourcePose((value) => (value + 1) % 4)}>
-                      Cycle backdrop source transform
-                    </Button>
-                  </>
-                )}
-                <Button
-                  ref={closeTarget}
-                  testID="panel-close"
-                  onFocus={() => setFocused("Close action")}
-                  onPress={() => request(false)}
-                >
-                  Request close
-                </Button>
+                <PanelSceneContent expanded={expanded}>
+                  <Text>Arbitrary panel content</Text>
+                  <Input ref={inputRef} accessibilityLabel="Held query" value="" onChange={() => {}} />
+                  <Text>Owner veto: {String(veto)}</Text>
+                  <Button onPress={() => setVeto(!veto)}>Toggle veto</Button>
+                  <Button onPress={() => setRight(!right)}>Toggle physical side</Button>
+                  <Button onPress={() => setExpanded(!expanded)}>Toggle panel appearance</Button>
+                  <Button onPress={() => setCornerPose((value) => (value + 1) % 3)}>Cycle panel corners</Button>
+                  <Button onPress={() => setNativeColors((value) => !value)}>Toggle native panel colors</Button>
+                  <Button onPress={() => setMode(mode === "light" ? "dark" : "light")}>Toggle scene theme</Button>
+                  {adapter && <Button onPress={() => setBlur(!blur)}>Toggle configured blur</Button>}
+                  {adapter && (
+                    <>
+                      <Text>Backdrop source pose: {sourcePose}</Text>
+                      <Button onPress={() => setSourcePose((value) => (value + 1) % 4)}>
+                        Cycle backdrop source transform
+                      </Button>
+                    </>
+                  )}
+                  <Button
+                    ref={closeTarget}
+                    testID="panel-close"
+                    onFocus={() => setFocused("Close action")}
+                    onPress={() => request(false)}
+                  >
+                    Request close
+                  </Button>
+                </PanelSceneContent>
               </Panel>
             </NativeFloatingLayerHost>
           </Root>

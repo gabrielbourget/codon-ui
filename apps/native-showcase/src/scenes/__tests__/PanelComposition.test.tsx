@@ -132,6 +132,9 @@ const enter = async () => {
 it("retains Panel's owner veto and original editor through live theme, side, fixture and window changes", async () => {
   await enter()
   const editor = screen.getByLabelText("Held query", hidden)
+  const content = screen.getByText("Arbitrary panel content", hidden).parent!
+  expect(content).toHaveStyle({ paddingTop: 20, paddingBottom: 10, paddingLeft: 0, paddingRight: 0, gap: 2 })
+  expect(screen.getByTestId("panel", hidden)).toHaveStyle({ padding: 0 })
   await fireEvent.changeText(editor, "declined draft")
   await press("Request close")
   await press("Request close")
@@ -146,6 +149,12 @@ it("retains Panel's owner veto and original editor through live theme, side, fix
     expect(screen.getByLabelText("Held query", hidden)).toBe(editor)
     expect(editor).toHaveDisplayValue("")
     expect(screen.getByTestId("panel", hidden)).toHaveStyle({ right: 0, backgroundColor: "#171717" })
+    expect(screen.getByText("Close requests: 2", hidden)).toBeOnTheScreen()
+    await press("Toggle panel appearance")
+    expect(screen.getByText("Arbitrary panel content", hidden).parent).toBe(content)
+    expect(content).toHaveStyle({ paddingTop: 20, paddingBottom: 10, paddingLeft: 0, paddingRight: 0, gap: "4%" })
+    expect(screen.getByLabelText("Held query", hidden)).toBe(editor)
+    expect(editor).toHaveDisplayValue("")
     expect(screen.getByText("Close requests: 2", hidden)).toBeOnTheScreen()
   } finally {
     await act(() => Dimensions.set({ window }))
