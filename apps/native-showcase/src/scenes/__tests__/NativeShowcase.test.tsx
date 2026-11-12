@@ -271,6 +271,18 @@ it("renders mixed and callback phrases with valid shadow styles and stable activ
   await press("Library action")
   expect(screen.getByText("Rendered library action 2")).toBeOnTheScreen()
   expect(screen.getByTestId("library-state")).toHaveTextContent(/count: 2/)
+  const action = screen.getByRole("button", { name: "Library action" })
+  await user.press(screen.getByRole("button", { name: "Hide harness controls" }))
+  expect(screen.queryByRole("button", { name: "Text/Button scene" })).toBeNull()
+  expect(screen.getByTestId("showcase-scenario")).toHaveTextContent(/Scene: library/)
+  expect(screen.getByText("Rendered library action 2")).toHaveStyle({ color: "#ffffff" })
+  expect(screen.getByRole("button", { name: "Library action" })).toBe(action)
+  await user.press(screen.getByRole("button", { name: "Show harness controls" }))
+  expect(screen.getByRole("button", { name: "Text/Button scene" })).toBeOnTheScreen()
+  expect(screen.getByTestId("showcase-scenario")).toHaveTextContent(/Scene: library/)
+  expect(screen.getByTestId("library-state")).toHaveTextContent(/count: 2/)
+  expect(screen.getByText("Rendered library action 2")).toHaveStyle({ color: "#ffffff" })
+  expect(screen.getByRole("button", { name: "Library action" })).toBe(action)
 })
 
 it("retains library actions during live window changes", async () => {

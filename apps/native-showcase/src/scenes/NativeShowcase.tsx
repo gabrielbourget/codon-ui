@@ -224,9 +224,10 @@ export const NativeShowcase = () => {
               scene={scene}
             />
             <HarnessMetadata scene={scene} fixture={fixture} error={linkError} />
-            {!controlsVisible && (
-              <FixtureAction label="Show harness controls" onPress={() => setControlsVisible(true)} />
-            )}
+            <FixtureAction
+              label={controlsVisible ? "Hide harness controls" : "Show harness controls"}
+              onPress={() => setControlsVisible((visible) => !visible)}
+            />
             <View style={[styles.controls, !controlsVisible && styles.hiddenControls]}>
               <FixtureAction
                 label="Foundation scene"
