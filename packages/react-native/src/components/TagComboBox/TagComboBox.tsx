@@ -264,7 +264,12 @@ const TagComboBoxInner = <T extends object>(
           width="100%"
           enableFocusStyle={false}
           emptyListMessage={resolved.comboBox.emptyListMessage}
-          customStyles={[{ height: "100%" }, nestedComboStyles, customComboBoxStyles]}
+          customStyles={[
+            // A percentage child height feeds back into an unbounded auto-height parent in Yoga.
+            { height: (styles.view.height ?? "auto") === "auto" ? "auto" : "100%" },
+            nestedComboStyles,
+            customComboBoxStyles,
+          ]}
           customInputButtonGroupStyles={[
             nestedGroupStyles,
             { borderWidth: 0, borderTopWidth: 0, borderBottomWidth: 0, borderLeftWidth: 0, borderRightWidth: 0 },
