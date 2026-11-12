@@ -58,6 +58,7 @@ import { TableScene } from "./TableScene"
 import { TagComboBoxScene } from "./TagComboBoxScene"
 import { TagGroupScene } from "./TagGroupScene"
 import { TagScene } from "./TagScene"
+import { TemporalScene } from "./TemporalScene"
 import { ThumbnailScene } from "./ThumbnailScene"
 import { ToasterScene } from "./ToasterScene"
 import { ToggleScene } from "./ToggleScene"
@@ -275,6 +276,11 @@ export const NativeShowcase = () => {
               />
               <FixtureAction label="Tooltip scene" selected={scene === "tooltip"} onPress={() => setScene("tooltip")} />
               <FixtureAction
+                label="Time and date scene"
+                selected={scene === "temporal"}
+                onPress={() => setScene("temporal")}
+              />
+              <FixtureAction
                 label="NumberInput scene"
                 selected={scene === "number"}
                 onPress={() => setScene("number")}
@@ -428,6 +434,8 @@ export const NativeShowcase = () => {
                 <RangeScene />
               ) : scene === "overlay" ? (
                 <OverlayScene toggleTheme={() => setMode((current) => (current === "light" ? "dark" : "light"))} />
+              ) : scene === "temporal" ? (
+                <TemporalScene />
               ) : scene === "number" ? (
                 <NumberInputScene />
               ) : scene === "multiline" ? (

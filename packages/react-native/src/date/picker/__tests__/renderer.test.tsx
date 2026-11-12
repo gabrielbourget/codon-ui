@@ -135,6 +135,9 @@ it("renders two locale weeks grids by default for single and one for range", asy
     </NativeThemeProvider>,
   )
   expect(screen.getAllByTestId("datetime-picker-calendar-grid")).toHaveLength(2)
+  const grids = screen.getAllByTestId("datetime-picker-calendar-grid")
+  expect(grids[0].parent).toHaveStyle({ width: "100%", flexWrap: "wrap" })
+  for (const grid of grids) expect(grid).toHaveStyle({ flex: 1, flexBasis: 280, maxWidth: "100%" })
   expect(screen.getAllByRole("columnheader")).toHaveLength(14)
   expect(screen.getByTestId("datetime-picker-calendar-heading")).toHaveTextContent(/October.*November.*2024/)
   await view.unmount()

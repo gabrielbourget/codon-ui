@@ -1,7 +1,7 @@
 import { parseShowcaseLink } from "../scenarioLink"
 
 it("selects existing scene IDs and retains unspecified configuration", () => {
-  for (const scene of ["foundation", "library", "avatar", "form-document", "search", "compact-search"])
+  for (const scene of ["foundation", "library", "avatar", "form-document", "search", "compact-search", "temporal"])
     expect(parseShowcaseLink(`codon-showcase://scenario/${scene}`)).toEqual({ scene, reset: false })
 })
 

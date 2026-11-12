@@ -70,6 +70,8 @@ it.each(["datetime-picker", "datetime-range-picker"])(
     await view.unmount()
     expect(host.current).toBeNull()
   },
+  // Full fixture, control transitions and repeated native-model admission can exceed Jest’s 5s default.
+  10_000,
 )
 
 it("removes maintained date style overrides on the same closed field owners without issuing requests", async () => {

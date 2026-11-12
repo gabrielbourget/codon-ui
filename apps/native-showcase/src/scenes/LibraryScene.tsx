@@ -148,104 +148,6 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
           rootTag: buttonRootTag,
         })}
       </Text>
-      <View style={styles.controls}>
-        <SceneControl
-          label="Next text variant"
-          onPress={() => setVariantIndex((index) => (index + 1) % AVAILABLE_FONT_VARIANTS.length)}
-        />
-        <SceneControl
-          label="Next font weight"
-          onPress={() => setWeightIndex((index) => (index + 1) % AVAILABLE_FONT_WEIGHTS.length)}
-        />
-        <SceneControl
-          label="Toggle text selection"
-          selected={selectable}
-          onPress={() => setSelectable((value) => !value)}
-        />
-        <SceneControl
-          label="Next button order"
-          onPress={() => setOrderIndex((index) => (index + 1) % AVAILABLE_THEMING_ORDER_CODES.length)}
-        />
-        <SceneControl
-          label="Toggle button default palette"
-          selected={unordered}
-          onPress={() => setUnordered((value) => !value)}
-        />
-        <SceneControl
-          label="Next button dimensions"
-          onPress={() => setDimensionIndex((index) => (index + 1) % BUTTON_DIMENSIONS.length)}
-        />
-        <SceneControl
-          label="Toggle button custom styles"
-          selected={buttonCustom}
-          onPress={() => setButtonCustom((value) => !value)}
-        />
-        <SceneControl
-          label="Toggle button outline"
-          selected={outlined}
-          onPress={() => setOutlined((value) => !value)}
-        />
-        <SceneControl
-          label="Next button geometry"
-          onPress={() => setGeometryIndex((index) => (index + 1) % AVAILABLE_CORNER_GEOMETRY_CODES.length)}
-        />
-        <SceneControl
-          label="Toggle library disabled"
-          selected={disabled}
-          onPress={() => setDisabled((value) => !value)}
-        />
-        <SceneControl label="Toggle library pending" selected={pending} onPress={() => setPending((value) => !value)} />
-        <SceneControl
-          label="Toggle library long press action"
-          selected={longPressEnabled}
-          onPress={() => setLongPressEnabled((value) => !value)}
-        />
-        <SceneControl
-          label="Next library button press-start takeover"
-          onPress={() => setTakeoverIndex((index) => (index + 1) % PRESS_START_TAKEOVERS.length)}
-        />
-        <SceneControl
-          label="Toggle library keyboard focus"
-          selected={keyboardFocusable}
-          onPress={() => setKeyboardFocusable((value) => !value)}
-        />
-        <SceneControl label="Toggle library styles" selected={custom} onPress={() => setCustom((value) => !value)} />
-        <SceneControl
-          label="Clear text typography"
-          selected={clearTextTypography}
-          onPress={() => setClearTextTypography((value) => !value)}
-        />
-        <SceneControl
-          label="Toggle render children"
-          selected={renderChildren}
-          onPress={() => setRenderChildren((value) => !value)}
-        />
-        <SceneControl
-          label="Toggle constrained target"
-          selected={constrained}
-          onPress={() => setConstrained((value) => !value)}
-        />
-        <SceneControl
-          label="Toggle placeholder alignment"
-          selected={placeholderCentered}
-          onPress={() => setPlaceholderCentered((value) => !value)}
-        />
-        <SceneControl
-          label="Toggle empty placeholder"
-          selected={placeholderEmpty}
-          onPress={() => setPlaceholderEmpty((value) => !value)}
-        />
-        <SceneControl
-          label="Toggle placeholder custom styles"
-          selected={placeholderCustom}
-          onPress={() => setPlaceholderCustom((value) => !value)}
-        />
-        <SceneControl
-          label="Toggle placeholder final styles"
-          selected={placeholderFinal}
-          onPress={() => setPlaceholderFinal((value) => !value)}
-        />
-      </View>
       <Text testID="placeholder-customization-state">
         Placeholder custom: {String(placeholderCustom)}. Final: {String(placeholderFinal)}.
       </Text>
@@ -401,6 +303,104 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
         separate.
       </Text>
       <Text testID="library-button-callbacks">{JSON.stringify(buttonReceipts)}</Text>
+      <View style={styles.controls}>
+        <SceneControl
+          label="Next text variant"
+          onPress={() => setVariantIndex((index) => (index + 1) % AVAILABLE_FONT_VARIANTS.length)}
+        />
+        <SceneControl
+          label="Next font weight"
+          onPress={() => setWeightIndex((index) => (index + 1) % AVAILABLE_FONT_WEIGHTS.length)}
+        />
+        <SceneControl
+          label="Toggle text selection"
+          selected={selectable}
+          onPress={() => setSelectable((value) => !value)}
+        />
+        <SceneControl
+          label="Next button order"
+          onPress={() => setOrderIndex((index) => (index + 1) % AVAILABLE_THEMING_ORDER_CODES.length)}
+        />
+        <SceneControl
+          label="Toggle button default palette"
+          selected={unordered}
+          onPress={() => setUnordered((value) => !value)}
+        />
+        <SceneControl
+          label="Next button dimensions"
+          onPress={() => setDimensionIndex((index) => (index + 1) % BUTTON_DIMENSIONS.length)}
+        />
+        <SceneControl
+          label="Toggle button custom styles"
+          selected={buttonCustom}
+          onPress={() => setButtonCustom((value) => !value)}
+        />
+        <SceneControl
+          label="Toggle button outline"
+          selected={outlined}
+          onPress={() => setOutlined((value) => !value)}
+        />
+        <SceneControl
+          label="Next button geometry"
+          onPress={() => setGeometryIndex((index) => (index + 1) % AVAILABLE_CORNER_GEOMETRY_CODES.length)}
+        />
+        <SceneControl
+          label="Toggle library disabled"
+          selected={disabled}
+          onPress={() => setDisabled((value) => !value)}
+        />
+        <SceneControl label="Toggle library pending" selected={pending} onPress={() => setPending((value) => !value)} />
+        <SceneControl
+          label="Toggle library long press action"
+          selected={longPressEnabled}
+          onPress={() => setLongPressEnabled((value) => !value)}
+        />
+        <SceneControl
+          label="Next library button press-start takeover"
+          onPress={() => setTakeoverIndex((index) => (index + 1) % PRESS_START_TAKEOVERS.length)}
+        />
+        <SceneControl
+          label="Toggle library keyboard focus"
+          selected={keyboardFocusable}
+          onPress={() => setKeyboardFocusable((value) => !value)}
+        />
+        <SceneControl label="Toggle library styles" selected={custom} onPress={() => setCustom((value) => !value)} />
+        <SceneControl
+          label="Clear text typography"
+          selected={clearTextTypography}
+          onPress={() => setClearTextTypography((value) => !value)}
+        />
+        <SceneControl
+          label="Toggle render children"
+          selected={renderChildren}
+          onPress={() => setRenderChildren((value) => !value)}
+        />
+        <SceneControl
+          label="Toggle constrained target"
+          selected={constrained}
+          onPress={() => setConstrained((value) => !value)}
+        />
+        <SceneControl
+          label="Toggle placeholder alignment"
+          selected={placeholderCentered}
+          onPress={() => setPlaceholderCentered((value) => !value)}
+        />
+        <SceneControl
+          label="Toggle empty placeholder"
+          selected={placeholderEmpty}
+          onPress={() => setPlaceholderEmpty((value) => !value)}
+        />
+        <SceneControl
+          label="Toggle placeholder custom styles"
+          selected={placeholderCustom}
+          onPress={() => setPlaceholderCustom((value) => !value)}
+        />
+        <SceneControl
+          label="Toggle placeholder final styles"
+          selected={placeholderFinal}
+          onPress={() => setPlaceholderFinal((value) => !value)}
+        />
+      </View>
       <TextG02ContextFixture increment={increment} />
     </View>
   )
