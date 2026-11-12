@@ -183,6 +183,7 @@ describe("Table environment and reset", () => {
     await act(() => {})
   })
 
+  // Multiple full Table environment renders and reset/reentry exceed five seconds on CI.
   it("retains the original Table editor and value through live showcase changes, then resets its complete owner", async () => {
     const window = await changeEnvironment()
     try {
@@ -210,7 +211,7 @@ describe("Table environment and reset", () => {
     } finally {
       await act(() => Dimensions.set({ window }))
     }
-  })
+  }, 15000)
 })
 
 it("binds the actual public Table entry to the current workspace source", () => {
