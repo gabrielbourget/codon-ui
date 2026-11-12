@@ -3334,3 +3334,190 @@ it("updates the actual header ID relationship without fabricating caller ref cle
   expect(calls).toHaveLength(2)
   expect(calls[1]).toBeNull()
 })
+
+it("delegates Menu links to the current caller navigation owner without selecting or opening a second URL", async () => {
+  const first = jest.fn(),
+    next = jest.fn(),
+    selection = jest.fn()
+  const content = (navigate: (href: string) => void) => [
+    menuModelEntry(
+      "a",
+      <MenuItem id="a" testID="a" href="https://example.test/caller" onNavigate={navigate}>
+        A
+      </MenuItem>,
+      "A",
+      "item",
+    ),
+  ]
+  const props = { selectionMode: "multiple" as const, shouldCloseOnSelect: false, onSelectionChange: selection }
+  const f = fixture(props, content(first))
+  await render(f.node())
+  await f.ready()
+  const original = row("a")
+  await rerender(f.node(props, content(next)))
+  expect(row("a")).toBe(original)
+  await press("a")
+  expect(first).not.toHaveBeenCalled()
+  expect(next.mock.calls).toEqual([["https://example.test/caller"]])
+  expect(f.action.mock.calls).toEqual([["a"]])
+  expect(selection).not.toHaveBeenCalled()
+  expect(f.close).not.toHaveBeenCalled()
+  expect(RN.Linking.openURL).not.toHaveBeenCalled()
+})
+
+it("retires an old Menu URL rejection after href replacement while reporting the current navigation failure once", async () => {
+  const rejects: Array<(error: unknown) => void> = []
+  jest.mocked(RN.Linking.openURL).mockImplementation(() => new Promise((_, reject) => rejects.push(reject)))
+  const previousFailure = jest.fn(),
+    currentFailure = jest.fn(),
+    selection = jest.fn()
+  const content = (href: string, onNavigationError: (error: unknown, href: string) => void) => [
+    menuModelEntry(
+      "a",
+      <MenuItem id="a" testID="a" href={href} onNavigationError={onNavigationError}>
+        A
+      </MenuItem>,
+      "A",
+      "item",
+    ),
+  ]
+  const props = { selectionMode: "multiple" as const, shouldCloseOnSelect: false, onSelectionChange: selection }
+  const f = fixture(props, content("https://example.test/old", previousFailure))
+  await render(f.node())
+  await f.ready()
+  await press("a")
+  await rerender(f.node(props, content("https://example.test/current", currentFailure)))
+  await act(async () => rejects[0](new Error("retired URL")))
+  expect(previousFailure).not.toHaveBeenCalled()
+  expect(currentFailure).not.toHaveBeenCalled()
+  await press("a")
+  const error = new Error("current URL")
+  await act(async () => rejects[1](error))
+  expect(currentFailure.mock.calls).toEqual([[error, "https://example.test/current"]])
+  expect(currentFailure.mock.calls[0][0]).toBe(error)
+  expect(previousFailure).not.toHaveBeenCalled()
+  expect(RN.Linking.openURL).toHaveBeenCalledTimes(2)
+  expect(RN.Linking.openURL).toHaveBeenNthCalledWith(1, "https://example.test/old")
+  expect(RN.Linking.openURL).toHaveBeenNthCalledWith(2, "https://example.test/current")
+  expect(selection).not.toHaveBeenCalled()
+  expect(f.close).not.toHaveBeenCalled()
+})
+
+it("keeps Menu typeahead quiet while disallowed and resumes current-label navigation after the context changes", async () => {
+  const a = createRef<RN.View>(),
+    b = createRef<RN.View>()
+  const f = fixture({}, [
+    menuModelEntry(
+      "a",
+      <MenuItem ref={a} id="a" testID="a">
+        Alpha
+      </MenuItem>,
+      "Alpha",
+      "item",
+    ),
+    menuModelEntry(
+      "b",
+      <MenuItem ref={b} id="b" testID="b">
+        Beta
+      </MenuItem>,
+      "Beta",
+      "item",
+    ),
+  ])
+  const node = (disallowTypeAhead: boolean) => (
+    <NativeMenuListContext.Provider value={{ disallowTypeAhead }}>{f.node()}</NativeMenuListContext.Provider>
+  )
+  await render(node(true))
+  await f.ready()
+  const original = a.current
+  jest.mocked(Commands.requestCollectionFocus).mockClear()
+  await rawKey("a", "b", "down", { nativeDefaultHandled: false })
+  expect(Commands.requestCollectionFocus).not.toHaveBeenCalled()
+  await rerender(node(false))
+  expect(a.current).toBe(original)
+  jest.mocked(Commands.requestCollectionFocus).mockClear()
+  await rawKey("a", "b", "down", { nativeDefaultHandled: false })
+  expect(jest.mocked(Commands.requestCollectionFocus).mock.calls.at(-1)?.[0]).toBe(b.current)
+  expect(f.action).not.toHaveBeenCalled()
+  expect(f.close).not.toHaveBeenCalled()
+})
+
+it("uses the current Menu list close owner after an item action without also requesting root closure", async () => {
+  const first = jest.fn(),
+    next = jest.fn()
+  const f = fixture({}, [
+    menuModelEntry(
+      "a",
+      <MenuItem id="a" testID="a">
+        A
+      </MenuItem>,
+      "A",
+      "item",
+    ),
+  ])
+  const node = (onClose: () => void) => (
+    <NativeMenuListContext.Provider value={{ onClose }}>{f.node()}</NativeMenuListContext.Provider>
+  )
+  await render(node(first))
+  await f.ready()
+  const original = row("a")
+  await rerender(node(next))
+  expect(row("a")).toBe(original)
+  await press("a")
+  expect(first).not.toHaveBeenCalled()
+  expect(next.mock.calls).toEqual([[]])
+  expect(f.action.mock.calls).toEqual([["a"]])
+  expect(f.close).not.toHaveBeenCalled()
+})
+
+it("keeps a Menu section nonempty while changing only its local selection owner", async () => {
+  const sectionChange = jest.fn(),
+    rootChange = jest.fn()
+  const items = [
+    menuModelEntry(
+      "section",
+      <MenuSection
+        id="section"
+        selectionMode="single"
+        defaultSelectedKeys={["a"]}
+        disallowEmptySelection
+        onSelectionChange={sectionChange}
+        shouldCloseOnSelect={false}
+      />,
+      "",
+      "section",
+      [
+        menuModelEntry(
+          "a",
+          <MenuItem id="a" testID="a">
+            A
+          </MenuItem>,
+          "A",
+          "item",
+        ),
+        menuModelEntry(
+          "b",
+          <MenuItem id="b" testID="b">
+            B
+          </MenuItem>,
+          "B",
+          "item",
+        ),
+      ],
+    ),
+  ]
+  const f = fixture({ selectionMode: "multiple", selectedKeys: ["outside"], onSelectionChange: rootChange }, items)
+  await render(f.node())
+  await f.ready()
+  expect(row("a").props.accessibilityState.checked).toBe(true)
+  await press("a")
+  expect(row("a").props.accessibilityState.checked).toBe(true)
+  expect(sectionChange).not.toHaveBeenCalled()
+  await press("b")
+  expect(row("a").props.accessibilityState.checked).toBe(false)
+  expect(row("b").props.accessibilityState.checked).toBe(true)
+  expect(sectionChange).toHaveBeenCalledTimes(1)
+  expect([...sectionChange.mock.calls[0][0]]).toEqual(["b"])
+  expect(rootChange).not.toHaveBeenCalled()
+  expect(f.close).not.toHaveBeenCalled()
+})
