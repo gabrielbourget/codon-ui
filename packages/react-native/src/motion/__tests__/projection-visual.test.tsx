@@ -93,6 +93,23 @@ it("clears removed owned projection/pop properties while preserving the original
       boxShadow: null,
     }),
   })
+  await screen.rerender(
+    <NativeMotionVisualHost
+      ref={ref}
+      testID="projection-root"
+      projection={projection}
+      style={{ padding: 8, transform: [{ rotate: "2deg" }], transformOrigin: ["20%", "25%", 0] }}
+    >
+      <TextInput testID="editor" value="" onChangeText={request} />
+    </NativeMotionVisualHost>,
+  )
+  await act(() => write({ style: { transformOrigin: ["0%", "0%", 0] }, visible: true, radii: "" }))
+  await act(() => write({ style: {}, visible: true, radii: "" }))
+  expect(setter).toHaveBeenLastCalledWith(
+    expect.objectContaining({
+      style: expect.objectContaining({ transformOrigin: ["20%", "25%", 0], transform: [{ rotate: "2deg" }] }),
+    }),
+  )
   expect(ref.current).toBe(root)
   expect(screen.getByTestId("editor")).toBe(editor)
   expect(editor.props.value).toBe("")
