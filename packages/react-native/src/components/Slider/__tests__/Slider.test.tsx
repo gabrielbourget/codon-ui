@@ -709,3 +709,96 @@ it("supports a fixed zero domain without NaN placement or fabricated changes", a
   expect(changed).not.toHaveBeenCalled()
   expect(ended.mock.calls).toEqual([[0]])
 })
+
+it("preserves an earlier controlled thumb request when a second pointer joins the drag", async () => {
+  const changed = jest.fn(),
+    ended = jest.fn()
+  const owner = [20, 80]
+  frames["slider-thumb-1-target"] = [150.4, 200, 48, 48]
+  frames["slider-thumb-1"] = [165.4, 215, 18, 18]
+  frames["slider-thumb-2-target"] = [301.6, 200, 48, 48]
+  frames["slider-thumb-2"] = [316.6, 215, 18, 18]
+  await render(<Slider {...name} value={owner} onChange={changed} onChangeEnd={ended} />)
+  await measure()
+  await down(174.4, 224, 0)
+  await move(224.8, 224, 0)
+  expect(changed.mock.calls).toEqual([[[40, 80]]])
+  await fireEvent(track(), "responderStart", event(325.6, 224, 1))
+  await move(275.2, 224, 1)
+  expect(changed.mock.calls).toEqual([[[40, 80]], [[40, 60]]])
+  expect(owner).toEqual([20, 80])
+  expect(target()).toHaveAccessibilityValue({ now: 20 })
+  expect(target(2)).toHaveAccessibilityValue({ now: 80 })
+  await fireEvent(track(), "responderEnd", event(224.8, 224, 0))
+  expect(ended).not.toHaveBeenCalled()
+  await up(275.2, 224, 1)
+  expect(ended.mock.calls).toEqual([[[40, 60]]])
+})
+
+it("keeps pending multi-thumb requests ordered while the controlled owner declines them", async () => {
+  const changed = jest.fn(),
+    ended = jest.fn()
+  const owner = [20, 80]
+  await render(<Slider {...name} value={owner} onChange={changed} onChangeEnd={ended} style={observe} />)
+  await act(() => captured.state.setThumbDragging(0, true))
+  await act(() => captured.state.setThumbValue(0, 40))
+  await act(() => captured.state.setThumbDragging(1, true))
+  await act(() => captured.state.setThumbValue(1, 30))
+  expect(changed.mock.calls).toEqual([[[40, 80]], [[40, 40]]])
+  expect(captured.state.values).toEqual([20, 80])
+  expect(owner).toEqual([20, 80])
+  await act(() => captured.state.setThumbDragging(0, false))
+  expect(ended).not.toHaveBeenCalled()
+  await act(() => captured.state.setThumbDragging(1, false))
+  expect(ended.mock.calls).toEqual([[[40, 40]]])
+})
+
+it("rejects changes to controlled mode and scalar shape instead of reinitializing Slider values", async () => {
+  const cases: { initial: SliderProps; next: SliderProps }[] = [
+    { initial: { ...name, value: 20 }, next: { ...name, defaultValue: 20 } },
+    { initial: { ...name, defaultValue: 20 }, next: { ...name, value: 20 } },
+    { initial: { ...name, value: 20 }, next: { ...name, value: [20] } },
+    { initial: { ...name, defaultValue: 20 }, next: { ...name, defaultValue: [20] } },
+  ]
+  for (const { initial, next } of cases) {
+    const view = await render(<Slider {...initial} />)
+    await expect(view.rerender(<Slider {...next} />)).rejects.toThrow(
+      /controlled mode and scalar\/array shape must remain stable/,
+    )
+    await view.unmount()
+  }
+})
+
+it("rejects invalid public state requests without changing the controlled value or emitting callbacks", async () => {
+  const changed = jest.fn(),
+    ended = jest.fn()
+  await render(<Slider {...name} value={[20, 80]} onChange={changed} onChangeEnd={ended} style={observe} />)
+  for (const index of [-1, 0.5, 2]) {
+    expect(() => captured.state.getThumbValue(index)).toThrow(/invalid thumb index/)
+    expect(() => captured.state.setThumbValue(index, 30)).toThrow(/invalid thumb index/)
+  }
+  for (const value of [NaN, Infinity, -Infinity]) {
+    expect(() => captured.state.setThumbValue(0, value)).toThrow(/requested values must be finite/)
+    expect(() => captured.state.setThumbPercent(0, value)).toThrow(/percent must be finite/)
+  }
+  expect(captured.state.values).toEqual([20, 80])
+  expect(changed).not.toHaveBeenCalled()
+  expect(ended).not.toHaveBeenCalled()
+})
+
+it("rejects unsupported colors in every authored Slider style owner including callback output", async () => {
+  for (const slot of [
+    "customStyles",
+    "customLabelStyles",
+    "customOutputStyles",
+    "customTrackStyles",
+    "customThumbStyles",
+  ] as const) {
+    await expect(
+      render(<Slider {...name} {...{ [slot]: { backgroundColor: "var(--unsupported)" } }} />),
+    ).rejects.toThrow(/unsupported native color/)
+  }
+  await expect(render(<Slider {...name} style={() => ({ backgroundColor: "var(--unsupported)" })} />)).rejects.toThrow(
+    /unsupported native color/,
+  )
+})

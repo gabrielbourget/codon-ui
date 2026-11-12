@@ -195,3 +195,50 @@ it("does not let a terminal held cycle reopen later and removes the disabled des
   await act(() => screen.rerender(f.node("longPress", true)))
   expect(row("trigger").props.accessibilityHint).toBeUndefined()
 })
+
+it("updates the Menu trigger hint through locale, explicit empty and disabled precedence without replacing its original ref", async () => {
+  const f = setup("longPress")
+  let state!: TNativeMenuTriggerState
+  const node = (locale: string, description?: string, disabled = false) => (
+    <NativeThemeProvider>
+      <NativeOverlayProvider>
+        <NativeFloatingLayerHost>
+          <NativeMenuTrigger
+            triggerMode="longPress"
+            locale={locale}
+            longPressDescription={description}
+            isDisabled={disabled}
+            onOpenChange={f.changed}
+            trigger={(value) => {
+              state = value
+              return (
+                <Button {...value.triggerProps} testID="trigger">
+                  Open actions
+                </Button>
+              )
+            }}
+          >
+            <Menu isNonModal items={[]} />
+          </NativeMenuTrigger>
+        </NativeFloatingLayerHost>
+      </NativeOverlayProvider>
+    </NativeThemeProvider>
+  )
+  const view = await render(node("fr-CA"))
+  const originalRef = state.triggerRef.current
+  expect(originalRef).not.toBeNull()
+  const original = row("trigger")
+  expect(original.props.accessibilityHint).toBe(nativeMenuTriggerMessages["fr-FR"])
+  await act(() => view.rerender(node("en-US", "")))
+  expect(row("trigger")).toBe(original)
+  expect(original.props.accessibilityHint).toBe("")
+  await act(() => view.rerender(node("en-US", "Caller hint")))
+  expect(original.props.accessibilityHint).toBe("Caller hint")
+  await act(() => view.rerender(node("en-US", "Caller hint", true)))
+  expect(original.props.accessibilityHint).toBeUndefined()
+  await act(() => view.rerender(node("en-US")))
+  expect(row("trigger")).toBe(original)
+  expect(original.props.accessibilityHint).toBe(nativeMenuTriggerMessages["en-US"])
+  expect(state.triggerRef.current).toBe(originalRef)
+  expect(f.changed).not.toHaveBeenCalled()
+})
