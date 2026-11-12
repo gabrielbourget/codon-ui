@@ -1216,3 +1216,38 @@ it("consumes TimePicker wrapper props while retaining its fixed scaffold and ori
   expect(layout).toHaveBeenCalledTimes(1)
   expect(layout.mock.calls[0][0]).toBe(event)
 })
+
+it("composes uncontrolled TimePicker edits from the public renderer action without replacing original hosts", async () => {
+  const root = createRef<View>(),
+    change = jest.fn()
+  await render(
+    <NativeTimePickerRenderer
+      ref={root}
+      defaultValue={new Time(13, 45, 7)}
+      granularity="second"
+      onChange={change}
+      render={(native, { state }) => (
+        <NativeFocusHost {...native}>
+          <Text
+            accessibilityRole="button"
+            onPress={() => {
+              state.setSegment("hour", 14)
+              state.setSegment("minute", 46)
+            }}
+          >
+            Apply time
+          </Text>
+          {native.children}
+        </NativeFocusHost>
+      )}
+    />,
+  )
+  const original = root.current,
+    originalHour = segment()
+  await fireEvent.press(screen.getByText("Apply time"))
+  expect(change.mock.calls.map(([next]) => next.toString())).toEqual(["14:45:07", "14:46:07"])
+  expect(screen.getByText("14")).toBeOnTheScreen()
+  expect(screen.getByText("46")).toBeOnTheScreen()
+  expect(root.current).toBe(original)
+  expect(segment()).toBe(originalHour)
+})

@@ -72,20 +72,23 @@ export function useTimeFieldState<T extends TimeValue = TimeValue>(props: TimeFi
     setValue(day || defaultValueTimeZone ? dateTime : dateTime && toTime(dateTime))
   }
 
-  const state = useDateFieldState({
-    ...props,
-    value: dateTime,
-    defaultValue: defaultDateTime,
-    minValue: minDate,
-    maxValue: maxDate,
-    onChange,
-    granularity: granularity || "minute",
-    maxGranularity: "hour",
-    placeholderValue: placeholderDate ?? undefined,
-    // Calendar should not matter for time fields.
-    createCalendar: () => new GregorianCalendar(),
-    validate: useCallback(() => validate?.(value as MappedTimeValue<T>), [validate, value]),
-  })
+  const state = useDateFieldState(
+    {
+      ...props,
+      value: dateTime,
+      defaultValue: defaultDateTime,
+      minValue: minDate,
+      maxValue: maxDate,
+      onChange,
+      granularity: granularity || "minute",
+      maxGranularity: "hour",
+      placeholderValue: placeholderDate ?? undefined,
+      // Calendar should not matter for time fields.
+      createCalendar: () => new GregorianCalendar(),
+      validate: useCallback(() => validate?.(value as MappedTimeValue<T>), [validate, value]),
+    },
+    props.value === undefined,
+  )
 
   return {
     ...state,
