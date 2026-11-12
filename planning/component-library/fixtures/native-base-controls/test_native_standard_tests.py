@@ -2266,10 +2266,96 @@ class SwitchControls(unittest.TestCase):
             self.assertIsNotNone(re.fullmatch(pattern,"Switch (a|b) checks"));self.assertIsNone(re.search(pattern,"opens ComboBox and basic controls"));self.assertIsNone(re.search(pattern,"prefix basic controls"))
             for titles in [[],["opens the public ComboBox scene"],["basic controls","basic controls"]]:
                 with self.subTest(titles=titles),self.assertRaises(ValueError):source_test_selection(dict(plan,titles=titles))
-            with self.assertRaises(ValueError):source_test_selection(dict(plan,titles=["opens ComboBox"],stoppedTitleFragments=["other stopped cell"]))
+            source_test_selection(dict(plan,titles=["opens ComboBox"],stoppedTitleFragments=["other stopped cell"]))
             refused=root/"refused.json";refused.write_text(json.dumps(dict(plan,titles=["opens ComboBox"])));receipt=root/"rejected.json"
             result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeCellVerification.py"),"--source-selection",str(refused),"--receipt",str(receipt),"--run"],capture_output=True,text=True,timeout=10)
             self.assertEqual(result.returncode,2);self.assertEqual(json.loads(receipt.read_text())["status"],"REJECTED");self.assertNotIn("jest --config",result.stdout)
+            file.write_text("CHANGED")
+            with self.assertRaises(ValueError):source_test_selection(plan)
+
+    def test_source_selection_wrapper_identity_collisions(self):
+        from NativeCellVerification import source_test_selection
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp)
+            compact=["preserves custom-query commit policy with allowsCustomValue=false on the original editor","preserves custom-query commit policy with allowsCustomValue=true on the original editor","opens on original focus only when the compact menuTrigger is manual","opens on original focus only when the compact menuTrigger is focus"]
+            cases=[("src/components/CompactTypeaheadSearch/__tests__/composition.test.tsx",compact),("src/components/TagComboBox/__tests__/TagComboBox.test.tsx",["CAP.tag-combobox.001 forwards actual root/editor refs and composes the two native controls","CAP.tag-combobox.015 merges nested ComboBox labels"]),("src/components/TagGroup/__tests__/TagGroup.test.tsx",["removes the current tag without selecting another group item"]),("apps/native-showcase/src/scenes/__tests__/TagComboBoxScene.test.tsx",["keeps popup requests subject to owner veto and opens only after an owner echo"])]
+            for path,titles in cases:
+                file=root/path;file.parent.mkdir(parents=True,exist_ok=True);file.write_text("CONTROL")
+                plan={"files":[{"path":str(file),"sha256":NATIVE.digest(file)}],"workspace":"@codon-ui/react-native","titles":titles,"stoppedTitleFragments":["Menu","ComboBox","combo-box","Slider","standalone Tag"]}
+                with self.subTest(path=path):
+                    argv=source_test_selection(plan);pattern=argv[argv.index("--testNamePattern")+1]
+                    for title in titles:self.assertIsNotNone(re.fullmatch(pattern,title))
+                    self.assertIsNone(re.fullmatch(pattern,"prefix "+titles[0]))
+
+    def test_source_selection_stopped_identity_paths_titles_and_actual_run_refusal(self):
+        from NativeCellVerification import source_test_selection
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp)
+            paths=[f"src/components/{owner}/__tests__/innocent.test.tsx" for owner in ["Menu","mEnU","ComboBox","comboBox","Slider","slider","Tag","tAg"]]
+            paths += [f"apps/native-showcase/src/scenes/__tests__/{name}.test.tsx" for name in ["MenuScene","ComboBoxScene","ComboBoxFixtureComposition","SliderScene","SliderLayoutWitness","TagScene","tagscene"]]
+            paths += [f"fixtures/native-{name}/__tests__/shared.test.tsx" for name in ["menu","combo-box","slider","tag"]]
+            for path in paths:
+                file=root/path;file.parent.mkdir(parents=True,exist_ok=True);file.write_text("CONTROL")
+                plan={"files":[{"path":str(file),"sha256":NATIVE.digest(file)}],"workspace":"@codon-ui/native-showcase","titles":["innocent exact title"],"stoppedTitleFragments":["Menu","ComboBox","combo-box","Slider","standalone Tag","other stopped phrase"]}
+                with self.subTest(path=path),self.assertRaisesRegex(ValueError,"Source selection includes a stopped cell"):source_test_selection(plan)
+            file=root/"__tests__/Shared.test.tsx";file.parent.mkdir();file.write_text("CONTROL");plan["files"]=[{"path":str(file),"sha256":NATIVE.digest(file)}]
+            for title in ["opens the public ComboBox scene","opens MENU G08","CAT.menu.G08","cAt.MeNu.G08","CAP.combo-box.001 renders","CAT.slider.G08","CAT.tag.G08","CAP.tag.001 renders","opens standalone tAg","renders Tag","tag scene G08","OTHER STOPPED PHRASE remains stopped","CAP.tag-combobox.001 opens Menu","CAP.tag-group.001 opens standalone Tag","CAP.compact-typeahead.001 opens public ComboBox scene","CAP.unrelated.001 references ComboBox"]:
+                with self.subTest(title=title),self.assertRaisesRegex(ValueError,"Source selection includes a stopped cell"):source_test_selection(dict(plan,titles=[title]))
+            file=root/paths[0];plan.update(files=[{"path":str(file),"sha256":NATIVE.digest(file)}],titles=["innocent exact title"])
+            payload=root/"selection.json";payload.write_text(json.dumps(plan));receipt=root/"receipt.json"
+            sentinel=root/"jest-spawned";executable=root/"pnpm";executable.write_text("#!/bin/sh\ntouch '"+str(sentinel)+"'\nexit 0\n");executable.chmod(0o755)
+            result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeCellVerification.py"),"--source-selection",str(payload),"--receipt",str(receipt),"--run"],env={**os.environ,"PATH":str(root)+os.pathsep+os.environ["PATH"]},capture_output=True,text=True,timeout=10)
+            self.assertEqual(result.returncode,2);report=json.loads(receipt.read_text());self.assertEqual(report["status"],"REJECTED");self.assertEqual(report["error"],"Source selection includes a stopped cell");self.assertFalse(sentinel.exists());self.assertFalse(receipt.with_suffix(".run").exists())
+            print(json.dumps({"stoppedSourceRunControl":report,"exitCode":result.returncode,"jestSpawned":sentinel.exists(),"runDirectoryCreated":receipt.with_suffix(".run").exists()}))
+
+    def test_source_selection_reopened_source_owners_and_protected_native_targets(self):
+        from NativeCellVerification import source_test_selection
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp)
+            native_stops=["CAT.menu.G08","CAT.combo-box.G08","SL-G01-STOP01","TG-G02-STOP01"]
+            cases=[(f"src/components/{owner}/__tests__/source.test.tsx",f"CAP.{identity}.001 renders the source component") for owner,identity in [("Menu","menu"),("ComboBox","combo-box"),("Slider","slider"),("Tag","tag")]]
+            cases += [(f"apps/native-showcase/src/scenes/__tests__/{owner}Scene.test.tsx",f"renders the public {owner} scene") for owner in ["Menu","ComboBox","Slider","Tag"]]
+            for path,title in cases:
+                file=root/path;file.parent.mkdir(parents=True,exist_ok=True);file.write_text("CONTROL")
+                plan={"files":[{"path":str(file),"sha256":NATIVE.digest(file)}],"workspace":"@codon-ui/react-native","titles":[title],"stoppedTitleFragments":native_stops}
+                with self.subTest(reopened=path):source_test_selection(plan)
+            shared=root/"__tests__/Shared.test.tsx";shared.parent.mkdir();shared.write_text("CONTROL");plan["files"]=[{"path":str(shared),"sha256":NATIVE.digest(shared)}]
+            for title in ["CAT.menu.G08","cAt.CoMbO-bOx.G08","opens MENU G08","Tag G08","SL-G01-STOP01","TG-G02-STOP01"]:
+                with self.subTest(nativeTarget=title),self.assertRaisesRegex(ValueError,"Source selection includes a stopped cell"):source_test_selection(dict(plan,titles=[title],stoppedTitleFragments=["other protected campaign"]))
+            for owner in ["Menu","ComboBox","Slider","Tag"]:
+                file=root/f"src/components/{owner}/__tests__/source.test.tsx"
+                with self.subTest(explicitCallerStop=owner),self.assertRaisesRegex(ValueError,"Source selection includes a stopped cell"):source_test_selection(dict(plan,files=[{"path":str(file),"sha256":NATIVE.digest(file)}],titles=["innocent title"],stoppedTitleFragments=[owner]))
+
+    def test_source_selection_protected_native_paths_still_refuse_run_after_source_reopening(self):
+        from NativeCellVerification import source_test_selection
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp)
+            paths=[f"fixtures/native-{owner}/__tests__/source.test.tsx" for owner in ["menu","combo-box","slider","tag"]]
+            paths += [f"src/components/{owner}/__tests__/{owner}G08Trial.test.tsx" for owner in ["Menu","ComboBox","Slider","Tag"]]
+            for path in paths:
+                file=root/path;file.parent.mkdir(parents=True,exist_ok=True);file.write_text("CONTROL")
+                plan={"files":[{"path":str(file),"sha256":NATIVE.digest(file)}],"workspace":"@codon-ui/react-native","titles":["innocent source title"],"stoppedTitleFragments":["other native campaign"]}
+                with self.subTest(protectedNativePath=path),self.assertRaisesRegex(ValueError,"Source selection includes a stopped cell"):source_test_selection(plan)
+            payload=root/"native-selection.json";payload.write_text(json.dumps(plan));receipt=root/"native-rejected.json"
+            sentinel=root/"jest-spawned";stub=root/"pnpm";stub.write_text("#!/bin/sh\ntouch '"+str(sentinel)+"'\nexit 0\n");stub.chmod(0o755)
+            result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeCellVerification.py"),"--source-selection",str(payload),"--receipt",str(receipt),"--run"],env={**os.environ,"PATH":str(root)+os.pathsep+os.environ["PATH"]},capture_output=True,text=True,timeout=10)
+            report=json.loads(receipt.read_text());self.assertEqual(result.returncode,2);self.assertEqual(report["status"],"REJECTED");self.assertFalse(sentinel.exists());self.assertFalse(receipt.with_suffix(".run").exists())
+            print(json.dumps({"protectedNativeRunAfterReopening":report,"exitCode":result.returncode,"jestSpawned":sentinel.exists()}))
+
+    def test_source_selection_retains_hash_type_workspace_cache_and_literal_checks(self):
+        from NativeCellVerification import source_test_selection
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp)/"__tests__";root.mkdir();file=root/"Shared.test.tsx";file.write_text("CONTROL")
+            plan={"files":[{"path":str(file),"sha256":NATIVE.digest(file)}],"workspace":"@codon-ui/react-native","titles":["literal (a|b)"],"stoppedTitleFragments":["custom closed campaign"]}
+            pattern=source_test_selection(plan);pattern=pattern[pattern.index("--testNamePattern")+1]
+            self.assertIsNotNone(re.fullmatch(pattern,"literal (a|b)"));self.assertIsNone(re.fullmatch(pattern,"literal a"))
+            for changed in [dict(plan,workspace="other"),dict(plan,files=plan["files"]*2),dict(plan,titles=[]),dict(plan,titles=["same","same"]),dict(plan,jsonResult=str(root/"outside.json"))]:
+                with self.subTest(changed=changed),self.assertRaises(ValueError):source_test_selection(changed)
+            wrong=root/"wrong.js";wrong.write_text("CONTROL")
+            with self.assertRaises(ValueError):source_test_selection(dict(plan,files=[{"path":str(wrong),"sha256":NATIVE.digest(wrong)}]))
+            cache=Path.cwd()/"node_modules/.cache";cache.mkdir(parents=True,exist_ok=True)
+            with tempfile.NamedTemporaryFile(dir=cache,suffix=".json") as existing:
+                with self.assertRaises(ValueError):source_test_selection(dict(plan,jsonResult=existing.name))
             file.write_text("CHANGED")
             with self.assertRaises(ValueError):source_test_selection(plan)
 

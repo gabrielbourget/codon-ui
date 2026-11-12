@@ -135,6 +135,109 @@ it("keeps the original editor and independent owners through a deferred explicit
   }
 })
 
+it("keeps one caller ref attachment while original stock query events echo before first result selection", async () => {
+  const release = jest.fn()
+  const receive = jest.fn((_target: TextInput | null) => release)
+  const changed = jest.fn()
+  const selected = jest.fn()
+  const observed = jest.fn()
+  const Owner = () => {
+    const [query, setQuery] = useState("")
+    return (
+      <ComboBox
+        inputRef={receive}
+        items={choices}
+        getKey={(item) => item.key}
+        getTextValue={(item) => item.text}
+        accessibilityLabel="Choose"
+        inputLabel="Stock query"
+        closeLabel="Close query"
+        isOpen
+        inputValue={query}
+        onInputChange={(text) => {
+          changed(text)
+          setQuery(text)
+        }}
+        onChange={selected}
+        inputProps={{ onChange: observed }}
+      />
+    )
+  }
+  const { unmount } = await render(<Owner />)
+  expect(receive).toHaveBeenCalledTimes(1)
+  const original = receive.mock.calls[0][0]!
+  expect(original).not.toBeNull()
+  const events = ["N", "Native", "Native query"].map((text, index) => ({
+    nativeEvent: { text, eventCount: index + 1, target: findNodeHandle(original)! },
+  }))
+  for (const event of events) {
+    await fireEvent(screen.getByLabelText("Stock query"), "change", event)
+    expect(receive).toHaveBeenCalledTimes(1)
+    expect(release).not.toHaveBeenCalled()
+    expect(screen.getByLabelText("Stock query").props.text).toBe(event.nativeEvent.text)
+    expect(observed.mock.calls.at(-1)?.[0]).toBe(event)
+  }
+  expect(changed.mock.calls).toEqual([["N"], ["Native"], ["Native query"]])
+  expect(selected).not.toHaveBeenCalled()
+  await readyWindow(original)
+  await userEvent
+    .setup({ advanceTimers: jest.advanceTimersByTimeAsync })
+    .press(screen.getByRole("radio", { name: "String zero" }))
+  expect(selected.mock.calls).toEqual([["0"]])
+  expect(receive).toHaveBeenCalledTimes(1)
+  expect(release).not.toHaveBeenCalled()
+  await unmount()
+  expect(release).toHaveBeenCalledTimes(1)
+  expect(receive).toHaveBeenCalledTimes(1)
+})
+
+it("hands the unchanged query editor between callback and object refs without losing final cleanup", async () => {
+  const firstCleanup = jest.fn()
+  const first = jest.fn((_target: TextInput | null) => firstCleanup)
+  const second = jest.fn((_target: TextInput | null) => undefined)
+  const object = createRef<TextInput>()
+  const props = {
+    items: choices,
+    getKey: (item: (typeof choices)[number]) => item.key,
+    getTextValue: (item: (typeof choices)[number]) => item.text,
+    accessibilityLabel: "Choose",
+    inputLabel: "Handoff query",
+    closeLabel: "Close query",
+    isOpen: true,
+    inputValue: "held query",
+  }
+  const { rerender, unmount } = await render(<ComboBox {...props} inputRef={first} />)
+  const original = first.mock.calls[0][0]!
+  const event = { nativeEvent: { text: "requested", eventCount: 1, target: findNodeHandle(original)! } }
+  await fireEvent(screen.getByLabelText("Handoff query"), "change", event)
+  expect(first).toHaveBeenCalledTimes(1)
+  expect(firstCleanup).not.toHaveBeenCalled()
+  await rerender(<ComboBox {...props} inputRef={object} />)
+  expect(firstCleanup).toHaveBeenCalledTimes(1)
+  expect(object.current).toBe(original)
+  await rerender(<ComboBox {...props} inputRef={second} />)
+  expect(object.current).toBeNull()
+  expect(second.mock.calls).toEqual([[original]])
+  await fireEvent(screen.getByLabelText("Handoff query"), "change", {
+    nativeEvent: { text: "another request", eventCount: 2, target: findNodeHandle(original)! },
+  })
+  expect(second.mock.calls).toEqual([[original]])
+  expect(screen.getByLabelText("Handoff query").props.text).toBe("held query")
+  await rerender(<ComboBox {...props} inputRef={undefined} />)
+  expect(second.mock.calls).toEqual([[original], [null]])
+  await rerender(<ComboBox {...props} inputRef={object} />)
+  expect(object.current).toBe(original)
+  await rerender(<ComboBox {...props} isOpen={false} inputRef={object} />)
+  expect(object.current).toBeNull()
+  await rerender(<ComboBox {...props} inputRef={object} />)
+  expect(object.current).not.toBeNull()
+  expect(object.current).not.toBe(original)
+  await unmount()
+  expect(firstCleanup).toHaveBeenCalledTimes(1)
+  expect(object.current).toBeNull()
+  expect(second.mock.calls).toEqual([[original], [null]])
+})
+
 it("retains the canonical group name without combining or renaming its independent controls", async () => {
   const props = {
     items: [{ key: "a", text: "Alpha" }],
