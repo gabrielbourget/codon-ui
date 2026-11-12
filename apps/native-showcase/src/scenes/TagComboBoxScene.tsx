@@ -192,37 +192,6 @@ export const TagComboBoxScene = () => {
       <Text elementType="h2" variant="h3">
         TagComboBox
       </Text>
-      <Text testID="tag-combo-owner-state">
-        Selected: {itemLabels(selected)}. Query: {JSON.stringify(query)}. Open: {String(open)}. Selection:{" "}
-        {scenario.current ? "veto two, echo third" : vetoSelection ? "veto" : "echo"}. Input:{" "}
-        {scenario.current ? "held until third selection" : vetoInput ? "veto" : "echo"}. Popup:{" "}
-        {scenario.current ? "owner-held open" : vetoOpen ? "veto" : "echo"}.
-      </Text>
-      <Text testID="tag-combo-owner-profile">
-        Logical items: {items.length}. Renderer: {virtual ? "VirtualizedList" : "ordinary"}. Direction:{" "}
-        {rtl ? "rtl" : "ltr"}. Text: {large ? "large" : "medium"}.
-      </Text>
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-        <Button onPress={() => setSelected([ITEMS[0], ITEMS[3]])}>Set two selected tags</Button>
-        <Button
-          onPress={() => {
-            try {
-              setFormattedSelection(
-                new Intl.ListFormat(rtl ? "ar-EG" : "en-US", { style: "long", type: "conjunction" }).format(
-                  selected.map((item) => item.label),
-                ),
-              )
-            } catch (error) {
-              setFormattedSelection(`Unavailable: ${String(error)}`)
-            }
-          }}
-        >
-          Format selected tag names
-        </Button>
-      </View>
-      <Text testID="tag-combo-owner-formatted-selection">Formatted selection: {formattedSelection}.</Text>
-      <Text testID="tag-combo-owner-requests">Requests: {requests.join(" → ") || "none"}.</Text>
-      {ownerControls}
       <TextInput
         ref={editor}
         testID="tag-combo-owner-editor"
@@ -234,11 +203,6 @@ export const TagComboBoxScene = () => {
         }}
         style={{ color: theme.colors.foreground, borderWidth: 1, borderColor: theme.colors.controlBorder, padding: 8 }}
       />
-      <Text testID="tag-combo-form-state">
-        Form veto: {String(formVeto)}. Required: {String(required)}. Validation: {ariaValidation ? "aria" : "native"}.
-        Server error: {String(serverError)}. Association: {disassociated ? "none" : "ancestor"}. Result: {formResult}.
-      </Text>
-      <Text testID="tag-combo-form-requests">Form requests: {formRequests.join(" → ") || "none"}.</Text>
       <NativeForm
         ref={form}
         id="tag-combo-owner-form"
@@ -325,6 +289,42 @@ export const TagComboBoxScene = () => {
           <Button onPress={() => void programmaticAction("reset")}>Reset tag-combo form programmatically</Button>
         </View>
       </NativeForm>
+      <Text testID="tag-combo-owner-state">
+        Selected: {itemLabels(selected)}. Query: {JSON.stringify(query)}. Open: {String(open)}. Selection:{" "}
+        {scenario.current ? "veto two, echo third" : vetoSelection ? "veto" : "echo"}. Input:{" "}
+        {scenario.current ? "held until third selection" : vetoInput ? "veto" : "echo"}. Popup:{" "}
+        {scenario.current ? "owner-held open" : vetoOpen ? "veto" : "echo"}.
+      </Text>
+      <Text testID="tag-combo-owner-profile">
+        Logical items: {items.length}. Renderer: {virtual ? "VirtualizedList" : "ordinary"}. Direction:{" "}
+        {rtl ? "rtl" : "ltr"}. Text: {large ? "large" : "medium"}.
+      </Text>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+        <Button onPress={() => setSelected([ITEMS[0], ITEMS[3]])}>Set two selected tags</Button>
+        <Button
+          onPress={() => {
+            try {
+              setFormattedSelection(
+                new Intl.ListFormat(rtl ? "ar-EG" : "en-US", { style: "long", type: "conjunction" }).format(
+                  selected.map((item) => item.label),
+                ),
+              )
+            } catch (error) {
+              setFormattedSelection(`Unavailable: ${String(error)}`)
+            }
+          }}
+        >
+          Format selected tag names
+        </Button>
+      </View>
+      <Text testID="tag-combo-owner-formatted-selection">Formatted selection: {formattedSelection}.</Text>
+      <Text testID="tag-combo-owner-requests">Requests: {requests.join(" → ") || "none"}.</Text>
+      {ownerControls}
+      <Text testID="tag-combo-form-state">
+        Form veto: {String(formVeto)}. Required: {String(required)}. Validation: {ariaValidation ? "aria" : "native"}.
+        Server error: {String(serverError)}. Association: {disassociated ? "none" : "ancestor"}. Result: {formResult}.
+      </Text>
+      <Text testID="tag-combo-form-requests">Form requests: {formRequests.join(" → ") || "none"}.</Text>
       <Button onPress={() => editor.current?.focus()}>Focus original tag-combo draft editor</Button>
       <TextInput
         accessibilityLabel="Draft after tag combo box"

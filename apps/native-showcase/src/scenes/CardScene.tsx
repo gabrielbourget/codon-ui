@@ -16,12 +16,6 @@ export const CardScene = () => {
   return (
     <View style={{ gap: 10 }}>
       <Text elementType="h2">Card</Text>
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 5 }}>
-        <Button onPress={() => setExpanded((value) => !value)}>Toggle Card geometry</Button>
-        <Button onPress={() => setRaised((value) => !value)}>Toggle Card shadow</Button>
-        <Button onPress={() => setPosition((value) => !value)}>Toggle Card layout mode</Button>
-        <Button onPress={() => setContinuous((value) => !value)}>Toggle Card corner curve</Button>
-      </View>
       <Card
         ref={original}
         testID="card-scene-original"
@@ -60,6 +54,12 @@ export const CardScene = () => {
       <Text testID="card-scene-owner">
         Draft: {draft}. Dragging: {String(dragged)}. Completed animations: {reports}.
       </Text>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 5 }}>
+        <Button onPress={() => setExpanded((value) => !value)}>Toggle Card geometry</Button>
+        <Button onPress={() => setRaised((value) => !value)}>Toggle Card shadow</Button>
+        <Button onPress={() => setPosition((value) => !value)}>Toggle Card layout mode</Button>
+        <Button onPress={() => setContinuous((value) => !value)}>Toggle Card corner curve</Button>
+      </View>
     </View>
   )
 }

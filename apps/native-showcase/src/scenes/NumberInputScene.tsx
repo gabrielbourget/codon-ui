@@ -34,6 +34,7 @@ export const NumberInputScene = () => {
   const [standalone, setStandalone] = useState(false)
   return (
     <View style={{ gap: 12 }}>
+      <NumberCapabilityBoundary>{standalone ? <NumberInputG08Fixture /> : <NumberExamples />}</NumberCapabilityBoundary>
       <Text testID="number-runtime-methods">
         Number Intl: {NUMBER_INTL_PREPARATION}. Instance formatToParts=
         {typeof new Intl.NumberFormat("en-US").formatToParts}; getCanonicalLocales={typeof Intl.getCanonicalLocales};
@@ -42,7 +43,6 @@ export const NumberInputScene = () => {
       <Button raised={false} accessibilityLabel="Prepare standalone Number checks" onPress={() => setStandalone(true)}>
         Prepare standalone Number checks
       </Button>
-      <NumberCapabilityBoundary>{standalone ? <NumberInputG08Fixture /> : <NumberExamples />}</NumberCapabilityBoundary>
     </View>
   )
 }

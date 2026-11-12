@@ -83,6 +83,7 @@ export const ToasterScene = () => {
             {zeroDuration ? 0 : "persistent"}. Important {String(important)}. Theme {dark ? "dark" : "light"}. Scene
             frame {frame}.
           </Text>
+          <Text testID="toaster-fixture-events">{events.join("\n") || "No requests"}</Text>
           <View style={styles.controls}>
             <Button ref={returnTarget} testID="toaster-fixture-return" onFocus={() => record("focus:return-target")}>
               Focus return target
@@ -136,7 +137,6 @@ export const ToasterScene = () => {
             onFocus={() => record("focus:editor")}
             style={styles.editor}
           />
-          <Text testID="toaster-fixture-events">{events.join("\n") || "No requests"}</Text>
         </ScrollView>
         {showToaster ? (
           <Toaster

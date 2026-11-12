@@ -65,29 +65,11 @@ export const BasicControlsScene = () => {
       <Text elementType="h2" variant="h3">
         Native basic controls
       </Text>
-      {action("Prepare standalone Button checks", () => setButtonChecks(true))}
-      {action("Prepare standalone Switch checks", () => setSwitchChecks(true))}
-      {action("Prepare standalone Checkbox checks", () => setCheckboxChecks(true))}
-      {action("Prepare CheckboxGroup checks", () => setCheckboxGroupChecks(true))}
-      {action("Prepare RadioGroup checks", () => setRadioGroupChecks(true))}
-      {action("Prepare standalone Input checks", () => setInputChecks(true))}
       <Text testID="basic-control-state">
         Switch: {selectedSwitch ? "on" : "off"}. Checkbox: {selectedCheckbox ? "on" : "off"}. Group:{" "}
         {group.join(",") || "none"}. Input: {input || "empty"}. Submits: {submits}. State:{" "}
         {disabled ? "disabled" : readOnly ? "read-only" : "enabled"}. Mixed: {mixed ? "yes" : "no"}.
       </Text>
-      <View style={styles.controls}>
-        {action("Toggle controls disabled", () => setDisabled((value) => !value))}
-        {action("Toggle controls read-only", () => setReadOnly((value) => !value))}
-        {action("Toggle mixed display", () => setMixed((value) => !value))}
-        {action("Toggle control styles", () => setCustom((value) => !value))}
-        {action("Next control order", () =>
-          setOrderIndex((value) => (value + 1) % AVAILABLE_THEMING_ORDER_CODES.length),
-        )}
-        {action("Next control geometry", () =>
-          setGeometryIndex((value) => (value + 1) % AVAILABLE_CORNER_GEOMETRY_CODES.length),
-        )}
-      </View>
       <Text>
         Order: {order}. Geometry: {geometry}. Uncontrolled switch: {uncontrolledSwitch ? "on" : "off"}. Uncontrolled
         checkbox: {uncontrolledCheckbox ? "on" : "off"}.
@@ -255,6 +237,24 @@ export const BasicControlsScene = () => {
           style={({ defaultStyle }) => defaultStyle}
         />
       )}
+      {action("Prepare standalone Button checks", () => setButtonChecks(true))}
+      {action("Prepare standalone Switch checks", () => setSwitchChecks(true))}
+      {action("Prepare standalone Checkbox checks", () => setCheckboxChecks(true))}
+      {action("Prepare CheckboxGroup checks", () => setCheckboxGroupChecks(true))}
+      {action("Prepare RadioGroup checks", () => setRadioGroupChecks(true))}
+      {action("Prepare standalone Input checks", () => setInputChecks(true))}
+      <View style={styles.controls}>
+        {action("Toggle controls disabled", () => setDisabled((value) => !value))}
+        {action("Toggle controls read-only", () => setReadOnly((value) => !value))}
+        {action("Toggle mixed display", () => setMixed((value) => !value))}
+        {action("Toggle control styles", () => setCustom((value) => !value))}
+        {action("Next control order", () =>
+          setOrderIndex((value) => (value + 1) % AVAILABLE_THEMING_ORDER_CODES.length),
+        )}
+        {action("Next control geometry", () =>
+          setGeometryIndex((value) => (value + 1) % AVAILABLE_CORNER_GEOMETRY_CODES.length),
+        )}
+      </View>
       <View style={styles.controls}>
         {action("Focus basic input", () => inputRef.current?.focus())}
         {action("Dismiss basic keyboard", () => Keyboard.dismiss())}

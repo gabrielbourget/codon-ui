@@ -193,38 +193,6 @@ export const TagGroupScene = () => {
         Owner: {describeKeys(selected)}. Mode: {MODES[modeIndex]}. Behavior: {replace ? "replace" : "toggle"}. Parent:{" "}
         {veto ? "veto" : "echo"}. Requests: {requests}. Last: {last}.
       </Text>
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-        <Button onPress={() => setVeto((value) => !value)}>Toggle tag-group owner veto</Button>
-        <Button onPress={() => setModeIndex((value) => (value + 1) % MODES.length)}>
-          Next tag-group selection mode
-        </Button>
-        <Button onPress={() => setReplace((value) => !value)}>Toggle tag-group selection behavior</Button>
-        <Button onPress={() => setDisabled((value) => !value)}>Toggle number-zero disabled</Button>
-        <Button onPress={() => setRemovable((value) => !value)}>Toggle tag-group removal</Button>
-        <Button onPress={() => setVertical((value) => !value)}>Toggle tag-group orientation</Button>
-        <Button onPress={() => setCustom((value) => !value)}>Toggle tag-group styles</Button>
-        <Button onPress={() => setCustomHost((value) => !value)}>Toggle grouped-tag custom host</Button>
-        <Button onPress={() => setFocusRevision((value) => value + 1)}>Remount tag group with autofocus</Button>
-        <Button onPress={() => setRaised((value) => !value)}>Toggle grouped-tag shadow</Button>
-        <Button onPress={() => setSelected("all")}>Set tag-group owner all</Button>
-        <Button onPress={() => setSelected(new Set())}>Set tag-group owner empty</Button>
-        <Button onPress={() => setItems((current) => (current.length ? [...current.slice(1), current[0]] : current))}>
-          Rotate tag-group items
-        </Button>
-        <Button onPress={() => setItems([])}>Clear tag-group owner items</Button>
-        <Button onPress={() => setItems(ITEMS)}>Restore tag-group owner items</Button>
-        <Button
-          onPress={() => {
-            setVirtual((value) => !value)
-            setItems(virtual ? ITEMS : LARGE_ITEMS)
-          }}
-        >
-          Toggle 69-item native virtualization
-        </Button>
-        <Button onPress={inspectRefs}>Inspect grouped-tag refs</Button>
-        <Button onPress={inspectSDK}>Inspect grouped-tag native accessibility</Button>
-        <Button onPress={() => setFieldSlots((value) => !value)}>Toggle tag-group field slots</Button>
-      </View>
       <TextInput
         ref={editor}
         testID="tag-group-owner-editor"
@@ -266,6 +234,38 @@ export const TagGroupScene = () => {
           </NativeSelectableCollectionContext.Provider>
         </NativeCollectionRendererContext.Provider>
       </FieldRendererContext.Provider>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+        <Button onPress={() => setVeto((value) => !value)}>Toggle tag-group owner veto</Button>
+        <Button onPress={() => setModeIndex((value) => (value + 1) % MODES.length)}>
+          Next tag-group selection mode
+        </Button>
+        <Button onPress={() => setReplace((value) => !value)}>Toggle tag-group selection behavior</Button>
+        <Button onPress={() => setDisabled((value) => !value)}>Toggle number-zero disabled</Button>
+        <Button onPress={() => setRemovable((value) => !value)}>Toggle tag-group removal</Button>
+        <Button onPress={() => setVertical((value) => !value)}>Toggle tag-group orientation</Button>
+        <Button onPress={() => setCustom((value) => !value)}>Toggle tag-group styles</Button>
+        <Button onPress={() => setCustomHost((value) => !value)}>Toggle grouped-tag custom host</Button>
+        <Button onPress={() => setFocusRevision((value) => value + 1)}>Remount tag group with autofocus</Button>
+        <Button onPress={() => setRaised((value) => !value)}>Toggle grouped-tag shadow</Button>
+        <Button onPress={() => setSelected("all")}>Set tag-group owner all</Button>
+        <Button onPress={() => setSelected(new Set())}>Set tag-group owner empty</Button>
+        <Button onPress={() => setItems((current) => (current.length ? [...current.slice(1), current[0]] : current))}>
+          Rotate tag-group items
+        </Button>
+        <Button onPress={() => setItems([])}>Clear tag-group owner items</Button>
+        <Button onPress={() => setItems(ITEMS)}>Restore tag-group owner items</Button>
+        <Button
+          onPress={() => {
+            setVirtual((value) => !value)
+            setItems(virtual ? ITEMS : LARGE_ITEMS)
+          }}
+        >
+          Toggle 69-item native virtualization
+        </Button>
+        <Button onPress={inspectRefs}>Inspect grouped-tag refs</Button>
+        <Button onPress={inspectSDK}>Inspect grouped-tag native accessibility</Button>
+        <Button onPress={() => setFieldSlots((value) => !value)}>Toggle tag-group field slots</Button>
+      </View>
       <Button onPress={() => editor.current?.focus()}>Focus original draft editor</Button>
       <TextInput
         accessibilityLabel="Draft after tag group"
