@@ -44,26 +44,6 @@ export const CarouselScene = () => {
         Selected: {selected + 1}. Items: {items.length}. Selection reports: {requests}. Viewport:{" "}
         {viewport ? "attached" : "detached"}. Requested: {initialIndex + 1}. Mode: finite native paging.
       </Text>
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 5 }}>
-        <Button onPress={() => setOpen((value) => !value)}>{open ? "Hide carousel" : "Show carousel"}</Button>
-        <Button onPress={() => setVertical((value) => !value)}>Toggle axis</Button>
-        <Button onPress={() => setManual((value) => !value)}>Toggle dot activation</Button>
-        <Button onPress={() => setInteractive((value) => !value)}>Toggle passive dots</Button>
-        <Button onPress={() => setOverlay((value) => !value)}>Toggle chrome overlay</Button>
-        <Button onPress={() => setInitialIndex((value) => (value === 0 ? 4 : 0))}>Change requested index</Button>
-        <Button onPress={() => setItems((value) => [...value].reverse())}>Reverse items</Button>
-        <Button
-          onPress={() => {
-            const index = itemSerial.current++
-            setItems((value) => [...value, { ID: `item-${index}`, label: `Item ${index + 1}` }])
-          }}
-        >
-          Add item
-        </Button>
-        <Button onPress={() => setItems((value) => value.slice(0, -1))}>Remove item</Button>
-        <Button onPress={() => context.current?.scrollTo(0, { animated: false })}>Jump to first</Button>
-        <Button onPress={() => setAlign((value) => (value === "end" ? "center" : "end"))}>Change alignment</Button>
-      </View>
       {open ? (
         <Carousel
           items={items}
@@ -100,7 +80,11 @@ export const CarouselScene = () => {
             context.current = current
             return (
               <View pointerEvents="box-none" style={{ flex: 1, justifyContent: "space-between", padding: 5 }}>
-                <View pointerEvents="box-none" style={{ alignItems: "flex-end" }}>
+                <View
+                  pointerEvents="box-none"
+                  style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}
+                >
+                  <CarouselCounter />
                   <CarouselCloseButton onPress={() => setOpen(false)} />
                 </View>
                 <View
@@ -108,7 +92,6 @@ export const CarouselScene = () => {
                   style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}
                 >
                   <CarouselPrevButton />
-                  <CarouselCounter />
                   <CarouselNextButton />
                 </View>
                 <CarouselDots
@@ -123,6 +106,26 @@ export const CarouselScene = () => {
           }}
         />
       ) : null}
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 5 }}>
+        <Button onPress={() => setOpen((value) => !value)}>{open ? "Hide carousel" : "Show carousel"}</Button>
+        <Button onPress={() => setVertical((value) => !value)}>Toggle axis</Button>
+        <Button onPress={() => setManual((value) => !value)}>Toggle dot activation</Button>
+        <Button onPress={() => setInteractive((value) => !value)}>Toggle passive dots</Button>
+        <Button onPress={() => setOverlay((value) => !value)}>Toggle chrome overlay</Button>
+        <Button onPress={() => setInitialIndex((value) => (value === 0 ? 4 : 0))}>Change requested index</Button>
+        <Button onPress={() => setItems((value) => [...value].reverse())}>Reverse items</Button>
+        <Button
+          onPress={() => {
+            const index = itemSerial.current++
+            setItems((value) => [...value, { ID: `item-${index}`, label: `Item ${index + 1}` }])
+          }}
+        >
+          Add item
+        </Button>
+        <Button onPress={() => setItems((value) => value.slice(0, -1))}>Remove item</Button>
+        <Button onPress={() => context.current?.scrollTo(0, { animated: false })}>Jump to first</Button>
+        <Button onPress={() => setAlign((value) => (value === "end" ? "center" : "end"))}>Change alignment</Button>
+      </View>
     </View>
   )
 }
