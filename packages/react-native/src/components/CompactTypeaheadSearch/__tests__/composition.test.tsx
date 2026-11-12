@@ -703,3 +703,65 @@ it("honors explicit native root focusability without replacing the held public e
   expect(root.current).toBeNull()
   expect(editor.current).toBeNull()
 })
+
+it.each([false, true])(
+  "preserves custom-query commit policy with allowsCustomValue=%s on the original editor",
+  async (allowsCustomValue) => {
+    let state: ContextType<typeof NativeComboBoxStateContext> = null
+    const Capture = () => {
+      state = useContext(NativeComboBoxStateContext)
+      return null
+    }
+    const editor = createRef<TextInput>(),
+      changed = jest.fn()
+    await render(
+      wrap(
+        <CompactTypeaheadSearch
+          items={items}
+          inputRef={editor}
+          defaultInputValue="Unmatched"
+          allowsCustomValue={allowsCustomValue}
+          placeholder="Find a result"
+          onChange={changed}
+          SearchIcon={<Capture />}
+        />,
+      ),
+    )
+    const original = editor.current
+    expect(row("type-ahead-search-input").props.placeholder).toBe("Find a result")
+    await act(() => state!.commit())
+    expect(row("type-ahead-search-input").props.value).toBe(allowsCustomValue ? "Unmatched" : "")
+    expect(state!.selectedKey).toBeNull()
+    expect(editor.current).toBe(original)
+    expect(changed).not.toHaveBeenCalled()
+  },
+)
+
+it.each(["manual", "focus"] as const)(
+  "opens on original focus only when the compact menuTrigger is %s",
+  async (menuTrigger) => {
+    let state: ContextType<typeof NativeComboBoxStateContext> = null
+    const Capture = () => {
+      state = useContext(NativeComboBoxStateContext)
+      return null
+    }
+    const opened = jest.fn(),
+      editor = createRef<TextInput>()
+    await render(
+      wrap(
+        <CompactTypeaheadSearch
+          items={items}
+          inputRef={editor}
+          menuTrigger={menuTrigger}
+          onOpenChange={opened}
+          SearchIcon={<Capture />}
+        />,
+      ),
+    )
+    const original = editor.current
+    await act(() => state!.setFocused(true))
+    expect(opened.mock.calls).toEqual(menuTrigger === "focus" ? [[true]] : [])
+    expect(state!.isOpen).toBe(menuTrigger === "focus")
+    expect(editor.current).toBe(original)
+  },
+)

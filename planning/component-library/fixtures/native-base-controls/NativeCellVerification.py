@@ -13,7 +13,7 @@ import time
 VERSION = "NATIVE-CELL-03"
 CHECKLIST = Path(__file__).with_name("NativeCellVerificationChecklist.md")
 RUBRIC = Path(__file__).resolve().parents[2] / "roadmap.md"
-STOPPED_SOURCE_TITLE_FRAGMENTS = ("ComboBox", "combo-box")
+STOPPED_SOURCE_COMPONENTS = {"menu", "combobox", "combo-box", "slider", "tag"}
 RISKS = {"fractional_geometry", "shadow", "antialiasing", "rotation", "scene_readiness", "cleanup"}
 
 
@@ -157,13 +157,41 @@ def load_admission(driver, cell, cohorts):
     return {"path": path, "sha256": digest(path), "version": VERSION, "result": receipt["status"], "attempt": receipt["attempt"]}
 
 
+def stopped_source_path(path):
+    parts = [part.casefold() for part in path.parts]
+    if any(part == "components" and parts[index + 1] in STOPPED_SOURCE_COMPONENTS for index, part in enumerate(parts[:-1])):
+        return True
+    if any(part in {"native-" + owner for owner in STOPPED_SOURCE_COMPONENTS} for part in parts):
+        return True
+    # Scene and fixture filenames retain their complete leading component owner.
+    return bool(re.match(r"^(?:menu|combo-?box|slider|tag)(?=\.|[-_]|scene|fixture|layout|g0[1-9])", path.name, re.IGNORECASE))
+
+
+def stopped_source_title(title, files):
+    targets = re.findall(r"\b(?:CAT|CAP)\.([a-z][a-z0-9-]*)(?=\.|\s|$)", title, re.IGNORECASE)
+    if any(target.casefold() in STOPPED_SOURCE_COMPONENTS for target in targets):
+        return True
+    identity = r"(?:menu|combo-?box|slider|tag)"
+    boundary = r"(?![a-z0-9_-])"
+    if re.search(r"\bstandalone\s+" + identity + boundary + r"|(?<![a-z0-9_-])" + identity + r"\s+(?:scene|G0[1-9])\b", title, re.IGNORECASE):
+        return True
+    if re.search(r"\b(?:opens?|renders?|runs?|tests?)\s+(?:(?:the|public|standalone)\s+)*" + identity + boundary, title, re.IGNORECASE):
+        return True
+    # Only the actual owning component can disambiguate borrowed names in its contract.
+    owners = {path.parts[index + 1].casefold().replace("-", "") for path in files for index, part in enumerate(path.parts[:-1]) if part.casefold() == "components"}
+    if targets and all(target.casefold().replace("-", "") in owners for target in targets):
+        return False
+    return bool(re.search(r"(?<![a-z0-9_-])(?:menu|combo-?box|slider)" + boundary, title, re.IGNORECASE) or re.search(r"(?<![A-Za-z0-9_-])(?:Tag|TAG)(?![A-Za-z0-9_-])", title))
+
+
 def source_test_selection(plan):
     files=[bound_file(item) for item in plan["files"]]
     require(files and len(set(files))==len(files) and all(path.suffix in [".tsx",".ts"] and "/__tests__/" in str(path) for path in files),"Explicit source test files required")
     titles=plan["titles"];stopped=plan["stoppedTitleFragments"]
     require(titles and len(set(titles))==len(titles) and all(isinstance(title,str) and title.strip() for title in titles),"Exact source test titles required")
     require(stopped and all(isinstance(term,str) and term for term in stopped),"Stopped-cell selection exclusions required")
-    require(not any(term.casefold() in value.casefold() for term in [*STOPPED_SOURCE_TITLE_FRAGMENTS,*stopped] for value in titles+[str(path) for path in files]),"Source selection includes a stopped cell")
+    phrases = [term for term in stopped if term.casefold() not in STOPPED_SOURCE_COMPONENTS | {"standalone tag"}]
+    require(not (any(stopped_source_path(path) for path in files) or any(stopped_source_title(title, files) for title in titles) or any(term.casefold() in value.casefold() for term in phrases for value in titles + [str(path) for path in files])),"Source selection includes a stopped cell")
     require(plan["workspace"] in ["@codon-ui/native-showcase","@codon-ui/react-native"],"Source selection workspace not supported")
     # Anchoring escaped literal names prevents a shared-file request from expanding into other cells.
     pattern="^(?:"+"|".join(re.escape(title) for title in titles)+")$"
