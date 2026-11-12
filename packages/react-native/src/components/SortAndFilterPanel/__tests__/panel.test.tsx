@@ -28,6 +28,7 @@ jest.unmock("react-native/Libraries/Components/View/View")
 jest.unmock("react-native/Libraries/Components/View/ViewNativeComponent")
 jest.unmock("react-native/Libraries/Components/TextInput/TextInput")
 jest.mock("react-native-safe-area-context", () => ({
+  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
   SafeAreaProvider: jest.requireActual("react-native").View,
   SafeAreaView: jest.requireActual("react-native").View,
 }))

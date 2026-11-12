@@ -49,7 +49,10 @@ jest.mock("../../../input/specs/CUIFocusViewNativeComponent", () => {
 jest.unmock("react-native/Libraries/Components/View/View")
 jest.unmock("react-native/Libraries/Components/View/ViewNativeComponent")
 jest.unmock("react-native/Libraries/Components/TextInput/TextInput")
-jest.mock("react-native-safe-area-context", () => ({ SafeAreaProvider: jest.requireActual("react-native").View }))
+jest.mock("react-native-safe-area-context", () => ({
+  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+  SafeAreaProvider: jest.requireActual("react-native").View,
+}))
 const host = (id: string) => screen.getByTestId(id, { includeHiddenElements: true })
 const tree = (style?: TNativeSortAndFilterPanelProps["customDialogStyles"]) => (
   <NativeThemeProvider>
@@ -209,16 +212,23 @@ it("preserves canonical box sizing and flex shrink through explicit dialog overr
   const dialog = host("query-panel-dialog"),
     original = mockViews.get(dialog.props.ownerId)
   const control = screen.getByRole("button", { name: "Add Sort Criteria" })
-  expect(dialog).toHaveStyle({ boxSizing: "content-box", flexShrink: 1, width: "100%", height: "100%", padding: 10 })
-  await result.rerender(tree({ boxSizing: "border-box", flexShrink: 0 }))
-  expect(dialog).toHaveStyle({ boxSizing: "border-box", flexShrink: 0 })
+  expect(dialog).toHaveStyle({ boxSizing: "border-box", flexShrink: 1, width: "100%", height: "100%", padding: 10 })
+  await result.rerender(tree({ boxSizing: "content-box", flexShrink: 0, width: 120, height: 90, padding: 0, gap: 0 }))
+  expect(dialog).toHaveStyle({ boxSizing: "content-box", flexShrink: 0, width: 120, height: 90, padding: 0, gap: 0 })
   await result.rerender(
     tree([
-      { boxSizing: "border-box", flexShrink: 0 },
+      { boxSizing: "content-box", flexShrink: 0 },
       { boxSizing: undefined, flexShrink: undefined },
     ]),
   )
-  expect(dialog).toHaveStyle({ boxSizing: "content-box", flexShrink: 1 })
+  expect(dialog).toHaveStyle({
+    boxSizing: "border-box",
+    flexShrink: 1,
+    width: "100%",
+    height: "100%",
+    padding: 10,
+    gap: 10,
+  })
   expect(mockViews.get(dialog.props.ownerId)).toBe(original)
   expect(screen.getByRole("button", { name: "Add Sort Criteria" })).toBe(control)
 })
