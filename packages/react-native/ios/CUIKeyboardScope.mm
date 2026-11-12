@@ -525,7 +525,8 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
 }
 - (NSString *)originalToolbarRole:(UIView *)view
 {
-  if (![view conformsToProtocol:@protocol(RCTComponentViewProtocol)]) return @"";
+  // UIView's protocol category supplies an asserting props fallback for UIKit ancestors.
+  if (![view isKindOfClass:RCTViewComponentView.class]) return @"";
   const auto props=std::dynamic_pointer_cast<const ViewProps>([(id<RCTComponentViewProtocol>)view props]);
   if (!props) return @"";
   if (props->role == Role::Toolbar) return @"toolbar";
@@ -1210,7 +1211,7 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
 - (void)dealloc
 {
   _dragSurfaceId = 0;
-  [_dragInteractions invalidate]; _dragInteractions = [[CUIDragInteractions alloc] initWithScope:self];
+  [_dragInteractions invalidate]; _dragInteractions = nil;
   [_dialogs invalidate];
   [_floating invalidate];
   [_boundWindow removeGestureRecognizer:_keyboard];
