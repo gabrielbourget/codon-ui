@@ -604,11 +604,11 @@ static CUIMotionCornerCurves CUIUniformCornerCurve(BorderCurve curve) {
     if (!_cuiBorderLayer) {
       CALayer *borderLayer = [CALayer new];
       borderLayer.zPosition = CUI_BACKGROUND_COLOR_ZPOSITION + 1;
-      borderLayer.frame = layer.bounds;
       borderLayer.magnificationFilter = kCAFilterNearest;
       [layer addSublayer:borderLayer];
       _cuiBorderLayer = borderLayer;
     }
+    _cuiBorderLayer.frame = layer.bounds;
 
     layer.borderWidth = 0;
     layer.borderColor = nil;
