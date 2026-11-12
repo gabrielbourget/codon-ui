@@ -13,7 +13,7 @@
 import type { Calendar, CalendarIdentifier } from "@internationalized/date"
 import { DateFormatter, GregorianCalendar, isEqualCalendar, toCalendar } from "@internationalized/date"
 import { NumberFormatter } from "@internationalized/number"
-import { useMemo, useState } from "react"
+import { useInsertionEffect, useMemo, useRef, useState } from "react"
 
 import { useControlledState } from "../../collection/state/useControlledState"
 import type { FormValidationState } from "../../components/ComboBox/state/useFormValidationState"
@@ -172,7 +172,10 @@ export interface DateFieldStateOptions<T extends DateValue = DateValue> extends 
  * A date field allows users to enter and edit date and time values using a keyboard.
  * Each part of a date value is displayed in an individually editable segment.
  */
-export function useDateFieldState<T extends DateValue = DateValue>(props: DateFieldStateOptions<T>): DateFieldState {
+export function useDateFieldState<T extends DateValue = DateValue>(
+  props: DateFieldStateOptions<T>,
+  composePendingEdits = false,
+): DateFieldState {
   const {
     locale,
     createCalendar,
@@ -275,38 +278,60 @@ export function useDateFieldState<T extends DateValue = DateValue>(props: DateFi
     setDisplayValue(displayValue)
   }
 
+  const currentRender = useRef<object | null>(null)
+  const render = {}
+  useInsertionEffect(() => {
+    currentRender.current = render
+    return () => {
+      if (currentRender.current === render) currentRender.current = null
+    }
+  })
+  let pendingValue = value
+  let pendingCalendarValue = calendarValue
+  const canEdit = () =>
+    !props.isDisabled && !props.isReadOnly && (!composePendingEdits || currentRender.current === render)
+  const writeDisplay = (next: IncompleteDate) => {
+    if (composePendingEdits) displayValue = next
+    setDisplayValue(next)
+  }
+  const publishValue = (next: DateValue | null) => {
+    if (composePendingEdits) {
+      pendingValue = next
+      pendingCalendarValue = convertValue(next, calendar) ?? null
+    }
+    writeDisplay(new IncompleteDate(calendar, hourCycle, pendingCalendarValue))
+    setDate(next)
+  }
+
   const setValue = (newValue: DateValue | IncompleteDate | null) => {
-    if (props.isDisabled || props.isReadOnly) {
+    if (!canEdit()) {
       return
     }
 
     if (newValue == null || (newValue instanceof IncompleteDate && newValue.isCleared(displaySegments))) {
-      setDisplayValue(new IncompleteDate(calendar, hourCycle, calendarValue))
-      setDate(null)
+      publishValue(null)
     } else if (!(newValue instanceof IncompleteDate)) {
       // The display calendar should not have any effect on the emitted value.
       // Emit dates in the same calendar as the original value, if any, otherwise gregorian.
       newValue = toCalendar(newValue, v?.calendar || new GregorianCalendar())
-      setDisplayValue(new IncompleteDate(calendar, hourCycle, calendarValue))
-      setDate(newValue)
+      publishValue(newValue)
     } else {
       // If the new value is complete and valid, trigger onChange eagerly.
       // If it represents an incomplete or invalid value (e.g. February 30th),
       // wait until the field is blurred to trigger onChange.
       if (newValue.isComplete(displaySegments)) {
-        const dateValue = newValue.toValue(calendarValue ?? placeholder)
+        const dateValue = newValue.toValue(pendingCalendarValue ?? placeholder)
         if (newValue.validate(dateValue, displaySegments)) {
           const newDateValue = toCalendar(dateValue, v?.calendar || new GregorianCalendar())
-          if (!value || newDateValue.compare(value) !== 0) {
-            setDisplayValue(new IncompleteDate(calendar, hourCycle, calendarValue)) // reset in case prop isn't updated
-            setDate(newDateValue)
+          if (!pendingValue || newDateValue.compare(pendingValue) !== 0) {
+            publishValue(newDateValue)
             return
           }
         }
       }
 
       // Incomplete/invalid value. Set temporary display override.
-      setDisplayValue(newValue)
+      writeDisplay(newValue)
     }
   }
 
@@ -378,18 +403,22 @@ export function useDateFieldState<T extends DateValue = DateValue>(props: DateFi
       setValue(displayValue.set(part, v, placeholder))
     },
     confirmPlaceholder() {
-      if (props.isDisabled || props.isReadOnly) {
+      if (!canEdit()) {
         return
       }
 
       // If the display value is complete but invalid, we need to constrain it and emit onChange on blur.
       if (displayValue.isComplete(displaySegments)) {
-        const dateValue = displayValue.toValue(calendarValue ?? placeholder)
+        const dateValue = displayValue.toValue(pendingCalendarValue ?? placeholder)
         const newDateValue = toCalendar(dateValue, v?.calendar || new GregorianCalendar())
-        if (!value || newDateValue.compare(value) !== 0) {
+        if (!pendingValue || newDateValue.compare(pendingValue) !== 0) {
+          if (composePendingEdits) {
+            publishValue(newDateValue)
+            return
+          }
           setDate(newDateValue)
         }
-        setDisplayValue(new IncompleteDate(calendar, hourCycle, calendarValue))
+        writeDisplay(new IncompleteDate(calendar, hourCycle, pendingCalendarValue))
       }
     },
     clearSegment(part) {
