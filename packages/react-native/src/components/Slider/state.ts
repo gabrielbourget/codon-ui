@@ -92,19 +92,19 @@ export const useNativeSliderState = (props: TNativeSliderProps) => {
     if (scalar.current) (callback as ((value: number) => void) | undefined)?.(next[0]!)
     else (callback as ((value: number[]) => void) | undefined)?.([...next])
   }
-  const bounds = (index: number) =>
+  const bounds = (index: number, values = latest.current.values) =>
     [
-      index ? latest.current.values[index - 1]! : latest.current.model.min,
-      index === latest.current.values.length - 1 ? latest.current.model.max : latest.current.values[index + 1]!,
+      index ? values[index - 1]! : latest.current.model.min,
+      index === values.length - 1 ? latest.current.model.max : values[index + 1]!,
     ] as const
   const request = (index: number, value: number) => {
     if (!mounted.current) return
     check(index)
     if (!editable(index)) return
     if (!Number.isFinite(value)) throw new TypeError("Slider: requested values must be finite")
-    const [min, max] = bounds(index)
-    const nextValue = latest.current.model.snap(value, min, max)
     const baseline = draggingRef.current.length ? proposal.current : latest.current.values
+    const [min, max] = bounds(index, baseline)
+    const nextValue = latest.current.model.snap(value, min, max)
     if (baseline[index] === nextValue) return
     const next = [...baseline]
     next[index] = nextValue
@@ -122,7 +122,7 @@ export const useNativeSliderState = (props: TNativeSliderProps) => {
     const current = draggingRef.current
     if (active) {
       if (current.includes(index)) return
-      proposal.current = [...latest.current.values]
+      if (!current.length) proposal.current = [...latest.current.values]
       draggingRef.current = [...current, index]
     } else {
       if (!current.includes(index)) return

@@ -77,8 +77,41 @@ export const ComboBoxOptions = <T,>({
   const registry = useContext(NativeOrdinaryEditorKeysContext)
   const editorRef = useRef<TextInput | null>(null)
   const [originalEditor, setOriginalEditor] = useState<TextInput | null>(null)
-  const mergedEditor = useNativeCollectionRefs<TextInput>(editorRef, props.inputRef)
-  const editorBinding = useNativeCollectionRefs<TextInput>(mergedEditor, setOriginalEditor)
+  const editorBinding = useNativeCollectionRefs<TextInput>(editorRef, setOriginalEditor)
+  const publishedEditor = useRef<{
+    target: TextInput
+    owner: typeof props.inputRef
+    release: () => void
+  } | null>(null)
+  useLayoutEffect(() => {
+    const target = editorRef.current
+    const published = publishedEditor.current
+    if (published && published.target === target && published.owner === props.inputRef) return
+    publishedEditor.current = null
+    published?.release()
+    if (!target || !props.inputRef) return
+    const owner = props.inputRef
+    let release: () => void
+    if (typeof owner === "function") {
+      const cleanup = owner(target)
+      release = typeof cleanup === "function" ? cleanup : () => owner(null)
+    } else {
+      owner.current = target
+      release = () => {
+        owner.current = null
+      }
+    }
+    // Stock TextInput replays its ref effect on event counts; publish committed host identity.
+    publishedEditor.current = { target, owner, release }
+  }, [originalEditor, props.inputRef])
+  useLayoutEffect(
+    () => () => {
+      const published = publishedEditor.current
+      publishedEditor.current = null
+      published?.release()
+    },
+    [],
+  )
   const list = useRef<FlatList<TNativeCollectionEntry<T>>>(null)
   const root = useRef<View | null>(null)
   const closeButton = useRef<View | null>(null)
