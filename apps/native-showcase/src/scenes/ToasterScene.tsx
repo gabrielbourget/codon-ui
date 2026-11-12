@@ -4,7 +4,6 @@ import { ScrollView, StyleSheet, TextInput, View } from "react-native"
 import {
   Button,
   focusNativeTarget,
-  NativeFloatingLayerHost,
   NativeThemeProvider,
   Text,
   toast,
@@ -63,7 +62,8 @@ export const ToasterScene = () => {
   }
   return (
     <NativeThemeProvider mode={dark ? "dark" : "light"}>
-      <NativeFloatingLayerHost
+      <View
+        style={{ flex: 1 }}
         testID="toaster-fixture-host"
         onLayout={(event) => {
           const { width, height } = event.nativeEvent.layout
@@ -80,8 +80,8 @@ export const ToasterScene = () => {
           </Text>
           <Text testID="toaster-fixture-state">
             ID {describeID(id)}. Position {position}. Limit {LIMITS[limitIndex]}. Gap {zeroGap ? 0 : 15}. Duration{" "}
-            {zeroDuration ? 0 : "persistent"}. Important {String(important)}. Theme {dark ? "dark" : "light"}. Frame{" "}
-            {frame}.
+            {zeroDuration ? 0 : "persistent"}. Important {String(important)}. Theme {dark ? "dark" : "light"}. Scene
+            frame {frame}.
           </Text>
           <View style={styles.controls}>
             <Button ref={returnTarget} testID="toaster-fixture-return" onFocus={() => record("focus:return-target")}>
@@ -162,7 +162,7 @@ export const ToasterScene = () => {
             customToastBridgeStyles={custom ? { backgroundColor: "transparent" } : undefined}
           />
         ) : null}
-      </NativeFloatingLayerHost>
+      </View>
     </NativeThemeProvider>
   )
 }
