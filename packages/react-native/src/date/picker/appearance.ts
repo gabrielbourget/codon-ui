@@ -92,8 +92,14 @@ export const getNativeDatePickerAppearance = (
     ),
     previous: style({ justifyContent: "flex-start", padding: 1.5 }, props.customCalendarPrevBtnStyles),
     next: style({ justifyContent: "flex-end", padding: 1.5 }, props.customCalendarNextBtnStyles),
-    months: { flexDirection: "row", alignItems: "flex-start", gap: theme.spacing.unit } satisfies ViewStyle,
-    grid: style({ flex: 1, alignItems: "center" }, props.customCalendarGridStyles),
+    months: {
+      width: "100%",
+      flexDirection: "row",
+      flexWrap: "wrap",
+      alignItems: "flex-start",
+      gap: theme.spacing.unit,
+    } satisfies ViewStyle,
+    grid: style({ flex: 1, flexBasis: 280, maxWidth: "100%", alignItems: "center" }, props.customCalendarGridStyles),
     gridHeader: style({ ...base.text, padding: 3.5, width: "100%" }, props.customCalendarGridHeaderStyles),
     headerCell: style(
       { ...base.text, padding: 1.5, fontWeight: theme.typography.fontWeights.bold },
