@@ -143,6 +143,7 @@ export class NativeProjectionState implements TNativePopRoot {
   record?: TNativeMotionGeometryRecord
   node?: IProjectionNode
   bornIn?: string
+  private hasMountObservation = false
   private root?: NativeProjectionWindow
   private target?: View
   private lease: () => boolean = () => false
@@ -305,6 +306,16 @@ export class NativeProjectionState implements TNativePopRoot {
     this.record = record
     this.popRoot.retireIfChanged()
     this.ensureNode()
+    if (
+      this.node &&
+      !this.hasMountObservation &&
+      record.transactionId &&
+      (record.kind === "mount-before" || record.kind === "mount-after")
+    ) {
+      this.hasMountObservation = true
+      // A window-entry sample can precede a new host's first mount-after packet.
+      if (record.kind === "mount-after") this.bornIn = record.transactionId
+    }
     this.root?.receive(this, record)
     for (const child of this.children) child.ensureNode()
   }
@@ -463,6 +474,8 @@ export class NativeProjectionState implements TNativePopRoot {
       root = this.root
     this.node = undefined
     this.root = undefined
+    this.bornIn = undefined
+    this.hasMountObservation = false
     if (node) {
       node.currentAnimation?.stop()
       node.unmount()
