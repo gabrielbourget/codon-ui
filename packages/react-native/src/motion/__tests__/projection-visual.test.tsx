@@ -27,21 +27,34 @@ it("clears removed owned projection/pop properties while preserving the original
       return () => {}
     },
   } as unknown as NativeProjectionState
+  const createPayload = jest.requireActual(
+    "react-native/Libraries/ReactNative/ReactFabricPublicInstance/ReactNativeAttributePayload",
+  ).create
+  const attributes = jest.requireActual("react-native/Libraries/Components/View/ReactNativeStyleAttributes").default
   const ref = createRef<View>(),
     request = jest.fn()
   await render(
-    <NativeMotionVisualHost ref={ref} testID="projection-root" projection={projection} style={{ padding: 8 }}>
+    <NativeMotionVisualHost
+      ref={ref}
+      testID="projection-root"
+      projection={projection}
+      style={{ padding: 8, transform: [{ rotate: "2deg" }] }}
+    >
       <TextInput testID="editor" value="" onChangeText={request} />
     </NativeMotionVisualHost>,
   )
   const root = ref.current!,
     editor = screen.getByTestId("editor"),
-    setter = jest.spyOn(root, "setNativeProps").mockImplementation(() => {})
+    setter = jest.spyOn(root, "setNativeProps").mockImplementation((props) => {
+      createPayload(props, { style: attributes })
+    })
   expect(screen.getByTestId("projection-root").props.nativeMotionDrawingOwner).toBe(true)
   const radii = JSON.stringify({ topLeft: { x: 20, y: 10 }, topRight: null, bottomLeft: null, bottomRight: null })
   await act(() =>
     write({
       style: {
+        transform: [{ scale: 0.8 }],
+        transformOrigin: ["0%", "0%", 0],
         position: "absolute",
         left: 20,
         top: 10,
@@ -70,6 +83,8 @@ it("clears removed owned projection/pop properties while preserving the original
     nativeMotionProjectionRadii: "",
     style: expect.objectContaining({
       padding: 8,
+      transform: [{ rotate: "2deg" }],
+      transformOrigin: ["50%", "50%", 0],
       position: null,
       left: null,
       top: null,
