@@ -1,5 +1,6 @@
 import { useRef, type ReactNode, type RefObject } from "react"
 import { KeyboardAvoidingView, Platform, View, type StyleProp, type TextStyle } from "react-native"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { focusNativeTarget } from "../../input/focus"
 import { useNativeTheme } from "../../theme"
@@ -55,6 +56,7 @@ const QueryPanelBody = ({
   props: TNativeSortAndFilterPanelProps & { title: string }
   criteriaRefs: TCriteriaRefs
 }) => {
+  const insets = useSafeAreaInsets()
   const labels = resolveNativeSortAndFilterPanelLabels(props.labels)
   const theme = useNativeTheme()
   const controller = useNativeQueryDraftController(props)
@@ -151,13 +153,25 @@ const QueryPanelBody = ({
     </NativeContentContext.Provider>
   )
   return (
-    <KeyboardAvoidingView
-      testID="query-panel-keyboard-viewport"
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={{ flex: 1, width: "100%" }}
+    <View
+      style={{
+        flex: 1,
+        width: "100%",
+        boxSizing: "border-box",
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom,
+        paddingLeft: insets.left,
+        paddingRight: insets.right,
+      }}
     >
-      <NativeTextStyleProvider style={style.text}>{content}</NativeTextStyleProvider>
-    </KeyboardAvoidingView>
+      <KeyboardAvoidingView
+        testID="query-panel-keyboard-viewport"
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1, width: "100%" }}
+      >
+        <NativeTextStyleProvider style={style.text}>{content}</NativeTextStyleProvider>
+      </KeyboardAvoidingView>
+    </View>
   )
 }
 

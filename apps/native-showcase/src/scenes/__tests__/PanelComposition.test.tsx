@@ -183,7 +183,7 @@ it("echoes Panel closure and restores the complete scene owner through normal sh
 })
 
 it("opens the standalone query scene through the same chooser without nesting overlay providers", async () => {
-  await renderShowcase()
+  const view = await renderShowcase()
   await press("Sort and Filter scene")
   expect(screen.getByRole("button", { name: "Open query panel" })).toBeOnTheScreen()
   expect(JSON.parse(screen.getByTestId("query-panel-owner").props.children as string)).toMatchObject({
@@ -192,6 +192,34 @@ it("opens the standalone query scene through the same chooser without nesting ov
     closeRequests: 0,
     echo: false,
   })
+  await press("Open query panel")
+  await fireEvent(screen.getByTestId("sort-filter-panel-window", hidden), "show")
+  const keyboard = screen.getByTestId("query-panel-keyboard-viewport", hidden)
+  const viewport = keyboard.parent!
+  const dialog = screen.getByTestId("query-panel-dialog", hidden)
+  const control = screen.getByRole("button", { name: "Add Sort Criteria", ...hidden })
+  const owner = screen.getByTestId("query-panel-owner", hidden).props.children
+  expect(viewport).toHaveStyle({
+    flex: 1,
+    width: "100%",
+    boxSizing: "border-box",
+    paddingTop: 20,
+    paddingBottom: 10,
+    paddingLeft: 0,
+    paddingRight: 0,
+  })
+  expect(dialog).toHaveStyle({ boxSizing: "border-box", width: "100%", height: "100%", padding: 10 })
+  await view.rerender(
+    <SafeAreaInsetsContext.Provider value={{ top: 4, bottom: 6, left: 8, right: 12 }}>
+      <NativeShowcase />
+    </SafeAreaInsetsContext.Provider>,
+  )
+  expect(screen.getByTestId("query-panel-keyboard-viewport", hidden)).toBe(keyboard)
+  expect(keyboard.parent).toBe(viewport)
+  expect(viewport).toHaveStyle({ paddingTop: 4, paddingBottom: 6, paddingLeft: 8, paddingRight: 12 })
+  expect(screen.getByTestId("query-panel-dialog", hidden)).toBe(dialog)
+  expect(screen.getByRole("button", { name: "Add Sort Criteria", ...hidden })).toBe(control)
+  expect(screen.getByTestId("query-panel-owner", hidden).props.children).toBe(owner)
 })
 
 const settleQueryCollections = async () => {
