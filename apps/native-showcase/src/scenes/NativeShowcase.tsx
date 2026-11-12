@@ -34,6 +34,7 @@ import { CarouselScene } from "./CarouselScene"
 import { CircularCounterScene } from "./CircularCounterScene"
 import { ClickPopoverScene } from "./ClickPopoverScene"
 import { ComboBoxScene } from "./ComboBoxScene"
+import { CompactTypeaheadSearchScene } from "./CompactTypeaheadSearchScene"
 import { DisplayScene } from "./DisplayScene"
 import { FormDocumentScene } from "./FormDocumentScene"
 import { FormFieldScene } from "./FormFieldScene"
@@ -329,6 +330,11 @@ export const NativeShowcase = () => {
               />
               <FixtureAction label="Form field scene" selected={scene === "field"} onPress={() => setScene("field")} />
               <FixtureAction
+                label="Compact search scene"
+                selected={scene === "compact-search"}
+                onPress={() => setScene("compact-search")}
+              />
+              <FixtureAction
                 label="Inline search scene"
                 selected={scene === "search"}
                 onPress={() => setScene("search")}
@@ -377,6 +383,8 @@ export const NativeShowcase = () => {
                 <TooltipScene />
               ) : scene === "circular" ? (
                 <CircularCounterScene />
+              ) : scene === "compact-search" ? (
+                <CompactTypeaheadSearchScene />
               ) : scene === "search" ? (
                 <TypeaheadSearchScene />
               ) : scene === "field" ? (
