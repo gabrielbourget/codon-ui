@@ -1211,7 +1211,7 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
 - (void)dealloc
 {
   _dragSurfaceId = 0;
-  [_dragInteractions invalidate]; _dragInteractions = [[CUIDragInteractions alloc] initWithScope:self];
+  [_dragInteractions invalidate]; _dragInteractions = nil;
   [_dialogs invalidate];
   [_floating invalidate];
   [_boundWindow removeGestureRecognizer:_keyboard];
