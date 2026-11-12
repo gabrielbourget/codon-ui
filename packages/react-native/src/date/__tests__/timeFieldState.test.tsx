@@ -1,10 +1,11 @@
-import { CalendarDateTime, Time, parseZonedDateTime } from "@internationalized/date"
+import { CalendarDateTime, Time, createCalendar, parseZonedDateTime } from "@internationalized/date"
 import { act, renderHook } from "@testing-library/react-native"
+import { useDateFieldState as usePinnedDateFieldState } from "react-stately/useDateFieldState"
 import { useTimeFieldState as usePinnedTimeFieldState } from "react-stately/useTimeFieldState"
 
 import { FormValidationContext } from "../../components/ComboBox/state/useFormValidationState"
 import type { TimeValue } from "../state/types"
-import type { DateSegmentType, DateFieldState } from "../state/useDateFieldState"
+import { useDateFieldState, type DateSegmentType, type DateFieldState } from "../state/useDateFieldState"
 import { useTimeFieldState, type TimeFieldState, type TimeFieldStateOptions } from "../state/useTimeFieldState"
 
 type THook = (props: TimeFieldStateOptions) => TimeFieldState
@@ -224,4 +225,215 @@ it("matches pinned range validation without overriding custom validation precede
   await act(() => native.result.current.commitValidation())
   await act(() => pinned.result.current.commitValidation())
   expect(native.result.current.displayValidation).toEqual(pinned.result.current.displayValidation)
+})
+
+it.each(examples)("composes independent TimePicker segment edits within one batch for $name", async ({ value }) => {
+  const change = jest.fn()
+  const { result } = await renderHook(() =>
+    useTimeFieldState({ locale: "en-GB", defaultValue: value, hourCycle: 24, granularity: "second", onChange: change }),
+  )
+  await act(() => {
+    result.current.setSegment("hour", 14)
+    result.current.setSegment("minute", 46)
+  })
+  expect(result.current.timeValue.toString()).toBe("14:46:07")
+  expect(change).toHaveBeenLastCalledWith(value.set({ hour: 14, minute: 46 }))
+  expect(change.mock.calls.map(([next]) => next.toString())).toEqual([
+    value.set({ hour: 14 }).toString(),
+    value.set({ hour: 14, minute: 46 }).toString(),
+  ])
+  for (const [next] of change.mock.calls) expect(next).toBeInstanceOf(value.constructor)
+  expect(value.hour).toBe(13)
+  expect(value.minute).toBe(45)
+})
+
+it("composes TimePicker adjustment methods and publishes an edit back to the initial value", async () => {
+  const change = jest.fn()
+  const { result } = await renderHook(() =>
+    useTimeFieldState({
+      locale: "en-GB",
+      defaultValue: new Time(13, 45, 7),
+      hourCycle: 24,
+      granularity: "second",
+      onChange: change,
+    }),
+  )
+  await act(() => {
+    result.current.increment("hour")
+    result.current.incrementPage("minute")
+    result.current.decrement("hour")
+    result.current.decrementPage("minute")
+    result.current.incrementToMax("second")
+    result.current.decrementToMin("second")
+    result.current.setSegment("second", 7)
+  })
+  expect(change.mock.calls.map(([value]) => value.toString())).toEqual([
+    "14:45:07",
+    "14:00:07",
+    "13:00:07",
+    "13:45:07",
+    "13:45:59",
+    "13:45:00",
+    "13:45:07",
+  ])
+  expect(result.current.timeValue.toString()).toBe("13:45:07")
+})
+
+it("clears pending TimePicker parts before completing a fresh same-batch value", async () => {
+  const change = jest.fn()
+  const { result } = await renderHook(() =>
+    useTimeFieldState({
+      locale: "en-GB",
+      defaultValue: new Time(13, 45, 7),
+      hourCycle: 24,
+      granularity: "second",
+      onChange: change,
+    }),
+  )
+  await act(() => {
+    result.current.setSegment("hour", 14)
+    result.current.clearSegment("minute")
+    result.current.setSegment("minute", 46)
+    result.current.setValue(null)
+    result.current.setSegment("hour", 9)
+    result.current.setSegment("minute", 12)
+    result.current.setSegment("second", 34)
+  })
+  expect(change.mock.calls.map(([value]) => value?.toString() ?? null)).toEqual([
+    "14:45:07",
+    "14:46:07",
+    null,
+    "09:12:34",
+  ])
+  expect(result.current.timeValue.toString()).toBe("09:12:34")
+})
+
+it("replaces and resets the pending TimePicker basis before following segment edits", async () => {
+  const value = new CalendarDateTime(2024, 10, 1, 13, 45, 7),
+    replacement = value.set({ day: 3, hour: 8, minute: 15 }),
+    change = jest.fn()
+  const { result } = await renderHook(() =>
+    useTimeFieldState({ locale: "en-GB", defaultValue: value, hourCycle: 24, granularity: "second", onChange: change }),
+  )
+  await act(() => {
+    result.current.setSegment("hour", 14)
+    result.current.setValue(replacement)
+    result.current.increment("hour")
+    result.current.increment("minute")
+    result.current.setValue(result.current.defaultValue)
+    result.current.decrement("minute")
+  })
+  expect(change.mock.calls.map(([next]) => next.toString())).toEqual([
+    "2024-10-01T14:45:07",
+    "2024-10-03T08:15:07",
+    "2024-10-03T09:15:07",
+    "2024-10-03T09:16:07",
+    "2024-10-01T13:45:07",
+    "2024-10-01T13:44:07",
+  ])
+  expect(change.mock.calls.every(([next]) => next instanceof CalendarDateTime)).toBe(true)
+  expect(value.toString()).toBe("2024-10-01T13:45:07")
+})
+
+it("keeps controlled TimePicker requests based on the held owner across same-batch edits and later vetoes", async () => {
+  const value = new Time(13, 45, 7),
+    change = jest.fn()
+  const { result } = await renderHook(() =>
+    useTimeFieldState({ locale: "en-GB", value, hourCycle: 24, granularity: "second", onChange: change }),
+  )
+  for (let batch = 0; batch < 2; batch++)
+    await act(() => {
+      result.current.setSegment("hour", 14)
+      result.current.setSegment("minute", 46)
+    })
+  expect(change.mock.calls.map(([next]) => next.toString())).toEqual(["14:45:07", "13:46:07", "14:45:07", "13:46:07"])
+  expect(result.current.timeValue).toBe(value)
+})
+
+it("keeps controlled-null TimePicker drafts on the existing noncomposing path", async () => {
+  const change = jest.fn()
+  const { result } = await renderHook(() =>
+    useTimeFieldState({ locale: "en-GB", value: null, defaultValue: new Time(8, 15), hourCycle: 24, onChange: change }),
+  )
+  await act(() => {
+    result.current.setSegment("hour", 9)
+    result.current.setSegment("minute", 12)
+  })
+  expect(result.current.timeValue).toBeNull()
+  expect(change).not.toHaveBeenCalled()
+  expect(result.current.segments.find((part) => part.type === "hour")?.isPlaceholder).toBe(true)
+  expect(result.current.segments.find((part) => part.type === "minute")?.text).toBe("12")
+})
+
+it("retires stale TimePicker methods after committed locale, hour-cycle, granularity and guard changes", async () => {
+  const change = jest.fn()
+  const { result, rerender } = await renderHook(
+    (props: { locale: string; hourCycle: 12 | 24; granularity: "minute" | "second"; isReadOnly: boolean }) =>
+      useTimeFieldState({ ...props, defaultValue: new Time(13, 45, 7), onChange: change }),
+    { initialProps: { locale: "en-GB", hourCycle: 24, granularity: "second", isReadOnly: false } },
+  )
+  const stale = result.current
+  await act(() => result.current.setSegment("hour", 14))
+  await rerender({ locale: "ar-EG", hourCycle: 12, granularity: "minute", isReadOnly: true })
+  await act(() => {
+    stale.setSegment("minute", 10)
+    result.current.setSegment("minute", 20)
+    stale.confirmPlaceholder()
+  })
+  expect(change).toHaveBeenCalledTimes(1)
+  expect(result.current.timeValue.toString()).toBe("14:45:07")
+  const guarded = result.current
+  await rerender({ locale: "en-GB", hourCycle: 24, granularity: "second", isReadOnly: false })
+  await act(() => {
+    guarded.setValue(null)
+    result.current.increment("minute")
+  })
+  expect(change.mock.calls.map(([next]) => next.toString())).toEqual(["14:45:07", "14:46:07"])
+})
+
+it("composes an accepted TimePicker change after its callback throws within the same batch", async () => {
+  const error = new Error("Owner time callback"),
+    change = jest.fn().mockImplementationOnce(() => {
+      throw error
+    })
+  const { result } = await renderHook(() =>
+    useTimeFieldState({
+      locale: "en-GB",
+      defaultValue: new Time(13, 45, 7),
+      hourCycle: 24,
+      granularity: "second",
+      onChange: change,
+    }),
+  )
+  await act(() => {
+    expect(() => result.current.setSegment("hour", 14)).toThrow(error)
+    result.current.setSegment("minute", 46)
+  })
+  expect(change.mock.calls.map(([next]) => next.toString())).toEqual(["14:45:07", "14:46:07"])
+  expect(result.current.timeValue.toString()).toBe("14:46:07")
+})
+
+it("keeps unflagged date-field same-batch behavior equal to the pinned model", async () => {
+  const run = async (hook: typeof usePinnedDateFieldState) => {
+    const change = jest.fn()
+    const { result, unmount } = await renderHook(() =>
+      hook({
+        locale: "en-GB",
+        createCalendar,
+        defaultValue: new CalendarDateTime(2024, 10, 1, 13, 45),
+        onChange: change,
+      }),
+    )
+    await act(() => {
+      result.current.setSegment("month", 11)
+      result.current.setSegment("day", 7)
+    })
+    const observed = {
+      value: result.current.value?.toString(),
+      requests: change.mock.calls.map(([next]) => next.toString()),
+    }
+    await unmount()
+    return observed
+  }
+  expect(await run(useDateFieldState)).toEqual(await run(usePinnedDateFieldState))
 })
