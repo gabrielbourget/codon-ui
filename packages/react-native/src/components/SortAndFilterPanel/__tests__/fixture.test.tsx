@@ -20,6 +20,7 @@ jest.mock("../../../input/specs/NativeCUIDragAndDrop", () => ({
 }))
 
 jest.mock("react-native-safe-area-context", () => ({
+  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
   SafeAreaProvider: jest.requireActual("react-native").View,
   SafeAreaView: jest.requireActual("react-native").View,
 }))
