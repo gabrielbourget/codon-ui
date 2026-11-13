@@ -145,6 +145,91 @@ const press = async (id: string) => {
 }
 
 // Original window packets below are explicit component models, not installed SDK input evidence.
+it("keeps current editor focus inside an open receiver while unrelated and retired editors dismiss", async () => {
+  const f = setup(),
+    editor = createRef<RN.TextInput>(),
+    outside = createRef<RN.TextInput>(),
+    changes = jest.fn()
+  const native = jest.requireActual<typeof RN>("react-native")
+  const find = jest.mocked(native.findNodeHandle)
+  const inherited = find.getMockImplementation()!
+  let editorTarget = 810017
+  let replaceEditor!: () => void
+  find.mockImplementation((target) =>
+    target && target === editor.current
+      ? editorTarget
+      : target && target === outside.current
+        ? 810018
+        : inherited(target),
+  )
+  const Harness = () => {
+    const [open, setOpen] = useState(false)
+    const [revision, setRevision] = useState(0)
+    replaceEditor = () => setRevision((value) => value + 1)
+    return (
+      <>
+        <NativeCollectionComboBox
+          items={ITEMS}
+          controlledItems={ITEMS}
+          getKey={(item) => item.id}
+          getTextValue={(item) => item.label}
+          inputLabel="Query"
+          closeLabel="Close"
+          inputRef={editor}
+          render={(props) => <NativeFocusHost {...props} key={revision} />}
+          inputValue=""
+          value={null}
+          isOpen={open}
+          onOpenChange={(next) => {
+            changes(next)
+            setOpen(next)
+          }}
+        />
+        <RN.TextInput ref={outside} accessibilityLabel="Unrelated editor" />
+      </>
+    )
+  }
+  const focus = (target: number) => ({
+    target: {},
+    currentTarget: {},
+    nativeEvent: { target },
+    persist: jest.fn(),
+    isPropagationStopped: () => false,
+    isDefaultPrevented: () => false,
+  })
+  try {
+    await render(f.node(<Harness />))
+    await press("combo-box-trigger")
+    await f.ready(false)
+    expect(changes.mock.calls).toEqual([[true]])
+    const event = focus(810017)
+    await act(() => {
+      screen.getByTestId("host").props.onFocusCapture(event)
+      screen.getByTestId("combo-box-input", hidden).props.onFocus(event)
+    })
+    expect(changes.mock.calls).toEqual([[true]])
+    const originalEditor = editor.current
+    editorTarget = 810019
+    await act(replaceEditor)
+    await f.ready(false)
+    expect(editor.current).not.toBe(originalEditor)
+    const replacementFocus = focus(editorTarget)
+    await act(() => {
+      screen.getByTestId("host").props.onFocusCapture(replacementFocus)
+      screen.getByTestId("combo-box-input", hidden).props.onFocus(replacementFocus)
+    })
+    expect(changes.mock.calls).toEqual([[true]])
+    await act(() => screen.getByTestId("host").props.onFocusCapture(focus(810017)))
+    expect(changes.mock.calls).toEqual([[true], [false]])
+    await press("combo-box-trigger")
+    await f.ready(false)
+    await act(() => screen.getByTestId("host").props.onFocusCapture(focus(810018)))
+    expect(changes.mock.calls).toEqual([[true], [false], [true], [false]])
+  } finally {
+    find.mockImplementation(inherited)
+  }
+})
+
 it.each([
   "select",
   "outside",
