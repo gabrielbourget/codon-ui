@@ -5,6 +5,31 @@
 #import "CUIMotionMaskGeometry.h"
 #import <QuartzCore/QuartzCore.h>
 #import <cmath>
+#import <cstring>
+
+// Keep JSON-distinct numeric values distinct, including booleans and signed zero.
+static BOOL CUIEqualGeometrySnapshot(id left, id right) {
+  if (left == right) return YES;
+  if ([left isKindOfClass:NSNumber.class] || [right isKindOfClass:NSNumber.class]) {
+    if (![left isKindOfClass:NSNumber.class] || ![right isKindOfClass:NSNumber.class]) return NO;
+    if (CFGetTypeID((__bridge CFTypeRef)left) != CFGetTypeID((__bridge CFTypeRef)right) ||
+        std::strcmp([left objCType], [right objCType]) != 0 || ![left isEqualToNumber:right]) return NO;
+    double value = [left doubleValue];
+    return value != 0 || std::signbit(value) == std::signbit([right doubleValue]);
+  }
+  if ([left isKindOfClass:NSDictionary.class] && [right isKindOfClass:NSDictionary.class]) {
+    if ([left count] != [right count]) return NO;
+    for (NSString *key in left) if (!CUIEqualGeometrySnapshot(left[key], right[key])) return NO;
+    return YES;
+  }
+  if ([left isKindOfClass:NSArray.class] && [right isKindOfClass:NSArray.class]) {
+    if ([left count] != [right count]) return NO;
+    for (NSUInteger index = 0; index < [left count]; index++)
+      if (!CUIEqualGeometrySnapshot(left[index], right[index])) return NO;
+    return YES;
+  }
+  return [left isEqual:right];
+}
 
 static NSUInteger CUIGeometrySequence = 0;
 static NSString *CUIIdentity(id object) {
@@ -52,6 +77,7 @@ static NSDictionary *CUIUntransformed(CALayer *layer, CALayer *window) {
   void (^_emit)(NSDictionary *);
   NSString *_owner, *_binding, *_revision, *_attachment, *_lastFrame;
   NSString *_lastWindow, *_lastScope;
+  NSDictionary *_lastFrameSnapshot;
   double _lastEpoch;
   NSUInteger _attachmentRevision;
   CADisplayLink *_displayLink;
@@ -61,9 +87,10 @@ static NSDictionary *CUIUntransformed(CALayer *layer, CALayer *window) {
   if (self = [super init]) { _root = root; _emit = [emit copy]; _owner = @""; _binding = @""; _revision = @""; _attachment = @""; _observeFrames = YES; }
   return self;
 }
+- (void)resetFrame { _lastFrame = nil; _lastFrameSnapshot = nil; }
 - (void)configureOwner:(NSString *)owner binding:(NSString *)binding revision:(NSString *)revision observeFrames:(BOOL)observeFrames {
-  if (![_owner isEqual:owner] || ![_binding isEqual:binding]) { _attachmentRevision++; _attachment = @""; _lastFrame = nil; _lastWindow = @""; _lastScope = @""; _lastEpoch = 0; }
-  if (_observeFrames != observeFrames) _lastFrame = nil;
+  if (![_owner isEqual:owner] || ![_binding isEqual:binding]) { _attachmentRevision++; _attachment = @""; [self resetFrame]; _lastWindow = @""; _lastScope = @""; _lastEpoch = 0; }
+  if (_observeFrames != observeFrames) [self resetFrame];
   _observeFrames = observeFrames;
   _owner = [owner copy]; _binding = [binding copy]; _revision = [revision copy];
   [self synchronizeDisplayLink];
@@ -78,7 +105,7 @@ static NSDictionary *CUIUntransformed(CALayer *layer, CALayer *window) {
   if (window) { _lastWindow = windowId; _lastScope = scopeOwner; _lastEpoch = epoch; }
   else { windowId = _lastWindow ?: @""; scopeOwner = _lastScope ?: @""; epoch = _lastEpoch; }
   NSString *attachment = [NSString stringWithFormat:@"%@|%@|%.0f", windowId, scopeOwner, epoch];
-  if (![_attachment isEqual:attachment]) { _attachment = attachment; _attachmentRevision++; _lastFrame = nil; }
+  if (![_attachment isEqual:attachment]) { _attachment = attachment; _attachmentRevision++; [self resetFrame]; }
   return [@{@"ownerId": _owner, @"bindingId": _binding, @"target": @(root.tag), @"windowId": windowId, @"scopeOwnerId": scopeOwner, @"epoch": @(epoch), @"attachmentRevision": @(_attachmentRevision), @"geometryRevision": @(++CUIGeometrySequence), @"commitRevision": _revision, @"transactionId": transaction, @"kind": kind, @"requestId": requestId, @"attached": @(window != nil), @"observedAt": @(NSProcessInfo.processInfo.systemUptime * 1000)} mutableCopy];
 }
 + (NSDictionary *)querySnapshotForView:(UIView *)root {
@@ -104,18 +131,26 @@ static NSDictionary *CUIUntransformed(CALayer *layer, CALayer *window) {
   return value;
 }
 - (void)captureKind:(NSString *)kind requestId:(NSString *)requestId transaction:(NSString *)transaction {
-  if (!_binding.length || ([kind isEqual:@"frame"] && !_observeFrames)) return;
+  BOOL frame = [kind isEqual:@"frame"];
+  if (!_binding.length || (frame && !_observeFrames)) return;
   NSMutableDictionary *data = [self envelope:kind requestId:requestId transaction:transaction];
   NSString *snapshot = @"", *error = @"";
+  NSDictionary *frameSnapshot = nil;
   if (![data[@"attached"] boolValue]) error = @"native-geometry-view-detached";
   else {
     NSDictionary *value = [self snapshot]; NSError *failure = nil;
-    NSData *encoded = [NSJSONSerialization isValidJSONObject:value] ? [NSJSONSerialization dataWithJSONObject:value options:NSJSONWritingSortedKeys error:&failure] : nil;
-    if (encoded && !failure) snapshot = [[NSString alloc] initWithData:encoded encoding:NSUTF8StringEncoding];
-    else error = @"invalid-native-geometry";
+    BOOL valid = [NSJSONSerialization isValidJSONObject:value];
+    if (frame && valid && _lastFrameSnapshot && CUIEqualGeometrySnapshot(_lastFrameSnapshot, value)) return;
+    NSData *encoded = valid ? [NSJSONSerialization dataWithJSONObject:value options:NSJSONWritingSortedKeys error:&failure] : nil;
+    if (encoded && !failure) {
+      snapshot = [[NSString alloc] initWithData:encoded encoding:NSUTF8StringEncoding];
+      // Snapshot containers are fresh; shared registered mask paths are immutable.
+      if (frame) frameSnapshot = [value copy];
+    } else error = @"invalid-native-geometry";
   }
-  if ([kind isEqual:@"frame"] && [_lastFrame isEqual:snapshot] && error.length == 0) return;
-  if ([kind isEqual:@"frame"]) _lastFrame = snapshot;
+  if (frame) _lastFrameSnapshot = frameSnapshot;
+  if (frame && [_lastFrame isEqual:snapshot] && error.length == 0) return;
+  if (frame) _lastFrame = snapshot;
   data[@"snapshot"] = snapshot; data[@"error"] = error;
   if (_emit) _emit(data);
 }
@@ -146,7 +181,7 @@ static NSDictionary *CUIUntransformed(CALayer *layer, CALayer *window) {
     [_displayLink addToRunLoop:NSRunLoop.mainRunLoop forMode:NSRunLoopCommonModes];
   }
 }
-- (void)invalidate { [_displayLink invalidate]; _displayLink = nil; _binding = @""; _owner = @""; _attachment = @""; _lastFrame = nil; _attachmentRevision++; }
+- (void)invalidate { [_displayLink invalidate]; _displayLink = nil; _binding = @""; _owner = @""; _attachment = @""; [self resetFrame]; _attachmentRevision++; }
 - (void)dealloc { [_displayLink invalidate]; }
 @end
 
