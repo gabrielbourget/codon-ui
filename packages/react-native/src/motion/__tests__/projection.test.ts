@@ -277,6 +277,40 @@ it("matches an existing row and a newly sampled row in the same mount cohort", a
     jest.useRealTimers()
   }
 })
+it("retires an incomplete initial cohort after a complete newer mount before another request", async () => {
+  jest.useFakeTimers({ doNotFake: ["nextTick", "queueMicrotask"] })
+  const a = create(),
+    b = create()
+  try {
+    b.send("sample")
+    a.send("mount-after", "partial-initial")
+    await turn()
+    jest.advanceTimersByTime(1000)
+    a.actor.configure("next", {}, undefined, undefined, undefined)
+    a.send("mount-before", "complete", 10, 100, "initial")
+    a.send("mount-after", "complete", 50, 100, "next")
+    b.send("mount-after", "complete")
+    await turn()
+    expect(a.actor.node?.projectionDelta?.x.translate).toBe(-40)
+    expect(a.errors).not.toHaveBeenCalled()
+    jest.advanceTimersByTime(3000)
+    a.actor.configure("later", {}, undefined, undefined, undefined)
+    a.send("mount-before", "later", 50, 100, "next")
+    b.send("mount-before", "later")
+    await turn()
+    jest.advanceTimersByTime(1000)
+    expect(a.errors).not.toHaveBeenCalled()
+    expect(b.errors).not.toHaveBeenCalled()
+    a.send("mount-after", "later", 90, 100, "later")
+    b.send("mount-after", "later")
+    await turn()
+    expect(a.actor.node?.projectionDelta?.x.translate).toBe(-40)
+  } finally {
+    a.dispose()
+    b.dispose()
+    jest.useRealTimers()
+  }
+})
 it("still requires matching before geometry after the first observed mount", async () => {
   jest.useFakeTimers({ doNotFake: ["nextTick", "queueMicrotask"] })
   const f = create()
