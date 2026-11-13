@@ -50,6 +50,30 @@ adb -s "$CODON_DEV_ANDROID_SERIAL" reverse tcp:8081 tcp:8081
 
 Connect the development client to the Metro URL shown by Expo CLI using its standard launcher. Once connected, open a scenario link and save JS/TS/component/style changes. Fast Refresh is enabled by default in development and can be toggled in the normal development menu. Compatible function-component edits can retain local state; changing Hook order, module exports or a full reload can remount it. Effects also restart during refresh. The link listener retains its consumed initial URL across compatible effect restarts so a launch link containing `reset=1` is not replayed on each edit; an explicitly received reset link still resets the scene.
 
+### Prepared Mac localhost connection
+
+On the prepared Mac, keep the full Xcode selection and Node's localhost address preference scoped to the ordinary Metro process. This is the verified development-client command for an existing installed Debug client; it does not rebuild or install an app:
+
+```sh
+env DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
+  NODE_OPTIONS=--dns-result-order=ipv4first \
+  pnpm -F @codon-ui/native-showcase start --localhost --port 8089
+```
+
+Enter `http://127.0.0.1:8089` in the client launcher. If the full Xcode application is elsewhere, use its actual Developer directory. Use one explicit port consistently; the general examples above use8081, while this verified Mac session uses8089. These environment values do not change system Xcode selection or DNS settings. Node documents the [DNS result-order option](https://nodejs.org/api/cli.html#--dns-result-orderorder).
+
+When the client reports an unreachable server, check the actual endpoint before repeating a launch or interaction:
+
+```sh
+curl --noproxy '*' --max-time 5 http://127.0.0.1:8089/status
+```
+
+The expected body is `packager-status:running`. A displayed Metro URL alone is not a listener check. In the November13 session, localhost resolved to IPv6 only while the CLI advertised IPv4. Using the IPv6 address reached Metro but the pinned client's network-inspector URL construction crashed. The process-local IPv4-first command above yielded a working IPv4 status response, iOS manifest and complete bundle before manual use. Retain those failures separately from component results; changing dependencies, global networking or security settings is not part of this correction.
+
+After connection, use the existing scene controls. For a manual check, keep Simulator foreground through the action, record the visible query/value/open state and public callback readout, and distinguish an open-popup image from a later selected/closed endpoint. An owner-supplied later screenshot keeps its own timestamp and scope. A manual observation does not repair a failed automation method or prove physical assistive-technology behavior.
+
+Stop the owned Metro terminal with Ctrl+C at the end of the bounded session and verify its port is closed. Preserve an already-open user device; shut down a simulator only when the session owns its boot. No custom launcher, process-group wrapper or per-component observer is needed for this workflow.
+
 If the development client shows stale labels or JS, restart the same ordinary Expo command with `--clear`, wait for Metro to report ready, then connect the client to its displayed localhost URL. Hide harness controls makes the current scene accessible without resetting its owner; Show harness controls restores the selectors.
 
 For optional iOS Simulator interaction, use the published AXe CLI directly (`axe --help`) alongside the ordinary Expo session. Read the current accessibility tree before selecting a visible action; use its documented scroll and coordinate options when needed. AXe is a local development tool, not an app dependency or component harness. Its accessibility output does not establish physical assistive-technology behavior.
