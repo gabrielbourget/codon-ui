@@ -36,6 +36,7 @@ import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import type { TNativeWindowPointerEvent } from "../../input/nativeWindowPointers"
 import type { TNativePressEvent } from "../../input/types"
 import type { TNativeKeyboardEvent } from "../../input/types"
+import type { TNativeFloatingOutsideInteraction } from "../../overlays/floating/interaction"
 import { useNativeTheme } from "../../theme"
 import { validateCollectionKey } from "../collection"
 import { NativeContentContext } from "../NativeContentContext"
@@ -804,6 +805,10 @@ const Receiver = <T extends object>({
       triggerRef: anchor,
       scrollRef: scroll,
       restoreFocusRef: input,
+      shouldCloseOnInteractOutside: (interaction: TNativeFloatingOutsideInteraction) =>
+        interaction.kind !== "focus" ||
+        !input.current ||
+        interaction.event.nativeEvent.target !== findNodeHandle(input.current),
       placement: props.placement ?? "bottom start",
       offset: 5,
       isNonModal: true,
