@@ -111,6 +111,8 @@ class NativeProjectionWindow {
         this.node.update()
         const completed = [...this.pending]
         this.pending.clear()
+        for (const queued of this.cohorts.values()) clearTimeout(queued.timer)
+        this.cohorts.clear()
         for (const actor of completed) actor.applied()
       } catch (error) {
         for (const actor of this.pending) actor.fail(error)
