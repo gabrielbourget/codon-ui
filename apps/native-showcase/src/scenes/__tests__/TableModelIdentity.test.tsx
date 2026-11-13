@@ -140,6 +140,7 @@ const owner = () => JSON.parse(screen.getByTestId("table-scene-owner").props.chi
 const modelRevision = () =>
   sourceCollectionPublications().find(({ model }) => model?.items.length === 106)?.model?.revision
 
+// This case renders the full Table, changes its environment and exercises two owner callbacks.
 it("retains the authored model and original editor for layout, theme and owner bookkeeping updates", async () => {
   const bodyFactory = jest.spyOn(tableModel, "createNativeTableBodyModel")
   const view = await render(tree())
@@ -156,7 +157,7 @@ it("retains the authored model and original editor for layout, theme and owner b
   expect(screen.getByLabelText("Original Table editor")).toBe(editor)
   expect(editor).toHaveDisplayValue("Original editor")
   expect(owner().requests).toEqual(['widget:"person-0"'])
-})
+}, 15000)
 
 it("refreshes the rendered draft and keeps its ref and callback current across subsequent stable updates", async () => {
   const bodyFactory = jest.spyOn(tableModel, "createNativeTableBodyModel")

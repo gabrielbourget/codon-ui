@@ -240,6 +240,60 @@ it("projects a matched actual before/after cohort and finishes the real source-o
   expect(measure.mock.calls.every((args) => args.length === 3 && args[2] === undefined)).toBe(true)
   expect(f.errors).not.toHaveBeenCalled()
 })
+it.each([false, true])("accepts the first mount-after after a window sample %s", async (sampleFirst) => {
+  jest.useFakeTimers({ doNotFake: ["nextTick", "queueMicrotask"] })
+  const f = create()
+  try {
+    if (sampleFirst) f.send("sample")
+    f.send("mount-after", "first-mount")
+    await turn()
+    jest.advanceTimersByTime(5000)
+    expect(f.errors).not.toHaveBeenCalled()
+  } finally {
+    f.dispose()
+    jest.useRealTimers()
+  }
+})
+it("matches an existing row and a newly sampled row in the same mount cohort", async () => {
+  jest.useFakeTimers({ doNotFake: ["nextTick", "queueMicrotask"] })
+  const a = create(),
+    b = create()
+  try {
+    a.send("mount-after", "existing")
+    await turn()
+    a.actor.configure("next", {}, undefined, undefined, undefined)
+    b.send("sample")
+    a.send("mount-before", "add-row", 10, 100, "initial")
+    a.send("mount-after", "add-row", 50, 100, "next")
+    b.send("mount-after", "add-row")
+    await turn()
+    expect(a.actor.node?.projectionDelta?.x.translate).toBe(-40)
+    jest.advanceTimersByTime(5000)
+    expect(a.errors).not.toHaveBeenCalled()
+    expect(b.errors).not.toHaveBeenCalled()
+  } finally {
+    a.dispose()
+    b.dispose()
+    jest.useRealTimers()
+  }
+})
+it("still requires matching before geometry after the first observed mount", async () => {
+  jest.useFakeTimers({ doNotFake: ["nextTick", "queueMicrotask"] })
+  const f = create()
+  try {
+    f.send("mount-after", "first-mount")
+    await turn()
+    f.actor.configure("next", {}, undefined, undefined, undefined)
+    f.send("mount-after", "missing-before", 50, 100, "next")
+    await turn()
+    jest.advanceTimersByTime(5000)
+    expect(f.errors).toHaveBeenCalledTimes(1)
+    expect(f.errors).toHaveBeenCalledWith(new Error("Native projection: matching mount cohort exceeded 5000ms"))
+  } finally {
+    f.dispose()
+    jest.useRealTimers()
+  }
+})
 it("waits for all members of the same window and rejects an older React intent", async () => {
   const a = create(),
     b = create()
