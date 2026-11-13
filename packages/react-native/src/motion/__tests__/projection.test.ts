@@ -11,7 +11,7 @@ import type { TNativeMotionPointerEvent } from "../interactions/types"
 import { MotionGlobalConfig, frameData, time } from "../kernel"
 import { NativeMotionOwner } from "../owner/NativeMotionOwner"
 import type { TNativeMotionOwnerProps } from "../owner/NativeMotionOwner"
-import { NativeProjectionState } from "../projection/NativeProjectionState"
+import { EMPTY_NATIVE_PROJECTION, NativeProjectionState } from "../projection/NativeProjectionState"
 import { nativeProjectionStyles } from "../projection/nativeStyles"
 import { nativeWindowNodeGroup } from "../projection/windowGroup"
 
@@ -430,6 +430,56 @@ it("retires pending frame work and leaves a replacement native ref untouched", a
   await flush(1200)
   expect(writer).not.toHaveBeenCalled()
   expect(f.actor.node).toBeUndefined()
+})
+it("resets retired projection state immediately and coalesces notifications after cleanup", async () => {
+  const f = create()
+  f.send("frame")
+  await turn()
+  f.actor.render()
+  expect(f.actor.getSnapshot()).not.toBe(EMPTY_NATIVE_PROJECTION)
+  const listener = jest.fn(),
+    unsubscribed = jest.fn(),
+    writer = jest.fn(),
+    stop = f.actor.subscribe(unsubscribed)
+  f.actor.subscribe(listener)
+  f.actor.attachWriter(writer)
+  const retired = f.actor.node!
+  f.owner.invalidate()
+  f.actor.configure("retired", {}, undefined, undefined, undefined)
+  expect(f.actor.getSnapshot()).toBe(EMPTY_NATIVE_PROJECTION)
+  expect(f.actor.node).toBeUndefined()
+  expect(f.owner.projection).toBeUndefined()
+  expect(retired.instance).toBeUndefined()
+  expect(listener).not.toHaveBeenCalled()
+  stop()
+  f.actor.detach()
+  f.actor.detach()
+  await turn()
+  await flush(1200)
+  expect(listener).toHaveBeenCalledTimes(1)
+  expect(unsubscribed).not.toHaveBeenCalled()
+  expect(writer).not.toHaveBeenCalled()
+  expect(f.errors).not.toHaveBeenCalled()
+})
+it("does not deliver an obsolete retirement notification after a fresh projection publishes", async () => {
+  const f = create()
+  f.send("frame")
+  await turn()
+  f.actor.render()
+  const listener = jest.fn()
+  f.actor.subscribe(listener)
+  f.actor.detach()
+  f.actor.attach(f.target)
+  f.send("frame")
+  f.actor.render()
+  const fresh = f.actor.getSnapshot()
+  expect(fresh).not.toBe(EMPTY_NATIVE_PROJECTION)
+  expect(f.actor.node).toBeDefined()
+  expect(listener).toHaveBeenCalledTimes(1)
+  await turn()
+  expect(f.actor.getSnapshot()).toBe(fresh)
+  expect(listener).toHaveBeenCalledTimes(1)
+  expect(f.errors).not.toHaveBeenCalled()
 })
 it("rejects retired visual callback dispatch after a new projection attaches to the same owner", async () => {
   const callback = jest.fn()

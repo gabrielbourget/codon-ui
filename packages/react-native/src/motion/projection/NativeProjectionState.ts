@@ -184,6 +184,9 @@ export class NativeProjectionState implements TNativePopRoot {
       this.listeners.delete(listener)
     }
   }
+  private notifyRetirement = () => {
+    if (this.snapshot === EMPTY_NATIVE_PROJECTION) this.listeners.forEach((listener) => listener())
+  }
   attachWriter = (writer: (snapshot: TSnapshot) => void) => {
     this.writer = writer
     return () => {
@@ -485,8 +488,11 @@ export class NativeProjectionState implements TNativePopRoot {
     if (this.owner.projection === node) this.owner.setProjection(undefined)
     root?.remove(this)
     cancelFrame(this.render)
-    this.snapshot = EMPTY_NATIVE_PROJECTION
-    this.listeners.forEach((listener) => listener())
+    if (this.snapshot !== EMPTY_NATIVE_PROJECTION) {
+      this.snapshot = EMPTY_NATIVE_PROJECTION
+      // configure can retire a lease in an insertion effect; notify React after the commit.
+      microtask.postRender(this.notifyRetirement)
+    }
   }
   detach = () => {
     this.popRoot.dispose()
