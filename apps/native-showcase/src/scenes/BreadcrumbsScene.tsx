@@ -19,6 +19,15 @@ const items: readonly BreadcrumbItemData[] = ["Home", "Projects", "Library", "Co
   }),
 )
 
+const diagnosticCurrentLabel =
+  "Current location — keep every line readable, including the ending. Emplacement actuel — gardez chaque ligne lisible, jusqu’à la dernière ligne. End of label / Fin du libellé: gypq."
+const diagnosticItems: readonly BreadcrumbItemData[] = Array.from({ length: 22 }, (_, index) => ({
+  id: String(index),
+  href: index === 2 ? "" : `https://example.com/${index}`,
+  content: index === 21 ? diagnosticCurrentLabel : `Level ${index + 1}`,
+  disabled: index === 3,
+}))
+
 const TRAIL_CUSTOMIZATIONS = [
   ["breadcrumb", "Toggle trail breadcrumb styles"],
   ["popover", "Toggle trail popover styles"],
@@ -42,6 +51,9 @@ export const BreadcrumbsScene = () => {
   const [last, setLast] = useState<BreadcrumbNavigateDetails | null>(null)
   const [original, setOriginal] = useState(false)
   const [draft, setDraft] = useState("")
+  const [diagnostic, setDiagnostic] = useState(false)
+  const [diagnosticWidth, setDiagnosticWidth] = useState<230 | 300>(300)
+  const trailItems = diagnostic ? diagnosticItems : items
   const reset = () => {
     setDisabled(false)
     setLeft(false)
@@ -57,6 +69,8 @@ export const BreadcrumbsScene = () => {
     setLast(null)
     setOriginal(false)
     setDraft("")
+    setDiagnostic(false)
+    setDiagnosticWidth(300)
   }
   return (
     <View style={{ gap: 12 }}>
@@ -115,7 +129,7 @@ export const BreadcrumbsScene = () => {
         style={{ minHeight: 44, borderWidth: 1 }}
       />
       <Breadcrumbs
-        items={items}
+        items={trailItems}
         isDisabled={disabled}
         maxVisibleItems={limit}
         consolidationPlacement={left ? "left" : "right"}
@@ -124,7 +138,13 @@ export const BreadcrumbsScene = () => {
         aria-describedby="breadcrumbs-scene-description"
         labels={{ navAriaLabel: "Scene breadcrumb trail", overflowButtonAriaLabel: "Show hidden trail levels" }}
         customStyles={styled ? { gap: 0, color: "purple" } : undefined}
-        style={styled ? { color: "orange" } : undefined}
+        style={
+          diagnostic
+            ? { ...(styled ? { color: "orange" } : {}), width: diagnosticWidth }
+            : styled
+              ? { color: "orange" }
+              : undefined
+        }
         customOptionsListStyles={styled ? { color: "purple", padding: 0 } : undefined}
         customBreadcrumbStyles={customizations.includes("breadcrumb") ? styles.breadcrumb : undefined}
         customPopoverStyles={customizations.includes("popover") ? styles.popover : undefined}
@@ -140,10 +160,22 @@ export const BreadcrumbsScene = () => {
         }}
         onNavigate={(details) => {
           setNavigations((value) => value + 1)
-          setOriginal(items.includes(details.item))
+          setOriginal(trailItems.includes(details.item))
           setLast(details)
         }}
       />
+      <Button onPress={() => setDiagnostic((value) => !value)}>Toggle long-label diagnostic</Button>
+      {diagnostic && (
+        <>
+          <Text testID="breadcrumbs-diagnostic-state">
+            {trailItems.length} items. Requested width: {diagnosticWidth} points.
+          </Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 5 }}>
+            <Button onPress={() => setDiagnosticWidth(230)}>Set trail width 230</Button>
+            <Button onPress={() => setDiagnosticWidth(300)}>Set trail width 300</Button>
+          </View>
+        </>
+      )}
     </View>
   )
 }
