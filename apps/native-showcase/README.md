@@ -60,23 +60,11 @@ Scene buttons change content inline below all scene/theme/fixture controls in th
 
 Prepare the build/install and verify the actual Metro endpoint before a timed manual handoff. Reuse an installed development client while relevant native/configuration inputs match; JS/TS edits use the ordinary Metro/Fast Refresh loop. A native rebuild can consume most of a bounded session, so leave a realistic manual window and communicate its cutoff. Stop the owned Metro handle by the cleanup deadline, preserve an already-booted user device, and record later owner screenshots separately rather than extending a closed attempt. No additional launcher, observer or per-component harness is needed.
 
-### Breadcrumbs long-label diagnostic
+### Retained Breadcrumbs long-label example
 
-The existing Breadcrumbs scene has an opt-in diagnostic example. Its ordinary six-item trail, styles, popup ownership and reset defaults remain unchanged. Diagnostic controls are below the trail, so adding them does not move the ordinary trail above its existing position. No library implementation or native code is changed.
+The existing Breadcrumbs scene retains its approved opt-in22-item example. `Toggle long-label diagnostic` selects a long bilingual current label ending `End of label / Fin du libellé: gypq.` at requested300points; the existing width buttons request230or300. `Reset trail` restores the ordinary six-item defaults. Controls remain below the trail; the library implementation and native code are unchanged. Its eight source tests cover composition and state, not native glyph readability.
 
-`Toggle long-label diagnostic` selects22stable items with a long bilingual final label ending in `End of label / Fin du libellé: gypq.`. It starts at a requested300-point root width; `Set trail width 230` and `Set trail width 300` change only that requested width. The visible readout names the item count and **requested**, not measured, width. The label appears only in the actual Breadcrumbs content. `Reset trail` restores the standard six-item trail and resets the dormant diagnostic width to300.
-
-This represents the historical long-label/width risk; the exact lost original label and pixel/layout packet are unavailable. It is not an exact replay, a clipping correction or installed proof. Source tests cover actual visible/collapsed item count, label delivery, width configuration, draft/current-item lifetime and reset; they do not establish native glyph bounds or readability.
-
-After a specific bounded native diagnostic/retry exception is approved, use the existing development client and one ordinary Expo session; these JS-only scene changes do not require a native rebuild:
-
-1. Choose Breadcrumbs scene once, scroll past the selectors and ordinary controls, and enable `Toggle long-label diagnostic` once. Keep the default theme, fixture and styling; do not open the trail popover or navigation links.
-2. With the readout at22items/requested300points, bring the actual final label fully into view and capture its ending plus surrounding space. Record the readout separately if needed; do not substitute it for the label image.
-3. Select `Set trail width 230` once and capture the same label/readout at the narrower requested width. Preserve any clipping before changing anything else.
-4. If the admitted scope includes placement comparison, keep230and all component inputs unchanged, use the existing Hide harness controls action, and inspect the same label after ordinary scrolling. Keep each placement's image/result distinct; changing visibility is not a product fix.
-5. Stop on unavailable input or unexpected state without repeated presses. Keep the admission's overall time/cleanup limit, stop the owned Metro normally, and preserve an already-booted user device. Any further observation or retry requires its own justified scope.
-
-No native diagnostic is authorized by this guide alone. Preserve the original failure and failed padding candidate; do not turn source text/style assertions into a native PASS.
+Gabriel explicitly accepts the scoped iOS delivery basis on2026-11-14 after the later healthy observations. The original230-point clipped image and subsequent healthy images remain separate evidence; no cause or universal fix is established. The temporary callback observation was canceled before runtime and is preserved outside the delivered source. No further diagnostic is queued. See [the acceptance and original evidence](../../planning/component-library/experiments.md#21-delivery-readiness-reset).
 
 ### Prepared Mac localhost connection
 
