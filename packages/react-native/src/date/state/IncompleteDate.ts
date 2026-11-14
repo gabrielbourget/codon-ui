@@ -299,6 +299,9 @@ export class IncompleteDate {
         } else if (this.hourCycle === "h11") {
           minValue = 0
           maxValue = 11
+        } else if (this.hourCycle === "h24") {
+          minValue = 1
+          maxValue = 24
         }
 
         return {
@@ -376,7 +379,7 @@ function toHourCycle(hour: number, hourCycle: HourCycle): [number | null, number
       break
     case "h24":
       // 24 hour time numbered 24 to 23. Unused but supported by Intl.DateTimeFormat.
-      hour += 1
+      if (hour === 0) hour = 24
       dayPeriod = null
   }
 
@@ -399,7 +402,7 @@ function fromHourCycle(hour: number, dayPeriod: number, hourCycle: HourCycle): n
       }
       break
     case "h24":
-      hour -= 1
+      if (hour === 24) hour = 0
       break
   }
 

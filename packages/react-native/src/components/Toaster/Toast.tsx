@@ -175,6 +175,7 @@ export const Toast = (props: TNativeToastProps) => {
             </View>
             {dismissable ? (
               <Button
+                transparent
                 {...buttonSlot(toast.customCloseButtonProps, toast.customCloseButtonStyles)}
                 onPointerDown={(event) => excludeGesture("close", event)}
                 accessibilityLabel={labels.closeButtonAriaLabel}

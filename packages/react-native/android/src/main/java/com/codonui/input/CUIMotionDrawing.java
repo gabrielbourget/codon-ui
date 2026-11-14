@@ -129,11 +129,13 @@ final class CUIMotionDrawing {
     CompositeBackgroundDrawable current = background instanceof CompositeBackgroundDrawable ? (CompositeBackgroundDrawable)background : null;
     if (!active() || current != composite) restore();
     if (!active()) return;
+    boolean attachLayers = current != null && current != composite;
+    // Installing the provider can synchronously request its outline.
+    if (attachLayers) composite = current;
     if (host.getOutlineProvider() != correctedOutline) {
       authoredOutline = host.getOutlineProvider(); host.setOutlineProvider(correctedOutline);
     }
-    if (current == null || current == composite) return;
-    composite = current;
+    if (!attachLayers) return;
     List<BoxShadow> outer = new ArrayList<>(), inner = new ArrayList<>();
     for (BoxShadow shadow : shadows) {
       if (Boolean.TRUE.equals(shadow.getInset())) { if (Build.VERSION.SDK_INT >= 29) inner.add(shadow); }

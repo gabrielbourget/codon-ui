@@ -462,6 +462,55 @@ it("NATIVE.loaders.002 retains a static first frame when the preference query fa
   expect(motion.loops).toHaveLength(0)
 })
 
+it.each([
+  { Component: CircleLoader, identity: "circle-loader", visuals: ["circle-loader-spinner"] },
+  {
+    Component: LaggingLinesLoader,
+    identity: "lagging-lines-loader",
+    visuals: [0, 1, 2].map((index) => "lagging-lines-loader-motion-" + index),
+  },
+])(
+  "replaces only $identity visual hosts across live Reduce Motion changes",
+  async ({ Component, identity, visuals }) => {
+    const motion = captureMotion()
+    const ref = createRef<View>()
+    const layout = jest.fn()
+    const { unmount } = await render(<Component ref={ref} accessibilityLabel="Saving task" onLayout={layout} />)
+    if (identity === "lagging-lines-loader") await measureTrack(150)
+    const root = part(identity)
+    const originalRef = ref.current
+    const initialVisuals = visuals.map(part)
+    const listener = jest.mocked(AccessibilityInfo.addEventListener).mock.calls.at(-1)![1] as unknown as (
+      enabled: boolean,
+    ) => void
+
+    await act(() => listener(false))
+    const movingVisuals = visuals.map(part)
+    for (const [index, visual] of movingVisuals.entries()) expect(visual === initialVisuals[index]).toBe(false)
+    expect(part(identity)).toBe(root)
+    expect(ref.current).toBe(originalRef)
+    await act(() => {
+      for (const timing of motion.timings) timing.value.setValue(0.75)
+    })
+
+    await act(() => listener(true))
+    for (const [index, identity] of visuals.entries()) {
+      const visual = part(identity)
+      expect(visual === movingVisuals[index]).toBe(false)
+      expect(visual).toHaveStyle({
+        transform: [identity.endsWith("spinner") ? { rotate: "0deg" } : { translateX: 0 }],
+      })
+    }
+    expect(part(identity)).toBe(root)
+    expect(ref.current).toBe(originalRef)
+    expect(root.props.accessibilityState).toEqual({ busy: true })
+    expect(screen.getByRole("progressbar", { name: "Saving task" })).toBe(root)
+    expect(layout).not.toHaveBeenCalled()
+    await unmount()
+    expect(ref.current).toBeNull()
+  },
+)
+
 it.each([-1, Infinity, NaN])("NATIVE.loaders.002 rejects invalid duration %s", async (duration) => {
   await expect(render(<CircleLoader duration={duration} />)).rejects.toThrow(/duration/)
   await expect(render(<LaggingLinesLoader duration={duration} />)).rejects.toThrow(/duration/)

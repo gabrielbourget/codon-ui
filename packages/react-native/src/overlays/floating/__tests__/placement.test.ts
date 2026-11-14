@@ -89,6 +89,74 @@ it("intersects explicit native visible boundaries and uses the resized keyboard 
     height: 0,
   })
 })
+it("keeps the surface inside a keyboard viewport when its trigger is below that viewport", () => {
+  const input = {
+    host: { x: 0, y: 0, width: 411, height: 914 },
+    anchor: { x: 26, y: 816, width: 359, height: 48 },
+    content: { width: 240, height: 424 },
+    margins: { bottom: 8 },
+  }
+  const keyboardHidden = getNativeFloatingPlacement({
+    ...input,
+    visibleBoundary: { x: 0, y: 44, width: 411, height: 846 },
+  })!
+  expect(keyboardHidden).toMatchObject({
+    placement: "top",
+    didFlip: true,
+    frame: { x: 85.5, y: 376, width: 240, height: 432 },
+  })
+  const keyboardVisible = getNativeFloatingPlacement({
+    ...input,
+    visibleBoundary: { x: 0, y: 44, width: 411, height: 536 },
+  })!
+  expect(keyboardVisible.placement).toBe("top")
+  expect(keyboardVisible.didFlip).toBe(true)
+  expect(keyboardVisible.frame.height).toBe(432)
+  expect(keyboardVisible.frame.y).toBeGreaterThanOrEqual(56)
+  expect(keyboardVisible.frame.y + keyboardVisible.frame.height).toBeLessThanOrEqual(568)
+})
+it("keeps a bottom surface inside the viewport when its trigger is above the visible boundary", () => {
+  const result = getNativeFloatingPlacement({
+    ...base,
+    anchor: { ...base.anchor, y: 0 },
+    visibleBoundary: { x: 0, y: 100, width: 300, height: 200 },
+    offset: 13,
+    margins: { top: 7, bottom: 5 },
+  })!
+  expect(result).toMatchObject({ placement: "bottom", didFlip: false, frame: { width: 60, height: 52 } })
+  expect(result.frame.y).toBeGreaterThanOrEqual(112)
+  expect(result.frame.y + result.frame.height).toBeLessThanOrEqual(288)
+})
+it("bounds tall keyboard surfaces while preserving authored max height and disabled flipping", () => {
+  const input = {
+    host: { x: 20, y: 30, width: 300, height: 700 },
+    anchor: { x: 120, y: 600, width: 40, height: 30 },
+    visibleBoundary: { x: 20, y: 60, width: 300, height: 300 },
+    content: { width: 120, height: 700 },
+    placement: "top" as const,
+    shouldFlip: false,
+    containerPadding: 10,
+    offset: 17,
+    margins: { top: 3, bottom: 7 },
+    maxHeight: 90,
+  }
+  const authoredHeight = getNativeFloatingPlacement(input)!
+  expect(authoredHeight).toMatchObject({ placement: "top", didFlip: false, maxHeight: 90, frame: { height: 90 } })
+  expect(authoredHeight.frame.y).toBeGreaterThanOrEqual(70)
+  expect(authoredHeight.frame.y + authoredHeight.frame.height).toBeLessThanOrEqual(350)
+  const availableHeight = getNativeFloatingPlacement({ ...input, maxHeight: undefined })!
+  expect(availableHeight.frame.y).toBeGreaterThanOrEqual(70)
+  expect(availableHeight.frame.y + availableHeight.frame.height).toBeLessThanOrEqual(350)
+  expect(getNativeFloatingPlacement({ ...input, anchor: { ...input.anchor, y: 250 } })).toMatchObject({
+    placement: "top",
+    didFlip: false,
+    maxHeight: 90,
+    frame: { y: 143, height: 90 },
+    positionStyle: { bottom: 497 },
+  })
+  expect(input.anchor.y).toBe(600)
+  expect(input.content.height).toBe(700)
+})
 it("shifts cross-axis overflow, clamps the arrow and retains measured width", () => {
   const result = getNativeFloatingPlacement({
     ...base,

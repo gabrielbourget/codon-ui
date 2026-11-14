@@ -82,13 +82,14 @@
     "No private dependency runtime imports; source maps are extraction provenance only",
     "The only date validation templates are plain strings or one minValue/maxValue interpolation; preserve all 34 dictionaries through an owned private formatter, not a new string-runtime dependency",
     "Preserve source undefined literal-segment flags exactly; typed declaration cleanup does not normalize their runtime values",
-    "Date picker/range picker state retains the exact pinned value/date/time transaction algorithms while sharing the existing owned form validation context, controlled state and overlay state, including server errors and reset. Approved roadmap3.5.53.24; calendar hooks continue through audited public neutral entries."
+    "Date picker/range picker state retains the exact pinned value/date/time transaction algorithms while sharing the existing owned form validation context, controlled state and overlay state, including server errors and reset. Approved roadmap3.5.53.24; calendar hooks continue through audited public neutral entries.",
+    "Correct the h24 display/canonical mapping to change only midnight 0 to 24 and back, with displayed bounds 1 through 24. Preserve other hour values, h11/h12/h23 behavior and approved pending-edit composition. The actual Android 07:30 display versus 06:30 owner value is retained as the regression witness; original upstream source hashes and license remain unchanged."
   ],
   "approval": "Complete roadmap 3.5.52, directly approved by Gabriel on 2026-10-22",
   "verification": "50 focused native source cases pass across actual pinned time-state traces, controlled veto/class/null/partial/guard/validation/locale and shared state regressions; no SDK or public TimePicker delivery claim",
   "messageLocalesCount": 34,
   "authoredSourcesSHA256": {
-    "IncompleteDate.ts": "2f6a71c989198de4694d9109eead8599971326abf367941f012184d0e4b973ca",
+    "IncompleteDate.ts": "3c3a411a3722be30faf53b9264df8c1ef567df900742835c359c5fb8d14e25d8",
     "messages.ts": "281d7487f37aa3da49711fc13e4c7b16e2a9caaf417774d2270c01e1e6fabe50",
     "placeholders.ts": "98de0b62d08152d8a751fbe0e32047a4497030feb2d959d302b480c5045a9b10",
     "types.ts": "8f9ab0432bb58bdd1f06e3071d1378c93e9778531ae0a6b33313979120251fbe",

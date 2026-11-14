@@ -25,8 +25,8 @@ const base = (toast: Partial<TNativeToast> = {}, props: Partial<TNativeToastProp
   onHeight: jest.fn(),
   ...props,
 })
-const node = (props: TNativeToastProps, canAct = true) => (
-  <NativeThemeProvider>
+const node = (props: TNativeToastProps, canAct = true, mode?: "light" | "dark") => (
+  <NativeThemeProvider mode={mode}>
     <NativeFloatingLayerHost testID="host">
       <NativeFloatingScopeContext.Provider value={{ id: null, canAct: () => canAct }}>
         <Toast {...props} />
@@ -50,6 +50,42 @@ it("CAP.toast.001/.002/.005/.006 renders actual native controls with authored di
   expect(row()).toHaveStyle({ height: 300, width: 500, borderRadius: 0, elevation: 0 })
   expect(screen.getByRole("button", { name: "Close Toast" })).toBeOnTheScreen()
   expect(screen.getByText("Placeholder Title Text")).toBeOnTheScreen()
+})
+it.each(["light", "dark"] as const)(
+  "keeps the default close glyph over the %s toast ribbon without an opaque button fill",
+  async (mode) => {
+    await render(node(base(), true, mode))
+    const target = RN.Platform.OS === "ios" ? 44 : 48
+    expect(screen.getByRole("button", { name: "Close Toast" })).toHaveStyle({
+      backgroundColor: "transparent",
+      minWidth: target,
+      minHeight: target,
+    })
+    expect(row("toast-ribbon")).toHaveStyle({ backgroundColor: "#2563eb" })
+    expect(
+      row("toast-default-close-icon").queryAll((host) => host.props.fill?.payload === 0xffffffff),
+    ).not.toHaveLength(0)
+  },
+)
+it("preserves caller close-button transparency and final style overrides", async () => {
+  const { rerender } = await render(node(base({ customCloseButtonProps: { transparent: false } })))
+  expect(screen.getByRole("button", { name: "Close Toast" })).toHaveStyle({ backgroundColor: "#ffffff" })
+  await rerender(
+    node(
+      base({
+        customCloseButtonProps: {
+          transparent: false,
+          customStyles: { backgroundColor: "navy", marginTop: 3 },
+        },
+        customCloseButtonStyles: { backgroundColor: "purple", marginLeft: 5 },
+      }),
+    ),
+  )
+  expect(screen.getByRole("button", { name: "Close Toast" })).toHaveStyle({
+    backgroundColor: "purple",
+    marginTop: 3,
+    marginLeft: 5,
+  })
 })
 it.each([
   ["info", "#2563eb", false],

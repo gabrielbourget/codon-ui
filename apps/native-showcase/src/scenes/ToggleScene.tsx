@@ -147,7 +147,7 @@ export const ToggleScene = () => {
         isReadOnly={readOnly}
         order={order}
         geometry={geometry}
-        width={zero ? 0 : undefined}
+        width={zero ? 0 : "100%"}
         color={explicitColor ? "#2f7d18" : undefined}
         fontSize={custom ? 14 : 12}
         uppercase={custom}

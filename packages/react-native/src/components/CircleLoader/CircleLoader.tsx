@@ -81,7 +81,9 @@ export const CircleLoader = forwardRef<TNativeCircleLoaderRef, TNativeCircleLoad
       testID={identity}
       style={rootStyle}
     >
+      {/* Replace the private host so a native-driven transform cannot survive the static frame. */}
       <Animated.View
+        key={isMotionEnabled ? "animated" : "static"}
         accessible={false}
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
