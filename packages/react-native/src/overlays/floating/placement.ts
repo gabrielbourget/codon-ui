@@ -166,11 +166,13 @@ export const getNativeFloatingPlacement = (input: TNativeFloatingPlacementInput)
     )
     const cross = bounded(anchored, vertical ? left : top, (vertical ? right : bottom) - crossSize)
     if (vertical) {
-      const y =
+      const edge =
         side === "top"
-          ? host.y + host.height - Math.floor(host.height - (anchor.y - host.y) + offset) - height
+          ? host.y + host.height - Math.floor(host.height - (anchor.y - host.y) + offset)
           : host.y + Math.floor(anchor.y - host.y + anchor.height + offset)
-      return { x: cross, y }
+      // A resized viewport may exclude the trigger while its floating surface stays open.
+      const visibleEdge = input.visibleBoundary ? bounded(edge, top, Math.max(top, bottom)) : edge
+      return { x: cross, y: side === "top" ? visibleEdge - height : visibleEdge }
     }
     const x =
       side === "left"

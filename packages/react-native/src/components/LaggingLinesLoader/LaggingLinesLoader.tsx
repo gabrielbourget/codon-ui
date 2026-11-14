@@ -34,8 +34,10 @@ const MovingLine = ({
 }) => {
   const recipe = LINE_RECIPES[index]
   const phase = useNativeLoaderLoop(duration, recipe.delay, SLIDE_EASING, enabled, true)
+  // Replace only the visual host to clear native-driven transforms at the static boundary.
   return (
     <Animated.View
+      key={enabled ? "animated" : "static"}
       accessible={false}
       testID={identity + "-motion-" + index}
       style={{

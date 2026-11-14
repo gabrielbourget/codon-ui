@@ -175,7 +175,7 @@ export const PaginationScene = () => {
           itemsPerPage: { selectAriaLabel: "Page size" },
         }}
         customComponentStyles={styled ? { gap: 0, color: "purple" } : undefined}
-        style={styled ? { color: "orange" } : undefined}
+        style={[{ flexWrap: "wrap" }, styled ? { color: "orange" } : undefined]}
         customPageNumberInputProps={{ testID: "pagination-scene-input", onChangeText: setObservedText }}
         customItemsPerPageSelectProps={{ testID: "pagination-scene-size" }}
         customGeneralButtonProps={{ isDisabled: false, onPress: observeButton }}
@@ -193,7 +193,10 @@ export const PaginationScene = () => {
         customLastPageButtonStyles={customizations.includes("last") ? styles.last : undefined}
         customPageNumberButtonStyles={customizations.includes("page") ? styles.page : undefined}
         customPageCounterStyles={customizations.includes("counter") ? styles.counter : undefined}
-        customPageNumberInputFormFieldStyles={customizations.includes("pageField") ? styles.pageField : undefined}
+        customPageNumberInputFormFieldStyles={[
+          { width: 240 },
+          customizations.includes("pageField") ? styles.pageField : undefined,
+        ]}
         customItemsPerPageFormFieldStyles={customizations.includes("sizeField") ? styles.sizeField : undefined}
         customItemsPerPageSelectStyles={customizations.includes("sizeSelect") ? styles.sizeSelect : undefined}
         customClickPopoverTriggerButtonStyles={customizations.includes("overflow") ? styles.overflow : undefined}

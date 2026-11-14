@@ -4,11 +4,92 @@ import { useDateFieldState as usePinnedDateFieldState } from "react-stately/useD
 import { useTimeFieldState as usePinnedTimeFieldState } from "react-stately/useTimeFieldState"
 
 import { FormValidationContext } from "../../components/ComboBox/state/useFormValidationState"
+import { IncompleteDate } from "../state/IncompleteDate"
 import type { TimeValue } from "../state/types"
 import { useDateFieldState, type DateSegmentType, type DateFieldState } from "../state/useDateFieldState"
 import { useTimeFieldState, type TimeFieldState, type TimeFieldStateOptions } from "../state/useTimeFieldState"
 
 type THook = (props: TimeFieldStateOptions) => TimeFieldState
+
+it.each([
+  { hour: 0, displayed: 24 },
+  { hour: 1, displayed: 1 },
+  { hour: 7, displayed: 7 },
+  { hour: 12, displayed: 12 },
+  { hour: 23, displayed: 23 },
+])("preserves canonical hour $hour when h24 displays and edits $displayed", ({ hour, displayed }) => {
+  const calendar = createCalendar("gregory")
+  const value = new CalendarDateTime(2026, 11, 14, hour, 30)
+  const existing = new IncompleteDate(calendar, "h24", value)
+  expect(existing.hour).toBe(displayed)
+  expect(existing.getSegmentLimits("hour")).toEqual({ value: displayed, minValue: 1, maxValue: 24 })
+
+  const placeholder = new CalendarDateTime(2026, 11, 14)
+  const entered = new IncompleteDate(calendar, "h24").set("hour", displayed, placeholder).set("minute", 30, placeholder)
+  expect(entered.toValue(placeholder).toString()).toBe(value.toString())
+})
+
+it.each([
+  { hour: 23, amount: 1, displayed: 24, next: 0 },
+  { hour: 0, amount: 1, displayed: 1, next: 1 },
+  { hour: 1, amount: -1, displayed: 24, next: 0 },
+  { hour: 0, amount: -1, displayed: 23, next: 23 },
+])("cycles h24 hour $hour by $amount through midnight", ({ hour, amount, displayed, next }) => {
+  const value = new CalendarDateTime(2026, 11, 14, hour, 30)
+  const cycled = new IncompleteDate(createCalendar("gregory"), "h24", value).cycle("hour", amount, value, [
+    "hour",
+    "minute",
+  ])
+  expect(cycled.hour).toBe(displayed)
+  expect(cycled.toValue(value).toString()).toBe(new CalendarDateTime(2026, 11, 14, next, 30).toString())
+})
+
+it.each([
+  { cycle: "h11", hour: 0, displayed: 0 },
+  { cycle: "h11", hour: 7, displayed: 7 },
+  { cycle: "h11", hour: 12, displayed: 0 },
+  { cycle: "h11", hour: 23, displayed: 11 },
+  { cycle: "h12", hour: 0, displayed: 12 },
+  { cycle: "h12", hour: 7, displayed: 7 },
+  { cycle: "h12", hour: 12, displayed: 12 },
+  { cycle: "h12", hour: 23, displayed: 11 },
+  { cycle: "h23", hour: 0, displayed: 0 },
+  { cycle: "h23", hour: 7, displayed: 7 },
+  { cycle: "h23", hour: 12, displayed: 12 },
+  { cycle: "h23", hour: 23, displayed: 23 },
+] as const)("preserves other hour cycles: $cycle at canonical $hour", ({ cycle, hour, displayed }) => {
+  const value = new CalendarDateTime(2026, 11, 14, hour, 30)
+  const existing = new IncompleteDate(createCalendar("gregory"), cycle, value)
+  expect(existing.hour).toBe(displayed)
+  expect(existing.toValue(value).toString()).toBe(value.toString())
+})
+
+it("publishes the h24 native-entry hour without shifting or losing same-batch minutes", async () => {
+  const change = jest.fn()
+  const { result } = await renderHook(() =>
+    useTimeFieldState({
+      locale: "en-US-u-hc-h24",
+      hourCycle: 24,
+      shouldForceLeadingZeros: true,
+      onChange: change,
+    }),
+  )
+  await act(() => {
+    result.current.setSegment("hour", 7)
+    result.current.setSegment("minute", 30)
+  })
+  expect(change).toHaveBeenCalledTimes(1)
+  expect(change).toHaveBeenLastCalledWith(new Time(7, 30))
+  expect(result.current.timeValue.toString()).toBe("07:30:00")
+  expect(result.current.segments.find((segment) => segment.type === "hour")).toMatchObject({
+    text: "07",
+    value: 7,
+    minValue: 1,
+    maxValue: 24,
+    isPlaceholder: false,
+  })
+})
+
 const examples = [
   { name: "Time", value: new Time(13, 45, 7), next: "14:45:07" },
   { name: "CalendarDateTime", value: new CalendarDateTime(2024, 10, 1, 13, 45, 7), next: "2024-10-01T14:45:07" },

@@ -55,6 +55,7 @@ final class CUICollectionRoot extends ReactViewGroup implements UIManagerListene
   }
   private String publisher = "", publication = "", requests = "[]", lastSnapshot = "", lifetime = "";
   private long instance, sequence, epoch, lastRequestSequence, nextAvailabilityCheck;
+  private long snapshotRevision, encodedSnapshotRevision = -1;
   private UIManager manager;
   private boolean mounting, resumed, committed, awaitingAcknowledgement;
   private JSONObject model, rootIntent;
@@ -65,6 +66,7 @@ final class CUICollectionRoot extends ReactViewGroup implements UIManagerListene
   private static String newIdentity() { return UUID.randomUUID().toString(); }
   private void renewPublisher() {
     publishers.remove(publisher); publisher = newIdentity(); instance = ++nextInstance; sequence = 0; lastRequestSequence = 0;
+    snapshotRevision++;
     publishers.put(publisher, new WeakReference<>(this));
   }
   void enforceInert() { setAlpha(0); setFocusable(false); setClickable(false); setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS); }
@@ -87,13 +89,13 @@ final class CUICollectionRoot extends ReactViewGroup implements UIManagerListene
   @Override public void onHostResume() { resumed = true; revokeAll(); reconcile(); }
   @Override public void onHostPause() { resumed = false; revokeAll(); publish(); }
   @Override public void onHostDestroy() { resumed = false; revokeAll(); publish(); }
-  void retire() { revokeAll(); publish(); disconnect(); publishers.remove(publisher); model = null; rootIntent = null; receiverIntents = new JSONArray(); publication = ""; requests = "[]"; }
+  void retire() { revokeAll(); publish(); disconnect(); publishers.remove(publisher); model = null; rootIntent = null; receiverIntents = new JSONArray(); publication = ""; snapshotRevision++; requests = "[]"; }
   private void revokeAll() {
     if (records.isEmpty() && lifetime.isEmpty()) return;
     for (Record record : records.values()) record.retire();
-    records.clear(); lifetime = ""; epoch++; lastSnapshot = "";
+    records.clear(); lifetime = ""; epoch++; lastSnapshot = ""; snapshotRevision++;
   }
-  private void removeRecord(String id) { Record record = records.remove(id); if (record != null) record.retire(); }
+  private void removeRecord(String id) { Record record = records.remove(id); if (record != null) { snapshotRevision++; record.retire(); } }
   private boolean active() { return committed && !mounting && resumed && manager != null && isAttachedToWindow() && hasWindowFocus() && UIManagerHelper.getSurfaceId(this) > 0; }
   private static boolean string(JSONObject object, String key) { return object != null && object.opt(key) instanceof String && !object.optString(key).isEmpty(); }
   private static int tag(JSONObject object, String key) {
@@ -106,7 +108,7 @@ final class CUICollectionRoot extends ReactViewGroup implements UIManagerListene
   void setPublication(String value) {
     value = value == null ? "" : value;
     if (publication.equals(value)) return;
-    publication = value; committed = false;
+    publication = value; snapshotRevision++; committed = false;
     try {
       JSONObject packet = new JSONObject(value), nextModel = packet.optJSONObject("model"), nextRoot = packet.optJSONObject("root");
       JSONArray items = nextModel == null ? null : nextModel.optJSONArray("items"), receivers = packet.optJSONArray("receivers");
@@ -177,7 +179,7 @@ final class CUICollectionRoot extends ReactViewGroup implements UIManagerListene
         if (view == this || !visible(view)) continue;
         Record root = records.get(rootIntent.optString("id"));
         if (!equal(intent, rootIntent) && (root == null || !descendant(view, root.original.get()))) continue;
-        if (equal(intent, rootIntent)) { lifetime = newIdentity(); epoch++; }
+        if (equal(intent, rootIntent)) { lifetime = newIdentity(); epoch++; snapshotRevision++; }
         String lease = newIdentity();
         JSONObject binding = new JSONObject().put("publisher", publisher).put("lease", lease).put("ownerId", model.getString("ownerId"))
           .put("rootId", model.getString("generation")).put("rootRevision", model.getString("revision")).put("target", getId())
@@ -188,7 +190,7 @@ final class CUICollectionRoot extends ReactViewGroup implements UIManagerListene
           @Override public void onViewAttachedToWindow(View original) {}
           @Override public void onViewDetachedFromWindow(View original) { originalChanged(original); }
         };
-        records.put(id, record); view.addOnAttachStateChangeListener(record.listener);
+        records.put(id, record); snapshotRevision++; view.addOnAttachStateChangeListener(record.listener);
       }
     } catch (JSONException invalid) { revokeAll(); }
     if (!records.containsKey(rootIntent.optString("id"))) revokeAll();
@@ -203,12 +205,18 @@ final class CUICollectionRoot extends ReactViewGroup implements UIManagerListene
     dispatcher.dispatchEvent(new ReceiptEvent(UIManagerHelper.getSurfaceId(this), getId(), name, data));
   }
   private void publish() {
+    long revision = snapshotRevision;
+    // Lifecycle notifications can leave every receipt field unchanged.
+    if (encodedSnapshotRevision == revision) return;
     try {
       JSONArray registrations = new JSONArray();
       for (Map.Entry<String, Record> entry : records.entrySet()) registrations.put(new JSONObject().put("id", entry.getKey()).put("tag", tag(entry.getValue().intent, "tag")).put("binding", entry.getValue().binding));
       JSONObject packet = new JSONObject().put("intent", new JSONObject(publication.isEmpty() ? "{}" : publication).optString("intent"))
         .put("publisher", publisher).put("instance", instance).put("lifetime", lifetime).put("registrations", registrations);
-      String signature = packet.toString(); if (signature.equals(lastSnapshot)) return;
+      String signature = packet.toString();
+      boolean unchanged = signature.equals(lastSnapshot);
+      encodedSnapshotRevision = revision;
+      if (unchanged) return;
       lastSnapshot = signature; packet.put("sequence", ++sequence); emit("topNativeCollectionCommit", packet);
     } catch (JSONException invalid) { /* Invalid publication never acknowledges a target. */ }
   }
