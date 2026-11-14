@@ -60,6 +60,12 @@ Scene buttons change content inline below all scene/theme/fixture controls in th
 
 Prepare the build/install and verify the actual Metro endpoint before a timed manual handoff. Reuse an installed development client while relevant native/configuration inputs match; JS/TS edits use the ordinary Metro/Fast Refresh loop. A native rebuild can consume most of a bounded session, so leave a realistic manual window and communicate its cutoff. Stop the owned Metro handle by the cleanup deadline, preserve an already-booted user device, and record later owner screenshots separately rather than extending a closed attempt. No additional launcher, observer or per-component harness is needed.
 
+### Retained Breadcrumbs long-label example
+
+The existing Breadcrumbs scene retains its approved opt-in22-item example. `Toggle long-label diagnostic` selects a long bilingual current label ending `End of label / Fin du libellé: gypq.` at requested300points; the existing width buttons request230or300. `Reset trail` restores the ordinary six-item defaults. Controls remain below the trail; the library implementation and native code are unchanged. Its eight source tests cover composition and state, not native glyph readability.
+
+Gabriel explicitly accepts the scoped iOS delivery basis on2026-11-14 after the later healthy observations. The original230-point clipped image and subsequent healthy images remain separate evidence; no cause or universal fix is established. The temporary callback observation was canceled before runtime and is preserved outside the delivered source. No further diagnostic is queued. See [the acceptance and original evidence](../../planning/component-library/experiments.md#21-delivery-readiness-reset).
+
 ### Prepared Mac localhost connection
 
 On the prepared Mac, keep the full Xcode selection and Node's localhost address preference scoped to the ordinary Metro process. This is the verified development-client command for an existing installed Debug client; it does not rebuild or install an app:

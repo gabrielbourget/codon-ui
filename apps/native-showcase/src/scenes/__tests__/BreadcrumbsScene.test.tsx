@@ -183,3 +183,60 @@ it("retains the trail popover customization through theme changes and an origina
   )
   expect(screen.getByTestId("click-popover", hidden)).toBeOnTheScreen()
 })
+
+const diagnosticLabel =
+  "Current location — keep every line readable, including the ending. Emplacement actuel — gardez chaque ligne lisible, jusqu’à la dernière ligne. End of label / Fin du libellé: gypq."
+
+it("adds the bounded long-label preset through the public trail without changing default inputs", async () => {
+  await render(node())
+  expect(screen.getByTestId("breadcrumbs")).not.toHaveStyle({ width: 230 })
+  expect(screen.getByTestId("breadcrumbs")).not.toHaveStyle({ width: 300 })
+  expect(screen.getByTestId("breadcrumb-current")).toHaveTextContent("Current")
+  expect(screen.queryByTestId("breadcrumbs-diagnostic-state")).toBeNull()
+  await press("Toggle long-label diagnostic")
+  expect(screen.getByTestId("breadcrumb-current")).toHaveTextContent(diagnosticLabel)
+  expect(screen.getByTestId("breadcrumbs")).toHaveStyle({ width: 300 })
+  expect(screen.getByTestId("breadcrumbs-diagnostic-state")).toHaveTextContent("22 items. Requested width: 300 points.")
+  expect(screen.getByTestId("breadcrumbs-scene-state")).toHaveTextContent(/Navigations: 0.*Close requests: 0/)
+  await press("Show hidden trail levels")
+  await ready()
+  const visibleItems = screen.getAllByTestId(/^breadcrumb-\d+$/, hidden)
+  const collapsedItems = screen.getAllByTestId(/^breadcrumb-option-\d+$/, hidden)
+  expect(visibleItems.length + collapsedItems.length).toBe(22)
+})
+
+it("changes only the diagnostic width while retaining items, draft and theme lifetime", async () => {
+  const result = await render(node())
+  await fireEvent.changeText(screen.getByTestId("breadcrumbs-scene-draft"), "Diagnostic draft")
+  const draft = screen.getByTestId("breadcrumbs-scene-draft").unstable_fiber?.stateNode
+  await press("Toggle long-label diagnostic")
+  const current = screen.getByTestId("breadcrumb-current").unstable_fiber?.stateNode
+  expect(current).toBeTruthy()
+  await press("Set trail width 230")
+  expect(screen.getByTestId("breadcrumb-current").unstable_fiber?.stateNode).toBe(current)
+  expect(screen.getByTestId("breadcrumbs")).toHaveStyle({ width: 230 })
+  expect(screen.getByTestId("breadcrumbs-diagnostic-state")).toHaveTextContent("22 items. Requested width: 230 points.")
+  expect(screen.getByTestId("breadcrumb-current")).toHaveTextContent(diagnosticLabel)
+  await press("Set trail width 300")
+  await press("Toggle trail styles")
+  await result.rerender(node("dark"))
+  expect(screen.getByTestId("breadcrumb-current").unstable_fiber?.stateNode).toBe(current)
+  expect(screen.getByTestId("breadcrumbs")).toHaveStyle({ width: 300, gap: 0 })
+  expect(screen.getByTestId("breadcrumbs-scene-draft")).toHaveDisplayValue("Diagnostic draft")
+  expect(screen.getByTestId("breadcrumbs-scene-draft").unstable_fiber?.stateNode).toBe(draft)
+  expect(screen.getByTestId("breadcrumbs-scene-state")).toHaveTextContent(/Navigations: 0.*Close requests: 0/)
+})
+
+it("resets the diagnostic without changing standard trail defaults or keeping a stale width", async () => {
+  await render(node())
+  await press("Toggle long-label diagnostic")
+  await press("Set trail width 230")
+  await press("Reset trail")
+  expect(screen.getByTestId("breadcrumbs")).not.toHaveStyle({ width: 230 })
+  expect(screen.getByTestId("breadcrumbs")).not.toHaveStyle({ width: 300 })
+  expect(screen.getByTestId("breadcrumb-current")).toHaveTextContent("Current")
+  expect(screen.queryByTestId("breadcrumbs-diagnostic-state")).toBeNull()
+  expect(screen.queryByRole("button", { name: "Set trail width 230" })).toBeNull()
+  await press("Toggle long-label diagnostic")
+  expect(screen.getByTestId("breadcrumbs")).toHaveStyle({ width: 300 })
+})
