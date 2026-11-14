@@ -8,29 +8,13 @@ namespace facebook::react { class Props; }
 
 namespace codon::input {
 
-// Keep the generated final props object intact. Its owning control block carries
-// the private presence bit; casts and weak references retain the same lifetime.
-struct __attribute__((visibility("default"))) PositionOwnership final {
-  std::shared_ptr<const facebook::react::Props> original;
-  bool authored;
-  void operator()(const facebook::react::Props *) noexcept { original.reset(); }
-};
+// Allocation and lookup share one native implementation. Independent Android
+// dlopen groups need not merge RTTI used by a shared_ptr's private deleter.
+__attribute__((visibility("default"))) std::optional<bool> nativePositionPresence(
+    const std::shared_ptr<const facebook::react::Props> &props);
 
-inline std::optional<bool> nativePositionPresence(
-    const std::shared_ptr<const facebook::react::Props> &props) {
-  const auto *ownership = std::get_deleter<PositionOwnership>(props);
-  if (!ownership || ownership->original.get() != props.get()) return std::nullopt;
-  return ownership->authored;
-}
-
-inline std::shared_ptr<const facebook::react::Props> withNativePositionPresence(
-    std::shared_ptr<const facebook::react::Props> props, bool authored) {
-  if (!props) throw std::invalid_argument("Native position: original props required");
-  const auto existing = nativePositionPresence(props);
-  if (existing && *existing == authored) return props;
-  const auto *original = props.get();
-  return {original, PositionOwnership{std::move(props), authored}};
-}
+__attribute__((visibility("default"))) std::shared_ptr<const facebook::react::Props> withNativePositionPresence(
+    std::shared_ptr<const facebook::react::Props> props, bool authored);
 
 inline bool requireNativePositionPresence(
     const std::shared_ptr<const facebook::react::Props> &props) {

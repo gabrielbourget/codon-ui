@@ -20,7 +20,10 @@ android {
     }
   }
   ndkVersion rootProject.ext.ndkVersion
-  buildFeatures { prefab true }
+  buildFeatures { prefab true; prefabPublishing true }
+  prefab {
+    codon_motion { headers "../cpp/input" }
+  }
   externalNativeBuild { cmake { path "src/main/jni/CMakeLists.txt" } }
   packagingOptions {
     jniLibs {
