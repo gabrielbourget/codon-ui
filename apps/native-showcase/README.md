@@ -50,6 +50,16 @@ adb -s "$CODON_DEV_ANDROID_SERIAL" reverse tcp:8081 tcp:8081
 
 Connect the development client to the Metro URL shown by Expo CLI using its standard launcher. Once connected, open a scenario link and save JS/TS/component/style changes. Fast Refresh is enabled by default in development and can be toggled in the normal development menu. Compatible function-component edits can retain local state; changing Hook order, module exports or a full reload can remount it. Effects also restart during refresh. The link listener retains its consumed initial URL across compatible effect restarts so a launch link containing `reset=1` is not replayed on each edit; an explicitly received reset link still resets the scene.
 
+### Finding the selected scene
+
+Scene buttons change content inline below all scene/theme/fixture controls in the same scroll view. They do not navigate to another page or automatically scroll to the component. Their selected state is exposed to accessibility; their color changes while pressed, but there is no persistent visual selected-state highlight. Repeatedly pressing a scene button is not a visibility check.
+
+- Choose the scene once, then scroll down past the controls to the component, or use the existing Hide harness controls button to remove the selector panel without resetting the scene.
+- The existing `Scene: <scene>` text above the selectors reports the current scene. For Table it reads `Scene: table`; the actual row checkboxes are below the catalogue controls, not the Table scene selector.
+- For a manual Table selection check, use a fresh/known owner state, identify Person1's row checkbox, perform only the admitted action, and read the visible `selected` and `requests` output. A changed checkbox alone does not prove the callback readout.
+
+Prepare the build/install and verify the actual Metro endpoint before a timed manual handoff. Reuse an installed development client while relevant native/configuration inputs match; JS/TS edits use the ordinary Metro/Fast Refresh loop. A native rebuild can consume most of a bounded session, so leave a realistic manual window and communicate its cutoff. Stop the owned Metro handle by the cleanup deadline, preserve an already-booted user device, and record later owner screenshots separately rather than extending a closed attempt. No additional launcher, observer or per-component harness is needed.
+
 ### Prepared Mac localhost connection
 
 On the prepared Mac, keep the full Xcode selection and Node's localhost address preference scoped to the ordinary Metro process. This is the verified development-client command for an existing installed Debug client; it does not rebuild or install an app:
