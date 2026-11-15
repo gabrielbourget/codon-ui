@@ -200,6 +200,29 @@ RootShadowNode::Shared NativeTableStickyPresentation::mountedRoot(int surface) {
   return root;
 }
 
+uint64_t NativeTableStickyPresentation::prepareFrames(const std::vector<std::string> &leases) {
+  std::vector<int> surfaces;
+  {
+    std::lock_guard lock(mutex_);
+    if (closed_) return mountedRevision_;
+    for (const auto &lease : leases) {
+      const auto found = entries_.find(lease);
+      if (found == entries_.end() || found->second.released) continue;
+      if (!failure_.empty()) throw std::runtime_error(failure_);
+      if (!found->second.active) surfaces.push_back(found->second.surface);
+    }
+    for (const auto &lease : leases) {
+      const auto found = entries_.find(lease);
+      if (found != entries_.end() && !found->second.released) found->second.active = true;
+    }
+  }
+  std::sort(surfaces.begin(), surfaces.end());
+  surfaces.erase(std::unique(surfaces.begin(), surfaces.end()), surfaces.end());
+  for (const auto surface : surfaces) flush(surface);
+  std::lock_guard lock(mutex_);
+  return mountedRevision_;
+}
+
 bool NativeTableStickyPresentation::frame(const std::string &lease, const TStickyViewport &viewport) {
   Entry entry;
   bool activate = false;
@@ -219,18 +242,38 @@ bool NativeTableStickyPresentation::frame(const std::string &lease, const TStick
   const auto node = family ? findNode(*root, *family) : nullptr;
   const auto table = tableFamily ? findNode(*root, *tableFamily) : nullptr;
   if (!node || !table) { retire(lease); return false; }
-  const auto *tableLayout = dynamic_cast<const LayoutableShadowNode *>(table.get());
-  const auto *layout = dynamic_cast<const LayoutableShadowNode *>(node.get());
+  const auto geometry = frameGeometry(entry, *root, *node, *table, viewport);
+  if (!geometry) return true;
+  const auto [x, y, width, height] = *geometry;
+  bool changed = false;
+  {
+    std::lock_guard lock(mutex_);
+    const auto found = entries_.find(lease);
+    if (closed_ || found == entries_.end() || found->second.released) return false;
+    changed = found->second.x != x || found->second.y != y ||
+        found->second.width != width || found->second.height != height;
+    found->second.x = x; found->second.y = y;
+    found->second.width = width; found->second.height = height;
+  }
+  if (changed) flush(entry.surface);
+  return true;
+}
+
+std::optional<NativeTableStickyPresentation::FrameGeometry> NativeTableStickyPresentation::frameGeometry(
+    const Entry &entry, const RootShadowNode &root, const ShadowNode &node,
+    const ShadowNode &table, const TStickyViewport &viewport) {
+  const auto *tableLayout = dynamic_cast<const LayoutableShadowNode *>(&table);
+  const auto *layout = dynamic_cast<const LayoutableShadowNode *>(&node);
   if (!tableLayout || !layout) throw std::runtime_error("Table sticky: actual layout unavailable");
-  const auto relative = LayoutableShadowNode::computeRelativeLayoutMetrics(*family, *tableLayout,
+  const auto relative = LayoutableShadowNode::computeRelativeLayoutMetrics(*entry.family.lock(), *tableLayout,
       {.includeTransform = false, .includeViewportOffset = false});
-  if (relative == EmptyLayoutMetrics) return true;
-  const auto source = authoredProps(*node);
-  const auto &props = nativeStickyViewProps(*node, source);
+  if (relative == EmptyLayoutMetrics) return std::nullopt;
+  const auto source = authoredProps(node);
+  const auto &props = nativeStickyViewProps(node, source);
   double x = 0, y = 0;
   if (!codon::input::requireNativePositionPresence(source) && props.yogaStyle.positionType() == facebook::yoga::PositionType::Relative) {
     const bool rtl = relative.layoutDirection == LayoutDirection::RightToLeft;
-    const auto &context = root->getConcreteProps().layoutContext;
+    const auto &context = root.getConcreteProps().layoutContext;
     const auto insets = nativeStickyInsets(props, entry.fallback, rtl, context.swapLeftAndRightInRTL,
         viewport.viewportWidth, viewport.viewportHeight);
     const auto tableMetrics = tableLayout->getLayoutMetrics();
@@ -239,8 +282,8 @@ bool NativeTableStickyPresentation::frame(const std::string &lease, const TStick
     auto style = codon::motion::copyNativeYogaStyle(props, context.swapLeftAndRightInRTL);
     double containingX = viewport.tableX, containingY = viewport.tableY;
     auto containingSize = tableMetrics.frame.size;
-    if (std::string_view(table->getComponentName()) == "ScrollView") {
-      const auto &scroll = static_cast<const ScrollViewShadowNode &>(*table);
+    if (std::string_view(table.getComponentName()) == "ScrollView") {
+      const auto &scroll = static_cast<const ScrollViewShadowNode &>(table);
       const auto size = scroll.getStateData().getContentSize();
       const auto origin = scroll.getContentOriginOffset(false);
       containingX += origin.x; containingY += origin.y;
@@ -258,17 +301,59 @@ bool NativeTableStickyPresentation::frame(const std::string &lease, const TStick
         selectedMargin(style, false, false, rtl, width),
         selectedMargin(style, false, true, rtl, width), insets[1], insets[3]});
   }
-  bool changed = false;
+  return FrameGeometry{x, y, relative.frame.size.width, relative.frame.size.height};
+}
+
+bool NativeTableStickyPresentation::frames(uint64_t revision,
+    const std::vector<std::pair<std::string, TStickyViewport>> &frames) {
+  struct Pending { std::string lease; Entry entry; FrameGeometry geometry; };
+  std::vector<Pending> pending;
+  std::unordered_map<int, RootShadowNode::Shared> roots;
+  for (const auto &[lease, viewport] : frames) {
+    Entry entry;
+    {
+      std::lock_guard lock(mutex_);
+      if (closed_ || mountedRevision_ != revision) return false;
+      const auto found = entries_.find(lease);
+      if (found == entries_.end() || found->second.released) continue;
+      if (!failure_.empty()) throw std::runtime_error(failure_);
+      if (!found->second.active) return false;
+      entry = found->second;
+    }
+    if (!roots.contains(entry.surface)) roots.emplace(entry.surface, mountedRoot(entry.surface));
+    if (roots.size() > 1) return false;
+    const auto &root = roots.at(entry.surface);
+    if (!root) continue;
+    const auto family = entry.family.lock(), tableFamily = entry.rootFamily.lock();
+    const auto node = family ? findNode(*root, *family) : nullptr;
+    const auto table = tableFamily ? findNode(*root, *tableFamily) : nullptr;
+    if (!node || !table) { retire(lease); return false; }
+    const auto geometry = frameGeometry(entry, *root, *node, *table, viewport);
+    if (geometry) pending.push_back({lease, entry, *geometry});
+  }
+  if (pending.empty()) return true;
+  std::vector<int> dirty;
   {
     std::lock_guard lock(mutex_);
-    const auto found = entries_.find(lease);
-    if (closed_ || found == entries_.end() || found->second.released) return false;
-    changed = found->second.x != x || found->second.y != y ||
-        found->second.width != relative.frame.size.width || found->second.height != relative.frame.size.height;
-    found->second.x = x; found->second.y = y;
-    found->second.width = relative.frame.size.width; found->second.height = relative.frame.size.height;
+    if (closed_ || mountedRevision_ != revision) return false;
+    if (!failure_.empty()) throw std::runtime_error(failure_);
+    for (const auto &update : pending) {
+      const auto found = entries_.find(update.lease);
+      if (found == entries_.end() || found->second.released || !found->second.active ||
+          found->second.family.lock() != update.entry.family.lock() ||
+          found->second.rootFamily.lock() != update.entry.rootFamily.lock() ||
+          found->second.x != update.entry.x || found->second.y != update.entry.y ||
+          found->second.width != update.entry.width || found->second.height != update.entry.height) return false;
+    }
+    for (const auto &update : pending) {
+      auto &entry = entries_.at(update.lease); const auto &next = update.geometry;
+      if (entry.x != next.x || entry.y != next.y || entry.width != next.width || entry.height != next.height)
+        dirty.push_back(entry.surface);
+      entry.x = next.x; entry.y = next.y; entry.width = next.width; entry.height = next.height;
+    }
   }
-  if (changed) flush(entry.surface);
+  std::sort(dirty.begin(), dirty.end()); dirty.erase(std::unique(dirty.begin(), dirty.end()), dirty.end());
+  for (const auto surface : dirty) flush(surface);
   return true;
 }
 
@@ -372,6 +457,7 @@ void NativeTableStickyPresentation::shadowTreeDidMount(const RootShadowNode::Sha
   std::function<void()> callback;
   { std::lock_guard lock(mutex_); if (closed_) return;
     const auto surface = root->getSurfaceId();
+    mountedRevision_++;
     if (std::any_of(entries_.begin(), entries_.end(), [surface](const auto &value) { return value.second.surface == surface && !value.second.released; }))
       mounted_[surface] = root;
     else mounted_.erase(surface);
@@ -383,6 +469,7 @@ void NativeTableStickyPresentation::shadowTreeDidUnmount(SurfaceId surface, High
   {
     std::lock_guard lock(mutex_);
     if (closed_) return;
+    mountedRevision_++;
     mounted_.erase(surface);
     std::erase_if(entries_, [surface](const auto &value) { return value.second.surface == surface; });
     std::erase_if(authored_, [surface](const auto &value) {

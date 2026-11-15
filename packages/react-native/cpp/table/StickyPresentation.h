@@ -4,6 +4,10 @@
 #include <react/renderer/uimanager/UIManagerCommitHook.h>
 #include <react/renderer/uimanager/UIManagerMountHook.h>
 #include <functional>
+#include <cstdint>
+#include <optional>
+#include <vector>
+#include <utility>
 #include <mutex>
 #include <unordered_map>
 
@@ -30,6 +34,8 @@ class NativeTableStickyPresentation final : public facebook::react::UIManagerCom
   std::vector<TStickyTarget> targets();
   void synchronize();
   bool frame(const std::string &lease, const TStickyViewport &viewport);
+  uint64_t prepareFrames(const std::vector<std::string> &leases);
+  bool frames(uint64_t revision, const std::vector<std::pair<std::string, TStickyViewport>> &frames);
   void retire(const std::string &lease);
   void fail(const std::string &message);
   void close();
@@ -70,6 +76,11 @@ class NativeTableStickyPresentation final : public facebook::react::UIManagerCom
   std::function<void()> onMount_;
   std::string failure_;
   bool closed_{false};
+  uint64_t mountedRevision_{0};
+  struct FrameGeometry { double x, y, width, height; };
+  std::optional<FrameGeometry> frameGeometry(const Entry &entry,
+      const facebook::react::RootShadowNode &root, const facebook::react::ShadowNode &node,
+      const facebook::react::ShadowNode &table, const TStickyViewport &viewport);
   facebook::react::Props::Shared authoredProps(const facebook::react::ShadowNode &node);
   facebook::react::RootShadowNode::Shared mountedRoot(int surface);
   void flush(int surface, bool allowMissing = false, bool restoreBranches = false);

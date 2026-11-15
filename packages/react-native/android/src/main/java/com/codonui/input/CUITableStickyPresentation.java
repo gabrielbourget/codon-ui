@@ -11,8 +11,10 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.fabric.FabricUIManager;
 import com.facebook.react.uimanager.IllegalViewOperationException;
+import com.facebook.react.uimanager.UIManagerHelper;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.HashSet;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -71,56 +73,81 @@ final class CUITableStickyPresentation implements ViewTreeObserver.OnPreDrawList
       JSONArray targets = new JSONArray(owner.tableStickyTargets());
       HashSet<String> retained = new HashSet<>();
       HashSet<ViewTreeObserver> currentObservers = new HashSet<>();
+      boolean batch = true; Integer surface = null;
       for (int index = 0; index < targets.length(); index++) {
-        JSONObject entry = targets.getJSONObject(index);
-        String lease = entry.getString("lease"); retained.add(lease);
-        View target = resolve(entry.getInt("target")), root = resolve(entry.getInt("containingRoot"));
-        Attachment attachment = attachments.get(lease);
-        if (target == null || root == null || !target.isAttachedToWindow() || !root.isAttachedToWindow()) {
-          if (attachment != null) { owner.tableStickyRetire(lease); attachments.remove(lease); }
-          continue;
-        }
-        if (target.getWindowToken() != root.getWindowToken() || target.getRootView() != root.getRootView() || !descendant(target, root) ||
-            (attachment != null && (attachment.target.get() != target || attachment.root.get() != root ||
-                attachment.window.get() != target.getRootView() || attachment.token != target.getWindowToken()))) {
-          owner.tableStickyRetire(lease); attachments.remove(lease); continue;
-        }
-        if (attachment == null) { attachment = new Attachment(target, root); attachments.put(lease, attachment); }
-        ViewTreeObserver observer = target.getRootView().getViewTreeObserver();
-        if (observer.isAlive()) currentObservers.add(observer);
-        View nearest = null;
-        CUIKeyboardScope scope = null;
-        boolean reachedRoot = false, visible = target.getVisibility() == View.VISIBLE;
-        double belowX = 0, belowY = 0;
-        for (ViewParent parent = target.getParent(); parent instanceof View; parent = parent.getParent()) {
-          View ancestor = (View)parent;
-          if (ancestor.getVisibility() != View.VISIBLE) visible = false;
-          if (scope == null && ancestor instanceof CUIKeyboardScope) scope = (CUIKeyboardScope)ancestor;
-          if (isScroll(ancestor)) {
-            if (nearest == null) nearest = ancestor;
-            if (!reachedRoot) { belowX += ancestor.getScrollX(); belowY += ancestor.getScrollY(); }
+        View target = resolve(targets.getJSONObject(index).getInt("target"));
+        if (target == null) continue;
+        int current = UIManagerHelper.getSurfaceId(target);
+        if (surface != null && surface != current) { batch = false; break; }
+        surface = current;
+      }
+      HashSet<String> prepared = new HashSet<>();
+      long revision = 0;
+      // Activation clears relative insets: gather viewport geometry only after its synchronous mount.
+      for (int phase = batch ? 0 : 1; phase < 2; phase++) {
+        JSONArray leases = new JSONArray(); ArrayList<Double> geometry = new ArrayList<>();
+        for (int index = 0; index < targets.length(); index++) {
+          JSONObject entry = targets.getJSONObject(index);
+          String lease = entry.getString("lease"); retained.add(lease);
+          if (batch && phase == 1 && !prepared.contains(lease)) continue;
+          View target = resolve(entry.getInt("target")), root = resolve(entry.getInt("containingRoot"));
+          Attachment attachment = attachments.get(lease);
+          if (target == null || root == null || !target.isAttachedToWindow() || !root.isAttachedToWindow()) {
+            if (attachment != null) { owner.tableStickyRetire(lease); attachments.remove(lease); }
+            continue;
           }
-          if (ancestor == root) reachedRoot = true;
-        }
-        if (!visible) continue;
-        if (!target.hasWindowFocus()) { owner.tableStickyRetire(lease); continue; }
-        if (!entry.isNull("session")) {
-          JSONObject expected = entry.getJSONObject("session");
-          if (scope == null || !scope.menuPointerOwnerId().equals(expected.getString("scopeOwnerId")) ||
-              !CUIInputWindow.identity(scope).equals(expected.getString("windowId")) || scope.menuPointerEpoch() != expected.getDouble("epoch")) {
-            owner.tableStickyRetire(lease); continue;
+          if (target.getWindowToken() != root.getWindowToken() || target.getRootView() != root.getRootView() || !descendant(target, root) ||
+              (attachment != null && (attachment.target.get() != target || attachment.root.get() != root ||
+                  attachment.window.get() != target.getRootView() || attachment.token != target.getWindowToken()))) {
+            owner.tableStickyRetire(lease); attachments.remove(lease); continue;
           }
+          if (attachment == null) { attachment = new Attachment(target, root); attachments.put(lease, attachment); }
+          ViewTreeObserver observer = target.getRootView().getViewTreeObserver();
+          if (observer.isAlive()) currentObservers.add(observer);
+          View nearest = null;
+          CUIKeyboardScope scope = null;
+          boolean reachedRoot = false, visible = target.getVisibility() == View.VISIBLE;
+          double belowX = 0, belowY = 0;
+          for (ViewParent parent = target.getParent(); parent instanceof View; parent = parent.getParent()) {
+            View ancestor = (View)parent;
+            if (ancestor.getVisibility() != View.VISIBLE) visible = false;
+            if (scope == null && ancestor instanceof CUIKeyboardScope) scope = (CUIKeyboardScope)ancestor;
+            if (isScroll(ancestor)) {
+              if (nearest == null) nearest = ancestor;
+              if (!reachedRoot) { belowX += ancestor.getScrollX(); belowY += ancestor.getScrollY(); }
+            }
+            if (ancestor == root) reachedRoot = true;
+          }
+          if (!visible) continue;
+          if (!target.hasWindowFocus()) { owner.tableStickyRetire(lease); continue; }
+          if (!entry.isNull("session")) {
+            JSONObject expected = entry.getJSONObject("session");
+            if (scope == null || !scope.menuPointerOwnerId().equals(expected.getString("scopeOwnerId")) ||
+                !CUIInputWindow.identity(scope).equals(expected.getString("windowId")) || scope.menuPointerEpoch() != expected.getDouble("epoch")) {
+              owner.tableStickyRetire(lease); continue;
+            }
+          }
+          leases.put(lease);
+          if (phase == 0) { prepared.add(lease); continue; }
+          double[] table = box(root), viewport = box(nearest == null ? target.getRootView() : nearest);
+          if (nearest instanceof ViewGroup && ((ViewGroup)nearest).getClipToPadding()) {
+            viewport[0] += nearest.getPaddingLeft(); viewport[1] += nearest.getPaddingTop();
+            viewport[2] -= nearest.getPaddingLeft() + nearest.getPaddingRight();
+            viewport[3] -= nearest.getPaddingTop() + nearest.getPaddingBottom();
+          }
+          double density = target.getResources().getDisplayMetrics().density;
+          double[] frame = new double[] {table[0] / density, table[1] / density,
+              viewport[0] / density, viewport[1] / density, Math.max(0, viewport[2]) / density,
+              Math.max(0, viewport[3]) / density, belowX / density, belowY / density};
+          if (!batch) owner.tableStickyFrame(lease, frame);
+          else for (double value : frame) geometry.add(value);
         }
-        double[] table = box(root), viewport = box(nearest == null ? target.getRootView() : nearest);
-        if (nearest instanceof ViewGroup && ((ViewGroup)nearest).getClipToPadding()) {
-          viewport[0] += nearest.getPaddingLeft(); viewport[1] += nearest.getPaddingTop();
-          viewport[2] -= nearest.getPaddingLeft() + nearest.getPaddingRight();
-          viewport[3] -= nearest.getPaddingTop() + nearest.getPaddingBottom();
+        if (phase == 0) revision = owner.tableStickyPrepare(leases.toString());
+        else if (batch && leases.length() != 0) {
+          double[] values = new double[geometry.size()];
+          for (int index = 0; index < values.length; index++) values[index] = geometry.get(index);
+          owner.tableStickyFrames(revision, leases.toString(), values);
         }
-        double density = target.getResources().getDisplayMetrics().density;
-        owner.tableStickyFrame(lease, new double[] {table[0] / density, table[1] / density,
-            viewport[0] / density, viewport[1] / density, Math.max(0, viewport[2]) / density,
-            Math.max(0, viewport[3]) / density, belowX / density, belowY / density});
       }
       attachments.keySet().retainAll(retained);
       for (ViewTreeObserver observer : observers) if (!currentObservers.contains(observer) && observer.isAlive()) observer.removeOnPreDrawListener(this);

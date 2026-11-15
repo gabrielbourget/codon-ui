@@ -44,6 +44,8 @@ public final class CUIMotionSnapshotModule extends NativeCUIMotionSnapshotSpec {
   private static native String nativeTableTargets(long handle);
   private static native void nativeTableSynchronize(long handle);
   private static native void nativeTableFrame(long handle, String lease, double[] geometry);
+  private static native long nativeTablePrepare(long handle, String leases);
+  private static native boolean nativeTableFrames(long handle, long revision, String leases, double[] geometry);
   private static native void nativeTableRetire(long handle, String lease);
   private static native void nativeCloseTable(long handle);
   private static native long nativeCreatePop(FabricUIManager manager);
@@ -88,6 +90,8 @@ public final class CUIMotionSnapshotModule extends NativeCUIMotionSnapshotSpec {
   synchronized String tableStickyTargets() { return tableHandle == 0 ? "[]" : nativeTableTargets(tableHandle); }
   synchronized void tableStickySynchronize() { if (tableHandle != 0) nativeTableSynchronize(tableHandle); }
   synchronized void tableStickyFrame(String lease, double[] geometry) { if (tableHandle != 0 && valid.get()) nativeTableFrame(tableHandle, lease, geometry); }
+  synchronized long tableStickyPrepare(String leases) { return tableHandle != 0 && valid.get() ? nativeTablePrepare(tableHandle, leases) : 0; }
+  synchronized boolean tableStickyFrames(long revision, String leases, double[] geometry) { return tableHandle != 0 && valid.get() && nativeTableFrames(tableHandle, revision, leases, geometry); }
   synchronized void tableStickyRetire(String lease) { if (tableHandle != 0) nativeTableRetire(tableHandle, lease); }
   synchronized void tableStickyFailure(Exception failure) { if (tableFailure == null) tableFailure = new IllegalStateException("Table sticky: native frame failed", failure); }
 
