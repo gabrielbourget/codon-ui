@@ -231,8 +231,14 @@ export const seedConsumer = (root, repository) => {
       "@types/react",
       "babel-preset-expo",
       "typescript",
+      "react-dom",
     ]),
   })
+  const releaseAge = readFileSync(path.join(repository, "pnpm-workspace.yaml"), "utf8").match(
+    /^minimumReleaseAge:\s*(\d+)\s*$/m,
+  )?.[1]
+  assert.ok(releaseAge, "expected the repository release-age policy")
+  writeFileSync(path.join(root, ".npmrc"), `minimum-release-age=${releaseAge}\n`)
   writeJson(path.join(root, "app.json"), {
     expo: {
       name: "Codon External Consumer",
