@@ -69,3 +69,46 @@ A negative control coherently removes the date spec/provider/descriptor/manager 
 The safe current choice is to retain the date-segment group in the shared native baseline. A removable implementation needs an explicit decision about an owned-editor abstraction preserving exact identity admission, input/default/composition routing, form membership/focus and semantics; separation of shared wire types from selected codegen inputs; and the exposed prefab header policy. This pass does not make those consequential changes or alter any production native/date source. Table's implemented projection remains independent.
 
 The normal Node-only source suite includes six date ownership/source/codegen cases. An additional opt-in host check compiles the actual C++ policy header with `g++` and the unchanged Java policy class with the available JDK compiler module, then compares all25keys×128modifier/composition/read-only/picker states (3,200 cases) plus explicit capture-priority controls. Run `pnpm -F @codon-ui/cli exec tsx src/helpers/nativeSource/dateSegmentPolicy.host.test.ts`; it is intentionally outside the normal CLI test command so no new host compiler requirement is imposed there. This is host algorithm execution, not Android/iOS SDK compilation, native editor routing or installed qualification. All native/date acceptance and SDK/consumer obligations remain unchanged.
+
+## Native selection manifest and ownership lifecycle
+
+`buildNativeSelection` produces an internal, deterministic native manifest and emitted byte payloads for explicitly supplied native clients. The caller resolves which components require native code and which require Table; the helper performs no routing or component-name inference. Repeated requests union their features. Every native client owns the shared unit, and Table clients also own the Table unit with its shared dependency. Date support remains in the shared baseline. No other feature extraction is enabled.
+
+```ts
+const selection = await buildNativeSelection({
+  sourceRoot: "/checkout/packages/react-native",
+  requests: [{ component: "input" }, { component: "table", features: ["table"] }],
+})
+const snapshot = await captureNativeConsumerSnapshot("/consumer/native/codon")
+const plan = planNativeSelection({
+  desired: selection.manifest,
+  previous: null,
+  snapshot,
+  externalIdentities: [],
+})
+```
+
+This example only builds a plan. Neither helper writes consumer files, state, package dependencies or configuration. An empty request set has no native artifacts; removing the final native client proposes cleanup subject to the same ownership/conflict checks. The current full/core projections still emit209/196 inputs and share the same ten codegen specs and native package/build identities.
+
+The manifest has sorted requests, unit dependencies/owners, per-file source/emitted SHA-256 hashes and native registration/runtime identity claims. Its content ID and complete captured-source input ID use canonical JSON, without timestamps or absolute checkout paths. Source capture is re-inspected from memory before projection. Relocating identical source retains the same manifest ID; a source edit changes it. `validateNativeSelectionPayloads` checks the complete payload set against emitted hashes. Hashes provide content addressing and tamper/staleness detection, not authentication or install approval. Source capture still assumes a quiescent checkout, and the format remains internal rather than a new registry/lock contract.
+
+Identity claims include the supported codegen/provider/descriptors/package/pod/CMake/prefab/JNI registrations, Java top-level classes (including package-private classes) and Objective-C implementation/explicit Swift `@objc` runtime names. Repeated scope/identity pairs are invalid, including duplicates attributed to the same unit. A caller supplies other installed native owners' identity claims; any overlap blocks a plan. This helper does not discover other autolinked packages or comprehensively infer C++ symbols, generated/inner classes, preprocessor outcomes, Objective-C categories or arbitrary native build languages. Categories require an explicit profile rather than being silently accepted. Compiler/linker and whole-consumer registration checks remain required.
+
+`defineNativeSelectionState` records the prior manifest and managed path subset at one normalized absolute consumer root. Omitting a path models previously released ownership, without adding public ejection behavior. The planner keeps shared files once as owners enter/leave. Removing one of several Table owners changes ownership metadata only; removing the last proposes thirteen deletions and five composition replacements. Dates remain while any shared client remains. The internal state must eventually map into the existing CLI installed-hash/ownership-state lifecycle; it is not an alternate lockfile writer.
+
+| Observed ownership/content                                    | Planned behavior                                                                                            |
+| ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Incoming bytes unchanged                                      | Preserve consumer edits or deletions; retain the original baseline hash.                                    |
+| Incoming bytes changed; current bytes match recorded baseline | Propose replacement with before/after hashes.                                                               |
+| Current bytes already match incoming bytes                    | Keep them and advance the expected baseline.                                                                |
+| Incoming change affects an edited/deleted owned input         | Block the complete transition.                                                                              |
+| Retired owned input matches baseline or is absent             | Propose deletion or release the missing input.                                                              |
+| Retired owned input was edited                                | Block the complete transition.                                                                              |
+| New target already exists, even with matching bytes           | Block; byte equality does not grant ownership.                                                              |
+| Previously released input                                     | Preserve without readoption; block required updates or retained native source that would lose dependencies. |
+
+Every conflict returns zero operations and no next state. A ready plan contains proposed operations and a proposed next state, which a future writer may persist only after successful checked application. The planner never blesses local edits as a new baseline. Unknown source/configuration in this native build domain blocks planning because pod/Java globs or registration may include it; inert Markdown/text/license metadata is retained. Structural file/directory migrations, links and case/path collisions fail closed. Adoption, force/merge policy, destination rewriting and other consumer migration decisions remain integration work.
+
+`captureNativeConsumerSnapshot` hashes source-domain files and records directory/link/other entries without traversing observed symlinks. It ignores only the listed generated trees in `NATIVE_SNAPSHOT_IGNORED_TREES`: root `.git`, `node_modules`, `build`, `dist`, Android `.gradle`/`.cxx`/`build` and iOS `Pods`. Inputs overlapping ignored trees are rejected. Portable relative paths reject escapes, reserved Windows names, case collisions and file/directory ambiguity. Root or ancestor links are rejected. The snapshot, prior state, desired manifest and sorted external claims bind the plan ID to this consumer root. `validateNativeSelectionPlan` recomputes it against fresh inputs to reject stale plans, including unknown added/deleted files. This is a read-only observation and revalidation protocol, not a filesystem transaction: a later writer must prevent or detect changes between its final check and mutation, handle rollback and commit ownership only with successfully applied bytes.
+
+Eighteen additional Node-only cases cover deterministic requests/IDs, complete payloads/materialized real native source inspection, relocated/edited source identities, shared/feature ownership transitions, local edit/deletion retention and conflicts, released ownership, duplicate native identities, unknown-source orphan protection, path/link conflicts and stale-plan rejection. They run in `test:native-source` and the normal CLI suite. They invoke no SDK and establish no autolinking, native compilation/linkage, installed behavior or selective-install qualification. `selectiveInstallValidated` remains false; Mac routing, existing CLI commands/lockfiles and the consumer fixture lane are untouched.
