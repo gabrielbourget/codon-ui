@@ -12,35 +12,48 @@ export type TNativeRegistrationClaim = {
   sourcePath: string
 }
 
-const TABLE_NATIVE_FILES = [
+export const TABLE_NATIVE_FILES = [
+  "android/src/main/java/com/codonui/input/CUITableNativeSession.java",
   "android/src/main/java/com/codonui/input/CUITableStickyPresentation.java",
+  "android/src/main/jni/TableStickyJNI.cpp",
+  "android/src/main/jni/TableStickyJNI.h",
   "cpp/table/StickyConstraints.h",
   "cpp/table/StickyPresentation.cpp",
   "cpp/table/StickyPresentation.h",
   "cpp/table/StickyStyle.cpp",
   "cpp/table/StickyStyle.h",
+  "ios/CUITableFeature.h",
+  "ios/CUITableFeature.mm",
   "ios/CUITableStickyPresentation.h",
   "ios/CUITableStickyPresentation.mm",
 ] as const
 
-const TABLE_EMBEDDED_SOURCES = [
+export const TABLE_COMPOSITION_FILES = [
+  "ios/CUINativeFeatures.mm",
+  "android/src/main/java/com/codonui/input/CUINativeFeatures.java",
+  "android/src/main/jni/NativeFeaturesJNI.cpp",
+  "android/src/main/jni/CMakeLists.txt",
+  "android/src/main/consumer-rules.pro",
+] as const
+
+const TABLE_BOUNDARIES = [
   {
     sourcePath: "src/input/specs/NativeCUIMotionSnapshot.ts",
     role: "shared-abi",
     markers: ["tableStickyPresentation(request: string): string"],
   },
   {
-    sourcePath: "ios/CUIMotionSnapshot.mm",
+    sourcePath: "ios/CUITableFeature.mm",
     role: "feature-implementation",
-    markers: ['methodMap_["tableStickyPresentation"]', "CUIPopSession", "CUIUpdateStickyDriver"],
+    markers: ["class CUITableFeature", "CUIUpdateStickyDriver", "session_->mutex"],
   },
   {
-    sourcePath: "android/src/main/java/com/codonui/input/CUIMotionSnapshotModule.java",
+    sourcePath: "android/src/main/java/com/codonui/input/CUITableNativeSession.java",
     role: "feature-implementation",
-    markers: ["tableStickyPresentation(String encoded)", "nativeCreateTable(", "tableDriver.invalidate()"],
+    markers: ["String request(String encoded)", "nativeCreateTable(", "tableDriver.invalidate()"],
   },
   {
-    sourcePath: "android/src/main/jni/MotionSnapshotJNI.cpp",
+    sourcePath: "android/src/main/jni/TableStickyJNI.cpp",
     role: "feature-implementation",
     markers: ["struct NativeTableSession", 'makeNativeMethod("nativeCreateTable", nativeCreateTable)'],
   },
@@ -90,7 +103,7 @@ export type TNativeOwnershipPlan = {
   excludedFiles: string[]
   registrationClaims: TNativeRegistrationClaim[]
   crossUnitDependencies: (TNativeDependency & { fromUnit: TNativeOwnershipUnit; toUnit: TNativeOwnershipUnit })[]
-  embeddedTableSources: {
+  tableBoundaries: {
     sourcePath: string
     contentHash: string
     role: "shared-abi" | "feature-implementation"
@@ -122,15 +135,32 @@ export const inspectTableNativeOwnership = async (
     )
       report("native-ownership-profile", sourcePath, "New Table input requires an explicit ownership decision")
   }
-  const embeddedTableSources: TNativeOwnershipPlan["embeddedTableSources"] = []
-  for (const source of TABLE_EMBEDDED_SOURCES) {
+  const tableBoundaries: TNativeOwnershipPlan["tableBoundaries"] = []
+  const compositionMarkers = [
+    ["ios/CUINativeFeatures.mm", "return CUICreateTableFeature(std::move(valid), std::move(mutex));"],
+    [
+      "android/src/main/java/com/codonui/input/CUINativeFeatures.java",
+      "return new CUITableNativeSession(context, valid, lock);",
+    ],
+    ["android/src/main/jni/NativeFeaturesJNI.cpp", "registerTableStickyNatives();"],
+  ] as const
+  for (const [sourcePath, marker] of compositionMarkers) {
+    try {
+      const text = stripSourceComments((await reader.read(sourcePath)).toString("utf8"))
+      if (text.split(marker).length !== 2)
+        report("native-ownership-profile", sourcePath, `Full-package feature composition changed: ${marker}`)
+    } catch (error) {
+      report("native-ownership-profile", sourcePath, String(error))
+    }
+  }
+  for (const source of TABLE_BOUNDARIES) {
     try {
       const content = await reader.read(source.sourcePath)
       const text = stripSourceComments(content.toString("utf8"))
       for (const marker of source.markers)
         if (!text.includes(marker))
-          report("native-ownership-profile", source.sourcePath, `Embedded Table boundary changed: ${marker}`)
-      embeddedTableSources.push({
+          report("native-ownership-profile", source.sourcePath, `Extracted Table boundary changed: ${marker}`)
+      tableBoundaries.push({
         sourcePath: source.sourcePath,
         contentHash: hashSource(content),
         role: source.role,
@@ -178,12 +208,6 @@ export const inspectTableNativeOwnership = async (
         `${edge.kind} still requires excluded Table input ${edge.to}`,
       )
     }
-    for (const source of embeddedTableSources.filter((item) => item.role === "feature-implementation"))
-      report(
-        "native-embedded-table",
-        source.sourcePath,
-        "Table implementation/session/JNI state still belongs to the shared CUIMotionSnapshot boundary; its stable shared spec signature alone is not a pruning blocker",
-      )
   }
   return {
     units: NATIVE_OWNERSHIP_UNITS.map((id) => ({
@@ -193,7 +217,11 @@ export const inspectTableNativeOwnership = async (
         ...new Set(
           crossUnitDependencies
             .filter(
-              (edge) => edge.fromUnit === id && edge.kind !== "native-build" && edge.kind !== "native-registration",
+              (edge) =>
+                edge.fromUnit === id &&
+                edge.kind !== "native-build" &&
+                edge.kind !== "native-registration" &&
+                !(TABLE_COMPOSITION_FILES as readonly string[]).includes(edge.from),
             )
             .map((edge) => edge.toUnit),
         ),
@@ -204,7 +232,7 @@ export const inspectTableNativeOwnership = async (
     excludedFiles,
     registrationClaims,
     crossUnitDependencies,
-    embeddedTableSources,
+    tableBoundaries,
     findings,
     status: findings.length ? "blocked" : "source-complete",
     selectiveInstallValidated: false,

@@ -26,14 +26,14 @@ final class CUITableStickyPresentation implements ViewTreeObserver.OnPreDrawList
       this.window = new WeakReference<>(target.getRootView()); token = target.getWindowToken();
     }
   }
-  private final CUIMotionSnapshotModule owner;
+  private final CUITableNativeSession owner;
   private final ReactApplicationContext context;
   private final FabricUIManager manager;
   private final HashMap<String, Attachment> attachments = new HashMap<>();
   private final HashSet<ViewTreeObserver> observers = new HashSet<>();
   private boolean valid = true, ticking, suspended;
 
-  CUITableStickyPresentation(CUIMotionSnapshotModule owner, ReactApplicationContext context, FabricUIManager manager) {
+  CUITableStickyPresentation(CUITableNativeSession owner, ReactApplicationContext context, FabricUIManager manager) {
     UiThreadUtil.assertOnUiThread();
     this.owner = owner; this.context = context; this.manager = manager;
     context.addLifecycleEventListener(this);

@@ -80,7 +80,7 @@ test("maintained native registrations, complete source lists and prefab identity
     "android/src/main/AndroidManifest.xml",
   ])
     assert.ok(baseline.files.includes(required), required)
-  assert.equal(baseline.cmakeSources.length, 17)
+  assert.equal(baseline.cmakeSources.length, 19)
   assert.ok(
     baseline.dependencies.some(
       (item) =>

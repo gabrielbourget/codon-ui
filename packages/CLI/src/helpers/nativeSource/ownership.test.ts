@@ -30,32 +30,32 @@ const adapter = await inspectNativeAdapter(reader, manifest.name, manifest.codeg
 const complete = await inspectTableNativeOwnership(reader, adapter, true)
 const omitted = await inspectTableNativeOwnership(reader, adapter, false)
 
-test("all native inputs have one explicit owner; Table's eight files are not independently removable", () => {
+test("all native inputs have one explicit owner; omitting extracted Table files requires composition rewrites", () => {
   assert.deepEqual(complete.findings, [])
   assert.equal(complete.status, "source-complete")
   assert.equal(complete.selectiveInstallValidated, false)
   const table = complete.units.find((item) => item.id === "table")!
   const shared = complete.units.find((item) => item.id === "shared")!
-  assert.equal(table.files.length, 8)
+  assert.equal(table.files.length, 13)
   assert.deepEqual(table.requires, ["shared"])
-  assert.deepEqual(shared.requires, ["table"])
+  assert.deepEqual(shared.requires, [])
   assert.deepEqual([...shared.files, ...table.files].sort(), [...adapter.files].sort())
   assert.equal(new Set([...shared.files, ...table.files]).size, adapter.files.length)
   assert.equal(omitted.status, "blocked")
   assert.deepEqual(omitted.excludedFiles, table.files)
   assert.ok(
     omitted.findings.some(
-      (item) => item.code === "native-retained-reference" && item.sourcePath === "ios/CUIMotionSnapshot.mm",
+      (item) => item.code === "native-retained-reference" && item.sourcePath === "ios/CUINativeFeatures.mm",
     ),
   )
   assert.ok(
     omitted.findings.some(
-      (item) => item.code === "native-retained-reference" && item.sourcePath.endsWith("CUIMotionSnapshotModule.java"),
+      (item) => item.code === "native-retained-reference" && item.sourcePath.endsWith("CUINativeFeatures.java"),
     ),
   )
   assert.ok(
     omitted.findings.some(
-      (item) => item.code === "native-retained-reference" && item.sourcePath.endsWith("MotionSnapshotJNI.cpp"),
+      (item) => item.code === "native-retained-reference" && item.sourcePath.endsWith("NativeFeaturesJNI.cpp"),
     ),
   )
   assert.ok(
@@ -68,7 +68,7 @@ test("all native inputs have one explicit owner; Table's eight files are not ind
       (item) => item.code === "native-build-selection-required" && item.sourcePath.endsWith(".podspec"),
     ),
   )
-  assert.equal(omitted.embeddedTableSources.length, 4)
+  assert.equal(omitted.tableBoundaries.length, 4)
 })
 
 test("Table does not independently claim the shared module, package, descriptors, loader or prefab", () => {
@@ -120,7 +120,7 @@ test("unknown Table files and changed embedded method/lifecycle boundaries requi
   )
   assert.equal(drift.status, "blocked")
   assert.ok(drift.findings.some((item) => item.message.includes("New Table input")))
-  assert.ok(drift.findings.some((item) => item.message.includes("Embedded Table boundary changed")))
+  assert.ok(drift.findings.some((item) => item.message.includes("Extracted Table boundary changed")))
 })
 
 // Exercise the pinned generator itself; no generated C++/provider fixtures are hand-authored.
