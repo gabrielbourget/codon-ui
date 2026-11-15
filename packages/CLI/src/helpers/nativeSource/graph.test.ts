@@ -332,3 +332,23 @@ test("complete maintained public entrypoint has no unowned source or dependency 
   assert.ok(graph.externalDependencies.some((item) => item.specifier.startsWith("react-native/Libraries/")))
   assert.ok(!graph.files.some((item) => item.sourcePath.includes("/__tests__/")))
 })
+
+test("relative declaration directives travel with source and retain containment checks", async () => {
+  await withFixture(
+    {
+      "src/entry.ts": '/// <reference path="./ambient.d.ts" />\nexport const value = 1\n',
+      "src/ambient.d.ts": 'declare module "private-sdk-bridge" { export const value: number }\n',
+    },
+    async (root) => {
+      const graph = await buildNativeSourceGraph({ sourceRoot: root, entrypoints: { example: ["src/entry.ts"] } })
+      assert.equal(graph.valid, true, JSON.stringify(graph.findings))
+      assert.ok(graph.files.some((file) => file.sourcePath === "src/ambient.d.ts"))
+      assert.ok(graph.edges.some((edge) => edge.to === "src/ambient.d.ts" && edge.kind === "type"))
+    },
+  )
+  await withFixture({ "src/entry.ts": '/// <reference path="../../outside.d.ts" />\nexport {}\n' }, async (root) => {
+    const graph = await buildNativeSourceGraph({ sourceRoot: root, entrypoints: { example: ["src/entry.ts"] } })
+    assert.equal(graph.valid, false)
+    assert.ok(graph.findings.some((finding) => finding.code === "unresolved-source"))
+  })
+})

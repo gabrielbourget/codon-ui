@@ -3,6 +3,7 @@ import { lstat, readFile, readdir, realpath } from "node:fs/promises"
 import path from "node:path"
 
 import { parse } from "@babel/parser"
+import { ts } from "ts-morph"
 
 export type TSourceFinding = { code: string; sourcePath: string; message: string }
 export type TSourceImport = { specifier: string; typeOnly: boolean }
@@ -31,8 +32,14 @@ export const stringLiteral = (value: unknown): string | undefined => {
 }
 
 export const readSourceImports = (content: string) => {
-  const imports: TSourceImport[] = []
-  const unsupported: string[] = []
+  const references = ts.preProcessFile(content, false, true).referencedFiles
+  const imports: TSourceImport[] = references.map(({ fileName }) => ({
+    specifier: fileName.startsWith(".") || path.posix.isAbsolute(fileName) ? fileName : `./${fileName}`,
+    typeOnly: true,
+  }))
+  const unsupported: string[] = references
+    .filter(({ fileName }) => path.posix.isAbsolute(fileName))
+    .map(() => "Absolute type reference")
   visitSource(parseSource(content), (node) => {
     if (["ImportDeclaration", "ExportNamedDeclaration", "ExportAllDeclaration"].includes(String(node.type))) {
       const specifier = stringLiteral(node.source)

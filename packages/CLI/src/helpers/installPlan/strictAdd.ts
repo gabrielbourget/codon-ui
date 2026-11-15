@@ -36,12 +36,15 @@ import {
   INSTALL_PLAN_FINDING_SEVERITY__ERROR,
   INSTALL_PLAN_SOURCE_STATUS__MISSING,
   INSTALL_PLAN_TARGET_COMPATIBILITY__CONTENT_HASH_MATCH,
+  INSTALL_PLAN_TARGET_COMPATIBILITY__NATIVE_COMPOSITION_REFRESH,
   INSTALL_PLAN_TARGET_RESOLUTION__REUSE_EXISTING,
+  INSTALL_PLAN_TARGET_RESOLUTION__WRITE,
 } from "./constants"
 import {
   type TInstallPlanFile,
   type TInstallPlanFinding,
   type TRegistryInstallPlan,
+  type TLocalRegistrySource,
   type TAddStrict,
   addStrictSchema,
   registryInstallPlanSchema,
@@ -99,16 +102,13 @@ const rewriteInstallPlanImportSpecifiers = ({
   installPlan.files.forEach((candidateFile) => {
     if (candidateFile.sourcePath === file.sourcePath) return
 
-    importRewrites.set(
-      createRelativeModuleSpecifier({
-        fromPath: file.sourcePath,
-        toPath: candidateFile.sourcePath,
-      }),
-      createRelativeModuleSpecifier({
-        fromPath: file.resolvedPath,
-        toPath: candidateFile.resolvedPath,
-      }),
-    )
+    const original = createRelativeModuleSpecifier({ fromPath: file.sourcePath, toPath: candidateFile.sourcePath })
+    const replacement = createRelativeModuleSpecifier({
+      fromPath: file.resolvedPath,
+      toPath: candidateFile.resolvedPath,
+    })
+    if (original !== replacement && (content.includes(`"${original}"`) || content.includes(`'${original}'`)))
+      importRewrites.set(original, replacement)
   })
 
   if (importRewrites.size === 0) return content
@@ -246,7 +246,12 @@ export const createStrictAddBlockerFindings = (installPlan: TRegistryInstallPlan
   installPlan.files.forEach((file) => {
     if (
       file.targetStatus === INSTALL_PLAN_FILE_STATUS__EXISTING &&
-      file.targetResolution !== INSTALL_PLAN_TARGET_RESOLUTION__REUSE_EXISTING
+      file.targetResolution !== INSTALL_PLAN_TARGET_RESOLUTION__REUSE_EXISTING &&
+      !(
+        installPlan.sourceIdentity === "@codon-ui/react-native-local" &&
+        file.itemName === "native-composition" &&
+        file.targetCompatibility === INSTALL_PLAN_TARGET_COMPATIBILITY__NATIVE_COMPOSITION_REFRESH
+      )
     ) {
       blockerFindings.push({
         code: INSTALL_PLAN_FINDING__STRICT_ADD_EXISTING_TARGET_BLOCKER,
@@ -373,6 +378,65 @@ export const createStrictAddLockfileReusePlan = ({
       ...item,
       files: files.filter((file) => file.itemName === item.name),
     })),
+  })
+}
+
+/** Refresh only unchanged, registry-owned native composition when a selected feature changes. */
+export const createNativeCompositionRefreshPlan = ({
+  installPlan,
+  lockfileData,
+  registrySource,
+}: {
+  installPlan: TRegistryInstallPlan
+  lockfileData: TConsumerLockfile
+  registrySource: TLocalRegistrySource
+}): TRegistryInstallPlan => {
+  if (installPlan.sourceIdentity !== "@codon-ui/react-native-local" || !registrySource.native) return installPlan
+  const owned = lockfileData.items["native-composition"]
+  if (owned?.sourceIdentity !== installPlan.sourceIdentity) return installPlan
+  const variants = [...registrySource.native.composition.core, ...registrySource.native.composition.table]
+  const refreshed = new Set<string>()
+  const files = installPlan.files.map((file) => {
+    if (
+      file.itemName !== "native-composition" ||
+      file.targetStatus !== INSTALL_PLAN_FILE_STATUS__EXISTING ||
+      file.targetResolution === INSTALL_PLAN_TARGET_RESOLUTION__REUSE_EXISTING
+    )
+      return file
+    const previous = owned.files.find((candidate) => candidate.path === file.resolvedPath)
+    if (
+      !previous ||
+      previous.ownershipState !== CONSUMER_OWNERSHIP_STATE__REGISTRY_OWNED ||
+      previous.installedHash !== file.targetContentHash ||
+      previous.targetRole !== file.targetRole
+    )
+      return file
+    if (
+      !variants.some(
+        (variant) =>
+          variant.targetRole === file.targetRole &&
+          variant.targetPath === file.targetPath &&
+          variant.contentHash === previous.sourceHash,
+      )
+    )
+      return file
+    refreshed.add(file.resolvedPath)
+    return {
+      ...file,
+      targetResolution: INSTALL_PLAN_TARGET_RESOLUTION__WRITE,
+      targetCompatibility: INSTALL_PLAN_TARGET_COMPATIBILITY__NATIVE_COMPOSITION_REFRESH,
+    }
+  })
+  return registryInstallPlanSchema.parse({
+    ...installPlan,
+    files,
+    findings: installPlan.findings.filter(
+      (finding) =>
+        finding.code !== INSTALL_PLAN_FINDING__TARGET_FILE_EXISTS ||
+        !finding.targetPath ||
+        !refreshed.has(finding.targetPath),
+    ),
+    items: installPlan.items.map((item) => ({ ...item, files: files.filter((file) => file.itemName === item.name) })),
   })
 }
 

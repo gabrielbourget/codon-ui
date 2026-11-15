@@ -1,0 +1,32 @@
+{
+  "name": "@codon-ui/react-native",
+  "version": "0.1.0",
+  "description": "Native-owned Codon UI foundation for iOS and Android.",
+  "private": true,
+  "type": "module",
+  "main": "index.js",
+  "codegenConfig": {
+    "name": "CodonNativeInputSpec",
+    "type": "all",
+    "jsSrcsDir": "src/input/specs",
+    "android": {
+      "javaPackageName": "com.codonui.input"
+    },
+    "ios": {
+      "modulesProvider": {
+        "CUIMotionSnapshot": "CUIMotionSnapshot",
+        "CUIFormDocument": "CUIFormDocument",
+        "CUIDragAndDrop": "CUIDragAndDrop"
+      },
+      "componentProvider": {
+        "CUIOverlayHost": "CUIOverlayHost",
+        "CUIFocusView": "CUIFocusView",
+        "CUIKeyboardScope": "CUIKeyboardScope",
+        "CUICollectionRoot": "CUICollectionRoot",
+        "CUIFormRoot": "CUIFormRoot",
+        "CUIFieldBinding": "CUIFieldBinding",
+        "CUIDateSegment": "CUIDateSegment"
+      }
+    }
+  }
+}
