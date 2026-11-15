@@ -521,6 +521,7 @@ export const NativeDatePickerView = (
           <NativeOrdinaryFocusParticipantsContext.Provider value={null}>
             <NativeOrdinaryFieldGroupKeysContext.Provider value={false}>
               <NativeFloatingSurface
+                nativeScrollContent
                 isOpen={state.isOpen}
                 onOpenChange={state.setOpen}
                 triggerRef={outer}

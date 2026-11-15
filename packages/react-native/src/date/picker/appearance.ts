@@ -51,19 +51,22 @@ export const getNativeDatePickerAppearance = (
     group: style(
       {
         ...base.group,
+        padding: 5,
         paddingLeft: undefined,
         paddingHorizontal: undefined,
-        ...(props.geometry === "round" ? { padding: theme.spacing.unit, paddingHorizontal: 7 } : {}),
-        ...(props.geometry === "round" ? { padding: theme.spacing.unit, paddingHorizontal: 7 } : {}),
         backgroundColor: theme.colors.controlBackground,
       },
       props.customInputButtonGroupStyles,
     ),
     input: style(
-      { flexDirection: "row", padding: 3.5, borderWidth: 0, backgroundColor: "transparent" },
+      { flexDirection: "row", padding: 0, borderWidth: 0, backgroundColor: "transparent" },
       props.customInputStyles,
     ),
-    button: style({ borderWidth: 0, backgroundColor: "transparent", paddingLeft: 1.5 }, props.customButtonStyles),
+    segment: { ...base.segment, padding: 0 },
+    button: style(
+      { borderWidth: 0, backgroundColor: "transparent", padding: 0, paddingHorizontal: undefined },
+      props.customButtonStyles,
+    ),
     iconColor:
       flags.isFocusWithin || flags.isOpen ? theme.colors.controlSelectedBackground : theme.colors.controlForeground,
     popover: style({ borderRadius: radius }, props.customPopoverStyles),
