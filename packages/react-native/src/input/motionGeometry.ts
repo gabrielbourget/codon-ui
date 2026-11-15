@@ -162,6 +162,19 @@ export const decodeNativeMotionGeometry = (encoded: string): TNativeMotionGeomet
   return freeze(value as unknown as TNativeMotionGeometrySnapshot)
 }
 const integer = (value: number) => Number.isSafeInteger(value) && value >= 0
+const captureState = (data: Omit<NativeMotionGeometry, "snapshot"> | undefined) =>
+  data
+    ? JSON.stringify({
+        kind: data.kind,
+        attached: data.attached,
+        error: data.error,
+        target: data.target,
+        window: data.windowId,
+        scope: data.scopeOwnerId,
+        epoch: data.epoch,
+        commit: data.commitRevision,
+      })
+    : "none"
 const sameAttachment = (first: TNativeMotionGeometryRecord, second: TNativeMotionGeometryRecord) =>
   first.bindingId === second.bindingId &&
   first.windowId === second.windowId &&
@@ -343,7 +356,7 @@ export class NativeMotionGeometryObserver {
       if (job)
         this.release(data.requestId)?.reject(
           failure(
-            `stale native geometry (received=${data.geometryRevision}, highest=${this.highestRevision}, attachment=${data.attachmentRevision}, currentAttachment=${this.attachmentRevision}, baseline=${job.baselineRevision}, baselineAttachment=${job.baselineAttachment})`,
+            `stale native geometry (received=${data.geometryRevision}, highest=${this.highestRevision}, attachment=${data.attachmentRevision}, currentAttachment=${this.attachmentRevision}, baseline=${job.baselineRevision}, baselineAttachment=${job.baselineAttachment}); receivedState=${captureState(data)}; currentState=${captureState(current)}`,
           ),
         )
       return

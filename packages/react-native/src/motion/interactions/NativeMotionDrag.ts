@@ -538,13 +538,15 @@ export class NativeMotionDrag {
       this.stopAnimation()
       return
     }
-    const constraint = this.constraintRef()?.current
+    const constraintRef = this.constraintRef(),
+      constraint = constraintRef?.current
     if (this.constraintTarget !== constraint) {
       this.constraintTarget = constraint
       this.measurement = undefined
       this.constraintSize = undefined
     }
-    if (!this.measurement?.current() && !this.measuring)
+    // Preserve invalid-ref diagnostics; valid geometry is read when a real drag starts.
+    if (constraintRef && !constraint && !this.measurement?.current() && !this.measuring)
       void this.readMeasurement().catch((failure: unknown) => {
         if (current()) this.error(failure)
       })

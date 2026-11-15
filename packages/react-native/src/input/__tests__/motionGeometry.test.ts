@@ -216,6 +216,33 @@ it.each([
   expect(h.observer.latest()?.geometryRevision).not.toBe(11)
   h.observer.dispose()
 })
+it.each(["not-attached", "scope-epoch"])(
+  "reports the initial attachment transition without accepting its stale sample for %s",
+  async (transition) => {
+    const h = geometryHarness(),
+      read = h.observer.read(),
+      failure = expect(read).rejects.toThrow(
+        transition === "not-attached"
+          ? /receivedState=\{"kind":"sample","attached":false,"error":"native-geometry-view-detached".*currentState=\{"kind":"frame","attached":true/
+          : /receivedState=.*"epoch":1.*currentState=.*"epoch":2/,
+      )
+    h.receive({ kind: "frame", geometryRevision: 6, attachmentRevision: 3 })
+    const current = h.observer.latest()
+    h.receive({
+      requestId: h.dispatch.mock.calls[0][0],
+      geometryRevision: 1,
+      attachmentRevision: 2,
+      ...(transition === "not-attached"
+        ? { attached: false, error: "native-geometry-view-detached", snapshot: "" }
+        : { epoch: 1 }),
+    })
+    await failure
+    expect(h.dispatch).toHaveBeenCalledTimes(1)
+    expect(h.observer.latest()).toBe(current)
+    expect(current).toMatchObject({ geometryRevision: 6, attachmentRevision: 3, attached: true })
+    h.observer.dispose()
+  },
+)
 it("rejects a second overtaken sample without replaying indefinitely", async () => {
   jest.useFakeTimers()
   const h = geometryHarness()

@@ -133,6 +133,69 @@ afterEach(async () => {
   jest.clearAllMocks()
 })
 
+it.each(["relative bounds", "ref bounds"] as const)(
+  "does not query drag geometry during valid refresh before the first %s gesture",
+  async (constraints) => {
+    const target = { getBoundingClientRect: () => ({ width: 300, height: 200 }) } as unknown as View
+    const measured = jest.fn(() => ({ left: 0, right: 12 }))
+    const started = jest.fn(),
+      moved = jest.fn()
+    const f = fixture({
+      drag: "x",
+      dragMomentum: false,
+      dragElastic: false,
+      dragConstraints: constraints === "ref bounds" ? { current: target } : { left: 0, right: 12 },
+      onMeasureDragConstraints: measured,
+      onDragStart: started,
+      onDrag: moved,
+    })
+    f.drag.refresh()
+    await turn()
+    mockObservers.get(f.target)?.forEach((listener) => listener(record()))
+    mockObservers.get(f.target)?.forEach((listener) => listener(record(20)))
+    await turn()
+    expect(readNativeMotionGeometry).not.toHaveBeenCalled()
+    expect(readNativeMotionTargetGeometry).not.toHaveBeenCalled()
+    expect(measured).not.toHaveBeenCalled()
+    const down = pointer(),
+      move = pointer(30)
+    f.drag.start(down)
+    f.drag.move(move)
+    await turn()
+    await flush()
+    expect(
+      constraints === "ref bounds" ? readNativeMotionTargetGeometry : readNativeMotionGeometry,
+    ).toHaveBeenCalledTimes(1)
+    if (constraints === "ref bounds") {
+      expect(readNativeMotionTargetGeometry).toHaveBeenCalledWith(f.target, target, expect.any(Object))
+      expect(measured).toHaveBeenCalledTimes(1)
+      expect(measured).toHaveBeenCalledWith({ left: -10, right: 190, top: -20, bottom: 130 })
+    } else expect(measured).not.toHaveBeenCalled()
+    expect(started.mock.calls[0][0]).toBe(move)
+    expect(moved.mock.calls[0][0]).toBe(move)
+    expect(f.owner.getValue("x")!.get()).toBe(12)
+    expect(f.errors).not.toHaveBeenCalled()
+  },
+)
+
+it("reports a real drag-start measurement failure without querying during refresh or leaving a live gesture", async () => {
+  const failure = new Error("native geometry failed"),
+    started = jest.fn()
+  jest.mocked(readNativeMotionGeometry).mockRejectedValueOnce(failure)
+  const f = fixture({ drag: "x", onDragStart: started })
+  await turn()
+  expect(readNativeMotionGeometry).not.toHaveBeenCalled()
+  expect(f.errors).not.toHaveBeenCalled()
+  f.drag.start(pointer())
+  await turn()
+  f.drag.move(pointer(30))
+  await flush()
+  expect(readNativeMotionGeometry).toHaveBeenCalledTimes(1)
+  expect(f.errors).toHaveBeenCalledWith(failure)
+  expect(f.drag.isDragging).toBe(false)
+  expect(started).not.toHaveBeenCalled()
+})
+
 it("moves the owned x/y values with original events, threshold, callback phases and whileDrag priority", async () => {
   const start = jest.fn(),
     move = jest.fn(),
