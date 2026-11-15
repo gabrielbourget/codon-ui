@@ -40,6 +40,7 @@ export const TagScene = () => {
   const [lastRequest, setLastRequest] = useState("none")
   const [idIndex, setIDIndex] = useState(0)
   const [aliasIndex, setAliasIndex] = useState(0)
+  const [named, setNamed] = useState(true)
   const [geometryIndex, setGeometryIndex] = useState(1)
   const [borderIndex, setBorderIndex] = useState(0)
   const [timingIndex, setTimingIndex] = useState(0)
@@ -71,7 +72,7 @@ export const TagScene = () => {
       </Text>
       <Text testID="tag-state">
         Owner: {String(selected)}. Echo: {String(echo)}. Requests: {requests}. Last: {lastRequest}. ID: {describeID(id)}
-        . Exposed: {alias === undefined ? "default" : String(alias)}. Size:{" "}
+        . Exposed: {alias === undefined ? "default" : String(alias)}. Name: {named ? "explicit" : "from content"}. Size:{" "}
         {zero ? "zero" : constrained ? "140" : "automatic"}. Geometry: {geometry}. Frame:{" "}
         {measuredFrame ? `${measuredFrame.width} x ${measuredFrame.height}` : "unmeasured"}. Armed guard:{" "}
         {String(disableDuringPress)}.
@@ -82,6 +83,7 @@ export const TagScene = () => {
         <Button onPress={() => setDisabled((current) => !current)}>Toggle tag disabled</Button>
         <Button onPress={() => setDisableDuringPress(true)}>Arm tag disable during press</Button>
         <Button onPress={() => setIDIndex((index) => (index + 1) % TAG_IDS.length)}>Next tag ID</Button>
+        <Button onPress={() => setNamed((current) => !current)}>Toggle tag accessibility label</Button>
         <Button onPress={() => setAliasIndex((index) => (index + 1) % TAG_ALIASES.length)}>
           Next tag accessibility override
         </Button>
@@ -145,7 +147,7 @@ export const TagScene = () => {
           </Tag>
           <Tag
             testID="tag-example"
-            accessibilityLabel="Controlled tag"
+            accessibilityLabel={named ? "Controlled tag" : undefined}
             pressable
             isPressed={selected}
             isDisabled={disabled}
