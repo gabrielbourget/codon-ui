@@ -1,13 +1,15 @@
 import { execFileSync } from "node:child_process"
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
+import { readRequiredRegistryFileNames, verifyPackSource } from "./pack-source.mjs"
+
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
-const distCliPath = path.join(packageRoot, "dist/index.js")
 const preparePackSourcePath = path.join(packageRoot, "scripts/prepare-pack-source.mjs")
 const cleanupPackSourcePath = path.join(packageRoot, "scripts/cleanup-pack-source.mjs")
+const requiredFileNames = readRequiredRegistryFileNames(process.argv.slice(2))
 
 const fail = (message) => {
   throw new Error(`[codon-ui-cli-pack-preflight] ${message}`)
@@ -22,6 +24,8 @@ const assertIncludes = (values, expected, message) => {
 }
 
 const temporaryConsumerRoot = mkdtempSync(path.join(tmpdir(), "codon-ui-pack-preflight-"))
+const relocatedPackageRoot = path.join(temporaryConsumerRoot, "cli")
+const relocatedDistRoot = path.join(relocatedPackageRoot, "dist")
 
 try {
   writeFileSync(
@@ -43,17 +47,34 @@ try {
     "utf8",
   )
 
-  execFileSync(process.execPath, [preparePackSourcePath], { cwd: packageRoot, stdio: "inherit" })
+  execFileSync(process.execPath, [preparePackSourcePath, ...process.argv.slice(2)], {
+    cwd: packageRoot,
+    stdio: "inherit",
+  })
+  const verification = verifyPackSource({ distRoot: path.join(packageRoot, "dist"), requiredFileNames })
+  mkdirSync(relocatedPackageRoot)
+  cpSync(path.join(packageRoot, "dist"), relocatedDistRoot, { recursive: true })
+  cpSync(path.join(packageRoot, "package.json"), path.join(relocatedPackageRoot, "package.json"))
+  symlinkSync(path.join(packageRoot, "node_modules"), path.join(relocatedPackageRoot, "node_modules"), "junction")
+  verifyPackSource({ distRoot: relocatedDistRoot, requiredFileNames })
   const generatedRegistrySource = JSON.parse(
-    readFileSync(path.join(packageRoot, "dist/registry/local-react.registry.json"), "utf8"),
+    readFileSync(path.join(relocatedDistRoot, "registry/local-react.registry.json"), "utf8"),
   )
 
   const report = JSON.parse(
     execFileSync(
       process.execPath,
-      [distCliPath, "add", "switch", "--dry-run", "--json", "--cwd", temporaryConsumerRoot],
+      [
+        path.join(relocatedDistRoot, "index.js"),
+        "add",
+        "switch",
+        "--dry-run",
+        "--json",
+        "--cwd",
+        temporaryConsumerRoot,
+      ],
       {
-        cwd: packageRoot,
+        cwd: temporaryConsumerRoot,
         encoding: "utf8",
       },
     ),
@@ -61,8 +82,8 @@ try {
 
   assertEqual(generatedRegistrySource.sourceRoot, "../registry-source", "Pack preflight generated source root")
   assertEqual(
-    report.registrySourcePath.endsWith("dist/registry/local-react.registry.json"),
-    true,
+    report.registrySourcePath,
+    path.join(relocatedDistRoot, "registry/local-react.registry.json"),
     "Pack preflight registry source path",
   )
   assertEqual(report.effects.files.missingSourceCount, 0, "Pack preflight missing source count")
@@ -73,7 +94,9 @@ try {
     "Pack preflight default registry-contained theme target",
   )
 
-  console.log("[codon-ui-cli-pack-preflight] package-local registry source verified.")
+  console.log(
+    `[codon-ui-cli-pack-preflight] verified integrity of ${verification.snapshotFileNames.length} relocated registry snapshot(s); web CLI smoke passed. Native CLI routing is not exercised.`,
+  )
 } finally {
   rmSync(temporaryConsumerRoot, { force: true, recursive: true })
   execFileSync(process.execPath, [cleanupPackSourcePath], { cwd: packageRoot, stdio: "inherit" })
