@@ -12,6 +12,7 @@ import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.uimanager.ThemedReactContext;
+import com.facebook.react.uimanager.RootView;
 import com.facebook.react.uimanager.TouchTargetHelper;
 import com.facebook.react.views.modal.ReactModalHostView;
 import java.lang.ref.WeakReference;
@@ -23,7 +24,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-/** Private window transport. Hit testing is captured before original dispatch; delivery follows it. */
+/** Private window transport. Actual reached React-root hits precede scope dispatch; delivery follows window dispatch. */
 final class CUIWindowPointers implements CUIWindowPointerCallback.Listener, ViewTreeObserver.OnPreDrawListener {
   private static final WeakHashMap<View, CUIWindowPointers> observers = new WeakHashMap<>();
   private final WeakReference<View> root;
@@ -32,6 +33,120 @@ final class CUIWindowPointers implements CUIWindowPointerCallback.Listener, View
   private final Map<Integer, Integer> previousButtons = new HashMap<>();
   private String failure = "";
   private boolean retired;
+  private final List<PointerDispatch> dispatches = new ArrayList<>();
+
+  private final class PointerPacket implements Runnable {
+    final View root;
+    final CUIKeyboardScope emitter;
+    final String identity;
+    final WritableMap data;
+    final List<WritableMap> registrations;
+    boolean delivered;
+    PointerPacket(View root, CUIKeyboardScope emitter, WritableMap data, List<WritableMap> registrations) {
+      this.root = root; this.emitter = emitter; this.data = data; this.registrations = registrations;
+      identity = CUIInputWindow.identity(root);
+    }
+    void hit(List<Integer> ancestry) {
+      if (delivered) return;
+      data.putInt("target", ancestry.isEmpty() ? View.NO_ID : ancestry.get(0));
+      for (WritableMap entry : registrations) entry.putInt("depth", ancestry.indexOf(entry.getInt("targetTag")));
+    }
+    @Override public void run() {
+      if (delivered || retired || !callback.isInstalled() || CUIWindowPointers.this.root.get() != root ||
+          !root.isAttachedToWindow() || !identity.equals(CUIInputWindow.identity(root))) return;
+      delivered = true;
+      WritableArray values = Arguments.createArray();
+      for (WritableMap entry : registrations) values.pushMap(entry);
+      data.putArray("registrations", values);
+      emitter.emitPointer(data);
+    }
+  }
+
+  private final class PointerDispatch implements Runnable {
+    final int action, actionIndex, device;
+    final long downTime, eventTime;
+    final List<Integer> ids = new ArrayList<>(), indices = new ArrayList<>();
+    final List<PointerPacket> packets = new ArrayList<>();
+    final List<View> surfaces = new ArrayList<>();
+    final Set<Integer> conflicted = new HashSet<>();
+    boolean closed;
+    PointerDispatch(MotionEvent event) {
+      action = event.getActionMasked(); actionIndex = event.getActionIndex(); device = event.getDeviceId();
+      downTime = event.getDownTime(); eventTime = event.getEventTime();
+      for (int i = 0; i < event.getPointerCount(); i++) ids.add(event.getPointerId(i));
+    }
+    boolean matches(MotionEvent event) {
+      if (closed || event.getDeviceId() != device || event.getDownTime() != downTime || event.getEventTime() != eventTime) return false;
+      for (int i = 0; i < event.getPointerCount(); i++) if (!ids.contains(event.getPointerId(i))) return false;
+      int actual = event.getActionMasked();
+      boolean start = action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_POINTER_DOWN;
+      boolean end = action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_POINTER_UP;
+      if (start || end) {
+        if (start ? actual != MotionEvent.ACTION_DOWN && actual != MotionEvent.ACTION_POINTER_DOWN
+            : actual != MotionEvent.ACTION_UP && actual != MotionEvent.ACTION_POINTER_UP) return false;
+        return event.getPointerId(event.getActionIndex()) == ids.get(actionIndex);
+      }
+      return actual == action;
+    }
+    void capture(View scope, MotionEvent event) {
+      if (!matches(event)) return;
+      View current = scope;
+      List<View> chain = new ArrayList<>();
+      while (!(current instanceof RootView)) {
+        if (!(current.getParent() instanceof ViewGroup)) return;
+        chain.add(current); current = (View)current.getParent();
+      }
+      View windowRoot = root.get();
+      if (!(current instanceof ViewGroup) || !current.isAttachedToWindow() || current.getRootView() != windowRoot) return;
+      for (int i = 0; i < packets.size(); i++) {
+        if (conflicted.contains(i)) continue;
+        int index = -1, id = ids.get(indices.get(i));
+        for (int candidate = 0; candidate < event.getPointerCount(); candidate++)
+          if (event.getPointerId(candidate) == id) { index = candidate; break; }
+        if (index < 0) continue;
+        View surface = surfaces.get(i);
+        if (surface != null) {
+          if (surface != current) {
+            conflicted.add(i); packets.get(i).hit(java.util.Collections.emptyList());
+          }
+          continue;
+        }
+        float[] point = {event.getX(index), event.getY(index)};
+        for (View child : chain) {
+          child.getMatrix().mapPoints(point);
+          ViewGroup parent = (ViewGroup)child.getParent();
+          point[0] += child.getLeft() - parent.getScrollX();
+          point[1] += child.getTop() - parent.getScrollY();
+        }
+        if (!Float.isFinite(point[0]) || !Float.isFinite(point[1])) continue;
+        List<TouchTargetHelper.ViewTarget> path = TouchTargetHelper.findTargetPathAndCoordinatesForTouch(
+            point[0], point[1], (ViewGroup)current, new float[2]);
+        List<Integer> ancestry = new ArrayList<>();
+        for (TouchTargetHelper.ViewTarget target : path) ancestry.add(target.getViewId());
+        surfaces.set(i, current); packets.get(i).hit(ancestry);
+      }
+    }
+    @Override public void run() {
+      if (closed || retired || !callback.isInstalled()) return;
+      for (PointerPacket packet : packets) {
+        if (closed || retired || !callback.isInstalled()) return;
+        packet.run();
+      }
+    }
+  }
+
+  static void pointerEvent(View scope, MotionEvent event) {
+    CUIWindowPointers observer = observers.get(scope.getRootView());
+    if (observer == null || observer.retired || observer.dispatches.isEmpty()) return;
+    try { observer.dispatches.get(observer.dispatches.size() - 1).capture(scope, event); }
+    catch (RuntimeException error) { observer.fail(error.toString()); observer.publish(); }
+  }
+
+  @Override public void finishPointer(Runnable delivery) {
+    if (!(delivery instanceof PointerDispatch)) return;
+    PointerDispatch dispatch = (PointerDispatch)delivery;
+    dispatch.closed = true; dispatches.remove(dispatch);
+  }
 
   static final class Registration {
     final String id;
@@ -146,6 +261,8 @@ final class CUIWindowPointers implements CUIWindowPointerCallback.Listener, View
 
   private void close() {
     retired = true;
+    for (PointerDispatch dispatch : dispatches) dispatch.closed = true;
+    dispatches.clear();
     callback.close();
     identities.clear(); previousButtons.clear();
     View view = root.get();
@@ -157,13 +274,13 @@ final class CUIWindowPointers implements CUIWindowPointerCallback.Listener, View
   @Override public void detached() { fail("Native motion: observed window detached"); publish(); }
   @Override public void failed(RuntimeException error) { fail(error.toString()); publish(); }
 
-  private Runnable packet(View view, String phase, int pointerId, String pointerType, boolean isPrimary,
+  private PointerPacket packet(View view, String phase, int pointerId, String pointerType, boolean isPrimary,
       int button, int buttons, int nativeButtons, int modifiers, double x, double y, double timestamp,
       int target, List<Integer> ancestry) {
     if (retired || !callback.isInstalled() || !view.hasWindowFocus()) return null;
     List<CUIKeyboardScope> scopes = CUIInputWindow.scopes(view);
     CUIKeyboardScope emitter = null;
-    WritableArray registrations = Arguments.createArray();
+    List<WritableMap> registrations = new ArrayList<>();
     for (CUIKeyboardScope scope : scopes) {
       if (!scope.hasPointerRegistrations()) continue;
       boolean added = scope.appendPointerRegistrations(registrations, ancestry);
@@ -179,14 +296,8 @@ final class CUIWindowPointers implements CUIWindowPointerCallback.Listener, View
     data.putBoolean("ctrlKey", (modifiers & KeyEvent.META_CTRL_ON) != 0); data.putBoolean("metaKey", (modifiers & KeyEvent.META_META_ON) != 0);
     data.putString("nativeModifiers", Integer.toUnsignedString(modifiers));
     data.putDouble("pageX", x); data.putDouble("pageY", y); data.putDouble("timestamp", timestamp);
-    data.putInt("target", target); data.putArray("registrations", registrations);
-    final CUIKeyboardScope capturedEmitter = emitter;
-    final String identity = CUIInputWindow.identity(view);
-    return () -> {
-      View current = root.get();
-      if (current == view && current.isAttachedToWindow() && identity.equals(CUIInputWindow.identity(current)) && callback.isInstalled())
-        capturedEmitter.emitPointer(data);
-    };
+    data.putInt("target", target);
+    return new PointerPacket(view, emitter, data, registrations);
   }
 
   private static int button(int nativeButton) {
@@ -212,7 +323,7 @@ final class CUIWindowPointers implements CUIWindowPointerCallback.Listener, View
         : action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_POINTER_UP ? "end"
         : action == MotionEvent.ACTION_CANCEL ? "cancel" : action == MotionEvent.ACTION_MOVE ? "move" : null;
     if (phase == null) return null;
-    List<Runnable> packets = new ArrayList<>();
+    PointerDispatch dispatch = new PointerDispatch(event);
     int first = "move".equals(phase) || "cancel".equals(phase) ? 0 : event.getActionIndex();
     int last = "move".equals(phase) || "cancel".equals(phase) ? event.getPointerCount() : first + 1;
     float density = view.getResources().getDisplayMetrics().density;
@@ -226,20 +337,19 @@ final class CUIWindowPointers implements CUIWindowPointerCallback.Listener, View
       if (pointerId == null) continue;
       boolean isPrimary = "mouse".equals(pointerType) || identities.isPrimary(kind, pointerId);
       float x = event.getX(index), y = event.getY(index);
-      List<TouchTargetHelper.ViewTarget> path = TouchTargetHelper.findTargetPathAndCoordinatesForTouch(x, y, (ViewGroup) view, new float[2]);
-      List<Integer> ancestry = new ArrayList<>();
-      for (TouchTargetHelper.ViewTarget target : path) ancestry.add(target.getViewId());
+      List<Integer> ancestry = java.util.Collections.emptyList();
       int nativeButtons = event.getButtonState();
       int changed = event.getActionButton();
       if (changed == 0 && "mouse".equals(pointerType)) changed = previousButtons.getOrDefault(pointerId, 0) ^ nativeButtons;
       if (changed == 0 && ("start".equals(phase) || "end".equals(phase))) changed = nativeButtons == 0 ? MotionEvent.BUTTON_PRIMARY : nativeButtons;
       int mappedButtons = "mouse".equals(pointerType) ? buttons(nativeButtons) : buttons(nativeButtons) | ("end".equals(phase) || "cancel".equals(phase) ? 0 : 1);
       previousButtons.put(pointerId, nativeButtons);
-      Runnable delivery = packet(view, phase, pointerId, pointerType, isPrimary, button(changed), mappedButtons, nativeButtons, event.getMetaState(), x / density, y / density, event.getEventTime(), ancestry.isEmpty() ? View.NO_ID : ancestry.get(0), ancestry);
-      if (delivery != null) packets.add(delivery);
+      PointerPacket delivery = packet(view, phase, pointerId, pointerType, isPrimary, button(changed), mappedButtons, nativeButtons, event.getMetaState(), x / density, y / density, event.getEventTime(), ancestry.isEmpty() ? View.NO_ID : ancestry.get(0), ancestry);
+      if (delivery != null) { dispatch.indices.add(index); dispatch.surfaces.add(null); dispatch.packets.add(delivery); }
       if ("end".equals(phase) || "cancel".equals(phase)) { identities.end(device, kind, nativePointer, event.getDownTime()); previousButtons.remove(pointerId); }
     }
-    return () -> { for (Runnable delivery : packets) delivery.run(); };
+    dispatches.add(dispatch);
+    return dispatch;
   }
 
   static void activate(View target) {

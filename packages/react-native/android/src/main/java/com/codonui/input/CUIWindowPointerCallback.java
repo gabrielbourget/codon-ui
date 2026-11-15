@@ -20,6 +20,7 @@ import java.util.List;
 final class CUIWindowPointerCallback implements Window.Callback, AutoCloseable {
   interface Listener {
     Runnable preparePointer(MotionEvent event, boolean generic);
+    void finishPointer(Runnable delivery);
     void focusChanged(boolean focused);
     void detached();
     void failed(RuntimeException failure);
@@ -69,18 +70,28 @@ final class CUIWindowPointerCallback implements Window.Callback, AutoCloseable {
     catch (RuntimeException failure) { report(failure); }
   }
 
+  private void finish(Runnable delivery) {
+    if (delivery == null) return;
+    try { listener.finishPointer(delivery); }
+    catch (RuntimeException failure) { report(failure); }
+  }
+
   @Override public boolean dispatchTouchEvent(MotionEvent event) {
     Runnable delivery = isInstalled() ? prepare(MotionEvent.obtain(event), false) : null;
-    boolean result = original.dispatchTouchEvent(event);
-    observe(delivery);
-    return result;
+    try {
+      boolean result = original.dispatchTouchEvent(event);
+      observe(delivery);
+      return result;
+    } finally { finish(delivery); }
   }
 
   @Override public boolean dispatchGenericMotionEvent(MotionEvent event) {
     Runnable delivery = isInstalled() ? prepare(MotionEvent.obtain(event), true) : null;
-    boolean result = original.dispatchGenericMotionEvent(event);
-    observe(delivery);
-    return result;
+    try {
+      boolean result = original.dispatchGenericMotionEvent(event);
+      observe(delivery);
+      return result;
+    } finally { finish(delivery); }
   }
 
   @Override public void onWindowFocusChanged(boolean focused) {

@@ -488,7 +488,7 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
   void writePointerSession(WritableMap data) {
     data.putString("ownerId", ownerId); data.putString("windowId", CUIInputWindow.identity(this)); data.putDouble("epoch", windowEpoch);
   }
-  boolean appendPointerRegistrations(WritableArray result, List<Integer> ancestry) {
+  boolean appendPointerRegistrations(List<WritableMap> result, List<Integer> ancestry) {
     if (!hasPointerRegistrations()) return false;
     boolean added = false;
     for (CUIWindowPointers.Registration registration : pointerRegistrations) {
@@ -496,7 +496,7 @@ public final class CUIKeyboardScope extends ReactViewGroup implements UIManagerL
       WritableMap entry = Arguments.createMap();
       entry.putString("id", registration.id); entry.putString("ownerId", ownerId); entry.putDouble("epoch", windowEpoch);
       entry.putDouble("revision", pointerRevision); entry.putInt("targetTag", registration.targetTag); entry.putInt("depth", ancestry.indexOf(registration.targetTag));
-      result.pushMap(entry); added = true;
+      result.add(entry); added = true;
     }
     return added;
   }
