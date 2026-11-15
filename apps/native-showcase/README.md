@@ -2,6 +2,8 @@
 
 Generic Expo consumer of @codon-ui/react-native. The foundation scene exercises explicit themes, typed overrides, reset, live window metadata and simulated compact/expanded/blocked-region fixtures. Shell selectors remain app-owned core controls. The Text/Button scene renders the public library components with variant/weight/order/geometry, outline, disabled, pending, custom-style and render-child controls. Reset restores foundation defaults; theme, fixture and live-window changes preserve action count.
 
+For a reusable app shell, see the [native consumer bootstrap reference](../docs/src/content/docs/packages/react-native-consumer.md). It documents the existing app-owned Intl preparation, provider/window order, fonts, exact peers and rebuild boundaries without copying the showcase's scenario ownership into a consumer.
+
 ```sh
 pnpm -F @codon-ui/react-native build
 pnpm -F @codon-ui/native-showcase start

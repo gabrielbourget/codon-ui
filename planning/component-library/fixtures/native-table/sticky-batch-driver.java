@@ -4,8 +4,8 @@ import java.util.*;
 // Runs the actual Java controller with SDK/view/owner boundary doubles; no guest or UI harness.
 class StickyBatchDriverContract {
   static void check(boolean value, String message) { if (!value) throw new AssertionError(message); }
-  static CUIMotionSnapshotModule setup() {
-    CUIMotionSnapshotModule owner = new CUIMotionSnapshotModule(); View window = new View(100), table = new ViewGroup(90); table.parent = window;
+  static CUITableNativeSession setup() {
+    CUITableNativeSession owner = new CUITableNativeSession(); View window = new View(100), table = new ViewGroup(90); table.parent = window;
     owner.table = table; owner.manager.views.put(90, table);
     for (int index = 1; index <= 4; index++) {
       View view = new View(index); view.parent = table; owner.manager.views.put(index, view);
@@ -13,9 +13,9 @@ class StickyBatchDriverContract {
     }
     return owner;
   }
-  static void run(CUIMotionSnapshotModule owner) { new CUITableStickyPresentation(owner, new ReactApplicationContext(), owner.manager).synchronize(); }
+  static void run(CUITableNativeSession owner) { new CUITableStickyPresentation(owner, new ReactApplicationContext(), owner.manager).synchronize(); }
   public static void main(String[] args) {
-    CUIMotionSnapshotModule owner = setup(); run(owner);
+    CUITableNativeSession owner = setup(); run(owner);
     check(owner.prepares == 1 && owner.frames == 1 && owner.applied == 1 && owner.lastGeometry.length == 32, "four validated headers must use one prepare and one publication");
     for (int index = 0; index < 4; index++) check(owner.lastGeometry[index * 8 + 1] == 75, "viewport geometry must be read after activation changes layout");
     owner = setup(); owner.invalidateSecond = true; run(owner);
@@ -32,7 +32,7 @@ class StickyBatchDriverContract {
     System.out.println("{\"cases\":6,\"postActivationReads\":true,\"staleGeometryRejected\":true,\"mixedSurfaceScalarFallback\":true,\"nativeActions\":0}");
   }
 }
-class CUIMotionSnapshotModule {
+class CUITableNativeSession {
   final FabricUIManager manager = new FabricUIManager(); final JSONArray targets = new JSONArray(); View table;
   long revision; int prepares, frames, applied, retires, preparedCount; double[] lastGeometry; Exception failure;
   boolean invalidateSecond, failPrepare; final List<double[]> scalar = new ArrayList<>();

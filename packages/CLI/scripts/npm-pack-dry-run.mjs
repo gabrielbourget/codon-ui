@@ -4,10 +4,13 @@ import { tmpdir } from "node:os"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
+import { INTEGRITY_FILE_NAME, readRequiredRegistryFileNames, verifyPackSource } from "./pack-source.mjs"
+
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const distRoot = path.join(packageRoot, "dist")
 const preparePackSourcePath = path.join(packageRoot, "scripts", "prepare-pack-source.mjs")
 const cleanupPackSourcePath = path.join(packageRoot, "scripts", "cleanup-pack-source.mjs")
+const requiredFileNames = ["local-native.registry.json", ...readRequiredRegistryFileNames(process.argv.slice(2))]
 const temporaryNpmRoot = mkdtempSync(path.join(tmpdir(), "codon-ui-npm-pack-"))
 const temporaryUserConfigPath = path.join(temporaryNpmRoot, "user.npmrc")
 const packEnvironment = Object.fromEntries(
@@ -31,7 +34,11 @@ const fail = (message) => {
 }
 
 try {
-  execFileSync(process.execPath, [preparePackSourcePath], { cwd: packageRoot, stdio: "inherit" })
+  execFileSync(process.execPath, [preparePackSourcePath, ...process.argv.slice(2)], {
+    cwd: packageRoot,
+    stdio: "inherit",
+  })
+  const verification = verifyPackSource({ distRoot, requiredFileNames })
 
   const expectedDistPaths = collectFiles(distRoot)
     .map((relativePath) => path.posix.join("dist", relativePath))
@@ -57,8 +64,8 @@ try {
     "dist/contracts.js",
     "dist/index.d.ts",
     "dist/index.js",
-    "dist/registry/local-react-support.registry.json",
-    "dist/registry/local-react.registry.json",
+    `dist/${INTEGRITY_FILE_NAME}`,
+    ...verification.snapshotFileNames.map((fileName) => `dist/registry/${fileName}`),
     "package.json",
   ]
 
@@ -73,6 +80,7 @@ try {
   requiredPaths.forEach((requiredPath) => {
     if (!packagedPaths.includes(requiredPath)) fail(`required file ${requiredPath} is missing.`)
   })
+  verifyPackSource({ distRoot, requiredFileNames })
 
   console.log(`[codon-ui-cli-pack] verified ${packagedPaths.length} packaged files for @codon-ui/cli.`)
 } finally {

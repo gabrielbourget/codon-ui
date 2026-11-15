@@ -150,7 +150,8 @@ export const readComponentPacketsForRegistrySource = async ({
     registrySource.items.some((item) => item.name === itemName && item.type === "component"),
   )
 
-  if (requestedComponentItems.length === 0) return { componentPackets: [], findings: [], registrySource }
+  if (requestedComponentItems.length === 0 || registrySource.sourceIdentity === "@codon-ui/react-native-local")
+    return { componentPackets: [], findings: [], registrySource }
 
   const componentPackets: TAddAdvisoryComponentPacket[] = []
   const findings: TInstallPlanFinding[] = []

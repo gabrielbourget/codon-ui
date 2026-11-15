@@ -16,6 +16,8 @@ import { consumerProjectContextSchema, type TConsumerPackageManager, type TConsu
 type TPackageJson = {
   name?: string
   packageManager?: string
+  dependencies?: Record<string, unknown>
+  devDependencies?: Record<string, unknown>
 }
 
 const readPackageJson = (packageJsonPath: string): TPackageJson | undefined => {
@@ -67,12 +69,22 @@ export const detectConsumerPackageManager = (cwd: string): TConsumerPackageManag
   return CONSUMER_PACKAGE_MANAGER__UNKNOWN
 }
 
-const getProjectKind = (cwd: string) => {
+const hasProjectDependency = (packageJson: TPackageJson | undefined, name: string) =>
+  [packageJson?.dependencies, packageJson?.devDependencies].some((dependencies) => {
+    const version = dependencies?.[name]
+    return typeof version === "string" && version.trim().length > 0
+  })
+
+const getProjectKind = (cwd: string, packageJson: TPackageJson | undefined) => {
   if (["next.config.js", "next.config.mjs", "next.config.ts"].some((fileName) => existsSync(path.join(cwd, fileName))))
     return "next"
 
   if (["vite.config.js", "vite.config.mjs", "vite.config.ts"].some((fileName) => existsSync(path.join(cwd, fileName))))
     return "vite"
+
+  if (hasProjectDependency(packageJson, "expo")) return "expo"
+
+  if (hasProjectDependency(packageJson, "react-native")) return "react-native"
 
   if (existsSync(path.join(cwd, "index.html"))) return "vite-like"
 
@@ -94,6 +106,6 @@ export const getConsumerProjectContext = (cwd: string): TConsumerProjectContext 
     hasTsConfig: existsSync(path.join(cwd, "tsconfig.json")),
     packageManager: detectConsumerPackageManager(cwd),
     packageName: packageJson?.name,
-    projectKind: getProjectKind(cwd),
+    projectKind: getProjectKind(cwd, packageJson),
   })
 }

@@ -64,6 +64,16 @@ export const localRegistryFileSchema = z
 
 export type TLocalRegistryFile = z.infer<typeof localRegistryFileSchema>
 
+export const nativeRegistryProfileSchema = z
+  .object({
+    schemaVersion: z.literal(1),
+    composition: z
+      .object({ core: z.array(localRegistryFileSchema).min(1), table: z.array(localRegistryFileSchema).min(1) })
+      .strict(),
+    rootConfig: z.object({ module: localRegistryFileSchema, commonjs: localRegistryFileSchema }).strict(),
+  })
+  .strict()
+
 export const localRegistryItemSchema = z
   .object({
     name: z.string().min(1),
@@ -82,6 +92,7 @@ export type TLocalRegistryItem = z.infer<typeof localRegistryItemSchema>
 export const localRegistrySourceSchema = z
   .object({
     schemaVersion: z.literal(LOCAL_REGISTRY_SOURCE_SCHEMA_VERSION).default(LOCAL_REGISTRY_SOURCE_SCHEMA_VERSION),
+    native: nativeRegistryProfileSchema.optional(),
     sourceIdentity: z.string().min(1),
     sourceRoot: z.string().min(1).optional(),
     items: z.array(localRegistryItemSchema).default([]),

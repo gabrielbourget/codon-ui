@@ -41,6 +41,7 @@ import {
 } from "./schema"
 
 export type TConsumerInitOptions = {
+  target?: "react" | "react-native"
   registryRoot?: string
   setupCli?: boolean
 }
@@ -78,7 +79,15 @@ const normalizeConsumerRegistryRootOption = (registryRoot?: string) => {
 export const createDefaultConsumerConfig = (options: TConsumerInitOptions = {}): TConsumerConfig => {
   const registryRoot = normalizeConsumerRegistryRootOption(options.registryRoot)
 
-  return consumerConfigSchema.parse(registryRoot ? { paths: { registry: registryRoot } } : {})
+  return consumerConfigSchema.parse({
+    ...(registryRoot ? { paths: { registry: registryRoot } } : {}),
+    ...(options.target === "react-native"
+      ? {
+          registry: { sourcePackage: "@codon-ui/react-native" },
+          paths: { ...(registryRoot ? { registry: registryRoot } : {}), roles: { assets: "." } },
+        }
+      : {}),
+  })
 }
 
 export const createEmptyConsumerLockfile = (): TConsumerLockfile => consumerLockfileSchema.parse({})

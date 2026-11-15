@@ -11,6 +11,7 @@ import { logger } from "@/src/helpers/logger"
 
 const initOptionsSchema = z.object({
   cwd: z.string().default(process.cwd()),
+  target: z.enum(["react", "react-native"]).default("react"),
   defaults: z.boolean().default(false),
   advisory: z.boolean().default(false),
   dryRun: z.boolean().default(false),
@@ -24,6 +25,7 @@ const parseInitOptions = (CLIOptions: unknown) => {
 
   return {
     cwd: options.cwd,
+    target: options.target,
     advisory: options.advisory,
     defaults: options.defaults,
     dryRun: options.dryRun,
@@ -36,6 +38,7 @@ const parseInitOptions = (CLIOptions: unknown) => {
 export const init = new Command()
   .name("init")
   .description("Initialize Codon UI consumer config and lockfile state.")
+  .option("--target <target>", "Component target: react or react-native. Defaults to react.", "react")
   .option("-c, --cwd <cwd>", "The chosen working directory. Defaults to the current directory.", process.cwd())
   .option("-y, --yes", "Accepted for compatibility; init is non-interactive.", true)
   .option("-d, --defaults", "Alias for the default strict config and lockfile seed path.", false)
@@ -62,6 +65,7 @@ export const init = new Command()
       }
 
       const initOptions = {
+        target: options.target,
         ...(options.registryRoot ? { registryRoot: options.registryRoot } : {}),
         ...(options.setupCli ? { setupCli: true } : {}),
       }
