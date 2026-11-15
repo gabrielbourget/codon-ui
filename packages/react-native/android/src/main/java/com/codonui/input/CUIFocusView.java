@@ -41,6 +41,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   private boolean keyboardFocusable = true;
   private boolean nativeTabStop = true;
   private boolean nativePressable = false;
+  private boolean nativeTagDescriptionRefresh;
   private boolean nativeNavigation = false;
   private String nativeNavigationLabel = "Navigation";
   private double activationId;
@@ -473,6 +474,36 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
       setClickable(false);
     }
     nativePressable = enabled;
+  }
+  void setNativeTagDescriptionRefresh(boolean enabled) {
+    nativeTagDescriptionRefresh = enabled;
+    refreshTagDescription();
+  }
+  void refreshTagDescription() {
+    refreshTagDescription((com.facebook.react.bridge.ReadableMap)getTag(R.id.accessibility_state));
+  }
+  void refreshTagDescription(com.facebook.react.bridge.ReadableMap state) {
+    if (!nativeTagDescriptionRefresh) return;
+    List<String> parts = new ArrayList<>();
+    String label = (String)getTag(R.id.accessibility_label);
+    if (label != null) parts.add(label);
+    if (state != null) {
+      com.facebook.react.bridge.ReadableMapKeySetIterator keys = state.keySetIterator();
+      while (keys.hasNextKey()) {
+        String key = keys.nextKey();
+        com.facebook.react.bridge.Dynamic value = state.getDynamic(key);
+        if ("checked".equals(key) && value.getType() == com.facebook.react.bridge.ReadableType.String && "mixed".equals(value.asString()))
+          parts.add(getContext().getString(R.string.state_mixed_description));
+        else if ("busy".equals(key) && value.getType() == com.facebook.react.bridge.ReadableType.Boolean && value.asBoolean())
+          parts.add(getContext().getString(R.string.state_busy_description));
+      }
+    }
+    com.facebook.react.bridge.ReadableMap value = (com.facebook.react.bridge.ReadableMap)getTag(R.id.accessibility_value);
+    if (value != null && value.hasKey("text")) {
+      com.facebook.react.bridge.Dynamic text = value.getDynamic("text");
+      if (text != null && text.getType() == com.facebook.react.bridge.ReadableType.String) parts.add(text.asString());
+    }
+    setContentDescription(parts.isEmpty() ? null : android.text.TextUtils.join(", ", parts));
   }
   boolean isNativePressable() { return nativePressable; }
 

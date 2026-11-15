@@ -12,6 +12,7 @@ import {
   type TNativeTagStyleState,
   type NativeThemeOverrides,
 } from "../../.."
+import * as nativePressability from "../../../input/nativePressability"
 
 beforeEach(() => {
   jest.useFakeTimers()
@@ -850,3 +851,115 @@ it.each([
     expect(ref.current).toBeNull()
   },
 )
+
+it("ANDROID.tag preserves the original responder callbacks, root, owner veto and private description opt-in", async () => {
+  jest.replaceProperty(Platform, "OS", "android")
+  const ref = createRef<TNativeTagRef>()
+  const press = jest.fn(),
+    pressIn = jest.fn(),
+    pressOut = jest.fn(),
+    move = jest.fn(),
+    focus = jest.fn()
+  const rippleIn = jest.fn(),
+    rippleMove = jest.fn(),
+    rippleOut = jest.fn()
+  jest.spyOn(nativePressability, "useNativeAndroidRipple").mockReturnValue({
+    viewProps: { nativeBackgroundAndroid: { type: "RippleAndroid" } },
+    onPressIn: rippleIn,
+    onPressMove: rippleMove,
+    onPressOut: rippleOut,
+  })
+  const renderTag = (checked: "mixed" | boolean, disabled = false) => (
+    <Tag
+      ref={ref}
+      pressable
+      isPressed={false}
+      isDisabled={disabled}
+      id={0}
+      aria-pressed={checked}
+      accessibilityLabel="Current Tag"
+      accessibilityHint="Hint"
+      onPress={press}
+      onPressIn={pressIn}
+      onPressOut={pressOut}
+      onPressMove={move}
+      onFocus={focus}
+      delayLongPress={700}
+      delayHoverIn={20}
+      delayHoverOut={30}
+      pressRetentionOffset={{ top: 12 }}
+      android_ripple={{ color: "red" }}
+      unstable_pressDelay={0}
+      android_disableSound
+      accessibilityValue={{ text: "Current value", now: 0 }}
+    >
+      Retained child
+    </Tag>
+  )
+  const view = await render(renderTag("mixed"))
+  const root = screen.getByRole("button", { name: "Current Tag" })
+  const original = ref.current
+  expect(root.props.nativePressable).toBe(false)
+  expect(root.props.nativeTagDescriptionRefresh).toBe(true)
+  expect(root.props.onPress).toBeUndefined()
+  expect(root.props.onResponderGrant).toEqual(expect.any(Function))
+  expect(root.props.accessibilityHint).toBe("Hint")
+  expect(root.props.accessibilityValue).toMatchObject({ text: "Current value", now: 0 })
+  const config = root.props.onStartShouldSetResponder.testOnly_pressabilityConfig()
+  expect(config).toMatchObject({
+    delayLongPress: 700,
+    delayHoverIn: 20,
+    delayHoverOut: 30,
+    pressRectOffset: { top: 12 },
+    delayPressIn: 0,
+    android_disableSound: true,
+  })
+  const event = {
+    currentTarget: original,
+    target: original,
+    nativeEvent: { timestamp: 17, identifier: 1, pageX: 0, pageY: 0, locationX: 0, locationY: 0 },
+    persist: jest.fn(),
+  }
+  await fireEvent(root, "focus", event)
+  expect(focus).toHaveBeenCalledWith(event)
+  await act(() => root.props.onResponderGrant(event))
+  expect(pressIn).toHaveBeenCalledWith(event)
+  expect(rippleIn).toHaveBeenCalledWith(event)
+  await act(() => root.props.onResponderMove(event))
+  expect(move).toHaveBeenCalledWith(event)
+  expect(rippleMove).toHaveBeenCalledWith(event)
+  await view.rerender(renderTag(true))
+  expect(ref.current).toBe(original)
+  expect(screen.getByText("Retained child")).toBeTruthy()
+  expect(screen.getByRole("button").props.accessibilityState.checked).toBe(true)
+  await act(() => screen.getByTestId("tag").props.onResponderRelease(event))
+  await act(() => jest.runOnlyPendingTimers())
+  expect(pressOut).toHaveBeenCalledWith(event)
+  expect(rippleOut).toHaveBeenCalledWith(event)
+  expect(press.mock.calls).toEqual([[0]])
+  const click = { currentTarget: original, target: original, nativeEvent: {}, stopPropagation: jest.fn() }
+  await act(() => screen.getByTestId("tag").props.onClick(click))
+  expect(press.mock.calls).toEqual([[0], [0]])
+  const descendant = { ...click, target: {}, stopPropagation: jest.fn() }
+  await act(() => screen.getByTestId("tag").props.onClick(descendant))
+  expect(descendant.stopPropagation).toHaveBeenCalledTimes(1)
+  expect(press).toHaveBeenCalledTimes(2)
+  await view.rerender(renderTag(false, true))
+  expect(screen.getByRole("button")).toBeDisabled()
+  expect(screen.getByTestId("tag").props.onStartShouldSetResponder()).toBe(false)
+  await view.rerender(renderTag(false))
+  await act(() => screen.getByTestId("tag").props.onResponderGrant(event))
+  await view.rerender(renderTag(false, true))
+  await view.rerender(renderTag(false))
+  await act(() => screen.getByTestId("tag").props.onResponderRelease(event))
+  await act(() => jest.runOnlyPendingTimers())
+  expect(press).toHaveBeenCalledTimes(2)
+  expect(ref.current).toBe(original)
+})
+
+it("ANDROID.tag leaves static Tags on the original stock view route", async () => {
+  jest.replaceProperty(Platform, "OS", "android")
+  await render(<Tag accessibilityLabel="Static">Static</Tag>)
+  expect(screen.getByTestId("tag").props.nativeTagDescriptionRefresh).toBeUndefined()
+  expect(screen.getByTestId("tag").props.onResponderGrant).toBeUndefined()
+})

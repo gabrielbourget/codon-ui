@@ -201,6 +201,7 @@ export interface NativeProps extends ViewProps {
   keyboardFocusable?: WithDefault<boolean, true>
   nativeTabStop?: WithDefault<boolean, true>
   nativePressable?: WithDefault<boolean, false>
+  nativeTagDescriptionRefresh?: WithDefault<boolean, false>
   nativeResponderCohortBinding?: string
   nativeMotionGeometryBinding?: string
   nativeMotionGeometryRevision?: string

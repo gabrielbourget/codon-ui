@@ -3,6 +3,8 @@ import { PlatformColor } from "react-native"
 import {
   Link,
   NativeThemeProvider,
+  NativeFocusView,
+  Button,
   Tag,
   type NativeTheme,
   type NativeThemeTransition,
@@ -42,3 +44,11 @@ export const InvalidTimingEasing = <NativeThemeProvider overrides={{ transitions
 export const InvalidTimingDelay = <NativeThemeProvider overrides={{ transitions: { boxShadow: { delay: false } } }} />
 // @ts-expect-error Only approved channels are exposed.
 export const InvalidTransitionChannel = <NativeThemeProvider overrides={{ transitions: { foreground: 10 } }} />
+
+// @ts-expect-error The owned Tag accessibility refresh flag is private.
+export const PrivateTagDescriptionRefresh = <Tag nativeTagDescriptionRefresh />
+// @ts-expect-error Generic public focus hosts cannot enable component-owned Tag refresh.
+export const PrivateFocusTagDescriptionRefresh = <NativeFocusView nativeTagDescriptionRefresh />
+
+// @ts-expect-error Other public controls cannot opt into Tag-only description refresh.
+export const PrivateButtonTagDescriptionRefresh = <Button nativeTagDescriptionRefresh />
