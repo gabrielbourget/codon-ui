@@ -4,6 +4,7 @@ import type { View } from "react-native"
 import { observeNativeMotionGeometry } from "../../input/motionGeometry"
 import type { TNativeMotionGeometryRecord } from "../../input/motionGeometry"
 import { cancelFrame, frame } from "../kernel"
+import { nativeMotionRuntime } from "../kernel/nativeRuntime"
 import type { NativeMotionOwner } from "../owner/NativeMotionOwner"
 import type { TNativePopFrame, TNativePopRoot } from "../presence/context"
 import { createNativePopRoot } from "../presence/nativePopFrame"
@@ -29,6 +30,7 @@ type TCohort = {
   after: Map<NativeProjectionState, TNativeMotionGeometryRecord>
   timer: ReturnType<typeof setTimeout>
 }
+type TPendingRequest = { intent: string; deadline: number }
 const roots = new Map<string, NativeProjectionWindow>()
 const rectBox = (rect: readonly number[]): Box => ({
   x: { min: rect[0], max: rect[0] + rect[2] },
@@ -37,9 +39,10 @@ const rectBox = (rect: readonly number[]): Box => ({
 
 class NativeProjectionWindow {
   readonly members = new Set<NativeProjectionState>()
-  readonly pending = new Set<NativeProjectionState>()
+  readonly pending = new Map<NativeProjectionState, TPendingRequest>()
   readonly node: IProjectionNode
   private readonly cohorts = new Map<string, TCohort>()
+  private deadlineTimer?: ReturnType<typeof setTimeout>
   phase?: { cohort: TCohort; kind: "before" | "after" }
   private windowRecord: TNativeMotionGeometryRecord
   constructor(
@@ -69,8 +72,67 @@ class NativeProjectionWindow {
   add = (member: NativeProjectionState) => {
     this.members.add(member)
   }
-  request = (member: NativeProjectionState) => {
-    this.pending.add(member)
+  request = (member: NativeProjectionState, intent: string) => {
+    if (this.pending.get(member)?.intent === intent) return
+    this.pending.set(member, { intent, deadline: nativeMotionRuntime.performance.now() + 5000 })
+    this.scheduleDeadline()
+  }
+  private scheduleDeadline = () => {
+    if (this.deadlineTimer !== undefined) clearTimeout(this.deadlineTimer)
+    this.deadlineTimer = undefined
+    const deadline = Math.min(...[...this.pending.values()].map((request) => request.deadline))
+    if (Number.isFinite(deadline))
+      this.deadlineTimer = setTimeout(
+        this.expireRequests,
+        Math.max(0, deadline - nativeMotionRuntime.performance.now()),
+      )
+  }
+  private expireRequests = () => {
+    this.deadlineTimer = undefined
+    const now = nativeMotionRuntime.performance.now()
+    const expired = [...this.pending].filter(([, request]) => request.deadline <= now)
+    for (const [, request] of expired) request.deadline = Infinity
+    if (expired.length) this.reportTimeout()
+    try {
+      for (const [actor, request] of expired)
+        if (this.pending.get(actor) === request)
+          actor.fail(new Error("Native projection: matching mount cohort exceeded 5000ms"))
+    } finally {
+      this.scheduleDeadline()
+    }
+  }
+  private reportTimeout = () => {
+    try {
+      const latest = [...this.cohorts].at(-1)
+      const transaction = latest?.[0] ?? "no-native-cohort",
+        cohort = latest?.[1]
+      const actors = [
+        ...new Set([
+          ...this.members,
+          ...this.pending.keys(),
+          ...(cohort?.before.keys() ?? []),
+          ...(cohort?.after.keys() ?? []),
+        ]),
+      ]
+      const details = actors.map((actor) => ({
+        ...actor.describeMountCohort(transaction, cohort?.before.get(actor), cohort?.after.get(actor)),
+        pending: this.pending.has(actor),
+        liveMember: this.members.has(actor) && actor.current(),
+      }))
+      console.warn(
+        "Native projection: mount cohort timeout metadata",
+        JSON.stringify({
+          transaction,
+          pending: details.filter((actor) => actor.pending).map((actor) => actor.id),
+          liveMembers: details.filter((actor) => actor.liveMember).map((actor) => actor.id),
+          before: details.filter((actor) => actor.beforePresent).map((actor) => actor.id),
+          after: details.filter((actor) => actor.afterPresent).map((actor) => actor.id),
+          actors: details,
+        }),
+      )
+    } catch {
+      // Diagnostics must never replace the original timeout failure.
+    }
   }
   receive = (member: NativeProjectionState, record: TNativeMotionGeometryRecord) => {
     this.windowRecord = record
@@ -88,9 +150,6 @@ class NativeProjectionWindow {
         after: new Map(),
         timer: setTimeout(() => {
           this.cohorts.delete(transaction)
-          if (this.pending.size)
-            for (const actor of this.pending)
-              actor.fail(new Error("Native projection: matching mount cohort exceeded 5000ms"))
         }, 5000),
       }
       this.cohorts.set(transaction, cohort)
@@ -103,19 +162,21 @@ class NativeProjectionWindow {
       const members = [...this.members].filter((actor) => actor.current())
       if (!members.every((actor) => cohort.after.has(actor) && (cohort.before.has(actor) || actor.bornIn === id)))
         continue
-      if (![...this.pending].every((actor) => !actor.current() || actor.accepts(cohort.after.get(actor)))) continue
+      if (![...this.pending.keys()].every((actor) => !actor.current() || actor.accepts(cohort.after.get(actor))))
+        continue
       try {
         this.phase = { cohort, kind: "before" }
-        for (const actor of this.pending) if (actor.current()) actor.beforeUpdate()
+        for (const actor of this.pending.keys()) if (actor.current()) actor.beforeUpdate()
         this.phase = { cohort, kind: "after" }
         this.node.update()
-        const completed = [...this.pending]
+        const completed = [...this.pending.keys()]
         this.pending.clear()
+        this.scheduleDeadline()
         for (const queued of this.cohorts.values()) clearTimeout(queued.timer)
         this.cohorts.clear()
         for (const actor of completed) actor.applied()
       } catch (error) {
-        for (const actor of this.pending) actor.fail(error)
+        for (const actor of this.pending.keys()) actor.fail(error)
       } finally {
         this.phase = undefined
         clearTimeout(cohort.timer)
@@ -127,6 +188,7 @@ class NativeProjectionWindow {
   remove = (member: NativeProjectionState) => {
     this.members.delete(member)
     this.pending.delete(member)
+    this.scheduleDeadline()
     if (this.members.size) {
       microtask.read(this.process)
       return
@@ -273,7 +335,7 @@ export class NativeProjectionState implements TNativePopRoot {
       this.node.setOptions(this.options())
       this.node.isPresent = present !== false
     }
-    if (this.root && (props.layout || props.layoutId || props.drag)) this.root.request(this)
+    if (this.root && (props.layout || props.layoutId || props.drag)) this.root.request(this, this.intent)
     if (!this.wantsUpdate) this.safeToRemove?.()
     const transition = this.node?.options.transition ?? (this.owner.getDefaultTransition() as Transition | undefined)
     const reduce = getValueTransition(transition, "layout").reduceMotion
@@ -412,10 +474,25 @@ export class NativeProjectionState implements TNativePopRoot {
       this.releaseGroup = () => this.group?.remove(this.node!)
     }
     if (this.owner.getProps().layout || this.owner.getProps().layoutId || this.owner.getProps().drag)
-      this.root.request(this)
+      this.root.request(this, this.intent)
   }
   accepts = (record: TNativeMotionGeometryRecord | undefined) =>
     record?.snapshot?.ancestors[0].projectionRevision === this.intent
+  describeMountCohort = (
+    transaction: string,
+    before: TNativeMotionGeometryRecord | undefined,
+    after: TNativeMotionGeometryRecord | undefined,
+  ) => ({
+    id: `${this.record?.ownerId ?? "unobserved"}/${this.record?.bindingId ?? ""}/${this.record?.target ?? ""}`,
+    current: this.current(),
+    currentIntent: this.intent,
+    bornIn: this.bornIn ?? null,
+    beforePresent: before !== undefined,
+    afterPresent: after !== undefined,
+    afterIntent: after?.snapshot?.ancestors[0].projectionRevision ?? null,
+    afterAccepted: this.accepts(after),
+    bornInAllowance: this.bornIn === transaction,
+  })
   beforeUpdate = () => {
     if (!this.node || !this.wantsUpdate) return
     this.node.isPresent = this.owner.presenceContext?.isPresent !== false
