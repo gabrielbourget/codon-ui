@@ -250,6 +250,35 @@ it("preserves authored width and its main-axis relationship when neither side ca
     getNativeFloatingPlacement({ ...base, placement: "right", content: { width: 400, height: 40 } }),
   ).toMatchObject({ placement: "right", frame: { x: 148, width: 400 } })
 })
+it("constrains an opted-in oversized surface to the usable viewport including its margins", () => {
+  const input = {
+    ...base,
+    content: { width: 600, height: 700 },
+    visibleBoundary: { x: 20, y: 30, width: 240, height: 240 },
+    margins: { left: 7, right: 9, top: 10 },
+    constrainToViewport: true,
+  }
+  const result = getNativeFloatingPlacement(input)!
+  expect(result.maxWidth).toBe(200)
+  expect(result.frame).toMatchObject({ x: 32, width: 216 })
+  expect(result.frame.x + result.frame.width).toBe(248)
+  expect(result.maxHeight + result.frame.y + input.margins.top).toBe(258)
+  expect(input.content.width).toBe(600)
+  expect(getNativeFloatingPlacement({ ...input, constrainToViewport: false })?.frame.width).toBe(616)
+})
+it("caps side-placed surfaces to their chosen side and preserves explicit no-flip placement", () => {
+  const result = getNativeFloatingPlacement({
+    ...base,
+    content: { width: 600, height: 40 },
+    placement: "right",
+    shouldFlip: false,
+    constrainToViewport: true,
+    margins: { left: 4, right: 6 },
+  })!
+  expect(result).toMatchObject({ placement: "right", didFlip: false, maxWidth: 130 })
+  expect(result.frame).toMatchObject({ x: 148, width: 140 })
+  expect(result.frame.x + result.frame.width).toBe(288)
+})
 it("exposes the actual overlay entry edge and arrow center as the animation origin", () => {
   expect(getNativeFloatingPlacement(base)?.anchorPoint).toEqual({ x: 30, y: 0 })
   expect(getNativeFloatingPlacement({ ...base, placement: "top" })?.anchorPoint).toEqual({ x: 30, y: 40 })

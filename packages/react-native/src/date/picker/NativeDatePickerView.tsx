@@ -494,6 +494,8 @@ export const NativeDatePickerView = (
               ) : null}
               <Button
                 ref={trigger}
+                width="auto"
+                height="auto"
                 isDisabled={!!props.isDisabled || !!props.isReadOnly}
                 accessibilityLabel={[labels.triggerButtonAriaLabel, labels.inputButtonGroupAriaLabel]
                   .filter((value) => value !== undefined && value !== "")
@@ -521,6 +523,7 @@ export const NativeDatePickerView = (
           <NativeOrdinaryFocusParticipantsContext.Provider value={null}>
             <NativeOrdinaryFieldGroupKeysContext.Provider value={false}>
               <NativeFloatingSurface
+                nativeScrollContent
                 isOpen={state.isOpen}
                 onOpenChange={state.setOpen}
                 triggerRef={outer}

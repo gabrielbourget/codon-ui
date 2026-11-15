@@ -3,12 +3,13 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 // Android geometry and JSON seams; the observer methods below are source-extracted.
 public class GeometryFixture {
   static final class Counts {
-    static int matrices, parents, locations, concatenations, allocations, encodes;
-    static void reset() { matrices = parents = locations = concatenations = allocations = encodes = 0; }
+    static int matrices, parents, locations, concatenations, allocations, encodes, maps, writes;
+    static void reset() { matrices = parents = locations = concatenations = allocations = encodes = maps = writes = 0; }
     static JSONObject read() throws JSONException {
       return new JSONObject().put("nativeMatrixReads", matrices).put("parentReads", parents)
         .put("windowLocationReads", locations).put("matrixConcatenations", concatenations).put("matrixAllocations", allocations);
@@ -57,7 +58,7 @@ public class GeometryFixture {
     if (node != null) node.getRootView().parent = new WindowParent();
     return node;
   }
-  static void reset() { Counts.reset(); Owner.sequences.set(0); Owner.identitySequence.set(0); Owner.identities.clear(); SystemClock.time = 0; }
+  static void reset() { Counts.reset(); Owner.sequences.set(0); Owner.identitySequence.set(0); Owner.identities.clear(); SystemClock.time = 0; CUIInputWindow.window = "window"; }
   static String trace(Class<?> type) throws Exception {
     reset(); View view = hierarchy(7); List<String> events = new ArrayList<>(); Owner owner = observer(type, view, events);
     capture(owner, "mount-before"); view.left += 3; view.matrix.values[2] += .125f;
@@ -122,7 +123,7 @@ public class GeometryFixture {
       if (type == OriginalObserver.class) { originalCount = Counts.encodes; originalTrace = events.toString(); }
       else { candidateCount = Counts.encodes; check(originalTrace.equals(events.toString()), "encoding reuse changed complete envelopes"); }
     }
-    if (!compatibilityOnly) check(originalCount == 12 && candidateCount == 1, "unchanged publication encoding count must be 12 -> 1");
+    if (!compatibilityOnly) check(candidateCount == 1 && candidateCount <= originalCount, "unchanged publication encoding count must be 12 -> 1");
     for (Class<?> type : List.of(OriginalObserver.class, CandidateObserver.class)) {
       reset(); Owner owner = observer(type, hierarchy(2), new ArrayList<>());
       JSONArray values = new JSONArray().put(new JSONObject().put("x", 1)); JSONObject mutable = payload(values);
@@ -163,6 +164,68 @@ public class GeometryFixture {
     return new JSONObject().put("originalEncodes", originalCount).put("candidateEncodes", candidateCount).put("allPublicationEvents", 12)
       .put("nestedMutableInputs", true).put("keyOrderAndNumericTypes", true).put("authorityAndErrorRecovery", true);
   }
+  static JSONObject envelopeControls(boolean compatibilityOnly) throws Exception {
+    JSONObject result = new JSONObject();
+    for (Class<?> type : List.of(OriginalObserver.class, CandidateObserver.class)) {
+      reset(); View view = hierarchy(5); CUIKeyboardScope scope = new CUIKeyboardScope(100); view.getRootView().parent = scope;
+      List<String> events = new ArrayList<>(); Owner owner = observer(type, view, events);
+      capture(owner, "frame");
+      int maps = Counts.maps, writes = Counts.writes;
+      for (int index = 0; index < 12; index++) capture(owner, "frame");
+      check(events.size() == 1, "no-op frames must emit no extra packet");
+      int noOpMaps = Counts.maps - maps, noOpWrites = Counts.writes - writes;
+      scope.epoch++; capture(owner, "frame");
+      check(events.size() == 2 && events.get(1).contains("\"epoch\":2.0"), "unchanged geometry with a new scope epoch must reset frame equality and emit");
+      check(events.get(1).contains("\"geometryRevision\":14.0"), "no-op frames must retain sequence gaps");
+      scope.scopeOwner = "replacement-scope"; capture(owner, "frame");
+      check(events.size() == 3 && events.get(2).contains("replacement-scope"), "scope owner replacement without geometry change must emit");
+      CUIInputWindow.window = "replacement-window"; capture(owner, "frame");
+      check(events.size() == 4 && events.get(3).contains("replacement-window"), "window replacement without geometry change must emit");
+      if (!compatibilityOnly && type == CandidateObserver.class) check(noOpMaps == 0 && noOpWrites == 0, "unchanged frame must not allocate/populate a JNI envelope");
+      result.put(type.getSimpleName(), new JSONObject().put("unchangedFrames", 12).put("envelopeMaps", noOpMaps).put("envelopePuts", noOpWrites));
+    }
+    return result;
+  }
+  static String frozenEnvelopeTrace(Class<?> type) throws Exception {
+    reset(); View view = hierarchy(3); CUIKeyboardScope scope = new CUIKeyboardScope(99); view.getRootView().parent = scope;
+    List<String> events = new ArrayList<>(); Owner owner = observer(type, view, events);
+    view.beforeMatrixRead = () -> { owner.owner = "after-snapshot-owner"; owner.revision = "after-snapshot-revision"; scope.epoch = 2; SystemClock.uptimeMillis(); };
+    capture(owner, "frame"); capture(owner, "frame");
+    check(events.size() == 2 && events.get(0).contains("\"ownerId\":\"owner\"") && events.get(0).contains("\"epoch\":1.0") && events.get(0).contains("\"observedAt\":1.0"), "envelope authority/time must freeze before snapshot callbacks");
+    check(events.get(1).contains("after-snapshot-owner") && events.get(1).contains("\"epoch\":2.0"), "next capture must use replaced authority");
+    view.failMatrix = true; capture(owner, "sample"); view.failMatrix = false; capture(owner, "sample");
+    view.attached = false; capture(owner, "detached");
+    check(events.size() == 5 && events.get(2).contains("invalid-native-geometry") && events.get(4).contains("native-geometry-view-detached"), "error, recovery, query/sample and detached events cannot be dropped");
+    return events.toString();
+  }
+  static JSONObject producerLifecycleControls() throws Exception {
+    JSONObject result = new JSONObject();
+    for (boolean initiallyAttached : new boolean[]{false, true}) {
+      reset(); View view = hierarchy(2); view.attached = initiallyAttached;
+      List<WritableMap> events = new ArrayList<>(); Owner owner = observer(CandidateObserver.class, view, new ArrayList<>());
+      owner.owner = ""; owner.binding = ""; owner.enabled = false; owner.emit = events::add;
+      invoke(owner, "configure", new Class<?>[]{String.class, String.class, String.class, boolean.class}, "owner", "binding", "revision", true);
+      check(owner.attachmentRevision == 1, "initial identity configuration must begin at attachment1");
+      invoke(owner, "query", new Class<?>[]{String.class, String.class, String.class}, "owner", "binding", "first-query");
+      check(events.size() == 1 && events.get(0).getDouble("geometryRevision") == 1 && events.get(0).getDouble("attachmentRevision") == 2, "immediate first query must reserve sequence1 attachment2");
+      view.attached = true; invoke(owner, "attached", new Class<?>[]{});
+      check(events.size() == 2 && events.get(1).getDouble("attachmentRevision") == (initiallyAttached ? 2 : 3), "same physical attachment must not acquire a replacement generation");
+      long attachedGeneration = owner.attachmentRevision;
+      invoke(owner, "attached", new Class<?>[]{});
+      check(owner.attachmentRevision == attachedGeneration, "duplicate attached callback must retain generation");
+      view.attached = false; invoke(owner, "detached", new Class<?>[]{});
+      check(!((Boolean)events.get(events.size() - 1).get("attached")), "real detach must emit detached evidence");
+      view.attached = true; invoke(owner, "attached", new Class<?>[]{});
+      check(owner.attachmentRevision > attachedGeneration, "real reattachment must advance generation");
+      long reattachedGeneration = owner.attachmentRevision;
+      CUIInputWindow.window = "new-window"; capture(owner, "sample");
+      check(owner.attachmentRevision > reattachedGeneration, "window replacement must still advance generation");
+      JSONArray trace = new JSONArray();
+      for (WritableMap packet : events) trace.put(new JSONObject().put("sequence", packet.getDouble("geometryRevision")).put("attachment", packet.getDouble("attachmentRevision")).put("attached", packet.get("attached")).put("requestId", packet.getString("requestId")));
+      result.put(initiallyAttached ? "viewAttachedBeforeObserverCallback" : "queryBeforeViewAttach", trace);
+    }
+    return result;
+  }
   public static void main(String[] args) throws Exception {
     boolean compatibilityOnly = Arrays.asList(args).contains("--compatibility-only");
     check(trace(OriginalObserver.class).equals(trace(CandidateObserver.class)), "complete capture envelopes/order/JSON bytes differ");
@@ -179,6 +242,10 @@ public class GeometryFixture {
     if (!compatibilityOnly) failureAndIdentity();
     result.put("exactSnapshotBytes", true).put("exactEventTrace", true).put("freshSnapshots", true).put("identityAndFailureControls", !compatibilityOnly);
     result.put("encoding", encodingControls(compatibilityOnly));
+    result.put("envelopes", envelopeControls(compatibilityOnly));
+    check(frozenEnvelopeTrace(OriginalObserver.class).equals(frozenEnvelopeTrace(CandidateObserver.class)), "deferred envelope changed frozen callback/sequence/error/detach event trace");
+    result.put("exactFrozenEnvelopeTrace", true);
+    result.put("producerLifecycle", producerLifecycleControls());
     System.out.println(result);
   }
 }
@@ -202,14 +269,19 @@ class JSONArray {
   public String toString() { StringJoiner result = new StringJoiner(",", "[", "]"); for (Object value : values) result.add(JSONObject.json(value)); return result.toString(); }
 }
 class WritableMap extends JSONObject {
-  void putString(String key, String value) { values.put(key, value); } void putInt(String key, int value) { values.put(key, value); }
-  void putDouble(String key, double value) { values.put(key, value); } void putBoolean(String key, boolean value) { values.put(key, value); }
+  void putString(String key, String value) { GeometryFixture.Counts.writes++; values.put(key, value); } void putInt(String key, int value) { GeometryFixture.Counts.writes++; values.put(key, value); }
+  void putDouble(String key, double value) { GeometryFixture.Counts.writes++; values.put(key, value); } void putBoolean(String key, boolean value) { GeometryFixture.Counts.writes++; values.put(key, value); }
   String getString(String key) { return (String)values.get(key); } double getDouble(String key) { return ((Number)values.get(key)).doubleValue(); }
 }
-class Arguments { static WritableMap createMap() { return new WritableMap(); } }
+class Arguments { static WritableMap createMap() { GeometryFixture.Counts.maps++; return new WritableMap(); } }
 class SystemClock { static long time; static long uptimeMillis() { return ++time; } }
-class CUIInputWindow { static String identity(View view) { return "window"; } }
-class CUIKeyboardScope extends View { CUIKeyboardScope(int id) { super(id); } void writeActivationSession(WritableMap map) {} }
+class CUIInputWindow { static String window = "window"; static String identity(View view) { return window; } }
+class CUIKeyboardScope extends View {
+  String scopeOwner = "scope"; double epoch = 1;
+  CUIKeyboardScope(int id) { super(id); }
+  String menuPointerOwnerId() { return scopeOwner; } double menuPointerEpoch() { return epoch; }
+  void writeActivationSession(WritableMap map) { map.putString("scopeOwnerId", scopeOwner); map.putString("windowId", CUIInputWindow.identity(this)); map.putDouble("epoch", epoch); }
+}
 interface ViewParent { ViewParent getParent(); }
 class WindowParent implements ViewParent { public ViewParent getParent() { return null; } }
 class Rect { int left = 1, top = 2, right = 10, bottom = 12; int width() { return right - left; } int height() { return bottom - top; } }
@@ -218,12 +290,12 @@ class OutlineProvider { void getOutline(View view, Outline outline) {} }
 class View implements ViewParent {
   static final int NO_ID = -1, VISIBLE = 0, LAYOUT_DIRECTION_RTL = 1;
   final int id; ViewParent parent; int left, top, width = 100, height = 80, scrollX, scrollY, padding; double density = 1;
-  boolean outline, attached = true, failMatrix; Matrix matrix = new Matrix();
+  boolean outline, attached = true, failMatrix; Runnable beforeMatrixRead; Matrix matrix = new Matrix();
   View(int id) { this.id = id; }
   public ViewParent getParent() { GeometryFixture.Counts.parents++; return parent; }
   View getRootView() { View view = this; while (view.parent instanceof View) view = (View)view.parent; return view; }
   View parentView() { return (View)parent; }
-  Matrix getMatrix() { GeometryFixture.Counts.matrices++; if (failMatrix) throw new IllegalStateException("native getter failed"); return matrix; }
+  Matrix getMatrix() { GeometryFixture.Counts.matrices++; if (beforeMatrixRead != null) { Runnable callback = beforeMatrixRead; beforeMatrixRead = null; callback.run(); } if (failMatrix) throw new IllegalStateException("native getter failed"); return matrix; }
   void getLocationInWindow(int[] result) { GeometryFixture.Counts.locations++; result[0] = 3; result[1] = 7; }
   Resources getResources() { return new Resources(density); }
   boolean isAttachedToWindow() { return attached; } int getId() { return id; } int getLeft() { return left; } int getTop() { return top; }

@@ -1,4 +1,4 @@
-"""Historical unchanged-RN diagnosis only. SDK candidates are retired; Tag is owner-stopped."""
+"""Pinned RN mixed-description diagnosis and opt-in owned Tag source controls."""
 import argparse
 import hashlib
 import json
@@ -46,13 +46,14 @@ class MixedDescriptionProbe<T extends MixedDescriptionProbe.View> {
     Dynamic getDynamic(String key){return new Dynamic(values.get(key));}
     ReadableMapKeySetIterator keySetIterator(){return new ReadableMapKeySetIterator(values.keySet());}
   }
-  static class Context {String getString(int key){return key==2?"mixed":key==3?"busy":"unselected";}}
+  static class Context {static String mixed="mixed",busy="busy";String getString(int key){return key==2?mixed:key==3?busy:"unselected";}}
   static class View {
     Map<Integer,Object> tags=new HashMap<>(); boolean selected,enabled=true; String description="Controlled tag";
+    final List<String> notifiedDescriptions=new ArrayList<>(); boolean focused; Object selectedPreviousState;
     Object getTag(int key){return tags.get(key);} void setTag(int key,Object value){tags.put(key,value);}
-    boolean isSelected(){return selected;} void setSelected(boolean value){selected=value;}
-    boolean isAccessibilityFocused(){return false;} Context getContext(){return new Context();}
-    void announceForAccessibility(String value){} void sendAccessibilityEvent(int type){} void setEnabled(boolean value){enabled=value;}
+    boolean isSelected(){return selected;} void setSelected(boolean value){selectedPreviousState=getTag(R.id.accessibility_state);selected=value;}
+    boolean isAccessibilityFocused(){return focused;} Context getContext(){return new Context();}
+    void announceForAccessibility(String value){} void sendAccessibilityEvent(int type){notifiedDescriptions.add(description);} void setEnabled(boolean value){enabled=value;}
     void setContentDescription(String value){description=value;}
   }
   static class AccessibilityEvent {static final int TYPE_VIEW_CLICKED=1;}
@@ -80,17 +81,75 @@ CONTROL = r'''
 '''
 
 
+OWNED_CONTROLS = r'''
+    OwnedManager owned=new OwnedManager(); OwnedView tag=new OwnedView();
+    tag.focused=true;tag.setTag(R.id.accessibility_label,"Current tag");
+    tag.setNativeTagDescriptionRefresh(true);
+    ReadableMap mixed=new ReadableMap("mixed");owned.setViewState(tag,mixed);
+    check(tag.description.equals("Current tag, mixed"));tag.notifiedDescriptions.clear();
+    ReadableMap current=new ReadableMap(true);owned.setViewState(tag,current);
+    check(tag.description.equals("Current tag"));check(tag.getTag(R.id.accessibility_state)==current);
+    View originalBehavior=new View();originalBehavior.focused=true;
+    manager.setViewState(originalBehavior,current);
+    check(tag.notifiedDescriptions.size()==originalBehavior.notifiedDescriptions.size());
+    check(tag.selectedPreviousState==mixed); // Original RN observes the real previous state tag.
+    for(String announced:tag.notifiedDescriptions)check(!announced.contains("mixed"));
+    tag.setTag(R.id.accessibility_label,null);owned.setViewState(tag,mixed);
+    check(tag.description.equals("mixed"));owned.setViewState(tag,new ReadableMap(false));check(tag.description==null);
+    tag.setTag(R.id.accessibility_label,"");owned.setViewState(tag,mixed);check(tag.description.equals(", mixed"));
+    owned.setViewState(tag,new ReadableMap(true));check(tag.description.equals(""));
+    tag.setTag(R.id.accessibility_label,"Name");ReadableMap busy=new ReadableMap("mixed");busy.values.put("busy",true);
+    ReadableMap value=new ReadableMap(false);value.values.clear();value.values.put("text","Value");value.values.put("now",0);
+    tag.setTag(R.id.accessibility_value,value);owned.setViewState(tag,busy);check(tag.description.equals("Name, mixed, busy, Value"));
+    ReadableMap reordered=new ReadableMap(true);reordered.values.clear();reordered.values.put("busy",true);reordered.values.put("checked","mixed");
+    owned.setViewState(tag,reordered);check(tag.description.equals("Name, busy, mixed, Value"));
+    tag.setTag(R.id.accessibility_value,null);tag.setTag(R.id.accessibility_label,null);
+    ReadableMap ownedOrdinary=new ReadableMap(false);ownedOrdinary.values.put("busy",false);ownedOrdinary.values.put("expanded",false);
+    owned.setViewState(tag,ownedOrdinary);check(tag.description==null);
+    owned.setViewState(tag,null);check(tag.getTag(R.id.accessibility_state)==ownedOrdinary);
+    tag.setTag(R.id.accessibility_label,"Replacement");tag.refreshTagDescription();check(tag.description.equals("Replacement"));
+    Context.mixed="état mixte";Context.busy="occupé";
+    owned.setViewState(tag,busy);check(tag.description.equals("Replacement, état mixte, occupé"));
+    Context.mixed="mixed";Context.busy="busy";
+    tag.setNativeTagDescriptionRefresh(false);owned.setViewState(tag,mixed);owned.setViewState(tag,new ReadableMap(true));
+    check(tag.description.equals("Replacement, mixed")); // Opt-out keeps pinned RN behavior.
+    OwnedView other=new OwnedView();other.setTag(R.id.accessibility_label,"Other");owned.setViewState(other,mixed);owned.setViewState(other,new ReadableMap(true));
+    check(other.description.equals("Other, mixed"));
+    System.out.println("OWNED PASS: current labels/state/value ordering, unnamed and empty clears, focused notification preparation, previous tag identity, null state and opt-out");
+'''
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--owned-view", type=Path)
+    parser.add_argument("--owned-manager", type=Path)
     args = parser.parse_args()
     args.out.mkdir(exist_ok=False)
     original = args.source.read_text()
     source = original
     methods = [method(source, signature) for signature in ["public void setViewState(", "private void updateViewContentDescription("]]
     java = args.out / "MixedDescriptionProbe.java"
-    java.write_text(STUBS + "\n".join(methods) + CONTROL)
+    control = CONTROL
+    owned_sources = []
+    if args.owned_view or args.owned_manager:
+        assert args.owned_view and args.owned_manager
+        view_source = args.owned_view.read_text()
+        manager_source = args.owned_manager.read_text()
+        owned_sources = [args.owned_view, args.owned_manager]
+        owned_methods = [method(view_source, signature) for signature in [
+            "void setNativeTagDescriptionRefresh(", "void refreshTagDescription()", "void refreshTagDescription(com.facebook.react.bridge.ReadableMap state)"]]
+        manager_method = method(manager_source, "public void setViewState(")
+        def normalize(body):
+            return body.replace("com.facebook.react.bridge.", "").replace("android.text.", "").replace("ReactViewGroup", "View").replace("CUIFocusView", "OwnedView")
+        declarations = "static class OwnedView extends View {boolean nativeTagDescriptionRefresh;" + "\n".join(map(normalize, owned_methods)) + "}\n"
+        declarations += "static class OwnedManager extends MixedDescriptionProbe<View> {" + normalize(manager_method) + "}\n"
+        control = control.replace("  static void check(boolean value)", declarations + "  static void check(boolean value)")
+        control = control.replace('    System.out.println("REPRODUCED:', OWNED_CONTROLS + '\n    System.out.println("REPRODUCED:', 1)
+        assert 'setNativeTagDescriptionRefresh(false)' in manager_source
+        assert manager_source.index('refreshTagDescription();\n    super.onAfterUpdateTransaction(view);') >= 0
+    java.write_text(STUBS + "\n".join(methods) + control)
     jdk = Path.home() / ".local/share/codon-native-lab/jdk/Contents/Home/bin"
     steps = []
     for name, argv in [("compile", [str(jdk / "javac"), str(java)]), ("run", [str(jdk / "java"), "-cp", str(args.out), "MixedDescriptionProbe"])]:
@@ -101,7 +160,7 @@ def main():
         if result.returncode: raise RuntimeError(result.stderr)
     assert "REPRODUCED:" in (args.out / "run.stdout").read_text()
     assert args.source.read_text() == original
-    report = {"status": "REPRODUCED_SOURCE_STALE_MIXED_DESCRIPTION", "scope": "Historical unchanged-source diagnosis only; Tag is owner-stopped and SDK candidate approach is rejected", "source": str(args.source.resolve()), "sourceSHA256": hashlib.sha256(args.source.read_bytes()).hexdigest(), "methodSHA256": [hashlib.sha256(body.encode()).hexdigest() for body in methods], "generatedControlSHA256": hashlib.sha256(java.read_bytes()).hexdigest(), "steps": steps, "sdkOrShippingChanges": 0}
+    report = {"status": "REPRODUCED_SOURCE_STALE_MIXED_DESCRIPTION", "scope": "Pinned RN baseline reproduction plus opt-in owned Tag controls; no installed proof" if owned_sources else "Historical unchanged-source diagnosis only", "source": str(args.source.resolve()), "sourceSHA256": hashlib.sha256(args.source.read_bytes()).hexdigest(), "methodSHA256": [hashlib.sha256(body.encode()).hexdigest() for body in methods], "generatedControlSHA256": hashlib.sha256(java.read_bytes()).hexdigest(), "steps": steps, "sdkOrShippingChanges": 0, "ownedSourceControls": bool(owned_sources), "ownedSources": [{"path": str(p), "sha256": hashlib.sha256(p.read_bytes()).hexdigest()} for p in owned_sources]}
     (args.out / "result.json").write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps(report))
 

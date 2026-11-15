@@ -134,6 +134,190 @@ it("does not create a before box for a newly mounted owner", () => {
   expect(listener).not.toHaveBeenCalled()
   h.observer.dispose()
 })
+it("requeries an overtaken correlated sample without accepting stale or retired query packets", async () => {
+  const h = geometryHarness(),
+    notified: number[] = []
+  h.receive({ kind: "frame", geometryRevision: 10 })
+  h.observer.subscribe((record) => {
+    if (record) notified.push(record.geometryRevision)
+  })
+  const read = h.observer.read(undefined, "next")
+  const outcome = read.then(
+    (record) => ({ status: "resolved", record }),
+    (error: Error) => ({ status: "rejected", error: error.message }),
+  )
+  try {
+    const original = h.dispatch.mock.calls[0][0]
+    h.receive({ kind: "frame", geometryRevision: 12, commitRevision: "next" })
+    h.receive({ requestId: original, kind: "sample", geometryRevision: 11, commitRevision: "next" })
+    expect(h.observer.latest()?.geometryRevision).toBe(12)
+    expect(notified).toEqual([12])
+    expect(h.dispatch).toHaveBeenCalledTimes(2)
+    const retry = h.dispatch.mock.calls[1][0]
+    expect(retry).not.toBe(original)
+    h.receive({ requestId: original, geometryRevision: 99, commitRevision: "next" })
+    h.receive({ requestId: "uncorrelated", geometryRevision: 100, commitRevision: "next" })
+    expect(h.observer.latest()?.geometryRevision).toBe(12)
+    h.receive({ requestId: retry, geometryRevision: 13, commitRevision: "next" })
+    await expect(outcome).resolves.toMatchObject({
+      status: "resolved",
+      record: { requestId: retry, geometryRevision: 13, commitRevision: "next" },
+    })
+    expect(notified).toEqual([12, 13])
+  } finally {
+    h.observer.dispose()
+  }
+})
+it.each([
+  "baseline",
+  "duplicate",
+  "older-attachment",
+  "new-attachment",
+  "window",
+  "epoch",
+  "root",
+  "commit",
+  "current-commit",
+  "error",
+  "malformed",
+  "invalid-current",
+])("does not retry an ineligible overtaken sample for %s", async (reason) => {
+  const h = geometryHarness()
+  h.receive({ kind: "frame", geometryRevision: 10 })
+  const read = h.observer.read(undefined, "next"),
+    failure = expect(read).rejects.toThrow(/stale native geometry .*baseline=10, baselineAttachment=1/)
+  h.receive({
+    kind: "frame",
+    geometryRevision: 12,
+    commitRevision: reason === "current-commit" ? "other" : "next",
+    attachmentRevision: reason === "new-attachment" ? 2 : 1,
+    error: reason === "invalid-current" ? "native-failure" : "",
+  })
+  const sample = {
+    ...geometryPacket({
+      requestId: h.dispatch.mock.calls[0][0],
+      geometryRevision: 11,
+      commitRevision: "next",
+    }),
+  }
+  if (reason === "baseline") sample.geometryRevision = 9
+  if (reason === "duplicate") sample.geometryRevision = 12
+  if (reason === "older-attachment") sample.attachmentRevision = 0
+  if (reason === "new-attachment") sample.attachmentRevision = 2
+  if (reason === "window") sample.windowId = "foreign-window"
+  if (reason === "epoch") sample.epoch = 3
+  if (reason === "root") sample.snapshot = JSON.stringify({ ...geometrySnapshot(), rootIdentity: "old-root" })
+  if (reason === "commit") sample.commitRevision = "other"
+  if (reason === "error") sample.error = "native-failure"
+  if (reason === "malformed") sample.snapshot = "{}"
+  h.observer.receive(sample)
+  await failure
+  expect(h.dispatch).toHaveBeenCalledTimes(1)
+  expect(h.observer.latest()?.geometryRevision).not.toBe(11)
+  h.observer.dispose()
+})
+it.each(["not-attached", "scope-epoch"])(
+  "reports the initial attachment transition without accepting its stale sample for %s",
+  async (transition) => {
+    const h = geometryHarness(),
+      read = h.observer.read(),
+      failure = expect(read).rejects.toThrow(
+        transition === "not-attached"
+          ? /receivedState=\{"kind":"sample","attached":false,"error":"native-geometry-view-detached".*currentState=\{"kind":"frame","attached":true/
+          : /receivedState=.*"epoch":1.*currentState=.*"epoch":2/,
+      )
+    h.receive({ kind: "frame", geometryRevision: 6, attachmentRevision: 3 })
+    const current = h.observer.latest()
+    h.receive({
+      requestId: h.dispatch.mock.calls[0][0],
+      geometryRevision: 1,
+      attachmentRevision: 2,
+      ...(transition === "not-attached"
+        ? { attached: false, error: "native-geometry-view-detached", snapshot: "" }
+        : { epoch: 1 }),
+    })
+    await failure
+    expect(h.dispatch).toHaveBeenCalledTimes(1)
+    expect(h.observer.latest()).toBe(current)
+    expect(current).toMatchObject({ geometryRevision: 6, attachmentRevision: 3, attached: true })
+    h.observer.dispose()
+  },
+)
+it("rejects a second overtaken sample without replaying indefinitely", async () => {
+  jest.useFakeTimers()
+  const h = geometryHarness()
+  h.receive({ kind: "frame", geometryRevision: 10 })
+  const read = h.observer.read(),
+    failure = expect(read).rejects.toThrow(/received=13, highest=14/)
+  h.receive({ kind: "frame", geometryRevision: 12 })
+  h.receive({ requestId: h.dispatch.mock.calls[0][0], geometryRevision: 11 })
+  expect(h.dispatch).toHaveBeenCalledTimes(2)
+  h.receive({ kind: "frame", geometryRevision: 14 })
+  h.receive({ requestId: h.dispatch.mock.calls[1][0], geometryRevision: 13 })
+  await failure
+  expect(h.dispatch).toHaveBeenCalledTimes(2)
+  expect(h.observer.latest()?.geometryRevision).toBe(14)
+  expect(jest.getTimerCount()).toBe(0)
+  h.observer.dispose()
+})
+it("retains the original absolute query deadline after a late correlated retry", async () => {
+  jest.useFakeTimers()
+  const h = geometryHarness(),
+    settled = jest.fn()
+  h.receive({ kind: "frame", geometryRevision: 10 })
+  const read = h.observer.read(),
+    failure = expect(read).rejects.toThrow(/5000ms/)
+  void read.then(settled, settled)
+  jest.advanceTimersByTime(4900)
+  h.receive({ kind: "frame", geometryRevision: 12 })
+  h.receive({ requestId: h.dispatch.mock.calls[0][0], geometryRevision: 11 })
+  expect(h.dispatch).toHaveBeenCalledTimes(2)
+  expect(jest.getTimerCount()).toBe(1)
+  jest.advanceTimersByTime(99)
+  expect(settled).not.toHaveBeenCalled()
+  jest.advanceTimersByTime(1)
+  await failure
+  expect(jest.getTimerCount()).toBe(0)
+  h.observer.dispose()
+})
+it("cancels the rotated correlated ID with the original subscription", async () => {
+  jest.useFakeTimers()
+  let cancel = () => {}
+  const unsubscribe = jest.fn(),
+    h = geometryHarness()
+  h.receive({ kind: "frame", geometryRevision: 10 })
+  const read = h.observer.read({
+      isCurrent: () => true,
+      onCancel: (callback) => {
+        cancel = callback
+        return unsubscribe
+      },
+    }),
+    failure = expect(read).rejects.toThrow(/cancelled/)
+  h.receive({ kind: "frame", geometryRevision: 12 })
+  h.receive({ requestId: h.dispatch.mock.calls[0][0], geometryRevision: 11 })
+  const retry = h.dispatch.mock.calls[1][0]
+  cancel()
+  await failure
+  expect(unsubscribe).toHaveBeenCalledTimes(1)
+  expect(jest.getTimerCount()).toBe(0)
+  h.receive({ requestId: retry, geometryRevision: 13 })
+  expect(h.observer.latest()?.geometryRevision).toBe(12)
+  h.observer.dispose()
+})
+it("handles a synchronous fresh correlated reply after an overtaken sample", async () => {
+  const h = geometryHarness()
+  h.receive({ kind: "frame", geometryRevision: 10 })
+  h.dispatch.mockImplementation((requestId: string) => {
+    if (h.dispatch.mock.calls.length === 1) {
+      h.receive({ kind: "frame", geometryRevision: 12 })
+      h.receive({ requestId, geometryRevision: 11 })
+    } else h.receive({ requestId, geometryRevision: 13 })
+  })
+  await expect(h.observer.read()).resolves.toMatchObject({ geometryRevision: 13 })
+  expect(h.dispatch).toHaveBeenCalledTimes(2)
+  h.observer.dispose()
+})
 it("rejects stale native query revisions and ignores older unsolicited frames", async () => {
   const h = geometryHarness()
   h.receive({ geometryRevision: 10 })

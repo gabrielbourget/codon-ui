@@ -225,6 +225,7 @@ export const NativeFocusHost = forwardRef<
   TNativeFocusViewProps &
     Partial<Pick<TNativeToolbarListenerProps, "onNativeOrdinaryEditorKeyCapture" | "onNativeDateKeyCapture">> & {
       nativePressable?: boolean
+      nativeTagDescriptionRefresh?: boolean
       nativeKeyPolicy?: TNativeLocalKeyPolicy
       nativeResponderCohortBinding?: string
       onNativeResponderCohort?: (

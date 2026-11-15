@@ -19,6 +19,7 @@ import {
   Easing,
   findNodeHandle,
   I18nManager,
+  ScrollView,
   StyleSheet,
   View,
   type GestureResponderEvent,
@@ -96,6 +97,7 @@ export const NativeFloatingSurface = forwardRef<
     ) => StyleProp<TNativeClickPopoverRootStyle>
     nativeChildren?: (state: TNativeFloatingRenderState & { defaultChildren: undefined }) => ReactNode
     nativeClearContexts?: readonly TNativeClearContext[]
+    nativeScrollContent?: boolean
   }
 >((props, ref) => {
   const {
@@ -106,6 +108,7 @@ export const NativeFloatingSurface = forwardRef<
     nativeStyle,
     nativeChildren,
     nativeClearContexts,
+    nativeScrollContent = false,
     isOpen,
     defaultOpen,
     onOpenChange,
@@ -271,6 +274,7 @@ export const NativeFloatingSurface = forwardRef<
     containerPadding,
     shouldFlip,
     maxHeight,
+    constrainToViewport: nativeScrollContent,
     arrowBoundaryOffset,
     shouldUpdatePosition,
     arrowSize: showOverlayArrow ? (arrowLayout?.width ?? 10) : 0,
@@ -441,6 +445,66 @@ export const NativeFloatingSurface = forwardRef<
     direction,
     host.layout?.width ?? 0,
   )
+  const capDimension = (authored: TNativeClickPopoverRootStyle["maxWidth"], available: number, parent: number) => {
+    const value =
+      typeof authored === "number"
+        ? authored
+        : typeof authored === "string" && authored.endsWith("%")
+          ? (parseFloat(authored) / 100) * parent
+          : available
+    return Math.min(value, available)
+  }
+  const constrainedWidth =
+    nativeScrollContent && position
+      ? capDimension(painted.root.maxWidth, position.maxWidth!, host.layout?.width ?? 0)
+      : undefined
+  const constrainedHeight =
+    nativeScrollContent && position
+      ? capDimension(painted.root.maxHeight, position.maxHeight, host.layout?.height ?? 0)
+      : undefined
+  const isSizedMinimum = (value: TNativeClickPopoverRootStyle["minWidth"]) =>
+    typeof value === "number" || (typeof value === "string" && value.endsWith("%"))
+  const viewportConstraints =
+    nativeScrollContent && position
+      ? {
+          maxWidth: constrainedWidth,
+          maxHeight: constrainedHeight,
+          ...(isSizedMinimum(painted.root.minWidth)
+            ? { minWidth: capDimension(painted.root.minWidth, constrainedWidth!, host.layout?.width ?? 0) }
+            : {}),
+          ...(isSizedMinimum(painted.root.minHeight)
+            ? { minHeight: capDimension(painted.root.minHeight, constrainedHeight!, host.layout?.height ?? 0) }
+            : {}),
+        }
+      : undefined
+  const surfaceContent = childIsDialog ? (
+    <NativePopoverDialog
+      ref={dialog}
+      testID={`${identity}-dialog`}
+      nativeFocusable={ready && layer.active}
+      nativeFallbackLabel={accessibilityLabel ?? aliasLabel}
+      style={props.customDialogStyles}
+      nativeBaselineStyle={[
+        dialogFocused
+          ? {
+              outlineWidth: 1.5,
+              outlineOffset: theme.spacing.unit,
+              outlineColor: theme.colors.focusRing,
+            }
+          : undefined,
+        defaultDialog.dialog,
+        defaultDialog.dialogText,
+      ]}
+      onFocus={(event) => {
+        if (layer.canAct()) setDialogFocused(event.nativeEvent.target === findNodeHandle(dialog.current))
+      }}
+      onBlur={() => setDialogFocused(false)}
+    >
+      {renderedChildren}
+    </NativePopoverDialog>
+  ) : (
+    body
+  )
   return (
     <NativeFloatingPortal layerId={layer.mounted ? layer.id : undefined}>
       <View
@@ -501,6 +565,7 @@ export const NativeFloatingSurface = forwardRef<
                     maxHeight: position?.maxHeight,
                   },
                   painted.root,
+                  viewportConstraints,
                   motion.style,
                 ]}
                 {...{
@@ -562,34 +627,19 @@ export const NativeFloatingSurface = forwardRef<
                           }}
                         />
                       )}
-                      {childIsDialog ? (
-                        <NativePopoverDialog
-                          ref={dialog}
-                          testID={`${identity}-dialog`}
-                          nativeFocusable={ready && layer.active}
-                          nativeFallbackLabel={accessibilityLabel ?? aliasLabel}
-                          style={props.customDialogStyles}
-                          nativeBaselineStyle={[
-                            dialogFocused
-                              ? {
-                                  outlineWidth: 1.5,
-                                  outlineOffset: theme.spacing.unit,
-                                  outlineColor: theme.colors.focusRing,
-                                }
-                              : undefined,
-                            defaultDialog.dialog,
-                            defaultDialog.dialogText,
-                          ]}
-                          onFocus={(event) => {
-                            if (layer.canAct())
-                              setDialogFocused(event.nativeEvent.target === findNodeHandle(dialog.current))
-                          }}
-                          onBlur={() => setDialogFocused(false)}
+                      {nativeScrollContent ? (
+                        <ScrollView
+                          testID={`${identity}-scroll`}
+                          accessible={false}
+                          focusable={false}
+                          keyboardShouldPersistTaps="handled"
+                          keyboardDismissMode="none"
+                          style={{ flexGrow: 0, flexShrink: 1 }}
                         >
-                          {renderedChildren}
-                        </NativePopoverDialog>
+                          {surfaceContent}
+                        </ScrollView>
                       ) : (
-                        body
+                        surfaceContent
                       )}
                     </NativeContentContext.Provider>
                   </NativeTextStyleProvider>

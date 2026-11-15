@@ -229,7 +229,16 @@ const Header = (
   const action = useTableAction(node, target)
   const hover = useTableHover(target, action.isActive, props)
   const styles = splitNativeTextStyle(
-    resolveNativeStyle([content?.textStyle, { flexDirection: "row" }, customStyles, style], "TableHeader", "style"),
+    resolveNativeStyle(
+      [
+        content?.textStyle,
+        { flexDirection: "row", ...(table.sticky.enabled ? { zIndex: 3 } : {}) },
+        customStyles,
+        style,
+      ],
+      "TableHeader",
+      "style",
+    ),
   )
   const hostProps = {
     ...nativeViewProps(native),

@@ -36,6 +36,7 @@ export type TNativeFloatingPlacementInput = Readonly<{
   containerPadding?: number
   shouldFlip?: boolean
   maxHeight?: number
+  constrainToViewport?: boolean
   arrowSize?: number
   arrowBoundaryOffset?: number
   margins?: Readonly<Partial<Record<"top" | "right" | "bottom" | "left", number>>>
@@ -71,6 +72,7 @@ export const getNativeFloatingPlacement = (input: TNativeFloatingPlacementInput)
     containerPadding = 12,
     shouldFlip = true,
     maxHeight,
+    constrainToViewport = false,
     arrowSize = 0,
     arrowBoundaryOffset = 0,
   } = input
@@ -82,7 +84,7 @@ export const getNativeFloatingPlacement = (input: TNativeFloatingPlacementInput)
   }
   const marginWidth = margins.left + margins.right
   const marginHeight = margins.top + margins.bottom
-  const outerWidth = content.width + marginWidth
+  const naturalOuterWidth = content.width + marginWidth
   const outerHeight = content.height + marginHeight
   if (!NATIVE_FLOATING_PLACEMENTS.includes(placement)) throw new TypeError("Floating layer: unsupported placement")
   if (
@@ -101,7 +103,7 @@ export const getNativeFloatingPlacement = (input: TNativeFloatingPlacementInput)
     ![content.width, content.height].every(Number.isFinite) ||
     content.width < 0 ||
     content.height < 0 ||
-    !Number.isFinite(outerWidth) ||
+    !Number.isFinite(naturalOuterWidth) ||
     !Number.isFinite(outerHeight)
   )
     return null
@@ -132,9 +134,11 @@ export const getNativeFloatingPlacement = (input: TNativeFloatingPlacementInput)
   if (!Object.values(room).every(Number.isFinite)) return null
   const opposite = { top: "bottom", bottom: "top", left: "right", right: "left" } as const
   const vertical = side === "top" || side === "bottom"
-  const mainSize = vertical ? outerHeight : outerWidth
+  const mainSize = vertical ? outerHeight : naturalOuterWidth
   if (shouldFlip && mainSize > Math.max(0, room[side]) && Math.max(0, room[opposite[side]]) > Math.max(0, room[side]))
     side = opposite[side]
+  const maxWidth = Math.max(0, Math.min(right - left - marginWidth, vertical ? Infinity : room[side]))
+  const outerWidth = constrainToViewport ? Math.min(content.width, maxWidth) + marginWidth : naturalOuterWidth
   const crossAlignment =
     alignment === "start"
       ? direction === "rtl"
@@ -171,14 +175,15 @@ export const getNativeFloatingPlacement = (input: TNativeFloatingPlacementInput)
           ? host.y + host.height - Math.floor(host.height - (anchor.y - host.y) + offset)
           : host.y + Math.floor(anchor.y - host.y + anchor.height + offset)
       // A resized viewport may exclude the trigger while its floating surface stays open.
-      const visibleEdge = input.visibleBoundary ? bounded(edge, top, Math.max(top, bottom)) : edge
+      const visibleEdge =
+        input.visibleBoundary || constrainToViewport ? bounded(edge, top, Math.max(top, bottom)) : edge
       return { x: cross, y: side === "top" ? visibleEdge - height : visibleEdge }
     }
     const x =
       side === "left"
         ? host.x + host.width - Math.floor(host.width - (anchor.x - host.x) + offset) - outerWidth
         : host.x + Math.floor(anchor.x - host.x + anchor.width + offset)
-    return { x, y: cross }
+    return { x: constrainToViewport ? bounded(x, left, Math.max(left, right - outerWidth)) : x, y: cross }
   }
   const naturalFrame = positionForHeight(outerHeight)
   const growsUp = side === "top" || (!vertical && crossAlignment === "bottom")
@@ -219,6 +224,7 @@ export const getNativeFloatingPlacement = (input: TNativeFloatingPlacementInput)
     frame: { x, y, width, height },
     hostFrame: { x: x - host.x, y: y - host.y, width, height },
     maxHeight: constrainedHeight,
+    ...(constrainToViewport ? { maxWidth } : {}),
     availableMainSpace: Math.max(0, room[side]),
     arrowCrossOffset: arrowCenter - arrowSize / 2,
     arrowSide: opposite[side],

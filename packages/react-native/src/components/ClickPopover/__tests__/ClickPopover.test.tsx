@@ -24,6 +24,7 @@ import {
 import { NativeDialogFocusScope } from "../../../input/NativeDialogFocusScope"
 import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
 import type { TNativeFloatingFocusEvent } from "../../../overlays/floating/interaction"
+import { NativeFloatingSurface } from "../ClickPopover"
 
 jest.unmock("react-native/Libraries/Components/TextInput/TextInput")
 jest.unmock("react-native/Libraries/Components/ScrollView/ScrollView")
@@ -71,6 +72,7 @@ const setup = (
   initial: Partial<TNativeClickPopoverProps> = {},
   body: ReactNode = "Popover body",
   contained = false,
+  scrollContent = false,
 ) => {
   const root = createRef<View>(),
     host = createRef<View>()
@@ -91,11 +93,16 @@ const setup = (
           )
         }}
       >
-        {mounted && (
-          <ClickPopover {...props} ref={root}>
-            {body}
-          </ClickPopover>
-        )}
+        {mounted &&
+          (scrollContent ? (
+            <NativeFloatingSurface {...props} nativeScrollContent ref={root}>
+              {body}
+            </NativeFloatingSurface>
+          ) : (
+            <ClickPopover {...props} ref={root}>
+              {body}
+            </ClickPopover>
+          ))}
       </NativeDialogTrigger>
     )
     return (
@@ -129,7 +136,15 @@ const setup = (
       )
     }
   }
-  const ready = async (arrow = false, acknowledgeWindow = true) => {
+  const ready = async (
+    arrow = false,
+    acknowledgeWindow = true,
+    dimensions: {
+      host: [number, number, number, number]
+      trigger: [number, number, number, number]
+      content: [number, number, number, number]
+    } = { host: [0, 0, 300, 400], trigger: [100, 100, 40, 20], content: [0, 0, 100, 80] },
+  ) => {
     const measure = (node: View, rect: [number, number, number, number]) => {
       Object.defineProperty(node, "measureInWindow", {
         configurable: true,
@@ -139,15 +154,15 @@ const setup = (
     }
     expect(root.current).not.toBe(host.current)
     // The RN preset shares its default method mocks; each actual ref needs an independent measurement fixture.
-    measure(host.current!, [0, 0, 300, 400])
-    measure(trigger!.triggerRef.current!, [100, 100, 40, 20])
-    measure(root.current!, [0, 0, 100, 80])
+    measure(host.current!, dimensions.host)
+    measure(trigger!.triggerRef.current!, dimensions.trigger)
+    measure(root.current!, dimensions.content)
     if (arrow)
       await fireEvent(screen.getByTestId("click-popover-overlay-arrow", hidden), "layout", {
         nativeEvent: { layout: { x: 0, y: 0, width: 10, height: 10 } },
       })
     await fireEvent(screen.getByTestId("host"), "layout", {
-      nativeEvent: { layout: { x: 0, y: 0, width: 300, height: 400 } },
+      nativeEvent: { layout: { x: 0, y: 0, width: dimensions.host[2], height: dimensions.host[3] } },
     })
     if (acknowledgeWindow) await acknowledge()
   }
@@ -190,6 +205,112 @@ it("composes a measured native dialog, real root ref and original onLayout event
   const event = { nativeEvent: { layout: { x: 70, y: 138, width: 100, height: 80 } } }
   await fireEvent(screen.getByTestId("click-popover", hidden), "layout", event)
   expect(onLayout).toHaveBeenCalledWith(event)
+})
+
+it("caps an opted-in calendar border box to a narrow measured viewport and remeasures it", async () => {
+  const props = { customStyles: { width: 600, height: 1000, minWidth: 500, maxWidth: 900, maxHeight: 900 } }
+  const f = setup(props, "Calendar content", false, true)
+  await render(f.node())
+  const original = f.root.current
+  await f.ready(false, true, {
+    host: [0, 0, 320, 480],
+    trigger: [20, 40, 280, 44],
+    content: [0, 0, 600, 1000],
+  })
+  expect(screen.getByTestId("click-popover", hidden)).toHaveStyle({
+    left: 12,
+    maxWidth: 296,
+    minWidth: 296,
+    maxHeight: 366,
+  })
+  expect(screen.getByTestId("click-popover-scroll", hidden)).toBeOnTheScreen()
+  await f.ready(false, true, {
+    host: [0, 0, 260, 300],
+    trigger: [20, 40, 220, 44],
+    content: [12, 102, 236, 186],
+  })
+  expect(f.root.current).toBe(original)
+  expect(screen.getByTestId("click-popover", hidden)).toHaveStyle({
+    left: 12,
+    maxWidth: 236,
+    minWidth: 236,
+    maxHeight: 186,
+  })
+})
+
+it("preserves an authored oversized default surface without the calendar opt-in", async () => {
+  const props = { customStyles: { width: 600, height: 1000, minWidth: 500, maxWidth: 900, maxHeight: 900 } }
+  const f = setup(props)
+  await render(f.node())
+  await f.ready(false, true, {
+    host: [0, 0, 320, 480],
+    trigger: [20, 40, 280, 44],
+    content: [0, 0, 600, 1000],
+  })
+  expect(screen.getByTestId("click-popover", hidden)).toHaveStyle({
+    width: 600,
+    height: 1000,
+    minWidth: 500,
+    maxWidth: 900,
+    maxHeight: 900,
+  })
+  expect(screen.queryByTestId("click-popover-scroll", hidden)).toBeNull()
+})
+
+it("retains tighter authored size limits and explicit zero under the viewport cap", async () => {
+  const props = { customStyles: { maxWidth: 120, maxHeight: 70, minWidth: 200, minHeight: 100 } }
+  const f = setup(props, "Calendar content", false, true)
+  const result = await render(f.node())
+  await f.ready()
+  expect(screen.getByTestId("click-popover", hidden)).toHaveStyle({
+    maxWidth: 120,
+    maxHeight: 70,
+    minWidth: 120,
+    minHeight: 70,
+  })
+  await result.rerender(f.node({ customStyles: { maxWidth: 0, maxHeight: 0 } }))
+  expect(screen.getByTestId("click-popover", hidden)).toHaveStyle({ maxWidth: 0, maxHeight: 0 })
+})
+
+it("preserves intrinsic and null calendar minimum sizes under the viewport cap", async () => {
+  const f = setup({}, "Calendar content", false, true)
+  const result = await render(f.node())
+  await f.ready()
+  for (const minimum of ["auto", null] as const) {
+    await result.rerender(f.node({ customStyles: { minWidth: minimum, minHeight: minimum } }))
+    expect(screen.getByTestId("click-popover", hidden)).toHaveStyle({ minWidth: minimum, minHeight: minimum })
+  }
+})
+
+it("keeps the original dialog and editor inside an opted-in vertical scroll surface", async () => {
+  const editor = createRef<TextInput>()
+  const f = setup({}, <Input ref={editor} accessibilityLabel="Calendar content editor" />, false, true)
+  await render(f.node())
+  const originalRoot = f.root.current
+  const originalEditor = editor.current
+  await f.ready(false, true, {
+    host: [0, 0, 320, 480],
+    trigger: [20, 40, 280, 44],
+    content: [0, 0, 600, 1000],
+  })
+  const scroll = screen.getByTestId("click-popover-scroll", hidden)
+  expect(scroll.props.keyboardShouldPersistTaps).toBe("handled")
+  expect(scroll.props.keyboardDismissMode).toBe("none")
+  expect(scroll.props.accessible).toBe(false)
+  expect(scroll.props.focusable).toBe(false)
+  expect(scroll).toHaveStyle({ flexGrow: 0, flexShrink: 1 })
+  expect(screen.getByTestId("click-popover-dialog", hidden).props.role).toBe("dialog")
+  expect(screen.getByLabelText("Calendar content editor", hidden)).toBeOnTheScreen()
+  await f.ready(false, true, {
+    host: [0, 0, 320, 480],
+    trigger: [20, 40, 280, 44],
+    content: [12, 102, 296, 366],
+  })
+  expect(f.root.current).toBe(originalRoot)
+  expect(editor.current).toBe(originalEditor)
+  expect(screen.getByTestId("click-popover", hidden)).toHaveStyle({ maxWidth: 296, maxHeight: 366 })
+  await f.outside()
+  expect(f.onOpenChange.mock.calls).toEqual([[false]])
 })
 
 it("keeps controlled owner state authoritative after outside dismissal and honors the original-event veto", async () => {

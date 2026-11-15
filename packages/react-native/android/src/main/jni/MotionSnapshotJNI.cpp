@@ -12,6 +12,8 @@
 #include "ForegroundJNI.h"
 #include "../../../../cpp/table/StickyPresentation.h"
 #include <folly/json.h>
+#include <limits>
+#include <algorithm>
 
 namespace jni = facebook::jni;
 using namespace facebook::react;
@@ -84,6 +86,39 @@ static void nativeTableFrame(jni::alias_ref<jclass>, jlong handle, jni::alias_re
   tableSession(handle).service->frame(lease->toStdString(),
       {values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7]});
 }
+static std::vector<std::string> tableFrameLeases(jni::alias_ref<jstring> encoded) {
+  if (!encoded) throw std::invalid_argument("Table sticky: frame leases required");
+  const auto input = folly::parseJson(encoded->toStdString());
+  if (!input.isArray()) throw std::invalid_argument("Table sticky: frame leases required");
+  std::vector<std::string> leases;
+  for (const auto &lease : input) {
+    if (!lease.isString() || lease.asString().empty()) throw std::invalid_argument("Table sticky: frame lease required");
+    if (std::find(leases.begin(), leases.end(), lease.asString()) != leases.end()) throw std::invalid_argument("Table sticky: duplicate frame lease");
+    leases.push_back(lease.asString());
+  }
+  return leases;
+}
+static jlong nativeTablePrepare(jni::alias_ref<jclass>, jlong handle, jni::alias_ref<jstring> leases) {
+  return static_cast<jlong>(tableSession(handle).service->prepareFrames(tableFrameLeases(leases)));
+}
+static jboolean nativeTableFrames(jni::alias_ref<jclass>, jlong handle, jlong revision,
+    jni::alias_ref<jstring> encodedLeases, jni::alias_ref<jdoubleArray> geometry) {
+  const auto leases = tableFrameLeases(encodedLeases);
+  if (!geometry || leases.size() > static_cast<size_t>(std::numeric_limits<jsize>::max()) / 8)
+    throw std::invalid_argument("Table sticky: complete native frames required");
+  const auto count = static_cast<jsize>(leases.size() * 8);
+  auto *environment = jni::Environment::current();
+  if (environment->GetArrayLength(geometry.get()) != count) throw std::invalid_argument("Table sticky: complete native frames required");
+  std::vector<double> values(count);
+  if (count) environment->GetDoubleArrayRegion(geometry.get(), 0, count, values.data());
+  std::vector<std::pair<std::string, codon::table::TStickyViewport>> frames;
+  for (size_t index = 0; index < leases.size(); index++) {
+    const auto offset = index * 8;
+    frames.push_back({leases[index], {values[offset], values[offset + 1], values[offset + 2], values[offset + 3],
+        values[offset + 4], values[offset + 5], values[offset + 6], values[offset + 7]}});
+  }
+  return tableSession(handle).service->frames(static_cast<uint64_t>(revision), frames);
+}
 static void nativeTableRetire(jni::alias_ref<jclass>, jlong handle, jni::alias_ref<jstring> lease) {
   if (lease) tableSession(handle).service->retire(lease->toStdString());
 }
@@ -111,6 +146,8 @@ extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *) {
         makeNativeMethod("nativeTableTargets", nativeTableTargets),
         makeNativeMethod("nativeTableSynchronize", nativeTableSynchronize),
         makeNativeMethod("nativeTableFrame", nativeTableFrame),
+        makeNativeMethod("nativeTablePrepare", nativeTablePrepare),
+        makeNativeMethod("nativeTableFrames", nativeTableFrames),
         makeNativeMethod("nativeTableRetire", nativeTableRetire),
         makeNativeMethod("nativeCloseTable", nativeCloseTable)});
   });

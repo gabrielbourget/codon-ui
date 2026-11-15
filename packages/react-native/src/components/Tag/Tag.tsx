@@ -1,6 +1,9 @@
-import { forwardRef, useState } from "react"
-import { Animated, Pressable } from "react-native"
+import { forwardRef, useRef, useState } from "react"
+import { Animated, Platform, Pressable, type PressableProps, type ViewProps } from "react-native"
 
+import { useNativeCollectionRefs } from "../../collection/context"
+import { NativeFocusHost } from "../../input/NativeFocusView"
+import { useNativeAndroidRipple, useNativePressability } from "../../input/nativePressability"
 import { useNativeTheme } from "../../theme"
 import { getNativeButtonContent } from "../Button/content"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
@@ -11,7 +14,119 @@ import { resolveNativeTagTransition, useNativeTagColor, useNativeTagNumber, useN
 import { getNativeTagStyle } from "./styles"
 import type { TNativeTagProps, TNativeTagRef } from "./types"
 
+const AndroidTagPressable = forwardRef<
+  TNativeTagRef,
+  Omit<PressableProps, "children" | "style"> &
+    Pick<ViewProps, "children" | "style"> & { blockNativeResponder?: boolean }
+>((props, ref) => {
+  const {
+    android_disableSound,
+    android_ripple,
+    blockNativeResponder,
+    cancelable,
+    delayHoverIn,
+    delayHoverOut,
+    delayLongPress,
+    disabled,
+    focusable,
+    hitSlop,
+    onBlur,
+    onFocus,
+    onHoverIn,
+    onHoverOut,
+    onLongPress,
+    onPress,
+    onPressIn,
+    onPressMove,
+    onPressOut,
+    pressRetentionOffset,
+    unstable_pressDelay,
+    testOnly_pressed: _testOnlyPressed,
+    children,
+    style,
+    accessibilityState,
+    "aria-busy": busy,
+    "aria-expanded": expanded,
+    "aria-selected": selected,
+    "aria-valuemax": max,
+    "aria-valuemin": min,
+    "aria-valuenow": now,
+    "aria-valuetext": text,
+    "aria-modal": modal,
+    ...rest
+  } = props
+  const view = useRef<TNativeTagRef>(null)
+  const mergedRef = useNativeCollectionRefs(ref, view)
+  const ripple = useNativeAndroidRipple(android_ripple, view)
+  const handlers = useNativePressability({
+    cancelable,
+    disabled,
+    hitSlop,
+    pressRectOffset: pressRetentionOffset,
+    android_disableSound,
+    delayHoverIn,
+    delayHoverOut,
+    delayLongPress,
+    delayPressIn: unstable_pressDelay,
+    onBlur,
+    onFocus,
+    onHoverIn,
+    onHoverOut,
+    onLongPress,
+    onPress,
+    blockNativeResponder,
+    onPressIn: (event) => {
+      ripple?.onPressIn(event)
+      onPressIn?.(event)
+    },
+    onPressMove: (event) => {
+      ripple?.onPressMove(event)
+      onPressMove?.(event)
+    },
+    onPressOut: (event) => {
+      ripple?.onPressOut(event)
+      onPressOut?.(event)
+    },
+  })
+  return (
+    <NativeFocusHost
+      {...rest}
+      {...ripple?.viewProps}
+      {...handlers}
+      ref={mergedRef}
+      nativePressable={false}
+      nativeTagDescriptionRefresh
+      accessible={props.accessible !== false}
+      focusable={focusable !== false}
+      accessibilityState={{
+        busy: busy ?? accessibilityState?.busy,
+        checked: accessibilityState?.checked,
+        disabled: disabled ?? accessibilityState?.disabled,
+        expanded: expanded ?? accessibilityState?.expanded,
+        selected: selected ?? accessibilityState?.selected,
+      }}
+      accessibilityValue={{
+        max: max ?? props.accessibilityValue?.max,
+        min: min ?? props.accessibilityValue?.min,
+        now: now ?? props.accessibilityValue?.now,
+        text: text ?? props.accessibilityValue?.text,
+      }}
+      accessibilityViewIsModal={modal ?? props.accessibilityViewIsModal}
+      onBubbledFocus={handlers.onFocus}
+      onBubbledBlur={handlers.onBlur}
+      onFocus={undefined}
+      onBlur={undefined}
+      hitSlop={hitSlop}
+      collapsable={false}
+      style={style}
+    >
+      {children}
+    </NativeFocusHost>
+  )
+})
+AndroidTagPressable.displayName = "AndroidTagPressable"
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
+const AnimatedAndroidTagPressable = Animated.createAnimatedComponent(AndroidTagPressable)
 
 export const Tag = forwardRef<TNativeTagRef, TNativeTagProps>((props, ref) => {
   const {
@@ -150,8 +265,9 @@ export const Tag = forwardRef<TNativeTagRef, TNativeTagProps>((props, ref) => {
     const alias = props["aria-pressed"]
     const checked =
       alias === "mixed" ? "mixed" : alias === undefined ? props.isPressed : alias === true || alias === "true"
+    const PressableRoot = Platform.OS === "android" ? AnimatedAndroidTagPressable : AnimatedPressable
     return (
-      <AnimatedPressable
+      <PressableRoot
         {...hostProps}
         {...identity}
         {...interaction.handlers}
@@ -166,7 +282,7 @@ export const Tag = forwardRef<TNativeTagRef, TNativeTagProps>((props, ref) => {
         onLayout={target.onLayout}
       >
         {body}
-      </AnimatedPressable>
+      </PressableRoot>
     )
   }
   return (

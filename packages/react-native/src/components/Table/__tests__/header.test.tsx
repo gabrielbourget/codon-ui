@@ -1,6 +1,6 @@
 import { act as rawAct, cleanup } from "@testing-library/react-native"
-import { createRef, useContext, type ReactNode } from "react"
-import { AccessibilityInfo, TextInput, View, type MouseEvent, type PointerEvent } from "react-native"
+import { createRef, useContext, type ReactNode, type RefAttributes } from "react"
+import { AccessibilityInfo, StyleSheet, TextInput, View, type MouseEvent, type PointerEvent } from "react-native"
 
 import { createNativeCollectionBranch } from "../../../collection/CollectionBuilder"
 import { NativeCollectionRendererContext } from "../../../collection/renderer"
@@ -14,6 +14,7 @@ import {
   createNativeTableRowModel,
   createNativeTableBodyModel,
 } from "../model"
+import * as stickyBinding from "../stickyBinding"
 import { Table } from "../Table"
 import type { TNativeTableHeaderProps, TNativeTableProps, TNativeTableRowProps } from "../types"
 
@@ -39,7 +40,7 @@ const Body = createNativeCollectionBranch<object, { children?: ReactNode }, View
 )
 const columns = [{ id: "name", name: "Name", isRowHeader: true }]
 const tree = (
-  header: Partial<TNativeTableHeaderProps<object>> = {},
+  header: Partial<TNativeTableHeaderProps<object>> & RefAttributes<View> = {},
   row: Partial<TNativeTableRowProps<{ name: string }>> = {},
   table: TNativeTableProps = {},
   active = true,
@@ -200,4 +201,25 @@ it("uses current callbacks for window retirement and admits no stale hover after
   await rawAct(() => retained(original))
   expect(start).toHaveBeenCalledTimes(1)
   expect(currentEnd).toHaveBeenCalledTimes(1)
+})
+
+it("keeps the sticky header parent above body hit targets while preserving explicit layers and its original root", async () => {
+  jest.spyOn(stickyBinding, "createNativeTableStickyBinding").mockImplementation(() => ({
+    synchronize: jest.fn(),
+    retireIfChanged: jest.fn(),
+    dispose: jest.fn(),
+  }))
+  const ref = createRef<View>()
+  const view = await render(tree({ ref }, {}, { stickyHeader: true }))
+  const original = ref.current
+  expect(original).not.toBeNull()
+  expect(StyleSheet.flatten(screen.getByTestId("header").props.style).zIndex).toBe(3)
+  await view.rerender(tree({ ref }, {}, { stickyHeader: false }))
+  expect(StyleSheet.flatten(screen.getByTestId("header").props.style).zIndex).toBeUndefined()
+  expect(ref.current).toBe(original)
+  await view.rerender(tree({ ref, customStyles: { zIndex: 0 } }, {}, { stickyHeader: true }))
+  expect(StyleSheet.flatten(screen.getByTestId("header").props.style).zIndex).toBe(0)
+  await view.rerender(tree({ ref, customStyles: { zIndex: 8 }, style: { zIndex: 0 } }, {}, { stickyHeader: true }))
+  expect(StyleSheet.flatten(screen.getByTestId("header").props.style).zIndex).toBe(0)
+  expect(ref.current).toBe(original)
 })

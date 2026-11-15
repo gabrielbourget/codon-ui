@@ -43,6 +43,7 @@ final class CUIInputWindow {
   static boolean pointerActive(View view) { return !state(view).pointers.isEmpty(); }
   static void clearPointers(View view) { state(view).pointers.clear(); }
   static void pointerEvent(View view, MotionEvent event) {
+    CUIWindowPointers.pointerEvent(view, event);
     State state = state(view); state.inputRevision++;
     int action = event.getActionMasked(), pointer = event.getPointerId(event.getActionIndex());
     if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_POINTER_DOWN) state.pointers.add(pointer);

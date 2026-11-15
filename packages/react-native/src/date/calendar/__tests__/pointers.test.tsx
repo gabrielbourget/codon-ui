@@ -199,6 +199,24 @@ it("selects a single date only when its release hits the same original day host"
   expect(f.result.current.state.value).toEqual(day(10))
 })
 
+it("selects the same original single-calendar touch after an intervening focused-date update", async () => {
+  const f = await fixture(false)
+  expect(f.result.current.state.focusedDate).toEqual(day(10))
+  expect(f.result.current.state.value).toBeNull()
+  await f.send("start", 12, "touch")
+  await act(() => {
+    f.result.current.state.setFocusedDate(day(14))
+    f.result.current.state.setFocused(true)
+  })
+  expect(f.result.current.state.focusedDate).toEqual(day(14))
+  expect(f.result.current.state.isFocused).toBe(true)
+  expect(f.result.current.state.value).toBeNull()
+  await f.send("end", 12, "touch")
+  expect(f.result.current.state.value).toEqual(day(14))
+  expect(f.result.current.state.focusedDate).toEqual(day(14))
+  expect(f.result.current.state.isFocused).toBe(true)
+})
+
 it("cancels source touch admission when the original day is exited before200ms", async () => {
   jest.useFakeTimers()
   const f = await fixture()
