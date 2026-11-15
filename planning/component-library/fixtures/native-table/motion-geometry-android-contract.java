@@ -198,6 +198,34 @@ public class GeometryFixture {
     check(events.size() == 5 && events.get(2).contains("invalid-native-geometry") && events.get(4).contains("native-geometry-view-detached"), "error, recovery, query/sample and detached events cannot be dropped");
     return events.toString();
   }
+  static JSONObject producerLifecycleControls() throws Exception {
+    JSONObject result = new JSONObject();
+    for (boolean initiallyAttached : new boolean[]{false, true}) {
+      reset(); View view = hierarchy(2); view.attached = initiallyAttached;
+      List<WritableMap> events = new ArrayList<>(); Owner owner = observer(CandidateObserver.class, view, new ArrayList<>());
+      owner.owner = ""; owner.binding = ""; owner.enabled = false; owner.emit = events::add;
+      invoke(owner, "configure", new Class<?>[]{String.class, String.class, String.class, boolean.class}, "owner", "binding", "revision", true);
+      check(owner.attachmentRevision == 1, "initial identity configuration must begin at attachment1");
+      invoke(owner, "query", new Class<?>[]{String.class, String.class, String.class}, "owner", "binding", "first-query");
+      check(events.size() == 1 && events.get(0).getDouble("geometryRevision") == 1 && events.get(0).getDouble("attachmentRevision") == 2, "immediate first query must reserve sequence1 attachment2");
+      view.attached = true; invoke(owner, "attached", new Class<?>[]{});
+      check(events.size() == 2 && events.get(1).getDouble("attachmentRevision") == (initiallyAttached ? 2 : 3), "same physical attachment must not acquire a replacement generation");
+      long attachedGeneration = owner.attachmentRevision;
+      invoke(owner, "attached", new Class<?>[]{});
+      check(owner.attachmentRevision == attachedGeneration, "duplicate attached callback must retain generation");
+      view.attached = false; invoke(owner, "detached", new Class<?>[]{});
+      check(!((Boolean)events.get(events.size() - 1).get("attached")), "real detach must emit detached evidence");
+      view.attached = true; invoke(owner, "attached", new Class<?>[]{});
+      check(owner.attachmentRevision > attachedGeneration, "real reattachment must advance generation");
+      long reattachedGeneration = owner.attachmentRevision;
+      CUIInputWindow.window = "new-window"; capture(owner, "sample");
+      check(owner.attachmentRevision > reattachedGeneration, "window replacement must still advance generation");
+      JSONArray trace = new JSONArray();
+      for (WritableMap packet : events) trace.put(new JSONObject().put("sequence", packet.getDouble("geometryRevision")).put("attachment", packet.getDouble("attachmentRevision")).put("attached", packet.get("attached")).put("requestId", packet.getString("requestId")));
+      result.put(initiallyAttached ? "viewAttachedBeforeObserverCallback" : "queryBeforeViewAttach", trace);
+    }
+    return result;
+  }
   public static void main(String[] args) throws Exception {
     boolean compatibilityOnly = Arrays.asList(args).contains("--compatibility-only");
     check(trace(OriginalObserver.class).equals(trace(CandidateObserver.class)), "complete capture envelopes/order/JSON bytes differ");
@@ -217,6 +245,7 @@ public class GeometryFixture {
     result.put("envelopes", envelopeControls(compatibilityOnly));
     check(frozenEnvelopeTrace(OriginalObserver.class).equals(frozenEnvelopeTrace(CandidateObserver.class)), "deferred envelope changed frozen callback/sequence/error/detach event trace");
     result.put("exactFrozenEnvelopeTrace", true);
+    result.put("producerLifecycle", producerLifecycleControls());
     System.out.println(result);
   }
 }

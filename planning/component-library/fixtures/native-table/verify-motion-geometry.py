@@ -38,7 +38,7 @@ if args.android:
         capture = text[text.index(envelope_marker):text.index("  private static JSONArray numbers(")]
         geometry = text[text.index("  private static JSONArray numbers("):text.index("  @androidx.annotation.OptIn", text.index("  private static JSONArray numbers("))]
         configure = text[text.index("  void configure("):text.index("  private void connect(")]
-        retirement = text[text.index("  void invalidate()"):text.index("  void query(")]
+        retirement = text[text.index("  void attached()"):text.index("  JSONObject snapshotIdentity(")]
         body = configure + retirement + capture + geometry
         return "class " + name + " extends GeometryFixture.Owner {\n" + body.replace("CUIMotionGeometryObserver", name) + "\n}\n"
     generated = template.replace("// PRODUCTION_METHODS", extracted(baseline, "OriginalObserver") + extracted(source, "CandidateObserver"))

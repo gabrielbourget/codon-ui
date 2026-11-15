@@ -79,7 +79,9 @@ final class CUIMotionGeometryObserver implements ViewTreeObserver.OnPreDrawListe
     tree = null;
     if (coordinator != null) { MountCoordinator previous = coordinator; coordinator = null; previous.remove(this); }
   }
-  void attached() { attachment = ""; connect(); capture("sample", "", ""); }
+  // A query may have already observed this attachment before the lifecycle callback.
+  // Real detach/configuration changes clear attachment at their own boundary.
+  void attached() { connect(); capture("sample", "", ""); }
   void detached() { if (enabled) capture("detached", "", ""); disconnect(); attachment = ""; attachmentRevision++; }
   void invalidate() { resetEncoding(); disconnect(); enabled = false; binding = ""; owner = ""; attachment = ""; attachmentRevision++; }
   void query(String owner, String binding, String requestId) {
