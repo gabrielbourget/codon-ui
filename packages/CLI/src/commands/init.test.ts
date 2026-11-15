@@ -6,7 +6,7 @@ import { tmpdir } from "node:os"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
-import { createConsumerInitDryRun, writeConsumerInitSeed } from "../helpers"
+import { createConsumerInitDryRun, getConsumerProjectContext, writeConsumerInitSeed } from "../helpers"
 import { assertCliJsonReportContract } from "../testUtils/cliJsonContracts"
 
 const temporaryRoot = mkdtempSync(path.join(tmpdir(), "codon-ui-init-"))
@@ -141,6 +141,35 @@ const assertInitCommandError = ({
 }
 
 try {
+  for (const [fixtureName, manifest, expectedKind] of [
+    ["expo-project", { dependencies: { expo: "57.0.26", "react-native": "0.86.3" } }, "expo"],
+    ["native-project", { dependencies: { "react-native": "0.86.3" } }, "react-native"],
+    ["native-dev-project", { devDependencies: { "react-native": "0.86.3" } }, "react-native"],
+    ["native-marker-only", { dependencies: { "react-native": false }, expo: {} }, "unknown"],
+  ] as const) {
+    const fixturePath = createFixture(fixtureName)
+    writeJson(path.join(fixturePath, "package.json"), { packageManager: "pnpm@10.18.3", ...manifest })
+    const beforeSnapshot = snapshotFiles(fixturePath)
+    const advisory = runInitCommandJsonReport<{ project: { projectKind: string } }>({
+      args: ["--advisory"],
+      cwd: fixturePath,
+    })
+    assert.equal(advisory.project.projectKind, expectedKind)
+    assert.deepEqual(snapshotFiles(fixturePath), beforeSnapshot)
+  }
+
+  const mixedWebFixture = createFixture("next-with-native-dependency")
+  writeJson(path.join(mixedWebFixture, "package.json"), { dependencies: { "react-native": "0.86.3" } })
+  writeFileSync(path.join(mixedWebFixture, "next.config.ts"), "export default {}\n")
+  assert.equal(getConsumerProjectContext(mixedWebFixture).projectKind, "next")
+
+  const workspaceNativeFixture = createFixture("native-workspace")
+  writeJson(path.join(workspaceNativeFixture, "package.json"), { dependencies: { expo: "57.0.26" } })
+  const unrelatedChild = path.join(workspaceNativeFixture, "apps/web")
+  mkdirSync(unrelatedChild, { recursive: true })
+  writeJson(path.join(unrelatedChild, "package.json"), { name: "unrelated-child" })
+  assert.equal(getConsumerProjectContext(unrelatedChild).projectKind, "unknown")
+
   const greenfieldFixturePath = createFixture("greenfield")
   const beforeDryRunSnapshot = snapshotFiles(greenfieldFixturePath)
   const greenfieldDryRun = createConsumerInitDryRun(greenfieldFixturePath)
