@@ -1,0 +1,148 @@
+{
+  "steps": [
+    {
+      "id": "init",
+      "argv": ["node", "/REPLACE/cli-adapter.mjs", "init-native"],
+      "expect": {
+        "files": {
+          "codon-ui.config.json": "sha256:REPLACE_WITH_EXPECTED_NATIVE_CONFIG_DIGEST",
+          "codon-ui.lock.json": "sha256:REPLACE_WITH_EXPECTED_INITIAL_LOCK_DIGEST"
+        },
+        "preserved": ["package.json", "App.tsx", "SelectedComponents.tsx"]
+      }
+    },
+    {
+      "id": "add-first",
+      "argv": ["node", "/REPLACE/cli-adapter.mjs", "add-first-v1"],
+      "expect": {
+        "files": {
+          "REPLACE/selected-component.tsx": "sha256:REPLACE_WITH_V1_SOURCE_DIGEST",
+          "REPLACE/shared-helper.ts": "sha256:REPLACE_WITH_SHARED_SOURCE_DIGEST"
+        },
+        "absent": ["REPLACE/unselected-component", "REPLACE/web-only-source"],
+        "preserved": ["App.tsx", "SelectedComponents.tsx"]
+      }
+    },
+    {
+      "id": "repeat-add",
+      "argv": ["node", "/REPLACE/cli-adapter.mjs", "add-first-v1"],
+      "expect": { "unchanged": true }
+    },
+    {
+      "id": "add-shared",
+      "argv": ["node", "/REPLACE/cli-adapter.mjs", "add-second-v1"],
+      "expect": {
+        "preserved": ["REPLACE/selected-component.tsx", "REPLACE/shared-helper.ts"],
+        "files": { "REPLACE/second-component.tsx": "sha256:REPLACE_WITH_SECOND_SOURCE_DIGEST" },
+        "dependencies": { "react": "19.2.3", "react-native": "0.86.3" },
+        "contexts": [".", "REPLACE/first-native-package", "REPLACE/second-native-package"]
+      }
+    },
+    {
+      "id": "update-preview",
+      "argv": ["node", "/REPLACE/cli-adapter.mjs", "preview-first-v2"],
+      "expect": { "unchanged": true }
+    },
+    {
+      "id": "update-clean",
+      "argv": ["node", "/REPLACE/cli-adapter.mjs", "update-first-v2"],
+      "expect": {
+        "files": { "REPLACE/selected-component.tsx": "sha256:REPLACE_WITH_V2_SOURCE_DIGEST" },
+        "preserved": ["REPLACE/second-component.tsx", "REPLACE/shared-helper.ts", "pnpm-lock.yaml"]
+      }
+    },
+    {
+      "id": "update-edited",
+      "localEdit": { "path": "REPLACE/selected-component.tsx", "append": "\n// external-consumer-local-edit\n" },
+      "argv": ["node", "/REPLACE/cli-adapter.mjs", "update-first-v3"],
+      "expectExitCodes": [0, 1],
+      "expect": {
+        "unchanged": true
+      }
+    },
+    {
+      "id": "autolink-android",
+      "argv": ["pnpm", "exec", "expo-modules-autolinking", "react-native-config", "--platform", "android", "--json"],
+      "expect": {
+        "unchanged": true,
+        "autolink": {
+          "platform": "android",
+          "absent": ["REPLACE_UNSELECTED_NATIVE_PACKAGE_NAME"],
+          "packages": [
+            {
+              "name": "REPLACE_SELECTED_PACKAGE_NAME",
+              "path": "REPLACE/selected-native-package",
+              "version": "REPLACE_SELECTED_PACKAGE_VERSION",
+              "paths": {
+                "sourceDir": "REPLACE/selected-native-package/android",
+                "cmakeListsPath": "REPLACE/selected-native-package/android/REPLACE/CMakeLists.txt"
+              },
+              "values": {
+                "libraryName": "REPLACE_SELECTED_NATIVE_LIBRARY",
+                "componentDescriptors": ["REPLACE_EXACT_SELECTED_DESCRIPTOR_LIST"]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "autolink-ios",
+      "argv": ["pnpm", "exec", "expo-modules-autolinking", "react-native-config", "--platform", "ios", "--json"],
+      "expect": {
+        "unchanged": true,
+        "autolink": {
+          "platform": "ios",
+          "absent": ["REPLACE_UNSELECTED_NATIVE_PACKAGE_NAME"],
+          "packages": [
+            {
+              "name": "REPLACE_SELECTED_PACKAGE_NAME",
+              "path": "REPLACE/selected-native-package",
+              "version": "REPLACE_SELECTED_PACKAGE_VERSION",
+              "paths": {
+                "podspecPath": "REPLACE/selected-native-package/REPLACE.podspec"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "codegen-schema",
+      "argv": ["node", "/REPLACE/cli-adapter.mjs", "selected-codegen-schema"],
+      "expect": {
+        "codegen": {
+          "path": "build/selected-codegen-schema.json",
+          "modules": ["REPLACE_EXACT_SELECTED_CODEGEN_MODULE_NAMES"]
+        }
+      }
+    },
+    {
+      "id": "native-inputs",
+      "argv": ["node", "/REPLACE/cli-adapter.mjs", "status-native-readonly"],
+      "captureNative": [
+        "REPLACE/selected-native-package",
+        "REPLACE/distributed-js-wrappers",
+        "package.json",
+        "pnpm-lock.yaml",
+        "codon-ui.lock.json"
+      ],
+      "expect": {
+        "unchanged": true,
+        "nativePackages": [
+          {
+            "path": "REPLACE/selected-native-package",
+            "name": "REPLACE_SELECTED_PACKAGE_NAME",
+            "version": "REPLACE_SELECTED_PACKAGE_VERSION",
+            "codegenName": "REPLACE_SELECTED_CODEGEN_IDENTITY"
+          }
+        ]
+      }
+    },
+    {
+      "id": "repeat-native-status",
+      "argv": ["node", "/REPLACE/cli-adapter.mjs", "status-native-readonly"],
+      "expect": { "unchanged": true, "sameNativeAs": "native-inputs" }
+    }
+  ]
+}
