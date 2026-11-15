@@ -130,6 +130,25 @@ class NativeProjectionWindow {
           actors: details,
         }),
       )
+      for (const [index, detail] of details.entries()) {
+        if (!detail.current || !detail.liveMember) continue
+        if (
+          detail.afterPresent &&
+          (detail.beforePresent || detail.bornInAllowance) &&
+          (!detail.pending || detail.afterAccepted)
+        )
+          continue
+        const latestRecord = actors[index].record
+        console.warn(
+          "Native projection: blocked cohort actor metadata",
+          JSON.stringify({
+            ...detail,
+            latestPacketKind: latestRecord?.kind ?? null,
+            latestPacketTransaction: latestRecord?.transactionId ?? null,
+            latestPacketProjectionRevision: latestRecord?.snapshot?.ancestors[0].projectionRevision ?? null,
+          }),
+        )
+      }
     } catch {
       // Diagnostics must never replace the original timeout failure.
     }

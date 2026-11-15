@@ -51,6 +51,10 @@ export type TNativeMotionGeometryCancellation = {
 }
 type TPending = {
   revision?: string
+  baselineRevision: number
+  baselineAttachment: number
+  target: number | null
+  retry?: () => void
   resolve: (report: TNativeMotionGeometryRecord) => void
   reject: (error: Error) => void
   timer: ReturnType<typeof setTimeout>
@@ -242,12 +246,40 @@ export class NativeMotionGeometryObserver {
     if (this.disposed) return Promise.reject(failure("observer retired"))
     if (cancellation && !cancellation.isCurrent()) return Promise.reject(failure("query cancelled"))
     this.refreshScope()
-    const id = `${this.options.bindingId}:geometry:${this.identity}:${++this.requestSequence}`
+    let id = `${this.options.bindingId}:geometry:${this.identity}:${++this.requestSequence}`
+    const dispatch = () => {
+      const dispatched = id
+      try {
+        this.options.dispatch(dispatched)
+      } catch (error) {
+        this.release(dispatched)?.reject(error instanceof Error ? error : failure("native command rejected"))
+      }
+    }
     const result = new Promise<TNativeMotionGeometryRecord>((resolve, reject) => {
       const timer = setTimeout(() => {
         this.release(id)?.reject(failure("query exceeded its 5000ms limit"))
       }, 5000)
-      this.pending.set(id, { revision, resolve, reject, timer })
+      this.pending.set(id, {
+        revision,
+        baselineRevision: this.highestRevision,
+        baselineAttachment: this.attachmentRevision,
+        target: this.options.target(),
+        resolve,
+        reject,
+        timer,
+        retry: () => {
+          const job = this.pending.get(id)
+          if (!job) return
+          if (cancellation && !cancellation.isCurrent()) {
+            this.release(id)?.reject(failure("query cancelled"))
+            return
+          }
+          this.pending.delete(id)
+          id = `${this.options.bindingId}:geometry:${this.identity}:${++this.requestSequence}`
+          this.pending.set(id, job)
+          dispatch()
+        },
+      })
     })
     const unsubscribe = cancellation?.onCancel(() => {
       this.release(id)?.reject(failure("query cancelled"))
@@ -255,12 +287,7 @@ export class NativeMotionGeometryObserver {
     const pending = this.pending.get(id)
     if (pending) pending.unsubscribe = unsubscribe
     else unsubscribe?.()
-    if (this.pending.has(id))
-      try {
-        this.options.dispatch(id)
-      } catch (error) {
-        this.release(id)?.reject(error instanceof Error ? error : failure("native command rejected"))
-      }
+    if (this.pending.has(id)) dispatch()
     return result
   }
   receive = (data: NativeMotionGeometry) => {
@@ -281,7 +308,44 @@ export class NativeMotionGeometryObserver {
       return
     if (!["sample", "mount-before", "mount-after", "frame", "detached"].includes(data.kind)) return
     if (data.geometryRevision <= this.highestRevision || data.attachmentRevision < this.attachmentRevision) {
-      if (job) this.release(data.requestId)?.reject(failure("stale native geometry"))
+      const current = this.current
+      if (
+        job?.retry &&
+        current?.attached &&
+        current.snapshot &&
+        !current.error &&
+        current.geometryRevision === this.highestRevision &&
+        data.kind === "sample" &&
+        data.attached &&
+        !data.error &&
+        data.geometryRevision > job.baselineRevision &&
+        data.geometryRevision < current.geometryRevision &&
+        data.target === job.target &&
+        data.target === current.target &&
+        data.ownerId === current.ownerId &&
+        (job.baselineAttachment === 0 || job.baselineAttachment === current.attachmentRevision) &&
+        (job.revision === undefined ||
+          (job.revision === data.commitRevision && job.revision === current.commitRevision))
+      ) {
+        let snapshot: TNativeMotionGeometrySnapshot | undefined
+        try {
+          snapshot = decodeNativeMotionGeometry(data.snapshot)
+        } catch {
+          /* Malformed stale samples still fail below. */
+        }
+        if (snapshot?.ancestors[0].tag === data.target && sameAttachment(current, { ...data, snapshot })) {
+          const retry = job.retry
+          job.retry = undefined
+          retry()
+          return
+        }
+      }
+      if (job)
+        this.release(data.requestId)?.reject(
+          failure(
+            `stale native geometry (received=${data.geometryRevision}, highest=${this.highestRevision}, attachment=${data.attachmentRevision}, currentAttachment=${this.attachmentRevision}, baseline=${job.baselineRevision}, baselineAttachment=${job.baselineAttachment})`,
+          ),
+        )
       return
     }
     const scope = this.options.scope()

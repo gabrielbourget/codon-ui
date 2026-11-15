@@ -345,13 +345,14 @@ it.each(["missing-after", "stale-intent"] as const)(
       a.send("mount-before", "diagnostic", 10, 100, "initial")
       if (fault === "stale-intent") a.send("mount-after", "diagnostic", 20, 100, "current-a")
       b.send("mount-after", "diagnostic", 10, 100, fault === "stale-intent" ? "stale-b" : "current-b")
+      if (fault === "stale-intent") b.send("frame", "", 10, 100, "current-b")
       await turn()
       jest.advanceTimersByTime(4999)
       expect(warning).not.toHaveBeenCalled()
       expect(a.errors).not.toHaveBeenCalled()
       expect(b.errors).not.toHaveBeenCalled()
       jest.advanceTimersByTime(1)
-      expect(warning).toHaveBeenCalledTimes(1)
+      expect(warning).toHaveBeenCalledTimes(2)
       const id = (f: typeof a) => `${f.actor.record!.ownerId}/${f.actor.record!.bindingId}/${f.actor.record!.target}`
       const aId = id(a),
         bId = id(b)
@@ -391,6 +392,18 @@ it.each(["missing-after", "stale-intent"] as const)(
             liveMember: true,
           },
         ],
+      })
+      const [actorPrefix, encodedActor] = warning.mock.calls[1]
+      expect(actorPrefix).toBe("Native projection: blocked cohort actor metadata")
+      expect(typeof encodedActor).toBe("string")
+      expect(`${actorPrefix} ${encodedActor}`.length).toBeLessThan(1024)
+      expect(JSON.parse(encodedActor)).toMatchObject({
+        id: fault === "stale-intent" ? bId : aId,
+        currentIntent: fault === "stale-intent" ? "current-b" : "current-a",
+        afterAccepted: false,
+        latestPacketKind: fault === "stale-intent" ? "frame" : "mount-before",
+        latestPacketTransaction: fault === "stale-intent" ? "" : "diagnostic",
+        latestPacketProjectionRevision: fault === "stale-intent" ? "current-b" : "initial",
       })
       for (const f of [a, b]) {
         expect(f.errors).toHaveBeenCalledTimes(1)

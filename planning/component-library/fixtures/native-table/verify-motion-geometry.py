@@ -27,14 +27,15 @@ if args.android:
     if args.baseline is None:
         parser.error("--android requires --baseline for exact comparison")
     baseline = args.baseline.read_text()
-    for begin, end in [("  private WritableMap envelope(", "  private void capture("), ("  @androidx.annotation.OptIn", None)]:
+    for begin, end in [("  @androidx.annotation.OptIn", None)]:
         original_section = baseline[baseline.index(begin):baseline.index(end)] if end else baseline[baseline.index(begin):]
         candidate_section = source[source.index(begin):source.index(end)] if end else source[source.index(begin):]
         assert original_section == candidate_section, "Event envelope/capture/coordinator boundaries must remain byte-identical"
     template_path = fixture / "motion-geometry-android-contract.java"
     template = template_path.read_text()
     def extracted(text, name):
-        capture = text[text.index("  private WritableMap envelope("):text.index("  private static JSONArray numbers(")]
+        envelope_marker = "  private Supplier<WritableMap> envelope(" if "private Supplier<WritableMap> envelope(" in text else "  private WritableMap envelope("
+        capture = text[text.index(envelope_marker):text.index("  private static JSONArray numbers(")]
         geometry = text[text.index("  private static JSONArray numbers("):text.index("  @androidx.annotation.OptIn", text.index("  private static JSONArray numbers("))]
         configure = text[text.index("  void configure("):text.index("  private void connect(")]
         retirement = text[text.index("  void invalidate()"):text.index("  void query(")]

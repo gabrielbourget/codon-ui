@@ -25,6 +25,7 @@ import java.util.IdentityHashMap;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -100,32 +101,46 @@ final class CUIMotionGeometryObserver implements ViewTreeObserver.OnPreDrawListe
   }
   @Override public boolean onPreDraw() { if (observeFrames) capture("frame", "", ""); return true; }
 
-  private WritableMap envelope(String kind, String requestId, String transaction, View view, boolean attached) {
-    WritableMap data = Arguments.createMap();
-    data.putString("ownerId", owner); data.putString("bindingId", binding); data.putInt("target", view == null ? View.NO_ID : view.getId());
-    data.putString("windowId", attached ? CUIInputWindow.identity(view) : ""); data.putString("scopeOwnerId", ""); data.putDouble("epoch", 0);
+  private Supplier<WritableMap> envelope(String kind, String requestId, String transaction, View view, boolean attached) {
+    String capturedOwner = owner, capturedBinding = binding;
+    int target = view == null ? View.NO_ID : view.getId();
+    String window = attached ? CUIInputWindow.identity(view) : lastWindow;
+    String scopeOwner = attached ? "" : lastScope;
+    double epoch = attached ? 0 : lastEpoch;
     if (attached) for (ViewParent parent = view.getParent(); parent != null; parent = parent.getParent()) {
-      if (parent instanceof CUIKeyboardScope) { ((CUIKeyboardScope)parent).writeActivationSession(data); break; }
+      if (parent instanceof CUIKeyboardScope) {
+        CUIKeyboardScope scope = (CUIKeyboardScope)parent;
+        scopeOwner = scope.menuPointerOwnerId(); window = CUIInputWindow.identity(scope); epoch = scope.menuPointerEpoch(); break;
+      }
     }
-    if (attached) { lastWindow = data.getString("windowId"); lastScope = data.getString("scopeOwnerId"); lastEpoch = data.getDouble("epoch"); }
-    else { data.putString("windowId", lastWindow); data.putString("scopeOwnerId", lastScope); data.putDouble("epoch", lastEpoch); }
-    String current = data.getString("windowId") + "|" + data.getString("scopeOwnerId") + "|" + data.getDouble("epoch");
+    if (attached) { lastWindow = window; lastScope = scopeOwner; lastEpoch = epoch; }
+    String current = window + "|" + scopeOwner + "|" + epoch;
     if (!attachment.equals(current)) { attachment = current; attachmentRevision++; lastFrame = ""; }
-    data.putDouble("attachmentRevision", attachmentRevision); data.putDouble("geometryRevision", sequences.incrementAndGet());
-    data.putString("commitRevision", revision); data.putString("transactionId", transaction); data.putString("kind", kind); data.putString("requestId", requestId);
-    data.putBoolean("attached", attached); data.putDouble("observedAt", SystemClock.uptimeMillis());
-    return data;
+    String capturedWindow = window, capturedScope = scopeOwner, capturedRevision = revision;
+    double capturedEpoch = epoch;
+    long capturedAttachment = attachmentRevision, geometryRevision = sequences.incrementAndGet(), observedAt = SystemClock.uptimeMillis();
+    // Reserve capture identity/time before reading geometry, but avoid JNI maps for rejected no-op frames.
+    return () -> {
+      WritableMap data = Arguments.createMap();
+      data.putString("ownerId", capturedOwner); data.putString("bindingId", capturedBinding); data.putInt("target", target);
+      data.putString("windowId", capturedWindow); data.putString("scopeOwnerId", capturedScope); data.putDouble("epoch", capturedEpoch);
+      data.putDouble("attachmentRevision", capturedAttachment); data.putDouble("geometryRevision", geometryRevision);
+      data.putString("commitRevision", capturedRevision); data.putString("transactionId", transaction); data.putString("kind", kind); data.putString("requestId", requestId);
+      data.putBoolean("attached", attached); data.putDouble("observedAt", observedAt);
+      return data;
+    };
   }
   private void capture(String kind, String requestId, String transaction) {
     if (!enabled || ("frame".equals(kind) && !observeFrames)) return;
     View view = root.get();
     boolean attached = view != null && view.isAttachedToWindow() && !"detached".equals(kind);
-    WritableMap data = envelope(kind, requestId, transaction, view, attached);
+    Supplier<WritableMap> pendingEnvelope = envelope(kind, requestId, transaction, view, attached);
     String snapshot = "", error = "";
     // ReadableNativeMap caches its first imported keys; retain capture facts outside the write-only payload.
     if (!attached) { resetEncoding(); error = "native-geometry-view-detached"; }
     else try { snapshot = encodeSnapshot(snapshot(view).put("mountObservationAvailable", coordinator != null)); } catch (JSONException | RuntimeException failure) { resetEncoding(); error = "invalid-native-geometry"; }
     if ("frame".equals(kind) && snapshot.equals(lastFrame) && error.isEmpty()) return;
+    WritableMap data = pendingEnvelope.get();
     if ("frame".equals(kind)) lastFrame = snapshot;
     data.putString("snapshot", snapshot); data.putString("error", error); emit.accept(data);
   }
