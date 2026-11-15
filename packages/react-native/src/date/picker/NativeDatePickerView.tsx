@@ -494,6 +494,8 @@ export const NativeDatePickerView = (
               ) : null}
               <Button
                 ref={trigger}
+                width="auto"
+                height="auto"
                 isDisabled={!!props.isDisabled || !!props.isReadOnly}
                 accessibilityLabel={[labels.triggerButtonAriaLabel, labels.inputButtonGroupAriaLabel]
                   .filter((value) => value !== undefined && value !== "")
