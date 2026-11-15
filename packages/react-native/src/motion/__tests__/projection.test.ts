@@ -328,6 +328,245 @@ it("still requires matching before geometry after the first observed mount", asy
     jest.useRealTimers()
   }
 })
+it.each(["missing-after", "stale-intent"] as const)(
+  "reports exact projection cohort timeout metadata for %s at the unchanged deadline",
+  async (fault) => {
+    jest.useFakeTimers({ doNotFake: ["nextTick", "queueMicrotask"] })
+    const warning = jest.spyOn(console, "warn").mockImplementation(() => {}),
+      a = create()
+    a.send("mount-after", "initial")
+    await turn()
+    const b = create()
+    b.send("sample")
+    await turn()
+    try {
+      a.actor.configure("current-a", {}, undefined, undefined, undefined)
+      b.actor.configure("current-b", {}, undefined, undefined, undefined)
+      a.send("mount-before", "diagnostic", 10, 100, "initial")
+      if (fault === "stale-intent") a.send("mount-after", "diagnostic", 20, 100, "current-a")
+      b.send("mount-after", "diagnostic", 10, 100, fault === "stale-intent" ? "stale-b" : "current-b")
+      await turn()
+      jest.advanceTimersByTime(4999)
+      expect(warning).not.toHaveBeenCalled()
+      expect(a.errors).not.toHaveBeenCalled()
+      expect(b.errors).not.toHaveBeenCalled()
+      jest.advanceTimersByTime(1)
+      expect(warning).toHaveBeenCalledTimes(1)
+      const id = (f: typeof a) => `${f.actor.record!.ownerId}/${f.actor.record!.bindingId}/${f.actor.record!.target}`
+      const aId = id(a),
+        bId = id(b)
+      expect(warning.mock.calls[0][0]).toBe("Native projection: mount cohort timeout metadata")
+      expect(typeof warning.mock.calls[0][1]).toBe("string")
+      expect(JSON.parse(warning.mock.calls[0][1])).toEqual({
+        transaction: "diagnostic",
+        pending: [aId, bId],
+        liveMembers: [aId, bId],
+        before: [aId],
+        after: fault === "stale-intent" ? [aId, bId] : [bId],
+        actors: [
+          {
+            id: aId,
+            current: true,
+            currentIntent: "current-a",
+            bornIn: "initial",
+            beforePresent: true,
+            afterPresent: fault === "stale-intent",
+            afterIntent: fault === "stale-intent" ? "current-a" : null,
+            afterAccepted: fault === "stale-intent",
+            bornInAllowance: false,
+            pending: true,
+            liveMember: true,
+          },
+          {
+            id: bId,
+            current: true,
+            currentIntent: "current-b",
+            bornIn: "diagnostic",
+            beforePresent: false,
+            afterPresent: true,
+            afterIntent: fault === "stale-intent" ? "stale-b" : "current-b",
+            afterAccepted: fault !== "stale-intent",
+            bornInAllowance: true,
+            pending: true,
+            liveMember: true,
+          },
+        ],
+      })
+      for (const f of [a, b]) {
+        expect(f.errors).toHaveBeenCalledTimes(1)
+        expect(f.errors).toHaveBeenCalledWith(new Error("Native projection: matching mount cohort exceeded 5000ms"))
+      }
+    } finally {
+      a.dispose()
+      b.dispose()
+      jest.useRealTimers()
+    }
+  },
+)
+it.each(["superseded-cohort", "no-events", "same-intent", "multiple-intents", "retired", "matched-latest"] as const)(
+  "binds the projection deadline to the current request for %s",
+  async (scenario) => {
+    jest.useFakeTimers({ now: 0, doNotFake: ["nextTick", "queueMicrotask"] })
+    jest.spyOn(console, "warn").mockImplementation(() => {})
+    const f = create(),
+      failures: Array<{ at: number; message: string }> = []
+    f.errors.mockImplementation((error: Error) => failures.push({ at: Date.now(), message: error.message }))
+    try {
+      f.send("mount-after", "initial")
+      await turn()
+      f.actor.configure("old", {}, undefined, undefined, undefined)
+      if (scenario !== "no-events") f.send("mount-before", "old", 10, 100, "initial")
+      await turn()
+      if (scenario === "no-events") {
+        jest.advanceTimersByTime(4999)
+        expect(failures).toEqual([])
+        jest.advanceTimersByTime(1)
+      } else if (scenario === "same-intent") {
+        jest.advanceTimersByTime(4000)
+        f.actor.configure("old", {}, undefined, undefined, undefined)
+        jest.advanceTimersByTime(1000)
+      } else if (scenario === "retired") {
+        jest.advanceTimersByTime(4000)
+        f.owner.invalidate()
+        f.actor.configure("retired", {}, undefined, undefined, undefined)
+        jest.advanceTimersByTime(10000)
+      } else {
+        jest.advanceTimersByTime(4000)
+        f.actor.configure("new", {}, undefined, undefined, undefined)
+        if (scenario === "matched-latest") {
+          f.send("mount-before", "new", 10, 100, "old")
+          f.send("mount-after", "new", 20, 100, "new")
+        } else {
+          f.send("mount-after", "old", 20, 100, "old")
+        }
+        await turn()
+        if (scenario === "multiple-intents") {
+          jest.advanceTimersByTime(4000)
+          f.actor.configure("latest", {}, undefined, undefined, undefined)
+          jest.advanceTimersByTime(4999)
+          expect(failures.filter((failure) => failure.at >= 8000)).toEqual([])
+          jest.advanceTimersByTime(1)
+        } else {
+          jest.advanceTimersByTime(1000)
+          if (scenario === "superseded-cohort") expect(failures).toEqual([])
+          jest.advanceTimersByTime(4000)
+        }
+      }
+      const deadline = scenario === "multiple-intents" ? 13000 : scenario === "superseded-cohort" ? 9000 : 5000
+      expect(failures).toEqual(
+        scenario === "retired" || scenario === "matched-latest"
+          ? []
+          : [{ at: deadline, message: "Native projection: matching mount cohort exceeded 5000ms" }],
+      )
+    } finally {
+      f.dispose()
+      jest.useRealTimers()
+    }
+  },
+)
+it("reports one request failure without spinning or rearming the same failed intent", async () => {
+  jest.useFakeTimers({ doNotFake: ["nextTick", "queueMicrotask"] })
+  jest.spyOn(console, "warn").mockImplementation(() => {
+    throw new Error("diagnostic sink unavailable")
+  })
+  const f = create()
+  try {
+    f.send("mount-after", "initial")
+    await turn()
+    f.actor.configure("pending", {}, undefined, undefined, undefined)
+    jest.advanceTimersByTime(5000)
+    expect(f.errors).toHaveBeenCalledTimes(1)
+    expect(f.errors).toHaveBeenCalledWith(new Error("Native projection: matching mount cohort exceeded 5000ms"))
+    expect(f.actor.isSettled()).toBe(false)
+    expect(jest.getTimerCount()).toBe(0)
+    f.actor.configure("pending", {}, undefined, undefined, undefined)
+    jest.advanceTimersByTime(20000)
+    expect(f.errors).toHaveBeenCalledTimes(1)
+    expect(jest.getTimerCount()).toBe(0)
+  } finally {
+    f.dispose()
+    jest.useRealTimers()
+  }
+})
+it("retires old cohort data while successive current intents retain a bounded request deadline", async () => {
+  jest.useFakeTimers({ doNotFake: ["nextTick", "queueMicrotask"] })
+  jest.spyOn(console, "warn").mockImplementation(() => {})
+  const f = create()
+  try {
+    f.send("mount-after", "initial")
+    await turn()
+    for (let index = 0; index < 12; index++) {
+      jest.advanceTimersByTime(1000)
+      const intent = `request:${index}`
+      f.actor.configure(intent, {}, undefined, undefined, undefined)
+      f.send("mount-before", intent, 10, 100, intent)
+      await turn()
+      expect(jest.getTimerCount()).toBeLessThanOrEqual(6)
+      expect(f.errors).not.toHaveBeenCalled()
+    }
+    jest.advanceTimersByTime(4999)
+    expect(f.errors).not.toHaveBeenCalled()
+    jest.advanceTimersByTime(1)
+    expect(f.errors).toHaveBeenCalledTimes(1)
+    expect(jest.getTimerCount()).toBe(0)
+  } finally {
+    f.dispose()
+    jest.useRealTimers()
+  }
+})
+it("keeps different actors' current request deadlines independent", async () => {
+  jest.useFakeTimers({ doNotFake: ["nextTick", "queueMicrotask"] })
+  jest.spyOn(console, "warn").mockImplementation(() => {})
+  const a = create(),
+    b = create()
+  try {
+    a.send("mount-after", "initial")
+    b.send("mount-after", "initial")
+    await turn()
+    a.actor.configure("early", {}, undefined, undefined, undefined)
+    jest.advanceTimersByTime(4000)
+    b.actor.configure("late", {}, undefined, undefined, undefined)
+    jest.advanceTimersByTime(1000)
+    expect(a.errors).toHaveBeenCalledTimes(1)
+    expect(b.errors).not.toHaveBeenCalled()
+    jest.advanceTimersByTime(4000)
+    expect(a.errors).toHaveBeenCalledTimes(1)
+    expect(b.errors).toHaveBeenCalledTimes(1)
+    a.dispose()
+    b.dispose()
+    expect(jest.getTimerCount()).toBe(0)
+  } finally {
+    a.dispose()
+    b.dispose()
+    jest.useRealTimers()
+  }
+})
+it.each([-60000, 60000])("retains relative request deadlines across a wall-clock jump of %sms", async (jump) => {
+  jest.useFakeTimers({ now: 0, doNotFake: ["nextTick", "queueMicrotask"] })
+  jest.spyOn(console, "warn").mockImplementation(() => {})
+  const a = create(),
+    b = create()
+  try {
+    a.send("mount-after", "initial")
+    b.send("mount-after", "initial")
+    await turn()
+    a.actor.configure("early", {}, undefined, undefined, undefined)
+    jest.advanceTimersByTime(1000)
+    b.actor.configure("late", {}, undefined, undefined, undefined)
+    jest.advanceTimersByTime(1000)
+    jest.setSystemTime(jump)
+    jest.advanceTimersByTime(3000)
+    expect(a.errors).toHaveBeenCalledTimes(1)
+    expect(b.errors).not.toHaveBeenCalled()
+    jest.advanceTimersByTime(1000)
+    expect(a.errors).toHaveBeenCalledTimes(1)
+    expect(b.errors).toHaveBeenCalledTimes(1)
+  } finally {
+    a.dispose()
+    b.dispose()
+    jest.useRealTimers()
+  }
+})
 it("waits for all members of the same window and rejects an older React intent", async () => {
   const a = create(),
     b = create()

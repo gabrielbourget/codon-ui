@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
+find_package(codon-ui_react-native REQUIRED CONFIG)
+
 set(CUI_OVERLAY_TARGET react_codegen_CodonNativeOverlay)
 set(CUI_OVERLAY_ANDROID_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../..")
 set(CUI_OVERLAY_CPP_DIR "${CUI_OVERLAY_ANDROID_DIR}/../cpp/overlay")
@@ -14,5 +16,7 @@ target_include_directories(${CUI_OVERLAY_TARGET} PUBLIC
   "${CMAKE_CURRENT_LIST_DIR}"
   "${CUI_OVERLAY_CPP_DIR}"
   "${CUI_OVERLAY_GENERATED_DIR}")
-target_link_libraries(${CUI_OVERLAY_TARGET} ReactAndroid::reactnative ReactAndroid::jsi fbjni::fbjni)
+target_link_libraries(${CUI_OVERLAY_TARGET}
+  codon-ui_react-native::codon_motion
+  ReactAndroid::reactnative ReactAndroid::jsi fbjni::fbjni)
 target_compile_reactnative_options(${CUI_OVERLAY_TARGET} PUBLIC)

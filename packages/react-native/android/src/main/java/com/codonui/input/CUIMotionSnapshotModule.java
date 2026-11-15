@@ -71,7 +71,10 @@ public final class CUIMotionSnapshotModule extends NativeCUIMotionSnapshotSpec {
       String result = nativeTableRequest(tableHandle, encoded);
       onTableStickyMount();
       return result;
-    } catch (Exception failure) { throw new IllegalStateException("E_CUI_TABLE_STICKY", failure); }
+    } catch (Exception failure) {
+      android.util.Log.e("CUITableSticky", "Sticky presentation failed", failure);
+      throw new IllegalStateException("E_CUI_TABLE_STICKY", failure);
+    }
   }
   @DoNotStrip private void onTableStickyMount() {
     UiThreadUtil.runOnUiThread(() -> {

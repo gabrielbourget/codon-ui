@@ -8,12 +8,14 @@ import sys
 parser = argparse.ArgumentParser(description="Exercise the owned position-presence lifetime/admission code across two native images; this is not an RN runtime control.")
 parser.add_argument("--sdk-root", required=True, type=Path)
 parser.add_argument("--output", required=True, type=Path)
+parser.add_argument("--android-ndk", type=Path, help="Cross-compile the same controls for the existing x86_64/API24 target; root executes them separately")
 args = parser.parse_args()
 sdk = args.sdk_root.resolve()
 output = args.output.resolve()
 output.mkdir(parents=True, exist_ok=False)
 root = Path(__file__).resolve().parents[4]
 owned = root / "packages/react-native/cpp/input/PositionOwnership.h"
+implementation = root / "packages/react-native/cpp/motion/PositionOwnership.cpp"
 assert json.loads((sdk / "package.json").read_text())["version"] == "0.86.3"
 for name in ["YogaStylableProps.h", "YogaStylableProps.cpp"]:
     assert "cuiHasAuthoredPosition" not in (sdk / "ReactCommon/react/renderer/components/view" / name).read_text()
@@ -93,29 +95,103 @@ int main() {
   std::cout << checks << " production ownership controls across producer/consumer images; opaque pointee double, no RN runtime or native acceptance\n";
 }
 ''')
-common = ["clang++", "-std=c++20", "-Wall", "-Wextra", "-Werror", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-fsanitize=undefined"]
-if sys.platform == "darwin":
-    library = output / "libposition.dylib"
-    library_args = ["-dynamiclib", "-Wl,-install_name,@rpath/libposition.dylib"]
+# Reuse every existing owned/foreign/alias/lifetime assertion in each local DSO.
+local = (output / "consumer.cpp").read_text()
+local = local.replace("int main() {", "static int localControls() {")
+local = local.replace("createPositionProps(authored, &destroyed)", "withNativePositionPresence(std::make_shared<Props>(&destroyed), authored)")
+local = local.replace("createPositionProps(false, &destroyed)", "withNativePositionPresence(std::make_shared<Props>(&destroyed), false)")
+local = local[:local.index("  std::cout << checks")] + "  return checks;\n}\n"
+with (output / "producer.cpp").open("a") as destination:
+    destination.write(local + r'''
+extern "C" {
+__attribute__((visibility("default"))) void *producer_create(int authored, int *destroyed) {
+  return new std::shared_ptr<const facebook::react::Props>(createPositionProps(authored != 0, destroyed));
+}
+__attribute__((visibility("default"))) void producer_drop(void *value) {
+  delete static_cast<std::shared_ptr<const facebook::react::Props> *>(value);
+}
+__attribute__((visibility("default"))) int producer_read(const void *value) {
+  const auto marker = codon::input::nativePositionPresence(*static_cast<const std::shared_ptr<const facebook::react::Props> *>(value));
+  return marker ? (*marker ? 1 : 0) : -1;
+}
+__attribute__((visibility("default"))) int producer_controls() { return localControls(); }
+__attribute__((visibility("default"))) const void *producer_reader() {
+  return reinterpret_cast<const void *>(&codon::input::nativePositionPresence);
+}
+}
+''')
+(output / "independent-consumer.cpp").write_text(local + r'''
+extern "C" {
+__attribute__((visibility("default"))) int consumer_read(const void *value) {
+  const auto marker = codon::input::nativePositionPresence(*static_cast<const std::shared_ptr<const facebook::react::Props> *>(value));
+  return marker ? (*marker ? 1 : 0) : -1;
+}
+__attribute__((visibility("default"))) int consumer_controls() { return localControls(); }
+__attribute__((visibility("default"))) void *consumer_retain(const void *value) {
+  const auto &props = *static_cast<const std::shared_ptr<const facebook::react::Props> *>(value);
+  return new std::shared_ptr<const facebook::react::Props>(std::const_pointer_cast<facebook::react::Props>(props));
+}
+__attribute__((visibility("default"))) void consumer_drop(void *value) {
+  delete static_cast<std::shared_ptr<const facebook::react::Props> *>(value);
+}
+__attribute__((visibility("default"))) const void *consumer_reader() {
+  return reinterpret_cast<const void *>(&codon::input::nativePositionPresence);
+}
+}
+''')
+android = args.android_ndk is not None
+if android:
+    toolchain = args.android_ndk.resolve() / "toolchains/llvm/prebuilt/darwin-x86_64"
+    common = [str(toolchain / "bin/clang++"), "--target=x86_64-none-linux-android24", "--sysroot=" + str(toolchain / "sysroot"), "-std=c++20", "-Wall", "-Wextra", "-Werror", "-fexceptions", "-frtti", "-fPIC"]
 else:
-    library = output / "libposition.so"
-    library_args = ["-shared", "-fPIC"]
+    common = ["clang++", "-std=c++20", "-Wall", "-Wextra", "-Werror", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-fsanitize=undefined"]
+suffix = ".dylib" if sys.platform == "darwin" and not android else ".so"
+owner = output / ("libposition-owner" + suffix)
+library = output / ("libposition" + suffix)
+independent = output / ("libposition-consumer" + suffix)
+def shared_args(path):
+    if suffix == ".dylib":
+        return ["-dynamiclib", "-Wl,-install_name,@rpath/" + path.name]
+    return ["-shared", "-fPIC", "-Wl,-soname," + path.name]
+rpath = "-Wl,-rpath,$ORIGIN" if android else f"-Wl,-rpath,{output}"
 commands = [
-    common + library_args + [str(output / "producer.cpp"), "-o", str(library)],
-    common + [str(output / "consumer.cpp"), str(library), f"-Wl,-rpath,{output}", "-o", str(output / "controls")],
-    [str(output / "controls")],
+    common + shared_args(owner) + [str(implementation), "-o", str(owner)],
+    common + shared_args(library) + [str(output / "producer.cpp"), str(owner), rpath, "-o", str(library)],
+    common + [str(output / "consumer.cpp"), str(library), str(owner), rpath, "-o", str(output / "controls")],
+    common + shared_args(independent) + [str(output / "independent-consumer.cpp"), str(owner), rpath, "-o", str(independent)],
+    common + [str(Path(__file__).with_name("position-independent-dso.cpp")), "-ldl", rpath, "-o", str(output / "independent-controls")],
 ]
+if not android:
+    commands += [[str(output / "controls")], [str(output / "independent-controls"), str(library), str(independent)]]
+results = []
 for index, command in enumerate(commands):
     result = subprocess.run(command, capture_output=True, text=True, timeout=60)
     (output / f"step-{index}.log").write_text(result.stdout + result.stderr)
+    results.append({"argv": command, "exitCode": result.returncode, "stdout": result.stdout, "stderr": result.stderr})
+    (output / "commands.json").write_text(json.dumps(results, indent=2) + "\n")
     assert result.returncode == 0, result.stderr
+if android:
+    import shutil
+    shutil.copyfile(toolchain / "sysroot/usr/lib/x86_64-linux-android/libc++_shared.so", output / "libc++_shared.so")
+    # The independent images must depend on the one owner, never on each other.
+    for path in [library, independent, output / "independent-controls"]:
+        dynamic = subprocess.run([str(toolchain / "bin/llvm-readelf"), "--dynamic", str(path)], capture_output=True, text=True, check=True).stdout
+        (output / (path.name + ".dynamic.txt")).write_text(dynamic)
+        needed = [line for line in dynamic.splitlines() if "NEEDED" in line]
+        assert not any(library.name in line or independent.name in line for line in needed)
+        if path != output / "independent-controls":
+            assert any(owner.name in line for line in needed)
 record = {
     "sdk": str(sdk),
     "ownedHeaderSHA256": hashlib.sha256(owned.read_bytes()).hexdigest(),
+    "implementationSHA256": hashlib.sha256(implementation.read_bytes()).hexdigest(),
     "verifierSHA256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+    "independentDriverSHA256": hashlib.sha256(Path(__file__).with_name("position-independent-dso.cpp").read_bytes()).hexdigest(),
     "commands": commands,
-    "result": result.stdout.strip(),
-    "crossImageProductionOwnershipExecuted": True,
+    "result": "ANDROID_CROSS_COMPILE_ONLY_NOT_EXECUTED" if android else result.stdout.strip(),
+    "crossImageProductionOwnershipExecuted": not android,
+    "independentLocalDSOExecuted": not android,
+    "oneSharedImplementation": True,
     "actualRNParserOrDescriptorExecuted": False,
     "linkedSDKOrProductOrNativeAcceptance": False,
 }

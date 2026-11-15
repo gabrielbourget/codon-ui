@@ -17,6 +17,7 @@ add_library(codon_motion SHARED
   "${CMAKE_CURRENT_LIST_DIR}/../../../../cpp/backdrop/Gaussian.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/../../../../cpp/backdrop/ProjectedBlur.cpp"
   "${CODON_MOTION_DIR}/FabricSnapshot.cpp"
+  "${CODON_MOTION_DIR}/PositionOwnership.cpp"
   "${CODON_MOTION_DIR}/NativeStyle.cpp"
   "${CODON_MOTION_DIR}/PopFrame.cpp"
   "${CODON_MOTION_DIR}/PopStyle.cpp"
