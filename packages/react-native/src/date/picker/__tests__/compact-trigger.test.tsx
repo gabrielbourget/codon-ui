@@ -62,6 +62,7 @@ it.each([
     const originalRoot = root.current
     const trigger = screen.getByTestId(`${prefix}-trigger`)
     const label = trigger.props.accessibilityLabel
+    expect(screen.getByTestId(`${prefix}-group`)).toHaveStyle({ padding: 5, gap: 5 })
     expect(screen.getByRole("button", { name: label })).toBe(trigger)
     expect(trigger).toHaveStyle({ width: "auto", height: "auto", minWidth: undefined, minHeight: undefined })
     expect(trigger.props.accessibilityState.disabled).toBe(false)
@@ -100,6 +101,7 @@ it.each(["single", "range"] as const)(
           <Picker
             ref={root}
             ComponentIcon={<View testID="caller-calendar-icon" style={{ width: 31, height: 21 }} />}
+            customInputButtonGroupStyles={custom ? { gap: 0 } : undefined}
             customButtonStyles={custom ? { width: 37, height: 29, padding: 3 } : undefined}
           />
         </NativeLocaleProvider>
@@ -115,6 +117,7 @@ it.each(["single", "range"] as const)(
     expect(root.current).toBe(originalRoot)
     expect(screen.getByTestId("caller-calendar-icon")).toBe(originalIcon)
     expect(screen.getByTestId(`${prefix}-trigger`)).toBe(trigger)
+    expect(screen.getByTestId(`${prefix}-group`)).toHaveStyle({ padding: 5, gap: 0 })
     expect(trigger).toHaveStyle({ width: 37, height: 29, padding: 3 })
   },
 )

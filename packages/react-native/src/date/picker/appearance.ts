@@ -52,6 +52,7 @@ export const getNativeDatePickerAppearance = (
       {
         ...base.group,
         padding: 5,
+        gap: 5,
         paddingLeft: undefined,
         paddingHorizontal: undefined,
         backgroundColor: theme.colors.controlBackground,
