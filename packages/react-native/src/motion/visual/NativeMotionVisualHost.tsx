@@ -130,7 +130,8 @@ export const NativeMotionVisualHost = forwardRef<TNativeFocusViewRef, TNativeMot
           const nextStyle: Record<string, unknown> = { ...latest.view, ...snapshot.style }
           const currentFields = new Set(Object.keys(nextStyle))
           for (const key of previousProjectionFields)
-            if (!currentFields.has(key)) nextStyle[key] = key === "transformOrigin" ? ["50%", "50%", 0] : null
+            if (!currentFields.has(key))
+              nextStyle[key] = key === "transform" ? [] : key === "transformOrigin" ? ["50%", "50%", 0] : null
           previousProjectionFields = currentFields
           target.setNativeProps({
             style: nextStyle,

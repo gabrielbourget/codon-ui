@@ -116,3 +116,58 @@ it("clears removed owned projection/pop properties while preserving the original
   expect(request).not.toHaveBeenCalled()
   await screen.unmount()
 })
+
+it("clears a retired projection transform through Fabric when no transform is authored", async () => {
+  type TSnapshot = { style: NativeProjectionStyle; visible: boolean; radii: string }
+  let write!: (snapshot: TSnapshot) => void
+  const snapshot: TSnapshot = { style: {}, visible: true, radii: "" }
+  const projection = {
+    subscribe: () => () => {},
+    getSnapshot: () => snapshot,
+    attach: () => () => {},
+    detach: () => {},
+    attachWriter: (writer: typeof write) => {
+      write = writer
+      return () => {}
+    },
+  } as unknown as NativeProjectionState
+  const createPayload = jest.requireActual(
+    "react-native/Libraries/ReactNative/ReactFabricPublicInstance/ReactNativeAttributePayload",
+  ).create
+  const attributes = jest.requireActual("react-native/Libraries/Components/View/ReactNativeStyleAttributes").default
+  const ref = createRef<View>(),
+    request = jest.fn()
+  await render(
+    <NativeMotionVisualHost ref={ref} testID="identity-projection-root" projection={projection} style={{ padding: 8 }}>
+      <TextInput testID="identity-editor" value="caller draft" onChangeText={request} />
+    </NativeMotionVisualHost>,
+  )
+  const root = ref.current!,
+    editor = screen.getByTestId("identity-editor")
+  const setter = jest.spyOn(root, "setNativeProps").mockImplementation((props) => {
+    createPayload(props, { style: attributes })
+  })
+  for (const scale of [0.8, 1.2]) {
+    await act(() =>
+      write({
+        style: { transform: [{ scale }], transformOrigin: ["0%", "0%", 0], opacity: 0.4 },
+        visible: true,
+        radii: "",
+      }),
+    )
+    expect(setter).toHaveBeenLastCalledWith(
+      expect.objectContaining({ style: expect.objectContaining({ transform: [{ scale }] }) }),
+    )
+    await act(() => write({ style: {}, visible: true, radii: "" }))
+    expect(setter).toHaveBeenLastCalledWith({
+      nativeMotionVisible: true,
+      nativeMotionProjectionRadii: "",
+      style: { padding: 8, transform: [], transformOrigin: ["50%", "50%", 0], opacity: null },
+    })
+  }
+  expect(ref.current).toBe(root)
+  expect(screen.getByTestId("identity-editor")).toBe(editor)
+  expect(editor.props.value).toBe("caller draft")
+  expect(request).not.toHaveBeenCalled()
+  await screen.unmount()
+})
