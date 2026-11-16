@@ -1,12 +1,13 @@
 import "../../../collection/__tests__/nativeReceipts"
 
 import { CalendarDate, CalendarDateTime } from "@internationalized/date"
-import { act, cleanup, within } from "@testing-library/react-native"
+import { act, cleanup, within, userEvent } from "@testing-library/react-native"
 import { createRef, type Ref } from "react"
 import { AccessibilityInfo, type View } from "react-native"
 import { Text } from "react-native"
 
 import {
+  actWithNativeCollections,
   fireEventWithNativeCollections as fireEvent,
   renderWithNativeCollections as render,
   screen,
@@ -42,6 +43,7 @@ beforeEach(() => {
 afterEach(() => {
   jest.restoreAllMocks()
   cleanup()
+  jest.useRealTimers()
 })
 
 it("keeps canonical range wrapper defaults ahead of context and preserves explicit owner overrides", async () => {
@@ -409,4 +411,85 @@ it("consumes range wrapper props without replacing the fixed field scaffold or n
   await fireEvent(root, "layout", event)
   expect(layout).toHaveBeenCalledTimes(1)
   expect(layout.mock.calls[0][0]).toBe(event)
+})
+
+it("anchors then commits two ordinary day presses without duplicate range or close requests", async () => {
+  jest.useFakeTimers()
+  const user = userEvent.setup()
+  const change = jest.fn(),
+    open = jest.fn()
+  await render(
+    <NativeThemeProvider>
+      <NativeLocaleProvider locale="en-US">
+        <DateTimeRangePicker
+          placeholderValue={new CalendarDate(2024, 10, 10)}
+          defaultOpen
+          multiMonth={false}
+          onChange={change}
+          onOpenChange={open}
+        />
+      </NativeLocaleProvider>
+    </NativeThemeProvider>,
+  )
+  await user.press(screen.getByTestId("datetime-range-picker-day-2024-10-10"))
+  await actWithNativeCollections(() => {})
+  expect(change).not.toHaveBeenCalled()
+  expect(open).not.toHaveBeenCalled()
+  await user.press(screen.getByTestId("datetime-range-picker-day-2024-10-18"))
+  await actWithNativeCollections(() => {})
+  expect(change).toHaveBeenCalledTimes(1)
+  expect(change.mock.calls[0]![0]).toEqual({
+    start: new CalendarDate(2024, 10, 10),
+    end: new CalendarDate(2024, 10, 18),
+  })
+  expect(open.mock.calls.map(([value]) => value)).toEqual([false])
+})
+
+it("admits an accessibility activation independently of a claimed physical range press", async () => {
+  jest.useFakeTimers()
+  const change = jest.fn(),
+    open = jest.fn()
+  await render(
+    <NativeThemeProvider>
+      <NativeLocaleProvider locale="en-US">
+        <DateTimeRangePicker
+          placeholderValue={new CalendarDate(2024, 10, 10)}
+          defaultOpen
+          multiMonth={false}
+          onChange={change}
+          onOpenChange={open}
+        />
+      </NativeLocaleProvider>
+    </NativeThemeProvider>,
+  )
+  const day = screen.getByTestId("datetime-range-picker-day-2024-10-10")
+  const touch = {
+    persist: jest.fn(),
+    currentTarget: 17,
+    target: 17,
+    nativeEvent: { target: 17, timestamp: 0, identifier: 0, locationX: 0, locationY: 0, pageX: 0, pageY: 0 },
+  }
+  await actWithNativeCollections(() => day.props.onResponderGrant(touch))
+  await actWithNativeCollections(() => jest.advanceTimersByTime(200))
+  const event = {
+    persist: jest.fn(),
+    nativeEvent: {
+      kind: "activation",
+      ownerId: day.props.ownerId,
+      target: 17,
+      source: "ios-accessibility-activate",
+      observedAt: 0,
+      activationId: 1,
+      scopeOwnerId: "",
+      windowId: "window-1",
+      epoch: 0,
+    },
+  }
+  await actWithNativeCollections(() => day.props.onNativeActivation(event))
+  expect(change).toHaveBeenCalledTimes(1)
+  expect(change.mock.calls[0]![0]).toEqual({
+    start: new CalendarDate(2024, 10, 10),
+    end: new CalendarDate(2024, 10, 10),
+  })
+  expect(open.mock.calls.map(([value]) => value)).toEqual([false])
 })

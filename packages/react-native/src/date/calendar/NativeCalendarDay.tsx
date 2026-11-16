@@ -19,7 +19,7 @@ import type { TNativeKeyboardEvent, TNativePressEvent } from "../../input/types"
 import { Grid, Owner } from "./context"
 import { NativeCalendarDayHost } from "./DayHost"
 import { nativeCalendarKeyCommand, preventNativeCalendarKey, NATIVE_CALENDAR_NAVIGATION_KEYS } from "./keys"
-import { activateNativeRangeCalendarDay, type TNativeCalendarPointer } from "./rangeGesture"
+import { activateNativeRangeCalendarDay, type TNativeCalendarPointer, type TNativeCalendarPress } from "./rangeGesture"
 import { nativeCalendarDaySemantics } from "./semantics"
 
 const pressOrigin = (event: TNativePressEvent) =>
@@ -35,7 +35,17 @@ export const Day = createNativeCollectionLeaf<object, TDayProps, View>("cell", (
     actions = useContext(NativeCollectionActionsContext)!
   const inherited = useNativeContentContext()
   const target = useRef<View | null>(null),
-    current = useRef({ owner, node })
+    current = useRef({ owner, node }),
+    press = useRef<{
+      revision: string
+      origin: ReturnType<typeof pressOrigin>
+      target: View
+      node: typeof node
+      date: CalendarDate
+      ticket: TNativeCalendarPress
+      timestamp?: number
+      identifier?: GestureResponderEvent["nativeEvent"]["identifier"]
+    } | null>(null)
   const receiverRef = useNativeCollectionReceiverRef(node, target)
   useInsertionEffect(() => {
     current.current = { owner, node }
@@ -89,16 +99,47 @@ export const Day = createNativeCollectionLeaf<object, TDayProps, View>("cell", (
   }, [binding, active, props.outside, owner.state.focusedDate, props.date, owner.initialFocusRef])
   const select = (event: TNativePressEvent) => {
     const origin = pressOrigin(event)
-    if (origin === "touch") return
+    if (origin !== "touch" && press.current?.origin !== origin) recordPress(event)
+    const original = press.current
+    press.current = null
+    if (
+      !original ||
+      original.revision !== current.current.owner.revision ||
+      original.target !== target.current ||
+      original.node !== current.current.node ||
+      original.date.compare(props.date) !== 0 ||
+      original.ticket.cancelled ||
+      original.ticket.claimed ||
+      !active()
+    )
+      return
+    if (origin === "touch") {
+      const data = event.nativeEvent as GestureResponderEvent["nativeEvent"]
+      if (
+        (original.identifier !== undefined &&
+          data.identifier !== undefined &&
+          original.identifier !== data.identifier) ||
+        (original.timestamp !== undefined && data.timestamp !== undefined && data.timestamp < original.timestamp)
+      )
+        return
+      if (owner.gesture && !owner.gesture.takePress(original.ticket)) return
+    } else owner.gesture?.cancel()
+    const revision = original.revision
+    const eligible = () =>
+      current.current.owner.revision === revision &&
+      target.current === original.target &&
+      current.current.node === original.node &&
+      active()
     if ("anchorDate" in owner.state) {
       request(() => {
         const state = current.current.owner.state
-        if ("anchorDate" in state) activateNativeRangeCalendarDay(state, props.date, origin)
+        if (eligible() && "anchorDate" in state) activateNativeRangeCalendarDay(state, original.date, origin)
       })
     } else
       request(() => {
         const state = current.current.owner.state
         if (
+          eligible() &&
           !state.isReadOnly &&
           !state.isDisabled &&
           !state.isCellDisabled(props.date) &&
@@ -110,7 +151,27 @@ export const Day = createNativeCollectionLeaf<object, TDayProps, View>("cell", (
         }
       })
   }
+  const recordPress = (event: TNativePressEvent) => {
+    const original = target.current
+    if (!original || !active()) return
+    const origin = pressOrigin(event)
+    const data = event.nativeEvent as GestureResponderEvent["nativeEvent"]
+    press.current = {
+      revision: owner.revision,
+      origin,
+      target: original,
+      node,
+      date: props.date,
+      ticket:
+        origin === "touch" && owner.gesture
+          ? owner.gesture.beginPress(props.date, original)
+          : { claimed: false, cancelled: false },
+      timestamp: data.timestamp,
+      identifier: data.identifier,
+    }
+  }
   const begin = (event: TNativePressEvent) => {
+    if (pressOrigin(event) !== "touch" || !press.current) recordPress(event)
     if (owner.pointers.available || pressOrigin(event) !== "touch" || !owner.gesture || owner.gesture.currentPointer())
       return
     const touch =
@@ -188,7 +249,8 @@ export const Day = createNativeCollectionLeaf<object, TDayProps, View>("cell", (
           enableFocusStyle
           geometry="orthogonal"
           onPressStart={begin}
-          onPressUp={select}
+          onPress={select}
+          pressRetentionOffset={0}
           onKeyDown={key}
           onPointerDown={(event) => {
             if (!owner.pointers.available && active() && event.nativeEvent.pointerType !== "touch")
@@ -211,7 +273,14 @@ export const Day = createNativeCollectionLeaf<object, TDayProps, View>("cell", (
                 ...native.accessibilityState,
                 disabled: semantics.disabled || semantics.unavailable,
               }}
+              onResponderGrant={(event) => {
+                // Capture the original contact before Pressability can delay its press-in.
+                recordPress(event)
+                return native.onResponderGrant?.(event)
+              }}
               onResponderTerminate={(event) => {
+                if (press.current) press.current.ticket.cancelled = true
+                press.current = null
                 native.onResponderTerminate?.(event)
                 current.current.owner.gesture?.cancel()
               }}
