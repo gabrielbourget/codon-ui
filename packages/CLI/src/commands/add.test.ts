@@ -1,4 +1,9 @@
 import assert from "node:assert/strict"
+import { existsSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs"
+import { tmpdir } from "node:os"
+import path from "node:path"
+
+import ts from "typescript"
 
 import {
   addDryRunSchema,
@@ -12,6 +17,7 @@ import {
   readComponentPacketsForRegistrySource,
   readLocalRegistrySource,
   resolveDefaultAddRegistrySourcePath,
+  writeStrictRegistryInstall,
 } from "../helpers"
 import { createDependencyInstallPlan } from "../helpers/packageManagerHelpers"
 import { assertCliJsonReportContract } from "../testUtils/cliJsonContracts"
@@ -316,6 +322,7 @@ const verifyTableAddPlanning = async () => {
 
   for (const expectedPath of [
     "src/components/Table/Table.tsx",
+    "src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/temporalValues.ts",
     "src/components/Table/components/TableFilterPopover/TableFilterPopover.tsx",
     "src/components/Filtering/FilterClauseRow/FilterClauseRow.tsx",
     "src/components/Filtering/DynamicFilterArgumentInput/DynamicFilterArgumentInput.tsx",
@@ -342,9 +349,95 @@ const verifyTableAddPlanning = async () => {
   }
 
   assert.equal(installPlan.findings.filter((finding) => finding.severity === "error").length, 0)
-  assert.equal(dryRunEffects.files.plannedCount, 165)
-  assert.equal(dryRunEffects.files.wouldWriteCount, 165)
+  assert.equal(dryRunEffects.files.plannedCount, 166)
+  assert.equal(dryRunEffects.files.wouldWriteCount, 166)
   assert.equal(dryRunEffects.dependencies.missingCount, 7)
+}
+
+const verifyInstalledTableConsumerTypecheck = async () => {
+  const consumerRoot = mkdtempSync(path.join(tmpdir(), "codon-web-table-consumer-"))
+  const temporalPath = "src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/temporalValues.ts"
+  const reactPackageRoot = path.join(sourceRoot, "packages/react")
+
+  try {
+    const reactPackage = JSON.parse(readFileSync(path.join(reactPackageRoot, "package.json"), "utf8"))
+    writeFileSync(
+      path.join(consumerRoot, "package.json"),
+      JSON.stringify({
+        private: true,
+        type: "module",
+        dependencies: { ...reactPackage.dependencies, ...reactPackage.peerDependencies },
+      }),
+    )
+    const packetResult = await readComponentPacketsForRegistrySource({ registrySource, requestedItems: ["table"] })
+    const config = consumerConfigSchema.parse({})
+    const installPlan = createRegistryInstallPlan({
+      consumerRoot,
+      config,
+      registrySource: packetResult.registrySource,
+      requestedItems: ["table"],
+      sourceRoot,
+    })
+    assert.equal(installPlan.findings.filter((finding) => finding.severity === "error").length, 0)
+    assert.ok(installPlan.dependencyPlan.every((dependency) => dependency.status === "satisfied"))
+    const lockfile = await writeStrictRegistryInstall({
+      consumerRoot,
+      installPlan,
+      lockfileData: consumerLockfileSchema.parse({}),
+      sourceRoot,
+      themeTier: config.theme.tier,
+    })
+    assert.ok(lockfile.items.table.files.some((file) => file.path === temporalPath))
+    assert.ok(existsSync(path.join(consumerRoot, temporalPath)))
+    symlinkSync(path.join(reactPackageRoot, "node_modules"), path.join(consumerRoot, "node_modules"), "dir")
+    writeFileSync(
+      path.join(consumerRoot, "src/styles.d.ts"),
+      'declare module "*.module.css" { const classes: Readonly<Record<string, string>>; export default classes }\n',
+    )
+    const compile = () => {
+      const parsed = ts.parseJsonConfigFileContent(
+        {
+          compilerOptions: {
+            target: "ES2022",
+            module: "ESNext",
+            moduleResolution: "Bundler",
+            jsx: "react-jsx",
+            strict: true,
+            noEmit: true,
+            skipLibCheck: true,
+            esModuleInterop: true,
+            lib: ["ES2022", "DOM", "DOM.Iterable"],
+          },
+          include: ["src/**/*.ts", "src/**/*.tsx"],
+        },
+        ts.sys,
+        consumerRoot,
+      )
+      assert.deepEqual(parsed.errors, [])
+      return ts.getPreEmitDiagnostics(ts.createProgram(parsed.fileNames, parsed.options))
+    }
+    const diagnostics = compile()
+    assert.equal(
+      diagnostics.length,
+      0,
+      ts.formatDiagnosticsWithColorAndContext(diagnostics, {
+        getCanonicalFileName: (name) => name,
+        getCurrentDirectory: () => consumerRoot,
+        getNewLine: () => "\n",
+      }),
+    )
+
+    rmSync(path.join(consumerRoot, temporalPath))
+    const missingParserDiagnostics = compile()
+    assert.equal(missingParserDiagnostics.length, 2)
+    assert.ok(missingParserDiagnostics.every((diagnostic) => diagnostic.code === 2307))
+    assert.deepEqual(
+      missingParserDiagnostics.map((diagnostic) => path.basename(diagnostic.file?.fileName ?? "")).sort(),
+      ["InputTypeFilterArgument.tsx", "RangeTypeFilterArgument.tsx"],
+    )
+  } finally {
+    rmSync(consumerRoot, { force: true, recursive: true })
+  }
 }
 
 await verifyComponentAddPlanning({
@@ -1072,6 +1165,7 @@ await verifyComponentAddPlanning({
 })
 
 await verifyTableAddPlanning()
+await verifyInstalledTableConsumerTypecheck()
 
 await verifyComponentAddPlanning({
   itemName: "toaster",
