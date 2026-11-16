@@ -135,6 +135,7 @@ test("cyclic source closures are deduplicated, stable and retain owners, hashes 
       })
       assert.deepEqual(graph.findings, [])
       assert.equal(graph.nativeAdapter, undefined)
+      assert.deepEqual(graph.nativeRuntimeOwners, [])
       assert.equal(graph.files.length, 6)
       const shared = graph.files.find((item) => item.sourcePath === "src/shared.ts")!
       assert.deepEqual(shared.owners, ["a", "b"])
