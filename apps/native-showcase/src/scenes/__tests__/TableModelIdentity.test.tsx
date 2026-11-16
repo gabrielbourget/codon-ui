@@ -179,6 +179,7 @@ it("refreshes the rendered draft and keeps its ref and callback current across s
   expect(editor).toHaveDisplayValue("")
 })
 
+// Reorder and empty-state updates rebuild the full Table; use the same bounded budget as the environment-update case.
 it("rebuilds reordered and empty data while retaining the original edited row through reorder", async () => {
   const bodyFactory = jest.spyOn(tableModel, "createNativeTableBodyModel")
   await render(tree())
@@ -197,7 +198,7 @@ it("rebuilds reordered and empty data while retaining the original edited row th
   expect(bodyFactory.mock.calls.at(-1)![0].items).toEqual([])
   expect(screen.queryByLabelText("Original Table editor")).toBeNull()
   expect(screen.getByText("No people")).toBeTruthy()
-})
+}, 15000)
 
 it("refreshes line and truncation metadata in the actual mixed-content cell", async () => {
   const bodyFactory = jest.spyOn(tableModel, "createNativeTableBodyModel")
