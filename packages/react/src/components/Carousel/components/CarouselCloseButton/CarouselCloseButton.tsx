@@ -1,8 +1,7 @@
-import classNames from "classnames"
 import { forwardRef, type ForwardRefExoticComponent, type PropsWithChildren, type RefAttributes } from "react"
 
 import Button from "../../../Button/Button"
-import { DEFAULT_CAROUSEL_LABELS } from "../../helpers"
+import { DEFAULT_CAROUSEL_LABELS, mergeCarouselControlClassNames } from "../../helpers"
 
 import CarouselDefaultCloseIcon from "./DefaultCloseIcon"
 import { defaultButtonProps, type TCarouselCloseButtonProps } from "./helpers"
@@ -28,7 +27,7 @@ const CarouselCloseButton: ForwardRefExoticComponent<
     <Button
       ref={ref}
       aria-label={labels?.closeButtonAriaLabel ?? DEFAULT_CAROUSEL_LABELS.controls.closeButtonAriaLabel}
-      customClassName={classNames(
+      className={mergeCarouselControlClassNames(
         defaultButtonClassName,
         defaultButtonNativeClassName,
         customButtonClassName,

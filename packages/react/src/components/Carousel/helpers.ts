@@ -13,7 +13,18 @@ import {
   type RefAttributes,
 } from "react"
 
+import type { TButtonProps } from "../Button/helpers"
+
 import styles from "./CarouselStyles.module.css"
+
+export const mergeCarouselControlClassNames = (...values: TButtonProps["className"][]): TButtonProps["className"] => {
+  if (values.some((value) => typeof value === "function")) {
+    return (renderProps) =>
+      classNames(...values.map((value) => (typeof value === "function" ? value(renderProps) : value)))
+  }
+
+  return classNames(...values.filter((value): value is string => typeof value === "string"))
+}
 
 export const CAROUSEL_SLIDE_ALIGNMENT__START = "start"
 export const CAROUSEL_SLIDE_ALIGNMENT__CENTER = "center"
