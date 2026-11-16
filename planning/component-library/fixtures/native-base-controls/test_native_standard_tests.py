@@ -23,6 +23,76 @@ class StandardTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory();self.root = Path(self.temp.name)
     def tearDown(self): self.temp.cleanup()
 
+    def external_core_fixture(self):
+        consumer=self.root/"consumer";native=consumer/"native";project=consumer/"android"
+        native.mkdir(parents=True);project.mkdir();(project/"gradlew").write_text("stock wrapper fixture\n");(consumer/"App.tsx").write_text("bound app\n")
+        manifest={"kind":"external-android-core-debug-inputs","consumerRoot":str(consumer),"nativeRoot":str(native),"composition":"core","components":["button","menu","text"],"sourceCommit":"a"*40,"expectedCodegenModules":["NativeCore"],"excludedNativePaths":["android/Table.java"],"files":[{"path":str(p),"sha256":NATIVE.digest(p)} for p in [project/"gradlew",consumer/"App.tsx"]]}
+        path=self.root/"inputs.json";path.write_text(json.dumps(manifest))
+        sdk=self.root/"sdk";sdk.mkdir();jdk=self.root/"jdk";(jdk/"bin").mkdir(parents=True);(jdk/"bin/javac").write_text("fixture only\n");cache=self.root/"gradle";cache.mkdir()
+        config={"platform":"android","action":"build","batch":"external-core-debug","buildTarget":"external-core-debug","consumerInputs":{"path":str(path),"sha256":NATIVE.digest(path)},"sdk":str(sdk),"jdk":str(jdk),"gradleUserHome":str(cache)}
+        def produce(*args):
+            import zipfile
+            apk=project/"app/build/outputs/apk/debug/app-debug.apk";apk.parent.mkdir(parents=True)
+            with zipfile.ZipFile(apk,"w") as archive:
+                archive.writestr("lib/x86_64/libcodon_motion.so",b"host-control-not-native-code");archive.writestr("classes.dex",b"host-control-not-dex")
+            schema=native/"android/build/generated/source/codegen/schema.json";schema.parent.mkdir(parents=True);schema.write_text(json.dumps({"modules":{"NativeCore":{}}}))
+        session=MagicMock();session.env={};session.run.side_effect=produce
+        return config,manifest,session,consumer,native
+
+    def test_external_core_debug_binds_project_and_no_runtime_commands(self):
+        config,manifest,session,consumer,native=self.external_core_fixture()
+        result=NATIVE.build_android(session,config)
+        argv=list(map(str,session.run.call_args.args[1]))
+        self.assertEqual(argv[:3],[str((consumer/"android/gradlew").resolve()),"-p",str((consumer/"android").resolve())])
+        self.assertIn("generateCodegenArtifactsFromSchema",argv);self.assertIn(":app:assembleDebug",argv);self.assertNotIn(":app:assembleRelease",argv)
+        self.assertIn("--offline",argv);self.assertIn("--no-daemon",argv);self.assertIn("--max-workers=2",argv)
+        self.assertEqual(result["deviceActions"],0);self.assertEqual(result["gatePromotions"],0)
+        self.assertEqual(NATIVE.selection("android","external-core-debug"),{"ios":[],"android":["external-core-debug-compile-link"]})
+
+    def test_external_core_debug_rejects_table_source_before_sdk(self):
+        config,manifest,session,consumer,native=self.external_core_fixture()
+        (native/"android").mkdir();(native/"android/Table.java").write_text("unselected\n")
+        with self.assertRaisesRegex(ValueError,"Table native source"):
+            NATIVE.build_android(session,config)
+        session.run.assert_not_called()
+
+    def test_external_core_debug_rejects_changed_inputs_before_and_after_sdk(self):
+        config,manifest,session,consumer,native=self.external_core_fixture()
+        original=(consumer/"App.tsx").read_text();(consumer/"App.tsx").write_text("changed\n")
+        with self.assertRaisesRegex(ValueError,"Missing or changed input"):
+            NATIVE.build_android(session,config)
+        session.run.assert_not_called();(consumer/"App.tsx").write_text(original)
+        produce=session.run.side_effect
+        def mutate(*args): produce(*args);(consumer/"App.tsx").write_text("changed during SDK\n")
+        session.run.side_effect=mutate
+        with self.assertRaisesRegex(ValueError,"Missing or changed input"):
+            NATIVE.build_android(session,config)
+
+    def test_external_core_debug_propagates_sdk_failure(self):
+        config,manifest,session,consumer,native=self.external_core_fixture()
+        session.run.side_effect=ValueError("SDK command failed")
+        with self.assertRaisesRegex(ValueError,"SDK command failed"):
+            NATIVE.build_android(session,config)
+        self.assertNotEqual(NATIVE.driver_exit_code(1,False,True),0)
+
+    def test_external_core_debug_scope_and_admission_reject_runtime(self):
+        config,manifest,session,consumer,native=self.external_core_fixture()
+        NATIVE.validate_standard_scope({"cell":"CAT.menu.G06","nativeStandard":config})
+        for key,value in [("action","run"),("platform","ios"),("buildTarget","application")]:
+            with self.subTest(key=key),self.assertRaises(ValueError):
+                NATIVE.validate_standard_scope({"cell":"CAT.menu.G06","nativeStandard":{**config,key:value}})
+        path=self.root/"plan.json";path.write_text(json.dumps({"cell":"CAT.menu.G06","nativeStandard":{**config,"output":str(self.root/"never-created")}}))
+        env={key:value for key,value in os.environ.items() if key!="CODON_NATIVE_CELL_PREFLIGHT_RECEIPT"}
+        result=subprocess.run([sys.executable,"-B",str(ROOT/"NativeStandardTests.py"),"--plan",str(path)],env=env,capture_output=True,text=True)
+        self.assertNotEqual(result.returncode,0);self.assertIn("Use NativeCellVerification.py",result.stderr);self.assertFalse((self.root/"never-created").exists())
+
+    def test_external_core_debug_rejects_wrong_generated_schema(self):
+        config,manifest,session,consumer,native=self.external_core_fixture();produce=session.run.side_effect
+        def wrong(*args): produce(*args);(native/"android/build/generated/source/codegen/schema.json").write_text('{"modules":{"Wrong":{}}}')
+        session.run.side_effect=wrong
+        with self.assertRaisesRegex(ValueError,"Codegen modules differ"):
+            NATIVE.build_android(session,config)
+
     def test_popover_settings_handoff_guard_replays_native_transition_and_keeps_strict_motion(self):
         source=(ROOT/"MeterG02TrialTests.swift").read_text().split("final class ClickPopoverTrialTests:",1)[1].split("final class ShowcaseStartupDiagnosticTests:",1)[0]
         helper=source.split("private func motionSwitch",1)[1].split("private func setMotion",1)[0]
