@@ -3,11 +3,7 @@ title: Private CLI Publish
 description: OIDC release SOP for the restricted @codon-ui/cli package.
 ---
 
-`@codon-ui/cli` publishes from the dedicated `publish-cli.yml` GitHub Actions
-workflow through npm trusted publishing. The workflow receives no persistent
-npm write token. It publishes only the CLI package; `@codon-ui/react` remains
-the workspace source identity and is bundled into the CLI tarball as
-registry/source payload during packing.
+`@codon-ui/cli` publishes from the dedicated `publish-cli.yml` GitHub Actions workflow through npm trusted publishing. The workflow receives no persistent npm write token. It publishes only the CLI package; canonical React and React Native implementations travel as editable registry/source payload inside that package. The private workspace packages are not separately published by this workflow.
 
 Publishing is a metered, registry-mutating operation. Preparing and locally
 verifying a release does not authorize dispatching the workflow.
@@ -38,12 +34,10 @@ disallow traditional publishing tokens and revoke obsolete write credentials.
 
 ## Version And Release Notes
 
-Bump the CLI version before publishing. Use a patch version for private CLI
-behavior fixes and a minor version for registry payload or theme contract
-releases that consumers need to absorb intentionally.
+Bump the CLI version before publishing. Use a patch version for private CLI behavior fixes and a minor version for registry payload or theme contract releases that consumers need to absorb intentionally. The native-target candidate is `0.3.0`, marked unreleased in `packages/CLI/CHANGELOG.md`; preparing or merging it does not authorize publication.
 
 ```sh
-pnpm -F @codon-ui/cli version 0.2.0 --no-git-tag-version
+pnpm -F @codon-ui/cli version 0.3.0 --no-git-tag-version
 ```
 
 The release guard intentionally pins the intended package version. Update these
@@ -60,6 +54,14 @@ surfaces together in a dedicated release-preparation commit:
 The changelog entry should describe CLI behavior, registry/theme contract
 changes, consumer migration notes, and the verification commands used.
 
+## Native Target Handoff
+
+The editable native target was merged through PRs #262–#268, ending at `d3ea0e91`. The existing CLI now selects React or React Native and preserves consumer-owned edits. The [native consumer guide](../../packages/react-native-consumer/) covers the supported Expo SDK 57 tuple, first-entry Intl setup, providers, copied-source imports, selected Table backend and native rebuild requirements. Native helper dependency-set changes deliberately block before writes; automatic ownership migration is not included.
+
+The actual locally packed CLI passed external Expo source installation, types, both Metro exports, standard autolinking and core-only/full-Table compile/link on Android and iOS. Installed consumer input/overlay smoke and the final installed iOS calendar overflow/scroll observation remain open. The supported Simulator window read returned `-10005: timeoutReached`; inventory alone did not prove input access, and release preparation did not start another native attempt. Broader provider discovery, arbitrary existing-project migration, durable filesystem transactions and bare-RN qualification remain outside this proof.
+
+Before requesting publication, resolve or explicitly accept those runtime proof limits, confirm private npm visibility and that the candidate version is available through an authorized registry read, then run the candidate preflight below. The 2026-11-16 preparation lookup returned 404, which does not establish whether this restricted package or version exists. Do not change credentials or dispatch publication to diagnose that lookup.
+
 ## Local Preflight
 
 Run the exact package gates before requesting a release:
@@ -74,17 +76,12 @@ pnpm -F @codon-ui/cli lint
 pnpm -F @codon-ui/cli build
 pnpm -F @codon-ui/cli pack:check
 pnpm -F @codon-ui/cli release:check
-NPM_RELEASE_EXPECTED_VERSION=0.2.0 pnpm -F @codon-ui/cli release:request
+NPM_RELEASE_EXPECTED_VERSION=0.3.0 pnpm -F @codon-ui/cli release:request
 pnpm verify:github-actions
 git diff --check
 ```
 
-`pack:check` builds the CLI, prepares the package-local registry/source
-payload, exercises that payload from a temporary consumer, and requires npm's
-dry-run manifest to exactly match the generated `dist` tree. `release:check`
-pins package identity, repository identity, version, restricted access, the npm
-registry, file allowlist, and publication scripts. `release:request` proves
-that the exact version intended for dispatch matches the committed package.
+`pack:check` builds the CLI, prepares all required package-local registry/source snapshots and native variants, runs the relocated web CLI smoke, and requires npm's dry-run manifest to exactly match the generated `dist` tree. That smoke does not exercise native input or overlays. `release:check` pins package identity, repository identity, version, restricted access, the npm registry, file allowlist and publication scripts. `release:request` proves that the exact version intended for dispatch matches the committed package; neither command publishes or dispatches a workflow.
 
 ## Dispatch
 
@@ -122,21 +119,23 @@ pnpm view @codon-ui/cli versions --json
 ```
 
 Then run the private-package smoke proof from the sibling fixture repository,
-replacing `0.2.0` with the published version:
+replacing `0.3.0` if a different version was approved and published:
 
 ```sh
 cd ../codon-ui-consumer-fixtures
-CODON_UI_PUBLISHED_CLI_VERSION=0.2.0 pnpm verify:published-package-smoke
+CODON_UI_PUBLISHED_CLI_VERSION=0.3.0 pnpm verify:published-package-smoke
 ```
 
 For a release that changes `init --setup-cli`, also verify the published
 bootstrap path:
 
 ```sh
-pnpm --package=@codon-ui/cli@0.2.0 dlx codon-ui init --setup-cli --json
+pnpm --package=@codon-ui/cli@0.3.0 dlx codon-ui init --setup-cli --json
 pnpm install
 pnpm cui status
 ```
+
+For the native target, also verify `init --target react-native --setup-cli` and selected component add/status/update/edit protection from the actual published package in the isolated Expo consumer. Reuse its existing pins and native build workflow, then observe installed input and overlay interaction on both platforms. The web published-package smoke cannot promote these native results.
 
 Consumer repositories with a `minimumReleaseAge` policy may reject an immediate
 internal release. Use a narrow `minimumReleaseAgeExclude` entry for
