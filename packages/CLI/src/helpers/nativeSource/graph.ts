@@ -26,6 +26,7 @@ export type TNativeSourceGraph = {
   files: TNativeSourceFile[]
   edges: TNativeSourceEdge[]
   externalDependencies: TNativeExternalDependency[]
+  nativeRuntimeOwners: { sourcePath: string; owners: string[] }[]
   nativeAdapter?: Omit<TNativeAdapter, "findings"> & { owners: string[] }
   findings: TSourceFinding[]
   valid: boolean
@@ -47,6 +48,9 @@ export const buildNativeSourceGraph = async ({
   const findings: TSourceFinding[] = []
   const visited = new Set<string>()
   const nativeOwners = new Set<string>()
+  const nativeRuntimeOwners = new Map<string, Set<string>>()
+  const sourceImports = new Map<string, ReturnType<typeof readSourceImports>>()
+  const importResolutions = new Map<string, Promise<string>>()
   const references = new Map<string, string[]>()
   const addEdge = (edge: TNativeSourceEdge) => edges.set(JSON.stringify(edge), edge)
   const report = (code: string, sourcePath: string, message: string) => findings.push({ code, sourcePath, message })
@@ -59,7 +63,7 @@ export const buildNativeSourceGraph = async ({
     file.owners.add(owner)
     return file.content.toString("utf8")
   }
-  const resolveImport = async (from: string, specifier: string) => {
+  const resolveSourceImport = async (from: string, specifier: string) => {
     const base = path.posix.normalize(path.posix.join(path.posix.dirname(from), specifier))
     // Platform suffixes are deliberately refused until a consumer-platform policy is integrated.
     for (const suffix of [".ios.ts", ".ios.tsx", ".android.ts", ".android.tsx", ".native.ts", ".native.tsx"]) {
@@ -73,6 +77,15 @@ export const buildNativeSourceGraph = async ({
     ]
     for (const candidate of candidates) if (await reader.isFile(candidate)) return candidate
     throw new Error(`Unresolved relative import: ${specifier}`)
+  }
+  const resolveImport = (from: string, specifier: string) => {
+    const key = JSON.stringify([from, specifier])
+    let resolution = importResolutions.get(key)
+    if (!resolution) {
+      resolution = resolveSourceImport(from, specifier)
+      importResolutions.set(key, resolution)
+    }
+    return resolution
   }
   const visit = async (sourcePath: string, owner: string, runtime: boolean): Promise<void> => {
     sourcePath = path.posix.normalize(sourcePath)
@@ -93,9 +106,19 @@ export const buildNativeSourceGraph = async ({
         }
       }
       if (!/\.[cm]?[jt]sx?$/.test(sourcePath)) return
-      const { imports, unsupported } = readSourceImports(content)
+      let parsed = sourceImports.get(sourcePath)
+      if (!parsed) {
+        parsed = readSourceImports(content)
+        sourceImports.set(sourcePath, parsed)
+      }
+      const { imports, unsupported } = parsed
       unsupported.forEach((message) => report("unsupported-import", sourcePath, message))
-      if (runtime && sourcePath.startsWith("src/input/specs/")) nativeOwners.add(owner)
+      if (runtime && sourcePath.startsWith("src/input/specs/")) {
+        nativeOwners.add(owner)
+        const owners = nativeRuntimeOwners.get(sourcePath) ?? new Set<string>()
+        owners.add(owner)
+        nativeRuntimeOwners.set(sourcePath, owners)
+      }
       for (const item of imports) {
         if (item.specifier.startsWith(".")) {
           try {
@@ -177,6 +200,9 @@ export const buildNativeSourceGraph = async ({
     externalDependencies: [...externals.values()]
       .map((item) => ({ ...item, importedBy: item.importedBy.sort() }))
       .sort((a, b) => a.specifier.localeCompare(b.specifier)),
+    nativeRuntimeOwners: [...nativeRuntimeOwners]
+      .map(([sourcePath, owners]) => ({ sourcePath, owners: [...owners].sort() }))
+      .sort((a, b) => a.sourcePath.localeCompare(b.sourcePath)),
     nativeAdapter,
     findings: [...new Map(findings.map((item) => [JSON.stringify(item), item])).values()].sort((a, b) =>
       JSON.stringify(a).localeCompare(JSON.stringify(b)),
