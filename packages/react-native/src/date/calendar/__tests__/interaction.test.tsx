@@ -17,7 +17,8 @@ const key = (value: string, extra = {}) =>
     stopPropagation: jest.fn(),
   }) as unknown as TNativeKeyboardEvent
 
-const range = async (props: Partial<RangeCalendarStateOptions<CalendarDate>> = {}) => {
+const range = async (props: Partial<RangeCalendarStateOptions<CalendarDate>> = {}, deferred = false) => {
+  const pending: (() => void)[] = []
   const result = await renderHook(() =>
     useRangeCalendarState({ locale: "en-US", createCalendar, defaultFocusedValue: day(10), ...props }),
   )
@@ -28,12 +29,17 @@ const range = async (props: Partial<RangeCalendarStateOptions<CalendarDate>> = {
     revision,
     canAct: () => active,
     admit: (_date, run) => {
-      if (active) run(result.result.current)
+      const execute = () => {
+        if (active) run(result.result.current)
+      }
+      if (deferred) pending.push(execute)
+      else execute()
     },
   }))
   return {
     ...result,
     gesture,
+    flush: () => pending.splice(0).forEach((run) => run()),
     active: (value: boolean) => {
       active = value
     },
@@ -98,17 +104,105 @@ it("commits reversed mouse drag endpoints using the real range state", async () 
   expect(result.current.isDragging).toBe(false)
 })
 
-it("holds the original 200ms touch admission and selects a quick tap on release", async () => {
+it.each([false, true])(
+  "commits ordinary touch once without passive selection or a later hold (passive end first=%s)",
+  async (endFirst) => {
+    jest.useFakeTimers()
+    const { result, gesture } = await range()
+    const original = {}
+    const ticket = gesture.beginPress(day(10), original)
+    await act(() => gesture.down(day(10), { ...touch, target: original }))
+    await act(() => jest.advanceTimersByTime(199))
+    if (endFirst) await act(() => gesture.up(day(10), { ...touch, target: original }))
+    expect(result.current.anchorDate).toBeNull()
+    await act(() => {
+      expect(gesture.takePress(ticket)).toBe(true)
+      activateNativeRangeCalendarDay(result.current, day(10), "touch")
+    })
+    if (!endFirst) expect(gesture.up(day(10), { ...touch, target: original })).toBe(false)
+    await act(() => jest.advanceTimersByTime(500))
+    expect(result.current.anchorDate).toEqual(day(10))
+    expect(result.current.focusedDate).toEqual(day(10))
+    expect(result.current.value).toBeNull()
+    expect(result.current.isDragging).toBe(false)
+  },
+)
+
+it("takes ordinary ownership after native down and preserves the no-observer pointer fallback", async () => {
   jest.useFakeTimers()
   const { result, gesture } = await range()
   await act(() => gesture.down(day(10), touch))
-  await act(() => jest.advanceTimersByTime(199))
-  expect(result.current.anchorDate).toBeNull()
-  await act(() => gesture.up(day(10), touch))
+  const ticket = gesture.beginPress(day(10), {})
+  expect(gesture.takePress(ticket)).toBe(true)
+  await act(() => activateNativeRangeCalendarDay(result.current, day(10), "touch"))
+  await act(() => jest.advanceTimersByTime(500))
   expect(result.current.anchorDate).toEqual(day(10))
   expect(result.current.isDragging).toBe(false)
-  await act(() => jest.runOnlyPendingTimers())
+})
+
+it("keeps a completed drag claim across owner revision and suppresses its original late press", async () => {
+  jest.useFakeTimers()
+  const { result, gesture, revise } = await range()
+  const original = {}
+  await act(() => gesture.down(day(10), { ...touch, target: original }))
+  const ticket = gesture.beginPress(day(10), original)
+  await act(() => jest.advanceTimersByTime(200))
+  await act(() => gesture.enter(day(14), touch))
+  await act(() => gesture.up(day(14), { ...touch, target: {} }))
+  revise()
+  gesture.cancel()
+  expect(gesture.takePress(ticket)).toBe(false)
+  expect(result.current.value).toEqual({ start: day(10), end: day(14) })
+  expect(result.current.anchorDate).toBeNull()
+})
+
+it("retires delayed hold work without replaying it through an ordinary press", async () => {
+  jest.useFakeTimers()
+  const { result, gesture, flush } = await range({}, true)
+  const original = {}
+  const ticket = gesture.beginPress(day(10), original)
+  gesture.down(day(10), { ...touch, target: original })
+  await act(() => jest.advanceTimersByTime(200))
+  expect(gesture.takePress(ticket)).toBe(false)
+  gesture.cancel()
+  await act(flush)
+  expect(result.current.anchorDate).toBeNull()
   expect(result.current.value).toBeNull()
+})
+
+it("cancels an exited original press and admits a subsequent fresh tap", async () => {
+  jest.useFakeTimers()
+  const { result, gesture } = await range()
+  const original = {}
+  const cancelled = gesture.beginPress(day(10), original)
+  gesture.down(day(10), { ...touch, target: original })
+  gesture.exitOriginal()
+  gesture.up(day(14), { ...touch, target: {} })
+  expect(gesture.takePress(cancelled)).toBe(false)
+  const fresh = gesture.beginPress(day(10), original)
+  gesture.down(day(10), { ...touch, target: original })
+  expect(gesture.takePress(fresh)).toBe(true)
+  await act(() => activateNativeRangeCalendarDay(result.current, day(10), "touch"))
+  expect(result.current.anchorDate).toEqual(day(10))
+  expect(result.current.value).toBeNull()
+})
+
+it("leaves an existing anchor to ordinary press and preserves claimed endpoint adjustment", async () => {
+  const { result, gesture } = await range()
+  await act(() => activateNativeRangeCalendarDay(result.current, day(10), "touch"))
+  const original = {}
+  const ticket = gesture.beginPress(day(14), original)
+  gesture.down(day(14), { ...touch, target: original })
+  await act(() => gesture.up(day(14), { ...touch, target: original }))
+  expect(result.current.value).toBeNull()
+  expect(gesture.takePress(ticket)).toBe(true)
+  await act(() => activateNativeRangeCalendarDay(result.current, day(14), "touch"))
+  expect(result.current.value).toEqual({ start: day(10), end: day(14) })
+  await act(() => gesture.down(day(10), { ...touch, target: original }))
+  const endpoint = gesture.beginPress(day(10), original)
+  await act(() => gesture.up(day(10), { ...touch, target: original }))
+  expect(gesture.takePress(endpoint)).toBe(false)
+  expect(result.current.anchorDate).toEqual(day(10))
 })
 
 it("admits touch dragging at 200ms and commits another original day on release", async () => {
@@ -172,8 +266,11 @@ it.each([false, true])(
     else {
       expect(result.current.value).toBeNull()
       expect(result.current.isDragging).toBe(false)
+      const ticket = gesture.beginPress(day(11), {})
       await act(() => gesture.down(day(11), mouse))
       await act(() => gesture.up(day(11), mouse))
+      expect(gesture.takePress(ticket)).toBe(true)
+      await act(() => activateNativeRangeCalendarDay(result.current, day(11), "touch"))
       expect(result.current.value).toEqual({ start: day(10), end: day(11) })
     }
   },
@@ -198,3 +295,23 @@ it.each([{ isDisabled: true }, { isReadOnly: true }, { isDateUnavailable: () => 
     expect(result.current.value).toBeNull()
   },
 )
+
+it("separates a fresh original press from a claimed same-day stream awaiting its old release", async () => {
+  jest.useFakeTimers()
+  const { result, gesture } = await range()
+  const original = {}
+  const old = gesture.beginPress(day(10), original)
+  gesture.down(day(10), { ...touch, target: original })
+  await act(() => jest.advanceTimersByTime(200))
+  expect(old.claimed).toBe(true)
+  let fresh!: ReturnType<typeof gesture.beginPress>
+  await act(() => {
+    fresh = gesture.beginPress(day(10), original)
+  })
+  expect(fresh).not.toBe(old)
+  expect(gesture.takePress(old)).toBe(false)
+  expect(gesture.takePress(fresh)).toBe(true)
+  await act(() => activateNativeRangeCalendarDay(result.current, day(10), "touch"))
+  expect(result.current.value).toEqual({ start: day(10), end: day(10) })
+  expect(result.current.isDragging).toBe(false)
+})

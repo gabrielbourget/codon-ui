@@ -137,7 +137,7 @@ const CalendarView = ({ state, ...props }: TCalendarProps & { state: TNativeCale
     )
     return () => releases.forEach((release) => release())
   }, [pointers.register, canAct])
-  const owner: TCalendarOwner = { ...props, state, targets, gesture, canAct, request, pointers }
+  const owner: TCalendarOwner = { ...props, state, revision, targets, gesture, canAct, request, pointers }
   const title = nativeCalendarTitle(state, props.options.locale),
     selected = nativeCalendarSelection(state, props.options.locale),
     strings = calendarStrings(props.options.locale)

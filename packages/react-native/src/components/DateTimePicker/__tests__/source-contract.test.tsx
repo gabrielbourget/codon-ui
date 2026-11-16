@@ -1,12 +1,13 @@
 import "../../../collection/__tests__/nativeReceipts"
 
 import { CalendarDate, CalendarDateTime } from "@internationalized/date"
-import { act, cleanup, within } from "@testing-library/react-native"
+import { act, cleanup, within, userEvent } from "@testing-library/react-native"
 import { createRef, type Ref } from "react"
 import { AccessibilityInfo, type View } from "react-native"
 import { Text } from "react-native"
 
 import {
+  actWithNativeCollections,
   fireEventWithNativeCollections as fireEvent,
   renderWithNativeCollections as render,
   screen,
@@ -42,6 +43,7 @@ beforeEach(() => {
 afterEach(() => {
   jest.restoreAllMocks()
   cleanup()
+  jest.useRealTimers()
 })
 
 it("keeps canonical single wrapper defaults ahead of context and preserves explicit owner overrides", async () => {
@@ -396,3 +398,157 @@ it("consumes single wrapper props without replacing the fixed field scaffold or 
   expect(layout).toHaveBeenCalledTimes(1)
   expect(layout.mock.calls[0][0]).toBe(event)
 })
+
+it("commits one ordinary day press through the original owner and closes the single calendar", async () => {
+  jest.useFakeTimers()
+  const user = userEvent.setup()
+  const change = jest.fn(),
+    open = jest.fn()
+  await render(
+    <NativeThemeProvider>
+      <NativeLocaleProvider locale="en-US">
+        <DateTimePicker
+          defaultValue={new CalendarDate(2024, 10, 10)}
+          defaultOpen
+          multiMonth={false}
+          onChange={change}
+          onOpenChange={open}
+        />
+      </NativeLocaleProvider>
+    </NativeThemeProvider>,
+  )
+  await user.press(screen.getByTestId("datetime-picker-day-2024-10-18"))
+  await actWithNativeCollections(() => {})
+  expect(change).toHaveBeenCalledTimes(1)
+  expect(change.mock.calls[0]![0]).toEqual(new CalendarDate(2024, 10, 18))
+  expect(open.mock.calls.map(([value]) => value)).toEqual([false])
+})
+
+it.each(["disabled", "readOnly", "unavailable"] as const)(
+  "rejects ordinary day presses while %s without a change or close request",
+  async (guard) => {
+    jest.useFakeTimers()
+    const change = jest.fn(),
+      open = jest.fn()
+    await render(
+      <NativeThemeProvider>
+        <NativeLocaleProvider locale="en-US">
+          <DateTimePicker
+            defaultValue={new CalendarDate(2024, 10, 10)}
+            defaultOpen
+            multiMonth={false}
+            isDisabled={guard === "disabled"}
+            isReadOnly={guard === "readOnly"}
+            isDateUnavailable={guard === "unavailable" ? () => true : undefined}
+            onChange={change}
+            onOpenChange={open}
+          />
+        </NativeLocaleProvider>
+      </NativeThemeProvider>,
+    )
+    await userEvent.setup().press(screen.getByTestId("datetime-picker-day-2024-10-18"))
+    await actWithNativeCollections(() => {})
+    expect(change).not.toHaveBeenCalled()
+    expect(open).not.toHaveBeenCalled()
+  },
+)
+
+it.each(["keyboard", "ios-accessibility-activate", "android-click"] as const)(
+  "commits the original day once through %s activation",
+  async (source) => {
+    const change = jest.fn(),
+      open = jest.fn()
+    await render(
+      <NativeThemeProvider>
+        <NativeLocaleProvider locale="en-US">
+          <DateTimePicker
+            defaultValue={new CalendarDate(2024, 10, 10)}
+            defaultOpen
+            multiMonth={false}
+            onChange={change}
+            onOpenChange={open}
+          />
+        </NativeLocaleProvider>
+      </NativeThemeProvider>,
+    )
+    const day = screen.getByTestId("datetime-picker-day-2024-10-18")
+    const nativeEvent =
+      source === "keyboard"
+        ? {
+            kind: "keyboard",
+            ownerId: day.props.ownerId,
+            target: 17,
+            key: "Enter",
+            nativeCode: 40,
+            phase: "down",
+            repeat: false,
+            cancelled: false,
+            nativeDefaultHandled: true,
+            timestamp: 0,
+          }
+        : {
+            kind: "activation",
+            ownerId: day.props.ownerId,
+            target: 17,
+            source,
+            observedAt: 0,
+            activationId: 1,
+            scopeOwnerId: "",
+            windowId: "window-1",
+            epoch: 0,
+          }
+    const event = {
+      nativeEvent,
+      persist: jest.fn(),
+      preventDefault: jest.fn(),
+      isDefaultPrevented: () => false,
+      stopPropagation: jest.fn(),
+    }
+    await actWithNativeCollections(() => {
+      if (source === "keyboard") {
+        day.props.onNativeKey(event)
+        day.props.onNativeKey({ ...event, nativeEvent: { ...nativeEvent, phase: "up" } })
+      } else day.props.onNativeActivation(event)
+    })
+    expect(change).toHaveBeenCalledTimes(1)
+    expect(change.mock.calls[0]![0]).toEqual(new CalendarDate(2024, 10, 18))
+    expect(open.mock.calls.map(([value]) => value)).toEqual([false])
+  },
+)
+
+it.each(["terminate", "owner-replaced", "unmounted"] as const)(
+  "retires an original day press when %s before release",
+  async (boundary) => {
+    jest.useFakeTimers()
+    const change = jest.fn(),
+      open = jest.fn()
+    const node = (value = new CalendarDate(2024, 10, 10)) => (
+      <NativeThemeProvider>
+        <NativeLocaleProvider locale="en-US">
+          <DateTimePicker value={value} isOpen multiMonth={false} onChange={change} onOpenChange={open} />
+        </NativeLocaleProvider>
+      </NativeThemeProvider>
+    )
+    const view = await render(node())
+    const day = screen.getByTestId("datetime-picker-day-2024-10-18")
+    const release = day.props.onResponderRelease
+    const event = {
+      persist: jest.fn(),
+      currentTarget: 17,
+      target: 17,
+      nativeEvent: { target: 17, timestamp: 0, identifier: 0, locationX: 0, locationY: 0, pageX: 0, pageY: 0 },
+    }
+    await act(() => day.props.onResponderGrant(event))
+    if (boundary === "terminate") await act(() => day.props.onResponderTerminate(event))
+    else if (boundary === "owner-replaced") await view.rerender(node(new CalendarDate(2024, 10, 11)))
+    else await view.unmount()
+    if (boundary !== "terminate") {
+      const finish = () => release({ ...event, nativeEvent: { ...event.nativeEvent, timestamp: 100 } })
+      if (boundary === "unmounted") await act(finish)
+      else await actWithNativeCollections(finish)
+    }
+    await act(() => jest.advanceTimersByTime(500))
+    expect(change).not.toHaveBeenCalled()
+    expect(open).not.toHaveBeenCalled()
+  },
+)

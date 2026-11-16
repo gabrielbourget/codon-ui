@@ -20,6 +20,7 @@ export type TCalendarProps = {
 }
 export type TCalendarOwner = TCalendarProps & {
   state: TNativeCalendarState
+  revision: string
   targets: NativeCalendarTargets
   gesture: NativeCalendarRangeGesture | null
   pointers: ReturnType<typeof useNativeCalendarPointers>

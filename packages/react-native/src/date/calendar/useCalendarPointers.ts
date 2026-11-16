@@ -138,19 +138,6 @@ export const useNativeCalendarPointers = (owner: TOwner) => {
             (!!selected && !selected.day) || !latest.focusObserved(),
             latest.focusObserved(),
           )
-        else if (selected === started.origin && selected.day && selected.current())
-          latest.request(selected.day.date, (state) => {
-            if (
-              !state.isReadOnly &&
-              !state.isDisabled &&
-              !state.isCellDisabled(selected.day!.date) &&
-              !state.isCellUnavailable(selected.day!.date)
-            ) {
-              state.selectDate(selected.day!.date)
-              state.setFocusedDate(selected.day!.date)
-              state.setFocused(true)
-            }
-          })
       },
       activate: () => {},
       retire: () => {

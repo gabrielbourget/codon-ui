@@ -189,17 +189,17 @@ it("retires a drag on window deactivation and rejects its later original release
   expect(f.result.current.state.value).toBeNull()
   expect("isDragging" in f.result.current.state && f.result.current.state.isDragging).toBe(false)
 })
-it("selects a single date only when its release hits the same original day host", async () => {
+it("never commits a discrete single date through passive release, including the original day", async () => {
   const f = await fixture(false)
   await f.send("start", 11)
   await f.send("end", 12)
   expect(f.result.current.state.value).toBeNull()
   await f.send("start", 11)
   await f.send("end", 11)
-  expect(f.result.current.state.value).toEqual(day(10))
+  expect(f.result.current.state.value).toBeNull()
 })
 
-it("selects the same original single-calendar touch after an intervening focused-date update", async () => {
+it("leaves discrete selection to the button after an intervening focused-date update", async () => {
   const f = await fixture(false)
   expect(f.result.current.state.focusedDate).toEqual(day(10))
   expect(f.result.current.state.value).toBeNull()
@@ -212,7 +212,7 @@ it("selects the same original single-calendar touch after an intervening focused
   expect(f.result.current.state.isFocused).toBe(true)
   expect(f.result.current.state.value).toBeNull()
   await f.send("end", 12, "touch")
-  expect(f.result.current.state.value).toEqual(day(14))
+  expect(f.result.current.state.value).toBeNull()
   expect(f.result.current.state.focusedDate).toEqual(day(14))
   expect(f.result.current.state.isFocused).toBe(true)
 })
