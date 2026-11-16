@@ -294,7 +294,7 @@ try {
   assert.equal(setupCliStrict.effects.writesPackageJson, true)
   assert.equal(setupCliStrict.cliShortcut.status, "written")
   assert.equal(setupCliPackageJson.scripts.cui, "cui")
-  assert.equal(setupCliPackageJson.devDependencies["@codon-ui/cli"], "0.2.1")
+  assert.equal(setupCliPackageJson.devDependencies["@codon-ui/cli"], "0.3.0")
 
   const setupCliSecondSnapshotBefore = snapshotFiles(setupCliStrictFixturePath)
   const setupCliSecond = runInitCommandJson({
