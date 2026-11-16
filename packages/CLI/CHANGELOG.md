@@ -1,5 +1,36 @@
 # @codon-ui/cli Changelog
 
+## 0.3.0 - Unreleased
+
+### Added
+
+- Added `cui init --target react-native` to the existing CLI. Native configuration selects editable component and shared implementation copies; the default remains React/web.
+- Added the 52-component native source registry, application-owned Intl bootstrap example, deduplicated dependencies and normal native autolinking configuration.
+- Separated Table's component-owned native backend from shared core support while preserving the delivered batching and activation behavior. Core-only and full-Table source variants travel with the selected component graph.
+
+### Fixed
+
+- Preserve canonical public component barrels, cross-directory helpers and the ambient SDK declaration in copied native source.
+- Preserve the actual consumer's full/core and ESM/CommonJS profile during status and update planning. Native helper dependency-set changes block before writes; stable-closure updates and local-edit protection remain supported.
+- Package all required registry snapshots and native source variants with content/inventory checks and a portable source payload.
+- Relay native pointer packets to independently ready sibling scopes and route ordinary calendar day activation through the existing button callback while preserving range-gesture ownership and cancellation. These source corrections do not establish installed calendar acceptance.
+
+### Consumer Notes
+
+- This is a prepared release candidate, not a published version. Use the locally verified CLI tarball until publication is explicitly approved and the registry version is confirmed.
+- In an existing compatible Expo development-client app, run `cui init --target react-native`, then `cui add button input click-popover --dependency-policy install --install-dependencies`. Existing web configurations are not silently converted.
+- Import the copied Intl bootstrap before App and compose the documented native providers. Rebuild the development client after native source, codegen or composition changes; Expo Go cannot supply the custom backend. See the [native consumer guide](../../apps/docs/src/content/docs/packages/react-native-consumer.md).
+- Existing native helper-ownership drift needs a reviewed source migration or guarded reinstallation. Automatic dependency-closure migration, arbitrary existing-project/provider discovery, durable production filesystem transactions and bare-RN qualification are not included.
+
+### Verification And Remaining Proof
+
+- The merged bridge at `d3ea0e91` passed exact-head full hosted CI, existing web/native CLI tests, normal hooks and relocated package checks. Actual locally packed CLI installation, all-52 source add/repeat, update/edit protection and dependency identity checks passed.
+- An isolated external Expo consumer passed types, Android/iOS Metro exports, standard autolinking and core-only/full-Table compile/link on both platforms using the existing pinned toolchains. These are source/build results, not all-52 installed component qualification.
+- This local refresh combines release preparation `cb56b130` with reviewed producer `3506b2dd` (draft #274); it is not a merged or published artifact. Original release and native build receipts retain their actual older source identities.
+- Gabriel explicitly deferred the remaining calendar tap investigation on 2026-11-16 so other bridge/release work can proceed. Installed iOS/Android calendar selection and iOS viewport/scroll results remain deferred/unverified; historical failures are preserved and no pass is inferred. The latest Android guest never became available for installing the external consumer.
+- The separate installed-fixture surface contains 52 component records and seven shared-native scenarios. Its 554 pending gate/outcome statuses require actual scoped evidence; complete preparation records, semantic compilation and Metro exports do not advance them. Actual published-package consumer validation remains blocked until authorized publication and private registry access.
+- Release-candidate checks and the separate approval/dispatch boundary are documented in the [private publish preflight](../../apps/docs/src/content/docs/cli/private-publish.md). Registry visibility and version availability must be confirmed through an authorized read before publication; the preparation lookup returned 404.
+
 ## 0.2.1 - 2026-08-06
 
 ### Changed
