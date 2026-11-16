@@ -170,3 +170,7 @@ The opt-in `filesystemRecovery.host.test.ts` exports no adapter/reader; its priv
 | Completion recorded                  | After / after       | Present           |
 
 Run `pnpm -F @codon-ui/cli exec tsx src/helpers/nativeSource/filesystemRecovery.host.test.ts`; it is outside the default suite and skips non-Linux hosts. Six cases pass on Node24.15.0/Linux6.18.57, `/tmp` type`0x01021994` (tmpfs): process-interruption/API evidence only. Disk/power-loss durability, arbitrary-editor safety, deployed recovery, other platforms and native installation remain unverified. Production writers/lock schema, date baseline, dependencies and Mac/fixture/native verdicts are unchanged.
+
+## Delivered batching reconciliation
+
+Local integration onto PR259 (`c76b9410`) retains the delivered Android prepare/frames batch protocol in the extracted `CUITableNativeSession` and `TableStickyJNI`. The production driver is unchanged apart from its session owner type; native lease parsing, revision correlation, geometry validation and JNI batch function bodies move intact. Preservation controls pin those driver/JNI statements to the delivered baseline, rather than the older branch base. Actual SDK compilation and installed verification remain separate.

@@ -9,7 +9,7 @@ import { readRequiredRegistryFileNames, verifyPackSource } from "./pack-source.m
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const preparePackSourcePath = path.join(packageRoot, "scripts/prepare-pack-source.mjs")
 const cleanupPackSourcePath = path.join(packageRoot, "scripts/cleanup-pack-source.mjs")
-const requiredFileNames = readRequiredRegistryFileNames(process.argv.slice(2))
+const requiredFileNames = ["local-native.registry.json", ...readRequiredRegistryFileNames(process.argv.slice(2))]
 
 const fail = (message) => {
   throw new Error(`[codon-ui-cli-pack-preflight] ${message}`)

@@ -3,7 +3,24 @@ title: Native consumer bootstrap
 description: App-owned entrypoint, providers, peers and native rebuild boundaries.
 ---
 
-This is a reusable composition reference for the current private `@codon-ui/react-native` package. The in-repo Expo showcase is the working consumer. RN CLI installation, selective native delivery and public publication remain separate unfinished work; these snippets do not establish that `codon-ui add` can install native components. Bare RN is unverified. Its app entry registration differs, but the provider and runtime ownership below still apply when preparing that host.
+The native CLI target copies editable Codon implementations into the application, following the existing web CLI ownership model. It installs shared dependencies once and adds component-owned native source where selected. The native target is tested from source builds; no new CLI release is published. Install a locally verified CLI tarball as an application development dependency until publication is separately approved. The external Expo consumer has exercised the locally packed CLI, source installation and update, type checking, both-platform JS export and native autolinking. Installed consumer interaction and complete native lifecycle verification remain separate proof. Bare RN is unverified.
+
+## Select the native CLI target
+
+Use the bridge CLI build in an existing Expo SDK 57 development-client app:
+
+```sh
+cui init --target react-native
+cui add button input click-popover --dependency-policy install --install-dependencies
+```
+
+The default target remains `react`. Native selection is recorded in `codon-ui.config.json`; subsequent add/status/diff/update/remove commands use that registry. Existing non-native config is never silently converted. Dependency installation retains the existing explicit policy and consent flags. Incompatible existing host pins are reported rather than upgraded.
+
+With the default layout, import `Button` from `./src/components/Button`, `Input` from `./src/components/Input`, and provider exports from `./src/components/NativeRoot`. Their implementations and shared support are regular editable files under `src/components/_codon-ui-registry/utils/native`. The CLI owns provenance in `codon-ui.lock.json`; keep that file. Repeat adds reuse unchanged files. Changed files retain the existing protected update/remove behavior. Use `cui update --all --dry-run --json` to inspect updates before applying them. Native updates preserve the existing conservative file-set policy: a changed helper dependency set blocks before writes and requires a reviewed source migration or reinstallation. The CLI does not silently migrate native helper ownership. Updates within a stable dependency set remain supported, and local edits stay protected.
+
+A root `react-native.config.js` points ordinary native autolinking at the copied local module. An existing conflicting root config is protected; merge the required entry deliberately instead of overwriting it. Rebuild after native source/spec/composition changes. Shared core support currently includes the date-segment backend because focus/form code references it. Table adds its own native sources and refreshes only clean registry-owned factory/build files. While a full Table factory remains required by other installed components, removal must retain the native files that factory references; source removal does not unload an installed binary.
+
+Publication, upgrades, bare-RN installation, physical-device qualification and the final 52-component external-consumer proof are outside the results above.
 
 ## Host peers
 
@@ -19,9 +36,9 @@ The supported laboratory tuple is iOS/Android on Expo SDK 57. The exact current 
 | `expo`                           | `57.0.26` | Showcase/app dependency, not a library peer     |
 | `expo-dev-client`                | `57.0.19` | Showcase development binary, not a library peer |
 
-Declare the native peers in the consuming application's manifest so its native tooling can discover them. Expo, navigation, app configuration, assets and routing remain app-owned. The library owns its `@internationalized/date`, `@internationalized/number` and `react-stately` dependencies. Do not substitute web React, React Aria, CSS or RN Web setup. Other peer versions, operating systems and bare-RN builds have no support proof here.
+Declare the native peers in the consuming application's manifest so its native tooling can discover them. Expo, navigation, app configuration, assets and routing remain app-owned. The selected registry graph declares `@internationalized/date`, `@internationalized/number` and `react-stately` in the application when needed, deduplicating the shared pins. Do not substitute web React, React Aria, CSS or RN Web setup. Other peer versions, operating systems and bare-RN builds have no support proof here.
 
-Metro selects the package's `react-native` export (`src/index.ts`); declaration and ordinary compiled imports select `dist`. In this workspace, build declarations before checking consumer types:
+The editable CLI path imports copied source directly. The private workspace package separately exposes `src/index.ts` to Metro and `dist` declarations to package consumers. For that in-repository package consumer, build declarations before checking types:
 
 ```sh
 pnpm -F @codon-ui/react-native build
@@ -30,11 +47,11 @@ pnpm -F @codon-ui/native-showcase typecheck
 
 ## Prepare Intl before importing the app
 
-Intl initialization belongs in the application's first entry module, before `App`, the native barrel or modules that cache formatters. A component effect runs too late. The showcase's `apps/native-showcase/src/runtime/number-format.ts` is the maintained synchronous example: copy/adapt it into the consumer's own runtime module and declare its dependencies there. Keep its literal synchronous loads and capability checks. A separate consumer must not import the showcase at runtime.
+Intl initialization belongs in the application's first entry module, before `App`, the native barrel or modules that cache formatters. A component effect runs too late. The showcase's `apps/native-showcase/src/runtime/number-format.ts` is the maintained synchronous example. The native CLI copies it to the registry utilities runtime directory and declares its existing dependencies; import it explicitly before App. Keep its literal synchronous loads and capability checks. A separate consumer must not import the showcase at runtime.
 
 ```ts
 // index.ts: use this file as the Expo application's package.json main.
-import "./src/runtime/number-format"
+import "./src/components/_codon-ui-registry/utils/runtime/number-format"
 
 import { registerRootComponent } from "expo"
 
@@ -49,7 +66,7 @@ The current app-owned fallback pins are `@formatjs/intl-getcanonicallocales@3.2.
 
 ## Compose one application window
 
-The following app-owned helper is checked against the public exports in `packages/react-native/type-tests/consumer-bootstrap.tsx`. Copy it into the consumer; it is not an exported Codon provider.
+The following app-owned helper is checked against the public exports in `packages/react-native/type-tests/consumer-bootstrap.tsx`. Copy it into the consumer and use the CLI-installed NativeRoot exports below; it is not an exported Codon provider.
 
 ```tsx
 import type { PropsWithChildren } from "react"
@@ -64,7 +81,7 @@ import {
   NativeThemeProvider,
   type NativeThemeMode,
   type NativeThemeOverrides,
-} from "@codon-ui/react-native"
+} from "./src/components/NativeRoot"
 
 export const ConsumerRoot = ({
   children,

@@ -7,7 +7,7 @@ const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 const result = preparePackSource({
   packageRoot,
   repoRoot: path.resolve(packageRoot, "../.."),
-  requiredFileNames: readRequiredRegistryFileNames(process.argv.slice(2)),
+  requiredFileNames: ["local-native.registry.json", ...readRequiredRegistryFileNames(process.argv.slice(2))],
 })
 
 console.log(

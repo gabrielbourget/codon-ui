@@ -34,9 +34,12 @@ import {
 } from "./installPlan/constants"
 import {
   getDefaultLocalReactRegistrySourcePath,
+  getDefaultLocalNativeRegistrySourcePath,
   getDefaultLocalSupportRegistrySourcePath,
   isLocalReactRegistryComponentItemRequest,
+  resolveNativeRegistryProfile,
 } from "./installPlan/localRegistry"
+import { localRegistrySourceSchema } from "./installPlan/schema"
 import {
   CLI_PROJECT_RESOURCE_STATUS__INVALID,
   CLI_PROJECT_RESOURCE_STATUS__MISSING,
@@ -218,22 +221,30 @@ const createContentHash = (content: string | Buffer) =>
 const createEmptyRecord = <TKey extends string>(keys: readonly TKey[]): Record<TKey, number> =>
   Object.fromEntries(keys.map((key) => [key, 0])) as Record<TKey, number>
 
-const resolveDefaultStatusRegistrySourcePath = (requestedItems: readonly string[]) => {
+const resolveDefaultStatusRegistrySourcePath = (requestedItems: readonly string[], config: TConsumerConfig) => {
+  if (config.registry.sourcePackage === "@codon-ui/react-native") return getDefaultLocalNativeRegistrySourcePath()
   if (isLocalReactRegistryComponentItemRequest(requestedItems)) return getDefaultLocalReactRegistrySourcePath()
 
   return getDefaultLocalSupportRegistrySourcePath()
 }
 
-const readStatusRegistrySource = async (registrySourcePath: string): Promise<TStatusRegistryReadResult> => {
+const readStatusRegistrySource = async (
+  registrySourcePath: string,
+  consumerRoot: string,
+): Promise<TStatusRegistryReadResult> => {
   const resolvedRegistrySourcePath = path.resolve(registrySourcePath)
 
   if (!existsSync(resolvedRegistrySourcePath)) {
     throw new Error(`Local registry source not found at ${resolvedRegistrySourcePath}.`)
   }
 
-  const registrySource = statusRegistrySourceSchema.parse(
-    JSON.parse(await fs.readFile(resolvedRegistrySourcePath, "utf8")),
-  )
+  const raw = JSON.parse(await fs.readFile(resolvedRegistrySourcePath, "utf8"))
+  const projected =
+    raw.sourceIdentity === "@codon-ui/react-native-local"
+      ? resolveNativeRegistryProfile(localRegistrySourceSchema.parse(raw), { consumerRoot })
+      : raw
+  const { native: _native, ...standard } = projected
+  const registrySource = statusRegistrySourceSchema.parse(standard)
   const sourceRoot = path.resolve(path.dirname(resolvedRegistrySourcePath), registrySource.sourceRoot ?? ".")
 
   return {
@@ -487,7 +498,8 @@ export const createStatusReport = async ({
   if (requestedItems.length > 0) {
     try {
       const registryReadResult = await readStatusRegistrySource(
-        registrySourcePath ?? resolveDefaultStatusRegistrySourcePath(requestedItems),
+        registrySourcePath ?? resolveDefaultStatusRegistrySourcePath(requestedItems, configPlan.config),
+        cwd,
       )
 
       resolvedRegistrySourcePath = registryReadResult.registrySourcePath
