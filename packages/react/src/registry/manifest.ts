@@ -1134,6 +1134,13 @@ export const reactRegistryManifest = [
       },
       {
         sourcePath:
+          "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/temporalValues.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Filtering/DynamicFilterArgumentInput/InternalComponents/temporalValues.ts",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath:
           "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/InputTypeFilterArgument/InputTypeFilterArgument.tsx",
         targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
         targetPath:

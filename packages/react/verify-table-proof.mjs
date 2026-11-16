@@ -148,6 +148,7 @@ requiredPackageFileSources.forEach((sourcePath) => {
     packet.files.some((file) => file.sourcePath === sourcePath),
     `Table packet must include ${sourcePath}`,
   )
+  assert(manifestSource.includes(JSON.stringify(sourcePath)), `Table manifest must include ${sourcePath}`)
 })
 assert(packet.files.length >= 50, "Table packet must model the full Table, Filtering, and SortParameterList graph")
 assert(
