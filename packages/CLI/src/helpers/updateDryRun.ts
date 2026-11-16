@@ -511,6 +511,25 @@ const createFileSetDriftPlan = async ({
 
   const advisoryPaths = new Set(advisoryReport.files.map((file) => file.path))
   const currentItem = installPlan.items.find((item) => item.name === itemName)
+  const nativeClosureBlockers: ReturnType<typeof createUpdateDryRunBlocker>[] = []
+  if (installPlan.sourceIdentity === "@codon-ui/react-native-local" && currentItem) {
+    const locked = (await readConsumerLockfileForStrictAdd(cwd)).lockfileData.items[itemName]
+    if (
+      locked &&
+      JSON.stringify([...locked.registryDependencies].sort()) !==
+        JSON.stringify([...currentItem.registryDependencies].sort())
+    ) {
+      nativeClosureBlockers.push(
+        createUpdateDryRunBlocker({
+          code: "update-dry-run-native-dependency-closure-drift",
+          itemName,
+          kind: UPDATE_DRY_RUN_BLOCKER_KIND__ITEM,
+          message: `Native item "${itemName}" has a changed shared dependency set. Review a source migration or reinstallation before updating; the item-scoped writer cannot migrate its helper ownership. No files were written.`,
+          severity: INSTALL_PLAN_FINDING_SEVERITY__ERROR,
+        }),
+      )
+    }
+  }
   const extraPlanFiles = currentItem?.files.filter((file) => !advisoryPaths.has(file.resolvedPath)) ?? []
 
   const fileSetResults = await Promise.all(
@@ -555,7 +574,7 @@ const createFileSetDriftPlan = async ({
     adoptableFileAdditions: fileSetResults.flatMap(({ adoptableFileAddition }) =>
       adoptableFileAddition ? [adoptableFileAddition] : [],
     ) as TAdoptableFileAddition[],
-    blockers: fileSetResults.flatMap(({ blocker }) => (blocker ? [blocker] : [])),
+    blockers: [...nativeClosureBlockers, ...fileSetResults.flatMap(({ blocker }) => (blocker ? [blocker] : []))],
   }
 }
 

@@ -21,6 +21,7 @@ import {
   consumerConfigSchema,
   createStrictAddBlockerFindings,
   createStrictAddLockfileReusePlan,
+  createNativeCompositionRefreshPlan,
   createRegistryInstallPlanWithFindings,
   createRegistryInstallPlan,
   handleError,
@@ -32,6 +33,7 @@ import {
   INSTALL_PLAN_FINDING_SEVERITY__WARNING,
   INSTALL_PLAN_TARGET_RESOLUTION__REUSE_EXISTING,
   isLocalReactRegistryComponentItemRequest,
+  isNativeRegistryConsumer,
   logger,
   readLocalRegistrySource,
   readComponentPacketsForRegistrySource,
@@ -260,13 +262,21 @@ export const add = new Command()
         const registrySourcePathOption =
           options.registrySource ??
           resolveDefaultAddRegistrySourcePath({
+            consumerRoot: cwd,
             allComponents: options.allComponents,
             requestedItems: explicitRequestedItems,
           })
-        const { registrySource, registrySourcePath, sourceRoot } =
-          await readLocalRegistrySource(registrySourcePathOption)
+        const { registrySource, registrySourcePath, sourceRoot } = await readLocalRegistrySource(
+          registrySourcePathOption,
+          {
+            consumerRoot: cwd,
+            requestedItems: options.allComponents ? [...explicitRequestedItems, "table"] : explicitRequestedItems,
+          },
+        )
         const requestedItems = options.allComponents
-          ? registrySource.items.map((item) => item.name)
+          ? registrySource.items
+              .filter((item) => !isNativeRegistryConsumer(cwd) || item.type === "component")
+              .map((item) => item.name)
           : explicitRequestedItems
         const {
           componentPackets,
@@ -278,11 +288,13 @@ export const add = new Command()
         })
         const configPlan: TConsumerConfigPlan = options.dryRun
           ? await readConsumerConfigForDryRun(cwd)
-          : {
-              config: consumerConfigSchema.parse({}),
-              configSource: DEPENDENCY_INSTALL_POLICY_SOURCE__DEFAULT,
-              findings: [],
-            }
+          : isNativeRegistryConsumer(cwd)
+            ? await readConsumerConfigForDryRun(cwd)
+            : {
+                config: consumerConfigSchema.parse({}),
+                configSource: DEPENDENCY_INSTALL_POLICY_SOURCE__DEFAULT,
+                findings: [],
+              }
         const dependencyPolicy = createDependencyInstallPolicyPlan({
           configPolicy: configPlan.config.dependencies.policy,
           configSource: configPlan.configSource,
@@ -378,16 +390,26 @@ export const add = new Command()
         return
       }
 
-      if (isStrictLocalRegistryComponentAddRequest(options)) {
-        const explicitRequestedItems = options.components ?? []
+      if (isStrictLocalRegistryComponentAddRequest(options) || isNativeRegistryConsumer(cwd)) {
+        let explicitRequestedItems = options.components ?? []
         const registrySourcePathOption =
           options.registrySource ??
           resolveDefaultAddRegistrySourcePath({
+            consumerRoot: cwd,
             allComponents: options.allComponents,
             requestedItems: explicitRequestedItems,
           })
-        const { registrySource, registrySourcePath, sourceRoot } =
-          await readLocalRegistrySource(registrySourcePathOption)
+        const { registrySource, registrySourcePath, sourceRoot } = await readLocalRegistrySource(
+          registrySourcePathOption,
+          {
+            consumerRoot: cwd,
+            requestedItems: options.allComponents ? [...explicitRequestedItems, "table"] : explicitRequestedItems,
+          },
+        )
+        if (options.allComponents)
+          explicitRequestedItems = registrySource.items
+            .filter((item) => item.type === "component")
+            .map((item) => item.name)
         const {
           componentPackets,
           findings: componentPacketFindings,
@@ -431,9 +453,13 @@ export const add = new Command()
             ],
             installPlan,
           })
-          const reusableTargetPlan = createStrictAddLockfileReusePlan({
-            installPlan: planWithInitialFindings,
+          const reusableTargetPlan = createNativeCompositionRefreshPlan({
+            installPlan: createStrictAddLockfileReusePlan({
+              installPlan: planWithInitialFindings,
+              lockfileData: lockfilePlan.lockfileData,
+            }),
             lockfileData: lockfilePlan.lockfileData,
+            registrySource: advisoryRegistrySource,
           })
           const strictBlockerFindings = createStrictAddBlockerFindings(reusableTargetPlan)
           const findings = [...reusableTargetPlan.findings, ...strictBlockerFindings]

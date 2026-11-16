@@ -84,7 +84,10 @@ export const createUpdateDependencyPlan = async ({
     }
   }
 
-  const { registrySource, sourceRoot } = await readLocalRegistrySource(registrySourcePath)
+  const { registrySource, sourceRoot } = await readLocalRegistrySource(registrySourcePath, {
+    consumerRoot: cwd,
+    requestedItems: [itemName],
+  })
   const installPlan = createRegistryInstallPlan({
     config: configPlan.config,
     consumerRoot: cwd,
