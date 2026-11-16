@@ -44,7 +44,7 @@
     "release:workflow-check": "node scripts/publication-safety.mjs verify-workflow",
     "typecheck": "tsc --noEmit",
     "test": "pnpm exec tsx src/contracts.test.ts && pnpm exec tsx src/commands/init.test.ts && pnpm exec tsx src/commands/status.test.ts && pnpm exec tsx src/commands/diff.test.ts && pnpm exec tsx src/commands/update.test.ts && pnpm exec tsx src/commands/remove.test.ts && pnpm exec tsx src/commands/eject.test.ts && pnpm exec tsx src/commands/add.test.ts && pnpm test:native-source",
-    "test:native-source": "pnpm exec tsx src/helpers/nativeSource/graph.test.ts"
+    "test:native-source": "pnpm exec tsx src/helpers/nativeSource/graph.test.ts && pnpm exec tsx src/helpers/nativeSource/ownership.test.ts && pnpm exec tsx src/helpers/nativeSource/tableProjection.test.ts"
   },
   "dependencies": {
     "@babel/core": "^7.24.4",
