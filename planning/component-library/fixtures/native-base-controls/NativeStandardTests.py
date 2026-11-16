@@ -82,6 +82,9 @@ def verify_selected_app_inputs(plan, app):
 
 
 def selection(platform, batch="meter-g02"):
+    if batch == "external-core-debug":
+        require(platform == "android", "External core Debug build requires Android")
+        return {"ios": [], "android": ["external-core-debug-compile-link"]}
     if batch in SELECT_BATCHES:
         require(platform == "ios", "Select G08 is iOS only")
         names = {"ownership": "testSelectOwnershipCollectionAndFocus", "styles": "testSelectStylesConstraintsAndKeyboard", "lifetime": "testSelectLifetimeContextAndReduction", "focus-diagnostic": "testSelectPublicRefFocusDiagnostic"}
@@ -775,7 +778,8 @@ def build_ios(session, config=None):
 
 def build_android(session, config):
     target = config.get("buildTarget", "observer")
-    require(target in ["observer", "application"], "Unknown Android build target")
+    require(target in ["observer", "application", "external-core-debug"], "Unknown Android build target")
+    if target == "external-core-debug": return build_external_android_core(session, config)
     if target == "application": return build_android_application(session, config)
     sdk, jdk = Path(config["sdk"]), Path(config["jdk"])
     tools, jar = sdk / "build-tools/36.0.0", sdk / "platforms/android-36/android.jar"
@@ -874,6 +878,45 @@ def native_runtime_digest(raw):
     require(note[1] == 7 and note[5] == 36 and start + 36 <= len(raw) and struct.unpack_from("<III", raw, start) == (4, 20, 3) and raw[start + 12:start + 16] == b"GNU\0", "Exact GNU SHA1 build-ID note layout required")
     normalized = raw[:start + 16] + bytes(20) + raw[start + 36:]
     return hashlib.sha256(normalized).hexdigest(), raw[start + 16:start + 36].hex()
+
+
+def external_android_core_inputs(config):
+    manifest = json.loads(bound_file(config["consumerInputs"]).read_text())
+    consumer = Path(manifest["consumerRoot"]).resolve()
+    native = Path(manifest["nativeRoot"]).resolve()
+    require(manifest.get("kind") == "external-android-core-debug-inputs" and manifest.get("components") == ["button", "menu", "text"] and manifest.get("composition") == "core", "Only the bound core-only Menu consumer is selected")
+    require(consumer.is_dir() and native.is_dir() and native != consumer and not consumer.is_relative_to(REPO.resolve()) and native.is_relative_to(consumer), "External consumer/native root binding required")
+    require(re.fullmatch(r"[a-f0-9]{40}", manifest["sourceCommit"]), "Exact source commit required")
+    require(manifest["files"] and manifest["excludedNativePaths"] and manifest["expectedCodegenModules"], "Complete consumer/native/codegen bindings required")
+    for item in manifest["files"]:
+        require(bound_file(item).is_relative_to(consumer), "Build input escapes the external consumer")
+    for relative in manifest["excludedNativePaths"]:
+        candidate = native / relative
+        require(not Path(relative).is_absolute() and ".." not in Path(relative).parts and not candidate.exists(), "Unselected Table native source is present")
+    project = consumer / "android"
+    require((project / "gradlew").is_file(), "Generate the external Android project before dispatch")
+    require(any(Path(item["path"]).resolve() == (project / "gradlew").resolve() for item in manifest["files"]), "Bind the generated Gradle wrapper")
+    return manifest, consumer, native
+
+
+def build_external_android_core(session, config):
+    require(config.get("action") == "build" and config.get("batch") == "external-core-debug", "External build cannot launch a runtime")
+    manifest, consumer, native = external_android_core_inputs(config)
+    sdk, jdk, cache = Path(config["sdk"]), Path(config["jdk"]), Path(config["gradleUserHome"])
+    require(sdk.is_dir() and (jdk / "bin/javac").is_file() and cache.is_dir(), "Existing SDK, full JDK and Gradle cache required")
+    session.env.update(JAVA_HOME=str(jdk), ANDROID_HOME=str(sdk), ANDROID_SDK_ROOT=str(sdk), GRADLE_USER_HOME=str(cache))
+    project = consumer / "android"
+    argv = [project / "gradlew", "-p", project, "generateCodegenArtifactsFromSchema", ":app:assembleDebug", "--offline", "--no-daemon", "--max-workers=2", "--console=plain", "-PreactNativeArchitectures=x86_64"]
+    session.run("external-core-debug", argv)
+    external_android_core_inputs(config)
+    apk = project / "app/build/outputs/apk/debug/app-debug.apk"
+    require(apk.is_file(), "External Debug APK missing")
+    schema = native / "android/build/generated/source/codegen/schema.json"
+    require(schema.is_file() and set(json.loads(schema.read_text())["modules"]) == set(manifest["expectedCodegenModules"]), "Selected generated Codegen modules differ")
+    with zipfile.ZipFile(apk) as archive:
+        members = {name: hashlib.sha256(archive.read(name)).hexdigest() for name in archive.namelist() if name.startswith("lib/") or re.fullmatch(r"classes\d*\.dex", name)}
+    require("lib/x86_64/libcodon_motion.so" in members and any(name.endswith(".dex") for name in members), "Core native library or Dex linkage missing")
+    return {"scope": "External core-only x86_64 Debug compile/link; no device or runtime assertion", "consumerRoot": str(consumer), "sourceCommit": manifest["sourceCommit"], "consumerInputs": config["consumerInputs"], "apk": str(apk), "apkSHA256": digest(apk), "nativeMembers": members, "schema": str(schema), "schemaSHA256": digest(schema), "codegenModules": sorted(manifest["expectedCodegenModules"]), "deviceActions": 0, "gatePromotions": 0}
 
 
 def build_android_application(session, config):
@@ -3043,6 +3086,10 @@ def execute(plan, admission):
 
 def validate_standard_scope(plan):
     cell, batch = plan["cell"], plan["nativeStandard"].get("batch", "meter-g02")
+    if batch == "external-core-debug":
+        config = plan["nativeStandard"]
+        require(cell == "CAT.menu.G06" and config.get("platform") == "android" and config.get("action") == "build" and config.get("buildTarget") == "external-core-debug", "Only the external core-only Menu Debug build is authorized")
+        return
     meter = cell.startswith("CAT.meter.") and batch.startswith("meter-")
     progress = cell in ["CAT.linear-progress." + gate for gate in ["G04", "G07", "G08", "G09"]] and batch == "linear-progress-risk"
     text = cell in ["CAT.text." + gate for gate in ["G04", "G07", "G08", "G09"]] and batch in ["text-style", "text-style-context"]
