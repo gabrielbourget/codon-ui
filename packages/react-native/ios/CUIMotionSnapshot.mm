@@ -4,7 +4,7 @@
 #import <React/RCTSurfacePresenter.h>
 #import "CUIFocusView.h"
 #import "CUIMotionGeometryObserver.h"
-#import "CUITableStickyPresentation.h"
+#include "CUINativeFeatures.h"
 #import "CUIBackdropRenderer.h"
 #include "../cpp/motion/PopFrame.h"
 #include "../cpp/motion/PopPresentation.h"
@@ -20,42 +20,15 @@
 @end
 
 struct CUIPopSession {
-  std::mutex mutex;
+  std::shared_ptr<std::mutex> mutex = std::make_shared<std::mutex>();
   std::unique_ptr<codon::motion::NativePopPresentation> presentation;
-  std::shared_ptr<codon::table::NativeTableStickyPresentation> table;
-  __strong CUITableStickyPresentation *tableDriver;
-  __weak RCTSurfacePresenter *presenter;
   bool retired{false};
   void close() {
-    std::shared_ptr<codon::table::NativeTableStickyPresentation> sticky;
-    CUITableStickyPresentation *driver;
-    {
-      std::lock_guard lock(mutex);
-      retired = true;
-      presentation.reset();
-      sticky = std::move(table); driver = tableDriver; tableDriver = nil;
-    }
-    dispatch_async(dispatch_get_main_queue(), ^{
-      [driver invalidate];
-      if (sticky) sticky->close();
-    });
+    std::lock_guard lock(*mutex);
+    retired = true;
+    presentation.reset();
   }
 };
-
-static void CUIUpdateStickyDriver(const std::shared_ptr<CUIPopSession> &session,
-    const std::shared_ptr<std::atomic<bool>> &valid) {
-  dispatch_async(dispatch_get_main_queue(), ^{
-    CUITableStickyPresentation *driver;
-    {
-      std::lock_guard lock(session->mutex);
-      if (session->retired || !valid->load() || !session->table) return;
-      if (!session->tableDriver && session->presenter)
-        session->tableDriver = [[CUITableStickyPresentation alloc] initWithPresenter:session->presenter service:session->table];
-      driver = session->tableDriver;
-    }
-    [driver synchronize];
-  });
-}
 
 // The generated Objective-C dispatch normally uses methodQueue. Frame capture
 // must run inside getSnapshotBeforeUpdate, so this private method uses the
@@ -63,8 +36,9 @@ static void CUIUpdateStickyDriver(const std::shared_ptr<CUIPopSession> &session,
 class CUIMotionSnapshotJSI final : public facebook::react::NativeCUIMotionSnapshotSpecJSI {
  public:
   CUIMotionSnapshotJSI(const facebook::react::ObjCTurboModule::InitParams &params,
-                      std::shared_ptr<std::atomic<bool>> valid, std::shared_ptr<CUIPopSession> pop)
-      : NativeCUIMotionSnapshotSpecJSI(params), valid_(std::move(valid)), pop_(std::move(pop)) {
+                      std::shared_ptr<std::atomic<bool>> valid, std::shared_ptr<CUIPopSession> pop,
+                      std::shared_ptr<CUINativeTableFeature> table)
+      : NativeCUIMotionSnapshotSpecJSI(params), valid_(std::move(valid)), pop_(std::move(pop)), table_(std::move(table)) {
     methodMap_["getPopFrame"] = MethodMetadata{1, getPopFrame};
     methodMap_["getViewportSnapshot"] = MethodMetadata{1, getViewportSnapshot};
     methodMap_["popPresentation"] = MethodMetadata{1, popPresentation};
@@ -73,6 +47,7 @@ class CUIMotionSnapshotJSI final : public facebook::react::NativeCUIMotionSnapsh
  private:
   std::shared_ptr<std::atomic<bool>> valid_;
   std::shared_ptr<CUIPopSession> pop_;
+  std::shared_ptr<CUINativeTableFeature> table_;
   static facebook::jsi::Value tableStickyPresentation(
       facebook::jsi::Runtime &runtime, facebook::react::TurboModule &module,
       const facebook::jsi::Value *arguments, size_t count) {
@@ -81,27 +56,7 @@ class CUIMotionSnapshotJSI final : public facebook::react::NativeCUIMotionSnapsh
       throw facebook::jsi::JSError(runtime, "Table sticky: string request required");
     try {
       const auto encoded = arguments[0].getString(runtime).utf8(runtime);
-      const auto request = folly::parseJson(encoded);
-      std::shared_ptr<codon::table::NativeTableStickyPresentation> table;
-      {
-        std::lock_guard lock(self.pop_->mutex);
-        if (self.pop_->retired || !self.valid_->load()) {
-          if (request.at("action").asString() == "release")
-            return facebook::jsi::String::createFromUtf8(runtime,
-                folly::toJson(folly::dynamic::object("lease", request.at("lease"))("released", true)));
-          throw std::runtime_error("Table sticky: module retired");
-        }
-        if (!self.pop_->table) {
-          const auto binding = facebook::react::UIManagerBinding::getBinding(runtime);
-          if (!binding) throw std::runtime_error("Table sticky: calling Fabric binding unavailable");
-          auto manager = std::shared_ptr<facebook::react::UIManager>(binding, &binding->getUIManager());
-          self.pop_->table = std::make_shared<codon::table::NativeTableStickyPresentation>(std::move(manager));
-        }
-        table = self.pop_->table;
-      }
-      const auto response = table->request(encoded);
-      CUIUpdateStickyDriver(self.pop_, self.valid_);
-      return facebook::jsi::String::createFromUtf8(runtime, response);
+      return facebook::jsi::String::createFromUtf8(runtime, self.table_->request(runtime, encoded));
     } catch (const std::exception &failure) { throw facebook::jsi::JSError(runtime, failure.what()); }
   }
   static facebook::jsi::Value popPresentation(
@@ -113,7 +68,7 @@ class CUIMotionSnapshotJSI final : public facebook::react::NativeCUIMotionSnapsh
     try {
       const auto encoded = arguments[0].getString(runtime).utf8(runtime);
       const auto request = folly::parseJson(encoded);
-      std::lock_guard lock(self.pop_->mutex);
+      std::lock_guard lock(*self.pop_->mutex);
       if (self.pop_->retired || !self.valid_->load()) {
         if (request.at("action").asString() == "release" && !self.pop_->presentation)
           return facebook::jsi::String::createFromUtf8(runtime,
@@ -175,6 +130,7 @@ static BOOL CUISnapshotIdentityMatches(NSDictionary *request, NSDictionary *iden
   id<RCTSurfacePresenterStub> _presenter;
   std::shared_ptr<std::atomic<bool>> _valid;
   std::shared_ptr<CUIPopSession> _pop;
+  std::shared_ptr<CUINativeTableFeature> _table;
   CUIBackdropRenderer *_backdrop;
 }
 RCT_EXPORT_MODULE(CUIMotionSnapshot)
@@ -183,18 +139,18 @@ RCT_EXPORT_MODULE(CUIMotionSnapshot)
   if (self = [super init]) {
     _valid = std::make_shared<std::atomic<bool>>(true);
     _pop = std::make_shared<CUIPopSession>();
+    _table = CUICreateNativeTableFeature(_valid, _pop->mutex);
   }
   return self;
 }
 - (dispatch_queue_t)methodQueue { return dispatch_get_main_queue(); }
 - (void)setSurfacePresenter:(id<RCTSurfacePresenterStub>)presenter {
   _presenter = presenter;
-  std::lock_guard lock(_pop->mutex);
-  _pop->presenter = [(id)presenter isKindOfClass:RCTSurfacePresenter.class] ? (RCTSurfacePresenter *)presenter : nil;
+  _table->setSurfacePresenter([(id)presenter isKindOfClass:RCTSurfacePresenter.class] ? (RCTSurfacePresenter *)presenter : nil);
 }
 - (void)setBridge:(RCTBridge *)bridge { [self setSurfacePresenter:bridge.surfacePresenter]; }
 - (void)invalidate {
-  _valid->store(false); _pop->close();
+  _valid->store(false); _pop->close(); _table->close();
   CUIBackdropRenderer *backdrop = _backdrop;
   dispatch_async(dispatch_get_main_queue(), ^{ [backdrop invalidate]; });
 }
@@ -208,7 +164,7 @@ RCT_EXPORT_MODULE(CUIMotionSnapshot)
 }
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:(const facebook::react::ObjCTurboModule::InitParams &)params {
-  return std::make_shared<CUIMotionSnapshotJSI>(params, _valid, _pop);
+  return std::make_shared<CUIMotionSnapshotJSI>(params, _valid, _pop, _table);
 }
 
 - (NSString *)getPopFrame:(NSString *)request {
