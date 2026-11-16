@@ -107,6 +107,180 @@ afterEach(() => {
   disposals.splice(0).forEach((dispose) => dispose())
 })
 
+const relayFixture = (options: Parameters<ReturnType<typeof fixture>["add"]>[2] = {}) => {
+  const first = fixture(),
+    calendar = fixture(first.windowId),
+    earlier = first.add("resolved", 11)
+  first.add("unresolved", 12)
+  const status = (owner: typeof first, ready: boolean, error = "") =>
+    owner.pointers.acceptStatus({
+      ownerId: owner.ownerId,
+      windowId: owner.windowId,
+      epoch: owner === first ? 1 : 2,
+      revision: owner.pointers.revision(),
+      ready,
+      error,
+    })
+  status(first, false)
+  const day = calendar.add("day", 21, options)
+  calendar.advance()
+  const packet = (phase: TNativeWindowPointerEvent["nativeEvent"]["phase"], depth = 0) => {
+    const event = first.packet(phase, [-1, -1])
+    return {
+      ...event,
+      nativeEvent: {
+        ...event.nativeEvent,
+        registrations: [
+          event.nativeEvent.registrations[0]!,
+          ...calendar.packet(phase, [depth]).nativeEvent.registrations,
+        ],
+      },
+    }
+  }
+  return { first, calendar, earlier, day, packet, status }
+}
+
+it("relays a ready calendar scope through an earlier partially resolved native emitter", () => {
+  const { first, earlier, day, packet } = relayFixture(),
+    accepted = jest.fn(),
+    release = observeAcceptedNativeWindowPointer(accepted)
+  try {
+    const down = packet("start")
+    expect(dispatchNativeWindowPointer(down)).toBe(true)
+    expect(day.start).toHaveBeenCalledWith(down, expect.any(Function))
+    expect(earlier.start).not.toHaveBeenCalled()
+    expect(accepted).toHaveBeenCalledWith(expect.objectContaining({ ownerId: first.ownerId, epoch: 1 }))
+    const up = packet("end")
+    expect(dispatchNativeWindowPointer(up)).toBe(true)
+    expect(day.end).toHaveBeenCalledWith(up, true)
+    expect(up.preventDefault).not.toHaveBeenCalled()
+    expect(up.stopPropagation).not.toHaveBeenCalled()
+  } finally {
+    release()
+  }
+})
+
+it("does not consume a relayed sequence without a ready live receiver or through a faulted emitter", () => {
+  const { first, calendar, day, packet, status } = relayFixture(),
+    accepted = jest.fn(),
+    release = observeAcceptedNativeWindowPointer(accepted)
+  try {
+    const down = packet("start")
+    status(calendar, false)
+    expect(dispatchNativeWindowPointer(down)).toBe(false)
+    status(calendar, true)
+    status(first, false, "native observer replaced")
+    expect(dispatchNativeWindowPointer(down)).toBe(false)
+    expect(day.start).not.toHaveBeenCalled()
+    expect(accepted).not.toHaveBeenCalled()
+    status(first, false)
+    expect(dispatchNativeWindowPointer(down)).toBe(true)
+    expect(dispatchNativeWindowPointer(down)).toBe(false)
+    expect(day.start).toHaveBeenCalledTimes(1)
+    expect(accepted).toHaveBeenCalledTimes(1)
+  } finally {
+    release()
+  }
+})
+
+it("validates the relay emitter envelope before resolving any receiving lease", () => {
+  const current = jest.fn(() => true),
+    { day, packet } = relayFixture({ current }),
+    down = packet("start"),
+    invalid = [
+      { ownerId: "foreign" },
+      { windowId: "foreign" },
+      { epoch: 0 },
+      { sequence: 0 },
+      { sequence: 1.5 },
+      { pageX: NaN },
+      { pageY: Infinity },
+      { timestamp: NaN },
+    ]
+  current.mockClear()
+  for (const extra of invalid) {
+    expect(dispatchNativeWindowPointer({ ...down, nativeEvent: { ...down.nativeEvent, ...extra } })).toBe(false)
+  }
+  expect(current).not.toHaveBeenCalled()
+  expect(day.start).not.toHaveBeenCalled()
+  expect(dispatchNativeWindowPointer(down)).toBe(true)
+  expect(day.start).toHaveBeenCalledTimes(1)
+})
+
+it("keeps receiver epochs revisions refs and lifetimes independent from a relaying emitter", () => {
+  let live = true
+  const { calendar, day, packet } = relayFixture({ current: () => live }),
+    down = packet("start"),
+    registration = down.nativeEvent.registrations[1]!
+  for (const extra of [
+    { epoch: 1 },
+    { revision: registration.revision + 1 },
+    { revision: 0 },
+    { targetTag: 999 },
+    { ownerId: "foreign" },
+  ]) {
+    const registrations = [down.nativeEvent.registrations[0]!, { ...registration, ...extra }]
+    expect(dispatchNativeWindowPointer({ ...down, nativeEvent: { ...down.nativeEvent, registrations } })).toBe(false)
+  }
+  live = false
+  expect(dispatchNativeWindowPointer(down)).toBe(false)
+  live = true
+  expect(dispatchNativeWindowPointer(down)).toBe(true)
+  expect(day.start).toHaveBeenCalledTimes(1)
+  day.release()
+  expect(dispatchNativeWindowPointer(packet("end"))).toBe(false)
+  expect(day.end).not.toHaveBeenCalled()
+  calendar.pointers.dispose()
+  expect(dispatchNativeWindowPointer(down)).toBe(false)
+})
+
+it("preserves relayed move outside-release and cancellation before a monotonic emitter switch", () => {
+  const { first, calendar, day, packet } = relayFixture()
+  expect(dispatchNativeWindowPointer(packet("start"))).toBe(true)
+  const move = packet("move", -1)
+  expect(dispatchNativeWindowPointer(move)).toBe(true)
+  expect(day.move).toHaveBeenCalledWith(move)
+  const outside = packet("end", -1)
+  expect(dispatchNativeWindowPointer(outside)).toBe(true)
+  expect(day.end).toHaveBeenLastCalledWith(outside, false)
+  expect(dispatchNativeWindowPointer(packet("start"))).toBe(true)
+  const cancel = packet("cancel")
+  expect(dispatchNativeWindowPointer(cancel)).toBe(true)
+  expect(day.end).toHaveBeenLastCalledWith(cancel, false)
+  expect(dispatchNativeWindowPointer(packet("start"))).toBe(true)
+  first.pointers.dispose()
+  expect(dispatchNativeWindowPointer(packet("end"))).toBe(false)
+  const stale = calendar.packet("end", [0], { sequence: 5 })
+  expect(dispatchNativeWindowPointer(stale)).toBe(false)
+  const up = calendar.packet("end", [0], { sequence: 7 })
+  expect(dispatchNativeWindowPointer(up)).toBe(true)
+  expect(day.end).toHaveBeenLastCalledWith(up, true)
+})
+
+it("rechecks emitter and receiving lifetimes after relay selection without consuming a rejected sequence", () => {
+  let retireEmitter = false
+  const { first, day, packet } = relayFixture({
+      current: () => {
+        if (retireEmitter) first.deactivate()
+        return true
+      },
+    }),
+    down = packet("start")
+  retireEmitter = true
+  expect(dispatchNativeWindowPointer(down)).toBe(false)
+  expect(day.start).not.toHaveBeenCalled()
+  first.advance()
+  retireEmitter = false
+  const current = packet("start")
+  expect(
+    dispatchNativeWindowPointer({
+      ...current,
+      nativeEvent: { ...current.nativeEvent, epoch: 2, sequence: down.nativeEvent.sequence },
+    }),
+  ).toBe(true)
+  expect(day.start).toHaveBeenCalledTimes(1)
+})
+
 it.each([undefined, true, false])(
   "orders nested taps before global registrations with propagation %p and original packets",
   (propagation) => {

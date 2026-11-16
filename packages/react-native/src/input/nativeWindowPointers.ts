@@ -46,17 +46,28 @@ const primary = (data: NativeWindowPointerData) => (data.pointerType === "mouse"
 export const dispatchNativeWindowPointer = (event: TNativeWindowPointerEvent) => {
   const data = event.nativeEvent
   const emitter = windows.get(data.ownerId)
-  if (!emitter?.acceptSequence(data)) return false
+  const selectRegistrations = () => {
+    const seen = new Set<string>()
+    return data.registrations.flatMap((registration) => {
+      if (seen.has(registration.id)) return []
+      seen.add(registration.id)
+      const scope = windows.get(registration.ownerId)
+      const entry = scope?.select(data, registration)
+      return scope && entry ? [{ scope, entry, id: registration.id, depth: registration.depth }] : []
+    })
+  }
+  let selected: ReturnType<typeof selectRegistrations> | undefined
+  if (
+    !emitter?.acceptSequence(data, () => {
+      if (data.sequence <= (sequences.get(data.windowId) ?? 0)) return false
+      selected = selectRegistrations()
+      return selected.some(({ scope }) => scope !== emitter) && data.sequence > (sequences.get(data.windowId) ?? 0)
+    })
+  )
+    return false
   if (data.sequence <= (sequences.get(data.windowId) ?? 0)) return false
   sequences.set(data.windowId, data.sequence)
-  const seen = new Set<string>()
-  const selected = data.registrations.flatMap((registration) => {
-    if (seen.has(registration.id)) return []
-    seen.add(registration.id)
-    const scope = windows.get(registration.ownerId)
-    const entry = scope?.select(data, registration)
-    return entry ? [{ entry, id: registration.id, depth: registration.depth }] : []
-  })
+  selected ??= selectRegistrations()
   selected.sort((left, right) =>
     left.entry.options.global !== right.entry.options.global
       ? left.entry.options.global
@@ -145,6 +156,13 @@ export const createNativeWindowPointers = (scope: TNativeKeyScope) => {
     }
   }
   const active = () => !disposed && enabled && scope.isWindowActive() === true
+  const currentSequence = (data: NativeWindowPointerData) =>
+    active() &&
+    data.windowId === session.windowId &&
+    data.epoch === session.epoch &&
+    Number.isSafeInteger(data.sequence) &&
+    data.sequence > sequence &&
+    [data.pageX, data.pageY, data.timestamp].every(Number.isFinite)
   const api = {
     snapshot: () => version,
     flush,
@@ -246,18 +264,16 @@ export const createNativeWindowPointers = (scope: TNativeKeyScope) => {
         flush()
       }
     },
-    acceptSequence: (data: NativeWindowPointerData) => {
+    acceptSequence: (data: NativeWindowPointerData, relayToReadyReceiver?: () => boolean) => {
       api.syncSession()
-      if (
-        !active() ||
-        !ready ||
-        data.windowId !== session.windowId ||
-        data.epoch !== session.epoch ||
-        !Number.isSafeInteger(data.sequence) ||
-        data.sequence <= sequence ||
-        ![data.pageX, data.pageY, data.timestamp].every(Number.isFinite)
-      )
-        return false
+      if (!currentSequence(data)) return false
+      // Native chooses one window emitter; its unresolved sibling must not starve another ready scope.
+      // Per-registration readiness/lifetime checks stay in select(), and a failed emitter cannot relay.
+      if (!ready) {
+        if (failure || !relayToReadyReceiver?.()) return false
+        api.syncSession()
+        if (failure || !currentSequence(data)) return false
+      }
       sequence = data.sequence
       return true
     },
