@@ -1,3 +1,2 @@
-// Generated from canonical native exports. Installed implementation sources remain editable.
-export { Card } from "../../../../react-native/src/components/Card/Card"
-export type { TNativeCardProps, TNativeCardProps as CardProps, TNativeCardRef } from "../../../../react-native/src/components/Card/types"
+// Generated from the canonical component barrel. Installed implementation sources remain editable.
+export * from "../../../../react-native/src/components/Card/index"

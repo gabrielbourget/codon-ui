@@ -19,6 +19,14 @@ const parsed = localRegistrySourceSchema.parse(registry)
 assert.equal(parsed.items.filter((item) => item.type === "component").length, 52)
 assert.equal(new Set(parsed.items.map((item) => item.name)).size, parsed.items.length)
 for (const [file, expected] of generated) assert.equal(await readFile(path.join(root, file), "utf8"), expected, file)
+const tableEntry = generated.get("packages/CLI/registry/native/components/table.ts")!
+assert.match(tableEntry, /export \* from "[^"\n]+components\/Table\/index"/)
+assert.equal((tableEntry.match(/AvailableFilterCriteria/g) ?? []).length, 0)
+const tableComponent = parsed.items.find((item) => item.name === "table")!
+assert.ok(tableComponent.registryDependencies.includes("native-source/src/components/Table/index.ts"))
+assert.ok(
+  tableComponent.registryDependencies.includes("native-source/src/components/Filtering/DynamicFilterArgumentInput.tsx"),
+)
 const table = parsed.items.find((item) => item.name === "native-table")!
 assert.deepEqual(
   table.files.map((file) => file.targetPath).sort(),

@@ -89,6 +89,7 @@ export const buildNativeRegistry = async (repoRoot: string) => {
   const project = new Project({ compilerOptions: {}, useInMemoryFileSystem: true })
   type PublicExport = { sourcePath: string; declaration: ExportDeclaration }
   const declarations: PublicExport[] = []
+  const publicComponentBarrels = new Set<string>()
   const visited = new Set<string>()
   const resolvePublicSource = async (base: string) => {
     for (const suffix of [".ts", ".tsx", "/index.ts", "/index.tsx"])
@@ -105,8 +106,11 @@ export const buildNativeRegistry = async (repoRoot: string) => {
       const resolved = await resolvePublicSource(
         path.posix.normalize(path.posix.join(path.posix.dirname(sourcePath), specifier)),
       )
-      if (declaration.isNamespaceExport()) await collectPublicExports(resolved)
-      else declarations.push({ sourcePath: resolved, declaration })
+      if (declaration.isNamespaceExport()) {
+        if (sourcePath === "src/index.ts" && resolved.startsWith("src/components/"))
+          publicComponentBarrels.add(resolved)
+        await collectPublicExports(resolved)
+      } else declarations.push({ sourcePath: resolved, declaration })
     }
   }
   await collectPublicExports("src/index.ts")
@@ -146,6 +150,30 @@ export const buildNativeRegistry = async (repoRoot: string) => {
       .join("")
     const primary = declarations.find((declaration) => exportedNames(declaration).includes(symbol))
     if (name !== "native-root" && !primary) throw new Error(`Missing canonical native export: ${symbol}`)
+    const familyBarrel =
+      primary &&
+      [...publicComponentBarrels].find(
+        (barrel) => path.posix.dirname(barrel) === path.posix.dirname(primary.sourcePath),
+      )
+    if (familyBarrel) {
+      entrypoints[name] = [familyBarrel]
+      const sourcePath = `packages/CLI/registry/native/components/${name}.ts`
+      let relative = path.posix.relative(
+        path.posix.dirname(sourcePath),
+        `packages/react-native/${familyBarrel.replace(/\.tsx?$/, "")}`,
+      )
+      if (!relative.startsWith(".")) relative = `./${relative}`
+      entryFiles.set(
+        name,
+        generatedFile(
+          `components/${name}.ts`,
+          `// Generated from the canonical component barrel. Installed implementation sources remain editable.\nexport * from ${JSON.stringify(relative)}\n`,
+          "components",
+          `${symbol}/index.ts`,
+        ),
+      )
+      continue
+    }
     const selected =
       name === "native-root"
         ? declarations.filter((declaration) => !declaration.sourcePath.startsWith("src/components/"))
