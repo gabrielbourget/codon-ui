@@ -7,6 +7,8 @@ description: Private native foundation and explicit platform support limits.
 
 ## Host And Package Ownership
 
+Start with the [native consumer bootstrap](../react-native-consumer/) for a typechecked provider recipe, early app-owned Intl setup, fonts, exact host peers and native build/rebuild boundaries. It describes the current private package; native CLI installation remains unfinished.
+
 The laboratory pins Expo SDK 57, React Native 0.86.3 and React 19.2.3 for iOS/Android. React, React Native, react-native-safe-area-context5.7.0, react-native-svg15.15.4 and react-native-teleport1.2.2 are exact package peers. Hosts install/link the native peers and rebuild their native binaries after adding SVG or Teleport. Expo, outer safe-area layout, app configuration and routing/fixtures belong to the showcase or consuming app; Select, Modal and AlertDialog own safe-area handling inside their separate native windows. Web CSS, React DOM and React Aria are absent from the library runtime graph. Public native registry/CLI distribution and publication remain separate gates.
 
 The root export has a react-native condition for canonical TypeScript source; declarations and compiled imports use dist. Build before consumer typechecks. The Text/Button pass includes a hashed local package archive and isolated Expo consumer; the ledger owns its exact proof receipt. Bare React Native, RN Web, other operating systems and earlier SDK combinations are unverified.
