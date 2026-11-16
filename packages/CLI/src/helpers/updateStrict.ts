@@ -566,7 +566,10 @@ const createCurrentInstallPlan = async ({
     consumerRoot: cwd,
     packageJsonPath,
   })
-  const { registrySource, sourceRoot } = await readLocalRegistrySource(dryRunReport.registrySource.path)
+  const { registrySource, sourceRoot } = await readLocalRegistrySource(dryRunReport.registrySource.path, {
+    consumerRoot: cwd,
+    requestedItems: [dryRunReport.itemName],
+  })
   const installPlan = createRegistryInstallPlan({
     config: configPlan.config,
     consumerRoot: cwd,

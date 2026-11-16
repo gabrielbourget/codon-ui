@@ -95,6 +95,12 @@ try {
   const tableJNI = read(support + "android/src/main/jni/TableStickyJNI.cpp")
   assert.match(tableJNI, /nativeTablePrepare/)
   assert.match(tableJNI, /nativeTableFrames/)
+  const compositionPreview = invoke(["update", "native-composition", "--dry-run"])
+  assert.equal(
+    compositionPreview.summary.candidateFileCount,
+    0,
+    "an installed Table must retain its full native composition profile",
+  )
   const installed = JSON.parse(read("codon-ui.lock.json"))
   assert.ok(installed.items["native-composition"].registryDependencies.includes("native-table"))
   const removedTable = invoke(["remove", "table", "--with-orphans"])
