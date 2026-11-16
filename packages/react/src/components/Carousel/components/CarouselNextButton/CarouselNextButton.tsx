@@ -1,8 +1,7 @@
-import classNames from "classnames"
 import { forwardRef, type ForwardRefExoticComponent, type PropsWithChildren, type RefAttributes } from "react"
 
 import Button from "../../../Button/Button"
-import { useCarouselContext } from "../../helpers"
+import { mergeCarouselControlClassNames, useCarouselContext } from "../../helpers"
 
 import CarouselDefaultNextIcon from "./DefaultNextIcon"
 import { defaultButtonProps, type TCarouselNextButtonProps } from "./helpers"
@@ -31,7 +30,7 @@ const CarouselNextButton: ForwardRefExoticComponent<
       onPress={scrollNext}
       isDisabled={!canScrollNext}
       aria-label={labels?.nextItemButtonAriaLabel ?? carouselLabels.controls.nextItemButtonAriaLabel}
-      customClassName={classNames(
+      className={mergeCarouselControlClassNames(
         defaultButtonClassName,
         defaultButtonNativeClassName,
         customButtonClassName,
