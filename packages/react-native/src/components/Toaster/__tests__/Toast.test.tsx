@@ -66,6 +66,23 @@ it.each(["light", "dark"] as const)(
     ).not.toHaveLength(0)
   },
 )
+it("uses content-sized toast ribbons and retains assigned padding", async () => {
+  const { rerender } = await render(node(base()))
+  expect(row("toast-ribbon")).toHaveStyle({
+    padding: 5,
+    minHeight: undefined,
+    paddingLeft: undefined,
+    paddingRight: undefined,
+  })
+  for (const padding of [0, 3, 11]) {
+    await rerender(node(base({ customTopRibbonStyles: { padding } })))
+    expect(row("toast-ribbon")).toHaveStyle({ padding, paddingLeft: undefined, paddingRight: undefined })
+  }
+  await rerender(
+    node(base({ customTopRibbonStyles: { padding: 0, paddingHorizontal: 3, paddingLeft: 7, minHeight: 0 } })),
+  )
+  expect(row("toast-ribbon")).toHaveStyle({ padding: 0, paddingHorizontal: 3, paddingLeft: 7, minHeight: 0 })
+})
 it("preserves caller close-button transparency and final style overrides", async () => {
   const { rerender } = await render(node(base({ customCloseButtonProps: { transparent: false } })))
   expect(screen.getByRole("button", { name: "Close Toast" })).toHaveStyle({ backgroundColor: "#ffffff" })

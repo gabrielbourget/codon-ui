@@ -425,7 +425,6 @@ const NativeOption = ({
     {
       justifyContent: "center",
       padding: theme.spacing.unit,
-      minHeight: 20,
       width: "100%",
       borderRadius: theme.radius.rounded,
       backgroundColor: selected || nativeFocused || hovered ? theme.colors.controlHoverBackground : "transparent",

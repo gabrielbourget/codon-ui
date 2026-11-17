@@ -68,6 +68,24 @@ afterEach(() => {
   jest.useRealTimers()
 })
 
+it("preserves scalar and axis input padding without an injected horizontal inset", async () => {
+  const { rerender } = await render(<TypeaheadSearch {...query} {...name} />)
+  expect(input()).toHaveStyle({ padding: 5, paddingHorizontal: undefined })
+  for (const geometry of ["round", "rounded", "orthogonal"] as const) {
+    for (const padding of [0, 3, 11]) {
+      await rerender(<TypeaheadSearch {...query} {...name} geometry={geometry} customInputStyles={{ padding }} />)
+      expect(input()).toHaveStyle({ padding, paddingHorizontal: undefined })
+    }
+  }
+  await rerender(
+    <TypeaheadSearch
+      {...query}
+      {...name}
+      customInputStyles={{ padding: 0, paddingHorizontal: 3, paddingLeft: 7, height: 0 }}
+    />,
+  )
+  expect(input()).toHaveStyle({ padding: 0, paddingHorizontal: 3, paddingLeft: 7, height: 0 })
+})
 it("CAP.typeahead-search.001 renders the controlled input and caller-configured inline results viewport", async () => {
   await render(
     <TypeaheadSearch

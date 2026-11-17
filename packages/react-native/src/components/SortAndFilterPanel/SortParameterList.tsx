@@ -180,7 +180,6 @@ const Option = (props: TItemProps, ref: ForwardedRef<View>, node: TNativeCollect
           accessibilityElementsHidden={droppable.dropProps.accessibilityElementsHidden}
           importantForAccessibility={droppable.dropProps.importantForAccessibility}
           style={{
-            minHeight: 20,
             width: "100%",
             flexDirection: "row",
             alignItems: "center",

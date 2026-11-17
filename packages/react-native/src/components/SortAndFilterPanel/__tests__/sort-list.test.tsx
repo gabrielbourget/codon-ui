@@ -234,7 +234,7 @@ it("renders the complete empty/string-key collection with original list/item sem
     expect(JSON.parse(row.props.nativeCollectionBinding).itemId).not.toBe("")
   }
   expect(option().props.accessibilityLabel).toBe("Sort Parameter - City - Ascending")
-  expect(option()).toHaveStyle({ minHeight: 20, width: "100%" })
+  expect(option()).toHaveStyle({ minHeight: undefined, width: "100%" })
   await rawAct(() =>
     root.props.onNativeFocusChange({
       nativeEvent: { ownerId: root.props.ownerId, target: tag(root), isFocused: true, isFocusVisible: true },

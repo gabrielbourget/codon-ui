@@ -64,7 +64,6 @@ export const getTypeaheadStyles = <T extends object>(
           backgroundColor: "transparent",
           color: foreground,
           padding: theme.spacing.unit,
-          paddingHorizontal: 5,
           outlineWidth: 0,
           boxShadow: [],
         },

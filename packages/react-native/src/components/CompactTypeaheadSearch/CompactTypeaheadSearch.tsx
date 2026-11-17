@@ -568,7 +568,6 @@ const CompactTypeaheadSearchInner = <T extends object>(
             id={entry.key}
             textValue={entry.text}
             accessibilityLabel={entry.text}
-            style={{ minHeight: 20 }}
             testID={`type-ahead-search-option-${entry.encodedKey}`}
           >
             {props.renderItem
