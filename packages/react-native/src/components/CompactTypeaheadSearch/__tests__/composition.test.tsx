@@ -264,6 +264,7 @@ it.each(["isDisabled", "isReadOnly"] as const)("preserves programmatic state req
         {...{ [guard]: true }}
         value={null}
         inputValue="held"
+        isOpen={false}
         inputRef={editor}
         onInputChange={onInputChange}
         onChange={onChange}
@@ -467,7 +468,6 @@ it("shares the ComboBox state, validation and field identifiers with authored ic
   expect(validation!.validationErrors).toEqual(["Choose another value"])
   expect(ids!.input).toEqual(expect.any(String))
   expect(validate).toHaveBeenCalledWith({ inputValue: "held", value: null, selectedKey: null })
-  await pressCompact(row("type-ahead-search-button"))
   await fixture.ready()
   expect(state!.collection.size).toBe(2)
 })
@@ -524,7 +524,6 @@ it("reuses query-before-key form reset requests while the owner retains its valu
       </NativeFormRegistryContext.Provider>,
     ),
   )
-  await pressCompact(row("type-ahead-search-button"))
   await fixture.ready()
   const original = editor.current
   calls.length = 0
