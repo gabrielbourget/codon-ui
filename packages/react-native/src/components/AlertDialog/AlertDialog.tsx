@@ -129,7 +129,7 @@ export const AlertDialog = forwardRef<TNativeAlertDialogRef, TNativeAlertDialogP
                 accessibilityLabel={labels.cancelActionButtonAriaLabel}
                 transparent
                 raised={false}
-                customStyles={{ flexShrink: 1, maxWidth: "100%" }}
+                customStyles={{ flexShrink: 1, maxWidth: "100%", padding: 5, paddingHorizontal: 5 }}
                 onPress={() => {
                   if (!isActive()) return
                   props.cancelAction?.()
@@ -149,7 +149,7 @@ export const AlertDialog = forwardRef<TNativeAlertDialogRef, TNativeAlertDialogP
               accessibilityLabel={labels.confirmActionButtonAriaLabel}
               color={color}
               raised={false}
-              customStyles={{ flexShrink: 1, maxWidth: "100%" }}
+              customStyles={{ flexShrink: 1, maxWidth: "100%", padding: 5, paddingHorizontal: 5 }}
               onPress={() => {
                 if (!isActive()) return
                 props.confirmAction?.()

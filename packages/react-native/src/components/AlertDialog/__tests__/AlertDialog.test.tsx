@@ -60,8 +60,38 @@ it.each(AVAILABLE_ALERT_DIALOG_TYPES)(
     })
     expect(screen.getByTestId("alert-dialog")).toHaveStyle({ borderRadius: 10 })
     expect(screen.getByTestId("alert-dialog-actions")).toHaveStyle({ flexWrap: "wrap", flexShrink: 0 })
+    for (const name of ["Cancel Action", "Confirm Action"]) {
+      expect(screen.getByRole("button", { name })).toHaveStyle({
+        padding: 5,
+        paddingHorizontal: 5,
+        minWidth: 44,
+        minHeight: 44,
+      })
+    }
+    expect(screen.getByRole("button", { name: "Cancel Action" })).toHaveStyle({ backgroundColor: "transparent" })
+    expect(screen.getByRole("button", { name: "Confirm Action" })).toHaveStyle({ backgroundColor: tone })
+    expect(screen.getByText("Cancel")).toHaveStyle({ textDecorationLine: "underline" })
   },
 )
+
+it("keeps five-point action padding under caller spacing overrides", async () => {
+  await render(
+    wrap(
+      <NativeThemeProvider overrides={{ spacing: { unit: 0 } }}>
+        <AlertDialog {...base} defaultOpen />
+      </NativeThemeProvider>,
+    ),
+  )
+  await show()
+  for (const name of ["Cancel Action", "Confirm Action"]) {
+    expect(screen.getByRole("button", { name })).toHaveStyle({
+      padding: 5,
+      paddingHorizontal: 5,
+      minWidth: 44,
+      minHeight: 44,
+    })
+  }
+})
 
 it.each([undefined, null])("retains the default icon for %s", async (AlertIcon) => {
   await render(wrap(<AlertDialog {...base} AlertIcon={AlertIcon} defaultOpen />))
