@@ -56,7 +56,6 @@ export const getCompactTypeaheadStyles = <T extends object>(
               ? theme.colors.validationSuccessBorder
               : theme.colors.controlBorder,
         borderRadius: geometry === "round" ? theme.radius.round : geometry === "rounded" ? theme.radius.rounded : 0,
-        ...(geometry === "round" ? { paddingVertical: theme.spacing.unit, paddingHorizontal: 7 } : {}),
         ...(focused && props.enableFocusStyle !== false
           ? {
               outlineColor: theme.colors.focusRing,

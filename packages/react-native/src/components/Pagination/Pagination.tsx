@@ -33,6 +33,7 @@ const wrapperKeys = new Set<string>([
   "order",
   "geometry",
   "buttonColorMode",
+  "pageButtonSizing",
   "rtl",
   "isDisabled",
   "labels",
@@ -110,6 +111,8 @@ const wrapperKeys = new Set<string>([
 ])
 
 export const Pagination = forwardRef<TNativePaginationRef, TNativePaginationProps>((props, ref) => {
+  if (props.pageButtonSizing !== undefined && !["square", "content"].includes(props.pageButtonSizing))
+    throw new TypeError("Pagination: pageButtonSizing must be square or content")
   const count = getNativePaginationPageCount(props),
     items = getNativePaginationWindow(props),
     groups = getNativePaginationGroups(props.chosenPaginationSubcomponents)

@@ -18,6 +18,7 @@ import type {
 } from "./model"
 
 export type TNativePaginationRef = View
+export type TNativePaginationPageButtonSizing = "square" | "content"
 export type TNativePaginationPageSizeOption = Readonly<{ id: string; name: string; value: number }>
 export type TNativePaginationButtonProps = Partial<Omit<TNativeButtonProps, "children">>
 export type TNativePaginationFieldProps = Partial<
@@ -35,6 +36,8 @@ export type TNativePaginationProps = Omit<ViewProps, "children" | "style" | "rol
     order?: TThemingOrderCode
     geometry?: TCornerGeometry
     buttonColorMode?: TNativeButtonColorMode
+    /** Numbered strip buttons default to a height-based square minimum; explicit width constraints win. */
+    pageButtonSizing?: TNativePaginationPageButtonSizing
     rtl?: boolean
     isDisabled?: boolean
     labels?: TNativePartialPaginationLabels

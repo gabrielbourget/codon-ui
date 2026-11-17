@@ -2767,7 +2767,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/CompactTypeaheadSearch/styles.ts",
           "role": "source",
-          "contentHash": "sha256:2f36375a97b1457e3e97bc86e71e2e196933334084ef9e047a5032ee93aa9874"
+          "contentHash": "sha256:3e49a518d99027c1dfd2e12ce56b7e199741ea2aefdd75967107140541365ff6"
         }
       ],
       "registryDependencies": [],
@@ -4462,7 +4462,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/Pagination/Action.tsx",
           "role": "source",
-          "contentHash": "sha256:b14fffb11e0318b3330d2da6eda945f82abf3ab7b5e34993caefcd32094d186c"
+          "contentHash": "sha256:d461b238da9fac9192a133ee3e2f2009d6a4d0ca5c6da3fac9c4ff0f737bc211"
         }
       ],
       "registryDependencies": [],
@@ -4555,7 +4555,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/Pagination/Pagination.tsx",
           "role": "source",
-          "contentHash": "sha256:8c6dab2a228cb8a49c81da4ba524bed0b5d4d6ac604d2058d3e261c1a41e90f4"
+          "contentHash": "sha256:8e6954282e46b18bccbc2603c97b156f9559f0431b0c97835b1fb83c68a6db8f"
         }
       ],
       "registryDependencies": [],
@@ -4614,7 +4614,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/Pagination/types.ts",
           "role": "source",
-          "contentHash": "sha256:4a5f4069c48b272a4d76cea71ddf0350e7f463e9bf02a3063b7b963520ab7913"
+          "contentHash": "sha256:057dafd063bdf63fce480b2a6149f7838cffdf53f72e1f76668df4b5f46d70c6"
         }
       ],
       "registryDependencies": [],
@@ -7008,7 +7008,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/TagComboBox/styles.ts",
           "role": "source",
-          "contentHash": "sha256:8bf463436e6cc2db0802dcae4933bb8135bd7014b4b3a835e43793c1f3aff1db"
+          "contentHash": "sha256:7714a4b3f32a4b56b7a85a3cc0f5dd8c56ce2e8d0538657a34d39f7ad74e04e8"
         }
       ],
       "registryDependencies": [],
@@ -19228,7 +19228,7 @@
           "targetRole": "components",
           "targetPath": "Pagination/index.ts",
           "role": "source",
-          "contentHash": "sha256:7883782f53607f32a0b6aa48fbbfdbe2628e4f5d8cf3bca06db75b20b4c49e15"
+          "contentHash": "sha256:f602942a2a1412c9fb9fa6b6c47182a4325d80cfd333e72df854b39889113363"
         }
       ],
       "registryDependencies": [

@@ -1,11 +1,12 @@
-import { forwardRef, useContext, type ReactNode } from "react"
+import { forwardRef, useContext, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import type { StyleProp, TextStyle, View } from "react-native"
 
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import type { TNativePressEvent } from "../../input/types"
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../overlays/floating/scope"
 import { Button } from "../Button/Button"
-import type { TNativeButtonProps } from "../Button/types"
+import type { TNativeButtonProps, TNativeButtonRootStyle } from "../Button/types"
+import { resolveNativeStyle } from "../colors"
 
 import type { TNativePaginationProps } from "./types"
 
@@ -44,6 +45,16 @@ export const NativePaginationAction = forwardRef<View, TProps>(
     ref,
   ) => {
     const general = props.customGeneralButtonProps ?? {}
+    const square = selected !== undefined && props.pageButtonSizing !== "content"
+    const [measuredHeight, setMeasuredHeight] = useState<number>()
+    const owner = useMemo(() => ({}), [props, selected, customStyles, textStyle])
+    const currentOwner = useRef<object | null>(null)
+    useLayoutEffect(() => {
+      currentOwner.current = owner
+      return () => {
+        if (currentOwner.current === owner) currentOwner.current = null
+      }
+    }, [owner])
     const valueText = general["aria-valuetext"] ?? general.accessibilityValue?.text
     // Removing a value map clears Android's unchanged label; keep numeric buttons' empty text maps stable.
     const currentValue =
@@ -85,6 +96,37 @@ export const NativePaginationAction = forwardRef<View, TProps>(
         aria-selected={selected ?? general["aria-selected"]}
         aria-expanded={expanded ?? general["aria-expanded"]}
         customStyles={[textStyle, general.customStyles, customStyles]}
+        style={
+          square
+            ? (state) => {
+                const final = resolveNativeStyle<TNativeButtonRootStyle>(
+                  typeof general.style === "function" ? general.style(state) : general.style,
+                  "Pagination",
+                  "customGeneralButtonProps.style",
+                )
+                const authoredWidth = ["width", "minWidth", "maxWidth"].some(
+                  (key) =>
+                    final[key as keyof TNativeButtonRootStyle] !== undefined ||
+                    state.defaultStyle[key as keyof TNativeButtonRootStyle] !== undefined,
+                )
+                return {
+                  ...final,
+                  ...(!authoredWidth && measuredHeight !== undefined ? { minWidth: measuredHeight } : {}),
+                }
+              }
+            : general.style
+        }
+        onLayout={
+          square
+            ? (event) => {
+                if (currentOwner.current !== owner) return
+                const height = event.nativeEvent.layout.height
+                if (Number.isFinite(height) && height >= 0)
+                  setMeasuredHeight((previous) => (previous === height ? previous : height))
+                general.onLayout?.(event)
+              }
+            : general.onLayout
+        }
         onPress={(event) => {
           general.onPress?.(event)
           if (

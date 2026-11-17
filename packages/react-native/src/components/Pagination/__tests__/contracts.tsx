@@ -19,6 +19,7 @@ export const nativeContract = (
     itemsPerPageOptions={[]}
     showWithOnePage={false}
     rtl={false}
+    pageButtonSizing="content"
     style={[{ width: 0 }, { height: 0 }]}
     chosenPaginationSubcomponents={["page-input", "primary-controls"]}
     customClickPopoverProps={{ ref: createRef<View>(), isOpen: false }}
@@ -42,3 +43,5 @@ export const replacedInput = <Pagination {...base} customPageNumberInputProps={{
 export const replacedOptions = <Pagination {...base} customItemsPerPageSelectProps={{ items: [] }} />
 // @ts-expect-error Unknown group names do not silently render an incomplete pager.
 export const unknownGroup = <Pagination {...base} chosenPaginationSubcomponents={["all"]} />
+// @ts-expect-error Only square and content numbered-button sizing modes are supported.
+export const unknownSizing = <Pagination {...base} pageButtonSizing="equal" />
