@@ -124,6 +124,7 @@ it("preflights every Switcher raw reference root row option typography minimum a
         "alignItems",
         "justifyContent",
         "flexDirection",
+        "padding",
         "paddingHorizontal",
         "paddingVertical",
         "overflow",

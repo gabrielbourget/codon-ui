@@ -21,7 +21,6 @@ type TProps = {
   colorMode?: TNativeButtonProps["colorMode"]
   customStyles?: StyleProp<TextStyle>
   textStyle?: TextStyle
-  target: number
   testID: string
   onRequest: (event: TNativePressEvent) => void
 }
@@ -39,7 +38,6 @@ export const NativePaginationAction = forwardRef<View, TProps>(
       colorMode,
       customStyles,
       textStyle,
-      target,
       testID,
       onRequest,
     },
@@ -86,7 +84,7 @@ export const NativePaginationAction = forwardRef<View, TProps>(
         }}
         aria-selected={selected ?? general["aria-selected"]}
         aria-expanded={expanded ?? general["aria-expanded"]}
-        customStyles={[{ minWidth: target, height: target }, textStyle, general.customStyles, customStyles]}
+        customStyles={[textStyle, general.customStyles, customStyles]}
         onPress={(event) => {
           general.onPress?.(event)
           if (

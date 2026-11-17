@@ -997,3 +997,32 @@ it("shows an authored size placeholder for a missing owner size without requesti
   expect(f.page).not.toHaveBeenCalled()
   expect(f.size).not.toHaveBeenCalled()
 })
+
+it("sizes default page actions to content and preserves explicit button dimensions", async () => {
+  const f = fixture()
+  const { rerender } = await render(f.node())
+  const page = () => screen.getByTestId("pagination-page-3", hidden)
+  expect(page()).toHaveStyle({ minWidth: undefined, minHeight: undefined, height: undefined, padding: 5 })
+  await rerender(
+    f.node({
+      customGeneralButtonProps: {
+        customStyles: { width: 0, height: 0, minWidth: 0, minHeight: 0, padding: 0 },
+      },
+    }),
+  )
+  expect(page()).toHaveStyle({ width: 0, height: 0, minWidth: 0, minHeight: 0, padding: 0 })
+})
+
+it("keeps page editor content-sized and retains caller constraints", async () => {
+  const f = fixture({ chosenPaginationSubcomponents: ["page-input"] })
+  const { rerender } = await render(f.node())
+  const editor = () => screen.getByLabelText("Page number")
+  expect(editor()).toHaveStyle({ minWidth: undefined, minHeight: undefined })
+  await rerender(
+    f.node({
+      chosenPaginationSubcomponents: ["page-input"],
+      customPageNumberInputProps: { customInputStyles: { width: 0, minWidth: 0, padding: 0, paddingRight: 2 } },
+    }),
+  )
+  expect(editor()).toHaveStyle({ width: 0, minWidth: 0, padding: 0, paddingRight: 2 })
+})

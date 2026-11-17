@@ -12,7 +12,6 @@ import {
 import {
   AccessibilityInfo,
   findNodeHandle,
-  Platform,
   Text as RawText,
   View,
   useWindowDimensions,
@@ -103,8 +102,7 @@ const AuthoredLabel = forwardRef<
 })
 export const SwitcherG08Fixture = () => {
   const theme = useNativeTheme(),
-    { scale } = useWindowDimensions(),
-    minimum = Platform.OS === "ios" ? 44 : 48
+    { scale } = useWindowDimensions()
   const [mode, setMode] = useState<TMode>("behavior"),
     [index, setIndex] = useState(0),
     [owner, setOwner] = useState("a"),
@@ -598,14 +596,13 @@ export const SwitcherG08Fixture = () => {
                       style={{
                         width: column,
                         height: rootHeight !== undefined ? "100%" : undefined,
-                        minHeight: rootHeight !== undefined ? undefined : minimum,
                         flexShrink: 0,
                         alignSelf: "stretch",
                         alignItems: "center",
                         justifyContent: "center",
                         flexDirection: "row",
-                        paddingHorizontal: optionCustom ? 9 : theme.spacing.unit,
-                        paddingVertical: 2,
+                        padding: theme.spacing.unit,
+                        ...(optionCustom ? { paddingHorizontal: 9 } : {}),
                         overflow: "hidden",
                         borderRadius: radius,
                         backgroundColor,

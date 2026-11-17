@@ -1,4 +1,4 @@
-import { Platform, type TextStyle } from "react-native"
+import type { TextStyle } from "react-native"
 
 import type { TNativeTheme } from "../../theme/types"
 import { AVAILABLE_CORNER_GEOMETRY_CODES } from "../../tokens/geometry"
@@ -141,7 +141,6 @@ export const getNativeGroupedTagStyles = (
     alignItems: "center",
     justifyContent: "center",
     padding: theme.spacing.unit,
-    ...(geometry === "round" ? { paddingHorizontal: 7 } : {}),
     borderWidth: 1,
     borderRadius: getNativeControlRadius(theme, geometry),
     ...getNativeGroupedTagColors(theme, props, state),
@@ -160,11 +159,9 @@ export const getNativeGroupedTagStyles = (
     outlineOffset: props.offsetFocusRing !== false ? 1.5 : 0,
   }
   const custom = resolveNativeStyle([computed, props.customStyles], "TagGroup.Tag", "customStyles")
-  const target = Platform.OS === "ios" ? 44 : 48
-  const interactive = state.allowsSelection || state.hasAction
   const defaults = {
-    minWidth: interactive && custom.width === undefined ? target : undefined,
-    minHeight: interactive && custom.height === undefined ? target : undefined,
+    minWidth: undefined,
+    minHeight: undefined,
     ...custom,
   }
   const final = resolveNativeStyle(
@@ -172,18 +169,7 @@ export const getNativeGroupedTagStyles = (
     "TagGroup.Tag",
     "style",
   )
-  const resolved = resolveNativeStyle(
-    [
-      {
-        ...defaults,
-        minWidth: interactive && (final.width ?? custom.width) === undefined ? defaults.minWidth : undefined,
-        minHeight: interactive && (final.height ?? custom.height) === undefined ? defaults.minHeight : undefined,
-      },
-      final,
-    ],
-    "TagGroup.Tag",
-    "resolvedStyle",
-  )
+  const resolved = resolveNativeStyle([defaults, final], "TagGroup.Tag", "resolvedStyle")
   return {
     ...splitNativeTextStyle(resolved),
     defaultStyle: defaults,

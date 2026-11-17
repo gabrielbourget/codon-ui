@@ -1,4 +1,4 @@
-import { Platform, type ColorValue, type TextStyle, type ViewStyle } from "react-native"
+import type { ColorValue, TextStyle, ViewStyle } from "react-native"
 
 import type { TNativeTheme } from "../../theme/types"
 import { AVAILABLE_THEMING_ORDER_CODES } from "../../tokens/theme-order"
@@ -40,7 +40,6 @@ export const getNativePaginationStyles = (
   return {
     root,
     foreground,
-    target: Platform.OS === "ios" ? 44 : 48,
     gap: theme.spacing.unit,
     separator: resolveNativeStyle<ViewStyle>(
       [{ alignSelf: "stretch", width: 0.75 }, props.customSeparatorStyles],

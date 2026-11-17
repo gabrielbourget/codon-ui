@@ -40,8 +40,8 @@ it("CAP.toggle-button.001 renders one unselected named native target with the de
     borderColor: "#9e9e9e",
     borderWidth: 1,
     borderRadius: 5,
-    minWidth: 44,
-    minHeight: 44,
+    minWidth: undefined,
+    minHeight: undefined,
   })
   expect(StyleSheet.flatten(button.props.style).shadowOpacity).toBeUndefined()
   expect(screen.getAllByRole("button")).toHaveLength(1)

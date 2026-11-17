@@ -1,4 +1,4 @@
-import { Platform, type TextStyle, type ViewStyle } from "react-native"
+import type { TextStyle, ViewStyle } from "react-native"
 
 import type { TNativeTheme } from "../../theme/types"
 import { resolveNativeStyle, validateNativeColor } from "../colors"
@@ -48,7 +48,6 @@ export const getNativeMenuItemStyles = (
     backgroundColor: "transparent",
     borderWidth: 0,
     justifyContent: "flex-start",
-    minHeight: Platform.OS === "ios" ? 44 : 48,
     flexDirection: "row",
     alignItems: "center",
     gap: theme.spacing.unit,

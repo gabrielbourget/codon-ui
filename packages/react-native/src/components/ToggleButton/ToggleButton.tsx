@@ -8,7 +8,6 @@ import { NativeButton as Button } from "../Button/Button"
 import type { TNativeButtonRootStyle } from "../Button/types"
 import { resolveNativeStyle, validateNativeColor } from "../colors"
 import { validateNativeDisplayDimension } from "../displayDimensions"
-import { nativeControlTarget } from "../selection"
 import { NativeSelectionIndicatorProvider } from "../SelectionIndicator/context"
 import { NativeToggleButtonGroupStateContext } from "../ToggleButtonGroup/context"
 
@@ -143,11 +142,8 @@ export const ToggleButton = forwardRef<TNativeToggleButtonRef, TNativeToggleButt
             color: foreground,
           }
           const custom = resolveNativeStyle(customStyles, "ToggleButton", "customStyles")
-          const target = nativeControlTarget()
           const baseline = {
             ...base,
-            minWidth: (custom.width ?? width) === undefined ? target : undefined,
-            minHeight: (custom.height ?? height) === undefined ? target : undefined,
             ...custom,
           }
           const final = resolveNativeStyle(
@@ -159,8 +155,6 @@ export const ToggleButton = forwardRef<TNativeToggleButtonRef, TNativeToggleButt
           )
           return {
             ...base,
-            minWidth: (final.width ?? custom.width ?? width) === undefined ? target : undefined,
-            minHeight: (final.height ?? custom.height ?? height) === undefined ? target : undefined,
             ...custom,
             ...final,
           }
