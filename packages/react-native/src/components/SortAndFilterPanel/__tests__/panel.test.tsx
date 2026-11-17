@@ -665,6 +665,9 @@ it("loads and clears explicit confirmed scene models without generating an Apply
     "Sort Parameter - Count - Descending",
     "Sort Parameter - Name - Ascending",
   ])
+  const activeFilterTags = within(host("query-active-filters"))
+  const filterIcons = activeFilterTags.getAllByTestId("tag-default-close-icon", { includeHiddenElements: true })
+  expect(filterIcons.map((icon) => icon.props.fill)).toEqual(["#ffffff", "#ffffff"])
   const countGroup = within(screen.getByLabelText("Count filter group"))
   const countBadgeText = countGroup
     .getAllByText("Count")

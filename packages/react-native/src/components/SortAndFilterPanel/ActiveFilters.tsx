@@ -43,11 +43,9 @@ export const QueryActiveFilters = (props: TNativeQueryActiveFiltersProps) => {
               textValue={group.criteriaName}
               geometry="round"
               color={theme.actions.primary.background}
-              customStyles={{ borderWidth: 0 }}
+              customStyles={{ borderWidth: 0, color: theme.actions.primary.foreground }}
             >
-              <Text variant="b11" color={theme.actions.primary.foreground}>
-                {group.criteriaName}
-              </Text>
+              <Text variant="b11">{group.criteriaName}</Text>
             </Tag>
           ),
         })),

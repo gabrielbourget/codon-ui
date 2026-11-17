@@ -8,7 +8,7 @@ import { prepareSelectPopover, pressSelectOption } from "../../../overlays/float
 import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import { NativeFloatingWindowContext } from "../../../overlays/floating/scope"
 import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
-import { NativeThemeProvider } from "../../../theme"
+import { NativeThemeProvider, type TNativeThemeOverrides } from "../../../theme"
 import { resolveNativeTheme } from "../../../theme/defaults"
 import {
   fireEventWithNativeCollections as fireEvent,
@@ -37,8 +37,8 @@ const instruction = (
   id = "a",
   sortDirection: TTableSortInstruction["sortDirection"] = "Ascending",
 ): TTableSortInstruction => ({ id, criteriaID: id, criteriaName: "City", sortDirection })
-const wrap = (children: ReactNode, mode: "light" | "dark" = "light") => (
-  <NativeThemeProvider mode={mode}>
+const wrap = (children: ReactNode, mode: "light" | "dark" = "light", overrides?: TNativeThemeOverrides) => (
+  <NativeThemeProvider mode={mode} overrides={overrides}>
     <NativeFloatingLayerHost>{children}</NativeFloatingLayerHost>
   </NativeThemeProvider>
 )
@@ -273,6 +273,8 @@ it("uses current active-sort tag metadata and removal callback after replacement
       />,
     ),
   )
+  expect(screen.getByText("City")).toHaveStyle({ color: "#ffffff" })
+  expect(screen.getByTestId("tag-default-close-icon", { includeHiddenElements: true }).props.fill).toBe("#ffffff")
   await rerenderWithNativeCollections(
     wrap(
       <QueryActiveSorts
@@ -280,9 +282,12 @@ it("uses current active-sort tag metadata and removal callback after replacement
         labels={labels.activeSorts}
         onDeleteSortParameter={current}
       />,
+      "light",
+      { actions: { primary: { background: "#e0f2fe", foreground: "#102a43" } } },
     ),
   )
-  expect(screen.getByText("Nouveau")).toHaveStyle({ color: "#ffffff" })
+  expect(screen.getByText("Nouveau")).toHaveStyle({ color: "#102a43" })
+  expect(screen.getByTestId("tag-default-close-icon", { includeHiddenElements: true }).props.fill).toBe("#102a43")
   await press("Remove Nouveau")
   expect(current).toHaveBeenCalledWith("current")
   expect(previous).not.toHaveBeenCalled()

@@ -195,11 +195,9 @@ export const QueryActiveSorts = (props: TQueryActiveSortsProps) => {
             color={theme.actions.primary.background}
             geometry="round"
             textValue={item.criteriaName}
-            customStyles={{ borderWidth: 0 }}
+            customStyles={{ borderWidth: 0, color: theme.actions.primary.foreground }}
           >
-            <Text variant="b11" color={theme.actions.primary.foreground}>
-              {item.criteriaName}
-            </Text>
+            <Text variant="b11">{item.criteriaName}</Text>
           </Tag>
         ),
       })),
