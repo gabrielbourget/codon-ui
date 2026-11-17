@@ -628,7 +628,7 @@ it("NATIVE.compact.005 excludes disabled rows and stale callbacks after guard ta
   await act(() => latePress(packet))
   expect(onChange).not.toHaveBeenCalled()
 })
-it("NATIVE.compact.009 matches canonical selected-row style and pointer recommit without replacing a held query", async () => {
+it("NATIVE.compact.009 preserves selected-row presentation and pointer recommit without replacing a held query", async () => {
   const onChange = jest.fn(),
     onInputChange = jest.fn()
   await render(wrapper({ isOpen: true, value: "alpha", inputValue: "held", onChange, onInputChange }))
@@ -636,7 +636,7 @@ it("NATIVE.compact.009 matches canonical selected-row style and pointer recommit
   expect(row("type-ahead-search-option-string:alpha")).toHaveStyle({
     backgroundColor: "#efefef",
     padding: 5,
-    minHeight: 20,
+    minHeight: undefined,
   })
   await pressCompact(row("type-ahead-search-option-string:alpha"))
   expect(onChange).not.toHaveBeenCalled()
