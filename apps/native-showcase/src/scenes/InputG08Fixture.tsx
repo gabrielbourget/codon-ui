@@ -123,7 +123,6 @@ export const InputG08Fixture = () => {
     width: narrow ? 190 : 240,
     height: narrow ? 64 : 48,
     padding: theme.spacing.unit,
-    paddingHorizontal: theme.spacing.unit,
     backgroundColor: theme.colors.controlBackground,
     color: theme.colors.controlForeground,
     fontFamily: theme.typography.fontFamilies.body,
