@@ -62,7 +62,7 @@ export type TNativeSelectProps<T> = Omit<
     onOpenChange?: (open: boolean) => void
     isDisabled?: boolean
     isReadOnly?: boolean
-    closeLabel: string
+    closeLabel?: string
     placeholder?: string
     emptyListMessage?: string
     width?: ViewStyle["width"]

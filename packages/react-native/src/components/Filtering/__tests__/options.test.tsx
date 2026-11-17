@@ -2,7 +2,7 @@ import "../../../collection/__tests__/nativeReceipts"
 
 import { screen } from "@testing-library/react-native"
 import { createRef, useContext } from "react"
-import { Platform, StyleSheet, type View } from "react-native"
+import { AccessibilityInfo, Platform, StyleSheet, type View } from "react-native"
 
 import {
   actWithNativeCollections as act,
@@ -11,6 +11,7 @@ import {
   renderWithNativeCollections as render,
   rerenderWithNativeCollections,
 } from "../../../collection/__tests__/nativeReceipts"
+import { prepareSelectPopover, pressSelectOption } from "../../../overlays/floating/__tests__/selectPopoverFixture"
 import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import { NativeOverlayProvider, OverlayRegistryContext } from "../../../overlays/NativeOverlayProvider"
 import { NativeThemeProvider } from "../../../theme"
@@ -26,6 +27,7 @@ jest.mock("react-native-safe-area-context", () => ({
 let comboFixture: ReturnType<typeof createFilterComboBoxFixture>
 beforeEach(() => {
   comboFixture = createFilterComboBoxFixture()
+  jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
 })
 const wrap = (child: React.ReactNode) => (
   <NativeThemeProvider>
@@ -48,7 +50,8 @@ const pick = async (name: string, option: string) => {
     await act(() => userEvent.setup().press(screen.getByRole("option", { name: option })))
   } else {
     await fireEvent.press(button)
-    await fireEvent.press(screen.getByRole("radio", { name: option }))
+    await prepareSelectPopover()
+    await pressSelectOption(screen.getByRole("radio", { name: option, includeHiddenElements: true }))
   }
 }
 afterEach(() => jest.restoreAllMocks())
@@ -125,7 +128,7 @@ const Observe = () => {
   appRestored = () => registry?.canRestore(null) ?? false
   return null
 }
-it("CAP.filter-selectors.006 admits a real child-window selection while the parent is covered", async () => {
+it("CAP.filter-selectors.006 admits an anchored selection while the native window stays active", async () => {
   jest.replaceProperty(Platform, "OS", "ios")
   const props = propsFor([{ id: "a", name: "Zero", argumentValue: 0 }])
   await render(
@@ -135,13 +138,10 @@ it("CAP.filter-selectors.006 admits a real child-window selection while the pare
     </NativeOverlayProvider>,
   )
   await fireEvent.press(screen.getByRole("button", { name: "Filter Argument" }))
-  const window = screen.getByTestId("select-window"),
-    dismiss = window.props.onDismiss
-  await fireEvent(window, "show")
-  expect(appRestored?.()).toBe(false)
-  await fireEvent.press(screen.getByRole("radio", { name: "Zero" }))
+  await prepareSelectPopover()
+  expect(appRestored?.()).toBe(true)
+  await pressSelectOption(screen.getByRole("radio", { name: "Zero", includeHiddenElements: true }))
   expect(props.onArgumentChange).toHaveBeenCalledWith({ argument: 0, filterArgumentSelectedKey: "a" })
-  await act(() => dismiss())
   expect(appRestored?.()).toBe(true)
 })
 it("blocks a child selection when the logical owner closes", async () => {
@@ -149,8 +149,9 @@ it("blocks a child selection when the logical owner closes", async () => {
   const props = propsFor([{ id: "a", name: "Zero", argumentValue: 0 }])
   await render(wrap(<SelectFilterArgument {...props} canAct={() => active} />))
   await fireEvent.press(screen.getByRole("button", { name: "Filter Argument" }))
+  await prepareSelectPopover()
   active = false
-  await fireEvent.press(screen.getByRole("radio", { name: "Zero" }))
+  await pressSelectOption(screen.getByRole("radio", { name: "Zero", includeHiddenElements: true }))
   expect(props.onArgumentChange).not.toHaveBeenCalled()
 })
 it("CAP.filter-selectors.005 projects names in metadata order, ignoring argumentValue and numeric coercion", async () => {

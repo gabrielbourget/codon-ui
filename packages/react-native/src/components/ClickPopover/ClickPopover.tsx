@@ -98,6 +98,8 @@ export const NativeFloatingSurface = forwardRef<
     nativeChildren?: (state: TNativeFloatingRenderState & { defaultChildren: undefined }) => ReactNode
     nativeClearContexts?: readonly TNativeClearContext[]
     nativeScrollContent?: boolean
+    nativeConstrainToViewport?: boolean
+    nativeRestoreAccessibilityFocus?: boolean
   }
 >((props, ref) => {
   const {
@@ -109,6 +111,8 @@ export const NativeFloatingSurface = forwardRef<
     nativeChildren,
     nativeClearContexts,
     nativeScrollContent = false,
+    nativeConstrainToViewport = nativeScrollContent,
+    nativeRestoreAccessibilityFocus = false,
     isOpen,
     defaultOpen,
     onOpenChange,
@@ -274,7 +278,7 @@ export const NativeFloatingSurface = forwardRef<
     containerPadding,
     shouldFlip,
     maxHeight,
-    constrainToViewport: nativeScrollContent,
+    constrainToViewport: nativeConstrainToViewport,
     arrowBoundaryOffset,
     shouldUpdatePosition,
     arrowSize: showOverlayArrow ? (arrowLayout?.width ?? 10) : 0,
@@ -412,17 +416,33 @@ export const NativeFloatingSurface = forwardRef<
           snapshot.parent,
           snapshot.input,
           latestReturn.current.target,
+          nativeRestoreAccessibilityFocus,
         )
     } else returnLease.current?.updateTarget(latestReturn.current.target)
-  }, [layer.mounted, layer.id, host.focusReturns, restoreFocusRef, anchor, parent?.id, input])
+  }, [
+    layer.mounted,
+    layer.id,
+    host.focusReturns,
+    restoreFocusRef,
+    anchor,
+    parent?.id,
+    input,
+    nativeRestoreAccessibilityFocus,
+  ])
   useLayoutEffect(
     () => () => {
       if (returnSnapshot.current?.mounted && !suppressRestore.current) {
         const snapshot = latestReturn.current
-        host.focusReturns.request(layer.id, snapshot.parent, snapshot.input, snapshot.target)
+        host.focusReturns.request(
+          layer.id,
+          snapshot.parent,
+          snapshot.input,
+          snapshot.target,
+          nativeRestoreAccessibilityFocus,
+        )
       }
     },
-    [host.focusReturns, layer.id],
+    [host.focusReturns, layer.id, nativeRestoreAccessibilityFocus],
   )
   const [dialogFocused, setDialogFocused] = useState(false)
   const currentForeground = useNativeLinkColor(painted.rootText.color ?? theme.colors.foreground, 250, textColorEasing)
@@ -455,17 +475,17 @@ export const NativeFloatingSurface = forwardRef<
     return Math.min(value, available)
   }
   const constrainedWidth =
-    nativeScrollContent && position
+    nativeConstrainToViewport && position
       ? capDimension(painted.root.maxWidth, position.maxWidth!, host.layout?.width ?? 0)
       : undefined
   const constrainedHeight =
-    nativeScrollContent && position
+    nativeConstrainToViewport && position
       ? capDimension(painted.root.maxHeight, position.maxHeight, host.layout?.height ?? 0)
       : undefined
   const isSizedMinimum = (value: TNativeClickPopoverRootStyle["minWidth"]) =>
     typeof value === "number" || (typeof value === "string" && value.endsWith("%"))
   const viewportConstraints =
-    nativeScrollContent && position
+    nativeConstrainToViewport && position
       ? {
           maxWidth: constrainedWidth,
           maxHeight: constrainedHeight,

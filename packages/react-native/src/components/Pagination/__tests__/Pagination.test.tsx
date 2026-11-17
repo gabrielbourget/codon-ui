@@ -12,6 +12,7 @@ import {
   type TNativePressEvent,
 } from "../../.."
 import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
+import { prepareSelectPopover, pressSelectOption } from "../../../overlays/floating/__tests__/selectPopoverFixture"
 import { resolveNativeTheme } from "../../../theme/defaults"
 
 jest.mock("react-native-safe-area-context", () => ({
@@ -224,11 +225,8 @@ it("CAP.pagination.011/.024/.028 coordinates size then page without drifting on 
     within(screen.getByTestId("items-per-page")).getByRole("button", { name: "Items Per Page", ...hidden })
   const choose = async (value: number) => {
     await fireEvent(pageSizeButton(), "press", event())
-    const window = screen.getByTestId("select-window", hidden)
-    const dismissed = window.props.onDismiss
-    await fireEvent(window, "show")
-    await fireEvent.press(within(window).getByRole("radio", { name: String(value) }))
-    await act(() => dismissed())
+    await prepareSelectPopover()
+    await pressSelectOption(screen.getByRole("radio", { name: String(value), ...hidden }))
   }
   await choose(50)
   await choose(20)
@@ -250,16 +248,14 @@ it("CAP.pagination.012 preserves option order and an authored empty option colle
   const f = fixture({ chosenPaginationSubcomponents: ["items-per-page"], itemsPerPageOptions: [15, 30, 45] })
   await render(f.node())
   await press("Items Per Page")
-  const firstDismissed = screen.getByTestId("select-window", hidden).props.onDismiss
-  await fireEvent(screen.getByTestId("select-window", hidden), "show")
-  expect(screen.getAllByRole("radio").map((node) => node.props.accessibilityLabel)).toEqual(["15", "30", "45"])
-  await press("Close page size choices")
-  await act(() => firstDismissed())
+  await prepareSelectPopover()
+  expect(screen.getAllByRole("radio", hidden).map((node) => node.props.accessibilityLabel)).toEqual(["15", "30", "45"])
+  await pressSelectOption(screen.getByRole("button", { name: "Close page size choices", ...hidden }))
   await screen.rerender(f.node({ chosenPaginationSubcomponents: ["items-per-page"], itemsPerPageOptions: [] }))
   await press("Items Per Page")
-  await fireEvent(screen.getByTestId("select-window", hidden), "show")
+  await prepareSelectPopover()
   expect(screen.queryAllByRole("radio")).toHaveLength(0)
-  expect(screen.getByText("No page sizes available")).toBeOnTheScreen()
+  expect(screen.getByText("No page sizes available", hidden)).toBeOnTheScreen()
 })
 it("CAP.pagination.013/.014 uses the expected side-priority numeric window and singleton overflow affordance", async () => {
   const f = fixture({ currentPage: 10, maxVisiblePages: 4, consolidationPlacement: "right" })

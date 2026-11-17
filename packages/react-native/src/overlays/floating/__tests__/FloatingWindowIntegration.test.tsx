@@ -7,6 +7,8 @@ import { useNativeFloatingHost } from "../NativeFloatingLayerHost"
 import { NativeFloatingScopeContext } from "../scope"
 import { useNativeFloatingLayer } from "../useFloatingLayer"
 
+import { prepareSelectPopover } from "./selectPopoverFixture"
+
 type TLayer = ReturnType<typeof useNativeFloatingLayer>
 const hidden = { includeHiddenElements: true }
 const Actor = ({
@@ -162,55 +164,40 @@ it.each([
   expect(screen.getByTestId("owner-window").props.visible).toBe(true)
 })
 
-it("preserves a controlled zero Select value while dismissing its floating child first", async () => {
-  let layer: TLayer
+it("dismisses an anchored Select before its Modal and preserves the controlled zero", async () => {
   const onChange = jest.fn()
   const onOpenChange = jest.fn()
-  const dismiss = jest.fn()
+  const windowChanged = jest.fn()
   const node = (open: boolean) => (
     <NativeOverlayProvider>
-      <Select
-        testID="select-owner"
-        accessibilityLabel="Choose"
-        closeLabel="Close"
-        isOpen
-        value={0}
-        onChange={onChange}
-        onOpenChange={onOpenChange}
-        items={[{ id: 0, name: "Zero" }]}
-        getKey={(item) => item.id}
-        getTextValue={(item) => item.name}
-        renderItem={() => (
-          <Actor
-            open={open}
-            onDismiss={dismiss}
-            observe={(value) => {
-              layer = value
-            }}
-          />
-        )}
-      />
+      <Modal testID="select-window-owner" accessibilityLabel="Owner" isOpen onOpenChange={windowChanged}>
+        <Select
+          testID="select-owner"
+          accessibilityLabel="Choose"
+          isOpen={open}
+          value={0}
+          onChange={onChange}
+          onOpenChange={onOpenChange}
+          items={[{ id: 0, name: "Zero" }]}
+          getKey={(item) => item.id}
+          getTextValue={(item) => item.name}
+        />
+      </Modal>
     </NativeOverlayProvider>
   )
+  jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
   const result = await render(node(true))
-  await act(() => {
-    expect(layer!.entered()).toBe(false)
-  })
-  await fireEvent(screen.getByTestId("select-owner-window"), "show")
-  await act(() => {
-    expect(layer!.entered()).toBe(true)
-  })
-  await act(() => screen.getByTestId("select-owner-window").props.onRequestClose())
-  expect(dismiss).toHaveBeenCalledWith("keyboard")
-  expect(onOpenChange).not.toHaveBeenCalled()
-  await result.rerender(node(false))
-  await act(() => {
-    layer!.exited()
-  })
-  await act(() => screen.getByTestId("select-owner-window").props.onRequestClose())
+  const owner = () => screen.getByTestId("select-window-owner-window", hidden)
+  await fireEvent(owner(), "show")
+  await prepareSelectPopover("select-owner")
+  await act(() => owner().props.onRequestClose())
   expect(onOpenChange.mock.calls).toEqual([[false]])
+  expect(windowChanged).not.toHaveBeenCalled()
   expect(onChange).not.toHaveBeenCalled()
-  expect(screen.getByTestId("select-owner-trigger").props.accessibilityValue.text).toBe("Zero")
+  expect(screen.getByTestId("select-owner-trigger", hidden).props.accessibilityValue.text).toBe("Zero")
+  await result.rerender(node(false))
+  await act(() => owner().props.onRequestClose())
+  expect(windowChanged.mock.calls).toEqual([[false]])
 })
 
 it("owns and retires the Android Back subscription without swallowing an empty host", async () => {

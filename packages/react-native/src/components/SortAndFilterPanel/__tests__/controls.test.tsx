@@ -4,6 +4,7 @@ import { act, screen, within } from "@testing-library/react-native"
 import { createRef, useContext, type ReactNode } from "react"
 import { AccessibilityInfo, StyleSheet, type View } from "react-native"
 
+import { prepareSelectPopover, pressSelectOption } from "../../../overlays/floating/__tests__/selectPopoverFixture"
 import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import { NativeFloatingWindowContext } from "../../../overlays/floating/scope"
 import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
@@ -168,13 +169,17 @@ it("CAP.query-controls.003 forwards the actual Select ref and keeps null selecti
   expect(ref.current).not.toBeNull()
   const target = ref.current
   await press("Add Sort Criteria")
-  expect(screen.getAllByRole("radio").map((node) => node.props.accessibilityLabel)).toEqual(["Empty ID", "Second"])
-  await fireEvent.press(screen.getByRole("radio", { name: "Empty ID" }))
+  await prepareSelectPopover()
+  expect(
+    screen.getAllByRole("radio", { includeHiddenElements: true }).map((node) => node.props.accessibilityLabel),
+  ).toEqual(["Empty ID", "Second"])
+  await pressSelectOption(screen.getByRole("radio", { name: "Empty ID", includeHiddenElements: true }))
   expect(screen.getByRole("button", { name: "Add Sort Criteria" }).props.accessibilityValue.text).toBe(
     "Select Sort Criteria",
   )
   await press("Add Sort Criteria")
-  await fireEvent.press(screen.getByRole("radio", { name: "Empty ID" }))
+  await prepareSelectPopover()
+  await pressSelectOption(screen.getByRole("radio", { name: "Empty ID", includeHiddenElements: true }))
   expect(onAdd.mock.calls).toEqual([[""], [""]])
   expect(ref.current).toBe(target)
   expect(metadata).toEqual([
@@ -207,8 +212,9 @@ it("renders current criteria and names without retaining deleted metadata", asyn
     ),
   )
   await press("Ajouter")
+  await prepareSelectPopover()
   expect(screen.queryByRole("radio", { name: "Old" })).toBeNull()
-  await fireEvent.press(screen.getByRole("radio", { name: "Nouveau" }))
+  await pressSelectOption(screen.getByRole("radio", { name: "Nouveau", includeHiddenElements: true }))
   expect(current).toHaveBeenCalledWith("new")
   expect(previous).not.toHaveBeenCalled()
 })
@@ -228,8 +234,9 @@ it("guards Add Sort callback delivery while closed without inventing selection s
     ),
   )
   await press("Add Sort Criteria")
+  await prepareSelectPopover()
   active = false
-  await fireEvent.press(screen.getByRole("radio", { name: "City" }))
+  await pressSelectOption(screen.getByRole("radio", { name: "City", includeHiddenElements: true }))
   expect(onAdd).not.toHaveBeenCalled()
 })
 
@@ -426,7 +433,7 @@ const WindowStatus = () => {
   const active = useContext(NativeFloatingWindowContext)
   return <Text testID="query-parent-window-status">{String(active?.())}</Text>
 }
-it("admits a Select child-window request while its actual parent window is temporarily inactive", async () => {
+it("admits the anchored Select request without deactivating its parent window", async () => {
   const onAdd = jest.fn()
   await render(
     <NativeOverlayProvider>
@@ -443,9 +450,9 @@ it("admits a Select child-window request while its actual parent window is tempo
   )
   expect(screen.getByTestId("query-parent-window-status").props.children).toBe("true")
   await press("Add Sort Criteria")
-  await fireEvent(screen.getByTestId("select-window"), "show")
-  expect(screen.getByTestId("query-parent-window-status").props.children).toBe("false")
-  await fireEvent.press(screen.getByRole("radio", { name: "City" }))
+  await prepareSelectPopover()
+  expect(screen.getByTestId("query-parent-window-status").props.children).toBe("true")
+  await pressSelectOption(screen.getByRole("radio", { name: "City", includeHiddenElements: true }))
   expect(onAdd).toHaveBeenCalledWith("a")
 })
 
