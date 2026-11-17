@@ -1,13 +1,16 @@
-import { act, render, screen, userEvent } from "@testing-library/react-native"
+import { act, render as renderNative, screen, userEvent } from "@testing-library/react-native"
 import { createRef } from "react"
 import { AccessibilityInfo, Animated, Easing, PlatformColor, View, type ViewProps } from "react-native"
 
 import { NativeButtonContext, Select, Text, type TNativeSelectRenderState } from "../../.."
+import { prepareSelectPopover, SelectTestHost } from "../../../overlays/floating/__tests__/selectPopoverFixture"
 
 jest.mock("react-native-safe-area-context", () => {
   const { View } = jest.requireActual("react-native")
   return { SafeAreaProvider: View, SafeAreaView: View }
 })
+const render = (node: React.ReactElement) => renderNative(node, { wrapper: SelectTestHost })
+
 const items = [
   { id: "one", name: "One" },
   { id: "two", name: "Two" },
@@ -35,7 +38,7 @@ afterEach(() => {
   jest.useRealTimers()
 })
 
-it("renders original owned trigger/window after style and before selected value while retaining the trigger ref", async () => {
+it("renders original owned trigger/popover after style and before selected value while retaining the trigger ref", async () => {
   const ref = createRef<View>()
   const trace: string[] = []
   const opened = jest.fn()
@@ -76,7 +79,8 @@ it("renders original owned trigger/window after style and before selected value 
   expect(ref.current).toBe(original)
   expect(root().props.nativeID).toBe("true")
   expect(renderer.mock.calls.at(-1)?.[1]).toMatchObject({ isOpen: true, isReadOnly: true })
-  expect(screen.getByRole("radio", { name: "Two" })).toBeOnTheScreen()
+  await prepareSelectPopover()
+  expect(screen.getByRole("radio", { name: "Two", ...hidden })).toBeOnTheScreen()
   await view.unmount()
   expect(ref.current).toBeNull()
 })
@@ -221,6 +225,15 @@ it("keeps default and explicit text sizes on owned selected text while final tex
   expect(screen.getByText("One")).toHaveStyle({ fontSize: 0 })
 })
 
+it("left-aligns the trigger text by default and preserves a caller alignment", async () => {
+  const view = await render(<Select {...base} placeholder="Choose a value" />)
+  expect(screen.getByText("Choose a value")).toHaveStyle({ textAlign: "left" })
+  await view.rerender(<Select {...base} value="one" />)
+  expect(screen.getByText("One")).toHaveStyle({ textAlign: "left" })
+  await view.rerender(<Select {...base} value="one" customSelectedItemTextStyles={{ textAlign: "right" }} />)
+  expect(screen.getByText("One")).toHaveStyle({ textAlign: "right" })
+})
+
 it("distinguishes missing selection from an explicit empty placeholder and forwards custom empty-list wording", async () => {
   const renderValue = jest.fn(({ selectedText }: { selectedText: string }) => selectedText)
   const change = jest.fn()
@@ -247,7 +260,8 @@ it("distinguishes missing selection from an explicit empty placeholder and forwa
   await view.rerender(
     <Select {...base} items={[]} value="missing" isOpen emptyListMessage="Nothing matches" onChange={change} />,
   )
-  expect(screen.getByText("Nothing matches")).toBeOnTheScreen()
-  expect(screen.getByRole("button", { name: "Close" })).toBeOnTheScreen()
+  await prepareSelectPopover()
+  expect(screen.getByText("Nothing matches", hidden)).toBeOnTheScreen()
+  expect(screen.getByRole("button", { name: "Close", ...hidden })).toBeOnTheScreen()
   expect(change).not.toHaveBeenCalled()
 })

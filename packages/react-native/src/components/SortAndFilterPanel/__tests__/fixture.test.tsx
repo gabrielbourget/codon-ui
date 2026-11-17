@@ -9,6 +9,7 @@ import {
   fireEventWithNativeCollections as fireEvent,
   renderWithNativeCollections as render,
 } from "../../../collection/__tests__/nativeReceipts"
+import { prepareSelectPopover, pressSelectOption } from "../../../overlays/floating/__tests__/selectPopoverFixture"
 import { NativeOverlayProvider, OverlayRegistryContext } from "../../../overlays/NativeOverlayProvider"
 
 import { SortAndFilterPanelFixture } from "./fixtures/PanelFixture"
@@ -95,12 +96,9 @@ it("composes the actual Add Sort, row, header and footer controls with owner vet
     </NativeOverlayProvider>,
   )
   await press("Add Sort Criteria")
-  const window = screen.getByTestId("select-window")
-  const dismissed = window.props.onDismiss
-  await fireEvent(window, "show")
-  expect(appRestored?.()).toBe(false)
-  await fireEvent.press(screen.getByRole("radio", { name: "Count" }))
-  await act(() => dismissed())
+  await prepareSelectPopover()
+  expect(appRestored?.()).toBe(true)
+  await pressSelectOption(screen.getByRole("radio", { name: "Count", includeHiddenElements: true }))
   expect(appRestored?.()).toBe(true)
   expect(snapshot().draft.sortInstructions.map((item: { id: string }) => item.id)).toEqual(["count"])
   await fireEvent.press(within(screen.getByTestId("query-sort-entry")).getByRole("button", { name: "Sort Descending" }))

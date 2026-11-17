@@ -6,6 +6,10 @@ import { AccessibilityInfo, Dimensions } from "react-native"
 import { SafeAreaInsetsContext } from "react-native-safe-area-context"
 
 import { confirmNativeCollections } from "../../../../../packages/react-native/src/collection/__tests__/nativeReceipts"
+import {
+  prepareSelectPopover,
+  pressSelectOption,
+} from "../../../../../packages/react-native/src/overlays/floating/__tests__/selectPopoverFixture"
 import { NativeShowcase } from "../NativeShowcase"
 
 const mockViews = new Map<string, RN.View>()
@@ -243,32 +247,8 @@ const enterQuery = async (configuration: "default" | "metadata-theme" | "echo" =
 }
 const chooseQueryCriterion = async (kind: "Sort" | "Filter", name: string) => {
   await press(`Add ${kind} Criteria`)
-  const window = screen.getByTestId("select-window", hidden)
-  const dismissed = window.props.onDismiss as () => void
-  await fireEvent(window, "show")
-  const receiver = screen.getByRole("radio", { name, ...hidden }).props
-  const event = {
-    persist: jest.fn(),
-    currentTarget: 17,
-    nativeEvent: {
-      target: 17,
-      timestamp: 100,
-      identifier: 1,
-      pageX: 1,
-      pageY: 1,
-      locationX: 1,
-      locationY: 1,
-      touches: [],
-      changedTouches: [],
-    },
-  }
-  // The test renderer keeps the covered parent in the Modal's logical ancestry.
-  await act(() => {
-    receiver.onResponderGrant(event)
-    receiver.onResponderRelease(event)
-  })
-  expect(screen.queryByTestId("select-window", hidden)).toBeNull()
-  await act(() => dismissed())
+  await prepareSelectPopover("select", { queries: screen })
+  await pressSelectOption(screen.getByRole("radio", { name, ...hidden }))
   await settleQueryCollections()
 }
 

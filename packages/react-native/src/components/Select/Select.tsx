@@ -1,26 +1,11 @@
-import {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type Ref,
-  type ReactElement,
-  type RefAttributes,
-} from "react"
-import { AccessibilityInfo, Modal, Platform, View, type TextStyle } from "react-native"
-import { SafeAreaProvider } from "react-native-safe-area-context"
+import { forwardRef, useCallback, useRef, useState, type Ref, type ReactElement, type RefAttributes } from "react"
+import { View, type TextStyle } from "react-native"
 
-import {
-  NativeFloatingWindowHost,
-  type TNativeFloatingWindowDismiss,
-} from "../../overlays/floating/NativeFloatingLayerHost"
-import { useOverlay } from "../../overlays/useOverlay"
 import { useNativeTheme } from "../../theme"
 import { NativeButton } from "../Button/Button"
 import { getNativeButtonContent } from "../Button/content"
 import type { TNativeButtonRenderState } from "../Button/types"
+import { NativeFloatingSurface } from "../ClickPopover/ClickPopover"
 import { resolveNativeStyle, validateNativeColor } from "../colors"
 import { NativeContentContext } from "../NativeContentContext"
 import { getNativeControlRadius, getNativeControlRootStyle } from "../selection"
@@ -37,6 +22,9 @@ import type {
 import { useSelectState } from "./useSelectState"
 
 const iconTiming = resolveNativeTagTransition(400)
+const maximumOptionsWidth = 250
+const maximumOptionsHeight = 150
+const optionsSurfaceStyle = { margin: 0, padding: 0 }
 
 const SelectValueContent = <T,>({
   state,
@@ -59,7 +47,6 @@ const SelectValueContent = <T,>({
   })
 
 const SelectInner = <T,>(props: TNativeSelectProps<T>, forwardedRef: Ref<TNativeSelectRef>) => {
-  const floatingDismiss = useRef<TNativeFloatingWindowDismiss | null>(null)
   const {
     render,
     items,
@@ -105,7 +92,8 @@ const SelectInner = <T,>(props: TNativeSelectProps<T>, forwardedRef: Ref<TNative
   const label = accessibilityLabel ?? aliasLabel
   if (typeof label !== "string" || !label.trim())
     throw new TypeError("Select: a nonempty accessibilityLabel or aria-label is required")
-  if (typeof closeLabel !== "string" || !closeLabel.trim()) throw new TypeError("Select: closeLabel must not be empty")
+  if (closeLabel !== undefined && (typeof closeLabel !== "string" || !closeLabel.trim()))
+    throw new TypeError("Select: closeLabel must not be empty")
   for (const [field, dimension] of [
     ["width", width],
     ["height", height],
@@ -119,48 +107,11 @@ const SelectInner = <T,>(props: TNativeSelectProps<T>, forwardedRef: Ref<TNative
   const theme = useNativeTheme()
   validateNativeColor(theme.colors.controlForeground, "Select", "foreground")
   validateNativeColor(theme.colors.controlPlaceholder, "Select", "placeholderColor")
-  validateNativeColor(theme.colors.background, "Select", "modalBackground")
   const selection = useSelectState(props)
   const reducedMotion = useNativeTagReducedMotion()
   const iconRotation = useNativeTagNumberValue(selection.open ? 180 : 0, iconTiming, reducedMotion)
   const trigger = useRef<TNativeSelectRef>(null)
-  const overlay = useOverlay(selection.open, false, true, trigger)
-  const mounted = useRef(true)
-  const openRef = useRef(selection.open)
-  const epoch = useRef(0)
-  const previousOpen = useRef(selection.open)
-  const frames = useRef(new Set<ReturnType<typeof requestAnimationFrame>>())
-  const [shown, setShown] = useState(false)
-  const restoreFocus = useCallback(() => {
-    const generation = epoch.current
-    const first = requestAnimationFrame(() => {
-      frames.current.delete(first)
-      if (!mounted.current || openRef.current || generation !== epoch.current) return
-      const second = requestAnimationFrame(() => {
-        frames.current.delete(second)
-        if (mounted.current && !openRef.current && generation === epoch.current && trigger.current)
-          AccessibilityInfo.sendAccessibilityEvent(trigger.current, "focus")
-      })
-      frames.current.add(second)
-    })
-    frames.current.add(first)
-  }, [])
-  useLayoutEffect(() => {
-    openRef.current = selection.open
-    epoch.current += 1
-    setShown(false)
-    if (!overlay.managed && previousOpen.current && !selection.open && Platform.OS === "android") restoreFocus()
-    previousOpen.current = selection.open
-  }, [selection.open, restoreFocus, overlay.managed])
-  useEffect(() => {
-    mounted.current = true
-    const scheduled = frames.current
-    return () => {
-      mounted.current = false
-      for (const frame of scheduled) cancelAnimationFrame(frame)
-      scheduled.clear()
-    }
-  }, [])
+  const [triggerWidth, setTriggerWidth] = useState<number>()
   const setTrigger = useCallback(
     (node: TNativeSelectRef | null) => {
       trigger.current = node
@@ -226,7 +177,7 @@ const SelectInner = <T,>(props: TNativeSelectProps<T>, forwardedRef: Ref<TNative
       state,
     )
   const textStyles = resolveNativeStyle(customSelectedItemTextStyles, "Select", "customSelectedItemTextStyles")
-  // Validate list styles even while the modal is closed.
+  // Validate list styles even while the popup is closed.
   resolveNativeStyle(customOptionsListStyles, "Select", "customOptionsListStyles")
   const isPlaceholder = !selection.selectedEntry
   const selectedText = selection.selectedEntry?.text ?? ""
@@ -254,7 +205,8 @@ const SelectInner = <T,>(props: TNativeSelectProps<T>, forwardedRef: Ref<TNative
       >
         <NativeButton
           nativeAnimate
-          onPress={() => selection.requestOpen(true)}
+          onPress={() => selection.requestOpen(!selection.open)}
+          onLayout={({ nativeEvent: { layout } }) => setTriggerWidth(layout.width)}
           onFocus={onFocus}
           onBlur={onBlur}
           nativeProgrammaticFocusable
@@ -273,7 +225,7 @@ const SelectInner = <T,>(props: TNativeSelectProps<T>, forwardedRef: Ref<TNative
             const { color = rootForeground, ...viewStyle } = triggerStyle(flags)
             return {
               viewStyle,
-              textStyle: {},
+              textStyle: { textAlign: "left" },
               foregroundColor: isPlaceholder ? theme.colors.controlPlaceholder : color,
               target: 0,
             }
@@ -314,53 +266,37 @@ const SelectInner = <T,>(props: TNativeSelectProps<T>, forwardedRef: Ref<TNative
           </View>
         </NativeButton>
       </NativeContentContext.Provider>
-      <Modal
-        testID={`${identity}-window`}
-        visible={overlay.visible}
-        transparent={false}
-        animationType="none"
-        presentationStyle="fullScreen"
-        allowSwipeDismissal={false}
-        supportedOrientations={["portrait", "portrait-upside-down", "landscape-left", "landscape-right"]}
-        onRequestClose={() => {
-          if (floatingDismiss.current?.("keyboard")) return
-          if (overlay.isActive()) selection.requestOpen(false)
-        }}
-        onShow={() => {
-          overlay.shown()
-          if (openRef.current) setShown(true)
-        }}
-        onDismiss={() => {
-          if (overlay.managed) overlay.dismissed()
-          else if (!openRef.current) restoreFocus()
-        }}
-      >
-        {overlay.mounted && (
-          <SafeAreaProvider style={{ flex: 1 }}>
-            <NativeFloatingWindowHost
-              testID={`${identity}-floating-host`}
-              isWindowActive={() => shown && overlay.isActive()}
-              dismissRef={floatingDismiss}
-            >
-              <SelectOptions
-                entries={selection.entries}
-                selectedKey={selection.selectedKey}
-                disabledKeys={selection.disabledKeys}
-                identity={identity}
-                label={label}
-                ready={shown && overlay.active}
-                close={() => {
-                  if (overlay.isActive()) selection.requestOpen(false)
-                }}
-                activate={(key) => {
-                  if (overlay.isActive()) selection.activate(key)
-                }}
-                props={props}
-              />
-            </NativeFloatingWindowHost>
-          </SafeAreaProvider>
+      <NativeFloatingSurface
+        testID={`${identity}-popover`}
+        isOpen={selection.open}
+        onOpenChange={selection.requestOpen}
+        triggerRef={trigger}
+        restoreFocusRef={trigger}
+        placement="bottom start"
+        offset={theme.spacing.unit}
+        shouldFlip
+        width={Math.min(triggerWidth ?? maximumOptionsWidth, maximumOptionsWidth)}
+        maxHeight={maximumOptionsHeight}
+        customStyles={optionsSurfaceStyle}
+        accessibilityLabel={label}
+        childIsDialog={false}
+        nativeRootRole={null}
+        nativeConstrainToViewport
+        nativeRestoreAccessibilityFocus
+        nativeChildren={({ placement }) => (
+          <SelectOptions
+            entries={selection.entries}
+            selectedKey={selection.selectedKey}
+            disabledKeys={selection.disabledKeys}
+            identity={identity}
+            label={label}
+            ready={placement !== null}
+            close={() => selection.requestOpen(false)}
+            activate={selection.activate}
+            props={props}
+          />
         )}
-      </Modal>
+      />
     </View>
   )
   return render ? render(element.props, state) : element

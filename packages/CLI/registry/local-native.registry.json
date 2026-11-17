@@ -2020,7 +2020,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/ClickPopover/ClickPopover.tsx",
           "role": "source",
-          "contentHash": "sha256:66a03cbcc2953f65780a3625cbe965fc404d33da1a704218552fa81243ee28ce"
+          "contentHash": "sha256:6c54fabc76450ed65c06f3a7323dc1c011d663a9030b3b4d828bf6b693f6984c"
         }
       ],
       "registryDependencies": [],
@@ -5081,14 +5081,13 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/Select/Select.tsx",
           "role": "source",
-          "contentHash": "sha256:8d0a21bac2e0fa0a7395fa883a3077dcc095e1f6bf27774b599637cdb14618a3"
+          "contentHash": "sha256:92a8f02f2c06b13dfba818920a496e9e5a14ceccc54ac042f607c6a749c38a3f"
         }
       ],
       "registryDependencies": [],
       "peerDependencies": {
         "react": "19.2.3",
-        "react-native": "0.86.3",
-        "react-native-safe-area-context": "5.7.0"
+        "react-native": "0.86.3"
       },
       "runtimeDependencies": {}
     },
@@ -5102,14 +5101,13 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/Select/SelectOptions.tsx",
           "role": "source",
-          "contentHash": "sha256:0fe0b249a36ebfdb66ecebe65a7977648d17b4fb2215d0341e6c268b0443897c"
+          "contentHash": "sha256:51f67ac1db1de6d40a24d7756d5716b97fac89132c46b453027d1b2489106765"
         }
       ],
       "registryDependencies": [],
       "peerDependencies": {
         "react": "19.2.3",
-        "react-native": "0.86.3",
-        "react-native-safe-area-context": "5.7.0"
+        "react-native": "0.86.3"
       },
       "runtimeDependencies": {}
     },
@@ -5123,7 +5121,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/Select/types.ts",
           "role": "source",
-          "contentHash": "sha256:4100ff32f57b77a9bb54e3a719b1463bba923135f6f176f6f512cada57be94fe"
+          "contentHash": "sha256:4fef61f175464d55c1a7a8d13bd5cc9773acdcfaf176bd5579bdfc7441a819d5"
         }
       ],
       "registryDependencies": [],
@@ -13918,7 +13916,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/overlays/floating/focusReturn.ts",
           "role": "source",
-          "contentHash": "sha256:9009994f05e91d557683ae789b2d4cc245fd3ce4ee7b1a99626bf2c5e9878e98"
+          "contentHash": "sha256:bbded18e2fd793a67aad91349d5c7a44335a2d5aed7a6328ddd32d074498442c"
         }
       ],
       "registryDependencies": [],
@@ -19377,7 +19375,6 @@
         "native-source/src/overlays/floating/useFloatingScrollAnchor.ts",
         "native-source/src/overlays/floating/useFloatingViewport.ts",
         "native-source/src/overlays/registry.ts",
-        "native-source/src/overlays/useOverlay.ts",
         "native-source/src/theme/NativeThemeProvider.tsx",
         "native-source/src/theme/defaults.ts",
         "native-source/src/theme/index.ts",
@@ -19632,17 +19629,38 @@
         "native-source/src/collection/model.ts",
         "native-source/src/collection/semantics.ts",
         "native-source/src/collection/snapshot.ts",
+        "native-source/src/collection/state.ts",
+        "native-source/src/collection/state/Selection.ts",
+        "native-source/src/collection/state/SelectionManager.ts",
         "native-source/src/collection/state/UPSTREAM.json",
+        "native-source/src/collection/state/getChildNodes.ts",
+        "native-source/src/collection/state/types.ts",
         "native-source/src/collection/state/useControlledState.ts",
+        "native-source/src/collection/state/useListState.ts",
+        "native-source/src/collection/state/useMultipleSelectionState.ts",
+        "native-source/src/collection/state/useTreeState.ts",
         "native-source/src/components/Button/Button.tsx",
         "native-source/src/components/Button/content.tsx",
         "native-source/src/components/Button/context.ts",
         "native-source/src/components/Button/motion.ts",
         "native-source/src/components/Button/styles.ts",
         "native-source/src/components/Button/types.ts",
+        "native-source/src/components/ClickPopover/ClickPopover.tsx",
+        "native-source/src/components/ClickPopover/NativePopoverDialog.tsx",
+        "native-source/src/components/ClickPopover/context.ts",
+        "native-source/src/components/ClickPopover/styles.ts",
+        "native-source/src/components/ClickPopover/types.ts",
+        "native-source/src/components/ComboBox/state/UPSTREAM.json",
+        "native-source/src/components/ComboBox/state/useOverlayTriggerState.ts",
         "native-source/src/components/Link/motion.ts",
         "native-source/src/components/ListBoxItem/ListBoxItem.tsx",
         "native-source/src/components/ListBoxItem/types.ts",
+        "native-source/src/components/Menu/UPSTREAM.json",
+        "native-source/src/components/Menu/context.ts",
+        "native-source/src/components/Menu/model.ts",
+        "native-source/src/components/Menu/triggerMessages.UPSTREAM.json",
+        "native-source/src/components/Menu/triggerState.ts",
+        "native-source/src/components/Menu/types.ts",
         "native-source/src/components/NativeContentContext.ts",
         "native-source/src/components/NativeTextStyleProvider.tsx",
         "native-source/src/components/Select/Select.tsx",
@@ -19665,6 +19683,7 @@
         "native-source/src/input/NativeKeyboardScope.tsx",
         "native-source/src/input/NativePressable.tsx",
         "native-source/src/input/accessibilityInspection.ts",
+        "native-source/src/input/accessibilityReferences.ts",
         "native-source/src/input/activation.ts",
         "native-source/src/input/dialogFocusRegistry.ts",
         "native-source/src/input/floatingObservation.ts",
@@ -19689,16 +19708,23 @@
         "native-source/src/overlays/NativeOverlayProvider.tsx",
         "native-source/src/overlays/backdrop/context.ts",
         "native-source/src/overlays/backdrop/types.ts",
+        "native-source/src/overlays/floating/NativeDialogTrigger.tsx",
+        "native-source/src/overlays/floating/NativeFloatingArrow.tsx",
         "native-source/src/overlays/floating/NativeFloatingLayerHost.tsx",
         "native-source/src/overlays/floating/focusReturn.ts",
         "native-source/src/overlays/floating/interaction.ts",
         "native-source/src/overlays/floating/measurement.ts",
+        "native-source/src/overlays/floating/motion.ts",
         "native-source/src/overlays/floating/placement.ts",
         "native-source/src/overlays/floating/registry.ts",
         "native-source/src/overlays/floating/scope.ts",
+        "native-source/src/overlays/floating/styles.ts",
         "native-source/src/overlays/floating/tooltipTiming.ts",
+        "native-source/src/overlays/floating/useFloatingLayer.ts",
+        "native-source/src/overlays/floating/useFloatingPosition.ts",
+        "native-source/src/overlays/floating/useFloatingScrollAnchor.ts",
+        "native-source/src/overlays/floating/useFloatingViewport.ts",
         "native-source/src/overlays/registry.ts",
-        "native-source/src/overlays/useOverlay.ts",
         "native-source/src/theme/NativeThemeProvider.tsx",
         "native-source/src/theme/defaults.ts",
         "native-source/src/theme/index.ts",

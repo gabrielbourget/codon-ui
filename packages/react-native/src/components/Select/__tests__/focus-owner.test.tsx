@@ -1,11 +1,14 @@
-import { act, render, screen } from "@testing-library/react-native"
+import { act, render as renderNative, screen } from "@testing-library/react-native"
 import { createRef } from "react"
 import { findNodeHandle, type View } from "react-native"
 
 import { focusNativeTarget } from "../../../input/focus"
 import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
+import { SelectTestHost } from "../../../overlays/floating/__tests__/selectPopoverFixture"
 import { NativeFloatingWindowContext } from "../../../overlays/floating/scope"
 import { Select } from "../Select"
+
+const render = (node: React.ReactElement) => renderNative(node, { wrapper: SelectTestHost })
 
 const items = [
   { id: 0, name: "Zero" },

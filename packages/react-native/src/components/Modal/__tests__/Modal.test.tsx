@@ -3,6 +3,7 @@ import { createRef, useLayoutEffect, useState } from "react"
 import { AccessibilityInfo, Animated, Platform, View } from "react-native"
 
 import { Button, Modal, NativeOverlayProvider, NativeThemeProvider, Select, Text, type ModalProps } from "../../.."
+import { prepareSelectPopover } from "../../../overlays/floating/__tests__/selectPopoverFixture"
 
 jest.mock("react-native-safe-area-context", () => {
   const { View } = jest.requireActual("react-native")
@@ -24,6 +25,7 @@ beforeEach(() => {
   dismissCallbacks.clear()
   jest.clearAllMocks()
   jest.useFakeTimers()
+  jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
   jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined)
 })
 afterEach(() => {
@@ -157,9 +159,8 @@ it("gates the active leaf and retains parent content through nested Select and M
   await dismiss("child")
   expect(screen.getByText("Retained parent")).toBeOnTheScreen()
   await userEvent.setup().press(screen.getByRole("button", { name: "Choices" }))
-  await show("select")
-  await fireEvent(screen.getByTestId("select-window", { includeHiddenElements: true }), "requestClose")
-  await dismiss("select")
+  const { outside } = await prepareSelectPopover()
+  await outside()
   expect(screen.getByRole("button", { name: "Choices" }).props.accessibilityValue.text).toBe("")
   expect(parentClose).not.toHaveBeenCalled()
 })

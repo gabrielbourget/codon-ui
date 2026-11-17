@@ -8,6 +8,7 @@ import { nativeVirtualDrag } from "../../../collection/dragAndDrop/virtualDrag"
 import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
 import NativeDragModule from "../../../input/specs/NativeCUIDragAndDrop"
 import { NativeBackdropHost } from "../../../overlays/backdrop/NativeBackdropHost"
+import { prepareSelectPopover, pressSelectOption } from "../../../overlays/floating/__tests__/selectPopoverFixture"
 import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
 import { NativeThemeProvider } from "../../../theme"
 import { filterEditor } from "../../Filtering/__tests__/fixtures/editorQuery"
@@ -123,31 +124,8 @@ const present = async () => {
 const press = async (name: string) => fireEvent.press(screen.getByRole("button", { name }))
 const choose = async (field: string, option: string) => {
   await press(field)
-  await fireEvent(host("select-window"), "show")
-  await acknowledge("select-floating-host")
-  const dismissed = host("select-window").props.onDismiss
-  // Native Modals remain beneath their covered parent in the test renderer's logical tree.
-  const receiver = screen.getByRole("radio", { name: option, includeHiddenElements: true }).props
-  const event = {
-    persist: jest.fn(),
-    currentTarget: 17,
-    nativeEvent: {
-      target: 17,
-      timestamp: 100,
-      identifier: 1,
-      pageX: 1,
-      pageY: 1,
-      locationX: 1,
-      locationY: 1,
-      touches: [],
-      changedTouches: [],
-    },
-  }
-  await act(() => {
-    receiver.onResponderGrant(event)
-    receiver.onResponderRelease(event)
-  })
-  await act(() => dismissed())
+  await prepareSelectPopover()
+  await pressSelectOption(screen.getByRole("radio", { name: option, includeHiddenElements: true }))
   await acknowledge()
 }
 beforeEach(() => {
@@ -669,7 +647,7 @@ it("routes explicit criteria label presses to their original admitted refs witho
   await fireEvent.press(screen.getAllByTestId("form-field-label")[1])
   expect(focus.mock.calls.at(-1)![1]).toBe(filter.props.ownerId)
   expect(apply).not.toHaveBeenCalled()
-  expect(screen.queryByTestId("select-window")).toBeNull()
+  expect(screen.queryByTestId("select-popover")).toBeNull()
 })
 
 it("loads and clears explicit confirmed scene models without generating an Apply request", async () => {

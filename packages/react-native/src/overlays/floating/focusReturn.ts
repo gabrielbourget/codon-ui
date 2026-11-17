@@ -1,5 +1,5 @@
 import type { RefObject } from "react"
-import type { TextInput, View } from "react-native"
+import { AccessibilityInfo, type TextInput, type View } from "react-native"
 
 import { focusNativeTarget } from "../../input/focus"
 import type { TNativeKeyScope } from "../../input/keyScope"
@@ -18,6 +18,7 @@ export const createNativeFloatingFocusReturns = (options: {
     input: TNativeKeyScope
     session: string
     target: TTarget
+    restoreAccessibility: boolean
     frame: ReturnType<typeof requestAnimationFrame> | null
     release: () => void
   }
@@ -55,7 +56,9 @@ export const createNativeFloatingFocusReturns = (options: {
       const canReturn = eligible(entry) && options.layers.canRestore(entry.parent)
       if (canReturn && !entry.input.isNativeReady()) return
       retire(entry)
-      if (canReturn) focusNativeTarget(entry.target.current)
+      const target = entry.target.current
+      if (canReturn && target && focusNativeTarget(target) && entry.restoreAccessibility)
+        AccessibilityInfo.sendAccessibilityEvent(target, "focus")
     })
   }
   return {
@@ -63,7 +66,13 @@ export const createNativeFloatingFocusReturns = (options: {
       const entry = pending.get(owner)
       if (entry) retire(entry)
     },
-    request: (owner: string, parent: string | null, input: TNativeKeyScope | null, target: TTarget) => {
+    request: (
+      owner: string,
+      parent: string | null,
+      input: TNativeKeyScope | null,
+      target: TTarget,
+      restoreAccessibility = false,
+    ) => {
       const previous = pending.get(owner)
       if (previous) retire(previous)
       if (
@@ -80,6 +89,7 @@ export const createNativeFloatingFocusReturns = (options: {
         input,
         session: session(input),
         target,
+        restoreAccessibility,
         frame: null,
         release: () => undefined,
       }
