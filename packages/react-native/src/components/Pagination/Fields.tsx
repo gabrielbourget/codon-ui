@@ -117,13 +117,12 @@ export const NativePaginationInput = ({
             incrementLabel={input.incrementLabel ?? labels.pageInput.numberInput.incrementLabel}
             decrementLabel={input.decrementLabel ?? labels.pageInput.numberInput.decrementLabel}
             customStyles={[input.customStyles, props.customPageNumberInputStyles]}
-            customInputStyles={[styles.root.text, { minWidth: 43 }, input.customInputStyles]}
+            customInputStyles={[styles.root.text, input.customInputStyles]}
           />
         </NativeFocusView>
       </FormField>
       <NativePaginationAction
         props={props}
-        target={styles.target}
         textStyle={styles.root.text}
         testID="pagination-submit"
         label={labels.pageInput.submitButtonAriaLabel}

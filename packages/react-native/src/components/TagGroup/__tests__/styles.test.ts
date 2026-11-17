@@ -1,5 +1,3 @@
-import { Platform } from "react-native"
-
 import { resolveNativeTheme } from "../../../theme/defaults"
 import { AVAILABLE_THEMING_ORDER_CODES } from "../../../tokens/theme-order"
 import { getNativeGroupedTagColors, getNativeGroupedTagStyles, getNativeTagGroupStyles } from "../styles"
@@ -116,7 +114,7 @@ it("CAP.tag-group.item.003/.006 retains geometry, canonical focused outline and 
   ] as const) {
     expect(getNativeGroupedTagStyles(light, { geometry }, flags).view.borderRadius).toBe(radius)
   }
-  expect(getNativeGroupedTagStyles(light, { geometry: "round" }, flags).view.paddingHorizontal).toBe(7)
+  expect(getNativeGroupedTagStyles(light, { geometry: "round" }, flags).view.paddingHorizontal).toBeUndefined()
   const focused = { ...flags, isFocused: true, isFocusVisible: false }
   expect(getNativeGroupedTagStyles(light, {}, focused).view).toMatchObject({ outlineWidth: 1.5, outlineOffset: 1.5 })
   expect(
@@ -125,7 +123,7 @@ it("CAP.tag-group.item.003/.006 retains geometry, canonical focused outline and 
 })
 it("CAP.tag-group.item.002/.008 keeps native zero dimensions, authored constraints and default raised=false", () => {
   const defaults = getNativeGroupedTagStyles(light, {}, flags).view
-  expect(defaults.minHeight).toBe(Platform.OS === "ios" ? 44 : 48)
+  expect(defaults.minHeight).toBeUndefined()
   expect(defaults.shadowOpacity).toBeUndefined()
   const styled = getNativeGroupedTagStyles(light, { width: 0, height: 30, raised: true }, flags).view
   expect(styled).toMatchObject({ width: 0, height: 30, shadowOpacity: 0.24, elevation: 2 })
@@ -176,4 +174,19 @@ it("rejects unsupported native colors/dimensions/variants instead of advertising
   expect(() => getNativeGroupedTagStyles(light, { geometry: "square" as never }, flags)).toThrow(/geometry/)
   expect(() => getNativeGroupedTagStyles(light, { color: "var(--cui-color)" }, flags)).toThrow(/native color/)
   expect(() => getNativeTagGroupStyles(light, { orientation: "diagonal" as never })).toThrow(/orientation/)
+})
+
+it("honors round-tag scalar padding and explicit zero dimensions", () => {
+  const result = getNativeGroupedTagStyles(
+    light,
+    {
+      geometry: "round",
+      width: 0,
+      height: 0,
+      customStyles: { padding: 0, minWidth: 0, minHeight: 0 },
+    },
+    flags,
+  )
+  expect(result.view).toMatchObject({ width: 0, height: 0, padding: 0, minWidth: 0, minHeight: 0 })
+  expect(result.view.paddingHorizontal).toBeUndefined()
 })

@@ -383,7 +383,6 @@ const Receiver = forwardRef<View, TNativeComboBoxItemProps & { node: TNativeColl
               alignItems: "center",
               justifyContent: "flex-start",
               padding: theme.spacing.unit,
-              minHeight: nativeControlTarget(),
               borderRadius: theme.radius.rounded,
               backgroundColor:
                 selected || focused || flags.isHovered ? theme.colors.controlHoverBackground : "transparent",

@@ -93,7 +93,6 @@ export const NativePaginationPrimary = ({ props, count, items, labels, styles, r
             <NativePaginationAction
               key={key}
               props={props}
-              target={styles.target}
               textStyle={styles.root.text}
               testID={`pagination-${key}`}
               label={item.label}
@@ -141,7 +140,6 @@ export const NativePaginationPrimary = ({ props, count, items, labels, styles, r
               <NativePaginationAction
                 key={`page-${item}`}
                 props={props}
-                target={styles.target}
                 textStyle={styles.root.text}
                 testID={`pagination-page-${item}`}
                 label={names.pageButtonAriaLabel(item)}
@@ -160,7 +158,6 @@ export const NativePaginationPrimary = ({ props, count, items, labels, styles, r
               <NativePaginationAction
                 key={`overflow-${item[0]}`}
                 props={props}
-                target={styles.target}
                 textStyle={styles.root.text}
                 testID="pagination-overflow-trigger"
                 label={names.pageButtonAriaLabel(item[0])}
@@ -227,7 +224,6 @@ const NativePaginationOverflow = ({
           nativeID={state.triggerProps.nativeID}
           expanded={state.isOpen}
           props={props}
-          target={styles.target}
           textStyle={styles.root.text}
           testID="pagination-overflow-trigger"
           label={triggerLabel}

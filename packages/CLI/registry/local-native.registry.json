@@ -2357,7 +2357,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/ComboBox/ComboBoxItem.tsx",
           "role": "source",
-          "contentHash": "sha256:30de5d50545e100bf532e0fe340a5afea83566666cfdd0f992fff95d1e419569"
+          "contentHash": "sha256:a4ae9c76604d7610e081d61e1cae10bbe2114d28ce8707131e5e5b2d144ed96b"
         }
       ],
       "registryDependencies": [],
@@ -4006,7 +4006,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/Menu/styles.ts",
           "role": "source",
-          "contentHash": "sha256:44e06f4fb311b858f51ba99ab19687f49b4484ef12a1b1a1da281708bcbcb425"
+          "contentHash": "sha256:50d041e01e2f75982163decc8a87cdfdc9c66b2b9bf81598401cb8e847653d6f"
         }
       ],
       "registryDependencies": [],
@@ -4462,7 +4462,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/Pagination/Action.tsx",
           "role": "source",
-          "contentHash": "sha256:e702ff7d5962c90595033a66f8d3780f0092a933cc8eb54d84511db8b6353ee1"
+          "contentHash": "sha256:b14fffb11e0318b3330d2da6eda945f82abf3ab7b5e34993caefcd32094d186c"
         }
       ],
       "registryDependencies": [],
@@ -4482,7 +4482,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/Pagination/Fields.tsx",
           "role": "source",
-          "contentHash": "sha256:f6a3d1b64e5ae360836d2e664450defd1c3897ea9b03a3491e8b5f3fb191d00c"
+          "contentHash": "sha256:01f7dbdeef51b304305b76d298f09138c1395ba12ba6d305a6d92a287a1709bd"
         }
       ],
       "registryDependencies": [],
@@ -4575,7 +4575,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/Pagination/Primary.tsx",
           "role": "source",
-          "contentHash": "sha256:af0ef2bf1d35f2a83d39dd839137f357f4219394fd09e0289d0777c04331b5d6"
+          "contentHash": "sha256:4e000b3b0fe05ed9228771508c22a41695bbb34fb7f7cc83fe1645682bd36140"
         }
       ],
       "registryDependencies": [],
@@ -4595,7 +4595,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/Pagination/styles.ts",
           "role": "source",
-          "contentHash": "sha256:30db3736dd9f672c8bf47f7238c7563a0155bb3c1b1ebedbdf0f8df31cb8ccf6"
+          "contentHash": "sha256:1382193775c37db8c8099e7c94b46d7cab187ea4e01a4b29f73a9b131b1a6ac5"
         }
       ],
       "registryDependencies": [],
@@ -7190,7 +7190,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/TagGroup/styles.ts",
           "role": "source",
-          "contentHash": "sha256:3ac9fc31cd20d7f95da2ea746cd4ba5b4a405b2a14f41fc8a0f6452fd99f3736"
+          "contentHash": "sha256:40be8c66dc739496687d4db5b30086dffbf5a64c9c9d9211692b12a195c5e536"
         }
       ],
       "registryDependencies": [],
@@ -7923,7 +7923,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/ToggleButton/ToggleButton.tsx",
           "role": "source",
-          "contentHash": "sha256:91108bcc83b121a235ca54a5c5d20a87de2309e37b7f7d9b0ecd0c496aafa668"
+          "contentHash": "sha256:bfb08b7f839f12042e24d4c1cc72d34e672ef281c70278e0de6baadb304d720e"
         }
       ],
       "registryDependencies": [],
@@ -8135,7 +8135,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/ToggleSwitcher/ToggleSwitcher.tsx",
           "role": "source",
-          "contentHash": "sha256:aa61105a3663ea19c1630bf413380c9f5b1e3e74bb0cf772b19d9f6af94b30fc"
+          "contentHash": "sha256:80e5edc135ba11a4a29768acaf7eb02128d31d1e4d41e5e92441a77748eca48a"
         }
       ],
       "registryDependencies": [],
@@ -22394,7 +22394,6 @@
         "native-source/src/components/colors.ts",
         "native-source/src/components/displayDimensions.ts",
         "native-source/src/components/nativeTextStyle.ts",
-        "native-source/src/components/selection.ts",
         "native-source/src/input/NativeDialogFocusScope.tsx",
         "native-source/src/input/NativeFocusView.tsx",
         "native-source/src/input/NativeKeyboardScope.tsx",

@@ -103,14 +103,12 @@ const SwitcherOption = ({
       {
         width: columnWidth,
         height: constrainedHeight ? "100%" : undefined,
-        minHeight: constrainedHeight ? undefined : nativeControlTarget(),
         flexShrink: 0,
         alignSelf: "stretch",
         alignItems: "center",
         justifyContent: "center",
         flexDirection: "row",
-        paddingHorizontal: theme.spacing.unit,
-        paddingVertical: 2,
+        padding: theme.spacing.unit,
         overflow: "hidden",
         borderRadius: getNativeControlRadius(theme, geometry),
         backgroundColor: selected

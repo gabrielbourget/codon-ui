@@ -8,7 +8,6 @@ import { NativeFocusHost } from "../../../input/NativeFocusView"
 import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
 import { NativeThemeProvider } from "../../../theme"
-import { nativeControlTarget } from "../../selection"
 import type { TNativeTextRef } from "../../Text/types"
 import { NativeCollectionComboBox } from "../CollectionComboBox"
 import { NativeComboBoxStateContext } from "../collectionContext"
@@ -117,7 +116,7 @@ it("retains complete item render/style flags, actual custom host and original te
     padding: 9,
     marginTop: 3,
     width: "100%",
-    minHeight: nativeControlTarget(),
+    minHeight: undefined,
     backgroundColor: "transparent",
   })
   expect(styleFlags.defaultStyle).toMatchObject({ padding: 9, fontSize: 21, color: "#aa0011" })
@@ -337,7 +336,7 @@ it("clears authored overrides back to item-owned defaults without losing zero va
   expect(StyleSheet.flatten(screen.getByTestId("cleared-item", hidden).props.style)).toMatchObject({
     padding: 5,
     marginTop: 0,
-    minHeight: nativeControlTarget(),
+    minHeight: undefined,
   })
   expect(StyleSheet.flatten(screen.getByTestId("cleared-text", hidden).props.style).fontSize).toBe(21)
 })
