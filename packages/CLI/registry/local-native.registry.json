@@ -1685,7 +1685,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/Carousel/useNativeCarouselPaging.ts",
           "role": "source",
-          "contentHash": "sha256:8d935f748bedbc25424b4cc3a84de34425742674ad64f5c0a8faab13ff3d18c2"
+          "contentHash": "sha256:fa8e22883ad6fb3fbf45a5d648157baca034d1da9b602bbc4b35155e102d8f16"
         }
       ],
       "registryDependencies": [],

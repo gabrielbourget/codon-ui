@@ -54,9 +54,9 @@ export const useNativeCarouselPaging = (options: {
   const geometryIdentity = JSON.stringify(geometry)
   const identity = JSON.stringify([keysIdentity, axis, align, isRTL, session, active, geometryIdentity, viewport])
   const lifetime = useMemo(() => ({}), [identity])
-  const live = useRef({ lifetime, keys, geometry, active, reducedMotion, axis })
+  const live = useRef({ lifetime, keys, geometry, active, reducedMotion, axis, onIndexChange })
   useInsertionEffect(() => {
-    live.current = { lifetime, keys, geometry, active, reducedMotion, axis }
+    live.current = { lifetime, keys, geometry, active, reducedMotion, axis, onIndexChange }
   })
   const canAct = useCallback(() => mounted.current && live.current.active, [])
   const publish = useCallback((index: number) => {
@@ -143,8 +143,8 @@ export const useNativeCarouselPaging = (options: {
     }
   }, [active, identity, geometryIdentity, initialIndex, keys.length, axis, publish, scrollTo])
   useEffect(() => {
-    if (selection.ready) onIndexChange?.(selection.index)
-  }, [selection.index, selection.ready, onIndexChange])
+    if (selection.ready) live.current.onIndexChange?.(selection.index)
+  }, [selection.index, selection.ready])
   useLayoutEffect(() => {
     mounted.current = true
     return () => {
