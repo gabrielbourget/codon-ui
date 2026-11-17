@@ -9,7 +9,16 @@ import {
   useRef,
   useState,
 } from "react"
-import { AccessibilityInfo, findNodeHandle, Platform, View, TextInput, type ColorValue } from "react-native"
+import {
+  AccessibilityInfo,
+  findNodeHandle,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  type ColorValue,
+} from "react-native"
 
 import { nativeFieldAccessibilityProps } from "../../form/semantics"
 import { useNativeFieldSemantics } from "../../form/useFieldSemantics"
@@ -21,6 +30,7 @@ import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../o
 import { useNativeTheme } from "../../theme"
 import { NativeButton as Button } from "../Button/Button"
 import { NativeInput as Input } from "../Input/Input"
+import { splitNativeTextStyle } from "../nativeTextStyle"
 import { stepperValueText } from "../NumberInput/stepperNumber"
 import { useNativeStepperNumberFieldState } from "../NumberInput/stepperState"
 
@@ -66,6 +76,7 @@ const StepperControls = forwardRef<TNativeStepperRef, TStepperControlsProps>(
     } = props
     const { color: _groupColor, ...groupStyle } = resolved.group
     const inputStyle = resolved.input
+    const [editorMeasurement, setEditorMeasurement] = useState<{ content: string; width: number }>()
     const owner = useId()
     const originalRef = useRef<TextInput | null>(null)
     const [original, setOriginal] = useState<TextInput | null>(null)
@@ -251,7 +262,62 @@ const StepperControls = forwardRef<TNativeStepperRef, TStepperControlsProps>(
             nativeAnimate={false}
             nativeRender={(native) => {
               const hostProps = { ...native, onNativeOrdinaryEditorKey: receiveOriginalKey }
-              return <TextInput {...hostProps} />
+              const nativeStyle = StyleSheet.flatten(native.style)
+              const autoWidth = nativeStyle.width === "auto"
+              const content = numeric.inputValue || placeholder || "\u00a0"
+              const width = autoWidth && editorMeasurement?.content === content ? editorMeasurement.width : undefined
+              const { text, view } = splitNativeTextStyle(nativeStyle)
+              // A separate single-line Text remeasures the formatted value even when the TextInput keeps its old frame.
+              return (
+                <>
+                  <TextInput {...hostProps} style={[native.style, width === undefined ? undefined : { width }]} />
+                  {autoWidth ? (
+                    <Text
+                      key={content}
+                      testID={`${testID}-input-measurement`}
+                      accessible={false}
+                      accessibilityElementsHidden
+                      importantForAccessibility="no-hide-descendants"
+                      pointerEvents="none"
+                      numberOfLines={1}
+                      allowFontScaling={native.allowFontScaling}
+                      maxFontSizeMultiplier={native.maxFontSizeMultiplier}
+                      onLayout={({ nativeEvent: { layout } }) => {
+                        if (!Number.isFinite(layout.width) || layout.width <= 0) return
+                        const width = layout.width
+                        setEditorMeasurement((previous) =>
+                          previous?.content === content && previous?.width === width ? previous : { content, width },
+                        )
+                      }}
+                      style={[
+                        text,
+                        {
+                          position: "absolute",
+                          opacity: 0,
+                          alignSelf: "flex-start",
+                          direction: view.direction,
+                          padding: view.padding,
+                          paddingHorizontal: view.paddingHorizontal,
+                          paddingStart: view.paddingStart,
+                          paddingEnd: view.paddingEnd,
+                          paddingLeft: view.paddingLeft,
+                          paddingRight: view.paddingRight,
+                          paddingInline: view.paddingInline,
+                          paddingInlineStart: view.paddingInlineStart,
+                          paddingInlineEnd: view.paddingInlineEnd,
+                          borderWidth: view.borderWidth,
+                          borderStartWidth: view.borderStartWidth,
+                          borderEndWidth: view.borderEndWidth,
+                          borderLeftWidth: view.borderLeftWidth,
+                          borderRightWidth: view.borderRightWidth,
+                        },
+                      ]}
+                    >
+                      {content}
+                    </Text>
+                  ) : null}
+                </>
+              )
             }}
             submitBehavior="blurAndSubmit"
             keyboardType={inputProps.keyboardType ?? (Platform.OS === "ios" ? "numbers-and-punctuation" : "numeric")}

@@ -4,7 +4,7 @@ import type { TNativeTagComboBoxChangeDetails, TNativeTagComboBoxProps, TNativeT
 
 export const nativeTagComboBoxKey = (key: string | number) => {
   validateCollectionKey(key, "item key", "TagComboBox")
-  return String(key)
+  return key
 }
 export const getNativeTagComboBoxAddRequest = <T extends object>(
   items: readonly T[],
@@ -13,9 +13,9 @@ export const getNativeTagComboBoxAddRequest = <T extends object>(
   getKey: (item: T) => string | number,
 ): { items: T[]; details: TNativeTagComboBoxChangeDetails<T> } | null => {
   if (key === null) return null
-  const normalized = nativeTagComboBoxKey(key)
-  if (selected.some((item) => nativeTagComboBoxKey(getKey(item)) === normalized)) return null
-  const item = items.find((value) => nativeTagComboBoxKey(getKey(value)) === normalized)
+  const selectedKey = nativeTagComboBoxKey(key)
+  if (selected.some((item) => nativeTagComboBoxKey(getKey(item)) === selectedKey)) return null
+  const item = items.find((value) => nativeTagComboBoxKey(getKey(value)) === selectedKey)
   return item
     ? { items: [...selected, item], details: { action: "add", changedItems: [item], changedKeys: [getKey(item)] } }
     : null
@@ -25,11 +25,11 @@ export const getNativeTagComboBoxRemoveRequest = <T extends object>(
   keys: ReadonlySet<string | number>,
   getKey: (item: T) => string | number,
 ): { items: T[]; details: TNativeTagComboBoxChangeDetails<T> } | null => {
-  const normalized = new Set([...keys].map(nativeTagComboBoxKey))
-  const removed = selected.filter((item) => normalized.has(nativeTagComboBoxKey(getKey(item))))
+  const removedKeys = new Set([...keys].map(nativeTagComboBoxKey))
+  const removed = selected.filter((item) => removedKeys.has(nativeTagComboBoxKey(getKey(item))))
   return removed.length
     ? {
-        items: selected.filter((item) => !normalized.has(nativeTagComboBoxKey(getKey(item)))),
+        items: selected.filter((item) => !removedKeys.has(nativeTagComboBoxKey(getKey(item)))),
         details: { action: "remove", changedItems: removed, changedKeys: removed.map(getKey) },
       }
     : null

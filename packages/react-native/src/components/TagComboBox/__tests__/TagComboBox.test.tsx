@@ -165,6 +165,27 @@ it("CAP.tag-combobox.001 forwards actual root/editor refs and composes the two n
   expect(row("combo-box")).toBeOnTheScreen()
   expect(RN.StyleSheet.flatten(row("combo-box").props.style).height).toBe("auto")
 })
+it("selects the exact typed zero and leaves the other zero available", async () => {
+  const numericZero = { key: 0, label: "Numeric zero", group: "Zero choices" }
+  const stringZero = { key: "0", label: "String zero", group: "Zero choices" }
+  const onSelectedItemsChange = jest.fn()
+  const choices = { items: [numericZero, stringZero], onSelectedItemsChange, isOpen: true }
+  const { rerender } = await render(node(choices))
+  await choose("String zero")
+  expect(onSelectedItemsChange).toHaveBeenLastCalledWith([stringZero], {
+    action: "add",
+    changedKeys: ["0"],
+    changedItems: [stringZero],
+  })
+  await rerender(node({ ...choices, selectedItems: [stringZero] }))
+  await choose("Numeric zero")
+  expect(onSelectedItemsChange).toHaveBeenLastCalledWith([stringZero, numericZero], {
+    action: "add",
+    changedKeys: [0],
+    changedItems: [numericZero],
+  })
+})
+
 it("CAP.tag-combobox.002/.010/.011/.013 keeps root and every nested style owner independent", async () => {
   await render(
     node({

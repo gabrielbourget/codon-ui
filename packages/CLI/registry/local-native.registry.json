@@ -5791,7 +5791,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/Stepper/Stepper.tsx",
           "role": "source",
-          "contentHash": "sha256:181a3ff246d0fd36ef18196db03b51dee01f76a678cf1b6b04c519497633efd8"
+          "contentHash": "sha256:6828051bd173dc64d6076e23f335795c6c21c7cf03971d272b20b5b7e957bf1a"
         }
       ],
       "registryDependencies": [],
@@ -5811,7 +5811,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/Stepper/styles.ts",
           "role": "source",
-          "contentHash": "sha256:fe0893993cab69ef65e6bc3b787e9b38bbd6a7a4b7566f3af54191d0dd330c0c"
+          "contentHash": "sha256:61607f5c73e9aabc9cf8c81c5cbe4a45d4c47ada89e5519fe8cb46a989aa82dd"
         }
       ],
       "registryDependencies": [],
@@ -6991,7 +6991,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/TagComboBox/model.ts",
           "role": "source",
-          "contentHash": "sha256:ff92f97fe95ac68f5541b653897bc63e051c44669e9354be0bf8f36d736c3677"
+          "contentHash": "sha256:4c4646f8de3f3a1fd361a716c7ceb796cd15bd841649569950cbf9db64741d60"
         }
       ],
       "registryDependencies": [],
@@ -7008,7 +7008,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/TagComboBox/styles.ts",
           "role": "source",
-          "contentHash": "sha256:7714a4b3f32a4b56b7a85a3cc0f5dd8c56ce2e8d0538657a34d39f7ad74e04e8"
+          "contentHash": "sha256:0ff9ea0ed2071e19debbc13892d111ca0b0cba5df32bf058fae58e550b4f8c39"
         }
       ],
       "registryDependencies": [],

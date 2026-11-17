@@ -14,18 +14,20 @@ const props: TNativeTagComboBoxProps<{ id: string | number }> = {
   getItemTextValue: (item) => String(item.id),
   onSelectedItemsChange: () => {},
 }
-it("uses the canonical String(key) duplicate/removal comparison while preserving original typed keys and refs", () => {
-  expect(getNativeTagComboBoxAddRequest([zero, alias, empty], [zero], "0", key)).toBeNull()
-  const request = getNativeTagComboBoxAddRequest([zero, alias, empty], [missing], 0, key)!
-  expect(request.items[1] === zero).toBe(true)
-  expect(request.details.changedKeys).toEqual([0])
+it("retains separate numeric and string keys through duplicate checks, requests and removal", () => {
+  expect(getNativeTagComboBoxAddRequest([zero, alias, empty], [zero], 0, key)).toBeNull()
+  const request = getNativeTagComboBoxAddRequest([zero, alias, empty], [zero], "0", key)!
+  expect(request.items).toEqual([zero, alias])
+  expect(request.details.changedItems[0]).toBe(alias)
+  expect(request.details.changedKeys).toEqual(["0"])
+  expect(getNativeTagComboBoxAddRequest([zero], [], "0", key)).toBeNull()
   expect(getNativeTagComboBoxAddRequest([zero], [], null, key)).toBeNull()
   expect(getNativeTagComboBoxAddRequest([zero], [], "absent", key)).toBeNull()
-  const owner = [zero, alias, empty, missing],
-    removed = getNativeTagComboBoxRemoveRequest(owner, new Set([0]), key)!
-  expect(removed.items).toEqual([empty, missing])
-  expect(removed.details.changedItems).toEqual([zero, alias])
-  expect(removed.details.changedKeys).toEqual([0, "0"])
+  const owner = [zero, alias, empty, missing]
+  const removed = getNativeTagComboBoxRemoveRequest(owner, new Set([0]), key)!
+  expect(removed.items).toEqual([alias, empty, missing])
+  expect(removed.details.changedItems).toEqual([zero])
+  expect(removed.details.changedKeys).toEqual([0])
   expect(owner).toHaveLength(4)
 })
 it.each(["light", "dark"] as const)(
@@ -109,4 +111,13 @@ it("preserves round TagComboBox scalar padding and authored axis precedence", ()
     false,
   ).view
   expect(view).toMatchObject({ padding: 0, paddingHorizontal: 3, paddingLeft: 2 })
+})
+
+it("uses the inter-row gap only when tags are selected and preserves authored spacing", () => {
+  const theme = resolveNativeTheme("light")
+  const view = (overrides: Partial<typeof props> = {}) =>
+    getNativeTagComboBoxStyles(theme, { ...props, ...overrides }, false).view
+  expect(view()).toMatchObject({ padding: 5, gap: 0 })
+  expect(view({ selectedItems: [zero] })).toMatchObject({ padding: 5, gap: 5 })
+  expect(view({ customStyles: { padding: 0, gap: 9 }, style: { gap: 2 } })).toMatchObject({ padding: 0, gap: 2 })
 })
