@@ -220,17 +220,20 @@ it("preserves the original draft and receiver refs through theme, styles and ite
   expect(screen.getByTestId("tag-combo-owner-editor-state", hidden)).not.toHaveTextContent(/replaced/)
 })
 
-it("keeps the source string-key exclusion rule while preserving typed owner keys", async () => {
+it("excludes only the selected typed key from the restored options", async () => {
   await render(scene())
   await press("Toggle tag-combo empty-collection allowance")
   await press("Set tag-combo number zero")
   await press("Toggle tag-combo owner open")
   await show()
   expect(screen.queryByRole("option", { name: "Number zero" })).toBeNull()
-  expect(screen.queryByRole("option", { name: "String zero" })).toBeNull()
+  expect(screen.getByRole("option", { name: "String zero" })).toBeOnTheScreen()
   expect(screen.getByRole("option", { name: "Empty key" })).toBeOnTheScreen()
   await press("Set tag-combo string zero")
+  await show()
   expect(screen.getByTestId("tag-combo-owner-state", hidden)).toHaveTextContent(/Selected: string:"0"/)
+  expect(screen.queryByRole("option", { name: "String zero" })).toBeNull()
+  expect(screen.getByRole("option", { name: "Number zero" })).toBeOnTheScreen()
   await press("Clear tag-combo items")
   expect(screen.getByTestId("combo-box-empty")).toBeOnTheScreen()
   await press("Restore tag-combo items")

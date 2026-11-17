@@ -5791,7 +5791,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/Stepper/Stepper.tsx",
           "role": "source",
-          "contentHash": "sha256:181a3ff246d0fd36ef18196db03b51dee01f76a678cf1b6b04c519497633efd8"
+          "contentHash": "sha256:6828051bd173dc64d6076e23f335795c6c21c7cf03971d272b20b5b7e957bf1a"
         }
       ],
       "registryDependencies": [],

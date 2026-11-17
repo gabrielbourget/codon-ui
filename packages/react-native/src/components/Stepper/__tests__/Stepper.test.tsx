@@ -132,7 +132,8 @@ it("CAP.stepper.001 retains decrement/editor/increment order and default segment
   expect(group()).toHaveStyle({ flexDirection: "row", gap: 8 })
   expect(group().props.accessible).toBe(false)
   expect(group().props.accessibilityLabel).toBe("Stepper Input Button Group")
-  expect(group().children.map((child) => (typeof child === "object" ? child.props.testID : child))).toEqual([
+  const parts = group().children.map((child) => (typeof child === "object" ? child.props.testID : child))
+  expect(parts.filter((id) => id !== "stepper-input-measurement")).toEqual([
     "stepper-decrement",
     "stepper-input",
     "stepper-increment",
@@ -163,6 +164,32 @@ it("lets the centered Stepper editor measure proportional digits while preservin
     textAlign: "right",
     fontVariant: ["tabular-nums"],
   })
+})
+
+it("updates the auto-width editor from the current native measurement without replacing its ref", async () => {
+  const ref = createRef<TextInput>()
+  const onChange = jest.fn()
+  const { rerender } = await render(<Stepper {...names} ref={ref} value={0.1} onChange={onChange} />)
+  const original = ref.current
+  expect(original).not.toBeNull()
+  const probe = () => screen.getByTestId("stepper-input-measurement", { includeHiddenElements: true })
+  const measure = (width: number) => fireEvent(probe(), "layout", { nativeEvent: { layout: { width } } })
+  expect(probe().props.accessibilityElementsHidden).toBe(true)
+  expect(probe().props.pointerEvents).toBe("none")
+  await measure(30)
+  expect(input()).toHaveStyle({ width: 30 })
+  await rerender(<Stepper {...names} ref={ref} value={0.2} onChange={onChange} />)
+  expect(input()).toHaveStyle({ width: "auto" })
+  await measure(32)
+  expect(input()).toHaveStyle({ width: 32 })
+  await rerender(<Stepper {...names} ref={ref} value={123.45} onChange={onChange} />)
+  await measure(58)
+  expect(input()).toHaveStyle({ width: 58 })
+  expect(ref.current).toBe(original)
+  await rerender(<Stepper {...names} ref={ref} value={123.45} onChange={onChange} customInputStyles={{ width: 0 }} />)
+  expect(input()).toHaveStyle({ width: 0 })
+  expect(screen.queryByTestId("stepper-input-measurement", { includeHiddenElements: true })).toBeNull()
+  expect(ref.current).toBe(original)
 })
 
 it("CAP.stepper.002 preserves explicit zero dimensions and independent final root sizing", async () => {
