@@ -31,10 +31,10 @@ describe("Checkbox public native contract", () => {
     }
   })
 
-  it("renders one full-size control and wraps composed labels", async () => {
+  it("renders one content-sized control and wraps composed labels", async () => {
     await render(<Checkbox>{["Choose ", <Fragment key="count">{3}</Fragment>]}</Checkbox>)
     const checkbox = screen.getByRole("checkbox", { name: "Choose 3" })
-    expect(checkbox).toHaveStyle({ minWidth: 44, minHeight: 44 })
+    expect(checkbox).toHaveStyle({ minWidth: undefined, minHeight: undefined })
     expect(screen.getByTestId("checkbox-shape", hidden)).toHaveStyle({
       width: 20,
       height: 20,

@@ -92,7 +92,6 @@ export const getNativeButtonStyle = (
     cursor: state.isDisabled ? "auto" : "pointer",
     gap: theme.spacing.unit,
     padding: theme.spacing.unit,
-    paddingHorizontal: geometry === "round" ? 7 : theme.spacing.unit,
     borderRadius: geometry === "round" ? theme.radius.round : geometry === "rounded" ? theme.radius.rounded : 0,
     borderWidth: outlined && (!transparent || color !== undefined) ? 2 : 0,
     borderColor: border,
@@ -100,8 +99,8 @@ export const getNativeButtonStyle = (
     color: foreground,
     width,
     height,
-    minWidth: width === undefined ? target : undefined,
-    minHeight: height === undefined ? target : undefined,
+    minWidth: undefined,
+    minHeight: undefined,
     opacity: state.isDisabled ? theme.opacity.disabled : 1,
     ...(raised || (raisedOnHover && state.isHovered)
       ? {
@@ -119,8 +118,6 @@ export const getNativeButtonStyle = (
   const custom = resolveNativeStyle(customStyles, "Button", "customStyles")
   const baseline = {
     ...base,
-    minWidth: (custom.width ?? width) === undefined ? target : undefined,
-    minHeight: (custom.height ?? height) === undefined ? target : undefined,
     ...custom,
   }
   const final = resolveNativeStyle(
@@ -130,21 +127,7 @@ export const getNativeButtonStyle = (
     "Button",
     "style",
   )
-  const authoredWidth = final.width ?? custom.width ?? width
-  const authoredHeight = final.height ?? custom.height ?? height
-  const resolved = resolveNativeStyle(
-    [
-      {
-        ...base,
-        minWidth: authoredWidth === undefined ? target : undefined,
-        minHeight: authoredHeight === undefined ? target : undefined,
-      },
-      custom,
-      final,
-    ],
-    "Button",
-    "resolvedStyle",
-  )
+  const resolved = resolveNativeStyle([base, custom, final], "Button", "resolvedStyle")
   const textStyle = Object.fromEntries(
     Object.entries(resolved).filter(
       ([key, value]) => value !== undefined && TEXT_FIELDS.some((field) => field === key),

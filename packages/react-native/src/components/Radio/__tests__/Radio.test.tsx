@@ -337,7 +337,7 @@ it("separates target and mark styles and gives callbacks post-custom defaults", 
   expect(screen.getByTestId("radio-shape", hidden)).toHaveStyle({ width: 18, height: 20, borderColor: "tomato" })
 })
 
-it.each(["ios", "android"] as const)("uses %s automatic targets around a fixed 20-unit mark", async (os) => {
+it.each(["ios", "android"] as const)("uses %s content sizing around a fixed 20-unit mark", async (os) => {
   const platform = jest.replaceProperty(Platform, "OS", os)
   try {
     await render(
@@ -346,8 +346,8 @@ it.each(["ios", "android"] as const)("uses %s automatic targets around a fixed 2
       </RadioGroup>,
     )
     expect(screen.getByRole("radio")).toHaveStyle({
-      minWidth: os === "ios" ? 44 : 48,
-      minHeight: os === "ios" ? 44 : 48,
+      minWidth: undefined,
+      minHeight: undefined,
     })
     expect(screen.getByTestId("radio-shape", hidden)).toHaveStyle({ width: 20, height: 20 })
   } finally {

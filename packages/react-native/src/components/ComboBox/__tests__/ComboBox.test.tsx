@@ -427,8 +427,7 @@ describe("ComboBox customization contracts", () => {
       jest.replaceProperty(Platform, "OS", platform)
       const { rerender } = await render(<ComboBox {...base} />)
       const root = () => screen.getByTestId("combo-box")
-      const minimum = platform === "ios" ? 44 : 48
-      expect(root()).toHaveStyle({ minWidth: minimum, minHeight: minimum })
+      expect(root()).toHaveStyle({ minWidth: undefined, minHeight: undefined })
       await rerender(<ComboBox {...base} width={30} height={24} />)
       expect(root()).toHaveStyle({ width: 30, height: 24 })
       expect(StyleSheet.flatten(root().props.style)).toMatchObject({ minWidth: undefined, minHeight: undefined })
@@ -676,12 +675,11 @@ describe("ComboBox customization contracts", () => {
   })
 })
 
-it.each(["ios", "android"] as const)("keeps default %s action targets and uncapped text", async (platform) => {
+it.each(["ios", "android"] as const)("keeps default %s actions content-sized with uncapped text", async (platform) => {
   jest.replaceProperty(Platform, "OS", platform)
   await render(<ComboBox {...base} defaultOpen />)
-  const minimum = platform === "ios" ? 44 : 48
-  expect(screen.getByLabelText("Search choices")).toHaveStyle({ minHeight: minimum })
-  expect(screen.getByRole("button", { name: "Close choices" })).toHaveStyle({ minHeight: minimum })
+  expect(screen.getByLabelText("Search choices")).toHaveStyle({ minHeight: undefined })
+  expect(screen.getByRole("button", { name: "Close choices" })).toHaveStyle({ minHeight: undefined })
 })
 
 it("cancels standalone focus restoration after close/unmount or reopen", async () => {

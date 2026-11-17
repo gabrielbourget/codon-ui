@@ -81,6 +81,7 @@ export const getNativeLinkStyle = (
     flexDirection: "row",
     alignItems: "center",
     gap: theme.spacing.unit,
+    padding: theme.spacing.unit,
     borderRadius: theme.radius.rounded,
     color: foreground,
     textDecorationLine: props.textDecoration ?? (flags.isHovered && !flags.isVisited ? "underline" : "none"),

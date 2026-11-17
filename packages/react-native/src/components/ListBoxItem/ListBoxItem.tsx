@@ -58,7 +58,7 @@ export const ListBoxItem = forwardRef<TNativeListBoxItemRef, TNativeListBoxItemP
     "ListBoxItem",
     {
       justifyContent: "center",
-      padding: theme.spacing.unit * 2,
+      padding: theme.spacing.unit,
       borderRadius: theme.radius.rounded,
       backgroundColor: background,
       color: foreground,

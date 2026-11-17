@@ -346,7 +346,7 @@ it("reveals a controlled row value without selection or row-action requests", as
     </NativeThemeProvider>,
   )
   const button = screen.getByRole("button", { name: "Show full value" })
-  expect(button).toHaveStyle({ minHeight: 44, minWidth: 44 })
+  expect(button).toHaveStyle({ minHeight: undefined, minWidth: undefined })
   await fireEvent.press(button)
   expect(screen.getByText("Complete controlled value").props.numberOfLines).toBe(0)
   expect(onSelectionChange).not.toHaveBeenCalled()

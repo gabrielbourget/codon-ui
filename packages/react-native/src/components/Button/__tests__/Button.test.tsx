@@ -56,8 +56,8 @@ describe("Button public native contract", () => {
     await render(<Button>Action</Button>)
     const button = screen.getByRole("button", { name: "Action" })
     expect(button).toHaveStyle({
-      minHeight: 44,
-      minWidth: 44,
+      minHeight: undefined,
+      minWidth: undefined,
       borderRadius: 5,
       padding: 5,
       backgroundColor: "#ffffff",
@@ -389,29 +389,25 @@ describe("Button public native contract", () => {
     },
   )
 
-  it.each(["ios", "android"] as const)(
-    "retains the other axis minimum and explicit final minima on %s",
-    async (platform) => {
-      const platformSpy = jest.replaceProperty(Platform, "OS", platform)
-      const target = platform === "ios" ? 44 : 48
-      try {
-        const { rerender } = await render(
-          <Button customStyles={{ width: 24 }} style={(state) => state.defaultStyle}>
-            One axis
-          </Button>,
-        )
-        expect(screen.getByRole("button")).toHaveStyle({ width: 24, minWidth: undefined, minHeight: target })
-        await rerender(
-          <Button customStyles={{ width: 24, height: 24 }} style={(state) => ({ ...state.defaultStyle, minWidth: 32 })}>
-            Explicit minimum
-          </Button>,
-        )
-        expect(screen.getByRole("button")).toHaveStyle({ width: 24, height: 24, minWidth: 32, minHeight: undefined })
-      } finally {
-        platformSpy.restore()
-      }
-    },
-  )
+  it.each(["ios", "android"] as const)("retains only assigned minima on %s", async (platform) => {
+    const platformSpy = jest.replaceProperty(Platform, "OS", platform)
+    try {
+      const { rerender } = await render(
+        <Button customStyles={{ width: 24 }} style={(state) => state.defaultStyle}>
+          One axis
+        </Button>,
+      )
+      expect(screen.getByRole("button")).toHaveStyle({ width: 24, minWidth: undefined, minHeight: undefined })
+      await rerender(
+        <Button customStyles={{ width: 24, height: 24 }} style={(state) => ({ ...state.defaultStyle, minWidth: 32 })}>
+          Explicit minimum
+        </Button>,
+      )
+      expect(screen.getByRole("button")).toHaveStyle({ width: 24, height: 24, minWidth: 32, minHeight: undefined })
+    } finally {
+      platformSpy.restore()
+    }
+  })
 
   it("retains alias/native precedence and rejects invalid callback/owned colors", async () => {
     await render(

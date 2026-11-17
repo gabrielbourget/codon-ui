@@ -25,10 +25,10 @@ describe("Switch public native contract", () => {
     }
   })
 
-  it("keeps a small decorative track inside a single full-size target with grouped labels", async () => {
+  it("keeps a small decorative track inside a content-sized control with grouped labels", async () => {
     await render(<Switch leftContent={["Enable ", <Fragment key="label">3</Fragment>]} rightContent="items" />)
     const control = screen.getByRole("switch", { name: "Enable 3 items" })
-    expect(control).toHaveStyle({ minWidth: 44, minHeight: 44 })
+    expect(control).toHaveStyle({ minWidth: undefined, minHeight: undefined })
     expect(control.props.accessibilityState).toEqual({ checked: false, disabled: false })
     expect(part("track")).toHaveStyle({ width: 30, height: 15, borderRadius: 10000, backgroundColor: "#c6c6c6" })
     expect(screen.getByText("Enable 3").props.selectable).toBe(false)
@@ -122,11 +122,11 @@ describe("Switch public native contract", () => {
     })
   })
 
-  it("uses Android's 48-unit target", async () => {
+  it("keeps Android visuals intrinsically sized", async () => {
     const platform = jest.replaceProperty(Platform, "OS", "android")
     try {
       await render(<Switch />)
-      expect(screen.getByRole("switch")).toHaveStyle({ minWidth: 48, minHeight: 48 })
+      expect(screen.getByRole("switch")).toHaveStyle({ minWidth: undefined, minHeight: undefined })
     } finally {
       platform.restore()
     }
