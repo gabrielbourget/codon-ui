@@ -1,6 +1,7 @@
 import "../../../collection/__tests__/nativeReceipts"
 
 import { screen, within } from "@testing-library/react-native"
+import { AccessibilityInfo } from "react-native"
 
 import {
   actWithNativeCollections as act,
@@ -8,6 +9,7 @@ import {
   userEvent,
   renderWithNativeCollections as render,
 } from "../../../collection/__tests__/nativeReceipts"
+import { prepareSelectPopover, pressSelectOption } from "../../../overlays/floating/__tests__/selectPopoverFixture"
 
 import { createFilterComboBoxFixture } from "./fixtures/comboBoxFixture"
 import FilterControlProbe from "./fixtures/FilterControlProbe"
@@ -19,6 +21,7 @@ jest.mock("react-native-safe-area-context", () => ({
 let comboFixture: ReturnType<typeof createFilterComboBoxFixture>
 beforeEach(() => {
   comboFixture = createFilterComboBoxFixture()
+  jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
 })
 afterEach(() => jest.restoreAllMocks())
 const state = () => JSON.parse(screen.getByTestId("native-filter-controls-proof").props.children as string)
@@ -31,7 +34,9 @@ const press = async (name: string) => {
 }
 const select = async (row: string, field: string, option: string) => {
   await fireEvent.press(within(screen.getByTestId(row)).getByRole("button", { name: field }))
-  await fireEvent.press(screen.getByRole("radio", { name: option }))
+  await prepareSelectPopover("select", { flushFrames: comboFixture.flushFrames })
+  await pressSelectOption(screen.getByRole("radio", { name: option, includeHiddenElements: true }))
+  await comboFixture.flushFrames()
 }
 
 it("composes Select value requests with held/echoed owner snapshots and metadata/theme changes", async () => {

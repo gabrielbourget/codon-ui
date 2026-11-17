@@ -79,8 +79,8 @@ export const FilterClauseRow = (props: TNativeFilterClauseRowProps) => {
             height: "auto",
             flexDirection: "row",
             alignItems: "center",
-            gap: 10,
-            padding: 10,
+            gap: theme.spacing.unit,
+            padding: theme.spacing.unit,
             backgroundColor: theme.colors.controlHoverBackground,
             borderRadius: 5,
           },
@@ -92,7 +92,7 @@ export const FilterClauseRow = (props: TNativeFilterClauseRowProps) => {
       )}
     >
       <View
-        style={[{ flex: 1, width: "100%", gap: 5 }, props.customParameterInfoStyles]}
+        style={[{ flex: 1, width: "100%", gap: theme.spacing.unit }, props.customParameterInfoStyles]}
         testID="filter-clause-row-parameter-info"
       >
         <FilterClauseSelectors
@@ -145,7 +145,7 @@ export const FilterClauseRow = (props: TNativeFilterClauseRowProps) => {
           raised={false}
           accessibilityLabel={labels.filterClause.deleteButtonAriaLabel}
           hoverColor={theme.colors.controlSelectedBackground}
-          customStyles={[{ padding: 0 }, props.customDeleteButtonStyles]}
+          customStyles={props.customDeleteButtonStyles}
           onPress={direct((current) => {
             if (current.group.clauses.some((candidate) => candidate.id === current.clause.id))
               current.onDeleteFilterClause(current.clause.id)

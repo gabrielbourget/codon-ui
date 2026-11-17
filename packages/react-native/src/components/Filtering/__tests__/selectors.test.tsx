@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react-native"
 
+import { prepareSelectPopover, pressSelectOption } from "../../../overlays/floating/__tests__/selectPopoverFixture"
 import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import { NativeThemeProvider } from "../../../theme"
 import type { TAvailableFilterCriteria } from "../../Table/filterMetadata"
@@ -52,7 +53,8 @@ const node = (props: TFilterClauseSelectorsProps) => (
 )
 const choose = async (field: string, option: string) => {
   await fireEvent.press(screen.getByRole("button", { name: field }))
-  await fireEvent.press(screen.getByRole("radio", { name: option }))
+  await prepareSelectPopover()
+  await pressSelectOption(screen.getByRole("radio", { name: option, includeHiddenElements: true }))
 }
 
 it("CAP.filter-selectors.001 selects the first current operation and preserves an empty criterion ID without optimistic owner mutation", async () => {

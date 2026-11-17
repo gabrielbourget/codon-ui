@@ -152,7 +152,7 @@ export const FilterClauseSelectors = (props: TFilterClauseSelectorsProps) => {
           aria-label={labels.deleteButtonAriaLabel}
           transparent
           raised={false}
-          customStyles={[{ padding: 0 }, props.customDeleteButtonStyles]}
+          customStyles={props.customDeleteButtonStyles}
           hoverColor={theme.colors.controlSelectedBackground}
           onPress={direct((current) => {
             if (hasClause(current)) current.onDeleteFilterClause(current.clause.id)

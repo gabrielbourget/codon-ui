@@ -51,8 +51,8 @@ export const createFilterComboBoxFixture = () => {
         props.onNativeScopeStatus({
           nativeEvent: {
             ownerId: props.ownerId,
-            windowId: "source-model-window",
-            epoch: 1,
+            windowId: props.acceptedWindowId || "source-model-window",
+            epoch: props.acceptedEpoch || 1,
             policyRevision: props.policyRevision,
             ready: nativeReady,
             windowActive: true,
@@ -60,6 +60,9 @@ export const createFilterComboBoxFixture = () => {
         }),
       )
     }
+    await flushFrames()
+  }
+  const flushFrames = async () => {
     for (let turn = 0; turn < 3; turn++)
       await act(() => {
         const pending = [...frames.values()]
@@ -67,5 +70,5 @@ export const createFilterComboBoxFixture = () => {
         pending.forEach((callback) => callback(0))
       })
   }
-  return { host, Provider, ready }
+  return { host, Provider, ready, flushFrames }
 }

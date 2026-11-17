@@ -2,7 +2,7 @@ import "../../Table/__tests__/collectionModel"
 
 import { act as rawAct, cleanup, within } from "@testing-library/react-native"
 import { useEffect, useState, type ComponentProps } from "react"
-import { AccessibilityInfo, AppState, View } from "react-native"
+import { AccessibilityInfo, AppState, StyleSheet, View } from "react-native"
 
 import { nativeVirtualDrag } from "../../../collection/dragAndDrop/virtualDrag"
 import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
@@ -237,7 +237,7 @@ it("keeps closed state owned and exposes the canonical default chrome, fields an
   )
   await present()
   expect(host("sort-filter-panel")).toHaveStyle({ width: 380 })
-  expect(host("query-panel-dialog")).toHaveStyle({ padding: 17, gap: 10 })
+  expect(host("query-panel-dialog")).toHaveStyle({ padding: 17, gap: 5 })
   expect(host("sort-filter-panel-backdrop")).toHaveStyle({ backgroundColor: "plum" })
   for (const name of [
     "Add Sort Criteria",
@@ -665,7 +665,16 @@ it("loads and clears explicit confirmed scene models without generating an Apply
     "Sort Parameter - Count - Descending",
     "Sort Parameter - Name - Ascending",
   ])
-  expect(filterEditor("Filter Argument", within(screen.getByLabelText("Count filter group"))).props.value).toBe("0")
+  const activeFilterTags = within(host("query-active-filters"))
+  const filterIcons = activeFilterTags.getAllByTestId("tag-default-close-icon", { includeHiddenElements: true })
+  expect(filterIcons.map((icon) => icon.props.fill)).toEqual(["#ffffff", "#ffffff"])
+  const countGroup = within(screen.getByLabelText("Count filter group"))
+  const countBadgeText = countGroup
+    .getAllByText("Count")
+    .find((text) => StyleSheet.flatten(text.parent?.props.style)?.backgroundColor === "#2563eb")
+  expect(countBadgeText).toHaveStyle({ color: "#ffffff" })
+  expect(countBadgeText!.parent).toHaveStyle({ padding: 5 })
+  expect(filterEditor("Filter Argument", countGroup).props.value).toBe("0")
   expect(
     within(screen.getByLabelText("Active filter group")).getByRole("checkbox", { name: "Filter Argument" }).props
       .accessibilityState.checked,

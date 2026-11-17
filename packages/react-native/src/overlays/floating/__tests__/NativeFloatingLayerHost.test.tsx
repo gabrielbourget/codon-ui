@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native"
-import { createContext, createRef, useContext, useLayoutEffect, useState } from "react"
-import { View } from "react-native"
+import { createContext, createRef, useContext, useLayoutEffect, useState, type Context } from "react"
+import { FlatList, ScrollView, View, VirtualizedList } from "react-native"
 
 import { Button, Modal, NativeFloatingLayerHost, NativeOverlayProvider, Text } from "../../.."
 import { NativeFloatingPortal, useNativeFloatingHost } from "../NativeFloatingLayerHost"
@@ -124,6 +124,61 @@ it("preserves the original React context, child state and callbacks through host
   expect(screen.getByTestId("draft")).toHaveTextContent("replacement:1")
   await fireEvent.press(screen.getByRole("button", { name: "Increase" }))
   expect(screen.getByTestId("draft")).toHaveTextContent("replacement:2")
+})
+
+it("uses the native host's scroll ancestry for a virtualized list opened from a plain ScrollView", async () => {
+  const scrollContext = (ScrollView as typeof ScrollView & { Context: Context<unknown> }).Context
+  const errors = jest.spyOn(console, "error")
+  const options = <FlatList data={["visible option"]} renderItem={({ item }) => <Text>{item}</Text>} />
+  try {
+    const fixture = await render(
+      <NativeFloatingLayerHost>
+        <scrollContext.Provider value={{ horizontal: false }}>
+          <NativeFloatingPortal>{options}</NativeFloatingPortal>
+        </scrollContext.Provider>
+      </NativeFloatingLayerHost>,
+    )
+    const nestingWarnings = () =>
+      errors.mock.calls.filter(([message]) => String(message).includes("VirtualizedLists should never be nested"))
+    expect(screen.getByText("visible option")).toBeOnTheScreen()
+    expect(nestingWarnings()).toHaveLength(0)
+
+    await fixture.rerender(
+      <scrollContext.Provider value={{ horizontal: false }}>
+        <NativeFloatingLayerHost>
+          <NativeFloatingPortal>{options}</NativeFloatingPortal>
+        </NativeFloatingLayerHost>
+      </scrollContext.Provider>,
+    )
+    expect(nestingWarnings()).toHaveLength(1)
+  } finally {
+    errors.mockRestore()
+  }
+})
+
+it("uses the destination virtualized ancestry and preserves the opener's application context", async () => {
+  const listContext = (VirtualizedList as typeof VirtualizedList & { contextType: Context<unknown> }).contextType
+  const destination = { marker: "destination" }
+  const opener = { marker: "opener" }
+  const ReadContexts = () => {
+    const list = useContext(listContext)
+    const draft = useContext(DraftContext)
+    return <Text testID="ancestry">{JSON.stringify({ list, draft })}</Text>
+  }
+  await render(
+    <listContext.Provider value={destination}>
+      <NativeFloatingLayerHost>
+        <listContext.Provider value={opener}>
+          <DraftContext.Provider value="local draft">
+            <NativeFloatingPortal>
+              <ReadContexts />
+            </NativeFloatingPortal>
+          </DraftContext.Provider>
+        </listContext.Provider>
+      </NativeFloatingLayerHost>
+    </listContext.Provider>,
+  )
+  expect(screen.getByTestId("ancestry")).toHaveTextContent(JSON.stringify({ list: destination, draft: "local draft" }))
 })
 
 it("retires the host generation and old layout callback after keyed replacement/unmount", async () => {

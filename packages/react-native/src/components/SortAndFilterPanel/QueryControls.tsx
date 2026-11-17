@@ -81,7 +81,7 @@ export const QuerySortEntry = (props: TQuerySortEntryProps) => {
       testID="query-sort-entry"
       style={{
         width: "100%",
-        padding: theme.spacing.unit * 2,
+        padding: theme.spacing.unit,
         flexDirection: "row",
         alignItems: "center",
         gap: theme.spacing.unit,
@@ -103,7 +103,6 @@ export const QuerySortEntry = (props: TQuerySortEntryProps) => {
           accessibilityState={{ checked: ascending }}
           transparent
           raised={false}
-          customStyles={{ padding: 0 }}
           hoverColor={primary}
           onPress={request((owner) => {
             if (owner.parameter.sortDirection !== TABLE_SORT_DIRECTION__ASCENDING)
@@ -117,7 +116,6 @@ export const QuerySortEntry = (props: TQuerySortEntryProps) => {
           accessibilityState={{ checked: descending }}
           transparent
           raised={false}
-          customStyles={{ padding: 0 }}
           hoverColor={primary}
           onPress={request((owner) => {
             if (owner.parameter.sortDirection !== TABLE_SORT_DIRECTION__DESCENDING)
@@ -130,7 +128,6 @@ export const QuerySortEntry = (props: TQuerySortEntryProps) => {
           aria-label={labels.deleteButtonAriaLabel}
           transparent
           raised={false}
-          customStyles={{ padding: 0 }}
           hoverColor={primary}
           onPress={request((owner) => owner.onDeleteSortParameter(owner.parameter.id))}
         >
@@ -148,7 +145,7 @@ export type TQuerySortCriteriaFieldProps = TAvailability & {
   onAddSortParameter: (id: string) => void
 }
 export const QuerySortCriteriaField = forwardRef<TNativeSelectRef, TQuerySortCriteriaFieldProps>((props, ref) => {
-  // Select admits changes from its own native window while the parent window is inactive.
+  // Select delivers selection from its active floating layer while the trigger scope is covered.
   const request = useControlRequest(props, true)
   const target = useRef<TNativeSelectRef>(null)
   const original = useNativeCollectionRefs(target, ref)
@@ -198,13 +195,13 @@ export const QueryActiveSorts = (props: TQueryActiveSortsProps) => {
             color={theme.actions.primary.background}
             geometry="round"
             textValue={item.criteriaName}
-            customStyles={{ borderWidth: 0 }}
+            customStyles={{ borderWidth: 0, color: theme.actions.primary.foreground }}
           >
             <Text variant="b11">{item.criteriaName}</Text>
           </Tag>
         ),
       })),
-    [props.sortParameterList, theme.actions.primary.background],
+    [props.sortParameterList, theme.actions.primary.background, theme.actions.primary.foreground],
   )
   return (
     <View
@@ -265,7 +262,7 @@ export const QueryPanelHeader = (props: TQueryPanelHeaderProps) => {
             raised={false}
             raisedOnHover
             color={theme.colors.background}
-            customStyles={{ aspectRatio: 1, padding: 4 }}
+            customStyles={{ aspectRatio: 1, padding: theme.spacing.unit }}
             geometry="round"
             hoverColor={theme.actions.primary.background}
             onPress={request((owner) => owner.onCloseSortAndFilterPanel())}
@@ -291,7 +288,7 @@ export type TQueryPanelFooterProps = TAvailability & {
 export const QueryPanelFooter = (props: TQueryPanelFooterProps) => {
   const theme = useNativeTheme()
   const request = useControlRequest(props)
-  const textStyle = { borderBottomWidth: 1, borderBottomColor: theme.actions.primary.background, paddingBottom: 2 }
+  const textStyle = { textDecorationLine: "underline" } as const
   return (
     <View
       testID="query-panel-footer"
@@ -308,7 +305,7 @@ export const QueryPanelFooter = (props: TQueryPanelFooterProps) => {
           {props.labels.clearAllButton}
         </Text>
       </Button>
-      <View style={{ flexDirection: "row", gap: theme.spacing.unit * 2, alignItems: "center" }}>
+      <View style={{ flexDirection: "row", gap: theme.spacing.unit, alignItems: "center" }}>
         <Button
           accessibilityLabel={props.labels.cancelButton}
           transparent
