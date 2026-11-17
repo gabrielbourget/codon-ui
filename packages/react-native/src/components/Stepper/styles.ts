@@ -106,8 +106,7 @@ export const getNativeStepperStyles = (
       {
         backgroundColor: "transparent",
         width: "auto",
-        minWidth: 25,
-        maxWidth: 40,
+        fontVariant: ["proportional-nums"],
         textAlign: "center",
         ...(inputColor === undefined ? {} : { borderColor: inputColor }),
         ...(foreground === undefined ? {} : { color: foreground }),

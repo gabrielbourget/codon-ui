@@ -137,14 +137,32 @@ it("CAP.stepper.001 retains decrement/editor/increment order and default segment
     "stepper-input",
     "stepper-increment",
   ])
-  expect(input()).toHaveStyle({ minWidth: 25, maxWidth: 40, marginTop: 2.5, marginBottom: 2.5 })
+  expect(input()).toHaveStyle({ width: "auto", marginTop: 2.5, marginBottom: 2.5 })
 })
 
-it("centers the Stepper editor by default and preserves caller alignment", async () => {
-  const { rerender } = await render(<Stepper {...names} value={0.1} onChange={jest.fn()} />)
-  expect(input()).toHaveStyle({ textAlign: "center" })
-  await rerender(<Stepper {...names} value={0.1} onChange={jest.fn()} customInputStyles={{ textAlign: "right" }} />)
-  expect(input()).toHaveStyle({ textAlign: "right" })
+it("lets the centered Stepper editor measure proportional digits while preserving caller sizing", async () => {
+  const onChange = jest.fn()
+  const { rerender } = await render(<Stepper {...names} value={0.1} onChange={onChange} />)
+  expect(input()).toHaveStyle({ width: "auto", textAlign: "center", fontVariant: ["proportional-nums"] })
+  const defaults = StyleSheet.flatten(input().props.style)
+  expect(defaults.minWidth).toBeUndefined()
+  expect(defaults.maxWidth).toBeUndefined()
+  await rerender(
+    <Stepper
+      {...names}
+      value={0.2}
+      onChange={onChange}
+      customInputStyles={{ width: 44, minWidth: 20, maxWidth: 55, textAlign: "right", fontVariant: ["tabular-nums"] }}
+    />,
+  )
+  expect(input()).toHaveDisplayValue("0.2")
+  expect(input()).toHaveStyle({
+    width: 44,
+    minWidth: 20,
+    maxWidth: 55,
+    textAlign: "right",
+    fontVariant: ["tabular-nums"],
+  })
 })
 
 it("CAP.stepper.002 preserves explicit zero dimensions and independent final root sizing", async () => {
