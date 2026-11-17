@@ -250,6 +250,29 @@ it("preserves ref callback replacement and retires navigation on unmount", async
   expect(scrollCommands).not.toHaveBeenCalled()
 })
 
+it("gives finite page bases explicit main-axis sizes in an unbounded scroller", async () => {
+  const props = base(),
+    { rerender } = await render(tree(props))
+  for (const host of slideHosts()) expect(host).toHaveStyle({ flexBasis: 300, width: 300 })
+  await rerender(tree({ ...props, axis: "y", customItemStyles: { flexBasis: "50%" } }))
+  for (const host of slideHosts()) expect(host).toHaveStyle({ flexBasis: 100, height: 100 })
+  await rerender(tree({ ...props, customItemStyles: { flexBasis: 140 } }))
+  for (const host of slideHosts()) expect(host).toHaveStyle({ flexBasis: 140, width: 140 })
+})
+
+it("preserves authored page dimensions and intrinsic bases", async () => {
+  const props = base(),
+    { rerender } = await render(tree({ ...props, customItemStyles: { width: 0, height: 80, flexBasis: "50%" } }))
+  for (const host of slideHosts()) expect(host).toHaveStyle({ width: 0, height: 80, flexBasis: 150 })
+  await rerender(tree({ ...props, axis: "y", customItemStyles: { height: 0, width: 80, flexBasis: "75%" } }))
+  for (const host of slideHosts()) expect(host).toHaveStyle({ height: 0, width: 80, flexBasis: 150 })
+  await rerender(tree({ ...props, customItemStyles: { flexBasis: "auto" } }))
+  for (const host of slideHosts()) {
+    expect(host).toHaveStyle({ flexBasis: "auto" })
+    expect(StyleSheet.flatten(host.props.style).width).toBeUndefined()
+  }
+})
+
 it("keeps all independent native style owners and late Counter/Text props", async () => {
   const registered = StyleSheet.create({ root: { opacity: 0.3, width: 250 } })
   await render(

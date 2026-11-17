@@ -1341,7 +1341,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/Carousel/Carousel.tsx",
           "role": "source",
-          "contentHash": "sha256:d99821f91d51eda015e2be3feeeef944a01c971c0b3dca27e692e9a32aaa4ca4"
+          "contentHash": "sha256:6912a51dfab401965d15ef6d6ab6d1fd0189b766ae32ccd6db88298cf06ac93a"
         }
       ],
       "registryDependencies": [],
