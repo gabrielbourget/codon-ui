@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, userEvent } from "@testing-library/react-native"
 import { createRef, useState } from "react"
-import { AccessibilityInfo, type View } from "react-native"
+import { AccessibilityInfo, Platform, type View } from "react-native"
 
 import {
   AlertDialog,
@@ -64,8 +64,8 @@ it.each(AVAILABLE_ALERT_DIALOG_TYPES)(
       expect(screen.getByRole("button", { name })).toHaveStyle({
         padding: 5,
         paddingHorizontal: 5,
-        minWidth: 44,
-        minHeight: 44,
+        minWidth: 0,
+        minHeight: 0,
       })
     }
     expect(screen.getByRole("button", { name: "Cancel Action" })).toHaveStyle({ backgroundColor: "transparent" })
@@ -87,11 +87,33 @@ it("keeps five-point action padding under caller spacing overrides", async () =>
     expect(screen.getByRole("button", { name })).toHaveStyle({
       padding: 5,
       paddingHorizontal: 5,
-      minWidth: 44,
-      minHeight: 44,
+      minWidth: 0,
+      minHeight: 0,
     })
   }
 })
+
+it.each(["ios", "android"] as const)(
+  "keeps compact %s actions free of button and row size floors",
+  async (platform) => {
+    jest.replaceProperty(Platform, "OS", platform)
+    const target = platform === "ios" ? 44 : 48
+    await render(wrap(<AlertDialog {...base} defaultOpen />))
+    await show()
+    expect(screen.getByTestId("alert-dialog-actions").props.style.minHeight).toBeUndefined()
+    for (const name of ["Cancel Action", "Confirm Action"]) {
+      const action = screen.getByRole("button", { name })
+      expect(action).toHaveStyle({ padding: 5, paddingHorizontal: 5, minHeight: 0 })
+      await fireEvent(action, "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 64, height: 29.5 } } })
+      expect(screen.getByRole("button", { name }).props.hitSlop).toEqual({
+        top: (target - 29.5) / 2,
+        bottom: (target - 29.5) / 2,
+        left: 0,
+        right: 0,
+      })
+    }
+  },
+)
 
 it.each([undefined, null])("retains the default icon for %s", async (AlertIcon) => {
   await render(wrap(<AlertDialog {...base} AlertIcon={AlertIcon} defaultOpen />))
