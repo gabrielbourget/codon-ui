@@ -167,6 +167,7 @@ it("CAP.query-controls.003 forwards the actual Select ref and keeps null selecti
     ),
   )
   expect(ref.current).not.toBeNull()
+  expect(screen.getByText("Select Sort Criteria")).toHaveStyle({ textAlign: "left" })
   const target = ref.current
   await press("Add Sort Criteria")
   await prepareSelectPopover()
@@ -281,6 +282,7 @@ it("uses current active-sort tag metadata and removal callback after replacement
       />,
     ),
   )
+  expect(screen.getByText("Nouveau")).toHaveStyle({ color: "#ffffff" })
   await press("Remove Nouveau")
   expect(current).toHaveBeenCalledWith("current")
   expect(previous).not.toHaveBeenCalled()
@@ -413,7 +415,7 @@ it("CAP.query-controls.006 updates existing theme spacing, surface and radius wi
   await render(wrap(<QuerySortEntry {...props} />))
   const initial = StyleSheet.flatten(screen.getByTestId("query-sort-entry").props.style)
   expect(initial).toMatchObject({
-    padding: resolveNativeTheme("light").spacing.unit * 2,
+    padding: resolveNativeTheme("light").spacing.unit,
     backgroundColor: resolveNativeTheme("light").colors.controlHoverBackground,
     borderRadius: resolveNativeTheme("light").radius.rounded,
   })

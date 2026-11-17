@@ -45,18 +45,20 @@ export const QueryActiveFilters = (props: TNativeQueryActiveFiltersProps) => {
               color={theme.actions.primary.background}
               customStyles={{ borderWidth: 0 }}
             >
-              <Text variant="b11">{group.criteriaName}</Text>
+              <Text variant="b11" color={theme.actions.primary.foreground}>
+                {group.criteriaName}
+              </Text>
             </Tag>
           ),
         })),
       ),
-    [controller.draft.filterGroups, theme.actions.primary.background],
+    [controller.draft.filterGroups, theme.actions.primary.background, theme.actions.primary.foreground],
   )
   return (
     <ScrollView
       testID="query-active-filters"
       style={{ flex: 1, minHeight: 0, width: "100%" }}
-      contentContainerStyle={{ flexGrow: 1, gap: theme.spacing.unit * 2 }}
+      contentContainerStyle={{ flexGrow: 1, gap: theme.spacing.unit }}
       keyboardShouldPersistTaps="always"
       keyboardDismissMode="none"
       nestedScrollEnabled
@@ -94,7 +96,7 @@ export const QueryActiveFilters = (props: TNativeQueryActiveFiltersProps) => {
               accessibilityLabel={labels.activeFilters.filterGroupAriaLabel({ criteriaName: group.criteriaName })}
               style={{
                 width: "100%",
-                gap: theme.spacing.unit * 2,
+                gap: theme.spacing.unit,
                 padding: theme.spacing.unit,
                 backgroundColor: theme.colors.background,
                 borderColor: theme.colors.borderMuted,
@@ -124,16 +126,15 @@ export const QueryActiveFilters = (props: TNativeQueryActiveFiltersProps) => {
                   </Text>
                   <View
                     style={{
-                      height: 22,
                       maxWidth: "100%",
-                      paddingHorizontal: theme.spacing.unit,
+                      padding: theme.spacing.unit,
                       alignItems: "center",
                       justifyContent: "center",
                       backgroundColor: theme.actions.primary.background,
                       borderRadius: 10000,
                     }}
                   >
-                    <Text variant="b11" fontWeight="semibold" color={theme.colors.controlSelectedForeground}>
+                    <Text variant="b11" fontWeight="semibold" color={theme.actions.primary.foreground}>
                       {group.criteriaName}
                     </Text>
                   </View>
@@ -145,10 +146,10 @@ export const QueryActiveFilters = (props: TNativeQueryActiveFiltersProps) => {
                   accessibilityLabel={labels.activeFilters.addFilterButtonAriaLabel({
                     criteriaName: group.criteriaName,
                   })}
-                  customStyles={{ height: 24, width: 24, padding: 0, flexShrink: 0 }}
+                  customStyles={{ padding: theme.spacing.unit, flexShrink: 0 }}
                   onPress={request((current) => current.controller.addFilter(group.criteriaID))}
                 >
-                  <TableAddConditionGlyph color={theme.colors.controlSelectedForeground} />
+                  <TableAddConditionGlyph color={theme.actions.primary.foreground} />
                 </Button>
               </View>
               {group.clauses.length > 1 && (

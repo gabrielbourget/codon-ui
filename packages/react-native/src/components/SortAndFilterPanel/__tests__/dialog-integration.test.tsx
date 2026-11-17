@@ -158,7 +158,7 @@ it("restores stylesheet dialog dimensions and spacing after undefined inline fie
       { width: undefined, height: undefined, padding: undefined, gap: undefined },
     ]),
   )
-  expect(dialog).toHaveStyle({ width: "100%", height: "100%", padding: 10, gap: 10 })
+  expect(dialog).toHaveStyle({ width: "100%", height: "100%", padding: 5, gap: 5 })
   expect(mockViews.get(dialog.props.ownerId)).toBe(original)
   expect(host("query-panel-dialog")).toBe(dialog)
 })
@@ -212,7 +212,7 @@ it("preserves canonical box sizing and flex shrink through explicit dialog overr
   const dialog = host("query-panel-dialog"),
     original = mockViews.get(dialog.props.ownerId)
   const control = screen.getByRole("button", { name: "Add Sort Criteria" })
-  expect(dialog).toHaveStyle({ boxSizing: "border-box", flexShrink: 1, width: "100%", height: "100%", padding: 10 })
+  expect(dialog).toHaveStyle({ boxSizing: "border-box", flexShrink: 1, width: "100%", height: "100%", padding: 5 })
   await result.rerender(tree({ boxSizing: "content-box", flexShrink: 0, width: 120, height: 90, padding: 0, gap: 0 }))
   expect(dialog).toHaveStyle({ boxSizing: "content-box", flexShrink: 0, width: 120, height: 90, padding: 0, gap: 0 })
   await result.rerender(
@@ -226,8 +226,8 @@ it("preserves canonical box sizing and flex shrink through explicit dialog overr
     flexShrink: 1,
     width: "100%",
     height: "100%",
-    padding: 10,
-    gap: 10,
+    padding: 5,
+    gap: 5,
   })
   expect(mockViews.get(dialog.props.ownerId)).toBe(original)
   expect(screen.getByRole("button", { name: "Add Sort Criteria" })).toBe(control)

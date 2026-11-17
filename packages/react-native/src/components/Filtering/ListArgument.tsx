@@ -44,7 +44,7 @@ export const ListFilterArgument = (props: TListFilterArgumentProps) => {
           geometry="round"
           order="primary"
           raised={false}
-          customStyles={[{ padding: 3 }, props.customActionButtonStyles]}
+          customStyles={props.customActionButtonStyles}
           onPress={request((current) =>
             current.onArgumentChange({ argument: [...getFilterArrayArgument(current.argument), ""] }),
           )}
@@ -71,7 +71,7 @@ export const ListFilterArgument = (props: TListFilterArgumentProps) => {
             accessibilityLabel={labels.multiInputItemAriaLabel({ index })}
             value={item == null ? "" : String(item)}
             placeholder={labels.multiInputItemPlaceholder({ position: index + 1 })}
-            customStyles={[{ width: "100%" }, props.customInputStyles]}
+            customStyles={[{ flex: 1, minWidth: 0 }, props.customInputStyles]}
             onChangeText={request((current, value: string) => {
               const previous = getFilterArrayArgument(current.argument)
               if (index >= previous.length) return
@@ -85,7 +85,7 @@ export const ListFilterArgument = (props: TListFilterArgumentProps) => {
             raised={false}
             transparent
             isDisabled={index === 0}
-            customStyles={[{ paddingRight: 0 }, props.customActionButtonStyles]}
+            customStyles={props.customActionButtonStyles}
             onPress={request((current) => {
               const previous = getFilterArrayArgument(current.argument)
               if (index === 0 || index >= previous.length) return
