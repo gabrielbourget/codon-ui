@@ -1,7 +1,7 @@
 import "../../../collection/__tests__/nativeReceipts"
 
 import { cleanup, screen } from "@testing-library/react-native"
-import { createRef, type ReactNode, type RefAttributes, useState } from "react"
+import { createRef, type ReactNode, type RefAttributes, type ContextType, useContext, useState } from "react"
 import {
   AccessibilityInfo,
   Animated,
@@ -18,6 +18,7 @@ import {
   fireEventWithNativeCollections as fireEvent,
   renderWithNativeCollections as render,
 } from "../../../collection/__tests__/nativeReceipts"
+import { NativeComboBoxStateContext } from "../../ComboBox/collectionContext"
 import { CompactTypeaheadSearch } from "../CompactTypeaheadSearch"
 import type { TNativeCompactTypeaheadSearchProps } from "../types"
 
@@ -58,6 +59,78 @@ afterEach(async () => {
   jest.restoreAllMocks()
   jest.clearAllTimers()
   jest.useRealTimers()
+})
+
+it("closes after selection while the caller retains its controlled query", async () => {
+  const selected = jest.fn()
+  const Owner = () => {
+    const [value, setValue] = useState<string | number | null>(null)
+    return wrapper({
+      inputValue: "Alpha",
+      value,
+      minimumInputLength: 1,
+      onChange: (key) => {
+        selected(key)
+        setValue(key)
+      },
+    })
+  }
+  await render(<Owner />)
+  await ready(false)
+  await pressCompact(row("type-ahead-search-option-string:alpha"))
+  await advance()
+  expect(selected).toHaveBeenCalledWith("alpha")
+  expect(row("type-ahead-search-input").props.value).toBe("Alpha")
+  expect(screen.queryByTestId("type-ahead-search-popover", { includeHiddenElements: true })).toBeNull()
+})
+
+it("honors dismissal of a held query and reopens for a new controlled query revision", async () => {
+  let state: ContextType<typeof NativeComboBoxStateContext> = null
+  const Probe = () => {
+    state = useContext(NativeComboBoxStateContext)
+    return null
+  }
+  const node = (inputValue: string) => wrapper({ inputValue, minimumInputLength: 1, SearchIcon: <Probe /> })
+  const view = await render(node("Alpha"))
+  await ready(false)
+  await act(() => state!.close())
+  await advance()
+  expect(screen.queryByTestId("type-ahead-search-popover", { includeHiddenElements: true })).toBeNull()
+  await view.rerender(node("Beta"))
+  await fixture.ready()
+  expect(row("type-ahead-search-popover")).toBeOnTheScreen()
+  await act(() => state!.close())
+  await advance()
+  expect(screen.queryByTestId("type-ahead-search-popover", { includeHiddenElements: true })).toBeNull()
+  await view.rerender(node("Alpha"))
+  await fixture.ready()
+  expect(row("type-ahead-search-popover")).toBeOnTheScreen()
+})
+
+it("closes a controlled query erased below a positive minimum", async () => {
+  const Owner = () => {
+    const [query, setQuery] = useState("Alpha")
+    return wrapper({ inputValue: query, onInputChange: setQuery, minimumInputLength: 1 })
+  }
+  await render(<Owner />)
+  await ready(false)
+  await fireEvent.changeText(row("type-ahead-search-input"), "")
+  await advance()
+  expect(row("type-ahead-search-input").props.value).toBe("")
+  expect(screen.queryByTestId("type-ahead-search-popover", { includeHiddenElements: true })).toBeNull()
+})
+
+it("retains empty-query results when the caller explicitly allows a zero minimum", async () => {
+  const Owner = () => {
+    const [query, setQuery] = useState("Alpha")
+    return wrapper({ inputValue: query, onInputChange: setQuery, minimumInputLength: 0 })
+  }
+  await render(<Owner />)
+  await ready(false)
+  await fireEvent.changeText(row("type-ahead-search-input"), "")
+  await advance()
+  expect(row("type-ahead-search-input").props.value).toBe("")
+  expect(row("type-ahead-search-popover")).toBeOnTheScreen()
 })
 
 it("CAP.compact-typeahead.001 renders actual compound hosts and caller root ref", async () => {
@@ -434,7 +507,7 @@ it("CAP.compact-typeahead.030 closes a controlled clear after selection without 
     })
   }
   await render(<Harness />)
-  await ready()
+  await ready(false)
   await pressCompact(row("type-ahead-search-option-string:alpha"))
   await advance()
   expect(row("type-ahead-search-input").props.value).toBe("")
