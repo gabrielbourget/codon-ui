@@ -1,4 +1,5 @@
 import { act, fireEvent, render as renderNative, screen } from "@testing-library/react-native"
+import { useState } from "react"
 import { AccessibilityInfo, AppState, ScrollView, StyleSheet, Text, View } from "react-native"
 import type * as RN from "react-native"
 
@@ -178,6 +179,39 @@ it("composes the whole family, initial selection, labels, real viewport and orig
   expect(screen.getByTestId("counter-max").props.children).toBe("/3")
 })
 
+it("does not repeat the settled index when an inline owner callback records it", async () => {
+  const reports = jest.fn(),
+    props = base()
+  const Owner = () => {
+    const [events, setEvents] = useState<number[]>([])
+    return (
+      <NativeThemeProvider>
+        <Carousel
+          {...props}
+          items={items.map((item) => ({ ...item }))}
+          onIndexChange={(index) => {
+            reports(index)
+            // Bound the broken feedback path so the regression fails without hanging React.
+            if (reports.mock.calls.length < 4) setEvents((previous) => [...previous, index])
+          }}
+        />
+        <Text testID="owner-indices">{JSON.stringify(events)}</Text>
+      </NativeThemeProvider>
+    )
+  }
+  await renderNative(<Owner />)
+  await layout(props)
+  expect(reports.mock.calls).toEqual([[0]])
+  const scroller = screen.getByTestId("carousel-scroll-x")
+  await fireEvent(scroller, "scrollBeginDrag", scrollEvent(0, 0))
+  await fireEvent(scroller, "scrollEndDrag", scrollEvent(300, 0))
+  expect(reports.mock.calls).toEqual([[0], [1]])
+  await fireEvent(scroller, "scrollBeginDrag", scrollEvent(300, 0))
+  await fireEvent(scroller, "scrollEndDrag", scrollEvent(0, 0))
+  expect(reports.mock.calls).toEqual([[0], [1], [0]])
+  expect(screen.getByTestId("owner-indices").props.children).toBe("[0,1,0]")
+})
+
 it("retains selection on unrelated renders, resynchronizes requested indices and replaces callbacks", async () => {
   const first = jest.fn(),
     next = jest.fn(),
@@ -189,11 +223,13 @@ it("retains selection on unrelated renders, resynchronizes requested indices and
   expect(context.scrollTo).toBe(scrollTo)
   expect(context.selectedIndex).toBe(2)
   await rerender(tree({ ...props, onIndexChange: next }))
-  expect(next.mock.calls).toEqual([[2]])
+  expect(next).not.toHaveBeenCalled()
   await rerender(tree({ ...props, onIndexChange: next, initialIndex: -10 }))
   expect(context.selectedIndex).toBe(0)
+  expect(next.mock.calls).toEqual([[0]])
   await rerender(tree({ ...props, onIndexChange: next, initialIndex: 99 }))
   expect(context.selectedIndex).toBe(2)
+  expect(next.mock.calls).toEqual([[0], [2]])
 })
 
 it("preserves ref callback replacement and retires navigation on unmount", async () => {
@@ -212,6 +248,29 @@ it("preserves ref callback replacement and retires navigation on unmount", async
   scrollCommands.mockClear()
   scrollTo(2)
   expect(scrollCommands).not.toHaveBeenCalled()
+})
+
+it("gives finite page bases explicit main-axis sizes in an unbounded scroller", async () => {
+  const props = base(),
+    { rerender } = await render(tree(props))
+  for (const host of slideHosts()) expect(host).toHaveStyle({ flexBasis: 300, width: 300 })
+  await rerender(tree({ ...props, axis: "y", customItemStyles: { flexBasis: "50%" } }))
+  for (const host of slideHosts()) expect(host).toHaveStyle({ flexBasis: 100, height: 100 })
+  await rerender(tree({ ...props, customItemStyles: { flexBasis: 140 } }))
+  for (const host of slideHosts()) expect(host).toHaveStyle({ flexBasis: 140, width: 140 })
+})
+
+it("preserves authored page dimensions and intrinsic bases", async () => {
+  const props = base(),
+    { rerender } = await render(tree({ ...props, customItemStyles: { width: 0, height: 80, flexBasis: "50%" } }))
+  for (const host of slideHosts()) expect(host).toHaveStyle({ width: 0, height: 80, flexBasis: 150 })
+  await rerender(tree({ ...props, axis: "y", customItemStyles: { height: 0, width: 80, flexBasis: "75%" } }))
+  for (const host of slideHosts()) expect(host).toHaveStyle({ height: 0, width: 80, flexBasis: 150 })
+  await rerender(tree({ ...props, customItemStyles: { flexBasis: "auto" } }))
+  for (const host of slideHosts()) {
+    expect(host).toHaveStyle({ flexBasis: "auto" })
+    expect(StyleSheet.flatten(host.props.style).width).toBeUndefined()
+  }
 })
 
 it("keeps all independent native style owners and late Counter/Text props", async () => {

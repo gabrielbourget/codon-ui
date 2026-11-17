@@ -261,6 +261,15 @@ export const Carousel = <TItem extends TNativeBaseCarouselItem>(props: TNativeCa
   // Percent page sizes are relative to the viewport, not the unbounded scrolling content.
   if (typeof itemStyle.flexBasis === "string" && itemStyle.flexBasis.endsWith("%"))
     itemStyle.flexBasis = (Number.parseFloat(itemStyle.flexBasis) * extent) / 100
+  // A ScrollView leaves its scrolling axis unbounded, so a basis alone can shrink to intrinsic content.
+  const itemDimension = axis === "x" ? "width" : "height"
+  if (
+    itemStyle[itemDimension] === undefined &&
+    typeof itemStyle.flexBasis === "number" &&
+    Number.isFinite(itemStyle.flexBasis) &&
+    itemStyle.flexBasis >= 0
+  )
+    itemStyle[itemDimension] = itemStyle.flexBasis
   const scrollProps = {
     scrollEventThrottle: 16,
     showsHorizontalScrollIndicator: false,
