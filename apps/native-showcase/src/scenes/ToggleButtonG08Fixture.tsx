@@ -444,7 +444,6 @@ export const ToggleButtonG08Fixture = () => {
               style={{
                 width,
                 minWidth: undefined,
-                minHeight: zero || small ? undefined : 44,
                 height: zero ? 0 : small ? 24 : undefined,
                 overflow: zero || small ? "hidden" : undefined,
                 flexDirection: "row",
