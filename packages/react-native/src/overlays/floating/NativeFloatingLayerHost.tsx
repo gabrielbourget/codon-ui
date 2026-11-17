@@ -11,6 +11,7 @@ import {
   useRef,
   useState,
   useSyncExternalStore,
+  type Context,
   type ForwardRefExoticComponent,
   type ReactElement,
   type ReactNode,
@@ -20,8 +21,10 @@ import {
 import {
   BackHandler,
   Platform,
+  ScrollView,
   StyleSheet,
   View,
+  VirtualizedList,
   type GestureResponderEvent,
   type LayoutChangeEvent,
   type ViewProps,
@@ -45,6 +48,7 @@ export type TNativeFloatingLayerHostRef = View
 // Both pinned native base configs register these phases; RN0.86 ViewProps omits their capture spellings.
 type TNativeTouchCaptureProps = {
   onTouchStartCapture?: NonNullable<ViewProps["onTouchStart"]>
+  onTouchMoveCapture?: NonNullable<ViewProps["onTouchMove"]>
   onTouchEndCapture?: NonNullable<ViewProps["onTouchEnd"]>
   onTouchCancelCapture?: NonNullable<ViewProps["onTouchCancel"]>
   onFocusCapture?: NonNullable<ViewProps["onFocus"]>
@@ -65,7 +69,15 @@ type TNativeFloatingHost = {
   tooltipTiming: ReturnType<typeof createNativeTooltipTiming>
   focusReturns: ReturnType<typeof createNativeFloatingFocusReturns>
   layout: Readonly<{ width: number; height: number }> | null
+  scrollViewContext: unknown
+  virtualizedListContext: unknown
 }
+
+// Teleport moves native children to the host but keeps their source React ancestry.
+// RN 0.86 exposes these contexts on the components, but its legacy TS declarations omit them.
+const ScrollViewContext = (ScrollView as typeof ScrollView & { Context: Context<unknown> }).Context
+const VirtualizedListContext = (VirtualizedList as typeof VirtualizedList & { contextType: Context<unknown> })
+  .contextType
 
 const FloatingHostContext = createContext<TNativeFloatingHost | null>(null)
 const escapeTokens = nativeKeyTokens("Escape")
@@ -103,7 +115,11 @@ export const NativeFloatingPortal = ({ children, layerId }: { children: ReactNod
       hostName={layerId === undefined ? host.name : layerHostName(host.name, layerId)}
       style={StyleSheet.absoluteFill}
     >
-      {children}
+      <ScrollViewContext.Provider value={host.scrollViewContext}>
+        <VirtualizedListContext.Provider value={host.virtualizedListContext}>
+          {children}
+        </VirtualizedListContext.Provider>
+      </ScrollViewContext.Provider>
     </Portal>
   )
 }
@@ -120,6 +136,7 @@ const NativeFloatingLayerHostReceiver = forwardRef<
       onLayout,
       onAccessibilityEscape,
       onTouchStartCapture,
+      onTouchMoveCapture,
       onTouchEndCapture,
       onTouchCancelCapture,
       onFocusCapture,
@@ -146,11 +163,14 @@ const NativeFloatingLayerHostReceiver = forwardRef<
     )
     useSyncExternalStore(layers.subscribe, layers.snapshot, layers.snapshot)
     const windowActive = useContext(NativeFloatingWindowContext)
+    const scrollViewContext = useContext(ScrollViewContext)
+    const virtualizedListContext = useContext(VirtualizedListContext)
     const current = useRef({
       windowActive,
       onLayout,
       onAccessibilityEscape,
       onTouchStartCapture,
+      onTouchMoveCapture,
       onTouchEndCapture,
       onTouchCancelCapture,
       onFocusCapture,
@@ -160,6 +180,7 @@ const NativeFloatingLayerHostReceiver = forwardRef<
       onLayout,
       onAccessibilityEscape,
       onTouchStartCapture,
+      onTouchMoveCapture,
       onTouchEndCapture,
       onTouchCancelCapture,
       onFocusCapture,
@@ -189,8 +210,20 @@ const NativeFloatingLayerHostReceiver = forwardRef<
       return () => subscription.remove()
     }, [layers])
     const host = useMemo(
-      () => ({ name, root, generation, live, layers, interactions, tooltipTiming, focusReturns, layout }),
-      [name, layers, interactions, tooltipTiming, focusReturns, layout],
+      () => ({
+        name,
+        root,
+        generation,
+        live,
+        layers,
+        interactions,
+        tooltipTiming,
+        focusReturns,
+        layout,
+        scrollViewContext,
+        virtualizedListContext,
+      }),
+      [name, layers, interactions, tooltipTiming, focusReturns, layout, scrollViewContext, virtualizedListContext],
     )
     const scope = useMemo(
       () => ({
@@ -200,6 +233,11 @@ const NativeFloatingLayerHostReceiver = forwardRef<
       [layers],
     )
     const modal = layers.hasModal()
+    const needsTapTarget = useSyncExternalStore(
+      interactions.subscribeTapTarget,
+      interactions.needsTapTarget,
+      interactions.needsTapTarget,
+    )
     const handleLayout = (event: LayoutChangeEvent) => {
       if (!live.current) return
       generation.current++
@@ -217,6 +255,11 @@ const NativeFloatingLayerHostReceiver = forwardRef<
         if (!live.current || current.current.windowActive?.() === false) return
         interactions.start(event)
         current.current.onTouchStartCapture?.(event)
+      },
+      onTouchMoveCapture: (event: GestureResponderEvent) => {
+        if (!live.current || current.current.windowActive?.() === false) return
+        interactions.move(event)
+        current.current.onTouchMoveCapture?.(event)
       },
       onTouchEndCapture: (event: GestureResponderEvent) => {
         if (!live.current) return
@@ -237,7 +280,8 @@ const NativeFloatingLayerHostReceiver = forwardRef<
       ref: background,
       testID: `${testID}-background`,
       style: { flex: 1 },
-      pointerEvents: modal ? "none" : "box-none",
+      // Children still win hit testing. The background is a target only for otherwise empty space.
+      pointerEvents: modal ? "none" : needsTapTarget ? "auto" : "box-none",
       accessibilityElementsHidden: modal,
       importantForAccessibility: modal ? "no-hide-descendants" : "auto",
       children: <NativeFloatingScopeContext.Provider value={scope}>{children}</NativeFloatingScopeContext.Provider>,

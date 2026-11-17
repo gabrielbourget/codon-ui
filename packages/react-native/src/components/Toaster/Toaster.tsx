@@ -180,12 +180,16 @@ export const Toaster = forwardRef<TNativeFocusViewRef, TNativeToasterProps>((pro
   )
   useLayoutEffect(() => {
     if (!canExpand && !expanded) return
-    return host.interactions.observeTap(touchOwner, (inside) => {
-      if (!canAct() || current.current.inputScope?.isWindowActive() === false) return
-      if (collapse.current !== null) clearTimeout(collapse.current)
-      collapse.current = null
-      setExpanded(inside && canExpand)
-    })
+    return host.interactions.observeTap(
+      touchOwner,
+      (inside) => {
+        if (!canAct() || current.current.inputScope?.isWindowActive() === false) return
+        if (collapse.current !== null) clearTimeout(collapse.current)
+        collapse.current = null
+        setExpanded(inside && canExpand)
+      },
+      expanded && canExpand,
+    )
   }, [canAct, canExpand, expanded, host.interactions, touchOwner, setExpanded])
   const receiveRootKey = (event: TNativeKeyboardEvent, phase: "capture" | "bubble") => {
     if (

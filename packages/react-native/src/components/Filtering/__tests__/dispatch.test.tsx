@@ -9,6 +9,11 @@ import {
   renderWithNativeCollections as render,
   rerenderWithNativeCollections,
 } from "../../../collection/__tests__/nativeReceipts"
+import {
+  acknowledgeSelectHost,
+  prepareSelectPopover,
+  pressSelectOption,
+} from "../../../overlays/floating/__tests__/selectPopoverFixture"
 import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import { NativeThemeProvider } from "../../../theme"
 import { AVAILABLE_FILTER_ARGUMENT_TYPES } from "../../Table/filterMetadata"
@@ -211,11 +216,14 @@ it("preserves Select argumentValue versus ComboBox name request semantics", asyn
   })
   await render(wrap(props))
   await fireEvent.press(screen.getByRole("button", { name: "Filter Argument" }))
-  await fireEvent.press(screen.getByRole("radio", { name: "Alpha" }))
+  await prepareSelectPopover()
+  await pressSelectOption(screen.getByRole("radio", { name: "Alpha", includeHiddenElements: true }))
   expect(props.onArgumentChange).toHaveBeenLastCalledWith({ argument: false, filterArgumentSelectedKey: "" })
   await rerenderWithNativeCollections(wrap({ ...props, filterArgumentType: "Combo Box" }))
   await fireEvent.press(screen.getByRole("button", { name: "Show filter argument suggestions" }))
-  await fireEvent.press(screen.getByRole("radio", { name: "Alpha" }))
+  await fireEvent(screen.getByTestId("combo-box-window", { includeHiddenElements: true }), "show")
+  await acknowledgeSelectHost(screen.getByTestId("combo-box-floating-host", { includeHiddenElements: true }))
+  await pressSelectOption(screen.getByRole("radio", { name: "Alpha", includeHiddenElements: true }))
   expect(props.onArgumentChange).toHaveBeenLastCalledWith({ argument: "Alpha", filterArgumentSelectedKey: "" })
 })
 it("keeps action vetoes current after dispatch without emitting during rendering", async () => {

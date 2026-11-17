@@ -40,11 +40,13 @@ export const prepareSelectPopover = async (
     anchor = [80, 100, 120, 25],
     content = [0, 0, anchor[2], 100],
     queries = screen,
+    flushFrames,
   }: {
     viewport?: Rect
     anchor?: Rect
     content?: Rect
     queries?: Pick<typeof screen, "getAllByTestId" | "getByTestId">
+    flushFrames?: () => Promise<void>
   } = {},
 ) => {
   const trigger = queries
@@ -77,10 +79,12 @@ export const prepareSelectPopover = async (
   await act(() => scope.props.onLayout(layout(viewport)))
   await act(() => popup.props.onLayout(layout(content)))
   await acknowledgeSelectHost(scope)
-  await act(async () => {
-    if ("clock" in setTimeout) await jest.advanceTimersByTimeAsync(48)
-    else await new Promise<void>((resolve) => setTimeout(resolve, 48))
-  })
+  if (flushFrames) await flushFrames()
+  else
+    await act(async () => {
+      if ("clock" in setTimeout) await jest.advanceTimersByTimeAsync(48)
+      else await new Promise<void>((resolve) => setTimeout(resolve, 48))
+    })
   const outside = async () => {
     const touch = () =>
       ({

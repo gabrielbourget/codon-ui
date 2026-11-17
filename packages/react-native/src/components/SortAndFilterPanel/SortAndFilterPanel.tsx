@@ -109,7 +109,7 @@ const QueryPanelBody = ({
           />
         </FormField>
         {separator}
-        <View style={{ width: "100%", gap: theme.spacing.unit * 2 }}>
+        <View style={{ width: "100%", gap: theme.spacing.unit }}>
           <QueryActiveSorts
             sortParameterList={controller.draft.sortInstructions}
             labels={labels.activeSorts}
