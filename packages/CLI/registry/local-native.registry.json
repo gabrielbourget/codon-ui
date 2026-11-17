@@ -8362,7 +8362,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/TypeaheadSearch/styles.ts",
           "role": "source",
-          "contentHash": "sha256:a2ccec4728303da5fd95b753cc80aea00921b343cff356299335506d2363e06d"
+          "contentHash": "sha256:3d9aab7d01f0afe8f8a27200ff86dcb118ac9b85b71e03df6c067ffd469ab0b4"
         }
       ],
       "registryDependencies": [],
