@@ -348,7 +348,11 @@ const CompactTypeaheadSearchInner = <T extends object>(
   const [localOpen, setLocalOpen] = useState(false)
   const [suppressed, setSuppressed] = useState(false)
   const query = props.inputValue !== undefined ? props.inputValue : localQuery
-  const open = props.isOpen ?? (localOpen || (props.inputValue !== undefined && query.trim().length > 0))
+  const queryRevision = useMemo(() => ({}), [query])
+  const [dismissedQuery, setDismissedQuery] = useState<object | null>(null)
+  const open =
+    props.isOpen ??
+    (localOpen || (props.inputValue !== undefined && query.trim().length > 0 && dismissedQuery !== queryRevision))
   const minimum = query.trim().length < minimumLength && !suppressed
   const status = minimum || !!props.isLoading
   const eligible = query.trim().length >= minimumLength
@@ -376,9 +380,9 @@ const CompactTypeaheadSearchInner = <T extends object>(
   const pending = useRef<ReturnType<typeof setTimeout> | null>(null)
   const live = useRef(false)
   const rootWithin = useRef<boolean | null>(null)
-  const current = useRef({ props, status, scope, floatingScope, windowActive, isDisabled, isReadOnly })
+  const current = useRef({ props, status, scope, floatingScope, windowActive, isDisabled, isReadOnly, queryRevision })
   useInsertionEffect(() => {
-    current.current = { props, status, scope, floatingScope, windowActive, isDisabled, isReadOnly }
+    current.current = { props, status, scope, floatingScope, windowActive, isDisabled, isReadOnly, queryRevision }
   })
   const canAct = () =>
     live.current &&
@@ -431,20 +435,29 @@ const CompactTypeaheadSearchInner = <T extends object>(
       (rootWithin.current ?? getNativeFocusedTarget() === input.current)
     )
       return
-    if (owner.props.isOpen === undefined) setLocalOpen(next)
+    if (owner.props.isOpen === undefined) {
+      setLocalOpen(next)
+      setDismissedQuery(next ? null : owner.queryRevision)
+    }
     owner.props.onOpenChange?.(next)
   }
   const changeQuery = (value: string) => {
     if (!live.current) return
     if (current.current.props.inputValue === undefined) setLocalQuery(value)
-    if (current.current.props.isOpen === undefined) setLocalOpen(true)
+    if (current.current.props.isOpen === undefined) {
+      setLocalOpen(value.trim().length > 0 || (current.current.props.minimumInputLength ?? 0) === 0)
+      setDismissedQuery(null)
+    }
     current.current.props.onInputChange?.(value)
   }
   const changeSelection = (key: string | number | null) => {
     if (!live.current) return
     if (key !== null) {
       setSuppressed(true)
-      if (current.current.props.isOpen === undefined) setLocalOpen(false)
+      if (current.current.props.isOpen === undefined) {
+        setLocalOpen(false)
+        setDismissedQuery(current.current.queryRevision)
+      }
     }
     current.current.props.onChange?.(key)
     if (key === null || !canAct()) return
@@ -461,7 +474,10 @@ const CompactTypeaheadSearchInner = <T extends object>(
         JSON.stringify(owner.scope?.acknowledgedSession() ?? null) !== session
       )
         return
-      if (owner.props.isOpen === undefined) setLocalOpen(false)
+      if (owner.props.isOpen === undefined) {
+        setLocalOpen(false)
+        setDismissedQuery(owner.queryRevision)
+      }
       owner.props.onOpenChange?.(false)
       focusNativeTarget(editor)
     }, 0)
@@ -491,7 +507,7 @@ const CompactTypeaheadSearchInner = <T extends object>(
       getTextValue={(item) => entries.find((entry) => entry.item === item)!.text}
       defaultFilter={() => true}
       allowsEmptyCollection={props.allowsEmptyCollection ?? true}
-      isOpen={undefined}
+      isOpen={props.isOpen === undefined ? open : undefined}
       popoverIsOpen={open}
       inputValue={query}
       defaultInputValue={undefined}
