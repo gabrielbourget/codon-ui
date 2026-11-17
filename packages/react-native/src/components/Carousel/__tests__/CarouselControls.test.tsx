@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native"
 import { createRef, type ReactNode } from "react"
 import type { View } from "react-native"
-import { Platform, StyleSheet } from "react-native"
+import { StyleSheet } from "react-native"
 
 import { CarouselCloseButton, NativeThemeProvider, Text } from "../../.."
 import type { TNativeButtonChildrenState, TNativeButtonStyleState } from "../../Button/types"
@@ -45,7 +45,8 @@ describe.each([
       backgroundColor: "rgba(0,0,0,0.75)",
       padding: 5,
       borderRadius: 10000,
-      minHeight: Platform.OS === "ios" ? 44 : 48,
+      minHeight: undefined,
+      minWidth: undefined,
     })
     expect(StyleSheet.flatten(button.props.style).paddingHorizontal).toBeUndefined()
     const glyph = screen.getByTestId(`carousel-${icon}-icon`, hidden)

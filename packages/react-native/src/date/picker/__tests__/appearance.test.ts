@@ -15,7 +15,7 @@ const padding = (style: ViewStyle, edge: "Top" | "Bottom" | "Left" | "Right") =>
   )
 
 it.each(["rounded", "round", "orthogonal"] as const)(
-  "keeps one five-point inset around date field children with %s geometry and an intact trigger target",
+  "keeps one five-point inset around date field children with %s geometry without a layout floor",
   (geometry) => {
     const appearance = getNativeDatePickerAppearance(theme, { geometry }, flags)
     const trigger = getNativeButtonStyle(
@@ -30,8 +30,8 @@ it.each(["rounded", "round", "orthogonal"] as const)(
       ).toBe(5)
       expect(padding(appearance.group, edge) + padding(trigger.viewStyle, edge)).toBe(5)
     }
-    expect(trigger.viewStyle.minWidth).toBe(trigger.target)
-    expect(trigger.viewStyle.minHeight).toBe(trigger.target)
+    expect(trigger.viewStyle.minWidth).toBeUndefined()
+    expect(trigger.viewStyle.minHeight).toBeUndefined()
   },
 )
 
