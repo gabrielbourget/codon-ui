@@ -367,7 +367,7 @@ export const RadioG08Fixture = () => {
               style={{
                 width,
                 height: zero ? 0 : small ? 24 : undefined,
-                minHeight: zero || small ? undefined : 44,
+                padding: theme.spacing.unit,
                 flexDirection: "row",
                 alignItems: "center",
                 gap: theme.spacing.unit,

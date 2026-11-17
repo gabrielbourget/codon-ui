@@ -597,7 +597,6 @@ export const SwitcherG08Fixture = () => {
                       collapsable={false}
                       style={{
                         width: column,
-                        minWidth: column === undefined ? minimum : undefined,
                         height: rootHeight !== undefined ? "100%" : undefined,
                         minHeight: rootHeight !== undefined ? undefined : minimum,
                         flexShrink: 0,
