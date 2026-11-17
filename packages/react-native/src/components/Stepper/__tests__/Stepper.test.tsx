@@ -140,6 +140,13 @@ it("CAP.stepper.001 retains decrement/editor/increment order and default segment
   expect(input()).toHaveStyle({ minWidth: 25, maxWidth: 40, marginTop: 2.5, marginBottom: 2.5 })
 })
 
+it("centers the Stepper editor by default and preserves caller alignment", async () => {
+  const { rerender } = await render(<Stepper {...names} value={0.1} onChange={jest.fn()} />)
+  expect(input()).toHaveStyle({ textAlign: "center" })
+  await rerender(<Stepper {...names} value={0.1} onChange={jest.fn()} customInputStyles={{ textAlign: "right" }} />)
+  expect(input()).toHaveStyle({ textAlign: "right" })
+})
+
 it("CAP.stepper.002 preserves explicit zero dimensions and independent final root sizing", async () => {
   const { rerender } = await render(<Stepper {...names} width={0} height={0} />)
   expect(screen.getByTestId("stepper")).toHaveStyle({ width: 0, height: 0 })

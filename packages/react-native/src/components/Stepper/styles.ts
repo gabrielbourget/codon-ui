@@ -108,6 +108,7 @@ export const getNativeStepperStyles = (
         width: "auto",
         minWidth: 25,
         maxWidth: 40,
+        textAlign: "center",
         ...(inputColor === undefined ? {} : { borderColor: inputColor }),
         ...(foreground === undefined ? {} : { color: foreground }),
         marginTop: type === "segmented" ? 0 : 2.5,

@@ -5811,7 +5811,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/Stepper/styles.ts",
           "role": "source",
-          "contentHash": "sha256:fe0893993cab69ef65e6bc3b787e9b38bbd6a7a4b7566f3af54191d0dd330c0c"
+          "contentHash": "sha256:ceb5e5fddb56b3330460c8116b83ce9702926b12662ce13cc1b4f5911427ba83"
         }
       ],
       "registryDependencies": [],
@@ -7008,7 +7008,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/TagComboBox/styles.ts",
           "role": "source",
-          "contentHash": "sha256:7714a4b3f32a4b56b7a85a3cc0f5dd8c56ce2e8d0538657a34d39f7ad74e04e8"
+          "contentHash": "sha256:0ff9ea0ed2071e19debbc13892d111ca0b0cba5df32bf058fae58e550b4f8c39"
         }
       ],
       "registryDependencies": [],

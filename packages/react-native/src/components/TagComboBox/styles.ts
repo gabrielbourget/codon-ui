@@ -31,7 +31,7 @@ export const getNativeTagComboBoxStyles = <T extends object>(
         flexDirection: "column",
         alignItems: "flex-start",
         justifyContent: "flex-start",
-        gap: theme.spacing.unit,
+        gap: props.selectedItems.length > 0 ? theme.spacing.unit : 0,
         flexWrap: "wrap",
         borderWidth: 1,
         borderColor: props.errorState

@@ -110,3 +110,12 @@ it("preserves round TagComboBox scalar padding and authored axis precedence", ()
   ).view
   expect(view).toMatchObject({ padding: 0, paddingHorizontal: 3, paddingLeft: 2 })
 })
+
+it("uses the inter-row gap only when tags are selected and preserves authored spacing", () => {
+  const theme = resolveNativeTheme("light")
+  const view = (overrides: Partial<typeof props> = {}) =>
+    getNativeTagComboBoxStyles(theme, { ...props, ...overrides }, false).view
+  expect(view()).toMatchObject({ padding: 5, gap: 0 })
+  expect(view({ selectedItems: [zero] })).toMatchObject({ padding: 5, gap: 5 })
+  expect(view({ customStyles: { padding: 0, gap: 9 }, style: { gap: 2 } })).toMatchObject({ padding: 0, gap: 2 })
+})
