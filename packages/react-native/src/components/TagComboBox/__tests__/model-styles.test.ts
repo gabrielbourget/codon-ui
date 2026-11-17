@@ -77,3 +77,36 @@ it("preserves empty authored root/slot labels and nested precedence without chan
   expect(labels.tagGroupAriaLabel).toBe("")
   expect(labels.comboBox.triggerButtonAriaLabel).toBe("")
 })
+
+it("preserves round TagComboBox scalar padding and authored axis precedence", () => {
+  const theme = resolveNativeTheme("light")
+  const defaults = getNativeTagComboBoxStyles(theme, { ...props, geometry: "round" }, false).view
+  expect(defaults.padding).toBe(5)
+  expect(defaults.paddingHorizontal).toBeUndefined()
+  for (const padding of [0, 3, 11]) {
+    const view = getNativeTagComboBoxStyles(
+      theme,
+      {
+        ...props,
+        geometry: "round",
+        width: 0,
+        height: 0,
+        customStyles: { padding },
+      },
+      false,
+    ).view
+    expect(view).toMatchObject({ padding, width: 0, height: 0 })
+    expect(view.paddingHorizontal).toBeUndefined()
+  }
+  const view = getNativeTagComboBoxStyles(
+    theme,
+    {
+      ...props,
+      geometry: "round",
+      customStyles: { padding: 0, paddingHorizontal: 3 },
+      style: { paddingLeft: 2 },
+    },
+    false,
+  ).view
+  expect(view).toMatchObject({ padding: 0, paddingHorizontal: 3, paddingLeft: 2 })
+})

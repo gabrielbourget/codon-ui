@@ -650,3 +650,14 @@ it("NATIVE.compact.010 keeps an explicit empty default query ahead of the defaul
   expect(row("type-ahead-search-input").props.value).toBe("")
   expect(onInputChange).not.toHaveBeenCalled()
 })
+
+it("keeps round Compact field padding owned by its input and button", async () => {
+  await render(wrapper({ geometry: "round" }))
+  expect(row("type-ahead-search-group")).toHaveStyle({
+    padding: undefined,
+    paddingHorizontal: undefined,
+    paddingVertical: undefined,
+  })
+  expect(row("type-ahead-search-input")).toHaveStyle({ padding: 5, paddingHorizontal: undefined })
+  expect(row("type-ahead-search-button")).toHaveStyle({ padding: 5, paddingHorizontal: undefined })
+})

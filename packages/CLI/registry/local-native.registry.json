@@ -2767,7 +2767,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/CompactTypeaheadSearch/styles.ts",
           "role": "source",
-          "contentHash": "sha256:2f36375a97b1457e3e97bc86e71e2e196933334084ef9e047a5032ee93aa9874"
+          "contentHash": "sha256:3e49a518d99027c1dfd2e12ce56b7e199741ea2aefdd75967107140541365ff6"
         }
       ],
       "registryDependencies": [],
@@ -7008,7 +7008,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/TagComboBox/styles.ts",
           "role": "source",
-          "contentHash": "sha256:8bf463436e6cc2db0802dcae4933bb8135bd7014b4b3a835e43793c1f3aff1db"
+          "contentHash": "sha256:7714a4b3f32a4b56b7a85a3cc0f5dd8c56ce2e8d0538657a34d39f7ad74e04e8"
         }
       ],
       "registryDependencies": [],

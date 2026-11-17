@@ -28,7 +28,6 @@ export const getNativeTagComboBoxStyles = <T extends object>(
         minWidth: props.minWidth,
         maxWidth: props.maxWidth ?? 280,
         padding: theme.spacing.unit,
-        ...(geometry === "round" ? { paddingHorizontal: 7 } : {}),
         flexDirection: "column",
         alignItems: "flex-start",
         justifyContent: "flex-start",
