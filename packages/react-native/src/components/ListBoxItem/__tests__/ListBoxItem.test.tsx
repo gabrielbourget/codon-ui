@@ -42,7 +42,7 @@ it("owns one named radio root, preserves controlled state and wraps composed lab
     </ListBoxItem>,
   )
   const row = screen.getByRole("radio", { name: "Choice zero" })
-  expect(row).toHaveStyle({ minHeight: 44, minWidth: 44 })
+  expect(row).toHaveStyle({ minHeight: undefined, minWidth: undefined })
   expect(row.props.accessibilityState.checked).toBe(false)
   expect(screen.getByText("Choice 0").props.selectable).toBe(false)
   await userEvent.setup().press(row)

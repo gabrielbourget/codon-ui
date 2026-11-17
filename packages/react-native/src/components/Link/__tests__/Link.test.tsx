@@ -566,13 +566,13 @@ it("NATIVE.link.guard owns native semantics even for an untyped conflicting spre
 })
 
 it.each(["ios", "android"] as const)(
-  "NATIVE.link.target uses the platform target on %s without overriding explicit geometry",
+  "NATIVE.link.target uses content sizing on %s without overriding explicit geometry",
   async (platform) => {
     jest.replaceProperty(Platform, "OS", platform)
     const { rerender } = await render(<Link href="x">Label</Link>)
     expect(screen.getByTestId("link")).toHaveStyle({
-      minWidth: platform === "ios" ? 44 : 48,
-      minHeight: platform === "ios" ? 44 : 48,
+      minWidth: undefined,
+      minHeight: undefined,
     })
     await rerender(
       <Link href="x" style={{ width: 0, height: 0 }}>

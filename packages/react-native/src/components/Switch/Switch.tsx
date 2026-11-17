@@ -142,6 +142,7 @@ export const Switch = forwardRef<TNativeSwitchRef, TNativeSwitchProps>((props, r
       alignItems: "center",
       justifyContent: "center",
       gap: theme.spacing.unit,
+      padding: theme.spacing.unit,
       opacity: isDisabled ? theme.opacity.disabled : 1,
       cursor: !isDisabled && state.isHovered ? "pointer" : "auto",
     } as ViewStyle,

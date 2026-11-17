@@ -255,7 +255,7 @@ export const CheckboxGroupG08Fixture = () => {
         collapsable={false}
         style={{
           width: memberWidth,
-          minHeight: 44,
+          padding: theme.spacing.unit,
           flexDirection: "row",
           alignItems: "center",
           gap: theme.spacing.unit,

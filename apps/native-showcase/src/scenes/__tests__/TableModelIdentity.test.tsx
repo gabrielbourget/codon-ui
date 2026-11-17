@@ -159,6 +159,7 @@ it("retains the authored model and original editor for layout, theme and owner b
   expect(owner().requests).toEqual(['widget:"person-0"'])
 }, 15000)
 
+// Two full-table draft rebuilds retain the same bounded budget as the adjacent model-update cases.
 it("refreshes the rendered draft and keeps its ref and callback current across subsequent stable updates", async () => {
   const bodyFactory = jest.spyOn(tableModel, "createNativeTableBodyModel")
   await render(tree())
@@ -177,7 +178,7 @@ it("refreshes the rendered draft and keeps its ref and callback current across s
   expect(bodyFactory.mock.calls.length).toBeGreaterThan(builds)
   expect(screen.getByLabelText("Original Table editor")).toBe(editor)
   expect(editor).toHaveDisplayValue("")
-})
+}, 15000)
 
 // Reorder and empty-state updates rebuild the full Table; use the same bounded budget as the environment-update case.
 it("rebuilds reordered and empty data while retaining the original edited row through reorder", async () => {

@@ -19,7 +19,7 @@ it("owns multiline/newline defaults, a bounded editor and uncapped native scalin
   await render(<TextArea aria-label="Notes" numberOfLines={8} />)
   const input = screen.getByLabelText("Notes")
   expect(input.props).toMatchObject({ multiline: true, submitBehavior: "newline", numberOfLines: 8, editable: true })
-  expect(input).toHaveStyle({ height: 96, minWidth: 44, fontSize: 14, textAlignVertical: "top" })
+  expect(input).toHaveStyle({ height: 96, minWidth: undefined, fontSize: 14, textAlignVertical: "top" })
   expect(input.props.scrollEnabled).not.toBe(false)
   expect(input.props.allowFontScaling).not.toBe(false)
   expect(input.props.maxFontSizeMultiplier).toBeUndefined()
@@ -244,12 +244,12 @@ it("forwards a native ref and keyboard options, preferring native names and iden
   })
 })
 
-it("uses Android width targets and top alignment without imposing line-count sizing", async () => {
+it("keeps Android width intrinsic and top alignment without imposing line-count sizing", async () => {
   const platform = jest.replaceProperty(Platform, "OS", "android")
   try {
     await render(<TextArea aria-label="Notes" textSize="small" numberOfLines={2} />)
     expect(screen.getByLabelText("Notes")).toHaveStyle({
-      minWidth: 48,
+      minWidth: undefined,
       height: 96,
       fontSize: 12,
       textAlignVertical: "top",

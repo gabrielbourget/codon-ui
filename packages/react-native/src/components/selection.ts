@@ -132,12 +132,11 @@ export const getNativeControlRootStyle = <T extends ViewStyle, S extends object>
   style: StyleProp<T> | ((state: S & { defaultStyle: T }) => StyleProp<T>),
   state: S,
 ) => {
-  const target = nativeControlTarget()
   const custom = resolveNativeStyle(customStyles, component, "customStyles")
   const baseline = {
+    minWidth: undefined,
+    minHeight: undefined,
     ...base,
-    minWidth: (custom.width ?? base.width) === undefined ? target : undefined,
-    minHeight: (custom.height ?? base.height) === undefined ? target : undefined,
     ...custom,
   }
   const final = resolveNativeStyle(
@@ -146,15 +145,7 @@ export const getNativeControlRootStyle = <T extends ViewStyle, S extends object>
     "style",
   )
   return resolveNativeStyle(
-    [
-      {
-        ...base,
-        minWidth: (final.width ?? custom.width ?? base.width) === undefined ? target : undefined,
-        minHeight: (final.height ?? custom.height ?? base.height) === undefined ? target : undefined,
-      },
-      custom,
-      final,
-    ],
+    [{ minWidth: undefined, minHeight: undefined, ...base }, custom, final],
     component,
     "resolvedStyle",
   )

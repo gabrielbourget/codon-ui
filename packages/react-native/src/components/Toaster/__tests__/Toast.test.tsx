@@ -55,11 +55,10 @@ it.each(["light", "dark"] as const)(
   "keeps the default close glyph over the %s toast ribbon without an opaque button fill",
   async (mode) => {
     await render(node(base(), true, mode))
-    const target = RN.Platform.OS === "ios" ? 44 : 48
     expect(screen.getByRole("button", { name: "Close Toast" })).toHaveStyle({
       backgroundColor: "transparent",
-      minWidth: target,
-      minHeight: target,
+      minWidth: undefined,
+      minHeight: undefined,
     })
     expect(row("toast-ribbon")).toHaveStyle({ backgroundColor: "#2563eb" })
     expect(

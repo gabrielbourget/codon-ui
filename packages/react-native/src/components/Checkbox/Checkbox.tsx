@@ -126,6 +126,7 @@ export const Checkbox = forwardRef<TNativeCheckboxRef, TNativeCheckboxProps>((pr
       flexDirection: "row",
       alignItems: "center",
       gap: theme.spacing.unit,
+      padding: theme.spacing.unit,
       opacity: isDisabled ? theme.opacity.disabled : 1,
       color: theme.colors.foreground,
     } as TNativeCheckboxRootStyle,

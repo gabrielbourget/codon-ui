@@ -12,7 +12,13 @@ describe("Input public native contract", () => {
   it("preserves native defaults, font scaling, single-line editing and placeholder roles", async () => {
     await render(<Input placeholder="Native text" />)
     const input = screen.getByPlaceholderText("Native text")
-    expect(input).toHaveStyle({ minHeight: 44, minWidth: 44, fontSize: 14, borderRadius: 5, color: "#171717" })
+    expect(input).toHaveStyle({
+      minHeight: undefined,
+      minWidth: undefined,
+      fontSize: 14,
+      borderRadius: 5,
+      color: "#171717",
+    })
     expect(input.props).toMatchObject({
       multiline: false,
       editable: true,
@@ -219,11 +225,11 @@ describe("Input public native contract", () => {
     expect(typeof ref.current?.focus).toBe("function")
   })
 
-  it("uses Android's minimum without restricting text scaling", async () => {
+  it("keeps Android sizing intrinsic without restricting text scaling", async () => {
     const platform = jest.replaceProperty(Platform, "OS", "android")
     try {
       await render(<Input textSize="small" />)
-      expect(screen.getByTestId("input")).toHaveStyle({ minHeight: 48, fontSize: 12 })
+      expect(screen.getByTestId("input")).toHaveStyle({ minHeight: undefined, fontSize: 12 })
     } finally {
       platform.restore()
     }

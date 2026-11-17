@@ -153,7 +153,7 @@ export const CheckboxG08Fixture = () => {
     flexDirection: "row",
     alignItems: "center",
     gap: theme.spacing.unit,
-    minHeight: rootHeight === undefined ? 44 : undefined,
+    padding: theme.spacing.unit,
     width: rootWidth,
     height: rootHeight,
     opacity: disabled ? theme.opacity.disabled : 1,

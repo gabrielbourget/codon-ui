@@ -68,7 +68,6 @@ export const TextArea = forwardRef<TNativeTextAreaRef, TNativeTextAreaProps>((pr
     width,
     height,
     padding: theme.spacing.unit,
-    paddingHorizontal: geometry === "round" ? 7 : theme.spacing.unit,
     backgroundColor: theme.colors.controlBackground,
     color: theme.colors.controlForeground,
     fontFamily: theme.typography.fontFamilies.body,

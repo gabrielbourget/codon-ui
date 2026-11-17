@@ -88,6 +88,7 @@ export const Radio = forwardRef<TNativeRadioRef, TNativeRadioProps>((props, ref)
       flexDirection: "row",
       alignItems: "center",
       gap: theme.spacing.unit,
+      padding: theme.spacing.unit,
       opacity: isDisabled ? theme.opacity.disabled : 1,
     } as ViewStyle,
     customStyles,

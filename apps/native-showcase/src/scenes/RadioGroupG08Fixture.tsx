@@ -235,7 +235,7 @@ export const RadioGroupG08Fixture = () => {
       collapsable={false}
       style={{
         width: memberWidth,
-        minHeight: 44,
+        padding: theme.spacing.unit,
         flexDirection: "row",
         alignItems: "center",
         gap: theme.spacing.unit,

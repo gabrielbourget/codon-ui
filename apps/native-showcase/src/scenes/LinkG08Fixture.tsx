@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import {
   AccessibilityInfo,
   findNodeHandle,
-  Platform,
   Text as RawText,
   View,
   useWindowDimensions,
@@ -506,8 +505,6 @@ export const LinkG08Fixture = () => {
               style={{
                 width,
                 height,
-                minWidth: width === undefined ? (Platform.OS === "ios" ? 44 : 48) : undefined,
-                minHeight: height === undefined ? (Platform.OS === "ios" ? 44 : 48) : undefined,
                 padding,
                 flexDirection: "row",
                 alignItems: "center",

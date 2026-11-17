@@ -267,14 +267,14 @@ describe("NumberInput native composition", () => {
     },
   )
   it.each(["ios", "android"] as const)(
-    "keeps independent %s targets and disables opacity once per branch",
+    "keeps independent %s content sizing and disables opacity once per branch",
     async (platform) => {
       const old = Platform.OS
       Platform.OS = platform
       try {
         await render(<NumberInput {...names} isDisabled />)
-        expect(input()).toHaveStyle({ minHeight: platform === "ios" ? 44 : 48, opacity: 0.4 })
-        expect(increment()).toHaveStyle({ minHeight: platform === "ios" ? 44 : 48, opacity: 0.4 })
+        expect(input()).toHaveStyle({ minHeight: undefined, opacity: 0.4 })
+        expect(increment()).toHaveStyle({ minHeight: undefined, opacity: 0.4 })
         expect(screen.getByTestId("number-input").props.style.opacity).toBeUndefined()
         expect(input().props.keyboardType).toBe(platform === "ios" ? "numbers-and-punctuation" : "numeric")
       } finally {

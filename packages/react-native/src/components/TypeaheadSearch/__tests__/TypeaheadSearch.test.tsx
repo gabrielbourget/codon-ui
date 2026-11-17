@@ -777,15 +777,15 @@ it("keeps obsolete measured focus retired after list layout changes and restorat
   expect(jest.mocked(Commands.requestKeyboardFocus)).not.toHaveBeenCalled()
 })
 
-it.each([
-  ["ios", 44],
-  ["android", 48],
-] as const)("retains the %s native result target and uncapped text scaling", async (platform, target) => {
-  jest.replaceProperty(Platform, "OS", platform)
-  await render(<TypeaheadSearch {...query} items={ITEMS} getItemKey={key} />)
-  expect(row("Alpha")).toHaveStyle({ width: "100%", minHeight: target, padding: 5 })
-  expect(screen.getByText("Alpha").props.allowFontScaling).not.toBe(false)
-})
+it.each(["ios", "android"] as const)(
+  "retains the %s content-sized result and uncapped text scaling",
+  async (platform) => {
+    jest.replaceProperty(Platform, "OS", platform)
+    await render(<TypeaheadSearch {...query} items={ITEMS} getItemKey={key} />)
+    expect(row("Alpha")).toHaveStyle({ width: "100%", minHeight: undefined, padding: 5 })
+    expect(screen.getByText("Alpha").props.allowFontScaling).not.toBe(false)
+  },
+)
 
 it.each(["window", "viewport", "input", "button"] as const)(
   "retires pending row focus on %s takeover before another native layout arrives",
