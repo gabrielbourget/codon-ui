@@ -60,11 +60,9 @@ export const getNativeToastStyles = (theme: TNativeTheme, props: TNativeToastPro
     ),
     ribbon: [
       {
-        minHeight: 30,
         flexDirection: "row" as const,
         alignItems: "center" as const,
-        paddingLeft: theme.spacing.unit * 2,
-        paddingRight: theme.spacing.unit,
+        padding: theme.spacing.unit,
         backgroundColor: color,
       },
       toast.customTopRibbonStyles,

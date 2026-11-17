@@ -130,6 +130,7 @@ const raw = async (id: string, key: string, phase = "down", extra: Record<string
 it("uses actual portable focus commands and one roving stop while skipping disabled IDs and wrapping", async () => {
   await render(setup())
   await ready()
+  expect(row("")).toHaveStyle({ padding: 5, minHeight: undefined })
   expect(row("").props.keyboardFocusable).toBe(true)
   expect(row("b")).toBeDisabled()
   expect(Commands.requestKeyboardFocus).toHaveBeenLastCalledWith(focusView(), row("").props.ownerId)

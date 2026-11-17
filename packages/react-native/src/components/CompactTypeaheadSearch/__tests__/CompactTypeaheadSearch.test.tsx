@@ -77,6 +77,7 @@ it("closes after selection while the caller retains its controlled query", async
   }
   await render(<Owner />)
   await ready(false)
+  expect(row("type-ahead-search-option-string:alpha")).toHaveStyle({ minHeight: undefined, padding: 5 })
   await pressCompact(row("type-ahead-search-option-string:alpha"))
   await advance()
   expect(selected).toHaveBeenCalledWith("alpha")
