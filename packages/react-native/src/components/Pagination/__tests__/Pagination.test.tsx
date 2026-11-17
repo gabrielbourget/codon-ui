@@ -1026,3 +1026,81 @@ it("keeps page editor content-sized and retains caller constraints", async () =>
   )
   expect(editor()).toHaveStyle({ width: 0, minWidth: 0, padding: 0, paddingRight: 2 })
 })
+
+it("uses a square minimum for numbered pages after native height measurement", async () => {
+  const f = fixture()
+  await render(f.node())
+  const page = screen.getByTestId("pagination-page-3", hidden)
+  await fireEvent(page, "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 21, height: 31 } } })
+  expect(page).toHaveStyle({ minWidth: 31, width: undefined, height: undefined, padding: 5 })
+})
+it("lets wider page labels expand beyond their square minimum", async () => {
+  const f = fixture({ currentPage: 1000, numberOfItems: 20000 })
+  await render(f.node())
+  const page = screen.getByTestId("pagination-page-1000", hidden)
+  await fireEvent(page, "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 54, height: 31 } } })
+  expect(page).toHaveTextContent("1000")
+  expect(page).toHaveStyle({ minWidth: 31, width: undefined, maxWidth: undefined, height: undefined })
+})
+it("releases square measurement in content-only page mode", async () => {
+  const f = fixture({ pageButtonSizing: "content" })
+  const { rerender } = await render(f.node())
+  const page = () => screen.getByTestId("pagination-page-3", hidden)
+  const layout = { nativeEvent: { layout: { x: 0, y: 0, width: 21, height: 35 } } }
+  await fireEvent(page(), "layout", layout)
+  expect(page()).toHaveStyle({ minWidth: undefined })
+  expect(screen.getByTestId("pagination").props.pageButtonSizing).toBeUndefined()
+  await rerender(f.node({ pageButtonSizing: "square" }))
+  await fireEvent(page(), "layout", layout)
+  expect(page()).toHaveStyle({ minWidth: 35 })
+  await rerender(f.node({ pageButtonSizing: "content" }))
+  expect(page()).toHaveStyle({ minWidth: undefined })
+})
+it("preserves explicit numbered-page widths and minimum overrides", async () => {
+  const f = fixture({ customGeneralButtonProps: { width: 0 } })
+  const { rerender } = await render(f.node())
+  const page = () => screen.getByTestId("pagination-page-3", hidden)
+  const layout = { nativeEvent: { layout: { x: 0, y: 0, width: 21, height: 31 } } }
+  await fireEvent(page(), "layout", layout)
+  expect(page()).toHaveStyle({ width: 0, minWidth: undefined })
+  await rerender(f.node({ customGeneralButtonProps: { customStyles: { width: 0, minWidth: 0 } } }))
+  await fireEvent(page(), "layout", layout)
+  expect(page()).toHaveStyle({ width: 0, minWidth: 0 })
+  await rerender(f.node({ customGeneralButtonProps: { style: ({ defaultStyle }) => ({ ...defaultStyle, width: 0 }) } }))
+  await fireEvent(page(), "layout", layout)
+  expect(page()).toHaveStyle({ width: 0, minWidth: undefined })
+  await rerender(f.node({ customPageNumberButtonStyles: { minWidth: 9 } }))
+  await fireEvent(page(), "layout", layout)
+  expect(page()).toHaveStyle({ minWidth: 9 })
+})
+it("retires stale square-layout callbacks and preserves original layout events", async () => {
+  const original = jest.fn(),
+    replacement = jest.fn()
+  const f = fixture({ customGeneralButtonProps: { onLayout: original } })
+  const { rerender } = await render(f.node())
+  const page = screen.getByTestId("pagination-page-3", hidden)
+  const retired = page.props.onLayout
+  const event = { nativeEvent: { layout: { x: 0, y: 0, width: 21, height: 31 } } }
+  await fireEvent(page, "layout", event)
+  expect(original).toHaveBeenCalledWith(event)
+  const calls = original.mock.calls.length
+  await rerender(f.node({ pageButtonSizing: "content", customGeneralButtonProps: { onLayout: replacement } }))
+  await act(() => retired(event))
+  expect(original).toHaveBeenCalledTimes(calls)
+  expect(screen.getByTestId("pagination-page-3", hidden)).toHaveStyle({ minWidth: undefined })
+  await fireEvent(screen.getByTestId("pagination-page-3", hidden), "layout", event)
+  expect(replacement).toHaveBeenCalledWith(event)
+})
+it("leaves navigation and submission actions content-sized", async () => {
+  const f = fixture({ chosenPaginationSubcomponents: ["primary-controls", "page-input"] })
+  await render(f.node())
+  for (const id of ["pagination-next", "pagination-submit"]) {
+    const action = screen.getByTestId(id, hidden)
+    await fireEvent(action, "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 60, height: 31 } } })
+    expect(action).toHaveStyle({ minWidth: undefined, height: undefined })
+  }
+})
+it("rejects unknown page-button sizing modes", async () => {
+  const f = fixture({ pageButtonSizing: "equal" as never })
+  await expect(render(f.node())).rejects.toThrow(/pageButtonSizing/)
+})

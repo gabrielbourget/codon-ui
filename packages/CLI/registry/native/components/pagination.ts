@@ -6,6 +6,7 @@ export type {
   TNativePaginationProps as PaginationProps,
   TNativePaginationRef,
   TNativePaginationPageSizeOption,
+  TNativePaginationPageButtonSizing,
   TNativePaginationButtonProps,
   TNativePaginationFieldProps,
 } from "../../../../react-native/src/components/Pagination/types"

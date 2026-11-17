@@ -832,6 +832,7 @@ export type {
   TNativePaginationProps as PaginationProps,
   TNativePaginationRef,
   TNativePaginationPageSizeOption,
+  TNativePaginationPageButtonSizing,
   TNativePaginationButtonProps,
   TNativePaginationFieldProps,
 } from "./components/Pagination/types"
