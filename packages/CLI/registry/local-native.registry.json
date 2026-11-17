@@ -4462,7 +4462,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/Pagination/Action.tsx",
           "role": "source",
-          "contentHash": "sha256:d461b238da9fac9192a133ee3e2f2009d6a4d0ca5c6da3fac9c4ff0f737bc211"
+          "contentHash": "sha256:1e3c087d615f698bc3e74cf95ea95c86c325bc2ee65c92eaf8f3f46e2d90f458"
         }
       ],
       "registryDependencies": [],
@@ -4575,7 +4575,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/Pagination/Primary.tsx",
           "role": "source",
-          "contentHash": "sha256:4e000b3b0fe05ed9228771508c22a41695bbb34fb7f7cc83fe1645682bd36140"
+          "contentHash": "sha256:bee6282d527a92311cf09ac6b3fa7f0373bb2a2ee795d20ec5706737afcc66fb"
         }
       ],
       "registryDependencies": [],
@@ -4614,7 +4614,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/Pagination/types.ts",
           "role": "source",
-          "contentHash": "sha256:057dafd063bdf63fce480b2a6149f7838cffdf53f72e1f76668df4b5f46d70c6"
+          "contentHash": "sha256:2f69abebfdde03d8a87ef29cea2a16f2d7cc2d71c72f0a66fdc622fb6b8697f6"
         }
       ],
       "registryDependencies": [],

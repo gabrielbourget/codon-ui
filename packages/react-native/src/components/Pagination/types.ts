@@ -36,7 +36,7 @@ export type TNativePaginationProps = Omit<ViewProps, "children" | "style" | "rol
     order?: TThemingOrderCode
     geometry?: TCornerGeometry
     buttonColorMode?: TNativeButtonColorMode
-    /** Numbered strip buttons default to a height-based square minimum; explicit width constraints win. */
+    /** Numbered and overflow strip buttons default to a height-based square minimum; explicit dimensions win. */
     pageButtonSizing?: TNativePaginationPageButtonSizing
     rtl?: boolean
     isDisabled?: boolean

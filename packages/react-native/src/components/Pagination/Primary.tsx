@@ -1,4 +1,4 @@
-import type { ReactNode } from "react"
+import { useState, type ReactNode } from "react"
 import { View, useWindowDimensions } from "react-native"
 
 import { NativeDialogTrigger } from "../../overlays/floating/NativeDialogTrigger"
@@ -22,6 +22,8 @@ type TProps = {
 }
 export const NativePaginationPrimary = ({ props, count, items, labels, styles, requestPage }: TProps) => {
   const { width } = useWindowDimensions()
+  const [pageHeight, setPageHeight] = useState<number>()
+  const referencePage = items.find((item) => typeof item === "number")
   const names = labels.primaryControls
   const backward = props.rtl ? "right" : "left",
     forward = props.rtl ? "left" : "right"
@@ -145,7 +147,7 @@ export const NativePaginationPrimary = ({ props, count, items, labels, styles, r
                 label={names.pageButtonAriaLabel(item)}
                 selected={item === props.currentPage}
                 currentPageValue={item === props.currentPage ? names.currentPageValue : undefined}
-                colorMode={item === props.currentPage ? "fill" : "outline"}
+                onPageHeight={item === referencePage ? setPageHeight : undefined}
                 customStyles={props.customPageNumberButtonStyles}
                 onRequest={() => requestPage(item)}
               >
@@ -161,7 +163,8 @@ export const NativePaginationPrimary = ({ props, count, items, labels, styles, r
                 textStyle={styles.root.text}
                 testID="pagination-overflow-trigger"
                 label={names.pageButtonAriaLabel(item[0])}
-                colorMode="outline"
+                overflow
+                pageHeight={pageHeight}
                 customStyles={props.customClickPopoverTriggerButtonStyles}
                 onRequest={() => requestPage(item[0])}
               >
@@ -173,6 +176,7 @@ export const NativePaginationPrimary = ({ props, count, items, labels, styles, r
               key={`overflow-${item.join("-")}`}
               {...{ props, styles, requestPage }}
               pages={item}
+              pageHeight={pageHeight}
               label={names.overflowListAriaLabel(index + 1)}
               triggerLabel={names.overflowButtonAriaLabel}
               pageLabel={names.pageButtonAriaLabel}
@@ -191,6 +195,7 @@ const NativePaginationOverflow = ({
   props,
   styles,
   pages,
+  pageHeight,
   label,
   triggerLabel,
   pageLabel,
@@ -198,6 +203,7 @@ const NativePaginationOverflow = ({
   requestPage,
 }: Pick<TProps, "props" | "styles" | "requestPage"> & {
   pages: readonly number[]
+  pageHeight?: number
   label: string
   triggerLabel: string
   pageLabel: (page: number) => string
@@ -227,7 +233,8 @@ const NativePaginationOverflow = ({
           textStyle={styles.root.text}
           testID="pagination-overflow-trigger"
           label={triggerLabel}
-          colorMode="outline"
+          overflow
+          pageHeight={pageHeight}
           customStyles={props.customClickPopoverTriggerButtonStyles}
           onRequest={state.triggerProps.onPress}
         >
