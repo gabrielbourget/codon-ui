@@ -1034,6 +1034,62 @@ it("uses a square minimum for numbered pages after native height measurement", a
   await fireEvent(page, "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 21, height: 31 } } })
   expect(page).toHaveStyle({ minWidth: 31, width: undefined, height: undefined, padding: 5 })
 })
+it("matches singleton and popup overflow buttons to the measured numbered strip", async () => {
+  const f = fixture()
+  const { rerender } = await render(f.node({ currentPage: 10, maxVisiblePages: 4 }))
+  const measurePage = async (height: number) => {
+    await fireEvent(screen.getByTestId("pagination-page-1", hidden), "layout", {
+      nativeEvent: { layout: { x: 0, y: 0, width: height, height } },
+    })
+  }
+  await measurePage(31)
+  const overflow = () => screen.getAllByTestId("pagination-overflow-trigger", hidden)
+  expect(overflow()).toHaveLength(2)
+  for (const button of overflow())
+    expect(button).toHaveStyle({ minWidth: 31, minHeight: 31, borderColor: "transparent" })
+  await rerender(f.node({ currentPage: 2, numberOfItems: 40, maxVisiblePages: 3 }))
+  await measurePage(36)
+  expect(overflow()).toHaveLength(1)
+  expect(overflow()[0]).toHaveStyle({ minWidth: 36, minHeight: 36 })
+  await press("Go To Page 3")
+  expect(f.page).toHaveBeenCalledWith(3)
+})
+
+it("respects content-only overflow sizing and authored dimensions", async () => {
+  const f = fixture()
+  const options = { currentPage: 2, numberOfItems: 40, maxVisiblePages: 3 } as const
+  const { rerender } = await render(f.node(options))
+  const overflow = () => screen.getByTestId("pagination-overflow-trigger", hidden)
+  const measure = () =>
+    fireEvent(screen.getByTestId("pagination-page-1", hidden), "layout", {
+      nativeEvent: { layout: { x: 0, y: 0, width: 31, height: 31 } },
+    })
+  await measure()
+  expect(overflow()).toHaveStyle({ minWidth: 31, minHeight: 31 })
+  await rerender(f.node({ ...options, pageButtonSizing: "content" }))
+  expect(overflow()).toHaveStyle({ minWidth: undefined, minHeight: undefined })
+  await rerender(f.node(options))
+  expect(overflow()).toHaveStyle({ minWidth: 31, minHeight: 31 })
+  await rerender(f.node({ ...options, customClickPopoverTriggerButtonStyles: { width: 0, maxHeight: 24 } }))
+  await measure()
+  expect(overflow()).toHaveStyle({ width: 0, maxHeight: 24, minWidth: undefined, minHeight: undefined })
+})
+
+it("moves the distinguishing border with the controlled page while preserving authored styles", async () => {
+  const f = fixture()
+  const options = { currentPage: 2, numberOfItems: 30, maxVisiblePages: 3 } as const
+  const { rerender } = await render(f.node(options))
+  const page = (number: number) => screen.getByTestId(`pagination-page-${number}`, hidden)
+  const borderColor = resolveNativeTheme("light").colors.controlBorder
+  expect(page(2)).toHaveStyle({ borderWidth: 2, borderColor })
+  expect(page(1)).toHaveStyle({ borderWidth: 2, borderColor: "transparent" })
+  await rerender(f.node({ ...options, currentPage: 1 }))
+  expect(page(1)).toHaveStyle({ borderWidth: 2, borderColor })
+  expect(page(2)).toHaveStyle({ borderWidth: 2, borderColor: "transparent" })
+  await rerender(f.node({ ...options, customPageNumberButtonStyles: { borderWidth: 0, borderColor: "red" } }))
+  expect(page(2)).toHaveStyle({ borderWidth: 0, borderColor: "red" })
+})
+
 it("lets wider page labels expand beyond their square minimum", async () => {
   const f = fixture({ currentPage: 1000, numberOfItems: 20000 })
   await render(f.node())
@@ -1051,7 +1107,6 @@ it("releases square measurement in content-only page mode", async () => {
   expect(page()).toHaveStyle({ minWidth: undefined })
   expect(screen.getByTestId("pagination").props.pageButtonSizing).toBeUndefined()
   await rerender(f.node({ pageButtonSizing: "square" }))
-  await fireEvent(page(), "layout", layout)
   expect(page()).toHaveStyle({ minWidth: 35 })
   await rerender(f.node({ pageButtonSizing: "content" }))
   expect(page()).toHaveStyle({ minWidth: undefined })

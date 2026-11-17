@@ -5,7 +5,7 @@ import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import type { TNativePressEvent } from "../../input/types"
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../overlays/floating/scope"
 import { Button } from "../Button/Button"
-import type { TNativeButtonProps, TNativeButtonRootStyle } from "../Button/types"
+import type { TNativeButtonRootStyle } from "../Button/types"
 import { resolveNativeStyle } from "../colors"
 
 import type { TNativePaginationProps } from "./types"
@@ -19,7 +19,9 @@ type TProps = {
   currentPageValue?: string
   expanded?: boolean
   nativeID?: string
-  colorMode?: TNativeButtonProps["colorMode"]
+  overflow?: boolean
+  pageHeight?: number
+  onPageHeight?: (height: number) => void
   customStyles?: StyleProp<TextStyle>
   textStyle?: TextStyle
   testID: string
@@ -36,7 +38,9 @@ export const NativePaginationAction = forwardRef<View, TProps>(
       currentPageValue,
       expanded,
       nativeID,
-      colorMode,
+      overflow = false,
+      pageHeight,
+      onPageHeight,
       customStyles,
       textStyle,
       testID,
@@ -45,9 +49,15 @@ export const NativePaginationAction = forwardRef<View, TProps>(
     ref,
   ) => {
     const general = props.customGeneralButtonProps ?? {}
-    const square = selected !== undefined && props.pageButtonSizing !== "content"
+    const pageStripAction = selected !== undefined || overflow
+    const square = pageStripAction && props.pageButtonSizing !== "content"
+    // Reserve the same border space in all default strip buttons so selection does not move the row.
+    const stripStyle =
+      pageStripAction && general.colorMode === undefined && !general.transparent
+        ? { borderWidth: 2, ...(selected ? {} : { borderColor: "transparent" }) }
+        : undefined
     const [measuredHeight, setMeasuredHeight] = useState<number>()
-    const owner = useMemo(() => ({}), [props, selected, customStyles, textStyle])
+    const owner = useMemo(() => ({}), [props, selected, overflow, onPageHeight, customStyles, textStyle])
     const currentOwner = useRef<object | null>(null)
     useLayoutEffect(() => {
       currentOwner.current = owner
@@ -80,7 +90,7 @@ export const NativePaginationAction = forwardRef<View, TProps>(
         color={props.color}
         order={props.order}
         geometry={props.geometry ?? "rounded"}
-        colorMode={colorMode ?? props.buttonColorMode ?? "fill"}
+        colorMode={pageStripAction ? "fill" : (props.buttonColorMode ?? "fill")}
         raised
         {...general}
         {...currentValue}
@@ -95,7 +105,7 @@ export const NativePaginationAction = forwardRef<View, TProps>(
         }}
         aria-selected={selected ?? general["aria-selected"]}
         aria-expanded={expanded ?? general["aria-expanded"]}
-        customStyles={[textStyle, general.customStyles, customStyles]}
+        customStyles={[textStyle, stripStyle, general.customStyles, customStyles]}
         style={
           square
             ? (state) => {
@@ -104,25 +114,32 @@ export const NativePaginationAction = forwardRef<View, TProps>(
                   "Pagination",
                   "customGeneralButtonProps.style",
                 )
-                const authoredWidth = ["width", "minWidth", "maxWidth"].some(
-                  (key) =>
-                    final[key as keyof TNativeButtonRootStyle] !== undefined ||
-                    state.defaultStyle[key as keyof TNativeButtonRootStyle] !== undefined,
-                )
+                const hasAuthoredDimension = (keys: readonly (keyof TNativeButtonRootStyle)[]) =>
+                  keys.some((key) => final[key] !== undefined || state.defaultStyle[key] !== undefined)
+                const squareMinimum = overflow ? pageHeight : measuredHeight
                 return {
                   ...final,
-                  ...(!authoredWidth && measuredHeight !== undefined ? { minWidth: measuredHeight } : {}),
+                  ...(squareMinimum !== undefined && !hasAuthoredDimension(["width", "minWidth", "maxWidth"])
+                    ? { minWidth: squareMinimum }
+                    : {}),
+                  ...(overflow &&
+                  pageHeight !== undefined &&
+                  !hasAuthoredDimension(["height", "minHeight", "maxHeight"])
+                    ? { minHeight: pageHeight }
+                    : {}),
                 }
               }
             : general.style
         }
         onLayout={
-          square
+          pageStripAction
             ? (event) => {
                 if (currentOwner.current !== owner) return
                 const height = event.nativeEvent.layout.height
-                if (Number.isFinite(height) && height >= 0)
+                if (!overflow && Number.isFinite(height) && height >= 0) {
                   setMeasuredHeight((previous) => (previous === height ? previous : height))
+                  onPageHeight?.(height)
+                }
                 general.onLayout?.(event)
               }
             : general.onLayout
