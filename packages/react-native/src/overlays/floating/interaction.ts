@@ -20,11 +20,25 @@ export const createNativeFloatingInteractions = (
 ) => {
   let live = true
   const inside = new WeakMap<object, Set<string>>()
+  const tapObservers = new Map<string, (inside: boolean) => void>()
+  const taps = new Map<
+    GestureResponderEvent["nativeEvent"]["identifier"],
+    {
+      event: GestureResponderEvent
+      observers: ReadonlyMap<string, (inside: boolean) => void>
+    }
+  >()
   const gestures = new Map<
     GestureResponderEvent["nativeEvent"]["identifier"],
     { target: TCapture; outside: boolean | null; cancelled: boolean; completed: boolean }
   >()
   return {
+    observeTap: (id: string, observer: (inside: boolean) => void) => {
+      tapObservers.set(id, observer)
+      return () => {
+        if (tapObservers.get(id) === observer) tapObservers.delete(id)
+      }
+    },
     mark: (id: string, event: GestureResponderEvent | TNativeFloatingFocusEvent) => {
       const owners = inside.get(event.nativeEvent) ?? new Set<string>()
       owners.add(id)
@@ -48,6 +62,13 @@ export const createNativeFloatingInteractions = (
     },
     start: (event: GestureResponderEvent) => {
       if (!live) return
+      if (tapObservers.size) {
+        if ((event.nativeEvent.touches?.length ?? 0) > 1) taps.clear()
+        else {
+          event.persist()
+          taps.set(event.nativeEvent.identifier, { event, observers: new Map(tapObservers) })
+        }
+      }
       const target = capture()
       if (!target) return
       event.persist()
@@ -64,6 +85,23 @@ export const createNativeFloatingInteractions = (
     end: (event: GestureResponderEvent) => {
       if (!live) return
       const identifier = event.nativeEvent.identifier
+      const tap = taps.get(identifier)
+      taps.delete(identifier)
+      if (tap) {
+        event.persist()
+        defer(() => {
+          if (!live || tap.event.isPropagationStopped() || event.isPropagationStopped()) return
+          const start = tap.event.nativeEvent
+          const end = event.nativeEvent
+          if (!(Math.hypot(end.pageX - start.pageX, end.pageY - start.pageY) < 15)) return
+          for (const [id, observer] of tap.observers) {
+            if (tapObservers.get(id) !== observer) continue
+            const beganInside = inside.get(start)?.has(id) ?? false
+            const endedInside = inside.get(end)?.has(id) ?? false
+            if (beganInside === endedInside) observer(endedInside)
+          }
+        })
+      }
       const gesture = gestures.get(identifier)
       if (!gesture || gesture.completed) return
       gesture.completed = true
@@ -77,6 +115,7 @@ export const createNativeFloatingInteractions = (
     },
     cancel: (event: GestureResponderEvent) => {
       const identifier = event.nativeEvent.identifier
+      taps.delete(identifier)
       const gesture = gestures.get(identifier)
       if (gesture) gesture.cancelled = true
       gestures.delete(identifier)
@@ -84,6 +123,8 @@ export const createNativeFloatingInteractions = (
     dispose: () => {
       live = false
       gestures.clear()
+      taps.clear()
+      tapObservers.clear()
     },
   }
 }

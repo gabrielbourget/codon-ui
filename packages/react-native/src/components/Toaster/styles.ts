@@ -38,14 +38,13 @@ export const getNativeToastStyles = (theme: TNativeTheme, props: TNativeToastPro
           height: !expanded && index > 0 ? firstHeight : height,
           flexDirection: "column",
           gap: theme.spacing.unit,
-          overflow: "hidden",
           backgroundColor: theme.colors.background,
           borderRadius: geometry === "rounded" ? theme.radius.rounded : 0,
           shadowColor: "#000000",
           shadowOffset: { width: 0, height: 2 },
-          shadowRadius: 3,
-          shadowOpacity: raised ? 0.24 : 0,
-          elevation: raised ? 2 : 0,
+          shadowRadius: 6,
+          shadowOpacity: raised ? 0.26 : 0,
+          elevation: raised ? 4 : 0,
           zIndex: numToasts - index,
           opacity: removed || index >= props.maxVisibleToasts ? 0 : 1,
           transform: [
@@ -72,7 +71,7 @@ export const getNativeToastStyles = (theme: TNativeTheme, props: TNativeToastPro
       toast.customTopRibbonLeftContentStyles,
     ],
     content: [
-      { gap: theme.spacing.unit * 2, padding: theme.spacing.unit * 2, borderRadius: 0.5 },
+      { gap: theme.spacing.unit * 2, padding: theme.spacing.unit, borderRadius: 0.5 },
       toast.customContentStyles,
     ],
     bottom: [

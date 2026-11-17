@@ -161,6 +161,42 @@ it("CAP.toaster.001 held pointer expansion, cancelable collapse and bridge re-en
   await advance(120)
   expect(scale()).toBe(0.95)
 })
+it("expands on a completed stack tap and collapses on a tap elsewhere without capturing it", async () => {
+  await render(node())
+  await publish({ id: 0 }, { id: 1 })
+  const scale = () => RN.StyleSheet.flatten(row("toast-number-0").props.style).transform[1].scale
+  const touch = (x: number) => ({
+    nativeEvent: { identifier: "1", pageX: x, pageY: 8, touches: [] },
+    persist: jest.fn(),
+    isPropagationStopped: () => false,
+  })
+  const send = async (inside: boolean, x: number, cancelled = false) => {
+    await act(async () => {
+      const start = touch(5)
+      row("host").props.onTouchStartCapture(start)
+      if (inside) root().props.onTouchStartCapture(start)
+      const end = touch(x)
+      if (cancelled) {
+        row("host").props.onTouchCancelCapture(end)
+        return
+      }
+      row("host").props.onTouchEndCapture(end)
+      if (inside) root().props.onTouchEndCapture(end)
+      await Promise.resolve()
+    })
+  }
+  await fireEvent(stack(), "pointerEnter", { nativeEvent: { pointerType: "touch" } })
+  expect(scale()).toBe(0.95)
+  await send(true, 55)
+  await send(true, 6, true)
+  expect(scale()).toBe(0.95)
+  await send(true, 6)
+  await fireEvent(stack(), "pointerLeave", { nativeEvent: { pointerType: "touch" } })
+  await advance(120)
+  expect(scale()).toBe(1)
+  await send(false, 6)
+  expect(scale()).toBe(0.95)
+})
 it("CAP.toaster.007/.008 renders expanded-by-default independently and hides overflow from hit testing/accessibility", async () => {
   await render(node({ expandByDefault: true, maxVisibleToasts: 1 }))
   await publish({ id: 0 }, { id: "" })

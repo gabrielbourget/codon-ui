@@ -3,13 +3,14 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useId,
   useInsertionEffect,
   useLayoutEffect,
   useRef,
   useReducer,
   useState,
 } from "react"
-import { findNodeHandle, View, type ViewProps, type ViewStyle } from "react-native"
+import { findNodeHandle, View, type PointerEvent, type ViewProps, type ViewStyle } from "react-native"
 import { SafeAreaInsetsContext } from "react-native-safe-area-context"
 
 import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
@@ -147,6 +148,9 @@ export const Toaster = forwardRef<TNativeFocusViewRef, TNativeToasterProps>((pro
   const [interacting, setInteracting] = useState(false)
   const live = useRef(true)
   const collapse = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const touchOwner = useId()
+  const stacks = getNativeToastStacks(toasts, heights, position, toastGap, maxVisibleToasts)
+  const canExpand = !expandByDefault && stacks.some((stack) => Math.min(stack.toasts.length, maxVisibleToasts) > 1)
   const stackRefs = useRef(new Map<string, TNativeFocusViewRef>())
   const current = useRef({ expanded, expandToggleHotkey, scope, windowActive, inputScope })
   useInsertionEffect(() => {
@@ -166,11 +170,23 @@ export const Toaster = forwardRef<TNativeFocusViewRef, TNativeToasterProps>((pro
       }),
     [],
   )
-  const canAct = () =>
-    live.current &&
-    host.live.current &&
-    current.current.scope?.canAct() !== false &&
-    current.current.windowActive?.() !== false
+  const canAct = useCallback(
+    () =>
+      live.current &&
+      host.live.current &&
+      current.current.scope?.canAct() !== false &&
+      current.current.windowActive?.() !== false,
+    [host.live],
+  )
+  useLayoutEffect(() => {
+    if (!canExpand && !expanded) return
+    return host.interactions.observeTap(touchOwner, (inside) => {
+      if (!canAct() || current.current.inputScope?.isWindowActive() === false) return
+      if (collapse.current !== null) clearTimeout(collapse.current)
+      collapse.current = null
+      setExpanded(inside && canExpand)
+    })
+  }, [canAct, canExpand, expanded, host.interactions, touchOwner, setExpanded])
   const receiveRootKey = (event: TNativeKeyboardEvent, phase: "capture" | "bubble") => {
     if (
       !canAct() ||
@@ -295,14 +311,27 @@ export const Toaster = forwardRef<TNativeFocusViewRef, TNativeToasterProps>((pro
       collapse.current = null
     }, 120)
   }
-  const stacks = getNativeToastStacks(toasts, heights, position, toastGap, maxVisibleToasts)
+  const requestHoverExpand = (event: PointerEvent) => {
+    if (event.nativeEvent?.pointerType !== "touch") requestExpand()
+  }
+  const requestHoverCollapse = (event: PointerEvent) => {
+    if (event.nativeEvent?.pointerType !== "touch") requestCollapse()
+  }
   if (!toasts.length) return null
   const namedRegion = (native.role ?? native.accessibilityRole) === undefined || native.role === "region"
   const hotkeyLabel = expandToggleHotkey.join("+").replace(/Key/g, "").replace(/Digit/g, "")
-  const captureHandlers: { onTouchStartCapture?: ViewProps["onTouchStart"] } = {
+  const captureHandlers: {
+    onTouchStartCapture?: ViewProps["onTouchStart"]
+    onTouchEndCapture?: ViewProps["onTouchEnd"]
+  } = {
     onTouchStartCapture: (event) => {
       focus.capture()
+      host.interactions.mark(touchOwner, event)
       native.onTouchStartCapture?.(event)
+    },
+    onTouchEndCapture: (event) => {
+      host.interactions.mark(touchOwner, event)
+      native.onTouchEndCapture?.(event)
     },
   }
   return (
@@ -388,9 +417,9 @@ export const Toaster = forwardRef<TNativeFocusViewRef, TNativeToasterProps>((pro
                     accessible={false}
                     focusable
                     pointerEvents="box-none"
-                    onPointerEnter={requestExpand}
-                    onPointerMove={requestExpand}
-                    onPointerLeave={requestCollapse}
+                    onPointerEnter={requestHoverExpand}
+                    onPointerMove={requestHoverExpand}
+                    onPointerLeave={requestHoverCollapse}
                     onPointerDown={() => {
                       if (canAct()) setInteracting(true)
                     }}
@@ -438,8 +467,8 @@ export const Toaster = forwardRef<TNativeFocusViewRef, TNativeToasterProps>((pro
                         key={bridge.key}
                         testID={`toaster-bridge-${bridge.key}`}
                         accessible={false}
-                        onPointerEnter={requestExpand}
-                        onPointerMove={requestExpand}
+                        onPointerEnter={requestHoverExpand}
+                        onPointerMove={requestHoverExpand}
                         style={[
                           {
                             position: "absolute",
