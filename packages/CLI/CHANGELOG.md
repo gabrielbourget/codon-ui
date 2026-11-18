@@ -1,6 +1,20 @@
 # @codon-ui/cli Changelog
 
-## 0.3.0 - Unreleased
+## 0.3.1 - Unreleased
+
+### Fixed
+
+- Package the native Carousel fixes for repeated settled-index callbacks and page sizing in unbounded layouts.
+- Package the Compact Typeahead fixes for dismissal after selection, clearing the current query and tapping outside. Controlled query state stays with the app.
+- Preserve numeric and string TagComboBox keys through selection and removal, including `0` and `"0"`.
+- Include the current native registry, including anchored Select, content-based sizing and the standard backdrop setup. Rebuild the Expo development client when a selected native input changes.
+
+### Consumer notes
+
+- Pin the CLI in the app and use `cui update --dry-run` for installed components before applying updates. The CLI protects local edits and reports ownership changes that need migration.
+- Source updates and prior installed witnesses retain their own artifact identities. The new npm release needs a clean consumer check for the four affected platform cases. Calendar selection and viewport checks remain tracked separately in the [consumer evidence ledger](https://github.com/gabrielbourget/codon-ui-consumer-fixtures/pull/35).
+
+## 0.3.0 - 2026-11-16
 
 ### Added
 
@@ -17,7 +31,7 @@
 
 ### Consumer Notes
 
-- This is a prepared release candidate, not a published version. Use the locally verified CLI tarball until publication is explicitly approved and the registry version is confirmed.
+- This version published as a restricted npm package using the [trusted publish workflow](https://github.com/gabrielbourget/codon-ui/actions/runs/43969219582).
 - In an existing compatible Expo development-client app, run `cui init --target react-native`, then `cui add button input click-popover --dependency-policy install --install-dependencies`. Existing web configurations are not silently converted.
 - Import the copied Intl bootstrap before App and compose the documented native providers. Rebuild the development client after native source, codegen or composition changes; Expo Go cannot supply the custom backend. See the [native consumer guide](../../apps/docs/src/content/docs/packages/react-native-consumer.md).
 - Existing native helper-ownership drift needs a reviewed source migration or guarded reinstallation. Automatic dependency-closure migration, arbitrary existing-project/provider discovery, durable production filesystem transactions and bare-RN qualification are not included.
@@ -26,10 +40,7 @@
 
 - The merged bridge at `d3ea0e91` passed exact-head full hosted CI, existing web/native CLI tests, normal hooks and relocated package checks. Actual locally packed CLI installation, all-52 source add/repeat, update/edit protection and dependency identity checks passed.
 - An isolated external Expo consumer passed types, Android/iOS Metro exports, standard autolinking and core-only/full-Table compile/link on both platforms using the existing pinned toolchains. These are source/build results, not all-52 installed component qualification.
-- This local refresh combines release preparation `cb56b130` with reviewed producer `3506b2dd` (draft #274); it is not a merged or published artifact. Original release and native build receipts retain their actual older source identities.
-- Gabriel explicitly deferred the remaining calendar tap investigation on 2026-11-16 so other bridge/release work can proceed. Installed iOS/Android calendar selection and iOS viewport/scroll results remain deferred/unverified; historical failures are preserved and no pass is inferred. The latest Android guest never became available for installing the external consumer.
-- The separate installed-fixture surface contains 52 component records and seven shared-native scenarios. Its 554 pending gate/outcome statuses require actual scoped evidence; complete preparation records, semantic compilation and Metro exports do not advance them. Actual published-package consumer validation remains blocked until authorized publication and private registry access.
-- Release-candidate checks and the separate approval/dispatch boundary are documented in the [private publish preflight](../../apps/docs/src/content/docs/cli/private-publish.md). Registry visibility and version availability must be confirmed through an authorized read before publication; the preparation lookup returned 404.
+- A clean published consumer verified the package installation and native setup. Scoped installed results and retained failures are tracked in the [consumer evidence repository](https://github.com/gabrielbourget/codon-ui-consumer-fixtures/pull/35). Calendar selection and viewport verification remain separately tracked.
 
 ## 0.2.1 - 2026-08-06
 

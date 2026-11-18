@@ -3,15 +3,16 @@ title: Native consumer bootstrap
 description: App-owned entrypoint, providers, peers and native rebuild boundaries.
 ---
 
-The native CLI target copies editable Codon implementations into the application, following the existing web CLI ownership model. It installs shared dependencies once and adds component-owned native source where selected. The native target is tested from source builds; no new CLI release is published. Install a locally verified CLI tarball as an application development dependency until publication is separately approved. The external Expo consumer has exercised the locally packed CLI, source installation and update, type checking, both-platform JS export and native autolinking. Installed consumer interaction and complete native lifecycle verification remain separate proof. Bare RN is unverified.
+The native CLI target copies editable Codon implementations into the application. It installs shared dependencies once and adds component-owned native source where selected. The React Native target is available in the restricted `@codon-ui/cli` package, starting with `0.3.0`. Use an exact approved CLI version in the app and refer to the [consumer evidence ledger](https://github.com/gabrielbourget/codon-ui-consumer-fixtures/pull/35) for the separately verified package, build and installed scopes.
 
 ## Select the native CLI target
 
-Use the bridge CLI build in an existing Expo SDK 57 development-client app:
+In an existing Expo SDK 57 development-client app with authenticated access to the private package, pin the CLI version the app adopts. The published baseline is `0.3.0`.
 
 ```sh
-cui init --target react-native
-cui add button input click-popover --dependency-policy install --install-dependencies
+pnpm add --save-dev --save-exact @codon-ui/cli@0.3.0
+pnpm exec cui init --target react-native
+pnpm exec cui add button input click-popover --dependency-policy install --install-dependencies
 ```
 
 The default target remains `react`. Native selection is recorded in `codon-ui.config.json`; subsequent add/status/diff/update/remove commands use that registry. Existing non-native config is never silently converted. Dependency installation retains the existing explicit policy and consent flags. Incompatible existing host pins are reported rather than upgraded.
@@ -20,7 +21,7 @@ With the default layout, import `Button` from `./src/components/Button`, `Input`
 
 A root `react-native.config.js` points ordinary native autolinking at the copied local module. An existing conflicting root config is protected; merge the required entry deliberately instead of overwriting it. Rebuild after native source/spec/composition changes. Shared core support currently includes the date-segment backend because focus/form code references it. Table adds its own native sources and refreshes only clean registry-owned factory/build files. While a full Table factory remains required by other installed components, removal must retain the native files that factory references; source removal does not unload an installed binary.
 
-Publication, upgrades, bare-RN installation, physical-device qualification and the final 52-component external-consumer proof are outside the results above.
+The verified consumer uses the Expo tuple below. Bare React Native and physical-device qualification remain separate.
 
 ## Host peers
 
@@ -112,7 +113,7 @@ export const ConsumerRoot = ({
 
 Use `<ConsumerRoot><AppContent /></ConsumerRoot>` in `App`. Keep it mounted while routes and controlled state change. Reuse an existing root SafeAreaProvider if the host already owns one; it supplies insets, while the app still owns safe-area padding, scrolling and keyboard avoidance. `initialWindowMetrics` is an initial root snapshot, not a value to reuse for a different native window.
 
-NativeThemeProvider encloses the overlay tree so presentations retain caller theme/context. NativeOverlayProvider coordinates one root-to-leaf native window chain; nested providers are rejected. NativeFloatingLayerHost supplies a full-size native root for Tooltip, ClickPopover and other floating presentations in that same window, including its internal Teleport provider. Keep app padding/content layout on the child View. An overlay provider cannot replace a floating host. Modal/AlertDialog/Select create their own window-local hosts and safe-area handling; custom separate native windows need their own host.
+NativeThemeProvider encloses the overlay tree so presentations retain caller theme/context. NativeOverlayProvider coordinates one root-to-leaf native window chain; nested providers are rejected. NativeFloatingLayerHost supplies a full-size native root for Tooltip, ClickPopover and other floating presentations in that same window, including its internal Teleport provider. Keep app padding/content layout on the child View. An overlay provider cannot replace a floating host. Modal and AlertDialog supply their own window-local hosts and safe-area handling. Anchored Select in the current native source uses the shared floating layer. Custom separate windows need their own host.
 
 Standalone showcase scenes that own their overlay provider run outside this helper.
 
@@ -139,4 +140,4 @@ Use an Expo development build containing the library and its native peers; Expo 
 | Expo config plugins, scheme, native configuration or bundled font assets        | Apply the host's generation/asset workflow and rebuild/install when native resources/configuration change       |
 | Stale JS cache only                                                             | Restart Metro with `--clear`; this cannot update native code                                                    |
 
-Keep source/type checks, JS bundling, native compilation and installed interaction proof distinct. This reference adds no installer or native selection policy. After bridge integration, the separate consumer-fixtures work must prove actual CLI lifecycle, shared-native composition and iOS/Android builds against the delivered sources.
+Keep source/type checks, JS bundling, native compilation and installed interaction proof distinct. This reference adds no installer or native selection policy. The consumer evidence ledger records the tested CLI installation, shared-native composition, and matching native product identities.
