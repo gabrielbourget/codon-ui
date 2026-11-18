@@ -2,7 +2,9 @@ import {
   forwardRef,
   useCallback,
   useContext,
+  useId,
   useInsertionEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -12,7 +14,14 @@ import {
   type RefAttributes,
   type RefObject,
 } from "react"
-import { ScrollView, View, findNodeHandle, type TextInput, type TextStyle } from "react-native"
+import {
+  ScrollView,
+  View,
+  findNodeHandle,
+  type GestureResponderEvent,
+  type TextInput,
+  type TextStyle,
+} from "react-native"
 
 import { useNativeCollectionRefs, useNativeSlottedContext } from "../../collection/context"
 import { focusNativeTarget, getNativeFocusedTarget } from "../../input/focus"
@@ -140,6 +149,28 @@ const componentOptions = new Set([
   "onKeyUp",
   "data-testid",
 ])
+const CompactOutsideTap = ({ owner, onDismiss }: { owner: string; onDismiss: () => void }) => {
+  const { interactions, layers } = useNativeFloatingHost()
+  const scope = useContext(NativeFloatingScopeContext)
+  const layerID = scope?.id
+  const latest = useRef({ scope, onDismiss })
+  useInsertionEffect(() => {
+    latest.current = { scope, onDismiss }
+  })
+  useLayoutEffect(() => {
+    if (layerID == null) return
+    return interactions.observeTap(
+      owner,
+      (inside) => {
+        if (!inside && latest.current.scope?.canAct() && layers.captureOutside()?.id === layerID)
+          latest.current.onDismiss()
+      },
+      true,
+    )
+  }, [interactions, layerID, layers, owner])
+  return null
+}
+
 const CompactContent = <T extends object>({
   props,
   input,
@@ -148,6 +179,7 @@ const CompactContent = <T extends object>({
   minimum,
   status,
   requestOpen,
+  dismissOutsideTap,
   clearSuppression,
   query,
 }: {
@@ -158,12 +190,14 @@ const CompactContent = <T extends object>({
   minimum: boolean
   status: boolean
   requestOpen: (open: boolean) => void
+  dismissOutsideTap: () => void
   clearSuppression: () => void
   query: string
 }) => {
   const theme = useNativeTheme()
   const content = useNativeContentContext()
   const host = useNativeFloatingHost()
+  const tapOwner = useId()
   const state = useContext(NativeComboBoxStateContext)!
   const inheritedInput = useNativeSlottedContext(NativeComboBoxInputContext, undefined)
   const inheritedGroup = useNativeSlottedContext(NativeComboBoxGroupContext, undefined)
@@ -173,6 +207,7 @@ const CompactContent = <T extends object>({
   const [focused, setFocused] = useState(false)
   const [groupWidth, setGroupWidth] = useState(0)
   const labels = resolveCompactTypeaheadLabels(props)
+  const markTap = (event: GestureResponderEvent) => host.interactions.mark(tapOwner, event)
   const flags = {
     isOpen: state.isOpen,
     isDisabled: !!inheritedInput?.isDisabled,
@@ -242,8 +277,17 @@ const CompactContent = <T extends object>({
         accessibilityLabel={labels.inputButtonGroupAriaLabel}
         onBlur={blur}
         render={(native, flags) => {
+          const group = native as typeof native & { onTouchStartCapture?: (event: GestureResponderEvent) => void }
           const observed = {
             ...native,
+            onTouchStartCapture: (event: GestureResponderEvent) => {
+              markTap(event)
+              group.onTouchStartCapture?.(event)
+            },
+            onTouchEndCapture: (event: GestureResponderEvent) => {
+              markTap(event)
+              native.onTouchEndCapture?.(event)
+            },
             nativeOnFocusWithin: (event: TNativeFocusWithinEvent) => {
               groupWithin.current = event.nativeEvent.within
               native.nativeOnFocusWithin?.(event)
@@ -291,10 +335,13 @@ const CompactContent = <T extends object>({
         placement={props.placement ?? "bottom start"}
         direction={props.rtl ? "rtl" : "ltr"}
         style={[popupStyle, props.customOptionsListStyles]}
+        onTouchStartCapture={markTap}
+        onTouchEndCapture={markTap}
       >
         <NativeContentContext.Provider
           value={{ foregroundColor: styles.list.color ?? styles.foreground, isButton: false }}
         >
+          {open && <CompactOutsideTap owner={tapOwner} onDismiss={dismissOutsideTap} />}
           {status ? (
             <>
               {minimum
@@ -446,6 +493,14 @@ const CompactTypeaheadSearchInner = <T extends object>(
       for (const release of releases) release?.()
     }
   }, [scope, host.layers, overlays, isDisabled, isReadOnly, floatingScope, windowActive, retire])
+  const changeOpen = (next: boolean) => {
+    const owner = current.current
+    if (owner.props.isOpen === undefined) {
+      setLocalOpen(next)
+      setDismissedQuery(next ? null : owner.queryRevision)
+    }
+    owner.props.onOpenChange?.(next)
+  }
   const requestOpen = (next: boolean, trigger?: MenuTriggerAction) => {
     const owner = current.current
     if (!live.current) return
@@ -459,11 +514,7 @@ const CompactTypeaheadSearchInner = <T extends object>(
       (rootWithin.current ?? getNativeFocusedTarget() === input.current)
     )
       return
-    if (owner.props.isOpen === undefined) {
-      setLocalOpen(next)
-      setDismissedQuery(next ? null : owner.queryRevision)
-    }
-    owner.props.onOpenChange?.(next)
+    changeOpen(next)
   }
   const changeQuery = (value: string) => {
     if (!live.current) return
@@ -580,6 +631,9 @@ const CompactTypeaheadSearchInner = <T extends object>(
           minimum={minimum}
           status={status}
           requestOpen={requestOpen}
+          dismissOutsideTap={() => {
+            if (canAct()) changeOpen(false)
+          }}
           clearSuppression={clearSuppression}
           query={query}
         />

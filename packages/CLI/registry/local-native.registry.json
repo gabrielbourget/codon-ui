@@ -2713,7 +2713,7 @@
           "targetRole": "utils",
           "targetPath": "native/src/components/CompactTypeaheadSearch/CompactTypeaheadSearch.tsx",
           "role": "source",
-          "contentHash": "sha256:3935919f4b5e9f58b070b405aa28de7fa07f5b56c8284f4885beafb08fbfbb7e"
+          "contentHash": "sha256:c466cf89f313882c6c13b3dbbe3ed1bec25e30e340781670566e56263a6381ae"
         }
       ],
       "registryDependencies": [],

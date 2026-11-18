@@ -108,6 +108,47 @@ it("honors dismissal of a held query and reopens for a new controlled query revi
   expect(row("type-ahead-search-popover")).toBeOnTheScreen()
 })
 
+it("dismisses on a completed outside tap without closing for inside touches, scrolls, or cancellation", async () => {
+  const onOpenChange = jest.fn()
+  await render(wrapper({ inputValue: "Alpha", minimumInputLength: 1, onOpenChange }))
+  await ready(false)
+  onOpenChange.mockClear()
+
+  const touch = (x: number) => ({
+    nativeEvent: { identifier: "1", pageX: x, pageY: 8, touches: [] },
+    persist: jest.fn(),
+    isPropagationStopped: () => false,
+  })
+  const gesture = async (target?: string, moved = false, cancelled = false) => {
+    await act(async () => {
+      const host = row("host").props
+      const receiver = target ? row(target).props : undefined
+      const start = touch(5)
+      const end = touch(moved ? 40 : 6)
+      host.onTouchStartCapture(start)
+      receiver?.onTouchStartCapture?.(start)
+      if (moved) host.onTouchMoveCapture(end)
+      if (cancelled) host.onTouchCancelCapture(end)
+      else {
+        host.onTouchEndCapture(end)
+        receiver?.onTouchEndCapture?.(end)
+      }
+      await Promise.resolve()
+    })
+  }
+
+  await gesture("type-ahead-search-group")
+  await gesture("type-ahead-search-popover")
+  await gesture(undefined, true)
+  await gesture(undefined, false, true)
+  expect(onOpenChange).not.toHaveBeenCalled()
+  await gesture()
+  await advance()
+  expect(onOpenChange.mock.calls).toEqual([[false]])
+  expect(screen.queryByTestId("type-ahead-search-popover", { includeHiddenElements: true })).toBeNull()
+  expect(row("type-ahead-search-input").props.value).toBe("Alpha")
+})
+
 it("closes a controlled query erased below a positive minimum", async () => {
   let state: ContextType<typeof NativeComboBoxStateContext> = null
   const Probe = () => {
