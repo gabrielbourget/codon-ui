@@ -13,7 +13,7 @@ int main() {
     std::vector<uint8_t> pixels(width * height * 4);
     for (size_t index = 0; index < pixels.size(); index++) pixels[index] = index % 4 == 3 ? 255 : (index * 37) % 256;
     check(codon::backdrop::gaussianBlur(pixels.data(), width, height, 0, live) == pixels);
-    for (double sigma : {0.2, 0.75, 2.0, 4.5}) {
+    for (double sigma : {0.2, 0.75, 2.0, 4.5, 6.0}) {
       const auto actual = codon::backdrop::gaussianBlur(pixels.data(), width, height, sigma, live);
       const int radius = static_cast<int>(std::ceil(6 * sigma));
       // Independent two-dimensional reference, reflecting at pixel boundaries.
@@ -47,6 +47,10 @@ int main() {
   }
   int reads = 0;
   try { codon::backdrop::gaussianBlur(transparentRed, 2, 1, 1, [&] { return ++reads < 3; }); check(false); }
+  catch (const std::runtime_error &) { check(true); }
+  std::vector<uint8_t> wide(35 * 17 * 4, 255);
+  reads = 0;
+  try { codon::backdrop::gaussianBlur(wide.data(), 35, 17, 6, [&] { return ++reads < 24; }); check(false); }
   catch (const std::runtime_error &) { check(true); }
   std::cout << assertions << " shared Gaussian pixel/cancellation assertions passed\n";
 }

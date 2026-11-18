@@ -47,6 +47,8 @@ int main() {
     check(identity==pixels);
   }
   const auto flat=gaussianBlur(pixels.data(),width,height,1.5,live);
+  const TQuad translated{{{-17,29},{-8,29},{-8,36},{-17,36}}};
+  check(projectedBlur(pixels.data(),width,height,translated,width,height,translated,1.5,live)==flat);
   for(const auto &quad:{quads[0],quads[2],quads[3]}) {
     const auto actual=projectedBlur(pixels.data(),width,height,quad,width,height,quad,1.5,live);
     for(size_t index=0;index<flat.size();index++) check(std::abs(actual[index]-flat[index])<=1);
@@ -110,9 +112,14 @@ int main() {
     try {rectangleProjection(9,7,quad);check(false);}
     catch(const std::invalid_argument &){check(true);}
   }
-  for(int cutoff:{1,3,40,95}) {
+  for(int cutoff:{1,3,10,16}) {
     int calls=0;
     try {projectedBlur(pixels.data(),width,height,quads[0],width,height,quads[0],1.5,[&]{return ++calls<cutoff;});check(false);}
+    catch(const std::runtime_error &){check(true);}
+  }
+  for(int cutoff:{40,95}) {
+    int calls=0;
+    try {projectedBlur(pixels.data(),width,height,quads[1],width,height,quads[1],1.5,[&]{return ++calls<cutoff;});check(false);}
     catch(const std::runtime_error &){check(true);}
   }
   std::cout<<assertions<<" projected backdrop mapping/pixel/cancellation assertions passed\n";

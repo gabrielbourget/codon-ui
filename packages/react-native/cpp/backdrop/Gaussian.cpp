@@ -1,5 +1,9 @@
 #include "Gaussian.h"
 
+#if defined(__APPLE__)
+#include <Accelerate/Accelerate.h>
+#endif
+
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -17,6 +21,52 @@ size_t mirror(int64_t coordinate, size_t extent) {
 void check(const std::function<bool()> &current) {
   if (!current || !current()) throw std::runtime_error("Native backdrop: frame retired");
 }
+#if defined(__APPLE__)
+std::vector<uint8_t> acceleratedGaussianBlur(const uint8_t *pixels, size_t width, size_t height,
+    const std::vector<double> &weights, const std::function<bool()> &current) {
+  const size_t radius = weights.size() - 1;
+  const size_t kernelSize = radius * 2 + 1;
+  std::vector<double> kernel(kernelSize);
+  for (size_t i = 0; i < kernelSize; i++)
+    kernel[i] = weights[i < radius ? radius - i : i - radius];
+
+  const size_t stride = width * 4;
+  const size_t extent = std::max(width, height);
+  std::vector<double> signal(extent + 2 * radius), filtered(extent);
+  std::vector<size_t> horizontalOffsets(width + 2 * radius), verticalOffsets(height + 2 * radius);
+  for (size_t i = 0; i < horizontalOffsets.size(); i++)
+    horizontalOffsets[i] = mirror(static_cast<int64_t>(i) - static_cast<int64_t>(radius), width) * 4;
+  for (size_t i = 0; i < verticalOffsets.size(); i++)
+    verticalOffsets[i] = mirror(static_cast<int64_t>(i) - static_cast<int64_t>(radius), height) * stride;
+
+  // The SDK evaluates the same reflected symmetric kernel. Keep the intermediate
+  // float raster and round only the final premultiplied channels as in the scalar path.
+  std::vector<float> horizontal(stride * height);
+  std::vector<uint8_t> output(stride * height);
+  for (size_t y = 0; y < height; y++) {
+    check(current);
+    const auto *row = pixels + y * stride;
+    auto *rowOut = horizontal.data() + y * stride;
+    for (size_t channel = 0; channel < 4; channel++) {
+      for (size_t i = 0; i < horizontalOffsets.size(); i++) signal[i] = row[horizontalOffsets[i] + channel];
+      vDSP_convD(signal.data(), 1, kernel.data(), 1, filtered.data(), 1, width, kernelSize);
+      for (size_t x = 0; x < width; x++) rowOut[x * 4 + channel] = static_cast<float>(filtered[x]);
+    }
+  }
+  for (size_t x = 0; x < width; x++) {
+    check(current);
+    for (size_t channel = 0; channel < 4; channel++) {
+      const size_t position = x * 4 + channel;
+      for (size_t i = 0; i < verticalOffsets.size(); i++) signal[i] = horizontal[verticalOffsets[i] + position];
+      vDSP_convD(signal.data(), 1, kernel.data(), 1, filtered.data(), 1, height, kernelSize);
+      for (size_t y = 0; y < height; y++)
+        output[y * stride + position] = static_cast<uint8_t>(std::clamp(std::lround(filtered[y]), 0L, 255L));
+    }
+  }
+  check(current);
+  return output;
+}
+#endif
 }
 
 std::vector<uint8_t> gaussianBlur(const uint8_t *pixels, size_t width, size_t height,
@@ -43,6 +93,10 @@ std::vector<uint8_t> gaussianBlur(const uint8_t *pixels, size_t width, size_t he
     sum += offset ? weight * 2 : weight;
   }
   for (auto &weight : weights) weight /= sum;
+#if defined(__APPLE__)
+  // Long kernels benefit from the SDK's vectorized convolution.
+  if (radius >= 32) return acceleratedGaussianBlur(pixels, width, height, weights, current);
+#endif
   const size_t stride = width * 4;
   std::vector<float> horizontal(count);
   std::vector<uint8_t> output(count);
