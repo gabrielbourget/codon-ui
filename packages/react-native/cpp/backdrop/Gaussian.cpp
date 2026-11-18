@@ -43,33 +43,58 @@ std::vector<uint8_t> gaussianBlur(const uint8_t *pixels, size_t width, size_t he
     sum += offset ? weight * 2 : weight;
   }
   for (auto &weight : weights) weight /= sum;
+  const size_t stride = width * 4;
   std::vector<float> horizontal(count);
   std::vector<uint8_t> output(count);
+  std::vector<double> rowValues(stride);
+  auto *values = rowValues.data();
   for (size_t y = 0; y < height; y++) {
     check(current);
-    for (size_t x = 0; x < width; x++) {
-      for (size_t channel = 0; channel < 4; channel++) {
-        double value = pixels[(y * width + x) * 4 + channel] * weights[0];
-        for (int64_t offset = 1; offset <= radius; offset++)
-          value += (pixels[(y * width + mirror(static_cast<int64_t>(x) - offset, width)) * 4 + channel] +
-                    pixels[(y * width + mirror(static_cast<int64_t>(x) + offset, width)) * 4 + channel]) *
-              weights[static_cast<size_t>(offset)];
-        horizontal[(y * width + x) * 4 + channel] = static_cast<float>(value);
+    const auto *row = pixels + y * stride;
+    for (size_t i = 0; i < stride; i++) values[i] = row[i] * weights[0];
+    // Walk contiguous channels for each tap. Only the edge pixels need reflection,
+    // and all four channels share the same reflected coordinate.
+    for (int64_t offset = 1; offset <= radius; offset++) {
+      if (offset % 64 == 0) check(current);
+      const auto distance = static_cast<size_t>(offset);
+      const auto interiorStart = std::min(distance, width);
+      const auto interiorEnd = std::max(interiorStart, width - interiorStart);
+      const auto weight = weights[distance];
+      const auto accumulateEdge = [&](size_t x) {
+        const auto coordinate = static_cast<int64_t>(x);
+        const auto *previous = row + mirror(coordinate - offset, width) * 4;
+        const auto *next = row + mirror(coordinate + offset, width) * 4;
+        for (size_t channel = 0; channel < 4; channel++)
+          values[x * 4 + channel] += (previous[channel] + next[channel]) * weight;
+      };
+      for (size_t x = 0; x < interiorStart; x++) accumulateEdge(x);
+      const size_t interiorChannels = (interiorEnd - interiorStart) * 4;
+      if (interiorChannels) {
+        const auto *previous = row + (interiorStart - distance) * 4;
+        const auto *next = row + (interiorStart + distance) * 4;
+        auto *interior = values + interiorStart * 4;
+        for (size_t i = 0; i < interiorChannels; i++) interior[i] += (previous[i] + next[i]) * weight;
       }
+      for (size_t x = interiorEnd; x < width; x++) accumulateEdge(x);
     }
+    auto *filtered = horizontal.data() + y * stride;
+    for (size_t i = 0; i < stride; i++) filtered[i] = static_cast<float>(values[i]);
   }
   for (size_t y = 0; y < height; y++) {
     check(current);
-    for (size_t x = 0; x < width; x++) {
-      for (size_t channel = 0; channel < 4; channel++) {
-        double value = horizontal[(y * width + x) * 4 + channel] * weights[0];
-        for (int64_t offset = 1; offset <= radius; offset++)
-          value += (horizontal[(mirror(static_cast<int64_t>(y) - offset, height) * width + x) * 4 + channel] +
-                    horizontal[(mirror(static_cast<int64_t>(y) + offset, height) * width + x) * 4 + channel]) *
-              weights[static_cast<size_t>(offset)];
-        output[(y * width + x) * 4 + channel] = static_cast<uint8_t>(std::clamp(std::lround(value), 0L, 255L));
-      }
+    const auto *row = horizontal.data() + y * stride;
+    for (size_t i = 0; i < stride; i++) values[i] = row[i] * weights[0];
+    for (int64_t offset = 1; offset <= radius; offset++) {
+      if (offset % 64 == 0) check(current);
+      const auto coordinate = static_cast<int64_t>(y);
+      const auto *previous = horizontal.data() + mirror(coordinate - offset, height) * stride;
+      const auto *next = horizontal.data() + mirror(coordinate + offset, height) * stride;
+      const auto weight = weights[static_cast<size_t>(offset)];
+      for (size_t i = 0; i < stride; i++) values[i] += (previous[i] + next[i]) * weight;
     }
+    auto *filtered = output.data() + y * stride;
+    for (size_t i = 0; i < stride; i++)
+      filtered[i] = static_cast<uint8_t>(std::clamp(std::lround(values[i]), 0L, 255L));
   }
   check(current);
   return output;
