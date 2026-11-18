@@ -64,6 +64,18 @@ bool collapsed(const TQuad &quad) {
   }
   return true;
 }
+bool sharesPixelGrid(const TQuad &source, const TQuad &receiver, size_t width, size_t height) {
+  const double left = source[0].x, top = source[0].y;
+  const double right = left + static_cast<double>(width), bottom = top + static_cast<double>(height);
+  if (std::floor(left) != left || std::floor(top) != top ||
+      (left + 0.5) - left != 0.5 || (top + 0.5) - top != 0.5 ||
+      right - (right - 0.5) != 0.5 || bottom - (bottom - 0.5) != 0.5)
+    return false;
+  const TQuad grid{{{left, top}, {right, top}, {right, bottom}, {left, bottom}}};
+  const auto samePoint = [](TPoint a, TPoint b) { return a.x == b.x && a.y == b.y; };
+  return std::equal(source.begin(), source.end(), grid.begin(), samePoint) &&
+      std::equal(receiver.begin(), receiver.end(), grid.begin(), samePoint);
+}
 TPoint mirrorIntoQuad(TPoint point, const TQuad &quad, const std::function<bool()> &current) {
   const double winding=(quad[1].x-quad[0].x)*(quad[2].y-quad[1].y) -
       (quad[1].y-quad[0].y)*(quad[2].x-quad[1].x);
@@ -163,6 +175,13 @@ std::vector<uint8_t> projectedBlur(const uint8_t *pixels, size_t width, size_t h
   }
   const auto toSource = inverse(rectangleProjection(width, height, source));
   const auto toScreen = rectangleProjection(outputWidth, outputHeight, receiver);
+  // A shared pixel grid has no sampling or fractional phase shift. Reflecting
+  // the capture's pixel boundaries gives the same padding as its screen quad.
+  if (width == outputWidth && height == outputHeight && sharesPixelGrid(source, receiver, width, height)) {
+    auto result = gaussianBlur(pixels, width, height, sigma, current);
+    check(current);
+    return result;
+  }
   std::vector<uint8_t> output;
   const auto sampleSource = [&](TPoint screen, uint8_t *destination) {
     if (inside(source, screen)) sample(pixels, width, height, project(toSource, screen), destination);

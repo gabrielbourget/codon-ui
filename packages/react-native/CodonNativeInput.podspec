@@ -13,6 +13,6 @@ Pod::Spec.new do |s|
   s.source_files = "ios/**/*.{h,mm,swift}", "cpp/**/*.{h,cpp}"
   s.public_header_files = "ios/CUIBackdropCaptureSource.h", "ios/CUIForegroundCompositionSource.h"
   s.private_header_files = Dir.glob(File.join(__dir__, "{ios,cpp}/**/*.h")).map { |path| path.delete_prefix("#{__dir__}/") }.reject { |path| ["ios/CUIBackdropCaptureSource.h", "ios/CUIForegroundCompositionSource.h"].include?(path) }
-  s.frameworks = "Accessibility"
+  s.frameworks = "Accessibility", "Accelerate"
   install_modules_dependencies(s)
 end
