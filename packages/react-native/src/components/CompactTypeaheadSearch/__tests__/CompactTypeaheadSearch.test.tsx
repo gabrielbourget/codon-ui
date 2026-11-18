@@ -109,12 +109,18 @@ it("honors dismissal of a held query and reopens for a new controlled query revi
 })
 
 it("closes a controlled query erased below a positive minimum", async () => {
+  let state: ContextType<typeof NativeComboBoxStateContext> = null
+  const Probe = () => {
+    state = useContext(NativeComboBoxStateContext)
+    return null
+  }
   const Owner = () => {
     const [query, setQuery] = useState("Alpha")
-    return wrapper({ inputValue: query, onInputChange: setQuery, minimumInputLength: 1 })
+    return wrapper({ inputValue: query, onInputChange: setQuery, minimumInputLength: 1, SearchIcon: <Probe /> })
   }
   await render(<Owner />)
   await ready(false)
+  await act(() => state!.setFocused(true))
   await fireEvent.changeText(row("type-ahead-search-input"), "")
   await advance()
   expect(row("type-ahead-search-input").props.value).toBe("")

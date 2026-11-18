@@ -39,6 +39,7 @@ import {
   NativeComboBoxStateContext,
 } from "../ComboBox/collectionContext"
 import { NativeComboBoxItem } from "../ComboBox/ComboBoxItem"
+import type { MenuTriggerAction } from "../ComboBox/state/types"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
 import { splitNativeTextStyle } from "../nativeTextStyle"
 import { PlaceholderText } from "../Text/variants/PlaceholderText/PlaceholderText"
@@ -380,9 +381,30 @@ const CompactTypeaheadSearchInner = <T extends object>(
   const pending = useRef<ReturnType<typeof setTimeout> | null>(null)
   const live = useRef(false)
   const rootWithin = useRef<boolean | null>(null)
-  const current = useRef({ props, status, scope, floatingScope, windowActive, isDisabled, isReadOnly, queryRevision })
+  const emptyQueryBelowMinimum = minimumLength > 0 && query.trim().length === 0
+  const current = useRef({
+    props,
+    status,
+    scope,
+    floatingScope,
+    windowActive,
+    isDisabled,
+    isReadOnly,
+    queryRevision,
+    emptyQueryBelowMinimum,
+  })
   useInsertionEffect(() => {
-    current.current = { props, status, scope, floatingScope, windowActive, isDisabled, isReadOnly, queryRevision }
+    current.current = {
+      props,
+      status,
+      scope,
+      floatingScope,
+      windowActive,
+      isDisabled,
+      isReadOnly,
+      queryRevision,
+      emptyQueryBelowMinimum,
+    }
   })
   const canAct = () =>
     live.current &&
@@ -424,9 +446,11 @@ const CompactTypeaheadSearchInner = <T extends object>(
       for (const release of releases) release?.()
     }
   }, [scope, host.layers, overlays, isDisabled, isReadOnly, floatingScope, windowActive, retire])
-  const requestOpen = (next: boolean) => {
+  const requestOpen = (next: boolean, trigger?: MenuTriggerAction) => {
     const owner = current.current
     if (!live.current) return
+    // The shared combobox can request an input-driven open after the focused query was erased.
+    if (next && trigger === "input" && owner.props.isOpen === undefined && owner.emptyQueryBelowMinimum) return
     if (
       owner.status &&
       owner.props.inputValue !== undefined &&
