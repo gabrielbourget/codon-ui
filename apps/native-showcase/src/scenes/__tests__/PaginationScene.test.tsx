@@ -3,6 +3,10 @@ import { AccessibilityInfo, type View } from "react-native"
 
 import { NativeFloatingLayerHost, NativeOverlayProvider, NativeThemeProvider } from "@codon-ui/react-native"
 
+import {
+  prepareSelectPopover,
+  pressSelectOption,
+} from "../../../../../packages/react-native/src/overlays/floating/__tests__/selectPopoverFixture"
 import { PaginationScene } from "../PaginationScene"
 
 jest.mock("react-native-safe-area-context", () => ({
@@ -52,11 +56,8 @@ it("requests size before the coordinated page and keeps declined size authoritat
   await render(node())
   await press("Toggle pager echo")
   await press("Page size")
-  const modal = screen.getByTestId("pagination-scene-size-window", hidden),
-    dismissed = modal.props.onDismiss
-  await fireEvent(modal, "show")
-  await fireEvent.press(screen.getByRole("radio", { name: "20" }))
-  await act(() => dismissed())
+  await prepareSelectPopover("pagination-scene-size", { queries: screen })
+  await pressSelectOption(screen.getByRole("radio", { name: "20", ...hidden }))
   expect(screen.getByTestId("pagination-scene-state")).toHaveTextContent(/Page: 3.*Size: 10.*size:20, page:2/)
   await press("Toggle pager empty data")
   expect(screen.getByTestId("pagination")).toBeOnTheScreen()
@@ -193,11 +194,8 @@ it("keeps composed pager customizations on their own slots while retaining draft
   expect(within(screen.getByTestId("page-counter")).getByTestId("counter")).not.toHaveStyle({ borderColor: "#7c3aed" })
   expect(within(screen.getByTestId("page-input")).getByTestId("form-field")).toHaveStyle({ borderColor: "#087f8c" })
   await press("Page size")
-  const modal = screen.getByTestId("pagination-scene-size-window", hidden)
-  const dismissed = modal.props.onDismiss
-  await fireEvent(modal, "show")
-  await fireEvent.press(screen.getByRole("radio", { name: "20" }))
-  await act(() => dismissed())
+  await prepareSelectPopover("pagination-scene-size", { queries: screen })
+  await pressSelectOption(screen.getByRole("radio", { name: "20", ...hidden }))
   expect(screen.getByTestId("pagination-scene-state")).toHaveTextContent(/Page: 3.*Size: 10.*size:20, page:2/)
   await press("Reset pager")
   expect(screen.getByTestId("pagination-customization-state")).toHaveTextContent("Pager customizations: none.")

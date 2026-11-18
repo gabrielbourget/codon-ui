@@ -87,7 +87,7 @@ export const ConsumerRoot = ({
   children,
   mode = "light",
   overrides,
-  enableBackdropBlur = false,
+  enableBackdropBlur = true,
 }: PropsWithChildren<{
   mode?: NativeThemeMode
   overrides?: NativeThemeOverrides
@@ -114,7 +114,11 @@ Use `<ConsumerRoot><AppContent /></ConsumerRoot>` in `App`. Keep it mounted whil
 
 NativeThemeProvider encloses the overlay tree so presentations retain caller theme/context. NativeOverlayProvider coordinates one root-to-leaf native window chain; nested providers are rejected. NativeFloatingLayerHost supplies a full-size native root for Tooltip, ClickPopover and other floating presentations in that same window, including its internal Teleport provider. Keep app padding/content layout on the child View. An overlay provider cannot replace a floating host. Modal/AlertDialog/Select create their own window-local hosts and safe-area handling; custom separate native windows need their own host.
 
-`enableBackdropBlur` only configures the capability; an overlay still opts in with `overlayBlur`. Choose this capability before mounting: changing it switches the window wrapper and remounts child content. The optional NativeBackdropHost must enclose the entire parent window, including the floating host. Mounting it without an adapter throws. With blur disabled, the ordinary View and null adapter retain unblurred behavior. DefaultNativeBackdropAdapter supports cooperating native capture; opaque video/GL/custom renderers need the documented native capture cooperation. See the [package contracts](../react-native/) for backdrop and window limits. Do not nest a standalone showcase scene's own overlay provider beneath this helper.
+Standalone showcase scenes that own their overlay provider run outside this helper.
+
+`ConsumerRoot` supplies the backdrop adapter and host by default because `SortAndFilterPanel` requests blur by default. `Modal` and `AlertDialog` request blur through their `overlayBlur` prop. Apps that assemble providers directly must put `NativeBackdropHost` inside a `NativeOverlayProvider` with a backdrop adapter. The host must enclose the entire parent window, including the floating host.
+
+Choose `enableBackdropBlur` before mounting. Changing it switches the window wrapper and remounts child content. For an app that deliberately uses the unblurred window, set `enableBackdropBlur={false}` on `ConsumerRoot` and pass `overlayBlur={false}` to `SortAndFilterPanel`. `DefaultNativeBackdropAdapter` supports cooperating native capture. Opaque video, GL, and custom renderers need the native capture cooperation described in the [package contracts](../react-native/).
 
 ## Theme and fonts
 

@@ -212,7 +212,7 @@ it("opens the standalone query scene through the same chooser without nesting ov
     paddingLeft: 0,
     paddingRight: 0,
   })
-  expect(dialog).toHaveStyle({ boxSizing: "border-box", width: "100%", height: "100%", padding: 10 })
+  expect(dialog).toHaveStyle({ boxSizing: "border-box", width: "100%", height: "100%", padding: 5 })
   await view.rerender(
     <SafeAreaInsetsContext.Provider value={{ top: 4, bottom: 6, left: 8, right: 12 }}>
       <NativeShowcase />

@@ -1,7 +1,11 @@
 import { act, cleanup, fireEvent, render, screen, userEvent } from "@testing-library/react-native"
-import { Dimensions } from "react-native"
+import { AccessibilityInfo, Dimensions } from "react-native"
 import { SafeAreaInsetsContext } from "react-native-safe-area-context"
 
+import {
+  prepareSelectPopover,
+  pressSelectOption,
+} from "../../../../../packages/react-native/src/overlays/floating/__tests__/selectPopoverFixture"
 import { NativeShowcase } from "../NativeShowcase"
 
 beforeEach(() => {
@@ -388,24 +392,8 @@ it("uses native submitted text when the final edit precedes a rendered controlle
   expect(screen.getByTestId("basic-control-state")).toHaveTextContent(/Input: Salut.*Submits: 1/)
 })
 
-// The renderer does not produce platform Modal lifecycle events.
-const nativeWindowUser = () => {
-  const user = userEvent.setup()
-  return {
-    ...user,
-    press: async (...args: Parameters<typeof user.press>) => {
-      const before = screen.queryAllByTestId(/-window$/, { includeHiddenElements: true })
-      await user.press(...args)
-      for (const window of before) {
-        if (!screen.queryByTestId(window.props.testID, { includeHiddenElements: true }))
-          await act(() => window.props.onDismiss?.())
-      }
-      for (const window of screen.queryAllByTestId(/-window$/, { includeHiddenElements: true })) {
-        if (!before.some((prior) => prior.props.testID === window.props.testID)) await fireEvent(window, "show")
-      }
-    },
-  }
-}
+const selectHidden = { includeHiddenElements: true }
+const selectOption = (name: string) => screen.getByRole("radio", { name, ...selectHidden })
 
 it("renders the standalone ListBoxItem with actual parent selection and guard ownership", async () => {
   await renderShowcase()
@@ -422,17 +410,20 @@ it("renders the standalone ListBoxItem with actual parent selection and guard ow
 })
 
 it("composes controlled and uncontrolled Select flows and blocks disabled/read-only changes", async () => {
+  jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
   await renderShowcase()
-  const user = nativeWindowUser()
-  const press = async (name: string) => user.press(screen.getByRole("button", { name }))
+  const user = userEvent.setup()
+  const press = async (name: string) => user.press(screen.getByRole("button", { name, ...selectHidden }))
   await press("Select scene")
   await press("Showcase choice")
+  await prepareSelectPopover("showcase-select", { queries: screen })
   expect(screen.getByTestId("showcase-select", { includeHiddenElements: true }).props.nativeID).toBe("showcase-open")
-  await user.press(screen.getByRole("radio", { name: "String zero" }))
+  await pressSelectOption(selectOption("String zero"))
   expect(screen.getByTestId("select-state")).toHaveTextContent(/Value: string:0.*Changes: 1.*Open: no.*Open events: 2/)
   expect(screen.getByTestId("showcase-select").props.nativeID).toBe("showcase-closed")
   await press("Showcase choice")
-  await press("Close choices")
+  await prepareSelectPopover("showcase-select", { queries: screen })
+  await pressSelectOption(screen.getByRole("button", { name: "Close choices", ...selectHidden }))
   expect(screen.getByTestId("select-state")).toHaveTextContent(/Changes: 1.*Open events: 4/)
   await press("Toggle Select disabled")
   await press("Showcase choice")
@@ -440,22 +431,26 @@ it("composes controlled and uncontrolled Select flows and blocks disabled/read-o
   await press("Toggle Select disabled")
   await press("Toggle Select read-only")
   await press("Showcase choice")
-  await user.press(screen.getByRole("radio", { name: "Numeric zero" }))
-  await press("Close choices")
+  await prepareSelectPopover("showcase-select", { queries: screen })
+  await pressSelectOption(selectOption("Numeric zero"))
+  await pressSelectOption(screen.getByRole("button", { name: "Close choices", ...selectHidden }))
   expect(screen.getByTestId("select-state")).toHaveTextContent(/Value: string:0.*Changes: 1.*read-only/)
   await press("Toggle Select read-only")
   await press("Uncontrolled choice")
-  await user.press(screen.getByRole("radio", { name: "String zero" }))
+  await prepareSelectPopover("uncontrolled-select", { queries: screen })
+  await pressSelectOption(selectOption("String zero"))
   expect(screen.getByTestId("select-state")).toHaveTextContent(/Value: string:0.*Uncontrolled: string:0/)
 })
 
 it("retains Select identity through removal, empty collections, themes and fixtures and resets explicitly", async () => {
+  jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
   await renderShowcase()
-  const user = nativeWindowUser()
-  const press = async (name: string) => user.press(screen.getByRole("button", { name }))
+  const user = userEvent.setup()
+  const press = async (name: string) => user.press(screen.getByRole("button", { name, ...selectHidden }))
   await press("Select scene")
   await press("Showcase choice")
-  await user.press(screen.getByRole("radio", { name: "Numeric zero" }))
+  await prepareSelectPopover("showcase-select", { queries: screen })
+  await pressSelectOption(selectOption("Numeric zero"))
   await press("Toggle selected item removal")
   expect(screen.getByRole("button", { name: "Showcase choice" }).props.accessibilityValue.text).toBe("Choose a value")
   expect(screen.getByTestId("select-state")).toHaveTextContent(/Value: number:0.*Changes: 1/)
@@ -464,8 +459,9 @@ it("retains Select identity through removal, empty collections, themes and fixtu
   await press("Choose near-end value")
   await press("Next Select collection")
   await press("Showcase choice")
-  expect(screen.getByText("No items remaining to select")).toBeOnTheScreen()
-  await press("Close choices")
+  await prepareSelectPopover("showcase-select", { queries: screen })
+  expect(screen.getByText("No items remaining to select", selectHidden)).toBeOnTheScreen()
+  await pressSelectOption(screen.getByRole("button", { name: "Close choices", ...selectHidden }))
   await press("Dark theme")
   await press("Vertical blocked region")
   expect(screen.getByTestId("select-state")).toHaveTextContent(
@@ -479,17 +475,20 @@ it("retains Select identity through removal, empty collections, themes and fixtu
 })
 
 it("uses custom Select visuals while preserving explicit row names and selected state", async () => {
+  jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
   await renderShowcase()
-  const user = nativeWindowUser()
+  const user = userEvent.setup()
   await user.press(screen.getByRole("button", { name: "Select scene" }))
   await user.press(screen.getByRole("button", { name: "Toggle Select custom content" }))
   expect(screen.getByText("Picked none")).toBeOnTheScreen()
   await user.press(screen.getByRole("button", { name: "Showcase choice" }))
-  await user.press(screen.getByRole("radio", { name: "Numeric zero" }))
+  await prepareSelectPopover("showcase-select", { queries: screen })
+  await pressSelectOption(selectOption("Numeric zero"))
   expect(screen.getByText("Picked Numeric zero")).toBeOnTheScreen()
   await user.press(screen.getByRole("button", { name: "Showcase choice" }))
-  expect(screen.getByRole("radio", { name: "Numeric zero" }).props.accessibilityState.checked).toBe(true)
-  expect(screen.getByText("Numeric zero ✓")).toBeOnTheScreen()
+  await prepareSelectPopover("showcase-select", { queries: screen })
+  expect(selectOption("Numeric zero").props.accessibilityState.checked).toBe(true)
+  expect(screen.getByText("Numeric zero ✓", selectHidden)).toBeOnTheScreen()
 })
 
 it("composes multiline editing, final native submit text and controlled/uncontrolled radio guards", async () => {

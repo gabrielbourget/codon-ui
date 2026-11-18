@@ -14990,7 +14990,7 @@
           "targetRole": "utils",
           "targetPath": "native/cpp/backdrop/Gaussian.cpp",
           "role": "source",
-          "contentHash": "sha256:95fce9d6116fd001a403330f93336211c017e6663a02b7488c129426bffa5bb7"
+          "contentHash": "sha256:a1af45663f14d72a373ce7599cc9ed8d5b731fc237cf1abe37168dc6b07d0cd2"
         },
         {
           "sourcePath": "packages/react-native/cpp/backdrop/Gaussian.h",

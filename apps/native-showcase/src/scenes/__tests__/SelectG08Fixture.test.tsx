@@ -6,6 +6,11 @@ import { enableImperativeFocus } from "react-native/src/private/featureflags/Rea
 import { focusNativeTarget, NativeOverlayProvider } from "@codon-ui/react-native"
 
 import { Commands } from "../../../../../packages/react-native/src/input/specs/CUIFocusViewNativeComponent"
+import {
+  prepareSelectPopover,
+  SelectTestHost,
+  pressSelectOption,
+} from "../../../../../packages/react-native/src/overlays/floating/__tests__/selectPopoverFixture"
 import { SelectG08Fixture, snapshotSelectEvent } from "../SelectG08Fixture"
 
 let mockSelectRef: import("react-native").View | null = null
@@ -51,16 +56,25 @@ afterEach(() => {
   jest.clearAllTimers()
   jest.useRealTimers()
 })
-const press = (label: string) => fireEvent.press(screen.getByRole("button", { name: label }))
+const hidden = { includeHiddenElements: true }
+const press = (label: string) => fireEvent.press(screen.getByRole("button", { name: label, ...hidden }))
+const option = (name: string) => screen.getByRole("radio", { name, ...hidden })
+const renderFixture = () =>
+  render(
+    <SelectTestHost>
+      <SelectG08Fixture />
+    </SelectTestHost>,
+  )
 const state = () =>
   JSON.parse(screen.getByTestId("select-native-state", { includeHiddenElements: true }).props.accessibilityLabel)
 
 it("preflights Select native ownership requests and ordered typed selection without changing owner veto", async () => {
-  await render(<SelectG08Fixture />)
+  await renderFixture()
   await press("Case ownership")
   for (let count = 0; count < 3; count++) await press("Choose")
   expect(state().requests).toEqual({ opens: 3, closes: 0, values: 0 })
-  for (let count = 0; count < 3; count++) await fireEvent.press(screen.getByRole("radio", { name: "String zero" }))
+  await prepareSelectPopover("lab-select", { queries: screen })
+  for (let count = 0; count < 3; count++) await pressSelectOption(option("String zero"))
   expect(state()).toMatchObject({ value: "string:0", open: false, requests: { opens: 3, closes: 3, values: 3 } })
   expect(state().events.slice(-2)).toMatchObject([
     { phase: "value", value: "string:0", stale: false },
@@ -71,7 +85,7 @@ it("preflights Select native ownership requests and ordered typed selection with
 })
 
 it("preflights Select trigger ref focus scalars separately from root, retirement and fresh ownership", async () => {
-  await render(<SelectG08Fixture />)
+  await renderFixture()
   await press("Case collections")
   const original = screen.getByRole("button", { name: "Choose" })
   await press("Relabel selected")
@@ -88,7 +102,7 @@ it("preflights Select trigger ref focus scalars separately from root, retirement
 })
 
 it("preflights Select native style constraints and preserves the original default-only ownership route", async () => {
-  await render(<SelectG08Fixture />)
+  await renderFixture()
   await press("Case styles")
   expect(state()).toMatchObject({ styleName: "baseline", width: 292 })
   for (const styleName of ["error", "warning", "success", "custom", "final", "narrow", "null-icon", "custom-icon"]) {
@@ -98,9 +112,10 @@ it("preflights Select native style constraints and preserves the original defaul
   }
   await press("Reset fixture")
   await press("Case uncontrolled")
-  await fireEvent.press(screen.getByRole("radio", { name: "String zero" }))
+  await prepareSelectPopover("lab-select", { queries: screen })
+  await pressSelectOption(option("String zero"))
   await press("Change defaults")
-  expect(screen.getByRole("button", { name: "Choose" }).props.accessibilityValue.text).toBe("String zero")
+  expect(screen.getByRole("button", { name: "Choose", ...hidden }).props.accessibilityValue.text).toBe("String zero")
 })
 
 it("snapshots Select host-instance event and root-layout targets to immutable numeric native tags", async () => {
@@ -110,7 +125,7 @@ it("snapshots Select host-instance event and root-layout targets to immutable nu
   target._nativeTag = 99
   payload.nativeEvent.target = 99
   expect(scalar).toEqual({ target: 17, currentTarget: 17, nativeTarget: 17 })
-  await render(<SelectG08Fixture />)
+  await renderFixture()
   await press("Case collections")
   const root = { _nativeTag: 23 }
   const layout = { target: root, currentTarget: root, nativeEvent: { layout: { x: 1, y: 2, width: 292, height: 44 } } }
@@ -129,28 +144,30 @@ it("snapshots Select host-instance event and root-layout targets to immutable nu
 })
 
 it("preflights Select live metadata replacement during veto and a single disabled held-open closure request", async () => {
-  await render(<SelectG08Fixture />)
+  await renderFixture()
   await press("Case ownership")
   for (let count = 0; count < 3; count++) await press("Choose")
-  await fireEvent.press(screen.getByRole("radio", { name: "String zero" }))
-  expect(screen.getByRole("radio", { name: "Renamed zero" }).props.accessibilityState.checked).toBe(true)
-  await fireEvent.press(screen.getByRole("radio", { name: "String zero" }))
-  expect(screen.queryByRole("radio", { name: "Renamed zero" })).toBeNull()
+  await prepareSelectPopover("lab-select", { queries: screen })
+  await pressSelectOption(option("String zero"))
+  expect(option("Renamed zero").props.accessibilityState.checked).toBe(true)
+  await pressSelectOption(option("String zero"))
+  expect(screen.queryByRole("radio", { name: "Renamed zero", ...hidden })).toBeNull()
   expect(state()).toMatchObject({ value: "number:0", open: true, requests: { values: 2, closes: 2 } })
-  await fireEvent.press(screen.getByRole("radio", { name: "String zero" }))
+  await pressSelectOption(option("String zero"))
   expect(state()).toMatchObject({ value: "string:0", open: false, requests: { values: 3, closes: 3 } })
   await press("Reset fixture")
   await press("Case disabled-held")
   await press("Choose")
   expect(state()).toMatchObject({ disabled: true, open: true, requests: { opens: 1, closes: 1, values: 0 } })
-  await press("Close choices")
+  await prepareSelectPopover("lab-select", { queries: screen })
+  await pressSelectOption(screen.getByRole("button", { name: "Close choices", ...hidden }))
   expect(state().requests.closes).toBe(2)
-  await press("Close choices")
+  await pressSelectOption(screen.getByRole("button", { name: "Close choices", ...hidden }))
   expect(state()).toMatchObject({ open: false, requests: { opens: 1, closes: 3, values: 0 } })
 })
 
 it("preflights Select visible trigger interruption controls and cancels the existing owned frame on unmount", async () => {
-  const view = await render(<SelectG08Fixture />)
+  const view = await renderFixture()
   await press("Case lifetime")
   await press("First Select border")
   expect(state().styleName).toBe("error")
@@ -169,7 +186,9 @@ it("preflights Select visible trigger interruption controls and cancels the exis
 it("composes Select nested window inside the existing showcase overlay provider without a duplicate provider", async () => {
   await render(
     <NativeOverlayProvider>
-      <SelectG08Fixture />
+      <SelectTestHost>
+        <SelectG08Fixture />
+      </SelectTestHost>
     </NativeOverlayProvider>,
   )
   await press("Case nested")
@@ -185,7 +204,7 @@ it("routes fixture focus and blur through public helpers on original registered 
   getter.mockClear().mockReturnValue(false)
   const focusCommand = jest.spyOn(Commands, "requestKeyboardFocus").mockImplementation(() => {})
   const blurCommand = jest.spyOn(Commands, "requestKeyboardBlur").mockImplementation(() => {})
-  await render(<SelectG08Fixture />)
+  await renderFixture()
   await press("Case ownership")
   const original = mockSelectRef!
   const focus = jest.spyOn(original, "focus").mockImplementation(() => {})
