@@ -493,6 +493,24 @@ it("keeps original bubbling focus/blur callbacks separate from the owned focus a
   expect(onFocus).toHaveBeenCalledTimes(1)
 })
 
+it("removes exiting nonmodal content from Android accessibility before unmount", async () => {
+  const f = setup({ isOpen: true, isNonModal: true, childIsDialog: false })
+  const view = await render(f.node())
+  await f.ready()
+  const findInteractionHost = () => {
+    let node = screen.getByTestId("click-popover", hidden).parent
+    while (node && node.props.accessibilityElementsHidden === undefined) node = node.parent
+    return node
+  }
+  expect(findInteractionHost()?.props.accessibilityElementsHidden).toBe(false)
+  await view.rerender(f.node({ isOpen: false, isExiting: true, isNonModal: true, childIsDialog: false }))
+  expect(findInteractionHost()?.props).toMatchObject({
+    accessibilityElementsHidden: true,
+    importantForAccessibility: "no-hide-descendants",
+    pointerEvents: "none",
+  })
+})
+
 it("retires captured entry frames on close and unmount, even if a cancelled callback is retained", async () => {
   const f = setup()
   await render(f.node())

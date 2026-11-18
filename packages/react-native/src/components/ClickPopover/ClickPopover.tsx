@@ -332,6 +332,7 @@ export const NativeFloatingSurface = forwardRef<
   }, [nativeStyle, dynamicPosition, measuredPosition])
   const ready =
     geometryReady && motion.preferenceReady && windowActive?.() !== false && input?.isWindowActive() !== false
+  const interactive = open && ready && layer.active
   useNativeDialogFocusMembership(root, () => ready && layer.canAct())
   const scrollAnchorTag = useNativeFloatingScrollAnchor(
     open && layer.active && shouldUpdatePosition !== false,
@@ -543,9 +544,11 @@ export const NativeFloatingSurface = forwardRef<
           />
         )}
         <View
-          pointerEvents={ready && layer.active ? "box-none" : "none"}
+          collapsable={false}
+          pointerEvents={interactive ? "box-none" : "none"}
           style={[StyleSheet.absoluteFill, !ready && !(!open && isExiting) ? { opacity: 0 } : undefined]}
-          accessibilityElementsHidden={!ready || !layer.active}
+          accessibilityElementsHidden={!interactive}
+          importantForAccessibility={interactive ? "auto" : "no-hide-descendants"}
         >
           <NativeFloatingScopeContext.Provider value={{ id: layer.id, canAct: layer.canAct }}>
             <NativeDialogOverlayFocusOwner

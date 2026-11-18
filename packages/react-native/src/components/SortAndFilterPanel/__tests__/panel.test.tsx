@@ -224,6 +224,16 @@ it("retains both filter scroll owners and the same editor through dialog style a
   expect(editor.props.value).toBe(" pending ")
 })
 
+it("caps only the default panel width to the available narrow viewport", async () => {
+  const native = jest.requireActual<typeof import("react-native")>("react-native")
+  jest.spyOn(native, "useWindowDimensions").mockReturnValue({ width: 320, height: 640, scale: 1, fontScale: 1 })
+  const view = await render(tree({ horizontalGap: 5 }))
+  await present()
+  expect(host("sort-filter-panel")).toHaveStyle({ width: 315, right: 5 })
+  await view.rerender(tree({ width: 380, horizontalGap: 5 }))
+  expect(host("sort-filter-panel")).toHaveStyle({ width: 380, right: 5 })
+})
+
 it("keeps closed state owned and exposes the canonical default chrome, fields and separate style owners", async () => {
   const closed = await render(tree({ isOpen: false }))
   expect(screen.queryByTestId("query-panel-dialog")).toBeNull()

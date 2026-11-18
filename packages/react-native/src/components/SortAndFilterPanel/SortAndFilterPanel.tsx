@@ -1,5 +1,5 @@
 import { useRef, type ReactNode, type RefObject } from "react"
-import { KeyboardAvoidingView, Platform, View, type StyleProp, type TextStyle } from "react-native"
+import { KeyboardAvoidingView, Platform, View, useWindowDimensions, type StyleProp, type TextStyle } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { focusNativeTarget } from "../../input/focus"
@@ -180,13 +180,15 @@ export const SortAndFilterPanel = (props: TNativeSortAndFilterPanelProps) => {
   const {
     title = "Sort and Filter Panel",
     height = "100%",
-    width = 350,
+    width,
     position = "right",
     raised = true,
     overlayBlur = true,
     isDismissable = true,
     isKeyboardDismissDisabled = false,
   } = props
+  const { width: viewportWidth } = useWindowDimensions()
+  const defaultWidth = Math.min(350, Math.max(0, viewportWidth - Math.max(0, props.horizontalGap ?? 0)))
   const sort = useRef<TNativeSelectRef>(null),
     filter = useRef<TNativeSelectRef>(null)
   const criteriaRefs = useRef<TCriteriaRefs>({ sort, filter }).current
@@ -197,7 +199,7 @@ export const SortAndFilterPanel = (props: TNativeSortAndFilterPanelProps) => {
         testID={props.testID ?? props["data-testid"] ?? "sort-filter-panel"}
         accessibilityLabel={title}
         height={height}
-        width={width}
+        width={width ?? defaultWidth}
         horizontalGap={props.horizontalGap}
         position={position}
         panelGeometry={props.panelGeometry}
