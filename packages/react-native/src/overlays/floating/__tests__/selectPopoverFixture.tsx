@@ -1,4 +1,4 @@
-import { act, screen } from "@testing-library/react-native"
+import { act, screen } from "@testing-library/react-native/pure"
 import type { ReactNode } from "react"
 import type { GestureResponderEvent, View } from "react-native"
 

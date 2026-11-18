@@ -3,6 +3,10 @@ import { AccessibilityInfo, Dimensions } from "react-native"
 
 import { NativeOverlayProvider, NativeThemeProvider } from "@codon-ui/react-native"
 
+import {
+  prepareSelectPopover,
+  pressSelectOption,
+} from "../../../../../packages/react-native/src/overlays/floating/__tests__/selectPopoverFixture"
 import { OverlayScene } from "../OverlayScene"
 
 jest.mock("react-native-safe-area-context", () => {
@@ -23,12 +27,8 @@ const retire = async (id: string) => {
 const press = async (name: string) => userEvent.setup().press(screen.getByRole("button", { name }))
 // Mock Modal retains its React ancestry; deliver activation to the ready native child explicitly.
 let activationId = 0
-const childActivation = async (name: string, role: "button" | "radio" = "button") => {
-  const node = screen.getByRole(role, { name, includeHiddenElements: true })
-  if (role === "radio") {
-    await act(() => node.props.onClick({ nativeEvent: {}, stopPropagation: () => undefined }))
-    return
-  }
+const childActivation = async (name: string) => {
+  const node = screen.getByRole("button", { name, includeHiddenElements: true })
   let scope = node.parent
   while (scope && !scope.props.onNativeScopeStatus) scope = scope.parent
   if (!scope) throw new Error("Expected the button's same-window native keyboard scope")
@@ -140,9 +140,9 @@ it("retains parent-local state and uncontrolled native drafts across child windo
   )
   expect(screen.getByTestId("overlay-local-input")).toHaveDisplayValue("local retained draft")
   await press("Nested direction")
-  await show("overlay-select")
-  await childActivation("South", "radio")
-  await retire("overlay-select")
+  await prepareSelectPopover("overlay-select", { queries: screen })
+  await pressSelectOption(screen.getByRole("radio", { name: "South", includeHiddenElements: true }))
+  await act(() => jest.advanceTimersByTimeAsync(250))
   expect(screen.getByTestId("overlay-local-state")).toHaveTextContent(/Local body count: 1\./)
   expect(screen.getByTestId("overlay-select-trigger").props.accessibilityValue.text).toBe("South")
   await press("Close entire chain")
